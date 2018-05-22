@@ -1,15 +1,15 @@
-#!/usr/bin/env bash -x
+#!/bin/bash -x
 
 set -o errexit
 set -o pipefail
 set -o nounset
 
-scriptDir="$(cd "$(dirname $0)"; pwd)"
+scriptDir="$(cd "$(dirname "${0}")"; pwd)"
 
 region="us-west-2"
 nodeAMI="ami-993141e1"
 
-keyName="ilya" # TODO
+keyName="ilya" # TODO - find a way to either upload a key from file or make it optional?
 
 case "$#" in
   0)
@@ -43,17 +43,21 @@ esac
 p="${scriptDir}/vendor/1.10.0/2018-05-09"
 binariesDir="${p}/bin/$(uname | tr '[:upper:]' '[:lower:]')/amd64"
 
-chmod +x -R "${binariesDir}"
+chmod -R +x "${binariesDir}"
 
 export PATH="${binariesDir}:${PATH}"
 
-aws configure add-model --service-model "file:/${p}/eks-2017-11-01.normal.json" --service-name eks
+aws configure add-model \
+  --service-model "file://${p}/eks-2017-11-01.normal.json" \
+  --service-name eks
 
 ## CloudFormation templates
 
 serviceRoleTemplate="amazon-eks-service-role.yaml"
 vpcTemplate="amazon-eks-vpc-sample.yaml"
 nodeGroupTemplate="amazon-eks-nodegroup.yaml"
+
+stackNamePrefix="EKS-${clusterName}-"
 
 createCluster() {
   aws eks create-cluster \
@@ -72,13 +76,14 @@ describeCluster() {
 }
 
 createStack() {
-  name="${clusterName}-${1}"
-  templateBody="file:/${p}/${2}"
+  name="${stackNamePrefix}${1}"
+  templateBody="file://${p}/${2}"
   shift 2
   aws cloudformation create-stack \
     --region "${region}" \
     --stack-name "${name}" \
-    --template-body "${templateBody}"
+    --template-body "${templateBody}" \
+    "$@"
 }
 
 describeStacks() {
@@ -90,55 +95,59 @@ describeStacks() {
 checkStacksReadyCount() {
   describeStacks \
     | jq -r \
-      --arg prefix "${clusterName}-" \
+      --arg prefix "${stackNamePrefix}" \
         '[.Stacks[] | select(.StackName | startswith($prefix)) | select(.StackStatus == "CREATE_COMPLETE")] | length'
 }
 
 getStackOutput() {
-  name="${clusterName}-${1}"
+  name="${stackNamePrefix}${1}"
   outputKey="${2}"
   stacks="$(describeStacks)"
   echo "${stacks}" \
     | jq -r \
       --arg name "${name}" \
       --arg outputKey "${outputKey}" \
-        '.Stacks[] | select(.StackName = $name) | .Outputs[] | select(.OutputKey == $outputKey) | .OutputValue'
+        '.Stacks[] | select(.StackName == $name) | .Outputs[] | select(.OutputKey == $outputKey) | .OutputValue'
 }
 
-# Create two stacks we need first
-createStack "ServiceRole" "${serviceRoleTemplate}"
+## Create two stacks we need first
+createStack "ServiceRole" "${serviceRoleTemplate}" \
+  --capabilities "CAPABILITY_IAM"
+
 createStack "VPC" "${vpcTemplate}" \
   --parameters \
     ParameterKey=ClusterName,ParameterValue="${clusterName}"
 
-# Wait until the two stack are ready
-until test "$(checkStacksReady)" -eq 2 ; do sleep 20 ; done
+## Wait until the two stack are ready
+until test "$(checkStacksReadyCount)" -eq 2 ; do sleep 20 ; done
 
-# Obtain outputs from each of the stacks
+## Obtain outputs from each of the stacks
 securityGroups=($(getStackOutput "VPC" "SecurityGroups"))
 subnets=($(getStackOutput "VPC" "SubnetIds"))
 clusterRoleARN="$(getStackOutput "ServiceRole" "RoleArn")"
 
-# Now, create the actual cluster
+## Now, create the actual cluster
 createCluster
 
-# Next, create the nodes
-createStack "DefaultNodeGroup" "${nodeGroupTemplate}" \
-  --parameters \
-    ParameterKey=ClusterName,ParameterValue="${clusterName}" \
-    ParameterKey=NodeGroupName,ParameterValue="${clusterName}-DefaultNodeGroup" \
-    ParameterKey=KeyName,ParameterValue="${keyName}" \
-    ParameterKey=NodeImageId,ParameterValue="${nodeAMI}" \
-    ParameterKey=NodeInstanceType,ParameterValue="${nodeType}" \
-    ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue="${numberOfNodes}" \
-    ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue="${numberOfNodes}" \
-    ParameterKey=ControlPlaneSecurityGroup,ParameterValue="${securityGroups[1]}" \
-    ParameterKey=Subnets,ParameterValue="${subnets}" \ # TODO - comma-separated
-    ParameterKey=VpcId,ParameterValue="${clusterVPC}" \ # TODO - not in outputs
+#### Next, create the nodes
+##createStack "DefaultNodeGroup" "${nodeGroupTemplate}" \
+##  --capabilities "CAPABILITY_IAM" \
+##  --parameters \
+##    ParameterKey=ClusterName,ParameterValue="${clusterName}" \
+##    ParameterKey=NodeGroupName,ParameterValue="${clusterName}-DefaultNodeGroup" \
+##    ParameterKey=KeyName,ParameterValue="${keyName}" \
+##    ParameterKey=NodeImageId,ParameterValue="${nodeAMI}" \
+##    ParameterKey=NodeInstanceType,ParameterValue="${nodeType}" \
+##    ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue="${numberOfNodes}" \
+##    ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue="${numberOfNodes}" \
+##    ParameterKey=ControlPlaneSecurityGroup,ParameterValue="${securityGroups[1]}" \
+##    ParameterKey=Subnets,ParameterValue="${subnets}" \ # TODO - comma-separated
+##    ParameterKey=VpcId,ParameterValue="${clusterVPC}" \ # TODO - not in outputs
 
+## Wait until cluster is ready
+until test "$(describeCluster --query "cluster.status")" = '"ACTIVE"' ; do sleep 20 ; done
 
-until test "$(describeCluster --query "cluster.status")" = "ACTIVE" ; do sleep 20 ; done
-
+## Obtain cluster credentials
 masterEndpoint="$(describeCluster --query "cluster.masterEndpoint")"
 certificateAuthorityData="$(describeCluster --query "cluster.certificateAuthority.data")"
 
@@ -187,10 +196,11 @@ data:
         - system:node-proxier
 "
 
+## Write kubeconfig file
 export KUBECONFIG="${scriptDir}/../${clusterName}.${region}.yaml"
-
 echo "${kubeconfig}" > "${KUBECONFIG}"
 
+## Authorise the nodes to join the cluster
 echo "${nodeAuthConfigMap}" | kubectl apply --filename='-'
 
-kubectl get nodes --watch
+##kubectl get nodes --watch
