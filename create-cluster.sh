@@ -6,10 +6,14 @@ set -o nounset
 
 scriptDir="$(cd "$(dirname "${0}")"; pwd)"
 
+## Major constants
+
 region="us-west-2"
 nodeAMI="ami-993141e1"
 
 keyName="ilya" # TODO - find a way to either upload a key from file or make it optional?
+
+## Arguments
 
 case "$#" in
   0)
@@ -59,7 +63,10 @@ nodeGroupTemplate="amazon-eks-nodegroup.yaml"
 
 stackNamePrefix="EKS-${clusterName}-"
 
+## Functions
+
 createCluster() {
+  echo "Creating cluster ${clusterName}"
   aws eks create-cluster \
     --region "${region}" \
     --role-arn "${clusterRoleARN}" \
@@ -91,8 +98,9 @@ describeStacks() {
     --region "${region}"
 }
 
-## TODO this is very naive, it assumes stacks won't produce errors, e.g. rollback due to quota
 checkStacksReadyCount() {
+  ## TODO this is very naive (like most things here)
+  ## it assumes stacks won't produce errors, e.g. rollback due to quota
   describeStacks \
     | jq -r \
       --arg prefix "${stackNamePrefix}" \
@@ -110,7 +118,12 @@ getStackOutput() {
         '.Stacks[] | select(.StackName == $name) | .Outputs[] | select(.OutputKey == $outputKey) | .OutputValue'
 }
 
-## Create two stacks we need first
+## Action
+
+stacksText="${stackNamePrefix}ServiceRole and ${stackNamePrefix}VPC stacks"
+
+echo "Creating ${stacksText} we need first"
+
 createStack "ServiceRole" "${serviceRoleTemplate}" \
   --capabilities "CAPABILITY_IAM"
 
@@ -118,15 +131,16 @@ createStack "VPC" "${vpcTemplate}" \
   --parameters \
     ParameterKey=ClusterName,ParameterValue="${clusterName}"
 
-## Wait until the two stack are ready
+echo "Waiting until the ${stacksText} are ready"
+
 until test "$(checkStacksReadyCount)" -eq 2 ; do sleep 20 ; done
 
-## Obtain outputs from each of the stacks
+echo "Collect outputs from the ${stacksText}"
+
 securityGroups=($(getStackOutput "VPC" "SecurityGroups"))
 subnets=($(getStackOutput "VPC" "SubnetIds"))
 clusterRoleARN="$(getStackOutput "ServiceRole" "RoleArn")"
 
-## Now, create the actual cluster
 createCluster
 
 #### Next, create the nodes
@@ -144,10 +158,13 @@ createCluster
 ##    ParameterKey=Subnets,ParameterValue="${subnets}" \ # TODO - comma-separated
 ##    ParameterKey=VpcId,ParameterValue="${clusterVPC}" \ # TODO - not in outputs
 
-## Wait until cluster is ready
+echo "Wait until cluster is ready"
+
 until test "$(describeCluster --query "cluster.status")" = '"ACTIVE"' ; do sleep 20 ; done
 
-## Obtain cluster credentials
+export KUBECONFIG="${scriptDir}/${clusterName}.${region}.yaml"
+echo "Saving cluster credentials in ${KUBECONFIG}"
+
 masterEndpoint="$(describeCluster --query "cluster.masterEndpoint")"
 certificateAuthorityData="$(describeCluster --query "cluster.certificateAuthority.data")"
 
@@ -159,8 +176,8 @@ current-context: '${clusterName}.${region}.eks.amazonaws.com'
 clusters:
 - name: '${clusterName}.${region}.eks.amazonaws.com'
   cluster:
-    server: '${masterEndpoint}'
-    certificate-authority-data: '${certificateAuthorityData}'
+    server: ${masterEndpoint}
+    certificate-authority-data: ${certificateAuthorityData}
 contexts:
 - name: '${clusterName}.${region}.eks.amazonaws.com'
   context:
@@ -196,11 +213,9 @@ data:
         - system:node-proxier
 "
 
-## Write kubeconfig file
-export KUBECONFIG="${scriptDir}/../${clusterName}.${region}.yaml"
 echo "${kubeconfig}" > "${KUBECONFIG}"
 
-## Authorise the nodes to join the cluster
+echo "Authorising nodes to join the cluster"
 echo "${nodeAuthConfigMap}" | kubectl apply --filename='-'
 
 ##kubectl get nodes --watch
