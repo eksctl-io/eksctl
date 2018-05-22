@@ -71,7 +71,7 @@ createCluster() {
     --region "${region}" \
     --role-arn "${clusterRoleARN}" \
     --subnets "${subnets[@]}" \
-    --security-groups "${securityGroups}" \
+    --security-groups "${securityGroup}" \
     --cluster-name "${clusterName}"
 }
 
@@ -137,26 +137,29 @@ until test "$(checkStacksReadyCount)" -eq 2 ; do sleep 20 ; done
 
 echo "Collect outputs from the ${stacksText}"
 
-securityGroups=($(getStackOutput "VPC" "SecurityGroups"))
-subnets=($(getStackOutput "VPC" "SubnetIds"))
+securityGroup=($(getStackOutput "VPC" "SecurityGroup"))
+subnets=($(getStackOutput "VPC" "Subnets"))
+subnetsList=($(getStackOutput "VPC" "SubnetsList"))
+clusterVPC=($(getStackOutput "VPC" "ClusterVPC"))
 clusterRoleARN="$(getStackOutput "ServiceRole" "RoleArn")"
 
 createCluster
 
-#### Next, create the nodes
-##createStack "DefaultNodeGroup" "${nodeGroupTemplate}" \
-##  --capabilities "CAPABILITY_IAM" \
-##  --parameters \
-##    ParameterKey=ClusterName,ParameterValue="${clusterName}" \
-##    ParameterKey=NodeGroupName,ParameterValue="${clusterName}-DefaultNodeGroup" \
-##    ParameterKey=KeyName,ParameterValue="${keyName}" \
-##    ParameterKey=NodeImageId,ParameterValue="${nodeAMI}" \
-##    ParameterKey=NodeInstanceType,ParameterValue="${nodeType}" \
-##    ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue="${numberOfNodes}" \
-##    ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue="${numberOfNodes}" \
-##    ParameterKey=ControlPlaneSecurityGroup,ParameterValue="${securityGroups[1]}" \
-##    ParameterKey=Subnets,ParameterValue="${subnets}" \ # TODO - comma-separated
-##    ParameterKey=VpcId,ParameterValue="${clusterVPC}" \ # TODO - not in outputs
+echo "Creating ${stackNamePrefix}DefaultNodeGroup stack"
+
+createStack "DefaultNodeGroup" "${nodeGroupTemplate}" \
+  --capabilities "CAPABILITY_IAM" \
+  --parameters \
+    ParameterKey=ClusterName,ParameterValue="${clusterName}" \
+    ParameterKey=NodeGroupName,ParameterValue="${clusterName}-DefaultNodeGroup" \
+    ParameterKey=KeyName,ParameterValue="${keyName}" \
+    ParameterKey=NodeImageId,ParameterValue="${nodeAMI}" \
+    ParameterKey=NodeInstanceType,ParameterValue="${nodeType}" \
+    ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue="${numberOfNodes}" \
+    ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue="${numberOfNodes}" \
+    ParameterKey=ControlPlaneSecurityGroup,ParameterValue="${securityGroup}" \
+    ParameterKey=Subnets,ParameterValue="${subnetsList}" \
+    ParameterKey=VpcId,ParameterValue="${clusterVPC}"
 
 echo "Wait until cluster is ready"
 
