@@ -1,0 +1,77 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EKS Service Role'
+
+
+Resources:
+
+  AWSServiceRoleForAmazonEKS:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - eks.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: AmazonEKSServiceRolePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - autoscaling:DescribeAutoScalingGroups
+            - autoscaling:UpdateAutoScalingGroup
+            - ec2:AttachVolume
+            - ec2:AuthorizeSecurityGroupIngress
+            - ec2:CreateNetworkInterface
+            - ec2:CreateNetworkInterfacePermission
+            - ec2:CreateRoute
+            - ec2:CreateSecurityGroup
+            - ec2:CreateTags
+            - ec2:CreateVolume
+            - ec2:DeleteNetworkInterface
+            - ec2:DeleteRoute
+            - ec2:DeleteSecurityGroup
+            - ec2:DeleteVolume
+            - ec2:DescribeInstances
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DescribeRouteTables
+            - ec2:DescribeSecurityGroups
+            - ec2:DescribeSubnets
+            - ec2:DescribeVolumes
+            - ec2:DescribeVpcs
+            - ec2:DetachVolume
+            - ec2:ModifyInstanceAttribute
+            - ec2:ModifyNetworkInterfaceAttribute
+            - ec2:RevokeSecurityGroupIngress
+            - elasticloadbalancing:ApplySecurityGroupsToLoadBalancer
+            - elasticloadbalancing:AttachLoadBalancerToSubnets
+            - elasticloadbalancing:ConfigureHealthCheck
+            - elasticloadbalancing:CreateLoadBalancer
+            - elasticloadbalancing:CreateLoadBalancerListeners
+            - elasticloadbalancing:CreateLoadBalancerPolicy
+            - elasticloadbalancing:DeleteLoadBalancer
+            - elasticloadbalancing:DeleteLoadBalancerListeners
+            - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
+            - elasticloadbalancing:DescribeLoadBalancerAttributes
+            - elasticloadbalancing:DescribeLoadBalancers
+            - elasticloadbalancing:DetachLoadBalancerFromSubnets
+            - elasticloadbalancing:ModifyLoadBalancerAttributes
+            - elasticloadbalancing:RegisterInstancesWithLoadBalancer
+            - elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer
+            Resource: "*"
+
+
+Outputs:
+
+  RoleArn:
+    Description: The role that EKS will use to create AWS resources for Kubernetes clusters
+    Value: !GetAtt AWSServiceRoleForAmazonEKS.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-RoleArn"
+

@@ -1,0 +1,344 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2017-11-01",
+    "endpointPrefix":"eks",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"Amazon EKS",
+    "serviceFullName":"Amazon Elastic Container Service for Kubernetes",
+    "signatureVersion":"v4",
+    "signingName":"eks",
+    "uid":"eks-2017-11-01"
+  },
+  "operations":{
+    "CreateCluster":{
+      "name":"CreateCluster",
+      "http":{
+        "method":"POST",
+        "requestUri":"/clusters"
+      },
+      "input":{"shape":"CreateClusterRequest"},
+      "output":{"shape":"CreateClusterResponse"},
+      "errors":[
+        {"shape":"ResourceInUseException"},
+        {"shape":"ResourceLimitExceededException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ClientException"},
+        {"shape":"ServerException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Creates an Amazon EKS cluster. You may create up to 2 clusters.</p>"
+    },
+    "DeleteCluster":{
+      "name":"DeleteCluster",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/clusters/{clusterName}"
+      },
+      "input":{"shape":"DeleteClusterRequest"},
+      "output":{"shape":"DeleteClusterResponse"},
+      "errors":[
+        {"shape":"ResourceInUseException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ClientException"},
+        {"shape":"ServerException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Deletes an Amazon EKS cluster.</p>"
+    },
+    "DescribeCluster":{
+      "name":"DescribeCluster",
+      "http":{
+        "method":"GET",
+        "requestUri":"/clusters/{clusterName}"
+      },
+      "input":{"shape":"DescribeClusterRequest"},
+      "output":{"shape":"DescribeClusterResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ClientException"},
+        {"shape":"ServerException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Returns descriptive information about an Amazon EKS cluster.</p>"
+    },
+    "ListClusters":{
+      "name":"ListClusters",
+      "http":{
+        "method":"GET",
+        "requestUri":"/clusters"
+      },
+      "input":{"shape":"ListClustersRequest"},
+      "output":{"shape":"ListClustersResponse"},
+      "errors":[
+        {"shape":"InvalidParameterException"},
+        {"shape":"ClientException"},
+        {"shape":"ServerException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Lists the Amazon EKS clusters in your AWS account (in the specified or default region).</p>"
+    }
+  },
+  "shapes":{
+    "Certificate":{
+      "type":"structure",
+      "members":{
+        "data":{
+          "shape":"String",
+          "documentation":"<p>The base64 encoded certificate data required to communicate with your cluster. Add this to the <code>certificate-authority-data</code> section of the <code>kubeconfig</code> file for your cluster.</p>"
+        }
+      },
+      "documentation":"<p>An object representing the <code>certificate-authority-data</code> for your cluster.</p>"
+    },
+    "ClientException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>These errors are usually caused by a client action, such as using an action or resource on behalf of a user that doesn't have permissions to use the action or resource, or specifying an identifier that is not valid.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "Cluster":{
+      "type":"structure",
+      "members":{
+        "clusterName":{
+          "shape":"String",
+          "documentation":"<p>The name of the cluster.</p>"
+        },
+        "clusterArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the cluster.</p>"
+        },
+        "createdAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The Unix time stamp in microseconds (rounded to the nearest millisecond) for when the cluster was created.</p>"
+        },
+        "currentMasterVersion":{
+          "shape":"String",
+          "documentation":"<p>The current Kubernetes master version for the cluster.</p>"
+        },
+        "desiredMasterVersion":{
+          "shape":"String",
+          "documentation":"<p>The desired Kubernetes master version for the cluster.</p>"
+        },
+        "masterEndpoint":{
+          "shape":"String",
+          "documentation":"<p>The endpoint for your Kubernetes API server.</p>"
+        },
+        "roleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes master to make calls to AWS API operations on your behalf.</p>"
+        },
+        "subnets":{
+          "shape":"StringList",
+          "documentation":"<p>The subnets associated with your cluster.</p>"
+        },
+        "securityGroups":{
+          "shape":"StringList",
+          "documentation":"<p>The security groups associated with the cross-account elastic network interfaces that are used to allow communication between your worker nodes and the Kubernetes control plane.</p>"
+        },
+        "status":{
+          "shape":"ClusterStatus",
+          "documentation":"<p>The current status of the cluster.</p>"
+        },
+        "certificateAuthority":{
+          "shape":"Certificate",
+          "documentation":"<p>The <code>certificate-authority-data</code> for your cluster.</p>"
+        }
+      },
+      "documentation":"<p>An object representing an Amazon EKS cluster.</p>"
+    },
+    "ClusterStatus":{
+      "type":"string",
+      "enum":[
+        "NEW",
+        "PROVISIONING",
+        "UPDATING",
+        "ACTIVE",
+        "INACTIVE"
+      ]
+    },
+    "CreateClusterRequest":{
+      "type":"structure",
+      "required":[
+        "clusterName",
+        "roleArn",
+        "subnets"
+      ],
+      "members":{
+        "clusterName":{
+          "shape":"String",
+          "documentation":"<p>The unique name to give to your cluster.</p>"
+        },
+        "desiredMasterVersion":{
+          "shape":"String",
+          "documentation":"<p>The desired Kubernetes master version for your cluster. If you do not specify a value here, the latest available version is used.</p>"
+        },
+        "roleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that provides permissions for Amazon EKS to make calls to other AWS API operations on your behalf.</p>"
+        },
+        "subnets":{
+          "shape":"StringList",
+          "documentation":"<p>Specify subnets for your Amazon EKS worker nodes. Amazon EKS creates cross-account elastic network interfaces in these subnets to allow communication between your worker nodes and the Kubernetes control plane.</p>"
+        },
+        "securityGroups":{
+          "shape":"StringList",
+          "documentation":"<p>Specify a security group for the cross-account elastic network interfaces that Amazon EKS creates to use to allow communication between your worker nodes and the Kubernetes control plane.</p>"
+        }
+      }
+    },
+    "CreateClusterResponse":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"Cluster",
+          "documentation":"<p>The full description of your new cluster.</p>"
+        }
+      }
+    },
+    "DeleteClusterRequest":{
+      "type":"structure",
+      "required":["clusterName"],
+      "members":{
+        "clusterName":{
+          "shape":"String",
+          "documentation":"<p>The name of the cluster to delete.</p>",
+          "location":"uri",
+          "locationName":"clusterName"
+        }
+      }
+    },
+    "DeleteClusterResponse":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"Cluster",
+          "documentation":"<p>The full description of the cluster to delete.</p>"
+        }
+      }
+    },
+    "DescribeClusterRequest":{
+      "type":"structure",
+      "required":["clusterName"],
+      "members":{
+        "clusterName":{
+          "shape":"String",
+          "documentation":"<p>The name of the cluster to describe.</p>",
+          "location":"uri",
+          "locationName":"clusterName"
+        }
+      }
+    },
+    "DescribeClusterResponse":{
+      "type":"structure",
+      "members":{
+        "cluster":{
+          "shape":"Cluster",
+          "documentation":"<p>The full description of your specified cluster.</p>"
+        }
+      }
+    },
+    "InvalidParameterException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The specified parameter is invalid. Review the available parameters for the API request.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "ListClustersRequest":{
+      "type":"structure",
+      "members":{
+        "maxResults":{
+          "shape":"ListClustersRequestMaxResults",
+          "documentation":"<p>The maximum number of cluster results returned by <code>ListClusters</code> in paginated output. When this parameter is used, <code>ListClusters</code> only returns <code>maxResults</code> results in a single page along with a <code>nextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>ListClusters</code> request with the returned <code>nextToken</code> value. This value can be between 1 and 100. If this parameter is not used, then <code>ListClusters</code> returns up to 100 results and a <code>nextToken</code> value if applicable.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value returned from a previous paginated <code>ListClusters</code> request where <code>maxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>nextToken</code> value.</p> <note> <p>This token should be treated as an opaque identifier that is only used to retrieve the next items in a list and not for other programmatic purposes.</p> </note>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "ListClustersRequestMaxResults":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
+    },
+    "ListClustersResponse":{
+      "type":"structure",
+      "members":{
+        "clusters":{
+          "shape":"StringList",
+          "documentation":"<p>A list of all of the clusters for your account in the specified region.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The <code>nextToken</code> value to include in a future <code>ListClusters</code> request. When the results of a <code>ListClusters</code> request exceed <code>maxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
+    "ResourceInUseException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The specified resource is in use.</p>",
+      "error":{"httpStatusCode":409},
+      "exception":true
+    },
+    "ResourceLimitExceededException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>You have encountered a service limit on the specified resource.</p>",
+      "error":{"httpStatusCode":400},
+      "exception":true
+    },
+    "ResourceNotFoundException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The specified resource could not be found. You can view your available clusters with <a>ListClusters</a>. Amazon EKS clusters are region-specific.</p>",
+      "error":{"httpStatusCode":404},
+      "exception":true
+    },
+    "ServerException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>These errors are usually caused by a server-side issue.</p>",
+      "error":{"httpStatusCode":500},
+      "exception":true,
+      "fault":true
+    },
+    "ServiceUnavailableException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The service is unavailable, back off and retry the operation.</p>",
+      "error":{"httpStatusCode":503},
+      "exception":true,
+      "fault":true
+    },
+    "String":{"type":"string"},
+    "StringList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "Timestamp":{"type":"timestamp"}
+  },
+  "documentation":"<p>Amazon Elastic Container Service for Kubernetes (Amazon EKS) is a managed service that makes it easy for you to run Kubernetes on AWS without needing to install and operate your own Kubernetes clusters. Kubernetes is an open-source system for automating the deployment, scaling, and management of containerized applications. Operating Kubernetes for production applications presents a number of challenges. You must manage the scaling and availability of your Kubernetes masters and persistence layer by ensuring that you have chosen appropriate instance types, running them across multiple Availability Zones, monitoring their health, and replacing unhealthy nodes. You must patch and upgrade your masters and worker nodes to ensure that you are running the latest version of Kubernetes. This all requires expertise and a lot of manual work. With Amazon EKS, upgrades and high availability are managed for you by AWS. Amazon EKS runs three Kubernetes masters across three Availability Zones in order to ensure high availability. Amazon EKS automatically detects and replaces unhealthy masters, and it provides automated version upgrades and patching for the masters.</p> <p>Amazon EKS is also integrated with many AWS services to provide scalability and security for your applications, including the following: </p> <ul> <li> <p>Elastic Load Balancing for load distribution</p> </li> <li> <p>IAM for authentication</p> </li> <li> <p>Amazon VPC for isolation</p> </li> <li> <p>AWS PrivateLink for private network access</p> </li> <li> <p>AWS CloudTrail for logging</p> </li> </ul> <p>Amazon EKS runs the latest version of the open-source Kubernetes software, so you can use all the existing plugins and tooling from the Kubernetes community. Applications running on Amazon EKS are fully compatible with applications running on any standard Kubernetes environment, whether running in on-premises data centers or public clouds. This means that you can easily migrate any standard Kubernetes application to Amazon EKS without any code modification required.</p>"
+}
