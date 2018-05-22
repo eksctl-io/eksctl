@@ -141,11 +141,19 @@ Outputs:
     Description: The name of the EKS cluster
     Value: !Ref ClusterName
 
-  SubnetIds:
+  Subnets:
     Description: All subnets in the VPC
     Value: !Join [ " ", [ !Ref Subnet01, !Ref Subnet02 ] ]
 
-  SecurityGroups:
+  SubnetsList:
+    Description: All subnets in the VPC (comma-separated)
+    Value: !Join [ ",", [ !Ref Subnet01, !Ref Subnet02 ] ]
+
+  ClusterVPC:
+    Description: The ID of the VPC itself
+    Value: !Ref VPC
+
+  SecurityGroup:
     Description: Security group for the cluster control plane communication with worker nodes
-    Value: !Join [ ",", [ !Ref ControlPlaneSecurityGroup ] ]
+    Value: !Ref ControlPlaneSecurityGroup
 
