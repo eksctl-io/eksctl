@@ -6,8 +6,8 @@ What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most com
 
 It's inspired by `kubectl`. It provides a simple way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
 
-It is not inteded to be a like-for-like alternative to well-established community tools (`kops`, `kubicorn`, `kubeadm`).
-However, the intention is to work well with most popular tools, and collaborate very closely, so that Kubernets makes the
+It is not intended to be a like-for-like alternative to well-established community tools (`kops`, `kubicorn`, `kubeadm`).
+However, the intention is to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
 cloud-native world even more amazing to live in!
 
 ## Developer use-case
@@ -24,6 +24,7 @@ It supposrts many popular addons, including:
 * Weave Net: `eksctl create cluster dev-cluster --networking=weave`
 * Helm: `eksctl create cluster dev-cluster --addons=helm`
 * AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster dev-cluster --addons=aws-ci`
+* Jenkins X: `eksctl create cluster dev-cluster --addons=jenkins-x`
 * AWS CodeStar: `eksctl create cluster dev-cluster --addons=aws-codestar`
 * Weave Scope and Flux: `eksctl create cluster dev-cluster --addons=weave-scope,weave-flux`
 
