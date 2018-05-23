@@ -39,7 +39,7 @@ For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
 You can also use `eksctld`, which you'd normaly run aa controller inside of another
 cluster, you can manage multiple clusters this way.
 
-## Current Design (prototype)
+## Current prototype
 
 Usage: ***`./create-cluster.sh [<clusterName> [<numberOfNodes> [<nodeType>]]]`***
 
@@ -115,7 +115,7 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
  [0] >>
 ```
 
-## Limitations
+### Limitations
 
 - Written in bash
 - kubectl and heptio-authenticator-aws binaries are vendored in the repo
@@ -124,7 +124,7 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 - Cannot use custom VPC or customise networking in any way
 - Manual deletion
 
-## Various notes
+### Various notes
 
 - Rewrite in Go (or maybe Python, as AWS CLI extension)
 - Use named flags instead of postional arguments
@@ -139,7 +139,7 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 - Node upgrade controller
 - Consider kubeadm join
 
-### Improved design – MVP
+## Improved design – MVP
 
 To create a basic cluster run:
 ```
