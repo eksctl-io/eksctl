@@ -157,8 +157,8 @@ createStack "DefaultNodeGroup" "${nodeGroupTemplate}" \
     ParameterKey=NodeInstanceType,ParameterValue="${nodeType}" \
     ParameterKey=NodeAutoScalingGroupMinSize,ParameterValue="${numberOfNodes}" \
     ParameterKey=NodeAutoScalingGroupMaxSize,ParameterValue="${numberOfNodes}" \
-    ParameterKey=ControlPlaneSecurityGroup,ParameterValue="${securityGroup}" \
-    ParameterKey=Subnets,ParameterValue="${subnetsList}" \
+    ParameterKey=ClusterControlPlaneSecurityGroup,ParameterValue="${securityGroup}" \
+    ParameterKey=Subnets,ParameterValue=\"${subnetsList}\" \
     ParameterKey=VpcId,ParameterValue="${clusterVPC}"
 
 echo "Wait until cluster is ready"
@@ -221,4 +221,6 @@ echo "${kubeconfig}" > "${KUBECONFIG}"
 echo "Authorising nodes to join the cluster"
 echo "${nodeAuthConfigMap}" | kubectl apply --filename='-'
 
-##kubectl get nodes --watch
+echo "Cluster is ready, nodes will be added soon"
+echo "Use the following command to monitor the nodes"
+echo "$ kubectl --kubeconfig='${KUBECONFIG}' get nodes --watch"
