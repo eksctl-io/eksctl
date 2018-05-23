@@ -1,5 +1,16 @@
 # get-eks
 
+> ***THIS FOR INTERNAL USE ONLY***
+>
+> We may release some version of this to the public, but most of the thing you see here will be reviewed,
+> so when you read this please don't try to review every detail that is to do with presentation.
+> Right now we have a vary naive CLI solution, it's implemented in bash and I only spent one evening doing
+> it, but it kind of does the job (in the most naive sense).
+>
+> The purpose of what is here is to:
+> a) discuss CLI solution show and find the best route for GA implementation
+> b) consider how CLI solution shown can be translated to a Weave Cloud feature
+
 Create an EKS cluster with one command, not dozens:
 
 ```
