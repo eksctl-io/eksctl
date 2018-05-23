@@ -1,6 +1,6 @@
 # get-eks
 
-> ***THIS FOR INTERNAL USE ONLY***
+> ***THIS IS FOR INTERNAL USE ONLY***
 > #### What is the purpsose of this?
 > 
 > We may release some version of this to the public, but most of the thing you see here will be reviewed,
