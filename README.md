@@ -1,4 +1,4 @@
-# eksctl
+# `eksctl`
 
 > ***CURRENT STATE: EAERLY PROTOTYPE***
 
