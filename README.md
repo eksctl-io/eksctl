@@ -1,6 +1,10 @@
 # get-eks
 
-Create an EKS cluster with one command.
+Create an EKS cluster with one command, not dozens:
+
+```
+./create-cluster.sh
+```
 
 This tool wraps multiple CloudFormation steps into one, offering user a few most useful parameters, without exposing some of the less useful parameters.
 
@@ -8,30 +12,35 @@ This tool wraps multiple CloudFormation steps into one, offering user a few most
 
 Usage: ***`./create-cluster.sh [<clusterName> [<numberOfNodes> [<nodeType>]]]`***
 
-So to create a basic cluster run
+So to create a basic cluster run:
+
 ```
 ./create-cluster.sh
 ```
 
 It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes. Name will be `cluster-1`.
 
-To create the same kind of basic cluster, but with a different name run
+To create the same kind of basic cluster, but with a different name run:
+
 ```
 ./create-cluster.sh cluster-2
 ```
 
-To use 3 nodes, run
+To use 3 nodes, run:
+
 ```
 ./create-cluster.sh cluster-2 3
 ```
 
-To use 3 `c4.xlarge` nodes, run
+To use 3 `c4.xlarge` nodes, run:
+
 ```
 ./create-cluster.sh cluster-2 3 c4.xlarge
 ```
 
 Example output:
-```
+
+```console
  [0] >> ./create-cluster.sh cluster-2
 Creating EKS-cluster-2-ServiceRole and EKS-cluster-2-VPC stacks we need first
 {
@@ -80,7 +89,7 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 - Written in bash
 - kubectl and heptio-authenticator-aws binaries are vendored in the repo
 - Doesn't handle most errors
-- Doesn't offer parameters for improtant things (like region, AMI, node SSH key)
+- Doesn't offer parameters for important things (like region, AMI, node SSH key)
 - Cannot use custom VPC or customise networking in any way
 - Manual deletion
 
@@ -90,45 +99,51 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 - Use named flags instead of postional arguments
 - Use Cluster API for the sake of GitOps etc (initially CLI only, later offer a controller)
 - Single CloudFormation template (nested stack)
-- Call home (and mention in the readme) - time, cluster type, regios, IP (or hash of) [no need to count delitions]
+- Call home (and mention in the readme) - time, cluster type, regions, IP (or hash of) [no need to count deletions]
 - Add short-cuts for Weave Net (most certainly) and Weave Cloud (maybe)
-- Consider repurposing kops (or even kubicorn), or some of its code (it maybe easier to use the AWS API the way kops does, instead of CloudFormation - TBD, but kops node bootstrap code may not be very useful)
+- Consider repurposing kops (or even kubicorn), or some of its code (it may be easier to use the AWS API the way kops does, instead of CloudFormation - TBD, but kops node bootstrap code may not be very useful)
 - On EKS GA date Terraform module for EKS will be available – perhaps try it
 - Find partners and contributors (e.g. Jenkins X and/or Heptio)
-- Could persuide Docker to work on LinuxKit node AMIs
+- Could persuade Docker to work on LinuxKit node AMIs
 - Node upgrade controller
 - Consider kubeadm join
 
 ### Improved design
 
-So to create a basic cluster run
+To create a basic cluster run:
+
 ```
 get-eks create --cluster-name cluster-1
 ```
 
 It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes. Name will be `cluster-1`.
 
-To create the same kind of basic cluster, but with a different name run
+To create the same kind of basic cluster, but with a different name run:
+
 ```
 get-eks create --cluster-name cluster-2 --nodes 4
 ```
 
-To write cluster credentials to a file other then default, run
+To write cluster credentials to a file other then default, run:
+
 ```
 get-eks create --cluster-name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.yaml
 ```
 
-To prevent storing cluster credentials localy, run
+To prevent storing cluster credentials localy, run:
+
 ```
 get-eks create --cluster-name cluster-2 --nodes 4 --write-kubeconfig=false
 ```
 
-To use 3-5 node ASG, run
+To use 3-5 node ASG, run:
+
 ```
 get-eks create --cluster-name cluster-2 --nodes-min 3 --nodes-max 5
 ```
 
-To use 30 `c4.xlarge` nodes, run
+To use 30 `c4.xlarge` nodes, run:
+
 ```
 get-eks create --cluster-name cluster-2 --nodes 30 --node-type c4.xlarge
 ```
