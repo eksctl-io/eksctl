@@ -1,4 +1,21 @@
-# get-eks
+# eksctl
+
+What is `eksctl`? It's a simple CLI tool for creating EKS cluster, for most common use-cases.
+
+It's inspired by `kubectl`, and one of the goals of the project is to implement a Cluster API controller for EKS.
+
+It is not inteded to be a like-for-like alternative to `kops` or `kubeadm`, but it could in the future incorporate
+either of those tools (or become part of either).
+
+It's aimed to be compliant with GitOps mode, and can be used as part GitOps toolkit!
+
+For example, you can use `eksctl apply --cluster-config dev-cluster.yaml`, or run as a controller inside of another cluster.
+
+It should suffice to install a cluster for development with just one line of code, e.g. `eksctl create cluster dev-cluster --network=weave --addons=codebuild-tbd`.
+
+more examples...
+
+
 
 > ***THIS IS FOR INTERNAL USE ONLY***
 > #### What is the purpsose of this?
