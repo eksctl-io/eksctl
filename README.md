@@ -6,7 +6,7 @@ This tool wraps multiple CloudFormation steps into one, offering user a few most
 
 ## Current Design (prototype)
 
-Usage: `./create-cluster.sh [<clusterName> [<numberOfNodes> [<nodeType>]]]`
+Usage: ***`./create-cluster.sh [<clusterName> [<numberOfNodes> [<nodeType>]]]`***
 
 So to create a basic cluster run
 ```
