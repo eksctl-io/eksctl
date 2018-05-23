@@ -13,8 +13,7 @@ However, the intention is to work well with other popular tools.
 
 It should suffice to install a cluster for development with just a single command, here are some examples.
 
-To create a cluster with default configurations (2 `m4.large` nodes), run"
-
+To create a cluster with default configurations (2 `m4.large` nodes), run:
 ```
 eksctl create cluster dev-cluster
 ```
@@ -31,14 +30,14 @@ You can combine any or all of these.
 
 You can also add any of these addons after you create a cluster with `eksctl addons install <addon>...`.
 
-## `eksctl` and GitOps
+## Manage EKS the GitOps way
 
 Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
 
-For example, you can use `eksctl apply --cluster-config production-cluster.yaml`.
+For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
 
 You can also use `eksctld`, which you'd normaly run aa controller inside of another
-cluster and manage multiple clusters.
+cluster, you can manage multiple clusters this way.
 
 ## Current Design (prototype)
 
