@@ -99,42 +99,42 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 - Node upgrade controller
 - Consider kubeadm join
 
-### Improvde design
+### Improved design
 
 So to create a basic cluster run
 ```
-get-eks --cluster-name cluster-1
+get-eks create --cluster-name cluster-1
 ```
 
 It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes. Name will be `cluster-1`.
 
 To create the same kind of basic cluster, but with a different name run
 ```
-get-eks --cluster-name cluster-2 --nodes 4
+get-eks create --cluster-name cluster-2 --nodes 4
 ```
 
 To write cluster credentials to a file other then default, run
 ```
-get-eks --cluster-name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.yaml
+get-eks create --cluster-name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.yaml
 ```
 
 To prevent storing cluster credentials localy, run
 ```
-get-eks --cluster-name cluster-2 --nodes 4 --write-kubeconfig=false
+get-eks create --cluster-name cluster-2 --nodes 4 --write-kubeconfig=false
 ```
 
 To use 3-5 node ASG, run
 ```
-get-eks --cluster-name cluster-2 --nodes-min 3 --nodes-max 5
+get-eks create --cluster-name cluster-2 --nodes-min 3 --nodes-max 5
 ```
 
 To use 30 `c4.xlarge` nodes, run
 ```
-get-eks --cluster-name cluster-2 --nodes 30 --node-type c4.xlarge
+get-eks create --cluster-name cluster-2 --nodes 30 --node-type c4.xlarge
 ```
 
 To use more advanced configuration options, use [Cluster API](https://github.com/kubernetes-sigs/cluster-api)
 
 ```
-get-eks --cluster-config advanced-cluster.yaml
+get-eks apply --cluster-config advanced-cluster.yaml
 ```
