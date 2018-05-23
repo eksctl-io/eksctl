@@ -133,7 +133,7 @@ createStack "VPC" "${vpcTemplate}" \
 
 echo "Waiting until the ${stacksText} are ready"
 
-until test "$(checkStacksReadyCount)" -eq 2 ; do sleep 20 ; done
+until test "$(checkStacksReadyCount)" -ge 2 ; do sleep 20 ; done
 
 echo "Collect outputs from the ${stacksText}"
 
@@ -161,7 +161,7 @@ createStack "DefaultNodeGroup" "${nodeGroupTemplate}" \
     ParameterKey=Subnets,ParameterValue=\"${subnetsList}\" \
     ParameterKey=VpcId,ParameterValue="${clusterVPC}"
 
-echo "Wait until cluster is ready"
+echo "Waiting until cluster is ready"
 
 until test "$(describeCluster --query "cluster.status")" = '"ACTIVE"' ; do sleep 20 ; done
 
@@ -200,6 +200,14 @@ users:
         # - '<role-arn>'
 "
 
+echo "${kubeconfig}" > "${KUBECONFIG}"
+
+echo "Waiting until ${stackNamePrefix}DefaultNodeGroup stack is ready"
+
+until test "$(checkStacksReadyCount)" -eq 3 ; do sleep 20 ; done
+
+nodeInstanceRoleARN=($(getStackOutput "DefaultNodeGroup" "NodeInstanceRole"))
+
 nodeAuthConfigMap="
 apiVersion: v1
 kind: ConfigMap
@@ -208,7 +216,7 @@ metadata:
   namespace: default
 data:
   mapRoles: |
-    - rolearn: <ARN of instance role (not instance profile)> ## TODO
+    - rolearn: "${nodeInstanceRoleARN}"
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
@@ -216,9 +224,6 @@ data:
         - system:node-proxier
 "
 
-echo "${kubeconfig}" > "${KUBECONFIG}"
-
-echo "Authorising nodes to join the cluster"
 echo "${nodeAuthConfigMap}" | kubectl apply --filename='-'
 
 echo "Cluster is ready, nodes will be added soon"
