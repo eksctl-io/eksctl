@@ -38,7 +38,7 @@ Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and ca
 
 For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
 
-You can also use `eksctld`, which you'd normaly run aa controller inside of another
+You can also use `eksctld`, which you'd normaly run as a controller inside of another
 cluster, you can manage multiple clusters this way.
 
 ## Current prototype
