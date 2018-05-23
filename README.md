@@ -8,7 +8,7 @@
 > 
 > #### What do we have here?
 >
-> Right now we have a vary naive CLI solution, it's implemented in bash and I only spent one evening doing
+> Right now we have a very naive CLI solution, it's implemented in bash and I only spent one evening doing
 > it, but it kind of does the job (in the most naive sense).
 > We had to do this quickly, before EKS preview access is shut down. So we know the steps to make it work.
 > 
