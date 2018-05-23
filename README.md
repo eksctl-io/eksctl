@@ -4,10 +4,11 @@
 
 What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases.
 
-It's inspired by `kubectl`, and one of the goals of the project is to implement a Cluster API controller for EKS.
+It's inspired by `kubectl`. It provides a simple way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
 
 It is not inteded to be a like-for-like alternative to well-established community tools (`kops`, `kubicorn`, `kubeadm`).
-However, the intention is to work well with other popular tools.
+However, the intention is to work well with most popular tools, and collaborate very closely, so that Kubernets makes the
+cloud-native world even more amazing to live in!
 
 ## Developer use-case
 
