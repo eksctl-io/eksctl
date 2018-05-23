@@ -2,7 +2,7 @@
 
 > ***CURRENT STATE: EAERLY PROTOTYPE***
 
-What is `eksctl`? It's a simple CLI tool for creating EKS cluster, for most common use-cases.
+What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases.
 
 It's inspired by `kubectl`, and one of the goals of the project is to implement a Cluster API controller for EKS.
 
