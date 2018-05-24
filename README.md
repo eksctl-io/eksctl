@@ -1,6 +1,6 @@
 # `eksctl`
 
-> ***CURRENT STATE: EAERLY PROTOTYPE***
+> ***CURRENT STATE: EARLY PROTOTYPE***
 
 What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases.
 
