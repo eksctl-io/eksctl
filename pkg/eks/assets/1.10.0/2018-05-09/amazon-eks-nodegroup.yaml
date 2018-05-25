@@ -28,6 +28,12 @@ Parameters:
     - m4.2xlarge
     - m4.4xlarge
     - m4.10xlarge
+    - m5.large
+    - m5.xlarge
+    - m5.2xlarge
+    - m5.4xlarge
+    - m5.12xlarge
+    - m5.24xlarge
     - c3.large
     - c3.xlarge
     - c3.2xlarge
