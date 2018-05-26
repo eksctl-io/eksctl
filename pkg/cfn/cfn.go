@@ -10,6 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
+	"github.com/kubicorn/kubicorn/pkg/logger"
+
 	"github.com/pkg/errors"
 )
 
@@ -17,17 +19,37 @@ import (
 
 type CloudFormation struct {
 	svc *cloudformation.CloudFormation
+	cfg *Config
 }
 
-func New(region string) *CloudFormation {
+// simple config, to be replaced with Cluster API
+type Config struct {
+	Region      string
+	ClusterName string
+	KeyName     string
+	NodeAMI     string
+	NodeType    string
+	MinNodes    int
+	MaxNodes    int
+
+	clusterRoleARN string
+	securityGroup  string
+	subnetsList    string
+	clusterVPC     string
+}
+
+type Stack = cloudformation.Stack
+
+func New(clusterConfig *Config) *CloudFormation {
 	// we might want to use bits from kops, although right now it seems like too many thing we
-	// don't want yet,
+	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig().WithRegion(region)
+	config := aws.NewConfig().WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
 
 	return &CloudFormation{
 		svc: cloudformation.New(session.Must(session.NewSession(config))),
+		cfg: clusterConfig,
 	}
 }
 
@@ -39,7 +61,7 @@ func (c *CloudFormation) CheckAuth() error {
 	return nil
 }
 
-func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, done chan struct{}, fail chan cloudformation.Stack) error {
+func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, done chan error, stack chan Stack) error {
 	input := &cloudformation.CreateStackInput{}
 	input.SetStackName(name)
 	input.SetTemplateBody(string(templateBody))
@@ -62,6 +84,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 	go func() {
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
+		defer close(done)
 		for {
 			select {
 			case <-ticker.C:
@@ -74,12 +97,11 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 				case cloudformation.StackStatusCreateInProgress:
 					continue
 				case cloudformation.StackStatusCreateComplete:
-					close(done)
+					done <- nil
+					stack <- *s
 					return
 				case cloudformation.StackStatusCreateFailed:
-					fail <- *s
-					close(done)
-					return
+					fallthrough
 					// TODO: technically, any of these may occur, but we may want to ignore some of these
 					// case cloudformation.StackStatusRollbackInProgress:
 					// case cloudformation.StackStatusRollbackFailed:
@@ -96,10 +118,9 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 					// case cloudformation.StackStatusUpdateRollbackComplete:
 					// case cloudformation.StackStatusReviewInProgress:
 				default:
-					fail <- *s
-					close(done)
+					done <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
+					stack <- *s
 					return
-
 				}
 			}
 		}
@@ -109,7 +130,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 
 }
 
-func (c *CloudFormation) describeStack(name *string) (*cloudformation.Stack, error) {
+func (c *CloudFormation) describeStack(name *string) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: name,
 	}
@@ -119,17 +140,17 @@ func (c *CloudFormation) describeStack(name *string) (*cloudformation.Stack, err
 	}
 	return resp.Stacks[0], nil
 }
-func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*cloudformation.Stack, error) {
+func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 	var (
 		subErr error
-		stack  *cloudformation.Stack
+		stack  *Stack
 	)
 
 	re := regexp.MustCompile(nameRegex)
 	input := &cloudformation.ListStacksInput{
 		StackStatusFilter: aws.StringSlice([]string{cloudformation.StackStatusCreateComplete}),
 	}
-	stacks := []*cloudformation.Stack{}
+	stacks := []*Stack{}
 
 	pager := func(p *cloudformation.ListStacksOutput, last bool) (shouldContinue bool) {
 		for _, s := range p.StackSummaries {
@@ -152,46 +173,153 @@ func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*cloudformation.St
 	return stacks, nil
 }
 
-func StackParamsDefaultNodeGroup(clusterName, keyName, nodeAMI, nodeType, minNodes, maxNodes, securityGroup, subnetsList, clusterVPC string) map[string]string {
+func (c *CloudFormation) stackParamsVPC() map[string]string {
 	return map[string]string{
-		"clusterName":                      clusterName,
-		"NodeGroupName":                    clusterName + "-DefaultNodeGroup",
-		"keyName":                          keyName,
-		"NodeImageId":                      nodeAMI,
-		"NodeInstanceType":                 nodeType,
-		"NodeAutoScalingGroupMinSize":      minNodes,
-		"NodeAutoScalingGroupMaxSize":      maxNodes,
-		"ClusterControlPlaneSecurityGroup": securityGroup,
-		"Subnets":                          subnetsList,
-		"VpcId":                            clusterVPC,
+		"ClusterName": c.cfg.ClusterName,
 	}
 }
 
-func (c *CloudFormation) CreateStackDefaultNodeGroup(clusterName string) error {
+func (c *CloudFormation) CreateStackVPC(done chan error) error {
+	name := "EKS-" + c.cfg.ClusterName + "-VPC"
+	logger.Info("creating VPC stack %q", name)
+	templateBody, err := amazonEksVpcSampleYamlBytes()
+	if err != nil {
+		return errors.Wrap(err, "decompressing bundled template for VPC stack")
+	}
+
+	stackChan := make(chan Stack)
+	doneSubChan := make(chan error)
+
+	if err := c.CreateStack(name, templateBody, c.stackParamsVPC(), false, doneSubChan, stackChan); err != nil {
+		return err
+	}
+
+	go func() {
+		defer close(done)
+		defer close(stackChan)
+
+		if err := <-doneSubChan; err != nil {
+			done <- err
+			return
+		}
+		done <- nil
+
+		s := <-stackChan
+
+		securityGroup := GetOutput(&s, "SecurityGroup")
+		if securityGroup == nil {
+			done <- fmt.Errorf("SecurityGroup is nil")
+			return
+		}
+		c.cfg.securityGroup = *securityGroup
+
+		subnetsList := GetOutput(&s, "SubnetsList")
+		if subnetsList == nil {
+			done <- fmt.Errorf("SubnetsList is nil")
+			return
+		}
+		c.cfg.subnetsList = *subnetsList
+
+		clusterVPC := GetOutput(&s, "ClusterVPC")
+		if clusterVPC == nil {
+			done <- fmt.Errorf("ClusterVPC is nil")
+			return
+		}
+		c.cfg.clusterVPC = *clusterVPC
+
+		logger.Debug("clusterConfig = %#v", c.cfg)
+		logger.Success("created VPC stack %q", name)
+	}()
+	return nil
+}
+
+func (c *CloudFormation) CreateStackServiceRole(done chan error) error {
+	name := "EKS-" + c.cfg.ClusterName + "-ServiceRole"
+	logger.Info("creating ServiceRole stack %q", name)
+	templateBody, err := amazonEksServiceRoleYamlBytes()
+	if err != nil {
+		return errors.Wrap(err, "decompressing bundled template for ServiceRole stack")
+	}
+
+	stackChan := make(chan Stack)
+	doneSubChan := make(chan error)
+
+	if err := c.CreateStack(name, templateBody, nil, true, doneSubChan, stackChan); err != nil {
+		return err
+	}
+
+	go func() {
+		defer close(done)
+		defer close(stackChan)
+
+		if err := <-doneSubChan; err != nil {
+			done <- err
+			return
+		}
+		done <- nil
+
+		s := <-stackChan
+		clusterRoleARN := GetOutput(&s, "RoleArn")
+		if clusterRoleARN == nil {
+			done <- fmt.Errorf("RoleArn is nil")
+			return
+		}
+		c.cfg.clusterRoleARN = *clusterRoleARN
+
+		logger.Debug("clusterConfig = %#v", c.cfg)
+		logger.Success("created ServiceRole stack %q", name)
+	}()
+	return nil
+}
+
+func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
+	regionalAMIs := map[string]string{
+		"us-west-2": "ami-993141e1",
+	}
+
+	if c.cfg.NodeAMI == "" {
+		c.cfg.NodeAMI = regionalAMIs[c.cfg.Region]
+	}
+
+	return map[string]string{
+		"ClusterName":                      c.cfg.ClusterName,
+		"NodeGroupName":                    c.cfg.ClusterName + "-DefaultNodeGroup",
+		"KeyName":                          c.cfg.KeyName,
+		"NodeImageId":                      c.cfg.NodeAMI,
+		"NodeInstanceType":                 c.cfg.NodeType,
+		"NodeAutoScalingGroupMinSize":      string(c.cfg.MinNodes),
+		"NodeAutoScalingGroupMaxSize":      string(c.cfg.MaxNodes),
+		"ClusterControlPlaneSecurityGroup": c.cfg.securityGroup,
+		"Subnets":                          c.cfg.subnetsList,
+		"VpcId":                            c.cfg.clusterVPC,
+	}
+}
+
+func (c *CloudFormation) CreateStackDefaultNodeGroup() error {
 	_, err := amazonEksNodegroupYamlBytes()
 	if err != nil {
-		return errors.Wrap(err, "decompressing bundled template")
+		return errors.Wrap(err, "decompressing bundled template for DefaultNodeGroup stack")
 	}
 	return nil
 }
 
-func (c *CloudFormation) GetStack(name string) (*cloudformation.Stack, error) {
+func (c *CloudFormation) GetStack(name string) (*Stack, error) {
 	return c.describeStack(&name)
 }
 
-func (c *CloudFormation) GetStackVPC(clusterName string) (*cloudformation.Stack, error) {
-	return c.GetStack("^EKS-" + clusterName + "-VPC$")
+func (c *CloudFormation) GetStackVPC() (*Stack, error) {
+	return c.GetStack("^EKS-" + c.cfg.ClusterName + "-VPC$")
 }
 
-func (c *CloudFormation) GetStackServiceRole(clusterName string) (*cloudformation.Stack, error) {
-	return c.GetStack("^EKS-" + clusterName + "-ServiceRole$")
+func (c *CloudFormation) GetStackServiceRole() (*Stack, error) {
+	return c.GetStack("^EKS-" + c.cfg.ClusterName + "-ServiceRole$")
 }
 
-func (c *CloudFormation) GetStackDefaultNodeGroup(clusterName string) (*cloudformation.Stack, error) {
-	return c.GetStack("^EKS-" + clusterName + "-DefaultNodeGroup$")
+func (c *CloudFormation) GetStackDefaultNodeGroup() (*Stack, error) {
+	return c.GetStack("^EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup$")
 }
 
-func GetOutput(stack *cloudformation.Stack, key string) *string {
+func GetOutput(stack *Stack, key string) *string {
 	for _, x := range stack.Outputs {
 		if *x.OutputKey == key {
 			return x.OutputValue

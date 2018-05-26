@@ -1,24 +1,60 @@
 package main
 
 import (
-	"fmt"
+	"github.com/kubicorn/kubicorn/pkg/logger"
 
-	"github.com/weaveworks/eksctl/pkg/cfn"
+	cloudformation "github.com/weaveworks/eksctl/pkg/cfn"
 )
 
-const DEFAULT_EKS_REGION = "us-west-2"
+const (
+	DEFAULT_EKS_REGION   = "us-west-2"
+	DEFAULT_CLUSTER_NAME = "cluster-1"
+	DEFAULT_NODE_COUNT   = 2
+	DEFAULT_NODE_TYPE    = "m4.large" // TODO check kops
+)
 
 func main() {
+	logger.Level = 4
 
-	cfn := cfn.New(DEFAULT_EKS_REGION)
+	config := &cloudformation.Config{
+		ClusterName: DEFAULT_CLUSTER_NAME,
+		Region:      DEFAULT_EKS_REGION,
+
+		KeyName: "ilya", // TODO
+
+		MinNodes: DEFAULT_NODE_COUNT,
+		MaxNodes: DEFAULT_NODE_COUNT,
+		NodeType: DEFAULT_NODE_TYPE,
+	}
+
+	cfn := cloudformation.New(config)
 
 	if err := cfn.CheckAuth(); err != nil {
-		fmt.Printf("ERROR: %s\n", err)
+		logger.Critical("%s", err)
 		return
 	}
 
-	// {
-	// 	s, _ := cfn.CreateStackVPC("cluster-1")
-	// 	fmt.Println(s)
-	// }
+	// TODO waitgroups
+	{
+		done := make(chan error)
+		if err := cfn.CreateStackServiceRole(done); err != nil {
+			logger.Critical("%s", err)
+			return
+		}
+		if err := <-done; err != nil {
+			logger.Critical("%s", err)
+			return
+		}
+	}
+	{
+		done := make(chan error)
+		if err := cfn.CreateStackVPC(done); err != nil {
+			logger.Critical("%s", err)
+			return
+		}
+		if err := <-done; err != nil {
+			logger.Critical("%s", err)
+			return
+		}
+	}
 }
