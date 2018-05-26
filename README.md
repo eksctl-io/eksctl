@@ -183,3 +183,15 @@ To use more advanced configuration options, use [Cluster API](https://github.com
 ```
 eksctl apply --cluster-config=advanced-cluster.yaml
 ```
+
+## <a name="help"></a>Getting Help
+
+If you have any questions about `eksctl`:
+
+- Invite yourself to the <a href="https://weaveworks.github.io/community-slack/" target="_blank">#weave-community</a> slack channel.
+- Ask a question on the [#weave-community](https://weave-community.slack.com/messages/general/) slack channel.
+- Join the [Weave User Group](https://www.meetup.com/pro/Weave/) and get invited to online talks, hands-on training and meetups in your area.
+- Send an email to [weave-users@weave.works](mailto:weave-users@weave.works)
+- [File an issue.](https://github.com/weaveworks/eksctl/issues/new)
+
+Your feedback is always welcome!
