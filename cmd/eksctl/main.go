@@ -13,6 +13,13 @@ const (
 	DEFAULT_NODE_TYPE    = "m4.large" // TODO check kops
 )
 
+// TODO (alpha release)
+// - add cobra and more structure
+// - add basic delete and create commands
+// - add flags and flags and defaults
+// - basic support for addons
+// - other key items from the readme
+
 func main() {
 	logger.Level = 4
 
@@ -33,6 +40,8 @@ func main() {
 		logger.Critical("%s", err)
 		return
 	}
+
+	// create each of the cloudformation stacks
 
 	// TODO waitgroups
 	{
@@ -57,4 +66,14 @@ func main() {
 			return
 		}
 	}
+
+	logger.Success("all EKS cluster %q resources has been created")
+
+	// obtain cluster credentials
+
+	// login to the cluster and authorise nodes to join
+
+	// watch nodes joining
+
+	// validate (like in kops)
 }
