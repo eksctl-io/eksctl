@@ -1,24 +1,42 @@
 package cfn
 
 import (
+	"fmt"
 	"log"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+
+	"github.com/pkg/errors"
 )
+
+//go:generate go-bindata -pkg $GOPACKAGE -prefix ../../vendor/1.10.0/2018-05-09 ../../vendor/1.10.0/2018-05-09
 
 type CloudFormation struct {
 	svc *cloudformation.CloudFormation
 }
 
-func New() *CloudFormation {
+func New(region string) *CloudFormation {
+	// we might want to use bits from kops, although right now it seems like too many thing we
+	// don't want yet,
+	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
+	config := aws.NewConfig().WithRegion(region)
+	config = config.WithCredentialsChainVerboseErrors(true)
+
 	return &CloudFormation{
-		svc: cloudformation.New(session.Must(session.NewSession())),
+		svc: cloudformation.New(session.Must(session.NewSession(config))),
 	}
+}
+
+func (c *CloudFormation) CheckAuth() error {
+	input := &cloudformation.ListStacksInput{}
+	if _, err := c.svc.ListStacks(input); err != nil {
+		return errors.Wrap(err, "checking AWS CloudFormation access")
+	}
+	return nil
 }
 
 func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, done chan struct{}, fail chan cloudformation.Stack) error {
@@ -38,7 +56,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 
 	_, err := c.svc.CreateStack(input)
 	if err != nil {
-		return err
+		return errors.Wrap(err, fmt.Sprintf("creating CloudFormation stack %q", name))
 	}
 
 	go func() {
@@ -97,7 +115,7 @@ func (c *CloudFormation) describeStack(name *string) (*cloudformation.Stack, err
 	}
 	resp, err := c.svc.DescribeStacks(input)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("describing CloudFormation stack %q", *name))
 	}
 	return resp.Stacks[0], nil
 }
@@ -149,24 +167,28 @@ func StackParamsDefaultNodeGroup(clusterName, keyName, nodeAMI, nodeType, minNod
 	}
 }
 
+func (c *CloudFormation) CreateStackDefaultNodeGroup(clusterName string) error {
+	_, err := amazonEksNodegroupYamlBytes()
+	if err != nil {
+		return errors.Wrap(err, "decompressing bundled template")
+	}
+	return nil
+}
+
 func (c *CloudFormation) GetStack(name string) (*cloudformation.Stack, error) {
 	return c.describeStack(&name)
 }
 
 func (c *CloudFormation) GetStackVPC(clusterName string) (*cloudformation.Stack, error) {
-	return c.GetStack(strings.Join([]string{"^EKS", clusterName, "VPC$"}, "-"))
+	return c.GetStack("^EKS-" + clusterName + "-VPC$")
 }
 
 func (c *CloudFormation) GetStackServiceRole(clusterName string) (*cloudformation.Stack, error) {
-	return c.GetStack(
-		strings.Join([]string{"^EKS", clusterName, "ServiceRole$"}, "-"),
-	)
+	return c.GetStack("^EKS-" + clusterName + "-ServiceRole$")
 }
 
 func (c *CloudFormation) GetStackDefaultNodeGroup(clusterName string) (*cloudformation.Stack, error) {
-	return c.GetStack(
-		strings.Join([]string{"^EKS", clusterName, "DefaultNodeGroup$"}, "-"),
-	)
+	return c.GetStack("^EKS-" + clusterName + "-DefaultNodeGroup$")
 }
 
 func GetOutput(stack *cloudformation.Stack, key string) *string {
