@@ -7,12 +7,12 @@ What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most com
 It's inspired by `kubectl`. It provides a simple way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
 
 It is not intended to be a like-for-like alternative to well-established community tools (`kops`, `kubicorn`, `kubeadm`).
-However, the intention is to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
+However, the intention is for it to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
 cloud-native world even more amazing to live in!
 
 ## Developer use-case
 
-It should suffice to install a cluster for development with just a single command, here are some examples.
+It should suffice to install a cluster for development with just a single command. Here are some examples:
 
 To create a cluster with default configurations (2 `m4.large` nodes), run:
 ```
@@ -34,18 +34,18 @@ You can also add any of these addons after you create a cluster with `eksctl add
 
 ## Manage EKS the GitOps way
 
-Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
+Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps, and can be used as part GitOps toolkit!
 
 For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
 
-You can also use `eksctld`, which you'd normaly run as a controller inside of another
-cluster, you can manage multiple clusters this way.
+You can also use `eksctld`, which you'd normally run as a controller inside of another
+cluster. You can manage multiple clusters this way.
 
 ## Current prototype
 
 Usage: ***`./create-cluster.sh [<clusterName> [<numberOfNodes> [<nodeType>]]]`***
 
-So to create a basic cluster run:
+So to create a basic cluster, run:
 
 ```
 ./create-cluster.sh
@@ -53,7 +53,7 @@ So to create a basic cluster run:
 
 It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes. Name will be `cluster-1`.
 
-To create the same kind of basic cluster, but with a different name run:
+To create the same kind of basic cluster, but with a different name, run:
 
 ```
 ./create-cluster.sh cluster-2
@@ -128,7 +128,7 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 
 ### Various notes
 
-- Rewrite in Go (or maybe Python, as AWS CLI extension)
+- Rewrite in Go (or maybe Python, as an AWS CLI extension)
 - Use named flags instead of postional arguments
 - Use Cluster API for the sake of GitOps etc (initially CLI only, later offer a controller)
 - Single CloudFormation template (nested stack)
@@ -143,13 +143,13 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 
 ## Improved design – MVP
 
-To create a basic cluster run:
+To create a basic cluster, run:
 ```
 eksctl create cluster --cluster-name cluster-1
 ```
 It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes. Name will be `cluster-1`.
 
-To create the same kind of basic cluster, but with a different name run:
+To create the same kind of basic cluster, but with a different name, run:
 ```
 eksctl create cluster --cluster-name cluster-2 --nodes 4
 ```
