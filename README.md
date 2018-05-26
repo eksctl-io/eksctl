@@ -15,18 +15,19 @@ cloud-native world even more amazing to live in!
 It should suffice to install a cluster for development with just a single command, here are some examples.
 
 To create a cluster with default configurations (2 `m4.large` nodes), run:
-```
+
+```console
 eksctl create cluster dev-cluster
 ```
 
-It supposrts many popular addons, including:
+It supports many popular addons, including:
 
-* Weave Net: `eksctl create cluster dev-cluster --networking=weave`
-* Helm: `eksctl create cluster dev-cluster --addons=helm`
-* AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster dev-cluster --addons=aws-ci`
-* Jenkins X: `eksctl create cluster dev-cluster --addons=jenkins-x`
-* AWS CodeStar: `eksctl create cluster dev-cluster --addons=aws-codestar`
-* Weave Scope and Flux: `eksctl create cluster dev-cluster --addons=weave-scope,weave-flux`
+- Weave Net: `eksctl create cluster dev-cluster --networking=weave`
+- Helm: `eksctl create cluster dev-cluster --addons=helm`
+- AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster dev-cluster --addons=aws-ci`
+- Jenkins X: `eksctl create cluster dev-cluster --addons=jenkins-x`
+- AWS CodeStar: `eksctl create cluster dev-cluster --addons=aws-codestar`
+- Weave Scope and Flux: `eksctl create cluster dev-cluster --addons=weave-scope,weave-flux`
 
 You can combine any or all of these.
 
@@ -34,7 +35,7 @@ You can also add any of these addons after you create a cluster with `eksctl add
 
 ## Manage EKS the GitOps way
 
-Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
+Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
 
 For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
 
@@ -47,7 +48,7 @@ Usage: ***`./create-cluster.sh [<clusterName> [<numberOfNodes> [<nodeType>]]]`**
 
 So to create a basic cluster run:
 
-```
+```console
 ./create-cluster.sh
 ```
 
@@ -55,19 +56,19 @@ It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes.
 
 To create the same kind of basic cluster, but with a different name run:
 
-```
+```console
 ./create-cluster.sh cluster-2
 ```
 
 To use 3 nodes, run:
 
-```
+```console
 ./create-cluster.sh cluster-2 3
 ```
 
 To use 3 `c4.xlarge` nodes, run:
 
-```
+```console
 ./create-cluster.sh cluster-2 3 c4.xlarge
 ```
 
@@ -144,42 +145,51 @@ $ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2
 ## Improved design – MVP
 
 To create a basic cluster run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-1
 ```
+
 It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes. Name will be `cluster-1`.
 
 To create the same kind of basic cluster, but with a different name run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-2 --nodes 4
 ```
 
 To write cluster credentials to a file other then default, run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-3 --nodes 4 --kubeconfig ./kubeconfig.yaml
 ```
 
 To prevent storing cluster credentials localy, run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-4 --nodes 4 --write-kubeconfig=false
 ```
 
 To use 3-5 node ASG, run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-5 --nodes-min 3 --nodes-max 5
 ```
 
 To use 30 `c4.xlarge` nodes, run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-6 --nodes 30 --node-type c4.xlarge
 ```
 
 To delete a cluster, run:
-```
+
+```console
 eksctl delete cluster <name>
 ```
 
 To use more advanced configuration options, use [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
-```
+
+```console
 eksctl apply --cluster-config=advanced-cluster.yaml
 ```
