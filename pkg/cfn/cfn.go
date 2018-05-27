@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -93,6 +94,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 	}
 
 	go func() {
+		// TODO: eksctld should probably use SNS notifications instead of polling
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 		defer close(done)
@@ -184,6 +186,35 @@ func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 	return stacks, nil
 }
 
+func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, taskErr chan error) {
+	wg := &sync.WaitGroup{}
+	wg.Add(len(tasks))
+	for taskName := range tasks {
+		task := tasks[taskName]
+		go func() {
+			defer wg.Done()
+			done := make(chan error)
+			if err := task(done); err != nil {
+				taskErr <- err
+				return
+			}
+			if err := <-done; err != nil {
+				taskErr <- err
+				return
+			}
+		}()
+	}
+	wg.Wait()
+	close(taskErr)
+}
+
+func (c *CloudFormation) CreateCoreStacks(taskErr chan error) {
+	c.CreateStacks(map[string]func(chan error) error{
+		"CreateStackServiceRole": func(done chan error) error { return c.CreateStackServiceRole(done) },
+		"CreateStackVPC":         func(done chan error) error { return c.CreateStackVPC(done) },
+	}, taskErr)
+}
+
 func (c *CloudFormation) stackParamsVPC() map[string]string {
 	return map[string]string{
 		"ClusterName": c.cfg.ClusterName,
@@ -213,7 +244,7 @@ func (c *CloudFormation) CreateStackVPC(done chan error) error {
 			done <- err
 			return
 		}
-		done <- nil
+		done <- nil // indicate that we are done to the caller
 
 		s := <-stackChan
 
@@ -282,7 +313,7 @@ func (c *CloudFormation) CreateStackServiceRole(done chan error) error {
 			done <- err
 			return
 		}
-		done <- nil
+		done <- nil // indicate that we are done to the caller
 
 		s := <-stackChan
 		clusterRoleARN := GetOutput(&s, "RoleArn")

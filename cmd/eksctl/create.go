@@ -72,28 +72,18 @@ func doCreateCluster(config *cloudformation.Config) error {
 		return err
 	}
 
+	if config.ClusterName == "" {
+		config.ClusterName = namer.RandomName()
+	}
+
 	logger.Info("creating EKS cluster %q", config.ClusterName)
 
-	// create each of the cloudformation stacks
-
-	// TODO(p0): waitgroups
-	{
-		done := make(chan error)
-		if err := cfn.CreateStackServiceRole(done); err != nil {
-			return err
-		}
-		if err := <-done; err != nil {
-			return err
-		}
-	}
-	{
-		done := make(chan error)
-		if err := cfn.CreateStackVPC(done); err != nil {
-			return err
-		}
-		if err := <-done; err != nil {
-			return err
-		}
+	taskErr := make(chan error)
+	// create each of the core cloudformation stacks
+	cfn.CreateCoreStacks(taskErr)
+	// read any errors (it only gets non-nil errors)
+	for err := range taskErr {
+		return err
 	}
 
 	logger.Success("all EKS cluster %q resources has been created", config.ClusterName)
