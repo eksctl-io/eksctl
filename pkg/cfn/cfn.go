@@ -67,7 +67,7 @@ func (c *CloudFormation) CheckAuth() error {
 	return nil
 }
 
-func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, done chan error, stack chan Stack) error {
+func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, stack chan Stack, errs chan error) error {
 	input := &cloudformation.CreateStackInput{}
 	input.SetStackName(name)
 	input.SetTags([]*cloudformation.Tag{
@@ -97,7 +97,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 		// TODO: eksctld should probably use SNS notifications instead of polling
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
-		defer close(done)
+		defer close(errs)
 		for {
 			select {
 			case <-ticker.C:
@@ -110,7 +110,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 				case cloudformation.StackStatusCreateInProgress:
 					continue
 				case cloudformation.StackStatusCreateComplete:
-					done <- nil
+					errs <- nil
 					stack <- *s
 					return
 				case cloudformation.StackStatusCreateFailed:
@@ -131,7 +131,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 					// case cloudformation.StackStatusUpdateRollbackComplete:
 					// case cloudformation.StackStatusReviewInProgress:
 				default:
-					done <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
+					errs <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
 					stack <- *s
 					return
 				}
@@ -153,6 +153,7 @@ func (c *CloudFormation) describeStack(name *string) (*Stack, error) {
 	}
 	return resp.Stacks[0], nil
 }
+
 func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 	var (
 		subErr error
@@ -186,33 +187,33 @@ func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 	return stacks, nil
 }
 
-func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, taskErr chan error) {
+func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, taskErrs chan error) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(tasks))
 	for taskName := range tasks {
 		task := tasks[taskName]
 		go func() {
 			defer wg.Done()
-			done := make(chan error)
-			if err := task(done); err != nil {
-				taskErr <- err
+			errs := make(chan error)
+			if err := task(errs); err != nil {
+				taskErrs <- err
 				return
 			}
-			if err := <-done; err != nil {
-				taskErr <- err
+			if err := <-errs; err != nil {
+				taskErrs <- err
 				return
 			}
 		}()
 	}
 	wg.Wait()
-	close(taskErr)
+	close(taskErrs)
 }
 
-func (c *CloudFormation) CreateCoreStacks(taskErr chan error) {
+func (c *CloudFormation) CreateCoreStacks(taskErrs chan error) {
 	c.CreateStacks(map[string]func(chan error) error{
-		"CreateStackServiceRole": func(done chan error) error { return c.CreateStackServiceRole(done) },
-		"CreateStackVPC":         func(done chan error) error { return c.CreateStackVPC(done) },
-	}, taskErr)
+		"CreateStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
+		"CreateStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
+	}, taskErrs)
 }
 
 func (c *CloudFormation) stackParamsVPC() map[string]string {
@@ -221,7 +222,7 @@ func (c *CloudFormation) stackParamsVPC() map[string]string {
 	}
 }
 
-func (c *CloudFormation) CreateStackVPC(done chan error) error {
+func (c *CloudFormation) createStackVPC(errs chan error) error {
 	name := "EKS-" + c.cfg.ClusterName + "-VPC"
 	logger.Info("creating VPC stack %q", name)
 	templateBody, err := amazonEksVpcSampleYamlBytes()
@@ -230,47 +231,48 @@ func (c *CloudFormation) CreateStackVPC(done chan error) error {
 	}
 
 	stackChan := make(chan Stack)
-	doneSubChan := make(chan error)
+	taskErrs := make(chan error)
 
-	if err := c.CreateStack(name, templateBody, c.stackParamsVPC(), false, doneSubChan, stackChan); err != nil {
+	if err := c.CreateStack(name, templateBody, c.stackParamsVPC(), false, stackChan, taskErrs); err != nil {
 		return err
 	}
 
 	go func() {
-		defer close(done)
+		defer close(errs)
 		defer close(stackChan)
 
-		if err := <-doneSubChan; err != nil {
-			done <- err
+		if err := <-taskErrs; err != nil {
+			errs <- err
 			return
 		}
-		done <- nil // indicate that we are done to the caller
 
 		s := <-stackChan
 
 		securityGroup := GetOutput(&s, "SecurityGroup")
 		if securityGroup == nil {
-			done <- fmt.Errorf("SecurityGroup is nil")
+			errs <- fmt.Errorf("SecurityGroup is nil")
 			return
 		}
 		c.cfg.securityGroup = *securityGroup
 
 		subnetsList := GetOutput(&s, "SubnetsList")
 		if subnetsList == nil {
-			done <- fmt.Errorf("SubnetsList is nil")
+			errs <- fmt.Errorf("SubnetsList is nil")
 			return
 		}
 		c.cfg.subnetsList = *subnetsList
 
 		clusterVPC := GetOutput(&s, "ClusterVPC")
 		if clusterVPC == nil {
-			done <- fmt.Errorf("ClusterVPC is nil")
+			errs <- fmt.Errorf("ClusterVPC is nil")
 			return
 		}
 		c.cfg.clusterVPC = *clusterVPC
 
 		logger.Debug("clusterConfig = %#v", c.cfg)
 		logger.Success("created VPC stack %q", name)
+
+		errs <- nil
 	}()
 	return nil
 }
@@ -290,7 +292,7 @@ func (c *CloudFormation) DeleteStackVPC() error {
 	}
 	return nil
 }
-func (c *CloudFormation) CreateStackServiceRole(done chan error) error {
+func (c *CloudFormation) createStackServiceRole(errs chan error) error {
 	name := "EKS-" + c.cfg.ClusterName + "-ServiceRole"
 	logger.Info("creating ServiceRole stack %q", name)
 	templateBody, err := amazonEksServiceRoleYamlBytes()
@@ -299,32 +301,34 @@ func (c *CloudFormation) CreateStackServiceRole(done chan error) error {
 	}
 
 	stackChan := make(chan Stack)
-	doneSubChan := make(chan error)
+	taskErrs := make(chan error)
 
-	if err := c.CreateStack(name, templateBody, nil, true, doneSubChan, stackChan); err != nil {
+	if err := c.CreateStack(name, templateBody, nil, true, stackChan, taskErrs); err != nil {
 		return err
 	}
 
 	go func() {
-		defer close(done)
+		defer close(errs)
 		defer close(stackChan)
 
-		if err := <-doneSubChan; err != nil {
-			done <- err
+		if err := <-taskErrs; err != nil {
+			errs <- err
 			return
 		}
-		done <- nil // indicate that we are done to the caller
 
 		s := <-stackChan
+
 		clusterRoleARN := GetOutput(&s, "RoleArn")
 		if clusterRoleARN == nil {
-			done <- fmt.Errorf("RoleArn is nil")
+			errs <- fmt.Errorf("RoleArn is nil")
 			return
 		}
 		c.cfg.clusterRoleARN = *clusterRoleARN
 
 		logger.Debug("clusterConfig = %#v", c.cfg)
 		logger.Success("created ServiceRole stack %q", name)
+
+		errs <- nil
 	}()
 	return nil
 }
@@ -373,11 +377,43 @@ func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 	}
 }
 
-func (c *CloudFormation) CreateStackDefaultNodeGroup() error {
-	_, err := amazonEksNodegroupYamlBytes()
+func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
+	name := "EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup"
+	logger.Info("creating DefaultNodeGroup stack %q", name)
+	templateBody, err := amazonEksNodegroupYamlBytes()
 	if err != nil {
 		return errors.Wrap(err, "decompressing bundled template for DefaultNodeGroup stack")
 	}
+
+	stackChan := make(chan Stack)
+	errSubChan := make(chan error)
+
+	if err := c.CreateStack(name, templateBody, c.stackParamsDefaultNodeGroup(), true, stackChan, errSubChan); err != nil {
+		return err
+	}
+
+	go func() {
+		defer close(errs)
+		defer close(stackChan)
+
+		if err := <-errSubChan; err != nil {
+			errs <- err
+			return
+		}
+
+		// s := <-stackChan
+		// clusterRoleARN := GetOutput(&s, "RoleArn")
+		// if clusterRoleARN == nil {
+		// 	done <- fmt.Errorf("RoleArn is nil")
+		// 	return
+		// }
+		// c.cfg.clusterRoleARN = *clusterRoleARN
+
+		logger.Debug("clusterConfig = %#v", c.cfg)
+		logger.Success("created DefaultNodeGroup stack %q", name)
+
+		errs <- nil
+	}()
 	return nil
 }
 
