@@ -17,6 +17,8 @@ import (
 
 //go:generate go-bindata -pkg $GOPACKAGE -prefix ../../vendor/1.10.0/2018-05-09 ../../vendor/1.10.0/2018-05-09
 
+const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+
 type CloudFormation struct {
 	svc *cloudformation.CloudFormation
 	cfg *Config
@@ -26,12 +28,15 @@ type CloudFormation struct {
 type Config struct {
 	Region      string
 	ClusterName string
-	KeyName     string
 	NodeAMI     string
 	NodeType    string
+	Nodes       int
 	MinNodes    int
 	MaxNodes    int
 
+	SSHPublicKey []byte
+
+	keyName        string
 	clusterRoleARN string
 	securityGroup  string
 	subnetsList    string
@@ -64,6 +69,12 @@ func (c *CloudFormation) CheckAuth() error {
 func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, done chan error, stack chan Stack) error {
 	input := &cloudformation.CreateStackInput{}
 	input.SetStackName(name)
+	input.SetTags([]*cloudformation.Tag{
+		&cloudformation.Tag{
+			Key:   aws.String(ClusterNameTag),
+			Value: aws.String(c.cfg.ClusterName),
+		},
+	})
 	input.SetTemplateBody(string(templateBody))
 	if withIAM {
 		input.SetCapabilities(aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam}))
@@ -233,6 +244,21 @@ func (c *CloudFormation) CreateStackVPC(done chan error) error {
 	return nil
 }
 
+func (c *CloudFormation) DeleteStackVPC() error {
+	s, err := c.GetStackVPC()
+	if err != nil {
+		return errors.Wrap(err, "not able to get VPC stack for deletion")
+	}
+
+	input := &cloudformation.DeleteStackInput{
+		StackName: s.StackName,
+	}
+
+	if _, err := c.svc.DeleteStack(input); err != nil {
+		return errors.Wrap(err, "not able to delete VPC stack")
+	}
+	return nil
+}
 func (c *CloudFormation) CreateStackServiceRole(done chan error) error {
 	name := "EKS-" + c.cfg.ClusterName + "-ServiceRole"
 	logger.Info("creating ServiceRole stack %q", name)
@@ -272,6 +298,22 @@ func (c *CloudFormation) CreateStackServiceRole(done chan error) error {
 	return nil
 }
 
+func (c *CloudFormation) DeleteStackServiceRole() error {
+	s, err := c.GetStackServiceRole()
+	if err != nil {
+		return errors.Wrap(err, "not able to get ServiceRole stack for deletion")
+	}
+
+	input := &cloudformation.DeleteStackInput{
+		StackName: s.StackName,
+	}
+
+	if _, err := c.svc.DeleteStack(input); err != nil {
+		return errors.Wrap(err, "not able to delete ServiceRole stack")
+	}
+	return nil
+}
+
 func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 	regionalAMIs := map[string]string{
 		"us-west-2": "ami-993141e1",
@@ -284,7 +326,7 @@ func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 	return map[string]string{
 		"ClusterName":                      c.cfg.ClusterName,
 		"NodeGroupName":                    c.cfg.ClusterName + "-DefaultNodeGroup",
-		"KeyName":                          c.cfg.KeyName,
+		"KeyName":                          c.cfg.keyName,
 		"NodeImageId":                      c.cfg.NodeAMI,
 		"NodeInstanceType":                 c.cfg.NodeType,
 		"NodeAutoScalingGroupMinSize":      string(c.cfg.MinNodes),
@@ -308,15 +350,15 @@ func (c *CloudFormation) GetStack(name string) (*Stack, error) {
 }
 
 func (c *CloudFormation) GetStackVPC() (*Stack, error) {
-	return c.GetStack("^EKS-" + c.cfg.ClusterName + "-VPC$")
+	return c.GetStack("EKS-" + c.cfg.ClusterName + "-VPC")
 }
 
 func (c *CloudFormation) GetStackServiceRole() (*Stack, error) {
-	return c.GetStack("^EKS-" + c.cfg.ClusterName + "-ServiceRole$")
+	return c.GetStack("EKS-" + c.cfg.ClusterName + "-ServiceRole")
 }
 
 func (c *CloudFormation) GetStackDefaultNodeGroup() (*Stack, error) {
-	return c.GetStack("^EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup$")
+	return c.GetStack("EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup")
 }
 
 func GetOutput(stack *Stack, key string) *string {

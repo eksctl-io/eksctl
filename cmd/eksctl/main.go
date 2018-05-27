@@ -1,79 +1,41 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/kubicorn/kubicorn/pkg/logger"
-
-	cloudformation "github.com/weaveworks/eksctl/pkg/cfn"
-)
-
-const (
-	DEFAULT_EKS_REGION   = "us-west-2"
-	DEFAULT_CLUSTER_NAME = "cluster-1"
-	DEFAULT_NODE_COUNT   = 2
-	DEFAULT_NODE_TYPE    = "m4.large" // TODO check kops
+	"github.com/spf13/cobra"
 )
 
 // TODO (alpha release)
-// - add cobra and more structure
-// - add basic delete and create commands
-// - add flags and flags and defaults
+// - add flags and flag defaults
 // - basic support for addons
 // - other key items from the readme
 
+var rootCmd = &cobra.Command{
+	Use: "eksctl",
+	Run: func(c *cobra.Command, _ []string) {
+		c.Help()
+	},
+}
+
+func init() {
+
+	addCommands()
+
+	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 4, "set log level")
+	rootCmd.PersistentFlags().BoolVarP(&logger.Color, "color", "C", true, "toggle colorized logs")
+}
+
 func main() {
-	logger.Level = 4
-
-	config := &cloudformation.Config{
-		ClusterName: DEFAULT_CLUSTER_NAME,
-		Region:      DEFAULT_EKS_REGION,
-
-		KeyName: "ilya", // TODO
-
-		MinNodes: DEFAULT_NODE_COUNT,
-		MaxNodes: DEFAULT_NODE_COUNT,
-		NodeType: DEFAULT_NODE_TYPE,
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
 	}
+}
 
-	cfn := cloudformation.New(config)
-
-	if err := cfn.CheckAuth(); err != nil {
-		logger.Critical("%s", err)
-		return
-	}
-
-	// create each of the cloudformation stacks
-
-	// TODO waitgroups
-	{
-		done := make(chan error)
-		if err := cfn.CreateStackServiceRole(done); err != nil {
-			logger.Critical("%s", err)
-			return
-		}
-		if err := <-done; err != nil {
-			logger.Critical("%s", err)
-			return
-		}
-	}
-	{
-		done := make(chan error)
-		if err := cfn.CreateStackVPC(done); err != nil {
-			logger.Critical("%s", err)
-			return
-		}
-		if err := <-done; err != nil {
-			logger.Critical("%s", err)
-			return
-		}
-	}
-
-	logger.Success("all EKS cluster %q resources has been created")
-
-	// obtain cluster credentials
-
-	// login to the cluster and authorise nodes to join
-
-	// watch nodes joining
-
-	// validate (like in kops)
+func addCommands() {
+	rootCmd.AddCommand(createCmd())
+	rootCmd.AddCommand(deleteCmd())
 }
