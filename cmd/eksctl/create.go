@@ -27,8 +27,8 @@ func createCmd() *cobra.Command {
 const (
 	DEFAULT_EKS_REGION     = "us-west-2"
 	DEFAULT_NODE_COUNT     = 2
-	DEFAULT_NODE_TYPE      = "m5.large"          // seems like good value for money
-	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub" // TODO kops does this, let's just upload one to make it easy
+	DEFAULT_NODE_TYPE      = "m5.large"
+	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
 )
 
 func createClusterCmd() *cobra.Command {
@@ -51,13 +51,15 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&config.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
 	fs.IntVarP(&config.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes for a fixed ASG")
-	fs.IntVarP(&config.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
-	fs.IntVarP(&config.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
 
+	// TODO(p2): review parameter validation, this shouldn't be needed initially
+	// fs.IntVarP(&config.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
+	// fs.IntVarP(&config.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
+
+	// TODO(p1): upload SSH key
 	// fs.StringVar(&config.TODO, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes")
 
-	// TODO:
-	// --nodes
+	// TODO(p0):
 	// --kubeconfig <path>
 	// --write-kuhbeconfig <booL>
 	return cmd
@@ -74,7 +76,7 @@ func doCreateCluster(config *cloudformation.Config) error {
 
 	// create each of the cloudformation stacks
 
-	// TODO waitgroups
+	// TODO(p0): waitgroups
 	{
 		done := make(chan error)
 		if err := cfn.CreateStackServiceRole(done); err != nil {
@@ -96,13 +98,18 @@ func doCreateCluster(config *cloudformation.Config) error {
 
 	logger.Success("all EKS cluster %q resources has been created", config.ClusterName)
 
-	// obtain cluster credentials
+	// TODO(p0): obtain cluster credentials, write kubeconfig
 
-	// login to the cluster and authorise nodes to join
+	// TODO(p0): login to the cluster and authorise nodes to join
 
-	// watch nodes joining
+	// TODO(p1): watch nodes joining
 
-	// validate (like in kops)
+	// TODO(p2): validate (like in kops)
+
+	// TODO(p2): addons
+
+	// TODO(p0): check kubectl version, and offer install instructions if missing or old
+	// TODO(p0): check heptio-authenticator, and offer install instructions if missing
 
 	return nil
 }

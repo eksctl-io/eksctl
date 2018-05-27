@@ -323,6 +323,11 @@ func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 		c.cfg.NodeAMI = regionalAMIs[c.cfg.Region]
 	}
 
+	if c.cfg.MinNodes == 0 && c.cfg.MaxNodes == 0 {
+		c.cfg.MinNodes = c.cfg.Nodes
+		c.cfg.MaxNodes = c.cfg.Nodes
+	}
+
 	return map[string]string{
 		"ClusterName":                      c.cfg.ClusterName,
 		"NodeGroupName":                    c.cfg.ClusterName + "-DefaultNodeGroup",
