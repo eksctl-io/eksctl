@@ -1,0 +1,11 @@
+version: 2
+jobs:
+ build:
+   docker:
+     # https://circleci.com/docs/2.0/building-docker-images/#docker-version
+     - image: docker:17.11.0-ce
+   steps:
+     - checkout
+     - setup_remote_docker: {docker_layer_caching: true}
+     # just a simple build for now, but will use skaffold if it gets more complex
+     - run: docker build .
