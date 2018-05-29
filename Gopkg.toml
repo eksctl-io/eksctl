@@ -61,6 +61,10 @@
   branch = "master"
   name = "github.com/heptio/authenticator"
 
+[[constraint]]
+  name = "k8s.io/client-go"
+  version = "v7.0.0"
+
 [prune]
   go-tests = true
   unused-packages = true
