@@ -32,6 +32,11 @@ const (
 	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
 )
 
+var (
+	writeKubeconfig bool
+	kubeconfigPath  string
+)
+
 func createClusterCmd() *cobra.Command {
 	cfg := &eks.Config{}
 
@@ -59,9 +64,9 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
-	// TODO(p0):
-	// --kubeconfig <path>
-	// --write-kubeconfig <booL>
+	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
+	fs.StringVar(&kubeconfigPath, "kubeconfig", "kubeconfig", "path to write kubeconfig")
+
 	return cmd
 }
 
@@ -86,29 +91,50 @@ func doCreateCluster(cfg *eks.Config) error {
 
 	logger.Info("creating EKS cluster %q", cfg.ClusterName)
 
-	{
-		taskErr := make(chan error)
-		// create each of the core cloudformation stacks
-		ctl.CreateCoreStacks(taskErr)
-		// read any errors (it only gets non-nil errors)
-		for err := range taskErr {
-			return err
-		}
-	}
+	// {
+	// 	taskErr := make(chan error)
+	// 	// create each of the core cloudformation stacks
+	// 	ctl.CreateCoreStacks(taskErr)
+	// 	// read any errors (it only gets non-nil errors)
+	// 	for err := range taskErr {
+	// 		return err
+	// 	}
+	// }
 
-	{
-		taskErr := make(chan error)
-		// create nodegroup stack
-		ctl.CreateNodeGroupStack(taskErr)
-		// read any errors (it only gets non-nil errors)
-		for err := range taskErr {
-			return err
-		}
-	}
+	// {
+	// 	taskErr := make(chan error)
+	// 	// create nodegroup stack
+	// 	ctl.CreateNodeGroupStack(taskErr)
+	// 	// read any errors (it only gets non-nil errors)
+	// 	for err := range taskErr {
+	// 		return err
+	// 	}
+	// }
 
 	logger.Success("all EKS cluster %q resources has been created", cfg.ClusterName)
 
-	// TODO(p0): obtain cluster credentials, write kubeconfig
+	// obtain cluster credentials, write kubeconfig
+
+	// TODO(p0): obtain actual cluster credentials
+	cfg.MasterEndpoint = "https://api.magic.com"
+	cfg.CertificateAuthorityData = []byte("cert")
+
+	kubeconfig, err := ctl.NewClientConfig()
+	if err != nil {
+		return err
+	}
+
+	// TODO(p2): make kubeconfig writter merge with current default kubeconfig and respect KUBECONFIG env var for writing
+	if writeKubeconfig {
+		if err := kubeconfig.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
+			return err
+		}
+		logger.Info("wrote %q", kubeconfigPath)
+	}
+
+	if _, err := kubeconfig.WithEmbeddedToken(); err != nil {
+		return err
+	}
 
 	// TODO(p0): login to the cluster and authorise nodes to join
 

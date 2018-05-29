@@ -4,19 +4,25 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/ghodss/yaml"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	clientset "k8s.io/client-go/kubernetes"
+
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"k8s.io/kops/upup/pkg/fi/utils"
 
-	_ "github.com/heptio/authenticator/pkg/token"
+	"github.com/heptio/authenticator/pkg/token"
 )
 
 func (c *Config) nodeAuthConfigMap() (*corev1.ConfigMap, error) {
@@ -121,4 +127,110 @@ func (c *CloudFormation) MaybeDeletePublicSSHKey() {
 		KeyName: aws.String("EKS-" + c.cfg.ClusterName),
 	}
 	c.ec2.DeleteKeyPair(input)
+}
+
+func (c *CloudFormation) getUsername() (string, error) {
+	input := &sts.GetCallerIdentityInput{}
+	output, err := c.sts.GetCallerIdentity(input)
+	if err != nil {
+		return "", errors.Wrap(err, "cannot get username for current session")
+	}
+	arn := strings.Split(*output.Arn, "/")
+	username := arn[len(arn)-1]
+	return username, nil
+}
+
+type ClientConfig struct {
+	Client  *clientcmdapi.Config
+	Cluster *Config
+}
+
+// based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
+// these are small, so we can copy these, and no need to deal with k/k as dependency
+func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
+	username, err := c.getUsername()
+	if err != nil {
+		return nil, err
+	}
+
+	clusterName := fmt.Sprintf("%s.%s.eksctl.k8s.io", c.cfg.ClusterName, c.cfg.Region)
+	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+
+	clientConfig := &ClientConfig{
+		Cluster: c.cfg,
+		Client: &clientcmdapi.Config{
+			Clusters: map[string]*clientcmdapi.Cluster{
+				clusterName: {
+					Server: c.cfg.MasterEndpoint,
+					CertificateAuthorityData: c.cfg.CertificateAuthorityData,
+				},
+			},
+			Contexts: map[string]*clientcmdapi.Context{
+				contextName: {
+					Cluster:  clusterName,
+					AuthInfo: contextName,
+				},
+			},
+			AuthInfos: map[string]*clientcmdapi.AuthInfo{
+				contextName: &clientcmdapi.AuthInfo{},
+			},
+			CurrentContext: contextName,
+		},
+	}
+
+	return clientConfig, nil
+}
+
+func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
+	clientConfigCopy := *c
+	x := clientConfigCopy.Client.AuthInfos[c.Client.CurrentContext]
+	x.Exec = &clientcmdapi.ExecConfig{
+		APIVersion: "client.authentication.k8s.io/v1alpha1",
+		Command:    "heptio-authenticator-aws",
+		Args:       []string{"token", "-i", c.Cluster.ClusterName},
+		// TODO(p2): should we add -r <role-arn> here?
+	}
+	return &clientConfigCopy
+}
+
+func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
+	clientConfigCopy := *c
+
+	gen, err := token.NewGenerator()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get token")
+	}
+
+	// otherwise sign the token with immediately available credentials
+	tok, err := gen.Get(c.Cluster.ClusterName)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get token")
+	}
+
+	//c.Client.AuthInfos[c.Client.CurrentContext].
+
+	logger.Debug("token = %#v", tok)
+	logger.Debug("token = %s", gen.FormatJSON(tok))
+
+	return &clientConfigCopy, nil
+}
+
+func (c *ClientConfig) WriteToFile(filename string) error {
+	if err := clientcmd.WriteToFile(*c.Client, filename); err != nil {
+		return errors.Wrapf(err, "couldn't write client config file %q", filename)
+	}
+	return nil
+}
+
+func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
+	clientConfig, err := clientcmd.NewDefaultClientConfig(*c.Client, &clientcmd.ConfigOverrides{}).ClientConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create API client configuration from client config")
+	}
+
+	client, err := clientset.NewForConfig(clientConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create API client")
+	}
+	return client, nil
 }
