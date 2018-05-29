@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
@@ -25,6 +26,7 @@ type CloudFormation struct {
 	cfg *Config
 	svc *cloudformation.CloudFormation
 	ec2 *ec2.EC2
+	sts *sts.STS
 }
 
 // simple config, to be replaced with Cluster API
@@ -62,6 +64,7 @@ func New(clusterConfig *Config) *CloudFormation {
 		cfg: clusterConfig,
 		svc: cloudformation.New(session),
 		ec2: ec2.New(session),
+		sts: sts.New(session),
 	}
 }
 

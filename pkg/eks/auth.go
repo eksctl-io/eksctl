@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/ghodss/yaml"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
@@ -17,7 +18,7 @@ import (
 	_ "k8s.io/client-go/tools/clientcmd"
 	_ "k8s.io/client-go/tools/clientcmd/api"
 
-	//_ "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
+	"k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 
 	"k8s.io/kops/upup/pkg/fi/utils"
 
@@ -126,4 +127,17 @@ func (c *CloudFormation) MaybeDeletePublicSSHKey() {
 		KeyName: aws.String("EKS-" + c.cfg.ClusterName),
 	}
 	c.ec2.DeleteKeyPair(input)
+}
+
+func (c *CloudFormation) getUsername() (string, error) {
+	input := &sts.GetCallerIdentityInput{}
+	output, err := c.sts.GetCallerIdentity(input)
+	if err != nil {
+		return errors.Wrap(err, "cannot get username for current session")
+	}
+	return *output.UserId, nil
+}
+
+func (c *CloudFormation) MakeKubeconfig() {
+	logger.Debug("kubeconfig = %#v", kubeconfig.CreateBasic("https://magic.com", "magic-cluster", "magician", "foo"))
 }

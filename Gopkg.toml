@@ -50,7 +50,7 @@
   name = "k8s.io/api"
 
 [[constraint]]
-  branch = "master"
+  branch = "release-1.10"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
@@ -68,3 +68,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "k8s.io/kubernetes"
+  version = "1.10.3"
