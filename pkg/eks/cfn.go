@@ -49,6 +49,9 @@ type Config struct {
 	clusterVPC     string
 
 	nodeInstanceRoleARN string
+
+	MasterEndpoint           string
+	CertificateAuthorityData []byte
 }
 type Stack = cloudformation.Stack
 
