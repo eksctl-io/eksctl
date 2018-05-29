@@ -8,7 +8,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/namer"
 	"github.com/spf13/cobra"
 
-	cloudformation "github.com/weaveworks/eksctl/pkg/cfn"
+	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func createCmd() *cobra.Command {
@@ -32,12 +32,12 @@ const (
 )
 
 func createClusterCmd() *cobra.Command {
-	config := &cloudformation.Config{}
+	cfg := &eks.Config{}
 
 	cmd := &cobra.Command{
 		Use: "cluster",
 		Run: func(_ *cobra.Command, _ []string) {
-			if err := doCreateCluster(config); err != nil {
+			if err := doCreateCluster(cfg); err != nil {
 				logger.Critical(err.Error())
 				os.Exit(1)
 			}
@@ -46,18 +46,18 @@ func createClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&config.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated, e.g. %q)", namer.RandomName()))
-	fs.StringVarP(&config.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated, e.g. %q)", namer.RandomName()))
+	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 
-	fs.StringVarP(&config.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
-	fs.IntVarP(&config.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes for a fixed ASG")
+	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
+	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes for a fixed ASG")
 
 	// TODO(p2): review parameter validation, this shouldn't be needed initially
-	// fs.IntVarP(&config.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
-	// fs.IntVarP(&config.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
+	// fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
+	// fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
 
 	// TODO(p1): upload SSH key
-	// fs.StringVar(&config.TODO, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes")
+	// fs.StringVar(&cfg.TODO, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes")
 
 	// TODO(p0):
 	// --kubeconfig <path>
@@ -65,28 +65,40 @@ func createClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doCreateCluster(config *cloudformation.Config) error {
-	cfn := cloudformation.New(config)
+func doCreateCluster(cfg *eks.Config) error {
+	ctl := eks.New(cfg)
 
-	if err := cfn.CheckAuth(); err != nil {
+	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if config.ClusterName == "" {
-		config.ClusterName = namer.RandomName()
+	if cfg.ClusterName == "" {
+		cfg.ClusterName = namer.RandomName()
 	}
 
-	logger.Info("creating EKS cluster %q", config.ClusterName)
+	logger.Info("creating EKS cluster %q", cfg.ClusterName)
 
-	taskErr := make(chan error)
-	// create each of the core cloudformation stacks
-	cfn.CreateCoreStacks(taskErr)
-	// read any errors (it only gets non-nil errors)
-	for err := range taskErr {
-		return err
+	{
+		taskErr := make(chan error)
+		// create each of the core cloudformation stacks
+		ctl.CreateCoreStacks(taskErr)
+		// read any errors (it only gets non-nil errors)
+		for err := range taskErr {
+			return err
+		}
 	}
 
-	logger.Success("all EKS cluster %q resources has been created", config.ClusterName)
+	{
+		taskErr := make(chan error)
+		// create nodegroup stack
+		ctl.CreateNodeGroupStack(taskErr)
+		// read any errors (it only gets non-nil errors)
+		for err := range taskErr {
+			return err
+		}
+	}
+
+	logger.Success("all EKS cluster %q resources has been created", cfg.ClusterName)
 
 	// TODO(p0): obtain cluster credentials, write kubeconfig
 

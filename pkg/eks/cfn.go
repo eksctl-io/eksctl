@@ -1,4 +1,4 @@
-package cfn
+package eks
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate go-bindata -pkg $GOPACKAGE -prefix ../../vendor/1.10.0/2018-05-09 ../../vendor/1.10.0/2018-05-09
+//go:generate go-bindata -pkg $GOPACKAGE -prefix ../../vendor/1.10.0/2018-05-09 -o cfn_templates.go ../../vendor/1.10.0/2018-05-09
 
 const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
@@ -42,8 +42,9 @@ type Config struct {
 	securityGroup  string
 	subnetsList    string
 	clusterVPC     string
-}
 
+	nodeInstanceRoleARN string
+}
 type Stack = cloudformation.Stack
 
 func New(clusterConfig *Config) *CloudFormation {
@@ -88,13 +89,16 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 		input.Parameters = append(input.Parameters, p)
 	}
 
-	_, err := c.svc.CreateStack(input)
+	// TODO(p0): looks like we can block on this forever, if parameters are invalid
+	logger.Debug("input = %#v", input)
+	s, err := c.svc.CreateStack(input)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("creating CloudFormation stack %q", name))
 	}
+	logger.Debug("stack = %#v", s)
 
 	go func() {
-		// TODO: eksctld should probably use SNS notifications instead of polling
+		// TODO(eksctld): should probably use SNS notifications instead of polling
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 		defer close(errs)
@@ -106,6 +110,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 					log.Print(err)
 					continue
 				}
+				logger.Debug("stack = %#v", s)
 				switch *s.StackStatus {
 				case cloudformation.StackStatusCreateInProgress:
 					continue
@@ -385,12 +390,12 @@ func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 
 	return map[string]string{
 		"ClusterName":                      c.cfg.ClusterName,
-		"NodeGroupName":                    c.cfg.ClusterName + "-DefaultNodeGroup",
-		"KeyName":                          c.cfg.keyName,
+		"NodeGroupName":                    "default",
+		"KeyName":                          "ilya", // c.cfg.keyName,
 		"NodeImageId":                      c.cfg.NodeAMI,
 		"NodeInstanceType":                 c.cfg.NodeType,
-		"NodeAutoScalingGroupMinSize":      string(c.cfg.MinNodes),
-		"NodeAutoScalingGroupMaxSize":      string(c.cfg.MaxNodes),
+		"NodeAutoScalingGroupMinSize":      fmt.Sprintf("%d", c.cfg.MinNodes),
+		"NodeAutoScalingGroupMaxSize":      fmt.Sprintf("%d", c.cfg.MaxNodes),
 		"ClusterControlPlaneSecurityGroup": c.cfg.securityGroup,
 		"Subnets":                          c.cfg.subnetsList,
 		"VpcId":                            c.cfg.clusterVPC,
@@ -406,9 +411,9 @@ func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
 	}
 
 	stackChan := make(chan Stack)
-	errSubChan := make(chan error)
+	taskErrs := make(chan error)
 
-	if err := c.CreateStack(name, templateBody, c.stackParamsDefaultNodeGroup(), true, stackChan, errSubChan); err != nil {
+	if err := c.CreateStack(name, templateBody, c.stackParamsDefaultNodeGroup(), true, stackChan, taskErrs); err != nil {
 		return err
 	}
 
@@ -416,18 +421,19 @@ func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
 		defer close(errs)
 		defer close(stackChan)
 
-		if err := <-errSubChan; err != nil {
+		if err := <-taskErrs; err != nil {
 			errs <- err
 			return
 		}
 
-		// s := <-stackChan
-		// clusterRoleARN := GetOutput(&s, "RoleArn")
-		// if clusterRoleARN == nil {
-		// 	done <- fmt.Errorf("RoleArn is nil")
-		// 	return
-		// }
-		// c.cfg.clusterRoleARN = *clusterRoleARN
+		s := <-stackChan
+
+		nodeInstanceRoleARN := GetOutput(&s, "RoleArn")
+		if nodeInstanceRoleARN == nil {
+			errs <- fmt.Errorf("NodeInstanceRole is nil")
+			return
+		}
+		c.cfg.nodeInstanceRoleARN = *nodeInstanceRoleARN
 
 		logger.Debug("clusterConfig = %#v", c.cfg)
 		logger.Success("created DefaultNodeGroup stack %q", name)

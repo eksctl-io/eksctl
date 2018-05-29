@@ -7,7 +7,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
 
-	cloudformation "github.com/weaveworks/eksctl/pkg/cfn"
+	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func deleteCmd() *cobra.Command {
@@ -24,12 +24,12 @@ func deleteCmd() *cobra.Command {
 }
 
 func deleteClusterCmd() *cobra.Command {
-	config := &cloudformation.Config{}
+	cfg := &eks.Config{}
 
 	cmd := &cobra.Command{
 		Use: "cluster",
 		Run: func(_ *cobra.Command, _ []string) {
-			if err := doDeleteCluster(config); err != nil {
+			if err := doDeleteCluster(cfg); err != nil {
 				logger.Critical(err.Error())
 				os.Exit(1)
 			}
@@ -38,34 +38,38 @@ func deleteClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&config.ClusterName, "cluster-name", "n", "", "EKS cluster name (required)")
-	fs.StringVarP(&config.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", "EKS cluster name (required)")
+	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 
 	return cmd
 }
 
-func doDeleteCluster(config *cloudformation.Config) error {
-	cfn := cloudformation.New(config)
+func doDeleteCluster(cfg *eks.Config) error {
+	ctl := eks.New(cfg)
 
-	if err := cfn.CheckAuth(); err != nil {
+	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if config.ClusterName == "" {
+	if cfg.ClusterName == "" {
 		return fmt.Errorf("--cluster-name must be set")
 	}
 
-	logger.Info("deleting EKS cluster %q", config.ClusterName)
+	logger.Info("deleting EKS cluster %q", cfg.ClusterName)
 
-	if err := cfn.DeleteStackServiceRole(); err != nil {
+	if err := ctl.DeleteStackServiceRole(); err != nil {
 		return err
 	}
 
-	if err := cfn.DeleteStackVPC(); err != nil {
+	if err := ctl.DeleteStackVPC(); err != nil {
 		return err
 	}
 
-	logger.Success("all EKS cluster %q resource will be deleted (if in doubt, check CloudForamtion console)", config.ClusterName)
+	if err := ctl.DeleteStackDefaultNodeGroup(); err != nil {
+		return err
+	}
+
+	logger.Success("all EKS cluster %q resource will be deleted (if in doubt, check CloudForamtion console)", cfg.ClusterName)
 
 	return nil
 }
