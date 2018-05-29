@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
@@ -21,8 +22,9 @@ import (
 const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
 type CloudFormation struct {
-	svc *cloudformation.CloudFormation
 	cfg *Config
+	svc *cloudformation.CloudFormation
+	ec2 *ec2.EC2
 }
 
 // simple config, to be replaced with Cluster API
@@ -35,7 +37,8 @@ type Config struct {
 	MinNodes    int
 	MaxNodes    int
 
-	SSHPublicKey []byte
+	SSHPublicKeyPath string
+	SSHPublicKey     []byte
 
 	keyName        string
 	clusterRoleARN string
@@ -53,10 +56,12 @@ func New(clusterConfig *Config) *CloudFormation {
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig().WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
+	session := session.Must(session.NewSession(config))
 
 	return &CloudFormation{
-		svc: cloudformation.New(session.Must(session.NewSession(config))),
 		cfg: clusterConfig,
+		svc: cloudformation.New(session),
+		ec2: ec2.New(session),
 	}
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/kubicorn/kubicorn/pkg/namer"
@@ -56,12 +57,11 @@ func createClusterCmd() *cobra.Command {
 	// fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
 	// fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
 
-	// TODO(p1): upload SSH key
-	// fs.StringVar(&cfg.TODO, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes")
+	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	// TODO(p0):
 	// --kubeconfig <path>
-	// --write-kuhbeconfig <booL>
+	// --write-kubeconfig <booL>
 	return cmd
 }
 
@@ -73,7 +73,15 @@ func doCreateCluster(cfg *eks.Config) error {
 	}
 
 	if cfg.ClusterName == "" {
-		cfg.ClusterName = namer.RandomName()
+		cfg.ClusterName = fmt.Sprintf("%s-%d", namer.RandomName(), time.Now().Unix())
+	}
+
+	if cfg.SSHPublicKeyPath == "" {
+		return fmt.Errorf("--ssh-public-key must be non-empty string")
+	}
+
+	if err := ctl.LoadSSHPublicKey(); err != nil {
+		return err
 	}
 
 	logger.Info("creating EKS cluster %q", cfg.ClusterName)
