@@ -1,4 +1,4 @@
-build:
+build: update-bindata
 	go build ./cmd/eksctl
 
 update-bindata:

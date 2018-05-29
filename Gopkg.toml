@@ -57,6 +57,10 @@
   name = "k8s.io/kops"
   version = "1.9.1"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/heptio/authenticator"
+
 [prune]
   go-tests = true
   unused-packages = true
