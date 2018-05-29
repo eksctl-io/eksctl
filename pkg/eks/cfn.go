@@ -142,7 +142,8 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 					// case cloudformation.StackStatusReviewInProgress:
 				default:
 					errs <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
-					stack <- *s
+					// stack <- *s // this usually results in closed channel panic, but we don't need it really
+					logger.Debug("stack = %#v", s)
 					return
 				}
 			}
@@ -202,8 +203,9 @@ func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, t
 	wg.Add(len(tasks))
 	for taskName := range tasks {
 		task := tasks[taskName]
-		go func() {
+		go func(tn string) {
 			defer wg.Done()
+			logger.Debug("task %q started", tn)
 			errs := make(chan error)
 			if err := task(errs); err != nil {
 				taskErrs <- err
@@ -213,8 +215,10 @@ func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, t
 				taskErrs <- err
 				return
 			}
-		}()
+			logger.Debug("task %q returned without errors", tn)
+		}(taskName)
 	}
+	logger.Debug("waiting for %d tasks to complete", len(tasks))
 	wg.Wait()
 	close(taskErrs)
 }
@@ -267,6 +271,8 @@ func (c *CloudFormation) createStackVPC(errs chan error) error {
 		}
 
 		s := <-stackChan
+
+		logger.Debug("created VPC stack %q – processing outputs", name)
 
 		securityGroup := GetOutput(&s, "SecurityGroup")
 		if securityGroup == nil {
@@ -344,6 +350,8 @@ func (c *CloudFormation) createStackServiceRole(errs chan error) error {
 
 		s := <-stackChan
 
+		logger.Debug("created ServiceRole stack %q – processing outputs", name)
+
 		clusterRoleARN := GetOutput(&s, "RoleArn")
 		if clusterRoleARN == nil {
 			errs <- fmt.Errorf("RoleArn is nil")
@@ -396,7 +404,7 @@ func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 	return map[string]string{
 		"ClusterName":                      c.cfg.ClusterName,
 		"NodeGroupName":                    "default",
-		"KeyName":                          "ilya", // c.cfg.keyName,
+		"KeyName":                          c.cfg.keyName,
 		"NodeImageId":                      c.cfg.NodeAMI,
 		"NodeInstanceType":                 c.cfg.NodeType,
 		"NodeAutoScalingGroupMinSize":      fmt.Sprintf("%d", c.cfg.MinNodes),
@@ -433,8 +441,11 @@ func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
 
 		s := <-stackChan
 
-		nodeInstanceRoleARN := GetOutput(&s, "RoleArn")
+		logger.Debug("created DefaultNodeGroup stack %q – processing outputs", name)
+
+		nodeInstanceRoleARN := GetOutput(&s, "NodeInstanceRole")
 		if nodeInstanceRoleARN == nil {
+			// TODO(p2): confirm if this can actually block if key was wrong and find out why
 			errs <- fmt.Errorf("NodeInstanceRole is nil")
 			return
 		}
