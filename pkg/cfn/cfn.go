@@ -211,9 +211,19 @@ func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, t
 
 func (c *CloudFormation) CreateCoreStacks(taskErrs chan error) {
 	c.CreateStacks(map[string]func(chan error) error{
-		"CreateStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
-		"CreateStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
+		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
+		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
 	}, taskErrs)
+}
+
+func (c *CloudFormation) CreateNodeGroupStack(taskErrs chan error) {
+	c.CreateStacks(map[string]func(chan error) error{
+		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
+	}, taskErrs)
+}
+
+func (c *CloudFormation) stackNameVPC() string {
+	return "EKS-" + c.cfg.ClusterName + "-VPC"
 }
 
 func (c *CloudFormation) stackParamsVPC() map[string]string {
@@ -223,7 +233,7 @@ func (c *CloudFormation) stackParamsVPC() map[string]string {
 }
 
 func (c *CloudFormation) createStackVPC(errs chan error) error {
-	name := "EKS-" + c.cfg.ClusterName + "-VPC"
+	name := c.stackNameVPC()
 	logger.Info("creating VPC stack %q", name)
 	templateBody, err := amazonEksVpcSampleYamlBytes()
 	if err != nil {
@@ -278,7 +288,8 @@ func (c *CloudFormation) createStackVPC(errs chan error) error {
 }
 
 func (c *CloudFormation) DeleteStackVPC() error {
-	s, err := c.GetStackVPC()
+	name := c.stackNameVPC()
+	s, err := c.describeStack(&name)
 	if err != nil {
 		return errors.Wrap(err, "not able to get VPC stack for deletion")
 	}
@@ -292,8 +303,13 @@ func (c *CloudFormation) DeleteStackVPC() error {
 	}
 	return nil
 }
+
+func (c *CloudFormation) stackNameServiceRole() string {
+	return "EKS-" + c.cfg.ClusterName + "-ServiceRole"
+}
+
 func (c *CloudFormation) createStackServiceRole(errs chan error) error {
-	name := "EKS-" + c.cfg.ClusterName + "-ServiceRole"
+	name := c.stackNameServiceRole()
 	logger.Info("creating ServiceRole stack %q", name)
 	templateBody, err := amazonEksServiceRoleYamlBytes()
 	if err != nil {
@@ -334,7 +350,8 @@ func (c *CloudFormation) createStackServiceRole(errs chan error) error {
 }
 
 func (c *CloudFormation) DeleteStackServiceRole() error {
-	s, err := c.GetStackServiceRole()
+	name := c.stackNameServiceRole()
+	s, err := c.describeStack(&name)
 	if err != nil {
 		return errors.Wrap(err, "not able to get ServiceRole stack for deletion")
 	}
@@ -349,6 +366,9 @@ func (c *CloudFormation) DeleteStackServiceRole() error {
 	return nil
 }
 
+func (c *CloudFormation) stackNameDefaultNodeGroup() string {
+	return "EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup"
+}
 func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 	regionalAMIs := map[string]string{
 		"us-west-2": "ami-993141e1",
@@ -378,7 +398,7 @@ func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 }
 
 func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
-	name := "EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup"
+	name := c.stackNameDefaultNodeGroup()
 	logger.Info("creating DefaultNodeGroup stack %q", name)
 	templateBody, err := amazonEksNodegroupYamlBytes()
 	if err != nil {
@@ -417,20 +437,21 @@ func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
 	return nil
 }
 
-func (c *CloudFormation) GetStack(name string) (*Stack, error) {
-	return c.describeStack(&name)
-}
+func (c *CloudFormation) DeleteStackDefaultNodeGroup() error {
+	name := c.stackNameDefaultNodeGroup()
+	s, err := c.describeStack(&name)
+	if err != nil {
+		return errors.Wrap(err, "not able to get DefaultNodeGroup stack for deletion")
+	}
 
-func (c *CloudFormation) GetStackVPC() (*Stack, error) {
-	return c.GetStack("EKS-" + c.cfg.ClusterName + "-VPC")
-}
+	input := &cloudformation.DeleteStackInput{
+		StackName: s.StackName,
+	}
 
-func (c *CloudFormation) GetStackServiceRole() (*Stack, error) {
-	return c.GetStack("EKS-" + c.cfg.ClusterName + "-ServiceRole")
-}
-
-func (c *CloudFormation) GetStackDefaultNodeGroup() (*Stack, error) {
-	return c.GetStack("EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup")
+	if _, err := c.svc.DeleteStack(input); err != nil {
+		return errors.Wrap(err, "not able to delete DefaultNodeGroup stack")
+	}
+	return nil
 }
 
 func GetOutput(stack *Stack, key string) *string {
