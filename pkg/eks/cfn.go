@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate go-bindata -pkg $GOPACKAGE -prefix ../../vendor/1.10.0/2018-05-09 -o cfn_templates.go ../../vendor/1.10.0/2018-05-09
+//go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.0/2018-05-09 -o cfn_templates.go assets/1.10.0/2018-05-09
 
 const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
