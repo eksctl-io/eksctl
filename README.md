@@ -4,7 +4,7 @@
 
 Amazon EKS is the new managed Kubernetes service for EC2.<br>
 What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases. It's written in Go, and based on official CloudFormation templates.<br>
-You can create a cluster in minutes with just one command – **`eksctl cluster create`**!
+You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
 It's inspired by `kubectl`. It provides an easy way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
 
