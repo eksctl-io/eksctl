@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -14,8 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
-
-	"github.com/pkg/errors"
 )
 
 //go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.0/2018-05-09 -o cfn_templates.go assets/1.10.0/2018-05-09

@@ -5,9 +5,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/kubicorn/kubicorn/pkg/namer"
-	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
@@ -119,24 +121,29 @@ func doCreateCluster(cfg *eks.Config) error {
 	cfg.MasterEndpoint = "https://api.magic.com"
 	cfg.CertificateAuthorityData = []byte("cert")
 
-	kubeconfig, err := ctl.NewClientConfig()
+	clientConfigBase, err := ctl.NewClientConfig()
 	if err != nil {
 		return err
 	}
 
 	// TODO(p2): make kubeconfig writter merge with current default kubeconfig and respect KUBECONFIG env var for writing
 	if writeKubeconfig {
-		if err := kubeconfig.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
-			return err
+		if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
+			return errors.Wrap(err, "writing kubeconfig")
 		}
 		logger.Info("wrote %q", kubeconfigPath)
 	}
 
-	if _, err := kubeconfig.WithEmbeddedToken(); err != nil {
+	// create Kubernetes client
+	clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
+	if err != nil {
 		return err
 	}
 
-	// TODO(p0): login to the cluster and authorise nodes to join
+	// authorise nodes to join
+	if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
+		return err
+	}
 
 	// TODO(p1): watch nodes joining
 

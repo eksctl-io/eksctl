@@ -6,12 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/ghodss/yaml"
+
 	"github.com/heptio/authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
-	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,64 +24,6 @@ import (
 
 	"k8s.io/kops/upup/pkg/fi/utils"
 )
-
-func (c *Config) nodeAuthConfigMap() (*corev1.ConfigMap, error) {
-
-	/*
-		apiVersion: v1
-		kind: ConfigMap
-		metadata:
-		  name: aws-auth
-		  namespace: default
-		data:
-		  mapRoles: |
-		    - rolearn: "${nodeInstanceRoleARN}"
-		      username: system:node:{{EC2PrivateDNSName}}
-		      groups:
-		        - system:bootstrappers
-		        - system:nodes
-		        - system:node-proxier
-	*/
-
-	mapRoles := make([]map[string]interface{}, 1)
-	mapRoles[0] = make(map[string]interface{})
-
-	mapRoles[0]["rolearn"] = c.nodeInstanceRoleARN
-	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
-	mapRoles[0]["groups"] = []string{
-		"system:bootstrappers",
-		"system:nodes",
-		"system:nodes",
-	}
-
-	mapRolesBytes, err := yaml.Marshal(mapRoles)
-	if err != nil {
-		return nil, err
-	}
-
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "aws-auth",
-			Namespace: "default",
-		},
-		BinaryData: map[string][]byte{
-			"mapRoles": mapRolesBytes,
-		},
-	}
-
-	return cm, nil
-}
-
-// def generate_sts_token(name):
-//     sts = setupSTSBoto()
-//     prefix = "k8s-aws-v1."
-
-//     signedURL = sts.generate_presigned_url(ClientMethod='get_caller_identity',  Params={}, ExpiresIn=60)
-//     encodedURL = base64.b64encode(signedURL)
-
-//     return prefix+encodedURL```
-
-// the issue with boto is it doesn't allow you to generate a signed url with additional headers like the golang package so I have to rewrite this to manually sign the url
 
 func (c *CloudFormation) LoadSSHPublicKey() error {
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
@@ -172,6 +116,7 @@ func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
 }
 
 func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
+
 	clientConfigCopy := *c
 	x := clientConfigCopy.Client.AuthInfos[c.Client.CurrentContext]
 	x.Exec = &clientcmdapi.ExecConfig{
@@ -229,4 +174,57 @@ func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 		return nil, errors.Wrap(err, "failed to create API client")
 	}
 	return client, nil
+}
+
+func (c *ClientConfig) NewClientSetWithEmbeddedToken() (*clientset.Clientset, error) {
+	clientConfig, err := c.WithEmbeddedToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
+	}
+	clientSet, err := clientConfig.NewClientSet()
+	if err != nil {
+		return nil, errors.Wrap(err, "creating Kubernetes client")
+	}
+	return clientSet, nil
+}
+
+func (c *Config) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
+	mapRoles := make([]map[string]interface{}, 1)
+	mapRoles[0] = make(map[string]interface{})
+
+	mapRoles[0]["rolearn"] = c.nodeInstanceRoleARN
+	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
+	mapRoles[0]["groups"] = []string{
+		"system:bootstrappers",
+		"system:nodes",
+		"system:nodes",
+	}
+
+	mapRolesBytes, err := yaml.Marshal(mapRoles)
+	if err != nil {
+		return nil, err
+	}
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "aws-auth",
+			Namespace: "default",
+		},
+		BinaryData: map[string][]byte{
+			"mapRoles": mapRolesBytes,
+		},
+	}
+
+	return cm, nil
+}
+
+func (c *Config) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
+	cm, err := c.newNodeAuthConfigMap()
+	if err != nil {
+		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
+	}
+	if _, err := clientSet.CoreV1().ConfigMaps("default").Create(cm); err != nil {
+		return errors.Wrap(err, "creating auth ConfigMap for DefaultNodeGroup")
+	}
+	return nil
 }

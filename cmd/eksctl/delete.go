@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
+
+	"github.com/kubicorn/kubicorn/pkg/logger"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
