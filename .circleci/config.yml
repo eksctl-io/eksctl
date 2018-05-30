@@ -18,6 +18,7 @@ jobs:
      - setup_remote_docker: {docker_layer_caching: true}
      - run: make install-bindata
      - run: make update-bindata
+     - run:
         name: Build and publish
         command: |
           if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
