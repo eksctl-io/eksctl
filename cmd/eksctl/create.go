@@ -145,11 +145,16 @@ func doCreateCluster(cfg *eks.Config) error {
 		{
 			timer := time.After(5 * time.Minute)
 			timeout := false
-			counter := 0
 			watcher, err := clientSet.Core().Nodes().Watch(metav1.ListOptions{})
 			if err != nil {
 				return errors.Wrap(err, "creating node watcher")
 			}
+
+			nodes, err := clientSet.Core().Nodes().List(metav1.ListOptions{})
+			if err != nil {
+				return errors.Wrap(err, "listing nodes")
+			}
+			counter := len(nodes.Items)
 
 			logger.Info("waiting for at least %d nodes to become ready", cfg.MinNodes)
 			for !timeout && counter <= cfg.MinNodes {
@@ -168,10 +173,11 @@ func doCreateCluster(cfg *eks.Config) error {
 				// TODO(p2): doesn't have to be fatal
 				return fmt.Errorf("timed out waitiing for nodes")
 			}
-			logger.Info("observed %d nodes joining the %q cluster", counter, cfg.ClusterName)
-			nodes, err := clientSet.Core().Nodes().List(metav1.ListOptions{})
+			logger.Info("the cluster has %d nodes", counter, cfg.ClusterName)
+
+			nodes, err = clientSet.Core().Nodes().List(metav1.ListOptions{})
 			if err != nil {
-				return errors.Wrap(err, "listing nodes")
+				return errors.Wrap(err, "re-listing nodes")
 			}
 			for n, node := range nodes.Items {
 				logger.Debug("node[%n]=%#v", n, node)
