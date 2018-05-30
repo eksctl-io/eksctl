@@ -8,11 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO (alpha release)
-// - add flags and flag defaults
-// - basic support for addons
-// - other key items from the readme
-
 var rootCmd = &cobra.Command{
 	Use: "eksctl",
 	Run: func(c *cobra.Command, _ []string) {
@@ -24,7 +19,7 @@ func init() {
 
 	addCommands()
 
-	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 4, "set log level")
+	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 3, "set log level")
 	rootCmd.PersistentFlags().BoolVarP(&logger.Color, "color", "C", true, "toggle colorized logs")
 }
 

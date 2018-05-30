@@ -535,15 +535,9 @@
   revision = "ba77c9ca2f048722835d7a103753c4668393ba67"
   version = "1.9.1"
 
-[[projects]]
-  name = "k8s.io/kubernetes"
-  packages = ["cmd/kubeadm/app/util/kubeconfig"]
-  revision = "2bba0127d85d5a46ab4b778548be28623b32d0b0"
-  version = "v1.10.3"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1d34b67b171c19d50de8669c906fa6a7fbf623df95cedc4791d54e9053b2e2fb"
+  inputs-digest = "1ae8ad8924ae898c421ab5598b76d64b456ce7961b778bc204fd8dbbdf6e7309"
   solver-name = "gps-cdcl"
   solver-version = 1
