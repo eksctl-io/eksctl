@@ -112,7 +112,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 		input.Parameters = append(input.Parameters, p)
 	}
 
-	// TODO(p0): looks like we can block on this forever, if parameters are invalid
+	// TODO(p1): looks like we can block on this forever, if parameters are invalid
 	logger.Debug("input = %#v", input)
 	s, err := c.svc.CreateStack(input)
 	if err != nil {
