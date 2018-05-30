@@ -36,6 +36,7 @@ func main() {
 }
 
 func addCommands() {
+	rootCmd.AddCommand(versionCmd())
 	rootCmd.AddCommand(createCmd())
 	rootCmd.AddCommand(deleteCmd())
 }
