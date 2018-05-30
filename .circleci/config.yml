@@ -20,6 +20,7 @@ jobs:
      - run: make update-bindata
      - run:
         name: Build and publish
+        # TODO(p3): build an image that has the script and all dependencies installed
         command: |
           if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_TAG}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
             curl -sL https://git.io/goreleaser | bash

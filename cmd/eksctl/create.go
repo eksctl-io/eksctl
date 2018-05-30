@@ -137,7 +137,10 @@ func doCreateCluster(cfg *eks.Config) error {
 			return err
 		}
 
-		// TODO(p1): watch nodes joining
+		// wait for nodes to join
+		if err := cfg.WaitForNodes(clientSet); err != nil {
+			return err
+		}
 
 		// TODO(p2): addons
 
