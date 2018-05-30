@@ -19,7 +19,7 @@ func init() {
 
 	addCommands()
 
-	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 4, "set log level")
+	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 3, "set log level")
 	rootCmd.PersistentFlags().BoolVarP(&logger.Color, "color", "C", true, "toggle colorized logs")
 }
 
