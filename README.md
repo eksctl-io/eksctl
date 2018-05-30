@@ -90,5 +90,5 @@ eksctl delete cluster --cluster-name <name> [--region <region>]
 To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
 ```
 eksctl apply --cluster-config advanced-cluster.yaml
--->
 ```
+-->
