@@ -408,6 +408,7 @@ func (c *CloudFormation) DeleteStackServiceRole() error {
 func (c *CloudFormation) stackNameControlPlane() string {
 	return "EKS-" + c.cfg.ClusterName + "-ControlPlane"
 }
+
 func (c *CloudFormation) stackParamsControlPlane() map[string]string {
 	// TODO(pre-relase): check parametes
 	return map[string]string{
