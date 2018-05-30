@@ -1,6 +1,5 @@
 required = [
-"github.com/heptio/authenticator/cmd/heptio-authenticator-aws",
-"k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
+  "github.com/heptio/authenticator/cmd/heptio-authenticator-aws",
 ]
 
 [[constraint]]
@@ -43,9 +42,9 @@ required = [
   name = "k8s.io/client-go"
   version = "v7.0.0"
 
-[[constraint]]
-  name = "k8s.io/kubernetes"
-  version = "1.10.3"
+#[[constraint]]
+#  name = "k8s.io/kubernetes"
+#  version = "1.10.3"
 
 [prune]
   go-tests = true
