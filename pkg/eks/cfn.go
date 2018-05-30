@@ -27,6 +27,7 @@ type CloudFormation struct {
 	svc *cloudformation.CloudFormation
 	ec2 *ec2.EC2
 	sts *sts.STS
+	arn string
 }
 
 // simple config, to be replaced with Cluster API
@@ -72,9 +73,20 @@ func New(clusterConfig *Config) *CloudFormation {
 }
 
 func (c *CloudFormation) CheckAuth() error {
-	input := &cloudformation.ListStacksInput{}
-	if _, err := c.svc.ListStacks(input); err != nil {
-		return errors.Wrap(err, "checking AWS CloudFormation access")
+	{
+		input := &sts.GetCallerIdentityInput{}
+		output, err := c.sts.GetCallerIdentity(input)
+		if err != nil {
+			return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
+		}
+		c.arn = *output.Arn
+		logger.Debug("role ARN for the current session is %q", c.arn)
+	}
+	{
+		input := &cloudformation.ListStacksInput{}
+		if _, err := c.svc.ListStacks(input); err != nil {
+			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
+		}
 	}
 	return nil
 }

@@ -8,8 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/ghodss/yaml"
+	"github.com/heptio/authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 
@@ -21,8 +21,6 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"k8s.io/kops/upup/pkg/fi/utils"
-
-	"github.com/heptio/authenticator/pkg/token"
 )
 
 func (c *Config) nodeAuthConfigMap() (*corev1.ConfigMap, error) {
@@ -129,32 +127,23 @@ func (c *CloudFormation) MaybeDeletePublicSSHKey() {
 	c.ec2.DeleteKeyPair(input)
 }
 
-func (c *CloudFormation) getUsername() (string, error) {
-	input := &sts.GetCallerIdentityInput{}
-	output, err := c.sts.GetCallerIdentity(input)
-	if err != nil {
-		return "", errors.Wrap(err, "cannot get username for current session")
-	}
-	arn := strings.Split(*output.Arn, "/")
-	username := arn[len(arn)-1]
-	return username, nil
+func (c *CloudFormation) getUsername() string {
+	usernameParts := strings.Split(c.arn, "/")
+	username := usernameParts[len(usernameParts)-1]
+	return username
 }
 
 type ClientConfig struct {
 	Client  *clientcmdapi.Config
 	Cluster *Config
+	roleARN string
 }
 
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 // these are small, so we can copy these, and no need to deal with k/k as dependency
 func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
-	username, err := c.getUsername()
-	if err != nil {
-		return nil, err
-	}
-
-	clusterName := fmt.Sprintf("%s.%s.eksctl.k8s.io", c.cfg.ClusterName, c.cfg.Region)
-	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+	clusterName := fmt.Sprintf("%s.%s.eksctl.io", c.cfg.ClusterName, c.cfg.Region)
+	contextName := fmt.Sprintf("%s@%s", c.getUsername(), clusterName)
 
 	clientConfig := &ClientConfig{
 		Cluster: c.cfg,
@@ -176,6 +165,7 @@ func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
 			},
 			CurrentContext: contextName,
 		},
+		roleARN: c.arn,
 	}
 
 	return clientConfig, nil
@@ -188,7 +178,9 @@ func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
 		Command:    "heptio-authenticator-aws",
 		Args:       []string{"token", "-i", c.Cluster.ClusterName},
-		// TODO(p2): should we add -r <role-arn> here?
+		/*
+			Args:       []string{"token", "-i", c.Cluster.ClusterName, "-r", c.roleARN},
+		*/
 	}
 	return &clientConfigCopy
 }
@@ -198,19 +190,23 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 
 	gen, err := token.NewGenerator()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get token")
+		return nil, errors.Wrap(err, "could not get token generator")
 	}
 
-	// otherwise sign the token with immediately available credentials
+	// could not get token: AccessDenied: User <ARN> is not authorized to perform: sts:AssumeRole on resource: <ARN>
+	/*
+		tok, err := gen.GetWithRole(c.Cluster.ClusterName, c.roleARN)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not get token")
+		}
+	*/
 	tok, err := gen.Get(c.Cluster.ClusterName)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get token")
 	}
 
-	//c.Client.AuthInfos[c.Client.CurrentContext].
-
-	logger.Debug("token = %#v", tok)
-	logger.Debug("token = %s", gen.FormatJSON(tok))
+	x := c.Client.AuthInfos[c.Client.CurrentContext]
+	x.Token = tok
 
 	return &clientConfigCopy, nil
 }
