@@ -150,13 +150,13 @@ func doCreateCluster(cfg *eks.Config) error {
 
 	// TODO(p1): watch nodes joining
 
-	// TODO(p2): validate (like in kops)
-
 	// TODO(p2): addons
 
 	// check kubectl version, and offer install instructions if missing or old
 	// also check heptio-authenticator
 	// TODO(p2): and offer install instructions if missing
+	// TODO(p2): add sub-command for these checks
+	// TODO(p3): few more extensive checks, i.e. some basic validation
 	if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
 		return err
 	}
