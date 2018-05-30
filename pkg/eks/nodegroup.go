@@ -55,19 +55,45 @@ func (c *Config) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Client
 	return nil
 }
 
+func isNodeReady(node *corev1.Node) bool {
+	for _, c := range node.Status.Conditions {
+		if c.Type == corev1.NodeReady && c.Status == corev1.ConditionTrue {
+			return true
+		}
+	}
+	return false
+}
+
+func getNodes(clientSet *clientset.Clientset) (int, error) {
+	nodes, err := clientSet.Core().Nodes().List(metav1.ListOptions{})
+	if err != nil {
+		return 0, err
+	}
+	logger.Info("the cluster has %d nodes", len(nodes.Items))
+	for _, node := range nodes.Items {
+		// logger.Debug("node[%d]=%#v", n, node)
+		ready := "not ready"
+		if isNodeReady(&node) {
+			ready = "ready"
+		}
+		logger.Info("node %q is %s", node.ObjectMeta.Name, ready)
+	}
+	return len(nodes.Items), nil
+}
+
 func (c *Config) WaitForNodes(clientSet *clientset.Clientset) error {
-	timer := time.After(5 * time.Minute)
+	timeoutAfter := 20 * time.Minute
+	timer := time.After(timeoutAfter)
 	timeout := false
 	watcher, err := clientSet.Core().Nodes().Watch(metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "creating node watcher")
 	}
 
-	nodes, err := clientSet.Core().Nodes().List(metav1.ListOptions{})
+	counter, err := getNodes(clientSet)
 	if err != nil {
 		return errors.Wrap(err, "listing nodes")
 	}
-	counter := len(nodes.Items)
 
 	logger.Info("waiting for at least %d nodes to become ready", c.MinNodes)
 	for !timeout && counter <= c.MinNodes {
@@ -75,25 +101,25 @@ func (c *Config) WaitForNodes(clientSet *clientset.Clientset) error {
 		case event, _ := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
 			if event.Type == watch.Added {
-				// TODO(p1): check readiness
-				counter++
+				node := event.Object.(*corev1.Node)
+				if isNodeReady(node) {
+					counter++
+					logger.Debug("node %q is ready", node.ObjectMeta.Name)
+				} else {
+					logger.Debug("node %q seen, but not ready yet", node.ObjectMeta.Name)
+					logger.Debug("node = %#v", *node)
+				}
 			}
 		case <-timer:
 			timeout = true
 		}
 	}
 	if timeout {
-		// TODO(p2): doesn't have to be fatal
-		return fmt.Errorf("timed out waitiing for nodes")
+		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", timeoutAfter, c.MinNodes)
 	}
-	logger.Info("the cluster has %d nodes", counter, c.ClusterName)
 
-	nodes, err = clientSet.Core().Nodes().List(metav1.ListOptions{})
-	if err != nil {
-		return errors.Wrap(err, "re-listing nodes")
-	}
-	for n, node := range nodes.Items {
-		logger.Debug("node[%n]=%#v", n, node)
+	if _, err = getNodes(clientSet); err != nil {
+		errors.Wrap(err, "re-listing nodes")
 	}
 
 	return nil
