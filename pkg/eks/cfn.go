@@ -500,6 +500,7 @@ func (c *CloudFormation) DeleteStackControlPlane() error {
 func (c *CloudFormation) stackNameDefaultNodeGroup() string {
 	return "EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup"
 }
+
 func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 	regionalAMIs := map[string]string{
 		"us-west-2": "ami-993141e1",
