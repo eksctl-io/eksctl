@@ -12,6 +12,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/namer"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func createCmd() *cobra.Command {
@@ -132,27 +133,33 @@ func doCreateCluster(cfg *eks.Config) error {
 			return errors.Wrap(err, "writing kubeconfig")
 		}
 		logger.Info("wrote %q", kubeconfigPath)
+	} else {
+		kubeconfigPath = ""
 	}
 
 	// create Kubernetes client
-	clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
-	if err != nil {
-		return err
-	}
+	// clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
+	// if err != nil {
+	// 	return err
+	// }
 
 	// authorise nodes to join
-	if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
-		return err
-	}
+	// if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
+	// 	return err
+	// }
 
 	// TODO(p1): watch nodes joining
 
-	// TODO(p2): validate (like in kops)
-
 	// TODO(p2): addons
 
-	// TODO(p0): check kubectl version, and offer install instructions if missing or old
-	// TODO(p0): check heptio-authenticator, and offer install instructions if missing
+	// check kubectl version, and offer install instructions if missing or old
+	// also check heptio-authenticator
+	// TODO(p2): and offer install instructions if missing
+	// TODO(p2): add sub-command for these checks
+	// TODO(p3): few more extensive checks, i.e. some basic validation
+	if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
+		return err
+	}
 
 	return nil
 }
