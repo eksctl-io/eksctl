@@ -8,11 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO (alpha release)
-// - add flags and flag defaults
-// - basic support for addons
-// - other key items from the readme
-
 var rootCmd = &cobra.Command{
 	Use: "eksctl",
 	Run: func(c *cobra.Command, _ []string) {

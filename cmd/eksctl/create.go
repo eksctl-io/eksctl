@@ -62,8 +62,8 @@ func createClusterCmd() *cobra.Command {
 	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes for a fixed ASG")
 
 	// TODO(p2): review parameter validation, this shouldn't be needed initially
-	// fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
-	// fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
+	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
+	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
 
 	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
@@ -92,73 +92,64 @@ func doCreateCluster(cfg *eks.Config) error {
 		return err
 	}
 
+	logger.Debug("cfg = %#v", cfg)
+	return nil
+
 	logger.Info("creating EKS cluster %q", cfg.ClusterName)
 
-	// {
-	// 	taskErr := make(chan error)
-	// 	// create each of the core cloudformation stacks
-	// 	ctl.CreateCoreStacks(taskErr)
-	// 	// read any errors (it only gets non-nil errors)
-	// 	for err := range taskErr {
-	// 		return err
-	// 	}
-	// }
-
-	// {
-	// 	taskErr := make(chan error)
-	// 	// create nodegroup stack
-	// 	ctl.CreateNodeGroupStack(taskErr)
-	// 	// read any errors (it only gets non-nil errors)
-	// 	for err := range taskErr {
-	// 		return err
-	// 	}
-	// }
+	{ // core action
+		taskErr := make(chan error)
+		// create each of the core cloudformation stacks
+		ctl.CreateAllStacks(taskErr)
+		// read any errors (it only gets non-nil errors)
+		for err := range taskErr {
+			return err
+		}
+	}
 
 	logger.Success("all EKS cluster %q resources has been created", cfg.ClusterName)
 
 	// obtain cluster credentials, write kubeconfig
 
-	// TODO(p0): obtain actual cluster credentials
-	cfg.MasterEndpoint = "https://api.magic.com"
-	cfg.CertificateAuthorityData = []byte("cert")
-
-	clientConfigBase, err := ctl.NewClientConfig()
-	if err != nil {
-		return err
-	}
-
-	// TODO(p2): make kubeconfig writter merge with current default kubeconfig and respect KUBECONFIG env var for writing
-	if writeKubeconfig {
-		if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
-			return errors.Wrap(err, "writing kubeconfig")
+	{ // post-creation action
+		clientConfigBase, err := ctl.NewClientConfig()
+		if err != nil {
+			return err
 		}
-		logger.Info("wrote %q", kubeconfigPath)
-	} else {
-		kubeconfigPath = ""
-	}
 
-	// create Kubernetes client
-	// clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
-	// if err != nil {
-	// 	return err
-	// }
+		// TODO(p2): make kubeconfig writter merge with current default kubeconfig and respect KUBECONFIG env var for writing
+		if writeKubeconfig {
+			if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
+				return errors.Wrap(err, "writing kubeconfig")
+			}
+			logger.Info("wrote %q", kubeconfigPath)
+		} else {
+			kubeconfigPath = ""
+		}
 
-	// authorise nodes to join
-	// if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
-	// 	return err
-	// }
+		// create Kubernetes client
+		clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
+		if err != nil {
+			return err
+		}
 
-	// TODO(p1): watch nodes joining
+		// authorise nodes to join
+		if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
+			return err
+		}
 
-	// TODO(p2): addons
+		// TODO(p1): watch nodes joining
 
-	// check kubectl version, and offer install instructions if missing or old
-	// also check heptio-authenticator
-	// TODO(p2): and offer install instructions if missing
-	// TODO(p2): add sub-command for these checks
-	// TODO(p3): few more extensive checks, i.e. some basic validation
-	if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
-		return err
+		// TODO(p2): addons
+
+		// check kubectl version, and offer install instructions if missing or old
+		// also check heptio-authenticator
+		// TODO(p2): and offer install instructions if missing
+		// TODO(p2): add sub-command for these checks
+		// TODO(p3): few more extensive checks, i.e. some basic validation
+		if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
+			return err
+		}
 	}
 
 	return nil

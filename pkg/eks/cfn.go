@@ -241,14 +241,14 @@ func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, t
 	close(taskErrs)
 }
 
-func (c *CloudFormation) CreateCoreStacks(taskErrs chan error) {
+func (c *CloudFormation) CreateAllStacks(taskErrs chan error) {
 	c.CreateStacks(map[string]func(chan error) error{
 		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
 		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
 	}, taskErrs)
-}
-
-func (c *CloudFormation) CreateNodeGroupStack(taskErrs chan error) {
+	c.CreateStacks(map[string]func(chan error) error{
+		"createStackEKS": func(errs chan error) error { return c.createStackControlPlane(errs) },
+	}, taskErrs)
 	c.CreateStacks(map[string]func(chan error) error{
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
 	}, taskErrs)
@@ -399,6 +399,83 @@ func (c *CloudFormation) DeleteStackServiceRole() error {
 	if _, err := c.svc.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete ServiceRole stack")
 	}
+	return nil
+}
+
+func (c *CloudFormation) stackNameControlPlane() string {
+	return "EKS-" + c.cfg.ClusterName + "-ControlPlane"
+}
+func (c *CloudFormation) stackParamsControlPlane() map[string]string {
+	// TODO(pre-relase): check parametes
+	return map[string]string{
+		"ClusterName":                      c.cfg.ClusterName,
+		"ClusterControlPlaneSecurityGroup": c.cfg.securityGroup,
+		"Subnets":                          c.cfg.subnetsList,
+		"VpcId":                            c.cfg.clusterVPC,
+		"RoleArn":                          c.cfg.clusterRoleARN,
+	}
+}
+
+func (c *CloudFormation) createStackControlPlane(errs chan error) error {
+	c.cfg.MasterEndpoint = "https://api.magic.com"
+	c.cfg.CertificateAuthorityData = []byte("cert")
+
+	return nil
+
+	amazonEksControlPlaneYamlBytes := func() ([]byte, error) {
+		return []byte{}, nil
+	}
+
+	// TODO(pre-relase): remove above^
+
+	name := c.stackNameControlPlane()
+	logger.Info("creating ControlPlane stack %q", name)
+	templateBody, err := amazonEksControlPlaneYamlBytes()
+	if err != nil {
+		return errors.Wrap(err, "decompressing bundled template for ControlPlane stack")
+	}
+
+	stackChan := make(chan Stack)
+	taskErrs := make(chan error)
+
+	if err := c.CreateStack(name, templateBody, c.stackParamsControlPlane(), false, stackChan, taskErrs); err != nil {
+		return err
+	}
+
+	go func() {
+		defer close(errs)
+		defer close(stackChan)
+
+		if err := <-taskErrs; err != nil {
+			errs <- err
+			return
+		}
+
+		s := <-stackChan
+
+		logger.Debug("created ControlPlane stack %q – processing outputs", name)
+
+		// TODO(pre-relase): check outputs
+
+		masterEndpoint := GetOutput(&s, "MasterEndpoint")
+		if masterEndpoint == nil {
+			errs <- fmt.Errorf("MasterEndpoint is nil")
+			return
+		}
+		c.cfg.MasterEndpoint = *masterEndpoint
+
+		certificateAuthorityData := GetOutput(&s, "CertificateAuthorityData")
+		if masterEndpoint == nil {
+			errs <- fmt.Errorf("CertificateAuthorityData is nil")
+			return
+		}
+		c.cfg.CertificateAuthorityData = []byte(*certificateAuthorityData)
+
+		logger.Debug("clusterConfig = %#v", c.cfg)
+		logger.Success("created ControlPlane stack %q", name)
+
+		errs <- nil
+	}()
 	return nil
 }
 
