@@ -1,5 +1,5 @@
 builds:
-  - main: /go/src/github.com/weaveworks/eksctl/cmd/eksctl
+  - main: ./cmd/eksctl
     binary: eksctl
     goos:
       - windows
