@@ -2,7 +2,7 @@
 
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
 
-EKS is Amazon's new managed Kubernetes service for EC2.
+Amazon EKS is the new managed Kubernetes service for EC2.<br>
 What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases.
 
 It's inspired by `kubectl`. It provides an easy way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
