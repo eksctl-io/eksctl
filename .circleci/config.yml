@@ -33,9 +33,6 @@ workflows:
     jobs:
       - build
       - deploy:
-          requires: [build]
           filters:
-            branches:
-              only: [master]
             tags:
               only: /^[0-9].*/
