@@ -328,7 +328,7 @@
 [[projects]]
   name = "github.com/weaveworks/launcher"
   packages = ["pkg/kubectl"]
-  revision = "f7ba6be5269802c6937ac92457733eb63ce6316b"
+  revision = "4614c4a7368cc77dce1e1da50dd59047b7f07562"
 
 [[projects]]
   branch = "master"
@@ -544,6 +544,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7602eedc6d559df6f4acbea3d8f2b6ee2546f30f0b912b9239a347f7101de2ed"
+  inputs-digest = "1d34b67b171c19d50de8669c906fa6a7fbf623df95cedc4791d54e9053b2e2fb"
   solver-name = "gps-cdcl"
   solver-version = 1

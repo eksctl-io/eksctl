@@ -53,4 +53,4 @@ required = [
 
 [[constraint]]
   name = "github.com/weaveworks/launcher"
-  revision = "f7ba6be5269802c6937ac92457733eb63ce6316b"
+  revision = "4614c4a7368cc77dce1e1da50dd59047b7f07562"

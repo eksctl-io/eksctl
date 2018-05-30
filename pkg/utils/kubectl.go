@@ -12,13 +12,17 @@ import (
 	"github.com/weaveworks/launcher/pkg/kubectl"
 )
 
+var kubectlPath string
+
 func CheckKubectlVersion() error {
 	ktl := &kubectl.LocalClient{}
-	if ktl.IsPresent() {
-		logger.Debug("kubectl: %q", ktl.CommandPath)
+	kubectlPath, err := ktl.LookPath()
+	if err != nil {
+		return fmt.Errorf("kubectl not found, v1.10.0 or newever is required")
 	} else {
-		return fmt.Errorf("kubectl not installed, you should install kubectl v1.10.0 or newever")
+		logger.Debug("kubectl: %q", kubectlPath)
 	}
+
 	clientVersion, _, err := kubectl.GetVersionInfo(ktl)
 	logger.Debug("clientVersion=%#v err=%q", clientVersion, err.Error())
 
@@ -27,7 +31,7 @@ func CheckKubectlVersion() error {
 		return errors.Wrapf(err, "parsing kubectl version string %q", version)
 	}
 	if version.Major == 1 && version.Minor < 10 {
-		return fmt.Errorf("kubectl version %s was found at %q, minimum required version to use EKS is v1.10.0", clientVersion, ktl.CommandPath)
+		return fmt.Errorf("kubectl version %s was found at %q, minimum required version to use EKS is v1.10.0", clientVersion, kubectlPath)
 	}
 	return nil
 }
@@ -55,12 +59,9 @@ func CheckAllCommands(kubeconfigPath string) error {
 		ktl := &kubectl.LocalClient{
 			GlobalArgs: []string{"--kubeconfig", kubeconfigPath},
 		}
-		if !ktl.IsPresent() {
-			return fmt.Errorf("re-checking kubectl command failed – kubectl binary gone missing unexpectedly")
-		}
 		_, serverVersion, err := kubectl.GetVersionInfo(ktl)
 		if err != nil {
-			suggestion := fmt.Sprintf("%s %s version", ktl.CommandPath, strings.Join(ktl.GlobalArgs, " "))
+			suggestion := fmt.Sprintf("%s %s version", kubectlPath, strings.Join(ktl.GlobalArgs, " "))
 			return errors.Wrapf(err, "unable to use kubectl with the EKS cluster (check '%s')", suggestion)
 		}
 		version, err := semver.Parse(strings.TrimLeft(serverVersion, "v"))
@@ -68,11 +69,11 @@ func CheckAllCommands(kubeconfigPath string) error {
 			return errors.Wrapf(err, "parsing Kubernetes version string %q return by the EKS API server", version)
 		}
 		if version.Major == 1 && version.Minor < 10 {
-			return fmt.Errorf("Kubernetes version %s is unexpected with EKS, it should be v1.10.0 or newever", serverVersion)
+			return fmt.Errorf("Kubernetes version %s is unexpected with EKS, it should be v1.10.0 or newer", serverVersion)
 		}
 		// TODO(p2): we can do a littl bit more here
 	} else {
-		logger.Debug("skipping kubectl integration ckecks, as wriging kubeconfig file is disabled")
+		logger.Debug("skipping kubectl integration ckecks, as writing kubeconfig file is disabled")
 	}
 
 	return nil
