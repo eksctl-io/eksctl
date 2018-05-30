@@ -44,6 +44,12 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  name = "github.com/blang/semver"
+  packages = ["."]
+  revision = "2ee87856327ba09384cabd113bc6b5d174e9ec0f"
+  version = "v3.5.1"
+
+[[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
   revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
@@ -320,6 +326,11 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/weaveworks/launcher"
+  packages = ["pkg/kubectl"]
+  revision = "4614c4a7368cc77dce1e1da50dd59047b7f07562"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
@@ -533,6 +544,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "62b83e89e3059325fcfc4d2eb9688e4af50341e38fa6c989914a3954a031aba4"
+  inputs-digest = "1d34b67b171c19d50de8669c906fa6a7fbf623df95cedc4791d54e9053b2e2fb"
   solver-name = "gps-cdcl"
   solver-version = 1
