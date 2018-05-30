@@ -479,6 +479,26 @@ func (c *CloudFormation) createStackControlPlane(errs chan error) error {
 	return nil
 }
 
+func (c *CloudFormation) DeleteStackControlPlane() error {
+	return nil
+	// TODO(pre-relase): remove above^
+
+	name := c.stackNameControlPlane()
+	s, err := c.describeStack(&name)
+	if err != nil {
+		return errors.Wrap(err, "not able to get ControlPlane stack for deletion")
+	}
+
+	input := &cloudformation.DeleteStackInput{
+		StackName: s.StackName,
+	}
+
+	if _, err := c.svc.DeleteStack(input); err != nil {
+		return errors.Wrap(err, "not able to delete ControlPlane stack")
+	}
+	return nil
+}
+
 func (c *CloudFormation) stackNameDefaultNodeGroup() string {
 	return "EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup"
 }
