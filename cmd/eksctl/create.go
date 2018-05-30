@@ -93,7 +93,6 @@ func doCreateCluster(cfg *eks.Config) error {
 	}
 
 	logger.Debug("cfg = %#v", cfg)
-	return nil
 
 	logger.Info("creating EKS cluster %q", cfg.ClusterName)
 

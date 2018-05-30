@@ -247,7 +247,7 @@ func (c *CloudFormation) CreateAllStacks(taskErrs chan error) {
 		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
 	}, taskErrs)
 	c.CreateStacks(map[string]func(chan error) error{
-		"createStackEKS": func(errs chan error) error { return c.createStackControlPlane(errs) },
+		"createStackControlPlane": func(errs chan error) error { return c.createStackControlPlane(errs) },
 	}, taskErrs)
 	c.CreateStacks(map[string]func(chan error) error{
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
@@ -420,6 +420,7 @@ func (c *CloudFormation) createStackControlPlane(errs chan error) error {
 	c.cfg.MasterEndpoint = "https://api.magic.com"
 	c.cfg.CertificateAuthorityData = []byte("cert")
 
+	errs <- nil
 	return nil
 
 	amazonEksControlPlaneYamlBytes := func() ([]byte, error) {
