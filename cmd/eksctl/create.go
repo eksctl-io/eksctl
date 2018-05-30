@@ -133,6 +133,8 @@ func doCreateCluster(cfg *eks.Config) error {
 			return errors.Wrap(err, "writing kubeconfig")
 		}
 		logger.Info("wrote %q", kubeconfigPath)
+	} else {
+		kubeconfigPath = ""
 	}
 
 	// create Kubernetes client
@@ -152,13 +154,12 @@ func doCreateCluster(cfg *eks.Config) error {
 
 	// TODO(p2): addons
 
-	// TODO(p0): check kubectl version, and offer install instructions if missing or old
-
-	if err := utils.CheckKubectlVersion(); err != nil {
+	// check kubectl version, and offer install instructions if missing or old
+	// also check heptio-authenticator
+	// TODO(p2): and offer install instructions if missing
+	if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
 		return err
 	}
-
-	// TODO(p0): check heptio-authenticator, and offer install instructions if missing
 
 	return nil
 }
