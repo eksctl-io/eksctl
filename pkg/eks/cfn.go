@@ -238,7 +238,6 @@ func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, t
 	}
 	logger.Debug("waiting for %d tasks to complete", len(tasks))
 	wg.Wait()
-	close(taskErrs)
 }
 
 func (c *CloudFormation) CreateAllStacks(taskErrs chan error) {
@@ -255,6 +254,7 @@ func (c *CloudFormation) CreateAllStacks(taskErrs chan error) {
 	c.CreateStacks(map[string]func(chan error) error{
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
 	}, taskErrs)
+	close(taskErrs)
 }
 
 func (c *CloudFormation) stackNameVPC() string {
