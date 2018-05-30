@@ -9,3 +9,30 @@ jobs:
      - setup_remote_docker: {docker_layer_caching: true}
      # just a simple build for now, but will use skaffold if it gets more complex
      - run: docker build .
+ deploy:
+   docker:
+     - image: circleci/golang:1.10
+   working_directory: /go/src/github.com/weaveworks/eksctl
+   steps:
+     - checkout
+     - setup_remote_docker: {docker_layer_caching: true}
+     - run: make install-bindata
+     - run: make update-bindata
+     - run:
+        name: Build and publish
+        command: |
+          if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_TAG}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
+            curl -sL https://git.io/goreleaser | bash
+          else
+            echo "No deploy on PR"
+          fi
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          filters:
+            tags:
+              only: /^[0-9].*/

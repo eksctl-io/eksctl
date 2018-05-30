@@ -1,0 +1,10 @@
+builds:
+  - main: ./cmd/eksctl
+    binary: eksctl
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
