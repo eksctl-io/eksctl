@@ -58,6 +58,10 @@ func doDeleteCluster(cfg *eks.Config) error {
 
 	logger.Info("deleting EKS cluster %q", cfg.ClusterName)
 
+	if err := ctl.DeleteStackControlPlane(); err != nil {
+		return err
+	}
+
 	if err := ctl.DeleteStackServiceRole(); err != nil {
 		return err
 	}

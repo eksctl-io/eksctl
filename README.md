@@ -1,191 +1,122 @@
-# `eksctl`
-
-> ***CURRENT STATE: EARLY PROTOTYPE***
+# `eksctl` - CLI tool to create Amazon EKS clusters
 
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
 
-What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases.
+Amazon EKS is the new managed Kubernetes service for EC2.<br>
+What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases. It's written in Go, and based on official CloudFormation templates.<br>
+You can create a cluster in minutes with just one command – **`eksctl cluster create`**!
 
-It's inspired by `kubectl`. It provides a simple way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
+It's inspired by `kubectl`. It provides an easy way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
 
 It is not intended to be a like-for-like alternative to well-established community tools (`kops`, `kubicorn`, `kubeadm`).
-However, the intention is to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
+However, the intention is for it to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
 cloud-native world even more amazing to live in!
+
+> **Download Today**
+>
+> Linux, macOS and Windows binaries for 0.1.0-alpha1 release are [available for download](https://github.com/weaveworks/eksctl/releases/tag/0.1.0-alpha1).
+>
+> **Roadmap**
+>
+> Stable 0.1.0 release will made available based on user-feedback.
+> Release 0.2.0 will add support for addons, and 0.3.0 is planned to support Cluster API.
+>
+> **Contributions**
+>
+> Code contributions are very welcome, however until 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
+> 
+> **Get in touch**
+>
+> [Create and issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
 
 ## Developer use-case
 
-It should suffice to install a cluster for development with just a single command, here are some examples.
+It should suffice to install a cluster for development with just a single command. Here are some examples:
 
 To create a cluster with default configurations (2 `m4.large` nodes), run:
+
+```console
+eksctl create cluster
 ```
-eksctl create cluster dev-cluster
-```
 
-It supports many popular addons, including:
+In 0.2.0, it will support many popular addons, e.g.:
 
-* Weave Net: `eksctl create cluster dev-cluster --networking=weave`
-* Helm: `eksctl create cluster dev-cluster --addons=helm`
-* AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster dev-cluster --addons=aws-ci`
-* Jenkins X: `eksctl create cluster dev-cluster --addons=jenkins-x`
-* AWS CodeStar: `eksctl create cluster dev-cluster --addons=aws-codestar`
-* Weave Scope and Flux: `eksctl create cluster dev-cluster --addons=weave-scope,weave-flux`
+- Weave Net: `eksctl create cluster --networking weave`
+- Helm: `eksctl create cluster --addons helm`
+- AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster --addons aws-ci`
+- Jenkins X: `eksctl create cluster --addons jenkins-x`
+- AWS CodeStar: `eksctl create cluster --addons aws-codestar`
+- Weave Scope and Flux: `eksctl create cluster --addons weave-scope,weave-flux`
 
+<!-- TODO
 You can combine any or all of these.
 
 You can also add any of these addons after you create a cluster with `eksctl addons install <addon>...`.
+-->
 
-## Manage EKS the GitOps way
+## Manage EKS the GitOps way (0.3.0)
 
-Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
+Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
 
 For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
 
 You can also use `eksctld`, which you'd normally run as a controller inside of another
-cluster, you can manage multiple clusters this way.
+cluster. You can manage multiple clusters this way.
 
-## Current prototype
+## Usage
 
-Usage: ***`./create-cluster.sh [<clusterName> [<numberOfNodes> [<nodeType>]]]`***
-
-So to create a basic cluster run:
-
-```
-./create-cluster.sh
-```
-
-It will be created in `us-west-2`, using default EKS AMI and 2 `m4.large` nodes. Name will be `cluster-1`.
-
-To create the same kind of basic cluster, but with a different name run:
-
-```
-./create-cluster.sh cluster-2
-```
-
-To use 3 nodes, run:
-
-```
-./create-cluster.sh cluster-2 3
-```
-
-To use 3 `c4.xlarge` nodes, run:
-
-```
-./create-cluster.sh cluster-2 3 c4.xlarge
-```
-
-Example output:
+To create a basic cluster, run:
 
 ```console
- [0] >> ./create-cluster.sh cluster-2
-Creating EKS-cluster-2-ServiceRole and EKS-cluster-2-VPC stacks we need first
-{
-    "StackId": "arn:aws:cloudformation:us-west-2:376248598259:stack/EKS-cluster-2-ServiceRole/909e04b0-5e5b-11e8-a5a3-50a68a0bca9a"
-}
-{
-    "StackId": "arn:aws:cloudformation:us-west-2:376248598259:stack/EKS-cluster-2-VPC/918186e0-5e5b-11e8-80c5-503aca41a0fd"
-}
-Waiting until the EKS-cluster-2-ServiceRole and EKS-cluster-2-VPC stacks are ready
-Collect outputs from the EKS-cluster-2-ServiceRole and EKS-cluster-2-VPC stacks
-Creating cluster cluster-2
-{
-    "cluster": {
-        "clusterName": "cluster-2",
-        "clusterArn": "arn:aws:eks:us-west-2:376248598259:cluster/cluster-2",
-        "createdAt": 1527060875149000,
-        "desiredMasterVersion": "1.10",
-        "roleArn": "arn:aws:iam::376248598259:role/EKS-cluster-2-ServiceRole-AWSServiceRoleForAmazonE-7NS9V7ERKDXO",
-        "subnets": [
-            "subnet-f3b009b8",
-            "subnet-9f3aa6e6"
-        ],
-        "securityGroups": [
-            "sg-2976a258"
-        ],
-        "status": "NEW",
-        "certificateAuthority": {}
-    }
-}
-Creating EKS-cluster-2-DefaultNodeGroup stack
-{
-    "StackId": "arn:aws:cloudformation:us-west-2:376248598259:stack/EKS-cluster-2-DefaultNodeGroup/bece5bf0-5e5b-11e8-9b25-50a68d01a68d"
-}
-Waiting until cluster is ready
-Saving cluster credentials in /Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2.yaml
-Waiting until EKS-cluster-2-DefaultNodeGroup stack is ready
-configmap "aws-auth" created
-Cluster is ready, nodes will be added soon
-Use the following command to monitor the nodes
-$ kubectl --kubeconfig='/Users/ilya/Code/eks-preview/get-eks/cluster-2.us-west-2.yaml' get nodes --watch
- [0] >>
-```
-
-### Limitations
-
-- Written in bash
-- kubectl and heptio-authenticator-aws binaries are vendored in the repo
-- Doesn't handle most errors
-- Doesn't offer parameters for important things (like region, AMI, node SSH key)
-- Cannot use custom VPC or customise networking in any way
-- Manual deletion
-
-### Various notes
-
-- Rewrite in Go (or maybe Python, as AWS CLI extension)
-- Use named flags instead of positional arguments
-- Use Cluster API for the sake of GitOps etc (initially CLI only, later offer a controller)
-- Single CloudFormation template (nested stack)
-- Call home (and mention in the readme) - time, cluster type, regions, IP (or hash of) [no need to count deletions]
-- Add short-cuts for Weave Net (most certainly) and Weave Cloud (maybe)
-- Consider repurposing kops (or even kubicorn), or some of its code (it may be easier to use the AWS API the way kops does, instead of CloudFormation - TBD, but kops node bootstrap code may not be very useful)
-- On EKS GA date Terraform module for EKS will be available – perhaps try it
-- Find partners and contributors (e.g. Jenkins X and/or Heptio)
-- Could persuade Docker to work on LinuxKit node AMIs
-- Node upgrade controller
-- Consider kubeadm join
-
-## Improved design – MVP
-
-To create a basic cluster run:
-```
 eksctl create cluster
 ```
+
 A cluster will be created with default parameters
-- exciting auto-generated name, e.g. "fabulous-mushroom"
+- exciting auto-generated name, e.g. "fabulous-mushroom-1527688624"
 - 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
 - default EKS AMI
 - `us-west-2` region
 
-To create the same kind of basic cluster, but with a different name run:
-```
+To create the same kind of basic cluster, but with a different name, run:
+
+```console
 eksctl create cluster --cluster-name cluster-1 --nodes 4
 ```
 
 To write cluster credentials to a file other then default, run:
-```
-eksctl create cluster --cluster-name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.yaml
+
+```console
+eksctl create cluster --cluster-name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.cluster-2.yaml
 ```
 
 To prevent storing cluster credentials locally, run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-3 --nodes 4 --write-kubeconfig=false
 ```
 
 To use 3-5 node ASG, run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-4 --nodes-min 3 --nodes-max 5
 ```
 
 To use 30 `c4.xlarge` nodes, run:
-```
+
+```console
 eksctl create cluster --cluster-name cluster-5 --nodes 30 --node-type c4.xlarge
 ```
 
 To delete a cluster, run:
-```
+
+```console
 eksctl delete cluster --cluster-name <name> [--region <region>]
 ```
 
-To use more advanced configuration options, use [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
+<!-- TODO for 0.3.0
+To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
+
+```console
+eksctl apply --cluster-config advanced-cluster.yaml
 ```
-eksctl apply --cluster-config=advanced-cluster.yaml
-```
+-->
