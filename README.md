@@ -10,6 +10,8 @@ It is not intended to be a like-for-like alternative to well-established communi
 However, the intention is to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
 cloud-native world even more amazing to live in!
 
+> [**Download**: binaries for `v0.1.0-alpha1` release are available today.](https://github.com/weaveworks/eksctl/releases/tag/0.1.0-alpha1)
+
 ## Developer use-case
 
 It should suffice to install a cluster for development with just a single command, here are some examples.
@@ -19,20 +21,21 @@ To create a cluster with default configurations (2 `m4.large` nodes), run:
 eksctl create cluster
 ```
 
-It supports many popular addons, including:
+It support many popular addons (in 0.1.0), including:
 
-* Weave Net: `eksctl create cluster --networking weave`
-* Helm: `eksctl create cluster --addons helm`
-* AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster --addons aws-ci`
-* Jenkins X: `eksctl create cluster dev-cluster --addons jenkins-x`
-* AWS CodeStar: `eksctl create cluster dev-cluster --addons aws-codestar`
-* Weave Scope and Flux: `eksctl create cluster dev-cluster --addons weave-scope,weave-flux`
+ * Weave Net: `eksctl create cluster --networking weave`
+ * Helm: `eksctl create cluster --addons helm`
+ * AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster --addons aws-ci`
+ * Jenkins X: `eksctl create cluster dev-cluster --addons jenkins-x`
+ * AWS CodeStar: `eksctl create cluster dev-cluster --addons aws-codestar`
+ * Weave Scope and Flux: `eksctl create cluster dev-cluster --addons weave-scope,weave-flux`
 
 You can combine any or all of these.
 
 You can also add any of these addons after you create a cluster with `eksctl addons install <addon>...`.
 
-## Manage EKS the GitOps way
+
+## Manage EKS the GitOps way (0.2.0)
 
 Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
 
@@ -83,7 +86,9 @@ To delete a cluster, run:
 eksctl delete cluster --cluster-name <name> [--region <region>]
 ```
 
-To use more advanced configuration options, use [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
+<!-- TODO for 0.2.0
+To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
 ```
 eksctl apply --cluster-config advanced-cluster.yaml
+-->
 ```
