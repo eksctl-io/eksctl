@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,8 +14,6 @@ import (
 	"github.com/heptio/authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 
 	"k8s.io/client-go/tools/clientcmd"
@@ -186,45 +183,4 @@ func (c *ClientConfig) NewClientSetWithEmbeddedToken() (*clientset.Clientset, er
 		return nil, errors.Wrap(err, "creating Kubernetes client")
 	}
 	return clientSet, nil
-}
-
-func (c *Config) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
-	mapRoles := make([]map[string]interface{}, 1)
-	mapRoles[0] = make(map[string]interface{})
-
-	mapRoles[0]["rolearn"] = c.nodeInstanceRoleARN
-	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
-	mapRoles[0]["groups"] = []string{
-		"system:bootstrappers",
-		"system:nodes",
-		"system:nodes",
-	}
-
-	mapRolesBytes, err := yaml.Marshal(mapRoles)
-	if err != nil {
-		return nil, err
-	}
-
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "aws-auth",
-			Namespace: "default",
-		},
-		BinaryData: map[string][]byte{
-			"mapRoles": mapRolesBytes,
-		},
-	}
-
-	return cm, nil
-}
-
-func (c *Config) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
-	cm, err := c.newNodeAuthConfigMap()
-	if err != nil {
-		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
-	}
-	if _, err := clientSet.CoreV1().ConfigMaps("default").Create(cm); err != nil {
-		return errors.Wrap(err, "creating auth ConfigMap for DefaultNodeGroup")
-	}
-	return nil
 }

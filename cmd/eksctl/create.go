@@ -11,9 +11,6 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/kubicorn/kubicorn/pkg/namer"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/watch"
-
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
@@ -140,48 +137,9 @@ func doCreateCluster(cfg *eks.Config) error {
 			return err
 		}
 
-		// watch nodes joining
-		// TODO(p1): move it to some package
-		{
-			timer := time.After(5 * time.Minute)
-			timeout := false
-			watcher, err := clientSet.Core().Nodes().Watch(metav1.ListOptions{})
-			if err != nil {
-				return errors.Wrap(err, "creating node watcher")
-			}
-
-			nodes, err := clientSet.Core().Nodes().List(metav1.ListOptions{})
-			if err != nil {
-				return errors.Wrap(err, "listing nodes")
-			}
-			counter := len(nodes.Items)
-
-			logger.Info("waiting for at least %d nodes to become ready", cfg.MinNodes)
-			for !timeout && counter <= cfg.MinNodes {
-				select {
-				case event, _ := <-watcher.ResultChan():
-					logger.Debug("event = %#v", event)
-					if event.Type == watch.Added {
-						// TODO(p1): check readiness
-						counter++
-					}
-				case <-timer:
-					timeout = true
-				}
-			}
-			if timeout {
-				// TODO(p2): doesn't have to be fatal
-				return fmt.Errorf("timed out waitiing for nodes")
-			}
-			logger.Info("the cluster has %d nodes", counter, cfg.ClusterName)
-
-			nodes, err = clientSet.Core().Nodes().List(metav1.ListOptions{})
-			if err != nil {
-				return errors.Wrap(err, "re-listing nodes")
-			}
-			for n, node := range nodes.Items {
-				logger.Debug("node[%n]=%#v", n, node)
-			}
+		// wait for nodes to join
+		if err := cfg.WaitForNodes(clientSet); err != nil {
+			return err
 		}
 
 		// TODO(p2): addons
