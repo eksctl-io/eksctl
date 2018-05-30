@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -25,6 +26,7 @@ const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 type CloudFormation struct {
 	cfg *Config
 	svc *cloudformation.CloudFormation
+	eks *eks.EKS
 	ec2 *ec2.EC2
 	sts *sts.STS
 	arn string
@@ -67,6 +69,7 @@ func New(clusterConfig *Config) *CloudFormation {
 	return &CloudFormation{
 		cfg: clusterConfig,
 		svc: cloudformation.New(session),
+		eks: eks.New(session),
 		ec2: ec2.New(session),
 		sts: sts.New(session),
 	}
