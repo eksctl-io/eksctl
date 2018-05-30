@@ -6,12 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/ghodss/yaml"
+
+	"github.com/heptio/authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
-	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,67 +23,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"k8s.io/kops/upup/pkg/fi/utils"
-
-	"github.com/heptio/authenticator/pkg/token"
 )
-
-func (c *Config) nodeAuthConfigMap() (*corev1.ConfigMap, error) {
-
-	/*
-		apiVersion: v1
-		kind: ConfigMap
-		metadata:
-		  name: aws-auth
-		  namespace: default
-		data:
-		  mapRoles: |
-		    - rolearn: "${nodeInstanceRoleARN}"
-		      username: system:node:{{EC2PrivateDNSName}}
-		      groups:
-		        - system:bootstrappers
-		        - system:nodes
-		        - system:node-proxier
-	*/
-
-	mapRoles := make([]map[string]interface{}, 1)
-	mapRoles[0] = make(map[string]interface{})
-
-	mapRoles[0]["rolearn"] = c.nodeInstanceRoleARN
-	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
-	mapRoles[0]["groups"] = []string{
-		"system:bootstrappers",
-		"system:nodes",
-		"system:nodes",
-	}
-
-	mapRolesBytes, err := yaml.Marshal(mapRoles)
-	if err != nil {
-		return nil, err
-	}
-
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "aws-auth",
-			Namespace: "default",
-		},
-		BinaryData: map[string][]byte{
-			"mapRoles": mapRolesBytes,
-		},
-	}
-
-	return cm, nil
-}
-
-// def generate_sts_token(name):
-//     sts = setupSTSBoto()
-//     prefix = "k8s-aws-v1."
-
-//     signedURL = sts.generate_presigned_url(ClientMethod='get_caller_identity',  Params={}, ExpiresIn=60)
-//     encodedURL = base64.b64encode(signedURL)
-
-//     return prefix+encodedURL```
-
-// the issue with boto is it doesn't allow you to generate a signed url with additional headers like the golang package so I have to rewrite this to manually sign the url
 
 func (c *CloudFormation) LoadSSHPublicKey() error {
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
@@ -129,32 +71,23 @@ func (c *CloudFormation) MaybeDeletePublicSSHKey() {
 	c.ec2.DeleteKeyPair(input)
 }
 
-func (c *CloudFormation) getUsername() (string, error) {
-	input := &sts.GetCallerIdentityInput{}
-	output, err := c.sts.GetCallerIdentity(input)
-	if err != nil {
-		return "", errors.Wrap(err, "cannot get username for current session")
-	}
-	arn := strings.Split(*output.Arn, "/")
-	username := arn[len(arn)-1]
-	return username, nil
+func (c *CloudFormation) getUsername() string {
+	usernameParts := strings.Split(c.arn, "/")
+	username := usernameParts[len(usernameParts)-1]
+	return username
 }
 
 type ClientConfig struct {
 	Client  *clientcmdapi.Config
 	Cluster *Config
+	roleARN string
 }
 
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 // these are small, so we can copy these, and no need to deal with k/k as dependency
 func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
-	username, err := c.getUsername()
-	if err != nil {
-		return nil, err
-	}
-
-	clusterName := fmt.Sprintf("%s.%s.eksctl.k8s.io", c.cfg.ClusterName, c.cfg.Region)
-	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+	clusterName := fmt.Sprintf("%s.%s.eksctl.io", c.cfg.ClusterName, c.cfg.Region)
+	contextName := fmt.Sprintf("%s@%s", c.getUsername(), clusterName)
 
 	clientConfig := &ClientConfig{
 		Cluster: c.cfg,
@@ -176,19 +109,23 @@ func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
 			},
 			CurrentContext: contextName,
 		},
+		roleARN: c.arn,
 	}
 
 	return clientConfig, nil
 }
 
 func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
+
 	clientConfigCopy := *c
 	x := clientConfigCopy.Client.AuthInfos[c.Client.CurrentContext]
 	x.Exec = &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
 		Command:    "heptio-authenticator-aws",
 		Args:       []string{"token", "-i", c.Cluster.ClusterName},
-		// TODO(p2): should we add -r <role-arn> here?
+		/*
+			Args:       []string{"token", "-i", c.Cluster.ClusterName, "-r", c.roleARN},
+		*/
 	}
 	return &clientConfigCopy
 }
@@ -198,19 +135,23 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 
 	gen, err := token.NewGenerator()
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get token")
+		return nil, errors.Wrap(err, "could not get token generator")
 	}
 
-	// otherwise sign the token with immediately available credentials
+	// could not get token: AccessDenied: User <ARN> is not authorized to perform: sts:AssumeRole on resource: <ARN>
+	/*
+		tok, err := gen.GetWithRole(c.Cluster.ClusterName, c.roleARN)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not get token")
+		}
+	*/
 	tok, err := gen.Get(c.Cluster.ClusterName)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get token")
 	}
 
-	//c.Client.AuthInfos[c.Client.CurrentContext].
-
-	logger.Debug("token = %#v", tok)
-	logger.Debug("token = %s", gen.FormatJSON(tok))
+	x := c.Client.AuthInfos[c.Client.CurrentContext]
+	x.Token = tok
 
 	return &clientConfigCopy, nil
 }
@@ -233,4 +174,57 @@ func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 		return nil, errors.Wrap(err, "failed to create API client")
 	}
 	return client, nil
+}
+
+func (c *ClientConfig) NewClientSetWithEmbeddedToken() (*clientset.Clientset, error) {
+	clientConfig, err := c.WithEmbeddedToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
+	}
+	clientSet, err := clientConfig.NewClientSet()
+	if err != nil {
+		return nil, errors.Wrap(err, "creating Kubernetes client")
+	}
+	return clientSet, nil
+}
+
+func (c *Config) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
+	mapRoles := make([]map[string]interface{}, 1)
+	mapRoles[0] = make(map[string]interface{})
+
+	mapRoles[0]["rolearn"] = c.nodeInstanceRoleARN
+	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
+	mapRoles[0]["groups"] = []string{
+		"system:bootstrappers",
+		"system:nodes",
+		"system:nodes",
+	}
+
+	mapRolesBytes, err := yaml.Marshal(mapRoles)
+	if err != nil {
+		return nil, err
+	}
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "aws-auth",
+			Namespace: "default",
+		},
+		BinaryData: map[string][]byte{
+			"mapRoles": mapRolesBytes,
+		},
+	}
+
+	return cm, nil
+}
+
+func (c *Config) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
+	cm, err := c.newNodeAuthConfigMap()
+	if err != nil {
+		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
+	}
+	if _, err := clientSet.CoreV1().ConfigMaps("default").Create(cm); err != nil {
+		return errors.Wrap(err, "creating auth ConfigMap for DefaultNodeGroup")
+	}
+	return nil
 }

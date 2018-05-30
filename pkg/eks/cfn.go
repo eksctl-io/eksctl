@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -14,8 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
-
-	"github.com/pkg/errors"
 )
 
 //go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.0/2018-05-09 -o cfn_templates.go assets/1.10.0/2018-05-09
@@ -27,6 +27,7 @@ type CloudFormation struct {
 	svc *cloudformation.CloudFormation
 	ec2 *ec2.EC2
 	sts *sts.STS
+	arn string
 }
 
 // simple config, to be replaced with Cluster API
@@ -72,9 +73,20 @@ func New(clusterConfig *Config) *CloudFormation {
 }
 
 func (c *CloudFormation) CheckAuth() error {
-	input := &cloudformation.ListStacksInput{}
-	if _, err := c.svc.ListStacks(input); err != nil {
-		return errors.Wrap(err, "checking AWS CloudFormation access")
+	{
+		input := &sts.GetCallerIdentityInput{}
+		output, err := c.sts.GetCallerIdentity(input)
+		if err != nil {
+			return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
+		}
+		c.arn = *output.Arn
+		logger.Debug("role ARN for the current session is %q", c.arn)
+	}
+	{
+		input := &cloudformation.ListStacksInput{}
+		if _, err := c.svc.ListStacks(input); err != nil {
+			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
+		}
 	}
 	return nil
 }
