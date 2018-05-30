@@ -12,6 +12,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/namer"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func createCmd() *cobra.Command {
@@ -135,15 +136,15 @@ func doCreateCluster(cfg *eks.Config) error {
 	}
 
 	// create Kubernetes client
-	clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
-	if err != nil {
-		return err
-	}
+	// clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
+	// if err != nil {
+	// 	return err
+	// }
 
 	// authorise nodes to join
-	if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
-		return err
-	}
+	// if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
+	// 	return err
+	// }
 
 	// TODO(p1): watch nodes joining
 
@@ -152,6 +153,11 @@ func doCreateCluster(cfg *eks.Config) error {
 	// TODO(p2): addons
 
 	// TODO(p0): check kubectl version, and offer install instructions if missing or old
+
+	if err := utils.CheckKubectlVersion(); err != nil {
+		return err
+	}
+
 	// TODO(p0): check heptio-authenticator, and offer install instructions if missing
 
 	return nil

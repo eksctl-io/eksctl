@@ -51,3 +51,6 @@ required = [
   go-tests = true
   unused-packages = true
 
+[[constraint]]
+  name = "github.com/weaveworks/launcher"
+  revision = "f7ba6be5269802c6937ac92457733eb63ce6316b"
