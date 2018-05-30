@@ -9,7 +9,7 @@ You can create a cluster in minutes with just one command – **`eksctl cluster 
 It's inspired by `kubectl`. It provides an easy way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
 
 It is not intended to be a like-for-like alternative to well-established community tools (`kops`, `kubicorn`, `kubeadm`).
-However, the intention is to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
+However, the intention is for it to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
 cloud-native world even more amazing to live in!
 
 > **Download Today**
@@ -31,7 +31,7 @@ cloud-native world even more amazing to live in!
 
 ## Developer use-case
 
-It should suffice to install a cluster for development with just a single command, here are some examples.
+It should suffice to install a cluster for development with just a single command. Here are some examples:
 
 To create a cluster with default configurations (2 `m4.large` nodes), run:
 
@@ -56,16 +56,16 @@ You can also add any of these addons after you create a cluster with `eksctl add
 
 ## Manage EKS the GitOps way (0.3.0)
 
-Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
+Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
 
 For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
 
 You can also use `eksctld`, which you'd normally run as a controller inside of another
-cluster, you can manage multiple clusters this way.
+cluster. You can manage multiple clusters this way.
 
 ## Usage
 
-To create a basic cluster run:
+To create a basic cluster, run:
 
 ```console
 eksctl create cluster
@@ -77,7 +77,7 @@ A cluster will be created with default parameters
 - default EKS AMI
 - `us-west-2` region
 
-To create the same kind of basic cluster, but with a different name run:
+To create the same kind of basic cluster, but with a different name, run:
 
 ```console
 eksctl create cluster --cluster-name cluster-1 --nodes 4
