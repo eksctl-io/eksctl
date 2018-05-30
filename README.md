@@ -12,7 +12,20 @@ cloud-native world even more amazing to live in!
 
 > **Download Today**
 >
-> Linux, macOS and Windows binaries for `v0.1.0-alpha1` release are [available for download](https://github.com/weaveworks/eksctl/releases/tag/0.1.0-alpha1).
+> Linux, macOS and Windows binaries for 0.1.0-alpha1 release are [available for download](https://github.com/weaveworks/eksctl/releases/tag/0.1.0-alpha1).
+>
+> **Roadmap**
+>
+> Stable 0.1.0 release will made available based on user-feedback.
+> Release 0.2.0 will add support for addons, and 0.3.0 is planned to support Cluster API.
+>
+> **Contributions**
+>
+> Code contributions are very welcome, however until 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
+> 
+> **Get in touch**
+>
+> [Create and issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
 
 ## Developer use-case
 
@@ -23,21 +36,22 @@ To create a cluster with default configurations (2 `m4.large` nodes), run:
 eksctl create cluster
 ```
 
-It support many popular addons (in 0.1.0), including:
+In 0.2.0, it will support many popular addons, e.g.:
 
- * Weave Net: `eksctl create cluster --networking weave`
- * Helm: `eksctl create cluster --addons helm`
- * AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster --addons aws-ci`
- * Jenkins X: `eksctl create cluster dev-cluster --addons jenkins-x`
- * AWS CodeStar: `eksctl create cluster dev-cluster --addons aws-codestar`
- * Weave Scope and Flux: `eksctl create cluster dev-cluster --addons weave-scope,weave-flux`
+* Weave Net: `eksctl create cluster --networking weave`
+* Helm: `eksctl create cluster --addons helm`
+* AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster --addons aws-ci`
+* Jenkins X: `eksctl create cluster --addons jenkins-x`
+* AWS CodeStar: `eksctl create cluster --addons aws-codestar`
+* Weave Scope and Flux: `eksctl create cluster --addons weave-scope,weave-flux`
 
+<!-- TODO
 You can combine any or all of these.
 
 You can also add any of these addons after you create a cluster with `eksctl addons install <addon>...`.
+-->
 
-
-## Manage EKS the GitOps way (0.2.0)
+## Manage EKS the GitOps way (0.3.0)
 
 Just like `kubectl`, `eksclt` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
 
@@ -53,7 +67,7 @@ To create a basic cluster run:
 eksctl create cluster
 ```
 A cluster will be created with default parameters
-- exciting auto-generated name, e.g. "fabulous-mushroom"
+- exciting auto-generated name, e.g. "fabulous-mushroom-1527688624"
 - 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
 - default EKS AMI
 - `us-west-2` region
@@ -88,7 +102,7 @@ To delete a cluster, run:
 eksctl delete cluster --cluster-name <name> [--region <region>]
 ```
 
-<!-- TODO for 0.2.0
+<!-- TODO for 0.3.0
 To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
 ```
 eksctl apply --cluster-config advanced-cluster.yaml
