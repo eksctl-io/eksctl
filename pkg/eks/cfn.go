@@ -246,9 +246,12 @@ func (c *CloudFormation) CreateAllStacks(taskErrs chan error) {
 		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
 		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
 	}, taskErrs)
-	c.CreateStacks(map[string]func(chan error) error{
-		"createStackControlPlane": func(errs chan error) error { return c.createStackControlPlane(errs) },
-	}, taskErrs)
+	// c.CreateStacks(map[string]func(chan error) error{
+	// 	"createStackControlPlane": func(errs chan error) error { return c.createStackControlPlane(errs) },
+	// }, taskErrs)
+	c.cfg.MasterEndpoint = "https://api.eksctl.io"
+	c.cfg.CertificateAuthorityData = []byte("cert")
+	// TODO(pre-release): uncomment and remove^
 	c.CreateStacks(map[string]func(chan error) error{
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
 	}, taskErrs)
@@ -417,16 +420,9 @@ func (c *CloudFormation) stackParamsControlPlane() map[string]string {
 }
 
 func (c *CloudFormation) createStackControlPlane(errs chan error) error {
-	c.cfg.MasterEndpoint = "https://api.magic.com"
-	c.cfg.CertificateAuthorityData = []byte("cert")
-
-	errs <- nil
-	return nil
-
 	amazonEksControlPlaneYamlBytes := func() ([]byte, error) {
 		return []byte{}, nil
 	}
-
 	// TODO(pre-relase): remove above^
 
 	name := c.stackNameControlPlane()
