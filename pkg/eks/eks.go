@@ -13,7 +13,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-func (c *CloudFormation) CreateControlPlane() error {
+func (c *ClusterProvider) CreateControlPlane() error {
 	input := &eks.CreateClusterInput{
 		ClusterName:    &c.cfg.ClusterName,
 		RoleArn:        &c.cfg.clusterRoleARN,
@@ -21,7 +21,7 @@ func (c *CloudFormation) CreateControlPlane() error {
 		SecurityGroups: aws.StringSlice([]string{c.cfg.securityGroup}),
 		// TODO(p1): find out why there are not tags
 	}
-	output, err := c.eks.CreateCluster(input)
+	output, err := c.svc.eks.CreateCluster(input)
 	if err != nil {
 		return errors.Wrap(err, "unable to create cluster control plane")
 	}
@@ -29,18 +29,18 @@ func (c *CloudFormation) CreateControlPlane() error {
 	return nil
 }
 
-func (c *CloudFormation) DescribeControlPlane() (*eks.Cluster, error) {
+func (c *ClusterProvider) DescribeControlPlane() (*eks.Cluster, error) {
 	input := &eks.DescribeClusterInput{
 		ClusterName: &c.cfg.ClusterName,
 	}
-	output, err := c.eks.DescribeCluster(input)
+	output, err := c.svc.eks.DescribeCluster(input)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
 	return output.Cluster, nil
 }
 
-func (c *CloudFormation) DeleteControlPlane() error {
+func (c *ClusterProvider) DeleteControlPlane() error {
 	cluster, err := c.DescribeControlPlane()
 	if err != nil {
 		return errors.Wrap(err, "not able to get control plane for deletion")
@@ -50,13 +50,13 @@ func (c *CloudFormation) DeleteControlPlane() error {
 		ClusterName: cluster.ClusterName,
 	}
 
-	if _, err := c.eks.DeleteCluster(input); err != nil {
+	if _, err := c.svc.eks.DeleteCluster(input); err != nil {
 		return errors.Wrap(err, "unable to delete cluster control plane")
 	}
 	return nil
 }
 
-func (c *CloudFormation) createControlPlane(errs chan error) error {
+func (c *ClusterProvider) createControlPlane(errs chan error) error {
 	logger.Info("creating control plane %q", c.cfg.ClusterName)
 
 	clusterChan := make(chan eks.Cluster)
@@ -119,7 +119,7 @@ func (c *CloudFormation) createControlPlane(errs chan error) error {
 	return nil
 }
 
-func (c *CloudFormation) ListClusters() error {
+func (c *ClusterProvider) ListClusters() error {
 	if c.cfg.ClusterName != "" {
 		return c.doListCluster(&c.cfg.ClusterName)
 	}
@@ -127,7 +127,7 @@ func (c *CloudFormation) ListClusters() error {
 	// TODO(p1): collect results into a data structure (or at least a nicely formatted string)
 	// TODO(p2): paging
 	input := &eks.ListClustersInput{}
-	output, err := c.eks.ListClusters(input)
+	output, err := c.svc.eks.ListClusters(input)
 	if err != nil {
 		return errors.Wrap(err, "listing control planes")
 	}
@@ -139,11 +139,11 @@ func (c *CloudFormation) ListClusters() error {
 	return nil
 }
 
-func (c *CloudFormation) doListCluster(clusterName *string) error {
+func (c *ClusterProvider) doListCluster(clusterName *string) error {
 	input := &eks.DescribeClusterInput{
 		ClusterName: clusterName,
 	}
-	output, err := c.eks.DescribeCluster(input)
+	output, err := c.svc.eks.DescribeCluster(input)
 	if err != nil {
 		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
 	}
@@ -160,7 +160,7 @@ func (c *CloudFormation) doListCluster(clusterName *string) error {
 	return nil
 }
 
-func (c *CloudFormation) ListAllTaggedResources() error {
+func (c *ClusterProvider) ListAllTaggedResources() error {
 	// TODO(p1): need this for showing any half-made clusters and pruning them
 	return nil
 }

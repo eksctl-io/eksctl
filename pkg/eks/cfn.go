@@ -2,121 +2,22 @@ package eks
 
 import (
 	"fmt"
-	"os"
 	"regexp"
-	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 //go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.0/2018-05-09 -o cfn_templates.go assets/1.10.0/2018-05-09
 
-const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
-
-type CloudFormation struct {
-	cfg *Config
-	svc *cloudformation.CloudFormation
-	eks *eks.EKS
-	ec2 *ec2.EC2
-	sts *sts.STS
-	arn string
-}
-
-// simple config, to be replaced with Cluster API
-type Config struct {
-	Region      string
-	ClusterName string
-	NodeAMI     string
-	NodeType    string
-	Nodes       int
-	MinNodes    int
-	MaxNodes    int
-
-	SSHPublicKeyPath string
-	SSHPublicKey     []byte
-
-	keyName        string
-	clusterRoleARN string
-	securityGroup  string
-	subnetsList    string
-	clusterVPC     string
-
-	nodeInstanceRoleARN string
-
-	MasterEndpoint           string
-	CertificateAuthorityData []byte
-}
 type Stack = cloudformation.Stack
 
-func New(clusterConfig *Config) *CloudFormation {
-	// we might want to use bits from kops, although right now it seems like too many thing we
-	// don't want yet
-	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig()
-	config = config.WithRegion(clusterConfig.Region)
-	config = config.WithCredentialsChainVerboseErrors(true)
-
-	s := session.Must(session.NewSession(config))
-
-	cfn := &CloudFormation{
-		cfg: clusterConfig,
-		svc: cloudformation.New(s),
-		eks: eks.New(s),
-		ec2: ec2.New(s),
-		sts: sts.New(s),
-	}
-
-	// override sessions if any custom endpoints specified
-	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
-		cfn.svc = cloudformation.New(s)
-	}
-	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
-		cfn.eks = eks.New(s)
-	}
-	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
-		cfn.ec2 = ec2.New(s)
-	}
-	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
-		cfn.sts = sts.New(s)
-	}
-
-	return cfn
-}
-
-func (c *CloudFormation) CheckAuth() error {
-	{
-		input := &sts.GetCallerIdentityInput{}
-		output, err := c.sts.GetCallerIdentity(input)
-		if err != nil {
-			return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
-		}
-		c.arn = *output.Arn
-		logger.Debug("role ARN for the current session is %q", c.arn)
-	}
-	{
-		input := &cloudformation.ListStacksInput{}
-		if _, err := c.svc.ListStacks(input); err != nil {
-			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
-		}
-	}
-	return nil
-}
-
-func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, stack chan Stack, errs chan error) error {
+func (c *ClusterProvider) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, stack chan Stack, errs chan error) error {
 	input := &cloudformation.CreateStackInput{}
 	input.SetStackName(name)
 	input.SetTags([]*cloudformation.Tag{
@@ -139,7 +40,7 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 
 	// TODO(p1): looks like we can block on this forever, if parameters are invalid
 	logger.Debug("input = %#v", input)
-	s, err := c.svc.CreateStack(input)
+	s, err := c.svc.cfn.CreateStack(input)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("creating CloudFormation stack %q", name))
 	}
@@ -195,21 +96,20 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 	}()
 
 	return nil
-
 }
 
-func (c *CloudFormation) describeStack(name *string) (*Stack, error) {
+func (c *ClusterProvider) describeStack(name *string) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: name,
 	}
-	resp, err := c.svc.DescribeStacks(input)
+	resp, err := c.svc.cfn.DescribeStacks(input)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("describing CloudFormation stack %q", *name))
 	}
 	return resp.Stacks[0], nil
 }
 
-func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*Stack, error) {
+func (c *ClusterProvider) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 	var (
 		subErr error
 		stack  *Stack
@@ -233,7 +133,7 @@ func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 		}
 		return true
 	}
-	if err := c.svc.ListStacksPages(input, pager); err != nil {
+	if err := c.svc.cfn.ListStacksPages(input, pager); err != nil {
 		return nil, err
 	}
 	if subErr != nil {
@@ -242,53 +142,17 @@ func (c *CloudFormation) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 	return stacks, nil
 }
 
-func (c *CloudFormation) CreateStacks(tasks map[string]func(chan error) error, taskErrs chan error) {
-	wg := &sync.WaitGroup{}
-	wg.Add(len(tasks))
-	for taskName := range tasks {
-		task := tasks[taskName]
-		go func(tn string) {
-			defer wg.Done()
-			logger.Debug("task %q started", tn)
-			errs := make(chan error)
-			if err := task(errs); err != nil {
-				taskErrs <- err
-				return
-			}
-			if err := <-errs; err != nil {
-				taskErrs <- err
-				return
-			}
-			logger.Debug("task %q returned without errors", tn)
-		}(taskName)
-	}
-	logger.Debug("waiting for %d tasks to complete", len(tasks))
-	wg.Wait()
-}
-
-func (c *CloudFormation) CreateAllStacks(taskErrs chan error) {
-	c.CreateStacks(map[string]func(chan error) error{
-		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
-		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
-	}, taskErrs)
-	c.CreateStacks(map[string]func(chan error) error{
-		"createControlPlane":          func(errs chan error) error { return c.createControlPlane(errs) },
-		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
-	}, taskErrs)
-	close(taskErrs)
-}
-
-func (c *CloudFormation) stackNameVPC() string {
+func (c *ClusterProvider) stackNameVPC() string {
 	return "EKS-" + c.cfg.ClusterName + "-VPC"
 }
 
-func (c *CloudFormation) stackParamsVPC() map[string]string {
+func (c *ClusterProvider) stackParamsVPC() map[string]string {
 	return map[string]string{
 		"ClusterName": c.cfg.ClusterName,
 	}
 }
 
-func (c *CloudFormation) createStackVPC(errs chan error) error {
+func (c *ClusterProvider) createStackVPC(errs chan error) error {
 	name := c.stackNameVPC()
 	logger.Info("creating VPC stack %q", name)
 	templateBody, err := amazonEksVpcSampleYamlBytes()
@@ -345,7 +209,7 @@ func (c *CloudFormation) createStackVPC(errs chan error) error {
 	return nil
 }
 
-func (c *CloudFormation) DeleteStackVPC() error {
+func (c *ClusterProvider) DeleteStackVPC() error {
 	name := c.stackNameVPC()
 	s, err := c.describeStack(&name)
 	if err != nil {
@@ -356,17 +220,17 @@ func (c *CloudFormation) DeleteStackVPC() error {
 		StackName: s.StackName,
 	}
 
-	if _, err := c.svc.DeleteStack(input); err != nil {
+	if _, err := c.svc.cfn.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete VPC stack")
 	}
 	return nil
 }
 
-func (c *CloudFormation) stackNameServiceRole() string {
+func (c *ClusterProvider) stackNameServiceRole() string {
 	return "EKS-" + c.cfg.ClusterName + "-ServiceRole"
 }
 
-func (c *CloudFormation) createStackServiceRole(errs chan error) error {
+func (c *ClusterProvider) createStackServiceRole(errs chan error) error {
 	name := c.stackNameServiceRole()
 	logger.Info("creating ServiceRole stack %q", name)
 	templateBody, err := amazonEksServiceRoleYamlBytes()
@@ -409,7 +273,7 @@ func (c *CloudFormation) createStackServiceRole(errs chan error) error {
 	return nil
 }
 
-func (c *CloudFormation) DeleteStackServiceRole() error {
+func (c *ClusterProvider) DeleteStackServiceRole() error {
 	name := c.stackNameServiceRole()
 	s, err := c.describeStack(&name)
 	if err != nil {
@@ -420,17 +284,17 @@ func (c *CloudFormation) DeleteStackServiceRole() error {
 		StackName: s.StackName,
 	}
 
-	if _, err := c.svc.DeleteStack(input); err != nil {
+	if _, err := c.svc.cfn.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete ServiceRole stack")
 	}
 	return nil
 }
 
-func (c *CloudFormation) stackNameDefaultNodeGroup() string {
+func (c *ClusterProvider) stackNameDefaultNodeGroup() string {
 	return "EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup"
 }
 
-func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
+func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 	regionalAMIs := map[string]string{
 		"us-west-2": "ami-993141e1",
 	}
@@ -458,7 +322,7 @@ func (c *CloudFormation) stackParamsDefaultNodeGroup() map[string]string {
 	}
 }
 
-func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
+func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
 	name := c.stackNameDefaultNodeGroup()
 	logger.Info("creating DefaultNodeGroup stack %q", name)
 	templateBody, err := amazonEksNodegroupYamlBytes()
@@ -502,7 +366,7 @@ func (c *CloudFormation) createStackDefaultNodeGroup(errs chan error) error {
 	return nil
 }
 
-func (c *CloudFormation) DeleteStackDefaultNodeGroup() error {
+func (c *ClusterProvider) DeleteStackDefaultNodeGroup() error {
 	name := c.stackNameDefaultNodeGroup()
 	s, err := c.describeStack(&name)
 	if err != nil {
@@ -513,7 +377,7 @@ func (c *CloudFormation) DeleteStackDefaultNodeGroup() error {
 		StackName: s.StackName,
 	}
 
-	if _, err := c.svc.DeleteStack(input); err != nil {
+	if _, err := c.svc.cfn.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete DefaultNodeGroup stack")
 	}
 	return nil

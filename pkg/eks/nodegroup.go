@@ -14,7 +14,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
-func (c *Config) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
+func (c *ClusterConfig) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	mapRoles := make([]map[string]interface{}, 1)
 	mapRoles[0] = make(map[string]interface{})
 
@@ -44,7 +44,7 @@ func (c *Config) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	return cm, nil
 }
 
-func (c *Config) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
+func (c *ClusterConfig) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
 	cm, err := c.newNodeAuthConfigMap()
 	if err != nil {
 		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
@@ -81,7 +81,7 @@ func getNodes(clientSet *clientset.Clientset) (int, error) {
 	return len(nodes.Items), nil
 }
 
-func (c *Config) WaitForNodes(clientSet *clientset.Clientset) error {
+func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
 	timeoutAfter := 20 * time.Minute
 	timer := time.After(timeoutAfter)
 	timeout := false
