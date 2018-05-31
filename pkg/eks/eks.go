@@ -19,6 +19,7 @@ func (c *CloudFormation) CreateControlPlane() error {
 		RoleArn:        &c.cfg.clusterRoleARN,
 		Subnets:        aws.StringSlice(strings.Split(c.cfg.subnetsList, ",")),
 		SecurityGroups: aws.StringSlice([]string{c.cfg.securityGroup}),
+		// TODO(p0): find out why there are not tags
 	}
 	output, err := c.eks.CreateCluster(input)
 	if err != nil {
@@ -115,5 +116,40 @@ func (c *CloudFormation) createControlPlane(errs chan error) error {
 		errs <- nil
 	}()
 
+	return nil
+}
+
+func (c *CloudFormation) ListClusters() error {
+	input := &eks.ListClustersInput{}
+	// TODO(p0): collect results into a data structure (or at least a nicely formatted string)
+	// TODO(p2): paging
+	output, err := c.eks.ListClusters(input)
+	if err != nil {
+		return errors.Wrap(err, "listing control planes")
+	}
+	for _, clusterName := range output.Clusters {
+		input := &eks.DescribeClusterInput{
+			ClusterName: clusterName,
+		}
+		output, err := c.eks.DescribeCluster(input)
+		if err != nil {
+			return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
+		}
+		if *output.Cluster.Status == "Ready" {
+			logger.Info("cluster = %#v", *output.Cluster)
+			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
+			if err != nil {
+				return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
+			}
+			for _, s := range stacks {
+				logger.Info("stack = %#v", *s)
+			}
+		}
+	}
+	return nil
+}
+
+func (c *CloudFormation) ListAllTaggedResources() error {
+	// TODO(p1): need this for showing any half-made clusters and pruning them
 	return nil
 }
