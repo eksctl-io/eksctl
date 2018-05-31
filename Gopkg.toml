@@ -2,9 +2,10 @@ required = [
   "github.com/heptio/authenticator/cmd/heptio-authenticator-aws",
 ]
 
-[[constraint]]
+[[override]]
   name = "github.com/aws/aws-sdk-go"
-  version = "1.13.56"
+  source = "git@github.com:weaveworks/aws-sdk-go-temp"
+  revision = "b3a630f1fab8d2a944e59d6d1b82cfaec22ab64a"
 
 [[constraint]]
   name = "github.com/ghodss/yaml"
