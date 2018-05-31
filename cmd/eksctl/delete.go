@@ -25,7 +25,7 @@ func deleteCmd() *cobra.Command {
 }
 
 func deleteClusterCmd() *cobra.Command {
-	cfg := &eks.Config{}
+	cfg := &eks.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use: "cluster",
@@ -45,7 +45,7 @@ func deleteClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doDeleteCluster(cfg *eks.Config) error {
+func doDeleteCluster(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {

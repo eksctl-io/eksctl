@@ -41,7 +41,7 @@ var (
 )
 
 func createClusterCmd() *cobra.Command {
-	cfg := &eks.Config{}
+	cfg := &eks.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use: "cluster",
@@ -73,7 +73,7 @@ func createClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doCreateCluster(cfg *eks.Config) error {
+func doCreateCluster(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -99,7 +99,7 @@ func doCreateCluster(cfg *eks.Config) error {
 	{ // core action
 		taskErr := make(chan error)
 		// create each of the core cloudformation stacks
-		ctl.CreateAllStacks(taskErr)
+		ctl.CreateCluster(taskErr)
 		// read any errors (it only gets non-nil errors)
 		for err := range taskErr {
 			return err

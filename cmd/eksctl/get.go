@@ -24,7 +24,7 @@ func getCmd() *cobra.Command {
 }
 
 func getClusterCmd() *cobra.Command {
-	cfg := &eks.Config{}
+	cfg := &eks.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use:     "cluster",
@@ -45,7 +45,7 @@ func getClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doGetCluster(cfg *eks.Config) error {
+func doGetCluster(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {

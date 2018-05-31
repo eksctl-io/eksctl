@@ -22,7 +22,7 @@ import (
 	"k8s.io/kops/upup/pkg/fi/utils"
 )
 
-func (c *CloudFormation) LoadSSHPublicKey() error {
+func (c *ClusterProvider) LoadSSHPublicKey() error {
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
 	sshPublicKey, err := ioutil.ReadFile(c.cfg.SSHPublicKeyPath)
 	if err != nil {
@@ -32,7 +32,7 @@ func (c *CloudFormation) LoadSSHPublicKey() error {
 			input := &ec2.DescribeKeyPairsInput{
 				KeyNames: aws.StringSlice([]string{c.cfg.SSHPublicKeyPath}),
 			}
-			output, err := c.ec2.DescribeKeyPairs(input)
+			output, err := c.svc.ec2.DescribeKeyPairs(input)
 			if err != nil {
 				return errors.Wrap(err, "cannot find EC2 key pair")
 			}
@@ -54,35 +54,35 @@ func (c *CloudFormation) LoadSSHPublicKey() error {
 			PublicKeyMaterial: c.cfg.SSHPublicKey,
 		}
 		logger.Info("importing SSH public key %q as %q", c.cfg.SSHPublicKeyPath, c.cfg.keyName)
-		if _, err := c.ec2.ImportKeyPair(input); err != nil {
+		if _, err := c.svc.ec2.ImportKeyPair(input); err != nil {
 			return errors.Wrap(err, "importing SSH public key")
 		}
 	}
 	return nil
 }
 
-func (c *CloudFormation) MaybeDeletePublicSSHKey() {
+func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 	input := &ec2.DeleteKeyPairInput{
 		KeyName: aws.String("EKS-" + c.cfg.ClusterName),
 	}
-	c.ec2.DeleteKeyPair(input)
+	c.svc.ec2.DeleteKeyPair(input)
 }
 
-func (c *CloudFormation) getUsername() string {
-	usernameParts := strings.Split(c.arn, "/")
+func (c *ClusterProvider) getUsername() string {
+	usernameParts := strings.Split(c.svc.arn, "/")
 	username := usernameParts[len(usernameParts)-1]
 	return username
 }
 
 type ClientConfig struct {
 	Client  *clientcmdapi.Config
-	Cluster *Config
+	Cluster *ClusterConfig
 	roleARN string
 }
 
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 // these are small, so we can copy these, and no need to deal with k/k as dependency
-func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
+func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 	clusterName := fmt.Sprintf("%s.%s.eksctl.io", c.cfg.ClusterName, c.cfg.Region)
 	contextName := fmt.Sprintf("%s@%s", c.getUsername(), clusterName)
 
@@ -106,7 +106,7 @@ func (c *CloudFormation) NewClientConfig() (*ClientConfig, error) {
 			},
 			CurrentContext: contextName,
 		},
-		roleARN: c.arn,
+		roleARN: c.svc.arn,
 	}
 
 	return clientConfig, nil
