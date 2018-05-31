@@ -19,7 +19,7 @@ func (c *CloudFormation) CreateControlPlane() error {
 		RoleArn:        &c.cfg.clusterRoleARN,
 		Subnets:        aws.StringSlice(strings.Split(c.cfg.subnetsList, ",")),
 		SecurityGroups: aws.StringSlice([]string{c.cfg.securityGroup}),
-		// TODO(p0): find out why there are not tags
+		// TODO(p1): find out why there are not tags
 	}
 	output, err := c.eks.CreateCluster(input)
 	if err != nil {
@@ -124,7 +124,7 @@ func (c *CloudFormation) ListClusters() error {
 		return c.doListCluster(&c.cfg.ClusterName)
 	}
 
-	// TODO(p0): collect results into a data structure (or at least a nicely formatted string)
+	// TODO(p1): collect results into a data structure (or at least a nicely formatted string)
 	// TODO(p2): paging
 	input := &eks.ListClustersInput{}
 	output, err := c.eks.ListClusters(input)
