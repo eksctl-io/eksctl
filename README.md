@@ -68,8 +68,8 @@ cluster. You can manage multiple clusters this way.
 To download the latest release, run:
 
 ```console
-EKSCTL_VERSION=$(curl -s https://api.github.com/repos/weaveworks/eksctl/releases/latest | jq -r '.tag_name')
-curl -sL https://github.com/weaveworks/eksctl/releases/download/${EKSCTL_VERSION}/eksctl_${EKSCTL_VERSION}_`uname -s`_amd64.tar.gz | tar xzvf - -C /usr/local/bin
+EKSCTL_VERSION="$(curl -s https://api.github.com/repos/weaveworks/eksctl/releases/latest | jq -r '.tag_name')"
+curl -sL "https://github.com/weaveworks/eksctl/releases/download/${EKSCTL_VERSION}/eksctl_${EKSCTL_VERSION}_$(uname -s)_amd64.tar.gz" | tar xzv -C /usr/local/bin
 ```
 
 To create a basic cluster, run:
