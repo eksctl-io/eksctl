@@ -84,6 +84,12 @@ A cluster will be created with default parameters
 - default EKS AMI
 - `us-west-2` region
 
+To list the details about a cluster or all of the clusters, use:
+
+```console
+eksctl get cluster [--cluster-name <name>] [--region <region>]
+```
+
 To create the same kind of basic cluster, but with a different name, run:
 
 ```console
