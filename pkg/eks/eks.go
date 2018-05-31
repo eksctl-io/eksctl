@@ -57,7 +57,7 @@ func (c *CloudFormation) DeleteControlPlane() error {
 }
 
 func (c *CloudFormation) createControlPlane(errs chan error) error {
-	logger.Info("creating control plane")
+	logger.Info("creating control plane %q", c.cfg.ClusterName)
 
 	clusterChan := make(chan eks.Cluster)
 	taskErrs := make(chan error)
@@ -111,7 +111,7 @@ func (c *CloudFormation) createControlPlane(errs chan error) error {
 		c.cfg.CertificateAuthorityData = []byte(*cluster.CertificateAuthority.Data)
 
 		logger.Debug("clusterConfig = %#v", c.cfg)
-		logger.Success("created control plane")
+		logger.Success("created control plane %q", c.cfg.ClusterName)
 
 		errs <- nil
 	}()
