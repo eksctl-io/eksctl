@@ -2,7 +2,7 @@ package eks
 
 import (
 	"fmt"
-	"log"
+	"os"
 	"regexp"
 	"sync"
 	"time"
@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -25,6 +26,7 @@ const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 type CloudFormation struct {
 	cfg *Config
 	svc *cloudformation.CloudFormation
+	eks *eks.EKS
 	ec2 *ec2.EC2
 	sts *sts.STS
 	arn string
@@ -60,16 +62,39 @@ func New(clusterConfig *Config) *CloudFormation {
 	// we might want to use bits from kops, although right now it seems like too many thing we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig().WithRegion(clusterConfig.Region)
+	config := aws.NewConfig()
+	config = config.WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
-	session := session.Must(session.NewSession(config))
 
-	return &CloudFormation{
+	s := session.Must(session.NewSession(config))
+
+	cfn := &CloudFormation{
 		cfg: clusterConfig,
-		svc: cloudformation.New(session),
-		ec2: ec2.New(session),
-		sts: sts.New(session),
+		svc: cloudformation.New(s),
+		eks: eks.New(s),
+		ec2: ec2.New(s),
+		sts: sts.New(s),
 	}
+
+	// override sessions if any custom endpoints specified
+	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.svc = cloudformation.New(s)
+	}
+	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.eks = eks.New(s)
+	}
+	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.ec2 = ec2.New(s)
+	}
+	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.sts = sts.New(s)
+	}
+
+	return cfn
 }
 
 func (c *CloudFormation) CheckAuth() error {
@@ -127,10 +152,11 @@ func (c *CloudFormation) CreateStack(name string, templateBody []byte, parameter
 		defer close(errs)
 		for {
 			select {
+			// TODO(p1): timeout
 			case <-ticker.C:
 				s, err := c.describeStack(&name)
 				if err != nil {
-					log.Print(err)
+					logger.Warning("continue despite err=%q", err.Error())
 					continue
 				}
 				logger.Debug("stack = %#v", s)
@@ -245,13 +271,8 @@ func (c *CloudFormation) CreateAllStacks(taskErrs chan error) {
 		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
 		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
 	}, taskErrs)
-	// c.CreateStacks(map[string]func(chan error) error{
-	// 	"createStackControlPlane": func(errs chan error) error { return c.createStackControlPlane(errs) },
-	// }, taskErrs)
-	c.cfg.MasterEndpoint = "https://api.eksctl.io"
-	c.cfg.CertificateAuthorityData = []byte("cert")
-	// TODO(pre-release): uncomment and remove^
 	c.CreateStacks(map[string]func(chan error) error{
+		"createControlPlane":          func(errs chan error) error { return c.createControlPlane(errs) },
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
 	}, taskErrs)
 	close(taskErrs)
@@ -401,98 +422,6 @@ func (c *CloudFormation) DeleteStackServiceRole() error {
 
 	if _, err := c.svc.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete ServiceRole stack")
-	}
-	return nil
-}
-
-func (c *CloudFormation) stackNameControlPlane() string {
-	return "EKS-" + c.cfg.ClusterName + "-ControlPlane"
-}
-
-func (c *CloudFormation) stackParamsControlPlane() map[string]string {
-	// TODO(pre-relase): check parametes
-	return map[string]string{
-		"ClusterName":                      c.cfg.ClusterName,
-		"ClusterControlPlaneSecurityGroup": c.cfg.securityGroup,
-		"Subnets":                          c.cfg.subnetsList,
-		"VpcId":                            c.cfg.clusterVPC,
-		"RoleArn":                          c.cfg.clusterRoleARN,
-	}
-}
-
-func (c *CloudFormation) createStackControlPlane(errs chan error) error {
-	amazonEksControlPlaneYamlBytes := func() ([]byte, error) {
-		return []byte{}, nil
-	}
-	// TODO(pre-relase): remove above^
-
-	name := c.stackNameControlPlane()
-	logger.Info("creating ControlPlane stack %q", name)
-	templateBody, err := amazonEksControlPlaneYamlBytes()
-	if err != nil {
-		return errors.Wrap(err, "decompressing bundled template for ControlPlane stack")
-	}
-
-	stackChan := make(chan Stack)
-	taskErrs := make(chan error)
-
-	if err := c.CreateStack(name, templateBody, c.stackParamsControlPlane(), false, stackChan, taskErrs); err != nil {
-		return err
-	}
-
-	go func() {
-		defer close(errs)
-		defer close(stackChan)
-
-		if err := <-taskErrs; err != nil {
-			errs <- err
-			return
-		}
-
-		s := <-stackChan
-
-		logger.Debug("created ControlPlane stack %q – processing outputs", name)
-
-		// TODO(pre-relase): check outputs
-
-		masterEndpoint := GetOutput(&s, "MasterEndpoint")
-		if masterEndpoint == nil {
-			errs <- fmt.Errorf("MasterEndpoint is nil")
-			return
-		}
-		c.cfg.MasterEndpoint = *masterEndpoint
-
-		certificateAuthorityData := GetOutput(&s, "CertificateAuthorityData")
-		if masterEndpoint == nil {
-			errs <- fmt.Errorf("CertificateAuthorityData is nil")
-			return
-		}
-		c.cfg.CertificateAuthorityData = []byte(*certificateAuthorityData)
-
-		logger.Debug("clusterConfig = %#v", c.cfg)
-		logger.Success("created ControlPlane stack %q", name)
-
-		errs <- nil
-	}()
-	return nil
-}
-
-func (c *CloudFormation) DeleteStackControlPlane() error {
-	return nil
-	// TODO(pre-relase): remove above^
-
-	name := c.stackNameControlPlane()
-	s, err := c.describeStack(&name)
-	if err != nil {
-		return errors.Wrap(err, "not able to get ControlPlane stack for deletion")
-	}
-
-	input := &cloudformation.DeleteStackInput{
-		StackName: s.StackName,
-	}
-
-	if _, err := c.svc.DeleteStack(input); err != nil {
-		return errors.Wrap(err, "not able to delete ControlPlane stack")
 	}
 	return nil
 }
