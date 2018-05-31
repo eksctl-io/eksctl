@@ -3,6 +3,7 @@ package eks
 import (
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"sync"
 	"time"
@@ -62,17 +63,39 @@ func New(clusterConfig *Config) *CloudFormation {
 	// we might want to use bits from kops, although right now it seems like too many thing we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig().WithRegion(clusterConfig.Region)
+	config := aws.NewConfig()
+	config = config.WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
-	session := session.Must(session.NewSession(config))
 
-	return &CloudFormation{
+	s := session.Must(session.NewSession(config))
+
+	cfn := &CloudFormation{
 		cfg: clusterConfig,
-		svc: cloudformation.New(session),
-		eks: eks.New(session),
-		ec2: ec2.New(session),
-		sts: sts.New(session),
+		svc: cloudformation.New(s),
+		eks: eks.New(s),
+		ec2: ec2.New(s),
+		sts: sts.New(s),
 	}
+
+	// override sessions if any custom endpoints specified
+	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.svc = cloudformation.New(s)
+	}
+	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.eks = eks.New(s)
+	}
+	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.ec2 = ec2.New(s)
+	}
+	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
+		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		cfn.sts = sts.New(s)
+	}
+
+	return cfn
 }
 
 func (c *CloudFormation) CheckAuth() error {
