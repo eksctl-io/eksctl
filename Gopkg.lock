@@ -14,6 +14,7 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/plugincreds",
     "aws/credentials/stscreds",
     "aws/defaults",
     "aws/ec2metadata",
@@ -21,21 +22,181 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "awsmigrate/awsmigrate-renamer/rename",
+    "awstesting",
+    "awstesting/integration",
+    "awstesting/integration/smoke",
+    "awstesting/mock",
+    "awstesting/unit",
     "internal/sdkio",
     "internal/sdkrand",
     "internal/shareddefaults",
+    "private/model/api",
     "private/protocol",
     "private/protocol/ec2query",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
+    "private/protocol/restjson",
+    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
+    "private/signer/v2",
+    "private/util",
+    "service/acm",
+    "service/acmpca",
+    "service/alexaforbusiness",
+    "service/apigateway",
+    "service/applicationautoscaling",
+    "service/applicationdiscoveryservice",
+    "service/appstream",
+    "service/appsync",
+    "service/athena",
+    "service/autoscaling",
+    "service/autoscalingplans",
+    "service/batch",
+    "service/budgets",
+    "service/cloud9",
+    "service/clouddirectory",
     "service/cloudformation",
+    "service/cloudfront",
+    "service/cloudfront/sign",
+    "service/cloudhsm",
+    "service/cloudhsmv2",
+    "service/cloudsearch",
+    "service/cloudsearchdomain",
+    "service/cloudtrail",
+    "service/cloudwatch",
+    "service/cloudwatchevents",
+    "service/cloudwatchlogs",
+    "service/codebuild",
+    "service/codecommit",
+    "service/codedeploy",
+    "service/codepipeline",
+    "service/codestar",
+    "service/cognitoidentity",
+    "service/cognitoidentityprovider",
+    "service/cognitosync",
+    "service/comprehend",
+    "service/configservice",
+    "service/connect",
+    "service/costandusagereportservice",
+    "service/costexplorer",
+    "service/databasemigrationservice",
+    "service/datapipeline",
+    "service/dax",
+    "service/devicefarm",
+    "service/directconnect",
+    "service/directoryservice",
+    "service/dynamodb",
+    "service/dynamodb/dynamodbattribute",
+    "service/dynamodb/dynamodbiface",
+    "service/dynamodb/expression",
+    "service/dynamodbstreams",
     "service/ec2",
-    "service/sts"
+    "service/ecr",
+    "service/ecs",
+    "service/efs",
+    "service/eks",
+    "service/elasticache",
+    "service/elasticbeanstalk",
+    "service/elasticsearchservice",
+    "service/elastictranscoder",
+    "service/elb",
+    "service/elbv2",
+    "service/emr",
+    "service/firehose",
+    "service/fms",
+    "service/gamelift",
+    "service/glacier",
+    "service/glue",
+    "service/greengrass",
+    "service/guardduty",
+    "service/health",
+    "service/iam",
+    "service/inspector",
+    "service/iot",
+    "service/iot1clickdevicesservice",
+    "service/iot1clickprojects",
+    "service/iotanalytics",
+    "service/iotdataplane",
+    "service/iotjobsdataplane",
+    "service/kinesis",
+    "service/kinesisanalytics",
+    "service/kinesisvideo",
+    "service/kinesisvideoarchivedmedia",
+    "service/kinesisvideomedia",
+    "service/kms",
+    "service/kms/kmsiface",
+    "service/lambda",
+    "service/lexmodelbuildingservice",
+    "service/lexruntimeservice",
+    "service/lightsail",
+    "service/machinelearning",
+    "service/marketplacecommerceanalytics",
+    "service/marketplaceentitlementservice",
+    "service/marketplacemetering",
+    "service/mediaconvert",
+    "service/medialive",
+    "service/mediapackage",
+    "service/mediastore",
+    "service/mediastoredata",
+    "service/migrationhub",
+    "service/mobile",
+    "service/mobileanalytics",
+    "service/mq",
+    "service/mturk",
+    "service/opsworks",
+    "service/opsworkscm",
+    "service/organizations",
+    "service/pi",
+    "service/pinpoint",
+    "service/polly",
+    "service/pricing",
+    "service/rds",
+    "service/rds/rdsutils",
+    "service/redshift",
+    "service/rekognition",
+    "service/resourcegroups",
+    "service/resourcegroupstaggingapi",
+    "service/route53",
+    "service/route53domains",
+    "service/s3",
+    "service/s3/s3crypto",
+    "service/s3/s3iface",
+    "service/s3/s3manager",
+    "service/sagemaker",
+    "service/sagemakerruntime",
+    "service/secretsmanager",
+    "service/serverlessapplicationrepository",
+    "service/servicecatalog",
+    "service/servicediscovery",
+    "service/ses",
+    "service/sfn",
+    "service/shield",
+    "service/simpledb",
+    "service/sms",
+    "service/snowball",
+    "service/sns",
+    "service/sqs",
+    "service/sqs/sqsiface",
+    "service/ssm",
+    "service/storagegateway",
+    "service/sts",
+    "service/support",
+    "service/swf",
+    "service/transcribeservice",
+    "service/translate",
+    "service/waf",
+    "service/wafregional",
+    "service/workdocs",
+    "service/workmail",
+    "service/workspaces",
+    "service/xray"
   ]
-  revision = "854f9d07a932452f1552955e127e50ba5ebb25cc"
-  version = "v1.13.56"
+  revision = "b3a630f1fab8d2a944e59d6d1b82cfaec22ab64a"
+  source = "git@github.com:weaveworks/aws-sdk-go-temp"
 
 [[projects]]
   branch = "master"
@@ -48,6 +209,12 @@
   packages = ["."]
   revision = "2ee87856327ba09384cabd113bc6b5d174e9ec0f"
   version = "v3.5.1"
+
+[[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -72,6 +239,12 @@
   packages = ["."]
   revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
   version = "v1.37.0"
+
+[[projects]]
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
+  revision = "a0583e0143b1624142adab07e0e97fe106d99561"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -115,6 +288,15 @@
   ]
   revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
   version = "v0.2.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gucumber/gucumber"
+  packages = [
+    ".",
+    "gherkin"
+  ]
+  revision = "7d5c79e832a25825dbed83e78f8484d4ffe8ec16"
 
 [[projects]]
   branch = "master"
@@ -245,6 +427,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
@@ -279,6 +467,12 @@
     "xfs"
   ]
   revision = "fe93d378a6b03758a2c1b65e86cf630bf78681c0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/shiena/ansicolor"
+  packages = ["."]
+  revision = "a422bbe96644373c5753384a59d678f7d261ff10"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -326,6 +520,12 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
+
+[[projects]]
   name = "github.com/weaveworks/launcher"
   packages = ["pkg/kubectl"]
   revision = "4614c4a7368cc77dce1e1da50dd59047b7f07562"
@@ -341,6 +541,8 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "html",
+    "html/atom",
     "http/httpguts",
     "http2",
     "http2/hpack",
@@ -383,6 +585,16 @@
   name = "golang.org/x/time"
   packages = ["rate"]
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "go/buildutil",
+    "go/loader"
+  ]
+  revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -538,6 +750,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1ae8ad8924ae898c421ab5598b76d64b456ce7961b778bc204fd8dbbdf6e7309"
+  inputs-digest = "9eb5e3c8bfb6e2d6d51f99cbda0548bf9605b3277c682c0244a26278c458c571"
   solver-name = "gps-cdcl"
   solver-version = 1
