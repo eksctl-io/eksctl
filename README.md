@@ -3,7 +3,7 @@
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
 
 Amazon EKS is the new managed Kubernetes service for EC2.<br>
-What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases. It's written in Go, and based on official CloudFormation templates.<br>
+What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases. It's written in Go, and based on the official CloudFormation templates.<br>
 You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
 It's inspired by `kubectl`. It provides an easy way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
@@ -68,8 +68,8 @@ cluster. You can manage multiple clusters this way.
 To download the latest release, run:
 
 ```console
-EKSCTL_VERSION=$(curl -s https://api.github.com/repos/weaveworks/eksctl/releases/latest | jq -r '.tag_name')
-curl -sL https://github.com/weaveworks/eksctl/releases/download/${EKSCTL_VERSION}/eksctl_${EKSCTL_VERSION}_`uname -s`_amd64.tar.gz | tar xzvf - -C /usr/local/bin
+EKSCTL_VERSION="$(curl -s https://api.github.com/repos/weaveworks/eksctl/releases/latest | jq -r '.tag_name')"
+curl -sL "https://github.com/weaveworks/eksctl/releases/download/${EKSCTL_VERSION}/eksctl_${EKSCTL_VERSION}_$(uname -s)_amd64.tar.gz" | tar xzv -C /usr/local/bin
 ```
 
 To create a basic cluster, run:
@@ -83,6 +83,12 @@ A cluster will be created with default parameters
 - 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
 - default EKS AMI
 - `us-west-2` region
+
+To list the details about a cluster or all of the clusters, use:
+
+```console
+eksctl get cluster [--cluster-name <name>] [--region <region>]
+```
 
 To create the same kind of basic cluster, but with a different name, run:
 
