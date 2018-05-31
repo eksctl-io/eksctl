@@ -120,30 +120,41 @@ func (c *CloudFormation) createControlPlane(errs chan error) error {
 }
 
 func (c *CloudFormation) ListClusters() error {
-	input := &eks.ListClustersInput{}
+	if c.cfg.ClusterName != "" {
+		return c.doListCluster(&c.cfg.ClusterName)
+	}
+
 	// TODO(p0): collect results into a data structure (or at least a nicely formatted string)
 	// TODO(p2): paging
+	input := &eks.ListClustersInput{}
 	output, err := c.eks.ListClusters(input)
 	if err != nil {
 		return errors.Wrap(err, "listing control planes")
 	}
 	for _, clusterName := range output.Clusters {
-		input := &eks.DescribeClusterInput{
-			ClusterName: clusterName,
+		if err := c.doListCluster(clusterName); err != nil {
+			return err
 		}
-		output, err := c.eks.DescribeCluster(input)
+	}
+	return nil
+}
+
+func (c *CloudFormation) doListCluster(clusterName *string) error {
+	input := &eks.DescribeClusterInput{
+		ClusterName: clusterName,
+	}
+	output, err := c.eks.DescribeCluster(input)
+	if err != nil {
+		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
+	}
+	if *output.Cluster.Status == "Ready" {
+		logger.Info("cluster = %#v", *output.Cluster)
+		stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
 		if err != nil {
-			return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
+			return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
 		}
-		if *output.Cluster.Status == "Ready" {
-			logger.Info("cluster = %#v", *output.Cluster)
-			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
-			if err != nil {
-				return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
-			}
-			for _, s := range stacks {
-				logger.Info("stack = %#v", *s)
-			}
+		for _, s := range stacks {
+			logger.Info("stack = %#v", *s)
 		}
 	}
 	return nil
