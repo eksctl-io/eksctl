@@ -1,3 +1,7 @@
+before:
+  hooks:
+  - make install-bindata
+  - make update-bindata
 builds:
   - main: ./cmd/eksctl
     binary: eksctl
@@ -7,4 +11,7 @@ builds:
       - linux
     goarch:
       - amd64
-
+archive:
+  format: tar.gz
+  files:
+  - none*
