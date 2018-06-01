@@ -4,8 +4,8 @@
 
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
 
-Amazon EKS is the new managed Kubernetes service for EC2.<br>
-What is `eksctl`? It's a simple CLI tool for creating EKS clusters, for most common use-cases. It's written in Go, and based on the official CloudFormation templates.<br>
+
+`eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and based on Amazon's official CloudFormation templates.<br>
 You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
 It's inspired by `kubectl`. It provides an easy way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
@@ -30,40 +30,6 @@ cloud-native world even more amazing to live in!
 > **Get in touch**
 >
 > [Create and issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
-
-## Developer use-case
-
-It should suffice to install a cluster for development with just a single command. Here are some examples:
-
-To create a cluster with default configurations (2 `m4.large` nodes), run:
-
-```console
-eksctl create cluster
-```
-
-In 0.2.0, it will support many popular addons, e.g.:
-
-- Weave Net: `eksctl create cluster --networking weave`
-- Helm: `eksctl create cluster --addons helm`
-- AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster --addons aws-ci`
-- Jenkins X: `eksctl create cluster --addons jenkins-x`
-- AWS CodeStar: `eksctl create cluster --addons aws-codestar`
-- Weave Scope and Flux: `eksctl create cluster --addons weave-scope,weave-flux`
-
-<!-- TODO
-You can combine any or all of these.
-
-You can also add any of these addons after you create a cluster with `eksctl addons install <addon>...`.
--->
-
-## Manage EKS the GitOps way (0.3.0)
-
-Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
-
-For example, you can use `eksctl apply --cluster-config prod-cluster.yaml`.
-
-You can also use `eksctld`, which you'd normally run as a controller inside of another
-cluster. You can manage multiple clusters this way.
 
 ## Usage
 
@@ -135,3 +101,37 @@ To use more advanced configuration options, [Cluster API](https://github.com/kub
 eksctl apply --cluster-config advanced-cluster.yaml
 ```
 -->
+
+## Project Roadmap
+
+### Developer use-case (0.2.0)
+
+It should suffice to install a cluster for development with just a single command. Here are some examples:
+
+To create a cluster with default configurations (2 `m4.large` nodes), run:
+
+```console
+eksctl create cluster
+```
+
+Developer may chose to pre-configure popular addons, e.g.:
+
+- Weave Net: `eksctl create cluster --networking weave`
+- Helm: `eksctl create cluster --addons helm`
+- AWS CI tools (CodeCommit, CodeBuild, ECR): `eksctl create cluster --addons aws-ci`
+- Jenkins X: `eksctl create cluster --addons jenkins-x`
+- AWS CodeStar: `eksctl create cluster --addons aws-codestar`
+- Weave Scope and Flux: `eksctl create cluster --addons weave-scope,weave-flux`
+
+
+It should be possible to combine any or all of these addons.
+
+It would also be possibe to add any of the addons after cluster was created with `eksctl create addons`.
+
+### Manage EKS the GitOps way (0.3.0)
+
+Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
+
+For example, `eksctl apply --cluster-config prod-cluster.yaml` will manage cluster state declaratively.
+
+And `eksctld`, will be a controller inside of one cluster that can manage multiple other clusters based Kubernets Cluster API definitions (CRDs).
