@@ -1,0 +1,9 @@
+title: eksctl
+
+remote_theme: errordeveloper/good-clean-read
+
+#url: https://weaveworks.github.io
+#baseurl: /eksctl/
+
+gems:
+  - jekyll-readme-index

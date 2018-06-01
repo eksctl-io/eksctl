@@ -1,4 +1,4 @@
-# `eksctl` - CLI tool to create Amazon EKS clusters
+# `eksctl` - CLI tool for Amazon EKS
 
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
 
