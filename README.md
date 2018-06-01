@@ -1,5 +1,7 @@
 # `eksctl` - CLI tool for Amazon EKS
 
+![Weaveworks](logo/weaveworks.svg)
+
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
 
 Amazon EKS is the new managed Kubernetes service for EC2.<br>
