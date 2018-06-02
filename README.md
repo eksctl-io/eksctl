@@ -1,4 +1,4 @@
-# `eksctl` - CLI tool for Amazon EKS
+# `eksctl` - a CLI for Amazon EKS
 
 ![Weaveworks](logo/weaveworks.svg)
 
