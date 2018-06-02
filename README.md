@@ -8,12 +8,6 @@
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and based on Amazon's official CloudFormation templates.<br>
 You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
-It's inspired by `kubectl`. It provides an easy way to create and manage clusters, and aims to implement a [Cluster API](https://github.com/kubernetes-sigs/cluster-api) controller for EKS also (`eksctld`).
-
-It is not intended to be a like-for-like alternative to well-established community tools (`kops`, `kubicorn`, `kubeadm`).
-However, the intention is for it to work well with most popular tools, and collaborate very closely, so that Kubernetes makes the
-cloud-native world even more amazing to live in!
-
 > **Download Today**
 >
 > Linux, macOS and Windows binaries for 0.1.0-alpha1 release are [available for download](https://github.com/weaveworks/eksctl/releases/tag/0.1.0-alpha1).
