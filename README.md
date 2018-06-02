@@ -9,23 +9,6 @@
 
 You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
-> **Download Today**
->
-> Linux, macOS and Windows binaries for 0.1.0-alpha1 release are [available for download](https://github.com/weaveworks/eksctl/releases/tag/0.1.0-alpha1).
->
-> **Roadmap**
->
-> Stable 0.1.0 release will made available based on user-feedback.
-> Release 0.2.0 will add support for addons, and 0.3.0 is planned to support Cluster API.
->
-> **Contributions**
->
-> Code contributions are very welcome, however until 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
-> 
-> **Get in touch**
->
-> [Create and issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
-
 ## Usage
 
 To download the latest release, run:
@@ -130,3 +113,9 @@ Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps model, and ca
 For example, `eksctl apply --cluster-config prod-cluster.yaml` will manage cluster state declaratively.
 
 And `eksctld`, will be a controller inside of one cluster that can manage multiple other clusters based Kubernets Cluster API definitions (CRDs).
+
+## Contributions
+Code contributions are very welcome, however until 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
+ 
+## Get in touch
+[Create and issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
