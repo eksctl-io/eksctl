@@ -1,7 +1,3 @@
-before:
-  hooks:
-  - make install-bindata
-  - make update-bindata
 builds:
   - main: ./cmd/eksctl
     binary: eksctl

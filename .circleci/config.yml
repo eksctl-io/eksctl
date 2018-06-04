@@ -9,20 +9,19 @@ jobs:
      - setup_remote_docker: {docker_layer_caching: true}
      # just a simple build for now, but will use skaffold if it gets more complex
      # TODO(p3): run unit tests
-     - run: docker build .
+     - run: make eksctl_image
  build:
    docker:
-     - image: circleci/golang:1.10
-   working_directory: /go/src/github.com/weaveworks/eksctl
+     # https://circleci.com/docs/2.0/building-docker-images/#docker-version
+     - image: docker:17.11.0-ce
    steps:
      - checkout
      - setup_remote_docker: {docker_layer_caching: true}
      - run:
         name: Build and publish
-        # TODO(p3): build an image that has the script and all dependencies installed
         command: |
           if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_TAG}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
-            curl -sL https://git.io/goreleaser | bash
+            make release
           else
             echo "Not a tag release, skip publish"
           fi

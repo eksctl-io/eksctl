@@ -1,9 +1,6 @@
-FROM golang:1.10-alpine AS build
+FROM eksctl_build AS build
 
 RUN apk add --update \
-      curl \
-      git \
-      make \
       py-pip \
       python \
       python-dev \
