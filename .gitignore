@@ -6,6 +6,3 @@
 
 # Test binary, build with `go test -c`
 *.test
-
-# make build output
-cfn_templates.go
