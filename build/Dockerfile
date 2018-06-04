@@ -20,10 +20,14 @@ WORKDIR $EKSCTL_BUILD
 
 RUN dep ensure
 
+WORKDIR $EKSCTL_BUILD
+
 RUN go install ./vendor/github.com/jteeuwen/go-bindata/go-bindata
+RUN go install ./vendor/github.com/weaveworks/github-release
 RUN go install ./vendor/golang.org/x/tools/cmd/stringer
 
 WORKDIR $EKSCTL_BUILD/vendor/github.com/goreleaser/goreleaser
 RUN make build && go install
+
 
 WORKDIR $GOPATH

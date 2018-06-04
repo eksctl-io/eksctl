@@ -6,3 +6,7 @@
 
 # Test binary, build with `go test -c`
 *.test
+
+# Release config file backups
+.goreleaser.floating.yml.bak
+.goreleaser.permalink.yml.bak

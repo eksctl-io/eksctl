@@ -1,7 +1,9 @@
-COMMIT:=$(shell git describe --dirty --always)
+builtAt := $(shell date +%s)
+gitCommit := $(shell git describe --dirty --always)
+gitTag := $(shell git describe --tags --abbrev=0)
 
 build: update-bindata
-	go build -ldflags "-X main.commit=$(COMMIT)" ./cmd/eksctl
+	go build -ldflags "-X main.gitCommit=$(gitCommit) -X main.builtAt=$(builtAt)" ./cmd/eksctl
 
 update-bindata:
 	go generate ./pkg/eks
@@ -18,7 +20,18 @@ eksctl_image: eksctl_build_image
 release: eksctl_build_image
 	docker run \
 	  --env=GITHUB_TOKEN \
+	  --env=CIRCLE_TAG \
 	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
 	  --workdir=/go/src/github.com/weaveworks/eksctl \
 	    eksctl_build \
-	      goreleaser release
+	      make do_release
+
+do_release:
+	@if [ $(CIRCLE_TAG) = latest_release ] ; then \
+	  git tag -d $(gitTag) ; \
+	  github-release info --user weaveworks --repo eksctl --tag latest_release > /dev/null 2>&1 && \
+	    github-release delete --user weaveworks --repo eksctl --tag latest_release ; \
+	  goreleaser release --skip-validate --config=./.goreleaser.floating.yml ; \
+	else \
+	  goreleaser release --config=./.goreleaser.permalink.yml ; \
+        fi

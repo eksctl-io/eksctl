@@ -1,0 +1,33 @@
+release: {name_template: ""}
+
+builds:
+  - main: ./cmd/eksctl
+    binary: eksctl
+    flags:
+      - -tags
+      - release
+    ldflags:
+      # gitTag set from a generated file (see ./tag_release.sh)
+      - -s -w -X main.builtAt={{.Date}} -X main.gitCommit={{.Commit}}
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
+archive:
+  name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+  replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+  format: tar.gz
+  format_overrides:
+    - goos: windows
+      format: zip
+  files:
+  - none*
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
