@@ -9,7 +9,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "eksctl",
+	Use:   "eksctl",
+	Short: "a CLI for Amazon EKS",
 	Run: func(c *cobra.Command, _ []string) {
 		c.Help()
 	},
@@ -19,7 +20,7 @@ func init() {
 
 	addCommands()
 
-	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 3, "set log level")
+	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 3, "set log level, use 0 to silence and 4 for debugging")
 	rootCmd.PersistentFlags().BoolVarP(&logger.Color, "color", "C", true, "toggle colorized logs")
 }
 

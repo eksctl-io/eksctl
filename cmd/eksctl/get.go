@@ -12,7 +12,8 @@ import (
 
 func getCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "get",
+		Use:   "get",
+		Short: "Get resource(s)",
 		Run: func(c *cobra.Command, _ []string) {
 			c.Help()
 		},
@@ -28,6 +29,7 @@ func getClusterCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "cluster",
+		Short:   "Get custer(s)",
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, _ []string) {
 			if err := doGetCluster(cfg); err != nil {

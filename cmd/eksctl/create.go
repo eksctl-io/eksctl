@@ -17,7 +17,8 @@ import (
 
 func createCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "create",
+		Use:   "create",
+		Short: "Create resource(s)",
 		Run: func(c *cobra.Command, _ []string) {
 			c.Help()
 		},
@@ -40,11 +41,16 @@ var (
 	kubeconfigPath  string
 )
 
+func getClusterName() string {
+	return fmt.Sprintf("%s-%d", namer.RandomName(), time.Now().Unix())
+}
+
 func createClusterCmd() *cobra.Command {
 	cfg := &eks.ClusterConfig{}
 
 	cmd := &cobra.Command{
-		Use: "cluster",
+		Use:   "cluster",
+		Short: "Create a custer",
 		Run: func(_ *cobra.Command, _ []string) {
 			if err := doCreateCluster(cfg); err != nil {
 				logger.Critical(err.Error())
@@ -55,11 +61,11 @@ func createClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated, e.g. %q)", namer.RandomName()))
+	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", getClusterName()))
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 
 	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
-	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes for a fixed ASG")
+	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes (for a static ASG)")
 
 	// TODO(p2): review parameter validation, this shouldn't be needed initially
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
@@ -81,7 +87,7 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 	}
 
 	if cfg.ClusterName == "" {
-		cfg.ClusterName = fmt.Sprintf("%s-%d", namer.RandomName(), time.Now().Unix())
+		cfg.ClusterName = getClusterName()
 	}
 
 	if cfg.SSHPublicKeyPath == "" {

@@ -13,7 +13,8 @@ import (
 
 func deleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "delete",
+		Use:   "delete",
+		Short: "Delete resource(s)",
 		Run: func(c *cobra.Command, _ []string) {
 			c.Help()
 		},
@@ -28,7 +29,8 @@ func deleteClusterCmd() *cobra.Command {
 	cfg := &eks.ClusterConfig{}
 
 	cmd := &cobra.Command{
-		Use: "cluster",
+		Use:   "cluster",
+		Short: "Delete a cluster",
 		Run: func(_ *cobra.Command, _ []string) {
 			if err := doDeleteCluster(cfg); err != nil {
 				logger.Critical(err.Error())
