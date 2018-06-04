@@ -1,22 +1,16 @@
 version: 2
 jobs:
  test:
-   docker:
-     # https://circleci.com/docs/2.0/building-docker-images/#docker-version
-     - image: docker:17.11.0-ce
+   # use machine build, as otherwise we cannot use make and have to duplicate makefile
+   machine: true
    steps:
      - checkout
-     - setup_remote_docker: {docker_layer_caching: true}
-     # just a simple build for now, but will use skaffold if it gets more complex
      # TODO(p3): run unit tests
      - run: make eksctl_image
  build:
-   docker:
-     # https://circleci.com/docs/2.0/building-docker-images/#docker-version
-     - image: docker:17.11.0-ce
+   machine: true
    steps:
      - checkout
-     - setup_remote_docker: {docker_layer_caching: true}
      - run:
         name: Build and publish
         command: |

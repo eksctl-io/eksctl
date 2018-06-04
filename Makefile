@@ -17,7 +17,7 @@ eksctl_image: eksctl_build_image
 
 release: eksctl_build_image
 	docker run \
-	  --env=GIHUB_TOKEN \
+	  --env=GITHUB_TOKEN \
 	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
 	  --workdir=/go/src/github.com/weaveworks/eksctl \
 	    eksctl_build \
