@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -108,8 +109,9 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 
 		logger.Debug("created control plane – processing outputs")
 
-		c.cfg.MasterEndpoint = *cluster.Endpoint
-		c.cfg.CertificateAuthorityData = []byte(*cluster.CertificateAuthority.Data)
+		if err := c.GetCredentials(cluster); err != nil {
+			errs <- err
+		}
 
 		logger.Debug("clusterConfig = %#v", c.cfg)
 		logger.Success("created control plane %q", c.cfg.ClusterName)
@@ -117,6 +119,18 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		errs <- nil
 	}()
 
+	return nil
+}
+
+func (c *ClusterProvider) GetCredentials(cluster eks.Cluster) error {
+	c.cfg.MasterEndpoint = *cluster.Endpoint
+
+	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
+	if err != nil {
+		return errors.Wrap(err, "decoding certificate authority data")
+	}
+
+	c.cfg.CertificateAuthorityData = data
 	return nil
 }
 
