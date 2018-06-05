@@ -152,7 +152,8 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 		// also check heptio-authenticator
 		// TODO: https://github.com/weaveworks/eksctl/issues/30
 		if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
-			return err
+			logger.Critical(err.Error())
+			logger.Info("cluster should be functions despite missing client binaries that need to be installed in the PATH")
 		}
 	}
 
