@@ -18,8 +18,8 @@ curl --silent --location "https://github.com/weaveworks/eksctl/releases/download
 sudo mv /tmp/eksctl /usr/local/bin
 ```
 
-You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be suffiencent. You can use [`~/.aws/credentials` file][awsconfig]
-or [environmet variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
+You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
+or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
 
 [awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
 [awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
@@ -54,7 +54,7 @@ To create the same kind of basic cluster, but with a different name, run:
 eksctl create cluster --cluster-name cluster-1 --nodes 4
 ```
 
-To write cluster credentials to a file other then default, run:
+To write cluster credentials to a file other than default, run:
 
 ```console
 eksctl create cluster --cluster-name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.cluster-2.yaml
@@ -66,7 +66,7 @@ To prevent storing cluster credentials locally, run:
 eksctl create cluster --cluster-name cluster-3 --nodes 4 --write-kubeconfig=false
 ```
 
-To use 3-5 node ASG, run:
+To use a 3-5 node Auto Scaling Group, run:
 
 ```console
 eksctl create cluster --cluster-name cluster-4 --nodes-min 3 --nodes-max 5
@@ -98,13 +98,13 @@ eksctl apply --cluster-config advanced-cluster.yaml
 
 It should suffice to install a cluster for development with just a single command. Here are some examples:
 
-To create a cluster with default configurations (2 `m4.large` nodes), run:
+To create a cluster with default configuration (2 `m4.large` nodes), run:
 
 ```console
 eksctl create cluster
 ```
 
-Developer may chose to pre-configure popular addons, e.g.:
+The developer may choose to pre-configure popular addons, e.g.:
 
 - Weave Net: `eksctl create cluster --networking weave`
 - Helm: `eksctl create cluster --addons helm`
@@ -116,18 +116,18 @@ Developer may chose to pre-configure popular addons, e.g.:
 
 It should be possible to combine any or all of these addons.
 
-It would also be possibe to add any of the addons after cluster was created with `eksctl create addons`.
+It would also be possible to add any of the addons after cluster was created with `eksctl create addons`.
 
 ### Manage EKS the GitOps way (0.3.0)
 
-Just like `kubectl`, `eksctl` is aimed to be compliant with GitOps model, and can be used as part GitOps toolkit!
+Just like `kubectl`, `eksctl` aims to be compliant with GitOps model, and can be used as part of a GitOps toolkit!
 
 For example, `eksctl apply --cluster-config prod-cluster.yaml` will manage cluster state declaratively.
 
-And `eksctld`, will be a controller inside of one cluster that can manage multiple other clusters based Kubernets Cluster API definitions (CRDs).
+And `eksctld` will be a controller inside of one cluster that can manage multiple other clusters based on Kubernetes Cluster API definitions (CRDs).
 
 ## Contributions
-Code contributions are very welcome, however until 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
+Code contributions are very welcome, however until a 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
 
 ## Get in touch
-[Create and issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
+[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
