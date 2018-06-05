@@ -29,6 +29,7 @@ A cluster will be created with default parameters
 - 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
 - default EKS AMI
 - `us-west-2` region
+- dedicated VPC (check your quotas)
 
 To list the details about a cluster or all of the clusters, use:
 
