@@ -18,6 +18,12 @@ curl --silent --location "https://github.com/weaveworks/eksctl/releases/download
 sudo mv /tmp/eksctl /usr/local/bin
 ```
 
+You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be suffiencent. You can use [`~/.aws/credentials` file][awsconfig]
+or [environmet variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
+
+[awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
+[awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
+
 To create a basic cluster, run:
 
 ```console
@@ -30,6 +36,11 @@ A cluster will be created with default parameters
 - default EKS AMI
 - `us-west-2` region
 - dedicated VPC (check your quotas)
+
+Once you have created a cluster, you will find `kubeconfig` in your current working directory. If you have `kubectl` v1.10.x as well as `heptio-authenticator-aws` commands in your PATH, you should be
+able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions.
+
+[ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
 To list the details about a cluster or all of the clusters, use:
 
@@ -117,6 +128,6 @@ And `eksctld`, will be a controller inside of one cluster that can manage multip
 
 ## Contributions
 Code contributions are very welcome, however until 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
- 
+
 ## Get in touch
 [Create and issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
