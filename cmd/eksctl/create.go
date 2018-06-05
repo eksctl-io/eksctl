@@ -94,6 +94,10 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
 
+	if cfg.Region != DEFAULT_EKS_REGION {
+		return fmt.Errorf("only --region=%s is supported in this version")
+	}
+
 	if err := ctl.LoadSSHPublicKey(); err != nil {
 		return err
 	}
