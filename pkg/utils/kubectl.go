@@ -23,7 +23,7 @@ func CheckKubectlVersion() error {
 	logger.Debug("kubectl: %q", kubectlPath)
 
 	clientVersion, _, err := kubectl.GetVersionInfo(ktl)
-	logger.Debug("clientVersion=%#v err=%q", clientVersion, err.Error())
+	logger.Debug("clientVersion=%#v err=%q", clientVersion, err)
 
 	version, err := semver.Parse(strings.TrimLeft(clientVersion, "v"))
 	if err != nil {
