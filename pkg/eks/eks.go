@@ -19,7 +19,6 @@ func (c *ClusterProvider) CreateControlPlane() error {
 		RoleArn:        &c.cfg.clusterRoleARN,
 		Subnets:        aws.StringSlice(strings.Split(c.cfg.subnetsList, ",")),
 		SecurityGroups: aws.StringSlice([]string{c.cfg.securityGroup}),
-		// TODO(p1): find out why there are not tags
 	}
 	output, err := c.svc.eks.CreateCluster(input)
 	if err != nil {
@@ -73,7 +72,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		defer close(clusterChan)
 		for {
 			select {
-			// TODO(p1): timeout
+			// TODO: https://github.com/weaveworks/eksctl/issues/23
 			case <-ticker.C:
 				cluster, err := c.DescribeControlPlane()
 				if err != nil {
@@ -124,8 +123,7 @@ func (c *ClusterProvider) ListClusters() error {
 		return c.doListCluster(&c.cfg.ClusterName)
 	}
 
-	// TODO(p1): collect results into a data structure (or at least a nicely formatted string)
-	// TODO(p2): paging
+	// TODO: https://github.com/weaveworks/eksctl/issues/27
 	input := &eks.ListClustersInput{}
 	output, err := c.svc.eks.ListClusters(input)
 	if err != nil {
@@ -161,6 +159,6 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 }
 
 func (c *ClusterProvider) ListAllTaggedResources() error {
-	// TODO(p1): need this for showing any half-made clusters and pruning them
+	// TODO: https://github.com/weaveworks/eksctl/issues/26
 	return nil
 }

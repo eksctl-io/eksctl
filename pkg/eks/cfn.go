@@ -38,7 +38,6 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 		input.Parameters = append(input.Parameters, p)
 	}
 
-	// TODO(p1): looks like we can block on this forever, if parameters are invalid
 	logger.Debug("input = %#v", input)
 	s, err := c.svc.cfn.CreateStack(input)
 	if err != nil {
@@ -47,13 +46,12 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 	logger.Debug("stack = %#v", s)
 
 	go func() {
-		// TODO(eksctld): should probably use SNS notifications instead of polling
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 		defer close(errs)
 		for {
 			select {
-			// TODO(p1): timeout
+			// TODO: https://github.com/weaveworks/eksctl/issues/23
 			case <-ticker.C:
 				s, err := c.describeStack(&name)
 				if err != nil {
@@ -69,22 +67,7 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 					stack <- *s
 					return
 				case cloudformation.StackStatusCreateFailed:
-					fallthrough
-					// TODO: technically, any of these may occur, but we may want to ignore some of these
-					// case cloudformation.StackStatusRollbackInProgress:
-					// case cloudformation.StackStatusRollbackFailed:
-					// case cloudformation.StackStatusRollbackComplete:
-					// case cloudformation.StackStatusDeleteInProgress:
-					// case cloudformation.StackStatusDeleteFailed:
-					// case cloudformation.StackStatusDeleteComplete:
-					// case cloudformation.StackStatusUpdateInProgress:
-					// case cloudformation.StackStatusUpdateCompleteCleanupInProgress:
-					// case cloudformation.StackStatusUpdateComplete:
-					// case cloudformation.StackStatusUpdateRollbackInProgress:
-					// case cloudformation.StackStatusUpdateRollbackFailed:
-					// case cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress:
-					// case cloudformation.StackStatusUpdateRollbackComplete:
-					// case cloudformation.StackStatusReviewInProgress:
+					fallthrough // TODO: https://github.com/weaveworks/eksctl/issues/24
 				default:
 					errs <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
 					// stack <- *s // this usually results in closed channel panic, but we don't need it really
@@ -352,7 +335,6 @@ func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
 
 		nodeInstanceRoleARN := GetOutput(&s, "NodeInstanceRole")
 		if nodeInstanceRoleARN == nil {
-			// TODO(p2): confirm if this can actually block if key was wrong and find out why
 			errs <- fmt.Errorf("NodeInstanceRole is nil")
 			return
 		}

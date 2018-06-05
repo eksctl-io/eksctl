@@ -67,7 +67,7 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
 	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes (for a static ASG)")
 
-	// TODO(p2): review parameter validation, this shouldn't be needed initially
+	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "maximum nodes in ASG")
 	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "minimum nodes in ASG")
 
@@ -122,7 +122,7 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 			return err
 		}
 
-		// TODO(p2): make kubeconfig writter merge with current default kubeconfig and respect KUBECONFIG env var for writing
+		// TODO: https://github.com/weaveworks/eksctl/issues/29
 		if writeKubeconfig {
 			if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
@@ -148,13 +148,9 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 			return err
 		}
 
-		// TODO(p2): addons
-
 		// check kubectl version, and offer install instructions if missing or old
 		// also check heptio-authenticator
-		// TODO(p2): and offer install instructions if missing
-		// TODO(p2): add sub-command for these checks
-		// TODO(p3): few more extensive checks, i.e. some basic validation
+		// TODO: https://github.com/weaveworks/eksctl/issues/30
 		if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
 			return err
 		}
