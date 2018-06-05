@@ -4,8 +4,7 @@ required = [
 
 [[override]]
   name = "github.com/aws/aws-sdk-go"
-  source = "git@github.com:weaveworks/aws-sdk-go-temp"
-  revision = "b3a630f1fab8d2a944e59d6d1b82cfaec22ab64a"
+  version = "v1.14.0"
 
 [[constraint]]
   name = "github.com/ghodss/yaml"
@@ -21,7 +20,7 @@ required = [
 
 [[constraint]]
   name = "github.com/spf13/cobra"
-  version = "0.0.3"
+  branch = "master"
 
 [[constraint]]
   branch = "master"
@@ -36,7 +35,7 @@ required = [
   version = "1.9.1"
 
 [[constraint]]
-  branch = "master"
+  version = "v0.3.0"
   name = "github.com/heptio/authenticator"
 
 [[constraint]]

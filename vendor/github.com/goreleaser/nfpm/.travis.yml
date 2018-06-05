@@ -1,0 +1,25 @@
+addons:
+  apt:
+    packages:
+    - rpm
+language: go
+go: '1.10'
+services:
+  - docker
+install:
+  - make setup
+before_script:
+  - rpmbuild --version
+script:
+  - make ci
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+  # - test -n "$TRAVIS_TAG" && docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+notifications:
+  email: false
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: curl -sL http://git.io/goreleaser | bash
+    on:
+      tags: true
