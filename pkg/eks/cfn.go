@@ -13,7 +13,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-//go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.0/2018-05-09 -o cfn_templates.go assets/1.10.0/2018-05-09
+//go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.3/2018-06-05 -o cfn_templates.go assets/1.10.3/2018-06-05
 
 type Stack = cloudformation.Stack
 
