@@ -15,10 +15,12 @@ import (
 
 func (c *ClusterProvider) CreateControlPlane() error {
 	input := &eks.CreateClusterInput{
-		ClusterName:    &c.cfg.ClusterName,
-		RoleArn:        &c.cfg.clusterRoleARN,
-		Subnets:        aws.StringSlice(strings.Split(c.cfg.subnetsList, ",")),
-		SecurityGroups: aws.StringSlice([]string{c.cfg.securityGroup}),
+		Name:    &c.cfg.ClusterName,
+		RoleArn: &c.cfg.clusterRoleARN,
+		ResourcesVpcConfig: &eks.VpcConfigRequest{
+			SubnetIds:        aws.StringSlice(strings.Split(c.cfg.subnetsList, ",")),
+			SecurityGroupIds: aws.StringSlice([]string{c.cfg.securityGroup}),
+		},
 	}
 	output, err := c.svc.eks.CreateCluster(input)
 	if err != nil {
@@ -30,7 +32,7 @@ func (c *ClusterProvider) CreateControlPlane() error {
 
 func (c *ClusterProvider) DescribeControlPlane() (*eks.Cluster, error) {
 	input := &eks.DescribeClusterInput{
-		ClusterName: &c.cfg.ClusterName,
+		Name: &c.cfg.ClusterName,
 	}
 	output, err := c.svc.eks.DescribeCluster(input)
 	if err != nil {
@@ -46,7 +48,7 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 	}
 
 	input := &eks.DeleteClusterInput{
-		ClusterName: cluster.ClusterName,
+		Name: cluster.Name,
 	}
 
 	if _, err := c.svc.eks.DeleteCluster(input); err != nil {
@@ -81,7 +83,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 				}
 				logger.Debug("cluster = %#v", cluster)
 				switch *cluster.Status {
-				case eks.ClusterStatusProvisioning:
+				case eks.ClusterStatusCreating:
 					continue
 				case eks.ClusterStatusActive:
 					taskErrs <- nil
@@ -106,7 +108,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 
 		logger.Debug("created control plane – processing outputs")
 
-		c.cfg.MasterEndpoint = *cluster.MasterEndpoint
+		c.cfg.MasterEndpoint = *cluster.Endpoint
 		c.cfg.CertificateAuthorityData = []byte(*cluster.CertificateAuthority.Data)
 
 		logger.Debug("clusterConfig = %#v", c.cfg)
@@ -139,7 +141,7 @@ func (c *ClusterProvider) ListClusters() error {
 
 func (c *ClusterProvider) doListCluster(clusterName *string) error {
 	input := &eks.DescribeClusterInput{
-		ClusterName: clusterName,
+		Name: clusterName,
 	}
 	output, err := c.svc.eks.DescribeCluster(input)
 	if err != nil {
