@@ -13,7 +13,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-//go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.0/2018-05-09 -o cfn_templates.go assets/1.10.0/2018-05-09
+//go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.3/2018-06-05 -o cfn_templates.go assets/1.10.3/2018-06-05
 
 type Stack = cloudformation.Stack
 
@@ -129,12 +129,6 @@ func (c *ClusterProvider) stackNameVPC() string {
 	return "EKS-" + c.cfg.ClusterName + "-VPC"
 }
 
-func (c *ClusterProvider) stackParamsVPC() map[string]string {
-	return map[string]string{
-		"ClusterName": c.cfg.ClusterName,
-	}
-}
-
 func (c *ClusterProvider) createStackVPC(errs chan error) error {
 	name := c.stackNameVPC()
 	logger.Info("creating VPC stack %q", name)
@@ -146,7 +140,7 @@ func (c *ClusterProvider) createStackVPC(errs chan error) error {
 	stackChan := make(chan Stack)
 	taskErrs := make(chan error)
 
-	if err := c.CreateStack(name, templateBody, c.stackParamsVPC(), false, stackChan, taskErrs); err != nil {
+	if err := c.CreateStack(name, templateBody, nil, false, stackChan, taskErrs); err != nil {
 		return err
 	}
 
@@ -163,23 +157,23 @@ func (c *ClusterProvider) createStackVPC(errs chan error) error {
 
 		logger.Debug("created VPC stack %q – processing outputs", name)
 
-		securityGroup := GetOutput(&s, "SecurityGroup")
+		securityGroup := GetOutput(&s, "SecurityGroups")
 		if securityGroup == nil {
-			errs <- fmt.Errorf("SecurityGroup is nil")
+			errs <- fmt.Errorf("SecurityGroups is nil")
 			return
 		}
 		c.cfg.securityGroup = *securityGroup
 
-		subnetsList := GetOutput(&s, "SubnetsList")
+		subnetsList := GetOutput(&s, "SubnetIds")
 		if subnetsList == nil {
-			errs <- fmt.Errorf("SubnetsList is nil")
+			errs <- fmt.Errorf("SubnetIds is nil")
 			return
 		}
 		c.cfg.subnetsList = *subnetsList
 
-		clusterVPC := GetOutput(&s, "ClusterVPC")
+		clusterVPC := GetOutput(&s, "VpcId")
 		if clusterVPC == nil {
-			errs <- fmt.Errorf("ClusterVPC is nil")
+			errs <- fmt.Errorf("VpcId is nil")
 			return
 		}
 		c.cfg.clusterVPC = *clusterVPC

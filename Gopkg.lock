@@ -2,6 +2,36 @@
 
 
 [[projects]]
+  name = "github.com/alecthomas/kingpin"
+  packages = ["."]
+  revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
+  version = "v2.2.6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/alecthomas/template"
+  packages = [
+    ".",
+    "parse"
+  ]
+  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/alecthomas/units"
+  packages = ["."]
+  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/apex/log"
+  packages = [
+    ".",
+    "handlers/cli"
+  ]
+  revision = "ff0f66940b829dc66c81dad34746d4349b83eb9e"
+
+[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -16,6 +46,7 @@
     "aws/credentials/endpointcreds",
     "aws/credentials/plugincreds",
     "aws/credentials/stscreds",
+    "aws/csm",
     "aws/defaults",
     "aws/ec2metadata",
     "aws/endpoints",
@@ -34,6 +65,8 @@
     "private/model/api",
     "private/protocol",
     "private/protocol/ec2query",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
     "private/protocol/jsonrpc",
     "private/protocol/query",
@@ -195,8 +228,8 @@
     "service/workspaces",
     "service/xray"
   ]
-  revision = "b3a630f1fab8d2a944e59d6d1b82cfaec22ab64a"
-  source = "git@github.com:weaveworks/aws-sdk-go-temp"
+  revision = "60a85d13d02126d8d15ea3f21fd57ac3a2774f37"
+  version = "v1.14.0"
 
 [[projects]]
   branch = "master"
@@ -205,10 +238,28 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/blakesmith/ar"
+  packages = ["."]
+  revision = "8bd4349a67f2533b078dbc524689d15dba0f4659"
+
+[[projects]]
   name = "github.com/blang/semver"
   packages = ["."]
   revision = "2ee87856327ba09384cabd113bc6b5d174e9ec0f"
   version = "v3.5.1"
+
+[[projects]]
+  name = "github.com/caarlos0/ctrlc"
+  packages = ["."]
+  revision = "70dc48d5d792f20f684a8f1d29bbac298f4b2ef4"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/campoy/unique"
+  packages = ["."]
+  revision = "88950e537e7e644cd746a3102037b5d2b723e9f5"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -275,6 +326,18 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/google/go-github"
+  packages = ["github"]
+  revision = "2ae5df7848328c214a48cec94c7d410cf8526527"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
+
+[[projects]]
+  branch = "master"
   name = "github.com/google/gofuzz"
   packages = ["."]
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
@@ -288,6 +351,70 @@
   ]
   revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
   version = "v0.2.0"
+
+[[projects]]
+  name = "github.com/goreleaser/archive"
+  packages = [
+    ".",
+    "tar",
+    "zip"
+  ]
+  revision = "c373877947a8e6aeca89a9baf33c313c8371a7b8"
+  version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/goreleaser/goreleaser"
+  packages = [
+    "build",
+    "checksum",
+    "config",
+    "context",
+    "internal/artifact",
+    "internal/builders/golang",
+    "internal/client",
+    "internal/deprecate",
+    "internal/filenametemplate",
+    "internal/git",
+    "internal/linux",
+    "internal/nametemplate",
+    "internal/testlib",
+    "pipeline",
+    "pipeline/archive",
+    "pipeline/artifactory",
+    "pipeline/before",
+    "pipeline/brew",
+    "pipeline/build",
+    "pipeline/changelog",
+    "pipeline/checksums",
+    "pipeline/defaults",
+    "pipeline/dist",
+    "pipeline/docker",
+    "pipeline/effectiveconfig",
+    "pipeline/env",
+    "pipeline/fpm",
+    "pipeline/git",
+    "pipeline/nfpm",
+    "pipeline/project",
+    "pipeline/release",
+    "pipeline/s3",
+    "pipeline/scoop",
+    "pipeline/sign",
+    "pipeline/snapcraft",
+    "pipeline/snapshot"
+  ]
+  revision = "92abd2e2fde69fb00ee29c72a8dd67250a1b54aa"
+  version = "v0.77.0"
+
+[[projects]]
+  name = "github.com/goreleaser/nfpm"
+  packages = [
+    ".",
+    "deb",
+    "glob",
+    "rpm"
+  ]
+  revision = "a0f04ab682cdfcc312468ac01730e6c64ac65a27"
+  version = "v0.9.1"
 
 [[projects]]
   branch = "master"
@@ -379,6 +506,12 @@
   version = "v1.8.0"
 
 [[projects]]
+  name = "github.com/masterminds/semver"
+  packages = ["."]
+  revision = "c7af12943936e8c39859482e61f0574c2fd7fc75"
+  version = "v1.4.2"
+
+[[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
@@ -391,10 +524,25 @@
   version = "v0.0.3"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mattn/go-zglob"
+  packages = [
+    ".",
+    "fastwalk"
+  ]
+  revision = "9960a25705902198f55789b9b689a686682798b5"
+
+[[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
   revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
   version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  revision = "3864e76763d94a6df2f9960b16a20a33da9f9a66"
 
 [[projects]]
   branch = "master"
@@ -496,10 +644,10 @@
   version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
-  version = "v0.0.3"
+  revision = "1e58aa3361fd650121dceeedc399e7189c05674a"
 
 [[projects]]
   branch = "master"
@@ -521,7 +669,10 @@
 
 [[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = [
+    "assert",
+    "require"
+  ]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
@@ -541,6 +692,7 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "html",
     "html/atom",
     "http/httpguts",
@@ -549,6 +701,21 @@
     "idna"
   ]
   revision = "dfa909b99c79129e1100513e5cd36307665e5723"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal"
+  ]
+  revision = "1e0a3fa8ba9a5c9eb35c271780101fdaf1b205d7"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sync"
+  packages = ["errgroup"]
+  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
   branch = "master"
@@ -595,6 +762,20 @@
     "go/loader"
   ]
   revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
+  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
+  version = "v1.0.0"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -750,6 +931,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9eb5e3c8bfb6e2d6d51f99cbda0548bf9605b3277c682c0244a26278c458c571"
+  inputs-digest = "d64b0e992afc288c9b5fee4499b81b331ab9c1b49140424efe430d4f07684c9e"
   solver-name = "gps-cdcl"
   solver-version = 1

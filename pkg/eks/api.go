@@ -146,7 +146,9 @@ func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
 		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
 	}, taskErrs)
 	c.runCreateTask(map[string]func(chan error) error{
-		"createControlPlane":          func(errs chan error) error { return c.createControlPlane(errs) },
+		"createControlPlane": func(errs chan error) error { return c.createControlPlane(errs) },
+	}, taskErrs)
+	c.runCreateTask(map[string]func(chan error) error{
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
 	}, taskErrs)
 	close(taskErrs)
