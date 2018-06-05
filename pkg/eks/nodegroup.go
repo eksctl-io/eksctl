@@ -23,7 +23,6 @@ func (c *ClusterConfig) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	mapRoles[0]["groups"] = []string{
 		"system:bootstrappers",
 		"system:nodes",
-		"system:nodes",
 	}
 
 	mapRolesBytes, err := yaml.Marshal(mapRoles)
@@ -34,10 +33,10 @@ func (c *ClusterConfig) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "aws-auth",
-			Namespace: "default",
+			Namespace: "kube-system",
 		},
-		BinaryData: map[string][]byte{
-			"mapRoles": mapRolesBytes,
+		Data: map[string]string{
+			"mapRoles": string(mapRolesBytes),
 		},
 	}
 
@@ -49,7 +48,7 @@ func (c *ClusterConfig) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset
 	if err != nil {
 		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
 	}
-	if _, err := clientSet.CoreV1().ConfigMaps("default").Create(cm); err != nil {
+	if _, err := clientSet.CoreV1().ConfigMaps("kube-system").Create(cm); err != nil {
 		return errors.Wrap(err, "creating auth ConfigMap for DefaultNodeGroup")
 	}
 	return nil
@@ -100,7 +99,7 @@ func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
 		select {
 		case event, _ := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
-			if event.Type == watch.Added {
+			if event.Type != watch.Deleted {
 				node := event.Object.(*corev1.Node)
 				if isNodeReady(node) {
 					counter++
