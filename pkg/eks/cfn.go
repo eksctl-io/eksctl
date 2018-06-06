@@ -273,6 +273,9 @@ func (c *ClusterProvider) stackNameDefaultNodeGroup() string {
 
 func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 	regionalAMIs := map[string]string{
+		// TODO: https://github.com/weaveworks/eksctl/issues/49
+		// currently source of truth for these is here:
+		// https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
 		"us-west-2": "ami-73a6e20b",
 		"us-east-2": "ami-dea4d5a1",
 	}
