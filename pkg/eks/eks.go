@@ -163,7 +163,7 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
 	}
 	logger.Debug("cluster = %#v", output)
-	if *output.Cluster.Status == "ACTIVE" {
+	if *output.Cluster.Status == eks.ClusterStatusActive {
 		logger.Info("cluster = %#v", *output.Cluster)
 		stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
 		if err != nil {
