@@ -22,7 +22,14 @@ import (
 	"k8s.io/kops/upup/pkg/fi/utils"
 )
 
+const DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
+
 func (c *ClusterProvider) LoadSSHPublicKey() error {
+	// this is validate here, as it's only used explictily on creation
+	if c.cfg.SSHPublicKeyPath == "" {
+		return fmt.Errorf("%s must be set", c.cfg.getFlagOrField("SSHPublicKeyPath"))
+	}
+
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
 	sshPublicKey, err := ioutil.ReadFile(c.cfg.SSHPublicKeyPath)
 	if err != nil {

@@ -51,7 +51,7 @@ func waitNodesCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVar(&utilsKubeconfigInputPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
-	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", DEFAULT_NODE_COUNT, "minimum nodes to wait for")
+	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", eks.DEFAULT_NODE_COUNT, "minimum nodes to wait for")
 
 	return cmd
 }
@@ -79,7 +79,7 @@ func doWaitNodes(cfg *eks.ClusterConfig) error {
 }
 
 func writeKubeconfigCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &eks.ClusterConfig{Interactive: true}
 
 	cmd := &cobra.Command{
 		Use:   "write-kubeconfig",
@@ -95,7 +95,7 @@ func writeKubeconfigCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", getClusterName()))
-	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", eks.DEFAULT_REGION, "AWS region")
 
 	fs.StringVar(&utilsKubeconfigOutputPath, "kubeconfig", "", "path to write kubeconfig")
 
@@ -105,8 +105,8 @@ func writeKubeconfigCmd() *cobra.Command {
 func doWriteKubeconfigCmd(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
 
-	if cfg.ClusterName == "" {
-		return fmt.Errorf("--cluster-name must be set")
+	if err := ctl.CheckConfig(); err != nil {
+		return err
 	}
 
 	if utilsKubeconfigOutputPath == "" {

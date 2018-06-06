@@ -25,7 +25,7 @@ func getCmd() *cobra.Command {
 }
 
 func getClusterCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &eks.ClusterConfig{Interactive: true}
 
 	cmd := &cobra.Command{
 		Use:     "cluster",
@@ -42,13 +42,17 @@ func getClusterCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", "EKS cluster name")
-	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", eks.DEFAULT_REGION, "AWS region")
 
 	return cmd
 }
 
 func doGetCluster(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
+
+	if err := ctl.CheckConfig(); err != nil {
+		return err
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

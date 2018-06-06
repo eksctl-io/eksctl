@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -26,7 +25,7 @@ func deleteCmd() *cobra.Command {
 }
 
 func deleteClusterCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &eks.ClusterConfig{Interactive: true}
 
 	cmd := &cobra.Command{
 		Use:   "cluster",
@@ -42,7 +41,7 @@ func deleteClusterCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", "EKS cluster name (required)")
-	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", eks.DEFAULT_REGION, "AWS region")
 
 	return cmd
 }
@@ -50,12 +49,12 @@ func deleteClusterCmd() *cobra.Command {
 func doDeleteCluster(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
 
-	if err := ctl.CheckAuth(); err != nil {
+	if err := ctl.CheckConfig(); err != nil {
 		return err
 	}
 
-	if cfg.ClusterName == "" {
-		return fmt.Errorf("--cluster-name must be set")
+	if err := ctl.CheckAuth(); err != nil {
+		return err
 	}
 
 	logger.Info("deleting EKS cluster %q", cfg.ClusterName)

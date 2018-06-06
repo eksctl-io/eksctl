@@ -29,15 +29,6 @@ func createCmd() *cobra.Command {
 	return cmd
 }
 
-const (
-	EKS_REGION_US_WEST_2   = "us-west-2"
-	EKS_REGION_US_EAST_2   = "us-east-2"
-	DEFAULT_EKS_REGION     = EKS_REGION_US_WEST_2
-	DEFAULT_NODE_COUNT     = 2
-	DEFAULT_NODE_TYPE      = "m5.large"
-	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
-)
-
 var (
 	writeKubeconfig bool
 	kubeconfigPath  string
@@ -48,11 +39,11 @@ func getClusterName() string {
 }
 
 func createClusterCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &eks.ClusterConfig{Interactive: true}
 
 	cmd := &cobra.Command{
 		Use:   "cluster",
-		Short: "Create a custer",
+		Short: "Create a custer (all flags are optional)",
 		Run: func(_ *cobra.Command, _ []string) {
 			if err := doCreateCluster(cfg); err != nil {
 				logger.Critical(err.Error())
@@ -64,16 +55,16 @@ func createClusterCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", getClusterName()))
-	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", eks.DEFAULT_REGION, "AWS region")
 
-	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
-	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes (for a static ASG)")
+	fs.StringVarP(&cfg.NodeType, "node-type", "t", eks.DEFAULT_NODE_TYPE, "node instance type")
+	fs.IntVarP(&cfg.Nodes, "nodes", "N", eks.DEFAULT_NODE_COUNT, "total number of nodes (for a static ASG)")
+	fs.StringVarP(&cfg.NodeAMI, "node-ami", "", "", "custom node AMI")
 
-	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")
 	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "maximum nodes in ASG")
 
-	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
+	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", eks.DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	fs.StringVar(&kubeconfigPath, "kubeconfig", "kubeconfig", "path to write kubeconfig")
@@ -84,20 +75,20 @@ func createClusterCmd() *cobra.Command {
 func doCreateCluster(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if cfg.ClusterName == "" {
 		cfg.ClusterName = getClusterName()
 	}
 
-	if cfg.SSHPublicKeyPath == "" {
-		return fmt.Errorf("--ssh-public-key must be non-empty string")
+	if err := ctl.CheckConfig(); err != nil {
+		return err
 	}
 
-	if cfg.Region != EKS_REGION_US_WEST_2 && cfg.Region != EKS_REGION_US_EAST_2 {
-		return fmt.Errorf("--region=%s is not supported only %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_2)
+	if err := ctl.CheckNodeCountConfig(); err != nil {
+		return err
+	}
+
+	if err := ctl.CheckAuth(); err != nil {
+		return err
 	}
 
 	if err := ctl.LoadSSHPublicKey(); err != nil {

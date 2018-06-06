@@ -272,20 +272,6 @@ func (c *ClusterProvider) stackNameDefaultNodeGroup() string {
 }
 
 func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
-	regionalAMIs := map[string]string{
-		"us-west-2": "ami-73a6e20b",
-		"us-east-2": "ami-dea4d5a1",
-	}
-
-	if c.cfg.NodeAMI == "" {
-		c.cfg.NodeAMI = regionalAMIs[c.cfg.Region]
-	}
-
-	if c.cfg.MinNodes == 0 && c.cfg.MaxNodes == 0 {
-		c.cfg.MinNodes = c.cfg.Nodes
-		c.cfg.MaxNodes = c.cfg.Nodes
-	}
-
 	return map[string]string{
 		"ClusterName":                      c.cfg.ClusterName,
 		"NodeGroupName":                    "default",
