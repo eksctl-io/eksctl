@@ -277,7 +277,7 @@ func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 		// currently source of truth for these is here:
 		// https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
 		"us-west-2": "ami-73a6e20b",
-		"us-east-2": "ami-dea4d5a1",
+		"us-east-1": "ami-dea4d5a1",
 	}
 
 	if c.cfg.NodeAMI == "" {
