@@ -22,7 +22,7 @@ var (
 func utilsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "utils",
-		Short: "Varios utils",
+		Short: "Various utils",
 		Run: func(c *cobra.Command, _ []string) {
 			c.Help()
 		},
