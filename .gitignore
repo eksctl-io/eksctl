@@ -11,5 +11,5 @@
 .goreleaser.floating.yml.bak
 .goreleaser.permalink.yml.bak
 
-# locally build binary
+# Locally built binary
 eksctl
