@@ -30,7 +30,9 @@ func createCmd() *cobra.Command {
 }
 
 const (
-	DEFAULT_EKS_REGION     = "us-west-2"
+	EKS_REGION_US_WEST_2   = "us-west-2"
+	EKS_REGION_US_EAST_2   = "us-east-2"
+	DEFAULT_EKS_REGION     = EKS_REGION_US_WEST_2
 	DEFAULT_NODE_COUNT     = 2
 	DEFAULT_NODE_TYPE      = "m5.large"
 	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
@@ -94,8 +96,8 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
 
-	if cfg.Region != DEFAULT_EKS_REGION {
-		return fmt.Errorf("only --region=%s is supported in this version")
+	if cfg.Region != EKS_REGION_US_WEST_2 && cfg.Region != EKS_REGION_US_EAST_2 {
+		return fmt.Errorf("--region=%s is not supported only %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_2)
 	}
 
 	if err := ctl.LoadSSHPublicKey(); err != nil {

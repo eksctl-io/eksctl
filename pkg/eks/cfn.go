@@ -273,7 +273,8 @@ func (c *ClusterProvider) stackNameDefaultNodeGroup() string {
 
 func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 	regionalAMIs := map[string]string{
-		"us-west-2": "ami-993141e1",
+		"us-west-2": "ami-73a6e20b",
+		"us-east-2": "ami-dea4d5a1",
 	}
 
 	if c.cfg.NodeAMI == "" {
