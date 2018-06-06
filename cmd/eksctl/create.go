@@ -106,7 +106,7 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 
 	logger.Debug("cfg = %#v", cfg)
 
-	logger.Info("creating EKS cluster %q", cfg.ClusterName)
+	logger.Info("creating EKS cluster %q in %q region", cfg.ClusterName, cfg.Region)
 
 	{ // core action
 		taskErr := make(chan error)
@@ -162,6 +162,8 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 			logger.Info("cluster should be functions despite missing client binaries that need to be installed in the PATH")
 		}
 	}
+
+	logger.Info("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
 
 	return nil
 }

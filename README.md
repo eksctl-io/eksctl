@@ -41,6 +41,29 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
+Example output:
+```
+$ eksctl create cluster
+2018-06-06T16:40:58+01:00 [ℹ]  importing SSH public key "~/.ssh/id_rsa.pub" as "EKS-extravagant-sculpture-1528299658"
+2018-06-06T16:40:58+01:00 [ℹ]  creating EKS cluster "extravagant-sculpture-1528299658" in "us-west-2" region
+2018-06-06T16:40:58+01:00 [ℹ]  creating VPC stack "EKS-extravagant-sculpture-1528299658-VPC"
+2018-06-06T16:40:58+01:00 [ℹ]  creating ServiceRole stack "EKS-extravagant-sculpture-1528299658-ServiceRole"
+2018-06-06T16:41:19+01:00 [✔]  created ServiceRole stack "EKS-extravagant-sculpture-1528299658-ServiceRole"
+2018-06-06T16:42:19+01:00 [✔]  created VPC stack "EKS-extravagant-sculpture-1528299658-VPC"
+2018-06-06T16:42:19+01:00 [ℹ]  creating control plane "extravagant-sculpture-1528299658"
+2018-06-06T16:50:41+01:00 [✔]  created control plane "extravagant-sculpture-1528299658"
+2018-06-06T16:50:41+01:00 [ℹ]  creating DefaultNodeGroup stack "EKS-extravagant-sculpture-1528299658-DefaultNodeGroup"
+2018-06-06T16:54:22+01:00 [✔]  created DefaultNodeGroup stack "EKS-extravagant-sculpture-1528299658-DefaultNodeGroup"
+2018-06-06T16:54:22+01:00 [✔]  all EKS cluster "extravagant-sculpture-1528299658" resources has been created
+2018-06-06T16:54:22+01:00 [ℹ]  wrote "kubeconfig2"
+2018-06-06T16:54:23+01:00 [ℹ]  the cluster has 0 nodes
+2018-06-06T16:54:23+01:00 [ℹ]  waiting for at least 2 nodes to become ready
+2018-06-06T16:54:49+01:00 [ℹ]  the cluster has 2 nodes
+2018-06-06T16:54:49+01:00 [ℹ]  node "ip-192-168-185-142.ec2.internal" is ready
+2018-06-06T16:54:49+01:00 [ℹ]  node "ip-192-168-221-172.ec2.internal" is ready
+2018-06-06T16:54:49+01:00 [ℹ]  EKS cluster "extravagant-sculpture-1528299658" is ready in "us-west-2" region
+```
+
 To list the details about a cluster or all of the clusters, use:
 
 ```
