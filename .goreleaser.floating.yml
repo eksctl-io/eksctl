@@ -6,6 +6,8 @@ builds:
     flags:
       - -tags
       - release
+    env:
+      - CGO_ENABLED=0
     ldflags:
       # gitTag set from a generated file (see ./tag_release.sh)
       - -s -w -X main.builtAt={{.Date}} -X main.gitCommit={{.Commit}}
