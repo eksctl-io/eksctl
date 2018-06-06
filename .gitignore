@@ -13,3 +13,6 @@
 
 # Locally built binary
 eksctl
+
+# Bad deps
+vendor/k8s.io/kops/docs
