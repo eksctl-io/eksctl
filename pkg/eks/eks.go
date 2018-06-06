@@ -145,6 +145,7 @@ func (c *ClusterProvider) ListClusters() error {
 	if err != nil {
 		return errors.Wrap(err, "listing control planes")
 	}
+	logger.Debug("clusters = %#v", output)
 	for _, clusterName := range output.Clusters {
 		if err := c.doListCluster(clusterName); err != nil {
 			return err
@@ -161,7 +162,8 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
 	}
-	if *output.Cluster.Status == "Ready" {
+	logger.Debug("cluster = %#v", output)
+	if *output.Cluster.Status == "ACTIVE" {
 		logger.Info("cluster = %#v", *output.Cluster)
 		stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
 		if err != nil {
