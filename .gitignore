@@ -10,3 +10,6 @@
 # Release config file backups
 .goreleaser.floating.yml.bak
 .goreleaser.permalink.yml.bak
+
+# Locally built binary
+eksctl
