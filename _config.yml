@@ -1,6 +1,19 @@
 title: eksctl - a CLI for Amazon EKS
 
 remote_theme: errordeveloper/good-clean-read
+repository: weaveworks/eksctl
 
-gems:
+plugins:
   - jekyll-readme-index
+  # # required for local builds with starefossen/github-pages
+  # - jekyll-github-metadata
+  # - jekyll-mentions
+  # - jekyll-redirect-from
+  # - jekyll-remote-theme
+  # - jekyll-sitemap
+  # - jemoji
+
+exclude:
+  - vendor
+  - pkg
+  - cmd

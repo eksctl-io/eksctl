@@ -42,3 +42,19 @@ do_release:
 	else \
 	  goreleaser release --config=./.goreleaser.permalink.yml ; \
         fi
+
+JEKYLL := docker run --tty --rm \
+  --name=eksctl-jekyll \
+  --volume="$(CURDIR)":/usr/src/app \
+  --publish="4000:4000" \
+    starefossen/github-pages
+
+.PHONY: server_pages
+serve_pages:
+	@-docker rm -f eksctl-jekyll
+	@$(JEKYLL) jekyll serve -d /_site --watch --force_polling -H 0.0.0.0 -P 4000
+
+.PHONY: build_page
+build_pages:
+	@-docker rm -f eksctl-jekyll
+	@$(JEKYLL) jekyll build --verbose
