@@ -78,7 +78,7 @@ func doDeleteCluster(cfg *eks.ClusterConfig) error {
 
 	ctl.MaybeDeletePublicSSHKey()
 
-	logger.Success("all EKS cluster %q resource will be deleted (if in doubt, check CloudForamtion console)", cfg.ClusterName)
+	logger.Success("all EKS cluster %q resource will be deleted (if in doubt, check CloudFormation console)", cfg.ClusterName)
 
 	return nil
 }
