@@ -72,6 +72,9 @@ func CheckAllCommands(kubeconfigPath string) error {
 		if version.Major == 1 && version.Minor < 10 {
 			return fmt.Errorf("Kubernetes version %s found, v1.10.0 or newer is expected with EKS %s", serverVersion, suggestion)
 		}
+
+		logger.Info("all command should work, try '%s %s get nodes'", kubectlPath, strings.Join(ktl.GlobalArgs, " "))
+
 	} else {
 		logger.Debug("skipping kubectl integration ckecks, as writing kubeconfig file is disabled")
 	}

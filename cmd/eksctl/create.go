@@ -3,13 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
-	"github.com/kubicorn/kubicorn/pkg/namer"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -36,16 +34,15 @@ const (
 	DEFAULT_NODE_COUNT     = 2
 	DEFAULT_NODE_TYPE      = "m5.large"
 	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
+
+	DEFAULT_KUBECONFIG_PATH = "kubeconfig"
 )
 
 var (
-	writeKubeconfig bool
-	kubeconfigPath  string
+	writeKubeconfig    bool
+	kubeconfigPath     string
+	autoKubeconfigPath bool
 )
-
-func getClusterName() string {
-	return fmt.Sprintf("%s-%d", namer.RandomName(), time.Now().Unix())
-}
 
 func createClusterCmd() *cobra.Command {
 	cfg := &eks.ClusterConfig{}
@@ -63,7 +60,9 @@ func createClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", getClusterName()))
+	exampleClusterName := utils.ClusterName()
+
+	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 
 	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
@@ -76,7 +75,8 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
-	fs.StringVar(&kubeconfigPath, "kubeconfig", "kubeconfig", "path to write kubeconfig")
+	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", true, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", utils.ConfigPath(exampleClusterName)))
+	fs.StringVar(&kubeconfigPath, "kubeconfig", DEFAULT_KUBECONFIG_PATH, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 
 	return cmd
 }
@@ -89,7 +89,14 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 	}
 
 	if cfg.ClusterName == "" {
-		cfg.ClusterName = getClusterName()
+		cfg.ClusterName = utils.ClusterName()
+	}
+
+	if autoKubeconfigPath {
+		if kubeconfigPath != DEFAULT_KUBECONFIG_PATH {
+			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
+		}
+		kubeconfigPath = utils.ConfigPath(cfg.ClusterName)
 	}
 
 	if cfg.SSHPublicKeyPath == "" {
