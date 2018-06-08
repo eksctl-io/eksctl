@@ -12,6 +12,7 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 var (
@@ -94,7 +95,7 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", getClusterName()))
+	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", utils.ClusterName()))
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 
 	fs.StringVar(&utilsKubeconfigOutputPath, "kubeconfig", "", "path to write kubeconfig")
@@ -110,7 +111,7 @@ func doWriteKubeconfigCmd(cfg *eks.ClusterConfig) error {
 	}
 
 	if utilsKubeconfigOutputPath == "" {
-		return fmt.Errorf("--kubeconfig must be set")
+		utilsKubeconfigOutputPath = utils.ConfigPath(cfg.ClusterName)
 	}
 
 	if err := ctl.CheckAuth(); err != nil {

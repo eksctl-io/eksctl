@@ -88,16 +88,28 @@ To prevent storing cluster credentials locally, run:
 eksctl create cluster --cluster-name cluster-3 --nodes 4 --write-kubeconfig=false
 ```
 
+To let `eksclt` manage cluster credentials under `~/.kube/eksctl/clusters` directory, run:
+
+```
+eksctl create cluster --cluster-name cluster-3 --nodes 4 --auto-kubeconfig
+```
+
+To obtain cluster credentials at any point in time, run:
+
+```
+eksctl utils write-kubeconfig --cluster-name <name> [--kubeconfig <path>]
+```
+
 To use a 3-5 node Auto Scaling Group, run:
 
 ```
-eksctl create cluster --cluster-name cluster-4 --nodes-min 3 --nodes-max 5
+eksctl create cluster --cluster-name cluster-5 --nodes-min 3 --nodes-max 5
 ```
 
 To use 30 `c4.xlarge` nodes, run:
 
 ```
-eksctl create cluster --cluster-name cluster-5 --nodes 30 --node-type c4.xlarge
+eksctl create cluster --cluster-name cluster-6 --nodes 30 --node-type c4.xlarge
 ```
 
 To delete a cluster, run:
