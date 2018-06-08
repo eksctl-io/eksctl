@@ -6,6 +6,8 @@
 
 You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
+![Gophers: E, K, S, C, T, & L](logo/eksctl.png)
+
 ## Usage
 
 To download the latest release, run:
@@ -153,3 +155,7 @@ Code contributions are very welcome, however until a 0.1.0 release testing and b
 ## Get in touch
 
 [Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
+
+> ***Logo Credits***
+>
+> *Original Gophers by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique Gopher identities produced with [Gopherize.me](https://gopherize.me/).*

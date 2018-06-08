@@ -1,9 +1,3 @@
-# Binaries for programs and plugins
-*.exe
-*.dll
-*.so
-*.dylib
-
 # Test binary, build with `go test -c`
 *.test
 
@@ -16,3 +10,6 @@ eksctl
 
 # Bad deps
 vendor/k8s.io/kops/docs
+
+# Jekyll
+_site
