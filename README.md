@@ -158,4 +158,4 @@ Code contributions are very welcome, however until a 0.1.0 release testing and b
 
 > ***Logo Credits***
 >
-> *Original Gophers by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique Gopher identities produced with [Gopherize.me](https://gopherize.me/).*
+> *Original Gophers by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique Gopher identities (E, K, S, C, T & L) were produced with [Gopherize.me](https://gopherize.me/).*
