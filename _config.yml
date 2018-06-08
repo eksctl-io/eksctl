@@ -38,14 +38,16 @@ num_posts_visible_initially: 5
 date_format: "%b %-d, %Y"
 
 plugins:
+  - jekyll-feed
   - jekyll-readme-index
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jemoji
   # # required for local builds with starefossen/github-pages
   # - jekyll-github-metadata
   # - jekyll-mentions
   # - jekyll-redirect-from
   # - jekyll-remote-theme
-  # - jekyll-sitemap
-  # - jemoji
 
 exclude:
   - CNAME
