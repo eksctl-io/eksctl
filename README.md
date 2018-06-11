@@ -88,7 +88,7 @@ To prevent storing cluster credentials locally, run:
 eksctl create cluster --cluster-name cluster-3 --nodes 4 --write-kubeconfig=false
 ```
 
-To let `eksclt` manage cluster credentials under `~/.kube/eksctl/clusters` directory, run:
+To let `eksctl` manage cluster credentials under `~/.kube/eksctl/clusters` directory, run:
 
 ```
 eksctl create cluster --cluster-name cluster-3 --nodes 4 --auto-kubeconfig
