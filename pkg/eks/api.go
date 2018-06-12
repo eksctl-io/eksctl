@@ -4,9 +4,12 @@ import (
 	"os"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
+
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -34,6 +37,7 @@ type providerServices struct {
 // simple config, to be replaced with Cluster API
 type ClusterConfig struct {
 	Region      string
+	Profile     string
 	ClusterName string
 	NodeAMI     string
 	NodeType    string
@@ -57,14 +61,11 @@ type ClusterConfig struct {
 }
 
 func New(clusterConfig *ClusterConfig) *ClusterProvider {
-	// we might want to use bits from kops, although right now it seems like too many thing we
-	// don't want yet
-	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig()
-	config = config.WithRegion(clusterConfig.Region)
-	config = config.WithCredentialsChainVerboseErrors(true)
 
-	s := session.Must(session.NewSession(config))
+	// Create a new session and save credentials for possible
+	// later re-use if overriding sessions due to custom URL
+	s := newSession(clusterConfig, "", nil)
+	creds := s.Config.Credentials
 
 	cfn := &ClusterProvider{
 		cfg: clusterConfig,
@@ -78,19 +79,23 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
+		s := newSession(clusterConfig, endpoint, creds)
 		cfn.svc.cfn = cloudformation.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		logger.Debug("Setting EKS endpoint to %s", endpoint)
+		s := newSession(clusterConfig, endpoint, creds)
 		cfn.svc.eks = eks.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		logger.Debug("Setting EC2 endpoint to %s", endpoint)
+		s := newSession(clusterConfig, endpoint, creds)
 		cfn.svc.ec2 = ec2.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
-		s := session.Must(session.NewSession(config.WithEndpoint(endpoint)))
+		logger.Debug("Setting STS endpoint to %s", endpoint)
+		s := newSession(clusterConfig, endpoint, creds)
 		cfn.svc.sts = sts.New(s)
 	}
 
@@ -152,4 +157,31 @@ func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
 	}, taskErrs)
 	close(taskErrs)
+}
+
+func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *credentials.Credentials) *session.Session {
+	// we might want to use bits from kops, although right now it seems like too many thing we
+	// don't want yet
+	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
+	config := aws.NewConfig()
+	config = config.WithRegion(clusterConfig.Region)
+	config = config.WithCredentialsChainVerboseErrors(true)
+
+	// Create the options for the session
+	opts := session.Options{
+		Config:                  *config,
+		SharedConfigState:       session.SharedConfigEnable,
+		Profile:                 clusterConfig.Profile,
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+	}
+
+	if len(endpoint) > 0 {
+		opts.Config.Endpoint = &endpoint
+	}
+
+	if credentials != nil {
+		opts.Config.Credentials = credentials
+	}
+
+	return session.Must(session.NewSessionWithOptions(opts))
 }
