@@ -43,6 +43,7 @@ func getClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", "EKS cluster name")
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS profile to use. If provided, this overrides the AWS_PROFILE environment variable")
 
 	return cmd
 }
