@@ -6,6 +6,11 @@ gitTag := $(shell git describe --tags --abbrev=0 --always)
 build:
 	go build -ldflags "-X main.gitCommit=$(gitCommit) -X main.builtAt=$(builtAt)" ./cmd/eksctl
 
+.PHONY: test
+test:
+	go test $(shell go list ./... | grep -v "^github.com/weaveworks/eksctl/vendor" | sort -u)
+
+
 .PHONY: update-bindata
 update-bindata:
 	go generate ./pkg/eks
