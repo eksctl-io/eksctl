@@ -8,6 +8,11 @@ EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 build:
 	go build -ldflags "-X main.gitCommit=$(git_commit) -X main.builtAt=$(built_at)" ./cmd/eksctl
 
+.PHONY: test
+test:
+	go test $(shell go list ./... | grep -v "^github.com/weaveworks/eksctl/vendor" | sort -u)
+
+
 .PHONY: update-bindata
 update-bindata:
 	go generate ./pkg/eks

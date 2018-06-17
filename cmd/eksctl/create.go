@@ -12,6 +12,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconf"
 )
 
 func createCmd() *cobra.Command {
@@ -43,6 +44,7 @@ var (
 	writeKubeconfig    bool
 	kubeconfigPath     string
 	autoKubeconfigPath bool
+	setContext         bool
 )
 
 func createClusterCmd() *cobra.Command {
@@ -80,6 +82,7 @@ func createClusterCmd() *cobra.Command {
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", utils.ConfigPath(exampleClusterName)))
 	fs.StringVar(&kubeconfigPath, "kubeconfig", DEFAULT_KUBECONFIG_PATH, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
+	fs.BoolVar(&setContext, "set-context", false, "If true then current-context will be set in kubeconfig. If a context is already set then it will be overwritten.")
 
 	fs.DurationVar(&cfg.AWSOperationTimeout, "aws-api-timeout", 20*time.Minute, "number of seconds after which to timeout AWS API operations")
 
@@ -105,6 +108,9 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
 		}
 		kubeconfigPath = utils.ConfigPath(cfg.ClusterName)
+	}
+	if kubeconfigPath == DEFAULT_KUBECONFIG_PATH {
+		kubeconfigPath = kubeconf.GetRecommendedPath()
 	}
 
 	if cfg.SSHPublicKeyPath == "" {
@@ -143,11 +149,12 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 			return err
 		}
 
-		// TODO: https://github.com/weaveworks/eksctl/issues/29
 		if writeKubeconfig {
-			if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
+			config := clientConfigBase.WithExecHeptioAuthenticator()
+			if err := kubeconf.WriteToFile(kubeconfigPath, config.Client, setContext); err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}
+
 			logger.Info("wrote %q", kubeconfigPath)
 		} else {
 			kubeconfigPath = ""
