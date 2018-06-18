@@ -33,7 +33,7 @@ release: eksctl_build_image
 	  --env=CIRCLE_TAG \
 	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
 	  --workdir=/go/src/github.com/weaveworks/eksctl \
-	    eksctl_build \
+	    $(EKSCTL_BUILD_IMAGE) \
 	      make do_release
 
 .PHONY: do_release
