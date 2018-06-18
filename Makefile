@@ -1,13 +1,12 @@
-builtAt := $(shell date +%s)
-gitCommit := $(shell git describe --dirty --always)
-gitTag := $(shell git describe --tags --abbrev=0 --always)
+built_at := $(shell date +%s)
+git_commit := $(shell git describe --dirty --always)
 
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 .PHONY: build
 build:
-	go build -ldflags "-X main.gitCommit=$(gitCommit) -X main.builtAt=$(builtAt)" ./cmd/eksctl
+	go build -ldflags "-X main.gitCommit=$(git_commit) -X main.builtAt=$(built_at)" ./cmd/eksctl
 
 .PHONY: update-bindata
 update-bindata:
@@ -17,37 +16,24 @@ update-bindata:
 install-bindata:
 	go get -u github.com/jteeuwen/go-bindata/...
 
-.PHONY: eksctl_build_image
-eksctl_build_image:
+.PHONY: eksctl-build-image
+eksctl-build-image:
 	@-docker pull $(EKSCTL_BUILD_IMAGE)
 	@docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) ./build
 
 .PHONY: eksctl_image
-eksctl_image: eksctl_build_image
+eksctl_image: eksctl-build-image
 	@docker build --tag=$(EKSCTL_IMAGE) --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) ./
 
 .PHONY: release
-release: eksctl_build_image
+release: eksctl-build-image
 	docker run \
 	  --env=GITHUB_TOKEN \
 	  --env=CIRCLE_TAG \
 	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
 	  --workdir=/go/src/github.com/weaveworks/eksctl \
 	    $(EKSCTL_BUILD_IMAGE) \
-	      make do_release
-
-.PHONY: do_release
-do_release:
-	@if [ $(CIRCLE_TAG) = latest_release ] ; then \
-	  git tag -d $(gitTag) ; \
-	  export RELEASE_DESCRIPTION="$(CIRCLE_TAG)" ; \
-	  github-release info --user weaveworks --repo eksctl --tag latest_release > /dev/null 2>&1 && \
-	    github-release delete --user weaveworks --repo eksctl --tag latest_release ; \
-	  goreleaser release --skip-validate --config=./.goreleaser.yml ; \
-	else \
-	  export RELEASE_DESCRIPTION="$(CIRCLE_TAG) (permalink)" ; \
-	  goreleaser release --config=./.goreleaser.yml ; \
-        fi
+	      make ./do-release.sh
 
 JEKYLL := docker run --tty --rm \
   --name=eksctl-jekyll \
@@ -55,12 +41,12 @@ JEKYLL := docker run --tty --rm \
   --publish="4000:4000" \
     starefossen/github-pages
 
-.PHONY: server_pages
-serve_pages:
+.PHONY: server-pages
+serve-pages:
 	@-docker rm -f eksctl-jekyll
 	@$(JEKYLL) jekyll serve -d /_site --watch --force_polling -H 0.0.0.0 -P 4000
 
-.PHONY: build_page
-build_pages:
+.PHONY: build-page
+build-pages:
 	@-docker rm -f eksctl-jekyll
 	@$(JEKYLL) jekyll build --verbose

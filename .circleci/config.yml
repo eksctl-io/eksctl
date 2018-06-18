@@ -1,46 +1,38 @@
 version: 2
 jobs:
-  runBuildJob:
+  make-eksctl-image:
     # use machine build, as otherwise we cannot use make and have to duplicate makefile
     machine: true
     steps:
       - checkout
       # TODO(p3): run unit tests
-      - run: make eksctl_image
-  makeReleaseJobSemverTag:
+      - run: make eksctl-image
+  make-release:
     machine: true
-    steps: [checkout, .circleci/makeReleaseJob.sh]
-  makeReleaseJobFloatingTag:
-    machine: true
-    steps: [checkout, .circleci/makeReleaseJob.sh]
+    steps:
+      - checkout
+      - run: make release
 
 workflows:
   version: 2
   any-commit:
     jobs:
-      - runBuildJob:
+      - make-eksctl-image:
           filters:
             tags:
               ignore: /.*/
   release:
     jobs:
-      - runBuildJob:
+      - make-eksctl-image:
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /.*/
-      - makeReleaseJobSemverTag:
-          requires: [runBuildJob]
+      - make-release:
+          requires: [make-eksctl-image]
           filters:
             branches:
               ignore: /.*/
             tags:
-              ignore: /^latest_release$/
-      - makeReleaseJobFloatingTag:
-          requires: [runBuildJob, makeReleaseJobSemverTag]
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^latest_release$/
+              only: /.*/
