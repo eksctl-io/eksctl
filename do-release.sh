@@ -2,7 +2,7 @@
 
 if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ] ; then
   export RELEASE_DESCRIPTION="${CIRCLE_TAG} (permalink)"
-  goreleaser release --skip-validate --config=./.goreleaser.yml
+  goreleaser release --config=./.goreleaser.yml
 
   git tag -d "${CIRCLE_TAG}"
   git tag latest_release
@@ -12,7 +12,7 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
   fi
 
   export RELEASE_DESCRIPTION="${CIRCLE_TAG}"
-  goreleaser release --config=./.goreleaser.yml
+  goreleaser release --skip-validate --rm-dist --config=./.goreleaser.yml
 else
   echo "Not a tag release, skip publish"
 fi
