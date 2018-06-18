@@ -2,6 +2,9 @@ builtAt := $(shell date +%s)
 gitCommit := $(shell git describe --dirty --always)
 gitTag := $(shell git describe --tags --abbrev=0 --always)
 
+EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
+EKSCTL_IMAGE ?= weaveworks/eksctl:latest
+
 .PHONY: build
 build:
 	go build -ldflags "-X main.gitCommit=$(gitCommit) -X main.builtAt=$(builtAt)" ./cmd/eksctl
@@ -16,11 +19,12 @@ install-bindata:
 
 .PHONY: eksctl_build_image
 eksctl_build_image:
-	docker build --tag=eksctl_build ./build
+	@-docker pull $(EKSCTL_BUILD_IMAGE)
+	@docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) ./build
 
 .PHONY: eksctl_image
 eksctl_image: eksctl_build_image
-	docker build --tag=eksctl ./
+	@docker build --tag=$(EKSCTL_IMAGE) --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) ./
 
 .PHONY: release
 release: eksctl_build_image

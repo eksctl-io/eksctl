@@ -67,7 +67,7 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 	s := newSession(clusterConfig, "", nil)
 	creds := s.Config.Credentials
 
-	cfn := &ClusterProvider{
+	c := &ClusterProvider{
 		cfg: clusterConfig,
 		svc: &providerServices{
 			cfn: cloudformation.New(s),
@@ -81,25 +81,25 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, creds)
-		cfn.svc.cfn = cloudformation.New(s)
+		c.svc.cfn = cloudformation.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, creds)
-		cfn.svc.eks = eks.New(s)
+		c.svc.eks = eks.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, creds)
-		cfn.svc.ec2 = ec2.New(s)
+		c.svc.ec2 = ec2.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, creds)
-		cfn.svc.sts = sts.New(s)
+		c.svc.sts = sts.New(s)
 	}
 
-	return cfn
+	return c
 }
 
 func (c *ClusterProvider) CheckAuth() error {
