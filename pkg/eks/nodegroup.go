@@ -99,14 +99,15 @@ func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
 		select {
 		case event, _ := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
-			if event.Type != watch.Deleted {
-				node := event.Object.(*corev1.Node)
-				if isNodeReady(node) {
-					counter++
-					logger.Debug("node %q is ready", node.ObjectMeta.Name)
-				} else {
-					logger.Debug("node %q seen, but not ready yet", node.ObjectMeta.Name)
-					logger.Debug("node = %#v", *node)
+			if event.Object != nil && event.Type != watch.Deleted {
+				if node, ok := event.Object.(*corev1.Node); ok {
+					if isNodeReady(node) {
+						counter++
+						logger.Debug("node %q is ready", node.ObjectMeta.Name)
+					} else {
+						logger.Debug("node %q seen, but not ready yet", node.ObjectMeta.Name)
+						logger.Debug("node = %#v", *node)
+					}
 				}
 			}
 		case <-timer:
