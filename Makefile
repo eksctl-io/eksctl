@@ -30,6 +30,7 @@ release: eksctl-build-image
 	docker run \
 	  --env=GITHUB_TOKEN \
 	  --env=CIRCLE_TAG \
+	  --env=CIRCLE_PROJECT_USERNAME \
 	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
 	  --workdir=/go/src/github.com/weaveworks/eksctl \
 	    $(EKSCTL_BUILD_IMAGE) \
