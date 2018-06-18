@@ -13,12 +13,6 @@ v="${1}"
 
 export RELEASE_GIT_TAG="${v}"
 
-sed -i.bak "s|^\(release: {name_template: \"\)\(.*\)\(\"}\)$|\1{{\ \.ProjectName\ }}\ ${RELEASE_GIT_TAG}\3|" ./.goreleaser.floating.yml
-sed -i.bak "s|^\(release: {name_template: \"\)\(.*\)\(\"}\)$|\1{{\ \.ProjectName\ }}\ ${RELEASE_GIT_TAG} (permalink)\3|" ./.goreleaser.permalink.yml
-
-git add ./.goreleaser.floating.yml
-git add ./.goreleaser.permalink.yml
-
 go generate ./cmd/eksctl
 
 git add ./cmd/eksctl/version_release.go

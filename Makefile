@@ -40,11 +40,13 @@ release: eksctl_build_image
 do_release:
 	@if [ $(CIRCLE_TAG) = latest_release ] ; then \
 	  git tag -d $(gitTag) ; \
+	  export RELEASE_DESCRIPTION="$(CIRCLE_TAG)"
 	  github-release info --user weaveworks --repo eksctl --tag latest_release > /dev/null 2>&1 && \
 	    github-release delete --user weaveworks --repo eksctl --tag latest_release ; \
-	  goreleaser release --skip-validate --config=./.goreleaser.floating.yml ; \
+	  goreleaser release --skip-validate --config=./.goreleaser.yml ; \
 	else \
-	  goreleaser release --config=./.goreleaser.permalink.yml ; \
+	  export RELEASE_DESCRIPTION="$(CIRCLE_TAG) (permalink)"
+	  goreleaser release --config=./.goreleaser.yml ; \
         fi
 
 JEKYLL := docker run --tty --rm \
