@@ -33,7 +33,7 @@ release: eksctl-build-image
 	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
 	  --workdir=/go/src/github.com/weaveworks/eksctl \
 	    $(EKSCTL_BUILD_IMAGE) \
-	      make ./do-release.sh
+	      ./do-release.sh
 
 JEKYLL := docker run --tty --rm \
   --name=eksctl-jekyll \
