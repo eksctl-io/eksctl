@@ -21,8 +21,8 @@ eksctl-build-image:
 	@-docker pull $(EKSCTL_BUILD_IMAGE)
 	@docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) ./build
 
-.PHONY: eksctl_image
-eksctl_image: eksctl-build-image
+.PHONY: eksctl-image
+eksctl-image: eksctl-build-image
 	@docker build --tag=$(EKSCTL_IMAGE) --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) ./
 
 .PHONY: release
