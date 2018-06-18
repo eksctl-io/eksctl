@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_TAG}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
+if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ] ; then
   export RELEASE_DESCRIPTION="${CIRCLE_TAG}"
   goreleaser release --skip-validate --config=./.goreleaser.yml
 
