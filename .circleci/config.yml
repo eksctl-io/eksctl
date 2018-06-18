@@ -1,31 +1,52 @@
 version: 2
 jobs:
- test:
-   # use machine build, as otherwise we cannot use make and have to duplicate makefile
-   machine: true
-   steps:
-     - checkout
-     # TODO(p3): run unit tests
-     - run: make eksctl_image
- build:
-   machine: true
-   steps:
-     - checkout
-     - run:
-        name: Build and publish
-        command: |
-          if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_TAG}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
-            make release
-          else
-            echo "Not a tag release, skip publish"
-          fi
+  runBuildJob:
+    # use machine build, as otherwise we cannot use make and have to duplicate makefile
+    machine: true
+    steps:
+      - checkout
+      # TODO(p3): run unit tests
+      - run: make eksctl_image
+  makeReleaseJob:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Rebuild and publish only (on master branch)
+          command: |
+            if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_TAG}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
+              make release
+            else
+              echo "Not a tag release, skip publish"
+            fi
 
 workflows:
   version: 2
-  test-and-build:
+  any-commit:
     jobs:
-      - test
-      - build:
+      - runBuildJob:
           filters:
             tags:
+              ignore: /.*/
+  release:
+    jobs:
+      - runBuildJob:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
               only: /.*/
+      - makeReleaseJob:
+          requires: [runBuildJob]
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              ignore: /^latest_release$/
+      - makeReleaseJob:
+          requires: [runBuildJob]
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^latest_release$/
