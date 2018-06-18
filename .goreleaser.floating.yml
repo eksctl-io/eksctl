@@ -1,4 +1,4 @@
-release: {name_template: "{{ .ProjectName }} 0.1.0-alpha.8"}
+release: {name_template: "{{ .ProjectName }} 0.1.0-alpha.9"}
 
 builds:
   - main: ./cmd/eksctl
