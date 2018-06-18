@@ -1,4 +1,5 @@
-FROM eksctl_build AS build
+ARG EKSCTL_BUILD_IMAGE
+FROM $EKSCTL_BUILD_IMAGE AS build
 
 RUN apk add --update \
       py-pip \
