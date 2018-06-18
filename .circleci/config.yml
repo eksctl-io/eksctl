@@ -7,18 +7,12 @@ jobs:
       - checkout
       # TODO(p3): run unit tests
       - run: make eksctl_image
-  makeReleaseJob:
+  makeReleaseJobSemverTag:
     machine: true
-    steps:
-      - checkout
-      - run:
-          name: Rebuild and publish only (on master branch)
-          command: |
-            if [[ -z "${CIRCLE_PULL_REQUEST}" ]] && [[ "${CIRCLE_TAG}" ]] && [[ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ]] ; then
-              make release
-            else
-              echo "Not a tag release, skip publish"
-            fi
+    steps: [checkout, .circleci/makeReleaseJob.sh]
+  makeReleaseJobFloatingTag:
+    machine: true
+    steps: [checkout, .circleci/makeReleaseJob.sh
 
 workflows:
   version: 2
@@ -36,15 +30,15 @@ workflows:
               ignore: /.*/
             tags:
               only: /.*/
-      - makeReleaseJob:
+      - makeReleaseJobSemverTag:
           requires: [runBuildJob]
           filters:
             branches:
               ignore: /.*/
             tags:
               ignore: /^latest_release$/
-      - makeReleaseJob:
-          requires: [runBuildJob]
+      - makeReleaseJobFloatingTag:
+          requires: [runBuildJob, makeReleaseJobSemverTag]
           filters:
             branches:
               ignore: /.*/
