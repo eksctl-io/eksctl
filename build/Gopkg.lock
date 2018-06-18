@@ -84,6 +84,12 @@
   revision = "88950e537e7e644cd746a3102037b5d2b723e9f5"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dustin/go-humanize"
+  packages = ["."]
+  revision = "02af3965c54e8cacf948b97fef38925c4120652c"
+
+[[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
   revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
@@ -237,6 +243,18 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/voxelbrain/goptions"
+  packages = ["."]
+  revision = "26cb8b04692384f4dc269de3b5fcf3e2ef78573e"
+  version = "2.5.11"
+
+[[projects]]
+  name = "github.com/weaveworks/github-release"
+  packages = ["."]
+  revision = "66f8c09f79bd327ec588549367443727a705d336"
+  version = "v0.6.2"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = [
@@ -295,6 +313,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7fd99eb63faccd5137c2589d4d034905e1725bf2fadb819e3e7a07c40fff8be8"
+  inputs-digest = "449acc6a8fbd7cc449c8fcaf415361b6994e606bea17dc4b78b6e24bfb1643cf"
   solver-name = "gps-cdcl"
   solver-version = 1
