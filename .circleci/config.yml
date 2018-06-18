@@ -12,7 +12,7 @@ jobs:
     steps: [checkout, .circleci/makeReleaseJob.sh]
   makeReleaseJobFloatingTag:
     machine: true
-    steps: [checkout, .circleci/makeReleaseJob.sh
+    steps: [checkout, .circleci/makeReleaseJob.sh]
 
 workflows:
   version: 2
