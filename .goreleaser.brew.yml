@@ -1,0 +1,22 @@
+brew:
+  github:
+    owner: weaveworks
+    name: homebrew-tap
+
+  commit_author:
+    name: weaveworksbot
+    email: team+gitbot@weave.works
+
+  folder: Formula
+
+  homepage: "https://eksctl.io/"
+
+  description: "a CLI for Amazon EKS"
+  
+  skip_upload: false
+
+  dependencies:
+    - kubernetes-cli
+
+  build_dependencies:
+    - go

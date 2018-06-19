@@ -6,6 +6,9 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
 
   sleep 90 # GitHub API resolves the time to the nearest minute, so in order to control the sorting oder we need this
 
+  cat ./.goreleaser.yml ./.goreleaser.brew.yml > .goreleaser.brew.combined.yml
+  goreleaser release --rm-dist --config=./.goreleaser.brew.combined.yml
+
   git tag --delete "${CIRCLE_TAG}"
   git tag --force latest_release
 
@@ -15,6 +18,7 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
 
   export RELEASE_DESCRIPTION="${CIRCLE_TAG}"
   goreleaser release --skip-validate --rm-dist --config=./.goreleaser.yml
+
 else
   echo "Not a tag release, skip publish"
 fi
