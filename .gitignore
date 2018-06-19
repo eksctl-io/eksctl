@@ -2,8 +2,7 @@
 *.test
 
 # Release config file backups
-.goreleaser.floating.yml.bak
-.goreleaser.permalink.yml.bak
+.goreleaser.brew.combined.yml
 
 # Locally built binary
 eksctl
