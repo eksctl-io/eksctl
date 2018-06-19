@@ -4,3 +4,7 @@ required = [
   "github.com/weaveworks/github-release",
   "golang.org/x/tools/cmd/stringer",
 ]
+
+[[constraint]]
+  name = "github.com/goreleaser/goreleaser"
+  version = "v0.77.2"

@@ -169,8 +169,8 @@
     "pipeline/snapcraft",
     "pipeline/snapshot"
   ]
-  revision = "92abd2e2fde69fb00ee29c72a8dd67250a1b54aa"
-  version = "v0.77.0"
+  revision = "411a73d410c3f87b2040636b49458e7b3abd0224"
+  version = "v0.77.2"
 
 [[projects]]
   name = "github.com/goreleaser/nfpm"
@@ -313,6 +313,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "449acc6a8fbd7cc449c8fcaf415361b6994e606bea17dc4b78b6e24bfb1643cf"
+  inputs-digest = "887dfef38a82cb06af280069792d359aa1beecf96c5f07cb7bda7c8b9a5a8ad9"
   solver-name = "gps-cdcl"
   solver-version = 1
