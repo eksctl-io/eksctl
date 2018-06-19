@@ -4,6 +4,8 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
   export RELEASE_DESCRIPTION="${CIRCLE_TAG} (permalink)"
   goreleaser release --config=./.goreleaser.yml
 
+  sleep 90 # GitHub API resolves the time to the nearest minute, so in order to control the sorting oder we need this
+
   git tag -d "${CIRCLE_TAG}"
   git tag latest_release
 
