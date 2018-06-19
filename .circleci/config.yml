@@ -28,11 +28,11 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /.*/
+              ignore: /^latest_release$/
       - make-release:
           requires: [make-eksctl-image]
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /.*/
+              ignore: /^latest_release$/
