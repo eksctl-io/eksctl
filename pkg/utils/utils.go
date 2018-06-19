@@ -72,7 +72,33 @@ func tryDeleteConfig(p, name string) {
 
 func MaybeDeleteConfig(name string) {
 	p := ConfigPath(name)
-	tryDeleteConfig(p, name)
-	// also try to delete default file in current working directory
-	tryDeleteConfig("kubeconfig", p)
+
+	autoConfExists, err := FileExists(p)
+	if err != nil {
+		logger.Debug("error checking if auto-generated kubeconfig file exists %q: %s", p, err.Error())
+		return
+	}
+	if autoConfExists {
+		if err := os.Remove(p); err != nil {
+			logger.Debug("ignoring error while removing auto-generated config file %q: %s", p, err.Error())
+		}
+		return
+	}
+
+	// Print message to manually remove from config file
+	logger.Warning("as you are not using the auto-generated kubeconfig file you will need to remove the details of cluster %s manually", name)
+}
+
+// FileExists checks to see if a file exists.
+func FileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return false, err
 }

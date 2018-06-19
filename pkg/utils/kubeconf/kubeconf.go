@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/weaveworks/eksctl/pkg/utils"
+
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -28,7 +30,7 @@ func GetRecommendedPath() string {
 // If file doesn't exist it will be created. If the file exists then
 // the configuration will be merged with the existing file.
 func WriteToFile(path string, config *api.Config, setContext bool) error {
-	exists, err := fileExists(path)
+	exists, err := utils.FileExists(path)
 	if err != nil {
 		return errors.Wrapf(err, "error trying to read config file %q", path)
 	}
@@ -76,19 +78,6 @@ func writeConfToFile(path string, config *api.Config) error {
 		return errors.Wrapf(err, "couldn't write client config file %q", path)
 	}
 	return nil
-}
-
-func fileExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-
-	return false, err
 }
 
 func readConfigurationFile(path string) (*api.Config, error) {
