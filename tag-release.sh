@@ -23,6 +23,9 @@ git commit --message "${m}"
 
 git push git@github.com:weaveworks/eksctl master
 
+git fetch --tags git@github.com:weaveworks/eksctl
+
 git tag --annotate --message "${m}" "${v}"
+git tag --delete latest_release
 
 git push --tags git@github.com:weaveworks/eksctl
