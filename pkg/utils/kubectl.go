@@ -12,13 +12,11 @@ import (
 	"github.com/weaveworks/launcher/pkg/kubectl"
 )
 
-var kubectlPath string
-
-func CheckKubectlVersion() error {
+func CheckKubectlVersion() (string, error) {
 	ktl := &kubectl.LocalClient{}
 	kubectlPath, err := ktl.LookPath()
 	if err != nil {
-		return fmt.Errorf("kubectl not found, v1.10.0 or newever is required")
+		return "", fmt.Errorf("kubectl not found, v1.10.0 or newever is required")
 	}
 	logger.Debug("kubectl: %q", kubectlPath)
 
@@ -27,12 +25,12 @@ func CheckKubectlVersion() error {
 
 	version, err := semver.Parse(strings.TrimLeft(clientVersion, "v"))
 	if err != nil {
-		return errors.Wrapf(err, "parsing kubectl version string %q", version)
+		return "", errors.Wrapf(err, "parsing kubectl version string %q", version)
 	}
 	if version.Major == 1 && version.Minor < 10 {
-		return fmt.Errorf("kubectl version %s was found at %q, minimum required version to use EKS is v1.10.0", clientVersion, kubectlPath)
+		return "", fmt.Errorf("kubectl version %s was found at %q, minimum required version to use EKS is v1.10.0", clientVersion, kubectlPath)
 	}
-	return nil
+	return kubectlPath, nil
 }
 
 func CheckHeptioAuthenticatorAWS() error {
@@ -46,7 +44,8 @@ func CheckHeptioAuthenticatorAWS() error {
 }
 
 func CheckAllCommands(kubeconfigPath string) error {
-	if err := CheckKubectlVersion(); err != nil {
+	kubectlPath, err := CheckKubectlVersion()
+	if err != nil {
 		return err
 	}
 
