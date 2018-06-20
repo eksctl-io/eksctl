@@ -17,7 +17,7 @@ type LocalClient struct {
 	GlobalArgs []string
 }
 
-// LookPath conviniently wraps exec.LookPath(Command)
+// LookPath conveniently wraps exec.LookPath(Command)
 func (k LocalClient) LookPath() (string, error) { return exec.LookPath(Command) }
 
 // IsPresent returns true if there's a kubectl command in the PATH.

@@ -47,8 +47,8 @@ required = [
 #  version = "1.10.3"
 
 [[constraint]]
+  branch = "master"
   name = "github.com/weaveworks/launcher"
-  revision = "4614c4a7368cc77dce1e1da50dd59047b7f07562"
 
 [prune]
   go-tests = true

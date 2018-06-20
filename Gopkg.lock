@@ -2,36 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/alecthomas/kingpin"
-  packages = ["."]
-  revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
-  version = "v2.2.6"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/alecthomas/template"
-  packages = [
-    ".",
-    "parse"
-  ]
-  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/alecthomas/units"
-  packages = ["."]
-  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/apex/log"
-  packages = [
-    ".",
-    "handlers/cli"
-  ]
-  revision = "ff0f66940b829dc66c81dad34746d4349b83eb9e"
-
-[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -44,7 +14,6 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
-    "aws/credentials/plugincreds",
     "aws/credentials/stscreds",
     "aws/csm",
     "aws/defaults",
@@ -53,180 +22,22 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
-    "awsmigrate/awsmigrate-renamer/rename",
-    "awstesting",
-    "awstesting/integration",
-    "awstesting/integration/smoke",
-    "awstesting/mock",
-    "awstesting/unit",
     "internal/sdkio",
     "internal/sdkrand",
     "internal/shareddefaults",
-    "private/model/api",
     "private/protocol",
     "private/protocol/ec2query",
-    "private/protocol/eventstream",
-    "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
     "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
     "private/protocol/restjson",
-    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
-    "private/signer/v2",
-    "private/util",
-    "service/acm",
-    "service/acmpca",
-    "service/alexaforbusiness",
-    "service/apigateway",
-    "service/applicationautoscaling",
-    "service/applicationdiscoveryservice",
-    "service/appstream",
-    "service/appsync",
-    "service/athena",
-    "service/autoscaling",
-    "service/autoscalingplans",
-    "service/batch",
-    "service/budgets",
-    "service/cloud9",
-    "service/clouddirectory",
     "service/cloudformation",
-    "service/cloudfront",
-    "service/cloudfront/sign",
-    "service/cloudhsm",
-    "service/cloudhsmv2",
-    "service/cloudsearch",
-    "service/cloudsearchdomain",
-    "service/cloudtrail",
-    "service/cloudwatch",
-    "service/cloudwatchevents",
-    "service/cloudwatchlogs",
-    "service/codebuild",
-    "service/codecommit",
-    "service/codedeploy",
-    "service/codepipeline",
-    "service/codestar",
-    "service/cognitoidentity",
-    "service/cognitoidentityprovider",
-    "service/cognitosync",
-    "service/comprehend",
-    "service/configservice",
-    "service/connect",
-    "service/costandusagereportservice",
-    "service/costexplorer",
-    "service/databasemigrationservice",
-    "service/datapipeline",
-    "service/dax",
-    "service/devicefarm",
-    "service/directconnect",
-    "service/directoryservice",
-    "service/dynamodb",
-    "service/dynamodb/dynamodbattribute",
-    "service/dynamodb/dynamodbiface",
-    "service/dynamodb/expression",
-    "service/dynamodbstreams",
     "service/ec2",
-    "service/ecr",
-    "service/ecs",
-    "service/efs",
     "service/eks",
-    "service/elasticache",
-    "service/elasticbeanstalk",
-    "service/elasticsearchservice",
-    "service/elastictranscoder",
-    "service/elb",
-    "service/elbv2",
-    "service/emr",
-    "service/firehose",
-    "service/fms",
-    "service/gamelift",
-    "service/glacier",
-    "service/glue",
-    "service/greengrass",
-    "service/guardduty",
-    "service/health",
-    "service/iam",
-    "service/inspector",
-    "service/iot",
-    "service/iot1clickdevicesservice",
-    "service/iot1clickprojects",
-    "service/iotanalytics",
-    "service/iotdataplane",
-    "service/iotjobsdataplane",
-    "service/kinesis",
-    "service/kinesisanalytics",
-    "service/kinesisvideo",
-    "service/kinesisvideoarchivedmedia",
-    "service/kinesisvideomedia",
-    "service/kms",
-    "service/kms/kmsiface",
-    "service/lambda",
-    "service/lexmodelbuildingservice",
-    "service/lexruntimeservice",
-    "service/lightsail",
-    "service/machinelearning",
-    "service/marketplacecommerceanalytics",
-    "service/marketplaceentitlementservice",
-    "service/marketplacemetering",
-    "service/mediaconvert",
-    "service/medialive",
-    "service/mediapackage",
-    "service/mediastore",
-    "service/mediastoredata",
-    "service/migrationhub",
-    "service/mobile",
-    "service/mobileanalytics",
-    "service/mq",
-    "service/mturk",
-    "service/opsworks",
-    "service/opsworkscm",
-    "service/organizations",
-    "service/pi",
-    "service/pinpoint",
-    "service/polly",
-    "service/pricing",
-    "service/rds",
-    "service/rds/rdsutils",
-    "service/redshift",
-    "service/rekognition",
-    "service/resourcegroups",
-    "service/resourcegroupstaggingapi",
-    "service/route53",
-    "service/route53domains",
-    "service/s3",
-    "service/s3/s3crypto",
-    "service/s3/s3iface",
-    "service/s3/s3manager",
-    "service/sagemaker",
-    "service/sagemakerruntime",
-    "service/secretsmanager",
-    "service/serverlessapplicationrepository",
-    "service/servicecatalog",
-    "service/servicediscovery",
-    "service/ses",
-    "service/sfn",
-    "service/shield",
-    "service/simpledb",
-    "service/sms",
-    "service/snowball",
-    "service/sns",
-    "service/sqs",
-    "service/sqs/sqsiface",
-    "service/ssm",
-    "service/storagegateway",
-    "service/sts",
-    "service/support",
-    "service/swf",
-    "service/transcribeservice",
-    "service/translate",
-    "service/waf",
-    "service/wafregional",
-    "service/workdocs",
-    "service/workmail",
-    "service/workspaces",
-    "service/xray"
+    "service/sts"
   ]
   revision = "60a85d13d02126d8d15ea3f21fd57ac3a2774f37"
   version = "v1.14.0"
@@ -238,34 +49,10 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/blakesmith/ar"
-  packages = ["."]
-  revision = "8bd4349a67f2533b078dbc524689d15dba0f4659"
-
-[[projects]]
   name = "github.com/blang/semver"
   packages = ["."]
   revision = "2ee87856327ba09384cabd113bc6b5d174e9ec0f"
   version = "v3.5.1"
-
-[[projects]]
-  name = "github.com/caarlos0/ctrlc"
-  packages = ["."]
-  revision = "70dc48d5d792f20f684a8f1d29bbac298f4b2ef4"
-  version = "v1.0.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/campoy/unique"
-  packages = ["."]
-  revision = "88950e537e7e644cd746a3102037b5d2b723e9f5"
-
-[[projects]]
-  name = "github.com/davecgh/go-spew"
-  packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -290,12 +77,6 @@
   packages = ["."]
   revision = "06f5f3d67269ccec1fe5fe4134ba6e982984f7f5"
   version = "v1.37.0"
-
-[[projects]]
-  name = "github.com/go-sql-driver/mysql"
-  packages = ["."]
-  revision = "a0583e0143b1624142adab07e0e97fe106d99561"
-  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -326,18 +107,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/google/go-github"
-  packages = ["github"]
-  revision = "2ae5df7848328c214a48cec94c7d410cf8526527"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/google/go-querystring"
-  packages = ["query"]
-  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
-
-[[projects]]
-  branch = "master"
   name = "github.com/google/gofuzz"
   packages = ["."]
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
@@ -351,79 +120,6 @@
   ]
   revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
   version = "v0.2.0"
-
-[[projects]]
-  name = "github.com/goreleaser/archive"
-  packages = [
-    ".",
-    "tar",
-    "zip"
-  ]
-  revision = "c373877947a8e6aeca89a9baf33c313c8371a7b8"
-  version = "v1.1.1"
-
-[[projects]]
-  name = "github.com/goreleaser/goreleaser"
-  packages = [
-    "build",
-    "checksum",
-    "config",
-    "context",
-    "internal/artifact",
-    "internal/builders/golang",
-    "internal/client",
-    "internal/deprecate",
-    "internal/filenametemplate",
-    "internal/git",
-    "internal/linux",
-    "internal/nametemplate",
-    "internal/testlib",
-    "pipeline",
-    "pipeline/archive",
-    "pipeline/artifactory",
-    "pipeline/before",
-    "pipeline/brew",
-    "pipeline/build",
-    "pipeline/changelog",
-    "pipeline/checksums",
-    "pipeline/defaults",
-    "pipeline/dist",
-    "pipeline/docker",
-    "pipeline/effectiveconfig",
-    "pipeline/env",
-    "pipeline/fpm",
-    "pipeline/git",
-    "pipeline/nfpm",
-    "pipeline/project",
-    "pipeline/release",
-    "pipeline/s3",
-    "pipeline/scoop",
-    "pipeline/sign",
-    "pipeline/snapcraft",
-    "pipeline/snapshot"
-  ]
-  revision = "92abd2e2fde69fb00ee29c72a8dd67250a1b54aa"
-  version = "v0.77.0"
-
-[[projects]]
-  name = "github.com/goreleaser/nfpm"
-  packages = [
-    ".",
-    "deb",
-    "glob",
-    "rpm"
-  ]
-  revision = "a0f04ab682cdfcc312468ac01730e6c64ac65a27"
-  version = "v0.9.1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/gucumber/gucumber"
-  packages = [
-    ".",
-    "gherkin"
-  ]
-  revision = "7d5c79e832a25825dbed83e78f8484d4ffe8ec16"
 
 [[projects]]
   branch = "master"
@@ -443,7 +139,6 @@
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
 
 [[projects]]
-  branch = "master"
   name = "github.com/heptio/authenticator"
   packages = [
     "cmd/heptio-authenticator-aws",
@@ -453,6 +148,7 @@
     "pkg/token"
   ]
   revision = "8c9b1bda7458aea47cd1917534f2222f80627c58"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
@@ -506,12 +202,6 @@
   version = "v1.8.0"
 
 [[projects]]
-  name = "github.com/masterminds/semver"
-  packages = ["."]
-  revision = "c7af12943936e8c39859482e61f0574c2fd7fc75"
-  version = "v1.4.2"
-
-[[projects]]
   name = "github.com/mattn/go-colorable"
   packages = ["."]
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
@@ -524,25 +214,10 @@
   version = "v0.0.3"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/mattn/go-zglob"
-  packages = [
-    ".",
-    "fastwalk"
-  ]
-  revision = "9960a25705902198f55789b9b689a686682798b5"
-
-[[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
   revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
   version = "v1.0.1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/mitchellh/go-homedir"
-  packages = ["."]
-  revision = "3864e76763d94a6df2f9960b16a20a33da9f9a66"
 
 [[projects]]
   branch = "master"
@@ -573,12 +248,6 @@
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
-
-[[projects]]
-  name = "github.com/pmezard/go-difflib"
-  packages = ["difflib"]
-  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
-  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
@@ -615,12 +284,6 @@
     "xfs"
   ]
   revision = "fe93d378a6b03758a2c1b65e86cf630bf78681c0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/shiena/ansicolor"
-  packages = ["."]
-  revision = "a422bbe96644373c5753384a59d678f7d261ff10"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -668,18 +331,10 @@
   version = "v1.0.2"
 
 [[projects]]
-  name = "github.com/stretchr/testify"
-  packages = [
-    "assert",
-    "require"
-  ]
-  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
-  version = "v1.2.1"
-
-[[projects]]
+  branch = "master"
   name = "github.com/weaveworks/launcher"
   packages = ["pkg/kubectl"]
-  revision = "4614c4a7368cc77dce1e1da50dd59047b7f07562"
+  revision = "da79c27d9394b0b277a35cd50c4c6f504fef6afb"
 
 [[projects]]
   branch = "master"
@@ -692,30 +347,12 @@
   name = "golang.org/x/net"
   packages = [
     "context",
-    "context/ctxhttp",
-    "html",
-    "html/atom",
     "http/httpguts",
     "http2",
     "http2/hpack",
     "idna"
   ]
   revision = "dfa909b99c79129e1100513e5cd36307665e5723"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/oauth2"
-  packages = [
-    ".",
-    "internal"
-  ]
-  revision = "1e0a3fa8ba9a5c9eb35c271780101fdaf1b205d7"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/sync"
-  packages = ["errgroup"]
-  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
   branch = "master"
@@ -752,30 +389,6 @@
   name = "golang.org/x/time"
   packages = ["rate"]
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/tools"
-  packages = [
-    "go/ast/astutil",
-    "go/buildutil",
-    "go/loader"
-  ]
-  revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
-
-[[projects]]
-  name = "google.golang.org/appengine"
-  packages = [
-    "internal",
-    "internal/base",
-    "internal/datastore",
-    "internal/log",
-    "internal/remote_api",
-    "internal/urlfetch",
-    "urlfetch"
-  ]
-  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
-  version = "v1.0.0"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -931,6 +544,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d64b0e992afc288c9b5fee4499b81b331ab9c1b49140424efe430d4f07684c9e"
+  inputs-digest = "9e6c54d783f10a30d4deb94f571e33e30cb2ebc55579db7932843651893d1483"
   solver-name = "gps-cdcl"
   solver-version = 1
