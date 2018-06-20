@@ -167,7 +167,7 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 		// TODO: https://github.com/weaveworks/eksctl/issues/30
 		if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
 			logger.Critical(err.Error())
-			logger.Info("cluster should be functions despite missing client binaries that need to be installed in the PATH")
+			logger.Info("cluster should be functional despite missing client binaries that need to be installed in the PATH")
 		}
 	}
 
