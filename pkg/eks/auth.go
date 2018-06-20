@@ -124,6 +124,12 @@ func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
 			Args:       []string{"token", "-i", c.Cluster.ClusterName, "-r", c.roleARN},
 		*/
 	}
+
+	if len(c.Cluster.Profile) > 0 {
+		profileVar := &clientcmdapi.ExecEnvVar{Name: "AWS_PROFILE", Value: c.Cluster.Profile}
+		x.Exec.Env = []clientcmdapi.ExecEnvVar{*profileVar}
+	}
+
 	return &clientConfigCopy
 }
 
