@@ -147,8 +147,8 @@
     "pkg/server",
     "pkg/token"
   ]
-  revision = "8c9b1bda7458aea47cd1917534f2222f80627c58"
-  version = "v0.3.0"
+  revision = "d9bfef19b2b89518465d4fd0bc9a75bd4a8b715e"
+  source = "github.com/heptio/aws-iam-authenticator"
 
 [[projects]]
   branch = "master"
@@ -544,6 +544,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9e6c54d783f10a30d4deb94f571e33e30cb2ebc55579db7932843651893d1483"
+  inputs-digest = "89cc0e2122796aeec35b7e0fcbd2a828819a8d950a7448d7d48e95e3028410a3"
   solver-name = "gps-cdcl"
   solver-version = 1
