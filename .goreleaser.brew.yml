@@ -17,6 +17,3 @@ brew:
 
   dependencies:
     - kubernetes-cli
-
-  build_dependencies:
-    - go
