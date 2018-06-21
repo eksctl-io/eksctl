@@ -34,9 +34,10 @@ required = [
   name = "k8s.io/kops"
   version = "1.9.1"
 
-[[constraint]]
-  version = "v0.3.0"
+[[override]]
   name = "github.com/heptio/authenticator"
+  source = "github.com/heptio/aws-iam-authenticator"
+  revision = "d9bfef19b2b89518465d4fd0bc9a75bd4a8b715e"
 
 [[constraint]]
   name = "k8s.io/client-go"

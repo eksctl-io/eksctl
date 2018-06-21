@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/heptio/authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -78,6 +79,7 @@ type ClientConfig struct {
 	Client  *clientcmdapi.Config
 	Cluster *ClusterConfig
 	roleARN string
+	sts     *sts.STS
 }
 
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
@@ -107,14 +109,15 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 			CurrentContext: contextName,
 		},
 		roleARN: c.svc.arn,
+		sts:     c.svc.sts,
 	}
 
 	return clientConfig, nil
 }
 
 func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
-
 	clientConfigCopy := *c
+
 	x := clientConfigCopy.Client.AuthInfos[c.Client.CurrentContext]
 	x.Exec = &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
@@ -141,14 +144,7 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 		return nil, errors.Wrap(err, "could not get token generator")
 	}
 
-	// could not get token: AccessDenied: User <ARN> is not authorized to perform: sts:AssumeRole on resource: <ARN>
-	/*
-		tok, err := gen.GetWithRole(c.Cluster.ClusterName, c.roleARN)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not get token")
-		}
-	*/
-	tok, err := gen.Get(c.Cluster.ClusterName)
+	tok, err := gen.GetWithSTS(c.Cluster.ClusterName, c.sts)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get token")
 	}

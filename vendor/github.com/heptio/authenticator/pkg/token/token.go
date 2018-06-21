@@ -128,6 +128,10 @@ type Generator interface {
 	Get(string) (string, error)
 	// GetWithRole creates a token by assuming the provided role, using the credentials in the default chain.
 	GetWithRole(clusterID, roleARN string) (string, error)
+	// GetWithRoleForSession creates a token by assuming the provided role, using the provided session.
+	GetWithRoleForSession(clusterID string, roleARN string, sess *session.Session) (string, error)
+	// GetWithSTS assumes returns a token valid for clusterID using the given STS client.
+	GetWithSTS(clusterID string, stsAPI *sts.STS) (string, error)
 	// FormatJSON returns the client auth formatted json for the ExecCredential auth
 	FormatJSON(string) string
 }
@@ -166,6 +170,12 @@ func (g generator) GetWithRole(clusterID string, roleARN string) (string, error)
 		return "", fmt.Errorf("could not create session: %v", err)
 	}
 
+	return g.GetWithRoleForSession(clusterID, roleARN, sess)
+}
+
+// GetWithRole assumes the given AWS IAM role for the given session and behaves
+// like GetWithRole.
+func (g generator) GetWithRoleForSession(clusterID string, roleARN string, sess *session.Session) (string, error) {
 	// use an STS client based on the direct credentials
 	stsAPI := sts.New(sess)
 
@@ -179,6 +189,11 @@ func (g generator) GetWithRole(clusterID string, roleARN string) (string, error)
 		stsAPI = sts.New(sess, &aws.Config{Credentials: creds})
 	}
 
+	return g.GetWithSTS(clusterID, stsAPI)
+}
+
+// GetWithSTS assumes returns a token valid for clusterID using the given STS client.
+func (g generator) GetWithSTS(clusterID string, stsAPI *sts.STS) (string, error) {
 	// generate an sts:GetCallerIdentity request and add our custom cluster ID header
 	request, _ := stsAPI.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
 	request.HTTPRequest.Header.Add(clusterIDHeader, clusterID)
