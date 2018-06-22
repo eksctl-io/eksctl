@@ -11,6 +11,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconf"
 )
 
 func createCmd() *cobra.Command {
@@ -42,6 +43,7 @@ var (
 	writeKubeconfig    bool
 	kubeconfigPath     string
 	autoKubeconfigPath bool
+	setContext         bool
 )
 
 func createClusterCmd() *cobra.Command {
@@ -78,6 +80,7 @@ func createClusterCmd() *cobra.Command {
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", utils.ConfigPath(exampleClusterName)))
 	fs.StringVar(&kubeconfigPath, "kubeconfig", DEFAULT_KUBECONFIG_PATH, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
+	fs.BoolVar(&setContext, "set-context", true, "If true then current-context will be set in kubeconfig. If a context is already set then it will be overwritten.")
 
 	return cmd
 }
@@ -98,6 +101,10 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
 		}
 		kubeconfigPath = utils.ConfigPath(cfg.ClusterName)
+	}
+	if kubeconfigPath == DEFAULT_KUBECONFIG_PATH {
+		kubeconfigPath = kubeconf.GetRecommendedPath()
+		logger.Debug("no kubeconfig specified so using recommended client path: %s", kubeconfigPath)
 	}
 
 	if cfg.SSHPublicKeyPath == "" {
@@ -131,17 +138,18 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 	// obtain cluster credentials, write kubeconfig
 
 	{ // post-creation action
-		clientConfigBase, err := ctl.NewClientConfig()
+		clientConfigBase, err := ctl.NewClientConfig(setContext)
 		if err != nil {
 			return err
 		}
 
-		// TODO: https://github.com/weaveworks/eksctl/issues/29
 		if writeKubeconfig {
-			if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
+			config := clientConfigBase.WithExecHeptioAuthenticator()
+			if err := kubeconf.WriteToFile(kubeconfigPath, config.Client, setContext); err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}
-			logger.Info("wrote %q", kubeconfigPath)
+
+			logger.Success("wrote %q", kubeconfigPath)
 		} else {
 			kubeconfigPath = ""
 		}

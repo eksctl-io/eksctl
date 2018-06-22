@@ -84,7 +84,7 @@ type ClientConfig struct {
 
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 // these are small, so we can copy these, and no need to deal with k/k as dependency
-func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
+func (c *ClusterProvider) NewClientConfig(setContext bool) (*ClientConfig, error) {
 	clusterName := fmt.Sprintf("%s.%s.eksctl.io", c.cfg.ClusterName, c.cfg.Region)
 	contextName := fmt.Sprintf("%s@%s", c.getUsername(), clusterName)
 
@@ -106,10 +106,13 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 			AuthInfos: map[string]*clientcmdapi.AuthInfo{
 				contextName: &clientcmdapi.AuthInfo{},
 			},
-			CurrentContext: contextName,
 		},
 		roleARN: c.svc.arn,
 		sts:     c.svc.sts,
+	}
+
+	if setContext {
+		clientConfig.Client.CurrentContext = contextName
 	}
 
 	return clientConfig, nil
@@ -153,13 +156,6 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 	x.Token = tok
 
 	return &clientConfigCopy, nil
-}
-
-func (c *ClientConfig) WriteToFile(filename string) error {
-	if err := clientcmd.WriteToFile(*c.Client, filename); err != nil {
-		return errors.Wrapf(err, "couldn't write client config file %q", filename)
-	}
-	return nil
 }
 
 func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
