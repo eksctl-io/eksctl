@@ -1,47 +1,14 @@
-package kubeconf_test
+package kubeconfig_test
 
 import (
 	"io/ioutil"
 	"os"
-	"os/user"
-	"path/filepath"
 	"testing"
 
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconf"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
-
-const (
-	sdkRecommendedPath   = "~/.kube/config"
-	sdkRecommendedEnvVar = "KUBECONFIG"
-)
-
-func TestRecommendedPathGetFromEnvVar(t *testing.T) {
-	expectedPath := "/sometpath"
-	err := os.Setenv(sdkRecommendedEnvVar, expectedPath)
-	if err != nil {
-		t.Fatalf("Error setting KUBECONFIG: %v", err)
-	}
-
-	actual := kubeconf.GetRecommendedPath()
-
-	if actual != expectedPath {
-		t.Fatalf("Expected %s but got %s", expectedPath, actual)
-	}
-}
-
-func TestRecommendedPathFromDefault(t *testing.T) {
-	usr, _ := user.Current()
-	fullExpectedPath := filepath.Join(usr.HomeDir, sdkRecommendedPath[2:])
-
-	os.Unsetenv(sdkRecommendedEnvVar)
-	actual := kubeconf.GetRecommendedPath()
-
-	if actual != fullExpectedPath {
-		t.Fatalf("Expected %s but got %s", fullExpectedPath, actual)
-	}
-}
 
 func TestCreateNewKubeConfig(t *testing.T) {
 	configFile, _ := ioutil.TempFile("", "")
@@ -56,7 +23,7 @@ func TestCreateNewKubeConfig(t *testing.T) {
 			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 	}
 
-	err := kubeconf.WriteToFile(configFile.Name(), &testConfig, false)
+	err := kubeconfig.WriteToFile(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -95,7 +62,7 @@ func TestNewConfigSetsContext(t *testing.T) {
 		CurrentContext: expectedContext,
 	}
 
-	err := kubeconf.WriteToFile(configFile.Name(), &testConfig, true)
+	err := kubeconfig.WriteToFile(configFile.Name(), &testConfig, true)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -128,7 +95,7 @@ func TestMergeKubeConfig(t *testing.T) {
 			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 	}
 
-	err = kubeconf.WriteToFile(configFile.Name(), &testConfig, false)
+	err = kubeconfig.WriteToFile(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -181,7 +148,7 @@ func TestMergeSetsContext(t *testing.T) {
 		CurrentContext: expectedContext,
 	}
 
-	err = kubeconf.WriteToFile(configFile.Name(), &testConfig, true)
+	err = kubeconfig.WriteToFile(configFile.Name(), &testConfig, true)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -216,7 +183,7 @@ func TestMergeDoesNotSetContext(t *testing.T) {
 		CurrentContext: "test-context",
 	}
 
-	err = kubeconf.WriteToFile(configFile.Name(), &testConfig, false)
+	err = kubeconfig.WriteToFile(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -231,8 +198,7 @@ func TestMergeDoesNotSetContext(t *testing.T) {
 	}
 }
 
-func writeConfig(filename string) error {
-	return ioutil.WriteFile(filename, []byte(`
+var minikubeSample = `
 kind: Config
 apiVersion: v1
 clusters:
@@ -254,5 +220,8 @@ users:
     as-user-extra: {}
     client-certificate: /Users/bob/.minikube/client.crt
     client-key: /Users/bob/.minikube/client.key		
-    `), os.FileMode(0755))
+`
+
+func writeConfig(filename string) error {
+	return ioutil.WriteFile(filename, []byte(minikubeSample), os.FileMode(0755))
 }
