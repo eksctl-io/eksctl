@@ -10,8 +10,7 @@ build:
 
 .PHONY: test
 test:
-	go test $(shell go list ./... | grep -v "^github.com/weaveworks/eksctl/vendor" | sort -u)
-
+	go test -v ./pkg/... ./cmd/...
 
 .PHONY: update-bindata
 update-bindata:
