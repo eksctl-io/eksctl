@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"fmt"
 	"os"
 	"sync"
 
@@ -19,7 +20,10 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-const ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+const (
+	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+	AWSDebugLevel  = 5
+)
 
 type ClusterProvider struct {
 	cfg *ClusterConfig
@@ -166,6 +170,12 @@ func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *cred
 	config := aws.NewConfig()
 	config = config.WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
+	if logger.Level > AWSDebugLevel {
+		config = config.WithLogLevel(aws.LogDebugWithHTTPBody)
+		config = config.WithLogger(aws.LoggerFunc(func(args ...interface{}) {
+			logger.Debug(fmt.Sprintln(args...))
+		}))
+	}
 
 	// Create the options for the session
 	opts := session.Options{
