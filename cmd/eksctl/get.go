@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -31,7 +32,10 @@ func getClusterCmd() *cobra.Command {
 		Use:     "cluster",
 		Short:   "Get custer(s)",
 		Aliases: []string{"clusters"},
-		Run: func(_ *cobra.Command, _ []string) {
+		Run: func(_ *cobra.Command, args []string) {
+			if len(args) > 0 {
+				cfg.ClusterName = strings.TrimSpace(args[0])
+			}
 			if err := doGetCluster(cfg); err != nil {
 				logger.Critical(err.Error())
 				os.Exit(1)

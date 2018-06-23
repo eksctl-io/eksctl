@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -32,7 +33,10 @@ func deleteClusterCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Delete a cluster",
-		Run: func(_ *cobra.Command, _ []string) {
+		Run: func(_ *cobra.Command, args []string) {
+			if len(args) > 0 {
+				cfg.ClusterName = strings.TrimSpace(args[0])
+			}
 			if err := doDeleteCluster(cfg); err != nil {
 				logger.Critical(err.Error())
 				os.Exit(1)
