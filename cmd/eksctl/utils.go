@@ -95,7 +95,7 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", utils.ClusterName()))
+	fs.StringVarP(&cfg.ClusterName, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", utils.ClusterName()))
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS profile to use. If provided, this overrides the AWS_PROFILE environment variable")
 
@@ -108,7 +108,7 @@ func doWriteKubeconfigCmd(cfg *eks.ClusterConfig) error {
 	ctl := eks.New(cfg)
 
 	if cfg.ClusterName == "" {
-		return fmt.Errorf("--cluster-name must be set")
+		return fmt.Errorf("--name must be set")
 	}
 
 	if utilsKubeconfigOutputPath == "" {

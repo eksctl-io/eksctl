@@ -42,7 +42,7 @@ func deleteClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.ClusterName, "cluster-name", "n", "", "EKS cluster name (required)")
+	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name (required)")
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS profile to use. If provided, this overrides the AWS_PROFILE environment variable")
 
@@ -57,7 +57,7 @@ func doDeleteCluster(cfg *eks.ClusterConfig) error {
 	}
 
 	if cfg.ClusterName == "" {
-		return fmt.Errorf("--cluster-name must be set")
+		return fmt.Errorf("--name must be set")
 	}
 
 	logger.Info("deleting EKS cluster %q", cfg.ClusterName)

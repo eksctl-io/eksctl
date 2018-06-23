@@ -67,55 +67,55 @@ $ eksctl create cluster
 To list the details about a cluster or all of the clusters, use:
 
 ```
-eksctl get cluster [--cluster-name <name>] [--region <region>]
+eksctl get cluster [--name <name>] [--region <region>]
 ```
 
 To create the same kind of basic cluster, but with a different name, run:
 
 ```
-eksctl create cluster --cluster-name cluster-1 --nodes 4
+eksctl create cluster --name cluster-1 --nodes 4
 ```
 
 To write cluster credentials to a file other than default, run:
 
 ```
-eksctl create cluster --cluster-name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.cluster-2.yaml
+eksctl create cluster --name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.cluster-2.yaml
 ```
 
 To prevent storing cluster credentials locally, run:
 
 ```
-eksctl create cluster --cluster-name cluster-3 --nodes 4 --write-kubeconfig=false
+eksctl create cluster --name cluster-3 --nodes 4 --write-kubeconfig=false
 ```
 
 To let `eksctl` manage cluster credentials under `~/.kube/eksctl/clusters` directory, run:
 
 ```
-eksctl create cluster --cluster-name cluster-3 --nodes 4 --auto-kubeconfig
+eksctl create cluster --name cluster-3 --nodes 4 --auto-kubeconfig
 ```
 
 To obtain cluster credentials at any point in time, run:
 
 ```
-eksctl utils write-kubeconfig --cluster-name <name> [--kubeconfig <path>]
+eksctl utils write-kubeconfig --name <name> [--kubeconfig <path>]
 ```
 
 To use a 3-5 node Auto Scaling Group, run:
 
 ```
-eksctl create cluster --cluster-name cluster-5 --nodes-min 3 --nodes-max 5
+eksctl create cluster --name cluster-5 --nodes-min 3 --nodes-max 5
 ```
 
 To use 30 `c4.xlarge` nodes, run:
 
 ```
-eksctl create cluster --cluster-name cluster-6 --nodes 30 --node-type c4.xlarge
+eksctl create cluster --name cluster-6 --nodes 30 --node-type c4.xlarge
 ```
 
 To delete a cluster, run:
 
 ```
-eksctl delete cluster --cluster-name <name> [--region <region>]
+eksctl delete cluster --name <name> [--region <region>]
 ```
 
 <!-- TODO for 0.3.0
