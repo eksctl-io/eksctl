@@ -85,8 +85,8 @@ func writeKubeconfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "write-kubeconfig",
 		Short: "Write kubeconfig file for a given cluster",
-		Run: func(_ *cobra.Command, _ []string) {
-			if err := doWriteKubeconfigCmd(cfg); err != nil {
+		Run: func(_ *cobra.Command, args []string) {
+			if err := doWriteKubeconfigCmd(cfg, getNameArg(args)); err != nil {
 				logger.Critical(err.Error())
 				os.Exit(1)
 			}
@@ -95,7 +95,8 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.ClusterName, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", utils.ClusterName()))
+	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name (required)")
+
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS profile to use. If provided, this overrides the AWS_PROFILE environment variable")
 
@@ -104,8 +105,20 @@ func writeKubeconfigCmd() *cobra.Command {
 	return cmd
 }
 
-func doWriteKubeconfigCmd(cfg *eks.ClusterConfig) error {
+func doWriteKubeconfigCmd(cfg *eks.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
+
+	if err := ctl.CheckAuth(); err != nil {
+		return err
+	}
+
+	if cfg.ClusterName != "" && name != "" {
+		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.ClusterName, name)
+	}
+
+	if name != "" {
+		cfg.ClusterName = name
+	}
 
 	if cfg.ClusterName == "" {
 		return fmt.Errorf("--name must be set")
@@ -113,10 +126,6 @@ func doWriteKubeconfigCmd(cfg *eks.ClusterConfig) error {
 
 	if utilsKubeconfigOutputPath == "" {
 		utilsKubeconfigOutputPath = utils.ConfigPath(cfg.ClusterName)
-	}
-
-	if err := ctl.CheckAuth(); err != nil {
-		return err
 	}
 
 	cluster, err := ctl.DescribeControlPlane()
