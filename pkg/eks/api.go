@@ -137,11 +137,27 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 			logger.Debug("task %q started", tn)
 			errs := make(chan error)
 			if err := task(errs); err != nil {
-				taskErrs <- err
+				logger.Debug("task %q failed to start due to error %#v", tn, err)
+
+				// if channel is full, log explicit error so it's fixable (don't hang mysteriously)
+				select {
+				case taskErrs <- err:
+				default:
+					logger.Warning("error channel taskErrs is full. Unable to post err.")
+				}
+
 				return
 			}
 			if err := <-errs; err != nil {
-				taskErrs <- err
+				logger.Debug("task %q exited with error %#v", tn, err)
+
+				// if channel is full, log explicit error so it's fixable (don't hang mysteriously)
+				select {
+				case taskErrs <- err:
+				default:
+					logger.Warning("error channel taskErrs is full. Unable to post err.")
+				}
+
 				return
 			}
 			logger.Debug("task %q returned without errors", tn)
@@ -149,6 +165,7 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 	}
 	logger.Debug("waiting for %d tasks to complete", len(tasks))
 	wg.Wait()
+	logger.Debug("%d tasks complete", len(tasks))
 }
 
 func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
