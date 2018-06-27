@@ -38,6 +38,8 @@ type providerServices struct {
 	arn string
 }
 
+type taskFn func(chan error)
+
 // simple config, to be replaced with Cluster API
 type ClusterConfig struct {
 	Region      string
@@ -125,7 +127,7 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error, taskErrs chan error) {
+func (c *ClusterProvider) runCreateTask(tasks map[string]taskFn, taskErrs chan error) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(tasks))
 	for taskName := range tasks {
@@ -134,18 +136,9 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 			defer wg.Done()
 			logger.Debug("task %q started", tn)
 			errs := make(chan error)
-			if err := task(errs); err != nil {
-				logger.Debug("task %q failed to start due to error %#v", tn, err)
+			// run task
+			task(errs)
 
-				// if channel is full, log explicit error so it's fixable (don't hang mysteriously)
-				select {
-				case taskErrs <- err:
-				default:
-					logger.Warning("error channel taskErrs is full. Unable to post err.")
-				}
-
-				return
-			}
 			if err := <-errs; err != nil {
 				logger.Debug("task %q exited with error %#v", tn, err)
 
@@ -167,15 +160,15 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 }
 
 func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
-	c.runCreateTask(map[string]func(chan error) error{
-		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
-		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
+	c.runCreateTask(map[string]taskFn{
+		"createStackServiceRole": c.createStackServiceRole,
+		"createStackVPC":         c.createStackVPC,
 	}, taskErrs)
-	c.runCreateTask(map[string]func(chan error) error{
-		"createControlPlane": func(errs chan error) error { return c.createControlPlane(errs) },
+	c.runCreateTask(map[string]taskFn{
+		"createControlPlane": c.createControlPlane,
 	}, taskErrs)
-	c.runCreateTask(map[string]func(chan error) error{
-		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
+	c.runCreateTask(map[string]taskFn{
+		"createStackDefaultNodeGroup": c.createStackDefaultNodeGroup,
 	}, taskErrs)
 	close(taskErrs)
 }

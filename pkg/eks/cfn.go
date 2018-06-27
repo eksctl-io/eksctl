@@ -129,19 +129,21 @@ func (c *ClusterProvider) stackNameVPC() string {
 	return "EKS-" + c.cfg.ClusterName + "-VPC"
 }
 
-func (c *ClusterProvider) createStackVPC(errs chan error) error {
+func (c *ClusterProvider) createStackVPC(errs chan error) {
 	name := c.stackNameVPC()
 	logger.Info("creating VPC stack %q", name)
 	templateBody, err := amazonEksVpcSampleYamlBytes()
 	if err != nil {
-		return errors.Wrap(err, "decompressing bundled template for VPC stack")
+		errs <- errors.Wrap(err, "decompressing bundled template for VPC stack")
+		return
 	}
 
 	stackChan := make(chan Stack)
 	taskErrs := make(chan error)
 
 	if err := c.CreateStack(name, templateBody, nil, false, stackChan, taskErrs); err != nil {
-		return err
+		errs <- err
+		return
 	}
 
 	go func() {
@@ -183,7 +185,6 @@ func (c *ClusterProvider) createStackVPC(errs chan error) error {
 
 		errs <- nil
 	}()
-	return nil
 }
 
 func (c *ClusterProvider) DeleteStackVPC() error {
@@ -207,19 +208,21 @@ func (c *ClusterProvider) stackNameServiceRole() string {
 	return "EKS-" + c.cfg.ClusterName + "-ServiceRole"
 }
 
-func (c *ClusterProvider) createStackServiceRole(errs chan error) error {
+func (c *ClusterProvider) createStackServiceRole(errs chan error) {
 	name := c.stackNameServiceRole()
 	logger.Info("creating ServiceRole stack %q", name)
 	templateBody, err := amazonEksServiceRoleYamlBytes()
 	if err != nil {
-		return errors.Wrap(err, "decompressing bundled template for ServiceRole stack")
+		errs <- errors.Wrap(err, "decompressing bundled template for ServiceRole stack")
+		return
 	}
 
 	stackChan := make(chan Stack)
 	taskErrs := make(chan error)
 
 	if err := c.CreateStack(name, templateBody, nil, true, stackChan, taskErrs); err != nil {
-		return err
+		errs <- err
+		return
 	}
 
 	go func() {
@@ -247,7 +250,6 @@ func (c *ClusterProvider) createStackServiceRole(errs chan error) error {
 
 		errs <- nil
 	}()
-	return nil
 }
 
 func (c *ClusterProvider) DeleteStackServiceRole() error {
@@ -303,19 +305,21 @@ func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 	}
 }
 
-func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
+func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) {
 	name := c.stackNameDefaultNodeGroup()
 	logger.Info("creating DefaultNodeGroup stack %q", name)
 	templateBody, err := amazonEksNodegroupYamlBytes()
 	if err != nil {
-		return errors.Wrap(err, "decompressing bundled template for DefaultNodeGroup stack")
+		errs <- errors.Wrap(err, "decompressing bundled template for DefaultNodeGroup stack")
+		return
 	}
 
 	stackChan := make(chan Stack)
 	taskErrs := make(chan error)
 
 	if err := c.CreateStack(name, templateBody, c.stackParamsDefaultNodeGroup(), true, stackChan, taskErrs); err != nil {
-		return err
+		errs <- err
+		return
 	}
 
 	go func() {
@@ -343,7 +347,6 @@ func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
 
 		errs <- nil
 	}()
-	return nil
 }
 
 func (c *ClusterProvider) DeleteStackDefaultNodeGroup() error {

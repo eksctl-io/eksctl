@@ -58,14 +58,15 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 	return nil
 }
 
-func (c *ClusterProvider) createControlPlane(errs chan error) error {
+func (c *ClusterProvider) createControlPlane(errs chan error) {
 	logger.Info("creating control plane %q", c.cfg.ClusterName)
 
 	clusterChan := make(chan eks.Cluster)
 	taskErrs := make(chan error)
 
 	if err := c.CreateControlPlane(); err != nil {
-		return err
+		errs <- err
+		return
 	}
 
 	go func() {
@@ -118,8 +119,6 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 
 		errs <- nil
 	}()
-
-	return nil
 }
 
 func (c *ClusterProvider) GetCredentials(cluster eks.Cluster) error {
