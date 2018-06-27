@@ -48,10 +48,18 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 	go func() {
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
+
+		timer := time.NewTimer(time.Duration(c.cfg.AwsOperationTimeoutSeconds) * time.Second)
+		defer timer.Stop()
+
 		defer close(errs)
 		for {
 			select {
-			// TODO: https://github.com/weaveworks/eksctl/issues/23
+			case <-timer.C:
+				errs <- fmt.Errorf("creating CloudFormation stack %q timed out after %d seconds", name, c.cfg.AwsOperationTimeoutSeconds)
+				logger.Debug("stack = %#v", s)
+				return
+
 			case <-ticker.C:
 				s, err := c.describeStack(&name)
 				if err != nil {
