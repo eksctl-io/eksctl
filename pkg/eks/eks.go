@@ -59,34 +59,32 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 	return nil
 }
 
-func (c *ClusterProvider) createControlPlane(errs chan error) error {
-	logger.Info("creating control plane %q", c.cfg.ClusterName)
-
-	clusterChan := make(chan eks.Cluster)
-	taskErrs := make(chan error)
-
-	if err := c.CreateControlPlane(); err != nil {
-		if utils.HasAwsErrorCode(err, eks.ErrCodeResourceInUseException) {
-			logger.Info("using existing EKS Cluster stack %q", c.cfg.ClusterName)
-		} else {
-			return err
-		}
-	}
+func (c *ClusterProvider) createControlPlane() <-chan error {
+	errs := make(chan error)
 
 	go func() {
+		defer close(errs)
+		logger.Info("creating control plane %q", c.cfg.ClusterName)
+
+		if err := c.CreateControlPlane(); err != nil {
+			if utils.HasAwsErrorCode(err, eks.ErrCodeResourceInUseException) {
+				logger.Info("using existing EKS Cluster stack %q", c.cfg.ClusterName)
+			} else {
+				errs <- err
+				return
+			}
+		}
+
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
 		timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
 		defer timer.Stop()
 
-		defer close(taskErrs)
-		defer close(clusterChan)
-
 		for {
 			select {
 			case <-timer.C:
-				taskErrs <- fmt.Errorf("timed out creating control plane %q after %d seconds", c.cfg.ClusterName, c.cfg.AWSOperationTimeoutSeconds)
+				errs <- fmt.Errorf("timed out creating control plane %q after %d seconds", c.cfg.ClusterName, c.cfg.AWSOperationTimeoutSeconds)
 				return
 
 			case <-ticker.C:
@@ -100,39 +98,24 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 				case eks.ClusterStatusCreating:
 					continue
 				case eks.ClusterStatusActive:
-					taskErrs <- nil
-					clusterChan <- *cluster
+					logger.Debug("created control plane – processing outputs")
+
+					if err := c.GetCredentials(*cluster); err != nil {
+						errs <- err
+					}
+
+					logger.Debug("clusterConfig = %#v", c.cfg)
+					logger.Success("created control plane %q", c.cfg.ClusterName)
 					return
 				default:
-					taskErrs <- fmt.Errorf("creating control plane: %s", *cluster.Status)
+					errs <- fmt.Errorf("creating control plane: %s", *cluster.Status)
 					return
 				}
 			}
 		}
 	}()
 
-	go func() {
-		defer close(errs)
-		if err := <-taskErrs; err != nil {
-			errs <- err
-			return
-		}
-
-		cluster := <-clusterChan
-
-		logger.Debug("created control plane – processing outputs")
-
-		if err := c.GetCredentials(cluster); err != nil {
-			errs <- err
-		}
-
-		logger.Debug("clusterConfig = %#v", c.cfg)
-		logger.Success("created control plane %q", c.cfg.ClusterName)
-
-		errs <- nil
-	}()
-
-	return nil
+	return errs
 }
 
 func (c *ClusterProvider) GetCredentials(cluster eks.Cluster) error {
