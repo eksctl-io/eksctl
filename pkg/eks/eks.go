@@ -73,9 +73,15 @@ func (c *ClusterProvider) createControlPlane() <-chan error {
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
+		timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
+		defer timer.Stop()
+
 		for {
 			select {
-			// TODO: https://github.com/weaveworks/eksctl/issues/23
+			case <-timer.C:
+				errs <- fmt.Errorf("timed out creating control plane %q after %d seconds", c.cfg.ClusterName, c.cfg.AWSOperationTimeoutSeconds)
+				return
+
 			case <-ticker.C:
 				cluster, err := c.DescribeControlPlane()
 				if err != nil {
