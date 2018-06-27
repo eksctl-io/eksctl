@@ -72,7 +72,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
-		timer := time.NewTimer(time.Duration(c.cfg.AwsOperationTimeoutSeconds) * time.Second)
+		timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
 		defer timer.Stop()
 
 		defer close(taskErrs)
@@ -81,7 +81,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		for {
 			select {
 			case <-timer.C:
-				taskErrs <- fmt.Errorf("timed out creating control plane %q after %d seconds", c.cfg.ClusterName, c.cfg.AwsOperationTimeoutSeconds)
+				taskErrs <- fmt.Errorf("timed out creating control plane %q after %d seconds", c.cfg.ClusterName, c.cfg.AWSOperationTimeoutSeconds)
 				return
 
 			case <-ticker.C:

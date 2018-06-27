@@ -49,14 +49,14 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
-		timer := time.NewTimer(time.Duration(c.cfg.AwsOperationTimeoutSeconds) * time.Second)
+		timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
 		defer timer.Stop()
 
 		defer close(errs)
 		for {
 			select {
 			case <-timer.C:
-				errs <- fmt.Errorf("creating CloudFormation stack %q timed out after %d seconds", name, c.cfg.AwsOperationTimeoutSeconds)
+				errs <- fmt.Errorf("creating CloudFormation stack %q timed out after %d seconds", name, c.cfg.AWSOperationTimeoutSeconds)
 				logger.Debug("stack = %#v", s)
 				return
 
