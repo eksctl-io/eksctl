@@ -54,7 +54,7 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 		}
 		logger.Debug("stack = %#v", s)
 
-		ticker := time.NewTicker(20 * time.Second)
+		ticker := utils.NewInstantTicker(20 * time.Second)
 		defer ticker.Stop()
 
 		timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)

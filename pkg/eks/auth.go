@@ -23,9 +23,9 @@ import (
 
 func (c *ClusterProvider) FindSSHPublicKey() error {
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
-	logger.Info("Checking for existing EC2 keypair for public key file %q", c.cfg.SSHPublicKeyPath)
+	logger.Info("Checking for existing EC2 keypair for cluster %q", c.defaultKeyName())
 	input := &ec2.DescribeKeyPairsInput{
-		KeyNames: aws.StringSlice([]string{c.cfg.SSHPublicKeyPath}),
+		KeyNames: aws.StringSlice([]string{c.defaultKeyName()}),
 	}
 
 	output, err := c.svc.ec2.DescribeKeyPairs(input)
@@ -51,7 +51,6 @@ func (c *ClusterProvider) LoadSSHPublicKeyFromFile() error {
 	} else {
 		// on successfull read – import it
 		c.cfg.SSHPublicKey = sshPublicKey
-		c.cfg.keyName = "EKS-" + c.cfg.ClusterName
 		input := &ec2.ImportKeyPairInput{
 			KeyName:           &c.cfg.keyName,
 			PublicKeyMaterial: c.cfg.SSHPublicKey,
@@ -66,7 +65,7 @@ func (c *ClusterProvider) LoadSSHPublicKeyFromFile() error {
 
 func (c *ClusterProvider) MaybeDeletePublicSSHKey() error {
 	input := &ec2.DeleteKeyPairInput{
-		KeyName: aws.String("EKS-" + c.cfg.ClusterName),
+		KeyName: aws.String(c.defaultKeyName()),
 	}
 	_, err := c.svc.ec2.DeleteKeyPair(input)
 	return err
@@ -116,6 +115,10 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 	}
 
 	return clientConfig, nil
+}
+
+func (c *ClusterProvider) defaultKeyName() string {
+	return "EKS-" + c.cfg.ClusterName
 }
 
 func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {

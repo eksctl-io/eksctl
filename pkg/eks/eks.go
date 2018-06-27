@@ -75,7 +75,7 @@ func (c *ClusterProvider) createControlPlane() <-chan error {
 			}
 		}
 
-		ticker := time.NewTicker(20 * time.Second)
+		ticker := utils.NewInstantTicker(20 * time.Second)
 		defer ticker.Stop()
 
 		timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
