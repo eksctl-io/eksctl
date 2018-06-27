@@ -38,7 +38,7 @@ type providerServices struct {
 	arn string
 }
 
-type taskFn func(chan error)
+type taskFn func() <-chan error
 
 // simple config, to be replaced with Cluster API
 type ClusterConfig struct {
@@ -135,9 +135,8 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]taskFn, taskErrs chan e
 		go func(tn string) {
 			defer wg.Done()
 			logger.Debug("task %q started", tn)
-			errs := make(chan error)
 			// run task
-			task(errs)
+			errs := task()
 
 			if err := <-errs; err != nil {
 				logger.Debug("task %q exited with error %#v", tn, err)

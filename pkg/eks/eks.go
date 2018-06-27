@@ -58,22 +58,21 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 	return nil
 }
 
-func (c *ClusterProvider) createControlPlane(errs chan error) {
-	logger.Info("creating control plane %q", c.cfg.ClusterName)
-
-	clusterChan := make(chan eks.Cluster)
-	taskErrs := make(chan error)
-
-	if err := c.CreateControlPlane(); err != nil {
-		errs <- err
-		return
-	}
+func (c *ClusterProvider) createControlPlane() <-chan error {
+	errs := make(chan error)
 
 	go func() {
+		defer close(errs)
+		logger.Info("creating control plane %q", c.cfg.ClusterName)
+
+		if err := c.CreateControlPlane(); err != nil {
+			errs <- err
+			return
+		}
+
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
-		defer close(taskErrs)
-		defer close(clusterChan)
+
 		for {
 			select {
 			// TODO: https://github.com/weaveworks/eksctl/issues/23
@@ -88,37 +87,24 @@ func (c *ClusterProvider) createControlPlane(errs chan error) {
 				case eks.ClusterStatusCreating:
 					continue
 				case eks.ClusterStatusActive:
-					taskErrs <- nil
-					clusterChan <- *cluster
+					logger.Debug("created control plane – processing outputs")
+
+					if err := c.GetCredentials(*cluster); err != nil {
+						errs <- err
+					}
+
+					logger.Debug("clusterConfig = %#v", c.cfg)
+					logger.Success("created control plane %q", c.cfg.ClusterName)
 					return
 				default:
-					taskErrs <- fmt.Errorf("creating control plane: %s", *cluster.Status)
+					errs <- fmt.Errorf("creating control plane: %s", *cluster.Status)
 					return
 				}
 			}
 		}
 	}()
 
-	go func() {
-		defer close(errs)
-		if err := <-taskErrs; err != nil {
-			errs <- err
-			return
-		}
-
-		cluster := <-clusterChan
-
-		logger.Debug("created control plane – processing outputs")
-
-		if err := c.GetCredentials(cluster); err != nil {
-			errs <- err
-		}
-
-		logger.Debug("clusterConfig = %#v", c.cfg)
-		logger.Success("created control plane %q", c.cfg.ClusterName)
-
-		errs <- nil
-	}()
+	return errs
 }
 
 func (c *ClusterProvider) GetCredentials(cluster eks.Cluster) error {
