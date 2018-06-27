@@ -55,14 +55,14 @@ func (c *ClusterProvider) waitForStack(name string, stack chan Stack, errs chan 
 	ticker := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
 
-	timer := time.NewTimer(time.Duration(c.cfg.AwsOperationTimeoutSeconds) * time.Second)
+	timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
 	defer timer.Stop()
 
 	defer close(errs)
 	for {
 		select {
 		case <-timer.C:
-			errs <- fmt.Errorf("waiting for CloudFormation stack %q timed out after %d seconds", name, c.cfg.AwsOperationTimeoutSeconds)
+			errs <- fmt.Errorf("creating CloudFormation stack %q timed out after %d seconds", name, c.cfg.AWSOperationTimeoutSeconds)
 			logger.Debug("stack = %q", name)
 			return
 
