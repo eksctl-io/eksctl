@@ -53,45 +53,43 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 		}
 		logger.Debug("stack = %#v", s)
 
-		go func() {
-			ticker := time.NewTicker(20 * time.Second)
-			defer ticker.Stop()
+		ticker := time.NewTicker(20 * time.Second)
+		defer ticker.Stop()
 
-			timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
-			defer timer.Stop()
+		timer := time.NewTimer(time.Duration(c.cfg.AWSOperationTimeoutSeconds) * time.Second)
+		defer timer.Stop()
 
-			defer close(errs)
-			for {
-				select {
-				case <-timer.C:
-					errs <- fmt.Errorf("creating CloudFormation stack %q timed out after %d seconds", name, c.cfg.AWSOperationTimeoutSeconds)
+		for {
+			select {
+			case <-timer.C:
+				errs <- fmt.Errorf("creating CloudFormation stack %q timed out after %d seconds", name, c.cfg.AWSOperationTimeoutSeconds)
+				logger.Debug("stack = %#v", s)
+				return
+
+			case <-ticker.C:
+				s, err := c.describeStack(&name)
+				if err != nil {
+					logger.Warning("continue despite err=%q", err.Error())
+					continue
+				}
+				logger.Debug("stack = %#v", s)
+				switch *s.StackStatus {
+				case cloudformation.StackStatusCreateInProgress:
+					continue
+				case cloudformation.StackStatusCreateComplete:
+					stack <- *s
+					return
+				case cloudformation.StackStatusCreateFailed:
+					fallthrough // TODO: https://github.com/weaveworks/eksctl/issues/24
+				default:
+					errs <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
+					// stack <- *s // this usually results in closed channel panic, but we don't need it really
 					logger.Debug("stack = %#v", s)
 					return
-
-				case <-ticker.C:
-					s, err := c.describeStack(&name)
-					if err != nil {
-						logger.Warning("continue despite err=%q", err.Error())
-						continue
-					}
-					logger.Debug("stack = %#v", s)
-					switch *s.StackStatus {
-					case cloudformation.StackStatusCreateInProgress:
-						continue
-					case cloudformation.StackStatusCreateComplete:
-						stack <- *s
-						return
-					case cloudformation.StackStatusCreateFailed:
-						fallthrough // TODO: https://github.com/weaveworks/eksctl/issues/24
-					default:
-						errs <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
-						// stack <- *s // this usually results in closed channel panic, but we don't need it really
-						logger.Debug("stack = %#v", s)
-						return
-					}
 				}
 			}
-		}()
+		}
+
 	}()
 
 	return errs, stack
