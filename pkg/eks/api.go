@@ -52,6 +52,8 @@ type ClusterConfig struct {
 	SSHPublicKeyPath string
 	SSHPublicKey     []byte
 
+	AWSOperationTimeoutSeconds int
+
 	keyName        string
 	clusterRoleARN string
 	securityGroup  string
