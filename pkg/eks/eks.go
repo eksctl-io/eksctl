@@ -65,7 +65,11 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 	taskErrs := make(chan error)
 
 	if err := c.CreateControlPlane(); err != nil {
-		return err
+		if hasAwsErrorCode(err, eks.ErrCodeResourceInUseException) {
+			logger.Info("using existing EKS Cluster stack %q", c.cfg.ClusterName)
+		} else {
+			return err
+		}
 	}
 
 	go func() {
