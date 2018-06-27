@@ -62,11 +62,12 @@ func (c *ClusterProvider) LoadSSHPublicKey() error {
 	return nil
 }
 
-func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
+func (c *ClusterProvider) MaybeDeletePublicSSHKey() error {
 	input := &ec2.DeleteKeyPairInput{
 		KeyName: aws.String("EKS-" + c.cfg.ClusterName),
 	}
-	c.svc.ec2.DeleteKeyPair(input)
+	_, err := c.svc.ec2.DeleteKeyPair(input)
+	return err
 }
 
 func (c *ClusterProvider) getUsername() string {

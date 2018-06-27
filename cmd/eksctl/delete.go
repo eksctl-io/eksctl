@@ -9,7 +9,6 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -76,31 +75,41 @@ func doDeleteCluster(cfg *eks.ClusterConfig) error {
 		}
 	}
 
+	logger.Info("deleting service role stack")
+
 	if err := ctl.DeleteStackServiceRole(); err != nil {
-		if !utils.HasAwsErrorCode(err, cloudformation.ErrCodeStackInstanceNotFoundException) {
+		if !utils.HasAwsErrorCode(err, "ValidationError") {
 			return err
 		} else {
 			logger.Info("service role stack does not exist.")
 		}
 	}
 
+	logger.Info("deleting node group stack")
+
 	if err := ctl.DeleteStackDefaultNodeGroup(); err != nil {
-		if !utils.HasAwsErrorCode(err, awseks.ErrCodeResourceNotFoundException) {
+		if !utils.HasAwsErrorCode(err, "ValidationError") {
 			return err
 		} else {
 			logger.Info("node group stack does not exist.")
 		}
 	}
 
+	logger.Info("deleting VPC stack")
+
 	if err := ctl.DeleteStackVPC(); err != nil {
-		if !utils.HasAwsErrorCode(err, awseks.ErrCodeResourceNotFoundException) {
+		if !utils.HasAwsErrorCode(err, "ValidationError") {
 			return err
 		} else {
 			logger.Info("VPC stack does not exist.")
 		}
 	}
 
-	ctl.MaybeDeletePublicSSHKey()
+	logger.Info("deleting public ssh key")
+	err := ctl.MaybeDeletePublicSSHKey()
+	if err != nil {
+		logger.Info("Unable to delete public ssh key %#v", err)
+	}
 
 	utils.MaybeDeleteConfig(cfg.ClusterName)
 
