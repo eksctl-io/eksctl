@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func (c *ClusterProvider) CreateControlPlane() error {
@@ -65,7 +66,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 	taskErrs := make(chan error)
 
 	if err := c.CreateControlPlane(); err != nil {
-		if hasAwsErrorCode(err, eks.ErrCodeResourceInUseException) {
+		if utils.HasAwsErrorCode(err, eks.ErrCodeResourceInUseException) {
 			logger.Info("using existing EKS Cluster stack %q", c.cfg.ClusterName)
 		} else {
 			return err

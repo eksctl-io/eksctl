@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 //go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.3/2018-06-05 -o cfn_templates.go assets/1.10.3/2018-06-05
@@ -151,7 +152,7 @@ func (c *ClusterProvider) createStackVPC(errs chan error) error {
 	taskErrs := make(chan error)
 
 	if err := c.CreateStack(name, templateBody, nil, false, stackChan, taskErrs); err != nil {
-		if hasAwsErrorCode(err, cloudformation.ErrCodeAlreadyExistsException) {
+		if utils.HasAwsErrorCode(err, cloudformation.ErrCodeAlreadyExistsException) {
 			logger.Info("using existing VPC stack %q", name)
 			go c.waitForStack(name, stackChan, taskErrs)
 		} else {
@@ -234,7 +235,7 @@ func (c *ClusterProvider) createStackServiceRole(errs chan error) error {
 	taskErrs := make(chan error)
 
 	if err := c.CreateStack(name, templateBody, nil, true, stackChan, taskErrs); err != nil {
-		if hasAwsErrorCode(err, cloudformation.ErrCodeAlreadyExistsException) {
+		if utils.HasAwsErrorCode(err, cloudformation.ErrCodeAlreadyExistsException) {
 			logger.Info("using existing ServiceRole stack %q", name)
 			go c.waitForStack(name, stackChan, taskErrs)
 		} else {
@@ -309,7 +310,7 @@ func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 		c.cfg.MaxNodes = c.cfg.Nodes
 	}
 
-	return map[string]string{
+	params := map[string]string{
 		"ClusterName":                      c.cfg.ClusterName,
 		"NodeGroupName":                    "default",
 		"KeyName":                          c.cfg.keyName,
@@ -321,6 +322,9 @@ func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 		"Subnets":                          c.cfg.subnetsList,
 		"VpcId":                            c.cfg.clusterVPC,
 	}
+
+	logger.Info("Node stack params: %#v", params)
+	return params
 }
 
 func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
@@ -335,7 +339,7 @@ func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
 	taskErrs := make(chan error)
 
 	if err := c.CreateStack(name, templateBody, c.stackParamsDefaultNodeGroup(), true, stackChan, taskErrs); err != nil {
-		if hasAwsErrorCode(err, cloudformation.ErrCodeAlreadyExistsException) {
+		if utils.HasAwsErrorCode(err, cloudformation.ErrCodeAlreadyExistsException) {
 			logger.Info("using existing DefaultNodeGroup stack %q", name)
 			go c.waitForStack(name, stackChan, taskErrs)
 		} else {
