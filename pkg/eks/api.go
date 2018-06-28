@@ -137,12 +137,10 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 			logger.Debug("task %q started", tn)
 			errs := make(chan error)
 			if err := task(errs); err != nil {
-				logger.Debug("task %q failed to start due to error %#v", tn, err)
 				taskErrs <- err
 				return
 			}
 			if err := <-errs; err != nil {
-				logger.Debug("task %q exited with error %#v", tn, err)
 				taskErrs <- err
 				return
 			}

@@ -130,9 +130,6 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 
 		// read any errors (it only gets non-nil errors)
 		for err := range taskErr {
-			if err == nil {
-				break
-			}
 			return err
 		}
 	}
