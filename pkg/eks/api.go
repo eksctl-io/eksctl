@@ -38,6 +38,8 @@ type providerServices struct {
 	arn string
 }
 
+type taskFn func() <-chan error
+
 // simple config, to be replaced with Cluster API
 type ClusterConfig struct {
 	Region      string
@@ -127,7 +129,7 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error, taskErrs chan error) {
+func (c *ClusterProvider) runCreateTask(tasks map[string]taskFn, taskErrs chan error) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(tasks))
 	for taskName := range tasks {
@@ -135,13 +137,19 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 		go func(tn string) {
 			defer wg.Done()
 			logger.Debug("task %q started", tn)
-			errs := make(chan error)
-			if err := task(errs); err != nil {
-				taskErrs <- err
-				return
-			}
+			// run task
+			errs := task()
+
 			if err := <-errs; err != nil {
-				taskErrs <- err
+				logger.Debug("task %q exited with error %#v", tn, err)
+
+				// if channel is full, log explicit error so it's fixable (don't hang mysteriously)
+				select {
+				case taskErrs <- err:
+				default:
+					logger.Warning("error channel taskErrs is full. Unable to post err.")
+				}
+
 				return
 			}
 			logger.Debug("task %q returned without errors", tn)
@@ -149,20 +157,29 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 	}
 	logger.Debug("waiting for %d tasks to complete", len(tasks))
 	wg.Wait()
+	logger.Debug("%d tasks complete", len(tasks))
 }
 
-func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
-	c.runCreateTask(map[string]func(chan error) error{
-		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
-		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
-	}, taskErrs)
-	c.runCreateTask(map[string]func(chan error) error{
-		"createControlPlane": func(errs chan error) error { return c.createControlPlane(errs) },
-	}, taskErrs)
-	c.runCreateTask(map[string]func(chan error) error{
-		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
-	}, taskErrs)
-	close(taskErrs)
+func (c *ClusterProvider) CreateCluster() <-chan error {
+	taskErrs := make(chan error)
+	defer close(taskErrs)
+
+	go func() {
+		c.runCreateTask(map[string]taskFn{
+			"createStackServiceRole": c.createStackServiceRole,
+			"createStackVPC":         c.createStackVPC,
+		}, taskErrs)
+
+		c.runCreateTask(map[string]taskFn{
+			"createControlPlane": c.createControlPlane,
+		}, taskErrs)
+
+		c.runCreateTask(map[string]taskFn{
+			"createStackDefaultNodeGroup": c.createStackDefaultNodeGroup,
+		}, taskErrs)
+	}()
+
+	return taskErrs
 }
 
 func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *credentials.Credentials) *session.Session {

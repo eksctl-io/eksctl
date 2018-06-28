@@ -123,12 +123,14 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 	logger.Info("creating EKS cluster %q in %q region", cfg.ClusterName, cfg.Region)
 
 	{ // core action
-		taskErr := make(chan error)
 		// create each of the core cloudformation stacks
-		ctl.CreateCluster(taskErr)
+		taskErr := ctl.CreateCluster()
+
 		// read any errors (it only gets non-nil errors)
 		for err := range taskErr {
-			return err
+			if err != nil {
+				return err
+			}
 		}
 	}
 
