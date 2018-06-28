@@ -160,7 +160,7 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]taskFn, taskErrs chan e
 	logger.Debug("%d tasks complete", len(tasks))
 }
 
-func (c *ClusterProvider) CreateCluster() <- chan error{
+func (c *ClusterProvider) CreateCluster() <-chan error {
 	taskErrs := make(chan error)
 	defer close(taskErrs)
 
