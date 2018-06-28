@@ -149,6 +149,7 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 	}
 	logger.Debug("waiting for %d tasks to complete", len(tasks))
 	wg.Wait()
+	logger.Debug("%d tasks complete", len(tasks))
 }
 
 func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
