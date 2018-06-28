@@ -1,8 +1,8 @@
 built_at := $(shell date +%s)
 git_commit := $(shell git describe --dirty --always)
 
-EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
-EKSCTL_IMAGE ?= weaveworks/eksctl:latest
+EKSCTL_BUILD_IMAGE ?= polyverse/eksctl:build
+EKSCTL_IMAGE ?= polyverse/eksctl:latest
 
 .PHONY: build
 build:
@@ -31,8 +31,8 @@ release: eksctl-build-image
 	  --env=GITHUB_TOKEN \
 	  --env=CIRCLE_TAG \
 	  --env=CIRCLE_PROJECT_USERNAME \
-	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
-	  --workdir=/go/src/github.com/weaveworks/eksctl \
+	  --volume=$(CURDIR):/go/src/github.com/polyverse/eksctl \
+	  --workdir=/go/src/github.com/polyverse/eksctl \
 	    $(EKSCTL_BUILD_IMAGE) \
 	      ./do-release.sh
 

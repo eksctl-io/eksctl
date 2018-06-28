@@ -1,6 +1,6 @@
 # `eksctl` - a CLI for Amazon EKS
 
-[![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
+[![Circle CI](https://circleci.com/gh/polyverse/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/polyverse/eksctl/tree/master)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and based on Amazon's official CloudFormation templates.
 

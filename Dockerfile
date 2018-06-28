@@ -23,7 +23,7 @@ RUN apk add --no-cache --initdb --root /out \
 
 RUN go get github.com/jteeuwen/go-bindata/go-bindata
 
-ENV EKSCTL $GOPATH/src/github.com/weaveworks/eksctl
+ENV EKSCTL $GOPATH/src/github.com/polyverse/eksctl
 RUN mkdir -p "$(dirname ${EKSCTL})"
 COPY . $EKSCTL
 
