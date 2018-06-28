@@ -23,17 +23,20 @@ import (
 
 func (c *ClusterProvider) FindSSHPublicKey() error {
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
-	logger.Info("Checking for existing EC2 keypair for cluster %q", c.defaultKeyName())
+	logger.Info("Checking for existing EC2 keypair for cluster, either default key name %q or path %q",
+		c.defaultKeyName(), c.cfg.SSHPublicKeyPath)
 	input := &ec2.DescribeKeyPairsInput{
-		KeyNames: aws.StringSlice([]string{c.defaultKeyName()}),
+		KeyNames: aws.StringSlice([]string{
+			c.defaultKeyName(),
+		}),
 	}
 
 	output, err := c.svc.ec2.DescribeKeyPairs(input)
 	if err != nil {
-		logger.Warning("cannot find EC2 key pair %#v. Attempting to load from file.", err)
+		logger.Warning("cannot find EC2 key pair %v. Attempting to load from file.", err)
 		return c.LoadSSHPublicKeyFromFile()
 	}
-	if len(output.KeyPairs) != 1 {
+	if len(output.KeyPairs) == 0 {
 		logger.Debug("output = %#v", output)
 		logger.Warning("coulnd't find existing EC2 key pair. Attempting to load from file.")
 		return c.LoadSSHPublicKeyFromFile()
@@ -49,6 +52,8 @@ func (c *ClusterProvider) LoadSSHPublicKeyFromFile() error {
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("error reading SSH public key file %q", c.cfg.SSHPublicKeyPath))
 	} else {
+		c.cfg.keyName = c.defaultKeyName()
+
 		// on successfull read – import it
 		c.cfg.SSHPublicKey = sshPublicKey
 		input := &ec2.ImportKeyPairInput{

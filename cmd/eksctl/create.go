@@ -83,7 +83,7 @@ func createClusterCmd() *cobra.Command {
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", utils.ConfigPath(exampleClusterName)))
 	fs.StringVar(&kubeconfigPath, "kubeconfig", DEFAULT_KUBECONFIG_PATH, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 
-	fs.IntVar(&cfg.AWSOperationTimeoutSeconds, "aws-api-timeout", 300, "number of seconds after which to timeout AWS API operations")
+	fs.IntVar(&cfg.AWSOperationTimeoutSeconds, "aws-api-timeout", 600, "number of seconds after which to timeout AWS API operations")
 
 	return cmd
 }
