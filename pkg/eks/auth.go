@@ -3,7 +3,6 @@ package eks
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -19,37 +18,44 @@ import (
 
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-
 	"k8s.io/kops/upup/pkg/fi/utils"
 )
 
-func (c *ClusterProvider) LoadSSHPublicKey() error {
+func (c *ClusterProvider) FindSSHPublicKey() error {
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
+	logger.Info("Checking for existing EC2 keypair for cluster, either default key name %q or path %q",
+		c.defaultKeyName(), c.cfg.SSHPublicKeyPath)
+	input := &ec2.DescribeKeyPairsInput{
+		KeyNames: aws.StringSlice([]string{
+			c.defaultKeyName(),
+		}),
+	}
+
+	output, err := c.svc.ec2.DescribeKeyPairs(input)
+	if err != nil {
+		logger.Warning("cannot find EC2 key pair %v. Attempting to load from file.", err)
+		return c.LoadSSHPublicKeyFromFile()
+	}
+	if len(output.KeyPairs) == 0 {
+		logger.Debug("output = %#v", output)
+		logger.Warning("coulnd't find existing EC2 key pair. Attempting to load from file.")
+		return c.LoadSSHPublicKeyFromFile()
+	}
+
+	c.cfg.keyName = *output.KeyPairs[0].KeyName
+	logger.Info("found EC2 key pair %q with finger print %q", c.cfg.keyName, *output.KeyPairs[0].KeyFingerprint)
+	return nil
+}
+
+func (c *ClusterProvider) LoadSSHPublicKeyFromFile() error {
 	sshPublicKey, err := ioutil.ReadFile(c.cfg.SSHPublicKeyPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			// if file not found – try to use existing EC2 key pair
-			logger.Info("SSH public key file %q does not exist; will assume existing EC2 key pair", c.cfg.SSHPublicKeyPath)
-			input := &ec2.DescribeKeyPairsInput{
-				KeyNames: aws.StringSlice([]string{c.cfg.SSHPublicKeyPath}),
-			}
-			output, err := c.svc.ec2.DescribeKeyPairs(input)
-			if err != nil {
-				return errors.Wrap(err, "cannot find EC2 key pair")
-			}
-			if len(output.KeyPairs) != 1 {
-				logger.Debug("output = %#v", output)
-				return fmt.Errorf("coulnd't find existing EC2 key pair")
-			}
-			c.cfg.keyName = *output.KeyPairs[0].KeyName
-			logger.Info("found EC2 key pair %q with finger print %q", c.cfg.keyName, *output.KeyPairs[0].KeyFingerprint)
-		} else {
-			return errors.Wrap(err, fmt.Sprintf("error reading SSH public key file %q", c.cfg.SSHPublicKeyPath))
-		}
+		return errors.Wrap(err, fmt.Sprintf("error reading SSH public key file %q", c.cfg.SSHPublicKeyPath))
 	} else {
+		c.cfg.keyName = c.defaultKeyName()
+
 		// on successfull read – import it
 		c.cfg.SSHPublicKey = sshPublicKey
-		c.cfg.keyName = "EKS-" + c.cfg.ClusterName
 		input := &ec2.ImportKeyPairInput{
 			KeyName:           &c.cfg.keyName,
 			PublicKeyMaterial: c.cfg.SSHPublicKey,
@@ -62,11 +68,12 @@ func (c *ClusterProvider) LoadSSHPublicKey() error {
 	return nil
 }
 
-func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
+func (c *ClusterProvider) MaybeDeletePublicSSHKey() error {
 	input := &ec2.DeleteKeyPairInput{
-		KeyName: aws.String("EKS-" + c.cfg.ClusterName),
+		KeyName: aws.String(c.defaultKeyName()),
 	}
-	c.svc.ec2.DeleteKeyPair(input)
+	_, err := c.svc.ec2.DeleteKeyPair(input)
+	return err
 }
 
 func (c *ClusterProvider) getUsername() string {
@@ -113,6 +120,10 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 	}
 
 	return clientConfig, nil
+}
+
+func (c *ClusterProvider) defaultKeyName() string {
+	return "EKS-" + c.cfg.ClusterName
 }
 
 func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {

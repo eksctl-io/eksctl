@@ -83,7 +83,7 @@ func createClusterCmd() *cobra.Command {
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", utils.ConfigPath(exampleClusterName)))
 	fs.StringVar(&kubeconfigPath, "kubeconfig", DEFAULT_KUBECONFIG_PATH, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 
-	fs.IntVar(&cfg.AWSOperationTimeoutSeconds, "aws-api-timeout", 300, "number of seconds after which to timeout AWS API operations")
+	fs.IntVar(&cfg.AWSOperationTimeoutSeconds, "aws-api-timeout", 600, "number of seconds after which to timeout AWS API operations")
 
 	return cmd
 }
@@ -114,7 +114,7 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 		return fmt.Errorf("--region=%s is not supported only %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_1)
 	}
 
-	if err := ctl.LoadSSHPublicKey(); err != nil {
+	if err := ctl.FindSSHPublicKey(); err != nil {
 		return err
 	}
 
@@ -123,7 +123,8 @@ func doCreateCluster(cfg *eks.ClusterConfig) error {
 	logger.Info("creating EKS cluster %q in %q region", cfg.ClusterName, cfg.Region)
 
 	{ // core action
-		taskErr := make(chan error)
+		// ensure channel is buffered for parallel tasks
+		taskErr := make(chan error, 5)
 		// create each of the core cloudformation stacks
 		ctl.CreateCluster(taskErr)
 		// read any errors (it only gets non-nil errors)
