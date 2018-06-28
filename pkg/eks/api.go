@@ -160,18 +160,26 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]taskFn, taskErrs chan e
 	logger.Debug("%d tasks complete", len(tasks))
 }
 
-func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
-	c.runCreateTask(map[string]taskFn{
-		"createStackServiceRole": c.createStackServiceRole,
-		"createStackVPC":         c.createStackVPC,
-	}, taskErrs)
-	c.runCreateTask(map[string]taskFn{
-		"createControlPlane": c.createControlPlane,
-	}, taskErrs)
-	c.runCreateTask(map[string]taskFn{
-		"createStackDefaultNodeGroup": c.createStackDefaultNodeGroup,
-	}, taskErrs)
-	close(taskErrs)
+func (c *ClusterProvider) CreateCluster() <- chan error{
+	taskErrs := make(chan error)
+	defer close(taskErrs)
+
+	go func() {
+		c.runCreateTask(map[string]taskFn{
+			"createStackServiceRole": c.createStackServiceRole,
+			"createStackVPC":         c.createStackVPC,
+		}, taskErrs)
+
+		c.runCreateTask(map[string]taskFn{
+			"createControlPlane": c.createControlPlane,
+		}, taskErrs)
+
+		c.runCreateTask(map[string]taskFn{
+			"createStackDefaultNodeGroup": c.createStackDefaultNodeGroup,
+		}, taskErrs)
+	}()
+
+	return taskErrs
 }
 
 func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *credentials.Credentials) *session.Session {
