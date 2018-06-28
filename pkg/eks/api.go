@@ -138,26 +138,12 @@ func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error,
 			errs := make(chan error)
 			if err := task(errs); err != nil {
 				logger.Debug("task %q failed to start due to error %#v", tn, err)
-
-				// if channel is full, log explicit error so it's fixable (don't hang mysteriously)
-				select {
-				case taskErrs <- err:
-				default:
-					logger.Warning("error channel taskErrs is full. Unable to post err.")
-				}
-
+				taskErrs <- err
 				return
 			}
 			if err := <-errs; err != nil {
 				logger.Debug("task %q exited with error %#v", tn, err)
-
-				// if channel is full, log explicit error so it's fixable (don't hang mysteriously)
-				select {
-				case taskErrs <- err:
-				default:
-					logger.Warning("error channel taskErrs is full. Unable to post err.")
-				}
-
+				taskErrs <- err
 				return
 			}
 			logger.Debug("task %q returned without errors", tn)
