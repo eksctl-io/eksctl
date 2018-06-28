@@ -126,7 +126,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	{ // core action
 		taskErr := make(chan error)
 		// create each of the core cloudformation stacks
-		ctl.CreateCluster(taskErr)
+		go ctl.CreateCluster(taskErr)
 		// read any errors (it only gets non-nil errors)
 		for err := range taskErr {
 			return err
