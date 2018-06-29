@@ -2,7 +2,6 @@ package kubeconfig
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -12,44 +11,44 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
-	"k8s.io/client-go/tools/clientcmd/api/latest"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-var DefaultPath = clientcmd.RecommendedHomeFile
+// WriteKubeCfg will write Kubernetes client configuration to a file.
+// If path isn't specified then the path will be determined by client-go.
+// If file pointed to by the doesn't exist it will be created.
+// If the file exists then the configuration will be merged with the existing file.
+func WriteKubeCfg(path string, newConfig *api.Config, setContext bool) error {
+	configAccess := getConfigAccess(path)
 
-// WriteToFile will write Kubernetes client configuration to a file.
-// If file doesn't exist it will be created. If the file exists then
-// the configuration will be merged with the existing file.
-func WriteToFile(path string, config *api.Config, setContext bool) error {
-	exists, err := utils.FileExists(path)
-	if err != nil {
-		return errors.Wrapf(err, "error trying to read config file %q", path)
-	}
-
-	if !exists {
-		logger.Debug("kubeconfig file doesn't exist: %s", path)
-		return write(path, config)
-	}
-
-	existing, err := read(path)
-	if err != nil {
-		return errors.Wrapf(err, "unable to read existing kubeconfig file %q", path)
-	}
+	config, err := configAccess.GetStartingConfig()
 
 	logger.Debug("merging kubeconfig files")
-	merged, err := merge(existing, config)
+	merged, err := merge(config, newConfig)
 	if err != nil {
 		return errors.Wrapf(err, "unable to merge configuration with existing kubeconfig file %q", path)
 	}
 
-	if setContext && len(config.CurrentContext) > 0 {
+	if setContext && len(newConfig.CurrentContext) > 0 {
 		logger.Debug("setting current-context to %s", config.CurrentContext)
-		merged.CurrentContext = config.CurrentContext
+		merged.CurrentContext = newConfig.CurrentContext
 	}
 
-	return write(path, merged)
+	if err := clientcmd.ModifyConfig(configAccess, *config, true); err != nil {
+		return nil
+	}
+
+	return nil
+}
+
+func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
+	pathOptions := clientcmd.NewDefaultPathOptions()
+	if explicitPath != "" {
+		pathOptions.LoadingRules.ExplicitPath = explicitPath
+	}
+
+	return interface{}(pathOptions).(clientcmd.ConfigAccess)
 }
 
 func merge(existing *api.Config, tomerge *api.Config) (*api.Config, error) {
@@ -64,31 +63,6 @@ func merge(existing *api.Config, tomerge *api.Config) (*api.Config, error) {
 	}
 
 	return existing, nil
-}
-
-func write(path string, config *api.Config) error {
-	if err := clientcmd.WriteToFile(*config, path); err != nil {
-		return errors.Wrapf(err, "couldn't write client config file %q", path)
-	}
-	return nil
-}
-
-func read(path string) (*api.Config, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error trying to read config file %q", path)
-	}
-
-	if len(data) == 0 {
-		return api.NewConfig(), nil
-	}
-
-	config, _, err := latest.Codec.Decode(data, nil, nil)
-	if err != nil {
-		return nil, errors.Wrapf(err, "couldn't decode kubeconfig file %q", path)
-	}
-
-	return config.(*api.Config), nil
 }
 
 func AutoPath(name string) string {

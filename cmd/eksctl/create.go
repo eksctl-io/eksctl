@@ -79,7 +79,7 @@ func createClusterCmd() *cobra.Command {
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", true, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleClusterName)))
-	fs.StringVar(&kubeconfigPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
+	fs.StringVar(&kubeconfigPath, "kubeconfig", "", "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 	fs.BoolVar(&setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
 	fs.DurationVar(&cfg.AWSOperationTimeout, "aws-api-timeout", 20*time.Minute, "number of seconds after which to timeout AWS API operations")
@@ -102,7 +102,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	cfg.ClusterName = utils.ClusterName(cfg.ClusterName, name)
 
 	if autoKubeconfigPath {
-		if kubeconfigPath != kubeconfig.DefaultPath {
+		if kubeconfigPath != "" {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
 		}
 		kubeconfigPath = kubeconfig.AutoPath(cfg.ClusterName)
@@ -146,7 +146,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 
 		if writeKubeconfig {
 			config := clientConfigBase.WithExecHeptioAuthenticator()
-			if err := kubeconfig.WriteToFile(kubeconfigPath, config.Client, setContext); err != nil {
+			if err := kubeconfig.WriteKubeCfg(kubeconfigPath, config.Client, setContext); err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}
 

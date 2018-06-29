@@ -23,7 +23,7 @@ func TestCreateNewKubeConfig(t *testing.T) {
 			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 	}
 
-	err := kubeconfig.WriteToFile(configFile.Name(), &testConfig, false)
+	err := kubeconfig.WriteKubeCfg(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestNewConfigSetsContext(t *testing.T) {
 		CurrentContext: expectedContext,
 	}
 
-	err := kubeconfig.WriteToFile(configFile.Name(), &testConfig, true)
+	err := kubeconfig.WriteKubeCfg(configFile.Name(), &testConfig, true)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestMergeKubeConfig(t *testing.T) {
 			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 	}
 
-	err = kubeconfig.WriteToFile(configFile.Name(), &testConfig, false)
+	err = kubeconfig.WriteKubeCfg(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestMergeSetsContext(t *testing.T) {
 		CurrentContext: expectedContext,
 	}
 
-	err = kubeconfig.WriteToFile(configFile.Name(), &testConfig, true)
+	err = kubeconfig.WriteKubeCfg(configFile.Name(), &testConfig, true)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
@@ -183,7 +183,7 @@ func TestMergeDoesNotSetContext(t *testing.T) {
 		CurrentContext: "test-context",
 	}
 
-	err = kubeconfig.WriteToFile(configFile.Name(), &testConfig, false)
+	err = kubeconfig.WriteKubeCfg(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
