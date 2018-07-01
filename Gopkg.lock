@@ -35,9 +35,13 @@
     "private/protocol/restjson",
     "private/protocol/xml/xmlutil",
     "service/cloudformation",
+    "service/cloudformation/cloudformationiface",
     "service/ec2",
+    "service/ec2/ec2iface",
     "service/eks",
-    "service/sts"
+    "service/eks/eksiface",
+    "service/sts",
+    "service/sts/stsiface"
   ]
   revision = "60a85d13d02126d8d15ea3f21fd57ac3a2774f37"
   version = "v1.14.0"
@@ -544,6 +548,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "89cc0e2122796aeec35b7e0fcbd2a828819a8d950a7448d7d48e95e3028410a3"
+  inputs-digest = "f8d245bbf3b9bc59a25011e8b9849bdecc444c97f34530dc810c93f45fa5523c"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
 	"github.com/heptio/authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -79,7 +80,7 @@ type ClientConfig struct {
 	Client  *clientcmdapi.Config
 	Cluster *ClusterConfig
 	roleARN string
-	sts     *sts.STS
+	sts     stsiface.STSAPI
 }
 
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
@@ -144,7 +145,7 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 		return nil, errors.Wrap(err, "could not get token generator")
 	}
 
-	tok, err := gen.GetWithSTS(c.Cluster.ClusterName, c.sts)
+	tok, err := gen.GetWithSTS(c.Cluster.ClusterName, c.sts.(*sts.STS))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get token")
 	}

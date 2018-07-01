@@ -13,9 +13,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
@@ -31,10 +35,10 @@ type ClusterProvider struct {
 }
 
 type providerServices struct {
-	cfn *cloudformation.CloudFormation
-	eks *eks.EKS
-	ec2 *ec2.EC2
-	sts *sts.STS
+	cfn cloudformationiface.CloudFormationAPI
+	eks eksiface.EKSAPI
+	ec2 ec2iface.EC2API
+	sts stsiface.STSAPI
 	arn string
 }
 
