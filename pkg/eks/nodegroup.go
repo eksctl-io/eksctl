@@ -10,6 +10,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/watch"
 	clientset "k8s.io/client-go/kubernetes"
 )
@@ -48,6 +49,22 @@ func (c *ClusterConfig) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset
 	if err != nil {
 		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
 	}
+
+	// See if one exists already
+	lo := metav1.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector("metadata.name", cm.ObjectMeta.Name).String(),
+	}
+	logger.Info("%v", lo.FieldSelector)
+
+	if cml, err := clientSet.CoreV1().ConfigMaps("kube-system").List(lo); err == nil {
+		for _, cmi := range cml.Items {
+			if cmi.ObjectMeta.Name == cm.ObjectMeta.Name {
+				logger.Info("Config Map %q already exists in the cluster.", cm.ObjectMeta.Name)
+				return nil
+			}
+		}
+	}
+
 	if _, err := clientSet.CoreV1().ConfigMaps("kube-system").Create(cm); err != nil {
 		return errors.Wrap(err, "creating auth ConfigMap for DefaultNodeGroup")
 	}

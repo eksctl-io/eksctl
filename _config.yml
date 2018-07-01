@@ -1,14 +1,13 @@
 title: eksctl - a CLI for Amazon EKS
 
 remote_theme: errordeveloper/simple-project-homepage
-repository: weaveworks/eksctl
-by_weaveworks: true
+repository: polyverse/eksctl
 
 url: "https://eksctl.io"
 baseurl: "/"
 
 twitter:
-  username: "weaveworks"
+  username: "polyverse_io"
 author:
   twitter: "weaveworks"
 

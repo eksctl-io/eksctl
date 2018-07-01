@@ -1,11 +1,11 @@
 brew:
   github:
-    owner: weaveworks
+    owner: polyverse
     name: homebrew-tap
 
   commit_author:
-    name: weaveworksbot
-    email: team+gitbot@weave.works
+    name: polyverse
+    email: support@polyverse.io
 
   folder: Formula
 

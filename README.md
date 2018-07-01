@@ -1,6 +1,6 @@
 # `eksctl` - a CLI for Amazon EKS
 
-[![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master)
+[![Circle CI](https://circleci.com/gh/polyverse/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/polyverse/eksctl/tree/master)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and based on Amazon's official CloudFormation templates.
 
@@ -8,12 +8,23 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 ![Gophers: E, K, S, C, T, & L](logo/eksctl.png)
 
+## Polyverse fork - intended for Polyverse-internal Production-safety
+
+The Polyverse fork of eksctl is intended to have code that is dirty, ugly, logs verbosely, doesn't "think through" go primitives, in order to prioritize above all else production-safety first. All changes are posted through PRs upstream.
+
+This fork provides:
+1. Idempotent operations - you can run create/delete repeatedly for the same cluster. You can CTRL+C an operation and re-run it to pick it up where it left off. You can repair a deleted stack, by re-running create.
+
+2. Getting-it-working-first priority - rather than "develop for sandbox; then figure out how to make it work", we focus mainly on ensuring launching in existing VPCs is easy, adding user-data to an existing AMI is possible, etc. etc. How people *should* do things is not enforced by limiting this tool, but rather through education and encouragement. We might have features that are anti-patterns if that's what getting a scenario up-and-running requires. EKS and Kubernetes are going to work when they can be launched right now.
+
+3. Non-ideal world; Production-safety - verbose logging that assumes things won't be how you expect. Rather than error out and leave it as an exercise to the user, these situations might be verbosely logged, explained, etc. Logs may contain remediation commands inline. Information is power.
+
 ## Usage
 
 To download the latest release, run:
 
 ```
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/polyverse/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 sudo mv /tmp/eksctl /usr/local/bin
 ```
 
