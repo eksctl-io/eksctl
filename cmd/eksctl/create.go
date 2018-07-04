@@ -98,8 +98,6 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	}
 	cfg.ClusterName = utils.ClusterName(cfg.ClusterName, name)
 
-	logger.Info(cfg.ClusterName)
-
 	if autoKubeconfigPath {
 		if kubeconfigPath != DEFAULT_KUBECONFIG_PATH {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
@@ -178,7 +176,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		}
 	}
 
-	logger.Info("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
+	logger.Success("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
 
 	return nil
 }
