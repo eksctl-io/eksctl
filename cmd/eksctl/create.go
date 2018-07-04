@@ -83,6 +83,8 @@ func createClusterCmd() *cobra.Command {
 
 	fs.DurationVar(&cfg.AWSOperationTimeout, "aws-api-timeout", 20*time.Minute, "number of seconds after which to timeout AWS API operations")
 
+	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
+
 	return cmd
 }
 

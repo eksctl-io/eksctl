@@ -3,6 +3,7 @@ package eks
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -16,6 +17,20 @@ import (
 //go:generate go-bindata -pkg $GOPACKAGE -prefix assets/1.10.3/2018-06-05 -o cfn_templates.go assets/1.10.3/2018-06-05
 
 type Stack = cloudformation.Stack
+
+const (
+	policyAmazonEKSWorkerNodePolicy           = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+	policyAmazonEKS_CNI_Policy                = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+	policyAmazonEC2ContainerRegistryPowerUser = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
+	policyAmazonEC2ContainerRegistryReadOnly  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+)
+
+var (
+	defaultPolicyARNs = []string{
+		policyAmazonEKSWorkerNodePolicy,
+		policyAmazonEKS_CNI_Policy,
+	}
+)
 
 func (c *ClusterProvider) CreateStack(name string, templateBody []byte, parameters map[string]string, withIAM bool, stack chan Stack, errs chan error) error {
 	input := &cloudformation.CreateStackInput{}
@@ -296,7 +311,16 @@ func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 		c.cfg.MaxNodes = c.cfg.Nodes
 	}
 
-	return map[string]string{
+	if len(c.cfg.PolicyARNs) == 0 {
+		c.cfg.PolicyARNs = defaultPolicyARNs
+	}
+	if c.cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser {
+		c.cfg.PolicyARNs = append(c.cfg.PolicyARNs, policyAmazonEC2ContainerRegistryPowerUser)
+	} else {
+		c.cfg.PolicyARNs = append(c.cfg.PolicyARNs, policyAmazonEC2ContainerRegistryReadOnly)
+	}
+
+	params := map[string]string{
 		"ClusterName":                      c.cfg.ClusterName,
 		"NodeGroupName":                    "default",
 		"KeyName":                          c.cfg.keyName,
@@ -307,7 +331,10 @@ func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 		"ClusterControlPlaneSecurityGroup": c.cfg.securityGroup,
 		"Subnets":                          c.cfg.subnetsList,
 		"VpcId":                            c.cfg.clusterVPC,
+		"ManagedPolicyArns":                strings.Join(c.cfg.PolicyARNs, ","),
 	}
+
+	return params
 }
 
 func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
