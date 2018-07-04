@@ -15,11 +15,11 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-// WriteKubeCfg will write Kubernetes client configuration to a file.
+// Write will write Kubernetes client configuration to a file.
 // If path isn't specified then the path will be determined by client-go.
-// If file pointed to by the doesn't exist it will be created.
-// If the file exists then the configuration will be merged with the existing file.
-func WriteKubeCfg(path string, newConfig *api.Config, setContext bool) error {
+// If file pointed to by path doesn't exist it will be created.
+// If the file already exists then the configuration will be merged with the existing file.
+func Write(path string, newConfig *api.Config, setContext bool) error {
 	configAccess := getConfigAccess(path)
 
 	config, err := configAccess.GetStartingConfig()

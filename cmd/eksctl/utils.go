@@ -148,7 +148,7 @@ func doWriteKubeconfigCmd(cfg *eks.ClusterConfig, name string) error {
 	}
 
 	config := clientConfigBase.WithExecHeptioAuthenticator()
-	if err := kubeconfig.WriteKubeCfg(utilsKubeconfigOutputPath, config.Client, setContext); err != nil {
+	if err := kubeconfig.Write(utilsKubeconfigOutputPath, config.Client, setContext); err != nil {
 		return errors.Wrap(err, "writing kubeconfig")
 	}
 
