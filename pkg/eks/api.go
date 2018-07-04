@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 
@@ -56,7 +57,7 @@ type ClusterConfig struct {
 	SSHPublicKeyPath string
 	SSHPublicKey     []byte
 
-	AWSOperationTimeoutSeconds int
+	AWSOperationTimeout time.Duration
 
 	keyName        string
 	clusterRoleARN string
