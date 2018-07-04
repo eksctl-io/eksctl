@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 
@@ -56,7 +57,7 @@ type ClusterConfig struct {
 	SSHPublicKeyPath string
 	SSHPublicKey     []byte
 
-	AWSOperationTimeoutSeconds int
+	AWSOperationTimeout time.Duration
 
 	keyName        string
 	clusterRoleARN string
@@ -176,7 +177,12 @@ func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *cred
 	config := aws.NewConfig()
 	config = config.WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
-	if logger.Level > AWSDebugLevel {
+	if logger.Level >= AWSDebugLevel {
+		config = config.WithLogLevel(aws.LogDebug |
+			aws.LogDebugWithHTTPBody |
+			aws.LogDebugWithRequestRetries |
+			aws.LogDebugWithRequestErrors |
+			aws.LogDebugWithEventStreamBody)
 		config = config.WithLogLevel(aws.LogDebugWithHTTPBody)
 		config = config.WithLogger(aws.LoggerFunc(func(args ...interface{}) {
 			logger.Debug(fmt.Sprintln(args...))

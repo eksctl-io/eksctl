@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -80,7 +81,7 @@ func createClusterCmd() *cobra.Command {
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", utils.ConfigPath(exampleClusterName)))
 	fs.StringVar(&kubeconfigPath, "kubeconfig", DEFAULT_KUBECONFIG_PATH, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 
-	fs.IntVar(&cfg.AWSOperationTimeoutSeconds, "aws-api-timeout", 300, "number of seconds after which to timeout AWS API operations")
+	fs.DurationVar(&cfg.AWSOperationTimeout, "aws-api-timeout", 20*time.Minute, "number of seconds after which to timeout AWS API operations")
 
 	return cmd
 }
@@ -96,8 +97,6 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.ClusterName, name)
 	}
 	cfg.ClusterName = utils.ClusterName(cfg.ClusterName, name)
-
-	logger.Info(cfg.ClusterName)
 
 	if autoKubeconfigPath {
 		if kubeconfigPath != DEFAULT_KUBECONFIG_PATH {
@@ -125,7 +124,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	{ // core action
 		taskErr := make(chan error)
 		// create each of the core cloudformation stacks
-		ctl.CreateCluster(taskErr)
+		go ctl.CreateCluster(taskErr)
 		// read any errors (it only gets non-nil errors)
 		for err := range taskErr {
 			return err
@@ -177,7 +176,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		}
 	}
 
-	logger.Info("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
+	logger.Success("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
 
 	return nil
 }
