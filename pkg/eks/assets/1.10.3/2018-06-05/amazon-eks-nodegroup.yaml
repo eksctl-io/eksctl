@@ -104,6 +104,9 @@ Parameters:
     Description: The subnets where workers can be created.
     Type: List<AWS::EC2::Subnet::Id>
 
+  ManagedPolicyArns:
+    Type: CommaDelimitedList
+
 Mappings:
   MaxPodsPerNode:
     c4.large:
@@ -265,10 +268,7 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: "/"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
-        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      ManagedPolicyArns: !Ref ManagedPolicyArns
 
   NodeSecurityGroup:
     Type: AWS::EC2::SecurityGroup

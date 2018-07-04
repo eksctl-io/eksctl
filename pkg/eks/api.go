@@ -53,6 +53,7 @@ type ClusterConfig struct {
 	Nodes       int
 	MinNodes    int
 	MaxNodes    int
+	PolicyARNs  []string
 
 	SSHPublicKeyPath string
 	SSHPublicKey     []byte
@@ -69,6 +70,16 @@ type ClusterConfig struct {
 
 	MasterEndpoint           string
 	CertificateAuthorityData []byte
+
+	Addons ClusterAddons
+}
+
+type ClusterAddons struct {
+	WithIAM AddonIAM
+}
+
+type AddonIAM struct {
+	PolicyAmazonEC2ContainerRegistryPowerUser bool
 }
 
 func New(clusterConfig *ClusterConfig) *ClusterProvider {
