@@ -56,7 +56,7 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 		for {
 			select {
 			case <-timer.C:
-				errs <- fmt.Errorf("creating CloudFormation stack %q timed out after %d seconds", name, c.cfg.AWSOperationTimeout)
+				errs <- fmt.Errorf("timed out creating CloudFormation stack %q after %d", name, c.cfg.AWSOperationTimeout)
 				return
 
 			case <-ticker.C:
@@ -76,7 +76,7 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 				case cloudformation.StackStatusCreateFailed:
 					fallthrough // TODO: https://github.com/weaveworks/eksctl/issues/24
 				default:
-					errs <- fmt.Errorf("creating CloudFormation stack %q: %s", name, *s.StackStatus)
+					errs <- fmt.Errorf("unexpected status %q while creating CloudFormation stack %q", *s.StackStatus, name)
 					// stack <- *s // this usually results in closed channel panic, but we don't need it really
 					logger.Debug("stack = %#v", s)
 					return

@@ -99,7 +99,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 					clusterChan <- *cluster
 					return
 				default:
-					taskErrs <- fmt.Errorf("creating control plane: %s", *cluster.Status)
+					taskErrs <- fmt.Errorf("unexpected status %q while creating control plane %q", *cluster.Status, c.cfg.ClusterName)
 					return
 				}
 			}
