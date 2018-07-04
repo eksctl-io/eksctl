@@ -23,12 +23,12 @@ func TestCreateNewKubeConfig(t *testing.T) {
 			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 	}
 
-	err := kubeconfig.Write(configFile.Name(), &testConfig, false)
+	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
 
-	readConfig, err := clientcmd.LoadFromFile(configFile.Name())
+	readConfig, err := clientcmd.LoadFromFile(filename)
 	if err != nil {
 		t.Fatalf("Error reading configuration file: %v", err)
 	}
@@ -62,12 +62,12 @@ func TestNewConfigSetsContext(t *testing.T) {
 		CurrentContext: expectedContext,
 	}
 
-	err := kubeconfig.Write(configFile.Name(), &testConfig, true)
+	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, true)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
 
-	readConfig, err := clientcmd.LoadFromFile(configFile.Name())
+	readConfig, err := clientcmd.LoadFromFile(filename)
 	if err != nil {
 		t.Fatalf("Error reading configuration file: %v", err)
 	}
@@ -95,12 +95,12 @@ func TestMergeKubeConfig(t *testing.T) {
 			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 	}
 
-	err = kubeconfig.Write(configFile.Name(), &testConfig, false)
+	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
 
-	readConfig, err := clientcmd.LoadFromFile(configFile.Name())
+	readConfig, err := clientcmd.LoadFromFile(filename)
 	if err != nil {
 		t.Fatalf("Error reading configuration file: %v", err)
 	}
@@ -148,12 +148,12 @@ func TestMergeSetsContext(t *testing.T) {
 		CurrentContext: expectedContext,
 	}
 
-	err = kubeconfig.Write(configFile.Name(), &testConfig, true)
+	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, true)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
 
-	readConfig, err := clientcmd.LoadFromFile(configFile.Name())
+	readConfig, err := clientcmd.LoadFromFile(filename)
 	if err != nil {
 		t.Fatalf("Error reading configuration file: %v", err)
 	}
@@ -183,12 +183,12 @@ func TestMergeDoesNotSetContext(t *testing.T) {
 		CurrentContext: "test-context",
 	}
 
-	err = kubeconfig.Write(configFile.Name(), &testConfig, false)
+	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
 	if err != nil {
 		t.Fatalf("Error writing configuration: %v", err)
 	}
 
-	readConfig, err := clientcmd.LoadFromFile(configFile.Name())
+	readConfig, err := clientcmd.LoadFromFile(filename)
 	if err != nil {
 		t.Fatalf("Error reading configuration file: %v", err)
 	}

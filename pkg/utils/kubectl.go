@@ -43,7 +43,7 @@ func CheckHeptioAuthenticatorAWS() error {
 	return nil
 }
 
-func CheckAllCommands(kubeconfigPath string) error {
+func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string) error {
 	if err := CheckKubectlVersion(); err != nil {
 		return err
 	}
@@ -54,7 +54,11 @@ func CheckAllCommands(kubeconfigPath string) error {
 
 	if kubeconfigPath != "" {
 		ktl := &kubectl.LocalClient{
-			GlobalArgs: []string{"--kubeconfig", kubeconfigPath},
+			GlobalArgs: []string{fmt.Sprintf("--kubeconfig=%q", kubeconfigPath)},
+		}
+
+		if !isContextSet {
+			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%q", contextName))
 		}
 
 		suggestion := fmt.Sprintf("(check '%s %s version')", kubectl.Command, strings.Join(ktl.GlobalArgs, " "))

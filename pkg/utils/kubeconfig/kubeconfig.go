@@ -15,11 +15,13 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+var DefaultPath = clientcmd.RecommendedHomeFile
+
 // Write will write Kubernetes client configuration to a file.
 // If path isn't specified then the path will be determined by client-go.
 // If file pointed to by path doesn't exist it will be created.
 // If the file already exists then the configuration will be merged with the existing file.
-func Write(path string, newConfig *api.Config, setContext bool) error {
+func Write(path string, newConfig *api.Config, setContext bool) (string, error) {
 	configAccess := getConfigAccess(path)
 
 	config, err := configAccess.GetStartingConfig()
@@ -27,24 +29,24 @@ func Write(path string, newConfig *api.Config, setContext bool) error {
 	logger.Debug("merging kubeconfig files")
 	merged, err := merge(config, newConfig)
 	if err != nil {
-		return errors.Wrapf(err, "unable to merge configuration with existing kubeconfig file %q", path)
+		return "", errors.Wrapf(err, "unable to merge configuration with existing kubeconfig file %q", path)
 	}
 
-	if setContext && len(newConfig.CurrentContext) > 0 {
-		logger.Debug("setting current-context to %s", config.CurrentContext)
+	if setContext && newConfig.CurrentContext != "" {
+		logger.Debug("setting current-context to %s", newConfig.CurrentContext)
 		merged.CurrentContext = newConfig.CurrentContext
 	}
 
-	if err := clientcmd.ModifyConfig(configAccess, *config, true); err != nil {
-		return nil
+	if err := clientcmd.ModifyConfig(configAccess, *merged, true); err != nil {
+		return "", nil
 	}
 
-	return nil
+	return configAccess.GetDefaultFilename(), nil
 }
 
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 	pathOptions := clientcmd.NewDefaultPathOptions()
-	if explicitPath != "" {
+	if explicitPath != "" && explicitPath != DefaultPath {
 		pathOptions.LoadingRules.ExplicitPath = explicitPath
 	}
 
