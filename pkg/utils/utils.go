@@ -14,7 +14,20 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func ClusterName() string {
+// ClusterName generates a neme string when a and b are empty strings.
+// If either a or b are non-empty, it returns whichever is non-empty.
+// If neither a nor b are empty, it returns empty name, to indicate
+// ambigous usage.
+func ClusterName(a, b string) string {
+	if a != "" && b != "" {
+		return ""
+	}
+	if a != "" {
+		return a
+	}
+	if b != "" {
+		return b
+	}
 	return fmt.Sprintf("%s-%d", namer.RandomName(), time.Now().Unix())
 }
 

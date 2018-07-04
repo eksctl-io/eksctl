@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -52,10 +51,7 @@ func createClusterCmd() *cobra.Command {
 		Use:   "cluster",
 		Short: "Create a custer",
 		Run: func(_ *cobra.Command, args []string) {
-			if len(args) > 0 {
-				cfg.ClusterName = strings.TrimSpace(args[0])
-			}
-			if err := doCreateCluster(cfg); err != nil {
+			if err := doCreateCluster(cfg, getNameArg(args)); err != nil {
 				logger.Critical(err.Error())
 				os.Exit(1)
 			}
@@ -64,9 +60,10 @@ func createClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	exampleClusterName := utils.ClusterName()
+	exampleClusterName := utils.ClusterName("", "")
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
+
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS profile to use. If provided, this overrides the AWS_PROFILE environment variable")
 
@@ -88,16 +85,19 @@ func createClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doCreateCluster(cfg *eks.ClusterConfig) error {
+func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.ClusterName == "" {
-		cfg.ClusterName = utils.ClusterName()
+	if utils.ClusterName(cfg.ClusterName, name) == "" {
+		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.ClusterName, name)
 	}
+	cfg.ClusterName = utils.ClusterName(cfg.ClusterName, name)
+
+	logger.Info(cfg.ClusterName)
 
 	if autoKubeconfigPath {
 		if kubeconfigPath != DEFAULT_KUBECONFIG_PATH {

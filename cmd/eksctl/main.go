@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
@@ -37,4 +38,15 @@ func addCommands() {
 	rootCmd.AddCommand(deleteCmd())
 	rootCmd.AddCommand(getCmd())
 	rootCmd.AddCommand(utilsCmd())
+}
+
+func getNameArg(args []string) string {
+	if len(args) > 1 {
+		logger.Critical("only one argument is allowed to be used as a name")
+		os.Exit(1)
+	}
+	if len(args) == 1 {
+		return (strings.TrimSpace(args[0]))
+	}
+	return ""
 }
