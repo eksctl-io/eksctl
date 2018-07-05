@@ -9,7 +9,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 func deleteCmd() *cobra.Command {
@@ -89,7 +89,7 @@ func doDeleteCluster(cfg *eks.ClusterConfig, name string) error {
 
 	ctl.MaybeDeletePublicSSHKey()
 
-	utils.MaybeDeleteConfig(cfg.ClusterName)
+	kubeconfig.MaybeDeleteConfig(cfg.ClusterName)
 
 	logger.Success("all EKS cluster %q resource will be deleted (if in doubt, check CloudFormation console)", cfg.ClusterName)
 

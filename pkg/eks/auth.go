@@ -72,15 +72,19 @@ func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 
 func (c *ClusterProvider) getUsername() string {
 	usernameParts := strings.Split(c.svc.arn, "/")
-	username := usernameParts[len(usernameParts)-1]
-	return username
+	if len(usernameParts) > 1 {
+		return usernameParts[len(usernameParts)-1]
+	}
+	return "iam-root-account"
 }
 
 type ClientConfig struct {
-	Client  *clientcmdapi.Config
-	Cluster *ClusterConfig
-	roleARN string
-	sts     stsiface.STSAPI
+	Client      *clientcmdapi.Config
+	Cluster     *ClusterConfig
+	ClusterName string
+	ContextName string
+	roleARN     string
+	sts         stsiface.STSAPI
 }
 
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
@@ -109,8 +113,10 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 			},
 			CurrentContext: contextName,
 		},
-		roleARN: c.svc.arn,
-		sts:     c.svc.sts,
+		ClusterName: clusterName,
+		ContextName: contextName,
+		roleARN:     c.svc.arn,
+		sts:         c.svc.sts,
 	}
 
 	return clientConfig, nil
@@ -119,7 +125,7 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
 	clientConfigCopy := *c
 
-	x := clientConfigCopy.Client.AuthInfos[c.Client.CurrentContext]
+	x := clientConfigCopy.Client.AuthInfos[c.ContextName]
 	x.Exec = &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
 		Command:    "heptio-authenticator-aws",
@@ -150,17 +156,10 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 		return nil, errors.Wrap(err, "could not get token")
 	}
 
-	x := c.Client.AuthInfos[c.Client.CurrentContext]
+	x := c.Client.AuthInfos[c.ContextName]
 	x.Token = tok
 
 	return &clientConfigCopy, nil
-}
-
-func (c *ClientConfig) WriteToFile(filename string) error {
-	if err := clientcmd.WriteToFile(*c.Client, filename); err != nil {
-		return errors.Wrapf(err, "couldn't write client config file %q", filename)
-	}
-	return nil
 }
 
 func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {

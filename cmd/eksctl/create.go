@@ -12,6 +12,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 func createCmd() *cobra.Command {
@@ -35,14 +36,13 @@ const (
 	DEFAULT_NODE_COUNT     = 2
 	DEFAULT_NODE_TYPE      = "m5.large"
 	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
-
-	DEFAULT_KUBECONFIG_PATH = "kubeconfig"
 )
 
 var (
 	writeKubeconfig    bool
 	kubeconfigPath     string
 	autoKubeconfigPath bool
+	setContext         bool
 )
 
 func createClusterCmd() *cobra.Command {
@@ -78,8 +78,9 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
-	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", utils.ConfigPath(exampleClusterName)))
-	fs.StringVar(&kubeconfigPath, "kubeconfig", DEFAULT_KUBECONFIG_PATH, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
+	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleClusterName)))
+	fs.StringVar(&kubeconfigPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
+	fs.BoolVar(&setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
 	fs.DurationVar(&cfg.AWSOperationTimeout, "aws-api-timeout", 20*time.Minute, "number of seconds after which to timeout AWS API operations")
 
@@ -101,10 +102,10 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	cfg.ClusterName = utils.ClusterName(cfg.ClusterName, name)
 
 	if autoKubeconfigPath {
-		if kubeconfigPath != DEFAULT_KUBECONFIG_PATH {
+		if kubeconfigPath != kubeconfig.DefaultPath {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
 		}
-		kubeconfigPath = utils.ConfigPath(cfg.ClusterName)
+		kubeconfigPath = kubeconfig.AutoPath(cfg.ClusterName)
 	}
 
 	if cfg.SSHPublicKeyPath == "" {
@@ -143,12 +144,14 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 			return err
 		}
 
-		// TODO: https://github.com/weaveworks/eksctl/issues/29
 		if writeKubeconfig {
-			if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(kubeconfigPath); err != nil {
+			config := clientConfigBase.WithExecHeptioAuthenticator()
+			kubeconfigPath, err = kubeconfig.Write(kubeconfigPath, config.Client, setContext)
+			if err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}
-			logger.Info("wrote %q", kubeconfigPath)
+
+			logger.Success("saved kubeconfig as %q", kubeconfigPath)
 		} else {
 			kubeconfigPath = ""
 		}
@@ -172,9 +175,9 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		// check kubectl version, and offer install instructions if missing or old
 		// also check heptio-authenticator
 		// TODO: https://github.com/weaveworks/eksctl/issues/30
-		if err := utils.CheckAllCommands(kubeconfigPath); err != nil {
+		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName); err != nil {
 			logger.Critical(err.Error())
-			logger.Info("cluster should be functional despite missing client binaries that need to be installed in the PATH")
+			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}
 	}
 

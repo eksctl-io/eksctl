@@ -12,12 +12,13 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 var (
 	utilsKubeconfigInputPath  string
 	utilsKubeconfigOutputPath string
+	utilsSetContext           bool
 )
 
 func utilsCmd() *cobra.Command {
@@ -100,7 +101,8 @@ func writeKubeconfigCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS profile to use. If provided, this overrides the AWS_PROFILE environment variable")
 
-	fs.StringVar(&utilsKubeconfigOutputPath, "kubeconfig", "", "path to write kubeconfig")
+	fs.StringVar(&utilsKubeconfigOutputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig")
+	fs.BoolVar(&utilsSetContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
 	return cmd
 }
@@ -125,7 +127,7 @@ func doWriteKubeconfigCmd(cfg *eks.ClusterConfig, name string) error {
 	}
 
 	if utilsKubeconfigOutputPath == "" {
-		utilsKubeconfigOutputPath = utils.ConfigPath(cfg.ClusterName)
+		utilsKubeconfigOutputPath = kubeconfig.AutoPath(cfg.ClusterName)
 	}
 
 	cluster, err := ctl.DescribeControlPlane()
@@ -144,11 +146,13 @@ func doWriteKubeconfigCmd(cfg *eks.ClusterConfig, name string) error {
 		return err
 	}
 
-	if err := clientConfigBase.WithExecHeptioAuthenticator().WriteToFile(utilsKubeconfigOutputPath); err != nil {
+	config := clientConfigBase.WithExecHeptioAuthenticator()
+	filename, err := kubeconfig.Write(utilsKubeconfigOutputPath, config.Client, utilsSetContext)
+	if err != nil {
 		return errors.Wrap(err, "writing kubeconfig")
 	}
 
-	logger.Info("wrote kubeconfig file %q", utilsKubeconfigOutputPath)
+	logger.Success("saved kubeconfig as %q", filename)
 
 	return nil
 }
