@@ -60,7 +60,7 @@ $ eksctl create cluster
 2018-06-06T16:50:41+01:00 [ℹ]  creating DefaultNodeGroup stack "EKS-extravagant-sculpture-1528299658-DefaultNodeGroup"
 2018-06-06T16:54:22+01:00 [✔]  created DefaultNodeGroup stack "EKS-extravagant-sculpture-1528299658-DefaultNodeGroup"
 2018-06-06T16:54:22+01:00 [✔]  all EKS cluster "extravagant-sculpture-1528299658" resources has been created
-2018-06-06T16:54:22+01:00 [ℹ]  wrote "kubeconfig2"
+2018-06-06T16:54:22+01:00 [ℹ]  saved kubeconfig as "~/.kube/config"
 2018-06-06T16:54:23+01:00 [ℹ]  the cluster has 0 nodes
 2018-06-06T16:54:23+01:00 [ℹ]  waiting for at least 2 nodes to become ready
 2018-06-06T16:54:49+01:00 [ℹ]  the cluster has 2 nodes
