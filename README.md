@@ -41,7 +41,7 @@ A cluster will be created with default parameters
 - `us-west-2` region
 - dedicated VPC (check your quotas)
 
-Once you have created a cluster, you will find `kubeconfig` in your current working directory. If you have `kubectl` v1.10.x as well as `heptio-authenticator-aws` commands in your PATH, you should be
+Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `heptio-authenticator-aws` commands in your PATH, you should be
 able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions.
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
@@ -72,55 +72,55 @@ $ eksctl create cluster
 To list the details about a cluster or all of the clusters, use:
 
 ```
-eksctl get cluster [--name <name>] [--region <region>]
+eksctl get cluster [--name=<name>] [--region=<region>]
 ```
 
 To create the same kind of basic cluster, but with a different name, run:
 
 ```
-eksctl create cluster --name cluster-1 --nodes 4
+eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
 To write cluster credentials to a file other than default, run:
 
 ```
-eksctl create cluster --name cluster-2 --nodes 4 --kubeconfig ./kubeconfig.cluster-2.yaml
+eksctl create cluster --name=cluster-2 --nodes=4 --kubeconfig=./kubeconfig.cluster-2.yaml
 ```
 
 To prevent storing cluster credentials locally, run:
 
 ```
-eksctl create cluster --name cluster-3 --nodes 4 --write-kubeconfig=false
+eksctl create cluster --name=cluster-3 --nodes=4 --write-kubeconfig=false
 ```
 
 To let `eksctl` manage cluster credentials under `~/.kube/eksctl/clusters` directory, run:
 
 ```
-eksctl create cluster --name cluster-3 --nodes 4 --auto-kubeconfig
+eksctl create cluster --name=cluster-3 --nodes=4 --auto-kubeconfig
 ```
 
 To obtain cluster credentials at any point in time, run:
 
 ```
-eksctl utils write-kubeconfig --name <name> [--kubeconfig <path>]
+eksctl utils write-kubeconfig --name=<name> [--kubeconfig=<path>] [--set-kubeconfig-context=<bool>]
 ```
 
 To use a 3-5 node Auto Scaling Group, run:
 
 ```
-eksctl create cluster --name cluster-5 --nodes-min 3 --nodes-max 5
+eksctl create cluster --name=cluster-5 --nodes-min=3 --nodes-max=5
 ```
 
-To use 30 `c4.xlarge` nodes, run:
+To use 30 `c4.xlarge` nodes and prevent updating current context in `~/.kube/config`, run:
 
 ```
-eksctl create cluster --name cluster-6 --nodes 30 --node-type c4.xlarge
+eksctl create cluster --name=cluster-6 --nodes=30 --node-type=c4.xlarge --set-kubeconfig-context=false
 ```
 
 To delete a cluster, run:
 
 ```
-eksctl delete cluster --name <name> [--region <region>]
+eksctl delete cluster --name=<name> [--region=<region>]
 ```
 
 <!-- TODO for 0.3.0
