@@ -54,11 +54,11 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 
 	if kubeconfigPath != "" {
 		ktl := &kubectl.LocalClient{
-			GlobalArgs: []string{fmt.Sprintf("--kubeconfig=%q", kubeconfigPath)},
+			GlobalArgs: []string{fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)},
 		}
 
 		if !isContextSet {
-			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%q", contextName))
+			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%s", contextName))
 		}
 
 		suggestion := fmt.Sprintf("(check '%s %s version')", kubectl.Command, strings.Join(ktl.GlobalArgs, " "))
