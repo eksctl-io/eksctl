@@ -19,6 +19,7 @@ var (
 	utilsKubeconfigInputPath  string
 	utilsKubeconfigOutputPath string
 	utilsSetContext           bool
+	utilsAutoKubeconfigPath   bool
 )
 
 func utilsCmd() *cobra.Command {
@@ -101,6 +102,7 @@ func writeKubeconfigCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS profile to use. If provided, this overrides the AWS_PROFILE environment variable")
 
+	fs.BoolVar(&utilsAutoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name – %q", kubeconfig.AutoPath("<name>")))
 	fs.StringVar(&utilsKubeconfigOutputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig")
 	fs.BoolVar(&utilsSetContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
@@ -126,7 +128,10 @@ func doWriteKubeconfigCmd(cfg *eks.ClusterConfig, name string) error {
 		return fmt.Errorf("--name must be set")
 	}
 
-	if utilsKubeconfigOutputPath == "" {
+	if utilsAutoKubeconfigPath {
+		if utilsKubeconfigOutputPath != kubeconfig.DefaultPath {
+			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
+		}
 		utilsKubeconfigOutputPath = kubeconfig.AutoPath(cfg.ClusterName)
 	}
 
