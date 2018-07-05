@@ -111,6 +111,12 @@ To use a 3-5 node Auto Scaling Group, run:
 eksctl create cluster --name=cluster-5 --nodes-min=3 --nodes-max=5
 ```
 
+To use a specific ssh-key, in a specific region, run:
+
+```
+eksctl create cluster --region us-west-2 --ssh-public-key=~/.ssh/<your-key>.pub
+```
+
 To use 30 `c4.xlarge` nodes and prevent updating current context in `~/.kube/config`, run:
 
 ```
