@@ -117,6 +117,19 @@ To use 30 `c4.xlarge` nodes and prevent updating current context in `~/.kube/con
 eksctl create cluster --name=cluster-6 --nodes=30 --node-type=c4.xlarge --set-kubeconfig-context=false
 ```
 
+
+In order to allow SSH access to nodes, `eksctl` imports `~/.ssh/id_rsa.pub` by default, to use a different SSH public key, e.g. `my_eks_node_id.pub`, run:
+
+```
+eksctl create cluster --ssh-public-key=my_eks_node_id.pub
+```
+
+To use a pre-existing EC2 key pair in `us-east-1` region, you can specify key pair name (which must not resolve to a local file path), e.g. to use `my_kubernetes_key` run:
+
+```
+eksctl create cluster --ssh-public-key=my_kubernetes_key --region=us-east-1
+```
+
 To delete a cluster, run:
 
 ```
