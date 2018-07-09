@@ -21,8 +21,71 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
+	"k8s.io/kops/pkg/pki"
 	"k8s.io/kops/upup/pkg/fi/utils"
 )
+
+func (c *ClusterProvider) getKeyPairName(fingerprint *string) string {
+	keyNameParts := []string{"eksctl", c.cfg.ClusterName}
+	if fingerprint != nil {
+		keyNameParts = append(keyNameParts, *fingerprint)
+	}
+	return strings.Join(keyNameParts, "-")
+}
+
+func (c *ClusterProvider) getKeyPair(name string) (*ec2.KeyPairInfo, error) {
+	input := &ec2.DescribeKeyPairsInput{
+		KeyNames: aws.StringSlice([]string{name}),
+	}
+	output, err := c.svc.ec2.DescribeKeyPairs(input)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot find EC2 key pair %q", name)
+	}
+	if len(output.KeyPairs) != 1 {
+		logger.Debug("output = %#v", output)
+		return nil, fmt.Errorf("unexpected number of key pairs found (expected: 1, got: %d)", len(output.KeyPairs))
+	}
+	return output.KeyPairs[0], nil
+}
+
+func (c *ClusterProvider) tryExistingSSHPublicKeyFromPath() error {
+	logger.Info("SSH public key file %q does not exist; will assume existing EC2 key pair", c.cfg.SSHPublicKeyPath)
+	existing, err := c.getKeyPair(c.cfg.SSHPublicKeyPath)
+	if err != nil {
+		return err
+	}
+	c.cfg.keyName = *existing.KeyName
+	logger.Info("found EC2 key pair %q", c.cfg.keyName)
+	return nil
+}
+
+func (c *ClusterProvider) importSSHPublicKeyIfNeeded() error {
+	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(c.cfg.SSHPublicKey))
+	if err != nil {
+		return err
+	}
+	c.cfg.keyName = c.getKeyPairName(&fingerprint)
+	existing, err := c.getKeyPair(c.cfg.keyName)
+	if err != nil {
+		if strings.HasPrefix(err.Error(), "cannot find EC2 key pair") {
+			input := &ec2.ImportKeyPairInput{
+				KeyName:           &c.cfg.keyName,
+				PublicKeyMaterial: c.cfg.SSHPublicKey,
+			}
+			logger.Info("importing SSH public key %q as %q", c.cfg.SSHPublicKeyPath, c.cfg.keyName)
+			if _, err := c.svc.ec2.ImportKeyPair(input); err != nil {
+				return errors.Wrap(err, "importing SSH public key")
+			}
+			return nil
+		}
+		return errors.Wrap(err, "checking existing key pair")
+	}
+	if *existing.KeyFingerprint != fingerprint {
+		return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", c.cfg.keyName, fingerprint, *existing.KeyFingerprint)
+	}
+	logger.Debug("SSH public key %s already exists", c.cfg.keyName)
+	return nil
+}
 
 func (c *ClusterProvider) LoadSSHPublicKey() error {
 	c.cfg.SSHPublicKeyPath = utils.ExpandPath(c.cfg.SSHPublicKeyPath)
@@ -30,44 +93,45 @@ func (c *ClusterProvider) LoadSSHPublicKey() error {
 	if err != nil {
 		if os.IsNotExist(err) {
 			// if file not found – try to use existing EC2 key pair
-			logger.Info("SSH public key file %q does not exist; will assume existing EC2 key pair", c.cfg.SSHPublicKeyPath)
-			input := &ec2.DescribeKeyPairsInput{
-				KeyNames: aws.StringSlice([]string{c.cfg.SSHPublicKeyPath}),
-			}
-			output, err := c.svc.ec2.DescribeKeyPairs(input)
-			if err != nil {
-				return errors.Wrap(err, "cannot find EC2 key pair")
-			}
-			if len(output.KeyPairs) != 1 {
-				logger.Debug("output = %#v", output)
-				return fmt.Errorf("coulnd't find existing EC2 key pair")
-			}
-			c.cfg.keyName = *output.KeyPairs[0].KeyName
-			logger.Info("found EC2 key pair %q with finger print %q", c.cfg.keyName, *output.KeyPairs[0].KeyFingerprint)
-		} else {
-			return errors.Wrap(err, fmt.Sprintf("error reading SSH public key file %q", c.cfg.SSHPublicKeyPath))
+			return c.tryExistingSSHPublicKeyFromPath()
 		}
-	} else {
-		// on successfull read – import it
-		c.cfg.SSHPublicKey = sshPublicKey
-		c.cfg.keyName = "EKS-" + c.cfg.ClusterName
-		input := &ec2.ImportKeyPairInput{
-			KeyName:           &c.cfg.keyName,
-			PublicKeyMaterial: c.cfg.SSHPublicKey,
-		}
-		logger.Info("importing SSH public key %q as %q", c.cfg.SSHPublicKeyPath, c.cfg.keyName)
-		if _, err := c.svc.ec2.ImportKeyPair(input); err != nil {
-			return errors.Wrap(err, "importing SSH public key")
-		}
+		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", c.cfg.SSHPublicKeyPath))
 	}
-	return nil
+	// on successfull read – import it
+	c.cfg.SSHPublicKey = sshPublicKey
+	return c.importSSHPublicKeyIfNeeded()
 }
 
 func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
-	input := &ec2.DeleteKeyPairInput{
-		KeyName: aws.String("EKS-" + c.cfg.ClusterName),
+	existing, err := c.svc.ec2.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
+	if err != nil {
+		logger.Debug("cannot describe keys: %v", err)
+		return
 	}
-	c.svc.ec2.DeleteKeyPair(input)
+	matching := []*string{}
+	prefix := c.getKeyPairName(nil)
+	logger.Debug("existing = %#v", existing)
+	for _, e := range existing.KeyPairs {
+		if strings.HasPrefix(*e.KeyName, prefix) {
+			nameParts := strings.Split(*e.KeyName, "-")
+			logger.Debug("existing key %q matches prefix", *e.KeyName)
+			if nameParts[len(nameParts)-1] == *e.KeyFingerprint {
+				logger.Debug("existing key %q matches fingerprint", *e.KeyName)
+				matching = append(matching, e.KeyName)
+			}
+		}
+	}
+	if len(matching) > 1 {
+		logger.Debug("too many matching keys, will not delete any")
+		return
+	}
+	if len(matching) == 1 {
+		input := &ec2.DeleteKeyPairInput{
+			KeyName: matching[0],
+		}
+		logger.Debug("deleting key %q", *matching[0])
+		c.svc.ec2.DeleteKeyPair(input)
+	}
 }
 
 func (c *ClusterProvider) getUsername() string {
