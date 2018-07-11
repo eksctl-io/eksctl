@@ -6,11 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/credentials"
-
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -33,6 +32,8 @@ const (
 type ClusterProvider struct {
 	cfg *ClusterConfig
 	svc *providerServices
+
+	sessionCreds *credentials.Credentials
 }
 
 type providerServices struct {
@@ -87,7 +88,6 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
 	s := newSession(clusterConfig, "", nil)
-	creds := s.Config.Credentials
 
 	c := &ClusterProvider{
 		cfg: clusterConfig,
@@ -97,31 +97,44 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 			ec2: ec2.New(s),
 			sts: sts.New(s),
 		},
+		sessionCreds: s.Config.Credentials,
 	}
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, creds)
+		s := newSession(clusterConfig, endpoint, c.sessionCreds)
 		c.svc.cfn = cloudformation.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, creds)
+		s := newSession(clusterConfig, endpoint, c.sessionCreds)
 		c.svc.eks = eks.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, creds)
+		s := newSession(clusterConfig, endpoint, c.sessionCreds)
 		c.svc.ec2 = ec2.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, creds)
+		s := newSession(clusterConfig, endpoint, c.sessionCreds)
 		c.svc.sts = sts.New(s)
 	}
 
 	return c
+}
+
+func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
+	creds, err := c.sessionCreds.Get()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting effective credentials")
+	}
+	return []string{
+		fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", creds.AccessKeyID),
+		fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", creds.SecretAccessKey),
+		fmt.Sprintf("AWS_SESSION_TOKEN=%s", creds.SessionToken),
+	}, nil
 }
 
 func (c *ClusterProvider) CheckAuth() error {

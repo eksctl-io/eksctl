@@ -56,7 +56,6 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 		ktl := &kubectl.LocalClient{
 			GlobalArgs: []string{fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)},
 		}
-
 		if !isContextSet {
 			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%s", contextName))
 		}
