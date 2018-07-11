@@ -12,8 +12,8 @@ import (
 	"github.com/weaveworks/launcher/pkg/kubectl"
 )
 
-func CheckKubectlVersion() error {
-	ktl := &kubectl.LocalClient{}
+func CheckKubectlVersion(env []string) error {
+	ktl := &kubectl.LocalClient{Env: env}
 	kubectlPath, err := ktl.LookPath()
 	if err != nil {
 		return fmt.Errorf("kubectl not found, v1.10.0 or newever is required")
@@ -43,8 +43,8 @@ func CheckHeptioAuthenticatorAWS() error {
 	return nil
 }
 
-func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string) error {
-	if err := CheckKubectlVersion(); err != nil {
+func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string, env []string) error {
+	if err := CheckKubectlVersion(env); err != nil {
 		return err
 	}
 
@@ -55,6 +55,7 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 	if kubeconfigPath != "" {
 		ktl := &kubectl.LocalClient{
 			GlobalArgs: []string{fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)},
+			Env:        env,
 		}
 		if !isContextSet {
 			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%s", contextName))
