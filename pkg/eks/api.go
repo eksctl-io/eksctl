@@ -30,9 +30,12 @@ const (
 )
 
 type ClusterProvider struct {
+	// core fields used for config and AWS APIs
 	cfg *ClusterConfig
 	svc *providerServices
 
+	// informative fields, i.e. used as outputs
+	iamRoleARN   string
 	sessionCreds *credentials.Credentials
 }
 
@@ -41,7 +44,6 @@ type providerServices struct {
 	eks eksiface.EKSAPI
 	ec2 ec2iface.EC2API
 	sts stsiface.STSAPI
-	arn string
 }
 
 // simple config, to be replaced with Cluster API
@@ -144,8 +146,8 @@ func (c *ClusterProvider) CheckAuth() error {
 		if err != nil {
 			return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 		}
-		c.svc.arn = *output.Arn
-		logger.Debug("role ARN for the current session is %q", c.svc.arn)
+		c.iamRoleARN = *output.Arn
+		logger.Debug("role ARN for the current session is %q", c.iamRoleARN)
 	}
 	{
 		input := &cloudformation.ListStacksInput{}

@@ -135,7 +135,7 @@ func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 }
 
 func (c *ClusterProvider) getUsername() string {
-	usernameParts := strings.Split(c.svc.arn, "/")
+	usernameParts := strings.Split(c.iamRoleARN, "/")
 	if len(usernameParts) > 1 {
 		return usernameParts[len(usernameParts)-1]
 	}
@@ -179,7 +179,7 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 		},
 		ClusterName: clusterName,
 		ContextName: contextName,
-		roleARN:     c.svc.arn,
+		roleARN:     c.iamRoleARN,
 		sts:         c.svc.sts,
 	}
 
