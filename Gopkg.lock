@@ -343,7 +343,15 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  packages = [
+    "curve25519",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "internal/chacha20",
+    "poly1305",
+    "ssh",
+    "ssh/terminal"
+  ]
   revision = "ab813273cd59e1333f7ae7bff5d027d4aadf528c"
 
 [[projects]]
@@ -541,13 +549,16 @@
 
 [[projects]]
   name = "k8s.io/kops"
-  packages = ["upup/pkg/fi/utils"]
+  packages = [
+    "pkg/pki",
+    "upup/pkg/fi/utils"
+  ]
   revision = "ba77c9ca2f048722835d7a103753c4668393ba67"
   version = "1.9.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f8d245bbf3b9bc59a25011e8b9849bdecc444c97f34530dc810c93f45fa5523c"
+  inputs-digest = "b202af0eb9928453bcb58e4a78b29b6f78d85bf9d4d80e0e685a529517fef853"
   solver-name = "gps-cdcl"
   solver-version = 1
