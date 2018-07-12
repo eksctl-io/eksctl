@@ -51,6 +51,10 @@ required = [
   branch = "master"
   name = "github.com/weaveworks/launcher"
 
+[[constraint]]
+  branch = "master"
+  name = "github.com/kballard/go-shellquote"
+
 [prune]
   go-tests = true
   unused-packages = true
