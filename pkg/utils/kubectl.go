@@ -6,11 +6,21 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
+
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/weaveworks/launcher/pkg/kubectl"
 )
+
+func fmtKubectlCmd(ktl *kubectl.LocalClient, cmds ...string) string {
+	args := []string{kubectl.Command}
+	args = append(args, ktl.GlobalArgs...)
+	args = append(args, cmds...)
+	return shellquote.Join(args...)
+}
 
 func CheckKubectlVersion(env []string) error {
 	ktl := &kubectl.LocalClient{Env: env}
@@ -57,14 +67,17 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 
 	if kubeconfigPath != "" {
 		ktl := &kubectl.LocalClient{
-			GlobalArgs: []string{fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)},
+			GlobalArgs: []string{},
 			Env:        env,
+		}
+		if kubeconfigPath != clientcmd.RecommendedHomeFile {
+			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--kubeconfig=%s", kubeconfigPath))
 		}
 		if !isContextSet {
 			ktl.GlobalArgs = append(ktl.GlobalArgs, fmt.Sprintf("--context=%s", contextName))
 		}
 
-		suggestion := fmt.Sprintf("(check '%s %s version')", kubectl.Command, strings.Join(ktl.GlobalArgs, " "))
+		suggestion := fmt.Sprintf("(check '%s')", fmtKubectlCmd(ktl, "version"))
 
 		_, serverVersion, err := kubectl.GetVersionInfo(ktl)
 		if err != nil {
@@ -78,7 +91,7 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 			return fmt.Errorf("Kubernetes version %s found, v1.10.0 or newer is expected with EKS %s", serverVersion, suggestion)
 		}
 
-		logger.Info("kubectl command should work with %q, try '%s %s get nodes'", kubeconfigPath, kubectl.Command, strings.Join(ktl.GlobalArgs, " "))
+		logger.Info("kubectl command should work with %q, try '%s'", kubeconfigPath, fmtKubectlCmd(ktl, "get", "nodes"))
 	} else {
 		logger.Debug("skipping kubectl integration ckecks, as writing kubeconfig file is disabled")
 	}
