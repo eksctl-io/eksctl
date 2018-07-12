@@ -34,7 +34,7 @@ func getClusterCmd() *cobra.Command {
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doGetCluster(cfg, getNameArg(args)); err != nil {
-				logger.Critical(err.Error())
+				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},

@@ -53,7 +53,7 @@ func createClusterCmd() *cobra.Command {
 		Short: "Create a custer",
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doCreateCluster(cfg, getNameArg(args)); err != nil {
-				logger.Critical(err.Error())
+				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
@@ -175,7 +175,11 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		// check kubectl version, and offer install instructions if missing or old
 		// also check heptio-authenticator
 		// TODO: https://github.com/weaveworks/eksctl/issues/30
-		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName); err != nil {
+		env, err := ctl.GetCredentialsEnv()
+		if err != nil {
+			return err
+		}
+		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName, env); err != nil {
 			logger.Critical(err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}

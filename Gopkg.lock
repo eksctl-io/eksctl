@@ -338,7 +338,7 @@
   branch = "master"
   name = "github.com/weaveworks/launcher"
   packages = ["pkg/kubectl"]
-  revision = "da79c27d9394b0b277a35cd50c4c6f504fef6afb"
+  revision = "f1b2830d4f2d0138e21761086094f6e364dcaf2a"
 
 [[projects]]
   branch = "master"

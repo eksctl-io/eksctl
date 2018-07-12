@@ -27,7 +27,7 @@ func init() {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Println(err) // outputs cobra errors
 		os.Exit(-1)
 	}
 }

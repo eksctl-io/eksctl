@@ -45,7 +45,7 @@ func waitNodesCmd() *cobra.Command {
 		Short: "Wait for nodes",
 		Run: func(_ *cobra.Command, _ []string) {
 			if err := doWaitNodes(cfg); err != nil {
-				logger.Critical(err.Error())
+				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
@@ -89,7 +89,7 @@ func writeKubeconfigCmd() *cobra.Command {
 		Short: "Write kubeconfig file for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doWriteKubeconfigCmd(cfg, getNameArg(args)); err != nil {
-				logger.Critical(err.Error())
+				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},

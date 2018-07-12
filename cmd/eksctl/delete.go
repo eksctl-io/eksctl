@@ -34,7 +34,7 @@ func deleteClusterCmd() *cobra.Command {
 		Short: "Delete a cluster",
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doDeleteCluster(cfg, getNameArg(args)); err != nil {
-				logger.Critical(err.Error())
+				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
