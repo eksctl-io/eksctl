@@ -173,12 +173,14 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 	logger.Debug("cluster = %#v", output)
 	if *output.Cluster.Status == eks.ClusterStatusActive {
 		logger.Info("cluster = %#v", *output.Cluster)
-		stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
-		if err != nil {
-			return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
-		}
-		for _, s := range stacks {
-			logger.Info("stack = %#v", *s)
+		if logger.Level >= 4 {
+			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
+			if err != nil {
+				return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
+			}
+			for _, s := range stacks {
+				logger.Debug("stack = %#v", *s)
+			}
 		}
 	}
 	return nil
