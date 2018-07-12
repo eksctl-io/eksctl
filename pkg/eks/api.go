@@ -223,6 +223,8 @@ func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *cred
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 	}
 
+	stscreds.DefaultDuration = 30 * time.Minute
+
 	if len(endpoint) > 0 {
 		opts.Config.Endpoint = &endpoint
 	}
