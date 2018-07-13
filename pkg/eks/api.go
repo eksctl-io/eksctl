@@ -29,6 +29,8 @@ const (
 	AWSDebugLevel  = 5
 )
 
+var DefaultWaitTimeout = 20 * time.Minute
+
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
 	cfg *ClusterConfig
@@ -61,7 +63,7 @@ type ClusterConfig struct {
 	SSHPublicKeyPath string
 	SSHPublicKey     []byte
 
-	AWSOperationTimeout time.Duration
+	WaitTimeout time.Duration
 
 	keyName        string
 	clusterRoleARN string

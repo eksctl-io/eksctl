@@ -81,8 +81,7 @@ func getNodes(clientSet *clientset.Clientset) (int, error) {
 }
 
 func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
-	timeoutAfter := 20 * time.Minute
-	timer := time.After(timeoutAfter)
+	timer := time.After(c.WaitTimeout)
 	timeout := false
 	watcher, err := clientSet.Core().Nodes().Watch(metav1.ListOptions{})
 	if err != nil {
@@ -115,7 +114,7 @@ func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
 		}
 	}
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", timeoutAfter, c.MinNodes)
+		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.WaitTimeout, c.MinNodes)
 	}
 
 	if _, err = getNodes(clientSet); err != nil {
