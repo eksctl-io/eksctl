@@ -39,7 +39,6 @@ func newClusterProvider(clusterName string, mocks *awsMocks) *ClusterProvider {
 			ec2: mocks.EC2,
 			sts: mocks.STS,
 		},
-		//sessionCreds: s.Config.Credentials,
 	}
 
 	return cp
@@ -105,4 +104,47 @@ func TestListAllWithClusterNameWithVerboseLogging(t *testing.T) {
 
 	mocks.EKS.AssertNumberOfCalls(t, "DescribeCluster", 1)
 	mocks.CFN.AssertNumberOfCalls(t, "ListStacksPages", 1)
+}
+
+func TestListAllWithNoClusterName(t *testing.T) {
+	assert := assert.New(t)
+	clusterName := ""
+	clusterStatus := eks.ClusterStatusActive
+	logger.Level = 3
+
+	// Setup required mocks
+	mocks := newMocks()
+
+	mockListClustersFn := func(inout *eks.ListClustersInput) *eks.ListClustersOutput {
+		clusterName1 := "cluster1"
+		clusterName2 := "cluster2"
+		clusterNames := []*string{&clusterName1, &clusterName2}
+		output := &eks.ListClustersOutput{
+			Clusters: clusterNames,
+		}
+		return output
+	}
+	mocks.EKS.On("ListClusters", mock.MatchedBy(func(input *eks.ListClustersInput) bool {
+		return true
+	})).Return(mockListClustersFn, nil)
+
+	mockDescribeClusterFn := func(input *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
+		output := &eks.DescribeClusterOutput{}
+		output.Cluster = &eks.Cluster{
+			Name:   input.Name,
+			Status: &clusterStatus,
+		}
+		return output
+	}
+	mocks.EKS.On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
+		return input.Name != nil
+	})).Return(mockDescribeClusterFn, nil)
+
+	// Get clusterprovider
+	cp := newClusterProvider(clusterName, mocks)
+
+	assert.Nil(cp.ListClusters())
+
+	mocks.EKS.AssertNumberOfCalls(t, "ListClusters", 1)
+	mocks.EKS.AssertNumberOfCalls(t, "DescribeCluster", 2)
 }
