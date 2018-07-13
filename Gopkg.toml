@@ -59,3 +59,11 @@ required = [
   go-tests = true
   unused-packages = true
   non-go = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/vektra/mockery"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
