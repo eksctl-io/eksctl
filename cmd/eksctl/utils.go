@@ -54,7 +54,8 @@ func waitNodesCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVar(&utilsKubeconfigInputPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
-	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", DEFAULT_NODE_COUNT, "minimum nodes to wait for")
+	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", DEFAULT_NODE_COUNT, "minimum number of nodes to wait for")
+	fs.DurationVar(&cfg.WaitTimeout, "timeout", eks.DefaultWaitTimeout, "how long to wait")
 
 	return cmd
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -82,7 +81,9 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVar(&kubeconfigPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 	fs.BoolVar(&setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
-	fs.DurationVar(&cfg.AWSOperationTimeout, "aws-api-timeout", 20*time.Minute, "number of seconds after which to timeout AWS API operations")
+	fs.DurationVar(&cfg.WaitTimeout, "aws-api-timeout", eks.DefaultWaitTimeout, "")
+	fs.MarkHidden("aws-api-timeout") // TODO deprecate in 0.2.0
+	fs.DurationVar(&cfg.WaitTimeout, "timeout", eks.DefaultWaitTimeout, "max wait time in any polling operations")
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 
@@ -159,6 +160,10 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		// create Kubernetes client
 		clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
 		if err != nil {
+			return err
+		}
+
+		if err := cfg.WaitForControlPlane(clientSet); err != nil {
 			return err
 		}
 

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
@@ -72,7 +73,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
-		timer := time.NewTimer(c.cfg.AWSOperationTimeout)
+		timer := time.NewTimer(c.cfg.WaitTimeout)
 		defer timer.Stop()
 
 		defer close(taskErrs)
@@ -81,7 +82,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		for {
 			select {
 			case <-timer.C:
-				taskErrs <- fmt.Errorf("timed out creating control plane %q after %s", c.cfg.ClusterName, c.cfg.AWSOperationTimeout)
+				taskErrs <- fmt.Errorf("timed out creating control plane %q after %s", c.cfg.ClusterName, c.cfg.WaitTimeout)
 				return
 
 			case <-ticker.C:
@@ -189,4 +190,29 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 func (c *ClusterProvider) ListAllTaggedResources() error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/26
 	return nil
+}
+
+func (c *ClusterConfig) WaitForControlPlane(clientSet *kubernetes.Clientset) error {
+	if _, err := clientSet.ServerVersion(); err == nil {
+		return nil
+	}
+
+	ticker := time.NewTicker(20 * time.Second)
+	defer ticker.Stop()
+
+	timer := time.NewTimer(c.WaitTimeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			_, err := clientSet.ServerVersion()
+			if err == nil {
+				return nil
+			}
+			logger.Debug("control plane not ready yet – %s", err.Error())
+		case <-timer.C:
+			return fmt.Errorf("timed out waiting for control plane %q after %s", c.ClusterName, c.WaitTimeout)
+		}
+	}
 }
