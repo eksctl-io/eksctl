@@ -1,150 +1,112 @@
-package eks
+package eks_test
 
 import (
-	"testing"
-
+	"github.com/aws/aws-sdk-go/aws"
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kubicorn/kubicorn/pkg/logger"
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mocks"
 )
 
-type awsMocks struct {
-	CFN *mocks.CloudFormationAPI
-	EKS *mocks.EKSAPI
-	EC2 *mocks.EC2API
-	STS *mocks.STSAPI
-}
+var _ = Describe("Eks", func() {
+	var (
+		cp     *ClusterProvider
+		config ClusterConfig
+	)
 
-func newMocks() *awsMocks {
-	return &awsMocks{
-		CFN: &mocks.CloudFormationAPI{},
-		EKS: &mocks.EKSAPI{},
-		EC2: &mocks.EC2API{},
-		STS: &mocks.STSAPI{},
-	}
-}
+	BeforeEach(func() {
 
-func newClusterProvider(clusterName string, mocks *awsMocks) *ClusterProvider {
-	config := &ClusterConfig{
-		ClusterName: clusterName,
-	}
+	})
 
-	cp := &ClusterProvider{
-		cfg: config,
-		svc: &providerServices{
-			cfn: mocks.CFN,
-			eks: mocks.EKS,
-			ec2: mocks.EC2,
-			sts: mocks.STS,
-		},
-	}
+	Describe("ListAll", func() {
+		Context("With a cluster name", func() {
+			var (
+				clusterName *string
+				err         error
+			)
 
-	return cp
-}
+			BeforeEach(func() {
+				clusterName = aws.String("test-cluster")
 
-func TestListAllWithClusterName(t *testing.T) {
-	assert := assert.New(t)
-	clusterName := "test-cluster"
-	clusterStatus := eks.ClusterStatusActive
-	logger.Level = 3
+				config = ClusterConfig{
+					ClusterName: *clusterName,
+				}
+				cp = &ClusterProvider{
+					Cfg: &config,
+					Svc: &ProviderServices{
+						CFN: &mocks.CloudFormationAPI{},
+						EKS: &mocks.EKSAPI{},
+						EC2: &mocks.EC2API{},
+						STS: &mocks.STSAPI{},
+					},
+				}
 
-	// Setup required mocks
-	mocks := newMocks()
+				cp.Svc.EKS.(*mocks.EKSAPI).On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
+					return *input.Name == *clusterName
+				})).Return(&eks.DescribeClusterOutput{
+					Cluster: &eks.Cluster{
+						Name:   clusterName,
+						Status: aws.String(eks.ClusterStatusActive),
+					},
+				}, nil)
+			})
 
-	mockDescribeClusterFn := func(input *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
-		output := &eks.DescribeClusterOutput{}
-		output.Cluster = &eks.Cluster{
-			Name:   &clusterName,
-			Status: &clusterStatus,
-		}
-		return output
-	}
-	mocks.EKS.On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
-		return input.Name != nil
-	})).Return(mockDescribeClusterFn, nil)
+			Context("and normal log level", func() {
+				BeforeEach(func() {
+					logger.Level = 3
+				})
 
-	// Get clusterprovider
-	cp := newClusterProvider(clusterName, mocks)
+				JustBeforeEach(func() {
+					err = cp.ListClusters()
+				})
 
-	assert.Nil(cp.ListClusters())
-	//TODO: Do we need to test the output to stdout
+				It("should not error", func() {
+					Expect(err).NotTo(HaveOccurred())
+				})
 
-	mocks.EKS.AssertNumberOfCalls(t, "DescribeCluster", 1)
-	mocks.CFN.AssertNumberOfCalls(t, "ListStacksPages", 0)
-}
+				It("should have called AWS EKS service once", func() {
+					Expect(cp.Svc.EKS.(*mocks.EKSAPI).AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+				})
 
-func TestListAllWithClusterNameWithVerboseLogging(t *testing.T) {
-	assert := assert.New(t)
-	clusterName := "test-cluster"
-	clusterStatus := eks.ClusterStatusActive
-	logger.Level = 4
+				It("should not call AWS CFN ListStackPages", func() {
+					Expect(cp.Svc.CFN.(*mocks.CloudFormationAPI).AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
+				})
+			})
 
-	// Setup required mocks
-	mocks := newMocks()
+			Context("and debug log level", func() {
+				var (
+					expectedStatusFilter string
+				)
+				BeforeEach(func() {
+					expectedStatusFilter = "CREATE_COMPLETE"
 
-	mockDescribeClusterFn := func(input *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
-		output := &eks.DescribeClusterOutput{}
-		output.Cluster = &eks.Cluster{
-			Name:   &clusterName,
-			Status: &clusterStatus,
-		}
-		return output
-	}
-	mocks.EKS.On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
-		return input.Name != nil
-	})).Return(mockDescribeClusterFn, nil)
-	mocks.CFN.On("ListStacksPages", mock.Anything, mock.Anything).Return(nil)
+					logger.Level = 4
 
-	// Get clusterprovider
-	cp := newClusterProvider(clusterName, mocks)
+					cp.Svc.CFN.(*mocks.CloudFormationAPI).On("ListStacksPages", mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
+						return *input.StackStatusFilter[0] == expectedStatusFilter
+					}), mock.Anything).Return(nil)
+				})
 
-	assert.Nil(cp.ListClusters())
+				JustBeforeEach(func() {
+					err = cp.ListClusters()
+				})
 
-	mocks.EKS.AssertNumberOfCalls(t, "DescribeCluster", 1)
-	mocks.CFN.AssertNumberOfCalls(t, "ListStacksPages", 1)
-}
+				It("should not error", func() {
+					Expect(err).NotTo(HaveOccurred())
+				})
 
-func TestListAllWithNoClusterName(t *testing.T) {
-	assert := assert.New(t)
-	clusterName := ""
-	clusterStatus := eks.ClusterStatusActive
-	logger.Level = 3
+				It("should have called AWS EKS service once", func() {
+					Expect(cp.Svc.EKS.(*mocks.EKSAPI).AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+				})
 
-	// Setup required mocks
-	mocks := newMocks()
-
-	mockListClustersFn := func(inout *eks.ListClustersInput) *eks.ListClustersOutput {
-		clusterName1 := "cluster1"
-		clusterName2 := "cluster2"
-		clusterNames := []*string{&clusterName1, &clusterName2}
-		output := &eks.ListClustersOutput{
-			Clusters: clusterNames,
-		}
-		return output
-	}
-	mocks.EKS.On("ListClusters", mock.MatchedBy(func(input *eks.ListClustersInput) bool {
-		return true
-	})).Return(mockListClustersFn, nil)
-
-	mockDescribeClusterFn := func(input *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
-		output := &eks.DescribeClusterOutput{}
-		output.Cluster = &eks.Cluster{
-			Name:   input.Name,
-			Status: &clusterStatus,
-		}
-		return output
-	}
-	mocks.EKS.On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
-		return input.Name != nil
-	})).Return(mockDescribeClusterFn, nil)
-
-	// Get clusterprovider
-	cp := newClusterProvider(clusterName, mocks)
-
-	assert.Nil(cp.ListClusters())
-
-	mocks.EKS.AssertNumberOfCalls(t, "ListClusters", 1)
-	mocks.EKS.AssertNumberOfCalls(t, "DescribeCluster", 2)
-}
+				It("should have called AWS CFN ListStackPages", func() {
+					Expect(cp.Svc.CFN.(*mocks.CloudFormationAPI).AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
+				})
+			})
+		})
+	})
+})

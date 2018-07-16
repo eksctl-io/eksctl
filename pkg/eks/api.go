@@ -33,19 +33,19 @@ var DefaultWaitTimeout = 20 * time.Minute
 
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
-	cfg *ClusterConfig
-	svc *providerServices
+	Cfg *ClusterConfig
+	Svc *ProviderServices
 
 	// informative fields, i.e. used as outputs
 	iamRoleARN   string
 	sessionCreds *credentials.Credentials
 }
 
-type providerServices struct {
-	cfn cloudformationiface.CloudFormationAPI
-	eks eksiface.EKSAPI
-	ec2 ec2iface.EC2API
-	sts stsiface.STSAPI
+type ProviderServices struct {
+	CFN cloudformationiface.CloudFormationAPI
+	EKS eksiface.EKSAPI
+	EC2 ec2iface.EC2API
+	STS stsiface.STSAPI
 }
 
 // simple config, to be replaced with Cluster API
@@ -94,12 +94,12 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 	s := newSession(clusterConfig, "", nil)
 
 	c := &ClusterProvider{
-		cfg: clusterConfig,
-		svc: &providerServices{
-			cfn: cloudformation.New(s),
-			eks: eks.New(s),
-			ec2: ec2.New(s),
-			sts: sts.New(s),
+		Cfg: clusterConfig,
+		Svc: &ProviderServices{
+			CFN: cloudformation.New(s),
+			EKS: eks.New(s),
+			EC2: ec2.New(s),
+			STS: sts.New(s),
 		},
 		sessionCreds: s.Config.Credentials,
 	}
@@ -108,22 +108,22 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.svc.cfn = cloudformation.New(s)
+		c.Svc.CFN = cloudformation.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.svc.eks = eks.New(s)
+		c.Svc.EKS = eks.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.svc.ec2 = ec2.New(s)
+		c.Svc.EC2 = ec2.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
 		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.svc.sts = sts.New(s)
+		c.Svc.STS = sts.New(s)
 	}
 
 	return c
@@ -144,7 +144,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 func (c *ClusterProvider) CheckAuth() error {
 	{
 		input := &sts.GetCallerIdentityInput{}
-		output, err := c.svc.sts.GetCallerIdentity(input)
+		output, err := c.Svc.STS.GetCallerIdentity(input)
 		if err != nil {
 			return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 		}
@@ -153,7 +153,7 @@ func (c *ClusterProvider) CheckAuth() error {
 	}
 	{
 		input := &cloudformation.ListStacksInput{}
-		if _, err := c.svc.cfn.ListStacks(input); err != nil {
+		if _, err := c.Svc.CFN.ListStacks(input); err != nil {
 			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
 		}
 	}

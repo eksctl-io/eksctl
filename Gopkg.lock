@@ -254,6 +254,33 @@
   version = "1.0.0"
 
 [[projects]]
+  name = "github.com/onsi/ginkgo"
+  packages = [
+    "config",
+    "ginkgo",
+    "ginkgo/convert",
+    "ginkgo/interrupthandler",
+    "ginkgo/nodot",
+    "ginkgo/testrunner",
+    "ginkgo/testsuite",
+    "ginkgo/watch",
+    "internal/codelocation",
+    "internal/containernode",
+    "internal/failer",
+    "internal/leafnodes",
+    "internal/remote",
+    "internal/spec",
+    "internal/spec_iterator",
+    "reporters",
+    "reporters/stenographer",
+    "reporters/stenographer/support/go-colorable",
+    "reporters/stenographer/support/go-isatty",
+    "types"
+  ]
+  revision = "fa5fabab2a1bfbd924faf4c067d07ae414e2aedf"
+  version = "v1.5.0"
+
+[[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
@@ -361,9 +388,7 @@
 [[projects]]
   name = "github.com/stretchr/testify"
   packages = [
-    ".",
     "assert",
-    "http",
     "mock"
   ]
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
@@ -594,6 +619,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fb3427e84253e669e09becac976cb062f59ef65ae6987426d034dfa5d9f85ec2"
+  inputs-digest = "7494aa50b6b16f3bac686d73314a55a97fb287441d8884cf60fd6276778def37"
   solver-name = "gps-cdcl"
   solver-version = 1

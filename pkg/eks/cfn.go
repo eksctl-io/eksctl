@@ -38,7 +38,7 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 	input.SetTags([]*cloudformation.Tag{
 		&cloudformation.Tag{
 			Key:   aws.String(ClusterNameTag),
-			Value: aws.String(c.cfg.ClusterName),
+			Value: aws.String(c.Cfg.ClusterName),
 		},
 	})
 	input.SetTemplateBody(string(templateBody))
@@ -54,7 +54,7 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 	}
 
 	logger.Debug("input = %#v", input)
-	s, err := c.svc.cfn.CreateStack(input)
+	s, err := c.Svc.CFN.CreateStack(input)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("creating CloudFormation stack %q", name))
 	}
@@ -64,14 +64,14 @@ func (c *ClusterProvider) CreateStack(name string, templateBody []byte, paramete
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
-		timer := time.NewTimer(c.cfg.WaitTimeout)
+		timer := time.NewTimer(c.Cfg.WaitTimeout)
 		defer timer.Stop()
 
 		defer close(errs)
 		for {
 			select {
 			case <-timer.C:
-				errs <- fmt.Errorf("timed out creating CloudFormation stack %q after %d", name, c.cfg.WaitTimeout)
+				errs <- fmt.Errorf("timed out creating CloudFormation stack %q after %d", name, c.Cfg.WaitTimeout)
 				return
 
 			case <-ticker.C:
@@ -107,7 +107,7 @@ func (c *ClusterProvider) describeStack(name *string) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: name,
 	}
-	resp, err := c.svc.cfn.DescribeStacks(input)
+	resp, err := c.Svc.CFN.DescribeStacks(input)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("describing CloudFormation stack %q", *name))
 	}
@@ -138,7 +138,7 @@ func (c *ClusterProvider) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 		}
 		return true
 	}
-	if err := c.svc.cfn.ListStacksPages(input, pager); err != nil {
+	if err := c.Svc.CFN.ListStacksPages(input, pager); err != nil {
 		return nil, err
 	}
 	if subErr != nil {
@@ -148,7 +148,7 @@ func (c *ClusterProvider) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 }
 
 func (c *ClusterProvider) stackNameVPC() string {
-	return "EKS-" + c.cfg.ClusterName + "-VPC"
+	return "EKS-" + c.Cfg.ClusterName + "-VPC"
 }
 
 func (c *ClusterProvider) createStackVPC(errs chan error) error {
@@ -184,23 +184,23 @@ func (c *ClusterProvider) createStackVPC(errs chan error) error {
 			errs <- fmt.Errorf("SecurityGroups is nil")
 			return
 		}
-		c.cfg.securityGroup = *securityGroup
+		c.Cfg.securityGroup = *securityGroup
 
 		subnetsList := GetOutput(&s, "SubnetIds")
 		if subnetsList == nil {
 			errs <- fmt.Errorf("SubnetIds is nil")
 			return
 		}
-		c.cfg.subnetsList = *subnetsList
+		c.Cfg.subnetsList = *subnetsList
 
 		clusterVPC := GetOutput(&s, "VpcId")
 		if clusterVPC == nil {
 			errs <- fmt.Errorf("VpcId is nil")
 			return
 		}
-		c.cfg.clusterVPC = *clusterVPC
+		c.Cfg.clusterVPC = *clusterVPC
 
-		logger.Debug("clusterConfig = %#v", c.cfg)
+		logger.Debug("clusterConfig = %#v", c.Cfg)
 		logger.Success("created VPC stack %q", name)
 
 		errs <- nil
@@ -219,14 +219,14 @@ func (c *ClusterProvider) DeleteStackVPC() error {
 		StackName: s.StackName,
 	}
 
-	if _, err := c.svc.cfn.DeleteStack(input); err != nil {
+	if _, err := c.Svc.CFN.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete VPC stack")
 	}
 	return nil
 }
 
 func (c *ClusterProvider) stackNameServiceRole() string {
-	return "EKS-" + c.cfg.ClusterName + "-ServiceRole"
+	return "EKS-" + c.Cfg.ClusterName + "-ServiceRole"
 }
 
 func (c *ClusterProvider) createStackServiceRole(errs chan error) error {
@@ -262,9 +262,9 @@ func (c *ClusterProvider) createStackServiceRole(errs chan error) error {
 			errs <- fmt.Errorf("RoleArn is nil")
 			return
 		}
-		c.cfg.clusterRoleARN = *clusterRoleARN
+		c.Cfg.clusterRoleARN = *clusterRoleARN
 
-		logger.Debug("clusterConfig = %#v", c.cfg)
+		logger.Debug("clusterConfig = %#v", c.Cfg)
 		logger.Success("created ServiceRole stack %q", name)
 
 		errs <- nil
@@ -283,14 +283,14 @@ func (c *ClusterProvider) DeleteStackServiceRole() error {
 		StackName: s.StackName,
 	}
 
-	if _, err := c.svc.cfn.DeleteStack(input); err != nil {
+	if _, err := c.Svc.CFN.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete ServiceRole stack")
 	}
 	return nil
 }
 
 func (c *ClusterProvider) stackNameDefaultNodeGroup() string {
-	return "EKS-" + c.cfg.ClusterName + "-DefaultNodeGroup"
+	return "EKS-" + c.Cfg.ClusterName + "-DefaultNodeGroup"
 }
 
 func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
@@ -302,36 +302,36 @@ func (c *ClusterProvider) stackParamsDefaultNodeGroup() map[string]string {
 		"us-east-1": "ami-dea4d5a1",
 	}
 
-	if c.cfg.NodeAMI == "" {
-		c.cfg.NodeAMI = regionalAMIs[c.cfg.Region]
+	if c.Cfg.NodeAMI == "" {
+		c.Cfg.NodeAMI = regionalAMIs[c.Cfg.Region]
 	}
 
-	if c.cfg.MinNodes == 0 && c.cfg.MaxNodes == 0 {
-		c.cfg.MinNodes = c.cfg.Nodes
-		c.cfg.MaxNodes = c.cfg.Nodes
+	if c.Cfg.MinNodes == 0 && c.Cfg.MaxNodes == 0 {
+		c.Cfg.MinNodes = c.Cfg.Nodes
+		c.Cfg.MaxNodes = c.Cfg.Nodes
 	}
 
-	if len(c.cfg.PolicyARNs) == 0 {
-		c.cfg.PolicyARNs = defaultPolicyARNs
+	if len(c.Cfg.PolicyARNs) == 0 {
+		c.Cfg.PolicyARNs = defaultPolicyARNs
 	}
-	if c.cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser {
-		c.cfg.PolicyARNs = append(c.cfg.PolicyARNs, policyAmazonEC2ContainerRegistryPowerUser)
+	if c.Cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser {
+		c.Cfg.PolicyARNs = append(c.Cfg.PolicyARNs, policyAmazonEC2ContainerRegistryPowerUser)
 	} else {
-		c.cfg.PolicyARNs = append(c.cfg.PolicyARNs, policyAmazonEC2ContainerRegistryReadOnly)
+		c.Cfg.PolicyARNs = append(c.Cfg.PolicyARNs, policyAmazonEC2ContainerRegistryReadOnly)
 	}
 
 	params := map[string]string{
-		"ClusterName":                      c.cfg.ClusterName,
+		"ClusterName":                      c.Cfg.ClusterName,
 		"NodeGroupName":                    "default",
-		"KeyName":                          c.cfg.keyName,
-		"NodeImageId":                      c.cfg.NodeAMI,
-		"NodeInstanceType":                 c.cfg.NodeType,
-		"NodeAutoScalingGroupMinSize":      fmt.Sprintf("%d", c.cfg.MinNodes),
-		"NodeAutoScalingGroupMaxSize":      fmt.Sprintf("%d", c.cfg.MaxNodes),
-		"ClusterControlPlaneSecurityGroup": c.cfg.securityGroup,
-		"Subnets":                          c.cfg.subnetsList,
-		"VpcId":                            c.cfg.clusterVPC,
-		"ManagedPolicyArns":                strings.Join(c.cfg.PolicyARNs, ","),
+		"KeyName":                          c.Cfg.keyName,
+		"NodeImageId":                      c.Cfg.NodeAMI,
+		"NodeInstanceType":                 c.Cfg.NodeType,
+		"NodeAutoScalingGroupMinSize":      fmt.Sprintf("%d", c.Cfg.MinNodes),
+		"NodeAutoScalingGroupMaxSize":      fmt.Sprintf("%d", c.Cfg.MaxNodes),
+		"ClusterControlPlaneSecurityGroup": c.Cfg.securityGroup,
+		"Subnets":                          c.Cfg.subnetsList,
+		"VpcId":                            c.Cfg.clusterVPC,
+		"ManagedPolicyArns":                strings.Join(c.Cfg.PolicyARNs, ","),
 	}
 
 	return params
@@ -370,9 +370,9 @@ func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
 			errs <- fmt.Errorf("NodeInstanceRole is nil")
 			return
 		}
-		c.cfg.nodeInstanceRoleARN = *nodeInstanceRoleARN
+		c.Cfg.nodeInstanceRoleARN = *nodeInstanceRoleARN
 
-		logger.Debug("clusterConfig = %#v", c.cfg)
+		logger.Debug("clusterConfig = %#v", c.Cfg)
 		logger.Success("created DefaultNodeGroup stack %q", name)
 
 		errs <- nil
@@ -391,7 +391,7 @@ func (c *ClusterProvider) DeleteStackDefaultNodeGroup() error {
 		StackName: s.StackName,
 	}
 
-	if _, err := c.svc.cfn.DeleteStack(input); err != nil {
+	if _, err := c.Svc.CFN.DeleteStack(input); err != nil {
 		return errors.Wrap(err, "not able to delete DefaultNodeGroup stack")
 	}
 	return nil

@@ -17,14 +17,14 @@ import (
 
 func (c *ClusterProvider) CreateControlPlane() error {
 	input := &eks.CreateClusterInput{
-		Name:    &c.cfg.ClusterName,
-		RoleArn: &c.cfg.clusterRoleARN,
+		Name:    &c.Cfg.ClusterName,
+		RoleArn: &c.Cfg.clusterRoleARN,
 		ResourcesVpcConfig: &eks.VpcConfigRequest{
-			SubnetIds:        aws.StringSlice(strings.Split(c.cfg.subnetsList, ",")),
-			SecurityGroupIds: aws.StringSlice([]string{c.cfg.securityGroup}),
+			SubnetIds:        aws.StringSlice(strings.Split(c.Cfg.subnetsList, ",")),
+			SecurityGroupIds: aws.StringSlice([]string{c.Cfg.securityGroup}),
 		},
 	}
-	output, err := c.svc.eks.CreateCluster(input)
+	output, err := c.Svc.EKS.CreateCluster(input)
 	if err != nil {
 		return errors.Wrap(err, "unable to create cluster control plane")
 	}
@@ -34,9 +34,9 @@ func (c *ClusterProvider) CreateControlPlane() error {
 
 func (c *ClusterProvider) DescribeControlPlane() (*eks.Cluster, error) {
 	input := &eks.DescribeClusterInput{
-		Name: &c.cfg.ClusterName,
+		Name: &c.Cfg.ClusterName,
 	}
-	output, err := c.svc.eks.DescribeCluster(input)
+	output, err := c.Svc.EKS.DescribeCluster(input)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
@@ -53,14 +53,14 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 		Name: cluster.Name,
 	}
 
-	if _, err := c.svc.eks.DeleteCluster(input); err != nil {
+	if _, err := c.Svc.EKS.DeleteCluster(input); err != nil {
 		return errors.Wrap(err, "unable to delete cluster control plane")
 	}
 	return nil
 }
 
 func (c *ClusterProvider) createControlPlane(errs chan error) error {
-	logger.Info("creating control plane %q", c.cfg.ClusterName)
+	logger.Info("creating control plane %q", c.Cfg.ClusterName)
 
 	clusterChan := make(chan eks.Cluster)
 	taskErrs := make(chan error)
@@ -73,7 +73,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
-		timer := time.NewTimer(c.cfg.WaitTimeout)
+		timer := time.NewTimer(c.Cfg.WaitTimeout)
 		defer timer.Stop()
 
 		defer close(taskErrs)
@@ -82,7 +82,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 		for {
 			select {
 			case <-timer.C:
-				taskErrs <- fmt.Errorf("timed out creating control plane %q after %s", c.cfg.ClusterName, c.cfg.WaitTimeout)
+				taskErrs <- fmt.Errorf("timed out creating control plane %q after %s", c.Cfg.ClusterName, c.Cfg.WaitTimeout)
 				return
 
 			case <-ticker.C:
@@ -100,7 +100,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 					clusterChan <- *cluster
 					return
 				default:
-					taskErrs <- fmt.Errorf("unexpected status %q while creating control plane %q", *cluster.Status, c.cfg.ClusterName)
+					taskErrs <- fmt.Errorf("unexpected status %q while creating control plane %q", *cluster.Status, c.Cfg.ClusterName)
 					return
 				}
 			}
@@ -122,8 +122,8 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 			errs <- err
 		}
 
-		logger.Debug("clusterConfig = %#v", c.cfg)
-		logger.Success("created control plane %q", c.cfg.ClusterName)
+		logger.Debug("clusterConfig = %#v", c.Cfg)
+		logger.Success("created control plane %q", c.Cfg.ClusterName)
 
 		errs <- nil
 	}()
@@ -132,25 +132,25 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 }
 
 func (c *ClusterProvider) GetCredentials(cluster eks.Cluster) error {
-	c.cfg.MasterEndpoint = *cluster.Endpoint
+	c.Cfg.MasterEndpoint = *cluster.Endpoint
 
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {
 		return errors.Wrap(err, "decoding certificate authority data")
 	}
 
-	c.cfg.CertificateAuthorityData = data
+	c.Cfg.CertificateAuthorityData = data
 	return nil
 }
 
 func (c *ClusterProvider) ListClusters() error {
-	if c.cfg.ClusterName != "" {
-		return c.doListCluster(&c.cfg.ClusterName)
+	if c.Cfg.ClusterName != "" {
+		return c.doListCluster(&c.Cfg.ClusterName)
 	}
 
 	// TODO: https://github.com/weaveworks/eksctl/issues/27
 	input := &eks.ListClustersInput{}
-	output, err := c.svc.eks.ListClusters(input)
+	output, err := c.Svc.EKS.ListClusters(input)
 	if err != nil {
 		return errors.Wrap(err, "listing control planes")
 	}
@@ -167,7 +167,7 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 	input := &eks.DescribeClusterInput{
 		Name: clusterName,
 	}
-	output, err := c.svc.eks.DescribeCluster(input)
+	output, err := c.Svc.EKS.DescribeCluster(input)
 	if err != nil {
 		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
 	}
