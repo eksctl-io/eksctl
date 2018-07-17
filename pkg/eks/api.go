@@ -179,7 +179,7 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-func (c *ClusterProvider) SelectAvailabilityZones() error {
+func (c *ClusterProvider) SelectAvailabilityZones() ([]string, error) {
 	avoidZones := map[string]bool{
 		// well-known over-populated zones
 		"us-east1-a": true,
@@ -189,7 +189,7 @@ func (c *ClusterProvider) SelectAvailabilityZones() error {
 	input := &ec2.DescribeAvailabilityZonesInput{}
 	output, err := c.Provider.EC2().DescribeAvailabilityZones(input)
 	if err != nil {
-		return errors.Wrapf(err, "getting availibility zones for %s", c.Spec.Region)
+		return nil, errors.Wrapf(err, "getting availibility zones for %s", c.Spec.Region)
 	}
 
 	usableZones := []string{}
@@ -210,8 +210,8 @@ func (c *ClusterProvider) SelectAvailabilityZones() error {
 			}
 		}
 	}
-	c.Status.availabilityZones = zones
-	return nil
+
+	return zones, nil
 }
 
 func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error, taskErrs chan error) {

@@ -18,10 +18,6 @@ var _ = Describe("Eks", func() {
 		p *MockProvider
 	)
 
-	BeforeEach(func() {
-
-	})
-
 	Describe("ListAll", func() {
 		Context("With a cluster name", func() {
 			var (
