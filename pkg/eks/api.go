@@ -33,19 +33,35 @@ var DefaultWaitTimeout = 20 * time.Minute
 
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
-	Cfg *ClusterConfig
-	Svc *ProviderServices
-
+	Spec     *ClusterConfig
+	Provider Provider
 	// informative fields, i.e. used as outputs
-	iamRoleARN   string
-	sessionCreds *credentials.Credentials
+	Status *ProviderStatus
+}
+
+type Provider interface {
+	CloudFormation() cloudformationiface.CloudFormationAPI
+	EKS() eksiface.EKSAPI
+	EC2() ec2iface.EC2API
+	STS() stsiface.STSAPI
 }
 
 type ProviderServices struct {
-	CFN cloudformationiface.CloudFormationAPI
-	EKS eksiface.EKSAPI
-	EC2 ec2iface.EC2API
-	STS stsiface.STSAPI
+	cfn cloudformationiface.CloudFormationAPI
+	eks eksiface.EKSAPI
+	ec2 ec2iface.EC2API
+	sts stsiface.STSAPI
+}
+
+func (p ProviderServices) CloudFormation() cloudformationiface.CloudFormationAPI { return p.cfn }
+
+func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
+func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
+func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
+
+type ProviderStatus struct {
+	iamRoleARN   string
+	sessionCreds *credentials.Credentials
 }
 
 // simple config, to be replaced with Cluster API
@@ -93,44 +109,49 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 	// later re-use if overriding sessions due to custom URL
 	s := newSession(clusterConfig, "", nil)
 
+	p := &ProviderServices{
+		cfn: cloudformation.New(s),
+		eks: eks.New(s),
+		ec2: ec2.New(s),
+		sts: sts.New(s),
+	}
+
 	c := &ClusterProvider{
-		Cfg: clusterConfig,
-		Svc: &ProviderServices{
-			CFN: cloudformation.New(s),
-			EKS: eks.New(s),
-			EC2: ec2.New(s),
-			STS: sts.New(s),
+		Spec: clusterConfig,
+		Status: &ProviderStatus{
+			sessionCreds: s.Config.Credentials,
 		},
-		sessionCreds: s.Config.Credentials,
 	}
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.Svc.CFN = cloudformation.New(s)
+		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
+		p.cfn = cloudformation.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.Svc.EKS = eks.New(s)
+		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
+		p.eks = eks.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.Svc.EC2 = ec2.New(s)
+		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
+		p.ec2 = ec2.New(s)
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.sessionCreds)
-		c.Svc.STS = sts.New(s)
+		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
+		p.sts = sts.New(s)
 	}
+
+	c.Provider = p
 
 	return c
 }
 
 func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
-	creds, err := c.sessionCreds.Get()
+	creds, err := c.Status.sessionCreds.Get()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting effective credentials")
 	}
@@ -144,16 +165,16 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 func (c *ClusterProvider) CheckAuth() error {
 	{
 		input := &sts.GetCallerIdentityInput{}
-		output, err := c.Svc.STS.GetCallerIdentity(input)
+		output, err := c.Provider.STS().GetCallerIdentity(input)
 		if err != nil {
 			return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 		}
-		c.iamRoleARN = *output.Arn
-		logger.Debug("role ARN for the current session is %q", c.iamRoleARN)
+		c.Status.iamRoleARN = *output.Arn
+		logger.Debug("role ARN for the current session is %q", c.Status.iamRoleARN)
 	}
 	{
 		input := &cloudformation.ListStacksInput{}
-		if _, err := c.Svc.CFN.ListStacks(input); err != nil {
+		if _, err := c.Provider.CloudFormation().ListStacks(input); err != nil {
 			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
 		}
 	}
