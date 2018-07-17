@@ -256,14 +256,8 @@
 [[projects]]
   name = "github.com/onsi/ginkgo"
   packages = [
+    ".",
     "config",
-    "ginkgo",
-    "ginkgo/convert",
-    "ginkgo/interrupthandler",
-    "ginkgo/nodot",
-    "ginkgo/testrunner",
-    "ginkgo/testsuite",
-    "ginkgo/watch",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -271,6 +265,10 @@
     "internal/remote",
     "internal/spec",
     "internal/spec_iterator",
+    "internal/specrunner",
+    "internal/suite",
+    "internal/testingtproxy",
+    "internal/writer",
     "reporters",
     "reporters/stenographer",
     "reporters/stenographer/support/go-colorable",
@@ -279,6 +277,25 @@
   ]
   revision = "fa5fabab2a1bfbd924faf4c067d07ae414e2aedf"
   version = "v1.5.0"
+
+[[projects]]
+  name = "github.com/onsi/gomega"
+  packages = [
+    ".",
+    "format",
+    "internal/assertion",
+    "internal/asyncassertion",
+    "internal/oraclematcher",
+    "internal/testingtsupport",
+    "matchers",
+    "matchers/support/goraph/bipartitegraph",
+    "matchers/support/goraph/edge",
+    "matchers/support/goraph/node",
+    "matchers/support/goraph/util",
+    "types"
+  ]
+  revision = "62bff4df71bdbc266561a0caee19f0594b17c240"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/pelletier/go-toml"
@@ -396,6 +413,16 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/vektra/mockery"
+  packages = [
+    ".",
+    "cmd/mockery",
+    "mockery"
+  ]
+  revision = "2a9162cbfb7a0f9094ed6f765d212a5ddee000d3"
+
+[[projects]]
+  branch = "master"
   name = "github.com/weaveworks/launcher"
   packages = ["pkg/kubectl"]
   revision = "f1b2830d4f2d0138e21761086094f6e364dcaf2a"
@@ -419,6 +446,9 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "html",
+    "html/atom",
+    "html/charset",
     "http/httpguts",
     "http2",
     "http2/hpack",
@@ -440,12 +470,24 @@
   packages = [
     "collate",
     "collate/build",
+    "encoding",
+    "encoding/charmap",
+    "encoding/htmlindex",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "encoding/japanese",
+    "encoding/korean",
+    "encoding/simplifiedchinese",
+    "encoding/traditionalchinese",
+    "encoding/unicode",
     "internal/colltab",
     "internal/gen",
     "internal/tag",
     "internal/triegen",
     "internal/ucd",
+    "internal/utf8internal",
     "language",
+    "runes",
     "secure/bidirule",
     "transform",
     "unicode/bidi",
@@ -461,6 +503,18 @@
   name = "golang.org/x/time"
   packages = ["rate"]
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/tools"
+  packages = [
+    "go/ast/astutil",
+    "go/buildutil",
+    "go/loader",
+    "imports",
+    "internal/fastwalk"
+  ]
+  revision = "d74aaa1f57016ff7631311e553c625b952ce5853"
 
 [[projects]]
   name = "gopkg.in/inf.v0"
@@ -619,6 +673,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7494aa50b6b16f3bac686d73314a55a97fb287441d8884cf60fd6276778def37"
+  inputs-digest = "80fbf5e89aec2e8fa5b0a9cae02e7fd5b47d2fde7708b4aadad746569783eeac"
   solver-name = "gps-cdcl"
   solver-version = 1
