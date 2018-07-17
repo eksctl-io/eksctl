@@ -151,6 +151,13 @@ func (c *ClusterProvider) stackNameVPC() string {
 	return "EKS-" + c.Spec.ClusterName + "-VPC"
 }
 
+func (c *ClusterProvider) stackParamsVPC() map[string]string {
+	params := map[string]string{
+		"AvailabilityZones": strings.Join(c.Status.availabilityZones, ","),
+	}
+	return params
+}
+
 func (c *ClusterProvider) createStackVPC(errs chan error) error {
 	name := c.stackNameVPC()
 	logger.Info("creating VPC stack %q", name)
@@ -162,7 +169,7 @@ func (c *ClusterProvider) createStackVPC(errs chan error) error {
 	stackChan := make(chan Stack)
 	taskErrs := make(chan error)
 
-	if err := c.CreateStack(name, templateBody, nil, false, stackChan, taskErrs); err != nil {
+	if err := c.CreateStack(name, templateBody, c.stackParamsVPC(), false, stackChan, taskErrs); err != nil {
 		return err
 	}
 

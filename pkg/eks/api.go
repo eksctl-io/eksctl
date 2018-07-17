@@ -2,6 +2,7 @@ package eks
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -25,8 +26,9 @@ import (
 )
 
 const (
-	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
-	AWSDebugLevel  = 5
+	ClusterNameTag            = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+	AWSDebugLevel             = 5
+	RequiredAvailabilityZones = 3
 )
 
 var DefaultWaitTimeout = 20 * time.Minute
@@ -60,8 +62,9 @@ func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 type ProviderStatus struct {
-	iamRoleARN   string
-	sessionCreds *credentials.Credentials
+	iamRoleARN        string
+	sessionCreds      *credentials.Credentials
+	availabilityZones []string
 }
 
 // simple config, to be replaced with Cluster API
@@ -173,6 +176,41 @@ func (c *ClusterProvider) CheckAuth() error {
 			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
 		}
 	}
+	return nil
+}
+
+func (c *ClusterProvider) SelectAvailabilityZones() error {
+	avoidZones := map[string]bool{
+		// well-known over-populated zones
+		"us-east1-a": true,
+		"us-east1-b": true,
+	}
+
+	input := &ec2.DescribeAvailabilityZonesInput{}
+	output, err := c.Provider.EC2().DescribeAvailabilityZones(input)
+	if err != nil {
+		return errors.Wrapf(err, "getting availibility zones for %s", c.Spec.Region)
+	}
+
+	usableZones := []string{}
+	for _, zone := range output.AvailabilityZones {
+		_, avoidZone := avoidZones[*zone.ZoneName]
+		if !avoidZone && *zone.State == ec2.AvailabilityZoneStateAvailable {
+			usableZones = append(usableZones, *zone.ZoneName)
+		}
+	}
+
+	zones := []string{}
+	for len(zones) < RequiredAvailabilityZones {
+		rand := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for _, r := range rand.Perm(len(usableZones)) {
+			zones = append(zones, usableZones[r])
+			if len(zones) == RequiredAvailabilityZones {
+				break
+			}
+		}
+	}
+	c.Status.availabilityZones = zones
 	return nil
 }
 

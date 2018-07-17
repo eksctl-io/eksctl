@@ -9,6 +9,9 @@ Parameters:
     Default: 192.168.0.0/16
     Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range.
 
+ AvailabilityZones:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+
   Subnet01Block:
     Type: String
     Default: 192.168.64.0/18
@@ -82,8 +85,7 @@ Resources:
       AvailabilityZone:
         Fn::Select:
         - '0'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+        - !Ref AvailabilityZones
       CidrBlock:
         Ref: Subnet01Block
       VpcId:
@@ -100,8 +102,7 @@ Resources:
       AvailabilityZone:
         Fn::Select:
         - '1'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+        - !Ref AvailabilityZones
       CidrBlock:
         Ref: Subnet02Block
       VpcId:
@@ -118,8 +119,7 @@ Resources:
       AvailabilityZone:
         Fn::Select:
         - '2'
-        - Fn::GetAZs:
-            Ref: AWS::Region
+        - !Ref AvailabilityZones
       CidrBlock:
         Ref: Subnet03Block
       VpcId:
