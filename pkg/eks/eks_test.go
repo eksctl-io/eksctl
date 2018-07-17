@@ -14,8 +14,8 @@ import (
 
 var _ = Describe("Eks", func() {
 	var (
-		cp     *ClusterProvider
-		config ClusterConfig
+		c *ClusterProvider
+		p *MockProvider
 	)
 
 	BeforeEach(func() {
@@ -25,31 +25,32 @@ var _ = Describe("Eks", func() {
 	Describe("ListAll", func() {
 		Context("With a cluster name", func() {
 			var (
-				clusterName *string
+				clusterName string
 				err         error
 			)
 
 			BeforeEach(func() {
-				clusterName = aws.String("test-cluster")
+				clusterName = "test-cluster"
 
-				config = ClusterConfig{
-					ClusterName: *clusterName,
+				p = &MockProvider{
+					cfn: &mocks.CloudFormationAPI{},
+					eks: &mocks.EKSAPI{},
+					ec2: &mocks.EC2API{},
+					sts: &mocks.STSAPI{},
 				}
-				cp = &ClusterProvider{
-					Cfg: &config,
-					Svc: &ProviderServices{
-						CFN: &mocks.CloudFormationAPI{},
-						EKS: &mocks.EKSAPI{},
-						EC2: &mocks.EC2API{},
-						STS: &mocks.STSAPI{},
+
+				c = &ClusterProvider{
+					Spec: &ClusterConfig{
+						ClusterName: clusterName,
 					},
+					Provider: p,
 				}
 
-				cp.Svc.EKS.(*mocks.EKSAPI).On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
-					return *input.Name == *clusterName
+				p.mockEKS().On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
+					return *input.Name == clusterName
 				})).Return(&eks.DescribeClusterOutput{
 					Cluster: &eks.Cluster{
-						Name:   clusterName,
+						Name:   aws.String(clusterName),
 						Status: aws.String(eks.ClusterStatusActive),
 					},
 				}, nil)
@@ -61,7 +62,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = cp.ListClusters()
+					err = c.ListClusters()
 				})
 
 				It("should not error", func() {
@@ -69,11 +70,11 @@ var _ = Describe("Eks", func() {
 				})
 
 				It("should have called AWS EKS service once", func() {
-					Expect(cp.Svc.EKS.(*mocks.EKSAPI).AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+					Expect(p.mockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
 				})
 
 				It("should not call AWS CFN ListStackPages", func() {
-					Expect(cp.Svc.CFN.(*mocks.CloudFormationAPI).AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
+					Expect(p.mockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
 				})
 			})
 
@@ -86,13 +87,13 @@ var _ = Describe("Eks", func() {
 
 					logger.Level = 4
 
-					cp.Svc.CFN.(*mocks.CloudFormationAPI).On("ListStacksPages", mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
+					p.mockCloudFormation().On("ListStacksPages", mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
 						return *input.StackStatusFilter[0] == expectedStatusFilter
 					}), mock.Anything).Return(nil)
 				})
 
 				JustBeforeEach(func() {
-					err = cp.ListClusters()
+					err = c.ListClusters()
 				})
 
 				It("should not error", func() {
@@ -100,11 +101,11 @@ var _ = Describe("Eks", func() {
 				})
 
 				It("should have called AWS EKS service once", func() {
-					Expect(cp.Svc.EKS.(*mocks.EKSAPI).AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+					Expect(p.mockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
 				})
 
 				It("should have called AWS CFN ListStackPages", func() {
-					Expect(cp.Svc.CFN.(*mocks.CloudFormationAPI).AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
+					Expect(p.mockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
 				})
 			})
 		})
