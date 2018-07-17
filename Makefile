@@ -16,9 +16,18 @@ test:
 update-bindata:
 	go generate ./pkg/eks
 
+
 .PHONY: install-bindata
 install-bindata:
 	go get -u github.com/jteeuwen/go-bindata/...
+
+.PHONY: update-mockery
+update-mockery:
+	go generate ./pkg/eks/mocks
+
+.PHONY: install-mockery
+install-mockery:
+	go get -u github.com/vektra/mockery/cmd/mockery
 
 .PHONY: eksctl-build-image
 eksctl-build-image:

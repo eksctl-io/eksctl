@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/testutils/mocks"
+	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 )
 
 var _ = Describe("Eks", func() {
