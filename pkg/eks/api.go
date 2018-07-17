@@ -104,50 +104,45 @@ type AddonIAM struct {
 }
 
 func New(clusterConfig *ClusterConfig) *ClusterProvider {
-
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
 	s := newSession(clusterConfig, "", nil)
 
-	p := &ProviderServices{
+	provider := &ProviderServices{
 		cfn: cloudformation.New(s),
 		eks: eks.New(s),
 		ec2: ec2.New(s),
 		sts: sts.New(s),
 	}
 
-	c := &ClusterProvider{
-		Spec: clusterConfig,
-		Status: &ProviderStatus{
-			sessionCreds: s.Config.Credentials,
-		},
+	status := &ProviderStatus{
+		sessionCreds: s.Config.Credentials,
 	}
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
-		p.cfn = cloudformation.New(s)
+		provider.cfn = cloudformation.New(newSession(clusterConfig, endpoint, status.sessionCreds))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
-		p.eks = eks.New(s)
+		provider.eks = eks.New(newSession(clusterConfig, endpoint, status.sessionCreds))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
-		p.ec2 = ec2.New(s)
+		provider.ec2 = ec2.New(newSession(clusterConfig, endpoint, status.sessionCreds))
+
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
-		s := newSession(clusterConfig, endpoint, c.Status.sessionCreds)
-		p.sts = sts.New(s)
+		provider.sts = sts.New(newSession(clusterConfig, endpoint, status.sessionCreds))
 	}
 
-	c.Provider = p
-
-	return c
+	return &ClusterProvider{
+		Spec:     clusterConfig,
+		Provider: provider,
+		Status:   status,
+	}
 }
 
 func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
