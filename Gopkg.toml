@@ -1,5 +1,6 @@
 required = [
   "github.com/heptio/authenticator/cmd/heptio-authenticator-aws",
+  "github.com/vektra/mockery/cmd/mockery",
 ]
 
 [[override]]
@@ -59,3 +60,15 @@ required = [
   go-tests = true
   unused-packages = true
   non-go = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/vektra/mockery"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
+
+[[constraint]]
+  name = "github.com/onsi/ginkgo"
+  version = "1.5.0"
