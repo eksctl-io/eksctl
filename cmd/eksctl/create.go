@@ -90,6 +90,8 @@ func createClusterCmd() *cobra.Command {
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 
+	fs.BoolVar(&cfg.CtrlPlaneCfn, "ctrl-plane-cloudformation", true, "Create the EKS control plane using a cloudformation resource.  Disabling this flag falls back to the original behavior.")
+
 	return cmd
 }
 

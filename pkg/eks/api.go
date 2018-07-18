@@ -95,8 +95,11 @@ type ClusterConfig struct {
 
 	MasterEndpoint           string
 	CertificateAuthorityData []byte
+	ClusterARN               string
 
 	Addons ClusterAddons
+
+	CtrlPlaneCfn bool
 }
 
 type ClusterAddons struct {
