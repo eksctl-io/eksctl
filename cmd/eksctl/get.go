@@ -30,7 +30,7 @@ func getClusterCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "cluster",
-		Short:   "Get custer(s)",
+		Short:   "Get cluster(s)",
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doGetCluster(cfg, getNameArg(args)); err != nil {

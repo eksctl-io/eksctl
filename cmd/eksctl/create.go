@@ -49,7 +49,7 @@ func createClusterCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "cluster",
-		Short: "Create a custer",
+		Short: "Create a cluster",
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doCreateCluster(cfg, getNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
