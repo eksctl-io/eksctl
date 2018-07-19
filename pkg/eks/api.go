@@ -2,10 +2,11 @@ package eks
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/weaveworks/eksctl/pkg/az"
 
 	"github.com/pkg/errors"
 
@@ -26,9 +27,9 @@ import (
 )
 
 const (
-	ClusterNameTag            = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
-	AWSDebugLevel             = 5
-	RequiredAvailabilityZones = 3
+	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+	AWSDebugLevel  = 5
+	//RequiredAvailabilityZones = 3
 )
 
 var DefaultWaitTimeout = 20 * time.Minute
@@ -179,39 +180,17 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-func (c *ClusterProvider) SelectAvailabilityZones() ([]string, error) {
-	avoidZones := map[string]bool{
-		// well-known over-populated zones
-		"us-east1-a": true,
-		"us-east1-b": true,
-	}
-
-	input := &ec2.DescribeAvailabilityZonesInput{}
-	output, err := c.Provider.EC2().DescribeAvailabilityZones(input)
+func (c *ClusterProvider) SetAvailabilityZones() error {
+	logger.Debug("determining availability zones")
+	azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
+	zones, err := azSelector.SelectZones(c.Spec.Region)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting availibility zones for %s", c.Spec.Region)
+		return errors.Wrap(err, "getting availability zones")
 	}
 
-	usableZones := []string{}
-	for _, zone := range output.AvailabilityZones {
-		_, avoidZone := avoidZones[*zone.ZoneName]
-		if !avoidZone && *zone.State == ec2.AvailabilityZoneStateAvailable {
-			usableZones = append(usableZones, *zone.ZoneName)
-		}
-	}
-
-	zones := []string{}
-	for len(zones) < RequiredAvailabilityZones {
-		rand := rand.New(rand.NewSource(time.Now().UnixNano()))
-		for _, r := range rand.Perm(len(usableZones)) {
-			zones = append(zones, usableZones[r])
-			if len(zones) == RequiredAvailabilityZones {
-				break
-			}
-		}
-	}
-
-	return zones, nil
+	logger.Info("setting availability zones to %v", zones)
+	c.Status.availabilityZones = zones
+	return nil
 }
 
 func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error, taskErrs chan error) {

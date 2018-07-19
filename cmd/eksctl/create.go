@@ -117,6 +117,10 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		return fmt.Errorf("--region=%s is not supported only %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_1)
 	}
 
+	if err := ctl.SetAvailabilityZones(); err != nil {
+		return err
+	}
+
 	if err := ctl.LoadSSHPublicKey(); err != nil {
 		return err
 	}
