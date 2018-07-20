@@ -1,4 +1,4 @@
-package eks_test
+package testutils
 
 import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -15,14 +15,23 @@ type MockProvider struct {
 	sts *mocks.STSAPI
 }
 
+func NewMockProvider() *MockProvider {
+	return &MockProvider{
+		cfn: &mocks.CloudFormationAPI{},
+		eks: &mocks.EKSAPI{},
+		ec2: &mocks.EC2API{},
+		sts: &mocks.STSAPI{},
+	}
+}
+
 func (m MockProvider) CloudFormation() cloudformationiface.CloudFormationAPI { return m.cfn }
-func (m MockProvider) mockCloudFormation() *mocks.CloudFormationAPI {
+func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
 	return m.CloudFormation().(*mocks.CloudFormationAPI)
 }
 
 func (m MockProvider) EKS() eksiface.EKSAPI   { return m.eks }
-func (m MockProvider) mockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
+func (m MockProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
 func (m MockProvider) EC2() ec2iface.EC2API   { return m.ec2 }
-func (m MockProvider) mockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }
+func (m MockProvider) MockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }
 func (m MockProvider) STS() stsiface.STSAPI   { return m.sts }
-func (m MockProvider) mockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }
+func (m MockProvider) MockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }

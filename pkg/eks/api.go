@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/az"
+
 	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -27,6 +29,7 @@ import (
 const (
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 	AWSDebugLevel  = 5
+	//RequiredAvailabilityZones = 3
 )
 
 var DefaultWaitTimeout = 20 * time.Minute
@@ -60,8 +63,9 @@ func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 type ProviderStatus struct {
-	iamRoleARN   string
-	sessionCreds *credentials.Credentials
+	iamRoleARN        string
+	sessionCreds      *credentials.Credentials
+	availabilityZones []string
 }
 
 // simple config, to be replaced with Cluster API
@@ -173,6 +177,19 @@ func (c *ClusterProvider) CheckAuth() error {
 			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
 		}
 	}
+	return nil
+}
+
+func (c *ClusterProvider) SetAvailabilityZones() error {
+	logger.Debug("determining availability zones")
+	azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
+	zones, err := azSelector.SelectZones(c.Spec.Region)
+	if err != nil {
+		return errors.Wrap(err, "getting availability zones")
+	}
+
+	logger.Info("setting availability zones to %v", zones)
+	c.Status.availabilityZones = zones
 	return nil
 }
 
