@@ -84,8 +84,8 @@ type AvailabilityZoneSelector struct {
 func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
 	avoidZones := map[string]bool{
 		// well-known over-populated zones
-		"us-east1-a": true,
-		"us-east1-b": true,
+		"us-east-1a": true,
+		"us-east-1b": true,
 	}
 
 	return &AvailabilityZoneSelector{
