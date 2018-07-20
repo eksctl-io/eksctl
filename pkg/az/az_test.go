@@ -132,7 +132,7 @@ var _ = Describe("AZ", func() {
 			)
 			BeforeEach(func() {
 				region = aws.String("us-east-1")
-				expectedZoneName = aws.String("us-east1-c")
+				expectedZoneName = aws.String("us-east-1c")
 
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
 				c, p = createProviders()
@@ -232,19 +232,19 @@ func createAvailabilityZone(region string, state string, zone string) *ec2.Avail
 
 func avoidedZones(initialStatus string) []*ec2.AvailabilityZone {
 	return []*ec2.AvailabilityZone{
-		createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east1-a"),
-		createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east1-b"),
+		createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east-1a"),
+		createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east-1b"),
 	}
 }
 
 func usEast1Zones(initialStatus string) []*ec2.AvailabilityZone {
-	return append(avoidedZones(initialStatus), createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east1-c"))
+	return append(avoidedZones(initialStatus), createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east-1c"))
 }
 
 func usWest2Zones(initialStatus string) []*ec2.AvailabilityZone {
 	return []*ec2.AvailabilityZone{
-		createAvailabilityZone("US West (N. California)", initialStatus, "us-west2-a"),
-		createAvailabilityZone("US West (N. California)", initialStatus, "us-west2-b"),
-		createAvailabilityZone("US West (N. California)", initialStatus, "us-west2-c"),
+		createAvailabilityZone("US West (N. California)", initialStatus, "us-west-2a"),
+		createAvailabilityZone("US West (N. California)", initialStatus, "us-west-2b"),
+		createAvailabilityZone("US West (N. California)", initialStatus, "us-west-2c"),
 	}
 }
