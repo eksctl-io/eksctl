@@ -232,8 +232,8 @@ func createAvailabilityZone(region string, state string, zone string) *ec2.Avail
 
 func avoidedZones(initialStatus string) []*ec2.AvailabilityZone {
 	return []*ec2.AvailabilityZone{
-		createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east-1a"),
-		createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east-1b"),
+		// createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east-1a"),
+		// createAvailabilityZone("US East (N. Virginia)", initialStatus, "us-east-1b"),
 	}
 }
 

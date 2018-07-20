@@ -180,16 +180,23 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-func (c *ClusterProvider) SetAvailabilityZones() error {
-	logger.Debug("determining availability zones")
-	azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
-	zones, err := azSelector.SelectZones(c.Spec.Region)
-	if err != nil {
-		return errors.Wrap(err, "getting availability zones")
-	}
+func (c *ClusterProvider) SetAvailabilityZones(given []string) error {
+	if len(given) == 0 {
+		logger.Debug("determining availability zones")
+		azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
+		zones, err := azSelector.SelectZones(c.Spec.Region)
+		if err != nil {
+			return errors.Wrap(err, "getting availability zones")
+		}
 
-	logger.Info("setting availability zones to %v", zones)
-	c.Status.availabilityZones = zones
+		logger.Info("setting availability zones to %v", zones)
+		c.Status.availabilityZones = zones
+		return nil
+	}
+	if len(given) < az.DefaultRequiredAvailabilityZones {
+		return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(given), given, az.DefaultRequiredAvailabilityZones)
+	}
+	c.Status.availabilityZones = given
 	return nil
 }
 
