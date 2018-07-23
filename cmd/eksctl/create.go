@@ -42,6 +42,7 @@ var (
 	kubeconfigPath     string
 	autoKubeconfigPath bool
 	setContext         bool
+	availabilityZones  []string
 )
 
 func createClusterCmd() *cobra.Command {
@@ -73,6 +74,8 @@ func createClusterCmd() *cobra.Command {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")
 	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "maximum nodes in ASG")
+
+	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 
 	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
@@ -117,7 +120,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		return fmt.Errorf("--region=%s is not supported only %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_1)
 	}
 
-	if err := ctl.SetAvailabilityZones(); err != nil {
+	if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
 		return err
 	}
 
