@@ -20,6 +20,21 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+  
+  NetworkLoadBalancerPolicyForAamazonEKS:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-NLB"
+      Roles: [!Ref AWSServiceRoleForAmazonEKS]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Resource: '*'
+          Action:
+          - elasticloadbalancing:*
+          - ec2:CreateSecurityGroup
+          - ec2:Describe*
 
 Outputs:
 
