@@ -147,6 +147,29 @@ func (c *ClusterProvider) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 	return stacks, nil
 }
 
+func (c *ClusterProvider) DeleteStack(name string) error {
+	s, err := c.describeStack(&name)
+	if err != nil {
+		return errors.Wrapf(err, "not able to get stack %q for deletion", name)
+	}
+
+	for _, tag := range s.Tags {
+		if *tag.Key == ClusterNameTag && *tag.Value == c.Spec.ClusterName {
+			input := &cloudformation.DeleteStackInput{
+				StackName: s.StackName,
+			}
+
+			if _, err := c.Provider.CloudFormation().DeleteStack(input); err != nil {
+				return errors.Wrapf(err, "not able to delete stack %q", name)
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("cannot delete stack %s as it doesn't bare our %q tag", *s.StackName,
+		fmt.Sprintf("%s:%s", ClusterNameTag, c.Spec.ClusterName))
+}
+
 func (c *ClusterProvider) stackNameVPC() string {
 	return "EKS-" + c.Spec.ClusterName + "-VPC"
 }
@@ -216,20 +239,7 @@ func (c *ClusterProvider) createStackVPC(errs chan error) error {
 }
 
 func (c *ClusterProvider) DeleteStackVPC() error {
-	name := c.stackNameVPC()
-	s, err := c.describeStack(&name)
-	if err != nil {
-		return errors.Wrap(err, "not able to get VPC stack for deletion")
-	}
-
-	input := &cloudformation.DeleteStackInput{
-		StackName: s.StackName,
-	}
-
-	if _, err := c.Provider.CloudFormation().DeleteStack(input); err != nil {
-		return errors.Wrap(err, "not able to delete VPC stack")
-	}
-	return nil
+	return c.DeleteStack(c.stackNameVPC())
 }
 
 func (c *ClusterProvider) stackNameServiceRole() string {
@@ -280,20 +290,7 @@ func (c *ClusterProvider) createStackServiceRole(errs chan error) error {
 }
 
 func (c *ClusterProvider) DeleteStackServiceRole() error {
-	name := c.stackNameServiceRole()
-	s, err := c.describeStack(&name)
-	if err != nil {
-		return errors.Wrap(err, "not able to get ServiceRole stack for deletion")
-	}
-
-	input := &cloudformation.DeleteStackInput{
-		StackName: s.StackName,
-	}
-
-	if _, err := c.Provider.CloudFormation().DeleteStack(input); err != nil {
-		return errors.Wrap(err, "not able to delete ServiceRole stack")
-	}
-	return nil
+	return c.DeleteStack(c.stackNameServiceRole())
 }
 
 func (c *ClusterProvider) stackNameDefaultNodeGroup() string {
@@ -388,20 +385,7 @@ func (c *ClusterProvider) createStackDefaultNodeGroup(errs chan error) error {
 }
 
 func (c *ClusterProvider) DeleteStackDefaultNodeGroup() error {
-	name := c.stackNameDefaultNodeGroup()
-	s, err := c.describeStack(&name)
-	if err != nil {
-		return errors.Wrap(err, "not able to get DefaultNodeGroup stack for deletion")
-	}
-
-	input := &cloudformation.DeleteStackInput{
-		StackName: s.StackName,
-	}
-
-	if _, err := c.Provider.CloudFormation().DeleteStack(input); err != nil {
-		return errors.Wrap(err, "not able to delete DefaultNodeGroup stack")
-	}
-	return nil
+	return c.DeleteStack(c.stackNameDefaultNodeGroup())
 }
 
 func GetOutput(stack *Stack, key string) *string {
