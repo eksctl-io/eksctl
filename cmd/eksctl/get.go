@@ -11,6 +11,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
+const (
+	DEFAULT_PAGE_SIZE = 100
+)
+
+var (
+	pageSize int
+)
+
 func getCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
@@ -43,6 +51,7 @@ func getClusterCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
+	fs.IntVar(&pageSize, "page-size", DEFAULT_PAGE_SIZE, "The number of results to return in single query")
 
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
@@ -65,7 +74,7 @@ func doGetCluster(cfg *eks.ClusterConfig, name string) error {
 		cfg.ClusterName = name
 	}
 
-	if err := ctl.ListClusters(); err != nil {
+	if err := ctl.ListClusters(pageSize); err != nil {
 		return err
 	}
 

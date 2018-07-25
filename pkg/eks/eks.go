@@ -143,7 +143,8 @@ func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
 	return nil
 }
 
-func (c *ClusterProvider) ListClusters() error {
+// ListClusters display details of all the EKS cluster in your account
+func (c *ClusterProvider) ListClusters(pageSize int) error {
 	if c.Spec.ClusterName != "" {
 		return c.doListCluster(&c.Spec.ClusterName)
 	}
