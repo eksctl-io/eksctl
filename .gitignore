@@ -12,3 +12,6 @@ vendor/k8s.io/kops/docs
 
 # Jekyll
 _site
+
+# Do not add temporary files here
+# use ~/.config/git/ignore instead
