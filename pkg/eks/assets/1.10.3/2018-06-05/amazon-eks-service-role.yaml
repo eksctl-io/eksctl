@@ -17,6 +17,15 @@ Resources:
             - eks.amazonaws.com
           Action:
           - sts:AssumeRole
+        - Effect: Allow
+          Resource: '*'
+          Principal:
+            Service:
+            - eks.amazonaws.com
+          Action:
+          - elasticloadbalancing:*
+          - ec2:CreateSecurityGroup
+          - ec2:Describe*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy

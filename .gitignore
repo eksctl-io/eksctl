@@ -12,3 +12,6 @@ vendor/k8s.io/kops/docs
 
 # Jekyll
 _site
+
+# IDEA
+.idea/
