@@ -78,6 +78,9 @@ func doDeleteCluster(cfg *eks.ClusterConfig, name string) error {
 	if err := ctl.DeleteControlPlane(); err != nil {
 		debugError(err)
 	}
+	if err := ctl.DeleteStackControlPlane(); err != nil {
+		debugError(err)
+	}
 
 	if err := ctl.DeleteStackServiceRole(); err != nil {
 		debugError(err)

@@ -372,6 +372,10 @@ func (c *ClusterProvider) createStackControlPlane(errs chan error) error {
 
 }
 
+func (c *ClusterProvider) DeleteStackControlPlane() error {
+	return c.DeleteStack(c.stackNameControlPlane())
+}
+
 func (c *ClusterProvider) stackNameDefaultNodeGroup() string {
 	return "EKS-" + c.Spec.ClusterName + "-DefaultNodeGroup"
 }
