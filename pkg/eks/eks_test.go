@@ -53,7 +53,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters()
+					err = c.ListClusters(100)
 				})
 
 				It("should not error", func() {
@@ -84,7 +84,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters()
+					err = c.ListClusters(100)
 				})
 
 				It("should not error", func() {
