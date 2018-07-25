@@ -71,20 +71,24 @@ func doDeleteCluster(cfg *eks.ClusterConfig, name string) error {
 
 	logger.Info("deleting EKS cluster %q", cfg.ClusterName)
 
+	debugError := func(err error) {
+		logger.Debug("continue despite error: %v", err)
+	}
+
 	if err := ctl.DeleteControlPlane(); err != nil {
-		return err
+		debugError(err)
 	}
 
 	if err := ctl.DeleteStackServiceRole(); err != nil {
-		return err
+		debugError(err)
 	}
 
 	if err := ctl.DeleteStackVPC(); err != nil {
-		return err
+		debugError(err)
 	}
 
 	if err := ctl.DeleteStackDefaultNodeGroup(); err != nil {
-		return err
+		debugError(err)
 	}
 
 	ctl.MaybeDeletePublicSSHKey()
