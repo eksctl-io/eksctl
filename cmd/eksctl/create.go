@@ -138,6 +138,8 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		go ctl.CreateCluster(taskErr)
 		// read any errors (it only gets non-nil errors)
 		for err := range taskErr {
+			logger.Info("an error has occurred and cluster hasn't beend created properly")
+			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
 			return err
 		}
 	}
