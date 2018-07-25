@@ -295,27 +295,31 @@ func (c *ClusterProvider) DeleteStackServiceRole() error {
 }
 
 func (c *ClusterProvider) stackNameControlPlane() string {
-	return "EKS-" + c.cfg.ClusterName + "-ControlPlane"
+	return "EKS-" + c.Spec.ClusterName + "-ControlPlane"
+}
+
+func (c *ClusterProvider) stackParamsControlPlane() map[string]string {
+	return map[string]string{
+		"ClusterName":                c.Spec.ClusterName,
+		"Subnets":                    c.Spec.subnetsList,
+		"ControlPlaneSecurityGroups": c.Spec.securityGroup,
+		"KubernetesVersion":          "1.10",
+		"ServiceRoleARN":             c.Spec.clusterRoleARN,
+	}
 }
 
 func (c *ClusterProvider) createStackControlPlane(errs chan error) error {
-	stackName := c.stackNameControlPlane()
+	name := c.stackNameControlPlane()
+	logger.Info("creating ControlPlane stack %q", name)
+	templateBody, err := amazonEksClusterYamlBytes()
+	if err != nil {
+		return errors.Wrap(err, "decompressing bundled template for ControlPlane stack")
+	}
+
 	stackChan := make(chan Stack)
 	taskErrs := make(chan error)
 
-	params := make(map[string]string)
-	params["ClusterName"] = c.cfg.ClusterName
-	params["Subnets"] = c.cfg.subnetsList
-	params["ControlPlaneSecurityGroups"] = c.cfg.securityGroup
-	params["KubernetesVersion"] = "1.10"
-	params["ServiceRoleARN"] = c.cfg.clusterRoleARN
-
-	templateBody, err := amazonEksClusterYamlBytes()
-	if err != nil {
-		return errors.Wrap(err, "decompressing bundled template for Control Plane stack")
-	}
-
-	if err := c.CreateStack(stackName, templateBody, params, true, stackChan, taskErrs); err != nil {
+	if err := c.CreateStack(name, templateBody, c.stackParamsControlPlane(), true, stackChan, taskErrs); err != nil {
 		return err
 	}
 
@@ -330,7 +334,7 @@ func (c *ClusterProvider) createStackControlPlane(errs chan error) error {
 
 		s := <-stackChan
 
-		logger.Debug("created ControlPlane stack %q – processing outputs", stackName)
+		logger.Debug("created ControlPlane stack %q – processing outputs", name)
 
 		clusterCA := GetOutput(&s, "EKSClusterCA")
 		if clusterCA == nil {
@@ -343,25 +347,24 @@ func (c *ClusterProvider) createStackControlPlane(errs chan error) error {
 			errs <- errors.Wrap(err, "decoding certificate authority data")
 			return
 		}
-
-		c.cfg.CertificateAuthorityData = data
+		c.Spec.CertificateAuthorityData = data
 
 		clusterEndpoint := GetOutput(&s, "EKSClusterEndpoint")
 		if clusterEndpoint == nil {
 			errs <- fmt.Errorf("cluster endpoint is nil")
 			return
 		}
-		c.cfg.MasterEndpoint = *clusterEndpoint
+		c.Spec.MasterEndpoint = *clusterEndpoint
 
 		clusterARN := GetOutput(&s, "EKSClusterARN")
 		if clusterARN == nil {
 			errs <- fmt.Errorf("cluster ARN is nil")
 			return
 		}
-		c.cfg.ClusterARN = *clusterARN
+		c.Spec.ClusterARN = *clusterARN
 
-		logger.Debug("clusterConfig = %#v", c.cfg)
-		logger.Success("created Control Plane stack %q", stackName)
+		logger.Debug("clusterConfig = %#v", c.Spec)
+		logger.Success("created ControlPlane stack %q", name)
 
 		errs <- nil
 	}()

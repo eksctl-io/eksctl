@@ -98,8 +98,6 @@ type ClusterConfig struct {
 	ClusterARN               string
 
 	Addons ClusterAddons
-
-	CtrlPlaneCfn bool
 }
 
 type ClusterAddons struct {
@@ -233,7 +231,7 @@ func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
 		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
 	}, taskErrs)
 	c.runCreateTask(map[string]func(chan error) error{
-		"createControlPlane": func(errs chan error) error { return c.createControlPlane(errs) },
+		"createStackControlPlane": func(errs chan error) error { return c.createStackControlPlane(errs) },
 	}, taskErrs)
 	c.runCreateTask(map[string]func(chan error) error{
 		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
