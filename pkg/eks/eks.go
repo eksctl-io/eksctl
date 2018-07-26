@@ -3,8 +3,11 @@ package eks
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/weaveworks/eksctl/pkg/printers"
 
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
@@ -144,9 +147,9 @@ func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(pageSize int) error {
+func (c *ClusterProvider) ListClusters(chunkSize int, printer printers.OutputPrinter) error {
 	if c.Spec.ClusterName != "" {
-		return c.doListCluster(&c.Spec.ClusterName)
+		return c.doListCluster(&c.Spec.ClusterName, printer)
 	}
 
 	// TODO: https://github.com/weaveworks/eksctl/issues/27
@@ -157,14 +160,14 @@ func (c *ClusterProvider) ListClusters(pageSize int) error {
 	}
 	logger.Debug("clusters = %#v", output)
 	for _, clusterName := range output.Clusters {
-		if err := c.doListCluster(clusterName); err != nil {
+		if err := c.doListCluster(clusterName, printer); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (c *ClusterProvider) doListCluster(clusterName *string) error {
+func (c *ClusterProvider) doListCluster(clusterName *string, printer printers.OutputPrinter) error {
 	input := &awseks.DescribeClusterInput{
 		Name: clusterName,
 	}
@@ -174,7 +177,9 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 	}
 	logger.Debug("cluster = %#v", output)
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
-		logger.Info("cluster = %#v", *output.Cluster)
+
+		printer.PrintObj(output, os.Stdout)
+
 		if logger.Level >= 4 {
 			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
 			if err != nil {

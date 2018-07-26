@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/eksctl/pkg/printers"
+
 	"github.com/spf13/cobra"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -12,11 +14,12 @@ import (
 )
 
 const (
-	DEFAULT_PAGE_SIZE = 100
+	DEFAULT_CHUNK_SIZE = 100
 )
 
 var (
-	pageSize int
+	chunkSize int
+	output    string
 )
 
 func getCmd() *cobra.Command {
@@ -51,11 +54,12 @@ func getClusterCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
-	fs.IntVar(&pageSize, "page-size", DEFAULT_PAGE_SIZE, "The number of results to return in single query")
+	fs.IntVar(&chunkSize, "chunk-size", DEFAULT_CHUNK_SIZE, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
 
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
 
+	fs.StringVarP(&output, "output", "o", "log", "Specifies the output printer to use")
 	return cmd
 }
 
@@ -74,7 +78,12 @@ func doGetCluster(cfg *eks.ClusterConfig, name string) error {
 		cfg.ClusterName = name
 	}
 
-	if err := ctl.ListClusters(pageSize); err != nil {
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
+	}
+
+	if err := ctl.ListClusters(chunkSize, printer); err != nil {
 		return err
 	}
 

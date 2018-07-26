@@ -72,7 +72,3 @@ required = [
 [[constraint]]
   name = "github.com/onsi/ginkgo"
   version = "1.5.0"
-
-[[constraint]]
-  name = "gopkg.in/yaml.v2"
-  version = "2.2.1"

@@ -3,7 +3,7 @@ package printers
 import (
 	"io"
 
-	yaml "gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
 )
 
 // YAMLPrinter is a printer that outputs an object formatted
