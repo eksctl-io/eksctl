@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "cloud.google.com/go"
+  packages = ["compute/metadata"]
+  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
+  version = "v0.25.0"
+
+[[projects]]
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -27,12 +33,15 @@
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/ec2query",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
     "private/protocol/json/jsonutil",
     "private/protocol/jsonrpc",
     "private/protocol/query",
     "private/protocol/query/queryutil",
     "private/protocol/rest",
     "private/protocol/restjson",
+    "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
     "service/cloudformation",
     "service/cloudformation/cloudformationiface",
@@ -40,6 +49,7 @@
     "service/ec2/ec2iface",
     "service/eks",
     "service/eks/eksiface",
+    "service/s3",
     "service/sts",
     "service/sts/stsiface"
   ]
@@ -63,6 +73,16 @@
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/denverdino/aliyungo"
+  packages = [
+    "common",
+    "oss",
+    "util"
+  ]
+  revision = "d98ca8599d8e7b6913c1a5e7dbb2066739d0cd2a"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -132,6 +152,22 @@
   version = "v0.2.0"
 
 [[projects]]
+  name = "github.com/gophercloud/gophercloud"
+  packages = [
+    ".",
+    "openstack",
+    "openstack/identity/v2/tenants",
+    "openstack/identity/v2/tokens",
+    "openstack/identity/v3/tokens",
+    "openstack/objectstorage/v1/accounts",
+    "openstack/objectstorage/v1/containers",
+    "openstack/objectstorage/v1/objects",
+    "openstack/utils",
+    "pagination"
+  ]
+  revision = "8183543f90d1aef267a5ecc209f2e0715b355acb"
+
+[[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
   packages = [
@@ -194,6 +230,12 @@
   name = "github.com/kballard/go-shellquote"
   packages = ["."]
   revision = "95032a82bc518f77982ea72343cc1ade730072f0"
+
+[[projects]]
+  name = "github.com/kr/fs"
+  packages = ["."]
+  revision = "1455def202f6e05b95cc7bfc7e8ae67ae5141eba"
+  version = "v0.1.0"
 
 [[projects]]
   branch = "master"
@@ -310,6 +352,12 @@
   version = "v0.8.0"
 
 [[projects]]
+  name = "github.com/pkg/sftp"
+  packages = ["."]
+  revision = "57673e38ea946592a59c26592b7e6fbda646975b"
+  version = "v1.8.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -350,6 +398,12 @@
     "xfs"
   ]
   revision = "fe93d378a6b03758a2c1b65e86cf630bf78681c0"
+
+[[projects]]
+  name = "github.com/sergi/go-diff"
+  packages = ["diffmatchpatch"]
+  revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -446,6 +500,7 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "html",
     "html/atom",
     "html/charset",
@@ -455,6 +510,18 @@
     "idna"
   ]
   revision = "dfa909b99c79129e1100513e5cd36307665e5723"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "google",
+    "internal",
+    "jws",
+    "jwt"
+  ]
+  revision = "3d292e4d0cdc3a0113e6d207bb137145ef1de42f"
 
 [[projects]]
   branch = "master"
@@ -517,6 +584,34 @@
   revision = "d74aaa1f57016ff7631311e553c625b952ce5853"
 
 [[projects]]
+  branch = "master"
+  name = "google.golang.org/api"
+  packages = [
+    "gensupport",
+    "googleapi",
+    "googleapi/internal/uritemplates",
+    "storage/v1"
+  ]
+  revision = "082d5fa4f1f046d7c35245229282ed6f488892c0"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = [
+    ".",
+    "internal",
+    "internal/app_identity",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/modules",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
+
+[[projects]]
   name = "gopkg.in/inf.v0"
   packages = ["."]
   revision = "d2d2541c53f18d2a059457998ce2876cc8e67cbf"
@@ -529,7 +624,7 @@
   version = "v2.2.1"
 
 [[projects]]
-  branch = "master"
+  branch = "release-1.10"
   name = "k8s.io/api"
   packages = [
     "admissionregistration/v1alpha1",
@@ -561,17 +656,23 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "d216743eed4c3242b85d094d2a589f41a793652d"
+  revision = "0f11257a8a25954878633ebdc9841c67d8f83bdb"
 
 [[projects]]
   branch = "release-1.10"
   name = "k8s.io/apimachinery"
   packages = [
+    "pkg/api/equality",
     "pkg/api/errors",
     "pkg/api/meta",
     "pkg/api/resource",
+    "pkg/api/validation",
+    "pkg/apimachinery",
+    "pkg/apimachinery/announced",
+    "pkg/apimachinery/registered",
     "pkg/apis/meta/v1",
     "pkg/apis/meta/v1/unstructured",
+    "pkg/apis/meta/v1/validation",
     "pkg/apis/meta/v1beta1",
     "pkg/conversion",
     "pkg/conversion/queryparams",
@@ -664,8 +765,30 @@
 [[projects]]
   name = "k8s.io/kops"
   packages = [
+    "dnsprovider/pkg/dnsprovider",
+    "dnsprovider/pkg/dnsprovider/rrstype",
+    "pkg/acls",
+    "pkg/apis/kops",
+    "pkg/apis/kops/install",
+    "pkg/apis/kops/util",
+    "pkg/apis/kops/v1alpha1",
+    "pkg/apis/kops/v1alpha2",
+    "pkg/assets",
+    "pkg/client/clientset_generated/clientset/scheme",
+    "pkg/client/clientset_generated/clientset/typed/kops/internalversion",
+    "pkg/cloudinstances",
+    "pkg/diff",
+    "pkg/featureflag",
+    "pkg/kopscodecs",
+    "pkg/kubemanifest",
     "pkg/pki",
-    "upup/pkg/fi/utils"
+    "pkg/sshcredentials",
+    "pkg/values",
+    "upup/pkg/fi",
+    "upup/pkg/fi/utils",
+    "util/pkg/hashing",
+    "util/pkg/tables",
+    "util/pkg/vfs"
   ]
   revision = "ba77c9ca2f048722835d7a103753c4668393ba67"
   version = "1.9.1"
@@ -673,6 +796,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "85fb6e910b019a7ce8ebb57bdfc8cf8350ca07f48119b65cd4fe74201f518b93"
+  inputs-digest = "16ca9034d52c2f21248875e09631764b490e0ef9e07f8fc7dadc6e5019fb9b8b"
   solver-name = "gps-cdcl"
   solver-version = 1

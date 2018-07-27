@@ -26,8 +26,17 @@ func TestTablePrinter(t *testing.T) {
 		},
 	}
 	printer := NewTablePrinter()
-	printer.PrintObj(test, os.Stdout)
+
+	printer.(*TablePrinter).AddColumn("CLUSTERNAME", func(c *eks.Cluster) string {
+		return *c.Name
+	})
+	printer.(*TablePrinter).AddColumn("ARN", func(c *eks.Cluster) string {
+		return *c.Arn
+	})
+
+	printer.PrintObj([]*eks.Cluster{test.Cluster}, os.Stdout)
 }
+
 
 func TestJsonPrinter(t *testing.T) {
 	created := time.Now()
@@ -45,7 +54,7 @@ func TestJsonPrinter(t *testing.T) {
 	}
 
 	printer := NewJSONPrinter()
-	printer.PrintObj(test, os.Stdout)
+	printer.PrintObj([]*eks.Cluster{test.Cluster}, os.Stdout)
 }
 
 func TestYamlPrinter(t *testing.T) {
@@ -64,5 +73,5 @@ func TestYamlPrinter(t *testing.T) {
 	}
 
 	printer := NewYAMLPrinter()
-	printer.PrintObj(test, os.Stdout)
+	printer.PrintObj([]*eks.Cluster{test.Cluster}, os.Stdout)
 }

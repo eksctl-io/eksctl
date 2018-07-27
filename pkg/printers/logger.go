@@ -13,7 +13,7 @@ type LoggerPrinter struct {
 }
 
 // NewLoggerPrinter creates a new LoggerPrinter
-func NewLoggerPrinter(log loggerFunc) *LoggerPrinter {
+func NewLoggerPrinter(log loggerFunc) OutputPrinter {
 	return &LoggerPrinter{loggerFn: log}
 }
 

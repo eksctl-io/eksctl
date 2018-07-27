@@ -19,7 +19,7 @@ type JSONPrinter struct {
 
 // NewJSONPrinter creates a new JsonPrinter with defaults for
 // level of identation.
-func NewJSONPrinter() *JSONPrinter {
+func NewJSONPrinter() OutputPrinter {
 	return &JSONPrinter{prefix: DefaultPrefix, indent: DefaultIdentation}
 }
 

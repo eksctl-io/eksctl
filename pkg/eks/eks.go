@@ -178,7 +178,8 @@ func (c *ClusterProvider) doListCluster(clusterName *string, printer printers.Ou
 	logger.Debug("cluster = %#v", output)
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 
-		printer.PrintObj(output, os.Stdout)
+		clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
+		printer.PrintObj(clusters, os.Stdout)
 
 		if logger.Level >= 4 {
 			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))

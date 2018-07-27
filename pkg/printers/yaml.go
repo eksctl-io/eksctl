@@ -11,7 +11,7 @@ import (
 type YAMLPrinter struct{}
 
 // NewYAMLPrinter creates a new YAMLPrinter
-func NewYAMLPrinter() *YAMLPrinter {
+func NewYAMLPrinter() OutputPrinter {
 	return &YAMLPrinter{}
 }
 

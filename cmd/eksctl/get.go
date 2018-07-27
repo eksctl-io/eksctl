@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-
-	"github.com/weaveworks/eksctl/pkg/printers"
-
-	"github.com/spf13/cobra"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"strings"
+	"time"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/printers"
+
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
@@ -82,10 +84,38 @@ func doGetCluster(cfg *eks.ClusterConfig, name string) error {
 	if err != nil {
 		return err
 	}
+	if output == "table" {
+		addTableColumns(printer.(*printers.TablePrinter))
+	}
 
 	if err := ctl.ListClusters(chunkSize, printer); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func addTableColumns(printer *printers.TablePrinter) {
+
+	printer.AddColumn("CLUSTERNAME", func(c *awseks.Cluster) string {
+		return *c.Name
+	})
+	printer.AddColumn("ARN", func(c *awseks.Cluster) string {
+		return *c.Arn
+	})
+	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
+		return *c.ResourcesVpcConfig.VpcId
+	})
+	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
+		subnets := sets.NewString()
+		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
+			if *subnetid != "" {
+				subnets.Insert(*subnetid)
+			}
+		}
+		return strings.Join(subnets.List(), ",")
+	})
+	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
+		return c.CreatedAt.Format(time.RFC3339)
+	})
 }

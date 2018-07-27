@@ -1,6 +1,8 @@
 package eks_test
 
 import (
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -9,24 +11,32 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 var _ = Describe("Eks", func() {
 	var (
-		c *ClusterProvider
-		p *testutils.MockProvider
+		c       *ClusterProvider
+		p       *testutils.MockProvider
+		printer printers.OutputPrinter
 	)
+
+	BeforeEach(func() {
+		printer, _ = printers.NewPrinter("log")
+	})
 
 	Describe("ListAll", func() {
 		Context("With a cluster name", func() {
 			var (
 				clusterName string
 				err         error
+				created     time.Time
 			)
 
 			BeforeEach(func() {
 				clusterName = "test-cluster"
+				created = time.Now()
 
 				p = testutils.NewMockProvider()
 
@@ -41,8 +51,14 @@ var _ = Describe("Eks", func() {
 					return *input.Name == clusterName
 				})).Return(&awseks.DescribeClusterOutput{
 					Cluster: &awseks.Cluster{
-						Name:   aws.String(clusterName),
-						Status: aws.String(awseks.ClusterStatusActive),
+						Name:      aws.String(clusterName),
+						Status:    aws.String(awseks.ClusterStatusActive),
+						Arn:       aws.String("arn-12345678"),
+						CreatedAt: &created,
+						ResourcesVpcConfig: &awseks.VpcConfigResponse{
+							VpcId:     aws.String("vpc-1234"),
+							SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+						},
 					},
 				}, nil)
 			})
@@ -53,7 +69,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100)
+					err = c.ListClusters(100, printer)
 				})
 
 				It("should not error", func() {
@@ -84,7 +100,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100)
+					err = c.ListClusters(100, printer)
 				})
 
 				It("should not error", func() {
