@@ -3,7 +3,7 @@ package eks_test
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -37,12 +37,12 @@ var _ = Describe("Eks", func() {
 					Provider: p,
 				}
 
-				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *eks.DescribeClusterInput) bool {
+				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					return *input.Name == clusterName
-				})).Return(&eks.DescribeClusterOutput{
-					Cluster: &eks.Cluster{
+				})).Return(&awseks.DescribeClusterOutput{
+					Cluster: &awseks.Cluster{
 						Name:   aws.String(clusterName),
-						Status: aws.String(eks.ClusterStatusActive),
+						Status: aws.String(awseks.ClusterStatusActive),
 					},
 				}, nil)
 			})

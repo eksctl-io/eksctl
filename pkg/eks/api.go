@@ -18,7 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
@@ -114,7 +114,7 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 
 	provider := &ProviderServices{
 		cfn: cloudformation.New(s),
-		eks: eks.New(s),
+		eks: awseks.New(s),
 		ec2: ec2.New(s),
 		sts: sts.New(s),
 	}
@@ -130,7 +130,7 @@ func New(clusterConfig *ClusterConfig) *ClusterProvider {
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		provider.eks = eks.New(newSession(clusterConfig, endpoint, status.sessionCreds))
+		provider.eks = awseks.New(newSession(clusterConfig, endpoint, status.sessionCreds))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)

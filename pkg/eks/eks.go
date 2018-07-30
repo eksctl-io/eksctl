@@ -10,16 +10,16 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/eks"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 func (c *ClusterProvider) CreateControlPlane() error {
-	input := &eks.CreateClusterInput{
+	input := &awseks.CreateClusterInput{
 		Name:    &c.Spec.ClusterName,
 		RoleArn: &c.Spec.clusterRoleARN,
-		ResourcesVpcConfig: &eks.VpcConfigRequest{
+		ResourcesVpcConfig: &awseks.VpcConfigRequest{
 			SubnetIds:        aws.StringSlice(strings.Split(c.Spec.subnetsList, ",")),
 			SecurityGroupIds: aws.StringSlice([]string{c.Spec.securityGroup}),
 		},
@@ -32,8 +32,8 @@ func (c *ClusterProvider) CreateControlPlane() error {
 	return nil
 }
 
-func (c *ClusterProvider) DescribeControlPlane() (*eks.Cluster, error) {
-	input := &eks.DescribeClusterInput{
+func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
+	input := &awseks.DescribeClusterInput{
 		Name: &c.Spec.ClusterName,
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
@@ -49,7 +49,7 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 		return errors.Wrap(err, "not able to get control plane for deletion")
 	}
 
-	input := &eks.DeleteClusterInput{
+	input := &awseks.DeleteClusterInput{
 		Name: cluster.Name,
 	}
 
@@ -62,7 +62,7 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 func (c *ClusterProvider) createControlPlane(errs chan error) error {
 	logger.Info("creating control plane %q", c.Spec.ClusterName)
 
-	clusterChan := make(chan eks.Cluster)
+	clusterChan := make(chan awseks.Cluster)
 	taskErrs := make(chan error)
 
 	if err := c.CreateControlPlane(); err != nil {
@@ -93,9 +93,9 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 				}
 				logger.Debug("cluster = %#v", cluster)
 				switch *cluster.Status {
-				case eks.ClusterStatusCreating:
+				case awseks.ClusterStatusCreating:
 					continue
-				case eks.ClusterStatusActive:
+				case awseks.ClusterStatusActive:
 					taskErrs <- nil
 					clusterChan <- *cluster
 					return
@@ -131,7 +131,7 @@ func (c *ClusterProvider) createControlPlane(errs chan error) error {
 	return nil
 }
 
-func (c *ClusterProvider) GetCredentials(cluster eks.Cluster) error {
+func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
 	c.Spec.MasterEndpoint = *cluster.Endpoint
 
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
@@ -149,7 +149,7 @@ func (c *ClusterProvider) ListClusters() error {
 	}
 
 	// TODO: https://github.com/weaveworks/eksctl/issues/27
-	input := &eks.ListClustersInput{}
+	input := &awseks.ListClustersInput{}
 	output, err := c.Provider.EKS().ListClusters(input)
 	if err != nil {
 		return errors.Wrap(err, "listing control planes")
@@ -164,7 +164,7 @@ func (c *ClusterProvider) ListClusters() error {
 }
 
 func (c *ClusterProvider) doListCluster(clusterName *string) error {
-	input := &eks.DescribeClusterInput{
+	input := &awseks.DescribeClusterInput{
 		Name: clusterName,
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
@@ -172,7 +172,7 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
 	}
 	logger.Debug("cluster = %#v", output)
-	if *output.Cluster.Status == eks.ClusterStatusActive {
+	if *output.Cluster.Status == awseks.ClusterStatusActive {
 		logger.Info("cluster = %#v", *output.Cluster)
 		if logger.Level >= 4 {
 			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
