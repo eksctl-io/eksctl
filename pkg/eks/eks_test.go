@@ -2,6 +2,7 @@ package eks_test
 
 import (
 	"time"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -115,5 +116,94 @@ var _ = Describe("Eks", func() {
 				})
 			})
 		})
+
+		Context("with no cluster name", func() {
+			var (
+				err         error
+				chunkSize int
+			)
+
+			Context("and chunk-size of 1", func() {
+				var (
+					callNumber int
+				)
+				BeforeEach(func() {
+					chunkSize = 1
+					callNumber = 0
+
+					p = testutils.NewMockProvider()
+	
+					c = &ClusterProvider{
+						Spec: &ClusterConfig{},
+						Provider: p,
+					}
+
+					mockResultFn := func(input *awseks.ListClustersInput) *awseks.ListClustersOutput {
+						clusterName:= fmt.Sprintf("cluster-%d", callNumber)
+						output := &awseks.ListClustersOutput{
+							Clusters: []*string{aws.String(clusterName)},
+						}
+						if callNumber == 0 {
+							output.NextToken = aws.String("SOMERANDOMTOKEN")
+						}
+
+						callNumber = callNumber + 1
+						return output
+					}
+	
+					p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
+						return *input.MaxResults == int64(chunkSize)
+					})).Return(mockResultFn, nil)
+				})
+
+				JustBeforeEach(func() {
+					err = c.ListClusters(chunkSize, output)
+				})
+
+				It("should not error", func() {
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should have called AWS EKS service twice", func() {
+					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 2)).To(BeTrue())
+				})
+			})
+			Context("and chunk-size of 100", func() {
+				BeforeEach(func() {
+					chunkSize = 100
+
+					p = testutils.NewMockProvider()
+	
+					c = &ClusterProvider{
+						Spec: &ClusterConfig{},
+						Provider: p,
+					}
+
+					mockResultFn := func(input *awseks.ListClustersInput) *awseks.ListClustersOutput {
+						output := &awseks.ListClustersOutput{
+							Clusters: []*string{aws.String("cluster-1"), aws.String("cluster-2")},
+						}
+						return output
+					}
+	
+					p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
+						return *input.MaxResults == int64(chunkSize)
+					})).Return(mockResultFn, nil)
+				})
+
+				JustBeforeEach(func() {
+					err = c.ListClusters(chunkSize, output)
+				})
+
+				It("should not error", func() {
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("should have called AWS EKS service once", func() {
+					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "ListClusters", 1)).To(BeTrue())
+				})
+			})
+		})
+		
 	})
 })
