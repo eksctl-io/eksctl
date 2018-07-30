@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -19,11 +18,11 @@ var _ = Describe("Eks", func() {
 	var (
 		c       *ClusterProvider
 		p       *testutils.MockProvider
-		printer printers.OutputPrinter
+		output string
 	)
 
 	BeforeEach(func() {
-		printer, _ = printers.NewPrinter("log")
+		output = "log"
 	})
 
 	Describe("ListAll", func() {
@@ -69,7 +68,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100, printer)
+					err = c.ListClusters(100, output)
 				})
 
 				It("should not error", func() {
@@ -100,7 +99,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100, printer)
+					err = c.ListClusters(100, output)
 				})
 
 				It("should not error", func() {

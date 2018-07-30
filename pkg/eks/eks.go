@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -147,27 +148,64 @@ func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, printer printers.OutputPrinter) error {
-	if c.Spec.ClusterName != "" {
-		return c.doListCluster(&c.Spec.ClusterName, printer)
+func (c *ClusterProvider) ListClusters(chunkSize int, output string) error {
+	// NOTE: this needs to be reworked in the future so that the functionality
+	// is combined. This require the ability to return details of all clusters
+	// in a single call.
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
 	}
 
-	// TODO: https://github.com/weaveworks/eksctl/issues/27
-	input := &awseks.ListClustersInput{}
-	output, err := c.Provider.EKS().ListClusters(input)
-	if err != nil {
-		return errors.Wrap(err, "listing control planes")
+	if c.Spec.ClusterName != "" {
+		if output == "table" {
+			addSummaryTableColumns(printer.(*printers.TablePrinter))
+		}
+		return c.doGetCluster(&c.Spec.ClusterName, printer)
 	}
-	logger.Debug("clusters = %#v", output)
-	for _, clusterName := range output.Clusters {
-		if err := c.doListCluster(clusterName, printer); err != nil {
+
+	if output == "table" {
+		addListTableColumns(printer.(*printers.TablePrinter))
+	}
+	return c.doListClusters(int64(chunkSize), printer)
+}
+
+func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter) error {
+	allClusterNames := []*string{}
+
+	getFunc := func(chunkSize int64, nextToken string) ([]*string, *string, error) {
+		input := &awseks.ListClustersInput{MaxResults: &chunkSize}
+		if nextToken != "" {
+			input = input.SetNextToken(nextToken)
+		}
+		output, err := c.Provider.EKS().ListClusters(input)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "listing control planes")
+		}
+		return output.Clusters, output.NextToken, nil
+	}
+
+	token := ""
+	for {
+		clusters, nextToken, err := getFunc(chunkSize, token)
+		if err != nil {
 			return err
 		}
+		allClusterNames = append(allClusterNames, clusters...)
+		if nextToken != nil && *nextToken != "" {
+			token = *nextToken
+		} else {
+			break
+		}
 	}
+
+	logger.Debug("clusters = %#v", allClusterNames)
+	printer.PrintObj(allClusterNames, os.Stdout)
+
 	return nil
 }
 
-func (c *ClusterProvider) doListCluster(clusterName *string, printer printers.OutputPrinter) error {
+func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.OutputPrinter) error {
 	input := &awseks.DescribeClusterInput{
 		Name: clusterName,
 	}
@@ -177,7 +215,6 @@ func (c *ClusterProvider) doListCluster(clusterName *string, printer printers.Ou
 	}
 	logger.Debug("cluster = %#v", output)
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
-
 		clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
 		printer.PrintObj(clusters, os.Stdout)
 
@@ -222,4 +259,34 @@ func (c *ClusterConfig) WaitForControlPlane(clientSet *kubernetes.Clientset) err
 			return fmt.Errorf("timed out waiting for control plane %q after %s", c.ClusterName, c.WaitTimeout)
 		}
 	}
+}
+
+func addSummaryTableColumns(printer *printers.TablePrinter) {
+	printer.AddColumn("NAME", func(c *awseks.Cluster) string {
+		return *c.Name
+	})
+	printer.AddColumn("ARN", func(c *awseks.Cluster) string {
+		return *c.Arn
+	})
+	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
+		return *c.ResourcesVpcConfig.VpcId
+	})
+	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
+		subnets := sets.NewString()
+		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
+			if *subnetid != "" {
+				subnets.Insert(*subnetid)
+			}
+		}
+		return strings.Join(subnets.List(), ",")
+	})
+	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
+		return c.CreatedAt.Format(time.RFC3339)
+	})
+}
+
+func addListTableColumns(printer *printers.TablePrinter) {
+	printer.AddColumn("NAME", func(c *string) string {
+		return *c
+	})
 }

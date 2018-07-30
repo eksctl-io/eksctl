@@ -3,16 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
-	"time"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/printers"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
@@ -61,7 +56,7 @@ func getClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
 
-	fs.StringVarP(&output, "output", "o", "log", "Specifies the output printer to use")
+	fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml,log. Defaults to table.")
 	return cmd
 }
 
@@ -80,42 +75,9 @@ func doGetCluster(cfg *eks.ClusterConfig, name string) error {
 		cfg.ClusterName = name
 	}
 
-	printer, err := printers.NewPrinter(output)
-	if err != nil {
-		return err
-	}
-	if output == "table" {
-		addTableColumns(printer.(*printers.TablePrinter))
-	}
-
-	if err := ctl.ListClusters(chunkSize, printer); err != nil {
+	if err := ctl.ListClusters(chunkSize, output); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func addTableColumns(printer *printers.TablePrinter) {
-
-	printer.AddColumn("CLUSTERNAME", func(c *awseks.Cluster) string {
-		return *c.Name
-	})
-	printer.AddColumn("ARN", func(c *awseks.Cluster) string {
-		return *c.Arn
-	})
-	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
-		return *c.ResourcesVpcConfig.VpcId
-	})
-	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
-		subnets := sets.NewString()
-		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
-			if *subnetid != "" {
-				subnets.Insert(*subnetid)
-			}
-		}
-		return strings.Join(subnets.List(), ",")
-	})
-	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
-		return c.CreatedAt.Format(time.RFC3339)
-	})
 }
