@@ -6,6 +6,7 @@ import (
 	//"fmt"
 	"bufio"
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -38,7 +39,7 @@ var _ = Describe("YAML Printer", func() {
 		//	Expect(printer).Should(BeAssignableToTypeOf(printerInt))
 		//})
 
-		Context("given a cluster struct", func() {
+		Context("given a cluster struct and calling PrintObj", func() {
 			var (
 				cluster     *awseks.Cluster
 				err         error
@@ -81,11 +82,16 @@ var _ = Describe("YAML Printer", func() {
 
 				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
 
+				if !bytesAreEqual {
+					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
+					fmt.Printf("Expected:\n%s\n", string(g))
+				}
+
 				Expect(bytesAreEqual).To(BeTrue())
 			})
 		})
 
-		Context("given 2 cluster structs", func() {
+		Context("given 2 cluster structs and calling PrintObj", func() {
 			var (
 				clusters    []*awseks.Cluster
 				err         error
@@ -139,6 +145,11 @@ var _ = Describe("YAML Printer", func() {
 				}
 
 				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
+
+				if !bytesAreEqual {
+					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
+					fmt.Printf("Expected:\n%s\n", string(g))
+				}
 
 				Expect(bytesAreEqual).To(BeTrue())
 			})

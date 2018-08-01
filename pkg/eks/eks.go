@@ -265,8 +265,14 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("NAME", func(c *awseks.Cluster) string {
 		return *c.Name
 	})
-	printer.AddColumn("ARN", func(c *awseks.Cluster) string {
-		return *c.Arn
+	printer.AddColumn("VERSION", func(c *awseks.Cluster) string {
+		return *c.Version
+	})
+	printer.AddColumn("STATUS", func(c *awseks.Cluster) string {
+		return *c.Status
+	})
+	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
+		return c.CreatedAt.Format(time.RFC3339)
 	})
 	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
 		return *c.ResourcesVpcConfig.VpcId
@@ -280,8 +286,14 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 		}
 		return strings.Join(subnets.List(), ",")
 	})
-	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
-		return c.CreatedAt.Format(time.RFC3339)
+	printer.AddColumn("SECURITYGROUPS", func(c *awseks.Cluster) string {
+		groups := sets.NewString()
+		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
+			if *sg != "" {
+				groups.Insert(*sg)
+			}
+		}
+		return strings.Join(groups.List(), ",")
 	})
 }
 
