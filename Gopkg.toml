@@ -23,10 +23,6 @@ required = [
   name = "github.com/spf13/cobra"
   branch = "master"
 
-#[[constraint]]
-#  branch = "master"
-#  name = "k8s.io/api"
-
 [[override]]
   branch = "release-1.10"
   name = "k8s.io/api"
