@@ -32,7 +32,7 @@ integration-test: build
 
 .PHONY: generated
 generate:
-	@go generate ./pkg/eks ./pkg/eks/mocks
+	@go generate ./pkg/nodebootstrap ./pkg/eks/mocks
 
 .PHONY: eksctl-build-image
 eksctl-build-image:
