@@ -4,11 +4,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/spf13/cobra"
+)
 
-	"github.com/weaveworks/eksctl/pkg/eks"
+const (
+	DEFAULT_CHUNK_SIZE = 100
+)
+
+var (
+	chunkSize int
+	output    string
 )
 
 func getCmd() *cobra.Command {
@@ -43,10 +51,12 @@ func getClusterCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
+	fs.IntVar(&chunkSize, "chunk-size", DEFAULT_CHUNK_SIZE, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
 
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
 
+	fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
 	return cmd
 }
 
@@ -65,7 +75,7 @@ func doGetCluster(cfg *eks.ClusterConfig, name string) error {
 		cfg.ClusterName = name
 	}
 
-	if err := ctl.ListClusters(); err != nil {
+	if err := ctl.ListClusters(chunkSize, output); err != nil {
 		return err
 	}
 

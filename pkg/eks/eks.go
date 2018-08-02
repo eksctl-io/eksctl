@@ -3,10 +3,14 @@ package eks
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/printers"
+
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -143,27 +147,64 @@ func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
 	return nil
 }
 
-func (c *ClusterProvider) ListClusters() error {
-	if c.Spec.ClusterName != "" {
-		return c.doListCluster(&c.Spec.ClusterName)
+// ListClusters display details of all the EKS cluster in your account
+func (c *ClusterProvider) ListClusters(chunkSize int, output string) error {
+	// NOTE: this needs to be reworked in the future so that the functionality
+	// is combined. This require the ability to return details of all clusters
+	// in a single call.
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
 	}
 
-	// TODO: https://github.com/weaveworks/eksctl/issues/27
-	input := &awseks.ListClustersInput{}
-	output, err := c.Provider.EKS().ListClusters(input)
-	if err != nil {
-		return errors.Wrap(err, "listing control planes")
+	if c.Spec.ClusterName != "" {
+		if output == "table" {
+			addSummaryTableColumns(printer.(*printers.TablePrinter))
+		}
+		return c.doGetCluster(&c.Spec.ClusterName, printer)
 	}
-	logger.Debug("clusters = %#v", output)
-	for _, clusterName := range output.Clusters {
-		if err := c.doListCluster(clusterName); err != nil {
+
+	if output == "table" {
+		addListTableColumns(printer.(*printers.TablePrinter))
+	}
+	return c.doListClusters(int64(chunkSize), printer)
+}
+
+func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter) error {
+	allClusterNames := []*string{}
+
+	getFunc := func(chunkSize int64, nextToken string) ([]*string, *string, error) {
+		input := &awseks.ListClustersInput{MaxResults: &chunkSize}
+		if nextToken != "" {
+			input = input.SetNextToken(nextToken)
+		}
+		output, err := c.Provider.EKS().ListClusters(input)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "listing control planes")
+		}
+		return output.Clusters, output.NextToken, nil
+	}
+
+	token := ""
+	for {
+		clusters, nextToken, err := getFunc(chunkSize, token)
+		if err != nil {
 			return err
 		}
+		allClusterNames = append(allClusterNames, clusters...)
+		if nextToken != nil && *nextToken != "" {
+			token = *nextToken
+		} else {
+			break
+		}
 	}
+
+	printer.PrintObj(allClusterNames, os.Stdout)
+
 	return nil
 }
 
-func (c *ClusterProvider) doListCluster(clusterName *string) error {
+func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.OutputPrinter) error {
 	input := &awseks.DescribeClusterInput{
 		Name: clusterName,
 	}
@@ -173,7 +214,9 @@ func (c *ClusterProvider) doListCluster(clusterName *string) error {
 	}
 	logger.Debug("cluster = %#v", output)
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
-		logger.Info("cluster = %#v", *output.Cluster)
+		clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
+		printer.PrintObj(clusters, os.Stdout)
+
 		if logger.Level >= 4 {
 			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
 			if err != nil {
@@ -215,4 +258,46 @@ func (c *ClusterConfig) WaitForControlPlane(clientSet *kubernetes.Clientset) err
 			return fmt.Errorf("timed out waiting for control plane %q after %s", c.ClusterName, c.WaitTimeout)
 		}
 	}
+}
+
+func addSummaryTableColumns(printer *printers.TablePrinter) {
+	printer.AddColumn("NAME", func(c *awseks.Cluster) string {
+		return *c.Name
+	})
+	printer.AddColumn("VERSION", func(c *awseks.Cluster) string {
+		return *c.Version
+	})
+	printer.AddColumn("STATUS", func(c *awseks.Cluster) string {
+		return *c.Status
+	})
+	printer.AddColumn("CREATED", func(c *awseks.Cluster) string {
+		return c.CreatedAt.Format(time.RFC3339)
+	})
+	printer.AddColumn("VPC", func(c *awseks.Cluster) string {
+		return *c.ResourcesVpcConfig.VpcId
+	})
+	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
+		subnets := sets.NewString()
+		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
+			if *subnetid != "" {
+				subnets.Insert(*subnetid)
+			}
+		}
+		return strings.Join(subnets.List(), ",")
+	})
+	printer.AddColumn("SECURITYGROUPS", func(c *awseks.Cluster) string {
+		groups := sets.NewString()
+		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
+			if *sg != "" {
+				groups.Insert(*sg)
+			}
+		}
+		return strings.Join(groups.List(), ",")
+	})
+}
+
+func addListTableColumns(printer *printers.TablePrinter) {
+	printer.AddColumn("NAME", func(c *string) string {
+		return *c
+	})
 }

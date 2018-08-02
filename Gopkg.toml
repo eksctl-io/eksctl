@@ -23,8 +23,8 @@ required = [
   name = "github.com/spf13/cobra"
   branch = "master"
 
-[[constraint]]
-  branch = "master"
+[[override]]
+  branch = "release-1.10"
   name = "k8s.io/api"
 
 [[constraint]]
@@ -72,3 +72,7 @@ required = [
 [[constraint]]
   name = "github.com/onsi/ginkgo"
   version = "1.5.0"
+
+[[override]]
+  name = "github.com/gophercloud/gophercloud"
+  revision = "8183543f90d1aef267a5ecc209f2e0715b355acb"
