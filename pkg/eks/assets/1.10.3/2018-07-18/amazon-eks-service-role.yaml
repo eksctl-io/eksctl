@@ -20,7 +20,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
-
+  
   NetworkLoadBalancerPolicyForAamazonEKS:
     Type: AWS::IAM::Policy
     Properties:

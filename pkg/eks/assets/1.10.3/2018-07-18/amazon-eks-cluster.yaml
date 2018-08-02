@@ -1,0 +1,51 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Amazon EKS - Control Plane'
+
+Parameters:
+  ClusterName:
+    Description: A name for the EKS cluster.
+    Type: String
+
+  ControlPlaneSecurityGroups:
+    Description: A list of security group IDs to attach to the ENIs that allow traffic to the EKS control plane.
+    Type: List<AWS::EC2::SecurityGroup::Id>
+
+  Subnets:
+    Description: A lsit of subnet IDs in which you will be able to launch worker nodes.
+    Type: List<AWS::EC2::Subnet::Id>
+
+  ServiceRoleARN:
+    Description: ARN of the service role which EKS uses to act on your behalf.
+    Type: String
+
+  KubernetesVersion:
+    Description: The Kubernetes version of the EKS cluster.
+    Type: String
+    Default: "1.10"
+    AllowedValues:
+    - "1.10"
+
+Resources:
+  EKSCluster:
+    Type: "AWS::EKS::Cluster"
+    Properties:
+      Name: !Ref ClusterName
+      ResourcesVpcConfig:
+        SecurityGroupIds: !Ref ControlPlaneSecurityGroups
+        SubnetIds: !Ref Subnets
+      RoleArn: !Ref ServiceRoleARN
+      Version: !Ref KubernetesVersion
+
+Outputs:
+  EKSClusterCA:
+    Description: Certificate Authority Data for the EKS cluster.
+    Value: !GetAtt EKSCluster.CertificateAuthorityData
+
+  EKSClusterEndpoint:
+    Description: Endpoint for the EKS control plane.
+    Value: !GetAtt EKSCluster.Endpoint
+
+  EKSClusterARN:
+    Description: Identifier for the EKS cluster.
+    Value: !GetAtt EKSCluster.Arn
