@@ -14,11 +14,11 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
-func (c *ClusterConfig) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
+func (c *ClusterProvider) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	mapRoles := make([]map[string]interface{}, 1)
 	mapRoles[0] = make(map[string]interface{})
 
-	mapRoles[0]["rolearn"] = c.nodeInstanceRoleARN
+	mapRoles[0]["rolearn"] = c.Spec.NodeInstanceRoleARN
 	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
 	mapRoles[0]["groups"] = []string{
 		"system:bootstrappers",
@@ -43,7 +43,7 @@ func (c *ClusterConfig) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	return cm, nil
 }
 
-func (c *ClusterConfig) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
+func (c *ClusterProvider) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
 	cm, err := c.newNodeAuthConfigMap()
 	if err != nil {
 		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
@@ -80,8 +80,11 @@ func getNodes(clientSet *clientset.Clientset) (int, error) {
 	return len(nodes.Items), nil
 }
 
-func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
-	timer := time.After(c.WaitTimeout)
+func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
+	if c.Spec.MinNodes == 0 {
+		return nil
+	}
+	timer := time.After(c.Spec.WaitTimeout)
 	timeout := false
 	watcher, err := clientSet.Core().Nodes().Watch(metav1.ListOptions{})
 	if err != nil {
@@ -93,8 +96,8 @@ func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
 		return errors.Wrap(err, "listing nodes")
 	}
 
-	logger.Info("waiting for at least %d nodes to become ready", c.MinNodes)
-	for !timeout && counter <= c.MinNodes {
+	logger.Info("waiting for at least %d nodes to become ready", c.Spec.MinNodes)
+	for !timeout && counter <= c.Spec.MinNodes {
 		select {
 		case event, _ := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
@@ -114,7 +117,7 @@ func (c *ClusterConfig) WaitForNodes(clientSet *clientset.Clientset) error {
 		}
 	}
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.WaitTimeout, c.MinNodes)
+		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.Spec.WaitTimeout, c.Spec.MinNodes)
 	}
 
 	if _, err = getNodes(clientSet); err != nil {

@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -41,7 +42,7 @@ var _ = Describe("Eks", func() {
 				p = testutils.NewMockProvider()
 
 				c = &ClusterProvider{
-					Spec: &ClusterConfig{
+					Spec: &api.ClusterConfig{
 						ClusterName: clusterName,
 					},
 					Provider: p,
@@ -198,7 +199,7 @@ var _ = Describe("Eks", func() {
 					p = testutils.NewMockProvider()
 
 					c = &ClusterProvider{
-						Spec:     &ClusterConfig{},
+						Spec:     &api.ClusterConfig{},
 						Provider: p,
 					}
 
@@ -239,7 +240,7 @@ var _ = Describe("Eks", func() {
 					p = testutils.NewMockProvider()
 
 					c = &ClusterProvider{
-						Spec:     &ClusterConfig{},
+						Spec:     &api.ClusterConfig{},
 						Provider: p,
 					}
 

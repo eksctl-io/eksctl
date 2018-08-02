@@ -13,28 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/aws/aws-sdk-go/aws"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
-
-func (c *ClusterProvider) CreateControlPlane() error {
-	input := &awseks.CreateClusterInput{
-		Name:    &c.Spec.ClusterName,
-		RoleArn: &c.Spec.clusterRoleARN,
-		ResourcesVpcConfig: &awseks.VpcConfigRequest{
-			SubnetIds:        aws.StringSlice(strings.Split(c.Spec.subnetsList, ",")),
-			SecurityGroupIds: aws.StringSlice([]string{c.Spec.securityGroup}),
-		},
-	}
-	output, err := c.Provider.EKS().CreateCluster(input)
-	if err != nil {
-		return errors.Wrap(err, "unable to create cluster control plane")
-	}
-	logger.Debug("output = %#v", output)
-	return nil
-}
 
 func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
@@ -47,7 +29,7 @@ func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
 	return output.Cluster, nil
 }
 
-func (c *ClusterProvider) DeleteControlPlane() error {
+func (c *ClusterProvider) DeprecatedDeleteControlPlane() error {
 	cluster, err := c.DescribeControlPlane()
 	if err != nil {
 		return errors.Wrap(err, "not able to get control plane for deletion")
@@ -64,7 +46,7 @@ func (c *ClusterProvider) DeleteControlPlane() error {
 }
 
 func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
-	c.Spec.MasterEndpoint = *cluster.Endpoint
+	c.Spec.Endpoint = *cluster.Endpoint
 
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {
@@ -148,7 +130,7 @@ func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.Out
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 
 		if logger.Level >= 4 {
-			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
+			stacks, err := c.NewStackManager().ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
 			if err != nil {
 				return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
 			}
@@ -165,7 +147,7 @@ func (c *ClusterProvider) ListAllTaggedResources() error {
 	return nil
 }
 
-func (c *ClusterConfig) WaitForControlPlane(clientSet *kubernetes.Clientset) error {
+func (c *ClusterProvider) WaitForControlPlane(clientSet *kubernetes.Clientset) error {
 	if _, err := clientSet.ServerVersion(); err == nil {
 		return nil
 	}
@@ -173,7 +155,7 @@ func (c *ClusterConfig) WaitForControlPlane(clientSet *kubernetes.Clientset) err
 	ticker := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
 
-	timer := time.NewTimer(c.WaitTimeout)
+	timer := time.NewTimer(c.Spec.WaitTimeout)
 	defer timer.Stop()
 
 	for {
@@ -185,7 +167,7 @@ func (c *ClusterConfig) WaitForControlPlane(clientSet *kubernetes.Clientset) err
 			}
 			logger.Debug("control plane not ready yet – %s", err.Error())
 		case <-timer.C:
-			return fmt.Errorf("timed out waiting for control plane %q after %s", c.ClusterName, c.WaitTimeout)
+			return fmt.Errorf("timed out waiting for control plane %q after %s", c.Spec.ClusterName, c.Spec.WaitTimeout)
 		}
 	}
 }

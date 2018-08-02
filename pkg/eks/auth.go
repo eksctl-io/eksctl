@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -55,8 +56,8 @@ func (c *ClusterProvider) tryExistingSSHPublicKeyFromPath() error {
 	if err != nil {
 		return err
 	}
-	c.Spec.keyName = *existing.KeyName
-	logger.Info("found EC2 key pair %q", c.Spec.keyName)
+	c.Spec.SSHPublicKeyName = *existing.KeyName
+	logger.Info("found EC2 key pair %q", c.Spec.SSHPublicKeyName)
 	return nil
 }
 
@@ -65,15 +66,15 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded() error {
 	if err != nil {
 		return err
 	}
-	c.Spec.keyName = c.getKeyPairName(&fingerprint)
-	existing, err := c.getKeyPair(c.Spec.keyName)
+	c.Spec.SSHPublicKeyName = c.getKeyPairName(&fingerprint)
+	existing, err := c.getKeyPair(c.Spec.SSHPublicKeyName)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "cannot find EC2 key pair") {
 			input := &ec2.ImportKeyPairInput{
-				KeyName:           &c.Spec.keyName,
+				KeyName:           &c.Spec.SSHPublicKeyName,
 				PublicKeyMaterial: c.Spec.SSHPublicKey,
 			}
-			logger.Info("importing SSH public key %q as %q", c.Spec.SSHPublicKeyPath, c.Spec.keyName)
+			logger.Info("importing SSH public key %q as %q", c.Spec.SSHPublicKeyPath, c.Spec.SSHPublicKeyName)
 			if _, err := c.Provider.EC2().ImportKeyPair(input); err != nil {
 				return errors.Wrap(err, "importing SSH public key")
 			}
@@ -82,13 +83,17 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded() error {
 		return errors.Wrap(err, "checking existing key pair")
 	}
 	if *existing.KeyFingerprint != fingerprint {
-		return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", c.Spec.keyName, fingerprint, *existing.KeyFingerprint)
+		return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", c.Spec.SSHPublicKeyName, fingerprint, *existing.KeyFingerprint)
 	}
-	logger.Debug("SSH public key %s already exists", c.Spec.keyName)
+	logger.Debug("SSH public key %s already exists", c.Spec.SSHPublicKeyName)
 	return nil
 }
 
 func (c *ClusterProvider) LoadSSHPublicKey() error {
+	if !c.Spec.NodeSSH {
+		// TODO: https://github.com/weaveworks/eksctl/issues/144
+		return nil
+	}
 	c.Spec.SSHPublicKeyPath = utils.ExpandPath(c.Spec.SSHPublicKeyPath)
 	sshPublicKey, err := ioutil.ReadFile(c.Spec.SSHPublicKeyPath)
 	if err != nil {
@@ -100,7 +105,10 @@ func (c *ClusterProvider) LoadSSHPublicKey() error {
 	}
 	// on successfull read – import it
 	c.Spec.SSHPublicKey = sshPublicKey
-	return c.importSSHPublicKeyIfNeeded()
+	if err := c.importSSHPublicKeyIfNeeded(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
@@ -145,7 +153,7 @@ func (c *ClusterProvider) getUsername() string {
 
 type ClientConfig struct {
 	Client      *clientcmdapi.Config
-	Cluster     *ClusterConfig
+	Cluster     *api.ClusterConfig
 	ClusterName string
 	ContextName string
 	roleARN     string
@@ -163,7 +171,7 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 		Client: &clientcmdapi.Config{
 			Clusters: map[string]*clientcmdapi.Cluster{
 				clusterName: {
-					Server: c.Spec.MasterEndpoint,
+					Server: c.Spec.Endpoint,
 					CertificateAuthorityData: c.Spec.CertificateAuthorityData,
 				},
 			},
