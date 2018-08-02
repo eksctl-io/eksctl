@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/eksctl/pkg/eks"
-
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
+
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
 const (
@@ -34,7 +35,7 @@ func getCmd() *cobra.Command {
 }
 
 func getClusterCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &api.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use:     "cluster",
@@ -60,7 +61,7 @@ func getClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doGetCluster(cfg *eks.ClusterConfig, name string) error {
+func doGetCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {

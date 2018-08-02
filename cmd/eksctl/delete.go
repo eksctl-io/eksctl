@@ -9,6 +9,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -27,7 +28,7 @@ func deleteCmd() *cobra.Command {
 }
 
 func deleteClusterCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &api.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use:   "cluster",
@@ -50,7 +51,7 @@ func deleteClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doDeleteCluster(cfg *eks.ClusterConfig, name string) error {
+func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -71,27 +72,45 @@ func doDeleteCluster(cfg *eks.ClusterConfig, name string) error {
 
 	logger.Info("deleting EKS cluster %q", cfg.ClusterName)
 
-	debugError := func(err error) {
-		logger.Debug("continue despite error: %v", err)
+	handleError := func(err error) bool {
+		if err != nil {
+			logger.Debug("continue despite error: %v", err)
+			return true
+		}
+		return false
 	}
 
-	if err := ctl.DeleteControlPlane(); err != nil {
-		debugError(err)
-	}
-	if err := ctl.DeleteStackControlPlane(); err != nil {
-		debugError(err)
+	// We can remove all 'DeprecatedDelete*' calls in 0.2.0
+
+	stackManager := ctl.NewStackManager()
+
+	if err := stackManager.DeleteNodeGroup(); err != nil {
+		handleError(err)
 	}
 
-	if err := ctl.DeleteStackServiceRole(); err != nil {
-		debugError(err)
+	// TODO as we now use exports, we will need to wait for nodegroup to get deleted first
+	if err := stackManager.DeleteCluster(); err != nil {
+		if handleError(err) {
+			if err := ctl.DeprecatedDeleteControlPlane(); err != nil {
+				if handleError(err) {
+					if err := stackManager.DeprecatedDeleteStackControlPlane(); err != nil {
+						handleError(err)
+					}
+				}
+			}
+		}
 	}
 
-	if err := ctl.DeleteStackVPC(); err != nil {
-		debugError(err)
+	if err := stackManager.DeprecatedDeleteStackServiceRole(); err != nil {
+		handleError(err)
 	}
 
-	if err := ctl.DeleteStackDefaultNodeGroup(); err != nil {
-		debugError(err)
+	if err := stackManager.DeprecatedDeleteStackVPC(); err != nil {
+		handleError(err)
+	}
+
+	if err := stackManager.DeprecatedDeleteStackDefaultNodeGroup(); err != nil {
+		handleError(err)
 	}
 
 	ctl.MaybeDeletePublicSSHKey()

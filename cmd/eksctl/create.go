@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -10,6 +11,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
@@ -46,7 +48,7 @@ var (
 )
 
 func createClusterCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &api.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use:   "cluster",
@@ -75,8 +77,10 @@ func createClusterCmd() *cobra.Command {
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")
 	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "maximum nodes in ASG")
 
+	fs.IntVar(&cfg.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
 	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 
+	fs.BoolVar(&cfg.NodeSSH, "ssh-access", false, "control SSH access for nodes")
 	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
@@ -93,7 +97,7 @@ func createClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
+func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -135,7 +139,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	{ // core action
 		taskErr := make(chan error)
 		// create each of the core cloudformation stacks
-		go ctl.CreateCluster(taskErr)
+		go createCluster(ctl, taskErr)
 		// read any errors (it only gets non-nil errors)
 		for err := range taskErr {
 			logger.Info("an error has occurred and cluster hasn't beend created properly")
@@ -172,17 +176,17 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 			return err
 		}
 
-		if err := cfg.WaitForControlPlane(clientSet); err != nil {
+		if err := ctl.WaitForControlPlane(clientSet); err != nil {
 			return err
 		}
 
 		// authorise nodes to join
-		if err := cfg.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
+		if err := ctl.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
 			return err
 		}
 
 		// wait for nodes to join
-		if err := cfg.WaitForNodes(clientSet); err != nil {
+		if err := ctl.WaitForNodes(clientSet); err != nil {
 			return err
 		}
 
@@ -202,4 +206,39 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 	logger.Success("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
 
 	return nil
+}
+
+func runCreateTask(tasks map[string]func(chan error) error, taskErrs chan error) {
+	wg := &sync.WaitGroup{}
+	wg.Add(len(tasks))
+	for taskName := range tasks {
+		task := tasks[taskName]
+		go func(tn string) {
+			defer wg.Done()
+			logger.Debug("task %q started", tn)
+			errs := make(chan error)
+			if err := task(errs); err != nil {
+				taskErrs <- err
+				return
+			}
+			if err := <-errs; err != nil {
+				taskErrs <- err
+				return
+			}
+			logger.Debug("task %q returned without errors", tn)
+		}(taskName)
+	}
+	logger.Debug("waiting for %d tasks to complete", len(tasks))
+	wg.Wait()
+}
+
+func createCluster(ctl *eks.ClusterProvider, taskErrs chan error) {
+	stackManager := ctl.NewStackManager()
+	runCreateTask(map[string]func(chan error) error{
+		"createStackCluster": func(errs chan error) error { return stackManager.CreateCluster(errs) },
+	}, taskErrs)
+	runCreateTask(map[string]func(chan error) error{
+		"createStackDefaultNodeGroup": func(errs chan error) error { return stackManager.CreateNodeGroup(errs) },
+	}, taskErrs)
+	close(taskErrs)
 }
