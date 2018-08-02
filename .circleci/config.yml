@@ -5,7 +5,6 @@ jobs:
     machine: true
     steps:
       - checkout
-      # TODO(p3): run unit tests
       - run: make eksctl-image
   make-release:
     machine: true
