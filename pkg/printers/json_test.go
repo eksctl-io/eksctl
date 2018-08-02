@@ -30,11 +30,9 @@ var _ = Describe("JSON Printer", func() {
 			Expect(printer).ShouldNot(BeNil())
 		})
 
-		//TODO - finish
-		//It("should be the correct type", func() {
-		//	printerInt:= OutputPrinter{}
-		//	Expect(printer).Should(BeAssignableToTypeOf(printerInt))
-		//})
+		It("should be the correct type", func() {
+			_ = printer.(*JSONPrinter)
+		})
 
 		Context("given a cluster struct and calling PrintObj", func() {
 			var (

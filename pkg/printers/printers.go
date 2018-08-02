@@ -3,8 +3,6 @@ package printers
 import (
 	"fmt"
 	"io"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 type OutputPrinter interface {
@@ -21,8 +19,6 @@ func NewPrinter(printerType string) (OutputPrinter, error) {
 		printer = NewJSONPrinter()
 	case "table":
 		printer = NewTablePrinter()
-	case "log":
-		printer = NewLoggerPrinter(logger.Info)
 	default:
 		return nil, fmt.Errorf("unknown output printer type: %s", printerType)
 	}

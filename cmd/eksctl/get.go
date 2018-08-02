@@ -56,7 +56,7 @@ func getClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
 
-	fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml,log. Defaults to table.")
+	fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
 	return cmd
 }
 

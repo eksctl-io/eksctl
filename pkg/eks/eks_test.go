@@ -1,8 +1,8 @@
 package eks_test
 
 import (
-	"time"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -17,13 +17,13 @@ import (
 
 var _ = Describe("Eks", func() {
 	var (
-		c       *ClusterProvider
-		p       *testutils.MockProvider
+		c      *ClusterProvider
+		p      *testutils.MockProvider
 		output string
 	)
 
 	BeforeEach(func() {
-		output = "log"
+		output = "json"
 	})
 
 	Describe("ListAll", func() {
@@ -119,7 +119,7 @@ var _ = Describe("Eks", func() {
 
 		Context("with no cluster name", func() {
 			var (
-				err         error
+				err       error
 				chunkSize int
 			)
 
@@ -132,14 +132,14 @@ var _ = Describe("Eks", func() {
 					callNumber = 0
 
 					p = testutils.NewMockProvider()
-	
+
 					c = &ClusterProvider{
-						Spec: &ClusterConfig{},
+						Spec:     &ClusterConfig{},
 						Provider: p,
 					}
 
 					mockResultFn := func(input *awseks.ListClustersInput) *awseks.ListClustersOutput {
-						clusterName:= fmt.Sprintf("cluster-%d", callNumber)
+						clusterName := fmt.Sprintf("cluster-%d", callNumber)
 						output := &awseks.ListClustersOutput{
 							Clusters: []*string{aws.String(clusterName)},
 						}
@@ -150,7 +150,7 @@ var _ = Describe("Eks", func() {
 						callNumber = callNumber + 1
 						return output
 					}
-	
+
 					p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
 						return *input.MaxResults == int64(chunkSize)
 					})).Return(mockResultFn, nil)
@@ -173,9 +173,9 @@ var _ = Describe("Eks", func() {
 					chunkSize = 100
 
 					p = testutils.NewMockProvider()
-	
+
 					c = &ClusterProvider{
-						Spec: &ClusterConfig{},
+						Spec:     &ClusterConfig{},
 						Provider: p,
 					}
 
@@ -185,7 +185,7 @@ var _ = Describe("Eks", func() {
 						}
 						return output
 					}
-	
+
 					p.MockEKS().On("ListClusters", mock.MatchedBy(func(input *awseks.ListClustersInput) bool {
 						return *input.MaxResults == int64(chunkSize)
 					})).Return(mockResultFn, nil)
@@ -204,6 +204,6 @@ var _ = Describe("Eks", func() {
 				})
 			})
 		})
-		
+
 	})
 })
