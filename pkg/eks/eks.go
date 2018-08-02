@@ -199,7 +199,6 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		}
 	}
 
-	logger.Debug("clusters = %#v", allClusterNames)
 	printer.PrintObj(allClusterNames, os.Stdout)
 
 	return nil
