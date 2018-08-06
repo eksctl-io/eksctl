@@ -3,7 +3,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -21,51 +20,27 @@ func (c *StackCollection) makeNodeGroupParams(sequence int) map[string]string {
 	}
 }
 
-func (c *StackCollection) CreateNodeGroup(errs chan error) error {
-	seq := 0
+func (c *StackCollection) CreateInitialNodeGroup(errs chan error) error {
+	return c.CreateNodeGroup(0, errs)
+}
+
+func (c *StackCollection) CreateNodeGroup(seq int, errs chan error) error {
 	name := c.makeNodeGroupStackName(seq)
 	logger.Info("creating nodegroup stack %q", name)
-
 	stack := builder.NewNodeGroupResourceSet(c.spec)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
 
-	templateBody, err := stack.RenderJSON()
-	if err != nil {
-		return errors.Wrap(err, "rendering template for nodegroup stack")
-	}
+	c.tags = append(c.tags, newTag(NodeGroupTagID, fmt.Sprintf("%d", seq)))
 
-	logger.Debug("templateBody = %s", string(templateBody))
-
-	stackChan := make(chan Stack)
-	taskErrs := make(chan error)
-
-	if err := c.CreateStack(name, templateBody, c.makeNodeGroupParams(seq), true, stackChan, taskErrs); err != nil {
-		return err
-	}
-
-	go func() {
-		defer close(errs)
-		defer close(stackChan)
-
-		if err := <-taskErrs; err != nil {
-			errs <- err
-			return
-		}
-
-		if err := stack.GetAllOutputs(<-stackChan); err != nil {
-			errs <- errors.Wrap(err, "getting nodegroup stack outputs")
-		}
-
-		logger.Debug("clusterConfig = %#v", c.spec)
-		logger.Success("created nodegroup stack %q", name)
-
-		errs <- nil
-	}()
-	return nil
+	return c.CreateStack(name, stack, c.makeNodeGroupParams(seq), errs)
 }
 
 func (c *StackCollection) DeleteNodeGroup() error {
 	return c.DeleteStack(c.makeNodeGroupStackName(0))
+}
+
+func (c *StackCollection) WaitDeleteNodeGroup() error {
+	return c.WaitDeleteStack(c.makeNodeGroupStackName(0))
 }

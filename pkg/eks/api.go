@@ -28,12 +28,6 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-const (
-	AWSDebugLevel = 5
-)
-
-var DefaultWaitTimeout = 20 * time.Minute
-
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
 	Spec     *api.ClusterConfig
@@ -161,7 +155,7 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 	config := aws.NewConfig()
 	config = config.WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
-	if logger.Level >= AWSDebugLevel {
+	if logger.Level >= api.AWSDebugLevel {
 		config = config.WithLogLevel(aws.LogDebug |
 			aws.LogDebugWithHTTPBody |
 			aws.LogDebugWithRequestRetries |

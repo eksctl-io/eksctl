@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -88,9 +87,9 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVar(&kubeconfigPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 	fs.BoolVar(&setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
-	fs.DurationVar(&cfg.WaitTimeout, "aws-api-timeout", eks.DefaultWaitTimeout, "")
+	fs.DurationVar(&cfg.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
 	fs.MarkHidden("aws-api-timeout") // TODO deprecate in 0.2.0
-	fs.DurationVar(&cfg.WaitTimeout, "timeout", eks.DefaultWaitTimeout, "max wait time in any polling operations")
+	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 
@@ -137,14 +136,18 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 	logger.Info("creating EKS cluster %q in %q region", cfg.ClusterName, cfg.Region)
 
 	{ // core action
-		taskErr := make(chan error)
-		// create each of the core cloudformation stacks
-		go createCluster(ctl, taskErr)
+		stackManager := ctl.NewStackManager()
+		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
+		logger.Info("if you encounter any issues, check CloudFormation console first")
+		errs := stackManager.CreateClusterWithInitialNodeGroup()
 		// read any errors (it only gets non-nil errors)
-		for err := range taskErr {
-			logger.Info("an error has occurred and cluster hasn't beend created properly")
+		if len(errs) > 0 {
+			logger.Info("%d error(s) occurred and cluster hasn't beend created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
-			return err
+			for _, err := range errs {
+				logger.Critical(err.Error())
+			}
+			return fmt.Errorf("failed to create cluster %q", cfg.ClusterName)
 		}
 	}
 
@@ -206,39 +209,4 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 	logger.Success("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
 
 	return nil
-}
-
-func runCreateTask(tasks map[string]func(chan error) error, taskErrs chan error) {
-	wg := &sync.WaitGroup{}
-	wg.Add(len(tasks))
-	for taskName := range tasks {
-		task := tasks[taskName]
-		go func(tn string) {
-			defer wg.Done()
-			logger.Debug("task %q started", tn)
-			errs := make(chan error)
-			if err := task(errs); err != nil {
-				taskErrs <- err
-				return
-			}
-			if err := <-errs; err != nil {
-				taskErrs <- err
-				return
-			}
-			logger.Debug("task %q returned without errors", tn)
-		}(taskName)
-	}
-	logger.Debug("waiting for %d tasks to complete", len(tasks))
-	wg.Wait()
-}
-
-func createCluster(ctl *eks.ClusterProvider, taskErrs chan error) {
-	stackManager := ctl.NewStackManager()
-	runCreateTask(map[string]func(chan error) error{
-		"createStackCluster": func(errs chan error) error { return stackManager.CreateCluster(errs) },
-	}, taskErrs)
-	runCreateTask(map[string]func(chan error) error{
-		"createStackDefaultNodeGroup": func(errs chan error) error { return stackManager.CreateNodeGroup(errs) },
-	}, taskErrs)
-	close(taskErrs)
 }

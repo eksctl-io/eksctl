@@ -48,6 +48,8 @@ func deleteClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
 
+	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+
 	return cmd
 }
 
@@ -84,11 +86,10 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	stackManager := ctl.NewStackManager()
 
-	if err := stackManager.DeleteNodeGroup(); err != nil {
+	if err := stackManager.WaitDeleteNodeGroup(); err != nil {
 		handleError(err)
 	}
 
-	// TODO as we now use exports, we will need to wait for nodegroup to get deleted first
 	if err := stackManager.DeleteCluster(); err != nil {
 		if handleError(err) {
 			if err := ctl.DeprecatedDeleteControlPlane(); err != nil {

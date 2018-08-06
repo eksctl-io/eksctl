@@ -9,6 +9,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 )
 
+const (
+	AWSDebugLevel = 5
+)
+
+var DefaultWaitTimeout = 20 * time.Minute
+
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	EKS() eksiface.EKSAPI

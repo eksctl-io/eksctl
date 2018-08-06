@@ -54,7 +54,13 @@ func (c *resourceSet) attachAllowPolicy(name string, refRole *gfn.StringIntrinsi
 	})
 }
 
+func (c *clusterResourceSet) WithIAM() bool {
+	return c.rs.withIAM
+}
+
 func (c *clusterResourceSet) addResourcesForIAM() {
+	c.rs.withIAM = true
+
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("eks.amazonaws.com"),
 		ManagedPolicyArns: []*gfn.StringIntrinsic{
@@ -69,7 +75,13 @@ func (c *clusterResourceSet) addResourcesForIAM() {
 	})
 }
 
+func (n *nodeGroupResourceSet) WithIAM() bool {
+	return n.rs.withIAM
+}
+
 func (n *nodeGroupResourceSet) addResourcesForIAM() {
+	n.rs.withIAM = true
+
 	if len(n.spec.NodePolicyARNs) == 0 {
 		n.spec.NodePolicyARNs = iamDefaultNodePolicyARNs
 	}

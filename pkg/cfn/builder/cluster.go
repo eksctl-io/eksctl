@@ -30,7 +30,7 @@ func NewClusterResourceSet(spec *api.ClusterConfig) *clusterResourceSet {
 	}
 }
 
-func (c *clusterResourceSet) AddAllResources() {
+func (c *clusterResourceSet) AddAllResources() error {
 	c.rs.template.Description = clusterTemplateDescription
 	c.rs.template.Description += clusterTemplateDescriptionDefaultFeatures
 	c.rs.template.Description += templateDescriptionSuffix
@@ -47,6 +47,8 @@ func (c *clusterResourceSet) AddAllResources() {
 	c.addResourcesForControlPlane("1.10")
 
 	c.rs.newOutput(cfnOutputClusterStackName, refStackName, false)
+
+	return nil
 }
 
 func (c *clusterResourceSet) RenderJSON() ([]byte, error) {

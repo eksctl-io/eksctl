@@ -68,7 +68,7 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 
 	n.rs.newStringParameter(ParamClusterName, "")
 	n.rs.newStringParameter(ParamClusterStackName, "")
-	n.rs.newStringParameter(ParamNodeGroupID, "")
+	n.rs.newNumberParameter(ParamNodeGroupID, "")
 
 	// TODO: imporve validation of parameter set overall, probably in another package
 	// TODO: validate custom AMI (check it's present) and instance type

@@ -37,9 +37,17 @@ const (
 	templateDescriptionSuffix = " [created and managed by eksctl]"
 )
 
+type ResourceSet interface {
+	AddAllResources() error
+	WithIAM() bool
+	RenderJSON() ([]byte, error)
+	GetAllOutputs(cfn.Stack) error
+}
+
 type resourceSet struct {
 	template *gfn.Template
 	outputs  []string
+	withIAM  bool
 }
 
 func newResourceSet() *resourceSet {
@@ -92,6 +100,10 @@ func (r *resourceSet) newParameter(name, valueType, defaultValue string) *gfn.St
 
 func (r *resourceSet) newStringParameter(name, defaultValue string) *gfn.StringIntrinsic {
 	return r.newParameter(name, "String", defaultValue)
+}
+
+func (r *resourceSet) newNumberParameter(name, defaultValue string) *gfn.StringIntrinsic {
+	return r.newParameter(name, "Number", defaultValue)
 }
 
 func (r *resourceSet) newResource(name string, resource interface{}) *gfn.StringIntrinsic {
@@ -193,5 +205,6 @@ func (r *resourceSet) GetAllOutputs(stack cfn.Stack, obj interface{}) error {
 			return errors.Wrap(err, "processing stack outputs")
 		}
 	}
+	logger.Debug("obj = %#v", obj)
 	return nil
 }
