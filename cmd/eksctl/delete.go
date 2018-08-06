@@ -118,7 +118,7 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	kubeconfig.MaybeDeleteConfig(cfg.ClusterName)
 
-	logger.Success("all EKS cluster %q resource will be deleted (if in doubt, check CloudFormation console)", cfg.ClusterName)
+	logger.Success("all EKS cluster resource for %q will be deleted (if in doubt, check CloudFormation console)", cfg.ClusterName)
 
 	return nil
 }

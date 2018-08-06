@@ -145,13 +145,13 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 			logger.Info("%d error(s) occurred and cluster hasn't beend created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
 			for _, err := range errs {
-				logger.Critical(err.Error())
+				logger.Critical("%s\n", err.Error())
 			}
 			return fmt.Errorf("failed to create cluster %q", cfg.ClusterName)
 		}
 	}
 
-	logger.Success("all EKS cluster %q resources has been created", cfg.ClusterName)
+	logger.Success("all EKS cluster resource for %q had been created", cfg.ClusterName)
 
 	// obtain cluster credentials, write kubeconfig
 
@@ -201,7 +201,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 			return err
 		}
 		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName, env); err != nil {
-			logger.Critical(err.Error())
+			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}
 	}
