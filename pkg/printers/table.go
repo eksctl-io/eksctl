@@ -1,8 +1,13 @@
 package printers
 
 import (
+	"bufio"
+	"fmt"
 	"io"
+	"reflect"
+	"strings"
 
+	"github.com/pkg/errors"
 	"k8s.io/kops/util/pkg/tables"
 )
 
@@ -20,10 +25,23 @@ func NewTablePrinter() OutputPrinter {
 
 // PrintObj will print the passed object formatted as textual
 // table to the supplied writer.
-func (t *TablePrinter) PrintObj(obj interface{}, writer io.Writer) error {
+func (t *TablePrinter) PrintObj(kind string, obj interface{}, writer io.Writer) error {
+	itemsValue := reflect.ValueOf(obj)
+	if itemsValue.Kind() != reflect.Slice {
+		return errors.Errorf("table printer expects a slice but the kind was %v", itemsValue.Kind())
+	}
+
+	if itemsValue.Len() == 0 {
+		w := bufio.NewWriter(writer)
+		w.WriteString(fmt.Sprintf("No %s found\n", strings.ToLower(kind)))
+		w.Flush()
+		return nil
+	}
+
 	return t.table.Render(obj, writer, t.columnames...)
 }
 
+// AddColumn adds a column to the table that will be printed
 func (t *TablePrinter) AddColumn(name string, getter interface{}) {
 	t.columnames = append(t.columnames, name)
 	t.table.AddColumn(name, getter)

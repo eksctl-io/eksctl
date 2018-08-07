@@ -127,7 +127,7 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		}
 	}
 
-	printer.PrintObj(allClusterNames, os.Stdout)
+	printer.PrintObj("clusters", allClusterNames, os.Stdout)
 
 	return nil
 }
@@ -141,9 +141,11 @@ func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.Out
 		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
 	}
 	logger.Debug("cluster = %#v", output)
+
+	clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
+	printer.PrintObj("clusters", clusters, os.Stdout)
+
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
-		clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
-		printer.PrintObj(clusters, os.Stdout)
 
 		if logger.Level >= 4 {
 			stacks, err := c.ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))

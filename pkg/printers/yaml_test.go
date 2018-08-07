@@ -60,7 +60,7 @@ var _ = Describe("YAML Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj([]*awseks.Cluster{cluster}, w)
+				err = printer.PrintObj("clusters", []*awseks.Cluster{cluster}, w)
 				w.Flush()
 			})
 
@@ -124,7 +124,7 @@ var _ = Describe("YAML Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj(clusters, w)
+				err = printer.PrintObj("clusters", clusters, w)
 				w.Flush()
 			})
 

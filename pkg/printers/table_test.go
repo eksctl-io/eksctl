@@ -41,7 +41,7 @@ var _ = Describe("Table Printer", func() {
 			_ = printer.(*TablePrinter)
 		})
 
-		Context("given a cluster struct and calling PrintObj", func() {
+		Context("given just a cluster struct (no slice) and calling PrintObj", func() {
 			var (
 				cluster     *awseks.Cluster
 				err         error
@@ -64,7 +64,80 @@ var _ = Describe("Table Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj([]*awseks.Cluster{cluster}, w)
+				err = printer.PrintObj("clusters", cluster, w)
+				w.Flush()
+			})
+
+			AfterEach(func() {
+				actualBytes.Reset()
+			})
+
+			It("should have returned an error", func() {
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("given an empty slice with no cluster structs and calling PrintObj", func() {
+			var (
+				err         error
+				actualBytes bytes.Buffer
+			)
+
+			JustBeforeEach(func() {
+				w := bufio.NewWriter(&actualBytes)
+				err = printer.PrintObj("clusters", []*awseks.Cluster{}, w)
+				w.Flush()
+			})
+
+			AfterEach(func() {
+				actualBytes.Reset()
+			})
+
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("the output should equal the golden file tabletest_emptyslicegolden", func() {
+				g, err := ioutil.ReadFile("testdata/tabletest_emptyslice.golden")
+				if err != nil {
+					GinkgoT().Fatalf("failed reading .golden: %s", err)
+				}
+
+				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
+
+				if !bytesAreEqual {
+					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
+					fmt.Printf("Expected:\n%s\n", string(g))
+				}
+
+				Expect(bytesAreEqual).To(BeTrue())
+			})
+		})
+
+		Context("given a slice with a cluster struct and calling PrintObj", func() {
+			var (
+				cluster     *awseks.Cluster
+				err         error
+				actualBytes bytes.Buffer
+			)
+
+			BeforeEach(func() {
+				created := &time.Time{}
+				cluster = &awseks.Cluster{
+					Name:      aws.String("test-cluster"),
+					Status:    aws.String(awseks.ClusterStatusActive),
+					Arn:       aws.String("arn-12345678"),
+					CreatedAt: created,
+					ResourcesVpcConfig: &awseks.VpcConfigResponse{
+						VpcId:     aws.String("vpc-1234"),
+						SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+					},
+				}
+			})
+
+			JustBeforeEach(func() {
+				w := bufio.NewWriter(&actualBytes)
+				err = printer.PrintObj("clusters", []*awseks.Cluster{cluster}, w)
 				w.Flush()
 			})
 
@@ -93,7 +166,7 @@ var _ = Describe("Table Printer", func() {
 			})
 		})
 
-		Context("given 2 cluster structs and calling PrintObj", func() {
+		Context("given a slice with 2 cluster structs and calling PrintObj", func() {
 			var (
 				clusters    []*awseks.Cluster
 				err         error
@@ -128,7 +201,7 @@ var _ = Describe("Table Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj(clusters, w)
+				err = printer.PrintObj("clusters", clusters, w)
 				w.Flush()
 			})
 

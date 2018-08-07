@@ -1,7 +1,10 @@
 package eks_test
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -114,6 +117,82 @@ var _ = Describe("Eks", func() {
 				It("should have called AWS CFN ListStackPages", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
 				})
+			})
+		})
+
+		Context("with a cluster name but cluster isn't ready", func() {
+			var (
+				clusterName string
+				err         error
+				actualBytes bytes.Buffer
+			)
+
+			BeforeEach(func() {
+				clusterName = "test-cluster"
+				created := &time.Time{}
+				logger.Level = 1
+
+				p = testutils.NewMockProvider()
+
+				c = &ClusterProvider{
+					Spec: &ClusterConfig{
+						ClusterName: clusterName,
+					},
+					Provider: p,
+				}
+
+				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+					return *input.Name == clusterName
+				})).Return(&awseks.DescribeClusterOutput{
+					Cluster: &awseks.Cluster{
+						Name:      aws.String(clusterName),
+						Status:    aws.String(awseks.ClusterStatusDeleting),
+						Arn:       aws.String("arn-12345678"),
+						CreatedAt: created,
+						ResourcesVpcConfig: &awseks.VpcConfigResponse{
+							VpcId:     aws.String("vpc-1234"),
+							SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+						},
+					},
+				}, nil)
+			})
+
+			JustBeforeEach(func() {
+				w := bufio.NewWriter(&actualBytes)
+				err = c.ListClusters(100, output)
+				w.Flush()
+			})
+
+			AfterEach(func() {
+				actualBytes.Reset()
+			})
+
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should have called AWS EKS service once", func() {
+				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+			})
+
+			It("should not call AWS CFN ListStackPages", func() {
+				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
+			})
+
+			It("the output should equal the golden file singlecluster_deleteing.golden", func() {
+				g, err := ioutil.ReadFile("testdata/singlecluster_deleteing.golden")
+				if err != nil {
+					GinkgoT().Fatalf("failed reading .golden: %s", err)
+				}
+
+				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
+
+				if !bytesAreEqual {
+					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
+					fmt.Printf("Expected:\n%s\n", string(g))
+				}
+
+				Expect(bytesAreEqual).To(BeTrue())
 			})
 		})
 
