@@ -13,7 +13,9 @@ install-build-deps:
 	@cd build && dep ensure && ./install.sh
 
 .PHONY: test
-test:
+test: generate
+	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git diff; exit 1)
+	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git diff; exit 1)
 	@go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
 	@test -z $(COVERALLS_TOKEN) || goveralls -coverprofile=coverage.out -service=circle-ci
 
@@ -30,8 +32,9 @@ integration-test-dev: build
 integration-test: build
 	@go test -tags integration -v -timeout 21m ./tests/integration/...
 
-.PHONY: generated
+.PHONY: generate
 generate:
+	@chmod g-w  ./pkg/nodebootstrap/assets/*
 	@go generate ./pkg/nodebootstrap ./pkg/eks/mocks
 
 .PHONY: eksctl-build-image

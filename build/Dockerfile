@@ -4,6 +4,7 @@ RUN apk add --update \
       curl \
       git \
       make \
+      gcc \
       && true
 
 ENV DEP_VERSION v0.4.1

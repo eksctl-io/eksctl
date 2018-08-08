@@ -202,10 +202,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}
 
 			checkAsset := func(name, expectedContent string) {
-				assetContent, err := nodebootstrap.AssetString(name)
+				assetContent, err := nodebootstrap.Asset(name)
 				Expect(err).ToNot(HaveOccurred())
-				Expect(assetContent).ToNot(BeEmpty())
-				Expect(expectedContent).To(Equal(assetContent))
+				Expect(string(assetContent)).ToNot(BeEmpty())
+				Expect(expectedContent).To(Equal(string(assetContent)))
 			}
 
 			authenticator := getFile("/etc/eksctl/authenticator.sh")

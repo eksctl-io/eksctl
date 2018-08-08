@@ -15,7 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-//go:generate go-bindata -pkg $GOPACKAGE -prefix assets -o assets.go assets
+//go:generate go-bindata -pkg $GOPACKAGE -prefix assets -modtime 1 -o assets.go assets
 
 const (
 	configDir            = "/etc/eksctl/"
@@ -23,7 +23,7 @@ const (
 )
 
 func getAsset(name string) (string, os.FileInfo, error) {
-	data, err := AssetString(name)
+	data, err := Asset(name)
 	if err != nil {
 		return "", nil, errors.Wrapf(err, "decoding embedded file %q", name)
 	}
@@ -31,7 +31,7 @@ func getAsset(name string) (string, os.FileInfo, error) {
 	if err != nil {
 		return "", nil, errors.Wrapf(err, "getting info for embedded file %q", name)
 	}
-	return data, info, nil
+	return string(data), info, nil
 }
 
 func addFilesAndScripts(config *cloudconfig.CloudConfig, files map[string][]string, scripts []string) error {

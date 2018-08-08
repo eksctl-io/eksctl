@@ -129,7 +129,7 @@ var _ = Describe("Eks", func() {
 				p = testutils.NewMockProvider()
 
 				c = &ClusterProvider{
-					Spec: &ClusterConfig{
+					Spec: &api.ClusterConfig{
 						ClusterName: clusterName,
 					},
 					Provider: p,
