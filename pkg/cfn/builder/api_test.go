@@ -3,6 +3,8 @@ package builder_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"path/filepath"
+	"strings"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
@@ -10,6 +12,7 @@ import (
 	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
 type Template struct {
@@ -152,6 +155,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Describe("UserData", func() {
 		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
 			AvailabilityZones: testAZs,
+			NodeType:          "m5.large",
 		})
 		rs.AddAllResources()
 
@@ -197,19 +201,37 @@ var _ = Describe("CloudFormation template builder API", func() {
 				return nil
 			}
 
+			checkAsset := func(name, expectedContent string) {
+				assetContent, err := nodebootstrap.AssetString(name)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(assetContent).ToNot(BeEmpty())
+				Expect(expectedContent).To(Equal(assetContent))
+			}
+
 			authenticator := getFile("/etc/eksctl/authenticator.sh")
 			Expect(authenticator).ToNot(BeNil())
 			Expect(authenticator.Permissions).To(Equal("0755"))
+			checkAsset("authenticator.sh", authenticator.Content)
 
 			kubeconfig := getFile("/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
 			Expect(kubeconfig.Permissions).To(Equal("0644"))
+			checkAsset("kubeconfig.yaml", kubeconfig.Content)
+
+			kubeletEnv := getFile("/etc/eksctl/kubelet.env")
+			Expect(kubeletEnv).ToNot(BeNil())
+			Expect(kubeletEnv.Permissions).To(Equal("0644"))
+			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
+				"MAX_PODS=29",
+				"CLUSTER_DNS=10.100.0.10",
+			}))
 
 			kubeletDropInUnit := getFile("/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
 			Expect(kubeletDropInUnit).ToNot(BeNil())
 			Expect(kubeletDropInUnit.Permissions).To(Equal("0644"))
+			checkAsset("10-eksclt.al2.conf", kubeletDropInUnit.Content)
 
-			checkScript := func(p string) {
+			checkScript := func(p string, assetContent bool) {
 				script := getFile(p)
 				Expect(script).ToNot(BeNil())
 				Expect(script.Permissions).To(Equal("0755"))
@@ -220,10 +242,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 					}
 				}
 				Expect(scriptRuns).To(BeTrue())
+				if assetContent {
+					checkAsset(filepath.Base(p), script.Content)
+				}
 			}
 
-			checkScript("/var/lib/cloud/scripts/per-instance/get_metadata.sh")
-			checkScript("/var/lib/cloud/scripts/per-instance/get_credentials.sh")
+			checkScript("/var/lib/cloud/scripts/per-instance/get_metadata.sh", true)
+			checkScript("/var/lib/cloud/scripts/per-instance/get_credentials.sh", true)
 		})
 	})
 })
