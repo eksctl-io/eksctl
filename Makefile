@@ -15,10 +15,10 @@ test:
 .PHONY: test-with-coverage
 test-with-coverage:
 	go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
-	goveralls -coverprofile=coverage.out -service=circle-ci -repotoken $(COVERALLS_TOKEN)
+	goveralls -coverprofile=coverage.out -service=circle-ci 
 
 .PHONY: install-goveralls
-setup-coverage:
+install-goveralls:
 	go get github.com/mattn/goveralls
 
 .PHONY: update-bindata
