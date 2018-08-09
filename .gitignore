@@ -15,3 +15,6 @@ _site
 
 # Do not add temporary files here
 # use ~/.config/git/ignore instead
+
+# Test coverage output
+coverage.out
