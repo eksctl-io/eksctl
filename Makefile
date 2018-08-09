@@ -10,10 +10,11 @@ build:
 
 .PHONY: test
 test:
-	go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
+	go test -v ./pkg/... ./cmd/...
 
-.PHONY: coverage
-coverage: test
+.PHONY: test-with-coverage
+test-with-coverage:
+	go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
 	goveralls -coverprofile=coverage.out -service=circle-ci -repotoken $(COVERALLS_TOKEN)
 
 .PHONY: install-goveralls
@@ -43,7 +44,7 @@ eksctl-build-image:
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image
-	@docker build --tag=$(EKSCTL_IMAGE) --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) ./
+	@docker build --tag=$(EKSCTL_IMAGE) --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) --build-arg=COVERALLS_TOKEN_ARG=$(COVERALLS_TOKEN) ./
 
 .PHONY: release
 release: eksctl-build-image

@@ -1,6 +1,9 @@
 ARG EKSCTL_BUILD_IMAGE
 FROM $EKSCTL_BUILD_IMAGE AS build
 
+ARG COVERALLS_TOKEN_ARG
+ENV COVERALLS_TOKEN=$COVERALLS_TOKEN_ARG
+
 RUN apk add --update \
       py-pip \
       python \
@@ -28,7 +31,7 @@ RUN mkdir -p "$(dirname ${EKSCTL})"
 COPY . $EKSCTL
 
 WORKDIR $EKSCTL
-RUN make test && make \
+RUN make install-goveralls && make test-with-coverage && make \
     && cp ./eksctl /out/usr/local/bin/eksctl
 
 RUN go build ./vendor/github.com/heptio/authenticator/cmd/heptio-authenticator-aws \
