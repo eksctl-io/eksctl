@@ -10,12 +10,19 @@ build:
 
 .PHONY: test
 test:
-	go test -v ./pkg/... ./cmd/...
+	go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
+
+.PHONY: coverage
+coverage: test
+	goveralls -coverprofile=coverage.out -service=circle-ci -repotoken $(COVERALLS_TOKEN)
+
+.PHONY: install-goveralls
+install-goveralls:
+	go get github.com/mattn/goveralls
 
 .PHONY: update-bindata
 update-bindata:
 	go generate ./pkg/eks
-
 
 .PHONY: install-bindata
 install-bindata:

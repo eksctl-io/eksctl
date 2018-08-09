@@ -11,6 +11,12 @@ jobs:
     steps:
       - checkout
       - run: make release
+  test:
+    machine: true
+    steps:
+      - checkout
+      - run: make install-goveralls
+      - run: make coverage
 
 workflows:
   version: 2
