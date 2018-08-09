@@ -11,7 +11,7 @@ jobs:
     steps:
       - checkout
       - run: make release
-  test:
+  coverage:
     machine: true
     steps:
       - checkout
@@ -22,6 +22,7 @@ workflows:
   version: 2
   any-commit:
     jobs:
+      - coverage
       - make-eksctl-image:
           filters:
             tags:
