@@ -11,18 +11,11 @@ jobs:
     steps:
       - checkout
       - run: make release
-  coverage:
-    machine: true
-    steps:
-      - checkout
-      - run: make setup-coverage
-      - run: make test-with-coverage
 
 workflows:
   version: 2
   any-commit:
     jobs:
-      - coverage
       - make-eksctl-image:
           filters:
             tags:

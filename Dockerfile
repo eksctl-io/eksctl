@@ -28,7 +28,7 @@ RUN mkdir -p "$(dirname ${EKSCTL})"
 COPY . $EKSCTL
 
 WORKDIR $EKSCTL
-RUN make test && make \
+RUN make install-goveralls && make test-with-coverage && make \
     && cp ./eksctl /out/usr/local/bin/eksctl
 
 RUN go build ./vendor/github.com/heptio/authenticator/cmd/heptio-authenticator-aws \
