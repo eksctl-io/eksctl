@@ -44,7 +44,7 @@ eksctl-build-image:
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image
-	@docker build --tag=$(EKSCTL_IMAGE) --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) --build-arg=COVERALLS_TOKEN_ARG=$(COVERALLS_TOKEN) ./
+	@docker build --tag=$(EKSCTL_IMAGE) --build-arg EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) --build-arg COVERALLS_TOKEN_ARG=$(COVERALLS_TOKEN) ./
 
 .PHONY: release
 release: eksctl-build-image
