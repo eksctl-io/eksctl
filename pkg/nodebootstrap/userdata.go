@@ -62,10 +62,10 @@ func setKubeletParams(config *cloudconfig.CloudConfig, spec *api.ClusterConfig) 
 	if spec.MaxPodsPerNode == 0 {
 		spec.MaxPodsPerNode = maxPodsPerNodeType[spec.NodeType]
 	}
-	// TODO: investigate if we can use componentconfig, or at least switch to kubelet config file
+	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
 	kubeletParams := []string{
 		fmt.Sprintf("MAX_PODS=%d", spec.MaxPodsPerNode),
-		// TODO: this will need to change when we provide options for using different VPCs and CIDRs
+		// TODO: this will need to change when we provide options for using different VPCs and CIDRs – https://github.com/weaveworks/eksctl/issues/158
 		"CLUSTER_DNS=10.100.0.10",
 	}
 

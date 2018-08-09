@@ -10,7 +10,7 @@ set -o nounset
 # we could use the following, but we still need jq to get region and instance ID:
 # aws --output text --region us-west-2 ec2 describe-tags --filters Name=resource-type,Values=instance Name=resource-id,Values=i-017e37452ee14d8d7 --query "Tags[?Key=='eksctl.cluster.k8s.io/v1alpha1/cluster-name'].Value"
 
-# TODO: experiment with a more static version, we can pass region and cluster name and generate whole `metadata.env` if we wanted to
+# TODO: avoid having to do all this – https://github.com/weaveworks/eksctl/issues/157
 
 instanceInfo="$(curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document)"
 
