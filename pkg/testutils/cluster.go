@@ -24,11 +24,3 @@ func NewFakeCluster(clusterName string, status string) *awseks.Cluster {
 
 	return cluster
 }
-
-// ValidClusterStatus checks that the provided status is a valid
-// status of a cluster according to AWS SDK
-func ValidClusterStatus(status string) bool {
-	valid := map[string]bool{awseks.ClusterStatusActive: true, awseks.ClusterStatusCreating: true, awseks.ClusterStatusDeleting: true, awseks.ClusterStatusFailed: true}
-
-	return valid[status]
-}
