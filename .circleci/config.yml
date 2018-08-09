@@ -15,8 +15,8 @@ jobs:
     machine: true
     steps:
       - checkout
-      - run: make install-goveralls
-      - run: make coverage
+      - run: make setup-coverage
+      - run: make test-with-coverage
 
 workflows:
   version: 2
