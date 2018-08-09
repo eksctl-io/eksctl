@@ -15,7 +15,7 @@ test:
 .PHONY: test-with-coverage
 test-with-coverage:
 	go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
-	goveralls -coverprofile=coverage.out -service=circle-ci 
+	goveralls -coverprofile=coverage.out -service=circle-ci -repotoken $(COVERALLS_TOKEN)
 
 .PHONY: install-goveralls
 install-goveralls:
