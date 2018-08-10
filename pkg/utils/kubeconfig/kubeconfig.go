@@ -6,22 +6,73 @@ import (
 	"path"
 	"strings"
 
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/clientcmd/api"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 var DefaultPath = clientcmd.RecommendedHomeFile
 
+const (
+	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
+	AWSIAMAuthenticator    = "aws-iam-authenticator"
+)
+
+// New creates Kubernetes client configuration for a given username
+// if certificateAuthorityPath is no empty, it is used instead of
+// embdedded certificate-authority-data
+func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
+	clusterName := fmt.Sprintf("%s.%s.eksctl.io", spec.ClusterName, spec.Region)
+	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+
+	c := &clientcmdapi.Config{
+		Clusters: map[string]*clientcmdapi.Cluster{
+			clusterName: {
+				Server: spec.Endpoint,
+			},
+		},
+		Contexts: map[string]*clientcmdapi.Context{
+			contextName: {
+				Cluster:  clusterName,
+				AuthInfo: contextName,
+			},
+		},
+		AuthInfos: map[string]*clientcmdapi.AuthInfo{
+			contextName: &clientcmdapi.AuthInfo{},
+		},
+		CurrentContext: contextName,
+	}
+
+	if certificateAuthorityPath == "" {
+		c.Clusters[clusterName].CertificateAuthorityData = spec.CertificateAuthorityData
+	} else {
+		c.Clusters[clusterName].CertificateAuthority = certificateAuthorityPath
+	}
+
+	return c, clusterName, contextName
+}
+
+func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, command string) {
+	c.AuthInfos[c.CurrentContext].Exec = &clientcmdapi.ExecConfig{
+		APIVersion: "client.authentication.k8s.io/v1alpha1",
+		Command:    command,
+		Args:       []string{"token", "-i", spec.ClusterName},
+		/*
+			Args:       []string{"token", "-i", c.Cluster.ClusterName, "-r", c.roleARN},
+		*/
+	}
+}
+
 // Write will write Kubernetes client configuration to a file.
 // If path isn't specified then the path will be determined by client-go.
 // If file pointed to by path doesn't exist it will be created.
 // If the file already exists then the configuration will be merged with the existing file.
-func Write(path string, newConfig *api.Config, setContext bool) (string, error) {
+func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string, error) {
 	configAccess := getConfigAccess(path)
 
 	config, err := configAccess.GetStartingConfig()
@@ -52,8 +103,7 @@ func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 
 	return interface{}(pathOptions).(clientcmd.ConfigAccess)
 }
-
-func merge(existing *api.Config, tomerge *api.Config) (*api.Config, error) {
+func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) (*clientcmdapi.Config, error) {
 	for k, v := range tomerge.Clusters {
 		existing.Clusters[k] = v
 	}
