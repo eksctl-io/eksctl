@@ -1,0 +1,21 @@
+[
+  {
+    "Arn": "arn-12345678",
+    "CertificateAuthority": null,
+    "ClientRequestToken": null,
+    "CreatedAt": "0001-01-01T00:00:00Z",
+    "Endpoint": null,
+    "Name": "test-cluster",
+    "ResourcesVpcConfig": {
+      "SecurityGroupIds": null,
+      "SubnetIds": [
+        "sub1",
+        "sub2"
+      ],
+      "VpcId": "vpc-1234"
+    },
+    "RoleArn": null,
+    "Status": "DELETING",
+    "Version": null
+  }
+]

@@ -1,8 +1,10 @@
 package eks_test
 
 import (
+	"bytes"
 	"fmt"
-	"time"
+	"io/ioutil"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -31,12 +33,10 @@ var _ = Describe("Eks", func() {
 			var (
 				clusterName string
 				err         error
-				created     time.Time
 			)
 
 			BeforeEach(func() {
 				clusterName = "test-cluster"
-				created = time.Now()
 
 				p = testutils.NewMockProvider()
 
@@ -50,16 +50,7 @@ var _ = Describe("Eks", func() {
 				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
 					return *input.Name == clusterName
 				})).Return(&awseks.DescribeClusterOutput{
-					Cluster: &awseks.Cluster{
-						Name:      aws.String(clusterName),
-						Status:    aws.String(awseks.ClusterStatusActive),
-						Arn:       aws.String("arn-12345678"),
-						CreatedAt: &created,
-						ResourcesVpcConfig: &awseks.VpcConfigResponse{
-							VpcId:     aws.String("vpc-1234"),
-							SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
-						},
-					},
+					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusActive),
 				}, nil)
 			})
 
@@ -114,6 +105,79 @@ var _ = Describe("Eks", func() {
 				It("should have called AWS CFN ListStackPages", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
 				})
+			})
+		})
+
+		Context("with a cluster name but cluster isn't ready", func() {
+			var (
+				clusterName    string
+				err            error
+				originalStdout *os.File
+				reader         *os.File
+				writer         *os.File
+			)
+
+			BeforeEach(func() {
+				originalStdout = os.Stdout
+				reader, writer, _ = os.Pipe()
+				os.Stdout = writer
+
+				clusterName = "test-cluster"
+				logger.Level = 1
+
+				p = testutils.NewMockProvider()
+
+				c = &ClusterProvider{
+					Spec: &ClusterConfig{
+						ClusterName: clusterName,
+					},
+					Provider: p,
+				}
+
+				p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+					return *input.Name == clusterName
+				})).Return(&awseks.DescribeClusterOutput{
+					Cluster: testutils.NewFakeCluster(clusterName, awseks.ClusterStatusDeleting),
+				}, nil)
+			})
+
+			JustBeforeEach(func() {
+				err = c.ListClusters(100, output)
+			})
+
+			AfterEach(func() {
+				os.Stdout = originalStdout
+			})
+
+			It("should not error", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should have called AWS EKS service once", func() {
+				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
+			})
+
+			It("should not call AWS CFN ListStackPages", func() {
+				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
+			})
+
+			It("the output should equal the golden file singlecluster_deleting.golden", func() {
+				writer.Close()
+				g, err := ioutil.ReadFile("testdata/singlecluster_deleting.golden")
+				if err != nil {
+					GinkgoT().Fatalf("failed reading .golden: %s", err)
+				}
+
+				actualOutput, _ := ioutil.ReadAll(reader)
+
+				bytesAreEqual := bytes.Equal(actualOutput, g)
+
+				if !bytesAreEqual {
+					fmt.Printf("\nActual:\n%s\n", string(actualOutput))
+					fmt.Printf("Expected:\n%s\n", string(g))
+				}
+
+				Expect(bytesAreEqual).To(BeTrue())
 			})
 		})
 

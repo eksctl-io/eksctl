@@ -25,7 +25,7 @@ func NewJSONPrinter() OutputPrinter {
 
 // PrintObj will print the passed object formatted as JSON to
 // the supplied writer.
-func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
+func (j *JSONPrinter) PrintObj(kind string, obj interface{}, writer io.Writer) error {
 	b, err := json.MarshalIndent(obj, j.prefix, j.indent)
 	if err != nil {
 		return err

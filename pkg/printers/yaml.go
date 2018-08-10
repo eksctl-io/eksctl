@@ -17,7 +17,7 @@ func NewYAMLPrinter() OutputPrinter {
 
 // PrintObj will print the passed object formatted as YAML to
 // the supplied writer.
-func (j *YAMLPrinter) PrintObj(obj interface{}, writer io.Writer) error {
+func (j *YAMLPrinter) PrintObj(kind string, obj interface{}, writer io.Writer) error {
 	b, err := yaml.Marshal(obj)
 	if err != nil {
 		return err
