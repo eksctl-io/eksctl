@@ -58,9 +58,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 			VPC:                      "vpc-0e265ad953062b94b",
 			Endpoint:                 "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com",
 			CertificateAuthorityData: caCertData,
-			ARN:                 "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
-			NodeInstanceRoleARN: "",
-			AvailabilityZones:   testAZs,
+			ARN:                      "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
+			NodeInstanceRoleARN:      "",
+			AvailabilityZones:        testAZs,
 		}
 
 		initial := &api.ClusterConfig{
@@ -76,8 +76,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      "vpc-0e265ad953062b94b",
 			"Endpoint":                 "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com",
 			"CertificateAuthorityData": caCert,
-			"ARN":              "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
-			"ClusterStackName": "",
+			"ARN":                      "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
+			"ClusterStackName":         "",
 		})
 
 		It("should not error", func() {
@@ -95,7 +95,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			AvailabilityZones: testAZs,
 			NodeType:          "t2.medium",
 			Region:            "us-west-2",
-		})
+		}, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		template, err := rs.RenderJSON()
@@ -127,7 +127,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			AvailabilityZones: testAZs,
 			NodeType:          "t2.medium",
 			Region:            "us-west-2",
-		})
+		}, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		template, err := rs.RenderJSON()
@@ -161,7 +161,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			AvailabilityZones: testAZs,
 			NodeType:          "m5.large",
 			Region:            "us-west-2",
-		})
+		}, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		var (
