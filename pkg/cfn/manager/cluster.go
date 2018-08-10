@@ -10,12 +10,6 @@ func (c *StackCollection) makeClusterStackName() string {
 	return "eksctl-" + c.spec.ClusterName + "-cluster"
 }
 
-func (c *StackCollection) makeClusterStackParams() map[string]string {
-	return map[string]string{
-		builder.ParamClusterName: c.spec.ClusterName,
-	}
-}
-
 func (c *StackCollection) CreateCluster(errs chan error) error {
 	name := c.makeClusterStackName()
 	logger.Info("creating cluster stack %q", name)
@@ -24,7 +18,7 @@ func (c *StackCollection) CreateCluster(errs chan error) error {
 		return err
 	}
 
-	return c.CreateStack(name, stack, c.makeClusterStackParams(), errs)
+	return c.CreateStack(name, stack, nil, errs)
 }
 
 func (c *StackCollection) DeleteCluster() error {

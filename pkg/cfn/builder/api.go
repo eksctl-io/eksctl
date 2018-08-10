@@ -18,10 +18,6 @@ const (
 	fnGetAtt      = "Fn::GetAtt"
 	fnImportValue = "Fn::ImportValue"
 
-	ParamClusterName      = "ClusterName"
-	ParamClusterStackName = cfnOutputClusterStackName
-	ParamNodeGroupID      = "NodeGroupID"
-
 	clusterTemplateDescription                = "EKS cluster"
 	clusterTemplateDescriptionDefaultFeatures = " (with dedicated VPC & IAM role) "
 
