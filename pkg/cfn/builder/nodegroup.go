@@ -11,10 +11,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
-const (
-	nodeGroupNameFmt = "${ClusterName}-${NodeGroupID}"
-)
-
 var (
 	clusterOwnedTag = gfn.Tag{
 		Key:   makeSub("kubernetes.io/cluster/${ClusterName}"),
@@ -24,12 +20,15 @@ var (
 
 type nodeGroupResourceSet struct {
 	rs               *resourceSet
+	id               int
 	spec             *api.ClusterConfig
-	clusterStackName *gfn.StringIntrinsic
+	clusterStackName string
+	nodeGroupName    string
 	instanceProfile  *gfn.StringIntrinsic
 	securityGroups   []*gfn.StringIntrinsic
 	vpc              *gfn.StringIntrinsic
 	userData         *gfn.StringIntrinsic
+	clusterOwnedTag  gfn.Tag
 }
 
 type awsCloudFormationResource struct {
@@ -38,10 +37,13 @@ type awsCloudFormationResource struct {
 	UpdatePolicy map[string]map[string]string
 }
 
-func NewNodeGroupResourceSet(spec *api.ClusterConfig) *nodeGroupResourceSet {
+func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *nodeGroupResourceSet {
 	return &nodeGroupResourceSet{
-		rs:   newResourceSet(),
-		spec: spec,
+		rs:               newResourceSet(),
+		id:               id,
+		clusterStackName: clusterStackName,
+		nodeGroupName:    fmt.Sprintf("%s-%d", spec.ClusterName, id),
+		spec:             spec,
 	}
 }
 
@@ -50,7 +52,7 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 	n.rs.template.Description += nodeGroupTemplateDescriptionDefaultFeatures
 	n.rs.template.Description += templateDescriptionSuffix
 
-	n.vpc = makeImportValue(ParamClusterStackName, cfnOutputClusterVPC)
+	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
 
 	userData, err := nodebootstrap.NewUserDataForAmazonLinux2(n.spec)
 	if err != nil {
@@ -108,12 +110,12 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 			"VPCZoneIdentifier": map[string][]interface{}{
 				fnSplit: []interface{}{
 					",",
-					makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets),
+					makeImportValue(n.clusterStackName, cfnOutputClusterSubnets),
 				},
 			},
 			"Tags": []map[string]interface{}{
-				{"Key": "Name", "Value": makeSub(nodeGroupNameFmt + "-Node"), "PropagateAtLaunch": "true"},
-				{"Key": makeSub("kubernetes.io/cluster/${ClusterName}"), "Value": "owned", "PropagateAtLaunch": "true"},
+				{"Key": "Name", "Value": fmt.Sprintf("%s-Node", n.nodeGroupName), "PropagateAtLaunch": "true"},
+				{"Key": "kubernetes.io/cluster/" + n.spec.ClusterName, "Value": "owned", "PropagateAtLaunch": "true"},
 			},
 		},
 		UpdatePolicy: map[string]map[string]string{

@@ -61,7 +61,7 @@ func (c *clusterResourceSet) newResource(name string, resource interface{}) *gfn
 
 func (c *clusterResourceSet) addResourcesForControlPlane(version string) {
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
-		Name:    c.rs.newStringParameter(ParamClusterName, ""),
+		Name:    gfn.NewString(c.spec.ClusterName),
 		RoleArn: gfn.NewStringIntrinsic(fnGetAtt, "ServiceRole.Arn"),
 		Version: gfn.NewString(version),
 		ResourcesVpcConfig: &gfn.AWSEKSCluster_ResourcesVpcConfig{

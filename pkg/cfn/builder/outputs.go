@@ -14,17 +14,12 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-// exportName defines common format for exported outputs
-func exportName(prefix, output string) string {
-	return fmt.Sprintf("${%s}::%s", prefix, output)
-}
-
 // newOutput defines a new output and optionally exports it
 func (r *resourceSet) newOutput(name string, value interface{}, export bool) {
 	o := map[string]interface{}{"Value": value}
 	if export {
 		o["Export"] = map[string]map[string]string{
-			"Name": map[string]string{fnSub: exportName(awsStackName, name)},
+			"Name": map[string]string{fnSub: fmt.Sprintf("${%s}::%s", awsStackName, name)},
 		}
 	}
 	r.template.Outputs[name] = o
@@ -42,8 +37,8 @@ func (r *resourceSet) newOutputFromAtt(name, att string, export bool) {
 }
 
 // makeImportValue imports output of another stack
-func makeImportValue(prefix, output string) *gfn.StringIntrinsic {
-	return gfn.NewStringIntrinsic(fnImportValue, makeSub(exportName(prefix, output)))
+func makeImportValue(stackName, output string) *gfn.StringIntrinsic {
+	return gfn.NewStringIntrinsic(fnImportValue, fmt.Sprintf("%s::%s", stackName, output))
 }
 
 // setOutput is the entrypoint that validates destination object
