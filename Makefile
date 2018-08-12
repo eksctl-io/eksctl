@@ -10,14 +10,17 @@ build:
 
 .PHONY: test
 test:
+	go test -v ./pkg/... ./cmd/...
+
+.PHONY: test-with-coverage
+test-with-coverage:
 	go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
+	goveralls -coverprofile=coverage.out -service=circle-ci
 
-.PHONY: coverage
-coverage: test
-	goveralls -coverprofile=coverage.out -service=circle-ci -repotoken $(COVERALLS_TOKEN)
-
-.PHONY: install-goveralls
-install-goveralls:
+.PHONY: setup-coverage
+setup-coverage:
+	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+	dep ensure
 	go get github.com/mattn/goveralls
 
 .PHONY: update-bindata
