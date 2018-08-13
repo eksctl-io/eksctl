@@ -10,8 +10,6 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
-
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -113,7 +111,7 @@ func makeAmazonLinux2Config(config *cloudconfig.CloudConfig, spec *api.ClusterCo
 	return files, nil
 }
 
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (*gfn.StringIntrinsic, error) {
+func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
@@ -122,18 +120,18 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (*gfn.StringIntrinsic, 
 
 	files, err := makeAmazonLinux2Config(config, spec)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
-		return nil, err
+		return "", err
 	}
 
 	body, err := config.Encode()
 	if err != nil {
-		return nil, errors.Wrap(err, "encoding user data")
+		return "", errors.Wrap(err, "encoding user data")
 	}
 
 	logger.Debug("user-data = %s", string(body))
-	return gfn.NewString(string(body)), nil
+	return string(body), nil
 }
