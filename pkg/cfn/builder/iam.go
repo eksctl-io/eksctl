@@ -42,7 +42,7 @@ func makeAssumeRolePolicyDocument(service string) map[string]interface{} {
 	})
 }
 
-func (c *resourceSet) attachAllowPolicy(name string, refRole *gfn.StringIntrinsic, resources interface{}, actions []string) {
+func (c *resourceSet) attachAllowPolicy(name string, refRole *gfn.Value, resources interface{}, actions []string) {
 	c.newResource(name, &gfn.AWSIAMPolicy{
 		PolicyName: makeName(name),
 		Roles:      makeSlice(refRole),
@@ -63,10 +63,10 @@ func (c *clusterResourceSet) addResourcesForIAM() {
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("eks.amazonaws.com"),
-		ManagedPolicyArns: []*gfn.StringIntrinsic{
-			gfn.NewString(iamPolicyAmazonEKSServicePolicyARN),
-			gfn.NewString(iamPolicyAmazonEKSClusterPolicyARN),
-		},
+		ManagedPolicyArns: makeStringSlice(
+			iamPolicyAmazonEKSServicePolicyARN,
+			iamPolicyAmazonEKSClusterPolicyARN,
+		),
 	})
 	c.rs.attachAllowPolicy("PolicyNLB", refSR, "*", []string{
 		"elasticloadbalancing:*",
@@ -92,7 +92,7 @@ func (n *nodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	refIR := n.newResource("NodeInstanceRole", &gfn.AWSIAMRole{
-		Path: gfn.NewString("/"),
+		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(n.spec.NodePolicyARNs...),
 	})
@@ -106,18 +106,18 @@ func (n *nodeGroupResourceSet) addResourcesForIAM() {
 	})
 	n.rs.attachAllowPolicy("PolicyStackSignal", refIR,
 		map[string]interface{}{
-			fnJoin: []interface{}{
+			gfn.FnJoin: []interface{}{
 				":",
 				[]interface{}{
 					"arn:aws:cloudformation",
-					map[string]string{"Ref": awsRegion},
-					map[string]string{"Ref": awsAccountID},
+					map[string]string{"Ref": gfn.Region},
+					map[string]string{"Ref": gfn.AccountID},
 					map[string]interface{}{
-						fnJoin: []interface{}{
+						gfn.FnJoin: []interface{}{
 							"/",
 							[]interface{}{
 								"stack",
-								map[string]string{"Ref": awsStackName},
+								map[string]string{"Ref": gfn.StackName},
 								"*",
 							},
 						},

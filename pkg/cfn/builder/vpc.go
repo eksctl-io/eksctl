@@ -16,8 +16,8 @@ const (
 func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
 	refVPC := c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(globalCIDR.String()),
-		EnableDnsSupport:   true,
-		EnableDnsHostnames: true,
+		EnableDnsSupport:   gfn.True(),
+		EnableDnsHostnames: gfn.True(),
 	})
 
 	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
@@ -54,7 +54,7 @@ func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 		GroupDescription: gfn.NewString("Communication between the control plane and worker node groups"),
 		VpcId:            refVPC,
 	})
-	c.securityGroups = []*gfn.StringIntrinsic{refSG}
+	c.securityGroups = []*gfn.Value{refSG}
 
 	c.rs.newOutput(cfnOutputClusterVPC, refVPC, true)
 	c.rs.newJoinedOutput(cfnOutputClusterSecurityGroup, c.securityGroups, true)
@@ -67,12 +67,13 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 	tcp := gfn.NewString("tcp")
 	anywhereIPv4 := gfn.NewString("0.0.0.0/0")
 	anywhereIPv6 := gfn.NewString("::/0")
-	const (
-		apiPort = 443
-		sshPort = 22
+	var (
+		apiPort = gfn.NewInteger(443)
+		sshPort = gfn.NewInteger(22)
 
-		nodeMinPort = 1025
-		nodeMaxPort = 65535
+		portZero    = gfn.NewInteger(0)
+		nodeMinPort = gfn.NewInteger(1025)
+		nodeMaxPort = gfn.NewInteger(65535)
 	)
 
 	refCP := makeImportValue(n.clusterStackName, cfnOutputClusterSecurityGroup)
@@ -84,14 +85,14 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 			Value: gfn.NewString("owned"),
 		}},
 	})
-	n.securityGroups = []*gfn.StringIntrinsic{refSG}
+	n.securityGroups = []*gfn.Value{refSG}
 
 	n.newResource("IngressInterSG", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refSG,
 		SourceSecurityGroupId: refSG,
 		Description:           gfn.NewString("Allow " + desc + " to communicate with each other (all ports)"),
 		IpProtocol:            gfn.NewString("-1"),
-		FromPort:              0,
+		FromPort:              portZero,
 		ToPort:                nodeMaxPort,
 	})
 	n.newResource("IngressInterCluster", &gfn.AWSEC2SecurityGroupIngress{

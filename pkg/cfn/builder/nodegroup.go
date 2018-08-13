@@ -11,24 +11,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
-var (
-	clusterOwnedTag = gfn.Tag{
-		Key:   makeSub("kubernetes.io/cluster/${ClusterName}"),
-		Value: gfn.NewString("owned"),
-	}
-)
-
 type nodeGroupResourceSet struct {
 	rs               *resourceSet
 	id               int
 	spec             *api.ClusterConfig
 	clusterStackName string
 	nodeGroupName    string
-	instanceProfile  *gfn.StringIntrinsic
-	securityGroups   []*gfn.StringIntrinsic
-	vpc              *gfn.StringIntrinsic
-	userData         *gfn.StringIntrinsic
-	clusterOwnedTag  gfn.Tag
+	instanceProfile  *gfn.Value
+	securityGroups   []*gfn.Value
+	vpc              *gfn.Value
+	userData         *gfn.Value
 }
 
 type awsCloudFormationResource struct {
@@ -58,11 +50,7 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 	if err != nil {
 		return err
 	}
-	n.userData = userData
-
-	n.rs.newStringParameter(ParamClusterName, "")
-	n.rs.newStringParameter(ParamClusterStackName, "")
-	n.rs.newNumberParameter(ParamNodeGroupID, "")
+	n.userData = gfn.NewString(userData)
 
 	if n.spec.MinNodes == 0 && n.spec.MaxNodes == 0 {
 		n.spec.MinNodes = n.spec.Nodes
@@ -80,13 +68,13 @@ func (n *nodeGroupResourceSet) RenderJSON() ([]byte, error) {
 	return n.rs.renderJSON()
 }
 
-func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.StringIntrinsic {
+func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	return n.rs.newResource(name, resource)
 }
 
 func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 	lc := &gfn.AWSAutoScalingLaunchConfiguration{
-		AssociatePublicIpAddress: true,
+		AssociatePublicIpAddress: gfn.True(),
 		IamInstanceProfile:       n.instanceProfile,
 		SecurityGroups:           n.securityGroups,
 
@@ -108,7 +96,7 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 			"MinSize":                 fmt.Sprintf("%d", n.spec.MinNodes),
 			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxNodes),
 			"VPCZoneIdentifier": map[string][]interface{}{
-				fnSplit: []interface{}{
+				gfn.FnSplit: []interface{}{
 					",",
 					makeImportValue(n.clusterStackName, cfnOutputClusterSubnets),
 				},
