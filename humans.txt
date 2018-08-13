@@ -1,0 +1,33 @@
+        _                _    _ 
+       | |              | |  | |
+   ___ | | __ ___   ___ | |_ | |
+  / _ \| |/ // __| / __|| __|| |
+ |  __/|   < \__ \| (__ | |_ | |
+  \___||_|\_\|___/ \___| \__||_|
+
+Making working with EKS easy since 2018
+
+/* Humans */
+
+Ilya Dmitrichenko       @errordeveloper         maintainer & chief
+Richard Case            @richardcase
+Christopher Hein        @christopherhein
+Matthias Radestock      @rade
+Archis                  @archisgore
+Stefan Prodan           @stefanprodan
+James Strachan          @jstrachan
+Nick                    @bowlesns
+
+/* Thanks */
+
+Thanks to all the other contributers and users of eksctl. Without you we can't make it great.
+
+/* Site */
+
+Last update: -
+Language: English
+Doctype: HTML5
+IDE: VIM/VsCode/Atom
+Generator: Jekyll (Ruby)
+SCM: Git
+Hosting: GitHub
