@@ -13,17 +13,17 @@ type AWSAppSyncApiKey struct {
 	// ApiId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-apikey.html#cfn-appsync-apikey-apiid
-	ApiId *StringIntrinsic `json:"ApiId,omitempty"`
+	ApiId *Value `json:"ApiId,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-apikey.html#cfn-appsync-apikey-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// Expires AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-apikey.html#cfn-appsync-apikey-expires
-	Expires float64 `json:"Expires,omitempty"`
+	Expires *Value `json:"Expires,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSAppSyncApiKeyResources() map[string]AWSAppSyncApiKey
 				if resType == "AWS::AppSync::ApiKey" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAppSyncApiKey
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSAppSyncApiKey{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSAppSyncApiKeyWithName(name string) (AWSAppSyncApiKey, e
 				if resType == "AWS::AppSync::ApiKey" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAppSyncApiKey
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSAppSyncApiKey{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

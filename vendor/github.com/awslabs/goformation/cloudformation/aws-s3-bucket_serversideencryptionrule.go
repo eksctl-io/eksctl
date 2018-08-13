@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_ServerSideEncryptionRule AWS CloudFormation Resource (AWS::S3::Bucket.ServerSideEncryptionRule)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-serversideencryptionrule.html
 type AWSS3Bucket_ServerSideEncryptionRule struct {
@@ -13,4 +17,8 @@ type AWSS3Bucket_ServerSideEncryptionRule struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_ServerSideEncryptionRule) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.ServerSideEncryptionRule"
+}
+
+func (r *AWSS3Bucket_ServerSideEncryptionRule) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

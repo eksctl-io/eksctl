@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_AccelerateConfiguration AWS CloudFormation Resource (AWS::S3::Bucket.AccelerateConfiguration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-accelerateconfiguration.html
 type AWSS3Bucket_AccelerateConfiguration struct {
@@ -7,10 +11,14 @@ type AWSS3Bucket_AccelerateConfiguration struct {
 	// AccelerationStatus AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-accelerateconfiguration.html#cfn-s3-bucket-accelerateconfiguration-accelerationstatus
-	AccelerationStatus *StringIntrinsic `json:"AccelerationStatus,omitempty"`
+	AccelerationStatus *Value `json:"AccelerationStatus,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_AccelerateConfiguration) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.AccelerateConfiguration"
+}
+
+func (r *AWSS3Bucket_AccelerateConfiguration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

@@ -13,22 +13,22 @@ type AWSLogsDestination struct {
 	// DestinationName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-destination.html#cfn-logs-destination-destinationname
-	DestinationName *StringIntrinsic `json:"DestinationName,omitempty"`
+	DestinationName *Value `json:"DestinationName,omitempty"`
 
 	// DestinationPolicy AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-destination.html#cfn-logs-destination-destinationpolicy
-	DestinationPolicy *StringIntrinsic `json:"DestinationPolicy,omitempty"`
+	DestinationPolicy *Value `json:"DestinationPolicy,omitempty"`
 
 	// RoleArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-destination.html#cfn-logs-destination-rolearn
-	RoleArn *StringIntrinsic `json:"RoleArn,omitempty"`
+	RoleArn *Value `json:"RoleArn,omitempty"`
 
 	// TargetArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-destination.html#cfn-logs-destination-targetarn
-	TargetArn *StringIntrinsic `json:"TargetArn,omitempty"`
+	TargetArn *Value `json:"TargetArn,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSLogsDestinationResources() map[string]AWSLogsDestina
 				if resType == "AWS::Logs::Destination" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSLogsDestination
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSLogsDestination{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSLogsDestinationWithName(name string) (AWSLogsDestinatio
 				if resType == "AWS::Logs::Destination" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSLogsDestination
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSLogsDestination{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

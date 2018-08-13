@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration AWS CloudFormation Resource (AWS::KinesisFirehose::DeliveryStream.SplunkDestinationConfiguration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-splunkdestinationconfiguration.html
 type AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration struct {
@@ -12,22 +16,22 @@ type AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration struct {
 	// HECAcknowledgmentTimeoutInSeconds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-splunkdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-splunkdestinationconfiguration-hecacknowledgmenttimeoutinseconds
-	HECAcknowledgmentTimeoutInSeconds int `json:"HECAcknowledgmentTimeoutInSeconds,omitempty"`
+	HECAcknowledgmentTimeoutInSeconds *Value `json:"HECAcknowledgmentTimeoutInSeconds,omitempty"`
 
 	// HECEndpoint AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-splunkdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-splunkdestinationconfiguration-hecendpoint
-	HECEndpoint *StringIntrinsic `json:"HECEndpoint,omitempty"`
+	HECEndpoint *Value `json:"HECEndpoint,omitempty"`
 
 	// HECEndpointType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-splunkdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-splunkdestinationconfiguration-hecendpointtype
-	HECEndpointType *StringIntrinsic `json:"HECEndpointType,omitempty"`
+	HECEndpointType *Value `json:"HECEndpointType,omitempty"`
 
 	// HECToken AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-splunkdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-splunkdestinationconfiguration-hectoken
-	HECToken *StringIntrinsic `json:"HECToken,omitempty"`
+	HECToken *Value `json:"HECToken,omitempty"`
 
 	// ProcessingConfiguration AWS CloudFormation Property
 	// Required: false
@@ -42,7 +46,7 @@ type AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration struct {
 	// S3BackupMode AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-splunkdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-splunkdestinationconfiguration-s3backupmode
-	S3BackupMode *StringIntrinsic `json:"S3BackupMode,omitempty"`
+	S3BackupMode *Value `json:"S3BackupMode,omitempty"`
 
 	// S3Configuration AWS CloudFormation Property
 	// Required: true
@@ -53,4 +57,8 @@ type AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration) AWSCloudFormationType() string {
 	return "AWS::KinesisFirehose::DeliveryStream.SplunkDestinationConfiguration"
+}
+
+func (r *AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

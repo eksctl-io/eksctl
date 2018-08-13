@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSInspectorResourceGroupResources() map[string]AWSInsp
 				if resType == "AWS::Inspector::ResourceGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSInspectorResourceGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSInspectorResourceGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSInspectorResourceGroupWithName(name string) (AWSInspect
 				if resType == "AWS::Inspector::ResourceGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSInspectorResourceGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSInspectorResourceGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

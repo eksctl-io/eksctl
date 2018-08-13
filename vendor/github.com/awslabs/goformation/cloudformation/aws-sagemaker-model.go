@@ -13,12 +13,12 @@ type AWSSageMakerModel struct {
 	// ExecutionRoleArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-model.html#cfn-sagemaker-model-executionrolearn
-	ExecutionRoleArn *StringIntrinsic `json:"ExecutionRoleArn,omitempty"`
+	ExecutionRoleArn *Value `json:"ExecutionRoleArn,omitempty"`
 
 	// ModelName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-model.html#cfn-sagemaker-model-modelname
-	ModelName *StringIntrinsic `json:"ModelName,omitempty"`
+	ModelName *Value `json:"ModelName,omitempty"`
 
 	// PrimaryContainer AWS CloudFormation Property
 	// Required: true
@@ -90,9 +90,9 @@ func (t *Template) GetAllAWSSageMakerModelResources() map[string]AWSSageMakerMod
 				if resType == "AWS::SageMaker::Model" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSageMakerModel
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSageMakerModel{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +117,9 @@ func (t *Template) GetAWSSageMakerModelWithName(name string) (AWSSageMakerModel,
 				if resType == "AWS::SageMaker::Model" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSageMakerModel
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSageMakerModel{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

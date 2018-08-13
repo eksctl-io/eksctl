@@ -18,7 +18,7 @@ type AWSCodeDeployDeploymentGroup struct {
 	// ApplicationName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html#cfn-codedeploy-deploymentgroup-applicationname
-	ApplicationName *StringIntrinsic `json:"ApplicationName,omitempty"`
+	ApplicationName *Value `json:"ApplicationName,omitempty"`
 
 	// AutoRollbackConfiguration AWS CloudFormation Property
 	// Required: false
@@ -28,7 +28,7 @@ type AWSCodeDeployDeploymentGroup struct {
 	// AutoScalingGroups AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html#cfn-codedeploy-deploymentgroup-autoscalinggroups
-	AutoScalingGroups []*StringIntrinsic `json:"AutoScalingGroups,omitempty"`
+	AutoScalingGroups []*Value `json:"AutoScalingGroups,omitempty"`
 
 	// Deployment AWS CloudFormation Property
 	// Required: false
@@ -38,12 +38,12 @@ type AWSCodeDeployDeploymentGroup struct {
 	// DeploymentConfigName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html#cfn-codedeploy-deploymentgroup-deploymentconfigname
-	DeploymentConfigName *StringIntrinsic `json:"DeploymentConfigName,omitempty"`
+	DeploymentConfigName *Value `json:"DeploymentConfigName,omitempty"`
 
 	// DeploymentGroupName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html#cfn-codedeploy-deploymentgroup-deploymentgroupname
-	DeploymentGroupName *StringIntrinsic `json:"DeploymentGroupName,omitempty"`
+	DeploymentGroupName *Value `json:"DeploymentGroupName,omitempty"`
 
 	// DeploymentStyle AWS CloudFormation Property
 	// Required: false
@@ -68,7 +68,7 @@ type AWSCodeDeployDeploymentGroup struct {
 	// ServiceRoleArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html#cfn-codedeploy-deploymentgroup-servicerolearn
-	ServiceRoleArn *StringIntrinsic `json:"ServiceRoleArn,omitempty"`
+	ServiceRoleArn *Value `json:"ServiceRoleArn,omitempty"`
 
 	// TriggerConfigurations AWS CloudFormation Property
 	// Required: false
@@ -130,9 +130,9 @@ func (t *Template) GetAllAWSCodeDeployDeploymentGroupResources() map[string]AWSC
 				if resType == "AWS::CodeDeploy::DeploymentGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCodeDeployDeploymentGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCodeDeployDeploymentGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -157,9 +157,9 @@ func (t *Template) GetAWSCodeDeployDeploymentGroupWithName(name string) (AWSCode
 				if resType == "AWS::CodeDeploy::DeploymentGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCodeDeployDeploymentGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCodeDeployDeploymentGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSCognitoIdentityPoolRoleAttachment_RoleMapping AWS CloudFormation Resource (AWS::Cognito::IdentityPoolRoleAttachment.RoleMapping)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypoolroleattachment-rolemapping.html
 type AWSCognitoIdentityPoolRoleAttachment_RoleMapping struct {
@@ -7,7 +11,7 @@ type AWSCognitoIdentityPoolRoleAttachment_RoleMapping struct {
 	// AmbiguousRoleResolution AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypoolroleattachment-rolemapping.html#cfn-cognito-identitypoolroleattachment-rolemapping-ambiguousroleresolution
-	AmbiguousRoleResolution *StringIntrinsic `json:"AmbiguousRoleResolution,omitempty"`
+	AmbiguousRoleResolution *Value `json:"AmbiguousRoleResolution,omitempty"`
 
 	// RulesConfiguration AWS CloudFormation Property
 	// Required: false
@@ -17,10 +21,14 @@ type AWSCognitoIdentityPoolRoleAttachment_RoleMapping struct {
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypoolroleattachment-rolemapping.html#cfn-cognito-identitypoolroleattachment-rolemapping-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type *Value `json:"Type,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCognitoIdentityPoolRoleAttachment_RoleMapping) AWSCloudFormationType() string {
 	return "AWS::Cognito::IdentityPoolRoleAttachment.RoleMapping"
+}
+
+func (r *AWSCognitoIdentityPoolRoleAttachment_RoleMapping) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

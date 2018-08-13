@@ -23,7 +23,7 @@ type AWSElasticLoadBalancingLoadBalancer struct {
 	// AvailabilityZones AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html#cfn-ec2-elb-availabilityzones
-	AvailabilityZones []*StringIntrinsic `json:"AvailabilityZones,omitempty"`
+	AvailabilityZones []*Value `json:"AvailabilityZones,omitempty"`
 
 	// ConnectionDrainingPolicy AWS CloudFormation Property
 	// Required: false
@@ -38,7 +38,7 @@ type AWSElasticLoadBalancingLoadBalancer struct {
 	// CrossZone AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html#cfn-ec2-elb-crosszone
-	CrossZone bool `json:"CrossZone,omitempty"`
+	CrossZone *Value `json:"CrossZone,omitempty"`
 
 	// HealthCheck AWS CloudFormation Property
 	// Required: false
@@ -48,7 +48,7 @@ type AWSElasticLoadBalancingLoadBalancer struct {
 	// Instances AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html#cfn-ec2-elb-instances
-	Instances []*StringIntrinsic `json:"Instances,omitempty"`
+	Instances []*Value `json:"Instances,omitempty"`
 
 	// LBCookieStickinessPolicy AWS CloudFormation Property
 	// Required: false
@@ -63,7 +63,7 @@ type AWSElasticLoadBalancingLoadBalancer struct {
 	// LoadBalancerName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html#cfn-ec2-elb-elbname
-	LoadBalancerName *StringIntrinsic `json:"LoadBalancerName,omitempty"`
+	LoadBalancerName *Value `json:"LoadBalancerName,omitempty"`
 
 	// Policies AWS CloudFormation Property
 	// Required: false
@@ -73,17 +73,17 @@ type AWSElasticLoadBalancingLoadBalancer struct {
 	// Scheme AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html#cfn-ec2-elb-scheme
-	Scheme *StringIntrinsic `json:"Scheme,omitempty"`
+	Scheme *Value `json:"Scheme,omitempty"`
 
 	// SecurityGroups AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html#cfn-ec2-elb-securitygroups
-	SecurityGroups []*StringIntrinsic `json:"SecurityGroups,omitempty"`
+	SecurityGroups []*Value `json:"SecurityGroups,omitempty"`
 
 	// Subnets AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html#cfn-ec2-elb-subnets
-	Subnets []*StringIntrinsic `json:"Subnets,omitempty"`
+	Subnets []*Value `json:"Subnets,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -145,9 +145,9 @@ func (t *Template) GetAllAWSElasticLoadBalancingLoadBalancerResources() map[stri
 				if resType == "AWS::ElasticLoadBalancing::LoadBalancer" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticLoadBalancingLoadBalancer
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSElasticLoadBalancingLoadBalancer{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -172,9 +172,9 @@ func (t *Template) GetAWSElasticLoadBalancingLoadBalancerWithName(name string) (
 				if resType == "AWS::ElasticLoadBalancing::LoadBalancer" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticLoadBalancingLoadBalancer
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSElasticLoadBalancingLoadBalancer{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

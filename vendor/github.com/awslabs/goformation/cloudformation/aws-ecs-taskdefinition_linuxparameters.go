@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSECSTaskDefinition_LinuxParameters AWS CloudFormation Resource (AWS::ECS::TaskDefinition.LinuxParameters)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-linuxparameters.html
 type AWSECSTaskDefinition_LinuxParameters struct {
@@ -17,10 +21,14 @@ type AWSECSTaskDefinition_LinuxParameters struct {
 	// InitProcessEnabled AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-linuxparameters.html#cfn-ecs-taskdefinition-linuxparameters-initprocessenabled
-	InitProcessEnabled bool `json:"InitProcessEnabled,omitempty"`
+	InitProcessEnabled *Value `json:"InitProcessEnabled,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSECSTaskDefinition_LinuxParameters) AWSCloudFormationType() string {
 	return "AWS::ECS::TaskDefinition.LinuxParameters"
+}
+
+func (r *AWSECSTaskDefinition_LinuxParameters) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSGluePartition_StorageDescriptor AWS CloudFormation Resource (AWS::Glue::Partition.StorageDescriptor)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html
 type AWSGluePartition_StorageDescriptor struct {
@@ -7,7 +11,7 @@ type AWSGluePartition_StorageDescriptor struct {
 	// BucketColumns AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-bucketcolumns
-	BucketColumns []*StringIntrinsic `json:"BucketColumns,omitempty"`
+	BucketColumns []*Value `json:"BucketColumns,omitempty"`
 
 	// Columns AWS CloudFormation Property
 	// Required: false
@@ -17,27 +21,27 @@ type AWSGluePartition_StorageDescriptor struct {
 	// Compressed AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-compressed
-	Compressed bool `json:"Compressed,omitempty"`
+	Compressed *Value `json:"Compressed,omitempty"`
 
 	// InputFormat AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-inputformat
-	InputFormat *StringIntrinsic `json:"InputFormat,omitempty"`
+	InputFormat *Value `json:"InputFormat,omitempty"`
 
 	// Location AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-location
-	Location *StringIntrinsic `json:"Location,omitempty"`
+	Location *Value `json:"Location,omitempty"`
 
 	// NumberOfBuckets AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-numberofbuckets
-	NumberOfBuckets int `json:"NumberOfBuckets,omitempty"`
+	NumberOfBuckets *Value `json:"NumberOfBuckets,omitempty"`
 
 	// OutputFormat AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-outputformat
-	OutputFormat *StringIntrinsic `json:"OutputFormat,omitempty"`
+	OutputFormat *Value `json:"OutputFormat,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: false
@@ -62,10 +66,14 @@ type AWSGluePartition_StorageDescriptor struct {
 	// StoredAsSubDirectories AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-storedassubdirectories
-	StoredAsSubDirectories bool `json:"StoredAsSubDirectories,omitempty"`
+	StoredAsSubDirectories *Value `json:"StoredAsSubDirectories,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGluePartition_StorageDescriptor) AWSCloudFormationType() string {
 	return "AWS::Glue::Partition.StorageDescriptor"
+}
+
+func (r *AWSGluePartition_StorageDescriptor) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

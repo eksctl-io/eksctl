@@ -13,12 +13,12 @@ type AWSGluePartition struct {
 	// CatalogId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-partition.html#cfn-glue-partition-catalogid
-	CatalogId *StringIntrinsic `json:"CatalogId,omitempty"`
+	CatalogId *Value `json:"CatalogId,omitempty"`
 
 	// DatabaseName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-partition.html#cfn-glue-partition-databasename
-	DatabaseName *StringIntrinsic `json:"DatabaseName,omitempty"`
+	DatabaseName *Value `json:"DatabaseName,omitempty"`
 
 	// PartitionInput AWS CloudFormation Property
 	// Required: true
@@ -28,7 +28,7 @@ type AWSGluePartition struct {
 	// TableName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-partition.html#cfn-glue-partition-tablename
-	TableName *StringIntrinsic `json:"TableName,omitempty"`
+	TableName *Value `json:"TableName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSGluePartitionResources() map[string]AWSGluePartition
 				if resType == "AWS::Glue::Partition" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGluePartition
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSGluePartition{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSGluePartitionWithName(name string) (AWSGluePartition, e
 				if resType == "AWS::Glue::Partition" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGluePartition
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSGluePartition{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -13,17 +13,17 @@ type AWSElastiCacheSecurityGroupIngress struct {
 	// CacheSecurityGroupName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-security-group-ingress.html#cfn-elasticache-securitygroupingress-cachesecuritygroupname
-	CacheSecurityGroupName *StringIntrinsic `json:"CacheSecurityGroupName,omitempty"`
+	CacheSecurityGroupName *Value `json:"CacheSecurityGroupName,omitempty"`
 
 	// EC2SecurityGroupName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-security-group-ingress.html#cfn-elasticache-securitygroupingress-ec2securitygroupname
-	EC2SecurityGroupName *StringIntrinsic `json:"EC2SecurityGroupName,omitempty"`
+	EC2SecurityGroupName *Value `json:"EC2SecurityGroupName,omitempty"`
 
 	// EC2SecurityGroupOwnerId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-security-group-ingress.html#cfn-elasticache-securitygroupingress-ec2securitygroupownerid
-	EC2SecurityGroupOwnerId *StringIntrinsic `json:"EC2SecurityGroupOwnerId,omitempty"`
+	EC2SecurityGroupOwnerId *Value `json:"EC2SecurityGroupOwnerId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSElastiCacheSecurityGroupIngressResources() map[strin
 				if resType == "AWS::ElastiCache::SecurityGroupIngress" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElastiCacheSecurityGroupIngress
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSElastiCacheSecurityGroupIngress{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSElastiCacheSecurityGroupIngressWithName(name string) (A
 				if resType == "AWS::ElastiCache::SecurityGroupIngress" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElastiCacheSecurityGroupIngress
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSElastiCacheSecurityGroupIngress{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSEC2Instance_BlockDeviceMapping AWS CloudFormation Resource (AWS::EC2::Instance.BlockDeviceMapping)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-blockdev-mapping.html
 type AWSEC2Instance_BlockDeviceMapping struct {
@@ -7,7 +11,7 @@ type AWSEC2Instance_BlockDeviceMapping struct {
 	// DeviceName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-blockdev-mapping.html#cfn-ec2-blockdev-mapping-devicename
-	DeviceName *StringIntrinsic `json:"DeviceName,omitempty"`
+	DeviceName *Value `json:"DeviceName,omitempty"`
 
 	// Ebs AWS CloudFormation Property
 	// Required: false
@@ -22,10 +26,14 @@ type AWSEC2Instance_BlockDeviceMapping struct {
 	// VirtualName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-blockdev-mapping.html#cfn-ec2-blockdev-mapping-virtualname
-	VirtualName *StringIntrinsic `json:"VirtualName,omitempty"`
+	VirtualName *Value `json:"VirtualName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEC2Instance_BlockDeviceMapping) AWSCloudFormationType() string {
 	return "AWS::EC2::Instance.BlockDeviceMapping"
+}
+
+func (r *AWSEC2Instance_BlockDeviceMapping) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

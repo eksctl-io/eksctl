@@ -18,17 +18,17 @@ type AWSBatchJobQueue struct {
 	// JobQueueName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobqueue.html#cfn-batch-jobqueue-jobqueuename
-	JobQueueName *StringIntrinsic `json:"JobQueueName,omitempty"`
+	JobQueueName *Value `json:"JobQueueName,omitempty"`
 
 	// Priority AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobqueue.html#cfn-batch-jobqueue-priority
-	Priority int `json:"Priority,omitempty"`
+	Priority *Value `json:"Priority,omitempty"`
 
 	// State AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobqueue.html#cfn-batch-jobqueue-state
-	State *StringIntrinsic `json:"State,omitempty"`
+	State *Value `json:"State,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSBatchJobQueueResources() map[string]AWSBatchJobQueue
 				if resType == "AWS::Batch::JobQueue" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSBatchJobQueue
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSBatchJobQueue{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSBatchJobQueueWithName(name string) (AWSBatchJobQueue, e
 				if resType == "AWS::Batch::JobQueue" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSBatchJobQueue
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSBatchJobQueue{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

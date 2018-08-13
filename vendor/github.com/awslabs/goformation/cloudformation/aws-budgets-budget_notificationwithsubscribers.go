@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSBudgetsBudget_NotificationWithSubscribers AWS CloudFormation Resource (AWS::Budgets::Budget.NotificationWithSubscribers)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-budgets-budget-notificationwithsubscribers.html
 type AWSBudgetsBudget_NotificationWithSubscribers struct {
@@ -18,4 +22,8 @@ type AWSBudgetsBudget_NotificationWithSubscribers struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSBudgetsBudget_NotificationWithSubscribers) AWSCloudFormationType() string {
 	return "AWS::Budgets::Budget.NotificationWithSubscribers"
+}
+
+func (r *AWSBudgetsBudget_NotificationWithSubscribers) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

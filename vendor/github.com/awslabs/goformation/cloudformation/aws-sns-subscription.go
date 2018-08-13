@@ -10,20 +10,40 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html
 type AWSSNSSubscription struct {
 
+	// DeliveryPolicy AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#cfn-sns-subscription-deliverypolicy
+	DeliveryPolicy interface{} `json:"DeliveryPolicy,omitempty"`
+
 	// Endpoint AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#cfn-sns-endpoint
-	Endpoint *StringIntrinsic `json:"Endpoint,omitempty"`
+	Endpoint *Value `json:"Endpoint,omitempty"`
+
+	// FilterPolicy AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#cfn-sns-subscription-filterpolicy
+	FilterPolicy interface{} `json:"FilterPolicy,omitempty"`
 
 	// Protocol AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#cfn-sns-protocol
-	Protocol *StringIntrinsic `json:"Protocol,omitempty"`
+	Protocol *Value `json:"Protocol,omitempty"`
+
+	// RawMessageDelivery AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#cfn-sns-subscription-rawmessagedelivery
+	RawMessageDelivery *Value `json:"RawMessageDelivery,omitempty"`
+
+	// Region AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#cfn-sns-subscription-region
+	Region *Value `json:"Region,omitempty"`
 
 	// TopicArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#topicarn
-	TopicArn *StringIntrinsic `json:"TopicArn,omitempty"`
+	TopicArn *Value `json:"TopicArn,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +100,9 @@ func (t *Template) GetAllAWSSNSSubscriptionResources() map[string]AWSSNSSubscrip
 				if resType == "AWS::SNS::Subscription" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSNSSubscription
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSNSSubscription{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +127,9 @@ func (t *Template) GetAWSSNSSubscriptionWithName(name string) (AWSSNSSubscriptio
 				if resType == "AWS::SNS::Subscription" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSNSSubscription
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSNSSubscription{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

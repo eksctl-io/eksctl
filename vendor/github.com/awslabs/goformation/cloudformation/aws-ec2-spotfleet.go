@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSEC2SpotFleetResources() map[string]AWSEC2SpotFleet {
 				if resType == "AWS::EC2::SpotFleet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2SpotFleet
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2SpotFleet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSEC2SpotFleetWithName(name string) (AWSEC2SpotFleet, err
 				if resType == "AWS::EC2::SpotFleet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2SpotFleet
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2SpotFleet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

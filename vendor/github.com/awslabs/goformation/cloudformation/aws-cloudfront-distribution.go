@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSCloudFrontDistributionResources() map[string]AWSClou
 				if resType == "AWS::CloudFront::Distribution" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFrontDistribution
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCloudFrontDistribution{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSCloudFrontDistributionWithName(name string) (AWSCloudFr
 				if resType == "AWS::CloudFront::Distribution" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFrontDistribution
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCloudFrontDistribution{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

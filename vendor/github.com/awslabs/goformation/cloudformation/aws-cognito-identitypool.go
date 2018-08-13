@@ -13,7 +13,7 @@ type AWSCognitoIdentityPool struct {
 	// AllowUnauthenticatedIdentities AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html#cfn-cognito-identitypool-allowunauthenticatedidentities
-	AllowUnauthenticatedIdentities bool `json:"AllowUnauthenticatedIdentities,omitempty"`
+	AllowUnauthenticatedIdentities *Value `json:"AllowUnauthenticatedIdentities,omitempty"`
 
 	// CognitoEvents AWS CloudFormation Property
 	// Required: false
@@ -33,17 +33,17 @@ type AWSCognitoIdentityPool struct {
 	// DeveloperProviderName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html#cfn-cognito-identitypool-developerprovidername
-	DeveloperProviderName *StringIntrinsic `json:"DeveloperProviderName,omitempty"`
+	DeveloperProviderName *Value `json:"DeveloperProviderName,omitempty"`
 
 	// IdentityPoolName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html#cfn-cognito-identitypool-identitypoolname
-	IdentityPoolName *StringIntrinsic `json:"IdentityPoolName,omitempty"`
+	IdentityPoolName *Value `json:"IdentityPoolName,omitempty"`
 
 	// OpenIdConnectProviderARNs AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html#cfn-cognito-identitypool-openidconnectproviderarns
-	OpenIdConnectProviderARNs []*StringIntrinsic `json:"OpenIdConnectProviderARNs,omitempty"`
+	OpenIdConnectProviderARNs []*Value `json:"OpenIdConnectProviderARNs,omitempty"`
 
 	// PushSync AWS CloudFormation Property
 	// Required: false
@@ -53,7 +53,7 @@ type AWSCognitoIdentityPool struct {
 	// SamlProviderARNs AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html#cfn-cognito-identitypool-samlproviderarns
-	SamlProviderARNs []*StringIntrinsic `json:"SamlProviderARNs,omitempty"`
+	SamlProviderARNs []*Value `json:"SamlProviderARNs,omitempty"`
 
 	// SupportedLoginProviders AWS CloudFormation Property
 	// Required: false
@@ -115,9 +115,9 @@ func (t *Template) GetAllAWSCognitoIdentityPoolResources() map[string]AWSCognito
 				if resType == "AWS::Cognito::IdentityPool" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoIdentityPool
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCognitoIdentityPool{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -142,9 +142,9 @@ func (t *Template) GetAWSCognitoIdentityPoolWithName(name string) (AWSCognitoIde
 				if resType == "AWS::Cognito::IdentityPool" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoIdentityPool
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCognitoIdentityPool{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

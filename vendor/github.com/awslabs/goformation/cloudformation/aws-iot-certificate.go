@@ -13,12 +13,12 @@ type AWSIoTCertificate struct {
 	// CertificateSigningRequest AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iot-certificate.html#cfn-iot-certificate-certificatesigningrequest
-	CertificateSigningRequest *StringIntrinsic `json:"CertificateSigningRequest,omitempty"`
+	CertificateSigningRequest *Value `json:"CertificateSigningRequest,omitempty"`
 
 	// Status AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iot-certificate.html#cfn-iot-certificate-status
-	Status *StringIntrinsic `json:"Status,omitempty"`
+	Status *Value `json:"Status,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSIoTCertificateResources() map[string]AWSIoTCertifica
 				if resType == "AWS::IoT::Certificate" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTCertificate
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSIoTCertificate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSIoTCertificateWithName(name string) (AWSIoTCertificate,
 				if resType == "AWS::IoT::Certificate" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTCertificate
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSIoTCertificate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

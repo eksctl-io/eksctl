@@ -13,22 +13,22 @@ type AWSEC2VPCEndpointConnectionNotification struct {
 	// ConnectionEvents AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointconnectionnotification.html#cfn-ec2-vpcendpointconnectionnotification-connectionevents
-	ConnectionEvents []*StringIntrinsic `json:"ConnectionEvents,omitempty"`
+	ConnectionEvents []*Value `json:"ConnectionEvents,omitempty"`
 
 	// ConnectionNotificationArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointconnectionnotification.html#cfn-ec2-vpcendpointconnectionnotification-connectionnotificationarn
-	ConnectionNotificationArn *StringIntrinsic `json:"ConnectionNotificationArn,omitempty"`
+	ConnectionNotificationArn *Value `json:"ConnectionNotificationArn,omitempty"`
 
 	// ServiceId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointconnectionnotification.html#cfn-ec2-vpcendpointconnectionnotification-serviceid
-	ServiceId *StringIntrinsic `json:"ServiceId,omitempty"`
+	ServiceId *Value `json:"ServiceId,omitempty"`
 
 	// VPCEndpointId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpointconnectionnotification.html#cfn-ec2-vpcendpointconnectionnotification-vpcendpointid
-	VPCEndpointId *StringIntrinsic `json:"VPCEndpointId,omitempty"`
+	VPCEndpointId *Value `json:"VPCEndpointId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSEC2VPCEndpointConnectionNotificationResources() map[
 				if resType == "AWS::EC2::VPCEndpointConnectionNotification" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPCEndpointConnectionNotification
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2VPCEndpointConnectionNotification{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSEC2VPCEndpointConnectionNotificationWithName(name strin
 				if resType == "AWS::EC2::VPCEndpointConnectionNotification" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPCEndpointConnectionNotification
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2VPCEndpointConnectionNotification{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

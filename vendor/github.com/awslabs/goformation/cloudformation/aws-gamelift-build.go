@@ -13,7 +13,7 @@ type AWSGameLiftBuild struct {
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-gamelift-build.html#cfn-gamelift-build-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// StorageLocation AWS CloudFormation Property
 	// Required: false
@@ -23,7 +23,7 @@ type AWSGameLiftBuild struct {
 	// Version AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-gamelift-build.html#cfn-gamelift-build-version
-	Version *StringIntrinsic `json:"Version,omitempty"`
+	Version *Value `json:"Version,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSGameLiftBuildResources() map[string]AWSGameLiftBuild
 				if resType == "AWS::GameLift::Build" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGameLiftBuild
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSGameLiftBuild{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSGameLiftBuildWithName(name string) (AWSGameLiftBuild, e
 				if resType == "AWS::GameLift::Build" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGameLiftBuild
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSGameLiftBuild{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

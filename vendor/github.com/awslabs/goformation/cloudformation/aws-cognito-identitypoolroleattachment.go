@@ -13,7 +13,7 @@ type AWSCognitoIdentityPoolRoleAttachment struct {
 	// IdentityPoolId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypoolroleattachment.html#cfn-cognito-identitypoolroleattachment-identitypoolid
-	IdentityPoolId *StringIntrinsic `json:"IdentityPoolId,omitempty"`
+	IdentityPoolId *Value `json:"IdentityPoolId,omitempty"`
 
 	// RoleMappings AWS CloudFormation Property
 	// Required: false
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSCognitoIdentityPoolRoleAttachmentResources() map[str
 				if resType == "AWS::Cognito::IdentityPoolRoleAttachment" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoIdentityPoolRoleAttachment
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCognitoIdentityPoolRoleAttachment{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSCognitoIdentityPoolRoleAttachmentWithName(name string) 
 				if resType == "AWS::Cognito::IdentityPoolRoleAttachment" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoIdentityPoolRoleAttachment
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCognitoIdentityPoolRoleAttachment{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

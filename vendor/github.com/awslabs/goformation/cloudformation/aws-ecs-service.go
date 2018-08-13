@@ -13,7 +13,7 @@ type AWSECSService struct {
 	// Cluster AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-cluster
-	Cluster *StringIntrinsic `json:"Cluster,omitempty"`
+	Cluster *Value `json:"Cluster,omitempty"`
 
 	// DeploymentConfiguration AWS CloudFormation Property
 	// Required: false
@@ -23,17 +23,17 @@ type AWSECSService struct {
 	// DesiredCount AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-desiredcount
-	DesiredCount int `json:"DesiredCount,omitempty"`
+	DesiredCount *Value `json:"DesiredCount,omitempty"`
 
 	// HealthCheckGracePeriodSeconds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-healthcheckgraceperiodseconds
-	HealthCheckGracePeriodSeconds int `json:"HealthCheckGracePeriodSeconds,omitempty"`
+	HealthCheckGracePeriodSeconds *Value `json:"HealthCheckGracePeriodSeconds,omitempty"`
 
 	// LaunchType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-launchtype
-	LaunchType *StringIntrinsic `json:"LaunchType,omitempty"`
+	LaunchType *Value `json:"LaunchType,omitempty"`
 
 	// LoadBalancers AWS CloudFormation Property
 	// Required: false
@@ -58,17 +58,17 @@ type AWSECSService struct {
 	// PlatformVersion AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-platformversion
-	PlatformVersion *StringIntrinsic `json:"PlatformVersion,omitempty"`
+	PlatformVersion *Value `json:"PlatformVersion,omitempty"`
 
 	// Role AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-role
-	Role *StringIntrinsic `json:"Role,omitempty"`
+	Role *Value `json:"Role,omitempty"`
 
 	// ServiceName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-servicename
-	ServiceName *StringIntrinsic `json:"ServiceName,omitempty"`
+	ServiceName *Value `json:"ServiceName,omitempty"`
 
 	// ServiceRegistries AWS CloudFormation Property
 	// Required: false
@@ -78,7 +78,7 @@ type AWSECSService struct {
 	// TaskDefinition AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-taskdefinition
-	TaskDefinition *StringIntrinsic `json:"TaskDefinition,omitempty"`
+	TaskDefinition *Value `json:"TaskDefinition,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -135,9 +135,9 @@ func (t *Template) GetAllAWSECSServiceResources() map[string]AWSECSService {
 				if resType == "AWS::ECS::Service" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSECSService
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSECSService{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -162,9 +162,9 @@ func (t *Template) GetAWSECSServiceWithName(name string) (AWSECSService, error) 
 				if resType == "AWS::ECS::Service" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSECSService
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSECSService{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

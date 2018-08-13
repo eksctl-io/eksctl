@@ -18,7 +18,7 @@ type AWSS3Bucket struct {
 	// AccessControl AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-accesscontrol
-	AccessControl *StringIntrinsic `json:"AccessControl,omitempty"`
+	AccessControl *Value `json:"AccessControl,omitempty"`
 
 	// AnalyticsConfigurations AWS CloudFormation Property
 	// Required: false
@@ -33,7 +33,7 @@ type AWSS3Bucket struct {
 	// BucketName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-name
-	BucketName *StringIntrinsic `json:"BucketName,omitempty"`
+	BucketName *Value `json:"BucketName,omitempty"`
 
 	// CorsConfiguration AWS CloudFormation Property
 	// Required: false
@@ -140,9 +140,9 @@ func (t *Template) GetAllAWSS3BucketResources() map[string]AWSS3Bucket {
 				if resType == "AWS::S3::Bucket" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSS3Bucket
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSS3Bucket{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -167,9 +167,9 @@ func (t *Template) GetAWSS3BucketWithName(name string) (AWSS3Bucket, error) {
 				if resType == "AWS::S3::Bucket" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSS3Bucket
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSS3Bucket{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

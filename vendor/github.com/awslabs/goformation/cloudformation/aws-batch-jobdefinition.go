@@ -18,7 +18,7 @@ type AWSBatchJobDefinition struct {
 	// JobDefinitionName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobdefinition.html#cfn-batch-jobdefinition-jobdefinitionname
-	JobDefinitionName *StringIntrinsic `json:"JobDefinitionName,omitempty"`
+	JobDefinitionName *Value `json:"JobDefinitionName,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: false
@@ -38,7 +38,7 @@ type AWSBatchJobDefinition struct {
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobdefinition.html#cfn-batch-jobdefinition-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type *Value `json:"Type,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -95,9 +95,9 @@ func (t *Template) GetAllAWSBatchJobDefinitionResources() map[string]AWSBatchJob
 				if resType == "AWS::Batch::JobDefinition" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSBatchJobDefinition
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSBatchJobDefinition{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -122,9 +122,9 @@ func (t *Template) GetAWSBatchJobDefinitionWithName(name string) (AWSBatchJobDef
 				if resType == "AWS::Batch::JobDefinition" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSBatchJobDefinition
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSBatchJobDefinition{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

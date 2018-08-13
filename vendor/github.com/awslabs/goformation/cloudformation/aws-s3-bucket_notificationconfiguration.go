@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_NotificationConfiguration AWS CloudFormation Resource (AWS::S3::Bucket.NotificationConfiguration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig.html
 type AWSS3Bucket_NotificationConfiguration struct {
@@ -23,4 +27,8 @@ type AWSS3Bucket_NotificationConfiguration struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_NotificationConfiguration) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.NotificationConfiguration"
+}
+
+func (r *AWSS3Bucket_NotificationConfiguration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSServerlessFunction_IAMPolicyDocument AWS CloudFormation Resource (AWS::Serverless::Function.IAMPolicyDocument)
 // See: http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html
 type AWSServerlessFunction_IAMPolicyDocument struct {
@@ -13,4 +17,8 @@ type AWSServerlessFunction_IAMPolicyDocument struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSServerlessFunction_IAMPolicyDocument) AWSCloudFormationType() string {
 	return "AWS::Serverless::Function.IAMPolicyDocument"
+}
+
+func (r *AWSServerlessFunction_IAMPolicyDocument) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

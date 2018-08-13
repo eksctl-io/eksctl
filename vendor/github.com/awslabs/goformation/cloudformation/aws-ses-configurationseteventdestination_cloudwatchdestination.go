@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSSESConfigurationSetEventDestination_CloudWatchDestination AWS CloudFormation Resource (AWS::SES::ConfigurationSetEventDestination.CloudWatchDestination)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-configurationseteventdestination-cloudwatchdestination.html
 type AWSSESConfigurationSetEventDestination_CloudWatchDestination struct {
@@ -13,4 +17,8 @@ type AWSSESConfigurationSetEventDestination_CloudWatchDestination struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSESConfigurationSetEventDestination_CloudWatchDestination) AWSCloudFormationType() string {
 	return "AWS::SES::ConfigurationSetEventDestination.CloudWatchDestination"
+}
+
+func (r *AWSSESConfigurationSetEventDestination_CloudWatchDestination) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

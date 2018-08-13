@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSSSMPatchBaseline_PatchFilterGroup AWS CloudFormation Resource (AWS::SSM::PatchBaseline.PatchFilterGroup)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ssm-patchbaseline-patchfiltergroup.html
 type AWSSSMPatchBaseline_PatchFilterGroup struct {
@@ -13,4 +17,8 @@ type AWSSSMPatchBaseline_PatchFilterGroup struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSSMPatchBaseline_PatchFilterGroup) AWSCloudFormationType() string {
 	return "AWS::SSM::PatchBaseline.PatchFilterGroup"
+}
+
+func (r *AWSSSMPatchBaseline_PatchFilterGroup) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

@@ -13,17 +13,17 @@ type AWSAppSyncGraphQLSchema struct {
 	// ApiId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlschema.html#cfn-appsync-graphqlschema-apiid
-	ApiId *StringIntrinsic `json:"ApiId,omitempty"`
+	ApiId *Value `json:"ApiId,omitempty"`
 
 	// Definition AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlschema.html#cfn-appsync-graphqlschema-definition
-	Definition *StringIntrinsic `json:"Definition,omitempty"`
+	Definition *Value `json:"Definition,omitempty"`
 
 	// DefinitionS3Location AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlschema.html#cfn-appsync-graphqlschema-definitions3location
-	DefinitionS3Location *StringIntrinsic `json:"DefinitionS3Location,omitempty"`
+	DefinitionS3Location *Value `json:"DefinitionS3Location,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSAppSyncGraphQLSchemaResources() map[string]AWSAppSyn
 				if resType == "AWS::AppSync::GraphQLSchema" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAppSyncGraphQLSchema
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSAppSyncGraphQLSchema{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSAppSyncGraphQLSchemaWithName(name string) (AWSAppSyncGr
 				if resType == "AWS::AppSync::GraphQLSchema" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAppSyncGraphQLSchema
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSAppSyncGraphQLSchema{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

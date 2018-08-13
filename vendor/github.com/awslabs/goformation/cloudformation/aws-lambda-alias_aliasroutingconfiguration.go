@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSLambdaAlias_AliasRoutingConfiguration AWS CloudFormation Resource (AWS::Lambda::Alias.AliasRoutingConfiguration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-alias-aliasroutingconfiguration.html
 type AWSLambdaAlias_AliasRoutingConfiguration struct {
@@ -13,4 +17,8 @@ type AWSLambdaAlias_AliasRoutingConfiguration struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSLambdaAlias_AliasRoutingConfiguration) AWSCloudFormationType() string {
 	return "AWS::Lambda::Alias.AliasRoutingConfiguration"
+}
+
+func (r *AWSLambdaAlias_AliasRoutingConfiguration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

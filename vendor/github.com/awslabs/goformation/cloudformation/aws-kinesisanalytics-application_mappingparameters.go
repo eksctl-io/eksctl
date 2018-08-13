@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSKinesisAnalyticsApplication_MappingParameters AWS CloudFormation Resource (AWS::KinesisAnalytics::Application.MappingParameters)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-application-mappingparameters.html
 type AWSKinesisAnalyticsApplication_MappingParameters struct {
@@ -18,4 +22,8 @@ type AWSKinesisAnalyticsApplication_MappingParameters struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisAnalyticsApplication_MappingParameters) AWSCloudFormationType() string {
 	return "AWS::KinesisAnalytics::Application.MappingParameters"
+}
+
+func (r *AWSKinesisAnalyticsApplication_MappingParameters) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

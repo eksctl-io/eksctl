@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSSSMAssociation_InstanceAssociationOutputLocation AWS CloudFormation Resource (AWS::SSM::Association.InstanceAssociationOutputLocation)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ssm-association-instanceassociationoutputlocation.html
 type AWSSSMAssociation_InstanceAssociationOutputLocation struct {
@@ -13,4 +17,8 @@ type AWSSSMAssociation_InstanceAssociationOutputLocation struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSSMAssociation_InstanceAssociationOutputLocation) AWSCloudFormationType() string {
 	return "AWS::SSM::Association.InstanceAssociationOutputLocation"
+}
+
+func (r *AWSSSMAssociation_InstanceAssociationOutputLocation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

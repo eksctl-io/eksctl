@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_ReplicationDestination AWS CloudFormation Resource (AWS::S3::Bucket.ReplicationDestination)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-replicationconfiguration-rules-destination.html
 type AWSS3Bucket_ReplicationDestination struct {
@@ -12,12 +16,12 @@ type AWSS3Bucket_ReplicationDestination struct {
 	// Account AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-replicationconfiguration-rules-destination.html#cfn-s3-bucket-replicationdestination-account
-	Account *StringIntrinsic `json:"Account,omitempty"`
+	Account *Value `json:"Account,omitempty"`
 
 	// Bucket AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-replicationconfiguration-rules-destination.html#cfn-s3-bucket-replicationconfiguration-rules-destination-bucket
-	Bucket *StringIntrinsic `json:"Bucket,omitempty"`
+	Bucket *Value `json:"Bucket,omitempty"`
 
 	// EncryptionConfiguration AWS CloudFormation Property
 	// Required: false
@@ -27,10 +31,14 @@ type AWSS3Bucket_ReplicationDestination struct {
 	// StorageClass AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-replicationconfiguration-rules-destination.html#cfn-s3-bucket-replicationconfiguration-rules-destination-storageclass
-	StorageClass *StringIntrinsic `json:"StorageClass,omitempty"`
+	StorageClass *Value `json:"StorageClass,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_ReplicationDestination) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.ReplicationDestination"
+}
+
+func (r *AWSS3Bucket_ReplicationDestination) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

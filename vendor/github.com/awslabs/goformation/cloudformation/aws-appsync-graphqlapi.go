@@ -13,7 +13,7 @@ type AWSAppSyncGraphQLApi struct {
 	// AuthenticationType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlapi.html#cfn-appsync-graphqlapi-authenticationtype
-	AuthenticationType *StringIntrinsic `json:"AuthenticationType,omitempty"`
+	AuthenticationType *Value `json:"AuthenticationType,omitempty"`
 
 	// LogConfig AWS CloudFormation Property
 	// Required: false
@@ -23,7 +23,7 @@ type AWSAppSyncGraphQLApi struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlapi.html#cfn-appsync-graphqlapi-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// OpenIDConnectConfig AWS CloudFormation Property
 	// Required: false
@@ -90,9 +90,9 @@ func (t *Template) GetAllAWSAppSyncGraphQLApiResources() map[string]AWSAppSyncGr
 				if resType == "AWS::AppSync::GraphQLApi" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAppSyncGraphQLApi
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSAppSyncGraphQLApi{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +117,9 @@ func (t *Template) GetAWSAppSyncGraphQLApiWithName(name string) (AWSAppSyncGraph
 				if resType == "AWS::AppSync::GraphQLApi" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAppSyncGraphQLApi
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSAppSyncGraphQLApi{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

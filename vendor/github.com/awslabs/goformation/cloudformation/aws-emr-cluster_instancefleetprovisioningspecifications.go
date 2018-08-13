@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSEMRCluster_InstanceFleetProvisioningSpecifications AWS CloudFormation Resource (AWS::EMR::Cluster.InstanceFleetProvisioningSpecifications)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-cluster-instancefleetprovisioningspecifications.html
 type AWSEMRCluster_InstanceFleetProvisioningSpecifications struct {
@@ -13,4 +17,8 @@ type AWSEMRCluster_InstanceFleetProvisioningSpecifications struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRCluster_InstanceFleetProvisioningSpecifications) AWSCloudFormationType() string {
 	return "AWS::EMR::Cluster.InstanceFleetProvisioningSpecifications"
+}
+
+func (r *AWSEMRCluster_InstanceFleetProvisioningSpecifications) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

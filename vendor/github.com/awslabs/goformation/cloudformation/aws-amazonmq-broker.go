@@ -13,12 +13,12 @@ type AWSAmazonMQBroker struct {
 	// AutoMinorVersionUpgrade AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-autominorversionupgrade
-	AutoMinorVersionUpgrade bool `json:"AutoMinorVersionUpgrade,omitempty"`
+	AutoMinorVersionUpgrade *Value `json:"AutoMinorVersionUpgrade,omitempty"`
 
 	// BrokerName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-brokername
-	BrokerName *StringIntrinsic `json:"BrokerName,omitempty"`
+	BrokerName *Value `json:"BrokerName,omitempty"`
 
 	// Configuration AWS CloudFormation Property
 	// Required: false
@@ -28,22 +28,27 @@ type AWSAmazonMQBroker struct {
 	// DeploymentMode AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-deploymentmode
-	DeploymentMode *StringIntrinsic `json:"DeploymentMode,omitempty"`
+	DeploymentMode *Value `json:"DeploymentMode,omitempty"`
 
 	// EngineType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-enginetype
-	EngineType *StringIntrinsic `json:"EngineType,omitempty"`
+	EngineType *Value `json:"EngineType,omitempty"`
 
 	// EngineVersion AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-engineversion
-	EngineVersion *StringIntrinsic `json:"EngineVersion,omitempty"`
+	EngineVersion *Value `json:"EngineVersion,omitempty"`
 
 	// HostInstanceType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-hostinstancetype
-	HostInstanceType *StringIntrinsic `json:"HostInstanceType,omitempty"`
+	HostInstanceType *Value `json:"HostInstanceType,omitempty"`
+
+	// Logs AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-logs
+	Logs *AWSAmazonMQBroker_LogList `json:"Logs,omitempty"`
 
 	// MaintenanceWindowStartTime AWS CloudFormation Property
 	// Required: false
@@ -53,17 +58,17 @@ type AWSAmazonMQBroker struct {
 	// PubliclyAccessible AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-publiclyaccessible
-	PubliclyAccessible bool `json:"PubliclyAccessible,omitempty"`
+	PubliclyAccessible *Value `json:"PubliclyAccessible,omitempty"`
 
 	// SecurityGroups AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-securitygroups
-	SecurityGroups []*StringIntrinsic `json:"SecurityGroups,omitempty"`
+	SecurityGroups []*Value `json:"SecurityGroups,omitempty"`
 
 	// SubnetIds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-broker.html#cfn-amazonmq-broker-subnetids
-	SubnetIds []*StringIntrinsic `json:"SubnetIds,omitempty"`
+	SubnetIds []*Value `json:"SubnetIds,omitempty"`
 
 	// Users AWS CloudFormation Property
 	// Required: true
@@ -125,9 +130,9 @@ func (t *Template) GetAllAWSAmazonMQBrokerResources() map[string]AWSAmazonMQBrok
 				if resType == "AWS::AmazonMQ::Broker" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAmazonMQBroker
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSAmazonMQBroker{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -152,9 +157,9 @@ func (t *Template) GetAWSAmazonMQBrokerWithName(name string) (AWSAmazonMQBroker,
 				if resType == "AWS::AmazonMQ::Broker" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAmazonMQBroker
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSAmazonMQBroker{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

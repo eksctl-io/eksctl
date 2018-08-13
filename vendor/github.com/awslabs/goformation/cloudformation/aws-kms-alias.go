@@ -13,12 +13,12 @@ type AWSKMSAlias struct {
 	// AliasName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname
-	AliasName *StringIntrinsic `json:"AliasName,omitempty"`
+	AliasName *Value `json:"AliasName,omitempty"`
 
 	// TargetKeyId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-targetkeyid
-	TargetKeyId *StringIntrinsic `json:"TargetKeyId,omitempty"`
+	TargetKeyId *Value `json:"TargetKeyId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSKMSAliasResources() map[string]AWSKMSAlias {
 				if resType == "AWS::KMS::Alias" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKMSAlias
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSKMSAlias{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSKMSAliasWithName(name string) (AWSKMSAlias, error) {
 				if resType == "AWS::KMS::Alias" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKMSAlias
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSKMSAlias{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

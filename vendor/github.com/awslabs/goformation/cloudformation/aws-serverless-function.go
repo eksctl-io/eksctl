@@ -23,7 +23,7 @@ type AWSServerlessFunction struct {
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// Environment AWS CloudFormation Property
 	// Required: false
@@ -38,22 +38,22 @@ type AWSServerlessFunction struct {
 	// FunctionName AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	FunctionName *StringIntrinsic `json:"FunctionName,omitempty"`
+	FunctionName *Value `json:"FunctionName,omitempty"`
 
 	// Handler AWS CloudFormation Property
 	// Required: true
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	Handler *StringIntrinsic `json:"Handler,omitempty"`
+	Handler *Value `json:"Handler,omitempty"`
 
 	// KmsKeyArn AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	KmsKeyArn *StringIntrinsic `json:"KmsKeyArn,omitempty"`
+	KmsKeyArn *Value `json:"KmsKeyArn,omitempty"`
 
 	// MemorySize AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	MemorySize int `json:"MemorySize,omitempty"`
+	MemorySize *Value `json:"MemorySize,omitempty"`
 
 	// Policies AWS CloudFormation Property
 	// Required: false
@@ -63,27 +63,27 @@ type AWSServerlessFunction struct {
 	// Role AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	Role *StringIntrinsic `json:"Role,omitempty"`
+	Role *Value `json:"Role,omitempty"`
 
 	// Runtime AWS CloudFormation Property
 	// Required: true
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	Runtime *StringIntrinsic `json:"Runtime,omitempty"`
+	Runtime *Value `json:"Runtime,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	Tags map[string]*StringIntrinsic `json:"Tags,omitempty"`
+	Tags map[string]*Value `json:"Tags,omitempty"`
 
 	// Timeout AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	Timeout int `json:"Timeout,omitempty"`
+	Timeout *Value `json:"Timeout,omitempty"`
 
 	// Tracing AWS CloudFormation Property
 	// Required: false
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-	Tracing *StringIntrinsic `json:"Tracing,omitempty"`
+	Tracing *Value `json:"Tracing,omitempty"`
 
 	// VpcConfig AWS CloudFormation Property
 	// Required: false
@@ -145,9 +145,9 @@ func (t *Template) GetAllAWSServerlessFunctionResources() map[string]AWSServerle
 				if resType == "AWS::Serverless::Function" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSServerlessFunction
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSServerlessFunction{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -172,9 +172,9 @@ func (t *Template) GetAWSServerlessFunctionWithName(name string) (AWSServerlessF
 				if resType == "AWS::Serverless::Function" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSServerlessFunction
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSServerlessFunction{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

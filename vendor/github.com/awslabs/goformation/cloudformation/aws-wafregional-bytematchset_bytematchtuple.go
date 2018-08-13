@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSWAFRegionalByteMatchSet_ByteMatchTuple AWS CloudFormation Resource (AWS::WAFRegional::ByteMatchSet.ByteMatchTuple)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-bytematchset-bytematchtuple.html
 type AWSWAFRegionalByteMatchSet_ByteMatchTuple struct {
@@ -12,25 +16,29 @@ type AWSWAFRegionalByteMatchSet_ByteMatchTuple struct {
 	// PositionalConstraint AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-bytematchset-bytematchtuple.html#cfn-wafregional-bytematchset-bytematchtuple-positionalconstraint
-	PositionalConstraint *StringIntrinsic `json:"PositionalConstraint,omitempty"`
+	PositionalConstraint *Value `json:"PositionalConstraint,omitempty"`
 
 	// TargetString AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-bytematchset-bytematchtuple.html#cfn-wafregional-bytematchset-bytematchtuple-targetstring
-	TargetString *StringIntrinsic `json:"TargetString,omitempty"`
+	TargetString *Value `json:"TargetString,omitempty"`
 
 	// TargetStringBase64 AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-bytematchset-bytematchtuple.html#cfn-wafregional-bytematchset-bytematchtuple-targetstringbase64
-	TargetStringBase64 *StringIntrinsic `json:"TargetStringBase64,omitempty"`
+	TargetStringBase64 *Value `json:"TargetStringBase64,omitempty"`
 
 	// TextTransformation AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-bytematchset-bytematchtuple.html#cfn-wafregional-bytematchset-bytematchtuple-texttransformation
-	TextTransformation *StringIntrinsic `json:"TextTransformation,omitempty"`
+	TextTransformation *Value `json:"TextTransformation,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFRegionalByteMatchSet_ByteMatchTuple) AWSCloudFormationType() string {
 	return "AWS::WAFRegional::ByteMatchSet.ByteMatchTuple"
+}
+
+func (r *AWSWAFRegionalByteMatchSet_ByteMatchTuple) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

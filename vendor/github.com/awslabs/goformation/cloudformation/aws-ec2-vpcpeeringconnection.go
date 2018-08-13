@@ -13,17 +13,22 @@ type AWSEC2VPCPeeringConnection struct {
 	// PeerOwnerId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peerownerid
-	PeerOwnerId *StringIntrinsic `json:"PeerOwnerId,omitempty"`
+	PeerOwnerId *Value `json:"PeerOwnerId,omitempty"`
+
+	// PeerRegion AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peerregion
+	PeerRegion *Value `json:"PeerRegion,omitempty"`
 
 	// PeerRoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peerrolearn
-	PeerRoleArn *StringIntrinsic `json:"PeerRoleArn,omitempty"`
+	PeerRoleArn *Value `json:"PeerRoleArn,omitempty"`
 
 	// PeerVpcId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peervpcid
-	PeerVpcId *StringIntrinsic `json:"PeerVpcId,omitempty"`
+	PeerVpcId *Value `json:"PeerVpcId,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -33,7 +38,7 @@ type AWSEC2VPCPeeringConnection struct {
 	// VpcId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-vpcid
-	VpcId *StringIntrinsic `json:"VpcId,omitempty"`
+	VpcId *Value `json:"VpcId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -90,9 +95,9 @@ func (t *Template) GetAllAWSEC2VPCPeeringConnectionResources() map[string]AWSEC2
 				if resType == "AWS::EC2::VPCPeeringConnection" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPCPeeringConnection
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2VPCPeeringConnection{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +122,9 @@ func (t *Template) GetAWSEC2VPCPeeringConnectionWithName(name string) (AWSEC2VPC
 				if resType == "AWS::EC2::VPCPeeringConnection" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPCPeeringConnection
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2VPCPeeringConnection{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

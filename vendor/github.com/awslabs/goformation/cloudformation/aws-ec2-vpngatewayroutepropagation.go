@@ -13,12 +13,12 @@ type AWSEC2VPNGatewayRoutePropagation struct {
 	// RouteTableIds AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpn-gatewayrouteprop.html#cfn-ec2-vpngatewayrouteprop-routetableids
-	RouteTableIds []*StringIntrinsic `json:"RouteTableIds,omitempty"`
+	RouteTableIds []*Value `json:"RouteTableIds,omitempty"`
 
 	// VpnGatewayId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpn-gatewayrouteprop.html#cfn-ec2-vpngatewayrouteprop-vpngatewayid
-	VpnGatewayId *StringIntrinsic `json:"VpnGatewayId,omitempty"`
+	VpnGatewayId *Value `json:"VpnGatewayId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSEC2VPNGatewayRoutePropagationResources() map[string]
 				if resType == "AWS::EC2::VPNGatewayRoutePropagation" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPNGatewayRoutePropagation
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2VPNGatewayRoutePropagation{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSEC2VPNGatewayRoutePropagationWithName(name string) (AWS
 				if resType == "AWS::EC2::VPNGatewayRoutePropagation" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPNGatewayRoutePropagation
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2VPNGatewayRoutePropagation{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

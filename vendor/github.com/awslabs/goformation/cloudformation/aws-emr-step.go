@@ -13,7 +13,7 @@ type AWSEMRStep struct {
 	// ActionOnFailure AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-emr-step.html#cfn-elasticmapreduce-step-actiononfailure
-	ActionOnFailure *StringIntrinsic `json:"ActionOnFailure,omitempty"`
+	ActionOnFailure *Value `json:"ActionOnFailure,omitempty"`
 
 	// HadoopJarStep AWS CloudFormation Property
 	// Required: true
@@ -23,12 +23,12 @@ type AWSEMRStep struct {
 	// JobFlowId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-emr-step.html#cfn-elasticmapreduce-step-jobflowid
-	JobFlowId *StringIntrinsic `json:"JobFlowId,omitempty"`
+	JobFlowId *Value `json:"JobFlowId,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-emr-step.html#cfn-elasticmapreduce-step-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSEMRStepResources() map[string]AWSEMRStep {
 				if resType == "AWS::EMR::Step" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEMRStep
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEMRStep{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSEMRStepWithName(name string) (AWSEMRStep, error) {
 				if resType == "AWS::EMR::Step" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEMRStep
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEMRStep{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

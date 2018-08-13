@@ -18,7 +18,7 @@ type AWSConfigConfigurationAggregator struct {
 	// ConfigurationAggregatorName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-configurationaggregator.html#cfn-config-configurationaggregator-configurationaggregatorname
-	ConfigurationAggregatorName *StringIntrinsic `json:"ConfigurationAggregatorName,omitempty"`
+	ConfigurationAggregatorName *Value `json:"ConfigurationAggregatorName,omitempty"`
 
 	// OrganizationAggregationSource AWS CloudFormation Property
 	// Required: false
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSConfigConfigurationAggregatorResources() map[string]
 				if resType == "AWS::Config::ConfigurationAggregator" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSConfigConfigurationAggregator
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSConfigConfigurationAggregator{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSConfigConfigurationAggregatorWithName(name string) (AWS
 				if resType == "AWS::Config::ConfigurationAggregator" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSConfigConfigurationAggregator
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSConfigConfigurationAggregator{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

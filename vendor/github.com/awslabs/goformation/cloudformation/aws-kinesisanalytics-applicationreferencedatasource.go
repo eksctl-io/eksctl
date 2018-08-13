@@ -13,7 +13,7 @@ type AWSKinesisAnalyticsApplicationReferenceDataSource struct {
 	// ApplicationName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesisanalytics-applicationreferencedatasource.html#cfn-kinesisanalytics-applicationreferencedatasource-applicationname
-	ApplicationName *StringIntrinsic `json:"ApplicationName,omitempty"`
+	ApplicationName *Value `json:"ApplicationName,omitempty"`
 
 	// ReferenceDataSource AWS CloudFormation Property
 	// Required: true
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSKinesisAnalyticsApplicationReferenceDataSourceResour
 				if resType == "AWS::KinesisAnalytics::ApplicationReferenceDataSource" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKinesisAnalyticsApplicationReferenceDataSource
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSKinesisAnalyticsApplicationReferenceDataSource{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSKinesisAnalyticsApplicationReferenceDataSourceWithName(
 				if resType == "AWS::KinesisAnalytics::ApplicationReferenceDataSource" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKinesisAnalyticsApplicationReferenceDataSource
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSKinesisAnalyticsApplicationReferenceDataSource{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

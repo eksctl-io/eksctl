@@ -18,12 +18,12 @@ type AWSRDSDBSecurityGroup struct {
 	// EC2VpcId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-security-group.html#cfn-rds-dbsecuritygroup-ec2vpcid
-	EC2VpcId *StringIntrinsic `json:"EC2VpcId,omitempty"`
+	EC2VpcId *Value `json:"EC2VpcId,omitempty"`
 
 	// GroupDescription AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-security-group.html#cfn-rds-dbsecuritygroup-groupdescription
-	GroupDescription *StringIntrinsic `json:"GroupDescription,omitempty"`
+	GroupDescription *Value `json:"GroupDescription,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSRDSDBSecurityGroupResources() map[string]AWSRDSDBSec
 				if resType == "AWS::RDS::DBSecurityGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSRDSDBSecurityGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSRDSDBSecurityGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSRDSDBSecurityGroupWithName(name string) (AWSRDSDBSecuri
 				if resType == "AWS::RDS::DBSecurityGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSRDSDBSecurityGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSRDSDBSecurityGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

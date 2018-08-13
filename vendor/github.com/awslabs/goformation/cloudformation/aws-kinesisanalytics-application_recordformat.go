@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSKinesisAnalyticsApplication_RecordFormat AWS CloudFormation Resource (AWS::KinesisAnalytics::Application.RecordFormat)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-application-recordformat.html
 type AWSKinesisAnalyticsApplication_RecordFormat struct {
@@ -12,10 +16,14 @@ type AWSKinesisAnalyticsApplication_RecordFormat struct {
 	// RecordFormatType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-application-recordformat.html#cfn-kinesisanalytics-application-recordformat-recordformattype
-	RecordFormatType *StringIntrinsic `json:"RecordFormatType,omitempty"`
+	RecordFormatType *Value `json:"RecordFormatType,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisAnalyticsApplication_RecordFormat) AWSCloudFormationType() string {
 	return "AWS::KinesisAnalytics::Application.RecordFormat"
+}
+
+func (r *AWSKinesisAnalyticsApplication_RecordFormat) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

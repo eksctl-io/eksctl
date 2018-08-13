@@ -13,32 +13,32 @@ type AWSDirectoryServiceMicrosoftAD struct {
 	// CreateAlias AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-createalias
-	CreateAlias bool `json:"CreateAlias,omitempty"`
+	CreateAlias *Value `json:"CreateAlias,omitempty"`
 
 	// Edition AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-edition
-	Edition *StringIntrinsic `json:"Edition,omitempty"`
+	Edition *Value `json:"Edition,omitempty"`
 
 	// EnableSso AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-enablesso
-	EnableSso bool `json:"EnableSso,omitempty"`
+	EnableSso *Value `json:"EnableSso,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// Password AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-password
-	Password *StringIntrinsic `json:"Password,omitempty"`
+	Password *Value `json:"Password,omitempty"`
 
 	// ShortName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-shortname
-	ShortName *StringIntrinsic `json:"ShortName,omitempty"`
+	ShortName *Value `json:"ShortName,omitempty"`
 
 	// VpcSettings AWS CloudFormation Property
 	// Required: true
@@ -100,9 +100,9 @@ func (t *Template) GetAllAWSDirectoryServiceMicrosoftADResources() map[string]AW
 				if resType == "AWS::DirectoryService::MicrosoftAD" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDirectoryServiceMicrosoftAD
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSDirectoryServiceMicrosoftAD{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -127,9 +127,9 @@ func (t *Template) GetAWSDirectoryServiceMicrosoftADWithName(name string) (AWSDi
 				if resType == "AWS::DirectoryService::MicrosoftAD" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDirectoryServiceMicrosoftAD
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSDirectoryServiceMicrosoftAD{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

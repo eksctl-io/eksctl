@@ -13,17 +13,17 @@ type AWSKinesisAnalyticsApplication struct {
 	// ApplicationCode AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesisanalytics-application.html#cfn-kinesisanalytics-application-applicationcode
-	ApplicationCode *StringIntrinsic `json:"ApplicationCode,omitempty"`
+	ApplicationCode *Value `json:"ApplicationCode,omitempty"`
 
 	// ApplicationDescription AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesisanalytics-application.html#cfn-kinesisanalytics-application-applicationdescription
-	ApplicationDescription *StringIntrinsic `json:"ApplicationDescription,omitempty"`
+	ApplicationDescription *Value `json:"ApplicationDescription,omitempty"`
 
 	// ApplicationName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesisanalytics-application.html#cfn-kinesisanalytics-application-applicationname
-	ApplicationName *StringIntrinsic `json:"ApplicationName,omitempty"`
+	ApplicationName *Value `json:"ApplicationName,omitempty"`
 
 	// Inputs AWS CloudFormation Property
 	// Required: true
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSKinesisAnalyticsApplicationResources() map[string]AW
 				if resType == "AWS::KinesisAnalytics::Application" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKinesisAnalyticsApplication
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSKinesisAnalyticsApplication{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSKinesisAnalyticsApplicationWithName(name string) (AWSKi
 				if resType == "AWS::KinesisAnalytics::Application" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKinesisAnalyticsApplication
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSKinesisAnalyticsApplication{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSEMRInstanceGroupConfig_ScalingTrigger AWS CloudFormation Resource (AWS::EMR::InstanceGroupConfig.ScalingTrigger)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-instancegroupconfig-scalingtrigger.html
 type AWSEMRInstanceGroupConfig_ScalingTrigger struct {
@@ -13,4 +17,8 @@ type AWSEMRInstanceGroupConfig_ScalingTrigger struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRInstanceGroupConfig_ScalingTrigger) AWSCloudFormationType() string {
 	return "AWS::EMR::InstanceGroupConfig.ScalingTrigger"
+}
+
+func (r *AWSEMRInstanceGroupConfig_ScalingTrigger) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

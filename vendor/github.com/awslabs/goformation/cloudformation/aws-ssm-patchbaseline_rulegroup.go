@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSSSMPatchBaseline_RuleGroup AWS CloudFormation Resource (AWS::SSM::PatchBaseline.RuleGroup)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ssm-patchbaseline-rulegroup.html
 type AWSSSMPatchBaseline_RuleGroup struct {
@@ -13,4 +17,8 @@ type AWSSSMPatchBaseline_RuleGroup struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSSMPatchBaseline_RuleGroup) AWSCloudFormationType() string {
 	return "AWS::SSM::PatchBaseline.RuleGroup"
+}
+
+func (r *AWSSSMPatchBaseline_RuleGroup) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

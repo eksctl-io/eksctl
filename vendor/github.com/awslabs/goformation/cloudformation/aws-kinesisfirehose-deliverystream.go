@@ -13,12 +13,12 @@ type AWSKinesisFirehoseDeliveryStream struct {
 	// DeliveryStreamName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesisfirehose-deliverystream.html#cfn-kinesisfirehose-deliverystream-deliverystreamname
-	DeliveryStreamName *StringIntrinsic `json:"DeliveryStreamName,omitempty"`
+	DeliveryStreamName *Value `json:"DeliveryStreamName,omitempty"`
 
 	// DeliveryStreamType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesisfirehose-deliverystream.html#cfn-kinesisfirehose-deliverystream-deliverystreamtype
-	DeliveryStreamType *StringIntrinsic `json:"DeliveryStreamType,omitempty"`
+	DeliveryStreamType *Value `json:"DeliveryStreamType,omitempty"`
 
 	// ElasticsearchDestinationConfiguration AWS CloudFormation Property
 	// Required: false
@@ -105,9 +105,9 @@ func (t *Template) GetAllAWSKinesisFirehoseDeliveryStreamResources() map[string]
 				if resType == "AWS::KinesisFirehose::DeliveryStream" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKinesisFirehoseDeliveryStream
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSKinesisFirehoseDeliveryStream{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -132,9 +132,9 @@ func (t *Template) GetAWSKinesisFirehoseDeliveryStreamWithName(name string) (AWS
 				if resType == "AWS::KinesisFirehose::DeliveryStream" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSKinesisFirehoseDeliveryStream
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSKinesisFirehoseDeliveryStream{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

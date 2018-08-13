@@ -13,17 +13,17 @@ type AWSElasticBeanstalkConfigurationTemplate struct {
 	// ApplicationName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html#cfn-elasticbeanstalk-configurationtemplate-applicationname
-	ApplicationName *StringIntrinsic `json:"ApplicationName,omitempty"`
+	ApplicationName *Value `json:"ApplicationName,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html#cfn-elasticbeanstalk-configurationtemplate-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// EnvironmentId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html#cfn-elasticbeanstalk-configurationtemplate-environmentid
-	EnvironmentId *StringIntrinsic `json:"EnvironmentId,omitempty"`
+	EnvironmentId *Value `json:"EnvironmentId,omitempty"`
 
 	// OptionSettings AWS CloudFormation Property
 	// Required: false
@@ -33,12 +33,12 @@ type AWSElasticBeanstalkConfigurationTemplate struct {
 	// PlatformArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html#cfn-elasticbeanstalk-configurationtemplate-platformarn
-	PlatformArn *StringIntrinsic `json:"PlatformArn,omitempty"`
+	PlatformArn *Value `json:"PlatformArn,omitempty"`
 
 	// SolutionStackName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html#cfn-elasticbeanstalk-configurationtemplate-solutionstackname
-	SolutionStackName *StringIntrinsic `json:"SolutionStackName,omitempty"`
+	SolutionStackName *Value `json:"SolutionStackName,omitempty"`
 
 	// SourceConfiguration AWS CloudFormation Property
 	// Required: false
@@ -100,9 +100,9 @@ func (t *Template) GetAllAWSElasticBeanstalkConfigurationTemplateResources() map
 				if resType == "AWS::ElasticBeanstalk::ConfigurationTemplate" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticBeanstalkConfigurationTemplate
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSElasticBeanstalkConfigurationTemplate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -127,9 +127,9 @@ func (t *Template) GetAWSElasticBeanstalkConfigurationTemplateWithName(name stri
 				if resType == "AWS::ElasticBeanstalk::ConfigurationTemplate" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticBeanstalkConfigurationTemplate
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSElasticBeanstalkConfigurationTemplate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

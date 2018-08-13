@@ -13,7 +13,7 @@ type AWSCloudFormationCustomResource struct {
 	// ServiceToken AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cfn-customresource.html#cfn-customresource-servicetoken
-	ServiceToken *StringIntrinsic `json:"ServiceToken,omitempty"`
+	ServiceToken *Value `json:"ServiceToken,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSCloudFormationCustomResourceResources() map[string]A
 				if resType == "AWS::CloudFormation::CustomResource" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFormationCustomResource
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCloudFormationCustomResource{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSCloudFormationCustomResourceWithName(name string) (AWSC
 				if resType == "AWS::CloudFormation::CustomResource" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFormationCustomResource
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCloudFormationCustomResource{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

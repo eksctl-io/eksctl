@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSCloudFrontCloudFrontOriginAccessIdentityResources() 
 				if resType == "AWS::CloudFront::CloudFrontOriginAccessIdentity" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFrontCloudFrontOriginAccessIdentity
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCloudFrontCloudFrontOriginAccessIdentity{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSCloudFrontCloudFrontOriginAccessIdentityWithName(name s
 				if resType == "AWS::CloudFront::CloudFrontOriginAccessIdentity" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFrontCloudFrontOriginAccessIdentity
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCloudFrontCloudFrontOriginAccessIdentity{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

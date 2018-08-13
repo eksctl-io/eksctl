@@ -13,7 +13,7 @@ type AWSCodePipelineWebhook struct {
 	// Authentication AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-authentication
-	Authentication *StringIntrinsic `json:"Authentication,omitempty"`
+	Authentication *Value `json:"Authentication,omitempty"`
 
 	// AuthenticationConfiguration AWS CloudFormation Property
 	// Required: true
@@ -28,27 +28,27 @@ type AWSCodePipelineWebhook struct {
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// RegisterWithThirdParty AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-registerwiththirdparty
-	RegisterWithThirdParty bool `json:"RegisterWithThirdParty,omitempty"`
+	RegisterWithThirdParty *Value `json:"RegisterWithThirdParty,omitempty"`
 
 	// TargetAction AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-targetaction
-	TargetAction *StringIntrinsic `json:"TargetAction,omitempty"`
+	TargetAction *Value `json:"TargetAction,omitempty"`
 
 	// TargetPipeline AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-targetpipeline
-	TargetPipeline *StringIntrinsic `json:"TargetPipeline,omitempty"`
+	TargetPipeline *Value `json:"TargetPipeline,omitempty"`
 
 	// TargetPipelineVersion AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-targetpipelineversion
-	TargetPipelineVersion int `json:"TargetPipelineVersion,omitempty"`
+	TargetPipelineVersion *Value `json:"TargetPipelineVersion,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -105,9 +105,9 @@ func (t *Template) GetAllAWSCodePipelineWebhookResources() map[string]AWSCodePip
 				if resType == "AWS::CodePipeline::Webhook" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCodePipelineWebhook
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCodePipelineWebhook{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -132,9 +132,9 @@ func (t *Template) GetAWSCodePipelineWebhookWithName(name string) (AWSCodePipeli
 				if resType == "AWS::CodePipeline::Webhook" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCodePipelineWebhook
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCodePipelineWebhook{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

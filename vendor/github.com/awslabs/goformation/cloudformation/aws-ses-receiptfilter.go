@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSSESReceiptFilterResources() map[string]AWSSESReceipt
 				if resType == "AWS::SES::ReceiptFilter" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESReceiptFilter
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSESReceiptFilter{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSSESReceiptFilterWithName(name string) (AWSSESReceiptFil
 				if resType == "AWS::SES::ReceiptFilter" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESReceiptFilter
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSESReceiptFilter{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

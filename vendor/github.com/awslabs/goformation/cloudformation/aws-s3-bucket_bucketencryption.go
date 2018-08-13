@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_BucketEncryption AWS CloudFormation Resource (AWS::S3::Bucket.BucketEncryption)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-bucketencryption.html
 type AWSS3Bucket_BucketEncryption struct {
@@ -13,4 +17,8 @@ type AWSS3Bucket_BucketEncryption struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_BucketEncryption) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.BucketEncryption"
+}
+
+func (r *AWSS3Bucket_BucketEncryption) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

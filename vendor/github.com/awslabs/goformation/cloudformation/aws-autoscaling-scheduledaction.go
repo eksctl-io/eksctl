@@ -13,37 +13,37 @@ type AWSAutoScalingScheduledAction struct {
 	// AutoScalingGroupName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-asgname
-	AutoScalingGroupName *StringIntrinsic `json:"AutoScalingGroupName,omitempty"`
+	AutoScalingGroupName *Value `json:"AutoScalingGroupName,omitempty"`
 
 	// DesiredCapacity AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-desiredcapacity
-	DesiredCapacity int `json:"DesiredCapacity,omitempty"`
+	DesiredCapacity *Value `json:"DesiredCapacity,omitempty"`
 
 	// EndTime AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-endtime
-	EndTime *StringIntrinsic `json:"EndTime,omitempty"`
+	EndTime *Value `json:"EndTime,omitempty"`
 
 	// MaxSize AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-maxsize
-	MaxSize int `json:"MaxSize,omitempty"`
+	MaxSize *Value `json:"MaxSize,omitempty"`
 
 	// MinSize AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-minsize
-	MinSize int `json:"MinSize,omitempty"`
+	MinSize *Value `json:"MinSize,omitempty"`
 
 	// Recurrence AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-recurrence
-	Recurrence *StringIntrinsic `json:"Recurrence,omitempty"`
+	Recurrence *Value `json:"Recurrence,omitempty"`
 
 	// StartTime AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-starttime
-	StartTime *StringIntrinsic `json:"StartTime,omitempty"`
+	StartTime *Value `json:"StartTime,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -100,9 +100,9 @@ func (t *Template) GetAllAWSAutoScalingScheduledActionResources() map[string]AWS
 				if resType == "AWS::AutoScaling::ScheduledAction" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAutoScalingScheduledAction
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSAutoScalingScheduledAction{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -127,9 +127,9 @@ func (t *Template) GetAWSAutoScalingScheduledActionWithName(name string) (AWSAut
 				if resType == "AWS::AutoScaling::ScheduledAction" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAutoScalingScheduledAction
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSAutoScalingScheduledAction{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

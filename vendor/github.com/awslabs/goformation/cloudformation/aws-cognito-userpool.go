@@ -18,12 +18,12 @@ type AWSCognitoUserPool struct {
 	// AliasAttributes AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
-	AliasAttributes []*StringIntrinsic `json:"AliasAttributes,omitempty"`
+	AliasAttributes []*Value `json:"AliasAttributes,omitempty"`
 
 	// AutoVerifiedAttributes AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-autoverifiedattributes
-	AutoVerifiedAttributes []*StringIntrinsic `json:"AutoVerifiedAttributes,omitempty"`
+	AutoVerifiedAttributes []*Value `json:"AutoVerifiedAttributes,omitempty"`
 
 	// DeviceConfiguration AWS CloudFormation Property
 	// Required: false
@@ -38,12 +38,12 @@ type AWSCognitoUserPool struct {
 	// EmailVerificationMessage AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-emailverificationmessage
-	EmailVerificationMessage *StringIntrinsic `json:"EmailVerificationMessage,omitempty"`
+	EmailVerificationMessage *Value `json:"EmailVerificationMessage,omitempty"`
 
 	// EmailVerificationSubject AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-emailverificationsubject
-	EmailVerificationSubject *StringIntrinsic `json:"EmailVerificationSubject,omitempty"`
+	EmailVerificationSubject *Value `json:"EmailVerificationSubject,omitempty"`
 
 	// LambdaConfig AWS CloudFormation Property
 	// Required: false
@@ -53,7 +53,7 @@ type AWSCognitoUserPool struct {
 	// MfaConfiguration AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-mfaconfiguration
-	MfaConfiguration *StringIntrinsic `json:"MfaConfiguration,omitempty"`
+	MfaConfiguration *Value `json:"MfaConfiguration,omitempty"`
 
 	// Policies AWS CloudFormation Property
 	// Required: false
@@ -68,7 +68,7 @@ type AWSCognitoUserPool struct {
 	// SmsAuthenticationMessage AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-smsauthenticationmessage
-	SmsAuthenticationMessage *StringIntrinsic `json:"SmsAuthenticationMessage,omitempty"`
+	SmsAuthenticationMessage *Value `json:"SmsAuthenticationMessage,omitempty"`
 
 	// SmsConfiguration AWS CloudFormation Property
 	// Required: false
@@ -78,12 +78,12 @@ type AWSCognitoUserPool struct {
 	// SmsVerificationMessage AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-smsverificationmessage
-	SmsVerificationMessage *StringIntrinsic `json:"SmsVerificationMessage,omitempty"`
+	SmsVerificationMessage *Value `json:"SmsVerificationMessage,omitempty"`
 
 	// UserPoolName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-userpoolname
-	UserPoolName *StringIntrinsic `json:"UserPoolName,omitempty"`
+	UserPoolName *Value `json:"UserPoolName,omitempty"`
 
 	// UserPoolTags AWS CloudFormation Property
 	// Required: false
@@ -93,7 +93,7 @@ type AWSCognitoUserPool struct {
 	// UsernameAttributes AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-usernameattributes
-	UsernameAttributes []*StringIntrinsic `json:"UsernameAttributes,omitempty"`
+	UsernameAttributes []*Value `json:"UsernameAttributes,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -150,9 +150,9 @@ func (t *Template) GetAllAWSCognitoUserPoolResources() map[string]AWSCognitoUser
 				if resType == "AWS::Cognito::UserPool" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoUserPool
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCognitoUserPool{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -177,9 +177,9 @@ func (t *Template) GetAWSCognitoUserPoolWithName(name string) (AWSCognitoUserPoo
 				if resType == "AWS::Cognito::UserPool" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoUserPool
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCognitoUserPool{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

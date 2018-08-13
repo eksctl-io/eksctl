@@ -13,7 +13,7 @@ type AWSSESConfigurationSetEventDestination struct {
 	// ConfigurationSetName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ses-configurationseteventdestination.html#cfn-ses-configurationseteventdestination-configurationsetname
-	ConfigurationSetName *StringIntrinsic `json:"ConfigurationSetName,omitempty"`
+	ConfigurationSetName *Value `json:"ConfigurationSetName,omitempty"`
 
 	// EventDestination AWS CloudFormation Property
 	// Required: true
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSSESConfigurationSetEventDestinationResources() map[s
 				if resType == "AWS::SES::ConfigurationSetEventDestination" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESConfigurationSetEventDestination
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSESConfigurationSetEventDestination{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSSESConfigurationSetEventDestinationWithName(name string
 				if resType == "AWS::SES::ConfigurationSetEventDestination" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESConfigurationSetEventDestination
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSESConfigurationSetEventDestination{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

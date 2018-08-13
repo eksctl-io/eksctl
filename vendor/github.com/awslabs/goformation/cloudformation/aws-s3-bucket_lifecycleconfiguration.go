@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_LifecycleConfiguration AWS CloudFormation Resource (AWS::S3::Bucket.LifecycleConfiguration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig.html
 type AWSS3Bucket_LifecycleConfiguration struct {
@@ -13,4 +17,8 @@ type AWSS3Bucket_LifecycleConfiguration struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_LifecycleConfiguration) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.LifecycleConfiguration"
+}
+
+func (r *AWSS3Bucket_LifecycleConfiguration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

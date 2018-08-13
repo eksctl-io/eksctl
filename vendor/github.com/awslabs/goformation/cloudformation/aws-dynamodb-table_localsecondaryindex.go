@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSDynamoDBTable_LocalSecondaryIndex AWS CloudFormation Resource (AWS::DynamoDB::Table.LocalSecondaryIndex)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dynamodb-lsi.html
 type AWSDynamoDBTable_LocalSecondaryIndex struct {
@@ -7,7 +11,7 @@ type AWSDynamoDBTable_LocalSecondaryIndex struct {
 	// IndexName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dynamodb-lsi.html#cfn-dynamodb-lsi-indexname
-	IndexName *StringIntrinsic `json:"IndexName,omitempty"`
+	IndexName *Value `json:"IndexName,omitempty"`
 
 	// KeySchema AWS CloudFormation Property
 	// Required: true
@@ -23,4 +27,8 @@ type AWSDynamoDBTable_LocalSecondaryIndex struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSDynamoDBTable_LocalSecondaryIndex) AWSCloudFormationType() string {
 	return "AWS::DynamoDB::Table.LocalSecondaryIndex"
+}
+
+func (r *AWSDynamoDBTable_LocalSecondaryIndex) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

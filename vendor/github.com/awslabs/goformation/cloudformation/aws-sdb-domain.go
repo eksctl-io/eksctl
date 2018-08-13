@@ -13,7 +13,7 @@ type AWSSDBDomain struct {
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-simpledb.html#cfn-sdb-domain-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSSDBDomainResources() map[string]AWSSDBDomain {
 				if resType == "AWS::SDB::Domain" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSDBDomain
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSDBDomain{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSSDBDomainWithName(name string) (AWSSDBDomain, error) {
 				if resType == "AWS::SDB::Domain" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSDBDomain
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSDBDomain{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

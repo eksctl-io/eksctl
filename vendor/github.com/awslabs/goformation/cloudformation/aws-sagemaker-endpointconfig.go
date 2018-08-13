@@ -13,12 +13,12 @@ type AWSSageMakerEndpointConfig struct {
 	// EndpointConfigName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-endpointconfig.html#cfn-sagemaker-endpointconfig-endpointconfigname
-	EndpointConfigName *StringIntrinsic `json:"EndpointConfigName,omitempty"`
+	EndpointConfigName *Value `json:"EndpointConfigName,omitempty"`
 
 	// KmsKeyId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-endpointconfig.html#cfn-sagemaker-endpointconfig-kmskeyid
-	KmsKeyId *StringIntrinsic `json:"KmsKeyId,omitempty"`
+	KmsKeyId *Value `json:"KmsKeyId,omitempty"`
 
 	// ProductionVariants AWS CloudFormation Property
 	// Required: true
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSSageMakerEndpointConfigResources() map[string]AWSSag
 				if resType == "AWS::SageMaker::EndpointConfig" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSageMakerEndpointConfig
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSageMakerEndpointConfig{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSSageMakerEndpointConfigWithName(name string) (AWSSageMa
 				if resType == "AWS::SageMaker::EndpointConfig" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSageMakerEndpointConfig
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSageMakerEndpointConfig{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

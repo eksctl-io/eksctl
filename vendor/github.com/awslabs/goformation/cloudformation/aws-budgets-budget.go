@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSBudgetsBudgetResources() map[string]AWSBudgetsBudget
 				if resType == "AWS::Budgets::Budget" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSBudgetsBudget
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSBudgetsBudget{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSBudgetsBudgetWithName(name string) (AWSBudgetsBudget, e
 				if resType == "AWS::Budgets::Budget" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSBudgetsBudget
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSBudgetsBudget{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

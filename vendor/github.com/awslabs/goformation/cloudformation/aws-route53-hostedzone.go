@@ -23,7 +23,7 @@ type AWSRoute53HostedZone struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-hostedzone.html#cfn-route53-hostedzone-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// QueryLoggingConfig AWS CloudFormation Property
 	// Required: false
@@ -90,9 +90,9 @@ func (t *Template) GetAllAWSRoute53HostedZoneResources() map[string]AWSRoute53Ho
 				if resType == "AWS::Route53::HostedZone" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSRoute53HostedZone
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSRoute53HostedZone{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +117,9 @@ func (t *Template) GetAWSRoute53HostedZoneWithName(name string) (AWSRoute53Hoste
 				if resType == "AWS::Route53::HostedZone" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSRoute53HostedZone
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSRoute53HostedZone{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

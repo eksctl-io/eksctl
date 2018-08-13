@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSEMRCluster_ScalingTrigger AWS CloudFormation Resource (AWS::EMR::Cluster.ScalingTrigger)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-cluster-scalingtrigger.html
 type AWSEMRCluster_ScalingTrigger struct {
@@ -13,4 +17,8 @@ type AWSEMRCluster_ScalingTrigger struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRCluster_ScalingTrigger) AWSCloudFormationType() string {
 	return "AWS::EMR::Cluster.ScalingTrigger"
+}
+
+func (r *AWSEMRCluster_ScalingTrigger) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

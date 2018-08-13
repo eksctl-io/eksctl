@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSEC2LaunchTemplate_InstanceMarketOptions AWS CloudFormation Resource (AWS::EC2::LaunchTemplate.InstanceMarketOptions)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata-instancemarketoptions.html
 type AWSEC2LaunchTemplate_InstanceMarketOptions struct {
@@ -7,7 +11,7 @@ type AWSEC2LaunchTemplate_InstanceMarketOptions struct {
 	// MarketType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-launchtemplatedata-instancemarketoptions.html#cfn-ec2-launchtemplate-launchtemplatedata-instancemarketoptions-markettype
-	MarketType *StringIntrinsic `json:"MarketType,omitempty"`
+	MarketType *Value `json:"MarketType,omitempty"`
 
 	// SpotOptions AWS CloudFormation Property
 	// Required: false
@@ -18,4 +22,8 @@ type AWSEC2LaunchTemplate_InstanceMarketOptions struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEC2LaunchTemplate_InstanceMarketOptions) AWSCloudFormationType() string {
 	return "AWS::EC2::LaunchTemplate.InstanceMarketOptions"
+}
+
+func (r *AWSEC2LaunchTemplate_InstanceMarketOptions) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

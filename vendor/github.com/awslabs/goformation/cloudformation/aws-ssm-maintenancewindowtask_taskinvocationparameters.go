@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSSSMMaintenanceWindowTask_TaskInvocationParameters AWS CloudFormation Resource (AWS::SSM::MaintenanceWindowTask.TaskInvocationParameters)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ssm-maintenancewindowtask-taskinvocationparameters.html
 type AWSSSMMaintenanceWindowTask_TaskInvocationParameters struct {
@@ -28,4 +32,8 @@ type AWSSSMMaintenanceWindowTask_TaskInvocationParameters struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSSMMaintenanceWindowTask_TaskInvocationParameters) AWSCloudFormationType() string {
 	return "AWS::SSM::MaintenanceWindowTask.TaskInvocationParameters"
+}
+
+func (r *AWSSSMMaintenanceWindowTask_TaskInvocationParameters) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }
