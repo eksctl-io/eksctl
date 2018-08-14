@@ -1,7 +1,7 @@
 # How to Contribute
 
-*eksctl* is [Mozilla Public License Version 2.0 licenced](LICENSE.MPL-2.0) and accepts contributions via GitHub
-pull requests. This document outlines some of the conventions on development
+*eksctl* is [Apache 2.0 licenced](LICENSE) and accepts contributions via GitHub
+pull requests. This document outlines some of the conventions on the development
 workflow, commit message formatting, contact points and other resources to make
 it easier to get your contribution accepted.
 
@@ -13,11 +13,11 @@ By contributing to this project you agree to the Developer Certificate of
 Origin (DCO). This document was created by the Linux Kernel community and is a
 simple statement that you, as a contributor, have the legal right to make the
 contribution. No action from you is required, but it's a good idea to see the
-[DCO](DCO) file for details before you start contributing code to Scope.
+[DCO](DCO) file for details before you start contributing code to eksctl.
 
 # Chat
 
-The project uses Slack. Join the [Weave community](https://weaveworks.github.io/community-slack/) Slack workspace and use the [#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
+The project uses Slack. If you get stuck or just have a question then you are encouraged to join the [Weave Community](https://weaveworks.github.io/community-slack/) Slack workspace and use the [#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
 
 ## Getting Started
 
@@ -30,13 +30,18 @@ The project uses Slack. Join the [Weave community](https://weaveworks.github.io/
 
 This is a rough outline of how to prepare a contribution:
 
+- Find an [issue](https://github.com/weaveworks/eksctl/issues) to work on. If you are a new contributer
+take a look at issues marked with [good first issue](https://github.com/weaveworks/eksctl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 - Create a topic branch from where you want to base your work (usually branched from master).
 - Make commits of logical units.
 - Make sure your commit messages are in the proper format (see below).
 - Push your changes to a topic branch in your fork of the repository.
 - If you changed code:
-   - add automated tests to cover your changes
+   - add automated tests to cover your changes. See the [az](https://github.com/weaveworks/eksctl/tree/master/pkg/az) package for a good example of tests.
 - Submit a pull request to the original repository.
+
+If your PR is a work in progress then make sure you prefix the title with `WIP: `. This lets everyone know that this is still being worked on. Once its ready
+remove the `WIP: ` title prefix and where possible squash your commits. 
 
 ## How to build and run the project
 
@@ -65,7 +70,7 @@ These things will make a PR more likely to be accepted:
  * new code and tests follow the conventions in old code and tests
  * a good commit message (see below)
 
-In general, we will merge a PR once two maintainers have endorsed it.
+In general, we will merge a PR once a maintainer has reviewed and approved it.
 Trivial changes (e.g., corrections to spelling) may get waved through.
 For substantial changes, more people may become involved, and you might get asked to resubmit the PR or divide the changes into more than one PR.
 

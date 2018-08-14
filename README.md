@@ -182,7 +182,7 @@ And `eksctld` will be a controller inside of one cluster that can manage multipl
 
 ## Contributions
 
-Code contributions are very welcome, however until a 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
+Code contributions are very welcome. If you are interested in helping make eksctl great then see our [contributing guide](CONTRIBUTING.md).
 
 ## Get in touch
 
