@@ -1,6 +1,6 @@
 # `eksctl` - a CLI for Amazon EKS
 
-[![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master)
+[![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master)[![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and based on Amazon's official CloudFormation templates.
 
@@ -182,7 +182,7 @@ And `eksctld` will be a controller inside of one cluster that can manage multipl
 
 ## Contributions
 
-Code contributions are very welcome, however until a 0.1.0 release testing and bug reports are the contributions that authors will appreciate the most.
+Code contributions are very welcome. If you are interested in helping make eksctl great then see our [contributing guide](CONTRIBUTING.md).
 
 ## Get in touch
 
