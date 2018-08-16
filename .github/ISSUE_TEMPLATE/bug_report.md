@@ -5,12 +5,12 @@ about: Create a bug report to help us improve eksctl
 ---
 
 **What happened?**
-A description of actual behvaior (with error messages).
+A description of actual behavior (with error messages).
 
 **What you expected to happen?**
 A clear and concise description of what the bug is.
 
-**How to repoduce it?**
+**How to reproduce it?**
 Include the steps to reproduce the bug
 
 **Anything else we need to know?**
