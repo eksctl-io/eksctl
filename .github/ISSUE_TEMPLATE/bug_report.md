@@ -11,14 +11,10 @@ A description of actual behvaior (with error messages).
 A clear and concise description of what the bug is.
 
 **How to repoduce it?**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Include the steps to reproduce the bug
 
 **Anything else we need to know?**
-Hardware, OS and screenshots (if applicable)
+What OS are you using, are you using a downloaded binary or did you compile eksctl, what type of AWS credentials are you using (i.e. default/named profile, MFA) - please don't include actual credentials though!
 
 **Versions**
 Please paste in the output of these commands:
