@@ -20,7 +20,7 @@ Nick                    @bowlesns
 
 /* Thanks */
 
-Thanks to all the other contributers and users of eksctl. Without you we can't make it great.
+Thanks to all the other contributors and users of eksctl. Without you we can't make it great.
 
 /* Site */
 

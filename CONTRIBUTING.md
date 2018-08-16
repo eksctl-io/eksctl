@@ -30,7 +30,7 @@ The project uses Slack. If you get stuck or just have a question then you are en
 
 This is a rough outline of how to prepare a contribution:
 
-- Find an [issue](https://github.com/weaveworks/eksctl/issues) to work on. If you are a new contributer
+- Find an [issue](https://github.com/weaveworks/eksctl/issues) to work on. If you are a new contributor
 take a look at issues marked with [good first issue](https://github.com/weaveworks/eksctl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 - Create a topic branch from where you want to base your work (usually branched from master).
 - Make commits of logical units.
