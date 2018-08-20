@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kubicorn/kubicorn/pkg/namer"
+	kopsutils "k8s.io/kops/upup/pkg/fi/utils"
 )
 
 // ClusterName generates a neme string when a and b are empty strings.
@@ -38,3 +39,5 @@ func FileExists(path string) (bool, error) {
 
 	return false, err
 }
+
+func ExpandPath(p string) string { return kopsutils.ExpandPath(p) }
