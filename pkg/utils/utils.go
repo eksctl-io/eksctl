@@ -40,4 +40,5 @@ func FileExists(path string) (bool, error) {
 	return false, err
 }
 
+// ExpandPath expands path with ~ notation
 func ExpandPath(p string) string { return kopsutils.ExpandPath(p) }
