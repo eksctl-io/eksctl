@@ -91,7 +91,7 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 
 // checkAuthenticator checks for the authenticator binary existence.
 func checkAuthenticator() error {
-	binaries := []string{"heptio-authenticator-aws", "aws-iam-authenticator"}
+	binaries := []string{"aws-iam-authenticator", "heptio-authenticator-aws"}
 	for _, bin := range binaries {
 		path, err := exec.LookPath(bin)
 		if err == nil {
