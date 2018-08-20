@@ -117,7 +117,7 @@ func checkAuthenticator() error {
 	return fmt.Errorf("neither aws-iam-authenticator nor heptio-authenticator-aws are installed")
 }
 
-// DetectAuthenticator finds the autheticator command, if it defaults to legacy
+// DetectAuthenticator finds the authenticator command, it defaults to legacy
 // command when neither are found
 func DetectAuthenticator() string {
 	for _, bin := range authenticatorCommands {
@@ -126,5 +126,6 @@ func DetectAuthenticator() string {
 			return bin
 		}
 	}
+	// TODO: https://github.com/weaveworks/eksctl/issues/169
 	return legacyAuthenticatorCommand
 }
