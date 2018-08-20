@@ -155,7 +155,7 @@ func doCreateCluster(cfg *eks.ClusterConfig, name string) error {
 		}
 
 		if writeKubeconfig {
-			config := clientConfigBase.WithExecHeptioAuthenticator()
+			config := clientConfigBase.WithExecAuthenticator()
 			kubeconfigPath, err = kubeconfig.Write(kubeconfigPath, config.Client, setContext)
 			if err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
