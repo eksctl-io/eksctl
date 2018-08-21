@@ -22,6 +22,7 @@ func fmtKubectlCmd(ktl *kubectl.LocalClient, cmds ...string) string {
 	return shellquote.Join(args...)
 }
 
+// CheckKubectlVersion checks version of kubectl
 func CheckKubectlVersion(env []string) error {
 	ktl := &kubectl.LocalClient{Env: env}
 	kubectlPath, err := ktl.LookPath()
@@ -46,6 +47,9 @@ func CheckKubectlVersion(env []string) error {
 	return nil
 }
 
+// CheckAllCommands check version of kubectl, and if it can be used with either
+// of the authenticator commands; most importantly it validates if kubeclt can
+// use kubeconfig we've created for it
 func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName string, env []string) error {
 	if err := CheckKubectlVersion(env); err != nil {
 		return err
@@ -89,16 +93,39 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 	return nil
 }
 
-// checkAuthenticator checks for the authenticator binary existence.
+const (
+	authenticatorCommand       = "aws-iam-authenticator"
+	legacyAuthenticatorCommand = "heptio-authenticator-aws"
+)
+
+var authenticatorCommands = []string{
+	authenticatorCommand,
+	legacyAuthenticatorCommand,
+}
+
+// checkAuthenticator checks if either of authenticator commands is in the path,
+// it returns an error when neither are found
 func checkAuthenticator() error {
-	binaries := []string{"heptio-authenticator-aws", "aws-iam-authenticator"}
-	for _, bin := range binaries {
-		path, err := exec.LookPath(bin)
+	for _, cmd := range authenticatorCommands {
+		path, err := exec.LookPath(cmd)
 		if err == nil {
-			// binary was found
-			logger.Debug("%s: %q", bin, path)
+			// command was found
+			logger.Debug("%s: %q", cmd, path)
 			return nil
 		}
 	}
 	return fmt.Errorf("neither aws-iam-authenticator nor heptio-authenticator-aws are installed")
+}
+
+// DetectAuthenticator finds the authenticator command, it defaults to legacy
+// command when neither are found
+func DetectAuthenticator() string {
+	for _, bin := range authenticatorCommands {
+		_, err := exec.LookPath(bin)
+		if err == nil {
+			return bin
+		}
+	}
+	// TODO: https://github.com/weaveworks/eksctl/issues/169
+	return legacyAuthenticatorCommand
 }

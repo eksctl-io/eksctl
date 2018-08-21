@@ -22,7 +22,8 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"k8s.io/kops/pkg/pki"
-	"k8s.io/kops/upup/pkg/fi/utils"
+
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func (c *ClusterProvider) getKeyPairName(fingerprint *string) string {
@@ -186,13 +187,13 @@ func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
 	return clientConfig, nil
 }
 
-func (c *ClientConfig) WithExecHeptioAuthenticator() *ClientConfig {
+func (c *ClientConfig) WithExecAuthenticator() *ClientConfig {
 	clientConfigCopy := *c
 
 	x := clientConfigCopy.Client.AuthInfos[c.ContextName]
 	x.Exec = &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
-		Command:    "heptio-authenticator-aws",
+		Command:    utils.DetectAuthenticator(),
 		Args:       []string{"token", "-i", c.Cluster.ClusterName},
 		/*
 			Args:       []string{"token", "-i", c.Cluster.ClusterName, "-r", c.roleARN},
