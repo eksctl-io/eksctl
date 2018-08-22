@@ -89,9 +89,10 @@
   name = "github.com/dlespiau/kube-test-harness"
   packages = [
     ".",
-    "logger"
+    "logger",
+    "testing"
   ]
-  revision = "8410af8633168edb6280bfa64f3a6f54079df598"
+  revision = "cde06cfb39afcec8768c4beb83db1be6082eca8a"
 
 [[projects]]
   name = "github.com/fatih/color"
@@ -334,6 +335,8 @@
   packages = [
     ".",
     "format",
+    "gbytes",
+    "gexec",
     "internal/assertion",
     "internal/asyncassertion",
     "internal/oraclematcher",
@@ -811,6 +814,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "82c7f1c39f004a8e0fce8d39dea040750e436e02739b1d72013289bfc49ed1dc"
+  inputs-digest = "89b831fc0fdd12387d48fb4acefbbb580c9a4df204294f9d97e7fa8d697b73fb"
   solver-name = "gps-cdcl"
   solver-version = 1
