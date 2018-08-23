@@ -4,13 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 
-	"github.com/onsi/gomega/types"
-
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/onsi/gomega/types"
+	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 )
 
 const (
@@ -36,25 +33,14 @@ func (m *haveCfnStackMatcher) Match(actual interface{}) (success bool, err error
 		return false, errors.New("not a AWS session")
 	}
 
-	cfn := cloudformation.New(actual.(*session.Session))
-
-	input := &cloudformation.ListStackResourcesInput{
-		StackName: aws.String(m.expectedStackName),
-	}
-	_, err = cfn.ListStackResources(input)
+	found, err := aws.StackExists(m.expectedStackName, actual.(*session.Session))
 
 	if err != nil {
-		// Check if its a not found error
-		errorMessage := fmt.Sprintf(errorMerssageTemplate, m.expectedStackName)
-		if !strings.Contains(err.Error(), errorMessage) {
-			return false, err
-		}
-
-		m.stackNotFound = true
-		return false, nil
+		return false, err
 	}
 
-	return true, nil
+	m.stackNotFound = !found
+	return found, nil
 }
 
 func (m *haveCfnStackMatcher) FailureMessage(actual interface{}) (message string) {

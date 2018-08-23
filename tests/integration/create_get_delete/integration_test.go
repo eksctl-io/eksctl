@@ -14,10 +14,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
+	"github.com/weaveworks/eksctl/tests/integration"
 
-	"github.com/aws/aws-sdk-go/aws"
-	awssess "github.com/aws/aws-sdk-go/aws/session"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 )
 
@@ -44,6 +44,7 @@ var _ = Describe("Create (Integration)", func() {
 
 	AfterSuite(func() {
 		gexec.KillAndWait()
+		integration.CleanupAws(clusterName, eksRegion)
 	})
 
 	BeforeEach(func() {
@@ -67,8 +68,6 @@ var _ = Describe("Create (Integration)", func() {
 			}
 
 			args := []string{"create", "cluster", "-n", clusterName, "-t", "t2.medium", "-N", "1", "-r", eksRegion, "--kubeconfig", kubeConfigPath.Name()}
-			//fmt.Printf("Path: %s\n", pathToEksCtl)
-			//fmt.Printf("Args: %s\n", args)
 
 			command := exec.Command(pathToEksCtl, args...)
 			session, err = gexec.Start(command, os.Stdout, os.Stdout)
@@ -78,17 +77,16 @@ var _ = Describe("Create (Integration)", func() {
 			}
 
 			session.Wait(createTimeoutInMins * time.Minute)
-			//Expect(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).Should(Equal(0))
 		})
 
 		It("should have created an EKS cluster", func() {
-			session := newSession()
+			session := aws.NewSession(eksRegion)
 			Expect(session).To(HaveEksCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
 		})
 
 		It("should have the required cloudformation stacks", func() {
-			session := newSession()
+			session := aws.NewSession(eksRegion)
 
 			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-VPC", clusterName)))
 			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-ControlPlane", clusterName)))
@@ -98,15 +96,6 @@ var _ = Describe("Create (Integration)", func() {
 
 	})
 })
-
-func newSession() *awssess.Session {
-	config := aws.NewConfig()
-	config = config.WithRegion(eksRegion)
-	opts := awssess.Options{
-		Config: *config,
-	}
-	return awssess.Must(awssess.NewSessionWithOptions(opts))
-}
 
 func init() {
 	flag.StringVar(&pathToEksCtl, "eksctl-path", "./eksctl", "Path to eksctl")
