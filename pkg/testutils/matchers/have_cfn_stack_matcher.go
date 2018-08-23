@@ -4,12 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/onsi/gomega/types"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+)
+
+const (
+	errorMerssageTemplate = "Stack with id %s does not exist"
 )
 
 // HaveCfnStack returns a GoMega matcher that will check for the existence of an cloudformatioin stack
@@ -38,16 +43,15 @@ func (m *haveCfnStackMatcher) Match(actual interface{}) (success bool, err error
 	}
 	_, err = cfn.ListStackResources(input)
 
-	//TODO: test for not found
-
 	if err != nil {
-		// Check if its a not found error: ResourceNotFoundException
-		//if !strings.Contains(err.Error(), awseks.ErrCodeResourceNotFoundException) {
-		return false, err
-		//}
+		// Check if its a not found error
+		errorMessage := fmt.Sprintf(errorMerssageTemplate, m.expectedStackName)
+		if !strings.Contains(err.Error(), errorMessage) {
+			return false, err
+		}
 
-		//m.clusterNotFound = true
-		//return false, nil
+		m.stackNotFound = true
+		return false, nil
 	}
 
 	return true, nil

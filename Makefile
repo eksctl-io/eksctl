@@ -17,6 +17,10 @@ test:
 	@go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
 	@test -z $(COVERALLS_TOKEN) || goveralls -coverprofile=coverage.out -service=circle-ci
 
+.PHONY: integration-test
+integration-test: build
+	@go test -tags integration -v -timeout 21m ./tests/integration/... -args -skip-creation true
+
 .PHONY: generated
 generate:
 	@go generate ./pkg/eks ./pkg/eks/mocks

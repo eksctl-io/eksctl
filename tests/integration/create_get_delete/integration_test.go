@@ -1,4 +1,6 @@
-package create_test
+// +build integration
+
+package create_get_delete
 
 import (
 	"flag"
@@ -20,7 +22,7 @@ import (
 )
 
 const (
-	clusterName         = "int-cluster2"
+	clusterName         = "int-cluster"
 	createTimeoutInMins = 20
 	eksRegion           = "us-west-2"
 )
@@ -88,10 +90,10 @@ var _ = Describe("Create (Integration)", func() {
 		It("should have the required cloudformation stacks", func() {
 			session := newSession()
 
-			vpcStack := fmt.Sprintf("EKS-%s-VPC", clusterName)
-			Expect(session).To(HaveCfnStack(vpcStack))
-
-			//TODO: finish
+			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-VPC", clusterName)))
+			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-ControlPlane", clusterName)))
+			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-ServiceRole", clusterName)))
+			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-DefaultNodeGroup", clusterName)))
 		})
 
 	})
