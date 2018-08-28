@@ -6,51 +6,42 @@ EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 .PHONY: build
 build:
-	go build -ldflags "-X main.gitCommit=$(git_commit) -X main.builtAt=$(built_at)" ./cmd/eksctl
+	@go build -ldflags "-X main.gitCommit=$(git_commit) -X main.builtAt=$(built_at)" ./cmd/eksctl
+
+.PHONY: install-build-deps
+install-build-deps:
+	@cd build && dep ensure && ./install.sh
 
 .PHONY: test
 test:
-	go test -v ./pkg/... ./cmd/...
-
-.PHONY: test-with-coverage
-test-with-coverage:
-	go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
-	goveralls -coverprofile=coverage.out -service=circle-ci
-
-.PHONY: setup-coverage
-setup-coverage:
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-	dep ensure
-	go get github.com/mattn/goveralls
+	@go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
+	@test -z $(COVERALLS_TOKEN) || goveralls -coverprofile=coverage.out -service=circle-ci
 
 .PHONY: update-bindata
 update-bindata:
-	go generate ./pkg/eks
-
-.PHONY: install-bindata
-install-bindata:
-	go get -u github.com/jteeuwen/go-bindata/...
+	@go generate ./pkg/eks
 
 .PHONY: update-mockery
 update-mockery:
-	go generate ./pkg/eks/mocks
-
-.PHONY: install-mockery
-install-mockery:
-	go get -u github.com/vektra/mockery/cmd/mockery
+	@go generate ./pkg/eks/mocks
 
 .PHONY: eksctl-build-image
 eksctl-build-image:
 	@-docker pull $(EKSCTL_BUILD_IMAGE)
 	@docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) ./build
 
+EKSCTL_IMAGE_BUILD_ARGS := --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE)
+ifneq ($(COVERALLS_TOKEN),)
+EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
+endif
+
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image
-	@docker build --tag=$(EKSCTL_IMAGE) --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) ./
+	@docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) ./
 
 .PHONY: release
 release: eksctl-build-image
-	docker run \
+	@docker run \
 	  --env=GITHUB_TOKEN \
 	  --env=CIRCLE_TAG \
 	  --env=CIRCLE_PROJECT_USERNAME \
