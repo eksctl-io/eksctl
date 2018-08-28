@@ -76,3 +76,7 @@ required = [
 [[override]]
   name = "github.com/gophercloud/gophercloud"
   revision = "8183543f90d1aef267a5ecc209f2e0715b355acb"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/dlespiau/kube-test-harness"

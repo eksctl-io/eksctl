@@ -85,6 +85,15 @@
   revision = "d98ca8599d8e7b6913c1a5e7dbb2066739d0cd2a"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dlespiau/kube-test-harness"
+  packages = [
+    ".",
+    "logger"
+  ]
+  revision = "8410af8633168edb6280bfa64f3a6f54079df598"
+
+[[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
   revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
@@ -525,6 +534,12 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/sync"
+  packages = ["errgroup"]
+  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -796,6 +811,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "16ca9034d52c2f21248875e09631764b490e0ef9e07f8fc7dadc6e5019fb9b8b"
+  inputs-digest = "82c7f1c39f004a8e0fce8d39dea040750e436e02739b1d72013289bfc49ed1dc"
   solver-name = "gps-cdcl"
   solver-version = 1
