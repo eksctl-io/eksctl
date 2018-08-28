@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/kballard/go-shellquote"
+	shellquote "github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 
 	"k8s.io/client-go/tools/clientcmd"
