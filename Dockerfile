@@ -21,11 +21,12 @@ RUN apk add --no-cache --initdb --root /out \
     python \
     && true
 
-RUN go get github.com/jteeuwen/go-bindata/go-bindata
-
 ENV EKSCTL $GOPATH/src/github.com/weaveworks/eksctl
 RUN mkdir -p "$(dirname ${EKSCTL})"
 COPY . $EKSCTL
+
+ARG COVERALLS_TOKEN
+ENV COVERALLS_TOKEN $COVERALLS_TOKEN
 
 WORKDIR $EKSCTL
 RUN make test && make \

@@ -11,27 +11,11 @@ jobs:
     steps:
       - checkout
       - run: make release
-  coverage:
-    docker:
-      - image: circleci/golang:1.10
-    working_directory: /go/src/github.com/weaveworks/eksctl
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v1-pkg-cache
-      - run: make setup-coverage
-      - run: make test-with-coverage
-      - save_cache:
-          key: v1-pkg-cache
-          paths:
-            - "/go/pkg"
 
 workflows:
   version: 2
   any-commit:
     jobs:
-      - coverage
       - make-eksctl-image:
           filters:
             tags:
