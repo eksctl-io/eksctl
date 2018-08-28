@@ -231,6 +231,12 @@
   revision = "9960a25705902198f55789b9b689a686682798b5"
 
 [[projects]]
+  name = "github.com/mattn/goveralls"
+  packages = ["."]
+  revision = "b71a1e4855f87991aff01c2c833a75a07059c61c"
+  version = "v0.0.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
@@ -241,6 +247,15 @@
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/vektra/mockery"
+  packages = [
+    "cmd/mockery",
+    "mockery"
+  ]
+  revision = "ea265755d541b124de6bc248f7744eab9005fd33"
 
 [[projects]]
   name = "github.com/voxelbrain/goptions"
@@ -287,7 +302,15 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/tools"
-  packages = ["cmd/stringer"]
+  packages = [
+    "cmd/stringer",
+    "cover",
+    "go/ast/astutil",
+    "go/buildutil",
+    "go/loader",
+    "imports",
+    "internal/fastwalk"
+  ]
   revision = "a5b4c53f6e8bdcafa95a94671bf2d1203365858b"
 
 [[projects]]
@@ -313,6 +336,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "887dfef38a82cb06af280069792d359aa1beecf96c5f07cb7bda7c8b9a5a8ad9"
+  inputs-digest = "201683e0e422e646cffe03bcf9811bcd504753ed54bfa7e8ae96bf58ba24d079"
   solver-name = "gps-cdcl"
   solver-version = 1
