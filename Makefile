@@ -17,6 +17,19 @@ test:
 	@go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
 	@test -z $(COVERALLS_TOKEN) || goveralls -coverprofile=coverage.out -service=circle-ci
 
+.PHONY: integration-test-dev
+integration-test-dev: build
+	@go test -tags integration -v -timeout 21m ./tests/integration/... \
+		-args \
+		-eksctl.cluster=integration-test-dev \
+		-eksctl.create=false \
+		-eksctl.delete=false \
+		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/integration-test-dev
+
+.PHONY: integration-test
+integration-test: build
+	@go test -tags integration -v -timeout 21m ./tests/integration/...
+
 .PHONY: generated
 generate:
 	@go generate ./pkg/eks ./pkg/eks/mocks
