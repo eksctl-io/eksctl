@@ -93,7 +93,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Describe("AutoNameTag", func() {
 		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
 			AvailabilityZones: testAZs,
-		})
+		}, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		template, err := rs.RenderJSON()
@@ -123,7 +123,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Describe("NodeGroupTags", func() {
 		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
 			AvailabilityZones: testAZs,
-		})
+		}, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		template, err := rs.RenderJSON()
@@ -156,7 +156,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
 			AvailabilityZones: testAZs,
 			NodeType:          "m5.large",
-		})
+		}, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		var (
