@@ -133,10 +133,8 @@ var _ = Describe("Create (Integration)", func() {
 		It("should have the required cloudformation stacks", func() {
 			session := aws.NewSession(region)
 
-			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-VPC", clusterName)))
-			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-ControlPlane", clusterName)))
-			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-ServiceRole", clusterName)))
-			Expect(session).To(HaveCfnStack(fmt.Sprintf("EKS-%s-DefaultNodeGroup", clusterName)))
+			Expect(session).To(HaveCfnStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
+			Expect(session).To(HaveCfnStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
 		})
 
 		It("should have created a valid kubectl config file", func() {

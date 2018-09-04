@@ -28,6 +28,12 @@ integration-test-dev: build
 		-eksctl.delete=false \
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/integration-test-dev
 
+create-integration-test-dev-cluster: build
+	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig
+
+delete-integration-test-dev-cluster: build
+	@./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig
+
 .PHONY: integration-test
 integration-test: build
 	@go test -tags integration -v -timeout 21m ./tests/integration/...
