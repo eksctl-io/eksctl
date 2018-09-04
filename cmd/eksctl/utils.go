@@ -11,7 +11,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -38,7 +40,7 @@ func utilsCmd() *cobra.Command {
 }
 
 func waitNodesCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &api.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use:   "wait-nodes",
@@ -55,12 +57,14 @@ func waitNodesCmd() *cobra.Command {
 
 	fs.StringVar(&utilsKubeconfigInputPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", DEFAULT_NODE_COUNT, "minimum number of nodes to wait for")
-	fs.DurationVar(&cfg.WaitTimeout, "timeout", eks.DefaultWaitTimeout, "how long to wait")
+	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 
 	return cmd
 }
 
-func doWaitNodes(cfg *eks.ClusterConfig) error {
+func doWaitNodes(cfg *api.ClusterConfig) error {
+	ctl := eks.New(cfg)
+
 	if utilsKubeconfigInputPath == "" {
 		return fmt.Errorf("--kubeconfig must be set")
 	}
@@ -75,7 +79,7 @@ func doWaitNodes(cfg *eks.ClusterConfig) error {
 		return err
 	}
 
-	if err := cfg.WaitForNodes(clientset); err != nil {
+	if err := ctl.WaitForNodes(clientset); err != nil {
 		return err
 	}
 
@@ -83,7 +87,7 @@ func doWaitNodes(cfg *eks.ClusterConfig) error {
 }
 
 func writeKubeconfigCmd() *cobra.Command {
-	cfg := &eks.ClusterConfig{}
+	cfg := &api.ClusterConfig{}
 
 	cmd := &cobra.Command{
 		Use:   "write-kubeconfig",
@@ -110,7 +114,7 @@ func writeKubeconfigCmd() *cobra.Command {
 	return cmd
 }
 
-func doWriteKubeconfigCmd(cfg *eks.ClusterConfig, name string) error {
+func doWriteKubeconfigCmd(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {

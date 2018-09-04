@@ -3,8 +3,10 @@ package eks
 import (
 	"fmt"
 	"os"
-	"sync"
 	"time"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 
 	"github.com/weaveworks/eksctl/pkg/az"
 
@@ -26,27 +28,12 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-const (
-	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
-	AWSDebugLevel  = 5
-	//RequiredAvailabilityZones = 3
-)
-
-var DefaultWaitTimeout = 20 * time.Minute
-
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
-	Spec     *ClusterConfig
-	Provider Provider
+	Spec     *api.ClusterConfig
+	Provider api.ClusterProvider
 	// informative fields, i.e. used as outputs
 	Status *ProviderStatus
-}
-
-type Provider interface {
-	CloudFormation() cloudformationiface.CloudFormationAPI
-	EKS() eksiface.EKSAPI
-	EC2() ec2iface.EC2API
-	STS() stsiface.STSAPI
 }
 
 type ProviderServices struct {
@@ -68,47 +55,7 @@ type ProviderStatus struct {
 	availabilityZones []string
 }
 
-// simple config, to be replaced with Cluster API
-type ClusterConfig struct {
-	Region      string
-	Profile     string
-	ClusterName string
-	NodeAMI     string
-	NodeType    string
-	Nodes       int
-	MinNodes    int
-	MaxNodes    int
-	PolicyARNs  []string
-
-	SSHPublicKeyPath string
-	SSHPublicKey     []byte
-
-	WaitTimeout time.Duration
-
-	keyName        string
-	clusterRoleARN string
-	securityGroup  string
-	subnetsList    string
-	clusterVPC     string
-
-	nodeInstanceRoleARN string
-
-	MasterEndpoint           string
-	CertificateAuthorityData []byte
-	ClusterARN               string
-
-	Addons ClusterAddons
-}
-
-type ClusterAddons struct {
-	WithIAM AddonIAM
-}
-
-type AddonIAM struct {
-	PolicyAmazonEC2ContainerRegistryPowerUser bool
-}
-
-func New(clusterConfig *ClusterConfig) *ClusterProvider {
+func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
 	s := newSession(clusterConfig, "", nil)
@@ -191,62 +138,24 @@ func (c *ClusterProvider) SetAvailabilityZones(given []string) error {
 		}
 
 		logger.Info("setting availability zones to %v", zones)
-		c.Status.availabilityZones = zones
+		c.Spec.AvailabilityZones = zones
 		return nil
 	}
 	if len(given) < az.DefaultRequiredAvailabilityZones {
 		return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(given), given, az.DefaultRequiredAvailabilityZones)
 	}
-	c.Status.availabilityZones = given
+	c.Spec.AvailabilityZones = given
 	return nil
 }
 
-func (c *ClusterProvider) runCreateTask(tasks map[string]func(chan error) error, taskErrs chan error) {
-	wg := &sync.WaitGroup{}
-	wg.Add(len(tasks))
-	for taskName := range tasks {
-		task := tasks[taskName]
-		go func(tn string) {
-			defer wg.Done()
-			logger.Debug("task %q started", tn)
-			errs := make(chan error)
-			if err := task(errs); err != nil {
-				taskErrs <- err
-				return
-			}
-			if err := <-errs; err != nil {
-				taskErrs <- err
-				return
-			}
-			logger.Debug("task %q returned without errors", tn)
-		}(taskName)
-	}
-	logger.Debug("waiting for %d tasks to complete", len(tasks))
-	wg.Wait()
-}
-
-func (c *ClusterProvider) CreateCluster(taskErrs chan error) {
-	c.runCreateTask(map[string]func(chan error) error{
-		"createStackServiceRole": func(errs chan error) error { return c.createStackServiceRole(errs) },
-		"createStackVPC":         func(errs chan error) error { return c.createStackVPC(errs) },
-	}, taskErrs)
-	c.runCreateTask(map[string]func(chan error) error{
-		"createStackControlPlane": func(errs chan error) error { return c.createStackControlPlane(errs) },
-	}, taskErrs)
-	c.runCreateTask(map[string]func(chan error) error{
-		"createStackDefaultNodeGroup": func(errs chan error) error { return c.createStackDefaultNodeGroup(errs) },
-	}, taskErrs)
-	close(taskErrs)
-}
-
-func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *credentials.Credentials) *session.Session {
+func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *credentials.Credentials) *session.Session {
 	// we might want to use bits from kops, although right now it seems like too many thing we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig()
 	config = config.WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
-	if logger.Level >= AWSDebugLevel {
+	if logger.Level >= api.AWSDebugLevel {
 		config = config.WithLogLevel(aws.LogDebug |
 			aws.LogDebugWithHTTPBody |
 			aws.LogDebugWithRequestRetries |
@@ -277,4 +186,8 @@ func newSession(clusterConfig *ClusterConfig, endpoint string, credentials *cred
 	}
 
 	return session.Must(session.NewSessionWithOptions(opts))
+}
+
+func (c *ClusterProvider) NewStackManager() *manager.StackCollection {
+	return manager.NewStackCollection(c.Provider, c.Spec)
 }

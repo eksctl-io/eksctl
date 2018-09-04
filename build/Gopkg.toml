@@ -8,5 +8,9 @@ required = [
 ]
 
 [[constraint]]
+  name = "github.com/jteeuwen/go-bindata"
+  revision = "6025e8de665b31fa74ab1a66f2cddd8c0abf887e"
+
+[[constraint]]
   name = "github.com/goreleaser/goreleaser"
   version = "v0.77.2"

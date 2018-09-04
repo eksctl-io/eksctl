@@ -200,8 +200,7 @@
     ".",
     "go-bindata"
   ]
-  revision = "bbd0c6e271208dce66d8fda4bc536453cd27fc4a"
-  version = "v3.0.7"
+  revision = "6025e8de665b31fa74ab1a66f2cddd8c0abf887e"
 
 [[projects]]
   name = "github.com/masterminds/semver"
@@ -336,6 +335,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "201683e0e422e646cffe03bcf9811bcd504753ed54bfa7e8ae96bf58ba24d079"
+  inputs-digest = "b2b5c25eb07cb42ebfbdccae10082424b1698326512566b3561e181772484595"
   solver-name = "gps-cdcl"
   solver-version = 1

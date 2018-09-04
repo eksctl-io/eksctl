@@ -5,6 +5,7 @@ import (
 
 	. "github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -214,7 +215,7 @@ func createProviders() (*eks.ClusterProvider, *testutils.MockProvider) {
 
 	c := &eks.ClusterProvider{
 		Provider: p,
-		Spec: &eks.ClusterConfig{
+		Spec: &api.ClusterConfig{
 			Region: "us-west-1",
 		},
 	}

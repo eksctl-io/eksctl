@@ -2,7 +2,7 @@
 
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master)[![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 
-`eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and based on Amazon's official CloudFormation templates.
+`eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and uses CloudFormation.
 
 You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
@@ -49,24 +49,21 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 Example output:
 ```
 $ eksctl create cluster
-2018-06-06T16:40:58+01:00 [ℹ]  importing SSH public key "~/.ssh/id_rsa.pub" as "EKS-extravagant-sculpture-1528299658"
-2018-06-06T16:40:58+01:00 [ℹ]  creating EKS cluster "extravagant-sculpture-1528299658" in "us-west-2" region
-2018-06-06T16:40:58+01:00 [ℹ]  creating VPC stack "EKS-extravagant-sculpture-1528299658-VPC"
-2018-06-06T16:40:58+01:00 [ℹ]  creating ServiceRole stack "EKS-extravagant-sculpture-1528299658-ServiceRole"
-2018-06-06T16:41:19+01:00 [✔]  created ServiceRole stack "EKS-extravagant-sculpture-1528299658-ServiceRole"
-2018-06-06T16:42:19+01:00 [✔]  created VPC stack "EKS-extravagant-sculpture-1528299658-VPC"
-2018-06-06T16:42:19+01:00 [ℹ]  creating control plane "extravagant-sculpture-1528299658"
-2018-06-06T16:50:41+01:00 [✔]  created control plane "extravagant-sculpture-1528299658"
-2018-06-06T16:50:41+01:00 [ℹ]  creating DefaultNodeGroup stack "EKS-extravagant-sculpture-1528299658-DefaultNodeGroup"
-2018-06-06T16:54:22+01:00 [✔]  created DefaultNodeGroup stack "EKS-extravagant-sculpture-1528299658-DefaultNodeGroup"
-2018-06-06T16:54:22+01:00 [✔]  all EKS cluster "extravagant-sculpture-1528299658" resources has been created
-2018-06-06T16:54:22+01:00 [ℹ]  saved kubeconfig as "~/.kube/config"
-2018-06-06T16:54:23+01:00 [ℹ]  the cluster has 0 nodes
-2018-06-06T16:54:23+01:00 [ℹ]  waiting for at least 2 nodes to become ready
-2018-06-06T16:54:49+01:00 [ℹ]  the cluster has 2 nodes
-2018-06-06T16:54:49+01:00 [ℹ]  node "ip-192-168-185-142.ec2.internal" is ready
-2018-06-06T16:54:49+01:00 [ℹ]  node "ip-192-168-221-172.ec2.internal" is ready
-2018-06-06T16:54:49+01:00 [ℹ]  EKS cluster "extravagant-sculpture-1528299658" is ready in "us-west-2" region
+2018-08-06T16:32:59+01:00 [ℹ]  setting availability zones to [us-west-2c us-west-2b us-west-2a]
+2018-08-06T16:32:59+01:00 [ℹ]  creating EKS cluster "adorable-painting-1533569578" in "us-west-2" region
+2018-08-06T16:32:59+01:00 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+2018-08-06T16:32:59+01:00 [ℹ]  if you encounter any issues, check CloudFormation console first
+2018-08-06T16:32:59+01:00 [ℹ]  creating cluster stack "eksctl-adorable-painting-1533569578-cluster"
+2018-08-06T16:43:43+01:00 [ℹ]  creating nodegroup stack "eksctl-adorable-painting-1533569578-nodegroup-0"
+2018-08-06T16:47:14+01:00 [✔]  all EKS cluster resource for "adorable-painting-1533569578" had been created
+2018-08-06T16:47:14+01:00 [✔]  saved kubeconfig as "/Users/ilya/.kube/config"
+2018-08-06T16:47:20+01:00 [ℹ]  the cluster has 0 nodes
+2018-08-06T16:47:20+01:00 [ℹ]  waiting for at least 2 nodes to become ready
+2018-08-06T16:47:57+01:00 [ℹ]  the cluster has 2 nodes
+2018-08-06T16:47:57+01:00 [ℹ]  node "ip-192-168-115-52.us-west-2.compute.internal" is ready
+2018-08-06T16:47:57+01:00 [ℹ]  node "ip-192-168-217-205.us-west-2.compute.internal" is ready
+2018-08-06T16:48:00+01:00 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
+2018-08-06T16:48:00+01:00 [✔]  EKS cluster "adorable-painting-1533569578" in "us-west-2" region is ready
 ```
 
 To list the details about a cluster or all of the clusters, use:
