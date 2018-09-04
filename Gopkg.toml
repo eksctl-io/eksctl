@@ -33,7 +33,7 @@ required = [
 
 [[constraint]]
   name = "k8s.io/kops"
-  version = "1.9.1"
+  branch = "master"
 
 [[override]]
   name = "github.com/heptio/authenticator"
@@ -72,10 +72,6 @@ required = [
 [[constraint]]
   name = "github.com/onsi/ginkgo"
   version = "1.5.0"
-
-[[override]]
-  name = "github.com/gophercloud/gophercloud"
-  revision = "8183543f90d1aef267a5ecc209f2e0715b355acb"
 
 [[constraint]]
   branch = "master"
