@@ -94,9 +94,9 @@ func (c *StackCollection) waitWithAcceptors(name string, acceptors []request.Wai
 	if waitErr := w.WaitWithContext(ctx); waitErr != nil {
 		s, err := c.describeStack(name)
 		if err != nil {
-			logger.Critical("unexpected status %q while %s", *s.StackStatus, msg)
-		} else {
 			logger.Debug("describeErr=%v", err)
+		} else {
+			logger.Critical("unexpected status %q while %s", *s.StackStatus, msg)
 		}
 		return errors.Wrap(waitErr, msg)
 	}
