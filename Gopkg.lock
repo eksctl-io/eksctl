@@ -372,6 +372,12 @@
   revision = "fe93d378a6b03758a2c1b65e86cf630bf78681c0"
 
 [[projects]]
+  branch = "v2"
+  name = "github.com/sanathkr/go-yaml"
+  packages = ["."]
+  revision = "ed9d249f429b3f5a69f80a7abef6bfce81fef894"
+
+[[projects]]
   name = "github.com/sanathkr/yaml"
   packages = ["."]
   revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
