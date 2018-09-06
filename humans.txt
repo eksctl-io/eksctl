@@ -17,6 +17,7 @@ Archis                  @archisgore
 Stefan Prodan           @stefanprodan
 James Strachan          @jstrachan
 Nick                    @bowlesns
+Josh Carp               @jmcarp
 
 /* Thanks */
 
