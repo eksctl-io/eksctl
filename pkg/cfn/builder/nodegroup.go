@@ -3,6 +3,9 @@ package builder
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/ami"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 
@@ -22,6 +25,7 @@ var (
 		// https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
 		"us-west-2": "ami-73a6e20b",
 		"us-east-1": "ami-dea4d5a1",
+		"eu-west-1": "ami-066110c1a7466949e",
 	}
 
 	clusterOwnedTag = gfn.Tag{
@@ -74,7 +78,11 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 	// - improve validation of parameter set overall, probably in another package
 	// - validate custom AMI (check it's present) and instance type
 	if n.spec.NodeAMI == "" {
-		n.spec.NodeAMI = regionalAMIs[n.spec.Region]
+		ami, err := ami.ResolveAMI(n.spec.Region, n.spec.NodeType)
+		if err != nil {
+			return errors.Wrap(err, "Unable to determine AMI to use")
+		}
+		n.spec.NodeAMI = ami
 	}
 
 	if n.spec.MinNodes == 0 && n.spec.MaxNodes == 0 {

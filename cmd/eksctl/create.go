@@ -32,6 +32,7 @@ func createCmd() *cobra.Command {
 const (
 	EKS_REGION_US_WEST_2   = "us-west-2"
 	EKS_REGION_US_EAST_1   = "us-east-1"
+	EKS_REGION_EU_WEST_1   = "eu-west-1"
 	DEFAULT_EKS_REGION     = EKS_REGION_US_WEST_2
 	DEFAULT_NODE_COUNT     = 2
 	DEFAULT_NODE_TYPE      = "m5.large"
@@ -93,6 +94,8 @@ func createClusterCmd() *cobra.Command {
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 
+	fs.StringVar(&cfg.NodeAMI, "node-ami", "", "Advanced use cases only. If not supplied then eksctl will automatically set the AMI based on region/instance type; if supplied it will override the AMI to use for the nodes. Use with extreme care.")
+
 	return cmd
 }
 
@@ -119,8 +122,8 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
 
-	if cfg.Region != EKS_REGION_US_WEST_2 && cfg.Region != EKS_REGION_US_EAST_1 {
-		return fmt.Errorf("--region=%s is not supported only %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_1)
+	if cfg.Region != EKS_REGION_US_WEST_2 && cfg.Region != EKS_REGION_US_EAST_1 && cfg.Region != EKS_REGION_EU_WEST_1 {
+		return fmt.Errorf("--region=%s is not supported only %s, %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_1, EKS_REGION_EU_WEST_1)
 	}
 
 	if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
@@ -203,6 +206,12 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
+		}
+
+		// If GPU instance type, give instructions
+		if utils.IsGPUInstanceType(cfg.NodeType) {
+			logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
+			logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 		}
 	}
 
