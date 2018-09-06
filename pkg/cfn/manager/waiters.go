@@ -43,7 +43,7 @@ func makeAcceptors(successStatus string, failureStates []string, extraAcceptors 
 	return acceptors
 }
 
-// makeWaiterDelay returns random 15s±5000ms delay
+// makeWaiterDelay returns delay ranging between 15s and 20s
 func makeWaiterDelay() request.WaiterDelay {
 	const (
 		base        = 15 * time.Second
