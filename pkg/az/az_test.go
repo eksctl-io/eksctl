@@ -20,14 +20,12 @@ var _ = Describe("AZ", func() {
 
 	Describe("When calling SelectZones", func() {
 		var (
-			zonesToAvoid []*ec2.AvailabilityZone
-			c            *eks.ClusterProvider
-			p            *testutils.MockProvider
-			err          error
+			p   *testutils.MockProvider
+			err error
 		)
 
 		BeforeEach(func() {
-			zonesToAvoid = avoidedZones(ec2.AvailabilityZoneStateAvailable)
+			avoidedZones(ec2.AvailabilityZoneStateAvailable)
 		})
 
 		Context("with a region that has no zones to avoid", func() {
@@ -45,7 +43,7 @@ var _ = Describe("AZ", func() {
 					region = aws.String("us-west-2")
 
 					zones = usWest2Zones(ec2.AvailabilityZoneStateAvailable)
-					c, p = createProviders()
+					_, p = createProviders()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -87,7 +85,7 @@ var _ = Describe("AZ", func() {
 					expectedZoneName = westZone.ZoneName
 					zones = []*ec2.AvailabilityZone{westZone}
 
-					c, p = createProviders()
+					_, p = createProviders()
 
 					p.MockEC2().On("DescribeAvailabilityZones",
 						mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -136,7 +134,7 @@ var _ = Describe("AZ", func() {
 				expectedZoneName = aws.String("us-east-1c")
 
 				zones = usEast1Zones(ec2.AvailabilityZoneStateAvailable)
-				c, p = createProviders()
+				_, p = createProviders()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
@@ -179,7 +177,7 @@ var _ = Describe("AZ", func() {
 				azSelector    *AvailabilityZoneSelector
 			)
 			BeforeEach(func() {
-				c, p = createProviders()
+				_, p = createProviders()
 
 				p.MockEC2().On("DescribeAvailabilityZones",
 					mock.MatchedBy(func(input *ec2.DescribeAvailabilityZonesInput) bool {
