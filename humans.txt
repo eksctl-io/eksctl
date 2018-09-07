@@ -19,6 +19,7 @@ James Strachan          @jstrachan
 Nick                    @bowlesns
 Kirsten Schumy          @kschumy
 Karinna Iniguez         @karinnainiguez
+Michael Seiwald         @mseiwald
 
 /* Thanks */
 

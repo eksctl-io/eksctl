@@ -1,12 +1,16 @@
 package ami
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 var (
 	// DefaultAMIResolvers contains a list of resolvers to try in order
-	DefaultAMIResolvers = []Resolver{&GpuResolver{}, &DefaultResolver{}}
+	DefaultAMIResolvers = []Resolver{&GPUResolver{}, &DefaultResolver{}}
 )
 
 // ResolveAMI will resolve an AMI from the supplied region
@@ -21,6 +25,24 @@ func ResolveAMI(region string, instanceType string) (string, error) {
 	}
 
 	return "", NewErrFailedAMIResolution(region, instanceType)
+}
+
+// IsAmiAvailable checks if a given ami is available
+func IsAmiAvailable(api ec2iface.EC2API, ami string) (bool, error) {
+	input := &ec2.DescribeImagesInput{
+		ImageIds: []*string{aws.String(ami)},
+	}
+
+	output, err := api.DescribeImages(input)
+	if err != nil {
+		errors.Wrapf(err, "Unable to find AMI with id %s", ami)
+	}
+
+	if len(output.Images) < 1 {
+		return false, nil
+	}
+
+	return *output.Images[0].State == "available", nil
 }
 
 // Resolver provides an interface to enable implementing multiple
@@ -50,12 +72,12 @@ func (r *DefaultResolver) Resolve(region string, instanceType string) string {
 	}
 }
 
-// GpuResolver resolves the AMI for GPU instances types.
-type GpuResolver struct {
+// GPUResolver resolves the AMI for GPU instances types.
+type GPUResolver struct {
 }
 
 // Resolve will return an AMI based on the region for GPU instance types
-func (r *GpuResolver) Resolve(region string, instanceType string) string {
+func (r *GPUResolver) Resolve(region string, instanceType string) string {
 	if !utils.IsGPUInstanceType(instanceType) {
 		return ""
 	}

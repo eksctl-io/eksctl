@@ -130,6 +130,10 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		return err
 	}
 
+	if err := ctl.EnsureAmi(); err != nil {
+		return err
+	}
+
 	if err := ctl.LoadSSHPublicKey(); err != nil {
 		return err
 	}

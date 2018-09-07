@@ -5,4 +5,4 @@
 
 . /etc/eksctl/metadata.env
 
-heptio-authenticator-aws token -i "${AWS_EKS_CLUSTER_NAME}"
+aws-iam-authenticator token -i "${AWS_EKS_CLUSTER_NAME}"

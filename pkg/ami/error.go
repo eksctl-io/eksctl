@@ -24,3 +24,22 @@ func NewErrFailedAMIResolution(region string, instanceType string) *ErrFailedAMI
 func (e *ErrFailedAMIResolution) Error() string {
 	return fmt.Sprintf("Unable to determine AMI for region %s and instance type %s", e.region, e.instanceType)
 }
+
+// ErrAmiNotFound is an error type that represents
+// failure to find a given ami
+type ErrAmiNotFound struct {
+	ami string
+}
+
+// NewErrAmiNotFound creates a new instance of ErrAmiNotFound for a
+// given ami
+func NewErrAmiNotFound(ami string) *ErrAmiNotFound {
+	return &ErrAmiNotFound{
+		ami: ami,
+	}
+}
+
+// Error return the error message
+func (e *ErrAmiNotFound) Error() string {
+	return fmt.Sprintf("Unable to find AMI %s", e.ami)
+}
