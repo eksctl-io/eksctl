@@ -67,7 +67,7 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 
 	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
-	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
+	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
 	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes (for a static ASG)")
@@ -142,7 +142,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		errs := stackManager.CreateClusterWithInitialNodeGroup()
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
-			logger.Info("%d error(s) occurred and cluster hasn't beend created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
