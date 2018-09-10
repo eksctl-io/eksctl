@@ -15,7 +15,7 @@ const (
 )
 
 // SelectionStrategy provides an interface to allow changing the strategy used to
-// select availaibility zones to use from a list available.
+// select availability zones to use from a list available.
 type SelectionStrategy interface {
 	Select(availableZones []string) []string
 }
@@ -60,7 +60,7 @@ type ZonesToAvoidRule struct {
 	zonesToAvoid map[string]bool
 }
 
-// CanUseZone checks if the zupplied zone is in the list of zones to be avoided.
+// CanUseZone checks if the supplied zone is in the list of zones to be avoided.
 func (za *ZonesToAvoidRule) CanUseZone(zone *ec2.AvailabilityZone) bool {
 	_, avoidZone := za.zonesToAvoid[*zone.ZoneName]
 	return !avoidZone
@@ -80,7 +80,7 @@ type AvailabilityZoneSelector struct {
 }
 
 // NewSelectorWithDefaults create a new AvailabilityZoneSelector with the
-// defaukt selection strategy and usage rules
+// default selection strategy and usage rules
 func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
 	avoidZones := map[string]bool{
 		// well-known over-populated zones
@@ -141,7 +141,7 @@ func (a *AvailabilityZoneSelector) getZonesForRegion(regionName string) ([]*ec2.
 
 	output, err := a.ec2api.DescribeAvailabilityZones(input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "getting availibility zones for %s", regionName)
+		return nil, errors.Wrapf(err, "getting availability zones for %s", regionName)
 	}
 
 	return output.AvailabilityZones, nil

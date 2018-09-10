@@ -173,7 +173,7 @@ func (c *StackCollection) doWaitUntilStackIsDeleted(name string) error {
 			// you do get stack with StackStatusDeleteComplete on ListStacks,
 			// but that returns pages and pages, so we don't actually want
 			// to worry about that, in fact it also returns ones that had
-			// the same name but were deted a long time ago
+			// the same name but were dated a long time ago
 			request.WaiterAcceptor{
 				State:    request.SuccessWaiterState,
 				Matcher:  request.ErrorWaiterMatch,

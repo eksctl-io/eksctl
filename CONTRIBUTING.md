@@ -55,7 +55,7 @@ make build
 You can run the unit tests by simply doing
 
 ```bash
-make tests
+make test
 ```
 
 There are integration tests for *eksctl* being developed and more details of how to run them will be included here. You can follow the progress [here](https://github.com/weaveworks/eksctl/issues/151).
