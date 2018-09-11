@@ -161,7 +161,6 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 			aws.LogDebugWithRequestRetries |
 			aws.LogDebugWithRequestErrors |
 			aws.LogDebugWithEventStreamBody)
-		config = config.WithLogLevel(aws.LogDebugWithHTTPBody)
 		config = config.WithLogger(aws.LoggerFunc(func(args ...interface{}) {
 			logger.Debug(fmt.Sprintln(args...))
 		}))
