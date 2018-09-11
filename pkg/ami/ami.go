@@ -1,95 +1,17 @@
 package ami
 
-import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils"
-)
-
+// TODO: This file will be go generated in the future
+// https://github.com/weaveworks/eksctl/issues/49
 var (
-	// DefaultAMIResolvers contains a list of resolvers to try in order
-	DefaultAMIResolvers = []Resolver{&GPUResolver{}, &DefaultResolver{}}
+	regionalAMIs = map[string]string{
+		"us-west-2": "ami-08cab282f9979fc7a",
+		"us-east-1": "ami-0b2ae3c6bda8b5c06",
+		"eu-west-1": "ami-066110c1a7466949e",
+	}
+
+	gpuRegionalAMIs = map[string]string{
+		"us-west-2": "ami-0d20f2404b9a1c4d1",
+		"us-east-1": "ami-09fe6fc9106bda972",
+		"eu-west-1": "ami-09e0c6b3d3cf906f1",
+	}
 )
-
-// ResolveAMI will resolve an AMI from the supplied region
-// and instance type. It will invoke a specific resolver
-// to do the actual detrminng of AMI.
-func ResolveAMI(region string, instanceType string) (string, error) {
-	for _, resolver := range DefaultAMIResolvers {
-		ami := resolver.Resolve(region, instanceType)
-		if ami != "" {
-			return ami, nil
-		}
-	}
-
-	return "", NewErrFailedAMIResolution(region, instanceType)
-}
-
-// IsAmiAvailable checks if a given ami is available
-func IsAmiAvailable(api ec2iface.EC2API, ami string) (bool, error) {
-	input := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(ami)},
-	}
-
-	output, err := api.DescribeImages(input)
-	if err != nil {
-		errors.Wrapf(err, "Unable to find AMI with id %s", ami)
-	}
-
-	if len(output.Images) < 1 {
-		return false, nil
-	}
-
-	return *output.Images[0].State == "available", nil
-}
-
-// Resolver provides an interface to enable implementing multiple
-// ways to determine which AMI to use from the region/instance type.
-type Resolver interface {
-	Resolve(region string, instanceType string) string
-}
-
-// DefaultResolver resolves the AMi to the defaults for the region
-type DefaultResolver struct {
-}
-
-// Resolve will return an AMI to use based on the default AMI for each region
-// TODO: https://github.com/weaveworks/eksctl/issues/49
-// currently source of truth for these is here:
-// https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
-func (r *DefaultResolver) Resolve(region string, instanceType string) string {
-	switch region {
-	case "us-west-2":
-		return "ami-08cab282f9979fc7a"
-	case "us-east-1":
-		return "ami-0b2ae3c6bda8b5c06"
-	case "eu-west-1":
-		return "ami-066110c1a7466949e"
-	default:
-		return ""
-	}
-}
-
-// GPUResolver resolves the AMI for GPU instances types.
-type GPUResolver struct {
-}
-
-// Resolve will return an AMI based on the region for GPU instance types
-func (r *GPUResolver) Resolve(region string, instanceType string) string {
-	if !utils.IsGPUInstanceType(instanceType) {
-		return ""
-	}
-
-	switch region {
-	case "us-west-2":
-		return "ami-0d20f2404b9a1c4d1"
-	case "us-east-1":
-		return "ami-09fe6fc9106bda972"
-	case "eu-west-1":
-		return "ami-09e0c6b3d3cf906f1"
-	default:
-		return ""
-	}
-}

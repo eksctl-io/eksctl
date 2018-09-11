@@ -3,14 +3,13 @@ package ami_test
 import (
 	"reflect"
 
-	"github.com/weaveworks/eksctl/pkg/ami"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/ami"
 )
 
-var _ = Describe("AMI Resolution", func() {
+var _ = Describe("AMI Static Resolution", func() {
 	type ResolveCase struct {
 		Region       string
 		InstanceType string
@@ -18,7 +17,7 @@ var _ = Describe("AMI Resolution", func() {
 		ExpectError  bool
 	}
 
-	DescribeTable("When resolving an AMI to use",
+	DescribeTable("When resolving an AMI using the default resolvers",
 		func(c ResolveCase) {
 			actualAmi, err := ami.ResolveAMI(c.Region, c.InstanceType)
 			Expect(actualAmi).Should(Equal(c.ExpectedAMI))
