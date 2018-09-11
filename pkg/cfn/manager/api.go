@@ -43,12 +43,12 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	}
 }
 
-func (c *StackCollection) doCreateStackRequest(name string, templateBody []byte, parameters map[string]string, withIAM bool) error {
-	input := &cloudformation.CreateStackInput{}
+func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, parameters map[string]string, withIAM bool) error {
+	input := &cloudformation.CreateStackInput{
+		StackName: i.StackName,
+	}
 
-	input.SetStackName(name)
 	input.SetTags(c.tags)
-
 	input.SetTemplateBody(string(templateBody))
 
 	if withIAM {
@@ -66,10 +66,10 @@ func (c *StackCollection) doCreateStackRequest(name string, templateBody []byte,
 	logger.Debug("input = %#v", input)
 	s, err := c.cfn.CreateStack(input)
 	if err != nil {
-		return errors.Wrapf(err, "creating CloudFormation stack %q", name)
+		return errors.Wrapf(err, "creating CloudFormation stack %q", *i.StackName)
 	}
 	logger.Debug("stack = %#v", s)
-
+	i.StackId = s.StackId
 	return nil
 }
 
@@ -78,28 +78,32 @@ func (c *StackCollection) doCreateStackRequest(name string, templateBody []byte,
 // assume completion, do not expect more then one error value on the
 // channel, it's closed immediately after it is written two
 func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, parameters map[string]string, errs chan error) error {
+	i := &Stack{StackName: &name}
 	templateBody, err := stack.RenderJSON()
 	if err != nil {
-		return errors.Wrapf(err, "rendering template for %q stack", name)
+		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
 	}
 	logger.Debug("templateBody = %s", string(templateBody))
 
-	if err := c.doCreateStackRequest(name, templateBody, parameters, stack.WithIAM()); err != nil {
+	if err := c.doCreateStackRequest(i, templateBody, parameters, stack.WithIAM()); err != nil {
 		return err
 	}
 
-	go c.waitUntilStackIsCreated(name, stack, errs)
+	go c.waitUntilStackIsCreated(i, stack, errs)
 
 	return nil
 }
 
-func (c *StackCollection) describeStack(name string) (*Stack, error) {
+func (c *StackCollection) describeStack(i *Stack) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
-		StackName: &name,
+		StackName: i.StackName,
+	}
+	if i.StackId != nil {
+		input.StackName = i.StackId
 	}
 	resp, err := c.cfn.DescribeStacks(input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation stack %q", name)
+		return nil, errors.Wrapf(err, "describing CloudFormation stack %q", *i.StackName)
 	}
 	return resp.Stacks[0], nil
 }
@@ -124,7 +128,7 @@ func (c *StackCollection) ListStacks(nameRegex string, statusFilters ...string) 
 	pager := func(p *cloudformation.ListStacksOutput, last bool) (shouldContinue bool) {
 		for _, s := range p.StackSummaries {
 			if re.MatchString(*s.StackName) {
-				stack, subErr = c.describeStack(*s.StackId)
+				stack, subErr = c.describeStack(&Stack{StackName: s.StackName, StackId: s.StackId})
 				if subErr != nil {
 					return false
 				}
@@ -148,39 +152,41 @@ func (c *StackCollection) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 }
 
 // DeleteStack kills a stack by name without waiting for DELETED status
-func (c *StackCollection) DeleteStack(name string) error {
-	s, err := c.describeStack(name)
+func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
+	i := &Stack{StackName: &name}
+	s, err := c.describeStack(i)
 	if err != nil {
-		return errors.Wrapf(err, "not able to get stack %q for deletion", name)
+		return nil, errors.Wrapf(err, "not able to get stack %q for deletion", name)
 	}
-
+	i.StackId = s.StackId
 	for _, tag := range s.Tags {
 		if *tag.Key == ClusterNameTag && *tag.Value == c.spec.ClusterName {
 			input := &cloudformation.DeleteStackInput{
-				StackName: s.StackName,
+				StackName: i.StackId,
 			}
 
 			if _, err := c.cfn.DeleteStack(input); err != nil {
-				return errors.Wrapf(err, "not able to delete stack %q", name)
+				return nil, errors.Wrapf(err, "not able to delete stack %q", name)
 			}
 			logger.Info("will delete stack %q", name)
-			return nil
+			return i, nil
 		}
 	}
 
-	return fmt.Errorf("cannot delete stack %q as it doesn't bare our %q tag", *s.StackName,
+	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q tag", *s.StackName,
 		fmt.Sprintf("%s:%s", ClusterNameTag, c.spec.ClusterName))
 }
 
 // WaitDeleteStack kills a stack by name and waits for DELETED status
 func (c *StackCollection) WaitDeleteStack(name string) error {
-	if err := c.DeleteStack(name); err != nil {
+	i, err := c.DeleteStack(name)
+	if err != nil {
 		return err
 	}
 
-	logger.Info("waiting for stack %q to get deleted", name)
+	logger.Info("waiting for stack %q to get deleted", *i.StackName)
 
-	return c.doWaitUntilStackIsDeleted(name)
+	return c.doWaitUntilStackIsDeleted(i)
 }
 
 func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
@@ -191,14 +197,14 @@ func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
 	return stacks, nil
 }
 
-func (c *StackCollection) DescribeStackEvents(s *Stack) ([]*cloudformation.StackEvent, error) {
+func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error) {
 	input := &cloudformation.DescribeStackEventsInput{
-		StackName: s.StackId,
+		StackName: i.StackId,
 	}
 
 	resp, err := c.cfn.DescribeStackEvents(input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *s.StackName)
+		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *i.StackName)
 	}
 	return resp.StackEvents, nil
 }

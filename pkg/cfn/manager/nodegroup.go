@@ -38,7 +38,8 @@ func (c *StackCollection) CreateNodeGroup(seq int, errs chan error) error {
 }
 
 func (c *StackCollection) DeleteNodeGroup() error {
-	return c.DeleteStack(c.makeNodeGroupStackName(0))
+	_, err := c.DeleteStack(c.makeNodeGroupStackName(0))
+	return err
 }
 
 func (c *StackCollection) WaitDeleteNodeGroup() error {

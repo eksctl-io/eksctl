@@ -1,17 +1,21 @@
 package manager
 
 func (c *StackCollection) DeprecatedDeleteStackVPC() error {
-	return c.DeleteStack("EKS-" + c.spec.ClusterName + "-VPC")
+	_, err := c.DeleteStack("EKS-" + c.spec.ClusterName + "-VPC")
+	return err
 }
 
 func (c *StackCollection) DeprecatedDeleteStackServiceRole() error {
-	return c.DeleteStack("EKS-" + c.spec.ClusterName + "-ServiceRole")
+	_, err := c.DeleteStack("EKS-" + c.spec.ClusterName + "-ServiceRole")
+	return err
 }
 
 func (c *StackCollection) DeprecatedDeleteStackDefaultNodeGroup() error {
-	return c.DeleteStack("EKS-" + c.spec.ClusterName + "-DefaultNodeGroup")
+	_, err := c.DeleteStack("EKS-" + c.spec.ClusterName + "-DefaultNodeGroup")
+	return err
 }
 
 func (c *StackCollection) DeprecatedDeleteStackControlPlane() error {
-	return c.DeleteStack("EKS-" + c.spec.ClusterName + "-ControlPlane")
+	_, err := c.DeleteStack("EKS-" + c.spec.ClusterName + "-ControlPlane")
+	return err
 }

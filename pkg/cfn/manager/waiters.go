@@ -64,9 +64,9 @@ func makeWaiterDelay() request.WaiterDelay {
 	}
 }
 
-func (c *StackCollection) waitWithAcceptors(name string, acceptors []request.WaiterAcceptor) error {
+func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.WaiterAcceptor) error {
 	desiredStatus := fmt.Sprintf("%v", acceptors[0].Expected)
-	msg := fmt.Sprintf("waiting for CloudFormation stack %q to reach %q status", name, desiredStatus)
+	msg := fmt.Sprintf("waiting for CloudFormation stack %q to reach %q status", *i.StackName, desiredStatus)
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.spec.WaitTimeout)
 	defer cancel()
@@ -74,13 +74,13 @@ func (c *StackCollection) waitWithAcceptors(name string, acceptors []request.Wai
 	startTime := time.Now()
 
 	w := request.Waiter{
-		Name:        strings.Join([]string{"wait", name, desiredStatus}, "_"),
+		Name:        strings.Join([]string{"wait", *i.StackName, desiredStatus}, "_"),
 		MaxAttempts: 1024, // we use context deadline instead
 		Delay:       makeWaiterDelay(),
 		Acceptors:   acceptors,
 		NewRequest: func(_ []request.Option) (*request.Request, error) {
 			input := &cfn.DescribeStacksInput{
-				StackName: &name,
+				StackName: i.StackId,
 			}
 			logger.Debug(msg)
 			req, _ := c.cfn.DescribeStacksRequest(input)
@@ -92,7 +92,7 @@ func (c *StackCollection) waitWithAcceptors(name string, acceptors []request.Wai
 	logger.Debug("start %s", msg)
 
 	if waitErr := w.WaitWithContext(ctx); waitErr != nil {
-		s, err := c.describeStack(name)
+		s, err := c.describeStack(i)
 		if err != nil {
 			logger.Debug("describeErr=%v", err)
 		} else {
@@ -106,8 +106,8 @@ func (c *StackCollection) waitWithAcceptors(name string, acceptors []request.Wai
 	return nil
 }
 
-func (c *StackCollection) doWaitUntilStackIsCreated(name string) error {
-	return c.waitWithAcceptors(name,
+func (c *StackCollection) doWaitUntilStackIsCreated(i *Stack) error {
+	return c.waitWithAcceptors(i,
 		makeAcceptors(
 			cfn.StackStatusCreateComplete,
 			[]string{
@@ -128,27 +128,27 @@ func (c *StackCollection) doWaitUntilStackIsCreated(name string) error {
 	)
 }
 
-func (c *StackCollection) waitUntilStackIsCreated(name string, stack builder.ResourceSet, errs chan error) {
+func (c *StackCollection) waitUntilStackIsCreated(i *Stack, stack builder.ResourceSet, errs chan error) {
 	defer close(errs)
 
-	if err := c.doWaitUntilStackIsCreated(name); err != nil {
+	if err := c.doWaitUntilStackIsCreated(i); err != nil {
 		errs <- err
 		return
 	}
-	s, err := c.describeStack(name)
+	s, err := c.describeStack(i)
 	if err != nil {
 		errs <- err
 		return
 	}
 	if err := stack.GetAllOutputs(*s); err != nil {
-		errs <- errors.Wrapf(err, "getting stack %q outputs", name)
+		errs <- errors.Wrapf(err, "getting stack %q outputs", *i.StackName)
 		return
 	}
 	errs <- nil
 }
 
-func (c *StackCollection) doWaitUntilStackIsDeleted(name string) error {
-	return c.waitWithAcceptors(name,
+func (c *StackCollection) doWaitUntilStackIsDeleted(i *Stack) error {
+	return c.waitWithAcceptors(i,
 		makeAcceptors(
 			cfn.StackStatusDeleteComplete,
 			[]string{
@@ -168,12 +168,9 @@ func (c *StackCollection) doWaitUntilStackIsDeleted(name string) error {
 				cfn.StackStatusUpdateRollbackComplete,
 				cfn.StackStatusReviewInProgress,
 			},
-			// ValidationError really means stack not found, that's what
-			// you get from DescribeStack call, you never get actual stack;
-			// you do get stack with StackStatusDeleteComplete on ListStacks,
-			// but that returns pages and pages, so we don't actually want
-			// to worry about that, in fact it also returns ones that had
-			// the same name but were dated a long time ago
+			// ValidationError is expected as success, although
+			// we use stack ARN, so should normally see actual
+			// StackStatusDeleteComplete
 			request.WaiterAcceptor{
 				State:    request.SuccessWaiterState,
 				Matcher:  request.ErrorWaiterMatch,
