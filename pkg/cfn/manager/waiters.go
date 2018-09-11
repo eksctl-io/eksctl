@@ -97,6 +97,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 			logger.Debug("describeErr=%v", err)
 		} else {
 			logger.Critical("unexpected status %q while %s", *s.StackStatus, msg)
+			c.troubleshootStackFailureCause(i, desiredStatus)
 		}
 		return errors.Wrap(waitErr, msg)
 	}
@@ -104,6 +105,43 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 	logger.Debug("done after %s of %s", time.Since(startTime), msg)
 
 	return nil
+}
+
+func (c *StackCollection) troubleshootStackFailureCause(i *Stack, desiredStatus string) {
+	logger.Info("fetching stack events in attempt to troubleshoot the root cause of the failure")
+	events, err := c.DescribeStackEvents(i)
+	if err != nil {
+		logger.Critical("cannot fetch stack events: %v", err)
+		return
+	}
+	for _, e := range events {
+		msg := fmt.Sprintf("%s/%s: %s", *e.ResourceType, *e.LogicalResourceId, *e.ResourceStatus)
+		if e.ResourceStatusReason != nil {
+			msg = fmt.Sprintf("%s – %#v", msg, *e.ResourceStatusReason)
+		}
+		switch desiredStatus {
+		case cfn.StackStatusCreateComplete:
+			switch *e.ResourceStatus {
+			case cfn.ResourceStatusCreateFailed:
+				logger.Critical(msg)
+			case cfn.ResourceStatusDeleteInProgress:
+				logger.Warning(msg)
+			default:
+				logger.Info(msg)
+			}
+		case cfn.StackStatusDeleteComplete:
+			switch *e.ResourceStatus {
+			case cfn.ResourceStatusDeleteFailed:
+				logger.Critical(msg)
+			case cfn.ResourceStatusDeleteSkipped:
+				logger.Warning(msg)
+			default:
+				logger.Info(msg)
+			}
+		default:
+			logger.Info(msg)
+		}
+	}
 }
 
 func (c *StackCollection) doWaitUntilStackIsCreated(i *Stack) error {
