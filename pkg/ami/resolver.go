@@ -14,7 +14,7 @@ func ResolveAMI(region string, instanceType string) (string, error) {
 	for _, resolver := range DefaultAMIResolvers {
 		ami, err := resolver.Resolve(region, instanceType)
 		if err != nil {
-			errors.Wrap(err, "error whilst resolving AMI")
+			return "", errors.Wrap(err, "error whilst resolving AMI")
 		}
 		if ami != "" {
 			return ami, nil

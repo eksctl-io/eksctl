@@ -7,15 +7,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-// IsAmiAvailableInAWS checks if a given ami is available in AWS
-func IsAmiAvailableInAWS(api ec2iface.EC2API, ami string) (bool, error) {
+// IsAmiAvailable checks if a given ami is available in AWS
+func IsAmiAvailable(api ec2iface.EC2API, ami string) (bool, error) {
 	input := &ec2.DescribeImagesInput{
 		ImageIds: []*string{aws.String(ami)},
 	}
 
 	output, err := api.DescribeImages(input)
 	if err != nil {
-		errors.Wrapf(err, "Unable to find AMI with id %s", ami)
+		return false, errors.Wrapf(err, "Unable to find AMI with id %s", ami)
 	}
 
 	if len(output.Images) < 1 {
@@ -25,9 +25,8 @@ func IsAmiAvailableInAWS(api ec2iface.EC2API, ami string) (bool, error) {
 	return *output.Images[0].State == "available", nil
 }
 
-// QueryAWSForEksAmi will get the AMI is for the EKS nodesby querying
-// AWS for theimage to use. You need to supply a name pattern to use.
-func QueryAWSForEksAmi(api ec2iface.EC2API, namePattern string) (string, error) {
+// FindImageForEKS will get the AMI to use for the EKS nodes by querying AWS
+func FindImageForEKS(api ec2iface.EC2API, namePattern string) (string, error) {
 	input := &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
 			&ec2.Filter{
@@ -51,7 +50,7 @@ func QueryAWSForEksAmi(api ec2iface.EC2API, namePattern string) (string, error) 
 
 	output, err := api.DescribeImages(input)
 	if err != nil {
-		errors.Wrap(err, "Error querying AWS for AMI")
+		return "", errors.Wrap(err, "Error querying AWS for AMI")
 	}
 
 	if len(output.Images) < 1 {

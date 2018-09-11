@@ -8,8 +8,13 @@ import (
 )
 
 const (
+	// NodePatternNonGPU is the pattern used to search for images
+	// for use with nodes without GPU shupport
 	NodePatternNonGPU = "amazon-eks-node-*"
-	NodePatternGpu    = "amazon-eks-gpu-node-*"
+
+	// NodePatternGpu is the pattern used to search for images
+	// for use with nodes with GPU shupport
+	NodePatternGpu = "amazon-eks-gpu-node-*"
 )
 
 // AutoResolver resolves the AMi to the defaults for the region
@@ -27,9 +32,9 @@ func (r *AutoResolver) Resolve(region string, instanceType string) (string, erro
 		nodePattern = NodePatternGpu
 	}
 
-	imageID, err := QueryAWSForEksAmi(r.api, nodePattern)
+	imageID, err := FindImageForEKS(r.api, nodePattern)
 	if err != nil {
-		errors.Wrap(err, "error getting ami to use for region")
+		return "", errors.Wrap(err, "error getting ami to use for region")
 	}
 
 	return imageID, nil

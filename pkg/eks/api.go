@@ -129,11 +129,10 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-// EnsureAmi ensures that the node AMI is set and isavailable
-func (c *ClusterProvider) EnsureAmi() error {
+// EnsureAMI ensures that the node AMI is set and isavailable
+func (c *ClusterProvider) EnsureAMI() error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	// - imporve validation of parameter set overall, probably in another package
-	// - validate custom AMI (check it's present) and instance type
 	if c.Spec.NodeAMI == NodeAmiFixed || c.Spec.NodeAMI == NodeAmiLatest {
 		logger.Debug("special AMI keyword supplied: %s", c.Spec.NodeAMI)
 		if c.Spec.NodeAMI == NodeAmiLatest {
@@ -150,7 +149,7 @@ func (c *ClusterProvider) EnsureAmi() error {
 	}
 
 	// Check the AMI is available
-	available, err := ami.IsAmiAvailableInAWS(c.Provider.EC2(), c.Spec.NodeAMI)
+	available, err := ami.IsAmiAvailable(c.Provider.EC2(), c.Spec.NodeAMI)
 	if err != nil {
 		return errors.Wrapf(err, "error checking is ami %s exists", c.Spec.NodeAMI)
 	}

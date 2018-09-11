@@ -130,7 +130,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		return err
 	}
 
-	if err := ctl.EnsureAmi(); err != nil {
+	if err := ctl.EnsureAMI(); err != nil {
 		return err
 	}
 
