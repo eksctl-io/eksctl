@@ -130,7 +130,7 @@ func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.Out
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 
 		if logger.Level >= 4 {
-			stacks, err := c.NewStackManager().ListReadyStacks(fmt.Sprintf("^EKS-%s-.*$", *clusterName))
+			stacks, err := c.NewStackManager().ListReadyStacks(fmt.Sprintf("^(eksclt|EKS)-%s-.*$", *clusterName))
 			if err != nil {
 				return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
 			}

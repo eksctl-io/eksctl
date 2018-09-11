@@ -66,7 +66,7 @@ func (c *StackCollection) doCreateStackRequest(name string, templateBody []byte,
 	logger.Debug("input = %#v", input)
 	s, err := c.cfn.CreateStack(input)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("creating CloudFormation stack %q", name))
+		return errors.Wrapf(err, "creating CloudFormation stack %q", name)
 	}
 	logger.Debug("stack = %#v", s)
 
@@ -99,28 +99,32 @@ func (c *StackCollection) describeStack(name string) (*Stack, error) {
 	}
 	resp, err := c.cfn.DescribeStacks(input)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("describing CloudFormation stack %q", name))
+		return nil, errors.Wrapf(err, "describing CloudFormation stack %q", name)
 	}
 	return resp.Stacks[0], nil
 }
 
-// ListReadyStacks gets all of CloudFormation stacks with READY status
-func (c *StackCollection) ListReadyStacks(nameRegex string) ([]*Stack, error) {
+// ListStacks gets all of CloudFormation stacks
+func (c *StackCollection) ListStacks(nameRegex string, statusFilters ...string) ([]*Stack, error) {
 	var (
 		subErr error
 		stack  *Stack
 	)
 
-	re := regexp.MustCompile(nameRegex)
-	input := &cloudformation.ListStacksInput{
-		StackStatusFilter: aws.StringSlice([]string{cloudformation.StackStatusCreateComplete}),
+	re, err := regexp.Compile(nameRegex)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot list stacks")
+	}
+	input := &cloudformation.ListStacksInput{}
+	if len(statusFilters) > 0 {
+		input.StackStatusFilter = aws.StringSlice(statusFilters)
 	}
 	stacks := []*Stack{}
 
 	pager := func(p *cloudformation.ListStacksOutput, last bool) (shouldContinue bool) {
 		for _, s := range p.StackSummaries {
 			if re.MatchString(*s.StackName) {
-				stack, subErr = c.describeStack(*s.StackName)
+				stack, subErr = c.describeStack(*s.StackId)
 				if subErr != nil {
 					return false
 				}
@@ -136,6 +140,11 @@ func (c *StackCollection) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 		return nil, subErr
 	}
 	return stacks, nil
+}
+
+// ListReadyStacks gets all of CloudFormation stacks with READY status
+func (c *StackCollection) ListReadyStacks(nameRegex string) ([]*Stack, error) {
+	return c.ListStacks(nameRegex, cloudformation.StackStatusCreateComplete)
 }
 
 // DeleteStack kills a stack by name without waiting for DELETED status
@@ -172,4 +181,24 @@ func (c *StackCollection) WaitDeleteStack(name string) error {
 	logger.Info("waiting for stack %q to get deleted", name)
 
 	return c.doWaitUntilStackIsDeleted(name)
+}
+
+func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
+	stacks, err := c.ListStacks(fmt.Sprintf("^(eksclt|EKS)-%s-((cluster|nodegroup)-\\d+|(VPC|ServiceRole|DefaultNodeGroup))$", name))
+	if err != nil {
+		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", name)
+	}
+	return stacks, nil
+}
+
+func (c *StackCollection) DescribeStackEvents(s *Stack) ([]*cloudformation.StackEvent, error) {
+	input := &cloudformation.DescribeStackEventsInput{
+		StackName: s.StackId,
+	}
+
+	resp, err := c.cfn.DescribeStackEvents(input)
+	if err != nil {
+		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *s.StackName)
+	}
+	return resp.StackEvents, nil
 }
