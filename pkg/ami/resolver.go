@@ -3,15 +3,15 @@ package ami
 import "github.com/pkg/errors"
 
 var (
-	// DefaultAMIResolvers contains a list of resolvers to try in order
-	DefaultAMIResolvers = []Resolver{&StaticGPUResolver{}, &StaticDefaultResolver{}}
+	// DefaultResolvers contains a list of resolvers to try in order
+	DefaultResolvers = []Resolver{&StaticGPUResolver{}, &StaticDefaultResolver{}}
 )
 
-// ResolveAMI will resolve an AMI from the supplied region
+// Resolve will resolve an AMI from the supplied region
 // and instance type. It will invoke a specific resolver
 // to do the actual detrminng of AMI.
-func ResolveAMI(region string, instanceType string) (string, error) {
-	for _, resolver := range DefaultAMIResolvers {
+func Resolve(region string, instanceType string) (string, error) {
+	for _, resolver := range DefaultResolvers {
 		ami, err := resolver.Resolve(region, instanceType)
 		if err != nil {
 			return "", errors.Wrap(err, "error whilst resolving AMI")
@@ -21,7 +21,7 @@ func ResolveAMI(region string, instanceType string) (string, error) {
 		}
 	}
 
-	return "", NewErrFailedAMIResolution(region, instanceType)
+	return "", NewErrFailedResolution(region, instanceType)
 }
 
 // Resolver provides an interface to enable implementing multiple

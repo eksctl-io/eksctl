@@ -7,15 +7,32 @@ import (
 	"github.com/pkg/errors"
 )
 
-// IsAmiAvailable checks if a given ami is available in AWS
-func IsAmiAvailable(api ec2iface.EC2API, ami string) (bool, error) {
+const (
+	DefaultImageFamily = ImageFamilyAmazonLinux2
+
+	ImageFamilyAmazonLinux2 = "AmazonLinux2"
+
+	// ResolverStatic is used to indicate that the stqtic (i.e. compiled into eksctl) AMIs should be used
+	ResolverStatic = "static"
+	// ResolverAuto is used to indicate that the latest EKS AMIs should be used for the nodes. This implies
+	// that automatic resolution of AMI will occur.
+	ResolverAuto = "auto"
+)
+
+const (
+	ImageClassGeneral int = iota
+	ImageClassGPU
+)
+
+// IsAvailable checks if a given AMI ID is available in AWS EC2
+func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 	input := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(ami)},
+		ImageIds: []*string{aws.String(id)},
 	}
 
 	output, err := api.DescribeImages(input)
 	if err != nil {
-		return false, errors.Wrapf(err, "Unable to find AMI with id %s", ami)
+		return false, errors.Wrapf(err, "unable to find %q", id)
 	}
 
 	if len(output.Images) < 1 {
@@ -25,8 +42,8 @@ func IsAmiAvailable(api ec2iface.EC2API, ami string) (bool, error) {
 	return *output.Images[0].State == "available", nil
 }
 
-// FindImageForEKS will get the AMI to use for the EKS nodes by querying AWS
-func FindImageForEKS(api ec2iface.EC2API, namePattern string) (string, error) {
+// FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API
+func FindImage(api ec2iface.EC2API, namePattern string) (string, error) {
 	input := &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
 			&ec2.Filter{
@@ -50,7 +67,7 @@ func FindImageForEKS(api ec2iface.EC2API, namePattern string) (string, error) {
 
 	output, err := api.DescribeImages(input)
 	if err != nil {
-		return "", errors.Wrap(err, "Error querying AWS for AMI")
+		return "", errors.Wrapf(err, "cannot find image")
 	}
 
 	if len(output.Images) < 1 {

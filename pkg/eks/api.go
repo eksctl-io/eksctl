@@ -133,32 +133,31 @@ func (c *ClusterProvider) CheckAuth() error {
 func (c *ClusterProvider) EnsureAMI() error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	// - imporve validation of parameter set overall, probably in another package
-	if c.Spec.NodeAMI == NodeAmiFixed || c.Spec.NodeAMI == NodeAmiLatest {
-		logger.Debug("special AMI keyword supplied: %s", c.Spec.NodeAMI)
-		if c.Spec.NodeAMI == NodeAmiLatest {
-			ami.DefaultAMIResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
-		}
-		resolvedAmi, err := ami.ResolveAMI(c.Spec.Region, c.Spec.NodeType)
+	if c.Spec.NodeAMI == ami.ResolverAuto {
+		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
+	}
+	if c.Spec.NodeAMI == ami.ResolverStatic || c.Spec.NodeAMI == ami.ResolverAuto {
+		id, err := ami.Resolve(c.Spec.Region, c.Spec.NodeType)
 		if err != nil {
 			return errors.Wrap(err, "Unable to determine AMI to use")
 		}
-		if resolvedAmi == "" {
-			return ami.NewErrFailedAMIResolution(c.Spec.Region, c.Spec.NodeType)
+		if id == "" {
+			return ami.NewErrFailedResolution(c.Spec.Region, c.Spec.NodeType)
 		}
-		c.Spec.NodeAMI = resolvedAmi
+		c.Spec.NodeAMI = id
 	}
 
 	// Check the AMI is available
-	available, err := ami.IsAmiAvailable(c.Provider.EC2(), c.Spec.NodeAMI)
+	available, err := ami.IsAvailable(c.Provider.EC2(), c.Spec.NodeAMI)
 	if err != nil {
-		return errors.Wrapf(err, "error checking is ami %s exists", c.Spec.NodeAMI)
+		return errors.Wrapf(err, "%s is not available", c.Spec.NodeAMI)
 	}
 
 	if !available {
-		return ami.NewErrAmiNotFound(c.Spec.NodeAMI)
+		return ami.NewErrNotFound(c.Spec.NodeAMI)
 	}
 
-	logger.Info("using ami %s for nodes", c.Spec.NodeAMI)
+	logger.Info("using %q for nodes", c.Spec.NodeAMI)
 
 	return nil
 }

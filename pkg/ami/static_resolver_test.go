@@ -19,13 +19,13 @@ var _ = Describe("AMI Static Resolution", func() {
 
 	DescribeTable("When resolving an AMI using the default resolvers",
 		func(c ResolveCase) {
-			actualAmi, err := ami.ResolveAMI(c.Region, c.InstanceType)
+			actualAmi, err := ami.Resolve(c.Region, c.InstanceType)
 			Expect(actualAmi).Should(Equal(c.ExpectedAMI))
 			if c.ExpectError {
 				Expect(err).Should(HaveOccurred())
-				Expect(err).Should(MatchError(ami.NewErrFailedAMIResolution(c.Region, c.InstanceType)))
+				Expect(err).Should(MatchError(ami.NewErrFailedResolution(c.Region, c.InstanceType)))
 				errorType := reflect.TypeOf(err).Elem().Name()
-				Expect(errorType).To(Equal("ErrFailedAMIResolution"))
+				Expect(errorType).To(Equal("ErrFailedResolution"))
 			} else {
 				Expect(err).ShouldNot(HaveOccurred())
 			}
