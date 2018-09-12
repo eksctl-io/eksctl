@@ -31,6 +31,7 @@ type ClusterProvider interface {
 type ClusterConfig struct {
 	Region      string
 	Profile     string
+	Tags        map[string]string
 	ClusterName string
 
 	NodeAMI  string

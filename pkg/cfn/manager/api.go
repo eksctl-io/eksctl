@@ -34,12 +34,17 @@ func newTag(key, value string) *cloudformation.Tag {
 
 // NewStackCollection create a stack manager for a single cluster
 func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
+	tags := []*cloudformation.Tag{
+		newTag(ClusterNameTag, spec.ClusterName),
+	}
+	for key, value := range spec.Tags {
+		tags = append(tags, newTag(key, value))
+	}
+	logger.Debug("tags = %#v", tags)
 	return &StackCollection{
 		cfn:  provider.CloudFormation(),
 		spec: spec,
-		tags: []*cloudformation.Tag{
-			newTag(ClusterNameTag, spec.ClusterName),
-		},
+		tags: tags,
 	}
 }
 
