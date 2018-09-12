@@ -1,0 +1,6 @@
+{
+    "Errors": true,
+    "Enable": ["vet", "golint", "errcheck", "deadcode"],
+    "Exclude": ["^vendor\/", "^build\/"],
+    "Deadline": "5m"
+}
