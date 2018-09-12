@@ -9,6 +9,7 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
+	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -30,9 +31,6 @@ func createCmd() *cobra.Command {
 }
 
 const (
-	EKS_REGION_US_WEST_2   = "us-west-2"
-	EKS_REGION_US_EAST_1   = "us-east-1"
-	DEFAULT_EKS_REGION     = EKS_REGION_US_WEST_2
 	DEFAULT_NODE_COUNT     = 2
 	DEFAULT_NODE_TYPE      = "m5.large"
 	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
@@ -66,7 +64,7 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 
-	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
@@ -94,6 +92,8 @@ func createClusterCmd() *cobra.Command {
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 
+	fs.StringVar(&cfg.NodeAMI, "node-ami", ami.ResolverStatic, "Advanced use cases only. If 'satic' is supplied (default) then eksctl will use static AMIs; if 'auto' is supplied then eksctl will automatically set the AMI based on region/instance type; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
+
 	return cmd
 }
 
@@ -120,11 +120,15 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
 
-	if cfg.Region != EKS_REGION_US_WEST_2 && cfg.Region != EKS_REGION_US_EAST_1 {
-		return fmt.Errorf("--region=%s is not supported only %s and %s are supported", cfg.Region, EKS_REGION_US_WEST_2, EKS_REGION_US_EAST_1)
+	if cfg.Region != api.EKS_REGION_US_WEST_2 && cfg.Region != api.EKS_REGION_US_EAST_1 && cfg.Region != api.EKS_REGION_EU_WEST_1 {
+		return fmt.Errorf("--region=%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKS_REGION_US_WEST_2, api.EKS_REGION_US_EAST_1, api.EKS_REGION_EU_WEST_1)
 	}
 
 	if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
+		return err
+	}
+
+	if err := ctl.EnsureAMI(); err != nil {
 		return err
 	}
 
@@ -143,7 +147,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		errs := stackManager.CreateClusterWithInitialNodeGroup()
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
-			logger.Info("%d error(s) occurred and cluster hasn't beend created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
@@ -204,6 +208,12 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
+		}
+
+		// If GPU instance type, give instructions
+		if utils.IsGPUInstanceType(cfg.NodeType) {
+			logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
+			logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 		}
 	}
 

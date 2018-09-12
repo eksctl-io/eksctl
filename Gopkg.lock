@@ -334,11 +334,12 @@
   version = "1.0.0"
 
 [[projects]]
-  digest = "1:ca8e828bab5a396380d8db6f91b01fe848f91639c3784b9eb5a893ba63815fac"
+  digest = "1:0413dd101df90e8a7f0c228b0fd64cc42cd98c7c1e3ec5c0dcf3b2598507052b"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
     "config",
+    "extensions/table",
     "internal/codelocation",
     "internal/containernode",
     "internal/failer",
@@ -863,6 +864,7 @@
     "github.com/kubicorn/kubicorn/pkg/logger",
     "github.com/kubicorn/kubicorn/pkg/namer",
     "github.com/onsi/ginkgo",
+    "github.com/onsi/ginkgo/extensions/table",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gexec",
     "github.com/onsi/gomega/types",

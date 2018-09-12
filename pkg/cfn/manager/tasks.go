@@ -8,10 +8,10 @@ import (
 
 type task func(chan error) error
 
-// Run a set of tests in paralle and wait for them to complete;
+// Run a set of tests in parallel and wait for them to complete;
 // passError should take any errors and do what it needs to in
 // a given context, e.g. duing serial CLI-driven execution one
-// can keep errors in a slice, while in a deamon channel maybe
+// can keep errors in a slice, while in a daemon channel maybe
 // more suitable
 func Run(passError func(error), tasks ...task) {
 	wg := &sync.WaitGroup{}
@@ -38,7 +38,7 @@ func Run(passError func(error), tasks ...task) {
 
 // CreateClusterWithInitialNodeGroup runs two tasks to create
 // the stacks for use with CLI; any errors will be returned
-// as a slice on completion of one of the two taks
+// as a slice on completion of one of the two tasks
 func (s *StackCollection) CreateClusterWithInitialNodeGroup() []error {
 	errs := []error{}
 	appendErr := func(err error) {

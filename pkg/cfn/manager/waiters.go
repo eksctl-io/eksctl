@@ -43,7 +43,7 @@ func makeAcceptors(successStatus string, failureStates []string, extraAcceptors 
 	return acceptors
 }
 
-// makeWaiterDelay returns random 15s±5000ms delay
+// makeWaiterDelay returns delay ranging between 15s and 20s
 func makeWaiterDelay() request.WaiterDelay {
 	const (
 		base        = 15 * time.Second
@@ -94,9 +94,9 @@ func (c *StackCollection) waitWithAcceptors(name string, acceptors []request.Wai
 	if waitErr := w.WaitWithContext(ctx); waitErr != nil {
 		s, err := c.describeStack(name)
 		if err != nil {
-			logger.Critical("unexpected status %q while %s", *s.StackStatus, msg)
-		} else {
 			logger.Debug("describeErr=%v", err)
+		} else {
+			logger.Critical("unexpected status %q while %s", *s.StackStatus, msg)
 		}
 		return errors.Wrap(waitErr, msg)
 	}
@@ -173,7 +173,7 @@ func (c *StackCollection) doWaitUntilStackIsDeleted(name string) error {
 			// you do get stack with StackStatusDeleteComplete on ListStacks,
 			// but that returns pages and pages, so we don't actually want
 			// to worry about that, in fact it also returns ones that had
-			// the same name but were deted a long time ago
+			// the same name but were dated a long time ago
 			request.WaiterAcceptor{
 				State:    request.SuccessWaiterState,
 				Matcher:  request.ErrorWaiterMatch,

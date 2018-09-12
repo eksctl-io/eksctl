@@ -18,6 +18,9 @@ Stefan Prodan           @stefanprodan
 James Strachan          @jstrachan
 Nick                    @bowlesns
 Josh Carp               @jmcarp
+Kirsten Schumy          @kschumy
+Karinna Iniguez         @karinnainiguez
+Michael Seiwald         @mseiwald
 
 /* Thanks */
 

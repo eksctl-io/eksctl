@@ -74,7 +74,7 @@ func doSetOutput(field reflect.Value, key, value string) error {
 }
 
 // doSetOutputAsSlice sets output for fields of slice kind, it supports
-// []string (for comman-separated lists defined with newJoinedOutput)
+// []string (for comma-separated lists defined with newJoinedOutput)
 // and []byte (for BASE64-encoded values)
 func doSetOutputAsSlice(field reflect.Value, key, value string) error {
 	switch field.Type() {
@@ -98,7 +98,7 @@ func doSetOutputAsSlice(field reflect.Value, key, value string) error {
 
 // GetAllOutputs collects all outputs from an instance of an active stack,
 // the outputs are defined by the current resourceSet, and are generally
-// private to how builder choses to define them. The destination obj is
+// private to how builder chooses to define them. The destination obj is
 // where outputs will be stored, it's fields are expected to match those
 // that are known to the builder (namely, those are the cfnOutput* contants).
 func (r *resourceSet) GetAllOutputs(stack cfn.Stack, obj interface{}) error {
