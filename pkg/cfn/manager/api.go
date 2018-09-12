@@ -40,7 +40,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	for key, value := range spec.Tags {
 		tags = append(tags, newTag(key, value))
 	}
-	fmt.Println("TAGS", tags)
+	logger.Debug("tags = %#v", tags)
 	return &StackCollection{
 		cfn:  provider.CloudFormation(),
 		spec: spec,

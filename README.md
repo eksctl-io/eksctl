@@ -127,7 +127,9 @@ To use a pre-existing EC2 key pair in `us-east-1` region, you can specify key pa
 eksctl create cluster --ssh-public-key=my_kubernetes_key --region=us-east-1
 ```
 
-To add custom tags to each stack, you can specify tags: 
+To add custom tags for all resources, use `--tags`. Note that until
+https://github.com/weaveworks/eksctl/issues/25 is resolved, tags will
+apply to CloudFormation stacks but not EKS clusters.
 
 ```
 eksctl create cluster --tags environment=staging --region=us-east-1
