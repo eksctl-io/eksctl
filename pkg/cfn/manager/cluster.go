@@ -28,5 +28,6 @@ func (c *StackCollection) CreateCluster(errs chan error) error {
 }
 
 func (c *StackCollection) DeleteCluster() error {
-	return c.DeleteStack(c.makeClusterStackName())
+	_, err := c.DeleteStack(c.makeClusterStackName())
+	return err
 }

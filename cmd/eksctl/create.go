@@ -142,7 +142,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 	{ // core action
 		stackManager := ctl.NewStackManager()
 		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
-		logger.Info("if you encounter any issues, check CloudFormation console first")
+		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
 		errs := stackManager.CreateClusterWithInitialNodeGroup()
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
