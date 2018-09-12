@@ -104,7 +104,7 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.BoolVar(&utilsAutoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name – %q", kubeconfig.AutoPath("<name>")))

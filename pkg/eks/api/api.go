@@ -11,6 +11,11 @@ import (
 
 const (
 	AWSDebugLevel = 5
+
+	EKS_REGION_US_WEST_2 = "us-west-2"
+	EKS_REGION_US_EAST_1 = "us-east-1"
+	EKS_REGION_EU_WEST_1 = "eu-west-1"
+	DEFAULT_EKS_REGION   = EKS_REGION_US_WEST_2
 )
 
 var DefaultWaitTimeout = 20 * time.Minute

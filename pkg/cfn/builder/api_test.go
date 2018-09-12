@@ -93,6 +93,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Describe("AutoNameTag", func() {
 		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
 			AvailabilityZones: testAZs,
+			NodeType:          "t2.medium",
+			Region:            "us-west-2",
 		})
 		rs.AddAllResources()
 
@@ -123,6 +125,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Describe("NodeGroupTags", func() {
 		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
 			AvailabilityZones: testAZs,
+			NodeType:          "t2.medium",
+			Region:            "us-west-2",
 		})
 		rs.AddAllResources()
 
@@ -156,6 +160,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
 			AvailabilityZones: testAZs,
 			NodeType:          "m5.large",
+			Region:            "us-west-2",
 		})
 		rs.AddAllResources()
 

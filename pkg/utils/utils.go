@@ -3,11 +3,18 @@ package utils
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/kubicorn/kubicorn/pkg/namer"
 	kopsutils "k8s.io/kops/upup/pkg/fi/utils"
 )
+
+// IsGPUInstanceType returns tru of the instance type is GPU
+// optimized.
+func IsGPUInstanceType(instanceType string) bool {
+	return strings.HasPrefix(instanceType, "p2") || strings.HasPrefix(instanceType, "p3")
+}
 
 // ClusterName generates a neme string when a and b are empty strings.
 // If either a or b are non-empty, it returns whichever is non-empty.

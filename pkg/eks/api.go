@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 
@@ -125,6 +126,39 @@ func (c *ClusterProvider) CheckAuth() error {
 			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
 		}
 	}
+	return nil
+}
+
+// EnsureAMI ensures that the node AMI is set and isavailable
+func (c *ClusterProvider) EnsureAMI() error {
+	// TODO: https://github.com/weaveworks/eksctl/issues/28
+	// - imporve validation of parameter set overall, probably in another package
+	if c.Spec.NodeAMI == ami.ResolverAuto {
+		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
+	}
+	if c.Spec.NodeAMI == ami.ResolverStatic || c.Spec.NodeAMI == ami.ResolverAuto {
+		id, err := ami.Resolve(c.Spec.Region, c.Spec.NodeType)
+		if err != nil {
+			return errors.Wrap(err, "Unable to determine AMI to use")
+		}
+		if id == "" {
+			return ami.NewErrFailedResolution(c.Spec.Region, c.Spec.NodeType)
+		}
+		c.Spec.NodeAMI = id
+	}
+
+	// Check the AMI is available
+	available, err := ami.IsAvailable(c.Provider.EC2(), c.Spec.NodeAMI)
+	if err != nil {
+		return errors.Wrapf(err, "%s is not available", c.Spec.NodeAMI)
+	}
+
+	if !available {
+		return ami.NewErrNotFound(c.Spec.NodeAMI)
+	}
+
+	logger.Info("using %q for nodes", c.Spec.NodeAMI)
+
 	return nil
 }
 

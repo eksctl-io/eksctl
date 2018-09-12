@@ -16,14 +16,6 @@ const (
 )
 
 var (
-	regionalAMIs = map[string]string{
-		// TODO: https://github.com/weaveworks/eksctl/issues/49
-		// currently source of truth for these is here:
-		// https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
-		"us-west-2": "ami-73a6e20b",
-		"us-east-1": "ami-dea4d5a1",
-	}
-
 	clusterOwnedTag = gfn.Tag{
 		Key:   makeSub("kubernetes.io/cluster/${ClusterName}"),
 		Value: gfn.NewString("owned"),
@@ -69,13 +61,6 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 	n.rs.newStringParameter(ParamClusterName, "")
 	n.rs.newStringParameter(ParamClusterStackName, "")
 	n.rs.newNumberParameter(ParamNodeGroupID, "")
-
-	// TODO: https://github.com/weaveworks/eksctl/issues/28
-	// - improve validation of parameter set overall, probably in another package
-	// - validate custom AMI (check it's present) and instance type
-	if n.spec.NodeAMI == "" {
-		n.spec.NodeAMI = regionalAMIs[n.spec.Region]
-	}
 
 	if n.spec.MinNodes == 0 && n.spec.MaxNodes == 0 {
 		n.spec.MinNodes = n.spec.Nodes
