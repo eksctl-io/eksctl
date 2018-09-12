@@ -21,12 +21,7 @@ test: generate
 
 .PHONY: lint
 lint:
-	gometalinter --exclude=^vendor\/  ./...
-
-.PHONY: install-lint-deps
-install-lint-deps:
-	curl https://git.io/vp6lP | sh
-	gometalinter --install
+	@gometalinter ./...
 
 .PHONY: ci
 ci: test lint
