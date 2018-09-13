@@ -40,8 +40,9 @@ A cluster will be created with default parameters
 - default EKS AMI
 - `us-west-2` region
 - dedicated VPC (check your quotas)
+- using static AMI resolver
 
-Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `heptio-authenticator-aws` commands in your PATH, you should be
+Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
 able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
@@ -142,6 +143,41 @@ To delete a cluster, run:
 ```
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
+### GPU Support
+
+If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/instance-types/p2/) or [p3](https://aws.amazon.com/ec2/instance-types/p3/) ) then the first thing you need to do is subscribe to the [EKS-optimized AMI with GPU Support](https://aws.amazon.com/marketplace/pp/B07GRHFXGM). If you don't do this then node creation will fail.
+
+After subscribing to the AMI you can create a cluster specifying the GPU instance type you'd like to use for the nodes. For example:
+
+```
+eksctl create cluster -t p2.xlarge
+```
+
+The AMI resolvers (both static and auto) will see that you want to use a GPU instance type (p2 or p3 only) and they will select the correct AMI.
+
+Once the cluster is created you will need to install the [NVIDIA Kubernetes device plugin](https://github.com/NVIDIA/k8s-device-plugin). Check the repo for the most up to date instructions but you should be able to run this:
+
+```
+kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
+```
+
+> Once `addon` support has been added as part of 0.2.0 its envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
+
+### Latest & Custom AMI Support
+With the the 0.1.2 release we have introduced the `--node-ami` flag for use when creating a cluster. This enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use (non-GPU and GPU instances).
+
+The `--node-ami` can take the AMI image id for an image to explicitly use. It also can take the following 'special' keywords:
+
+| Keyword | Description |
+| ------------ | -------------- |
+| static       | Indicates that the AMI images ids embedded into eksctl should be used. This relates to the static resolvers. |
+| auto        | Indicates that the AMI to use for the nodes should be found by querying AWS. This relates to the auto resolver. | 
+
+If, for example, AWS release a new version of the EKS node AMIs and a new version of eksctl hasn't been released you can use the latest AMI by doing the following:
+
+```
+eksctl create cluster --node-ami auto
+```
 
 <!-- TODO for 0.3.0
 To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
@@ -171,7 +207,6 @@ The developer may choose to pre-configure popular addons, e.g.:
 - Jenkins X: `eksctl create cluster --addons jenkins-x`
 - AWS CodeStar: `eksctl create cluster --addons aws-codestar`
 - Weave Scope and Flux: `eksctl create cluster --addons weave-scope,weave-flux`
-
 
 It should be possible to combine any or all of these addons.
 
