@@ -17,3 +17,4 @@ brew:
 
   dependencies:
     - kubernetes-cli
+    - eksctl-aws-iam-authenticator
