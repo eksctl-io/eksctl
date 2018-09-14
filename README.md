@@ -10,6 +10,8 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 ## Usage
 
+### Install
+
 To download the latest release, run:
 
 ```
@@ -28,6 +30,22 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 [awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
 [awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
 
+#### Stock kubectl vs EKS-vended kubectl
+
+The recommended way to install kubectl on macOS is `brew install kubernetes-cli`. For Kubernetes v1.10, the stock kubectl client works with EKS after installing AWS IAM Authenticator for Kubernetes. Alternatively, you can install Amazon's patched [EKS-vended kubectl binary](https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html) which works with EKS out of the box but lacks automatic upgrades.
+
+#### AWS IAM Authenticator for Kubernetes
+
+Upon creating a cluster, you'll find the cluster credentials added to `~/.kube/config`. If you have `kubectl` v1.10+ as well as the [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `heptio-authenticator-aws`) in your PATH, you can use `kubectl` with EKS. Make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you install `eksctl` via Homebrew, it will automatically install `heptio-authenticator-aws`.
+
+##### aws-iam-authenticator vs heptio-authenticator-aws
+
+The AWS IAM authenticator for EKS was initially developed by Heptio. It was originally named `heptio-authenticator-aws` and was renamed to `aws-iam-authenticator`. Both names refer to the same package.
+
+[ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
+
+## Commands
+
 To create a basic cluster, run:
 
 ```
@@ -41,11 +59,6 @@ A cluster will be created with default parameters
 - `us-west-2` region
 - dedicated VPC (check your quotas)
 - using static AMI resolver
-
-Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
-able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.
-
-[ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
 Example output:
 ```
