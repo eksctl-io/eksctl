@@ -18,27 +18,27 @@ type AWSDMSEventSubscription struct {
 	// EventCategories AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-eventsubscription.html#cfn-dms-eventsubscription-eventcategories
-	EventCategories []*StringIntrinsic `json:"EventCategories,omitempty"`
+	EventCategories []string `json:"EventCategories,omitempty"`
 
 	// SnsTopicArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-eventsubscription.html#cfn-dms-eventsubscription-snstopicarn
-	SnsTopicArn *StringIntrinsic `json:"SnsTopicArn,omitempty"`
+	SnsTopicArn string `json:"SnsTopicArn,omitempty"`
 
 	// SourceIds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-eventsubscription.html#cfn-dms-eventsubscription-sourceids
-	SourceIds []*StringIntrinsic `json:"SourceIds,omitempty"`
+	SourceIds []string `json:"SourceIds,omitempty"`
 
 	// SourceType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-eventsubscription.html#cfn-dms-eventsubscription-sourcetype
-	SourceType *StringIntrinsic `json:"SourceType,omitempty"`
+	SourceType string `json:"SourceType,omitempty"`
 
 	// SubscriptionName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-eventsubscription.html#cfn-dms-eventsubscription-subscriptionname
-	SubscriptionName *StringIntrinsic `json:"SubscriptionName,omitempty"`
+	SubscriptionName string `json:"SubscriptionName,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -53,14 +53,14 @@ func (r *AWSDMSEventSubscription) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSDMSEventSubscription) MarshalJSON() ([]byte, error) {
+func (r AWSDMSEventSubscription) MarshalJSON() ([]byte, error) {
 	type Properties AWSDMSEventSubscription
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

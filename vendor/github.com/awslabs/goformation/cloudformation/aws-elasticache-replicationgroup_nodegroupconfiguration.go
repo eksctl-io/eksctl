@@ -7,12 +7,12 @@ type AWSElastiCacheReplicationGroup_NodeGroupConfiguration struct {
 	// PrimaryAvailabilityZone AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-replicationgroup-nodegroupconfiguration.html#cfn-elasticache-replicationgroup-nodegroupconfiguration-primaryavailabilityzone
-	PrimaryAvailabilityZone *StringIntrinsic `json:"PrimaryAvailabilityZone,omitempty"`
+	PrimaryAvailabilityZone string `json:"PrimaryAvailabilityZone,omitempty"`
 
 	// ReplicaAvailabilityZones AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-replicationgroup-nodegroupconfiguration.html#cfn-elasticache-replicationgroup-nodegroupconfiguration-replicaavailabilityzones
-	ReplicaAvailabilityZones []*StringIntrinsic `json:"ReplicaAvailabilityZones,omitempty"`
+	ReplicaAvailabilityZones []string `json:"ReplicaAvailabilityZones,omitempty"`
 
 	// ReplicaCount AWS CloudFormation Property
 	// Required: false
@@ -22,7 +22,7 @@ type AWSElastiCacheReplicationGroup_NodeGroupConfiguration struct {
 	// Slots AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-replicationgroup-nodegroupconfiguration.html#cfn-elasticache-replicationgroup-nodegroupconfiguration-slots
-	Slots *StringIntrinsic `json:"Slots,omitempty"`
+	Slots string `json:"Slots,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -13,7 +13,7 @@ type AWSCertificateManagerCertificate struct {
 	// DomainName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html#cfn-certificatemanager-certificate-domainname
-	DomainName *StringIntrinsic `json:"DomainName,omitempty"`
+	DomainName string `json:"DomainName,omitempty"`
 
 	// DomainValidationOptions AWS CloudFormation Property
 	// Required: false
@@ -23,7 +23,7 @@ type AWSCertificateManagerCertificate struct {
 	// SubjectAlternativeNames AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html#cfn-certificatemanager-certificate-subjectalternativenames
-	SubjectAlternativeNames []*StringIntrinsic `json:"SubjectAlternativeNames,omitempty"`
+	SubjectAlternativeNames []string `json:"SubjectAlternativeNames,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -33,7 +33,7 @@ type AWSCertificateManagerCertificate struct {
 	// ValidationMethod AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-certificatemanager-certificate.html#cfn-certificatemanager-certificate-validationmethod
-	ValidationMethod *StringIntrinsic `json:"ValidationMethod,omitempty"`
+	ValidationMethod string `json:"ValidationMethod,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -43,14 +43,14 @@ func (r *AWSCertificateManagerCertificate) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSCertificateManagerCertificate) MarshalJSON() ([]byte, error) {
+func (r AWSCertificateManagerCertificate) MarshalJSON() ([]byte, error) {
 	type Properties AWSCertificateManagerCertificate
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

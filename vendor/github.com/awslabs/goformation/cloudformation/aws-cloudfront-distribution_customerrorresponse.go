@@ -22,7 +22,7 @@ type AWSCloudFrontDistribution_CustomErrorResponse struct {
 	// ResponsePagePath AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-customerrorresponse.html#cfn-cloudfront-distribution-customerrorresponse-responsepagepath
-	ResponsePagePath *StringIntrinsic `json:"ResponsePagePath,omitempty"`
+	ResponsePagePath string `json:"ResponsePagePath,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

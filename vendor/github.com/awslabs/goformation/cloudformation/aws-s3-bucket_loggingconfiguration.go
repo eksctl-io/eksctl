@@ -7,12 +7,12 @@ type AWSS3Bucket_LoggingConfiguration struct {
 	// DestinationBucketName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-loggingconfig.html#cfn-s3-bucket-loggingconfig-destinationbucketname
-	DestinationBucketName *StringIntrinsic `json:"DestinationBucketName,omitempty"`
+	DestinationBucketName string `json:"DestinationBucketName,omitempty"`
 
 	// LogFilePrefix AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-loggingconfig.html#cfn-s3-bucket-loggingconfig-logfileprefix
-	LogFilePrefix *StringIntrinsic `json:"LogFilePrefix,omitempty"`
+	LogFilePrefix string `json:"LogFilePrefix,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

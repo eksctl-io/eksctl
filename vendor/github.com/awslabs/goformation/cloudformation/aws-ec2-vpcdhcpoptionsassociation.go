@@ -13,12 +13,12 @@ type AWSEC2VPCDHCPOptionsAssociation struct {
 	// DhcpOptionsId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc-dhcp-options-assoc.html#cfn-ec2-vpcdhcpoptionsassociation-dhcpoptionsid
-	DhcpOptionsId *StringIntrinsic `json:"DhcpOptionsId,omitempty"`
+	DhcpOptionsId string `json:"DhcpOptionsId,omitempty"`
 
 	// VpcId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc-dhcp-options-assoc.html#cfn-ec2-vpcdhcpoptionsassociation-vpcid
-	VpcId *StringIntrinsic `json:"VpcId,omitempty"`
+	VpcId string `json:"VpcId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -28,14 +28,14 @@ func (r *AWSEC2VPCDHCPOptionsAssociation) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSEC2VPCDHCPOptionsAssociation) MarshalJSON() ([]byte, error) {
+func (r AWSEC2VPCDHCPOptionsAssociation) MarshalJSON() ([]byte, error) {
 	type Properties AWSEC2VPCDHCPOptionsAssociation
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

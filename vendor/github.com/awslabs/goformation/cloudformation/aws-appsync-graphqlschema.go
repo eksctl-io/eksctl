@@ -13,17 +13,17 @@ type AWSAppSyncGraphQLSchema struct {
 	// ApiId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlschema.html#cfn-appsync-graphqlschema-apiid
-	ApiId *StringIntrinsic `json:"ApiId,omitempty"`
+	ApiId string `json:"ApiId,omitempty"`
 
 	// Definition AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlschema.html#cfn-appsync-graphqlschema-definition
-	Definition *StringIntrinsic `json:"Definition,omitempty"`
+	Definition string `json:"Definition,omitempty"`
 
 	// DefinitionS3Location AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlschema.html#cfn-appsync-graphqlschema-definitions3location
-	DefinitionS3Location *StringIntrinsic `json:"DefinitionS3Location,omitempty"`
+	DefinitionS3Location string `json:"DefinitionS3Location,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -33,14 +33,14 @@ func (r *AWSAppSyncGraphQLSchema) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSAppSyncGraphQLSchema) MarshalJSON() ([]byte, error) {
+func (r AWSAppSyncGraphQLSchema) MarshalJSON() ([]byte, error) {
 	type Properties AWSAppSyncGraphQLSchema
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

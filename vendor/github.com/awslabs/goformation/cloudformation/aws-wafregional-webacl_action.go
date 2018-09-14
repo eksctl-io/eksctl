@@ -7,7 +7,7 @@ type AWSWAFRegionalWebACL_Action struct {
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-webacl-action.html#cfn-wafregional-webacl-action-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type string `json:"Type,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

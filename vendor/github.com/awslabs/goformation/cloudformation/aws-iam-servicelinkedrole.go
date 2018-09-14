@@ -13,17 +13,17 @@ type AWSIAMServiceLinkedRole struct {
 	// AWSServiceName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-servicelinkedrole.html#cfn-iam-servicelinkedrole-awsservicename
-	AWSServiceName *StringIntrinsic `json:"AWSServiceName,omitempty"`
+	AWSServiceName string `json:"AWSServiceName,omitempty"`
 
 	// CustomSuffix AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-servicelinkedrole.html#cfn-iam-servicelinkedrole-customsuffix
-	CustomSuffix *StringIntrinsic `json:"CustomSuffix,omitempty"`
+	CustomSuffix string `json:"CustomSuffix,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-servicelinkedrole.html#cfn-iam-servicelinkedrole-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description string `json:"Description,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -33,14 +33,14 @@ func (r *AWSIAMServiceLinkedRole) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSIAMServiceLinkedRole) MarshalJSON() ([]byte, error) {
+func (r AWSIAMServiceLinkedRole) MarshalJSON() ([]byte, error) {
 	type Properties AWSIAMServiceLinkedRole
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

@@ -18,7 +18,7 @@ type AWSDirectoryServiceMicrosoftAD struct {
 	// Edition AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-edition
-	Edition *StringIntrinsic `json:"Edition,omitempty"`
+	Edition string `json:"Edition,omitempty"`
 
 	// EnableSso AWS CloudFormation Property
 	// Required: false
@@ -28,17 +28,17 @@ type AWSDirectoryServiceMicrosoftAD struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// Password AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-password
-	Password *StringIntrinsic `json:"Password,omitempty"`
+	Password string `json:"Password,omitempty"`
 
 	// ShortName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-microsoftad.html#cfn-directoryservice-microsoftad-shortname
-	ShortName *StringIntrinsic `json:"ShortName,omitempty"`
+	ShortName string `json:"ShortName,omitempty"`
 
 	// VpcSettings AWS CloudFormation Property
 	// Required: true
@@ -53,14 +53,14 @@ func (r *AWSDirectoryServiceMicrosoftAD) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSDirectoryServiceMicrosoftAD) MarshalJSON() ([]byte, error) {
+func (r AWSDirectoryServiceMicrosoftAD) MarshalJSON() ([]byte, error) {
 	type Properties AWSDirectoryServiceMicrosoftAD
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

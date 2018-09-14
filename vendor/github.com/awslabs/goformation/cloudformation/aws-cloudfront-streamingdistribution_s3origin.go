@@ -7,12 +7,12 @@ type AWSCloudFrontStreamingDistribution_S3Origin struct {
 	// DomainName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-streamingdistribution-s3origin.html#cfn-cloudfront-streamingdistribution-s3origin-domainname
-	DomainName *StringIntrinsic `json:"DomainName,omitempty"`
+	DomainName string `json:"DomainName,omitempty"`
 
 	// OriginAccessIdentity AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-streamingdistribution-s3origin.html#cfn-cloudfront-streamingdistribution-s3origin-originaccessidentity
-	OriginAccessIdentity *StringIntrinsic `json:"OriginAccessIdentity,omitempty"`
+	OriginAccessIdentity string `json:"OriginAccessIdentity,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

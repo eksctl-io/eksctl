@@ -17,7 +17,7 @@ type AWSWAFRegionalWebACL_Rule struct {
 	// RuleId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-webacl-rule.html#cfn-wafregional-webacl-rule-ruleid
-	RuleId *StringIntrinsic `json:"RuleId,omitempty"`
+	RuleId string `json:"RuleId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

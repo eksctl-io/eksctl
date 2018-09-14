@@ -7,7 +7,7 @@ type AWSServiceCatalogCloudFormationProduct_ProvisioningArtifactProperties struc
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-servicecatalog-cloudformationproduct-provisioningartifactproperties.html#cfn-servicecatalog-cloudformationproduct-provisioningartifactproperties-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description string `json:"Description,omitempty"`
 
 	// Info AWS CloudFormation Property
 	// Required: true
@@ -17,7 +17,7 @@ type AWSServiceCatalogCloudFormationProduct_ProvisioningArtifactProperties struc
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-servicecatalog-cloudformationproduct-provisioningartifactproperties.html#cfn-servicecatalog-cloudformationproduct-provisioningartifactproperties-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

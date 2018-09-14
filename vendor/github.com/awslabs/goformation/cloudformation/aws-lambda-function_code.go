@@ -7,22 +7,22 @@ type AWSLambdaFunction_Code struct {
 	// S3Bucket AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-s3bucket
-	S3Bucket *StringIntrinsic `json:"S3Bucket,omitempty"`
+	S3Bucket string `json:"S3Bucket,omitempty"`
 
 	// S3Key AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-s3key
-	S3Key *StringIntrinsic `json:"S3Key,omitempty"`
+	S3Key string `json:"S3Key,omitempty"`
 
 	// S3ObjectVersion AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-s3objectversion
-	S3ObjectVersion *StringIntrinsic `json:"S3ObjectVersion,omitempty"`
+	S3ObjectVersion string `json:"S3ObjectVersion,omitempty"`
 
 	// ZipFile AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-zipfile
-	ZipFile *StringIntrinsic `json:"ZipFile,omitempty"`
+	ZipFile string `json:"ZipFile,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

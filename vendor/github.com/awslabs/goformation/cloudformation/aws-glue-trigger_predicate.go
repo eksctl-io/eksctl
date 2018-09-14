@@ -12,7 +12,7 @@ type AWSGlueTrigger_Predicate struct {
 	// Logical AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-trigger-predicate.html#cfn-glue-trigger-predicate-logical
-	Logical *StringIntrinsic `json:"Logical,omitempty"`
+	Logical string `json:"Logical,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

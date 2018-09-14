@@ -7,22 +7,22 @@ type AWSS3Bucket_Destination struct {
 	// BucketAccountId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-destination.html#cfn-s3-bucket-destination-bucketaccountid
-	BucketAccountId *StringIntrinsic `json:"BucketAccountId,omitempty"`
+	BucketAccountId string `json:"BucketAccountId,omitempty"`
 
 	// BucketArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-destination.html#cfn-s3-bucket-destination-bucketarn
-	BucketArn *StringIntrinsic `json:"BucketArn,omitempty"`
+	BucketArn string `json:"BucketArn,omitempty"`
 
 	// Format AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-destination.html#cfn-s3-bucket-destination-format
-	Format *StringIntrinsic `json:"Format,omitempty"`
+	Format string `json:"Format,omitempty"`
 
 	// Prefix AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-destination.html#cfn-s3-bucket-destination-prefix
-	Prefix *StringIntrinsic `json:"Prefix,omitempty"`
+	Prefix string `json:"Prefix,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

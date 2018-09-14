@@ -7,7 +7,7 @@ type AWSEC2LaunchTemplate_Ipv6Add struct {
 	// Ipv6Address AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-ipv6add.html#cfn-ec2-launchtemplate-ipv6add-ipv6address
-	Ipv6Address *StringIntrinsic `json:"Ipv6Address,omitempty"`
+	Ipv6Address string `json:"Ipv6Address,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

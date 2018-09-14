@@ -13,12 +13,12 @@ type AWSWAFRegionalRule struct {
 	// MetricName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-rule.html#cfn-wafregional-rule-metricname
-	MetricName *StringIntrinsic `json:"MetricName,omitempty"`
+	MetricName string `json:"MetricName,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-rule.html#cfn-wafregional-rule-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// Predicates AWS CloudFormation Property
 	// Required: false
@@ -33,14 +33,14 @@ func (r *AWSWAFRegionalRule) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSWAFRegionalRule) MarshalJSON() ([]byte, error) {
+func (r AWSWAFRegionalRule) MarshalJSON() ([]byte, error) {
 	type Properties AWSWAFRegionalRule
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

@@ -7,7 +7,7 @@ type AWSEMRCluster_PlacementType struct {
 	// AvailabilityZone AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-cluster-placementtype.html#cfn-elasticmapreduce-cluster-placementtype-availabilityzone
-	AvailabilityZone *StringIntrinsic `json:"AvailabilityZone,omitempty"`
+	AvailabilityZone string `json:"AvailabilityZone,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

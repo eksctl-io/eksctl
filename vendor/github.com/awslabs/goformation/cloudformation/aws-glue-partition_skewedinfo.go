@@ -7,7 +7,7 @@ type AWSGluePartition_SkewedInfo struct {
 	// SkewedColumnNames AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-skewedinfo.html#cfn-glue-partition-skewedinfo-skewedcolumnnames
-	SkewedColumnNames []*StringIntrinsic `json:"SkewedColumnNames,omitempty"`
+	SkewedColumnNames []string `json:"SkewedColumnNames,omitempty"`
 
 	// SkewedColumnValueLocationMaps AWS CloudFormation Property
 	// Required: false
@@ -17,7 +17,7 @@ type AWSGluePartition_SkewedInfo struct {
 	// SkewedColumnValues AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-skewedinfo.html#cfn-glue-partition-skewedinfo-skewedcolumnvalues
-	SkewedColumnValues []*StringIntrinsic `json:"SkewedColumnValues,omitempty"`
+	SkewedColumnValues []string `json:"SkewedColumnValues,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

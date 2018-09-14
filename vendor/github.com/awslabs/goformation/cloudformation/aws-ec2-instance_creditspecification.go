@@ -7,7 +7,7 @@ type AWSEC2Instance_CreditSpecification struct {
 	// CPUCredits AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance-creditspecification.html#cfn-ec2-instance-creditspecification-cpucredits
-	CPUCredits *StringIntrinsic `json:"CPUCredits,omitempty"`
+	CPUCredits string `json:"CPUCredits,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

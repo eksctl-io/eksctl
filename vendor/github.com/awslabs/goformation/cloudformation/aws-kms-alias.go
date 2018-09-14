@@ -13,12 +13,12 @@ type AWSKMSAlias struct {
 	// AliasName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname
-	AliasName *StringIntrinsic `json:"AliasName,omitempty"`
+	AliasName string `json:"AliasName,omitempty"`
 
 	// TargetKeyId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-targetkeyid
-	TargetKeyId *StringIntrinsic `json:"TargetKeyId,omitempty"`
+	TargetKeyId string `json:"TargetKeyId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -28,14 +28,14 @@ func (r *AWSKMSAlias) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSKMSAlias) MarshalJSON() ([]byte, error) {
+func (r AWSKMSAlias) MarshalJSON() ([]byte, error) {
 	type Properties AWSKMSAlias
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

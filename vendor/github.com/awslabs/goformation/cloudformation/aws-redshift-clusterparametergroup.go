@@ -13,12 +13,12 @@ type AWSRedshiftClusterParameterGroup struct {
 	// Description AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-redshift-clusterparametergroup.html#cfn-redshift-clusterparametergroup-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description string `json:"Description,omitempty"`
 
 	// ParameterGroupFamily AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-redshift-clusterparametergroup.html#cfn-redshift-clusterparametergroup-parametergroupfamily
-	ParameterGroupFamily *StringIntrinsic `json:"ParameterGroupFamily,omitempty"`
+	ParameterGroupFamily string `json:"ParameterGroupFamily,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: false
@@ -38,14 +38,14 @@ func (r *AWSRedshiftClusterParameterGroup) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSRedshiftClusterParameterGroup) MarshalJSON() ([]byte, error) {
+func (r AWSRedshiftClusterParameterGroup) MarshalJSON() ([]byte, error) {
 	type Properties AWSRedshiftClusterParameterGroup
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

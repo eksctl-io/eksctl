@@ -13,12 +13,12 @@ type AWSSageMakerEndpointConfig struct {
 	// EndpointConfigName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-endpointconfig.html#cfn-sagemaker-endpointconfig-endpointconfigname
-	EndpointConfigName *StringIntrinsic `json:"EndpointConfigName,omitempty"`
+	EndpointConfigName string `json:"EndpointConfigName,omitempty"`
 
 	// KmsKeyId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-endpointconfig.html#cfn-sagemaker-endpointconfig-kmskeyid
-	KmsKeyId *StringIntrinsic `json:"KmsKeyId,omitempty"`
+	KmsKeyId string `json:"KmsKeyId,omitempty"`
 
 	// ProductionVariants AWS CloudFormation Property
 	// Required: true
@@ -38,14 +38,14 @@ func (r *AWSSageMakerEndpointConfig) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSSageMakerEndpointConfig) MarshalJSON() ([]byte, error) {
+func (r AWSSageMakerEndpointConfig) MarshalJSON() ([]byte, error) {
 	type Properties AWSSageMakerEndpointConfig
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

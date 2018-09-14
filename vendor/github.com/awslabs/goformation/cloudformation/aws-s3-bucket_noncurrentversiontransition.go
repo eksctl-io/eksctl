@@ -7,7 +7,7 @@ type AWSS3Bucket_NoncurrentVersionTransition struct {
 	// StorageClass AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig-rule-noncurrentversiontransition.html#cfn-s3-bucket-lifecycleconfig-rule-noncurrentversiontransition-storageclass
-	StorageClass *StringIntrinsic `json:"StorageClass,omitempty"`
+	StorageClass string `json:"StorageClass,omitempty"`
 
 	// TransitionInDays AWS CloudFormation Property
 	// Required: true

@@ -7,12 +7,12 @@ type AWSECSTaskDefinition_KernelCapabilities struct {
 	// Add AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-kernelcapabilities.html#cfn-ecs-taskdefinition-kernelcapabilities-add
-	Add []*StringIntrinsic `json:"Add,omitempty"`
+	Add []string `json:"Add,omitempty"`
 
 	// Drop AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-kernelcapabilities.html#cfn-ecs-taskdefinition-kernelcapabilities-drop
-	Drop []*StringIntrinsic `json:"Drop,omitempty"`
+	Drop []string `json:"Drop,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

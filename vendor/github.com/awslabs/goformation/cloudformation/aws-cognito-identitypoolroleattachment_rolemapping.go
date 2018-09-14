@@ -7,7 +7,7 @@ type AWSCognitoIdentityPoolRoleAttachment_RoleMapping struct {
 	// AmbiguousRoleResolution AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypoolroleattachment-rolemapping.html#cfn-cognito-identitypoolroleattachment-rolemapping-ambiguousroleresolution
-	AmbiguousRoleResolution *StringIntrinsic `json:"AmbiguousRoleResolution,omitempty"`
+	AmbiguousRoleResolution string `json:"AmbiguousRoleResolution,omitempty"`
 
 	// RulesConfiguration AWS CloudFormation Property
 	// Required: false
@@ -17,7 +17,7 @@ type AWSCognitoIdentityPoolRoleAttachment_RoleMapping struct {
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypoolroleattachment-rolemapping.html#cfn-cognito-identitypoolroleattachment-rolemapping-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type string `json:"Type,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

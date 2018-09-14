@@ -10,9 +10,9 @@ import (
 
 // AWSServerlessFunction_Policies is a helper struct that can hold either a String, String, IAMPolicyDocument, or IAMPolicyDocument value
 type AWSServerlessFunction_Policies struct {
-	String **StringIntrinsic
+	String *string
 
-	StringArray *[]*StringIntrinsic
+	StringArray *[]string
 
 	IAMPolicyDocument *AWSServerlessFunction_IAMPolicyDocument
 
@@ -45,7 +45,7 @@ func (r AWSServerlessFunction_Policies) value() interface{} {
 
 }
 
-func (r *AWSServerlessFunction_Policies) MarshalJSON() ([]byte, error) {
+func (r AWSServerlessFunction_Policies) MarshalJSON() ([]byte, error) {
 	return json.Marshal(r.value())
 }
 
@@ -60,10 +60,10 @@ func (r *AWSServerlessFunction_Policies) UnmarshalJSON(b []byte) error {
 
 	switch val := typecheck.(type) {
 
-	case *StringIntrinsic:
+	case string:
 		r.String = &val
 
-	case []*StringIntrinsic:
+	case []string:
 		r.StringArray = &val
 
 	case map[string]interface{}:

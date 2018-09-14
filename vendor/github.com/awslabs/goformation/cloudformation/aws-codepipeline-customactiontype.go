@@ -13,7 +13,7 @@ type AWSCodePipelineCustomActionType struct {
 	// Category AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-customactiontype.html#cfn-codepipeline-customactiontype-category
-	Category *StringIntrinsic `json:"Category,omitempty"`
+	Category string `json:"Category,omitempty"`
 
 	// ConfigurationProperties AWS CloudFormation Property
 	// Required: false
@@ -33,7 +33,7 @@ type AWSCodePipelineCustomActionType struct {
 	// Provider AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-customactiontype.html#cfn-codepipeline-customactiontype-provider
-	Provider *StringIntrinsic `json:"Provider,omitempty"`
+	Provider string `json:"Provider,omitempty"`
 
 	// Settings AWS CloudFormation Property
 	// Required: false
@@ -43,7 +43,7 @@ type AWSCodePipelineCustomActionType struct {
 	// Version AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-customactiontype.html#cfn-codepipeline-customactiontype-version
-	Version *StringIntrinsic `json:"Version,omitempty"`
+	Version string `json:"Version,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -53,14 +53,14 @@ func (r *AWSCodePipelineCustomActionType) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSCodePipelineCustomActionType) MarshalJSON() ([]byte, error) {
+func (r AWSCodePipelineCustomActionType) MarshalJSON() ([]byte, error) {
 	type Properties AWSCodePipelineCustomActionType
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

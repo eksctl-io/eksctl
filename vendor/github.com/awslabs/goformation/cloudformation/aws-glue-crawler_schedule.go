@@ -7,7 +7,7 @@ type AWSGlueCrawler_Schedule struct {
 	// ScheduleExpression AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-crawler-schedule.html#cfn-glue-crawler-schedule-scheduleexpression
-	ScheduleExpression *StringIntrinsic `json:"ScheduleExpression,omitempty"`
+	ScheduleExpression string `json:"ScheduleExpression,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

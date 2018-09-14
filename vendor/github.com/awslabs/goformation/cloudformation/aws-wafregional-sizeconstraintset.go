@@ -13,7 +13,7 @@ type AWSWAFRegionalSizeConstraintSet struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-sizeconstraintset.html#cfn-wafregional-sizeconstraintset-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// SizeConstraints AWS CloudFormation Property
 	// Required: false
@@ -28,14 +28,14 @@ func (r *AWSWAFRegionalSizeConstraintSet) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSWAFRegionalSizeConstraintSet) MarshalJSON() ([]byte, error) {
+func (r AWSWAFRegionalSizeConstraintSet) MarshalJSON() ([]byte, error) {
 	type Properties AWSWAFRegionalSizeConstraintSet
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

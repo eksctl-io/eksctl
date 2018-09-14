@@ -13,12 +13,12 @@ type AWSWorkSpacesWorkspace struct {
 	// BundleId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-bundleid
-	BundleId *StringIntrinsic `json:"BundleId,omitempty"`
+	BundleId string `json:"BundleId,omitempty"`
 
 	// DirectoryId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-directoryid
-	DirectoryId *StringIntrinsic `json:"DirectoryId,omitempty"`
+	DirectoryId string `json:"DirectoryId,omitempty"`
 
 	// RootVolumeEncryptionEnabled AWS CloudFormation Property
 	// Required: false
@@ -28,7 +28,7 @@ type AWSWorkSpacesWorkspace struct {
 	// UserName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-username
-	UserName *StringIntrinsic `json:"UserName,omitempty"`
+	UserName string `json:"UserName,omitempty"`
 
 	// UserVolumeEncryptionEnabled AWS CloudFormation Property
 	// Required: false
@@ -38,7 +38,7 @@ type AWSWorkSpacesWorkspace struct {
 	// VolumeEncryptionKey AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-volumeencryptionkey
-	VolumeEncryptionKey *StringIntrinsic `json:"VolumeEncryptionKey,omitempty"`
+	VolumeEncryptionKey string `json:"VolumeEncryptionKey,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -48,14 +48,14 @@ func (r *AWSWorkSpacesWorkspace) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSWorkSpacesWorkspace) MarshalJSON() ([]byte, error) {
+func (r AWSWorkSpacesWorkspace) MarshalJSON() ([]byte, error) {
 	type Properties AWSWorkSpacesWorkspace
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

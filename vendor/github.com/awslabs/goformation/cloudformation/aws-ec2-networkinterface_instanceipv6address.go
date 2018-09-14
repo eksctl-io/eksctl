@@ -7,7 +7,7 @@ type AWSEC2NetworkInterface_InstanceIpv6Address struct {
 	// Ipv6Address AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-networkinterface-instanceipv6address.html#cfn-ec2-networkinterface-instanceipv6address-ipv6address
-	Ipv6Address *StringIntrinsic `json:"Ipv6Address,omitempty"`
+	Ipv6Address string `json:"Ipv6Address,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

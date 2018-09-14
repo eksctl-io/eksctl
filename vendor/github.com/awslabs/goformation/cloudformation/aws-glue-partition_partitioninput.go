@@ -17,7 +17,7 @@ type AWSGluePartition_PartitionInput struct {
 	// Values AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-partitioninput.html#cfn-glue-partition-partitioninput-values
-	Values []*StringIntrinsic `json:"Values,omitempty"`
+	Values []string `json:"Values,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

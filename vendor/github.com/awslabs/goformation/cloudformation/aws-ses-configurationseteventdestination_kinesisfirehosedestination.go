@@ -7,12 +7,12 @@ type AWSSESConfigurationSetEventDestination_KinesisFirehoseDestination struct {
 	// DeliveryStreamARN AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-configurationseteventdestination-kinesisfirehosedestination.html#cfn-ses-configurationseteventdestination-kinesisfirehosedestination-deliverystreamarn
-	DeliveryStreamARN *StringIntrinsic `json:"DeliveryStreamARN,omitempty"`
+	DeliveryStreamARN string `json:"DeliveryStreamARN,omitempty"`
 
 	// IAMRoleARN AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-configurationseteventdestination-kinesisfirehosedestination.html#cfn-ses-configurationseteventdestination-kinesisfirehosedestination-iamrolearn
-	IAMRoleARN *StringIntrinsic `json:"IAMRoleARN,omitempty"`
+	IAMRoleARN string `json:"IAMRoleARN,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

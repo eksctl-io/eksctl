@@ -18,7 +18,7 @@ type AWSSSMDocument struct {
 	// DocumentType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ssm-document.html#cfn-ssm-document-documenttype
-	DocumentType *StringIntrinsic `json:"DocumentType,omitempty"`
+	DocumentType string `json:"DocumentType,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -33,14 +33,14 @@ func (r *AWSSSMDocument) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSSSMDocument) MarshalJSON() ([]byte, error) {
+func (r AWSSSMDocument) MarshalJSON() ([]byte, error) {
 	type Properties AWSSSMDocument
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

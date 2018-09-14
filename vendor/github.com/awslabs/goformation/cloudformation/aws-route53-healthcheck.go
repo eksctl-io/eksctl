@@ -28,14 +28,14 @@ func (r *AWSRoute53HealthCheck) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSRoute53HealthCheck) MarshalJSON() ([]byte, error) {
+func (r AWSRoute53HealthCheck) MarshalJSON() ([]byte, error) {
 	type Properties AWSRoute53HealthCheck
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

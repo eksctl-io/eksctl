@@ -7,7 +7,7 @@ type AWSAutoScalingPlansScalingPlan_ApplicationSource struct {
 	// CloudFormationStackARN AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscalingplans-scalingplan-applicationsource.html#cfn-autoscalingplans-scalingplan-applicationsource-cloudformationstackarn
-	CloudFormationStackARN *StringIntrinsic `json:"CloudFormationStackARN,omitempty"`
+	CloudFormationStackARN string `json:"CloudFormationStackARN,omitempty"`
 
 	// TagFilters AWS CloudFormation Property
 	// Required: false

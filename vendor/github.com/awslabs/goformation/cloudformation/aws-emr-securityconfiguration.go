@@ -13,7 +13,7 @@ type AWSEMRSecurityConfiguration struct {
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-emr-securityconfiguration.html#cfn-emr-securityconfiguration-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// SecurityConfiguration AWS CloudFormation Property
 	// Required: true
@@ -28,14 +28,14 @@ func (r *AWSEMRSecurityConfiguration) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSEMRSecurityConfiguration) MarshalJSON() ([]byte, error) {
+func (r AWSEMRSecurityConfiguration) MarshalJSON() ([]byte, error) {
 	type Properties AWSEMRSecurityConfiguration
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

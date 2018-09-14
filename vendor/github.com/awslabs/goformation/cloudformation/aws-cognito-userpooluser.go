@@ -13,7 +13,7 @@ type AWSCognitoUserPoolUser struct {
 	// DesiredDeliveryMediums AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpooluser.html#cfn-cognito-userpooluser-desireddeliverymediums
-	DesiredDeliveryMediums []*StringIntrinsic `json:"DesiredDeliveryMediums,omitempty"`
+	DesiredDeliveryMediums []string `json:"DesiredDeliveryMediums,omitempty"`
 
 	// ForceAliasCreation AWS CloudFormation Property
 	// Required: false
@@ -23,7 +23,7 @@ type AWSCognitoUserPoolUser struct {
 	// MessageAction AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpooluser.html#cfn-cognito-userpooluser-messageaction
-	MessageAction *StringIntrinsic `json:"MessageAction,omitempty"`
+	MessageAction string `json:"MessageAction,omitempty"`
 
 	// UserAttributes AWS CloudFormation Property
 	// Required: false
@@ -33,12 +33,12 @@ type AWSCognitoUserPoolUser struct {
 	// UserPoolId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpooluser.html#cfn-cognito-userpooluser-userpoolid
-	UserPoolId *StringIntrinsic `json:"UserPoolId,omitempty"`
+	UserPoolId string `json:"UserPoolId,omitempty"`
 
 	// Username AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpooluser.html#cfn-cognito-userpooluser-username
-	Username *StringIntrinsic `json:"Username,omitempty"`
+	Username string `json:"Username,omitempty"`
 
 	// ValidationData AWS CloudFormation Property
 	// Required: false
@@ -53,14 +53,14 @@ func (r *AWSCognitoUserPoolUser) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSCognitoUserPoolUser) MarshalJSON() ([]byte, error) {
+func (r AWSCognitoUserPoolUser) MarshalJSON() ([]byte, error) {
 	type Properties AWSCognitoUserPoolUser
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

@@ -13,7 +13,7 @@ type AWSS3BucketPolicy struct {
 	// Bucket AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-policy.html#aws-properties-s3-policy-bucket
-	Bucket *StringIntrinsic `json:"Bucket,omitempty"`
+	Bucket string `json:"Bucket,omitempty"`
 
 	// PolicyDocument AWS CloudFormation Property
 	// Required: true
@@ -28,14 +28,14 @@ func (r *AWSS3BucketPolicy) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSS3BucketPolicy) MarshalJSON() ([]byte, error) {
+func (r AWSS3BucketPolicy) MarshalJSON() ([]byte, error) {
 	type Properties AWSS3BucketPolicy
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

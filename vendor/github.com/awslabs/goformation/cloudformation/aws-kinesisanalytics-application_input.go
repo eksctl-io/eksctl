@@ -32,7 +32,7 @@ type AWSKinesisAnalyticsApplication_Input struct {
 	// NamePrefix AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-application-input.html#cfn-kinesisanalytics-application-input-nameprefix
-	NamePrefix *StringIntrinsic `json:"NamePrefix,omitempty"`
+	NamePrefix string `json:"NamePrefix,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

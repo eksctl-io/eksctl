@@ -7,12 +7,12 @@ type AWSIoTTopicRule_SqsAction struct {
 	// QueueUrl AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iot-topicrule-sqsaction.html#cfn-iot-topicrule-sqsaction-queueurl
-	QueueUrl *StringIntrinsic `json:"QueueUrl,omitempty"`
+	QueueUrl string `json:"QueueUrl,omitempty"`
 
 	// RoleArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iot-topicrule-sqsaction.html#cfn-iot-topicrule-sqsaction-rolearn
-	RoleArn *StringIntrinsic `json:"RoleArn,omitempty"`
+	RoleArn string `json:"RoleArn,omitempty"`
 
 	// UseBase64 AWS CloudFormation Property
 	// Required: false

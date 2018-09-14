@@ -18,7 +18,7 @@ type AWSBatchJobDefinition struct {
 	// JobDefinitionName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobdefinition.html#cfn-batch-jobdefinition-jobdefinitionname
-	JobDefinitionName *StringIntrinsic `json:"JobDefinitionName,omitempty"`
+	JobDefinitionName string `json:"JobDefinitionName,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: false
@@ -38,7 +38,7 @@ type AWSBatchJobDefinition struct {
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobdefinition.html#cfn-batch-jobdefinition-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type string `json:"Type,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -48,14 +48,14 @@ func (r *AWSBatchJobDefinition) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSBatchJobDefinition) MarshalJSON() ([]byte, error) {
+func (r AWSBatchJobDefinition) MarshalJSON() ([]byte, error) {
 	type Properties AWSBatchJobDefinition
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

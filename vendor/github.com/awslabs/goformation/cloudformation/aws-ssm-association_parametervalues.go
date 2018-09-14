@@ -7,7 +7,7 @@ type AWSSSMAssociation_ParameterValues struct {
 	// ParameterValues AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ssm-association-parametervalues.html#cfn-ssm-association-parametervalues-parametervalues
-	ParameterValues []*StringIntrinsic `json:"ParameterValues,omitempty"`
+	ParameterValues []string `json:"ParameterValues,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

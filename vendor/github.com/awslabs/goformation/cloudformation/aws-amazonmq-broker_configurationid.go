@@ -7,7 +7,7 @@ type AWSAmazonMQBroker_ConfigurationId struct {
 	// Id AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-amazonmq-broker-configurationid.html#cfn-amazonmq-broker-configurationid-id
-	Id *StringIntrinsic `json:"Id,omitempty"`
+	Id string `json:"Id,omitempty"`
 
 	// Revision AWS CloudFormation Property
 	// Required: true

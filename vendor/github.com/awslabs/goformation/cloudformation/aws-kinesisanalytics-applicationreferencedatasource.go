@@ -13,7 +13,7 @@ type AWSKinesisAnalyticsApplicationReferenceDataSource struct {
 	// ApplicationName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kinesisanalytics-applicationreferencedatasource.html#cfn-kinesisanalytics-applicationreferencedatasource-applicationname
-	ApplicationName *StringIntrinsic `json:"ApplicationName,omitempty"`
+	ApplicationName string `json:"ApplicationName,omitempty"`
 
 	// ReferenceDataSource AWS CloudFormation Property
 	// Required: true
@@ -28,14 +28,14 @@ func (r *AWSKinesisAnalyticsApplicationReferenceDataSource) AWSCloudFormationTyp
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSKinesisAnalyticsApplicationReferenceDataSource) MarshalJSON() ([]byte, error) {
+func (r AWSKinesisAnalyticsApplicationReferenceDataSource) MarshalJSON() ([]byte, error) {
 	type Properties AWSKinesisAnalyticsApplicationReferenceDataSource
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

@@ -13,7 +13,7 @@ type AWSAutoScalingScheduledAction struct {
 	// AutoScalingGroupName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-asgname
-	AutoScalingGroupName *StringIntrinsic `json:"AutoScalingGroupName,omitempty"`
+	AutoScalingGroupName string `json:"AutoScalingGroupName,omitempty"`
 
 	// DesiredCapacity AWS CloudFormation Property
 	// Required: false
@@ -23,7 +23,7 @@ type AWSAutoScalingScheduledAction struct {
 	// EndTime AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-endtime
-	EndTime *StringIntrinsic `json:"EndTime,omitempty"`
+	EndTime string `json:"EndTime,omitempty"`
 
 	// MaxSize AWS CloudFormation Property
 	// Required: false
@@ -38,12 +38,12 @@ type AWSAutoScalingScheduledAction struct {
 	// Recurrence AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-recurrence
-	Recurrence *StringIntrinsic `json:"Recurrence,omitempty"`
+	Recurrence string `json:"Recurrence,omitempty"`
 
 	// StartTime AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-as-scheduledaction.html#cfn-as-scheduledaction-starttime
-	StartTime *StringIntrinsic `json:"StartTime,omitempty"`
+	StartTime string `json:"StartTime,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -53,14 +53,14 @@ func (r *AWSAutoScalingScheduledAction) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSAutoScalingScheduledAction) MarshalJSON() ([]byte, error) {
+func (r AWSAutoScalingScheduledAction) MarshalJSON() ([]byte, error) {
 	type Properties AWSAutoScalingScheduledAction
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

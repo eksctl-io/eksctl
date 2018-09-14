@@ -33,7 +33,7 @@ type AWSSQSQueue struct {
 	// KmsMasterKeyId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sqs-queues.html#aws-sqs-queue-kmsmasterkeyid
-	KmsMasterKeyId *StringIntrinsic `json:"KmsMasterKeyId,omitempty"`
+	KmsMasterKeyId string `json:"KmsMasterKeyId,omitempty"`
 
 	// MaximumMessageSize AWS CloudFormation Property
 	// Required: false
@@ -48,7 +48,7 @@ type AWSSQSQueue struct {
 	// QueueName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sqs-queues.html#aws-sqs-queue-name
-	QueueName *StringIntrinsic `json:"QueueName,omitempty"`
+	QueueName string `json:"QueueName,omitempty"`
 
 	// ReceiveMessageWaitTimeSeconds AWS CloudFormation Property
 	// Required: false
@@ -59,6 +59,11 @@ type AWSSQSQueue struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sqs-queues.html#aws-sqs-queue-redrive
 	RedrivePolicy interface{} `json:"RedrivePolicy,omitempty"`
+
+	// Tags AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sqs-queues.html#cfn-sqs-queue-tags
+	Tags []Tag `json:"Tags,omitempty"`
 
 	// VisibilityTimeout AWS CloudFormation Property
 	// Required: false
@@ -73,14 +78,14 @@ func (r *AWSSQSQueue) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSSQSQueue) MarshalJSON() ([]byte, error) {
+func (r AWSSQSQueue) MarshalJSON() ([]byte, error) {
 	type Properties AWSSQSQueue
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

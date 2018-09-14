@@ -17,12 +17,12 @@ type AWSApplicationAutoScalingScalableTarget_ScheduledAction struct {
 	// Schedule AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-applicationautoscaling-scalabletarget-scheduledaction.html#cfn-applicationautoscaling-scalabletarget-scheduledaction-schedule
-	Schedule *StringIntrinsic `json:"Schedule,omitempty"`
+	Schedule string `json:"Schedule,omitempty"`
 
 	// ScheduledActionName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-applicationautoscaling-scalabletarget-scheduledaction.html#cfn-applicationautoscaling-scalabletarget-scheduledaction-scheduledactionname
-	ScheduledActionName *StringIntrinsic `json:"ScheduledActionName,omitempty"`
+	ScheduledActionName string `json:"ScheduledActionName,omitempty"`
 
 	// StartTime AWS CloudFormation Property
 	// Required: false

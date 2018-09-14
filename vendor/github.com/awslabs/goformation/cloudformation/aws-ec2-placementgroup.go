@@ -13,7 +13,7 @@ type AWSEC2PlacementGroup struct {
 	// Strategy AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-placementgroup.html#cfn-ec2-placementgroup-strategy
-	Strategy *StringIntrinsic `json:"Strategy,omitempty"`
+	Strategy string `json:"Strategy,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -23,14 +23,14 @@ func (r *AWSEC2PlacementGroup) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSEC2PlacementGroup) MarshalJSON() ([]byte, error) {
+func (r AWSEC2PlacementGroup) MarshalJSON() ([]byte, error) {
 	type Properties AWSEC2PlacementGroup
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

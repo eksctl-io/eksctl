@@ -13,7 +13,7 @@ type AWSSNSTopic struct {
 	// DisplayName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-topic.html#cfn-sns-topic-displayname
-	DisplayName *StringIntrinsic `json:"DisplayName,omitempty"`
+	DisplayName string `json:"DisplayName,omitempty"`
 
 	// Subscription AWS CloudFormation Property
 	// Required: false
@@ -23,7 +23,7 @@ type AWSSNSTopic struct {
 	// TopicName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sns-topic.html#cfn-sns-topic-topicname
-	TopicName *StringIntrinsic `json:"TopicName,omitempty"`
+	TopicName string `json:"TopicName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -33,14 +33,14 @@ func (r *AWSSNSTopic) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSSNSTopic) MarshalJSON() ([]byte, error) {
+func (r AWSSNSTopic) MarshalJSON() ([]byte, error) {
 	type Properties AWSSNSTopic
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

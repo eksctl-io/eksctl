@@ -53,7 +53,7 @@ type AWSDynamoDBTable struct {
 	// TableName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#cfn-dynamodb-table-tablename
-	TableName *StringIntrinsic `json:"TableName,omitempty"`
+	TableName string `json:"TableName,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -73,14 +73,14 @@ func (r *AWSDynamoDBTable) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSDynamoDBTable) MarshalJSON() ([]byte, error) {
+func (r AWSDynamoDBTable) MarshalJSON() ([]byte, error) {
 	type Properties AWSDynamoDBTable
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

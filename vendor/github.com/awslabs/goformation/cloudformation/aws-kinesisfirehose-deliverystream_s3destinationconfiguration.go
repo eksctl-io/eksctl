@@ -7,7 +7,7 @@ type AWSKinesisFirehoseDeliveryStream_S3DestinationConfiguration struct {
 	// BucketARN AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-s3destinationconfiguration.html#cfn-kinesisfirehose-deliverystream-s3destinationconfiguration-bucketarn
-	BucketARN *StringIntrinsic `json:"BucketARN,omitempty"`
+	BucketARN string `json:"BucketARN,omitempty"`
 
 	// BufferingHints AWS CloudFormation Property
 	// Required: true
@@ -22,7 +22,7 @@ type AWSKinesisFirehoseDeliveryStream_S3DestinationConfiguration struct {
 	// CompressionFormat AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-s3destinationconfiguration.html#cfn-kinesisfirehose-deliverystream-s3destinationconfiguration-compressionformat
-	CompressionFormat *StringIntrinsic `json:"CompressionFormat,omitempty"`
+	CompressionFormat string `json:"CompressionFormat,omitempty"`
 
 	// EncryptionConfiguration AWS CloudFormation Property
 	// Required: false
@@ -32,12 +32,12 @@ type AWSKinesisFirehoseDeliveryStream_S3DestinationConfiguration struct {
 	// Prefix AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-s3destinationconfiguration.html#cfn-kinesisfirehose-deliverystream-s3destinationconfiguration-prefix
-	Prefix *StringIntrinsic `json:"Prefix,omitempty"`
+	Prefix string `json:"Prefix,omitempty"`
 
 	// RoleARN AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-s3destinationconfiguration.html#cfn-kinesisfirehose-deliverystream-s3destinationconfiguration-rolearn
-	RoleARN *StringIntrinsic `json:"RoleARN,omitempty"`
+	RoleARN string `json:"RoleARN,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

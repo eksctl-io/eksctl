@@ -17,7 +17,7 @@ type AWSApiGatewayUsagePlan_QuotaSettings struct {
 	// Period AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apigateway-usageplan-quotasettings.html#cfn-apigateway-usageplan-quotasettings-period
-	Period *StringIntrinsic `json:"Period,omitempty"`
+	Period string `json:"Period,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

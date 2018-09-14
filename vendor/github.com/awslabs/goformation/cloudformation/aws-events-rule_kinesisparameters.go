@@ -7,7 +7,7 @@ type AWSEventsRule_KinesisParameters struct {
 	// PartitionKeyPath AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-kinesisparameters.html#cfn-events-rule-kinesisparameters-partitionkeypath
-	PartitionKeyPath *StringIntrinsic `json:"PartitionKeyPath,omitempty"`
+	PartitionKeyPath string `json:"PartitionKeyPath,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -7,12 +7,12 @@ type AWSBudgetsBudget_TimePeriod struct {
 	// End AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-budgets-budget-timeperiod.html#cfn-budgets-budget-timeperiod-end
-	End *StringIntrinsic `json:"End,omitempty"`
+	End string `json:"End,omitempty"`
 
 	// Start AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-budgets-budget-timeperiod.html#cfn-budgets-budget-timeperiod-start
-	Start *StringIntrinsic `json:"Start,omitempty"`
+	Start string `json:"Start,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -7,17 +7,17 @@ type AWSCognitoIdentityPool_CognitoStreams struct {
 	// RoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypool-cognitostreams.html#cfn-cognito-identitypool-cognitostreams-rolearn
-	RoleArn *StringIntrinsic `json:"RoleArn,omitempty"`
+	RoleArn string `json:"RoleArn,omitempty"`
 
 	// StreamName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypool-cognitostreams.html#cfn-cognito-identitypool-cognitostreams-streamname
-	StreamName *StringIntrinsic `json:"StreamName,omitempty"`
+	StreamName string `json:"StreamName,omitempty"`
 
 	// StreamingStatus AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypool-cognitostreams.html#cfn-cognito-identitypool-cognitostreams-streamingstatus
-	StreamingStatus *StringIntrinsic `json:"StreamingStatus,omitempty"`
+	StreamingStatus string `json:"StreamingStatus,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

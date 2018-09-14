@@ -2,6 +2,7 @@ package cloudformation
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/sanathkr/yaml"
 )
@@ -76,10 +77,23 @@ func NewTemplate() *Template {
 
 // JSON converts an AWS CloudFormation template object to JSON
 func (t *Template) JSON() ([]byte, error) {
-	return json.Marshal(t)
+
+	template, err := processIntrinsics(t)
+	if err != nil {
+		return nil, errors.New("could not process CloudFormation references: " + err.Error())
+	}
+
+	return json.MarshalIndent(template, "", "  ")
 }
 
 // YAML converts an AWS CloudFormation template object to YAML
 func (t *Template) YAML() ([]byte, error) {
-	return yaml.Marshal(t)
+
+	template, err := processIntrinsics(t)
+	if err != nil {
+		return nil, errors.New("could not process CloudFormation references: " + err.Error())
+	}
+
+	return yaml.Marshal(template)
+
 }

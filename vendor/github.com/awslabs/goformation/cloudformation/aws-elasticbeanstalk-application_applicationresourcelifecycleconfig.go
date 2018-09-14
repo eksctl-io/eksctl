@@ -7,7 +7,7 @@ type AWSElasticBeanstalkApplication_ApplicationResourceLifecycleConfig struct {
 	// ServiceRole AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticbeanstalk-application-applicationresourcelifecycleconfig.html#cfn-elasticbeanstalk-application-applicationresourcelifecycleconfig-servicerole
-	ServiceRole *StringIntrinsic `json:"ServiceRole,omitempty"`
+	ServiceRole string `json:"ServiceRole,omitempty"`
 
 	// VersionLifecycleConfig AWS CloudFormation Property
 	// Required: false

@@ -7,22 +7,22 @@ type AWSConfigConfigRule_Scope struct {
 	// ComplianceResourceId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configrule-scope.html#cfn-config-configrule-scope-complianceresourceid
-	ComplianceResourceId *StringIntrinsic `json:"ComplianceResourceId,omitempty"`
+	ComplianceResourceId string `json:"ComplianceResourceId,omitempty"`
 
 	// ComplianceResourceTypes AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configrule-scope.html#cfn-config-configrule-scope-complianceresourcetypes
-	ComplianceResourceTypes []*StringIntrinsic `json:"ComplianceResourceTypes,omitempty"`
+	ComplianceResourceTypes []string `json:"ComplianceResourceTypes,omitempty"`
 
 	// TagKey AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configrule-scope.html#cfn-config-configrule-scope-tagkey
-	TagKey *StringIntrinsic `json:"TagKey,omitempty"`
+	TagKey string `json:"TagKey,omitempty"`
 
 	// TagValue AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configrule-scope.html#cfn-config-configrule-scope-tagvalue
-	TagValue *StringIntrinsic `json:"TagValue,omitempty"`
+	TagValue string `json:"TagValue,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -17,12 +17,12 @@ type AWSElasticLoadBalancingLoadBalancer_AccessLoggingPolicy struct {
 	// S3BucketName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-accessloggingpolicy.html#cfn-elb-accessloggingpolicy-s3bucketname
-	S3BucketName *StringIntrinsic `json:"S3BucketName,omitempty"`
+	S3BucketName string `json:"S3BucketName,omitempty"`
 
 	// S3BucketPrefix AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-accessloggingpolicy.html#cfn-elb-accessloggingpolicy-s3bucketprefix
-	S3BucketPrefix *StringIntrinsic `json:"S3BucketPrefix,omitempty"`
+	S3BucketPrefix string `json:"S3BucketPrefix,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

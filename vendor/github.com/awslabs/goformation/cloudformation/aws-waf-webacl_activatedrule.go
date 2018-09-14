@@ -5,7 +5,7 @@ package cloudformation
 type AWSWAFWebACL_ActivatedRule struct {
 
 	// Action AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waf-webacl-rules.html#cfn-waf-webacl-rules-action
 	Action *AWSWAFWebACL_WafAction `json:"Action,omitempty"`
 
@@ -17,7 +17,7 @@ type AWSWAFWebACL_ActivatedRule struct {
 	// RuleId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waf-webacl-rules.html#cfn-waf-webacl-rules-ruleid
-	RuleId *StringIntrinsic `json:"RuleId,omitempty"`
+	RuleId string `json:"RuleId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

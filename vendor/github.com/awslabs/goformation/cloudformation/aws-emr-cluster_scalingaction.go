@@ -7,7 +7,7 @@ type AWSEMRCluster_ScalingAction struct {
 	// Market AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-cluster-scalingaction.html#cfn-elasticmapreduce-cluster-scalingaction-market
-	Market *StringIntrinsic `json:"Market,omitempty"`
+	Market string `json:"Market,omitempty"`
 
 	// SimpleScalingPolicyConfiguration AWS CloudFormation Property
 	// Required: true

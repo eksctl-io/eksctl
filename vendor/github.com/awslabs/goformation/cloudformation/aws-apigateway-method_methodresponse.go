@@ -7,7 +7,7 @@ type AWSApiGatewayMethod_MethodResponse struct {
 	// ResponseModels AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-methodresponse.html#cfn-apigateway-method-methodresponse-responsemodels
-	ResponseModels map[string]*StringIntrinsic `json:"ResponseModels,omitempty"`
+	ResponseModels map[string]string `json:"ResponseModels,omitempty"`
 
 	// ResponseParameters AWS CloudFormation Property
 	// Required: false
@@ -17,7 +17,7 @@ type AWSApiGatewayMethod_MethodResponse struct {
 	// StatusCode AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-methodresponse.html#cfn-apigateway-method-methodresponse-statuscode
-	StatusCode *StringIntrinsic `json:"StatusCode,omitempty"`
+	StatusCode string `json:"StatusCode,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

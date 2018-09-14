@@ -7,12 +7,12 @@ type AWSCodeBuildProject_Environment struct {
 	// Certificate AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-environment.html#cfn-codebuild-project-environment-certificate
-	Certificate *StringIntrinsic `json:"Certificate,omitempty"`
+	Certificate string `json:"Certificate,omitempty"`
 
 	// ComputeType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-environment.html#cfn-codebuild-project-environment-computetype
-	ComputeType *StringIntrinsic `json:"ComputeType,omitempty"`
+	ComputeType string `json:"ComputeType,omitempty"`
 
 	// EnvironmentVariables AWS CloudFormation Property
 	// Required: false
@@ -22,7 +22,7 @@ type AWSCodeBuildProject_Environment struct {
 	// Image AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-environment.html#cfn-codebuild-project-environment-image
-	Image *StringIntrinsic `json:"Image,omitempty"`
+	Image string `json:"Image,omitempty"`
 
 	// PrivilegedMode AWS CloudFormation Property
 	// Required: false
@@ -32,7 +32,7 @@ type AWSCodeBuildProject_Environment struct {
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-environment.html#cfn-codebuild-project-environment-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type string `json:"Type,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

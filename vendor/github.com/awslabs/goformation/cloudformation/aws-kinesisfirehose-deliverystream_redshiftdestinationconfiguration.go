@@ -12,7 +12,7 @@ type AWSKinesisFirehoseDeliveryStream_RedshiftDestinationConfiguration struct {
 	// ClusterJDBCURL AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-redshiftdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-redshiftdestinationconfiguration-clusterjdbcurl
-	ClusterJDBCURL *StringIntrinsic `json:"ClusterJDBCURL,omitempty"`
+	ClusterJDBCURL string `json:"ClusterJDBCURL,omitempty"`
 
 	// CopyCommand AWS CloudFormation Property
 	// Required: true
@@ -22,7 +22,7 @@ type AWSKinesisFirehoseDeliveryStream_RedshiftDestinationConfiguration struct {
 	// Password AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-redshiftdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-redshiftdestinationconfiguration-password
-	Password *StringIntrinsic `json:"Password,omitempty"`
+	Password string `json:"Password,omitempty"`
 
 	// ProcessingConfiguration AWS CloudFormation Property
 	// Required: false
@@ -32,7 +32,7 @@ type AWSKinesisFirehoseDeliveryStream_RedshiftDestinationConfiguration struct {
 	// RoleARN AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-redshiftdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-redshiftdestinationconfiguration-rolearn
-	RoleARN *StringIntrinsic `json:"RoleARN,omitempty"`
+	RoleARN string `json:"RoleARN,omitempty"`
 
 	// S3Configuration AWS CloudFormation Property
 	// Required: true
@@ -42,7 +42,7 @@ type AWSKinesisFirehoseDeliveryStream_RedshiftDestinationConfiguration struct {
 	// Username AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-redshiftdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-redshiftdestinationconfiguration-username
-	Username *StringIntrinsic `json:"Username,omitempty"`
+	Username string `json:"Username,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -12,7 +12,7 @@ type AWSAppSyncGraphQLApi_OpenIDConnectConfig struct {
 	// ClientId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-appsync-graphqlapi-openidconnectconfig.html#cfn-appsync-graphqlapi-openidconnectconfig-clientid
-	ClientId *StringIntrinsic `json:"ClientId,omitempty"`
+	ClientId string `json:"ClientId,omitempty"`
 
 	// IatTTL AWS CloudFormation Property
 	// Required: false
@@ -22,7 +22,7 @@ type AWSAppSyncGraphQLApi_OpenIDConnectConfig struct {
 	// Issuer AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-appsync-graphqlapi-openidconnectconfig.html#cfn-appsync-graphqlapi-openidconnectconfig-issuer
-	Issuer *StringIntrinsic `json:"Issuer,omitempty"`
+	Issuer string `json:"Issuer,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

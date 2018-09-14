@@ -7,7 +7,7 @@ type AWSConfigConfigRule_Source struct {
 	// Owner AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configrule-source.html#cfn-config-configrule-source-owner
-	Owner *StringIntrinsic `json:"Owner,omitempty"`
+	Owner string `json:"Owner,omitempty"`
 
 	// SourceDetails AWS CloudFormation Property
 	// Required: false
@@ -17,7 +17,7 @@ type AWSConfigConfigRule_Source struct {
 	// SourceIdentifier AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configrule-source.html#cfn-config-configrule-source-sourceidentifier
-	SourceIdentifier *StringIntrinsic `json:"SourceIdentifier,omitempty"`
+	SourceIdentifier string `json:"SourceIdentifier,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

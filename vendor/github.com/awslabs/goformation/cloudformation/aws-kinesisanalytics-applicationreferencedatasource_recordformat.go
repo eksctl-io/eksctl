@@ -12,7 +12,7 @@ type AWSKinesisAnalyticsApplicationReferenceDataSource_RecordFormat struct {
 	// RecordFormatType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationreferencedatasource-recordformat.html#cfn-kinesisanalytics-applicationreferencedatasource-recordformat-recordformattype
-	RecordFormatType *StringIntrinsic `json:"RecordFormatType,omitempty"`
+	RecordFormatType string `json:"RecordFormatType,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

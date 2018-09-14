@@ -13,12 +13,12 @@ type AWSWAFRegionalWebACLAssociation struct {
 	// ResourceArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-webaclassociation.html#cfn-wafregional-webaclassociation-resourcearn
-	ResourceArn *StringIntrinsic `json:"ResourceArn,omitempty"`
+	ResourceArn string `json:"ResourceArn,omitempty"`
 
 	// WebACLId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-webaclassociation.html#cfn-wafregional-webaclassociation-webaclid
-	WebACLId *StringIntrinsic `json:"WebACLId,omitempty"`
+	WebACLId string `json:"WebACLId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -28,14 +28,14 @@ func (r *AWSWAFRegionalWebACLAssociation) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSWAFRegionalWebACLAssociation) MarshalJSON() ([]byte, error) {
+func (r AWSWAFRegionalWebACLAssociation) MarshalJSON() ([]byte, error) {
 	type Properties AWSWAFRegionalWebACLAssociation
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

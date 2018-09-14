@@ -13,12 +13,12 @@ type AWSRDSDBClusterParameterGroup struct {
 	// Description AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbclusterparametergroup.html#cfn-rds-dbclusterparametergroup-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description string `json:"Description,omitempty"`
 
 	// Family AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbclusterparametergroup.html#cfn-rds-dbclusterparametergroup-family
-	Family *StringIntrinsic `json:"Family,omitempty"`
+	Family string `json:"Family,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: true
@@ -38,14 +38,14 @@ func (r *AWSRDSDBClusterParameterGroup) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSRDSDBClusterParameterGroup) MarshalJSON() ([]byte, error) {
+func (r AWSRDSDBClusterParameterGroup) MarshalJSON() ([]byte, error) {
 	type Properties AWSRDSDBClusterParameterGroup
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

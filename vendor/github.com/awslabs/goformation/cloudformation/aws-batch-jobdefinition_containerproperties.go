@@ -7,7 +7,7 @@ type AWSBatchJobDefinition_ContainerProperties struct {
 	// Command AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-containerproperties.html#cfn-batch-jobdefinition-containerproperties-command
-	Command []*StringIntrinsic `json:"Command,omitempty"`
+	Command []string `json:"Command,omitempty"`
 
 	// Environment AWS CloudFormation Property
 	// Required: false
@@ -17,12 +17,12 @@ type AWSBatchJobDefinition_ContainerProperties struct {
 	// Image AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-containerproperties.html#cfn-batch-jobdefinition-containerproperties-image
-	Image *StringIntrinsic `json:"Image,omitempty"`
+	Image string `json:"Image,omitempty"`
 
 	// JobRoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-containerproperties.html#cfn-batch-jobdefinition-containerproperties-jobrolearn
-	JobRoleArn *StringIntrinsic `json:"JobRoleArn,omitempty"`
+	JobRoleArn string `json:"JobRoleArn,omitempty"`
 
 	// Memory AWS CloudFormation Property
 	// Required: true
@@ -52,7 +52,7 @@ type AWSBatchJobDefinition_ContainerProperties struct {
 	// User AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-containerproperties.html#cfn-batch-jobdefinition-containerproperties-user
-	User *StringIntrinsic `json:"User,omitempty"`
+	User string `json:"User,omitempty"`
 
 	// Vcpus AWS CloudFormation Property
 	// Required: true

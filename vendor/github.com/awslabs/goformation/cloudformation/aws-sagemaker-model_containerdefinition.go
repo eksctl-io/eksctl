@@ -7,7 +7,7 @@ type AWSSageMakerModel_ContainerDefinition struct {
 	// ContainerHostname AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sagemaker-model-containerdefinition.html#cfn-sagemaker-model-containerdefinition-containerhostname
-	ContainerHostname *StringIntrinsic `json:"ContainerHostname,omitempty"`
+	ContainerHostname string `json:"ContainerHostname,omitempty"`
 
 	// Environment AWS CloudFormation Property
 	// Required: false
@@ -17,12 +17,12 @@ type AWSSageMakerModel_ContainerDefinition struct {
 	// Image AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sagemaker-model-containerdefinition.html#cfn-sagemaker-model-containerdefinition-image
-	Image *StringIntrinsic `json:"Image,omitempty"`
+	Image string `json:"Image,omitempty"`
 
 	// ModelDataUrl AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sagemaker-model-containerdefinition.html#cfn-sagemaker-model-containerdefinition-modeldataurl
-	ModelDataUrl *StringIntrinsic `json:"ModelDataUrl,omitempty"`
+	ModelDataUrl string `json:"ModelDataUrl,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

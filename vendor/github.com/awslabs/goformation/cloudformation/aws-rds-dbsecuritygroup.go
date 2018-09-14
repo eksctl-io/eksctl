@@ -18,12 +18,12 @@ type AWSRDSDBSecurityGroup struct {
 	// EC2VpcId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-security-group.html#cfn-rds-dbsecuritygroup-ec2vpcid
-	EC2VpcId *StringIntrinsic `json:"EC2VpcId,omitempty"`
+	EC2VpcId string `json:"EC2VpcId,omitempty"`
 
 	// GroupDescription AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-security-group.html#cfn-rds-dbsecuritygroup-groupdescription
-	GroupDescription *StringIntrinsic `json:"GroupDescription,omitempty"`
+	GroupDescription string `json:"GroupDescription,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -38,14 +38,14 @@ func (r *AWSRDSDBSecurityGroup) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSRDSDBSecurityGroup) MarshalJSON() ([]byte, error) {
+func (r AWSRDSDBSecurityGroup) MarshalJSON() ([]byte, error) {
 	type Properties AWSRDSDBSecurityGroup
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

@@ -13,12 +13,12 @@ type AWSConfigAggregationAuthorization struct {
 	// AuthorizedAccountId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-aggregationauthorization.html#cfn-config-aggregationauthorization-authorizedaccountid
-	AuthorizedAccountId *StringIntrinsic `json:"AuthorizedAccountId,omitempty"`
+	AuthorizedAccountId string `json:"AuthorizedAccountId,omitempty"`
 
 	// AuthorizedAwsRegion AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-aggregationauthorization.html#cfn-config-aggregationauthorization-authorizedawsregion
-	AuthorizedAwsRegion *StringIntrinsic `json:"AuthorizedAwsRegion,omitempty"`
+	AuthorizedAwsRegion string `json:"AuthorizedAwsRegion,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -28,14 +28,14 @@ func (r *AWSConfigAggregationAuthorization) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSConfigAggregationAuthorization) MarshalJSON() ([]byte, error) {
+func (r AWSConfigAggregationAuthorization) MarshalJSON() ([]byte, error) {
 	type Properties AWSConfigAggregationAuthorization
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

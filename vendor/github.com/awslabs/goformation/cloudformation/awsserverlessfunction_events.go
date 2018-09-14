@@ -8,9 +8,9 @@ import (
 
 // AWSServerlessFunction_Events is a helper struct that can hold either a String or String value
 type AWSServerlessFunction_Events struct {
-	String **StringIntrinsic
+	String *string
 
-	StringArray *[]*StringIntrinsic
+	StringArray *[]string
 }
 
 func (r AWSServerlessFunction_Events) value() interface{} {
@@ -27,7 +27,7 @@ func (r AWSServerlessFunction_Events) value() interface{} {
 
 }
 
-func (r *AWSServerlessFunction_Events) MarshalJSON() ([]byte, error) {
+func (r AWSServerlessFunction_Events) MarshalJSON() ([]byte, error) {
 	return json.Marshal(r.value())
 }
 
@@ -42,10 +42,10 @@ func (r *AWSServerlessFunction_Events) UnmarshalJSON(b []byte) error {
 
 	switch val := typecheck.(type) {
 
-	case *StringIntrinsic:
+	case string:
 		r.String = &val
 
-	case []*StringIntrinsic:
+	case []string:
 		r.StringArray = &val
 
 	case map[string]interface{}:

@@ -7,7 +7,7 @@ type AWSGuardDutyFilter_Condition struct {
 	// Eq AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-guardduty-filter-condition.html#cfn-guardduty-filter-condition-eq
-	Eq []*StringIntrinsic `json:"Eq,omitempty"`
+	Eq []string `json:"Eq,omitempty"`
 
 	// Gte AWS CloudFormation Property
 	// Required: false
@@ -27,7 +27,7 @@ type AWSGuardDutyFilter_Condition struct {
 	// Neq AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-guardduty-filter-condition.html#cfn-guardduty-filter-condition-neq
-	Neq []*StringIntrinsic `json:"Neq,omitempty"`
+	Neq []string `json:"Neq,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

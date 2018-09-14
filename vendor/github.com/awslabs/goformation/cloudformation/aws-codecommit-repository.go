@@ -13,12 +13,12 @@ type AWSCodeCommitRepository struct {
 	// RepositoryDescription AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codecommit-repository.html#cfn-codecommit-repository-repositorydescription
-	RepositoryDescription *StringIntrinsic `json:"RepositoryDescription,omitempty"`
+	RepositoryDescription string `json:"RepositoryDescription,omitempty"`
 
 	// RepositoryName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codecommit-repository.html#cfn-codecommit-repository-repositoryname
-	RepositoryName *StringIntrinsic `json:"RepositoryName,omitempty"`
+	RepositoryName string `json:"RepositoryName,omitempty"`
 
 	// Triggers AWS CloudFormation Property
 	// Required: false
@@ -33,14 +33,14 @@ func (r *AWSCodeCommitRepository) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSCodeCommitRepository) MarshalJSON() ([]byte, error) {
+func (r AWSCodeCommitRepository) MarshalJSON() ([]byte, error) {
 	type Properties AWSCodeCommitRepository
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

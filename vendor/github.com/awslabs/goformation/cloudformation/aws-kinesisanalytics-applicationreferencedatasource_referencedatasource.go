@@ -17,7 +17,7 @@ type AWSKinesisAnalyticsApplicationReferenceDataSource_ReferenceDataSource struc
 	// TableName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationreferencedatasource-referencedatasource.html#cfn-kinesisanalytics-applicationreferencedatasource-referencedatasource-tablename
-	TableName *StringIntrinsic `json:"TableName,omitempty"`
+	TableName string `json:"TableName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

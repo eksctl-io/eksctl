@@ -7,7 +7,7 @@ type AWSBatchJobDefinition_MountPoints struct {
 	// ContainerPath AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-mountpoints.html#cfn-batch-jobdefinition-mountpoints-containerpath
-	ContainerPath *StringIntrinsic `json:"ContainerPath,omitempty"`
+	ContainerPath string `json:"ContainerPath,omitempty"`
 
 	// ReadOnly AWS CloudFormation Property
 	// Required: false
@@ -17,7 +17,7 @@ type AWSBatchJobDefinition_MountPoints struct {
 	// SourceVolume AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-mountpoints.html#cfn-batch-jobdefinition-mountpoints-sourcevolume
-	SourceVolume *StringIntrinsic `json:"SourceVolume,omitempty"`
+	SourceVolume string `json:"SourceVolume,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

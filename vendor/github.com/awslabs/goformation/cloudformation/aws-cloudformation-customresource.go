@@ -13,7 +13,7 @@ type AWSCloudFormationCustomResource struct {
 	// ServiceToken AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cfn-customresource.html#cfn-customresource-servicetoken
-	ServiceToken *StringIntrinsic `json:"ServiceToken,omitempty"`
+	ServiceToken string `json:"ServiceToken,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -23,14 +23,14 @@ func (r *AWSCloudFormationCustomResource) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSCloudFormationCustomResource) MarshalJSON() ([]byte, error) {
+func (r AWSCloudFormationCustomResource) MarshalJSON() ([]byte, error) {
 	type Properties AWSCloudFormationCustomResource
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

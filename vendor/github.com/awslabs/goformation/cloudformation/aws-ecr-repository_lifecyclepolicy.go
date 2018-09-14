@@ -7,12 +7,12 @@ type AWSECRRepository_LifecyclePolicy struct {
 	// LifecyclePolicyText AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecr-repository-lifecyclepolicy.html#cfn-ecr-repository-lifecyclepolicy-lifecyclepolicytext
-	LifecyclePolicyText *StringIntrinsic `json:"LifecyclePolicyText,omitempty"`
+	LifecyclePolicyText string `json:"LifecyclePolicyText,omitempty"`
 
 	// RegistryId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecr-repository-lifecyclepolicy.html#cfn-ecr-repository-lifecyclepolicy-registryid
-	RegistryId *StringIntrinsic `json:"RegistryId,omitempty"`
+	RegistryId string `json:"RegistryId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

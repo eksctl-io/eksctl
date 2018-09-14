@@ -7,27 +7,27 @@ type AWSElasticLoadBalancingLoadBalancer_HealthCheck struct {
 	// HealthyThreshold AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-health-check.html#cfn-elb-healthcheck-healthythreshold
-	HealthyThreshold *StringIntrinsic `json:"HealthyThreshold,omitempty"`
+	HealthyThreshold string `json:"HealthyThreshold,omitempty"`
 
 	// Interval AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-health-check.html#cfn-elb-healthcheck-interval
-	Interval *StringIntrinsic `json:"Interval,omitempty"`
+	Interval string `json:"Interval,omitempty"`
 
 	// Target AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-health-check.html#cfn-elb-healthcheck-target
-	Target *StringIntrinsic `json:"Target,omitempty"`
+	Target string `json:"Target,omitempty"`
 
 	// Timeout AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-health-check.html#cfn-elb-healthcheck-timeout
-	Timeout *StringIntrinsic `json:"Timeout,omitempty"`
+	Timeout string `json:"Timeout,omitempty"`
 
 	// UnhealthyThreshold AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-health-check.html#cfn-elb-healthcheck-unhealthythreshold
-	UnhealthyThreshold *StringIntrinsic `json:"UnhealthyThreshold,omitempty"`
+	UnhealthyThreshold string `json:"UnhealthyThreshold,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

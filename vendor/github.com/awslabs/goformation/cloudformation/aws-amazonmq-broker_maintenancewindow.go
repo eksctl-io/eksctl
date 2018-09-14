@@ -7,17 +7,17 @@ type AWSAmazonMQBroker_MaintenanceWindow struct {
 	// DayOfWeek AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-amazonmq-broker-maintenancewindow.html#cfn-amazonmq-broker-maintenancewindow-dayofweek
-	DayOfWeek *StringIntrinsic `json:"DayOfWeek,omitempty"`
+	DayOfWeek string `json:"DayOfWeek,omitempty"`
 
 	// TimeOfDay AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-amazonmq-broker-maintenancewindow.html#cfn-amazonmq-broker-maintenancewindow-timeofday
-	TimeOfDay *StringIntrinsic `json:"TimeOfDay,omitempty"`
+	TimeOfDay string `json:"TimeOfDay,omitempty"`
 
 	// TimeZone AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-amazonmq-broker-maintenancewindow.html#cfn-amazonmq-broker-maintenancewindow-timezone
-	TimeZone *StringIntrinsic `json:"TimeZone,omitempty"`
+	TimeZone string `json:"TimeZone,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

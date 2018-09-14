@@ -7,7 +7,7 @@ type AWSS3Bucket_SseKmsEncryptedObjects struct {
 	// Status AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-ssekmsencryptedobjects.html#cfn-s3-bucket-ssekmsencryptedobjects-status
-	Status *StringIntrinsic `json:"Status,omitempty"`
+	Status string `json:"Status,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

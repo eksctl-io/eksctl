@@ -13,7 +13,7 @@ type AWSIoTTopicRule struct {
 	// RuleName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iot-topicrule.html#cfn-iot-topicrule-rulename
-	RuleName *StringIntrinsic `json:"RuleName,omitempty"`
+	RuleName string `json:"RuleName,omitempty"`
 
 	// TopicRulePayload AWS CloudFormation Property
 	// Required: true
@@ -28,14 +28,14 @@ func (r *AWSIoTTopicRule) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSIoTTopicRule) MarshalJSON() ([]byte, error) {
+func (r AWSIoTTopicRule) MarshalJSON() ([]byte, error) {
 	type Properties AWSIoTTopicRule
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

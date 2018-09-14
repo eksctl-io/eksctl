@@ -7,7 +7,7 @@ type AWSDynamoDBTable_LocalSecondaryIndex struct {
 	// IndexName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dynamodb-lsi.html#cfn-dynamodb-lsi-indexname
-	IndexName *StringIntrinsic `json:"IndexName,omitempty"`
+	IndexName string `json:"IndexName,omitempty"`
 
 	// KeySchema AWS CloudFormation Property
 	// Required: true

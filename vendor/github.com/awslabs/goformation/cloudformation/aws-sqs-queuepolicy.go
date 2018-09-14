@@ -18,7 +18,7 @@ type AWSSQSQueuePolicy struct {
 	// Queues AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-sqs-policy.html#cfn-sqs-queuepolicy-queues
-	Queues []*StringIntrinsic `json:"Queues,omitempty"`
+	Queues []string `json:"Queues,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -28,14 +28,14 @@ func (r *AWSSQSQueuePolicy) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSSQSQueuePolicy) MarshalJSON() ([]byte, error) {
+func (r AWSSQSQueuePolicy) MarshalJSON() ([]byte, error) {
 	type Properties AWSSQSQueuePolicy
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

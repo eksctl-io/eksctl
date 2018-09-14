@@ -7,7 +7,7 @@ type AWSBatchJobDefinition_VolumesHost struct {
 	// SourcePath AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-volumeshost.html#cfn-batch-jobdefinition-volumeshost-sourcepath
-	SourcePath *StringIntrinsic `json:"SourcePath,omitempty"`
+	SourcePath string `json:"SourcePath,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

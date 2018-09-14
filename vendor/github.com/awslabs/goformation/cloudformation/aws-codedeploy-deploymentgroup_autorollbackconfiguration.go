@@ -12,7 +12,7 @@ type AWSCodeDeployDeploymentGroup_AutoRollbackConfiguration struct {
 	// Events AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codedeploy-deploymentgroup-autorollbackconfiguration.html#cfn-codedeploy-deploymentgroup-autorollbackconfiguration-events
-	Events []*StringIntrinsic `json:"Events,omitempty"`
+	Events []string `json:"Events,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

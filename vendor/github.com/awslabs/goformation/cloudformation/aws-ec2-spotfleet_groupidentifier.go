@@ -7,7 +7,7 @@ type AWSEC2SpotFleet_GroupIdentifier struct {
 	// GroupId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata-launchspecifications-securitygroups.html#cfn-ec2-spotfleet-groupidentifier-groupid
-	GroupId *StringIntrinsic `json:"GroupId,omitempty"`
+	GroupId string `json:"GroupId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

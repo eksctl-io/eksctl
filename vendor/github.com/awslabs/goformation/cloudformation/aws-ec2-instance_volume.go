@@ -7,12 +7,12 @@ type AWSEC2Instance_Volume struct {
 	// Device AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-mount-point.html#cfn-ec2-mountpoint-device
-	Device *StringIntrinsic `json:"Device,omitempty"`
+	Device string `json:"Device,omitempty"`
 
 	// VolumeId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-mount-point.html#cfn-ec2-mountpoint-volumeid
-	VolumeId *StringIntrinsic `json:"VolumeId,omitempty"`
+	VolumeId string `json:"VolumeId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -13,17 +13,22 @@ type AWSEC2VPCPeeringConnection struct {
 	// PeerOwnerId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peerownerid
-	PeerOwnerId *StringIntrinsic `json:"PeerOwnerId,omitempty"`
+	PeerOwnerId string `json:"PeerOwnerId,omitempty"`
+
+	// PeerRegion AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peerregion
+	PeerRegion string `json:"PeerRegion,omitempty"`
 
 	// PeerRoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peerrolearn
-	PeerRoleArn *StringIntrinsic `json:"PeerRoleArn,omitempty"`
+	PeerRoleArn string `json:"PeerRoleArn,omitempty"`
 
 	// PeerVpcId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-peervpcid
-	PeerVpcId *StringIntrinsic `json:"PeerVpcId,omitempty"`
+	PeerVpcId string `json:"PeerVpcId,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -33,7 +38,7 @@ type AWSEC2VPCPeeringConnection struct {
 	// VpcId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcpeeringconnection.html#cfn-ec2-vpcpeeringconnection-vpcid
-	VpcId *StringIntrinsic `json:"VpcId,omitempty"`
+	VpcId string `json:"VpcId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -43,14 +48,14 @@ func (r *AWSEC2VPCPeeringConnection) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSEC2VPCPeeringConnection) MarshalJSON() ([]byte, error) {
+func (r AWSEC2VPCPeeringConnection) MarshalJSON() ([]byte, error) {
 	type Properties AWSEC2VPCPeeringConnection
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

@@ -17,12 +17,12 @@ type AWSSESReceiptRule_Rule struct {
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-receiptrule-rule.html#cfn-ses-receiptrule-rule-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// Recipients AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-receiptrule-rule.html#cfn-ses-receiptrule-rule-recipients
-	Recipients []*StringIntrinsic `json:"Recipients,omitempty"`
+	Recipients []string `json:"Recipients,omitempty"`
 
 	// ScanEnabled AWS CloudFormation Property
 	// Required: false
@@ -32,7 +32,7 @@ type AWSSESReceiptRule_Rule struct {
 	// TlsPolicy AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-receiptrule-rule.html#cfn-ses-receiptrule-rule-tlspolicy
-	TlsPolicy *StringIntrinsic `json:"TlsPolicy,omitempty"`
+	TlsPolicy string `json:"TlsPolicy,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

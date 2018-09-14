@@ -13,7 +13,7 @@ type AWSKMSKey struct {
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description string `json:"Description,omitempty"`
 
 	// EnableKeyRotation AWS CloudFormation Property
 	// Required: false
@@ -33,7 +33,7 @@ type AWSKMSKey struct {
 	// KeyUsage AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-keyusage
-	KeyUsage *StringIntrinsic `json:"KeyUsage,omitempty"`
+	KeyUsage string `json:"KeyUsage,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -48,14 +48,14 @@ func (r *AWSKMSKey) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSKMSKey) MarshalJSON() ([]byte, error) {
+func (r AWSKMSKey) MarshalJSON() ([]byte, error) {
 	type Properties AWSKMSKey
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

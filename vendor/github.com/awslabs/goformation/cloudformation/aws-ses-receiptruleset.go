@@ -13,7 +13,7 @@ type AWSSESReceiptRuleSet struct {
 	// RuleSetName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ses-receiptruleset.html#cfn-ses-receiptruleset-rulesetname
-	RuleSetName *StringIntrinsic `json:"RuleSetName,omitempty"`
+	RuleSetName string `json:"RuleSetName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -23,14 +23,14 @@ func (r *AWSSESReceiptRuleSet) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSSESReceiptRuleSet) MarshalJSON() ([]byte, error) {
+func (r AWSSESReceiptRuleSet) MarshalJSON() ([]byte, error) {
 	type Properties AWSSESReceiptRuleSet
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

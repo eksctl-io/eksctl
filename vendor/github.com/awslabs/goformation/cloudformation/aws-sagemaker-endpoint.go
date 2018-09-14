@@ -13,12 +13,12 @@ type AWSSageMakerEndpoint struct {
 	// EndpointConfigName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-endpoint.html#cfn-sagemaker-endpoint-endpointconfigname
-	EndpointConfigName *StringIntrinsic `json:"EndpointConfigName,omitempty"`
+	EndpointConfigName string `json:"EndpointConfigName,omitempty"`
 
 	// EndpointName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-endpoint.html#cfn-sagemaker-endpoint-endpointname
-	EndpointName *StringIntrinsic `json:"EndpointName,omitempty"`
+	EndpointName string `json:"EndpointName,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -33,14 +33,14 @@ func (r *AWSSageMakerEndpoint) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSSageMakerEndpoint) MarshalJSON() ([]byte, error) {
+func (r AWSSageMakerEndpoint) MarshalJSON() ([]byte, error) {
 	type Properties AWSSageMakerEndpoint
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

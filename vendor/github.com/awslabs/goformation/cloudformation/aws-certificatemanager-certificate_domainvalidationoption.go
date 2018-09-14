@@ -7,12 +7,12 @@ type AWSCertificateManagerCertificate_DomainValidationOption struct {
 	// DomainName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-certificatemanager-certificate-domainvalidationoption.html#cfn-certificatemanager-certificate-domainvalidationoptions-domainname
-	DomainName *StringIntrinsic `json:"DomainName,omitempty"`
+	DomainName string `json:"DomainName,omitempty"`
 
 	// ValidationDomain AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-certificatemanager-certificate-domainvalidationoption.html#cfn-certificatemanager-certificate-domainvalidationoption-validationdomain
-	ValidationDomain *StringIntrinsic `json:"ValidationDomain,omitempty"`
+	ValidationDomain string `json:"ValidationDomain,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

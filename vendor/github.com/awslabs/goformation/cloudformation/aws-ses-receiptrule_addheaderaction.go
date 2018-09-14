@@ -7,12 +7,12 @@ type AWSSESReceiptRule_AddHeaderAction struct {
 	// HeaderName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-receiptrule-addheaderaction.html#cfn-ses-receiptrule-addheaderaction-headername
-	HeaderName *StringIntrinsic `json:"HeaderName,omitempty"`
+	HeaderName string `json:"HeaderName,omitempty"`
 
 	// HeaderValue AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-receiptrule-addheaderaction.html#cfn-ses-receiptrule-addheaderaction-headervalue
-	HeaderValue *StringIntrinsic `json:"HeaderValue,omitempty"`
+	HeaderValue string `json:"HeaderValue,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

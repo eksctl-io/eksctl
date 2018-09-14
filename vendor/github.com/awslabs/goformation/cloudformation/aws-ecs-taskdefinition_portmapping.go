@@ -17,7 +17,7 @@ type AWSECSTaskDefinition_PortMapping struct {
 	// Protocol AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-containerdefinitions-portmappings.html#cfn-ecs-taskdefinition-containerdefinition-portmappings-sourcevolume
-	Protocol *StringIntrinsic `json:"Protocol,omitempty"`
+	Protocol string `json:"Protocol,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

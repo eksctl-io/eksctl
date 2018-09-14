@@ -7,7 +7,7 @@ type AWSDMSEndpoint_DynamoDbSettings struct {
 	// ServiceAccessRoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dms-endpoint-dynamodbsettings.html#cfn-dms-endpoint-dynamodbsettings-serviceaccessrolearn
-	ServiceAccessRoleArn *StringIntrinsic `json:"ServiceAccessRoleArn,omitempty"`
+	ServiceAccessRoleArn string `json:"ServiceAccessRoleArn,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

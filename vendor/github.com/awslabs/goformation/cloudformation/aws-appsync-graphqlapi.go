@@ -13,7 +13,7 @@ type AWSAppSyncGraphQLApi struct {
 	// AuthenticationType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlapi.html#cfn-appsync-graphqlapi-authenticationtype
-	AuthenticationType *StringIntrinsic `json:"AuthenticationType,omitempty"`
+	AuthenticationType string `json:"AuthenticationType,omitempty"`
 
 	// LogConfig AWS CloudFormation Property
 	// Required: false
@@ -23,7 +23,7 @@ type AWSAppSyncGraphQLApi struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-graphqlapi.html#cfn-appsync-graphqlapi-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// OpenIDConnectConfig AWS CloudFormation Property
 	// Required: false
@@ -43,14 +43,14 @@ func (r *AWSAppSyncGraphQLApi) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSAppSyncGraphQLApi) MarshalJSON() ([]byte, error) {
+func (r AWSAppSyncGraphQLApi) MarshalJSON() ([]byte, error) {
 	type Properties AWSAppSyncGraphQLApi
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

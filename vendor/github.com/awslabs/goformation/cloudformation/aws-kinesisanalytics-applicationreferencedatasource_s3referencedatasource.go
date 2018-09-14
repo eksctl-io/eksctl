@@ -7,17 +7,17 @@ type AWSKinesisAnalyticsApplicationReferenceDataSource_S3ReferenceDataSource str
 	// BucketARN AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationreferencedatasource-s3referencedatasource.html#cfn-kinesisanalytics-applicationreferencedatasource-s3referencedatasource-bucketarn
-	BucketARN *StringIntrinsic `json:"BucketARN,omitempty"`
+	BucketARN string `json:"BucketARN,omitempty"`
 
 	// FileKey AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationreferencedatasource-s3referencedatasource.html#cfn-kinesisanalytics-applicationreferencedatasource-s3referencedatasource-filekey
-	FileKey *StringIntrinsic `json:"FileKey,omitempty"`
+	FileKey string `json:"FileKey,omitempty"`
 
 	// ReferenceRoleARN AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationreferencedatasource-s3referencedatasource.html#cfn-kinesisanalytics-applicationreferencedatasource-s3referencedatasource-referencerolearn
-	ReferenceRoleARN *StringIntrinsic `json:"ReferenceRoleARN,omitempty"`
+	ReferenceRoleARN string `json:"ReferenceRoleARN,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -23,7 +23,7 @@ type AWSElasticLoadBalancingV2ListenerRule struct {
 	// ListenerArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenerrule.html#cfn-elasticloadbalancingv2-listenerrule-listenerarn
-	ListenerArn *StringIntrinsic `json:"ListenerArn,omitempty"`
+	ListenerArn string `json:"ListenerArn,omitempty"`
 
 	// Priority AWS CloudFormation Property
 	// Required: true
@@ -38,14 +38,14 @@ func (r *AWSElasticLoadBalancingV2ListenerRule) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSElasticLoadBalancingV2ListenerRule) MarshalJSON() ([]byte, error) {
+func (r AWSElasticLoadBalancingV2ListenerRule) MarshalJSON() ([]byte, error) {
 	type Properties AWSElasticLoadBalancingV2ListenerRule
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

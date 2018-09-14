@@ -7,7 +7,7 @@ type AWSS3Bucket_AccelerateConfiguration struct {
 	// AccelerationStatus AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-accelerateconfiguration.html#cfn-s3-bucket-accelerateconfiguration-accelerationstatus
-	AccelerationStatus *StringIntrinsic `json:"AccelerationStatus,omitempty"`
+	AccelerationStatus string `json:"AccelerationStatus,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

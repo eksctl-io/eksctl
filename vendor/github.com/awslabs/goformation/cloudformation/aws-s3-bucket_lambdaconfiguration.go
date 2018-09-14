@@ -7,7 +7,7 @@ type AWSS3Bucket_LambdaConfiguration struct {
 	// Event AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig-lambdaconfig.html#cfn-s3-bucket-notificationconfig-lambdaconfig-event
-	Event *StringIntrinsic `json:"Event,omitempty"`
+	Event string `json:"Event,omitempty"`
 
 	// Filter AWS CloudFormation Property
 	// Required: false
@@ -17,7 +17,7 @@ type AWSS3Bucket_LambdaConfiguration struct {
 	// Function AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-notificationconfig-lambdaconfig.html#cfn-s3-bucket-notificationconfig-lambdaconfig-function
-	Function *StringIntrinsic `json:"Function,omitempty"`
+	Function string `json:"Function,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -13,7 +13,7 @@ type AWSCodePipelineWebhook struct {
 	// Authentication AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-authentication
-	Authentication *StringIntrinsic `json:"Authentication,omitempty"`
+	Authentication string `json:"Authentication,omitempty"`
 
 	// AuthenticationConfiguration AWS CloudFormation Property
 	// Required: true
@@ -28,7 +28,7 @@ type AWSCodePipelineWebhook struct {
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// RegisterWithThirdParty AWS CloudFormation Property
 	// Required: false
@@ -38,12 +38,12 @@ type AWSCodePipelineWebhook struct {
 	// TargetAction AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-targetaction
-	TargetAction *StringIntrinsic `json:"TargetAction,omitempty"`
+	TargetAction string `json:"TargetAction,omitempty"`
 
 	// TargetPipeline AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-webhook.html#cfn-codepipeline-webhook-targetpipeline
-	TargetPipeline *StringIntrinsic `json:"TargetPipeline,omitempty"`
+	TargetPipeline string `json:"TargetPipeline,omitempty"`
 
 	// TargetPipelineVersion AWS CloudFormation Property
 	// Required: true
@@ -58,14 +58,14 @@ func (r *AWSCodePipelineWebhook) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSCodePipelineWebhook) MarshalJSON() ([]byte, error) {
+func (r AWSCodePipelineWebhook) MarshalJSON() ([]byte, error) {
 	type Properties AWSCodePipelineWebhook
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

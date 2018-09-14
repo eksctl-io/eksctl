@@ -7,7 +7,7 @@ type AWSConfigConfigurationAggregator_AccountAggregationSource struct {
 	// AccountIds AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configurationaggregator-accountaggregationsource.html#cfn-config-configurationaggregator-accountaggregationsource-accountids
-	AccountIds []*StringIntrinsic `json:"AccountIds,omitempty"`
+	AccountIds []string `json:"AccountIds,omitempty"`
 
 	// AllAwsRegions AWS CloudFormation Property
 	// Required: false
@@ -17,7 +17,7 @@ type AWSConfigConfigurationAggregator_AccountAggregationSource struct {
 	// AwsRegions AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configurationaggregator-accountaggregationsource.html#cfn-config-configurationaggregator-accountaggregationsource-awsregions
-	AwsRegions []*StringIntrinsic `json:"AwsRegions,omitempty"`
+	AwsRegions []string `json:"AwsRegions,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

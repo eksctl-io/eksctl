@@ -13,12 +13,12 @@ type AWSCloudWatchDashboard struct {
 	// DashboardBody AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudwatch-dashboard.html#cfn-cloudwatch-dashboard-dashboardbody
-	DashboardBody *StringIntrinsic `json:"DashboardBody,omitempty"`
+	DashboardBody string `json:"DashboardBody,omitempty"`
 
 	// DashboardName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cloudwatch-dashboard.html#cfn-cloudwatch-dashboard-dashboardname
-	DashboardName *StringIntrinsic `json:"DashboardName,omitempty"`
+	DashboardName string `json:"DashboardName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -28,14 +28,14 @@ func (r *AWSCloudWatchDashboard) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSCloudWatchDashboard) MarshalJSON() ([]byte, error) {
+func (r AWSCloudWatchDashboard) MarshalJSON() ([]byte, error) {
 	type Properties AWSCloudWatchDashboard
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

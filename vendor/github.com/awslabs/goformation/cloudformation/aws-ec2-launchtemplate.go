@@ -18,7 +18,7 @@ type AWSEC2LaunchTemplate struct {
 	// LaunchTemplateName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-launchtemplate.html#cfn-ec2-launchtemplate-launchtemplatename
-	LaunchTemplateName *StringIntrinsic `json:"LaunchTemplateName,omitempty"`
+	LaunchTemplateName string `json:"LaunchTemplateName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -28,14 +28,14 @@ func (r *AWSEC2LaunchTemplate) AWSCloudFormationType() string {
 
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
-func (r *AWSEC2LaunchTemplate) MarshalJSON() ([]byte, error) {
+func (r AWSEC2LaunchTemplate) MarshalJSON() ([]byte, error) {
 	type Properties AWSEC2LaunchTemplate
 	return json.Marshal(&struct {
 		Type       string
 		Properties Properties
 	}{
 		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(*r),
+		Properties: (Properties)(r),
 	})
 }
 

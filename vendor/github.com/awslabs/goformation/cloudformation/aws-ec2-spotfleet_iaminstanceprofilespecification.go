@@ -7,7 +7,7 @@ type AWSEC2SpotFleet_IamInstanceProfileSpecification struct {
 	// Arn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata-launchspecifications-iaminstanceprofile.html#cfn-ec2-spotfleet-iaminstanceprofilespecification-arn
-	Arn *StringIntrinsic `json:"Arn,omitempty"`
+	Arn string `json:"Arn,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

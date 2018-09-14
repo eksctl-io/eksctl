@@ -7,12 +7,12 @@ type AWSGlueJob_JobCommand struct {
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-job-jobcommand.html#cfn-glue-job-jobcommand-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name string `json:"Name,omitempty"`
 
 	// ScriptLocation AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-job-jobcommand.html#cfn-glue-job-jobcommand-scriptlocation
-	ScriptLocation *StringIntrinsic `json:"ScriptLocation,omitempty"`
+	ScriptLocation string `json:"ScriptLocation,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
