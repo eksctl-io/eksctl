@@ -8,7 +8,7 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 ![Gophers: E, K, S, C, T, & L](logo/eksctl.png)
 
-## Usage
+## Setup
 
 ### Install
 
@@ -44,7 +44,7 @@ The AWS IAM authenticator for EKS was initially developed by Heptio. It was orig
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
-## Commands
+## Usage
 
 To create a basic cluster, run:
 
