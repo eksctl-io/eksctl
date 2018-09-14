@@ -219,7 +219,7 @@ users:
   user:
     as-user-extra: {}
     client-certificate: /Users/bob/.minikube/client.crt
-    client-key: /Users/bob/.minikube/client.key		
+    client-key: /Users/bob/.minikube/client.key
 `
 
 func writeConfig(filename string) error {
