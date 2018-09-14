@@ -49,8 +49,8 @@
 [[projects]]
   name = "github.com/awslabs/goformation"
   packages = ["cloudformation"]
-  revision = "90ef9409368c06d0afcca0d3344c8872c084c059"
-  version = "v1.2.0"
+  revision = "f5e92c29a27e5b63f44d3828d26d11cd54bb6802"
+  version = "v1.2.1"
 
 [[projects]]
   branch = "master"

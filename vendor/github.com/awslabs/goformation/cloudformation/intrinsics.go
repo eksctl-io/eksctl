@@ -23,7 +23,7 @@ func GetAtt(logicalName string, attribute string) string {
 
 // ImportValue returns the value of an output exported by another stack. You typically use this function to create cross-stack references. In the following example template snippets, Stack A exports VPC security group values and Stack B imports them.
 func ImportValue(name string) string {
-	i := `{ "Fn::Import": "` + name + `" }`
+	i := `{ "Fn::ImportValue": "` + name + `" }`
 	return base64.StdEncoding.EncodeToString([]byte(i))
 }
 
