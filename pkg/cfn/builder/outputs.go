@@ -34,9 +34,7 @@ func (r *resourceSet) newOutput(name string, value interface{}, export bool) {
 
 // newJoinedOutput defines a new output as comma-separated list
 func (r *resourceSet) newJoinedOutput(name string, value []string, export bool) {
-	r.newOutput(name, map[string]string{
-		"Value": gfn.Join(",", value),
-	}, export)
+	r.newOutput(name, gfn.Join(",", value), export)
 }
 
 // newOutputFromAtt defines a new output from an attributes
