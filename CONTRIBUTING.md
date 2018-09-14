@@ -22,7 +22,7 @@ The project uses Slack. If you get stuck or just have a question then you are en
 ## Getting Started
 
 - Fork the repository on GitHub
-- Read the [README](README.md) for getting started as a user and learn how/where to ask for help 
+- Read the [README](README.md) for getting started as a user and learn how/where to ask for help
 - If you want to contribute as a developer, continue reading this document for further instructions
 - Play with the project, submit bugs, submit pull requests!
 
@@ -41,7 +41,7 @@ take a look at issues marked with [good first issue](https://github.com/weavewor
 - Submit a pull request to the original repository.
 
 If your PR is a work in progress then make sure you prefix the title with `WIP: `. This lets everyone know that this is still being worked on. Once its ready
-remove the `WIP: ` title prefix and where possible squash your commits. 
+remove the `WIP: ` title prefix and where possible squash your commits.
 
 ## How to build and run the project
 

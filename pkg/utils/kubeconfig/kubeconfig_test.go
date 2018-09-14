@@ -152,11 +152,11 @@ var _ = Describe("Kubeconfig", func() {
 			VPC:                      "",
 			Endpoint:                 "",
 			CertificateAuthorityData: []uint8(nil),
-			ARN:                 "",
-			ClusterStackName:    "",
-			NodeInstanceRoleARN: "",
-			AvailabilityZones:   []string{"us-west-2b", "us-west-2a", "us-west-2c"},
-			Addons:              eksctlapi.ClusterAddons{},
+			ARN:                      "",
+			ClusterStackName:         "",
+			NodeInstanceRoleARN:      "",
+			AvailabilityZones:        []string{"us-west-2b", "us-west-2a", "us-west-2c"},
+			Addons:                   eksctlapi.ClusterAddons{},
 		}
 
 		var (
