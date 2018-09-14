@@ -37,7 +37,7 @@ eksctl create cluster
 A cluster will be created with default parameters
 - exciting auto-generated name, e.g. "fabulous-mushroom-1527688624"
 - 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
-- default EKS AMI
+- use official AWS EKS AMI
 - `us-west-2` region
 - dedicated VPC (check your quotas)
 - using static AMI resolver
@@ -150,7 +150,7 @@ If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/in
 After subscribing to the AMI you can create a cluster specifying the GPU instance type you'd like to use for the nodes. For example:
 
 ```
-eksctl create cluster -t p2.xlarge
+eksctl create cluster --node-type=p2.xlarge
 ```
 
 The AMI resolvers (both static and auto) will see that you want to use a GPU instance type (p2 or p3 only) and they will select the correct AMI.
@@ -176,7 +176,7 @@ The `--node-ami` can take the AMI image id for an image to explicitly use. It al
 If, for example, AWS release a new version of the EKS node AMIs and a new version of eksctl hasn't been released you can use the latest AMI by doing the following:
 
 ```
-eksctl create cluster --node-ami auto
+eksctl create cluster --node-ami=auto
 ```
 
 <!-- TODO for 0.3.0
