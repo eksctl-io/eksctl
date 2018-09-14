@@ -9,8 +9,6 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
-
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
@@ -75,7 +73,7 @@ func setKubeletParams(config *cloudconfig.CloudConfig, spec *api.ClusterConfig) 
 	})
 }
 
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (*gfn.StringIntrinsic, error) {
+func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
@@ -98,7 +96,7 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (*gfn.StringIntrinsic, 
 	config.AddCommand("pip", "install", "--upgrade", "awscli")
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
-		return nil, err
+		return "", err
 	}
 
 	config.AddCommand("systemctl", "daemon-reload")
@@ -106,9 +104,9 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (*gfn.StringIntrinsic, 
 
 	body, err := config.Encode()
 	if err != nil {
-		return nil, errors.Wrap(err, "encoding user data")
+		return "", errors.Wrap(err, "encoding user data")
 	}
 
 	logger.Debug("user-data = %s", string(body))
-	return gfn.NewString(string(body)), nil
+	return string(body), nil
 }

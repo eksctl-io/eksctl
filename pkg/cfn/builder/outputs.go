@@ -22,9 +22,10 @@ func exportName(prefix, output string) string {
 // newOutput defines a new output and optionally exports it
 func (r *resourceSet) newOutput(name string, value interface{}, export bool) {
 	o := map[string]interface{}{"Value": value}
+
 	if export {
-		o["Export"] = map[string]map[string]string{
-			"Name": map[string]string{fnSub: exportName(awsStackName, name)},
+		o["Export"] = map[string]string{
+			"Name": gfn.Sub(exportName(awsStackName, name)),
 		}
 	}
 	r.template.Outputs[name] = o
@@ -32,18 +33,20 @@ func (r *resourceSet) newOutput(name string, value interface{}, export bool) {
 }
 
 // newJoinedOutput defines a new output as comma-separated list
-func (r *resourceSet) newJoinedOutput(name string, value []*gfn.StringIntrinsic, export bool) {
-	r.newOutput(name, map[string][]interface{}{fnJoin: []interface{}{",", value}}, export)
+func (r *resourceSet) newJoinedOutput(name string, value []string, export bool) {
+	r.newOutput(name, map[string]string{
+		"Value": gfn.Join(",", value),
+	}, export)
 }
 
 // newOutputFromAtt defines a new output from an attributes
-func (r *resourceSet) newOutputFromAtt(name, att string, export bool) {
-	r.newOutput(name, map[string]string{fnGetAtt: att}, export)
+func (r *resourceSet) newOutputFromAtt(name, resource, att string, export bool) {
+	r.newOutput(name, gfn.GetAtt(resource, att), export)
 }
 
 // makeImportValue imports output of another stack
-func makeImportValue(prefix, output string) *gfn.StringIntrinsic {
-	return gfn.NewStringIntrinsic(fnImportValue, makeSub(exportName(prefix, output)))
+func makeImportValue(prefix, output string) string {
+	return gfn.ImportValue(gfn.Sub((exportName(prefix, output))))
 }
 
 // setOutput is the entrypoint that validates destination object

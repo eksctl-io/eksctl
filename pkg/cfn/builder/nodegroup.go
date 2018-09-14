@@ -17,19 +17,19 @@ const (
 
 var (
 	clusterOwnedTag = gfn.Tag{
-		Key:   makeSub("kubernetes.io/cluster/${ClusterName}"),
-		Value: gfn.NewString("owned"),
+		Key:   gfn.Sub("kubernetes.io/cluster/${ClusterName}"),
+		Value: "owned",
 	}
 )
 
 type nodeGroupResourceSet struct {
 	rs               *resourceSet
 	spec             *api.ClusterConfig
-	clusterStackName *gfn.StringIntrinsic
-	instanceProfile  *gfn.StringIntrinsic
-	securityGroups   []*gfn.StringIntrinsic
-	vpc              *gfn.StringIntrinsic
-	userData         *gfn.StringIntrinsic
+	clusterStackName string
+	instanceProfile  string
+	securityGroups   []string
+	vpc              string
+	userData         string
 }
 
 type awsCloudFormationResource struct {
@@ -78,7 +78,7 @@ func (n *nodeGroupResourceSet) RenderJSON() ([]byte, error) {
 	return n.rs.renderJSON()
 }
 
-func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.StringIntrinsic {
+func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) string {
 	return n.rs.newResource(name, resource)
 }
 
@@ -88,16 +88,16 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 		IamInstanceProfile:       n.instanceProfile,
 		SecurityGroups:           n.securityGroups,
 
-		ImageId:      gfn.NewString(n.spec.NodeAMI),
-		InstanceType: gfn.NewString(n.spec.NodeType),
+		ImageId:      n.spec.NodeAMI,
+		InstanceType: n.spec.NodeType,
 		UserData:     n.userData,
 	}
 	if n.spec.NodeSSH {
-		lc.KeyName = gfn.NewString(n.spec.SSHPublicKeyName)
+		lc.KeyName = n.spec.SSHPublicKeyName
 	}
 	refLC := n.newResource("NodeLaunchConfig", lc)
-	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
-	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
+
+	// currently goformation tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 	n.newResource("NodeGroup", &awsCloudFormationResource{
 		Type: "AWS::AutoScaling::AutoScalingGroup",
 		Properties: map[string]interface{}{
@@ -105,15 +105,10 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 			"DesiredCapacity":         fmt.Sprintf("%d", n.spec.Nodes),
 			"MinSize":                 fmt.Sprintf("%d", n.spec.MinNodes),
 			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxNodes),
-			"VPCZoneIdentifier": map[string][]interface{}{
-				fnSplit: []interface{}{
-					",",
-					makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets),
-				},
-			},
+			"VPCZoneIdentifier":       gfn.ImportValue(makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets)),
 			"Tags": []map[string]interface{}{
-				{"Key": "Name", "Value": makeSub(nodeGroupNameFmt + "-Node"), "PropagateAtLaunch": "true"},
-				{"Key": makeSub("kubernetes.io/cluster/${ClusterName}"), "Value": "owned", "PropagateAtLaunch": "true"},
+				{"Key": "Name", "Value": gfn.Sub(nodeGroupNameFmt + "-Node"), "PropagateAtLaunch": "true"},
+				{"Key": gfn.Sub("kubernetes.io/cluster/${ClusterName}"), "Value": "owned", "PropagateAtLaunch": "true"},
 			},
 		},
 		UpdatePolicy: map[string]map[string]string{

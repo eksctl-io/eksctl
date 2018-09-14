@@ -19,8 +19,8 @@ const (
 type clusterResourceSet struct {
 	rs             *resourceSet
 	spec           *api.ClusterConfig
-	subnets        []*gfn.StringIntrinsic
-	securityGroups []*gfn.StringIntrinsic
+	subnets        []string
+	securityGroups []string
 }
 
 func NewClusterResourceSet(spec *api.ClusterConfig) *clusterResourceSet {
@@ -55,24 +55,24 @@ func (c *clusterResourceSet) RenderJSON() ([]byte, error) {
 	return c.rs.renderJSON()
 }
 
-func (c *clusterResourceSet) newResource(name string, resource interface{}) *gfn.StringIntrinsic {
+func (c *clusterResourceSet) newResource(name string, resource interface{}) string {
 	return c.rs.newResource(name, resource)
 }
 
 func (c *clusterResourceSet) addResourcesForControlPlane(version string) {
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
 		Name:    c.rs.newStringParameter(ParamClusterName, ""),
-		RoleArn: gfn.NewStringIntrinsic(fnGetAtt, "ServiceRole.Arn"),
-		Version: gfn.NewString(version),
+		RoleArn: gfn.GetAtt("ServiceRole", "Arn"),
+		Version: version,
 		ResourcesVpcConfig: &gfn.AWSEKSCluster_ResourcesVpcConfig{
 			SubnetIds:        c.subnets,
 			SecurityGroupIds: c.securityGroups,
 		},
 	})
 
-	c.rs.newOutputFromAtt(cfnOutputClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)
-	c.rs.newOutputFromAtt(cfnOutputClusterEndpoint, "ControlPlane.Endpoint", true)
-	c.rs.newOutputFromAtt(cfnOutputClusterARN, "ControlPlane.Arn", true)
+	c.rs.newOutputFromAtt(cfnOutputClusterCertificateAuthorityData, "ControlPlane", "CertificateAuthorityData", false)
+	c.rs.newOutputFromAtt(cfnOutputClusterEndpoint, "ControlPlane", "Endpoint", true)
+	c.rs.newOutputFromAtt(cfnOutputClusterARN, "ControlPlane", "Arn", true)
 }
 
 func (c *clusterResourceSet) GetAllOutputs(stack cfn.Stack) error {

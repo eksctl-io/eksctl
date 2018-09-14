@@ -15,7 +15,7 @@ const (
 
 func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
 	refVPC := c.newResource("VPC", &gfn.AWSEC2VPC{
-		CidrBlock:          gfn.NewString(globalCIDR.String()),
+		CidrBlock:          globalCIDR.String(),
 		EnableDnsSupport:   true,
 		EnableDnsHostnames: true,
 	})
@@ -32,15 +32,15 @@ func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 
 	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
 		RouteTableId:         refRT,
-		DestinationCidrBlock: gfn.NewString("0.0.0.0/0"),
+		DestinationCidrBlock: "0.0.0.0/0",
 		GatewayId:            refIG,
 	})
 
 	for az, subnet := range subnets {
 		alias := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 		refSubnet := c.newResource("Subnet"+alias, &gfn.AWSEC2Subnet{
-			AvailabilityZone: gfn.NewString(az),
-			CidrBlock:        gfn.NewString(subnet.String()),
+			AvailabilityZone: az,
+			CidrBlock:        subnet.String(),
 			VpcId:            refVPC,
 		})
 		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
@@ -51,10 +51,10 @@ func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 	}
 
 	refSG := c.newResource("ControlPlaneSecurityGroup", &gfn.AWSEC2SecurityGroup{
-		GroupDescription: gfn.NewString("Communication between the control plane and worker node groups"),
+		GroupDescription: "Communication between the control plane and worker node groups",
 		VpcId:            refVPC,
 	})
-	c.securityGroups = []*gfn.StringIntrinsic{refSG}
+	c.securityGroups = []string{refSG}
 
 	c.rs.newOutput(cfnOutputClusterVPC, refVPC, true)
 	c.rs.newJoinedOutput(cfnOutputClusterSecurityGroup, c.securityGroups, true)
@@ -64,9 +64,9 @@ func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 	desc := "worker nodes in group " + nodeGroupNameFmt
 
-	tcp := gfn.NewString("tcp")
-	anywhereIPv4 := gfn.NewString("0.0.0.0/0")
-	anywhereIPv6 := gfn.NewString("::/0")
+	tcp := "tcp"
+	anywhereIPv4 := "0.0.0.0/0"
+	anywhereIPv6 := "::/0"
 	const (
 		apiPort = 443
 		sshPort = 22
@@ -78,23 +78,23 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 	refCP := makeImportValue(ParamClusterStackName, cfnOutputClusterSecurityGroup)
 	refSG := n.newResource("SG", &gfn.AWSEC2SecurityGroup{
 		VpcId:            makeImportValue(ParamClusterStackName, cfnOutputClusterVPC),
-		GroupDescription: makeSub("Communication between the control plane and " + desc),
+		GroupDescription: gfn.Sub("Communication between the control plane and " + desc),
 		Tags:             []gfn.Tag{clusterOwnedTag},
 	})
-	n.securityGroups = []*gfn.StringIntrinsic{refSG}
+	n.securityGroups = []string{refSG}
 
 	n.newResource("IngressInterSG", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refSG,
 		SourceSecurityGroupId: refSG,
-		Description:           makeSub("Allow " + desc + " to communicate with each other (all ports)"),
-		IpProtocol:            gfn.NewString("-1"),
+		Description:           gfn.Sub("Allow " + desc + " to communicate with each other (all ports)"),
+		IpProtocol:            "-1",
 		FromPort:              0,
 		ToPort:                nodeMaxPort,
 	})
 	n.newResource("IngressInterCluster", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refSG,
 		SourceSecurityGroupId: refCP,
-		Description:           makeSub("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
+		Description:           gfn.Sub("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
 		IpProtocol:            tcp,
 		FromPort:              nodeMinPort,
 		ToPort:                nodeMaxPort,
@@ -102,7 +102,7 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.newResource("EgressInterCluster", &gfn.AWSEC2SecurityGroupEgress{
 		GroupId:                    refCP,
 		DestinationSecurityGroupId: refSG,
-		Description:                makeSub("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
+		Description:                gfn.Sub("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
 		IpProtocol:                 tcp,
 		FromPort:                   nodeMinPort,
 		ToPort:                     nodeMaxPort,
@@ -110,7 +110,7 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.newResource("IngressInterClusterCP", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refCP,
 		SourceSecurityGroupId: refSG,
-		Description:           makeSub("Allow control plane to recieve API requests from " + desc),
+		Description:           gfn.Sub("Allow control plane to recieve API requests from " + desc),
 		IpProtocol:            tcp,
 		FromPort:              apiPort,
 		ToPort:                apiPort,
@@ -119,7 +119,7 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 		n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
 			GroupId:     refSG,
 			CidrIp:      anywhereIPv4,
-			Description: makeSub("Allow SSH access to " + desc),
+			Description: gfn.Sub("Allow SSH access to " + desc),
 			IpProtocol:  tcp,
 			FromPort:    sshPort,
 			ToPort:      sshPort,
@@ -127,7 +127,7 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 		n.newResource("SSHIPv6", &gfn.AWSEC2SecurityGroupIngress{
 			GroupId:     refSG,
 			CidrIpv6:    anywhereIPv6,
-			Description: makeSub("Allow SSH access to " + desc),
+			Description: gfn.Sub("Allow SSH access to " + desc),
 			IpProtocol:  tcp,
 			FromPort:    sshPort,
 			ToPort:      sshPort,

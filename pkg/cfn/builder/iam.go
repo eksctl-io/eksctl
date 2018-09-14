@@ -42,10 +42,10 @@ func makeAssumeRolePolicyDocument(service string) map[string]interface{} {
 	})
 }
 
-func (c *resourceSet) attachAllowPolicy(name string, refRole *gfn.StringIntrinsic, resources interface{}, actions []string) {
+func (c *resourceSet) attachAllowPolicy(name string, refRole string, resources interface{}, actions []string) {
 	c.newResource(name, &gfn.AWSIAMPolicy{
 		PolicyName: makeName(name),
-		Roles:      makeSlice(refRole),
+		Roles:      []string{refRole},
 		PolicyDocument: makePolicyDocument(map[string]interface{}{
 			"Effect":   "Allow",
 			"Resource": resources,
@@ -63,9 +63,9 @@ func (c *clusterResourceSet) addResourcesForIAM() {
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("eks.amazonaws.com"),
-		ManagedPolicyArns: []*gfn.StringIntrinsic{
-			gfn.NewString(iamPolicyAmazonEKSServicePolicyARN),
-			gfn.NewString(iamPolicyAmazonEKSClusterPolicyARN),
+		ManagedPolicyArns: []string{
+			iamPolicyAmazonEKSServicePolicyARN,
+			iamPolicyAmazonEKSClusterPolicyARN,
 		},
 	})
 	c.rs.attachAllowPolicy("PolicyNLB", refSR, "*", []string{
@@ -92,28 +92,28 @@ func (n *nodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	refIR := n.newResource("NodeInstanceRole", &gfn.AWSIAMRole{
-		Path: gfn.NewString("/"),
+		Path:                     "/",
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("ec2.amazonaws.com"),
-		ManagedPolicyArns:        makeStringSlice(n.spec.NodePolicyARNs...),
+		ManagedPolicyArns:        n.spec.NodePolicyARNs,
 	})
 
 	n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
-		Path:  gfn.NewString("/"),
-		Roles: makeSlice(refIR),
+		Path:  "/",
+		Roles: []string{refIR},
 	})
 	n.rs.attachAllowPolicy("PolicyTagDiscovery", refIR, "*", []string{
 		"ec2:DescribeTags",
 	})
 	n.rs.attachAllowPolicy("PolicyStackSignal", refIR,
 		map[string]interface{}{
-			fnJoin: []interface{}{
+			"Fn::Join": []interface{}{
 				":",
 				[]interface{}{
 					"arn:aws:cloudformation",
 					map[string]string{"Ref": awsRegion},
 					map[string]string{"Ref": awsAccountID},
 					map[string]interface{}{
-						fnJoin: []interface{}{
+						"Fn::Join": []interface{}{
 							"/",
 							[]interface{}{
 								"stack",
@@ -130,5 +130,5 @@ func (n *nodeGroupResourceSet) addResourcesForIAM() {
 		},
 	)
 
-	n.rs.newOutputFromAtt(cfnOutputNodeInstanceRoleARN, "NodeInstanceRole.Arn", true)
+	n.rs.newOutputFromAtt(cfnOutputNodeInstanceRoleARN, "NodeInstanceRole", "Arn", true)
 }
