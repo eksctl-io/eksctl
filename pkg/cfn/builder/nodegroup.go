@@ -105,7 +105,7 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 			"DesiredCapacity":         fmt.Sprintf("%d", n.spec.Nodes),
 			"MinSize":                 fmt.Sprintf("%d", n.spec.MinNodes),
 			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxNodes),
-			"VPCZoneIdentifier":       gfn.ImportValue(makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets)),
+			"VPCZoneIdentifier":       []string{makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets)},
 			"Tags": []map[string]interface{}{
 				{"Key": "Name", "Value": gfn.Sub(nodeGroupNameFmt + "-Node"), "PropagateAtLaunch": "true"},
 				{"Key": gfn.Sub("kubernetes.io/cluster/${ClusterName}"), "Value": "owned", "PropagateAtLaunch": "true"},
