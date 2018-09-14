@@ -68,6 +68,10 @@ func (n *nodeGroupResourceSet) RenderJSON() ([]byte, error) {
 	return n.rs.renderJSON()
 }
 
+func (n *nodeGroupResourceSet) Template() gfn.Template {
+	return *n.rs.template
+}
+
 func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	return n.rs.newResource(name, resource)
 }

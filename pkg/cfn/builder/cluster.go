@@ -55,6 +55,10 @@ func (c *clusterResourceSet) RenderJSON() ([]byte, error) {
 	return c.rs.renderJSON()
 }
 
+func (c *clusterResourceSet) Template() gfn.Template {
+	return *c.rs.template
+}
+
 func (c *clusterResourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	return c.rs.newResource(name, resource)
 }
