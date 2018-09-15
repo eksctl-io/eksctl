@@ -10,6 +10,6 @@ about: Suggest an idea for eksctl
 A clear and concise description of why you want this feature. Include use-cases and any specific constraints you may have.
 
 **What feature/behavior/change do you want?**
-A clear and concise description of the change you would like to see in eksctl. 
+A clear and concise description of the change you would like to see in eksctl.
 
 Do not hesitate, when appropriate, to share the exact commands or API you would like, and/or to share a diagram (e.g.: asciiflow.com): "a picture is worth a thousand words".

@@ -12,7 +12,7 @@ brew:
   homepage: "https://eksctl.io/"
 
   description: "a CLI for Amazon EKS"
-  
+
   skip_upload: false
 
   dependencies:
