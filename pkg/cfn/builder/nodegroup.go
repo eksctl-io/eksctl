@@ -97,27 +97,35 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 	}
 	refLC := n.newResource("NodeLaunchConfig", lc)
 
-	// currently goformation tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
-	n.newResource("NodeGroup", &awsCloudFormationResource{
-		Type: "AWS::AutoScaling::AutoScalingGroup",
-		Properties: map[string]interface{}{
-			"LaunchConfigurationName": refLC,
-			"DesiredCapacity":         fmt.Sprintf("%d", n.spec.Nodes),
-			"MinSize":                 fmt.Sprintf("%d", n.spec.MinNodes),
-			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxNodes),
-			"VPCZoneIdentifier":       []string{makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets)},
-			"Tags": []map[string]interface{}{
-				{"Key": "Name", "Value": gfn.Sub(nodeGroupNameFmt + "-Node"), "PropagateAtLaunch": "true"},
-				{"Key": gfn.Sub("kubernetes.io/cluster/${ClusterName}"), "Value": "owned", "PropagateAtLaunch": "true"},
+	nodegroup := &gfn.AWSAutoScalingAutoScalingGroup{
+		LaunchConfigurationName: refLC,
+		DesiredCapacity:         fmt.Sprintf("%d", n.spec.Nodes),
+		MinSize:                 fmt.Sprintf("%d", n.spec.MinNodes),
+		MaxSize:                 fmt.Sprintf("%d", n.spec.MaxNodes),
+		VPCZoneIdentifier:       []string{makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets)},
+		Tags: []gfn.AWSAutoScalingAutoScalingGroup_TagProperty{
+			gfn.AWSAutoScalingAutoScalingGroup_TagProperty{
+				Key:               "Name",
+				Value:             gfn.Sub(nodeGroupNameFmt + "-Node"),
+				PropagateAtLaunch: true,
+			},
+			gfn.AWSAutoScalingAutoScalingGroup_TagProperty{
+				Key:               gfn.Sub("kubernetes.io/cluster/${ClusterName}"),
+				Value:             "owned",
+				PropagateAtLaunch: true,
 			},
 		},
-		UpdatePolicy: map[string]map[string]string{
-			"AutoScalingRollingUpdate": {
-				"MinInstancesInService": "1",
-				"MaxBatchSize":          "1",
-			},
+	}
+
+	nodegroup.SetUpdatePolicy(&gfn.UpdatePolicy{
+		AutoScalingRollingUpdate: &gfn.AutoScalingRollingUpdate{
+			MinInstancesInService: 1,
+			MaxBatchSize:          1,
 		},
 	})
+
+	n.newResource("NodeGroup", nodegroup)
+
 }
 
 func (n *nodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {

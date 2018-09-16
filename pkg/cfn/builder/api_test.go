@@ -22,7 +22,7 @@ type Template struct {
 				Key   interface{}
 				Value interface{}
 
-				PropagateAtLaunch string
+				PropagateAtLaunch bool
 			}
 			UserData string
 		}
@@ -58,9 +58,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 			VPC:                      "vpc-0e265ad953062b94b",
 			Endpoint:                 "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com",
 			CertificateAuthorityData: caCertData,
-			ARN:                 "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
-			NodeInstanceRoleARN: "",
-			AvailabilityZones:   testAZs,
+			ARN:                      "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
+			NodeInstanceRoleARN:      "",
+			AvailabilityZones:        testAZs,
 		}
 
 		initial := &api.ClusterConfig{
@@ -76,8 +76,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      "vpc-0e265ad953062b94b",
 			"Endpoint":                 "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com",
 			"CertificateAuthorityData": caCert,
-			"ARN":              "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
-			"ClusterStackName": "",
+			"ARN":                      "arn:aws:eks:us-west-2:376248598259:cluster/ferocious-mushroom-1532594698",
+			"ClusterStackName":         "",
 		})
 
 		It("should not error", func() {
@@ -147,12 +147,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].Value).To(Equal(map[string]interface{}{
 				"Fn::Sub": "${ClusterName}-${NodeGroupID}-Node",
 			}))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].PropagateAtLaunch).To(Equal("true"))
+			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].PropagateAtLaunch).To(Equal(true))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Key).To(Equal(map[string]interface{}{
 				"Fn::Sub": "kubernetes.io/cluster/${ClusterName}",
 			}))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Value).To(Equal("owned"))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].PropagateAtLaunch).To(Equal("true"))
+			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].PropagateAtLaunch).To(Equal(true))
 		})
 	})
 
