@@ -33,9 +33,18 @@ type AWSElasticsearchDomain_ElasticsearchClusterConfig struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticsearch-domain-elasticsearchclusterconfig.html#cfn-elasticsearch-domain-elasticseachclusterconfig-zoneawarenessenabled
 	ZoneAwarenessEnabled bool `json:"ZoneAwarenessEnabled,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSElasticsearchDomain_ElasticsearchClusterConfig) AWSCloudFormationType() string {
 	return "AWS::Elasticsearch::Domain.ElasticsearchClusterConfig"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSElasticsearchDomain_ElasticsearchClusterConfig) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

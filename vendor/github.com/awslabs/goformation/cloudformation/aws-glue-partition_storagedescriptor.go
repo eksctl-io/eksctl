@@ -63,9 +63,18 @@ type AWSGluePartition_StorageDescriptor struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-storagedescriptor.html#cfn-glue-partition-storagedescriptor-storedassubdirectories
 	StoredAsSubDirectories bool `json:"StoredAsSubDirectories,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGluePartition_StorageDescriptor) AWSCloudFormationType() string {
 	return "AWS::Glue::Partition.StorageDescriptor"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSGluePartition_StorageDescriptor) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

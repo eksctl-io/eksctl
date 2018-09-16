@@ -33,9 +33,18 @@ type AWSCodeBuildProject_Environment struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-environment.html#cfn-codebuild-project-environment-type
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCodeBuildProject_Environment) AWSCloudFormationType() string {
 	return "AWS::CodeBuild::Project.Environment"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCodeBuildProject_Environment) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

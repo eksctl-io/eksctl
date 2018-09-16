@@ -13,9 +13,18 @@ type AWSEC2NetworkInterface_PrivateIpAddressSpecification struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-network-interface-privateipspec.html#cfn-ec2-networkinterface-privateipspecification-privateipaddress
 	PrivateIpAddress string `json:"PrivateIpAddress,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEC2NetworkInterface_PrivateIpAddressSpecification) AWSCloudFormationType() string {
 	return "AWS::EC2::NetworkInterface.PrivateIpAddressSpecification"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEC2NetworkInterface_PrivateIpAddressSpecification) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

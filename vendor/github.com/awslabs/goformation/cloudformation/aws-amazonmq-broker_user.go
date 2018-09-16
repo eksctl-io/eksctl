@@ -23,9 +23,18 @@ type AWSAmazonMQBroker_User struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-amazonmq-broker-user.html#cfn-amazonmq-broker-user-username
 	Username string `json:"Username,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSAmazonMQBroker_User) AWSCloudFormationType() string {
 	return "AWS::AmazonMQ::Broker.User"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSAmazonMQBroker_User) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

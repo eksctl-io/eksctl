@@ -14,6 +14,9 @@ type AWSSESReceiptFilter struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ses-receiptfilter.html#cfn-ses-receiptfilter-filter
 	Filter *AWSSESReceiptFilter_Filter `json:"Filter,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -21,16 +24,24 @@ func (r *AWSSESReceiptFilter) AWSCloudFormationType() string {
 	return "AWS::SES::ReceiptFilter"
 }
 
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSSESReceiptFilter) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
+}
+
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
 func (r AWSSESReceiptFilter) MarshalJSON() ([]byte, error) {
 	type Properties AWSSESReceiptFilter
 	return json.Marshal(&struct {
-		Type       string
-		Properties Properties
+		Type           string
+		Properties     Properties
+		DeletionPolicy DeletionPolicy `json:"DeletionPolicy,omitempty"`
 	}{
-		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(r),
+		Type:           r.AWSCloudFormationType(),
+		Properties:     (Properties)(r),
+		DeletionPolicy: r._deletionPolicy,
 	})
 }
 

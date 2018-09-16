@@ -23,9 +23,18 @@ type AWSGlueDatabase_DatabaseInput struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-database-databaseinput.html#cfn-glue-database-databaseinput-parameters
 	Parameters interface{} `json:"Parameters,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGlueDatabase_DatabaseInput) AWSCloudFormationType() string {
 	return "AWS::Glue::Database.DatabaseInput"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSGlueDatabase_DatabaseInput) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

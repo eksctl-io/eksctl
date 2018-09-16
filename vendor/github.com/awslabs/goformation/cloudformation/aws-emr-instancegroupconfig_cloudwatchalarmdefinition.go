@@ -48,9 +48,18 @@ type AWSEMRInstanceGroupConfig_CloudWatchAlarmDefinition struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-instancegroupconfig-cloudwatchalarmdefinition.html#cfn-elasticmapreduce-instancegroupconfig-cloudwatchalarmdefinition-unit
 	Unit string `json:"Unit,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRInstanceGroupConfig_CloudWatchAlarmDefinition) AWSCloudFormationType() string {
 	return "AWS::EMR::InstanceGroupConfig.CloudWatchAlarmDefinition"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEMRInstanceGroupConfig_CloudWatchAlarmDefinition) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -33,9 +33,18 @@ type AWSElasticLoadBalancingLoadBalancer_Listeners struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-listener.html#cfn-ec2-elb-listener-sslcertificateid
 	SSLCertificateId string `json:"SSLCertificateId,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSElasticLoadBalancingLoadBalancer_Listeners) AWSCloudFormationType() string {
 	return "AWS::ElasticLoadBalancing::LoadBalancer.Listeners"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSElasticLoadBalancingLoadBalancer_Listeners) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

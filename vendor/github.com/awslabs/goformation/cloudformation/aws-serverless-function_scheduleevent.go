@@ -13,9 +13,18 @@ type AWSServerlessFunction_ScheduleEvent struct {
 	// Required: true
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
 	Schedule string `json:"Schedule,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSServerlessFunction_ScheduleEvent) AWSCloudFormationType() string {
 	return "AWS::Serverless::Function.ScheduleEvent"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSServerlessFunction_ScheduleEvent) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

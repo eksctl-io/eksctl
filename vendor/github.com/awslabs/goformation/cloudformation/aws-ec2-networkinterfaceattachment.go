@@ -29,6 +29,9 @@ type AWSEC2NetworkInterfaceAttachment struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-interface-attachment.html#cfn-ec2-network-interface-attachment-networkinterfaceid
 	NetworkInterfaceId string `json:"NetworkInterfaceId,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -36,16 +39,24 @@ func (r *AWSEC2NetworkInterfaceAttachment) AWSCloudFormationType() string {
 	return "AWS::EC2::NetworkInterfaceAttachment"
 }
 
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEC2NetworkInterfaceAttachment) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
+}
+
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
 func (r AWSEC2NetworkInterfaceAttachment) MarshalJSON() ([]byte, error) {
 	type Properties AWSEC2NetworkInterfaceAttachment
 	return json.Marshal(&struct {
-		Type       string
-		Properties Properties
+		Type           string
+		Properties     Properties
+		DeletionPolicy DeletionPolicy `json:"DeletionPolicy,omitempty"`
 	}{
-		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(r),
+		Type:           r.AWSCloudFormationType(),
+		Properties:     (Properties)(r),
+		DeletionPolicy: r._deletionPolicy,
 	})
 }
 

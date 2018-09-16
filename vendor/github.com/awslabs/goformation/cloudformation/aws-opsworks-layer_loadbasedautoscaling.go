@@ -18,9 +18,18 @@ type AWSOpsWorksLayer_LoadBasedAutoScaling struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-opsworks-layer-loadbasedautoscaling.html#cfn-opsworks-layer-loadbasedautoscaling-upscaling
 	UpScaling *AWSOpsWorksLayer_AutoScalingThresholds `json:"UpScaling,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSOpsWorksLayer_LoadBasedAutoScaling) AWSCloudFormationType() string {
 	return "AWS::OpsWorks::Layer.LoadBasedAutoScaling"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSOpsWorksLayer_LoadBasedAutoScaling) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

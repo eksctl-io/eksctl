@@ -48,9 +48,18 @@ type AWSIoTTopicRule_DynamoDBAction struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iot-topicrule-dynamodbaction.html#cfn-iot-topicrule-dynamodbaction-tablename
 	TableName string `json:"TableName,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSIoTTopicRule_DynamoDBAction) AWSCloudFormationType() string {
 	return "AWS::IoT::TopicRule.DynamoDBAction"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSIoTTopicRule_DynamoDBAction) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

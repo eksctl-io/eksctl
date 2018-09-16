@@ -78,9 +78,18 @@ type AWSApiGatewayDeployment_StageDescription struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apigateway-deployment-stagedescription.html#cfn-apigateway-deployment-stagedescription-variables
 	Variables map[string]string `json:"Variables,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSApiGatewayDeployment_StageDescription) AWSCloudFormationType() string {
 	return "AWS::ApiGateway::Deployment.StageDescription"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSApiGatewayDeployment_StageDescription) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

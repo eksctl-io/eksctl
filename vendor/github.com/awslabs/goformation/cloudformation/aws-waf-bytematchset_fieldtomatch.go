@@ -13,9 +13,18 @@ type AWSWAFByteMatchSet_FieldToMatch struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waf-bytematchset-bytematchtuples-fieldtomatch.html#cfn-waf-bytematchset-bytematchtuples-fieldtomatch-type
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFByteMatchSet_FieldToMatch) AWSCloudFormationType() string {
 	return "AWS::WAF::ByteMatchSet.FieldToMatch"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSWAFByteMatchSet_FieldToMatch) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

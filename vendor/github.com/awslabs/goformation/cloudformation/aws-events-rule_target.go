@@ -48,9 +48,18 @@ type AWSEventsRule_Target struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-target.html#cfn-events-rule-target-runcommandparameters
 	RunCommandParameters *AWSEventsRule_RunCommandParameters `json:"RunCommandParameters,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEventsRule_Target) AWSCloudFormationType() string {
 	return "AWS::Events::Rule.Target"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEventsRule_Target) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -33,9 +33,18 @@ type AWSEMRInstanceFleetConfig_InstanceTypeConfig struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-instancefleetconfig-instancetypeconfig.html#cfn-elasticmapreduce-instancefleetconfig-instancetypeconfig-weightedcapacity
 	WeightedCapacity int `json:"WeightedCapacity,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRInstanceFleetConfig_InstanceTypeConfig) AWSCloudFormationType() string {
 	return "AWS::EMR::InstanceFleetConfig.InstanceTypeConfig"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEMRInstanceFleetConfig_InstanceTypeConfig) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

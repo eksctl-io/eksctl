@@ -23,9 +23,18 @@ type AWSSSMMaintenanceWindowTask_TaskInvocationParameters struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ssm-maintenancewindowtask-taskinvocationparameters.html#cfn-ssm-maintenancewindowtask-taskinvocationparameters-maintenancewindowstepfunctionsparameters
 	MaintenanceWindowStepFunctionsParameters *AWSSSMMaintenanceWindowTask_MaintenanceWindowStepFunctionsParameters `json:"MaintenanceWindowStepFunctionsParameters,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSSMMaintenanceWindowTask_TaskInvocationParameters) AWSCloudFormationType() string {
 	return "AWS::SSM::MaintenanceWindowTask.TaskInvocationParameters"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSSSMMaintenanceWindowTask_TaskInvocationParameters) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -48,9 +48,18 @@ type AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-splunkdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-splunkdestinationconfiguration-s3configuration
 	S3Configuration *AWSKinesisFirehoseDeliveryStream_S3DestinationConfiguration `json:"S3Configuration,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration) AWSCloudFormationType() string {
 	return "AWS::KinesisFirehose::DeliveryStream.SplunkDestinationConfiguration"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSKinesisFirehoseDeliveryStream_SplunkDestinationConfiguration) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

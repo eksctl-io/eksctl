@@ -18,9 +18,18 @@ type AWSServiceDiscoveryService_DnsConfig struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-servicediscovery-service-dnsconfig.html#cfn-servicediscovery-service-dnsconfig-routingpolicy
 	RoutingPolicy string `json:"RoutingPolicy,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSServiceDiscoveryService_DnsConfig) AWSCloudFormationType() string {
 	return "AWS::ServiceDiscovery::Service.DnsConfig"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSServiceDiscoveryService_DnsConfig) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

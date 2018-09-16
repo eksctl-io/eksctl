@@ -18,9 +18,18 @@ type AWSBatchJobDefinition_Ulimit struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-ulimit.html#cfn-batch-jobdefinition-ulimit-softlimit
 	SoftLimit int `json:"SoftLimit,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSBatchJobDefinition_Ulimit) AWSCloudFormationType() string {
 	return "AWS::Batch::JobDefinition.Ulimit"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSBatchJobDefinition_Ulimit) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

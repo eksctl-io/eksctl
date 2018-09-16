@@ -38,9 +38,18 @@ type AWSOpsWorksInstance_TimeBasedAutoScaling struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-opsworks-instance-timebasedautoscaling.html#cfn-opsworks-instance-timebasedautoscaling-wednesday
 	Wednesday map[string]string `json:"Wednesday,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSOpsWorksInstance_TimeBasedAutoScaling) AWSCloudFormationType() string {
 	return "AWS::OpsWorks::Instance.TimeBasedAutoScaling"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSOpsWorksInstance_TimeBasedAutoScaling) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

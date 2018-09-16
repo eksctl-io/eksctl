@@ -114,6 +114,9 @@ type AWSOpsWorksInstance struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-opsworks-instance.html#cfn-opsworks-instance-volumes
 	Volumes []string `json:"Volumes,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -121,16 +124,24 @@ func (r *AWSOpsWorksInstance) AWSCloudFormationType() string {
 	return "AWS::OpsWorks::Instance"
 }
 
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSOpsWorksInstance) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
+}
+
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
 func (r AWSOpsWorksInstance) MarshalJSON() ([]byte, error) {
 	type Properties AWSOpsWorksInstance
 	return json.Marshal(&struct {
-		Type       string
-		Properties Properties
+		Type           string
+		Properties     Properties
+		DeletionPolicy DeletionPolicy `json:"DeletionPolicy,omitempty"`
 	}{
-		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(r),
+		Type:           r.AWSCloudFormationType(),
+		Properties:     (Properties)(r),
+		DeletionPolicy: r._deletionPolicy,
 	})
 }
 

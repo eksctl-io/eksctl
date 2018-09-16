@@ -18,9 +18,18 @@ type AWSKinesisFirehoseDeliveryStream_CloudWatchLoggingOptions struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-cloudwatchloggingoptions.html#cfn-kinesisfirehose-deliverystream-cloudwatchloggingoptions-logstreamname
 	LogStreamName string `json:"LogStreamName,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisFirehoseDeliveryStream_CloudWatchLoggingOptions) AWSCloudFormationType() string {
 	return "AWS::KinesisFirehose::DeliveryStream.CloudWatchLoggingOptions"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSKinesisFirehoseDeliveryStream_CloudWatchLoggingOptions) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -44,6 +44,9 @@ type AWSElasticBeanstalkConfigurationTemplate struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticbeanstalk-configurationtemplate.html#cfn-elasticbeanstalk-configurationtemplate-sourceconfiguration
 	SourceConfiguration *AWSElasticBeanstalkConfigurationTemplate_SourceConfiguration `json:"SourceConfiguration,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -51,16 +54,24 @@ func (r *AWSElasticBeanstalkConfigurationTemplate) AWSCloudFormationType() strin
 	return "AWS::ElasticBeanstalk::ConfigurationTemplate"
 }
 
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSElasticBeanstalkConfigurationTemplate) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
+}
+
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
 func (r AWSElasticBeanstalkConfigurationTemplate) MarshalJSON() ([]byte, error) {
 	type Properties AWSElasticBeanstalkConfigurationTemplate
 	return json.Marshal(&struct {
-		Type       string
-		Properties Properties
+		Type           string
+		Properties     Properties
+		DeletionPolicy DeletionPolicy `json:"DeletionPolicy,omitempty"`
 	}{
-		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(r),
+		Type:           r.AWSCloudFormationType(),
+		Properties:     (Properties)(r),
+		DeletionPolicy: r._deletionPolicy,
 	})
 }
 

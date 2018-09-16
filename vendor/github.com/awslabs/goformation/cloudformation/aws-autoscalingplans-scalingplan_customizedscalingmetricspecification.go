@@ -28,9 +28,18 @@ type AWSAutoScalingPlansScalingPlan_CustomizedScalingMetricSpecification struct 
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-autoscalingplans-scalingplan-customizedscalingmetricspecification.html#cfn-autoscalingplans-scalingplan-customizedscalingmetricspecification-unit
 	Unit string `json:"Unit,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSAutoScalingPlansScalingPlan_CustomizedScalingMetricSpecification) AWSCloudFormationType() string {
 	return "AWS::AutoScalingPlans::ScalingPlan.CustomizedScalingMetricSpecification"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSAutoScalingPlansScalingPlan_CustomizedScalingMetricSpecification) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

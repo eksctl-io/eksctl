@@ -28,9 +28,18 @@ type AWSOpsWorksLayer_Recipes struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-opsworks-layer-recipes.html#cfn-opsworks-layer-customrecipes-undeploy
 	Undeploy []string `json:"Undeploy,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSOpsWorksLayer_Recipes) AWSCloudFormationType() string {
 	return "AWS::OpsWorks::Layer.Recipes"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSOpsWorksLayer_Recipes) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -23,9 +23,18 @@ type AWSRDSDBSecurityGroup_Ingress struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-security-group-rule.html#cfn-rds-securitygroup-ec2securitygroupownerid
 	EC2SecurityGroupOwnerId string `json:"EC2SecurityGroupOwnerId,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSRDSDBSecurityGroup_Ingress) AWSCloudFormationType() string {
 	return "AWS::RDS::DBSecurityGroup.Ingress"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSRDSDBSecurityGroup_Ingress) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

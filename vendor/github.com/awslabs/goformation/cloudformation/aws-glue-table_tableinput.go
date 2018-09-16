@@ -53,9 +53,18 @@ type AWSGlueTable_TableInput struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-table-tableinput.html#cfn-glue-table-tableinput-vieworiginaltext
 	ViewOriginalText string `json:"ViewOriginalText,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGlueTable_TableInput) AWSCloudFormationType() string {
 	return "AWS::Glue::Table.TableInput"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSGlueTable_TableInput) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

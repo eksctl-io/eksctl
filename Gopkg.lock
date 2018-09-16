@@ -48,9 +48,12 @@
 
 [[projects]]
   name = "github.com/awslabs/goformation"
-  packages = ["cloudformation"]
-  revision = "f5e92c29a27e5b63f44d3828d26d11cd54bb6802"
-  version = "v1.2.1"
+  packages = [
+    "cloudformation",
+    "intrinsics"
+  ]
+  revision = "d42502ef32a8892bf380256e2f57c6f69190d802"
+  version = "1.2.2"
 
 [[projects]]
   branch = "master"
@@ -369,6 +372,12 @@
     "xfs"
   ]
   revision = "fe93d378a6b03758a2c1b65e86cf630bf78681c0"
+
+[[projects]]
+  branch = "v2"
+  name = "github.com/sanathkr/go-yaml"
+  packages = ["."]
+  revision = "ed9d249f429b3f5a69f80a7abef6bfce81fef894"
 
 [[projects]]
   name = "github.com/sanathkr/yaml"

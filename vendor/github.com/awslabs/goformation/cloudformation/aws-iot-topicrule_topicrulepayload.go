@@ -28,9 +28,18 @@ type AWSIoTTopicRule_TopicRulePayload struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iot-topicrule-topicrulepayload.html#cfn-iot-topicrule-topicrulepayload-sql
 	Sql string `json:"Sql,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSIoTTopicRule_TopicRulePayload) AWSCloudFormationType() string {
 	return "AWS::IoT::TopicRule.TopicRulePayload"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSIoTTopicRule_TopicRulePayload) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -23,9 +23,18 @@ type AWSECSService_LoadBalancer struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-service-loadbalancers.html#cfn-ecs-service-loadbalancers-targetgrouparn
 	TargetGroupArn string `json:"TargetGroupArn,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSECSService_LoadBalancer) AWSCloudFormationType() string {
 	return "AWS::ECS::Service.LoadBalancer"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSECSService_LoadBalancer) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

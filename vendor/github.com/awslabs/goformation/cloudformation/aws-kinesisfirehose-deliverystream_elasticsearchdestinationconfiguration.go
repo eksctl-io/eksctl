@@ -58,9 +58,18 @@ type AWSKinesisFirehoseDeliveryStream_ElasticsearchDestinationConfiguration stru
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-elasticsearchdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-elasticsearchdestinationconfiguration-typename
 	TypeName string `json:"TypeName,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisFirehoseDeliveryStream_ElasticsearchDestinationConfiguration) AWSCloudFormationType() string {
 	return "AWS::KinesisFirehose::DeliveryStream.ElasticsearchDestinationConfiguration"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSKinesisFirehoseDeliveryStream_ElasticsearchDestinationConfiguration) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

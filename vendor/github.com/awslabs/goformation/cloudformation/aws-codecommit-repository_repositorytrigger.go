@@ -28,9 +28,18 @@ type AWSCodeCommitRepository_RepositoryTrigger struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codecommit-repository-repositorytrigger.html#cfn-codecommit-repository-repositorytrigger-name
 	Name string `json:"Name,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCodeCommitRepository_RepositoryTrigger) AWSCloudFormationType() string {
 	return "AWS::CodeCommit::Repository.RepositoryTrigger"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCodeCommitRepository_RepositoryTrigger) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -13,9 +13,18 @@ type AWSWAFRegionalByteMatchSet_FieldToMatch struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-bytematchset-fieldtomatch.html#cfn-wafregional-bytematchset-fieldtomatch-type
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFRegionalByteMatchSet_FieldToMatch) AWSCloudFormationType() string {
 	return "AWS::WAFRegional::ByteMatchSet.FieldToMatch"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSWAFRegionalByteMatchSet_FieldToMatch) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

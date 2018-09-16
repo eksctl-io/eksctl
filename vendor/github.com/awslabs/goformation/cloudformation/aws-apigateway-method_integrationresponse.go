@@ -28,9 +28,18 @@ type AWSApiGatewayMethod_IntegrationResponse struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-method-integration-integrationresponse.html#cfn-apigateway-method-integration-integrationresponse-statuscode
 	StatusCode string `json:"StatusCode,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSApiGatewayMethod_IntegrationResponse) AWSCloudFormationType() string {
 	return "AWS::ApiGateway::Method.IntegrationResponse"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSApiGatewayMethod_IntegrationResponse) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

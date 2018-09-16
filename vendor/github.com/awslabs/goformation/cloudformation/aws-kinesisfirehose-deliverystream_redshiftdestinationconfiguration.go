@@ -43,9 +43,18 @@ type AWSKinesisFirehoseDeliveryStream_RedshiftDestinationConfiguration struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisfirehose-deliverystream-redshiftdestinationconfiguration.html#cfn-kinesisfirehose-deliverystream-redshiftdestinationconfiguration-username
 	Username string `json:"Username,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisFirehoseDeliveryStream_RedshiftDestinationConfiguration) AWSCloudFormationType() string {
 	return "AWS::KinesisFirehose::DeliveryStream.RedshiftDestinationConfiguration"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSKinesisFirehoseDeliveryStream_RedshiftDestinationConfiguration) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

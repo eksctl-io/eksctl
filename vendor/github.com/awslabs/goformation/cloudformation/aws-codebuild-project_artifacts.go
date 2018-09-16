@@ -43,9 +43,18 @@ type AWSCodeBuildProject_Artifacts struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-artifacts.html#cfn-codebuild-project-artifacts-type
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCodeBuildProject_Artifacts) AWSCloudFormationType() string {
 	return "AWS::CodeBuild::Project.Artifacts"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCodeBuildProject_Artifacts) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

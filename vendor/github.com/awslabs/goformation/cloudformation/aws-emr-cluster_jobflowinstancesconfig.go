@@ -73,9 +73,18 @@ type AWSEMRCluster_JobFlowInstancesConfig struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-cluster-jobflowinstancesconfig.html#cfn-elasticmapreduce-cluster-jobflowinstancesconfig-terminationprotected
 	TerminationProtected bool `json:"TerminationProtected,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRCluster_JobFlowInstancesConfig) AWSCloudFormationType() string {
 	return "AWS::EMR::Cluster.JobFlowInstancesConfig"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEMRCluster_JobFlowInstancesConfig) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -28,9 +28,18 @@ type AWSGuardDutyFilter_Condition struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-guardduty-filter-condition.html#cfn-guardduty-filter-condition-neq
 	Neq []string `json:"Neq,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGuardDutyFilter_Condition) AWSCloudFormationType() string {
 	return "AWS::GuardDuty::Filter.Condition"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSGuardDutyFilter_Condition) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -33,9 +33,18 @@ type AWSOpsWorksLayer_AutoScalingThresholds struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-opsworks-layer-loadbasedautoscaling-autoscalingthresholds.html#cfn-opsworks-layer-loadbasedautoscaling-autoscalingthresholds-thresholdwaittime
 	ThresholdsWaitTime int `json:"ThresholdsWaitTime,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSOpsWorksLayer_AutoScalingThresholds) AWSCloudFormationType() string {
 	return "AWS::OpsWorks::Layer.AutoScalingThresholds"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSOpsWorksLayer_AutoScalingThresholds) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

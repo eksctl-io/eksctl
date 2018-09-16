@@ -13,9 +13,18 @@ type AWSEMRInstanceFleetConfig_EbsBlockDeviceConfig struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-instancefleetconfig-ebsblockdeviceconfig.html#cfn-elasticmapreduce-instancefleetconfig-ebsblockdeviceconfig-volumesperinstance
 	VolumesPerInstance int `json:"VolumesPerInstance,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRInstanceFleetConfig_EbsBlockDeviceConfig) AWSCloudFormationType() string {
 	return "AWS::EMR::InstanceFleetConfig.EbsBlockDeviceConfig"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEMRInstanceFleetConfig_EbsBlockDeviceConfig) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -28,9 +28,18 @@ type AWSKinesisAnalyticsApplicationOutput_Output struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationoutput-output.html#cfn-kinesisanalytics-applicationoutput-output-name
 	Name string `json:"Name,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisAnalyticsApplicationOutput_Output) AWSCloudFormationType() string {
 	return "AWS::KinesisAnalytics::ApplicationOutput.Output"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSKinesisAnalyticsApplicationOutput_Output) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

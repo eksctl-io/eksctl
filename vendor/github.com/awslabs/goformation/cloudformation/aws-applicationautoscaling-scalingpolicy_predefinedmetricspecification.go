@@ -13,9 +13,18 @@ type AWSApplicationAutoScalingScalingPolicy_PredefinedMetricSpecification struct
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-applicationautoscaling-scalingpolicy-predefinedmetricspecification.html#cfn-applicationautoscaling-scalingpolicy-predefinedmetricspecification-resourcelabel
 	ResourceLabel string `json:"ResourceLabel,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSApplicationAutoScalingScalingPolicy_PredefinedMetricSpecification) AWSCloudFormationType() string {
 	return "AWS::ApplicationAutoScaling::ScalingPolicy.PredefinedMetricSpecification"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSApplicationAutoScalingScalingPolicy_PredefinedMetricSpecification) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

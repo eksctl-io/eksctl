@@ -18,9 +18,18 @@ type AWSRoute53RecordSet_AliasTarget struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html#cfn-route53-aliastarget-hostedzoneid
 	HostedZoneId string `json:"HostedZoneId,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSRoute53RecordSet_AliasTarget) AWSCloudFormationType() string {
 	return "AWS::Route53::RecordSet.AliasTarget"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSRoute53RecordSet_AliasTarget) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

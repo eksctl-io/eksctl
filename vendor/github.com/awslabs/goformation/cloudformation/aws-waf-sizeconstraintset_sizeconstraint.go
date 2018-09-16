@@ -23,9 +23,18 @@ type AWSWAFSizeConstraintSet_SizeConstraint struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waf-sizeconstraintset-sizeconstraint.html#cfn-waf-sizeconstraintset-sizeconstraint-texttransformation
 	TextTransformation string `json:"TextTransformation,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFSizeConstraintSet_SizeConstraint) AWSCloudFormationType() string {
 	return "AWS::WAF::SizeConstraintSet.SizeConstraint"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSWAFSizeConstraintSet_SizeConstraint) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

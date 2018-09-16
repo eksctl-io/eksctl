@@ -73,9 +73,18 @@ type AWSRoute53RecordSetGroup_RecordSet struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-weight
 	Weight int `json:"Weight,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSRoute53RecordSetGroup_RecordSet) AWSCloudFormationType() string {
 	return "AWS::Route53::RecordSetGroup.RecordSet"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSRoute53RecordSetGroup_RecordSet) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

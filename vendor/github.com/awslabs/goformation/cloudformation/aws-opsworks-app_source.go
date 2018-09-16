@@ -33,9 +33,18 @@ type AWSOpsWorksApp_Source struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-opsworks-stack-source.html#cfn-opsworks-custcookbooksource-username
 	Username string `json:"Username,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSOpsWorksApp_Source) AWSCloudFormationType() string {
 	return "AWS::OpsWorks::App.Source"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSOpsWorksApp_Source) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

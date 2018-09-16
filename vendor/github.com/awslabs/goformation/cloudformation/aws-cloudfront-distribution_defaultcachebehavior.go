@@ -68,9 +68,18 @@ type AWSCloudFrontDistribution_DefaultCacheBehavior struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-defaultcachebehavior.html#cfn-cloudfront-distribution-defaultcachebehavior-viewerprotocolpolicy
 	ViewerProtocolPolicy string `json:"ViewerProtocolPolicy,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCloudFrontDistribution_DefaultCacheBehavior) AWSCloudFormationType() string {
 	return "AWS::CloudFront::Distribution.DefaultCacheBehavior"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCloudFrontDistribution_DefaultCacheBehavior) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

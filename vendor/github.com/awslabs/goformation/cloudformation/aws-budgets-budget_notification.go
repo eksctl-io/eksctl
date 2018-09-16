@@ -23,9 +23,18 @@ type AWSBudgetsBudget_Notification struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-budgets-budget-notification.html#cfn-budgets-budget-notification-thresholdtype
 	ThresholdType string `json:"ThresholdType,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSBudgetsBudget_Notification) AWSCloudFormationType() string {
 	return "AWS::Budgets::Budget.Notification"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSBudgetsBudget_Notification) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

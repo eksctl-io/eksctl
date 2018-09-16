@@ -18,9 +18,18 @@ type AWSWAFRegionalRule_Predicate struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-rule-predicate.html#cfn-wafregional-rule-predicate-type
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFRegionalRule_Predicate) AWSCloudFormationType() string {
 	return "AWS::WAFRegional::Rule.Predicate"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSWAFRegionalRule_Predicate) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -58,9 +58,18 @@ type AWSDMSEndpoint_MongoDbSettings struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dms-endpoint-mongodbsettings.html#cfn-dms-endpoint-mongodbsettings-username
 	Username string `json:"Username,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSDMSEndpoint_MongoDbSettings) AWSCloudFormationType() string {
 	return "AWS::DMS::Endpoint.MongoDbSettings"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSDMSEndpoint_MongoDbSettings) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

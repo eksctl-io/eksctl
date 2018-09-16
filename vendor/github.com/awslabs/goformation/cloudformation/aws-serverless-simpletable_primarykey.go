@@ -13,9 +13,18 @@ type AWSServerlessSimpleTable_PrimaryKey struct {
 	// Required: true
 	// See: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#primary-key-object
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSServerlessSimpleTable_PrimaryKey) AWSCloudFormationType() string {
 	return "AWS::Serverless::SimpleTable.PrimaryKey"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSServerlessSimpleTable_PrimaryKey) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -18,9 +18,18 @@ type AWSEMRCluster_Configuration struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-cluster-configuration.html#cfn-elasticmapreduce-cluster-configuration-configurations
 	Configurations []AWSEMRCluster_Configuration `json:"Configurations,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRCluster_Configuration) AWSCloudFormationType() string {
 	return "AWS::EMR::Cluster.Configuration"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEMRCluster_Configuration) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

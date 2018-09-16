@@ -18,9 +18,18 @@ type AWSConfigConfigurationAggregator_AccountAggregationSource struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-config-configurationaggregator-accountaggregationsource.html#cfn-config-configurationaggregator-accountaggregationsource-awsregions
 	AwsRegions []string `json:"AwsRegions,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSConfigConfigurationAggregator_AccountAggregationSource) AWSCloudFormationType() string {
 	return "AWS::Config::ConfigurationAggregator.AccountAggregationSource"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSConfigConfigurationAggregator_AccountAggregationSource) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

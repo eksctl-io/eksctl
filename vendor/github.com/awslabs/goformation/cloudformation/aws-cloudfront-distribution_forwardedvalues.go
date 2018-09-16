@@ -23,9 +23,18 @@ type AWSCloudFrontDistribution_ForwardedValues struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-forwardedvalues.html#cfn-cloudfront-distribution-forwardedvalues-querystringcachekeys
 	QueryStringCacheKeys []string `json:"QueryStringCacheKeys,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCloudFrontDistribution_ForwardedValues) AWSCloudFormationType() string {
 	return "AWS::CloudFront::Distribution.ForwardedValues"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCloudFrontDistribution_ForwardedValues) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

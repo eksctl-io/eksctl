@@ -23,9 +23,18 @@ type AWSWAFRegionalSizeConstraintSet_SizeConstraint struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-sizeconstraintset-sizeconstraint.html#cfn-wafregional-sizeconstraintset-sizeconstraint-texttransformation
 	TextTransformation string `json:"TextTransformation,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFRegionalSizeConstraintSet_SizeConstraint) AWSCloudFormationType() string {
 	return "AWS::WAFRegional::SizeConstraintSet.SizeConstraint"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSWAFRegionalSizeConstraintSet_SizeConstraint) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

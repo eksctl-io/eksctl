@@ -53,9 +53,18 @@ type AWSApiGatewayStage_MethodSetting struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apitgateway-stage-methodsetting.html#cfn-apigateway-stage-methodsetting-throttlingratelimit
 	ThrottlingRateLimit float64 `json:"ThrottlingRateLimit,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSApiGatewayStage_MethodSetting) AWSCloudFormationType() string {
 	return "AWS::ApiGateway::Stage.MethodSetting"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSApiGatewayStage_MethodSetting) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -48,9 +48,18 @@ type AWSEC2SecurityGroup_Ingress struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-rule.html#cfn-ec2-security-group-rule-toport
 	ToPort int `json:"ToPort,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEC2SecurityGroup_Ingress) AWSCloudFormationType() string {
 	return "AWS::EC2::SecurityGroup.Ingress"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEC2SecurityGroup_Ingress) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

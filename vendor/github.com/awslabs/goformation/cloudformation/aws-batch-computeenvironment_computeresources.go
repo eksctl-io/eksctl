@@ -68,9 +68,18 @@ type AWSBatchComputeEnvironment_ComputeResources struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-computeenvironment-computeresources.html#cfn-batch-computeenvironment-computeresources-type
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSBatchComputeEnvironment_ComputeResources) AWSCloudFormationType() string {
 	return "AWS::Batch::ComputeEnvironment.ComputeResources"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSBatchComputeEnvironment_ComputeResources) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

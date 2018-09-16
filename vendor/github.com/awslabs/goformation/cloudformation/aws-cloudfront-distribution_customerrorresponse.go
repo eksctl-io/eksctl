@@ -23,9 +23,18 @@ type AWSCloudFrontDistribution_CustomErrorResponse struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-customerrorresponse.html#cfn-cloudfront-distribution-customerrorresponse-responsepagepath
 	ResponsePagePath string `json:"ResponsePagePath,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCloudFrontDistribution_CustomErrorResponse) AWSCloudFormationType() string {
 	return "AWS::CloudFront::Distribution.CustomErrorResponse"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCloudFrontDistribution_CustomErrorResponse) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

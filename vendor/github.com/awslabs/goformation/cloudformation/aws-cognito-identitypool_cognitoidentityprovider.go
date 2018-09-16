@@ -18,9 +18,18 @@ type AWSCognitoIdentityPool_CognitoIdentityProvider struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-identitypool-cognitoidentityprovider.html#cfn-cognito-identitypool-cognitoidentityprovider-serversidetokencheck
 	ServerSideTokenCheck bool `json:"ServerSideTokenCheck,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCognitoIdentityPool_CognitoIdentityProvider) AWSCloudFormationType() string {
 	return "AWS::Cognito::IdentityPool.CognitoIdentityProvider"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCognitoIdentityPool_CognitoIdentityProvider) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -38,9 +38,18 @@ type AWSS3Bucket_InventoryConfiguration struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-inventoryconfiguration.html#cfn-s3-bucket-inventoryconfiguration-schedulefrequency
 	ScheduleFrequency string `json:"ScheduleFrequency,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_InventoryConfiguration) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.InventoryConfiguration"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSS3Bucket_InventoryConfiguration) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

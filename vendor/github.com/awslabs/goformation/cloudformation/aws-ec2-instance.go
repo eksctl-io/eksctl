@@ -169,6 +169,12 @@ type AWSEC2Instance struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2-instance-volumes
 	Volumes []AWSEC2Instance_Volume `json:"Volumes,omitempty"`
+
+	// _creationPolicy represents a CloudFormation CreationPolicy
+	_creationPolicy *CreationPolicy
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -176,16 +182,34 @@ func (r *AWSEC2Instance) AWSCloudFormationType() string {
 	return "AWS::EC2::Instance"
 }
 
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSEC2Instance) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
+}
+
+// SetCreationPolicy applies an AWS CloudFormation CreationPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-creationpolicy.html
+func (r *AWSEC2Instance) SetCreationPolicy(policy *CreationPolicy) {
+	r._creationPolicy = policy
+}
+
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
 func (r AWSEC2Instance) MarshalJSON() ([]byte, error) {
 	type Properties AWSEC2Instance
 	return json.Marshal(&struct {
-		Type       string
-		Properties Properties
+		Type           string
+		Properties     Properties
+		DeletionPolicy DeletionPolicy `json:"DeletionPolicy,omitempty"`
+
+		CreationPolicy *CreationPolicy `json:"CreationPolicy,omitempty"`
 	}{
-		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(r),
+		Type:           r.AWSCloudFormationType(),
+		Properties:     (Properties)(r),
+		DeletionPolicy: r._deletionPolicy,
+
+		CreationPolicy: r._creationPolicy,
 	})
 }
 

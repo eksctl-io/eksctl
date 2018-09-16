@@ -28,9 +28,18 @@ type AWSSESConfigurationSetEventDestination_EventDestination struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ses-configurationseteventdestination-eventdestination.html#cfn-ses-configurationseteventdestination-eventdestination-name
 	Name string `json:"Name,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSESConfigurationSetEventDestination_EventDestination) AWSCloudFormationType() string {
 	return "AWS::SES::ConfigurationSetEventDestination.EventDestination"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSSESConfigurationSetEventDestination_EventDestination) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

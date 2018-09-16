@@ -28,9 +28,18 @@ type AWSS3Bucket_RedirectRule struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-websiteconfiguration-routingrules-redirectrule.html#cfn-s3-websiteconfiguration-redirectrule-replacekeywith
 	ReplaceKeyWith string `json:"ReplaceKeyWith,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_RedirectRule) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.RedirectRule"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSS3Bucket_RedirectRule) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

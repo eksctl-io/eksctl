@@ -38,9 +38,18 @@ type AWSCodePipelineCustomActionType_ConfigurationProperties struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codepipeline-customactiontype-configurationproperties.html#cfn-codepipeline-customactiontype-configurationproperties-type
 	Type string `json:"Type,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCodePipelineCustomActionType_ConfigurationProperties) AWSCloudFormationType() string {
 	return "AWS::CodePipeline::CustomActionType.ConfigurationProperties"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCodePipelineCustomActionType_ConfigurationProperties) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

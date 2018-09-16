@@ -18,9 +18,18 @@ type AWSECSTaskDefinition_MountPoint struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-containerdefinitions-mountpoints.html#cfn-ecs-taskdefinition-containerdefinition-mountpoints-sourcevolume
 	SourceVolume string `json:"SourceVolume,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSECSTaskDefinition_MountPoint) AWSCloudFormationType() string {
 	return "AWS::ECS::TaskDefinition.MountPoint"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSECSTaskDefinition_MountPoint) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

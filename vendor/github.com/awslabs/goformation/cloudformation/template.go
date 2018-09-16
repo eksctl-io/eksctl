@@ -2,8 +2,8 @@ package cloudformation
 
 import (
 	"encoding/json"
-	"errors"
 
+	"github.com/awslabs/goformation/intrinsics"
 	"github.com/sanathkr/yaml"
 )
 
@@ -78,22 +78,23 @@ func NewTemplate() *Template {
 // JSON converts an AWS CloudFormation template object to JSON
 func (t *Template) JSON() ([]byte, error) {
 
-	template, err := processIntrinsics(t)
+	j, err := json.MarshalIndent(t, "", "  ")
 	if err != nil {
-		return nil, errors.New("could not process CloudFormation references: " + err.Error())
+		return nil, err
 	}
 
-	return json.MarshalIndent(template, "", "  ")
+	return intrinsics.ProcessJSON(j, nil)
+
 }
 
 // YAML converts an AWS CloudFormation template object to YAML
 func (t *Template) YAML() ([]byte, error) {
 
-	template, err := processIntrinsics(t)
+	j, err := t.JSON()
 	if err != nil {
-		return nil, errors.New("could not process CloudFormation references: " + err.Error())
+		return nil, err
 	}
 
-	return yaml.Marshal(template)
+	return yaml.JSONToYAML(j)
 
 }

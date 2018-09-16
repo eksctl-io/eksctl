@@ -13,9 +13,18 @@ type AWSS3Bucket_RedirectAllRequestsTo struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-websiteconfiguration-redirectallrequeststo.html#cfn-s3-websiteconfiguration-redirectallrequeststo-protocol
 	Protocol string `json:"Protocol,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_RedirectAllRequestsTo) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.RedirectAllRequestsTo"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSS3Bucket_RedirectAllRequestsTo) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

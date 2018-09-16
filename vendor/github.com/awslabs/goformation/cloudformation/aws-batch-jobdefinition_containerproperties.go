@@ -63,9 +63,18 @@ type AWSBatchJobDefinition_ContainerProperties struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-jobdefinition-containerproperties.html#cfn-batch-jobdefinition-containerproperties-volumes
 	Volumes []AWSBatchJobDefinition_Volumes `json:"Volumes,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSBatchJobDefinition_ContainerProperties) AWSCloudFormationType() string {
 	return "AWS::Batch::JobDefinition.ContainerProperties"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSBatchJobDefinition_ContainerProperties) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

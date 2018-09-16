@@ -33,9 +33,18 @@ type AWSCloudFrontDistribution_Origin struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-origin.html#cfn-cloudfront-distribution-origin-s3originconfig
 	S3OriginConfig *AWSCloudFrontDistribution_S3OriginConfig `json:"S3OriginConfig,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCloudFrontDistribution_Origin) AWSCloudFormationType() string {
 	return "AWS::CloudFront::Distribution.Origin"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCloudFrontDistribution_Origin) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

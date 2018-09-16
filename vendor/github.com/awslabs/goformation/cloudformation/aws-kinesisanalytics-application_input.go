@@ -33,9 +33,18 @@ type AWSKinesisAnalyticsApplication_Input struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-application-input.html#cfn-kinesisanalytics-application-input-nameprefix
 	NamePrefix string `json:"NamePrefix,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisAnalyticsApplication_Input) AWSCloudFormationType() string {
 	return "AWS::KinesisAnalytics::Application.Input"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSKinesisAnalyticsApplication_Input) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

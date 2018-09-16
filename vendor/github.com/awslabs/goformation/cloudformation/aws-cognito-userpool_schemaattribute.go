@@ -38,9 +38,18 @@ type AWSCognitoUserPool_SchemaAttribute struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-schemaattribute.html#cfn-cognito-userpool-schemaattribute-stringattributeconstraints
 	StringAttributeConstraints *AWSCognitoUserPool_StringAttributeConstraints `json:"StringAttributeConstraints,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCognitoUserPool_SchemaAttribute) AWSCloudFormationType() string {
 	return "AWS::Cognito::UserPool.SchemaAttribute"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCognitoUserPool_SchemaAttribute) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

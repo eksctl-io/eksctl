@@ -48,9 +48,18 @@ type AWSSSMMaintenanceWindowTask_MaintenanceWindowRunCommandParameters struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ssm-maintenancewindowtask-maintenancewindowruncommandparameters.html#cfn-ssm-maintenancewindowtask-maintenancewindowruncommandparameters-timeoutseconds
 	TimeoutSeconds int `json:"TimeoutSeconds,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSSSMMaintenanceWindowTask_MaintenanceWindowRunCommandParameters) AWSCloudFormationType() string {
 	return "AWS::SSM::MaintenanceWindowTask.MaintenanceWindowRunCommandParameters"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSSSMMaintenanceWindowTask_MaintenanceWindowRunCommandParameters) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

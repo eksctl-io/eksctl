@@ -13,9 +13,18 @@ type AWSCloudFrontDistribution_LambdaFunctionAssociation struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-lambdafunctionassociation.html#cfn-cloudfront-distribution-lambdafunctionassociation-lambdafunctionarn
 	LambdaFunctionARN string `json:"LambdaFunctionARN,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCloudFrontDistribution_LambdaFunctionAssociation) AWSCloudFormationType() string {
 	return "AWS::CloudFront::Distribution.LambdaFunctionAssociation"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCloudFrontDistribution_LambdaFunctionAssociation) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

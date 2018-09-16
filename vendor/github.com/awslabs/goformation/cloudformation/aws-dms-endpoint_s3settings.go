@@ -38,9 +38,18 @@ type AWSDMSEndpoint_S3Settings struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dms-endpoint-s3settings.html#cfn-dms-endpoint-s3settings-serviceaccessrolearn
 	ServiceAccessRoleArn string `json:"ServiceAccessRoleArn,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSDMSEndpoint_S3Settings) AWSCloudFormationType() string {
 	return "AWS::DMS::Endpoint.S3Settings"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSDMSEndpoint_S3Settings) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

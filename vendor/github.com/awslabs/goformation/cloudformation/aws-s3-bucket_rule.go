@@ -63,9 +63,18 @@ type AWSS3Bucket_Rule struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig-rule.html#cfn-s3-bucket-lifecycleconfig-rule-transitions
 	Transitions []AWSS3Bucket_Transition `json:"Transitions,omitempty"`
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_Rule) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.Rule"
+}
+
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSS3Bucket_Rule) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
 }

@@ -24,6 +24,12 @@ type AWSCloudFormationWaitCondition struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waitcondition.html#cfn-waitcondition-timeout
 	Timeout string `json:"Timeout,omitempty"`
+
+	// _creationPolicy represents a CloudFormation CreationPolicy
+	_creationPolicy *CreationPolicy
+
+	// _deletionPolicy represents a CloudFormation DeletionPolicy
+	_deletionPolicy DeletionPolicy
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -31,16 +37,34 @@ func (r *AWSCloudFormationWaitCondition) AWSCloudFormationType() string {
 	return "AWS::CloudFormation::WaitCondition"
 }
 
+// SetDeletionPolicy applies an AWS CloudFormation DeletionPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-deletionpolicy.html
+func (r *AWSCloudFormationWaitCondition) SetDeletionPolicy(policy DeletionPolicy) {
+	r._deletionPolicy = policy
+}
+
+// SetCreationPolicy applies an AWS CloudFormation CreationPolicy to this resource
+// see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-creationpolicy.html
+func (r *AWSCloudFormationWaitCondition) SetCreationPolicy(policy *CreationPolicy) {
+	r._creationPolicy = policy
+}
+
 // MarshalJSON is a custom JSON marshalling hook that embeds this object into
 // an AWS CloudFormation JSON resource's 'Properties' field and adds a 'Type'.
 func (r AWSCloudFormationWaitCondition) MarshalJSON() ([]byte, error) {
 	type Properties AWSCloudFormationWaitCondition
 	return json.Marshal(&struct {
-		Type       string
-		Properties Properties
+		Type           string
+		Properties     Properties
+		DeletionPolicy DeletionPolicy `json:"DeletionPolicy,omitempty"`
+
+		CreationPolicy *CreationPolicy `json:"CreationPolicy,omitempty"`
 	}{
-		Type:       r.AWSCloudFormationType(),
-		Properties: (Properties)(r),
+		Type:           r.AWSCloudFormationType(),
+		Properties:     (Properties)(r),
+		DeletionPolicy: r._deletionPolicy,
+
+		CreationPolicy: r._creationPolicy,
 	})
 }
 
