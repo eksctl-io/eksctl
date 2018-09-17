@@ -86,9 +86,9 @@ func (n *nodeGroupResourceSet) addResourcesForIAM() {
 		n.spec.NodePolicyARNs = iamDefaultNodePolicyARNs
 	}
 	if n.spec.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser {
-		n.spec.NodePolicyARNs = append(n.spec.NodePolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
-	} else {
 		n.spec.NodePolicyARNs = append(n.spec.NodePolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
+	} else {
+		n.spec.NodePolicyARNs = append(n.spec.NodePolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
 	}
 
 	refIR := n.newResource("NodeInstanceRole", &gfn.AWSIAMRole{
