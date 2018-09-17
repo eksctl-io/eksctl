@@ -43,7 +43,7 @@ func scaleNodeGroupCmd() *cobra.Command {
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
 	fs.IntVarP(&cfg.Nodes, "nodes", "N", 0, "total number of nodes (scale to this number)")
 
-	fs.StringVarP(&cfg.Region, "region", "r", DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	return cmd
