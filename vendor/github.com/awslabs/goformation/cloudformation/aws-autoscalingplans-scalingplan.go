@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSAutoScalingPlansScalingPlanResources() map[string]AW
 				if resType == "AWS::AutoScalingPlans::ScalingPlan" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAutoScalingPlansScalingPlan
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSAutoScalingPlansScalingPlan{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSAutoScalingPlansScalingPlanWithName(name string) (AWSAu
 				if resType == "AWS::AutoScalingPlans::ScalingPlan" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAutoScalingPlansScalingPlan
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSAutoScalingPlansScalingPlan{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

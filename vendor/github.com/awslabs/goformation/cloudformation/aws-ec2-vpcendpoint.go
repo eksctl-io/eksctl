@@ -13,7 +13,7 @@ type AWSEC2VPCEndpoint struct {
 	// IsPrivateDnsEnabled AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-isprivatednsenabled
-	IsPrivateDnsEnabled bool `json:"IsPrivateDnsEnabled,omitempty"`
+	IsPrivateDnsEnabled *Value `json:"IsPrivateDnsEnabled,omitempty"`
 
 	// PolicyDocument AWS CloudFormation Property
 	// Required: false
@@ -23,32 +23,32 @@ type AWSEC2VPCEndpoint struct {
 	// RouteTableIds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-routetableids
-	RouteTableIds []*StringIntrinsic `json:"RouteTableIds,omitempty"`
+	RouteTableIds []*Value `json:"RouteTableIds,omitempty"`
 
 	// SecurityGroupIds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-securitygroupids
-	SecurityGroupIds []*StringIntrinsic `json:"SecurityGroupIds,omitempty"`
+	SecurityGroupIds []*Value `json:"SecurityGroupIds,omitempty"`
 
 	// ServiceName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-servicename
-	ServiceName *StringIntrinsic `json:"ServiceName,omitempty"`
+	ServiceName *Value `json:"ServiceName,omitempty"`
 
 	// SubnetIds AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-subnetids
-	SubnetIds []*StringIntrinsic `json:"SubnetIds,omitempty"`
+	SubnetIds []*Value `json:"SubnetIds,omitempty"`
 
 	// VPCEndpointType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-vpcendpointtype
-	VPCEndpointType *StringIntrinsic `json:"VPCEndpointType,omitempty"`
+	VPCEndpointType *Value `json:"VPCEndpointType,omitempty"`
 
 	// VpcId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-vpcid
-	VpcId *StringIntrinsic `json:"VpcId,omitempty"`
+	VpcId *Value `json:"VpcId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -105,9 +105,9 @@ func (t *Template) GetAllAWSEC2VPCEndpointResources() map[string]AWSEC2VPCEndpoi
 				if resType == "AWS::EC2::VPCEndpoint" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPCEndpoint
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2VPCEndpoint{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -132,9 +132,9 @@ func (t *Template) GetAWSEC2VPCEndpointWithName(name string) (AWSEC2VPCEndpoint,
 				if resType == "AWS::EC2::VPCEndpoint" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPCEndpoint
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2VPCEndpoint{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSGluePartition_PartitionInput AWS CloudFormation Resource (AWS::Glue::Partition.PartitionInput)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-partitioninput.html
 type AWSGluePartition_PartitionInput struct {
@@ -17,10 +21,14 @@ type AWSGluePartition_PartitionInput struct {
 	// Values AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-partition-partitioninput.html#cfn-glue-partition-partitioninput-values
-	Values []*StringIntrinsic `json:"Values,omitempty"`
+	Values []*Value `json:"Values,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGluePartition_PartitionInput) AWSCloudFormationType() string {
 	return "AWS::Glue::Partition.PartitionInput"
+}
+
+func (r *AWSGluePartition_PartitionInput) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

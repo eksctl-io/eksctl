@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSCodeDeployDeploymentGroup_RevisionLocation AWS CloudFormation Resource (AWS::CodeDeploy::DeploymentGroup.RevisionLocation)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codedeploy-deploymentgroup-deployment-revision.html
 type AWSCodeDeployDeploymentGroup_RevisionLocation struct {
@@ -12,7 +16,7 @@ type AWSCodeDeployDeploymentGroup_RevisionLocation struct {
 	// RevisionType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codedeploy-deploymentgroup-deployment-revision.html#cfn-properties-codedeploy-deploymentgroup-deployment-revision-revisiontype
-	RevisionType *StringIntrinsic `json:"RevisionType,omitempty"`
+	RevisionType *Value `json:"RevisionType,omitempty"`
 
 	// S3Location AWS CloudFormation Property
 	// Required: false
@@ -23,4 +27,8 @@ type AWSCodeDeployDeploymentGroup_RevisionLocation struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCodeDeployDeploymentGroup_RevisionLocation) AWSCloudFormationType() string {
 	return "AWS::CodeDeploy::DeploymentGroup.RevisionLocation"
+}
+
+func (r *AWSCodeDeployDeploymentGroup_RevisionLocation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

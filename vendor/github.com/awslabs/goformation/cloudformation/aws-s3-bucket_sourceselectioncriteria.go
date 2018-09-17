@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_SourceSelectionCriteria AWS CloudFormation Resource (AWS::S3::Bucket.SourceSelectionCriteria)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-sourceselectioncriteria.html
 type AWSS3Bucket_SourceSelectionCriteria struct {
@@ -13,4 +17,8 @@ type AWSS3Bucket_SourceSelectionCriteria struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_SourceSelectionCriteria) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.SourceSelectionCriteria"
+}
+
+func (r *AWSS3Bucket_SourceSelectionCriteria) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

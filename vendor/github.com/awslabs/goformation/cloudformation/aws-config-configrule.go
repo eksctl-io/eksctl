@@ -13,12 +13,12 @@ type AWSConfigConfigRule struct {
 	// ConfigRuleName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-configrule.html#cfn-config-configrule-configrulename
-	ConfigRuleName *StringIntrinsic `json:"ConfigRuleName,omitempty"`
+	ConfigRuleName *Value `json:"ConfigRuleName,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-configrule.html#cfn-config-configrule-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// InputParameters AWS CloudFormation Property
 	// Required: false
@@ -28,7 +28,7 @@ type AWSConfigConfigRule struct {
 	// MaximumExecutionFrequency AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-configrule.html#cfn-config-configrule-maximumexecutionfrequency
-	MaximumExecutionFrequency *StringIntrinsic `json:"MaximumExecutionFrequency,omitempty"`
+	MaximumExecutionFrequency *Value `json:"MaximumExecutionFrequency,omitempty"`
 
 	// Scope AWS CloudFormation Property
 	// Required: false
@@ -95,9 +95,9 @@ func (t *Template) GetAllAWSConfigConfigRuleResources() map[string]AWSConfigConf
 				if resType == "AWS::Config::ConfigRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSConfigConfigRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSConfigConfigRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -122,9 +122,9 @@ func (t *Template) GetAWSConfigConfigRuleWithName(name string) (AWSConfigConfigR
 				if resType == "AWS::Config::ConfigRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSConfigConfigRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSConfigConfigRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

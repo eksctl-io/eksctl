@@ -13,7 +13,7 @@ type AWSEC2EgressOnlyInternetGateway struct {
 	// VpcId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-egressonlyinternetgateway.html#cfn-ec2-egressonlyinternetgateway-vpcid
-	VpcId *StringIntrinsic `json:"VpcId,omitempty"`
+	VpcId *Value `json:"VpcId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSEC2EgressOnlyInternetGatewayResources() map[string]A
 				if resType == "AWS::EC2::EgressOnlyInternetGateway" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2EgressOnlyInternetGateway
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2EgressOnlyInternetGateway{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSEC2EgressOnlyInternetGatewayWithName(name string) (AWSE
 				if resType == "AWS::EC2::EgressOnlyInternetGateway" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2EgressOnlyInternetGateway
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2EgressOnlyInternetGateway{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

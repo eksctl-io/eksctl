@@ -13,12 +13,12 @@ type AWSGlueTable struct {
 	// CatalogId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-table.html#cfn-glue-table-catalogid
-	CatalogId *StringIntrinsic `json:"CatalogId,omitempty"`
+	CatalogId *Value `json:"CatalogId,omitempty"`
 
 	// DatabaseName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-table.html#cfn-glue-table-databasename
-	DatabaseName *StringIntrinsic `json:"DatabaseName,omitempty"`
+	DatabaseName *Value `json:"DatabaseName,omitempty"`
 
 	// TableInput AWS CloudFormation Property
 	// Required: true
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSGlueTableResources() map[string]AWSGlueTable {
 				if resType == "AWS::Glue::Table" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGlueTable
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSGlueTable{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSGlueTableWithName(name string) (AWSGlueTable, error) {
 				if resType == "AWS::Glue::Table" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGlueTable
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSGlueTable{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

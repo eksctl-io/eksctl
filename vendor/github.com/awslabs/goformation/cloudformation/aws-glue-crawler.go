@@ -13,27 +13,32 @@ type AWSGlueCrawler struct {
 	// Classifiers AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-crawler.html#cfn-glue-crawler-classifiers
-	Classifiers []*StringIntrinsic `json:"Classifiers,omitempty"`
+	Classifiers []*Value `json:"Classifiers,omitempty"`
+
+	// Configuration AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-crawler.html#cfn-glue-crawler-configuration
+	Configuration *Value `json:"Configuration,omitempty"`
 
 	// DatabaseName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-crawler.html#cfn-glue-crawler-databasename
-	DatabaseName *StringIntrinsic `json:"DatabaseName,omitempty"`
+	DatabaseName *Value `json:"DatabaseName,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-crawler.html#cfn-glue-crawler-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-crawler.html#cfn-glue-crawler-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// Role AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-crawler.html#cfn-glue-crawler-role
-	Role *StringIntrinsic `json:"Role,omitempty"`
+	Role *Value `json:"Role,omitempty"`
 
 	// Schedule AWS CloudFormation Property
 	// Required: false
@@ -48,7 +53,7 @@ type AWSGlueCrawler struct {
 	// TablePrefix AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-crawler.html#cfn-glue-crawler-tableprefix
-	TablePrefix *StringIntrinsic `json:"TablePrefix,omitempty"`
+	TablePrefix *Value `json:"TablePrefix,omitempty"`
 
 	// Targets AWS CloudFormation Property
 	// Required: true
@@ -110,9 +115,9 @@ func (t *Template) GetAllAWSGlueCrawlerResources() map[string]AWSGlueCrawler {
 				if resType == "AWS::Glue::Crawler" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGlueCrawler
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSGlueCrawler{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -137,9 +142,9 @@ func (t *Template) GetAWSGlueCrawlerWithName(name string) (AWSGlueCrawler, error
 				if resType == "AWS::Glue::Crawler" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGlueCrawler
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSGlueCrawler{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

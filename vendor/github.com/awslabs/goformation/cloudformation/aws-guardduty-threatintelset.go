@@ -13,27 +13,27 @@ type AWSGuardDutyThreatIntelSet struct {
 	// Activate AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-threatintelset.html#cfn-guardduty-threatintelset-activate
-	Activate bool `json:"Activate,omitempty"`
+	Activate *Value `json:"Activate,omitempty"`
 
 	// DetectorId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-threatintelset.html#cfn-guardduty-threatintelset-detectorid
-	DetectorId *StringIntrinsic `json:"DetectorId,omitempty"`
+	DetectorId *Value `json:"DetectorId,omitempty"`
 
 	// Format AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-threatintelset.html#cfn-guardduty-threatintelset-format
-	Format *StringIntrinsic `json:"Format,omitempty"`
+	Format *Value `json:"Format,omitempty"`
 
 	// Location AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-threatintelset.html#cfn-guardduty-threatintelset-location
-	Location *StringIntrinsic `json:"Location,omitempty"`
+	Location *Value `json:"Location,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-threatintelset.html#cfn-guardduty-threatintelset-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -90,9 +90,9 @@ func (t *Template) GetAllAWSGuardDutyThreatIntelSetResources() map[string]AWSGua
 				if resType == "AWS::GuardDuty::ThreatIntelSet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGuardDutyThreatIntelSet
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSGuardDutyThreatIntelSet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +117,9 @@ func (t *Template) GetAWSGuardDutyThreatIntelSetWithName(name string) (AWSGuardD
 				if resType == "AWS::GuardDuty::ThreatIntelSet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGuardDutyThreatIntelSet
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSGuardDutyThreatIntelSet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

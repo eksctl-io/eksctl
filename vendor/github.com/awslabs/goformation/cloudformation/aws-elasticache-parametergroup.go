@@ -13,17 +13,17 @@ type AWSElastiCacheParameterGroup struct {
 	// CacheParameterGroupFamily AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-parameter-group.html#cfn-elasticache-parametergroup-cacheparametergroupfamily
-	CacheParameterGroupFamily *StringIntrinsic `json:"CacheParameterGroupFamily,omitempty"`
+	CacheParameterGroupFamily *Value `json:"CacheParameterGroupFamily,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-parameter-group.html#cfn-elasticache-parametergroup-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// Properties AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticache-parameter-group.html#cfn-elasticache-parametergroup-properties
-	Properties map[string]*StringIntrinsic `json:"Properties,omitempty"`
+	Properties map[string]*Value `json:"Properties,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSElastiCacheParameterGroupResources() map[string]AWSE
 				if resType == "AWS::ElastiCache::ParameterGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElastiCacheParameterGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSElastiCacheParameterGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSElastiCacheParameterGroupWithName(name string) (AWSElas
 				if resType == "AWS::ElastiCache::ParameterGroup" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElastiCacheParameterGroup
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSElastiCacheParameterGroup{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

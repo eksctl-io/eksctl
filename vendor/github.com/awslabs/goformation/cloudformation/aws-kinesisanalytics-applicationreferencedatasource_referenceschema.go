@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSKinesisAnalyticsApplicationReferenceDataSource_ReferenceSchema AWS CloudFormation Resource (AWS::KinesisAnalytics::ApplicationReferenceDataSource.ReferenceSchema)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationreferencedatasource-referenceschema.html
 type AWSKinesisAnalyticsApplicationReferenceDataSource_ReferenceSchema struct {
@@ -12,7 +16,7 @@ type AWSKinesisAnalyticsApplicationReferenceDataSource_ReferenceSchema struct {
 	// RecordEncoding AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationreferencedatasource-referenceschema.html#cfn-kinesisanalytics-applicationreferencedatasource-referenceschema-recordencoding
-	RecordEncoding *StringIntrinsic `json:"RecordEncoding,omitempty"`
+	RecordEncoding *Value `json:"RecordEncoding,omitempty"`
 
 	// RecordFormat AWS CloudFormation Property
 	// Required: true
@@ -23,4 +27,8 @@ type AWSKinesisAnalyticsApplicationReferenceDataSource_ReferenceSchema struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisAnalyticsApplicationReferenceDataSource_ReferenceSchema) AWSCloudFormationType() string {
 	return "AWS::KinesisAnalytics::ApplicationReferenceDataSource.ReferenceSchema"
+}
+
+func (r *AWSKinesisAnalyticsApplicationReferenceDataSource_ReferenceSchema) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

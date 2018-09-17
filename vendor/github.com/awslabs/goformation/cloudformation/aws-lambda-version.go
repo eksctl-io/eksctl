@@ -13,17 +13,17 @@ type AWSLambdaVersion struct {
 	// CodeSha256 AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-version.html#cfn-lambda-version-codesha256
-	CodeSha256 *StringIntrinsic `json:"CodeSha256,omitempty"`
+	CodeSha256 *Value `json:"CodeSha256,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-version.html#cfn-lambda-version-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// FunctionName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-version.html#cfn-lambda-version-functionname
-	FunctionName *StringIntrinsic `json:"FunctionName,omitempty"`
+	FunctionName *Value `json:"FunctionName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSLambdaVersionResources() map[string]AWSLambdaVersion
 				if resType == "AWS::Lambda::Version" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSLambdaVersion
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSLambdaVersion{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSLambdaVersionWithName(name string) (AWSLambdaVersion, e
 				if resType == "AWS::Lambda::Version" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSLambdaVersion
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSLambdaVersion{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

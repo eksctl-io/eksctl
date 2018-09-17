@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSGlueTrigger_Action AWS CloudFormation Resource (AWS::Glue::Trigger.Action)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-trigger-action.html
 type AWSGlueTrigger_Action struct {
@@ -12,10 +16,14 @@ type AWSGlueTrigger_Action struct {
 	// JobName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-trigger-action.html#cfn-glue-trigger-action-jobname
-	JobName *StringIntrinsic `json:"JobName,omitempty"`
+	JobName *Value `json:"JobName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGlueTrigger_Action) AWSCloudFormationType() string {
 	return "AWS::Glue::Trigger.Action"
+}
+
+func (r *AWSGlueTrigger_Action) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

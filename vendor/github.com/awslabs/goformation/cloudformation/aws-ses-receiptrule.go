@@ -13,7 +13,7 @@ type AWSSESReceiptRule struct {
 	// After AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ses-receiptrule.html#cfn-ses-receiptrule-after
-	After *StringIntrinsic `json:"After,omitempty"`
+	After *Value `json:"After,omitempty"`
 
 	// Rule AWS CloudFormation Property
 	// Required: true
@@ -23,7 +23,7 @@ type AWSSESReceiptRule struct {
 	// RuleSetName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ses-receiptrule.html#cfn-ses-receiptrule-rulesetname
-	RuleSetName *StringIntrinsic `json:"RuleSetName,omitempty"`
+	RuleSetName *Value `json:"RuleSetName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSSESReceiptRuleResources() map[string]AWSSESReceiptRu
 				if resType == "AWS::SES::ReceiptRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESReceiptRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSESReceiptRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSSESReceiptRuleWithName(name string) (AWSSESReceiptRule,
 				if resType == "AWS::SES::ReceiptRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESReceiptRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSESReceiptRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

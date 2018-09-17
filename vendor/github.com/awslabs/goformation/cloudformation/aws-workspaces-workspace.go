@@ -13,32 +13,32 @@ type AWSWorkSpacesWorkspace struct {
 	// BundleId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-bundleid
-	BundleId *StringIntrinsic `json:"BundleId,omitempty"`
+	BundleId *Value `json:"BundleId,omitempty"`
 
 	// DirectoryId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-directoryid
-	DirectoryId *StringIntrinsic `json:"DirectoryId,omitempty"`
+	DirectoryId *Value `json:"DirectoryId,omitempty"`
 
 	// RootVolumeEncryptionEnabled AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-rootvolumeencryptionenabled
-	RootVolumeEncryptionEnabled bool `json:"RootVolumeEncryptionEnabled,omitempty"`
+	RootVolumeEncryptionEnabled *Value `json:"RootVolumeEncryptionEnabled,omitempty"`
 
 	// UserName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-username
-	UserName *StringIntrinsic `json:"UserName,omitempty"`
+	UserName *Value `json:"UserName,omitempty"`
 
 	// UserVolumeEncryptionEnabled AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-uservolumeencryptionenabled
-	UserVolumeEncryptionEnabled bool `json:"UserVolumeEncryptionEnabled,omitempty"`
+	UserVolumeEncryptionEnabled *Value `json:"UserVolumeEncryptionEnabled,omitempty"`
 
 	// VolumeEncryptionKey AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-volumeencryptionkey
-	VolumeEncryptionKey *StringIntrinsic `json:"VolumeEncryptionKey,omitempty"`
+	VolumeEncryptionKey *Value `json:"VolumeEncryptionKey,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -95,9 +95,9 @@ func (t *Template) GetAllAWSWorkSpacesWorkspaceResources() map[string]AWSWorkSpa
 				if resType == "AWS::WorkSpaces::Workspace" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSWorkSpacesWorkspace
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSWorkSpacesWorkspace{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -122,9 +122,9 @@ func (t *Template) GetAWSWorkSpacesWorkspaceWithName(name string) (AWSWorkSpaces
 				if resType == "AWS::WorkSpaces::Workspace" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSWorkSpacesWorkspace
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSWorkSpacesWorkspace{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

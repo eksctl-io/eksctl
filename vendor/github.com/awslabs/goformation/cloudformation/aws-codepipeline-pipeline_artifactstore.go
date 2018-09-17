@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSCodePipelinePipeline_ArtifactStore AWS CloudFormation Resource (AWS::CodePipeline::Pipeline.ArtifactStore)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codepipeline-pipeline-artifactstore.html
 type AWSCodePipelinePipeline_ArtifactStore struct {
@@ -12,15 +16,19 @@ type AWSCodePipelinePipeline_ArtifactStore struct {
 	// Location AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codepipeline-pipeline-artifactstore.html#cfn-codepipeline-pipeline-artifactstore-location
-	Location *StringIntrinsic `json:"Location,omitempty"`
+	Location *Value `json:"Location,omitempty"`
 
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codepipeline-pipeline-artifactstore.html#cfn-codepipeline-pipeline-artifactstore-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type *Value `json:"Type,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCodePipelinePipeline_ArtifactStore) AWSCloudFormationType() string {
 	return "AWS::CodePipeline::Pipeline.ArtifactStore"
+}
+
+func (r *AWSCodePipelinePipeline_ArtifactStore) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

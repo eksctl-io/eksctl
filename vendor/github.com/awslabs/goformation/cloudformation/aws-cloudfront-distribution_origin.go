@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSCloudFrontDistribution_Origin AWS CloudFormation Resource (AWS::CloudFront::Distribution.Origin)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-origin.html
 type AWSCloudFrontDistribution_Origin struct {
@@ -12,12 +16,12 @@ type AWSCloudFrontDistribution_Origin struct {
 	// DomainName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-origin.html#cfn-cloudfront-distribution-origin-domainname
-	DomainName *StringIntrinsic `json:"DomainName,omitempty"`
+	DomainName *Value `json:"DomainName,omitempty"`
 
 	// Id AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-origin.html#cfn-cloudfront-distribution-origin-id
-	Id *StringIntrinsic `json:"Id,omitempty"`
+	Id *Value `json:"Id,omitempty"`
 
 	// OriginCustomHeaders AWS CloudFormation Property
 	// Required: false
@@ -27,7 +31,7 @@ type AWSCloudFrontDistribution_Origin struct {
 	// OriginPath AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-origin.html#cfn-cloudfront-distribution-origin-originpath
-	OriginPath *StringIntrinsic `json:"OriginPath,omitempty"`
+	OriginPath *Value `json:"OriginPath,omitempty"`
 
 	// S3OriginConfig AWS CloudFormation Property
 	// Required: false
@@ -38,4 +42,8 @@ type AWSCloudFrontDistribution_Origin struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCloudFrontDistribution_Origin) AWSCloudFormationType() string {
 	return "AWS::CloudFront::Distribution.Origin"
+}
+
+func (r *AWSCloudFrontDistribution_Origin) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

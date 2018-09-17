@@ -13,7 +13,7 @@ type AWSIoTTopicRule struct {
 	// RuleName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iot-topicrule.html#cfn-iot-topicrule-rulename
-	RuleName *StringIntrinsic `json:"RuleName,omitempty"`
+	RuleName *Value `json:"RuleName,omitempty"`
 
 	// TopicRulePayload AWS CloudFormation Property
 	// Required: true
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSIoTTopicRuleResources() map[string]AWSIoTTopicRule {
 				if resType == "AWS::IoT::TopicRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTTopicRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSIoTTopicRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSIoTTopicRuleWithName(name string) (AWSIoTTopicRule, err
 				if resType == "AWS::IoT::TopicRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTTopicRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSIoTTopicRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

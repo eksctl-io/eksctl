@@ -13,37 +13,37 @@ type AWSDirectoryServiceSimpleAD struct {
 	// CreateAlias AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-simplead.html#cfn-directoryservice-simplead-createalias
-	CreateAlias bool `json:"CreateAlias,omitempty"`
+	CreateAlias *Value `json:"CreateAlias,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-simplead.html#cfn-directoryservice-simplead-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// EnableSso AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-simplead.html#cfn-directoryservice-simplead-enablesso
-	EnableSso bool `json:"EnableSso,omitempty"`
+	EnableSso *Value `json:"EnableSso,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-simplead.html#cfn-directoryservice-simplead-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// Password AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-simplead.html#cfn-directoryservice-simplead-password
-	Password *StringIntrinsic `json:"Password,omitempty"`
+	Password *Value `json:"Password,omitempty"`
 
 	// ShortName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-simplead.html#cfn-directoryservice-simplead-shortname
-	ShortName *StringIntrinsic `json:"ShortName,omitempty"`
+	ShortName *Value `json:"ShortName,omitempty"`
 
 	// Size AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-directoryservice-simplead.html#cfn-directoryservice-simplead-size
-	Size *StringIntrinsic `json:"Size,omitempty"`
+	Size *Value `json:"Size,omitempty"`
 
 	// VpcSettings AWS CloudFormation Property
 	// Required: true
@@ -105,9 +105,9 @@ func (t *Template) GetAllAWSDirectoryServiceSimpleADResources() map[string]AWSDi
 				if resType == "AWS::DirectoryService::SimpleAD" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDirectoryServiceSimpleAD
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSDirectoryServiceSimpleAD{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -132,9 +132,9 @@ func (t *Template) GetAWSDirectoryServiceSimpleADWithName(name string) (AWSDirec
 				if resType == "AWS::DirectoryService::SimpleAD" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDirectoryServiceSimpleAD
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSDirectoryServiceSimpleAD{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

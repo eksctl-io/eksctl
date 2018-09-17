@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_AnalyticsConfiguration AWS CloudFormation Resource (AWS::S3::Bucket.AnalyticsConfiguration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-analyticsconfiguration.html
 type AWSS3Bucket_AnalyticsConfiguration struct {
@@ -7,12 +11,12 @@ type AWSS3Bucket_AnalyticsConfiguration struct {
 	// Id AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-analyticsconfiguration.html#cfn-s3-bucket-analyticsconfiguration-id
-	Id *StringIntrinsic `json:"Id,omitempty"`
+	Id *Value `json:"Id,omitempty"`
 
 	// Prefix AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-analyticsconfiguration.html#cfn-s3-bucket-analyticsconfiguration-prefix
-	Prefix *StringIntrinsic `json:"Prefix,omitempty"`
+	Prefix *Value `json:"Prefix,omitempty"`
 
 	// StorageClassAnalysis AWS CloudFormation Property
 	// Required: true
@@ -28,4 +32,8 @@ type AWSS3Bucket_AnalyticsConfiguration struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_AnalyticsConfiguration) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.AnalyticsConfiguration"
+}
+
+func (r *AWSS3Bucket_AnalyticsConfiguration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

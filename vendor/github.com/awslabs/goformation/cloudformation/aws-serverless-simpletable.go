@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSServerlessSimpleTableResources() map[string]AWSServe
 				if resType == "AWS::Serverless::SimpleTable" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSServerlessSimpleTable
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSServerlessSimpleTable{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSServerlessSimpleTableWithName(name string) (AWSServerle
 				if resType == "AWS::Serverless::SimpleTable" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSServerlessSimpleTable
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSServerlessSimpleTable{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

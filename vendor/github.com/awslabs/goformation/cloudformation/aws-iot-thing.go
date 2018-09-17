@@ -18,7 +18,7 @@ type AWSIoTThing struct {
 	// ThingName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iot-thing.html#cfn-iot-thing-thingname
-	ThingName *StringIntrinsic `json:"ThingName,omitempty"`
+	ThingName *Value `json:"ThingName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSIoTThingResources() map[string]AWSIoTThing {
 				if resType == "AWS::IoT::Thing" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTThing
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSIoTThing{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSIoTThingWithName(name string) (AWSIoTThing, error) {
 				if resType == "AWS::IoT::Thing" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTThing
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSIoTThing{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

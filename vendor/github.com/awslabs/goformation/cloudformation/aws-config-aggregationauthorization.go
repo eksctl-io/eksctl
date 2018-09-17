@@ -13,12 +13,12 @@ type AWSConfigAggregationAuthorization struct {
 	// AuthorizedAccountId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-aggregationauthorization.html#cfn-config-aggregationauthorization-authorizedaccountid
-	AuthorizedAccountId *StringIntrinsic `json:"AuthorizedAccountId,omitempty"`
+	AuthorizedAccountId *Value `json:"AuthorizedAccountId,omitempty"`
 
 	// AuthorizedAwsRegion AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-config-aggregationauthorization.html#cfn-config-aggregationauthorization-authorizedawsregion
-	AuthorizedAwsRegion *StringIntrinsic `json:"AuthorizedAwsRegion,omitempty"`
+	AuthorizedAwsRegion *Value `json:"AuthorizedAwsRegion,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSConfigAggregationAuthorizationResources() map[string
 				if resType == "AWS::Config::AggregationAuthorization" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSConfigAggregationAuthorization
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSConfigAggregationAuthorization{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSConfigAggregationAuthorizationWithName(name string) (AW
 				if resType == "AWS::Config::AggregationAuthorization" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSConfigAggregationAuthorization
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSConfigAggregationAuthorization{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

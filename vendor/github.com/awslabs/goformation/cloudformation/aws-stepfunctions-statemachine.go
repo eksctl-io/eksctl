@@ -13,17 +13,17 @@ type AWSStepFunctionsStateMachine struct {
 	// DefinitionString AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-stepfunctions-statemachine.html#cfn-stepfunctions-statemachine-definitionstring
-	DefinitionString *StringIntrinsic `json:"DefinitionString,omitempty"`
+	DefinitionString *Value `json:"DefinitionString,omitempty"`
 
 	// RoleArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-stepfunctions-statemachine.html#cfn-stepfunctions-statemachine-rolearn
-	RoleArn *StringIntrinsic `json:"RoleArn,omitempty"`
+	RoleArn *Value `json:"RoleArn,omitempty"`
 
 	// StateMachineName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-stepfunctions-statemachine.html#cfn-stepfunctions-statemachine-statemachinename
-	StateMachineName *StringIntrinsic `json:"StateMachineName,omitempty"`
+	StateMachineName *Value `json:"StateMachineName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSStepFunctionsStateMachineResources() map[string]AWSS
 				if resType == "AWS::StepFunctions::StateMachine" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSStepFunctionsStateMachine
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSStepFunctionsStateMachine{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSStepFunctionsStateMachineWithName(name string) (AWSStep
 				if resType == "AWS::StepFunctions::StateMachine" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSStepFunctionsStateMachine
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSStepFunctionsStateMachine{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

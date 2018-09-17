@@ -13,12 +13,12 @@ type AWSLogsMetricFilter struct {
 	// FilterPattern AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-metricfilter.html#cfn-cwl-metricfilter-filterpattern
-	FilterPattern *StringIntrinsic `json:"FilterPattern,omitempty"`
+	FilterPattern *Value `json:"FilterPattern,omitempty"`
 
 	// LogGroupName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-metricfilter.html#cfn-cwl-metricfilter-loggroupname
-	LogGroupName *StringIntrinsic `json:"LogGroupName,omitempty"`
+	LogGroupName *Value `json:"LogGroupName,omitempty"`
 
 	// MetricTransformations AWS CloudFormation Property
 	// Required: true
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSLogsMetricFilterResources() map[string]AWSLogsMetric
 				if resType == "AWS::Logs::MetricFilter" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSLogsMetricFilter
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSLogsMetricFilter{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSLogsMetricFilterWithName(name string) (AWSLogsMetricFil
 				if resType == "AWS::Logs::MetricFilter" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSLogsMetricFilter
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSLogsMetricFilter{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

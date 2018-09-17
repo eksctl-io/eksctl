@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSGlueDatabase_DatabaseInput AWS CloudFormation Resource (AWS::Glue::Database.DatabaseInput)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-database-databaseinput.html
 type AWSGlueDatabase_DatabaseInput struct {
@@ -7,17 +11,17 @@ type AWSGlueDatabase_DatabaseInput struct {
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-database-databaseinput.html#cfn-glue-database-databaseinput-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// LocationUri AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-database-databaseinput.html#cfn-glue-database-databaseinput-locationuri
-	LocationUri *StringIntrinsic `json:"LocationUri,omitempty"`
+	LocationUri *Value `json:"LocationUri,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-database-databaseinput.html#cfn-glue-database-databaseinput-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: false
@@ -28,4 +32,8 @@ type AWSGlueDatabase_DatabaseInput struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGlueDatabase_DatabaseInput) AWSCloudFormationType() string {
 	return "AWS::Glue::Database.DatabaseInput"
+}
+
+func (r *AWSGlueDatabase_DatabaseInput) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

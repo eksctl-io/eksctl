@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSECSService_NetworkConfiguration AWS CloudFormation Resource (AWS::ECS::Service.NetworkConfiguration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-service-networkconfiguration.html
 type AWSECSService_NetworkConfiguration struct {
@@ -13,4 +17,8 @@ type AWSECSService_NetworkConfiguration struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSECSService_NetworkConfiguration) AWSCloudFormationType() string {
 	return "AWS::ECS::Service.NetworkConfiguration"
+}
+
+func (r *AWSECSService_NetworkConfiguration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

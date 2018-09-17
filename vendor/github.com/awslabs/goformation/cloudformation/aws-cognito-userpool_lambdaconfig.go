@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSCognitoUserPool_LambdaConfig AWS CloudFormation Resource (AWS::Cognito::UserPool.LambdaConfig)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html
 type AWSCognitoUserPool_LambdaConfig struct {
@@ -7,45 +11,49 @@ type AWSCognitoUserPool_LambdaConfig struct {
 	// CreateAuthChallenge AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-createauthchallenge
-	CreateAuthChallenge *StringIntrinsic `json:"CreateAuthChallenge,omitempty"`
+	CreateAuthChallenge *Value `json:"CreateAuthChallenge,omitempty"`
 
 	// CustomMessage AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-custommessage
-	CustomMessage *StringIntrinsic `json:"CustomMessage,omitempty"`
+	CustomMessage *Value `json:"CustomMessage,omitempty"`
 
 	// DefineAuthChallenge AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-defineauthchallenge
-	DefineAuthChallenge *StringIntrinsic `json:"DefineAuthChallenge,omitempty"`
+	DefineAuthChallenge *Value `json:"DefineAuthChallenge,omitempty"`
 
 	// PostAuthentication AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-postauthentication
-	PostAuthentication *StringIntrinsic `json:"PostAuthentication,omitempty"`
+	PostAuthentication *Value `json:"PostAuthentication,omitempty"`
 
 	// PostConfirmation AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-postconfirmation
-	PostConfirmation *StringIntrinsic `json:"PostConfirmation,omitempty"`
+	PostConfirmation *Value `json:"PostConfirmation,omitempty"`
 
 	// PreAuthentication AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-preauthentication
-	PreAuthentication *StringIntrinsic `json:"PreAuthentication,omitempty"`
+	PreAuthentication *Value `json:"PreAuthentication,omitempty"`
 
 	// PreSignUp AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-presignup
-	PreSignUp *StringIntrinsic `json:"PreSignUp,omitempty"`
+	PreSignUp *Value `json:"PreSignUp,omitempty"`
 
 	// VerifyAuthChallengeResponse AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-lambdaconfig.html#cfn-cognito-userpool-lambdaconfig-verifyauthchallengeresponse
-	VerifyAuthChallengeResponse *StringIntrinsic `json:"VerifyAuthChallengeResponse,omitempty"`
+	VerifyAuthChallengeResponse *Value `json:"VerifyAuthChallengeResponse,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCognitoUserPool_LambdaConfig) AWSCloudFormationType() string {
 	return "AWS::Cognito::UserPool.LambdaConfig"
+}
+
+func (r *AWSCognitoUserPool_LambdaConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

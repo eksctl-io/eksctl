@@ -6,21 +6,28 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
-
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-//go:generate go-bindata -pkg $GOPACKAGE -prefix assets -modtime 1 -o assets.go assets
+//go:generate ${GOPATH}/bin/go-bindata -pkg ${GOPACKAGE} -prefix assets -modtime 1 -o assets.go assets
 
 const (
 	configDir            = "/etc/eksctl/"
 	kubeletDropInUnitDir = "/etc/systemd/system/kubelet.service.d/"
 )
+
+type configFile struct {
+	content string
+	isAsset bool
+}
+
+type configFiles = map[string]map[string]configFile
 
 func getAsset(name string) (string, os.FileInfo, error) {
 	data, err := Asset(name)
@@ -34,18 +41,23 @@ func getAsset(name string) (string, os.FileInfo, error) {
 	return string(data), info, nil
 }
 
-func addFilesAndScripts(config *cloudconfig.CloudConfig, files map[string][]string, scripts []string) error {
+func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scripts []string) error {
 	for dir, fileNames := range files {
-		for _, fileName := range fileNames {
-			data, info, err := getAsset(fileName)
-			if err != nil {
-				return err
+		for fileName, file := range fileNames {
+			f := cloudconfig.File{
+				Path: dir + fileName,
 			}
-			config.AddFile(cloudconfig.File{
-				Path:        dir + fileName,
-				Content:     data,
-				Permissions: fmt.Sprintf("%04o", uint(info.Mode())),
-			})
+			if file.isAsset {
+				data, info, err := getAsset(fileName)
+				if err != nil {
+					return err
+				}
+				f.Content = data
+				f.Permissions = fmt.Sprintf("%04o", uint(info.Mode()))
+			} else {
+				f.Content = file.content
+			}
+			config.AddFile(f)
 		}
 	}
 	for _, scriptName := range scripts {
@@ -58,7 +70,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files map[string][]stri
 	return nil
 }
 
-func setKubeletParams(config *cloudconfig.CloudConfig, spec *api.ClusterConfig) {
+func makeAmazonLinux2Config(config *cloudconfig.CloudConfig, spec *api.ClusterConfig) (configFiles, error) {
 	if spec.MaxPodsPerNode == 0 {
 		spec.MaxPodsPerNode = maxPodsPerNodeType[spec.NodeType]
 	}
@@ -69,46 +81,57 @@ func setKubeletParams(config *cloudconfig.CloudConfig, spec *api.ClusterConfig) 
 		"CLUSTER_DNS=10.100.0.10",
 	}
 
-	config.AddFile(cloudconfig.File{
-		Path:    configDir + "kubelet.env",
-		Content: strings.Join(kubeletParams, "\n"),
-	})
+	metadata := []string{
+		fmt.Sprintf("AWS_DEFAULT_REGION=%s", spec.Region),
+		fmt.Sprintf("AWS_EKS_CLUSTER_NAME=%s", spec.ClusterName),
+		fmt.Sprintf("AWS_EKS_ENDPOINT=%s", spec.Endpoint),
+	}
+
+	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
+	kubeconfig.AppendAuthenticator(clientConfig, spec, kubeconfig.AWSIAMAuthenticator)
+
+	clientConfigData, err := clientcmd.Write(*clientConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "serialising kubeconfig for nodegroup")
+	}
+
+	files := configFiles{
+		kubeletDropInUnitDir: {
+			"10-eksclt.al2.conf": {isAsset: true},
+		},
+		configDir: {
+			"metadata.env": {content: strings.Join(metadata, "\n")},
+			"kubelet.env":  {content: strings.Join(kubeletParams, "\n")},
+			// TODO: https://github.com/weaveworks/eksctl/issues/161
+			"ca.crt":          {content: string(spec.CertificateAuthorityData)},
+			"kubeconfig.yaml": {content: string(clientConfigData)},
+		},
+	}
+
+	return files, nil
 }
 
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (*gfn.StringIntrinsic, error) {
+func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
-		"get_metadata.sh",
-		"get_credentials.sh",
-	}
-	files := map[string][]string{
-		configDir: {
-			"authenticator.sh",
-			"kubeconfig.yaml",
-		},
-		kubeletDropInUnitDir: {
-			"10-eksclt.al2.conf",
-		},
+		"bootstrap.al2.sh",
 	}
 
-	setKubeletParams(config, spec)
-
-	config.AddPackages("jq")
-	config.AddCommand("pip", "install", "--upgrade", "awscli")
+	files, err := makeAmazonLinux2Config(config, spec)
+	if err != nil {
+		return "", err
+	}
 
 	if err := addFilesAndScripts(config, files, scripts); err != nil {
-		return nil, err
+		return "", err
 	}
-
-	config.AddCommand("systemctl", "daemon-reload")
-	config.AddCommand("systemctl", "restart", "kubelet")
 
 	body, err := config.Encode()
 	if err != nil {
-		return nil, errors.Wrap(err, "encoding user data")
+		return "", errors.Wrap(err, "encoding user data")
 	}
 
 	logger.Debug("user-data = %s", string(body))
-	return gfn.NewString(string(body)), nil
+	return string(body), nil
 }

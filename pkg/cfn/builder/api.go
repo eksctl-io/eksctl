@@ -9,19 +9,6 @@ import (
 )
 
 const (
-	awsStackName  = "AWS::StackName"
-	awsAccountID  = "AWS::AccountId"
-	awsRegion     = "AWS::Region"
-	fnSub         = "Fn::Sub"
-	fnJoin        = "Fn::Join"
-	fnSplit       = "Fn::Split"
-	fnGetAtt      = "Fn::GetAtt"
-	fnImportValue = "Fn::ImportValue"
-
-	ParamClusterName      = "ClusterName"
-	ParamClusterStackName = cfnOutputClusterStackName
-	ParamNodeGroupID      = "NodeGroupID"
-
 	clusterTemplateDescription                = "EKS cluster"
 	clusterTemplateDescriptionDefaultFeatures = " (with dedicated VPC & IAM role) "
 
@@ -46,57 +33,45 @@ type resourceSet struct {
 	withIAM  bool
 }
 
-var refStackName = makeRef(awsStackName)
-
 func newResourceSet() *resourceSet {
 	return &resourceSet{
 		template: gfn.NewTemplate(),
 	}
 }
 
-// makeRef is syntactic sugar for {"Ref": <refName>}
-func makeRef(refName string) *gfn.StringIntrinsic {
-	return gfn.NewStringRef(refName)
-}
-
-// makeSub is syntactic sugar for {"Fn::Sub": <expr>}
-func makeSub(expr string) *gfn.StringIntrinsic {
-	return gfn.NewStringIntrinsic(fnSub, expr)
-}
-
 // makeName is syntactic sugar for {"Fn::Sub": "${AWS::Stack}-<name>"}
-func makeName(suffix string) *gfn.StringIntrinsic {
-	return makeSub(fmt.Sprintf("${%s}-%s", awsStackName, suffix))
+func makeName(suffix string) *gfn.Value {
+	return gfn.MakeFnSubString(fmt.Sprintf("${%s}-%s", gfn.StackName, suffix))
 }
 
 // makeSlice makes a slice from a list of arguments
-func makeSlice(i ...*gfn.StringIntrinsic) []*gfn.StringIntrinsic {
+func makeSlice(i ...*gfn.Value) []*gfn.Value {
 	return i
 }
 
 // makeSlice makes a slice from a list of string arguments
-func makeStringSlice(s ...string) []*gfn.StringIntrinsic {
-	slice := []*gfn.StringIntrinsic{}
+func makeStringSlice(s ...string) []*gfn.Value {
+	slice := []*gfn.Value{}
 	for _, i := range s {
 		slice = append(slice, gfn.NewString(i))
 	}
 	return slice
 }
 
-func (r *resourceSet) newParameter(name, valueType, defaultValue string) *gfn.StringIntrinsic {
+func (r *resourceSet) newParameter(name, valueType, defaultValue string) *gfn.Value {
 	p := map[string]string{"Type": valueType}
 	if defaultValue != "" {
 		p["Default"] = defaultValue
 	}
 	r.template.Parameters[name] = p
-	return makeRef(name)
+	return gfn.MakeRef(name)
 }
 
-func (r *resourceSet) newStringParameter(name, defaultValue string) *gfn.StringIntrinsic {
+func (r *resourceSet) newStringParameter(name, defaultValue string) *gfn.Value {
 	return r.newParameter(name, "String", defaultValue)
 }
 
-func (r *resourceSet) newNumberParameter(name, defaultValue string) *gfn.StringIntrinsic {
+func (r *resourceSet) newNumberParameter(name, defaultValue string) *gfn.Value {
 	return r.newParameter(name, "Number", defaultValue)
 }
 
@@ -105,7 +80,7 @@ func (r *resourceSet) newNumberParameter(name, defaultValue string) *gfn.StringI
 func makeAutoNameTag(suffix string) gfn.Tag {
 	return gfn.Tag{
 		Key:   gfn.NewString("Name"),
-		Value: makeSub(fmt.Sprintf("${%s}/%s", awsStackName, suffix)),
+		Value: gfn.MakeFnSubString(fmt.Sprintf("${%s}/%s", gfn.StackName, suffix)),
 	}
 }
 
@@ -125,10 +100,10 @@ func maybeSetNameTag(name string, resource interface{}) {
 }
 
 // newResource adds a resource, and adds Name tag if possible, it returns a reference
-func (r *resourceSet) newResource(name string, resource interface{}) *gfn.StringIntrinsic {
+func (r *resourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	maybeSetNameTag(name, resource)
 	r.template.Resources[name] = resource
-	return makeRef(name)
+	return gfn.MakeRef(name)
 }
 
 // renderJSON renders template as JSON

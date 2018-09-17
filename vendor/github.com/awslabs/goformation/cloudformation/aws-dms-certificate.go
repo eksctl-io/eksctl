@@ -13,17 +13,17 @@ type AWSDMSCertificate struct {
 	// CertificateIdentifier AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-certificate.html#cfn-dms-certificate-certificateidentifier
-	CertificateIdentifier *StringIntrinsic `json:"CertificateIdentifier,omitempty"`
+	CertificateIdentifier *Value `json:"CertificateIdentifier,omitempty"`
 
 	// CertificatePem AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-certificate.html#cfn-dms-certificate-certificatepem
-	CertificatePem *StringIntrinsic `json:"CertificatePem,omitempty"`
+	CertificatePem *Value `json:"CertificatePem,omitempty"`
 
 	// CertificateWallet AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-certificate.html#cfn-dms-certificate-certificatewallet
-	CertificateWallet *StringIntrinsic `json:"CertificateWallet,omitempty"`
+	CertificateWallet *Value `json:"CertificateWallet,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSDMSCertificateResources() map[string]AWSDMSCertifica
 				if resType == "AWS::DMS::Certificate" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDMSCertificate
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSDMSCertificate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSDMSCertificateWithName(name string) (AWSDMSCertificate,
 				if resType == "AWS::DMS::Certificate" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDMSCertificate
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSDMSCertificate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

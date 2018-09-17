@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSGlueCrawler_Targets AWS CloudFormation Resource (AWS::Glue::Crawler.Targets)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-glue-crawler-targets.html
 type AWSGlueCrawler_Targets struct {
@@ -18,4 +22,8 @@ type AWSGlueCrawler_Targets struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSGlueCrawler_Targets) AWSCloudFormationType() string {
 	return "AWS::Glue::Crawler.Targets"
+}
+
+func (r *AWSGlueCrawler_Targets) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

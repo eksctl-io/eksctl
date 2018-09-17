@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSCodePipelinePipeline_StageDeclaration AWS CloudFormation Resource (AWS::CodePipeline::Pipeline.StageDeclaration)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codepipeline-pipeline-stages.html
 type AWSCodePipelinePipeline_StageDeclaration struct {
@@ -17,10 +21,14 @@ type AWSCodePipelinePipeline_StageDeclaration struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codepipeline-pipeline-stages.html#cfn-codepipeline-pipeline-stages-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCodePipelinePipeline_StageDeclaration) AWSCloudFormationType() string {
 	return "AWS::CodePipeline::Pipeline.StageDeclaration"
+}
+
+func (r *AWSCodePipelinePipeline_StageDeclaration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

@@ -13,27 +13,27 @@ type AWSRDSDBSecurityGroupIngress struct {
 	// CIDRIP AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-security-group-ingress.html#cfn-rds-securitygroup-ingress-cidrip
-	CIDRIP *StringIntrinsic `json:"CIDRIP,omitempty"`
+	CIDRIP *Value `json:"CIDRIP,omitempty"`
 
 	// DBSecurityGroupName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-security-group-ingress.html#cfn-rds-securitygroup-ingress-dbsecuritygroupname
-	DBSecurityGroupName *StringIntrinsic `json:"DBSecurityGroupName,omitempty"`
+	DBSecurityGroupName *Value `json:"DBSecurityGroupName,omitempty"`
 
 	// EC2SecurityGroupId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-security-group-ingress.html#cfn-rds-securitygroup-ingress-ec2securitygroupid
-	EC2SecurityGroupId *StringIntrinsic `json:"EC2SecurityGroupId,omitempty"`
+	EC2SecurityGroupId *Value `json:"EC2SecurityGroupId,omitempty"`
 
 	// EC2SecurityGroupName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-security-group-ingress.html#cfn-rds-securitygroup-ingress-ec2securitygroupname
-	EC2SecurityGroupName *StringIntrinsic `json:"EC2SecurityGroupName,omitempty"`
+	EC2SecurityGroupName *Value `json:"EC2SecurityGroupName,omitempty"`
 
 	// EC2SecurityGroupOwnerId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-security-group-ingress.html#cfn-rds-securitygroup-ingress-ec2securitygroupownerid
-	EC2SecurityGroupOwnerId *StringIntrinsic `json:"EC2SecurityGroupOwnerId,omitempty"`
+	EC2SecurityGroupOwnerId *Value `json:"EC2SecurityGroupOwnerId,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -90,9 +90,9 @@ func (t *Template) GetAllAWSRDSDBSecurityGroupIngressResources() map[string]AWSR
 				if resType == "AWS::RDS::DBSecurityGroupIngress" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSRDSDBSecurityGroupIngress
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSRDSDBSecurityGroupIngress{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +117,9 @@ func (t *Template) GetAWSRDSDBSecurityGroupIngressWithName(name string) (AWSRDSD
 				if resType == "AWS::RDS::DBSecurityGroupIngress" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSRDSDBSecurityGroupIngress
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSRDSDBSecurityGroupIngress{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

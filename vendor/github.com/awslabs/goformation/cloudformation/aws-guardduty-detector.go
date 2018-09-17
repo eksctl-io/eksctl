@@ -13,7 +13,7 @@ type AWSGuardDutyDetector struct {
 	// Enable AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-detector.html#cfn-guardduty-detector-enable
-	Enable bool `json:"Enable,omitempty"`
+	Enable *Value `json:"Enable,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSGuardDutyDetectorResources() map[string]AWSGuardDuty
 				if resType == "AWS::GuardDuty::Detector" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGuardDutyDetector
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSGuardDutyDetector{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSGuardDutyDetectorWithName(name string) (AWSGuardDutyDet
 				if resType == "AWS::GuardDuty::Detector" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGuardDutyDetector
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSGuardDutyDetector{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

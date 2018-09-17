@@ -13,37 +13,37 @@ type AWSDMSReplicationTask struct {
 	// CdcStartTime AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-cdcstarttime
-	CdcStartTime float64 `json:"CdcStartTime,omitempty"`
+	CdcStartTime *Value `json:"CdcStartTime,omitempty"`
 
 	// MigrationType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-migrationtype
-	MigrationType *StringIntrinsic `json:"MigrationType,omitempty"`
+	MigrationType *Value `json:"MigrationType,omitempty"`
 
 	// ReplicationInstanceArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-replicationinstancearn
-	ReplicationInstanceArn *StringIntrinsic `json:"ReplicationInstanceArn,omitempty"`
+	ReplicationInstanceArn *Value `json:"ReplicationInstanceArn,omitempty"`
 
 	// ReplicationTaskIdentifier AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-replicationtaskidentifier
-	ReplicationTaskIdentifier *StringIntrinsic `json:"ReplicationTaskIdentifier,omitempty"`
+	ReplicationTaskIdentifier *Value `json:"ReplicationTaskIdentifier,omitempty"`
 
 	// ReplicationTaskSettings AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-replicationtasksettings
-	ReplicationTaskSettings *StringIntrinsic `json:"ReplicationTaskSettings,omitempty"`
+	ReplicationTaskSettings *Value `json:"ReplicationTaskSettings,omitempty"`
 
 	// SourceEndpointArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-sourceendpointarn
-	SourceEndpointArn *StringIntrinsic `json:"SourceEndpointArn,omitempty"`
+	SourceEndpointArn *Value `json:"SourceEndpointArn,omitempty"`
 
 	// TableMappings AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-tablemappings
-	TableMappings *StringIntrinsic `json:"TableMappings,omitempty"`
+	TableMappings *Value `json:"TableMappings,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -53,7 +53,7 @@ type AWSDMSReplicationTask struct {
 	// TargetEndpointArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-replicationtask.html#cfn-dms-replicationtask-targetendpointarn
-	TargetEndpointArn *StringIntrinsic `json:"TargetEndpointArn,omitempty"`
+	TargetEndpointArn *Value `json:"TargetEndpointArn,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -110,9 +110,9 @@ func (t *Template) GetAllAWSDMSReplicationTaskResources() map[string]AWSDMSRepli
 				if resType == "AWS::DMS::ReplicationTask" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDMSReplicationTask
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSDMSReplicationTask{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -137,9 +137,9 @@ func (t *Template) GetAWSDMSReplicationTaskWithName(name string) (AWSDMSReplicat
 				if resType == "AWS::DMS::ReplicationTask" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDMSReplicationTask
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSDMSReplicationTask{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

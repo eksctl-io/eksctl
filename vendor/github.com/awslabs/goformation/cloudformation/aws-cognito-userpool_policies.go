@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSCognitoUserPool_Policies AWS CloudFormation Resource (AWS::Cognito::UserPool.Policies)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cognito-userpool-policies.html
 type AWSCognitoUserPool_Policies struct {
@@ -13,4 +17,8 @@ type AWSCognitoUserPool_Policies struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSCognitoUserPool_Policies) AWSCloudFormationType() string {
 	return "AWS::Cognito::UserPool.Policies"
+}
+
+func (r *AWSCognitoUserPool_Policies) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

@@ -13,12 +13,12 @@ type AWSCodeCommitRepository struct {
 	// RepositoryDescription AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codecommit-repository.html#cfn-codecommit-repository-repositorydescription
-	RepositoryDescription *StringIntrinsic `json:"RepositoryDescription,omitempty"`
+	RepositoryDescription *Value `json:"RepositoryDescription,omitempty"`
 
 	// RepositoryName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codecommit-repository.html#cfn-codecommit-repository-repositoryname
-	RepositoryName *StringIntrinsic `json:"RepositoryName,omitempty"`
+	RepositoryName *Value `json:"RepositoryName,omitempty"`
 
 	// Triggers AWS CloudFormation Property
 	// Required: false
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSCodeCommitRepositoryResources() map[string]AWSCodeCo
 				if resType == "AWS::CodeCommit::Repository" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCodeCommitRepository
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCodeCommitRepository{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSCodeCommitRepositoryWithName(name string) (AWSCodeCommi
 				if resType == "AWS::CodeCommit::Repository" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCodeCommitRepository
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCodeCommitRepository{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -18,7 +18,7 @@ type AWSECRRepository struct {
 	// RepositoryName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecr-repository.html#cfn-ecr-repository-repositoryname
-	RepositoryName *StringIntrinsic `json:"RepositoryName,omitempty"`
+	RepositoryName *Value `json:"RepositoryName,omitempty"`
 
 	// RepositoryPolicyText AWS CloudFormation Property
 	// Required: false
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSECRRepositoryResources() map[string]AWSECRRepository
 				if resType == "AWS::ECR::Repository" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSECRRepository
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSECRRepository{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSECRRepositoryWithName(name string) (AWSECRRepository, e
 				if resType == "AWS::ECR::Repository" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSECRRepository
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSECRRepository{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

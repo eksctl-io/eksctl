@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSEC2InternetGatewayResources() map[string]AWSEC2Inter
 				if resType == "AWS::EC2::InternetGateway" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2InternetGateway
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2InternetGateway{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSEC2InternetGatewayWithName(name string) (AWSEC2Internet
 				if resType == "AWS::EC2::InternetGateway" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2InternetGateway
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2InternetGateway{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

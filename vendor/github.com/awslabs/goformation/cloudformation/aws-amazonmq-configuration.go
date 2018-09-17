@@ -13,27 +13,27 @@ type AWSAmazonMQConfiguration struct {
 	// Data AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-configuration.html#cfn-amazonmq-configuration-data
-	Data *StringIntrinsic `json:"Data,omitempty"`
+	Data *Value `json:"Data,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-configuration.html#cfn-amazonmq-configuration-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// EngineType AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-configuration.html#cfn-amazonmq-configuration-enginetype
-	EngineType *StringIntrinsic `json:"EngineType,omitempty"`
+	EngineType *Value `json:"EngineType,omitempty"`
 
 	// EngineVersion AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-configuration.html#cfn-amazonmq-configuration-engineversion
-	EngineVersion *StringIntrinsic `json:"EngineVersion,omitempty"`
+	EngineVersion *Value `json:"EngineVersion,omitempty"`
 
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-amazonmq-configuration.html#cfn-amazonmq-configuration-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -90,9 +90,9 @@ func (t *Template) GetAllAWSAmazonMQConfigurationResources() map[string]AWSAmazo
 				if resType == "AWS::AmazonMQ::Configuration" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAmazonMQConfiguration
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSAmazonMQConfiguration{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +117,9 @@ func (t *Template) GetAWSAmazonMQConfigurationWithName(name string) (AWSAmazonMQ
 				if resType == "AWS::AmazonMQ::Configuration" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSAmazonMQConfiguration
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSAmazonMQConfiguration{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

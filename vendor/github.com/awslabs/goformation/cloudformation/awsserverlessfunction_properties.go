@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 
 	"reflect"
-
-	"github.com/mitchellh/mapstructure"
 )
 
-// AWSServerlessFunction_Properties is a helper struct that can hold either a S3Event, SNSEvent, KinesisEvent, DynamoDBEvent, ApiEvent, ScheduleEvent, CloudWatchEventEvent, IoTRuleEvent, or AlexaSkillEvent value
+// AWSServerlessFunction_Properties is a helper struct that can hold either a S3Event, SNSEvent, SQSEvent, KinesisEvent, DynamoDBEvent, ApiEvent, ScheduleEvent, CloudWatchEventEvent, IoTRuleEvent, or AlexaSkillEvent value
 type AWSServerlessFunction_Properties struct {
 	S3Event              *AWSServerlessFunction_S3Event
 	SNSEvent             *AWSServerlessFunction_SNSEvent
+	SQSEvent             *AWSServerlessFunction_SQSEvent
 	KinesisEvent         *AWSServerlessFunction_KinesisEvent
 	DynamoDBEvent        *AWSServerlessFunction_DynamoDBEvent
 	ApiEvent             *AWSServerlessFunction_ApiEvent
@@ -29,6 +28,10 @@ func (r AWSServerlessFunction_Properties) value() interface{} {
 
 	if r.SNSEvent != nil && !reflect.DeepEqual(r.SNSEvent, &AWSServerlessFunction_SNSEvent{}) {
 		return r.SNSEvent
+	}
+
+	if r.SQSEvent != nil && !reflect.DeepEqual(r.SQSEvent, &AWSServerlessFunction_SQSEvent{}) {
+		return r.SQSEvent
 	}
 
 	if r.KinesisEvent != nil && !reflect.DeepEqual(r.KinesisEvent, &AWSServerlessFunction_KinesisEvent{}) {
@@ -65,6 +68,10 @@ func (r AWSServerlessFunction_Properties) value() interface{} {
 
 	if r.SNSEvent != nil {
 		return r.SNSEvent
+	}
+
+	if r.SQSEvent != nil {
+		return r.SQSEvent
 	}
 
 	if r.KinesisEvent != nil {
@@ -115,26 +122,30 @@ func (r *AWSServerlessFunction_Properties) UnmarshalJSON(b []byte) error {
 	switch val := typecheck.(type) {
 
 	case map[string]interface{}:
+		_ = val
 
-		mapstructure.Decode(val, &r.S3Event)
+		json.Unmarshal(b, &r.S3Event)
 
-		mapstructure.Decode(val, &r.SNSEvent)
+		json.Unmarshal(b, &r.SNSEvent)
 
-		mapstructure.Decode(val, &r.KinesisEvent)
+		json.Unmarshal(b, &r.SQSEvent)
 
-		mapstructure.Decode(val, &r.DynamoDBEvent)
+		json.Unmarshal(b, &r.KinesisEvent)
 
-		mapstructure.Decode(val, &r.ApiEvent)
+		json.Unmarshal(b, &r.DynamoDBEvent)
 
-		mapstructure.Decode(val, &r.ScheduleEvent)
+		json.Unmarshal(b, &r.ApiEvent)
 
-		mapstructure.Decode(val, &r.CloudWatchEventEvent)
+		json.Unmarshal(b, &r.ScheduleEvent)
 
-		mapstructure.Decode(val, &r.IoTRuleEvent)
+		json.Unmarshal(b, &r.CloudWatchEventEvent)
 
-		mapstructure.Decode(val, &r.AlexaSkillEvent)
+		json.Unmarshal(b, &r.IoTRuleEvent)
+
+		json.Unmarshal(b, &r.AlexaSkillEvent)
 
 	case []interface{}:
+		_ = val
 
 	}
 

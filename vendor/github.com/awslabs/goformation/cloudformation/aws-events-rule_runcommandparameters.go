@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSEventsRule_RunCommandParameters AWS CloudFormation Resource (AWS::Events::Rule.RunCommandParameters)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-runcommandparameters.html
 type AWSEventsRule_RunCommandParameters struct {
@@ -13,4 +17,8 @@ type AWSEventsRule_RunCommandParameters struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEventsRule_RunCommandParameters) AWSCloudFormationType() string {
 	return "AWS::Events::Rule.RunCommandParameters"
+}
+
+func (r *AWSEventsRule_RunCommandParameters) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

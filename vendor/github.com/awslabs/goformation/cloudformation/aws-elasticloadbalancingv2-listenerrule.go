@@ -23,12 +23,12 @@ type AWSElasticLoadBalancingV2ListenerRule struct {
 	// ListenerArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenerrule.html#cfn-elasticloadbalancingv2-listenerrule-listenerarn
-	ListenerArn *StringIntrinsic `json:"ListenerArn,omitempty"`
+	ListenerArn *Value `json:"ListenerArn,omitempty"`
 
 	// Priority AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-elasticloadbalancingv2-listenerrule.html#cfn-elasticloadbalancingv2-listenerrule-priority
-	Priority int `json:"Priority,omitempty"`
+	Priority *Value `json:"Priority,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -85,9 +85,9 @@ func (t *Template) GetAllAWSElasticLoadBalancingV2ListenerRuleResources() map[st
 				if resType == "AWS::ElasticLoadBalancingV2::ListenerRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticLoadBalancingV2ListenerRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSElasticLoadBalancingV2ListenerRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +112,9 @@ func (t *Template) GetAWSElasticLoadBalancingV2ListenerRuleWithName(name string)
 				if resType == "AWS::ElasticLoadBalancingV2::ListenerRule" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticLoadBalancingV2ListenerRule
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSElasticLoadBalancingV2ListenerRule{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

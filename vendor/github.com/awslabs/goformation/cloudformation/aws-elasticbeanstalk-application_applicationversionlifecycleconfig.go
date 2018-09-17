@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSElasticBeanstalkApplication_ApplicationVersionLifecycleConfig AWS CloudFormation Resource (AWS::ElasticBeanstalk::Application.ApplicationVersionLifecycleConfig)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticbeanstalk-application-applicationversionlifecycleconfig.html
 type AWSElasticBeanstalkApplication_ApplicationVersionLifecycleConfig struct {
@@ -18,4 +22,8 @@ type AWSElasticBeanstalkApplication_ApplicationVersionLifecycleConfig struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSElasticBeanstalkApplication_ApplicationVersionLifecycleConfig) AWSCloudFormationType() string {
 	return "AWS::ElasticBeanstalk::Application.ApplicationVersionLifecycleConfig"
+}
+
+func (r *AWSElasticBeanstalkApplication_ApplicationVersionLifecycleConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

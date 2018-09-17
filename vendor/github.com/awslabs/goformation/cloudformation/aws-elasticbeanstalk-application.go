@@ -13,12 +13,12 @@ type AWSElasticBeanstalkApplication struct {
 	// ApplicationName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk.html#cfn-elasticbeanstalk-application-name
-	ApplicationName *StringIntrinsic `json:"ApplicationName,omitempty"`
+	ApplicationName *Value `json:"ApplicationName,omitempty"`
 
 	// Description AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-beanstalk.html#cfn-elasticbeanstalk-application-description
-	Description *StringIntrinsic `json:"Description,omitempty"`
+	Description *Value `json:"Description,omitempty"`
 
 	// ResourceLifecycleConfig AWS CloudFormation Property
 	// Required: false
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSElasticBeanstalkApplicationResources() map[string]AW
 				if resType == "AWS::ElasticBeanstalk::Application" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticBeanstalkApplication
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSElasticBeanstalkApplication{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSElasticBeanstalkApplicationWithName(name string) (AWSEl
 				if resType == "AWS::ElasticBeanstalk::Application" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSElasticBeanstalkApplication
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSElasticBeanstalkApplication{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

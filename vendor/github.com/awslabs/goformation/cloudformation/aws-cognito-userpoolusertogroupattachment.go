@@ -13,17 +13,17 @@ type AWSCognitoUserPoolUserToGroupAttachment struct {
 	// GroupName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolusertogroupattachment.html#cfn-cognito-userpoolusertogroupattachment-groupname
-	GroupName *StringIntrinsic `json:"GroupName,omitempty"`
+	GroupName *Value `json:"GroupName,omitempty"`
 
 	// UserPoolId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolusertogroupattachment.html#cfn-cognito-userpoolusertogroupattachment-userpoolid
-	UserPoolId *StringIntrinsic `json:"UserPoolId,omitempty"`
+	UserPoolId *Value `json:"UserPoolId,omitempty"`
 
 	// Username AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolusertogroupattachment.html#cfn-cognito-userpoolusertogroupattachment-username
-	Username *StringIntrinsic `json:"Username,omitempty"`
+	Username *Value `json:"Username,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSCognitoUserPoolUserToGroupAttachmentResources() map[
 				if resType == "AWS::Cognito::UserPoolUserToGroupAttachment" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoUserPoolUserToGroupAttachment
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCognitoUserPoolUserToGroupAttachment{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSCognitoUserPoolUserToGroupAttachmentWithName(name strin
 				if resType == "AWS::Cognito::UserPoolUserToGroupAttachment" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCognitoUserPoolUserToGroupAttachment
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCognitoUserPoolUserToGroupAttachment{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

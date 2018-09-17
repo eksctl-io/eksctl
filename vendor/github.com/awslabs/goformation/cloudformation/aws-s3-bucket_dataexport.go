@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSS3Bucket_DataExport AWS CloudFormation Resource (AWS::S3::Bucket.DataExport)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-dataexport.html
 type AWSS3Bucket_DataExport struct {
@@ -12,10 +16,14 @@ type AWSS3Bucket_DataExport struct {
 	// OutputSchemaVersion AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-dataexport.html#cfn-s3-bucket-dataexport-outputschemaversion
-	OutputSchemaVersion *StringIntrinsic `json:"OutputSchemaVersion,omitempty"`
+	OutputSchemaVersion *Value `json:"OutputSchemaVersion,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSS3Bucket_DataExport) AWSCloudFormationType() string {
 	return "AWS::S3::Bucket.DataExport"
+}
+
+func (r *AWSS3Bucket_DataExport) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

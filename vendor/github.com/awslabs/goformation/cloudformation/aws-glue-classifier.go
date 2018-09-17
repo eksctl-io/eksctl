@@ -14,6 +14,16 @@ type AWSGlueClassifier struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-classifier.html#cfn-glue-classifier-grokclassifier
 	GrokClassifier *AWSGlueClassifier_GrokClassifier `json:"GrokClassifier,omitempty"`
+
+	// JsonClassifier AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-classifier.html#cfn-glue-classifier-jsonclassifier
+	JsonClassifier *AWSGlueClassifier_JsonClassifier `json:"JsonClassifier,omitempty"`
+
+	// XMLClassifier AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-glue-classifier.html#cfn-glue-classifier-xmlclassifier
+	XMLClassifier *AWSGlueClassifier_XMLClassifier `json:"XMLClassifier,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -70,9 +80,9 @@ func (t *Template) GetAllAWSGlueClassifierResources() map[string]AWSGlueClassifi
 				if resType == "AWS::Glue::Classifier" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGlueClassifier
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSGlueClassifier{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +107,9 @@ func (t *Template) GetAWSGlueClassifierWithName(name string) (AWSGlueClassifier,
 				if resType == "AWS::Glue::Classifier" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSGlueClassifier
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSGlueClassifier{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -13,17 +13,17 @@ type AWSIAMAccessKey struct {
 	// Serial AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html#cfn-iam-accesskey-serial
-	Serial int `json:"Serial,omitempty"`
+	Serial *Value `json:"Serial,omitempty"`
 
 	// Status AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html#cfn-iam-accesskey-status
-	Status *StringIntrinsic `json:"Status,omitempty"`
+	Status *Value `json:"Status,omitempty"`
 
 	// UserName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-accesskey.html#cfn-iam-accesskey-username
-	UserName *StringIntrinsic `json:"UserName,omitempty"`
+	UserName *Value `json:"UserName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSIAMAccessKeyResources() map[string]AWSIAMAccessKey {
 				if resType == "AWS::IAM::AccessKey" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIAMAccessKey
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSIAMAccessKey{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSIAMAccessKeyWithName(name string) (AWSIAMAccessKey, err
 				if resType == "AWS::IAM::AccessKey" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIAMAccessKey
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSIAMAccessKey{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -13,12 +13,12 @@ type AWSIoTThingPrincipalAttachment struct {
 	// Principal AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iot-thingprincipalattachment.html#cfn-iot-thingprincipalattachment-principal
-	Principal *StringIntrinsic `json:"Principal,omitempty"`
+	Principal *Value `json:"Principal,omitempty"`
 
 	// ThingName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iot-thingprincipalattachment.html#cfn-iot-thingprincipalattachment-thingname
-	ThingName *StringIntrinsic `json:"ThingName,omitempty"`
+	ThingName *Value `json:"ThingName,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSIoTThingPrincipalAttachmentResources() map[string]AW
 				if resType == "AWS::IoT::ThingPrincipalAttachment" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTThingPrincipalAttachment
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSIoTThingPrincipalAttachment{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSIoTThingPrincipalAttachmentWithName(name string) (AWSIo
 				if resType == "AWS::IoT::ThingPrincipalAttachment" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSIoTThingPrincipalAttachment
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSIoTThingPrincipalAttachment{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

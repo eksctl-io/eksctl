@@ -11,25 +11,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
-const (
-	nodeGroupNameFmt = "${ClusterName}-${NodeGroupID}"
-)
-
-var (
-	clusterOwnedTag = gfn.Tag{
-		Key:   makeSub("kubernetes.io/cluster/${ClusterName}"),
-		Value: gfn.NewString("owned"),
-	}
-)
-
 type nodeGroupResourceSet struct {
 	rs               *resourceSet
+	id               int
 	spec             *api.ClusterConfig
-	clusterStackName *gfn.StringIntrinsic
-	instanceProfile  *gfn.StringIntrinsic
-	securityGroups   []*gfn.StringIntrinsic
-	vpc              *gfn.StringIntrinsic
-	userData         *gfn.StringIntrinsic
+	clusterStackName string
+	nodeGroupName    string
+	instanceProfile  *gfn.Value
+	securityGroups   []*gfn.Value
+	vpc              *gfn.Value
+	userData         *gfn.Value
 }
 
 type awsCloudFormationResource struct {
@@ -38,10 +29,13 @@ type awsCloudFormationResource struct {
 	UpdatePolicy map[string]map[string]string
 }
 
-func NewNodeGroupResourceSet(spec *api.ClusterConfig) *nodeGroupResourceSet {
+func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *nodeGroupResourceSet {
 	return &nodeGroupResourceSet{
-		rs:   newResourceSet(),
-		spec: spec,
+		rs:               newResourceSet(),
+		id:               id,
+		clusterStackName: clusterStackName,
+		nodeGroupName:    fmt.Sprintf("%s-%d", spec.ClusterName, id),
+		spec:             spec,
 	}
 }
 
@@ -50,17 +44,13 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 	n.rs.template.Description += nodeGroupTemplateDescriptionDefaultFeatures
 	n.rs.template.Description += templateDescriptionSuffix
 
-	n.vpc = makeImportValue(ParamClusterStackName, cfnOutputClusterVPC)
+	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
 
 	userData, err := nodebootstrap.NewUserDataForAmazonLinux2(n.spec)
 	if err != nil {
 		return err
 	}
-	n.userData = userData
-
-	n.rs.newStringParameter(ParamClusterName, "")
-	n.rs.newStringParameter(ParamClusterStackName, "")
-	n.rs.newNumberParameter(ParamNodeGroupID, "")
+	n.userData = gfn.NewString(userData)
 
 	if n.spec.MinNodes == 0 && n.spec.MaxNodes == 0 {
 		n.spec.MinNodes = n.spec.Nodes
@@ -78,13 +68,17 @@ func (n *nodeGroupResourceSet) RenderJSON() ([]byte, error) {
 	return n.rs.renderJSON()
 }
 
-func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.StringIntrinsic {
+func (n *nodeGroupResourceSet) Template() gfn.Template {
+	return *n.rs.template
+}
+
+func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	return n.rs.newResource(name, resource)
 }
 
 func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 	lc := &gfn.AWSAutoScalingLaunchConfiguration{
-		AssociatePublicIpAddress: true,
+		AssociatePublicIpAddress: gfn.True(),
 		IamInstanceProfile:       n.instanceProfile,
 		SecurityGroups:           n.securityGroups,
 
@@ -106,14 +100,14 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 			"MinSize":                 fmt.Sprintf("%d", n.spec.MinNodes),
 			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxNodes),
 			"VPCZoneIdentifier": map[string][]interface{}{
-				fnSplit: []interface{}{
+				gfn.FnSplit: []interface{}{
 					",",
-					makeImportValue(ParamClusterStackName, cfnOutputClusterSubnets),
+					makeImportValue(n.clusterStackName, cfnOutputClusterSubnets),
 				},
 			},
 			"Tags": []map[string]interface{}{
-				{"Key": "Name", "Value": makeSub(nodeGroupNameFmt + "-Node"), "PropagateAtLaunch": "true"},
-				{"Key": makeSub("kubernetes.io/cluster/${ClusterName}"), "Value": "owned", "PropagateAtLaunch": "true"},
+				{"Key": "Name", "Value": fmt.Sprintf("%s-Node", n.nodeGroupName), "PropagateAtLaunch": "true"},
+				{"Key": "kubernetes.io/cluster/" + n.spec.ClusterName, "Value": "owned", "PropagateAtLaunch": "true"},
 			},
 		},
 		UpdatePolicy: map[string]map[string]string{

@@ -13,12 +13,12 @@ type AWSEC2VPNConnection struct {
 	// CustomerGatewayId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpn-connection.html#cfn-ec2-vpnconnection-customergatewayid
-	CustomerGatewayId *StringIntrinsic `json:"CustomerGatewayId,omitempty"`
+	CustomerGatewayId *Value `json:"CustomerGatewayId,omitempty"`
 
 	// StaticRoutesOnly AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpn-connection.html#cfn-ec2-vpnconnection-StaticRoutesOnly
-	StaticRoutesOnly bool `json:"StaticRoutesOnly,omitempty"`
+	StaticRoutesOnly *Value `json:"StaticRoutesOnly,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -28,12 +28,12 @@ type AWSEC2VPNConnection struct {
 	// Type AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpn-connection.html#cfn-ec2-vpnconnection-type
-	Type *StringIntrinsic `json:"Type,omitempty"`
+	Type *Value `json:"Type,omitempty"`
 
 	// VpnGatewayId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpn-connection.html#cfn-ec2-vpnconnection-vpngatewayid
-	VpnGatewayId *StringIntrinsic `json:"VpnGatewayId,omitempty"`
+	VpnGatewayId *Value `json:"VpnGatewayId,omitempty"`
 
 	// VpnTunnelOptionsSpecifications AWS CloudFormation Property
 	// Required: false
@@ -95,9 +95,9 @@ func (t *Template) GetAllAWSEC2VPNConnectionResources() map[string]AWSEC2VPNConn
 				if resType == "AWS::EC2::VPNConnection" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPNConnection
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2VPNConnection{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -122,9 +122,9 @@ func (t *Template) GetAWSEC2VPNConnectionWithName(name string) (AWSEC2VPNConnect
 				if resType == "AWS::EC2::VPNConnection" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2VPNConnection
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2VPNConnection{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

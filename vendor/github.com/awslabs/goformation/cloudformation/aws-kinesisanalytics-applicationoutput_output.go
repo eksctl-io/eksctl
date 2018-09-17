@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSKinesisAnalyticsApplicationOutput_Output AWS CloudFormation Resource (AWS::KinesisAnalytics::ApplicationOutput.Output)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationoutput-output.html
 type AWSKinesisAnalyticsApplicationOutput_Output struct {
@@ -27,10 +31,14 @@ type AWSKinesisAnalyticsApplicationOutput_Output struct {
 	// Name AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-kinesisanalytics-applicationoutput-output.html#cfn-kinesisanalytics-applicationoutput-output-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSKinesisAnalyticsApplicationOutput_Output) AWSCloudFormationType() string {
 	return "AWS::KinesisAnalytics::ApplicationOutput.Output"
+}
+
+func (r *AWSKinesisAnalyticsApplicationOutput_Output) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

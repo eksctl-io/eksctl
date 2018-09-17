@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSWAFRegionalXssMatchSet_XssMatchTuple AWS CloudFormation Resource (AWS::WAFRegional::XssMatchSet.XssMatchTuple)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-xssmatchset-xssmatchtuple.html
 type AWSWAFRegionalXssMatchSet_XssMatchTuple struct {
@@ -12,10 +16,14 @@ type AWSWAFRegionalXssMatchSet_XssMatchTuple struct {
 	// TextTransformation AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-xssmatchset-xssmatchtuple.html#cfn-wafregional-xssmatchset-xssmatchtuple-texttransformation
-	TextTransformation *StringIntrinsic `json:"TextTransformation,omitempty"`
+	TextTransformation *Value `json:"TextTransformation,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFRegionalXssMatchSet_XssMatchTuple) AWSCloudFormationType() string {
 	return "AWS::WAFRegional::XssMatchSet.XssMatchTuple"
+}
+
+func (r *AWSWAFRegionalXssMatchSet_XssMatchTuple) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

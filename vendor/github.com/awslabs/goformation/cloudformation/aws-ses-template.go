@@ -70,9 +70,9 @@ func (t *Template) GetAllAWSSESTemplateResources() map[string]AWSSESTemplate {
 				if resType == "AWS::SES::Template" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESTemplate
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSESTemplate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -97,9 +97,9 @@ func (t *Template) GetAWSSESTemplateWithName(name string) (AWSSESTemplate, error
 				if resType == "AWS::SES::Template" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSESTemplate
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSESTemplate{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

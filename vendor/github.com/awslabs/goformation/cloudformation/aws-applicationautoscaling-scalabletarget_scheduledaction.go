@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSApplicationAutoScalingScalableTarget_ScheduledAction AWS CloudFormation Resource (AWS::ApplicationAutoScaling::ScalableTarget.ScheduledAction)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-applicationautoscaling-scalabletarget-scheduledaction.html
 type AWSApplicationAutoScalingScalableTarget_ScheduledAction struct {
@@ -17,12 +21,12 @@ type AWSApplicationAutoScalingScalableTarget_ScheduledAction struct {
 	// Schedule AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-applicationautoscaling-scalabletarget-scheduledaction.html#cfn-applicationautoscaling-scalabletarget-scheduledaction-schedule
-	Schedule *StringIntrinsic `json:"Schedule,omitempty"`
+	Schedule *Value `json:"Schedule,omitempty"`
 
 	// ScheduledActionName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-applicationautoscaling-scalabletarget-scheduledaction.html#cfn-applicationautoscaling-scalabletarget-scheduledaction-scheduledactionname
-	ScheduledActionName *StringIntrinsic `json:"ScheduledActionName,omitempty"`
+	ScheduledActionName *Value `json:"ScheduledActionName,omitempty"`
 
 	// StartTime AWS CloudFormation Property
 	// Required: false
@@ -33,4 +37,8 @@ type AWSApplicationAutoScalingScalableTarget_ScheduledAction struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSApplicationAutoScalingScalableTarget_ScheduledAction) AWSCloudFormationType() string {
 	return "AWS::ApplicationAutoScaling::ScalableTarget.ScheduledAction"
+}
+
+func (r *AWSApplicationAutoScalingScalableTarget_ScheduledAction) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

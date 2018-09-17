@@ -13,12 +13,12 @@ type AWSCloudFormationStack struct {
 	// NotificationARNs AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html#cfn-cloudformation-stack-notificationarns
-	NotificationARNs []*StringIntrinsic `json:"NotificationARNs,omitempty"`
+	NotificationARNs []*Value `json:"NotificationARNs,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html#cfn-cloudformation-stack-parameters
-	Parameters map[string]*StringIntrinsic `json:"Parameters,omitempty"`
+	Parameters map[string]*Value `json:"Parameters,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -28,12 +28,12 @@ type AWSCloudFormationStack struct {
 	// TemplateURL AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html#cfn-cloudformation-stack-templateurl
-	TemplateURL *StringIntrinsic `json:"TemplateURL,omitempty"`
+	TemplateURL *Value `json:"TemplateURL,omitempty"`
 
 	// TimeoutInMinutes AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-stack.html#cfn-cloudformation-stack-timeoutinminutes
-	TimeoutInMinutes int `json:"TimeoutInMinutes,omitempty"`
+	TimeoutInMinutes *Value `json:"TimeoutInMinutes,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -90,9 +90,9 @@ func (t *Template) GetAllAWSCloudFormationStackResources() map[string]AWSCloudFo
 				if resType == "AWS::CloudFormation::Stack" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFormationStack
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSCloudFormationStack{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -117,9 +117,9 @@ func (t *Template) GetAWSCloudFormationStackWithName(name string) (AWSCloudForma
 				if resType == "AWS::CloudFormation::Stack" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSCloudFormationStack
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSCloudFormationStack{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

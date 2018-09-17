@@ -13,12 +13,12 @@ type AWSEC2NetworkAclEntry struct {
 	// CidrBlock AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl-entry.html#cfn-ec2-networkaclentry-cidrblock
-	CidrBlock *StringIntrinsic `json:"CidrBlock,omitempty"`
+	CidrBlock *Value `json:"CidrBlock,omitempty"`
 
 	// Egress AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl-entry.html#cfn-ec2-networkaclentry-egress
-	Egress bool `json:"Egress,omitempty"`
+	Egress *Value `json:"Egress,omitempty"`
 
 	// Icmp AWS CloudFormation Property
 	// Required: false
@@ -28,12 +28,12 @@ type AWSEC2NetworkAclEntry struct {
 	// Ipv6CidrBlock AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl-entry.html#cfn-ec2-networkaclentry-ipv6cidrblock
-	Ipv6CidrBlock *StringIntrinsic `json:"Ipv6CidrBlock,omitempty"`
+	Ipv6CidrBlock *Value `json:"Ipv6CidrBlock,omitempty"`
 
 	// NetworkAclId AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl-entry.html#cfn-ec2-networkaclentry-networkaclid
-	NetworkAclId *StringIntrinsic `json:"NetworkAclId,omitempty"`
+	NetworkAclId *Value `json:"NetworkAclId,omitempty"`
 
 	// PortRange AWS CloudFormation Property
 	// Required: false
@@ -43,17 +43,17 @@ type AWSEC2NetworkAclEntry struct {
 	// Protocol AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl-entry.html#cfn-ec2-networkaclentry-protocol
-	Protocol int `json:"Protocol,omitempty"`
+	Protocol *Value `json:"Protocol,omitempty"`
 
 	// RuleAction AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl-entry.html#cfn-ec2-networkaclentry-ruleaction
-	RuleAction *StringIntrinsic `json:"RuleAction,omitempty"`
+	RuleAction *Value `json:"RuleAction,omitempty"`
 
 	// RuleNumber AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-network-acl-entry.html#cfn-ec2-networkaclentry-rulenumber
-	RuleNumber int `json:"RuleNumber,omitempty"`
+	RuleNumber *Value `json:"RuleNumber,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -110,9 +110,9 @@ func (t *Template) GetAllAWSEC2NetworkAclEntryResources() map[string]AWSEC2Netwo
 				if resType == "AWS::EC2::NetworkAclEntry" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2NetworkAclEntry
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEC2NetworkAclEntry{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -137,9 +137,9 @@ func (t *Template) GetAWSEC2NetworkAclEntryWithName(name string) (AWSEC2NetworkA
 				if resType == "AWS::EC2::NetworkAclEntry" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEC2NetworkAclEntry
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEC2NetworkAclEntry{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

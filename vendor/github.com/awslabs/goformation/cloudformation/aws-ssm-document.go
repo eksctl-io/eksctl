@@ -18,7 +18,7 @@ type AWSSSMDocument struct {
 	// DocumentType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ssm-document.html#cfn-ssm-document-documenttype
-	DocumentType *StringIntrinsic `json:"DocumentType,omitempty"`
+	DocumentType *Value `json:"DocumentType,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -80,9 +80,9 @@ func (t *Template) GetAllAWSSSMDocumentResources() map[string]AWSSSMDocument {
 				if resType == "AWS::SSM::Document" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSSMDocument
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSSSMDocument{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -107,9 +107,9 @@ func (t *Template) GetAWSSSMDocumentWithName(name string) (AWSSSMDocument, error
 				if resType == "AWS::SSM::Document" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSSSMDocument
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSSSMDocument{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

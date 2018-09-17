@@ -53,7 +53,7 @@ type AWSDynamoDBTable struct {
 	// TableName AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html#cfn-dynamodb-table-tablename
-	TableName *StringIntrinsic `json:"TableName,omitempty"`
+	TableName *Value `json:"TableName,omitempty"`
 
 	// Tags AWS CloudFormation Property
 	// Required: false
@@ -120,9 +120,9 @@ func (t *Template) GetAllAWSDynamoDBTableResources() map[string]AWSDynamoDBTable
 				if resType == "AWS::DynamoDB::Table" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDynamoDBTable
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSDynamoDBTable{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -147,9 +147,9 @@ func (t *Template) GetAWSDynamoDBTableWithName(name string) (AWSDynamoDBTable, e
 				if resType == "AWS::DynamoDB::Table" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSDynamoDBTable
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSDynamoDBTable{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

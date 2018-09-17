@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSWAFRegionalSizeConstraintSet_SizeConstraint AWS CloudFormation Resource (AWS::WAFRegional::SizeConstraintSet.SizeConstraint)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-sizeconstraintset-sizeconstraint.html
 type AWSWAFRegionalSizeConstraintSet_SizeConstraint struct {
@@ -7,7 +11,7 @@ type AWSWAFRegionalSizeConstraintSet_SizeConstraint struct {
 	// ComparisonOperator AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-sizeconstraintset-sizeconstraint.html#cfn-wafregional-sizeconstraintset-sizeconstraint-comparisonoperator
-	ComparisonOperator *StringIntrinsic `json:"ComparisonOperator,omitempty"`
+	ComparisonOperator *Value `json:"ComparisonOperator,omitempty"`
 
 	// FieldToMatch AWS CloudFormation Property
 	// Required: true
@@ -17,15 +21,19 @@ type AWSWAFRegionalSizeConstraintSet_SizeConstraint struct {
 	// Size AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-sizeconstraintset-sizeconstraint.html#cfn-wafregional-sizeconstraintset-sizeconstraint-size
-	Size int `json:"Size,omitempty"`
+	Size *Value `json:"Size,omitempty"`
 
 	// TextTransformation AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-wafregional-sizeconstraintset-sizeconstraint.html#cfn-wafregional-sizeconstraintset-sizeconstraint-texttransformation
-	TextTransformation *StringIntrinsic `json:"TextTransformation,omitempty"`
+	TextTransformation *Value `json:"TextTransformation,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSWAFRegionalSizeConstraintSet_SizeConstraint) AWSCloudFormationType() string {
 	return "AWS::WAFRegional::SizeConstraintSet.SizeConstraint"
+}
+
+func (r *AWSWAFRegionalSizeConstraintSet_SizeConstraint) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

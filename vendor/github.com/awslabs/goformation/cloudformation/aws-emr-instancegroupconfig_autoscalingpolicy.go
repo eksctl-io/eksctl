@@ -1,5 +1,9 @@
 package cloudformation
 
+import (
+	"encoding/json"
+)
+
 // AWSEMRInstanceGroupConfig_AutoScalingPolicy AWS CloudFormation Resource (AWS::EMR::InstanceGroupConfig.AutoScalingPolicy)
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticmapreduce-instancegroupconfig-autoscalingpolicy.html
 type AWSEMRInstanceGroupConfig_AutoScalingPolicy struct {
@@ -18,4 +22,8 @@ type AWSEMRInstanceGroupConfig_AutoScalingPolicy struct {
 // AWSCloudFormationType returns the AWS CloudFormation resource type
 func (r *AWSEMRInstanceGroupConfig_AutoScalingPolicy) AWSCloudFormationType() string {
 	return "AWS::EMR::InstanceGroupConfig.AutoScalingPolicy"
+}
+
+func (r *AWSEMRInstanceGroupConfig_AutoScalingPolicy) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*r)
 }

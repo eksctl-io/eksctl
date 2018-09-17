@@ -18,27 +18,27 @@ type AWSECSTaskDefinition struct {
 	// Cpu AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu
-	Cpu *StringIntrinsic `json:"Cpu,omitempty"`
+	Cpu *Value `json:"Cpu,omitempty"`
 
 	// ExecutionRoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-executionrolearn
-	ExecutionRoleArn *StringIntrinsic `json:"ExecutionRoleArn,omitempty"`
+	ExecutionRoleArn *Value `json:"ExecutionRoleArn,omitempty"`
 
 	// Family AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-family
-	Family *StringIntrinsic `json:"Family,omitempty"`
+	Family *Value `json:"Family,omitempty"`
 
 	// Memory AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-memory
-	Memory *StringIntrinsic `json:"Memory,omitempty"`
+	Memory *Value `json:"Memory,omitempty"`
 
 	// NetworkMode AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-networkmode
-	NetworkMode *StringIntrinsic `json:"NetworkMode,omitempty"`
+	NetworkMode *Value `json:"NetworkMode,omitempty"`
 
 	// PlacementConstraints AWS CloudFormation Property
 	// Required: false
@@ -48,12 +48,12 @@ type AWSECSTaskDefinition struct {
 	// RequiresCompatibilities AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-requirescompatibilities
-	RequiresCompatibilities []*StringIntrinsic `json:"RequiresCompatibilities,omitempty"`
+	RequiresCompatibilities []*Value `json:"RequiresCompatibilities,omitempty"`
 
 	// TaskRoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-taskrolearn
-	TaskRoleArn *StringIntrinsic `json:"TaskRoleArn,omitempty"`
+	TaskRoleArn *Value `json:"TaskRoleArn,omitempty"`
 
 	// Volumes AWS CloudFormation Property
 	// Required: false
@@ -115,9 +115,9 @@ func (t *Template) GetAllAWSECSTaskDefinitionResources() map[string]AWSECSTaskDe
 				if resType == "AWS::ECS::TaskDefinition" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSECSTaskDefinition
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSECSTaskDefinition{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -142,9 +142,9 @@ func (t *Template) GetAWSECSTaskDefinitionWithName(name string) (AWSECSTaskDefin
 				if resType == "AWS::ECS::TaskDefinition" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSECSTaskDefinition
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSECSTaskDefinition{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

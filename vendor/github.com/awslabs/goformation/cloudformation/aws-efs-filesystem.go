@@ -13,7 +13,7 @@ type AWSEFSFileSystem struct {
 	// Encrypted AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-filesystem.html#cfn-efs-filesystem-encrypted
-	Encrypted bool `json:"Encrypted,omitempty"`
+	Encrypted *Value `json:"Encrypted,omitempty"`
 
 	// FileSystemTags AWS CloudFormation Property
 	// Required: false
@@ -23,12 +23,22 @@ type AWSEFSFileSystem struct {
 	// KmsKeyId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-filesystem.html#cfn-efs-filesystem-kmskeyid
-	KmsKeyId *StringIntrinsic `json:"KmsKeyId,omitempty"`
+	KmsKeyId *Value `json:"KmsKeyId,omitempty"`
 
 	// PerformanceMode AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-filesystem.html#cfn-efs-filesystem-performancemode
-	PerformanceMode *StringIntrinsic `json:"PerformanceMode,omitempty"`
+	PerformanceMode *Value `json:"PerformanceMode,omitempty"`
+
+	// ProvisionedThroughputInMibps AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-filesystem.html#cfn-elasticfilesystem-filesystem-provisionedthroughputinmibps
+	ProvisionedThroughputInMibps *Value `json:"ProvisionedThroughputInMibps,omitempty"`
+
+	// ThroughputMode AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-efs-filesystem.html#cfn-elasticfilesystem-filesystem-throughputmode
+	ThroughputMode *Value `json:"ThroughputMode,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
@@ -85,9 +95,9 @@ func (t *Template) GetAllAWSEFSFileSystemResources() map[string]AWSEFSFileSystem
 				if resType == "AWS::EFS::FileSystem" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEFSFileSystem
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSEFSFileSystem{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -112,9 +122,9 @@ func (t *Template) GetAWSEFSFileSystemWithName(name string) (AWSEFSFileSystem, e
 				if resType == "AWS::EFS::FileSystem" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSEFSFileSystem
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSEFSFileSystem{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

@@ -14,27 +14,30 @@ install-build-deps:
 
 .PHONY: test
 test: generate
-	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git diff; exit 1)
-	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git diff; exit 1)
+	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff; exit 1)
+	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff; exit 1)
 	@go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
-	@test -z $(COVERALLS_TOKEN) || goveralls -coverprofile=coverage.out -service=circle-ci
+	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
 
 .PHONY: lint
 lint:
-	@gometalinter ./...
+	@$(GOPATH)/bin/gometalinter ./...
 
 .PHONY: ci
 ci: test lint
 
-
+TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
 integration-test-dev: build
+	@./eksctl utils write-kubeconfig \
+		--auto-kubeconfig \
+		--name=$(TEST_CLUSTER)
 	@go test -tags integration -v -timeout 21m ./tests/integration/... \
 		-args \
-		-eksctl.cluster=integration-test-dev \
+		-eksctl.cluster=$(TEST_CLUSTER) \
 		-eksctl.create=false \
 		-eksctl.delete=false \
-		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/integration-test-dev
+		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build
 	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig

@@ -13,7 +13,7 @@ type AWSWAFRegionalXssMatchSet struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-xssmatchset.html#cfn-wafregional-xssmatchset-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// XssMatchTuples AWS CloudFormation Property
 	// Required: false
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSWAFRegionalXssMatchSetResources() map[string]AWSWAFR
 				if resType == "AWS::WAFRegional::XssMatchSet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSWAFRegionalXssMatchSet
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSWAFRegionalXssMatchSet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSWAFRegionalXssMatchSetWithName(name string) (AWSWAFRegi
 				if resType == "AWS::WAFRegional::XssMatchSet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSWAFRegionalXssMatchSet
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSWAFRegionalXssMatchSet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

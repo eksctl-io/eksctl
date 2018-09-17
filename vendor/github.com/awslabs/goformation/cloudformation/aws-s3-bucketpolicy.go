@@ -13,7 +13,7 @@ type AWSS3BucketPolicy struct {
 	// Bucket AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-policy.html#aws-properties-s3-policy-bucket
-	Bucket *StringIntrinsic `json:"Bucket,omitempty"`
+	Bucket *Value `json:"Bucket,omitempty"`
 
 	// PolicyDocument AWS CloudFormation Property
 	// Required: true
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSS3BucketPolicyResources() map[string]AWSS3BucketPoli
 				if resType == "AWS::S3::BucketPolicy" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSS3BucketPolicy
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSS3BucketPolicy{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSS3BucketPolicyWithName(name string) (AWSS3BucketPolicy,
 				if resType == "AWS::S3::BucketPolicy" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSS3BucketPolicy
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSS3BucketPolicy{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}

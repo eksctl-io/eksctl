@@ -13,7 +13,7 @@ type AWSWAFRegionalSizeConstraintSet struct {
 	// Name AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-sizeconstraintset.html#cfn-wafregional-sizeconstraintset-name
-	Name *StringIntrinsic `json:"Name,omitempty"`
+	Name *Value `json:"Name,omitempty"`
 
 	// SizeConstraints AWS CloudFormation Property
 	// Required: false
@@ -75,9 +75,9 @@ func (t *Template) GetAllAWSWAFRegionalSizeConstraintSetResources() map[string]A
 				if resType == "AWS::WAFRegional::SizeConstraintSet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSWAFRegionalSizeConstraintSet
-						if err := json.Unmarshal(b, &result); err == nil {
-							results[name] = result
+						result := &AWSWAFRegionalSizeConstraintSet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							results[name] = *result
 						}
 					}
 				}
@@ -102,9 +102,9 @@ func (t *Template) GetAWSWAFRegionalSizeConstraintSetWithName(name string) (AWSW
 				if resType == "AWS::WAFRegional::SizeConstraintSet" {
 					// The resource is correct, unmarshal it into the results
 					if b, err := json.Marshal(resource); err == nil {
-						var result AWSWAFRegionalSizeConstraintSet
-						if err := json.Unmarshal(b, &result); err == nil {
-							return result, nil
+						result := &AWSWAFRegionalSizeConstraintSet{}
+						if err := result.UnmarshalJSON(b); err == nil {
+							return *result, nil
 						}
 					}
 				}
