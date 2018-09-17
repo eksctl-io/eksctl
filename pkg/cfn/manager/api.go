@@ -129,14 +129,9 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, pa
 	return nil
 }
 
-func (c *StackCollection) UpdateStack(name string, stack builder.ResourceSet, parameters map[string]string, errs chan error) error {
-	templateBody, err := stack.RenderJSON()
-	if err != nil {
-		return errors.Wrapf(err, "rendering template for %q stack", name)
-	}
-	logger.Debug("templateBody = %s", string(templateBody))
-
-	if err := c.doUpdateStackRequest(name, templateBody, parameters, stack.WithIAM()); err != nil {
+func (c *StackCollection) UpdateStack(name string, template []byte, parameters map[string]string, errs chan error) error {
+	// if err := c.doUpdateStackRequest(name, template, parameters, stack.WithIAM()); err != nil {
+	if err := c.doUpdateStackRequest(name, template, parameters, false); err != nil {
 		return err
 	}
 
@@ -146,7 +141,7 @@ func (c *StackCollection) UpdateStack(name string, stack builder.ResourceSet, pa
 	return nil
 }
 
-func (c *StackCollection) describeStack(name string) (*Stack, error) {
+func (c *StackCollection) describeStack(i *Stack) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
 	}

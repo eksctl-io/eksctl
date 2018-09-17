@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/awslabs/goformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 
@@ -66,30 +64,6 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
-func (n *nodeGroupResourceSet) AddResourcesForScaling(stackTemplate string) error {
-	n.rs.template.Description = nodeGroupTemplateDescription
-	n.rs.template.Description += nodeGroupTemplateDescriptionDefaultFeatures
-	n.rs.template.Description += templateDescriptionSuffix
-
-	n.rs.newStringParameter(ParamClusterName, "")
-	n.rs.newStringParameter(ParamClusterStackName, "")
-	n.rs.newNumberParameter(ParamNodeGroupID, "")
-
-	if n.spec.MinNodes == 0 && n.spec.MaxNodes == 0 {
-		n.spec.MinNodes = n.spec.Nodes
-		n.spec.MaxNodes = n.spec.Nodes
-	}
-
-	asg, err := n.getCurrentNodeGroup(stackTemplate)
-	if err != nil {
-		return err
-	}
-
-	n.addResourcesForNodeGroupScaling(asg)
-
-	return nil
-}
-
 func (n *nodeGroupResourceSet) RenderJSON() ([]byte, error) {
 	return n.rs.renderJSON()
 }
@@ -145,29 +119,6 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 	})
 }
 
-func (n *nodeGroupResourceSet) addResourcesForNodeGroupScaling(asg *gfn.AWSAutoScalingAutoScalingGroup) {
-	asg.DesiredCapacity = gfn.NewStringRef(fmt.Sprintf("%d", n.spec.Nodes))
-	asg.MinSize = gfn.NewStringRef(fmt.Sprintf("%d", n.spec.MinNodes))
-	asg.MaxSize = gfn.NewStringRef(fmt.Sprintf("%d", n.spec.MaxNodes))
-
-	n.newResource("NodeGroup", asg)
-}
-
 func (n *nodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return n.rs.GetAllOutputs(stack, n.spec)
-}
-
-func (c *nodeGroupResourceSet) getCurrentNodeGroup(templateBody string) (*gfn.AWSAutoScalingAutoScalingGroup, error) {
-	template, err := goformation.ParseYAML([]byte(templateBody))
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to parse CloudFormation template")
-	}
-
-	asg, err := template.GetAWSAutoScalingAutoScalingGroupWithName("NodeGroup")
-
-	if err == nil {
-		return nil, fmt.Errorf("Unable to find NodeGroup in existing template")
-	}
-
-	return &asg, nil
 }
