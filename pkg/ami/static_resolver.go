@@ -16,14 +16,14 @@ import (
 var StaticImages = map[string]map[int]map[string]string{
 	ImageFamilyAmazonLinux2: {
 		ImageClassGeneral: {
-			api.EKS_REGION_US_WEST_2: "ami-08cab282f9979fc7a",
-			api.EKS_REGION_US_EAST_1: "ami-0b2ae3c6bda8b5c06",
-			api.EKS_REGION_EU_WEST_1: "ami-066110c1a7466949e",
+			api.EKS_REGION_US_WEST_2: "ami-0a54c984b9f908c81",
+			api.EKS_REGION_US_EAST_1: "ami-0440e4f6b9713faf6",
+			api.EKS_REGION_EU_WEST_1: "ami-0c7a4976cb6fafd3a",
 		},
 		ImageClassGPU: {
-			api.EKS_REGION_US_WEST_2: "ami-0d20f2404b9a1c4d1",
-			api.EKS_REGION_US_EAST_1: "ami-09fe6fc9106bda972",
-			api.EKS_REGION_EU_WEST_1: "ami-09e0c6b3d3cf906f1",
+			api.EKS_REGION_US_WEST_2: "ami-0731694d53ef9604b",
+			api.EKS_REGION_US_EAST_1: "ami-058bfb8c236caae89",
+			api.EKS_REGION_EU_WEST_1: "ami-0706dc8a5eed2eed9",
 		},
 	},
 }

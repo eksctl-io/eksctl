@@ -33,19 +33,19 @@ var _ = Describe("AMI Static Resolution", func() {
 		Entry("with non-gpu instance and us-west-2", ResolveCase{
 			Region:       "us-west-2",
 			InstanceType: "t2.medium",
-			ExpectedAMI:  "ami-08cab282f9979fc7a",
+			ExpectedAMI:  "ami-0a54c984b9f908c81",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance and us-east-1", ResolveCase{
 			Region:       "us-east-1",
 			InstanceType: "t2.medium",
-			ExpectedAMI:  "ami-0b2ae3c6bda8b5c06",
+			ExpectedAMI:  "ami-0440e4f6b9713faf6",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance and eu-west-1", ResolveCase{
 			Region:       "eu-west-1",
 			InstanceType: "t2.medium",
-			ExpectedAMI:  "ami-066110c1a7466949e",
+			ExpectedAMI:  "ami-0c7a4976cb6fafd3a",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance and non-eks enabled region", ResolveCase{
@@ -57,19 +57,19 @@ var _ = Describe("AMI Static Resolution", func() {
 		Entry("with gpu (p2) instance and us-west-2", ResolveCase{
 			Region:       "us-west-2",
 			InstanceType: "p2.xlarge",
-			ExpectedAMI:  "ami-0d20f2404b9a1c4d1",
+			ExpectedAMI:  "ami-0731694d53ef9604b",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p3) instance and us-east-1", ResolveCase{
 			Region:       "us-east-1",
 			InstanceType: "p3.2xlarge",
-			ExpectedAMI:  "ami-09fe6fc9106bda972",
+			ExpectedAMI:  "ami-058bfb8c236caae89",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p2) instance and eu-west-1", ResolveCase{
 			Region:       "eu-west-1",
 			InstanceType: "p2.xlarge",
-			ExpectedAMI:  "ami-09e0c6b3d3cf906f1",
+			ExpectedAMI:  "ami-0706dc8a5eed2eed9",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p3) instance and non-eks enabled region", ResolveCase{

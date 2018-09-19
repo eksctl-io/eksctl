@@ -1,6 +1,9 @@
 package ami
 
 import (
+	"sort"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -42,7 +45,9 @@ func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 	return *output.Images[0].State == "available", nil
 }
 
-// FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API
+// FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
+// It will only look for images with a status of available and it will pick the
+// image with the newest creation date.
 func FindImage(api ec2iface.EC2API, namePattern string) (string, error) {
 	input := &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
@@ -62,21 +67,32 @@ func FindImage(api ec2iface.EC2API, namePattern string) (string, error) {
 				Name:   aws.String("is-public"),
 				Values: []*string{aws.String("true")},
 			},
+			&ec2.Filter{
+				Name:   aws.String("state"),
+				Values: []*string{aws.String("available")},
+			},
 		},
 	}
 
 	output, err := api.DescribeImages(input)
 	if err != nil {
-		return "", errors.Wrapf(err, "cannot find image")
+		return "", errors.Wrapf(err, "error querying AWS for images")
 	}
 
 	if len(output.Images) < 1 {
 		return "", nil
 	}
 
-	if *output.Images[0].State == "available" {
+	if len(output.Images) == 1 {
 		return *output.Images[0].ImageId, nil
 	}
 
-	return "", nil
+	// Sort images so newest is first
+	sort.Slice(output.Images, func(i, j int) bool {
+		creationLeft, _ := time.Parse(time.RFC3339, *output.Images[i].CreationDate)
+		creationRight, _ := time.Parse(time.RFC3339, *output.Images[j].CreationDate)
+		return creationLeft.After(creationRight)
+	})
+
+	return *output.Images[0].ImageId, nil
 }
