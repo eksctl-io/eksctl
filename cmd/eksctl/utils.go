@@ -177,7 +177,7 @@ func describeStacksCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "describe-stacks",
-		Short: "Descirbe CloudFormation stack for a given cluster",
+		Short: "Describe CloudFormation stack for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doDescribeStacksCmd(cfg, getNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
