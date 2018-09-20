@@ -4,8 +4,6 @@ git_commit := $(shell git describe --dirty --always)
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
-.DEFAULT_GOAL:=help
-
 ##@ Dependencies
 
 .PHONY: install-build-deps
@@ -64,11 +62,11 @@ generate: ## Generate code
 	@chmod g-w  ./pkg/nodebootstrap/assets/*
 	@go generate ./pkg/nodebootstrap ./pkg/eks/mocks
 
-.PHONY: generate-ami 
+.PHONY: generate-ami
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
 	@go generate ./pkg/ami
 
-.PHONY: ami-check 
+.PHONY: ami-check
 ami-check: generate-ami  ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
 	@git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
 
