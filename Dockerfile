@@ -29,7 +29,7 @@ ARG COVERALLS_TOKEN
 ENV COVERALLS_TOKEN $COVERALLS_TOKEN
 
 WORKDIR $EKSCTL
-RUN make lint && make test && make \
+RUN make lint && make test && make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 
 RUN go build ./vendor/github.com/heptio/authenticator/cmd/heptio-authenticator-aws \

@@ -4,6 +4,8 @@ git_commit := $(shell git describe --dirty --always)
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
+.DEFAULT_GOAL:=help
+
 ##@ Dependencies
 
 .PHONY: install-build-deps
