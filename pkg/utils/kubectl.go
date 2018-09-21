@@ -87,7 +87,7 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 
 		logger.Info("kubectl command should work with %q, try '%s'", kubeconfigPath, fmtKubectlCmd(ktl, "get", "nodes"))
 	} else {
-		logger.Debug("skipping kubectl integration ckecks, as writing kubeconfig file is disabled")
+		logger.Debug("skipping kubectl integration checks, as writing kubeconfig file is disabled")
 	}
 
 	return nil

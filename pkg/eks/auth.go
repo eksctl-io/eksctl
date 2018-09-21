@@ -104,7 +104,7 @@ func (c *ClusterProvider) LoadSSHPublicKey() error {
 		}
 		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", c.Spec.SSHPublicKeyPath))
 	}
-	// on successfull read – import it
+	// on successful read – import it
 	c.Spec.SSHPublicKey = sshPublicKey
 	if err := c.importSSHPublicKeyIfNeeded(); err != nil {
 		return err

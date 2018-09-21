@@ -16,10 +16,10 @@ func IsGPUInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "p2") || strings.HasPrefix(instanceType, "p3")
 }
 
-// ClusterName generates a neme string when a and b are empty strings.
+// ClusterName generates a name string when a and b are empty strings.
 // If either a or b are non-empty, it returns whichever is non-empty.
 // If neither a nor b are empty, it returns empty name, to indicate
-// ambigous usage.
+// ambiguous usage.
 func ClusterName(a, b string) string {
 	if a != "" && b != "" {
 		return ""

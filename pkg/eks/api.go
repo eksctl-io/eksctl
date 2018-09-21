@@ -129,10 +129,10 @@ func (c *ClusterProvider) CheckAuth() error {
 	return nil
 }
 
-// EnsureAMI ensures that the node AMI is set and isavailable
+// EnsureAMI ensures that the node AMI is set and is available
 func (c *ClusterProvider) EnsureAMI() error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
-	// - imporve validation of parameter set overall, probably in another package
+	// - improve validation of parameter set overall, probably in another package
 	if c.Spec.NodeAMI == ami.ResolverAuto {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}

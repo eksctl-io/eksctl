@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	errorMerssageTemplate = "Stack with id %s does not exist"
+	errorMessageTemplate = "Stack with id %s does not exist"
 )
 
 // StackExists checks to see if a CloudFormation stack exists
@@ -24,7 +24,7 @@ func StackExists(stackName string, session *session.Session) (bool, error) {
 
 	if err != nil {
 		// Check if its a not found error
-		errorMessage := fmt.Sprintf(errorMerssageTemplate, stackName)
+		errorMessage := fmt.Sprintf(errorMessageTemplate, stackName)
 		if !strings.Contains(err.Error(), errorMessage) {
 			return false, err
 		}
