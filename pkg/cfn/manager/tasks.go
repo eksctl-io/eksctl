@@ -10,7 +10,7 @@ type task func(chan error) error
 
 // Run a set of tests in parallel and wait for them to complete;
 // passError should take any errors and do what it needs to in
-// a given context, e.g. duing serial CLI-driven execution one
+// a given context, e.g. during serial CLI-driven execution one
 // can keep errors in a slice, while in a daemon channel maybe
 // more suitable
 func Run(passError func(error), tasks ...task) {

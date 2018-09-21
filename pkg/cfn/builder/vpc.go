@@ -114,7 +114,7 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.newResource("IngressInterClusterCP", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refCP,
 		SourceSecurityGroupId: refSG,
-		Description:           gfn.NewString("Allow control plane to recieve API requests from " + desc),
+		Description:           gfn.NewString("Allow control plane to receive API requests from " + desc),
 		IpProtocol:            tcp,
 		FromPort:              apiPort,
 		ToPort:                apiPort,

@@ -9,7 +9,7 @@ var (
 
 // Resolve will resolve an AMI from the supplied region
 // and instance type. It will invoke a specific resolver
-// to do the actual detrminng of AMI.
+// to do the actual determining of AMI.
 func Resolve(region string, instanceType string) (string, error) {
 	for _, resolver := range DefaultResolvers {
 		ami, err := resolver.Resolve(region, instanceType)

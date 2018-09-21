@@ -46,7 +46,7 @@ func (c *ClusterProvider) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 func (c *ClusterProvider) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
 	cm, err := c.newNodeAuthConfigMap()
 	if err != nil {
-		return errors.Wrap(err, "contructing auth ConfigMap for DefaultNodeGroup")
+		return errors.Wrap(err, "constructing auth ConfigMap for DefaultNodeGroup")
 	}
 	if _, err := clientSet.CoreV1().ConfigMaps("kube-system").Create(cm); err != nil {
 		return errors.Wrap(err, "creating auth ConfigMap for DefaultNodeGroup")

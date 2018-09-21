@@ -15,7 +15,7 @@ const (
 
 	ImageFamilyAmazonLinux2 = "AmazonLinux2"
 
-	// ResolverStatic is used to indicate that the stqtic (i.e. compiled into eksctl) AMIs should be used
+	// ResolverStatic is used to indicate that the static (i.e. compiled into eksctl) AMIs should be used
 	ResolverStatic = "static"
 	// ResolverAuto is used to indicate that the latest EKS AMIs should be used for the nodes. This implies
 	// that automatic resolution of AMI will occur.

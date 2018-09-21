@@ -14,8 +14,8 @@ import (
 )
 
 // HaveEksCluster returns a GoMega matcher that will check for the existence of an EKS cluster
-func HaveEksCluster(expectedName string, expectedStatus string, expectedversion string) types.GomegaMatcher {
-	return &haveEksClusterMatcher{expectedName: expectedName, expectedStatus: expectedStatus, expectedVersion: expectedversion}
+func HaveEksCluster(expectedName string, expectedStatus string, expectedVersion string) types.GomegaMatcher {
+	return &haveEksClusterMatcher{expectedName: expectedName, expectedStatus: expectedStatus, expectedVersion: expectedVersion}
 }
 
 type haveEksClusterMatcher struct {

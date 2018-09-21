@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	errorMerssageTemplate = "Stack with id %s does not exist"
+	errorMessageTemplate = "Stack with id %s does not exist"
 )
 
-// HaveCfnStack returns a GoMega matcher that will check for the existence of an cloudformatioin stack
+// HaveCfnStack returns a GoMega matcher that will check for the existence of an cloudformation stack
 func HaveCfnStack(expectedStackName string) types.GomegaMatcher {
 	return &haveCfnStackMatcher{expectedStackName: expectedStackName}
 }

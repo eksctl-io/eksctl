@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	DefaultPrefix     = ""
-	DefaultIdentation = "  "
+	DefaultPrefix      = ""
+	DefaultIndentation = "  "
 )
 
 // JSONPrinter is a printer that outputs an object formatted
@@ -18,9 +18,9 @@ type JSONPrinter struct {
 }
 
 // NewJSONPrinter creates a new JsonPrinter with defaults for
-// level of identation.
+// level of indentation.
 func NewJSONPrinter() OutputPrinter {
-	return &JSONPrinter{prefix: DefaultPrefix, indent: DefaultIdentation}
+	return &JSONPrinter{prefix: DefaultPrefix, indent: DefaultIndentation}
 }
 
 // PrintObj will print the passed object formatted as JSON to
