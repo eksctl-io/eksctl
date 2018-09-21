@@ -79,6 +79,12 @@ To create the same kind of basic cluster, but with a different name, run:
 eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
+To prevent a default StorageClass of gp2 provisioned by EBS:
+
+```
+eksctl create cluster --storage-class=false
+```
+
 To write cluster credentials to a file other than default, run:
 
 ```
