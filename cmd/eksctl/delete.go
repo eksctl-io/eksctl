@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
+	"os"
+	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
@@ -74,11 +74,15 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	logger.Info("deleting EKS cluster %q", cfg.ClusterName)
 
-	handleError := func(err error) bool {
+	var deletedResources []string
+
+	handleIfError := func(err error, name string) bool {
 		if err != nil {
 			logger.Debug("continue despite error: %v", err)
 			return true
 		}
+		logger.Debug("deleted %q", name)
+		deletedResources = append(deletedResources, name)
 		return false
 	}
 
@@ -86,39 +90,25 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	stackManager := ctl.NewStackManager()
 
-	if err := stackManager.WaitDeleteNodeGroup(); err != nil {
-		handleError(err)
-	}
-
-	if err := stackManager.DeleteCluster(); err != nil {
-		if handleError(err) {
-			if err := ctl.DeprecatedDeleteControlPlane(); err != nil {
-				if handleError(err) {
-					if err := stackManager.DeprecatedDeleteStackControlPlane(); err != nil {
-						handleError(err)
-					}
-				}
-			}
+	handleIfError(stackManager.WaitDeleteNodeGroup(), "node group")
+	if handleIfError(stackManager.DeleteCluster(), "cluster") {
+		if handleIfError(ctl.DeprecatedDeleteControlPlane(),"control plane") {
+			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(), "stack control plane")
 		}
 	}
-
-	if err := stackManager.DeprecatedDeleteStackServiceRole(); err != nil {
-		handleError(err)
-	}
-
-	if err := stackManager.DeprecatedDeleteStackVPC(); err != nil {
-		handleError(err)
-	}
-
-	if err := stackManager.DeprecatedDeleteStackDefaultNodeGroup(); err != nil {
-		handleError(err)
-	}
+	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(), "node group")
+	handleIfError(stackManager.DeprecatedDeleteStackVPC(), "stack VPC")
+	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(), "default node group")
 
 	ctl.MaybeDeletePublicSSHKey()
 
 	kubeconfig.MaybeDeleteConfig(cfg.ClusterName)
 
-	logger.Success("all EKS cluster resource for %q will be deleted (if in doubt, check CloudFormation console)", cfg.ClusterName)
+	if len(deletedResources) == 0 {
+		logger.Warning("no EKS cluster resources were found for %q", ctl.Spec.ClusterName)
+	} else {
+		logger.Success("the following EKS cluster resource(s) for %q will be deleted: %s. If in doubt, check CloudFormation console", ctl.Spec.ClusterName, strings.Join(deletedResources, ", "))
+	}
 
 	return nil
 }
