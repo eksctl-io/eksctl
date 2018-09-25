@@ -79,7 +79,7 @@ To create the same kind of basic cluster, but with a different name, run:
 eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
-To prevent a default StorageClass of gp2 provisioned by EBS:
+A default [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/) (gp2 volume type provisioned by EBS) will be added automatically when creating a cluster.  If you want to prevent this, use the `--storage-class` flag.  For example:
 
 ```
 eksctl create cluster --storage-class=false

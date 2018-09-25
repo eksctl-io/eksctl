@@ -1,6 +1,7 @@
 package eks
 
 import (
+	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	storage "k8s.io/api/storage/v1"
@@ -30,6 +31,7 @@ func (c *ClusterProvider) AddDefaultStorageClass(clientSet *clientset.Clientset)
 		ReclaimPolicy: &rp,
 		MountOptions:  []string{"debug"},
 	}
+	logger.Debug("Creating a StorageClass as default")
 
 	if _, err := clientSet.StorageV1().StorageClasses().Create(scb); err != nil {
 		return errors.Wrap(err, "adding default StorageClass of gp2")
