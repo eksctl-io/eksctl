@@ -136,6 +136,12 @@ apply to CloudFormation stacks but not EKS clusters.
 eksctl create cluster --tags environment=staging --region=us-east-1
 ```
 
+To configure node volume size, use the `--node-volume-size` flag.
+
+```
+eksctl create cluster --node-volume-size 50
+```
+
 > NOTE: In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.
 
 To delete a cluster, run:

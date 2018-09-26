@@ -66,6 +66,7 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+	fs.IntVarP(&cfg.NodeVolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
 	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
 	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")

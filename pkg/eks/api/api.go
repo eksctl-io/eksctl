@@ -34,11 +34,12 @@ type ClusterConfig struct {
 	Tags        map[string]string
 	ClusterName string
 
-	NodeAMI  string
-	NodeType string
-	Nodes    int
-	MinNodes int
-	MaxNodes int
+	NodeAMI        string
+	NodeType       string
+	Nodes          int
+	NodeVolumeSize int
+	MinNodes       int
+	MaxNodes       int
 
 	MaxPodsPerNode int
 
