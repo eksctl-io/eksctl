@@ -1,4 +1,4 @@
-        _                _    _ 
+        _                _    _
        | |              | |  | |
    ___ | | __ ___   ___ | |_ | |
   / _ \| |/ // __| / __|| __|| |
@@ -16,7 +16,7 @@ Matthias Radestock      @rade
 Archis                  @archisgore
 Stefan Prodan           @stefanprodan
 James Strachan          @jstrachan
-Nick                    @bowlesns
+Nick Bowles             @bowlesns
 Josh Carp               @jmcarp
 Kirsten Schumy          @kschumy
 Karinna Iniguez         @karinnainiguez

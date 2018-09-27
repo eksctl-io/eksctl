@@ -30,7 +30,8 @@ func getCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(getClusterCmd())
-
+	cmd.AddCommand(getSupportedRegionsCmd())
+	
 	return cmd
 }
 
@@ -81,4 +82,22 @@ func doGetCluster(cfg *api.ClusterConfig, name string) error {
 	}
 
 	return nil
+}
+
+func getSupportedRegionsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "supported-regions",
+		Short: "List the regions EKS is supported",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("EKS is supported in the following regions:")
+			fmt.Println("------------------------------------------")
+			fmt.Println("us-east-1 - US East (N. Virginia)")
+			fmt.Println("us-west-2 - US West (Oregon)")
+			fmt.Println("eu-west-1 - EU (Ireland)")
+			fmt.Println("------------------------------------------")
+			fmt.Println("For the most up to date information, please check:")
+			fmt.Println("https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/")
+		},
+	}
+	return cmd
 }
