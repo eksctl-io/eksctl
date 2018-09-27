@@ -1,10 +1,12 @@
 package kubeconfig_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"testing"
 
+	eksctlapi "github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -198,6 +200,53 @@ func TestMergeDoesNotSetContext(t *testing.T) {
 	}
 }
 
+// Checks to see if MaybeDeleteConfig 1) removes a cluster from the kubeconfig if the kubeconfig
+// file includes the cluster and 2) does not change the kubeconfig if the kubeconfig does not
+// include the cluster
+func TestMaybeDeleteConfigInfo(t *testing.T) {
+	configFile, _ := ioutil.TempFile("", "")
+
+	// NOTE: Currently, when the program calls clientcmd.ModifyConfig() from MaybeDeleteConfig(),
+	// ModifyConfig() uses the path assigned to the KUBECONFIG env variable instead of DefaultPath.
+	// Changing the KUBECONFIG to the configFile path allows the test to simulate normal behavior.
+	resetKubeconfig, err := manageConfigFile(configFile.Name())
+	if err != nil {
+		t.Fatalf("Error setting kubeconfig path: %v", err)
+	}
+	defer resetKubeconfig()
+
+	_, err = configFile.Write(twoClustersAsBytes)
+	if err != nil {
+		t.Fatalf("Error writing configuration: %v", err)
+	}
+
+	// 'cluster-two' is the name of a cluster written to configFile from twoClustersAsBytes
+	existingClusterConfig := getClusterConfig("cluster-two")
+	kubeconfig.MaybeDeleteConfig(existingClusterConfig)
+
+	configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+	if err != nil {
+		t.Fatalf("Error reading configuration file: %v", err)
+	}
+
+	// Checks if an existing cluster is removed.
+	if !bytes.Equal(configFileAsBytes, oneClusterAsBytes){
+		t.Fatalf("Failed to delete cluster from config.\n\nEXPECTED:\n%v\nGOT:\n%v", string(oneClusterAsBytes), string(configFileAsBytes))
+	}
+
+	nonExistentClusterConfig := getClusterConfig("not-a-cluster")
+	kubeconfig.MaybeDeleteConfig(nonExistentClusterConfig)
+
+	configFileAsBytes, err = ioutil.ReadFile(configFile.Name())
+	if err != nil {
+		t.Fatalf("Error reading configuration file: %v", err)
+	}
+	// Checks if no changes are made for a cluster that does not exist.
+	if !bytes.Equal(configFileAsBytes, oneClusterAsBytes){
+		t.Fatalf("Failed to delete cluster from config.\n\nEXPECTED:\n%v\nGOT:\n%v", string(oneClusterAsBytes), string(configFileAsBytes))
+	}
+}
+
 var minikubeSample = `
 kind: Config
 apiVersion: v1
@@ -224,4 +273,72 @@ users:
 
 func writeConfig(filename string) error {
 	return ioutil.WriteFile(filename, []byte(minikubeSample), os.FileMode(0755))
+}
+
+// If tempKubeconfigPath is a valid file path, sets the KUBECONFIG env variable to the file path
+// provided by tempKubeconfigPath and returns a function that restores KUBECONFIG to its previous
+// value and deletes the file at tempKubeconfigPath.
+// Returns an error if tempKubeconfigPath is not a valid file path.
+func manageConfigFile(tempKubeconfigPath string) (func(), error) {
+	if _, err := os.Stat(tempKubeconfigPath); os.IsNotExist(err) {
+		return nil, err
+	}
+	kubeconfigPathToRestoreAtEnd, hasKubeconfigPathToRestoreAtEnd := os.LookupEnv("KUBECONFIG")
+	os.Setenv("KUBECONFIG", tempKubeconfigPath)
+
+	return func() {
+		if hasKubeconfigPathToRestoreAtEnd {
+			os.Setenv("KUBECONFIG", kubeconfigPathToRestoreAtEnd)
+		} else {
+			os.Unsetenv("KUBECONFIG")
+		}
+		os.Remove(tempKubeconfigPath)
+	}, nil
+}
+
+// Cluster names are 'cluster-one.us-west-2.eksctl.io' and 'cluster-two.us-west-2.eksctl.io'.
+// All the information for cluster-one.us-west-2.eksctl.io is identical to one-cluster.yaml. If all
+// the information for cluster-two.us-west-2.eksctl.io is deleted, the file should be identical to
+// one-cluster.yaml and oneClusterAsBytes.
+var twoClustersAsBytes, _ = ioutil.ReadFile("./two-clusters.yaml")
+
+// Cluster name is 'cluster-one.us-west-2.eksctl.io'.
+// All the information is identical to cluster cluster-one.us-west-2.eksctl.io in two-clusters.yaml.
+var oneClusterAsBytes, _ = ioutil.ReadFile("./one-cluster.yaml")
+
+// Default cluster name is 'foo' and region is 'us-west-2'
+var apiClusterConfigSample = eksctlapi.ClusterConfig{
+	Region: "us-west-2",
+	Profile: "",
+	Tags: map[string]string{},
+	ClusterName: "foo",
+	NodeAMI: "",
+	NodeType: "m5.large",
+	Nodes: 2,
+	MinNodes: 0,
+	MaxNodes: 0,
+	MaxPodsPerNode: 0,
+	NodePolicyARNs: []string(nil),
+	NodeSSH: false,
+	SSHPublicKeyPath: "~/.ssh/id_rsa.pub",
+	SSHPublicKey: []uint8(nil),
+	SSHPublicKeyName: "",
+	WaitTimeout: 1200000000000,
+	SecurityGroup: "",
+	Subnets: []string(nil),
+	VPC: "",
+	Endpoint: "",
+	CertificateAuthorityData: []uint8(nil),
+	ARN: "",
+	ClusterStackName: "",
+	NodeInstanceRoleARN: "",
+	AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
+	Addons: eksctlapi.ClusterAddons{},
+}
+
+// Returns an ClusterConfig with a cluster name equal to the provided clusterName.
+func getClusterConfig(clusterName string) *eksctlapi.ClusterConfig {
+	apiClusterConfig := apiClusterConfigSample
+	apiClusterConfig.ClusterName = clusterName
+	return &apiClusterConfig
 }
