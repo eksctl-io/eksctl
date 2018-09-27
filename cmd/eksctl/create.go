@@ -66,7 +66,6 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
-	fs.IntVarP(&cfg.NodeVolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
 	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
 	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
@@ -76,6 +75,7 @@ func createClusterCmd() *cobra.Command {
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")
 	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "maximum nodes in ASG")
 
+	fs.IntVarP(&cfg.NodeVolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
 	fs.IntVar(&cfg.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
 	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 
