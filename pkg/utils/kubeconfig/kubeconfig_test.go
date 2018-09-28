@@ -300,11 +300,11 @@ func manageConfigFile(tempKubeconfigPath string) (func(), error) {
 // All the information for cluster-one.us-west-2.eksctl.io is identical to one-cluster.yaml. If all
 // the information for cluster-two.us-west-2.eksctl.io is deleted, the file should be identical to
 // one-cluster.yaml and oneClusterAsBytes.
-var twoClustersAsBytes, _ = ioutil.ReadFile("./two-clusters.yaml")
+var twoClustersAsBytes, _ = ioutil.ReadFile("./testdata/two-clusters.yaml")
 
 // Cluster name is 'cluster-one.us-west-2.eksctl.io'.
 // All the information is identical to cluster cluster-one.us-west-2.eksctl.io in two-clusters.yaml.
-var oneClusterAsBytes, _ = ioutil.ReadFile("./one-cluster.yaml")
+var oneClusterAsBytes, _ = ioutil.ReadFile("./testdata/one-cluster.yaml")
 
 // Default cluster name is 'foo' and region is 'us-west-2'
 var apiClusterConfigSample = eksctlapi.ClusterConfig{
