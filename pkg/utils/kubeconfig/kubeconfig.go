@@ -27,7 +27,7 @@ const (
 // if certificateAuthorityPath is no empty, it is used instead of
 // embedded certificate-authority-data
 func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
-	clusterName := fmt.Sprintf("%s.%s.eksctl.io", spec.ClusterName, spec.Region)
+	clusterName := getCompleteClusterName(spec)
 	contextName := fmt.Sprintf("%s@%s", username, clusterName)
 
 	c := &clientcmdapi.Config{
@@ -95,6 +95,10 @@ func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string
 	return configAccess.GetDefaultFilename(), nil
 }
 
+func getCompleteClusterName(spec *api.ClusterConfig) string {
+	return fmt.Sprintf("%s.%s.eksctl.io", spec.ClusterName, spec.Region)
+}
+
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 	pathOptions := clientcmd.NewDefaultPathOptions()
 	if explicitPath != "" && explicitPath != DefaultPath {
@@ -156,8 +160,8 @@ func tryDeleteConfig(p, name string) {
 	}
 }
 
-func MaybeDeleteConfig(name string) {
-	p := AutoPath(name)
+func MaybeDeleteConfig(ctl *api.ClusterConfig) {
+	p := AutoPath(ctl.ClusterName)
 
 	autoConfExists, err := utils.FileExists(p)
 	if err != nil {
@@ -171,6 +175,44 @@ func MaybeDeleteConfig(name string) {
 		return
 	}
 
-	// Print message to manually remove from config file
-	logger.Warning("as you are not using the auto-generated kubeconfig file you will need to remove the details of cluster %s manually", name)
+	configAccess := getConfigAccess(DefaultPath)
+	config, _ := configAccess.GetStartingConfig()
+	if !deleteClusterInfo(config, ctl) {
+		return
+	}
+
+	if err := clientcmd.ModifyConfig(configAccess, *config, true); err != nil {
+		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath, err)
+	} else {
+		logger.Success("kubeconfig has been updated")
+	}
+}
+
+// deleteClusterInfo removes a cluster's information from the kubeconfig if the cluster name
+// provided by ctl matches a eksctl-created cluster in the kubeconfig
+// returns 'true' if the existing config has changes and 'false' otherwise
+func deleteClusterInfo(existing *clientcmdapi.Config, ctl *api.ClusterConfig) bool {
+	isChanged := false
+	clusterName := getCompleteClusterName(ctl)
+
+	if existing.Clusters[clusterName] != nil {
+		delete(existing.Clusters, clusterName)
+		logger.Debug("removed cluster %q from kubeconfig", clusterName)
+		isChanged = true
+	}
+
+	for username, context := range existing.Contexts {
+		if context.Cluster == clusterName {
+			delete(existing.Contexts, username)
+			logger.Debug("removed context for %q from kubeconfig", username)
+			isChanged = true
+			if existing.AuthInfos[username] != nil {
+				delete(existing.AuthInfos, username)
+				logger.Debug("removed auth info for %q from kubeconfig", username)
+			}
+			break
+		}
+	}
+
+	return isChanged
 }
