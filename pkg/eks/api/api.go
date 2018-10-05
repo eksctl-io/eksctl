@@ -72,6 +72,7 @@ type ClusterConfig struct {
 
 type ClusterAddons struct {
 	WithIAM AddonIAM
+	Storage bool
 }
 
 type AddonIAM struct {

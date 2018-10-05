@@ -103,6 +103,14 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              nodeMinPort,
 		ToPort:                nodeMaxPort,
 	})
+	n.newResource("IngressInterClusterAPI", &gfn.AWSEC2SecurityGroupIngress{
+		GroupId:               refSG,
+		SourceSecurityGroupId: refCP,
+		Description:           gfn.NewString("Allow control plane to communicate with " + desc + " (API)"),
+		IpProtocol:            tcp,
+		FromPort:              apiPort,
+		ToPort:                apiPort,
+	})
 	n.newResource("EgressInterCluster", &gfn.AWSEC2SecurityGroupEgress{
 		GroupId:                    refCP,
 		DestinationSecurityGroupId: refSG,

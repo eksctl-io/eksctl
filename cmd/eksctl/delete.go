@@ -102,7 +102,7 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	ctl.MaybeDeletePublicSSHKey()
 
-	kubeconfig.MaybeDeleteConfig(cfg.ClusterName)
+	kubeconfig.MaybeDeleteConfig(cfg)
 
 	if len(deletedResources) == 0 {
 		logger.Warning("no EKS cluster resources were found for %q", ctl.Spec.ClusterName)
