@@ -103,21 +103,29 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              nodeMinPort,
 		ToPort:                nodeMaxPort,
 	})
+	n.newResource("EgressInterCluster", &gfn.AWSEC2SecurityGroupEgress{
+		GroupId:                    refCP,
+		DestinationSecurityGroupId: refSG,
+		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (kubelet and workload TCP ports)"),
+		IpProtocol:                 tcp,
+		FromPort:                   nodeMinPort,
+		ToPort:                     nodeMaxPort,
+	})
 	n.newResource("IngressInterClusterAPI", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refSG,
 		SourceSecurityGroupId: refCP,
-		Description:           gfn.NewString("Allow control plane to communicate with " + desc + " (API)"),
+		Description:           gfn.NewString("Allow " + desc + " to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)"),
 		IpProtocol:            tcp,
 		FromPort:              apiPort,
 		ToPort:                apiPort,
 	})
-	n.newResource("EgressInterCluster", &gfn.AWSEC2SecurityGroupEgress{
+	n.newResource("EgressInterClusterAPI", &gfn.AWSEC2SecurityGroupEgress{
 		GroupId:                    refCP,
 		DestinationSecurityGroupId: refSG,
-		Description:                gfn.NewString("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
+		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (workloads using HTTPS port, commonly used with extension API servers)"),
 		IpProtocol:                 tcp,
-		FromPort:                   nodeMinPort,
-		ToPort:                     nodeMaxPort,
+		FromPort:                   apiPort,
+		ToPort:                     apiPort,
 	})
 	n.newResource("IngressInterClusterCP", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refCP,
