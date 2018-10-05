@@ -40,6 +40,8 @@ type ClusterConfig struct {
 	MinNodes int
 	MaxNodes int
 
+	NodeVolumeSize int
+
 	MaxPodsPerNode int
 
 	NodePolicyARNs []string

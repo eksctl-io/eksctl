@@ -89,6 +89,16 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 	if n.spec.NodeSSH {
 		lc.KeyName = gfn.NewString(n.spec.SSHPublicKeyName)
 	}
+	if n.spec.NodeVolumeSize > 0 {
+		lc.BlockDeviceMappings = []gfn.AWSAutoScalingLaunchConfiguration_BlockDeviceMapping{
+			{
+				DeviceName: gfn.NewString("/dev/xvda"),
+				Ebs: &gfn.AWSAutoScalingLaunchConfiguration_BlockDevice{
+					VolumeSize: gfn.NewInteger(n.spec.NodeVolumeSize),
+				},
+			},
+		}
+	}
 	refLC := n.newResource("NodeLaunchConfig", lc)
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved

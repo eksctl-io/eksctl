@@ -75,6 +75,7 @@ func createClusterCmd() *cobra.Command {
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")
 	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "maximum nodes in ASG")
 
+	fs.IntVarP(&cfg.NodeVolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
 	fs.IntVar(&cfg.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
 	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 
