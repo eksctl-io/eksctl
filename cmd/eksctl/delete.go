@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 	"strings"
+
+	"github.com/spf13/cobra"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
@@ -45,7 +46,7 @@ func deleteClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
@@ -55,6 +56,10 @@ func deleteClusterCmd() *cobra.Command {
 
 func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
+
+	if cfg.Region == "" {
+		cfg.Region = api.DEFAULT_EKS_REGION
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -92,7 +97,7 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	handleIfError(stackManager.WaitDeleteNodeGroup(), "node group")
 	if handleIfError(stackManager.DeleteCluster(), "cluster") {
-		if handleIfError(ctl.DeprecatedDeleteControlPlane(),"control plane") {
+		if handleIfError(ctl.DeprecatedDeleteControlPlane(), "control plane") {
 			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(), "stack control plane")
 		}
 	}

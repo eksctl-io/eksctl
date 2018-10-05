@@ -54,7 +54,7 @@ func getClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
 	fs.IntVar(&chunkSize, "chunk-size", DEFAULT_CHUNK_SIZE, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
 
-	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
@@ -63,6 +63,10 @@ func getClusterCmd() *cobra.Command {
 
 func doGetCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
+
+	if cfg.Region == "" {
+		cfg.Region = api.DEFAULT_EKS_REGION
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

@@ -64,7 +64,7 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 
-	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
@@ -102,6 +102,15 @@ func createClusterCmd() *cobra.Command {
 func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
+	if cfg.Region == "" {
+		logger.Debug("no region specified in flags or config, setting to %s", api.DEFAULT_EKS_REGION)
+		cfg.Region = api.DEFAULT_EKS_REGION
+	}
+
+	if cfg.Region != api.EKS_REGION_US_WEST_2 && cfg.Region != api.EKS_REGION_US_EAST_1 && cfg.Region != api.EKS_REGION_EU_WEST_1 {
+		return fmt.Errorf("%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKS_REGION_US_WEST_2, api.EKS_REGION_US_EAST_1, api.EKS_REGION_EU_WEST_1)
+	}
+
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
@@ -120,10 +129,6 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 
 	if cfg.SSHPublicKeyPath == "" {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
-	}
-
-	if cfg.Region != api.EKS_REGION_US_WEST_2 && cfg.Region != api.EKS_REGION_US_EAST_1 && cfg.Region != api.EKS_REGION_EU_WEST_1 {
-		return fmt.Errorf("--region=%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKS_REGION_US_WEST_2, api.EKS_REGION_US_EAST_1, api.EKS_REGION_EU_WEST_1)
 	}
 
 	if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
