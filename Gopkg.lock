@@ -49,7 +49,11 @@
 [[projects]]
   branch = "master"
   name = "github.com/awslabs/goformation"
-  packages = ["cloudformation"]
+  packages = [
+    ".",
+    "cloudformation",
+    "intrinsics"
+  ]
   revision = "b18da3344b2d2b152f5be0fea449ac89358a9d7b"
   source = "https://github.com/errordeveloper/goformation"
 
@@ -370,6 +374,12 @@
     "xfs"
   ]
   revision = "fe93d378a6b03758a2c1b65e86cf630bf78681c0"
+
+[[projects]]
+  branch = "v2"
+  name = "github.com/sanathkr/go-yaml"
+  packages = ["."]
+  revision = "ed9d249f429b3f5a69f80a7abef6bfce81fef894"
 
 [[projects]]
   name = "github.com/sanathkr/yaml"
@@ -708,6 +718,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8f37a710e990af75161acb22465c3557aaa81950a4935935f55b4c733e234901"
+  inputs-digest = "62acdc64fb067f5047390c26e966b9368fbd0049bae8b8d15700c887c11af004"
   solver-name = "gps-cdcl"
   solver-version = 1
