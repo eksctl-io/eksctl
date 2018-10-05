@@ -109,7 +109,7 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.BoolVar(&utilsAutoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name – %q", kubeconfig.AutoPath("<name>")))
@@ -121,6 +121,10 @@ func writeKubeconfigCmd() *cobra.Command {
 
 func doWriteKubeconfigCmd(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
+
+	if cfg.Region == "" {
+		cfg.Region = api.DEFAULT_EKS_REGION
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -190,7 +194,7 @@ func describeStacksCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&cfg.Region, "region", "r", api.DEFAULT_EKS_REGION, "AWS region")
+	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.BoolVar(&utilsDescribeStackAll, "all", false, "include deleted stacks")
@@ -201,6 +205,10 @@ func describeStacksCmd() *cobra.Command {
 
 func doDescribeStacksCmd(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
+
+	if cfg.Region == "" {
+		cfg.Region = api.DEFAULT_EKS_REGION
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
