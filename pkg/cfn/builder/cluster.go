@@ -16,21 +16,24 @@ const (
 	cfnOutputClusterStackName                = "ClusterStackName"
 )
 
-type clusterResourceSet struct {
+// ClusterResourceSet stores the resource information of the cluster
+type ClusterResourceSet struct {
 	rs             *resourceSet
 	spec           *api.ClusterConfig
 	subnets        []*gfn.Value
 	securityGroups []*gfn.Value
 }
 
-func NewClusterResourceSet(spec *api.ClusterConfig) *clusterResourceSet {
-	return &clusterResourceSet{
+// NewClusterResourceSet returns a resource set for the new cluster
+func NewClusterResourceSet(spec *api.ClusterConfig) *ClusterResourceSet {
+	return &ClusterResourceSet{
 		rs:   newResourceSet(),
 		spec: spec,
 	}
 }
 
-func (c *clusterResourceSet) AddAllResources() error {
+// AddAllResources adds all the information about the cluster to the resource set
+func (c *ClusterResourceSet) AddAllResources() error {
 	c.rs.template.Description = clusterTemplateDescription
 	c.rs.template.Description += clusterTemplateDescriptionDefaultFeatures
 	c.rs.template.Description += templateDescriptionSuffix
@@ -51,19 +54,21 @@ func (c *clusterResourceSet) AddAllResources() error {
 	return nil
 }
 
-func (c *clusterResourceSet) RenderJSON() ([]byte, error) {
+// RenderJSON returns the rendered JSON
+func (c *ClusterResourceSet) RenderJSON() ([]byte, error) {
 	return c.rs.renderJSON()
 }
 
-func (c *clusterResourceSet) Template() gfn.Template {
+// Template returns the CloudFormation template
+func (c *ClusterResourceSet) Template() gfn.Template {
 	return *c.rs.template
 }
 
-func (c *clusterResourceSet) newResource(name string, resource interface{}) *gfn.Value {
+func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	return c.rs.newResource(name, resource)
 }
 
-func (c *clusterResourceSet) addResourcesForControlPlane(version string) {
+func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
 		Name:    gfn.NewString(c.spec.ClusterName),
 		RoleArn: gfn.MakeFnGetAttString("ServiceRole.Arn"),
@@ -79,6 +84,7 @@ func (c *clusterResourceSet) addResourcesForControlPlane(version string) {
 	c.rs.newOutputFromAtt(cfnOutputClusterARN, "ControlPlane.Arn", true)
 }
 
-func (c *clusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
+// GetAllOutputs collects all outputs of the cluster
+func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return c.rs.GetAllOutputs(stack, c.spec)
 }

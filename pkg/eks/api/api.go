@@ -10,16 +10,26 @@ import (
 )
 
 const (
+	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
 
-	EKS_REGION_US_WEST_2 = "us-west-2"
-	EKS_REGION_US_EAST_1 = "us-east-1"
-	EKS_REGION_EU_WEST_1 = "eu-west-1"
-	DEFAULT_EKS_REGION   = EKS_REGION_US_WEST_2
+	// EKSRegionUSWest2 represents the US West Region Oregon
+	EKSRegionUSWest2 = "us-west-2"
+
+	// EKSRegionUSEast1 represents the US East Region North Virgina
+	EKSRegionUSEast1 = "us-east-1"
+
+	// EKSRegionEUWest1 represents the EU West Region Ireland
+	EKSRegionEUWest1 = "eu-west-1"
+
+	// DefaultEKSRegion defines the default region, where to deploy the EKS cluster
+	DefaultEKSRegion = EKSRegionUSWest2
 )
 
+// DefaultWaitTimeout defines the default wait timeout
 var DefaultWaitTimeout = 20 * time.Minute
 
+// ClusterProvider provides an interface with the needed AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	EKS() eksiface.EKSAPI
@@ -27,7 +37,7 @@ type ClusterProvider interface {
 	STS() stsiface.STSAPI
 }
 
-// simple config, to be replaced with Cluster API
+// ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
 	Region      string
 	Profile     string
@@ -70,11 +80,13 @@ type ClusterConfig struct {
 	Addons ClusterAddons
 }
 
+// ClusterAddons provides addons for the created EKS cluster
 type ClusterAddons struct {
 	WithIAM AddonIAM
 	Storage bool
 }
 
+// AddonIAM provides an addon for the AWS IAM integration
 type AddonIAM struct {
 	PolicyAmazonEC2ContainerRegistryPowerUser bool
 }

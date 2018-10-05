@@ -9,6 +9,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
+// AddDefaultStorageClass adds the default EBS gp2 storage class to the cluster
 func (c *ClusterProvider) AddDefaultStorageClass(clientSet *clientset.Clientset) error {
 
 	rp := corev1.PersistentVolumeReclaimRetain

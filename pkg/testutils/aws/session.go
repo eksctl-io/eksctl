@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
+// NewSession creates a new session
 func NewSession(region string) *session.Session {
 	config := aws.NewConfig()
 	config = config.WithRegion(region)

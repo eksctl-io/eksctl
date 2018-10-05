@@ -13,7 +13,7 @@ const (
 	cfnOutputClusterSecurityGroup = "SecurityGroup"
 )
 
-func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
+func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
 	refVPC := c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(globalCIDR.String()),
 		EnableDnsSupport:   gfn.True(),
@@ -61,7 +61,7 @@ func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 	c.rs.newJoinedOutput(cfnOutputClusterSubnets, c.subnets, true)
 }
 
-func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
+func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	desc := "worker nodes in group " + n.nodeGroupName
 
 	tcp := gfn.NewString("tcp")

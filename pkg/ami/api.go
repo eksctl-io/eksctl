@@ -11,8 +11,10 @@ import (
 )
 
 const (
+	// DefaultImageFamily defines the default image family for the worker nodes
 	DefaultImageFamily = ImageFamilyAmazonLinux2
 
+	// ImageFamilyAmazonLinux2 represents Amazon Linux 2 family
 	ImageFamilyAmazonLinux2 = "AmazonLinux2"
 
 	// ResolverStatic is used to indicate that the static (i.e. compiled into eksctl) AMIs should be used
@@ -22,6 +24,7 @@ const (
 	ResolverAuto = "auto"
 )
 
+// Variations of iamge classes
 const (
 	ImageClassGeneral int = iota
 	ImageClassGPU

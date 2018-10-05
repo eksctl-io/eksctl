@@ -11,7 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
-type nodeGroupResourceSet struct {
+// NodeGroupResourceSet stores the resource information of the node group
+type NodeGroupResourceSet struct {
 	rs               *resourceSet
 	id               int
 	spec             *api.ClusterConfig
@@ -29,8 +30,9 @@ type awsCloudFormationResource struct {
 	UpdatePolicy map[string]map[string]string
 }
 
-func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *nodeGroupResourceSet {
-	return &nodeGroupResourceSet{
+// NewNodeGroupResourceSet returns a resource set for the new node group
+func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
+	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
 		id:               id,
 		clusterStackName: clusterStackName,
@@ -39,7 +41,8 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, i
 	}
 }
 
-func (n *nodeGroupResourceSet) AddAllResources() error {
+// AddAllResources adds all the information about the node group to the resource set
+func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.rs.template.Description = nodeGroupTemplateDescription
 	n.rs.template.Description += nodeGroupTemplateDescriptionDefaultFeatures
 	n.rs.template.Description += templateDescriptionSuffix
@@ -64,19 +67,21 @@ func (n *nodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
-func (n *nodeGroupResourceSet) RenderJSON() ([]byte, error) {
+// RenderJSON returns the rendered JSON
+func (n *NodeGroupResourceSet) RenderJSON() ([]byte, error) {
 	return n.rs.renderJSON()
 }
 
-func (n *nodeGroupResourceSet) Template() gfn.Template {
+// Template returns the CloudFormation template
+func (n *NodeGroupResourceSet) Template() gfn.Template {
 	return *n.rs.template
 }
 
-func (n *nodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.Value {
+func (n *NodeGroupResourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	return n.rs.newResource(name, resource)
 }
 
-func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
+func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 	lc := &gfn.AWSAutoScalingLaunchConfiguration{
 		AssociatePublicIpAddress: gfn.True(),
 		IamInstanceProfile:       n.instanceProfile,
@@ -129,6 +134,7 @@ func (n *nodeGroupResourceSet) addResourcesForNodeGroup() {
 	})
 }
 
-func (n *nodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
+// GetAllOutputs collects all outputs of the node group
+func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return n.rs.GetAllOutputs(stack, n.spec)
 }

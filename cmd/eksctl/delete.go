@@ -19,7 +19,9 @@ func deleteCmd() *cobra.Command {
 		Use:   "delete",
 		Short: "Delete resource(s)",
 		Run: func(c *cobra.Command, _ []string) {
-			c.Help()
+			if err := c.Help(); err != nil {
+				logger.Debug("ignoring error %q", err.Error())
+			}
 		},
 	}
 
@@ -58,7 +60,7 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if cfg.Region == "" {
-		cfg.Region = api.DEFAULT_EKS_REGION
+		cfg.Region = api.DefaultEKSRegion
 	}
 
 	if err := ctl.CheckAuth(); err != nil {

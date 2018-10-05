@@ -33,7 +33,9 @@ func utilsCmd() *cobra.Command {
 		Use:   "utils",
 		Short: "Various utils",
 		Run: func(c *cobra.Command, _ []string) {
-			c.Help()
+			if err := c.Help(); err != nil {
+				logger.Debug("ignoring error %q", err.Error())
+			}
 		},
 	}
 
@@ -61,7 +63,7 @@ func waitNodesCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVar(&utilsKubeconfigInputPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
-	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", DEFAULT_NODE_COUNT, "minimum number of nodes to wait for")
+	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", DefaultNodeCount, "minimum number of nodes to wait for")
 	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 
 	return cmd
@@ -123,7 +125,7 @@ func doWriteKubeconfigCmd(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if cfg.Region == "" {
-		cfg.Region = api.DEFAULT_EKS_REGION
+		cfg.Region = api.DefaultEKSRegion
 	}
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -207,7 +209,7 @@ func doDescribeStacksCmd(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if cfg.Region == "" {
-		cfg.Region = api.DEFAULT_EKS_REGION
+		cfg.Region = api.DefaultEKSRegion
 	}
 
 	if err := ctl.CheckAuth(); err != nil {

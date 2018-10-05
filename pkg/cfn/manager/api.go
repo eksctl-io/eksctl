@@ -16,12 +16,17 @@ import (
 )
 
 const (
+	// ClusterNameTag defines the tag of the clsuter name
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
-	NodeGroupTagID = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
+
+	// NodeGroupIDTag defines the tag of the ndoe group id
+	NodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 )
 
+// Stack represents the CloudFormation stack
 type Stack = cloudformation.Stack
 
+// StackCollection stores the CloudFormation stack information
 type StackCollection struct {
 	cfn  cloudformationiface.CloudFormationAPI
 	spec *api.ClusterConfig
@@ -194,6 +199,7 @@ func (c *StackCollection) WaitDeleteStack(name string) error {
 	return c.doWaitUntilStackIsDeleted(i)
 }
 
+// DescribeStacks describes the existing stacks
 func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
 	stacks, err := c.ListStacks(fmt.Sprintf("^(eksclt|EKS)-%s-((cluster|nodegroup)-\\d+|(VPC|ServiceRole|DefaultNodeGroup))$", name))
 	if err != nil {
@@ -202,6 +208,7 @@ func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
 	return stacks, nil
 }
 
+// DescribeStackEvents describes the occured stack events
 func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error) {
 	input := &cloudformation.DescribeStackEventsInput{
 		StackName: i.StackId,

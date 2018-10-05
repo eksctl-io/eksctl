@@ -111,6 +111,7 @@ func makeAmazonLinux2Config(config *cloudconfig.CloudConfig, spec *api.ClusterCo
 	return files, nil
 }
 
+// NewUserDataForAmazonLinux2 creates new user data for Amazon Linux 2 nodes
 func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
 	config := cloudconfig.New()
 
