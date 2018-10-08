@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -16,11 +15,15 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+// DefaultPath defines the default path
 var DefaultPath = clientcmd.RecommendedHomeFile
 
 const (
+	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
-	AWSIAMAuthenticator    = "aws-iam-authenticator"
+
+	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
+	AWSIAMAuthenticator = "aws-iam-authenticator"
 )
 
 // New creates Kubernetes client configuration for a given username
@@ -57,6 +60,7 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 	return c, clusterName, contextName
 }
 
+// AppendAuthenticator appends the AWS IAM  authenticator
 func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, command string) {
 	c.AuthInfos[c.CurrentContext].Exec = &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
@@ -121,45 +125,47 @@ func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) (*client
 	return existing, nil
 }
 
+// AutoPath returns the path for the auto-generated kubeconfig
 func AutoPath(name string) string {
 	return path.Join(clientcmd.RecommendedConfigDir, "eksctl", "clusters", name)
 }
 
-func isValidConfig(p, name string) error {
-	clientConfig, err := clientcmd.LoadFromFile(p)
-	if err != nil {
-		return errors.Wrapf(err, "unable to load config %q", p)
-	}
+// func isValidConfig(p, name string) error {
+// 	clientConfig, err := clientcmd.LoadFromFile(p)
+// 	if err != nil {
+// 		return errors.Wrapf(err, "unable to load config %q", p)
+// 	}
 
-	if err := clientcmd.ConfirmUsable(*clientConfig, ""); err != nil {
-		return errors.Wrapf(err, "unable to parse config %q", p)
-	}
+// 	if err := clientcmd.ConfirmUsable(*clientConfig, ""); err != nil {
+// 		return errors.Wrapf(err, "unable to parse config %q", p)
+// 	}
 
-	// we want to make sure we only delete config files that haven't be modified by the user
-	// checking context name is a good start, we might want ot do deeper checks later, e.g. checksum,
-	// as we don't want to delete any files by accident that didn't belong to us
-	ctxFmtErr := fmt.Errorf("unable to verify ownership of config %q, unexpected contex name %q", p, clientConfig.CurrentContext)
+// 	// we want to make sure we only delete config files that haven't be modified by the user
+// 	// checking context name is a good start, we might want ot do deeper checks later, e.g. checksum,
+// 	// as we don't want to delete any files by accident that didn't belong to us
+// 	ctxFmtErr := fmt.Errorf("unable to verify ownership of config %q, unexpected contex name %q", p, clientConfig.CurrentContext)
 
-	ctx := strings.Split(clientConfig.CurrentContext, "@")
-	if len(ctx) != 2 {
-		return ctxFmtErr
-	}
-	if strings.HasPrefix(ctx[1], name+".") && strings.HasSuffix(ctx[1], ".eksctl.io") {
-		return nil
-	}
-	return ctxFmtErr
-}
+// 	ctx := strings.Split(clientConfig.CurrentContext, "@")
+// 	if len(ctx) != 2 {
+// 		return ctxFmtErr
+// 	}
+// 	if strings.HasPrefix(ctx[1], name+".") && strings.HasSuffix(ctx[1], ".eksctl.io") {
+// 		return nil
+// 	}
+// 	return ctxFmtErr
+// }
 
-func tryDeleteConfig(p, name string) {
-	if err := isValidConfig(p, name); err != nil {
-		logger.Debug("ignoring error while checking config file %q: %s", p, err.Error())
-		return
-	}
-	if err := os.Remove(p); err != nil {
-		logger.Debug("ignoring error while removing config file %q: %s", p, err.Error())
-	}
-}
+// func tryDeleteConfig(p, name string) {
+// 	if err := isValidConfig(p, name); err != nil {
+// 		logger.Debug("ignoring error while checking config file %q: %s", p, err.Error())
+// 		return
+// 	}
+// 	if err := os.Remove(p); err != nil {
+// 		logger.Debug("ignoring error while removing config file %q: %s", p, err.Error())
+// 	}
+// }
 
+// MaybeDeleteConfig will delete the auto-generated kubeconfig, if it exists
 func MaybeDeleteConfig(ctl *api.ClusterConfig) {
 	p := AutoPath(ctl.ClusterName)
 

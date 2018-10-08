@@ -18,6 +18,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+// DescribeControlPlane describes the cluster control plane
 func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
 		Name: &c.Spec.ClusterName,
@@ -29,6 +30,7 @@ func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
 	return output.Cluster, nil
 }
 
+// DeprecatedDeleteControlPlane deletes the control plane
 func (c *ClusterProvider) DeprecatedDeleteControlPlane() error {
 	cluster, err := c.DescribeControlPlane()
 	if err != nil {
@@ -45,6 +47,7 @@ func (c *ClusterProvider) DeprecatedDeleteControlPlane() error {
 	return nil
 }
 
+// GetCredentials retrieves the certificate authority data
 func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
 	c.Spec.Endpoint = *cluster.Endpoint
 
@@ -109,7 +112,9 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		}
 	}
 
-	printer.PrintObj("clusters", allClusterNames, os.Stdout)
+	if err := printer.PrintObj("clusters", allClusterNames, os.Stdout); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -125,7 +130,9 @@ func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.Out
 	logger.Debug("cluster = %#v", output)
 
 	clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
-	printer.PrintObj("clusters", clusters, os.Stdout)
+	if err := printer.PrintObj("clusters", clusters, os.Stdout); err != nil {
+		return err
+	}
 
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 
@@ -142,11 +149,13 @@ func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.Out
 	return nil
 }
 
+// ListAllTaggedResources lists all tagged resources
 func (c *ClusterProvider) ListAllTaggedResources() error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/26
 	return nil
 }
 
+// WaitForControlPlane waits till the control plane is ready
 func (c *ClusterProvider) WaitForControlPlane(clientSet *kubernetes.Clientset) error {
 	if _, err := clientSet.ServerVersion(); err == nil {
 		return nil

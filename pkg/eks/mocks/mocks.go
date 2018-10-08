@@ -1,6 +1,6 @@
 package mocks
 
-import _ "github.com/vektra/mockery"
+import _ "github.com/vektra/mockery" // used for testing
 
 //go:generate ${GOPATH}/bin/mockery -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface -name=CloudFormationAPI -output=./
 //go:generate ${GOPATH}/bin/mockery -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/eks/eksiface -name=EKSAPI -output=./

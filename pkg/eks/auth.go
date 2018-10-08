@@ -90,6 +90,7 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded() error {
 	return nil
 }
 
+// LoadSSHPublicKey loads the given SSH public key
 func (c *ClusterProvider) LoadSSHPublicKey() error {
 	if !c.Spec.NodeSSH {
 		// TODO: https://github.com/weaveworks/eksctl/issues/144
@@ -112,6 +113,7 @@ func (c *ClusterProvider) LoadSSHPublicKey() error {
 	return nil
 }
 
+// MaybeDeletePublicSSHKey will delete the public SSH key, if it exists
 func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 	existing, err := c.Provider.EC2().DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
 	if err != nil {
@@ -140,7 +142,9 @@ func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 			KeyName: matching[0],
 		}
 		logger.Debug("deleting key %q", *matching[0])
-		c.Provider.EC2().DeleteKeyPair(input)
+		if _, err := c.Provider.EC2().DeleteKeyPair(input); err != nil {
+			logger.Debug("key pair couldn't be deleted: %v", err)
+		}
 	}
 }
 
@@ -152,6 +156,7 @@ func (c *ClusterProvider) getUsername() string {
 	return "iam-root-account"
 }
 
+// ClientConfig stores information about the client config
 type ClientConfig struct {
 	Client      *clientcmdapi.Config
 	Cluster     *api.ClusterConfig
@@ -161,6 +166,7 @@ type ClientConfig struct {
 	sts         stsiface.STSAPI
 }
 
+// NewClientConfig creates a new client config
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 // these are small, so we can copy these, and no need to deal with k/k as dependency
 func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
@@ -196,6 +202,7 @@ func (c *ClientConfig) WithExecAuthenticator() *ClientConfig {
 	return &clientConfigCopy
 }
 
+// WithEmbeddedToken embeds the STS token
 func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 	clientConfigCopy := *c
 
@@ -215,6 +222,7 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 	return &clientConfigCopy, nil
 }
 
+// NewClientSet creates a new API client
 func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 	clientConfig, err := clientcmd.NewDefaultClientConfig(*c.Client, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
@@ -228,6 +236,7 @@ func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 	return client, nil
 }
 
+// NewClientSetWithEmbeddedToken creates a new API client with an embedded STS token
 func (c *ClientConfig) NewClientSetWithEmbeddedToken() (*clientset.Clientset, error) {
 	clientConfig, err := c.WithEmbeddedToken()
 	if err != nil {

@@ -13,7 +13,9 @@ var rootCmd = &cobra.Command{
 	Use:   "eksctl",
 	Short: "a CLI for Amazon EKS",
 	Run: func(c *cobra.Command, _ []string) {
-		c.Help()
+		if err := c.Help(); err != nil {
+			logger.Debug("ignoring error %q", err.Error())
+		}
 	},
 }
 

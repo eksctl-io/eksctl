@@ -29,6 +29,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+// ClusterProvider stores infromation about the cluster
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
 	Spec     *api.ClusterConfig
@@ -37,6 +38,7 @@ type ClusterProvider struct {
 	Status *ProviderStatus
 }
 
+// ProviderServices stores the used APIs
 type ProviderServices struct {
 	cfn cloudformationiface.CloudFormationAPI
 	eks eksiface.EKSAPI
@@ -44,18 +46,26 @@ type ProviderServices struct {
 	sts stsiface.STSAPI
 }
 
+// CloudFormation returns a representation of the CloudFormation API
 func (p ProviderServices) CloudFormation() cloudformationiface.CloudFormationAPI { return p.cfn }
 
+// EKS returns a representation of the EKS API
 func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
+
+// EC2 returns a representation of the EC2 API
 func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
+
+// STS returns a representation of the STS API
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
+// ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
 	iamRoleARN        string
 	sessionCreds      *credentials.Credentials
 	availabilityZones []string
 }
 
+// New creates a new setup of the used AWS APIs
 func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
@@ -105,6 +115,7 @@ func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
 	}
 }
 
+// GetCredentialsEnv returns the AWS credentials for env usage
 func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 	creds, err := c.Status.sessionCreds.Get()
 	if err != nil {
@@ -117,6 +128,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 	}, nil
 }
 
+// CheckAuth checks the AWS authentication
 func (c *ClusterProvider) CheckAuth() error {
 	{
 		input := &sts.GetCallerIdentityInput{}
@@ -169,6 +181,7 @@ func (c *ClusterProvider) EnsureAMI() error {
 	return nil
 }
 
+// SetAvailabilityZones sets the given (or chooses) the availability zones
 func (c *ClusterProvider) SetAvailabilityZones(given []string) error {
 	if len(given) == 0 {
 		logger.Debug("determining availability zones")
@@ -230,6 +243,7 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 	return session.Must(session.NewSessionWithOptions(opts))
 }
 
+// NewStackManager returns a new stack manager
 func (c *ClusterProvider) NewStackManager() *manager.StackCollection {
 	return manager.NewStackCollection(c.Provider, c.Spec)
 }

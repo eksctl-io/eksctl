@@ -54,11 +54,12 @@ func (c *resourceSet) attachAllowPolicy(name string, refRole *gfn.Value, resourc
 	})
 }
 
-func (c *clusterResourceSet) WithIAM() bool {
+// WithIAM states, if IAM roles will be created or not
+func (c *ClusterResourceSet) WithIAM() bool {
 	return c.rs.withIAM
 }
 
-func (c *clusterResourceSet) addResourcesForIAM() {
+func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
@@ -75,11 +76,12 @@ func (c *clusterResourceSet) addResourcesForIAM() {
 	})
 }
 
-func (n *nodeGroupResourceSet) WithIAM() bool {
+// WithIAM states, if IAM roles will be created or not
+func (n *NodeGroupResourceSet) WithIAM() bool {
 	return n.rs.withIAM
 }
 
-func (n *nodeGroupResourceSet) addResourcesForIAM() {
+func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	n.rs.withIAM = true
 
 	if len(n.spec.NodePolicyARNs) == 0 {

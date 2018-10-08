@@ -43,6 +43,7 @@ func (c *ClusterProvider) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	return cm, nil
 }
 
+// CreateDefaultNodeGroupAuthConfigMap creates the auth config map for the default node group
 func (c *ClusterProvider) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
 	cm, err := c.newNodeAuthConfigMap()
 	if err != nil {
@@ -80,6 +81,7 @@ func getNodes(clientSet *clientset.Clientset) (int, error) {
 	return len(nodes.Items), nil
 }
 
+// WaitForNodes waits till the nodes are ready
 func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
 	if c.Spec.MinNodes == 0 {
 		return nil
@@ -121,7 +123,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
 	}
 
 	if _, err = getNodes(clientSet); err != nil {
-		errors.Wrap(err, "re-listing nodes")
+		return errors.Wrap(err, "re-listing nodes")
 	}
 
 	return nil

@@ -33,8 +33,12 @@ func (t *TablePrinter) PrintObj(kind string, obj interface{}, writer io.Writer) 
 
 	if itemsValue.Len() == 0 {
 		w := bufio.NewWriter(writer)
-		w.WriteString(fmt.Sprintf("No %s found\n", strings.ToLower(kind)))
-		w.Flush()
+		if _, err := w.WriteString(fmt.Sprintf("No %s found\n", strings.ToLower(kind))); err != nil {
+			return err
+		}
+		if err := w.Flush(); err != nil {
+			return err
+		}
 		return nil
 	}
 

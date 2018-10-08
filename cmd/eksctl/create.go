@@ -21,7 +21,9 @@ func createCmd() *cobra.Command {
 		Use:   "create",
 		Short: "Create resource(s)",
 		Run: func(c *cobra.Command, _ []string) {
-			c.Help()
+			if err := c.Help(); err != nil {
+				logger.Debug("ignoring error %q", err.Error())
+			}
 		},
 	}
 
@@ -31,9 +33,10 @@ func createCmd() *cobra.Command {
 }
 
 const (
-	DEFAULT_NODE_COUNT     = 2
-	DEFAULT_NODE_TYPE      = "m5.large"
-	DEFAULT_SSH_PUBLIC_KEY = "~/.ssh/id_rsa.pub"
+	// DefaultNodeCount defines the default number of nodes to be created
+	DefaultNodeCount    = 2
+	defaultNodeType     = "m5.large"
+	defaultSSHPublicKey = "~/.ssh/id_rsa.pub"
 )
 
 var (
@@ -68,8 +71,8 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
-	fs.StringVarP(&cfg.NodeType, "node-type", "t", DEFAULT_NODE_TYPE, "node instance type")
-	fs.IntVarP(&cfg.Nodes, "nodes", "N", DEFAULT_NODE_COUNT, "total number of nodes (for a static ASG)")
+	fs.StringVarP(&cfg.NodeType, "node-type", "t", defaultNodeType, "node instance type")
+	fs.IntVarP(&cfg.Nodes, "nodes", "N", DefaultNodeCount, "total number of nodes (for a static ASG)")
 
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")
@@ -80,7 +83,7 @@ func createClusterCmd() *cobra.Command {
 	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 
 	fs.BoolVar(&cfg.NodeSSH, "ssh-access", false, "control SSH access for nodes")
-	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", DEFAULT_SSH_PUBLIC_KEY, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
+	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", defaultSSHPublicKey, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleClusterName)))
@@ -88,7 +91,10 @@ func createClusterCmd() *cobra.Command {
 	fs.BoolVar(&setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
 	fs.DurationVar(&cfg.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
-	fs.MarkHidden("aws-api-timeout") // TODO deprecate in 0.2.0
+	// TODO deprecate in 0.2.0
+	if err := fs.MarkHidden("aws-api-timeout"); err != nil {
+		logger.Debug("ignoring error %q", err.Error())
+	}
 	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
@@ -103,12 +109,12 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
 	if cfg.Region == "" {
-		logger.Debug("no region specified in flags or config, setting to %s", api.DEFAULT_EKS_REGION)
-		cfg.Region = api.DEFAULT_EKS_REGION
+		logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
+		cfg.Region = api.DefaultEKSRegion
 	}
 
-	if cfg.Region != api.EKS_REGION_US_WEST_2 && cfg.Region != api.EKS_REGION_US_EAST_1 && cfg.Region != api.EKS_REGION_EU_WEST_1 {
-		return fmt.Errorf("%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKS_REGION_US_WEST_2, api.EKS_REGION_US_EAST_1, api.EKS_REGION_EU_WEST_1)
+	if cfg.Region != api.EKSRegionUSWest2 && cfg.Region != api.EKSRegionUSEast1 && cfg.Region != api.EKSRegionEUWest1 {
+		return fmt.Errorf("%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKSRegionUSWest2, api.EKSRegionUSEast1, api.EKSRegionEUWest1)
 	}
 
 	if err := ctl.CheckAuth(); err != nil {
