@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
@@ -130,40 +131,30 @@ func AutoPath(name string) string {
 	return path.Join(clientcmd.RecommendedConfigDir, "eksctl", "clusters", name)
 }
 
-// func isValidConfig(p, name string) error {
-// 	clientConfig, err := clientcmd.LoadFromFile(p)
-// 	if err != nil {
-// 		return errors.Wrapf(err, "unable to load config %q", p)
-// 	}
+func isValidConfig(p, name string) error {
+	clientConfig, err := clientcmd.LoadFromFile(p)
+	if err != nil {
+		return errors.Wrapf(err, "unable to load config %q", p)
+	}
 
-// 	if err := clientcmd.ConfirmUsable(*clientConfig, ""); err != nil {
-// 		return errors.Wrapf(err, "unable to parse config %q", p)
-// 	}
+	if err := clientcmd.ConfirmUsable(*clientConfig, ""); err != nil {
+		return errors.Wrapf(err, "unable to parse config %q", p)
+	}
 
-// 	// we want to make sure we only delete config files that haven't be modified by the user
-// 	// checking context name is a good start, we might want ot do deeper checks later, e.g. checksum,
-// 	// as we don't want to delete any files by accident that didn't belong to us
-// 	ctxFmtErr := fmt.Errorf("unable to verify ownership of config %q, unexpected contex name %q", p, clientConfig.CurrentContext)
+	// we want to make sure we only delete config files that haven't be modified by the user
+	// checking context name is a good start, we might want ot do deeper checks later, e.g. checksum,
+	// as we don't want to delete any files by accident that didn't belong to us
+	ctxFmtErr := fmt.Errorf("unable to verify ownership of config %q, unexpected contex name %q", p, clientConfig.CurrentContext)
 
-// 	ctx := strings.Split(clientConfig.CurrentContext, "@")
-// 	if len(ctx) != 2 {
-// 		return ctxFmtErr
-// 	}
-// 	if strings.HasPrefix(ctx[1], name+".") && strings.HasSuffix(ctx[1], ".eksctl.io") {
-// 		return nil
-// 	}
-// 	return ctxFmtErr
-// }
-
-// func tryDeleteConfig(p, name string) {
-// 	if err := isValidConfig(p, name); err != nil {
-// 		logger.Debug("ignoring error while checking config file %q: %s", p, err.Error())
-// 		return
-// 	}
-// 	if err := os.Remove(p); err != nil {
-// 		logger.Debug("ignoring error while removing config file %q: %s", p, err.Error())
-// 	}
-// }
+	ctx := strings.Split(clientConfig.CurrentContext, "@")
+	if len(ctx) != 2 {
+		return ctxFmtErr
+	}
+	if strings.HasPrefix(ctx[1], name+".") && strings.HasSuffix(ctx[1], ".eksctl.io") {
+		return nil
+	}
+	return ctxFmtErr
+}
 
 // MaybeDeleteConfig will delete the auto-generated kubeconfig, if it exists
 func MaybeDeleteConfig(ctl *api.ClusterConfig) {
@@ -175,6 +166,10 @@ func MaybeDeleteConfig(ctl *api.ClusterConfig) {
 		return
 	}
 	if autoConfExists {
+		if err := isValidConfig(p, ctl.ClusterName); err != nil {
+			logger.Debug(err.Error())
+			return
+		}
 		if err := os.Remove(p); err != nil {
 			logger.Debug("ignoring error while removing auto-generated config file %q: %s", p, err.Error())
 		}
@@ -188,7 +183,7 @@ func MaybeDeleteConfig(ctl *api.ClusterConfig) {
 	}
 
 	if err := clientcmd.ModifyConfig(configAccess, *config, true); err != nil {
-		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath, err)
+		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath, err.Error())
 	} else {
 		logger.Success("kubeconfig has been updated")
 	}
