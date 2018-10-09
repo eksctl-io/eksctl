@@ -88,6 +88,8 @@ metadata:
     name: helm
 ```
 
+It will be possible to list built-in add-ons with `eksctl addons list`, and install them as simply as `eksctl create cluster --addons=<name>` or `eksctl addons install <name>`.
+It should be possible to also specify parameters using a flag, the syntax is _TBD_.
 
 Install a external example addon:
 
@@ -102,7 +104,8 @@ spec:
         branch: $HEAD
         path: examples/kustomize
     kustomization:
-        # bases not included, it's the add-on source
+        # by default the base is the add-on module
+        # TBD: allow user to append bases
         patchesStrategicMerge:
         - patch.yaml
         namePrefix: example-
@@ -147,5 +150,14 @@ spec:
         repo: https://github.com/weaveworks/eksctl-addons
         branch: $HEAD
         path: examples/kustomize
-    kustomize: {}
+    kustomize:
+        resources:
+        - deployment.yaml
+        - service.yaml
+        configMapGenerator:
+        - name: configmap
+          files:
+          - config.env
 ```
+
+TBD: it may be possible to chain different tools, e.g. render a Helm chart (via `helm template`), and pass it to `kustomize`.
