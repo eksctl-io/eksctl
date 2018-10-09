@@ -82,3 +82,7 @@ required = [
    source = "https://github.com/errordeveloper/goformation"
    # revision = "1358de5008ca15a213cc432549977e09cd4d2beb"
    branch = "pin-eksctl"
+
+[[constraint]]
+  name = "github.com/dave/jennifer"
+  version = "v1.1.0"
