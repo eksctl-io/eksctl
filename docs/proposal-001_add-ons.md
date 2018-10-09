@@ -58,3 +58,94 @@ The implementation must also ensure:
 ## Design Recommendations
 
 - *[TBD]*
+
+- built-in add-ons:
+    - only one version of each add-on is expected to be built-in, alternative versions have to be sourced externally
+    - only built-in add-ons may include Go code to create AWS resources (this may change in the future, yet significantly simplifies initial design and ensures security)
+
+## API
+
+### Add-on instance examples
+
+Install a buil-in `flux` addon:
+
+```YAML
+apiVersion: eksctl.io/v1alpha1
+kind: AddonInstance
+metadata:
+    name: flux
+params:
+    newCodeCommitRepo: true
+    witHelmOperator: true
+```
+
+Install a buil-in `helm` addon:
+
+```YAML
+apiVersion: eksctl.io/v1alpha1
+kind: AddonInstance
+metadata:
+    name: helm
+```
+
+
+Install a external example addon:
+
+```YAML
+apiVersion: eksctl.io/v1alpha1
+kind: AddonInstance
+metadata:
+    name: kustomize-example
+spec:
+    source:
+        repo: https://github.com/weaveworks/eksctl-addons
+        branch: $HEAD
+        path: examples/kustomize
+    kustomization:
+        # bases not included, it's the add-on source
+        patchesStrategicMerge:
+        - patch.yaml
+        namePrefix: example-
+```
+
+### Add-on module examples
+
+```YAML
+apiVersion: eksctl.io/v1alpha1
+kind: AddonModule
+metadata:
+    name: flux
+spec:
+    source:
+        repo: https://github.com/weaveworks/eksctl
+        branch: $HEAD
+        path: addons/flux
+    helmTemplate:
+        chartDir: addons/flux/chart
+```
+
+```YAML
+apiVersion: eksctl.io/v1alpha1
+kind: AddonModule
+metadata:
+    name: ksonnet-example
+spec:
+    source:
+        repo: https://github.com/weaveworks/eksctl-addons
+        branch: $HEAD
+        path: examples/ksonnet
+    ksonnet: {}
+```
+
+```YAML
+apiVersion: eksctl.io/v1alpha1
+kind: AddonModule
+metadata:
+    name: kustomize-example
+spec:
+    source:
+        repo: https://github.com/weaveworks/eksctl-addons
+        branch: $HEAD
+        path: examples/kustomize
+    kustomize: {}
+```
