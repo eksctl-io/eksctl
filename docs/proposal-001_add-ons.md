@@ -4,7 +4,7 @@
 
 An add-on extends functionality of a Kubernetes cluster, it may consist of a workload and/or configuration within the give cluster or the cloud provider. The workload, if present, would may classify as an operator or a controller, however that is not neccessary.
 
-The difference between add-ons and anything user decided to run themselves, is that from user's point of view, add-on is something they don't need to maintain directly. A cluster provider or bootstrap tool (i.e. eksctl), is expected to ensure ease of use, by providing minumum viable (that configuration to ensure end-to-end integration and compatibility), as well as catering for reconfiguration and upgrades.
+The difference between add-ons and anything a user decided to run themselves, is that from user's point of view, add-on is something they don't need to maintain directly. A cluster provider or bootstrap tool (i.e. eksctl), is expected to ensure ease of use, by providing minumum viable (that configuration to ensure end-to-end integration and compatibility), as well as catering for reconfiguration and upgrades.
 
 ## Design Requirements and Goals
 
