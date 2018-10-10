@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestPrinters(t *testing.T) {
+func TestKubeConfig(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "KubeConfig Suite")
 }
