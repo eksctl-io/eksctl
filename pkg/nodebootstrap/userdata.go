@@ -16,6 +16,7 @@ import (
 )
 
 //go:generate ${GOPATH}/bin/go-bindata -pkg ${GOPACKAGE} -prefix assets -modtime 1 -o assets.go assets
+//go:generate go run ./maxpods_generate.go
 
 const (
 	configDir            = "/etc/eksctl/"

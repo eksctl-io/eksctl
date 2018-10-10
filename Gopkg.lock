@@ -66,6 +66,12 @@
   version = "v3.5.1"
 
 [[projects]]
+  name = "github.com/dave/jennifer"
+  packages = ["jen"]
+  revision = "e2c46c587b5f3cf3dec985fd8f7e8232f9e40ac9"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -708,6 +714,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8f37a710e990af75161acb22465c3557aaa81950a4935935f55b4c733e234901"
+  inputs-digest = "2deb095b484a2de5dadeb081b93b75e7efbfef3a3a1c4cd008cd21ce24f41dc4"
   solver-name = "gps-cdcl"
   solver-version = 1
