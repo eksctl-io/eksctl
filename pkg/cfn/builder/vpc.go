@@ -13,6 +13,7 @@ const (
 	cfnOutputClusterSecurityGroup = "SecurityGroup"
 )
 
+//nolint:interfacer
 func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
 	refVPC := c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(globalCIDR.String()),

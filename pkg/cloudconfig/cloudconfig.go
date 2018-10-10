@@ -108,10 +108,10 @@ func (c *CloudConfig) Encode() (string, error) {
 
 	gw := gzip.NewWriter(buf)
 
-	if _, err := gw.Write(data); err != nil {
+	if _, err = gw.Write(data); err != nil {
 		return "", err
 	}
-	if err := gw.Close(); err != nil {
+	if err = gw.Close(); err != nil {
 		return "", err
 	}
 	data, err = ioutil.ReadAll(buf)
@@ -135,6 +135,9 @@ func DecodeCloudConfig(s string) (*CloudConfig, error) {
 	}
 
 	gr, err := gzip.NewReader(ioutil.NopCloser(bytes.NewBuffer(data)))
+	if err != nil {
+		return nil, err
+	}
 	defer close(gr)
 	data, err = ioutil.ReadAll(gr)
 	if err != nil {

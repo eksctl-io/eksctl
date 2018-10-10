@@ -65,7 +65,7 @@ func isNodeReady(node *corev1.Node) bool {
 }
 
 func getNodes(clientSet *clientset.Clientset) (int, error) {
-	nodes, err := clientSet.Core().Nodes().List(metav1.ListOptions{})
+	nodes, err := clientSet.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		return 0, err
 	}
@@ -88,7 +88,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
 	}
 	timer := time.After(c.Spec.WaitTimeout)
 	timeout := false
-	watcher, err := clientSet.Core().Nodes().Watch(metav1.ListOptions{})
+	watcher, err := clientSet.CoreV1().Nodes().Watch(metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "creating node watcher")
 	}
@@ -101,7 +101,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
 	logger.Info("waiting for at least %d nodes to become ready", c.Spec.MinNodes)
 	for !timeout && counter <= c.Spec.MinNodes {
 		select {
-		case event, _ := <-watcher.ResultChan():
+		case event := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
 			if event.Object != nil && event.Type != watch.Deleted {
 				if node, ok := event.Object.(*corev1.Node); ok {

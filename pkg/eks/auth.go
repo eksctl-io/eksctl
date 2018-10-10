@@ -76,7 +76,7 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded() error {
 				PublicKeyMaterial: c.Spec.SSHPublicKey,
 			}
 			logger.Info("importing SSH public key %q as %q", c.Spec.SSHPublicKeyPath, c.Spec.SSHPublicKeyName)
-			if _, err := c.Provider.EC2().ImportKeyPair(input); err != nil {
+			if _, err = c.Provider.EC2().ImportKeyPair(input); err != nil {
 				return errors.Wrap(err, "importing SSH public key")
 			}
 			return nil

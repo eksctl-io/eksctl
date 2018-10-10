@@ -92,7 +92,9 @@ func FindImage(api ec2iface.EC2API, namePattern string) (string, error) {
 
 	// Sort images so newest is first
 	sort.Slice(output.Images, func(i, j int) bool {
+		//nolint:gosec
 		creationLeft, _ := time.Parse(time.RFC3339, *output.Images[i].CreationDate)
+		//nolint:gosec
 		creationRight, _ := time.Parse(time.RFC3339, *output.Images[j].CreationDate)
 		return creationLeft.After(creationRight)
 	})
