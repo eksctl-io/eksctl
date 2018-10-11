@@ -59,10 +59,6 @@ func deleteClusterCmd() *cobra.Command {
 func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
-	if cfg.Region == "" {
-		cfg.Region = api.DefaultEKSRegion
-	}
-
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}

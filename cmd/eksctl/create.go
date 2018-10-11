@@ -108,11 +108,6 @@ func createClusterCmd() *cobra.Command {
 func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(cfg)
 
-	if cfg.Region == "" {
-		logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
-		cfg.Region = api.DefaultEKSRegion
-	}
-
 	if cfg.Region != api.EKSRegionUSWest2 && cfg.Region != api.EKSRegionUSEast1 && cfg.Region != api.EKSRegionEUWest1 {
 		return fmt.Errorf("%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKSRegionUSWest2, api.EKSRegionUSEast1, api.EKSRegionEUWest1)
 	}
