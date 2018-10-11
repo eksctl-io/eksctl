@@ -71,6 +71,13 @@ func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
 	// later re-use if overriding sessions due to custom URL
 	s := newSession(clusterConfig, "", nil)
 
+	if *s.Config.Region == "" {
+		logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
+		clusterConfig.Region = api.DefaultEKSRegion
+		s = newSession(clusterConfig, "", nil)
+	}
+	logger.Info("using region %s", *s.Config.Region)
+
 	provider := &ProviderServices{
 		cfn: cloudformation.New(s),
 		eks: awseks.New(s),
@@ -201,20 +208,10 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig()
 
-	if clusterConfig.Region == "" {
-		if config.Region != nil {
-			// If there was no region supplied and we have a region
-			// from the config files then update the cluster config
-			logger.Debug("using region %s from AWS shared configuraion or environment variables", *config.Region)
-			clusterConfig.Region = *config.Region
-		} else {
-			// Otherwise set our own default
-			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
-			clusterConfig.Region = api.DefaultEKSRegion
-		}
+	if clusterConfig.Region != "" {
+		config = config.WithRegion(clusterConfig.Region)
 	}
 
-	config = config.WithRegion(clusterConfig.Region)
 	config = config.WithCredentialsChainVerboseErrors(true)
 	if logger.Level >= api.AWSDebugLevel {
 		config = config.WithLogLevel(aws.LogDebug |
@@ -245,7 +242,13 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 		opts.Config.Credentials = credentials
 	}
 
-	return session.Must(session.NewSessionWithOptions(opts))
+	s := session.Must(session.NewSessionWithOptions(opts))
+
+	if clusterConfig.Region == "" {
+		clusterConfig.Region = *s.Config.Region
+	}
+
+	return s
 }
 
 // NewStackManager returns a new stack manager
