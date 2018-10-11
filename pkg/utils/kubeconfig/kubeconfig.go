@@ -81,12 +81,12 @@ func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string
 	configAccess := getConfigAccess(path)
 
 	config, err := configAccess.GetStartingConfig()
+	if err != nil {
+		return "", errors.Wrapf(err, "enable to read existing kubeconfig file %q", path)
+	}
 
 	logger.Debug("merging kubeconfig files")
-	merged, err := merge(config, newConfig)
-	if err != nil {
-		return "", errors.Wrapf(err, "unable to merge configuration with existing kubeconfig file %q", path)
-	}
+	merged := merge(config, newConfig)
 
 	if setContext && newConfig.CurrentContext != "" {
 		logger.Debug("setting current-context to %s", newConfig.CurrentContext)
@@ -112,7 +112,7 @@ func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 
 	return interface{}(pathOptions).(clientcmd.ConfigAccess)
 }
-func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) (*clientcmdapi.Config, error) {
+func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) *clientcmdapi.Config {
 	for k, v := range tomerge.Clusters {
 		existing.Clusters[k] = v
 	}
@@ -123,7 +123,7 @@ func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) (*client
 		existing.Contexts[k] = v
 	}
 
-	return existing, nil
+	return existing
 }
 
 // AutoPath returns the path for the auto-generated kubeconfig
@@ -166,18 +166,23 @@ func MaybeDeleteConfig(ctl *api.ClusterConfig) {
 		return
 	}
 	if autoConfExists {
-		if err := isValidConfig(p, ctl.ClusterName); err != nil {
+		if err = isValidConfig(p, ctl.ClusterName); err != nil {
 			logger.Debug(err.Error())
 			return
 		}
-		if err := os.Remove(p); err != nil {
+		if err = os.Remove(p); err != nil {
 			logger.Debug("ignoring error while removing auto-generated config file %q: %s", p, err.Error())
 		}
 		return
 	}
 
 	configAccess := getConfigAccess(DefaultPath)
-	config, _ := configAccess.GetStartingConfig()
+	config, err := configAccess.GetStartingConfig()
+	if err != nil {
+		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath, err.Error())
+		return
+	}
+
 	if !deleteClusterInfo(config, ctl) {
 		return
 	}

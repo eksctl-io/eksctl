@@ -29,7 +29,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-// ClusterProvider stores infromation about the cluster
+// ClusterProvider stores information about the cluster
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
 	Spec     *api.ClusterConfig
@@ -60,9 +60,8 @@ func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
-	iamRoleARN        string
-	sessionCreds      *credentials.Credentials
-	availabilityZones []string
+	iamRoleARN   string
+	sessionCreds *credentials.Credentials
 }
 
 // New creates a new setup of the used AWS APIs

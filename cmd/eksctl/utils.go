@@ -154,7 +154,7 @@ func doWriteKubeconfigCmd(cfg *api.ClusterConfig, name string) error {
 
 	logger.Debug("cluster = %#v", cluster)
 
-	if err := ctl.GetCredentials(*cluster); err != nil {
+	if err = ctl.GetCredentials(*cluster); err != nil {
 		return err
 	}
 

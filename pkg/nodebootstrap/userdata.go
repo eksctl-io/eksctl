@@ -71,7 +71,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	return nil
 }
 
-func makeAmazonLinux2Config(config *cloudconfig.CloudConfig, spec *api.ClusterConfig) (configFiles, error) {
+func makeAmazonLinux2Config(spec *api.ClusterConfig) (configFiles, error) {
 	if spec.MaxPodsPerNode == 0 {
 		spec.MaxPodsPerNode = maxPodsPerNodeType[spec.NodeType]
 	}
@@ -120,12 +120,12 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
 		"bootstrap.al2.sh",
 	}
 
-	files, err := makeAmazonLinux2Config(config, spec)
+	files, err := makeAmazonLinux2Config(spec)
 	if err != nil {
 		return "", err
 	}
 
-	if err := addFilesAndScripts(config, files, scripts); err != nil {
+	if err = addFilesAndScripts(config, files, scripts); err != nil {
 		return "", err
 	}
 
@@ -134,6 +134,6 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
 		return "", errors.Wrap(err, "encoding user data")
 	}
 
-	logger.Debug("user-data = %s", string(body))
-	return string(body), nil
+	logger.Debug("user-data = %s", body)
+	return body, nil
 }

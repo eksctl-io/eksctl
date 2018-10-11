@@ -11,7 +11,7 @@ import (
 )
 
 // IsGPUInstanceType returns tru of the instance type is GPU
-// optimized.
+// optimised.
 func IsGPUInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "p2") || strings.HasPrefix(instanceType, "p3")
 }

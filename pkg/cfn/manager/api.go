@@ -208,7 +208,7 @@ func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
 	return stacks, nil
 }
 
-// DescribeStackEvents describes the occured stack events
+// DescribeStackEvents describes the occurred stack events
 func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error) {
 	input := &cloudformation.DescribeStackEventsInput{
 		StackName: i.StackId,

@@ -25,4 +25,13 @@ install_gometalinter() {
   unset version prefix suffix basename url
 }
 
+install_golangci_lint() {
+  version="${1}"
+  curl --silent --fail --location \
+    "https://install.goreleaser.com/github.com/golangci/golangci-lint.sh" \
+    | sh -s -- -b $GOPATH/bin "${version}"
+  unset version
+}
+
 install_gometalinter "2.0.11"
+install_golangci_lint "v1.10.2"

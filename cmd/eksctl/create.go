@@ -192,23 +192,23 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 			return err
 		}
 
-		if err := ctl.WaitForControlPlane(clientSet); err != nil {
+		if err = ctl.WaitForControlPlane(clientSet); err != nil {
 			return err
 		}
 
 		// authorise nodes to join
-		if err := ctl.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
+		if err = ctl.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
 			return err
 		}
 
 		// wait for nodes to join
-		if err := ctl.WaitForNodes(clientSet); err != nil {
+		if err = ctl.WaitForNodes(clientSet); err != nil {
 			return err
 		}
 
 		// add default storage class
-		if cfg.Addons.Storage == true {
-			if err := ctl.AddDefaultStorageClass(clientSet); err != nil {
+		if cfg.Addons.Storage {
+			if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 				return err
 			}
 		}
