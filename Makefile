@@ -27,9 +27,10 @@ test: generate ## Run unit tests
 	@go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
 	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
 
+LINTER ?= gometalinter ./...
 .PHONY: lint
 lint: ## Run linter over the codebase
-	@$(GOPATH)/bin/golangci-lint run
+	@$(GOPATH)/bin/$(LINTER)
 
 .PHONY: ci
 ci: test lint ## Target for CI system to invoke to run tests and linting

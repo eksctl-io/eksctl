@@ -1,0 +1,15 @@
+{
+    "Enable": [
+        "vet",
+        "golint",
+        "errcheck",
+        "deadcode"
+    ],
+    "Exclude": [
+        "^vendor\/",
+        "^build\/",
+        "^pkg\/nodebootstrap\/assets.go",
+        "\/usr\/local\/go"
+    ],
+    "Deadline": "5m"
+}
