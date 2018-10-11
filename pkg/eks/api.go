@@ -71,13 +71,6 @@ func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
 	// later re-use if overriding sessions due to custom URL
 	s := newSession(clusterConfig, "", nil)
 
-	if *s.Config.Region == "" {
-		logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
-		clusterConfig.Region = api.DefaultEKSRegion
-		s = newSession(clusterConfig, "", nil)
-	}
-	logger.Info("using region %s", *s.Config.Region)
-
 	provider := &ProviderServices{
 		cfn: cloudformation.New(s),
 		eks: awseks.New(s),
@@ -245,9 +238,18 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 	s := session.Must(session.NewSessionWithOptions(opts))
 
 	if clusterConfig.Region == "" {
-		clusterConfig.Region = *s.Config.Region
+		if *s.Config.Region != "" {
+			// set cluster config region, based on session config
+			clusterConfig.Region = *s.Config.Region
+		} else {
+			// if session config doesn't have region set, make recursive call forcing default region
+			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
+			clusterConfig.Region = api.DefaultEKSRegion
+			return newSession(clusterConfig, endpoint, credentials)
+		}
 	}
 
+	logger.Info("using region %s", clusterConfig.Region)
 	return s
 }
 
