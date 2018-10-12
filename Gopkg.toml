@@ -1,5 +1,5 @@
 required = [
-  "github.com/heptio/authenticator/cmd/heptio-authenticator-aws",
+  "github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator",
   "github.com/vektra/mockery/cmd/mockery",
 ]
 
@@ -12,8 +12,9 @@ required = [
   version = "1.0.0"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/kubicorn/kubicorn"
+  branch = "master"
+
 
 [[constraint]]
   name = "github.com/pkg/errors"
@@ -24,42 +25,37 @@ required = [
   branch = "master"
 
 [[override]]
-  branch = "release-1.10"
   name = "k8s.io/api"
+  version = "kubernetes-1.10.8"
+
 
 [[constraint]]
-  branch = "release-1.10"
   name = "k8s.io/apimachinery"
+  version = "kubernetes-1.10.8"
+
+[[override]]
+  name = "k8s.io/client-go"
+  version = "kubernetes-1.10.8"
+
+[[override]]
+  name = "github.com/json-iterator/go"
+  version = "1.1.5"
 
 [[constraint]]
   name = "k8s.io/kops"
   branch = "master"
 
-[[override]]
-  name = "github.com/heptio/authenticator"
-  source = "github.com/heptio/aws-iam-authenticator"
-  revision = "d9bfef19b2b89518465d4fd0bc9a75bd4a8b715e"
-
 [[constraint]]
-  name = "k8s.io/client-go"
-  version = "v7.0.0"
-
-#[[constraint]]
-#  name = "k8s.io/kubernetes"
-#  version = "1.10.3"
-
-[[constraint]]
+  name = "github.com/kubernetes-sigs/aws-iam-authenticator"
   branch = "master"
+
+[[constraint]]
   name = "github.com/weaveworks/launcher"
+  branch = "master"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/kballard/go-shellquote"
-
-[prune]
-  go-tests = true
-  unused-packages = true
-  non-go = true
+  branch = "master"
 
 [[constraint]]
   branch = "master"
@@ -74,15 +70,19 @@ required = [
   version = "1.5.0"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/dlespiau/kube-test-harness"
+  branch = "master"
 
 [[constraint]]
    name = "github.com/awslabs/goformation"
    source = "https://github.com/errordeveloper/goformation"
-   # revision = "1358de5008ca15a213cc432549977e09cd4d2beb"
    branch = "pin-eksctl"
 
 [[constraint]]
   name = "github.com/dave/jennifer"
   version = "v1.1.0"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+  non-go = true
