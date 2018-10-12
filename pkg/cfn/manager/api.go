@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -79,7 +80,12 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, pa
 }
 
 func (c *StackCollection) doUpdateStackRequest(name string, templateBody []byte, parameters map[string]string, withIAM bool) error {
-	input := &cloudformation.UpdateStackInput{}
+	input := &cloudformation.CreateChangeSetInput{}
+
+	csName := fmt.Sprintf("eksctl-scale-nodegroup-%d", time.Now().Unix())
+	input.SetChangeSetName(csName)
+	input.SetChangeSetType("UPDATE")
+	input.SetDescription("eksctl scaling nodegroup") //TODO: get this from somewhere
 
 	input.SetStackName(name)
 	input.SetTags(c.tags)
@@ -98,12 +104,22 @@ func (c *StackCollection) doUpdateStackRequest(name string, templateBody []byte,
 		input.Parameters = append(input.Parameters, p)
 	}
 
-	logger.Debug("input = %#v", input)
-	s, err := c.cfn.UpdateStack(input)
+	logger.Debug("creating changeset, input = %#v", input)
+	s, err := c.cfn.CreateChangeSet(input)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("updating CloudFormation stack %q", name))
 	}
-	logger.Debug("stack = %#v", s)
+	logger.Debug("changeset = %#v", s)
+
+	// approave the changeset
+	exInput := &cloudformation.ExecuteChangeSetInput{}
+	exInput.SetChangeSetName(csName)
+	exInput.SetStackName(name)
+	exOutput, err := c.cfn.ExecuteChangeSet(exInput)
+	if err != nil {
+		return errors.Wrapf(err, "executing CloudFormation changeset %q", csName)
+	}
+	logger.Debug("execute changeset = %#v", exOutput)
 
 	return nil
 }
@@ -130,8 +146,7 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, pa
 }
 
 func (c *StackCollection) UpdateStack(name string, template []byte, parameters map[string]string, errs chan error) error {
-	// if err := c.doUpdateStackRequest(name, template, parameters, stack.WithIAM()); err != nil {
-	if err := c.doUpdateStackRequest(name, template, parameters, false); err != nil {
+	if err := c.doUpdateStackRequest(name, template, parameters, true); err != nil {
 		return err
 	}
 

@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -37,8 +38,12 @@ func (c *StackCollection) ScaleNodeGroup(errs chan error) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.ClusterStackName = clusterName
 	name := c.makeNodeGroupStackName(0)
-	logger.Info("scaling nodegroup stack %q in cluster", name, clusterName)
-	//stack := builder.NewNodeGroupResourceSet(c.spec, clusterName, 0)
+	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
+
+	if c.spec.MinNodes == 0 && c.spec.MaxNodes == 0 {
+		c.spec.MinNodes = c.spec.Nodes
+		c.spec.MaxNodes = c.spec.Nodes
+	}
 
 	// Get current stack
 	template, err := c.getStackTemplate(name)
@@ -47,26 +52,24 @@ func (c *StackCollection) ScaleNodeGroup(errs chan error) error {
 	}
 	logger.Debug("stack template (pre-scale change): %s", template)
 
-	// Get the node group ASG
-	stackTemplate, err := goformation.ParseJSON([]byte(template))
+	// Update the template
+	//TODO: In the future this needs to use Goformation but at present we manipulate the
+	// JSON directly as the version of goformation we are using isn't handling Refs well
+	var f interface{}
+	err = json.Unmarshal([]byte(template), &f)
 	if err != nil {
-		return errors.Wrapf(err, "error parsing stack template")
-	}
-	asg, err := stackTemplate.GetAWSAutoScalingAutoScalingGroupWithName("NodeGroup")
-	if err != nil {
-		return errors.Wrapf(err, "error finding ASG")
+		return errors.Wrap(err, "error pasring JSON")
 	}
 
-	if c.spec.MinNodes == 0 && c.spec.MaxNodes == 0 {
-		c.spec.MinNodes = c.spec.Nodes
-		c.spec.MaxNodes = c.spec.Nodes
-	}
+	m := f.(map[string]interface{})
+	res := m["Resources"].(map[string]interface{})
+	ng := res["NodeGroup"].(map[string]interface{})
+	props := ng["Properties"].(map[string]interface{})
+	props["DesiredCapacity"] = fmt.Sprintf("%d", c.spec.Nodes)
+	props["MaxSize"] = fmt.Sprintf("%d", c.spec.MaxNodes)
+	props["MinSize"] = fmt.Sprintf("%d", c.spec.MinNodes)
 
-	asg.DesiredCapacity = gfn.NewString(fmt.Sprintf("%d", c.spec.Nodes))
-	asg.MinSize = gfn.NewString(fmt.Sprintf("%d", c.spec.MinNodes))
-	asg.MaxSize = gfn.NewString(fmt.Sprintf("%d", c.spec.MaxNodes))
-
-	updatedTemplate, err := stackTemplate.JSON()
+	updatedTemplate, err := json.Marshal(m)
 	if err != nil {
 		return errors.Wrapf(err, "rendering template for %q stack", name)
 	}
