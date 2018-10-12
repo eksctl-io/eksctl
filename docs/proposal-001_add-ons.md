@@ -67,7 +67,7 @@ The implementation must also ensure:
 
 ### Add-on instance examples
 
-Install a buil-in `flux` addon:
+Install a built-in `flux` addon:
 
 ```YAML
 apiVersion: eksctl.io/v1alpha1
@@ -79,7 +79,7 @@ params:
     witHelmOperator: true
 ```
 
-Install a buil-in `helm` addon:
+Install a built-in `helm` addon:
 
 ```YAML
 apiVersion: eksctl.io/v1alpha1
