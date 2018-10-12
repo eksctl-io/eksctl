@@ -21,21 +21,21 @@ import (
 // so this is custom version that is more suitable for our use, as there is no way to add any
 // custom acceptors
 
-func makeStatusAcceptor(status string) request.WaiterAcceptor {
+func makeStatusAcceptor(status string, statusPath string) request.WaiterAcceptor {
 	return request.WaiterAcceptor{
 		Matcher:  request.PathAllWaiterMatch,
-		Argument: "Stacks[].StackStatus",
+		Argument: statusPath,
 		Expected: status,
 		State:    request.FailureWaiterState,
 	}
 }
 
-func makeAcceptors(successStatus string, failureStates []string, extraAcceptors ...request.WaiterAcceptor) []request.WaiterAcceptor {
-	acceptors := []request.WaiterAcceptor{makeStatusAcceptor(successStatus)}
+func makeAcceptors(statusPath string, successStatus string, failureStates []string, extraAcceptors ...request.WaiterAcceptor) []request.WaiterAcceptor {
+	acceptors := []request.WaiterAcceptor{makeStatusAcceptor(successStatus, statusPath)}
 	acceptors[0].State = request.SuccessWaiterState
 
 	for _, s := range failureStates {
-		acceptors = append(acceptors, makeStatusAcceptor(s))
+		acceptors = append(acceptors, makeStatusAcceptor(s, statusPath))
 	}
 
 	acceptors = append(acceptors, extraAcceptors...)
@@ -80,7 +80,10 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 		Acceptors:   acceptors,
 		NewRequest: func(_ []request.Option) (*request.Request, error) {
 			input := &cfn.DescribeStacksInput{
-				StackName: i.StackId,
+				StackName: i.StackName,
+			}
+			if i.StackId != nil {
+				input.StackName = i.StackId
 			}
 			logger.Debug(msg)
 			req, _ := c.cfn.DescribeStacksRequest(input)
@@ -97,6 +100,50 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 			logger.Debug("describeErr=%v", err)
 		} else {
 			logger.Critical("unexpected status %q while %s", *s.StackStatus, msg)
+			c.troubleshootStackFailureCause(i, desiredStatus)
+		}
+		return errors.Wrap(waitErr, msg)
+	}
+
+	logger.Debug("done after %s of %s", time.Since(startTime), msg)
+
+	return nil
+}
+
+func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *string, acceptors []request.WaiterAcceptor) error {
+	desiredStatus := fmt.Sprintf("%v", acceptors[0].Expected)
+	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q to reach %q status", changesetName, *i.StackName, desiredStatus)
+
+	ctx, cancel := context.WithTimeout(context.Background(), c.spec.WaitTimeout)
+	defer cancel()
+
+	startTime := time.Now()
+
+	w := request.Waiter{
+		Name:        strings.Join([]string{"waitCS", *i.StackName, *changesetName, desiredStatus}, "_"),
+		MaxAttempts: 1024, // we use context deadline instead
+		Delay:       makeWaiterDelay(),
+		Acceptors:   acceptors,
+		NewRequest: func(_ []request.Option) (*request.Request, error) {
+			input := &cfn.DescribeChangeSetInput{
+				StackName:     i.StackName,
+				ChangeSetName: changesetName,
+			}
+			logger.Debug(msg)
+			req, _ := c.cfn.DescribeChangeSetRequest(input)
+			req.SetContext(ctx)
+			return req, nil
+		},
+	}
+
+	logger.Debug("start %s", msg)
+
+	if waitErr := w.WaitWithContext(ctx); waitErr != nil {
+		s, err := c.describeStackChangeset(i, changesetName)
+		if err != nil {
+			logger.Debug("describeChangesetErr=%v", err)
+		} else {
+			logger.Critical("unexpected status %q while %s", *s.Status, msg)
 			c.troubleshootStackFailureCause(i, desiredStatus)
 		}
 		return errors.Wrap(waitErr, msg)
@@ -147,6 +194,7 @@ func (c *StackCollection) troubleshootStackFailureCause(i *Stack, desiredStatus 
 func (c *StackCollection) doWaitUntilStackIsCreated(i *Stack) error {
 	return c.waitWithAcceptors(i,
 		makeAcceptors(
+			"Stacks[].StackStatus",
 			cfn.StackStatusCreateComplete,
 			[]string{
 				cfn.StackStatusCreateFailed,
@@ -156,6 +204,49 @@ func (c *StackCollection) doWaitUntilStackIsCreated(i *Stack) error {
 				cfn.StackStatusDeleteInProgress,
 				cfn.StackStatusDeleteFailed,
 				cfn.StackStatusDeleteComplete,
+			},
+			request.WaiterAcceptor{
+				State:    request.FailureWaiterState,
+				Matcher:  request.ErrorWaiterMatch,
+				Expected: "ValidationError",
+			},
+		),
+	)
+}
+
+func (c *StackCollection) doWaitUntilStackIsUpdated(i *Stack) error {
+	return c.waitWithAcceptors(i,
+		makeAcceptors(
+			"Stacks[].StackStatus",
+			cfn.StackStatusUpdateComplete,
+			[]string{
+				cfn.StackStatusUpdateRollbackComplete,
+				cfn.StackStatusUpdateRollbackFailed,
+				cfn.StackStatusUpdateRollbackInProgress,
+				cfn.StackStatusRollbackInProgress,
+				cfn.StackStatusRollbackFailed,
+				cfn.StackStatusRollbackComplete,
+				cfn.StackStatusDeleteInProgress,
+				cfn.StackStatusDeleteFailed,
+				cfn.StackStatusDeleteComplete,
+			},
+			request.WaiterAcceptor{
+				State:    request.FailureWaiterState,
+				Matcher:  request.ErrorWaiterMatch,
+				Expected: "ValidationError",
+			},
+		),
+	)
+}
+
+func (c *StackCollection) doWaitUntilChangeSetIsCreated(i *Stack, changesetName *string) error {
+	return c.waitWithAcceptorsChangeSet(i, changesetName,
+		makeAcceptors(
+			"Status",
+			cfn.ChangeSetStatusCreateComplete,
+			[]string{
+				cfn.ChangeSetStatusDeleteComplete,
+				cfn.ChangeSetStatusFailed,
 			},
 			request.WaiterAcceptor{
 				State:    request.FailureWaiterState,
@@ -188,6 +279,7 @@ func (c *StackCollection) waitUntilStackIsCreated(i *Stack, stack builder.Resour
 func (c *StackCollection) doWaitUntilStackIsDeleted(i *Stack) error {
 	return c.waitWithAcceptors(i,
 		makeAcceptors(
+			"Stacks[].StackStatus",
 			cfn.StackStatusDeleteComplete,
 			[]string{
 				cfn.StackStatusDeleteFailed,

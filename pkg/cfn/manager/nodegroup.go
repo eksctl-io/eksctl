@@ -52,8 +52,7 @@ func (c *StackCollection) ScaleNodeGroup(errs chan error) error {
 	}
 	logger.Debug("stack template (pre-scale change): %s", template)
 
-	// Update the template
-	//TODO: In the future this needs to use Goformation but at present we manipulate the
+	// TODO: In the future this needs to use Goformation but at present we manipulate the
 	// JSON directly as the version of goformation we are using isn't handling Refs well
 	var f interface{}
 	err = json.Unmarshal([]byte(template), &f)
@@ -65,8 +64,12 @@ func (c *StackCollection) ScaleNodeGroup(errs chan error) error {
 	res := m["Resources"].(map[string]interface{})
 	ng := res["NodeGroup"].(map[string]interface{})
 	props := ng["Properties"].(map[string]interface{})
+
+	currentCapacity := props["DesiredCapacity"]
 	props["DesiredCapacity"] = fmt.Sprintf("%d", c.spec.Nodes)
+	currentMaxSize := props["MaxSize"]
 	props["MaxSize"] = fmt.Sprintf("%d", c.spec.MaxNodes)
+	currentMinSize := props["MinSize"]
 	props["MinSize"] = fmt.Sprintf("%d", c.spec.MinNodes)
 
 	updatedTemplate, err := json.Marshal(m)
@@ -75,7 +78,12 @@ func (c *StackCollection) ScaleNodeGroup(errs chan error) error {
 	}
 	logger.Debug("stack template (post-scale change): %s", updatedTemplate)
 
-	return c.UpdateStack(name, updatedTemplate, nil, errs)
+	description := fmt.Sprintf("scaling nodegroup, desired from %s to %d, min size from %s to %d and max size from %s to %d",
+		currentCapacity, c.spec.Nodes,
+		currentMinSize, c.spec.MinNodes,
+		currentMaxSize, c.spec.MaxNodes)
+
+	return c.UpdateStack(name, "scale-nodegroup", description, updatedTemplate, nil, errs)
 }
 
 func (c *StackCollection) DeleteNodeGroup() error {
