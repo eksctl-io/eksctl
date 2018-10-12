@@ -205,7 +205,7 @@ eksctl apply --cluster-config advanced-cluster.yaml
 
 It should suffice to install a cluster for development with just a single command. Here are some examples:
 
-To create a cluster with default configuration (2 `m4.large` nodes), run:
+To create a cluster with default configuration (2 `m5.large` nodes), run:
 
 ```
 eksctl create cluster
