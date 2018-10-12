@@ -66,6 +66,12 @@
   version = "v3.5.1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/christopherhein/go-version"
+  packages = ["."]
+  revision = "fee8dd1f7c24da23508e26347694be0acce5631b"
+
+[[projects]]
   name = "github.com/dave/jennifer"
   packages = ["jen"]
   revision = "e2c46c587b5f3cf3dec985fd8f7e8232f9e40ac9"
@@ -172,18 +178,6 @@
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
 
 [[projects]]
-  name = "github.com/heptio/authenticator"
-  packages = [
-    "cmd/heptio-authenticator-aws",
-    "pkg/arn",
-    "pkg/config",
-    "pkg/server",
-    "pkg/token"
-  ]
-  revision = "d9bfef19b2b89518465d4fd0bc9a75bd4a8b715e"
-  source = "github.com/heptio/aws-iam-authenticator"
-
-[[projects]]
   branch = "master"
   name = "github.com/howeyc/gopass"
   packages = ["."]
@@ -209,8 +203,8 @@
 [[projects]]
   name = "github.com/json-iterator/go"
   packages = ["."]
-  revision = "ca39e5af3ece67bbcda3d0f4f56a8e24d9f2dad4"
-  version = "1.1.3"
+  revision = "1624edc4454b8682399def8740d46db5e4362ba4"
+  version = "v1.1.5"
 
 [[projects]]
   branch = "master"
@@ -223,6 +217,18 @@
   name = "github.com/kris-nova/lolgopher"
   packages = ["."]
   revision = "14d43f83481a37e992f5899de8581727b9ba7702"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/kubernetes-sigs/aws-iam-authenticator"
+  packages = [
+    "cmd/aws-iam-authenticator",
+    "pkg/arn",
+    "pkg/config",
+    "pkg/server",
+    "pkg/token"
+  ]
+  revision = "77720bd482cd6db4fcf9816301f16a2c844c50f0"
 
 [[projects]]
   branch = "master"
@@ -273,8 +279,8 @@
 [[projects]]
   name = "github.com/modern-go/reflect2"
   packages = ["."]
-  revision = "1df9eeb2bb81f327b96228865c5687bc2194af3f"
-  version = "1.0.0"
+  revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
+  version = "1.0.1"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -599,10 +605,9 @@
     "storage/v1alpha1",
     "storage/v1beta1"
   ]
-  revision = "0f11257a8a25954878633ebdc9841c67d8f83bdb"
+  revision = "12444147eb1150aa5c80d2aae532cbc5b7be73d0"
 
 [[projects]]
-  branch = "release-1.10"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -641,7 +646,7 @@
     "pkg/watch",
     "third_party/forked/golang/reflect"
   ]
-  revision = "31dade610c053669d8054bfd847da657251e8c1a"
+  revision = "e386b2658ed20923da8cc9250e552f082899a1ee"
 
 [[projects]]
   name = "k8s.io/client-go"
@@ -696,8 +701,8 @@
     "util/homedir",
     "util/integer"
   ]
-  revision = "23781f4d6632d88e869066eaebb743857aa1ef9b"
-  version = "v7.0.0"
+  revision = "169153f9d2d68e15f1fbe882897222e542ac50d7"
+  version = "kubernetes-1.10.8"
 
 [[projects]]
   branch = "master"
@@ -714,6 +719,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2deb095b484a2de5dadeb081b93b75e7efbfef3a3a1c4cd008cd21ce24f41dc4"
+  inputs-digest = "2094a338d38095ba833633ee31ac880d24c5400d37b61e38b9a828998c2671ca"
   solver-name = "gps-cdcl"
   solver-version = 1

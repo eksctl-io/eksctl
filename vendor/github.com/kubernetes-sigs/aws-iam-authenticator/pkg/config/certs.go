@@ -41,6 +41,7 @@ func (c *Config) keyPath() string {
 	return filepath.Join(c.StateDir, keyFilename)
 }
 
+// GetOrCreateCertificate will create a certificate if it cannot find one based on the config
 func (c *Config) GetOrCreateCertificate() (*tls.Certificate, error) {
 	// first try to load the existing keypair
 	cert, err := c.LoadExistingCertificate()
@@ -53,7 +54,7 @@ func (c *Config) GetOrCreateCertificate() (*tls.Certificate, error) {
 	}
 
 	// generate a self-signed certificate and write out the certificate and private key
-	certBytes, keyBytes, err := selfSignCertificate()
+	certBytes, keyBytes, err := c.selfSignCertificate()
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +77,7 @@ func (c *Config) GetOrCreateCertificate() (*tls.Certificate, error) {
 	return &newCert, err
 }
 
+// LoadExistingCertificate will load certificates from a local path
 func (c *Config) LoadExistingCertificate() (*tls.Certificate, error) {
 
 	// if either file does not exist, we'll consider that not an error but
@@ -107,7 +109,7 @@ func dumpPEM(filename string, mode os.FileMode, blockType string, bytes []byte) 
 	return pem.Encode(f, &pem.Block{Type: blockType, Bytes: bytes})
 }
 
-func selfSignCertificate() ([]byte, []byte, error) {
+func (c *Config) selfSignCertificate() ([]byte, []byte, error) {
 
 	// generate a new RSA-2048 keypair
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -129,7 +131,7 @@ func selfSignCertificate() ([]byte, []byte, error) {
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName: "heptio-authenticator-aws",
+			CommonName: "aws-iam-authenticator",
 		},
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
@@ -137,8 +139,8 @@ func selfSignCertificate() ([]byte, []byte, error) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IsCA:        true,
-		DNSNames:    []string{"localhost"},
-		IPAddresses: []net.IP{net.ParseIP("127.0.0.1")},
+		DNSNames:    []string{c.Hostname},
+		IPAddresses: []net.IP{net.ParseIP(c.Address)},
 	}
 
 	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)

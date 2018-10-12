@@ -56,10 +56,10 @@ type UserMapping struct {
 	Groups []string
 }
 
-// Config specifies the configuration for a heptio-authenticator-aws server
+// Config specifies the configuration for a aws-iam-authenticator server
 type Config struct {
 	// ClusterID is a unique-per-cluster identifier for your
-	// heptio-authenticator-aws installation.
+	// aws-iam-authenticator installation.
 	ClusterID string
 
 	// KubeconfigPregenerated is set to `true` when a webhook kubeconfig is
@@ -67,9 +67,11 @@ type Config struct {
 	// `server` shouldn't unnecessarily re-generate a new one.
 	KubeconfigPregenerated bool
 
-	// LocalhostPort is the TCP on which to listen for authentication checks
-	// (on localhost).
-	LocalhostPort int
+	// HostPort is the TCP Port on which to listen for authentication checks.
+	HostPort int
+
+	// Hostname is the hostname that the server bind to.
+	Hostname string
 
 	// GenerateKubeconfigPath is the output path where a generated webhook
 	// kubeconfig (for `--authentication-token-webhook-config-file`) will be
@@ -95,7 +97,11 @@ type Config struct {
 
 	// ServerEC2DescribeInstancesRoleARN is an optional AWS Resource Name for an IAM Role to be assumed
 	// before calling ec2:DescribeInstances to determine the private DNS of the calling kubelet (EC2 Instance).
-	// If nil, defaults to using the IAM Role attached to the instance where heptio-authenticator-aws is
+	// If nil, defaults to using the IAM Role attached to the instance where aws-iam-authenticator is
 	// running.
 	ServerEC2DescribeInstancesRoleARN string
+
+	// Address defines the hostname or IP Address to bind the HTTPS server to listen to. This is useful when creating
+	// a local server to handle the authentication request for development.
+	Address string
 }

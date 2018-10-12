@@ -36,10 +36,11 @@ func Canonicalize(arn string) (string, error) {
 		case "federated-user":
 			return arn, nil
 		case "assumed-role":
-			if len(parts) < 2 {
+			if len(parts) < 3 {
 				return "", fmt.Errorf("assumed-role arn '%s' does not have a role", arn)
 			}
-			role := parts[1]
+			// IAM ARNs can contain paths, part[0] is resource, parts[len(parts)] is the SessionName.
+			role := strings.Join(parts[1:len(parts)-1], "/")
 			return fmt.Sprintf("arn:%s:iam::%s:role/%s", parsed.Partition, parsed.AccountID, role), nil
 		default:
 			return "", fmt.Errorf("unrecognized resource %s for service sts", parsed.Resource)

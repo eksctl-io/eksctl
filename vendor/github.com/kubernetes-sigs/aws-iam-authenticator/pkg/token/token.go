@@ -32,7 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/heptio/authenticator/pkg/arn"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/arn"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientauthv1alpha1 "k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1"
 )
@@ -130,18 +130,21 @@ type Generator interface {
 	GetWithRole(clusterID, roleARN string) (string, error)
 	// GetWithRoleForSession creates a token by assuming the provided role, using the provided session.
 	GetWithRoleForSession(clusterID string, roleARN string, sess *session.Session) (string, error)
-	// GetWithSTS assumes returns a token valid for clusterID using the given STS client.
+	// GetWithSTS returns a token valid for clusterID using the given STS client.
 	GetWithSTS(clusterID string, stsAPI *sts.STS) (string, error)
 	// FormatJSON returns the client auth formatted json for the ExecCredential auth
 	FormatJSON(string) string
 }
 
 type generator struct {
+	forwardSessionName bool
 }
 
 // NewGenerator creates a Generator and returns it.
-func NewGenerator() (Generator, error) {
-	return generator{}, nil
+func NewGenerator(forwardSessionName bool) (Generator, error) {
+	return generator{
+		forwardSessionName: forwardSessionName,
+	}, nil
 }
 
 // Get uses the directly available AWS credentials to return a token valid for
@@ -182,8 +185,26 @@ func (g generator) GetWithRoleForSession(clusterID string, roleARN string, sess 
 	// if a roleARN was specified, replace the STS client with one that uses
 	// temporary credentials from that role.
 	if roleARN != "" {
+		sessionSetter := func(provider *stscreds.AssumeRoleProvider) {}
+		if g.forwardSessionName {
+			// If the current session is already a federated identity, carry through
+			// this session name onto the new session to provide better debugging
+			// capabilities
+			resp, err := stsAPI.GetCallerIdentity(&sts.GetCallerIdentityInput{})
+			if err != nil {
+				return "", err
+			}
+
+			userIDParts := strings.Split(*resp.UserId, ":")
+			sessionSetter = func(provider *stscreds.AssumeRoleProvider) {
+				if len(userIDParts) == 2 {
+					provider.RoleSessionName = userIDParts[1]
+				}
+			}
+		}
+
 		// create STS-based credentials that will assume the given role
-		creds := stscreds.NewCredentials(sess, roleARN)
+		creds := stscreds.NewCredentials(sess, roleARN, sessionSetter)
 
 		// create an STS API interface that uses the assumed role's temporary credentials
 		stsAPI = sts.New(sess, &aws.Config{Credentials: creds})
@@ -192,7 +213,7 @@ func (g generator) GetWithRoleForSession(clusterID string, roleARN string, sess 
 	return g.GetWithSTS(clusterID, stsAPI)
 }
 
-// GetWithSTS assumes returns a token valid for clusterID using the given STS client.
+// GetWithSTS returns a token valid for clusterID using the given STS client.
 func (g generator) GetWithSTS(clusterID string, stsAPI *sts.STS) (string, error) {
 	// generate an sts:GetCallerIdentity request and add our custom cluster ID header
 	request, _ := stsAPI.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})

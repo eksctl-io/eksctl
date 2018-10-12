@@ -25,7 +25,7 @@ var webhookKubeconfigTemplate = template.Must(
 	template.New("kubeconfig").Option("missingkey=error").Parse(`
 # clusters refers to the remote service.
 clusters:
-  - name: heptio-authenticator-aws
+  - name: aws-iam-authenticator
     cluster:
       certificate-authority-data: {{.CertificateAuthorityBase64}}
       server: {{.ServerURL}}
@@ -38,7 +38,7 @@ current-context: webhook
 contexts:
 - name: webhook
   context:
-    cluster: heptio-authenticator-aws
+    cluster: aws-iam-authenticator
     user: apiserver
 `))
 

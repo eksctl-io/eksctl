@@ -17,7 +17,7 @@ limitations under the License.
 package main
 
 import (
-	"github.com/heptio/authenticator/pkg/server"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/server"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -47,7 +47,7 @@ func init() {
 	viper.SetDefault("server.port", DefaultPort)
 
 	serverCmd.Flags().String("generate-kubeconfig",
-		"/etc/kubernetes/heptio-authenticator-aws/kubeconfig.yaml",
+		"/etc/kubernetes/aws-iam-authenticator/kubeconfig.yaml",
 		"Output `path` where a generated webhook kubeconfig (for `--authentication-token-webhook-config-file`) will be stored (should be a hostPath mount).")
 	viper.BindPFlag("server.generateKubeconfig", serverCmd.Flags().Lookup("generate-kubeconfig"))
 
@@ -57,9 +57,16 @@ func init() {
 	viper.BindPFlag("server.kubeconfigPregenerated", serverCmd.Flags().Lookup("kubeconfig-pregenerated"))
 
 	serverCmd.Flags().String("state-dir",
-		"/var/heptio-authenticator-aws",
+		"/var/aws-iam-authenticator",
 		"State `directory` for generated certificate and private key (should be a hostPath mount).")
 	viper.BindPFlag("server.stateDir", serverCmd.Flags().Lookup("state-dir"))
+
+	serverCmd.Flags().StringP(
+		"bind",
+		"b",
+		"127.0.0.1",
+		"IP Address to bind the server to listen to. (should be 127.0.0.1 or 0.0.0.0)")
+	viper.BindPFlag("server.bind", serverCmd.Flags().Lookup("bind"))
 
 	rootCmd.AddCommand(serverCmd)
 }

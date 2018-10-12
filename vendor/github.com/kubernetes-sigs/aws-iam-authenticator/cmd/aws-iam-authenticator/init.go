@@ -22,6 +22,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var initCmd = &cobra.Command{
@@ -36,7 +37,7 @@ var initCmd = &cobra.Command{
 		}
 
 		localCfg := cfg
-		localCfg.GenerateKubeconfigPath = "heptio-authenticator-aws.kubeconfig"
+		localCfg.GenerateKubeconfigPath = "aws-iam-authenticator.kubeconfig"
 		localCfg.StateDir = "./"
 
 		err = localCfg.GenerateFiles()
@@ -48,10 +49,22 @@ var initCmd = &cobra.Command{
 		logrus.Infof("copy %s to %s on kubernetes master node(s)", localCfg.CertPath(), cfg.CertPath())
 		logrus.Infof("copy %s to %s on kubernetes master node(s)", localCfg.KeyPath(), cfg.KeyPath())
 		logrus.Infof("copy %s to %s on kubernetes master node(s)", localCfg.GenerateKubeconfigPath, cfg.GenerateKubeconfigPath)
-		logrus.Infof("configure your apiserver with `--authentication-token-webhook-config-file=%s` to enable authentication with heptio-authenticator-aws", cfg.GenerateKubeconfigPath)
+		logrus.Infof("configure your apiserver with `--authentication-token-webhook-config-file=%s` to enable authentication with aws-iam-authenticator", cfg.GenerateKubeconfigPath)
 	},
 }
 
 func init() {
+	initCmd.Flags().String(
+		"hostname",
+		"localhost",
+		"Hostname that should be used for writing the self-signed certificates")
+	viper.BindPFlag("server.hostname", initCmd.Flags().Lookup("hostname"))
+
+	initCmd.Flags().String(
+		"address",
+		"127.0.0.1",
+		"IP Address to bind the server to listen to. (should be a 127.0.0.1 or 0.0.0.0)")
+	viper.BindPFlag("server.address", initCmd.Flags().Lookup("address"))
+
 	rootCmd.AddCommand(initCmd)
 }

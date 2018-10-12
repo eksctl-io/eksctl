@@ -17,10 +17,11 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/heptio/authenticator/pkg/token"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,6 +33,7 @@ var verifyCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		tok := viper.GetString("token")
+		output := viper.GetString("output")
 		clusterID := viper.GetString("clusterID")
 
 		if tok == "" {
@@ -52,12 +54,22 @@ var verifyCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Printf("%+v\n", id)
+		if output == "json" {
+			value, err := json.MarshalIndent(id, "", "    ")
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "could not unmarshal token: %v\n", err)
+			}
+			fmt.Printf("%s\n", value)
+		} else {
+			fmt.Printf("%+v\n", id)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(verifyCmd)
-	verifyCmd.Flags().StringP("token", "t", "", "Verify this token")
+	verifyCmd.Flags().StringP("token", "t", "", "Token to verify")
+	verifyCmd.Flags().StringP("output", "o", "", "Output format. Only `json` is supported currently.")
 	viper.BindPFlag("token", verifyCmd.Flags().Lookup("token"))
+	viper.BindPFlag("output", verifyCmd.Flags().Lookup("output"))
 }

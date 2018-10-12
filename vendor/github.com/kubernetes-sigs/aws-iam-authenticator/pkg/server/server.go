@@ -28,9 +28,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/heptio/authenticator/pkg/arn"
-	"github.com/heptio/authenticator/pkg/config"
-	"github.com/heptio/authenticator/pkg/token"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/arn"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/config"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -117,8 +117,7 @@ func (c *Server) Run() {
 		logrus.WithField("accountID", account).Infof("mapping IAM Account")
 	}
 
-	// we always listen on localhost (and run with host networking)
-	listenAddr := fmt.Sprintf("127.0.0.1:%d", c.LocalhostPort)
+	listenAddr := fmt.Sprintf("%s:%d", c.Address, c.HostPort)
 	listenURL := fmt.Sprintf("https://%s/authenticate", listenAddr)
 
 	cert, err := c.GetOrCreateCertificate()
@@ -268,7 +267,7 @@ func (h *handler) authenticateEndpoint(w http.ResponseWriter, req *http.Request)
 	}
 
 	// use a prefixed UID that includes the AWS account ID and AWS user ID ("AROAAAAAAAAAAAAAAAAAA")
-	uid := fmt.Sprintf("heptio-authenticator-aws:%s:%s", identity.AccountID, identity.UserID)
+	uid := fmt.Sprintf("aws-iam-authenticator:%s:%s", identity.AccountID, identity.UserID)
 
 	// the token is valid and the role is mapped, return success!
 	log.WithFields(logrus.Fields{
@@ -342,6 +341,7 @@ func (h *handler) renderTemplate(template string, identity *token.Identity) (str
 	return template, nil
 }
 
+// EC2Provider configures a DNS resolving function for nodes
 type EC2Provider interface {
 	// Get a node name from instance ID
 	getPrivateDNSName(string) (string, error)

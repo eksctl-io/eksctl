@@ -17,11 +17,11 @@ limitations under the License.
 package server
 
 import (
-	"github.com/heptio/authenticator/pkg/config"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/config"
 )
 
 // Server for the authentication webhook.
 type Server struct {
-	// Config is the whole configuration of heptio-authenticator-aws used for valid keys and certs, kubeconfig, and so on
+	// Config is the whole configuration of aws-iam-authenticator used for valid keys and certs, kubeconfig, and so on
 	config.Config
 }

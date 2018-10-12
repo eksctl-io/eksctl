@@ -28,8 +28,7 @@ func (c *Config) ListenURL() string {
 }
 
 func (c *Config) ListenAddr() string {
-	// we always listen on localhost (and run with host networking)
-	return fmt.Sprintf("127.0.0.1:%d", c.LocalhostPort)
+	return fmt.Sprintf("%s:%d", c.Hostname, c.HostPort)
 }
 
 func (c *Config) GenerateFiles() error {

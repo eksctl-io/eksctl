@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/heptio/authenticator/pkg/config"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/config"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -31,7 +31,7 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "heptio-authenticator-aws",
+	Use:   "aws-iam-authenticator",
 	Short: "A tool to authenticate to Kubernetes using AWS IAM credentials",
 }
 
@@ -48,21 +48,23 @@ func Execute() {
 }
 
 func init() {
-	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "Load configuration from `filename`")
+
+	rootCmd.PersistentFlags().StringP("log-format", "l", "text", "Specify log format to use when logging to stderr [text or json]")
 
 	rootCmd.PersistentFlags().StringP(
 		"cluster-id",
 		"i",
 		"",
-		"Specify the cluster `ID`, a unique-per-cluster identifier for your heptio-authenticator-aws installation.",
+		"Specify the cluster `ID`, a unique-per-cluster identifier for your aws-iam-authenticator installation.",
 	)
 	viper.BindPFlag("clusterID", rootCmd.PersistentFlags().Lookup("cluster-id"))
 	viper.BindEnv("clusterID", "KUBERNETES_AWS_AUTHENTICATOR_CLUSTER_ID")
 }
 
 func initConfig() {
+	logrus.SetFormatter(getLogFormatter())
 	if cfgFile == "" {
 		return
 	}
@@ -77,10 +79,12 @@ func getConfig() (config.Config, error) {
 	config := config.Config{
 		ClusterID:                         viper.GetString("clusterID"),
 		ServerEC2DescribeInstancesRoleARN: viper.GetString("server.ec2DescribeInstancesRoleARN"),
-		LocalhostPort:                     viper.GetInt("server.port"),
-		GenerateKubeconfigPath:            viper.GetString("server.generateKubeconfig"),
-		KubeconfigPregenerated:            viper.GetBool("server.kubeconfigPregenerated"),
-		StateDir:                          viper.GetString("server.stateDir"),
+		HostPort:               viper.GetInt("server.port"),
+		Hostname:               viper.GetString("server.hostname"),
+		GenerateKubeconfigPath: viper.GetString("server.generateKubeconfig"),
+		KubeconfigPregenerated: viper.GetBool("server.kubeconfigPregenerated"),
+		StateDir:               viper.GetString("server.stateDir"),
+		Address:                viper.GetString("server.address"),
 	}
 	if err := viper.UnmarshalKey("server.mapRoles", &config.RoleMappings); err != nil {
 		return config, fmt.Errorf("invalid server role mappings: %v", err)
@@ -97,4 +101,16 @@ func getConfig() (config.Config, error) {
 	}
 
 	return config, nil
+}
+
+func getLogFormatter() logrus.Formatter {
+	format, _ := rootCmd.PersistentFlags().GetString("log-format")
+
+	if format == "json" {
+		return &logrus.JSONFormatter{}
+	} else if format != "text" {
+		logrus.Warnf("Unknown log format specified (%s), will use default text formatter instead.", format)
+	}
+
+	return &logrus.TextFormatter{FullTimestamp: true}
 }
