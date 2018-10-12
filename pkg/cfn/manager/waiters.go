@@ -112,7 +112,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 
 func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *string, acceptors []request.WaiterAcceptor) error {
 	desiredStatus := fmt.Sprintf("%v", acceptors[0].Expected)
-	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q to reach %q status", changesetName, *i.StackName, desiredStatus)
+	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q to reach %q status", *changesetName, *i.StackName, desiredStatus)
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.spec.WaitTimeout)
 	defer cancel()

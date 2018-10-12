@@ -52,15 +52,3 @@ func (s *StackCollection) CreateClusterWithInitialNodeGroup() []error {
 	}
 	return nil
 }
-
-func (s *StackCollection) ScaleInitialNodeGroup() []error {
-	errs := []error{}
-	appendErr := func(err error) {
-		errs = append(errs, err)
-	}
-	if Run(appendErr, s.ScaleNodeGroup); len(errs) > 0 {
-		return errs
-	}
-
-	return nil
-}

@@ -153,7 +153,7 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, pa
 	return nil
 }
 
-func (c *StackCollection) UpdateStack(stackName string, action string, description string, template []byte, parameters map[string]string, errs chan error) error {
+func (c *StackCollection) UpdateStack(stackName string, action string, description string, template []byte, parameters map[string]string) error {
 	i := &Stack{StackName: &stackName}
 
 	changesetName, err := c.doCreateChangesetRequest(stackName, action, description, template, parameters, true)

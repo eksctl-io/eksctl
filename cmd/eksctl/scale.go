@@ -67,13 +67,9 @@ func doScaleNodeGroup(cfg *api.ClusterConfig) error {
 	}
 
 	stackManager := ctl.NewStackManager()
-	errs := stackManager.ScaleInitialNodeGroup()
-	if len(errs) > 0 {
-		logger.Info("%d error(s) occurred and nodegroup can't be scaled", len(errs))
-		for _, err := range errs {
-			logger.Critical("%s\n", err.Error())
-		}
-		return fmt.Errorf("failed to scale nodegroup for cluster %q", cfg.ClusterName)
+	err := stackManager.ScaleInitialNodeGroup()
+	if err != nil {
+		return fmt.Errorf("failed to scale nodegroup for cluster %q, error %v", cfg.ClusterName, err)
 	}
 
 	return nil

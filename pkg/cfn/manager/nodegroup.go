@@ -34,10 +34,16 @@ func (c *StackCollection) CreateNodeGroup(seq int, errs chan error) error {
 	return c.CreateStack(name, stack, nil, errs)
 }
 
-func (c *StackCollection) ScaleNodeGroup(errs chan error) error {
+// ScaleInitialNodeGroup will scale the first (sequence 0) nodegroup
+func (c *StackCollection) ScaleInitialNodeGroup() error {
+	return c.ScaleNodeGroup(0)
+}
+
+// ScaleNodeGroup will scale an existing node group
+func (c *StackCollection) ScaleNodeGroup(sequence int) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.ClusterStackName = clusterName
-	name := c.makeNodeGroupStackName(0)
+	name := c.makeNodeGroupStackName(sequence)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	if c.spec.MinNodes == 0 && c.spec.MaxNodes == 0 {
@@ -78,12 +84,12 @@ func (c *StackCollection) ScaleNodeGroup(errs chan error) error {
 	}
 	logger.Debug("stack template (post-scale change): %s", updatedTemplate)
 
-	description := fmt.Sprintf("scaling nodegroup, desired from %s to %d, min size from %s to %d and max size from %s to %d",
+	description := fmt.Sprintf("scaling nodegroup, desired capacity from %s to %d, min size from %s to %d and max size from %s to %d",
 		currentCapacity, c.spec.Nodes,
 		currentMinSize, c.spec.MinNodes,
 		currentMaxSize, c.spec.MaxNodes)
 
-	return c.UpdateStack(name, "scale-nodegroup", description, updatedTemplate, nil, errs)
+	return c.UpdateStack(name, "scale-nodegroup", description, updatedTemplate, nil)
 }
 
 func (c *StackCollection) DeleteNodeGroup() error {
