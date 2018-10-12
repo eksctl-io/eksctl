@@ -32,8 +32,8 @@ WORKDIR $EKSCTL
 RUN make lint && make test && make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 
-RUN go build ./vendor/github.com/heptio/authenticator/cmd/heptio-authenticator-aws \
-    && cp ./heptio-authenticator-aws /out/usr/local/bin/heptio-authenticator-aws
+RUN go build ./vendor/github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
+    && cp ./aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
 
 RUN pip install --root=/out aws-mfa==0.0.12 awscli==1.15.40
 

@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
-	"github.com/heptio/authenticator/pkg/token"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
 	clientset "k8s.io/client-go/kubernetes"
@@ -206,7 +206,7 @@ func (c *ClientConfig) WithExecAuthenticator() *ClientConfig {
 func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 	clientConfigCopy := *c
 
-	gen, err := token.NewGenerator()
+	gen, err := token.NewGenerator(true)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get token generator")
 	}
