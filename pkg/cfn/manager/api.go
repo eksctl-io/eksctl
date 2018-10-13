@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
@@ -25,6 +26,9 @@ const (
 
 // Stack represents the CloudFormation stack
 type Stack = cloudformation.Stack
+
+// ChangeSet represents a Cloudformation changeset
+type ChangeSet = cloudformation.DescribeChangeSetOutput
 
 // StackCollection stores the CloudFormation stack information
 type StackCollection struct {
@@ -102,6 +106,30 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, pa
 	go c.waitUntilStackIsCreated(i, stack, errs)
 
 	return nil
+}
+
+// UpdateStack will update a cloudformation stack. It uses changesets and if in debug it will log the changes.
+// This is used bu things like nodegroup scaling
+func (c *StackCollection) UpdateStack(stackName string, action string, description string, template []byte, parameters map[string]string) error {
+	i := &Stack{StackName: &stackName}
+	changesetName, err := c.doCreateChangesetRequest(i, action, description, template, parameters, true)
+	if err != nil {
+		return err
+	}
+	err = c.doWaitUntilChangeSetIsCreated(i, &changesetName)
+	if err != nil {
+		return err
+	}
+	changeset, err := c.describeStackChangeset(i, &changesetName)
+	if err != nil {
+		return err
+	}
+	logger.Debug("changes = %#v", changeset.Changes)
+	if err := c.doExecuteChangeset(stackName, changesetName); err != nil {
+		logger.Warning("error executing Cloudformation changeset %s in stack %s. Check the Cloudformation console for further details", changesetName, stackName)
+		return err
+	}
+	return c.doWaitUntilStackIsUpdated(i)
 }
 
 func (c *StackCollection) describeStack(i *Stack) (*Stack, error) {
@@ -219,4 +247,62 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *i.StackName)
 	}
 	return resp.StackEvents, nil
+}
+
+func (c *StackCollection) doCreateChangesetRequest(i *Stack, action string, description string, templateBody []byte,
+	parameters map[string]string, withIAM bool) (string, error) {
+
+	changesetName := fmt.Sprintf("eksctl-%s-%d", action, time.Now().Unix())
+
+	input := &cloudformation.CreateChangeSetInput{}
+	input.SetChangeSetName(changesetName)
+	input.SetChangeSetType("UPDATE")
+	input.SetDescription(description)
+	input.SetStackName(*i.StackName)
+	input.SetTags(c.tags)
+	input.SetTemplateBody(string(templateBody))
+	if withIAM {
+		input.SetCapabilities(aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam}))
+	}
+	for k, v := range parameters {
+		p := &cloudformation.Parameter{
+			ParameterKey:   aws.String(k),
+			ParameterValue: aws.String(v),
+		}
+		input.Parameters = append(input.Parameters, p)
+	}
+	logger.Debug("creating changeset, input = %#v", input)
+	s, err := c.cfn.CreateChangeSet(input)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("creating changest %q for stack %q", changesetName, *i.StackName))
+	}
+	logger.Debug("changeset = %#v", s)
+	return changesetName, nil
+}
+func (c *StackCollection) doExecuteChangeset(stackName string, changesetName string) error {
+	input := &cloudformation.ExecuteChangeSetInput{}
+	input.SetChangeSetName(changesetName)
+	input.SetStackName(stackName)
+	logger.Debug("executing changeset, input = %#v", input)
+	output, err := c.cfn.ExecuteChangeSet(input)
+	if err != nil {
+		return errors.Wrapf(err, "executing CloudFormation changeset %q for stack %q", changesetName, stackName)
+	}
+	logger.Debug("execute changeset = %#v", output)
+	return nil
+}
+
+func (c *StackCollection) describeStackChangeset(i *Stack, changesetName *string) (*ChangeSet, error) {
+	input := &cloudformation.DescribeChangeSetInput{
+		StackName:     i.StackName,
+		ChangeSetName: changesetName,
+	}
+	if i.StackId != nil {
+		input.StackName = i.StackId
+	}
+	resp, err := c.cfn.DescribeChangeSet(input)
+	if err != nil {
+		return nil, errors.Wrapf(err, "describing CloudFormation changeset %s for stack %s", *changesetName, *i.StackName)
+	}
+	return resp, nil
 }
