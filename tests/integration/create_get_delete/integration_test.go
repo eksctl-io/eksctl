@@ -30,6 +30,7 @@ import (
 const (
 	createTimeout = 20
 	deleteTimeout = 10
+	getTimeout    = 1
 	region        = "us-west-2"
 )
 
@@ -184,6 +185,31 @@ var _ = Describe("Create (Integration)", func() {
 					Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.0.1"))
 				}
 			})
+		})
+	})
+
+	Describe("when listing clusters", func() {
+		var (
+			err     error
+			session *gexec.Session
+		)
+
+		It("should not return an error", func() {
+			args := []string{"get", "cluster", "--region", region}
+
+			command := exec.Command(eksctlPath, args...)
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+			if err != nil {
+				Fail(fmt.Sprintf("error starting process: %v", err), 1)
+			}
+
+			session.Wait(getTimeout * time.Minute)
+			Expect(session.ExitCode()).Should(Equal(0))
+		})
+
+		It("should return the previously created cluster", func() {
+			Expect(string(session.Buffer().Contents())).To(ContainSubstring(clusterName))
 		})
 	})
 
