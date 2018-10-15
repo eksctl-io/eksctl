@@ -116,7 +116,7 @@ var _ = Describe("Create (Integration)", func() {
 
 			args := []string{"create", "cluster",
 				"--name", clusterName,
-				"--tags", "Purpose=ekscltIntegrationTest"
+				"--tags", "Purpose=ekscltIntegrationTest",
 				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--region", region,
