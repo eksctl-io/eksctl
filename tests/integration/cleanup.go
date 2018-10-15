@@ -17,31 +17,18 @@ func CleanupAws(clusterName string, region string) {
 		}
 	}
 
-	stackName := fmt.Sprintf("EKS-%s-DefaultNodeGroup", clusterName)
+	stackName := fmt.Sprintf("eksctl-%s-cluster", clusterName)
 	if found, _ := aws.StackExists(stackName, session); found {
 		if err := aws.DeleteStack(stackName, session); err != nil {
-			logger.Debug("DefaultNodeGroup stack couldn't be deleted: %v", err)
+			logger.Debug("Cluster stack couldn't be deleted: %v", err)
 		}
 	}
 
-	stackName = fmt.Sprintf("EKS-%s-VPC", clusterName)
+	stackName = fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)
 	if found, _ := aws.StackExists(stackName, session); found {
 		if err := aws.DeleteStack(stackName, session); err != nil {
-			logger.Debug("VPC stack couldn't be deleted: %v", err)
+			logger.Debug("NodeGroup stack couldn't be deleted: %v", err)
 		}
 	}
 
-	stackName = fmt.Sprintf("EKS-%s-ControlPlane", clusterName)
-	if found, _ := aws.StackExists(stackName, session); found {
-		if err := aws.DeleteStack(stackName, session); err != nil {
-			logger.Debug("ControlPlane stack couldn't be deleted: %v", err)
-		}
-	}
-
-	stackName = fmt.Sprintf("EKS-%s-ServiceRole", clusterName)
-	if found, _ := aws.StackExists(stackName, session); found {
-		if err := aws.DeleteStack(stackName, session); err != nil {
-			logger.Debug("ServiceRole stack couldn't be deleted: %v", err)
-		}
-	}
 }

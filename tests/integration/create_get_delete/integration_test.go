@@ -29,6 +29,8 @@ import (
 
 const (
 	createTimeout = 20
+	deleteTimeout = 10
+	getTimeout    = 1
 	region        = "us-west-2"
 )
 
@@ -184,6 +186,70 @@ var _ = Describe("Create (Integration)", func() {
 				}
 			})
 		})
+	})
+
+	Describe("when listing clusters", func() {
+		var (
+			err     error
+			session *gexec.Session
+		)
+
+		It("should not return an error", func() {
+			args := []string{"get", "cluster", "--region", region}
+
+			command := exec.Command(eksctlPath, args...)
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+			if err != nil {
+				Fail(fmt.Sprintf("error starting process: %v", err), 1)
+			}
+
+			session.Wait(getTimeout * time.Minute)
+			Expect(session.ExitCode()).Should(Equal(0))
+		})
+
+		It("should return the previously created cluster", func() {
+			Expect(string(session.Buffer().Contents())).To(ContainSubstring(clusterName))
+		})
+	})
+
+	Describe("when deleting a cluster", func() {
+		var (
+			err     error
+			session *gexec.Session
+		)
+
+		if !doDelete {
+			fmt.Fprintf(GinkgoWriter, "will not delete cluster %s", clusterName)
+			return
+		}
+
+		It("should not return an error", func() {
+			args := []string{"delete", "cluster", "--name", clusterName, "--region", region}
+
+			command := exec.Command(eksctlPath, args...)
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+			if err != nil {
+				Fail(fmt.Sprintf("error starting process: %v", err), 1)
+			}
+
+			session.Wait(deleteTimeout * time.Minute)
+			Expect(session.ExitCode()).Should(Equal(0))
+		})
+
+		It("should have deleted the EKS cluster", func() {
+			session := aws.NewSession(region)
+			Expect(session).ToNot(HaveEksCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
+		})
+
+		It("should have the required cloudformation stacks", func() {
+			session := aws.NewSession(region)
+
+			Expect(session).ToNot(HaveCfnStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
+			Expect(session).ToNot(HaveCfnStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
+		})
+
 	})
 })
 
