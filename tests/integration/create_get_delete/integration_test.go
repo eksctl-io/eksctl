@@ -114,7 +114,14 @@ var _ = Describe("Create (Integration)", func() {
 				clusterName = utils.ClusterName("", "")
 			}
 
-			args := []string{"create", "cluster", "--name", clusterName, "--node-type", "t2.medium", "--nodes", "1", "--region", region, "--kubeconfig", kubeconfigPath}
+			args := []string{"create", "cluster",
+				"--name", clusterName,
+				"--tags", "Purpose=ekscltIntegrationTest"
+				"--node-type", "t2.medium",
+				"--nodes", "1",
+				"--region", region,
+				"--kubeconfig", kubeconfigPath,
+			}
 
 			command := exec.Command(eksctlPath, args...)
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
