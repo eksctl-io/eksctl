@@ -8,8 +8,8 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 )
 
-// EksClusterExists checks if an EKS cluster exists in AWS
-func EksClusterExists(clusterName string, session *session.Session) (bool, error) {
+// ClusterExists checks if an EKS cluster exists in AWS
+func ClusterExists(clusterName string, session *session.Session) (bool, error) {
 	eks := awseks.New(session)
 
 	input := &awseks.DescribeClusterInput{
@@ -27,16 +27,4 @@ func EksClusterExists(clusterName string, session *session.Session) (bool, error
 	}
 
 	return true, nil
-}
-
-// EksClusterDelete deletes a EKS cluster with a given name
-func EksClusterDelete(clusterName string, session *session.Session) error {
-	eks := awseks.New(session)
-
-	input := &awseks.DeleteClusterInput{
-		Name: aws.String(clusterName),
-	}
-
-	_, err := eks.DeleteCluster(input)
-	return err
 }
