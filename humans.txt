@@ -22,7 +22,6 @@ Kirsten Schumy          @kschumy
 Karinna Iniguez         @karinnainiguez
 Michael Seiwald         @mseiwald
 Anton Gruebel           @gruebel
-Bryan Peterson          @lazyshot
 
 /* Thanks */
 
