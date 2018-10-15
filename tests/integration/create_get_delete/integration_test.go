@@ -24,7 +24,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
 	"github.com/weaveworks/eksctl/pkg/utils"
-	"github.com/weaveworks/eksctl/tests/integration"
 )
 
 const (
@@ -91,17 +90,9 @@ var _ = Describe("Create (Integration)", func() {
 		if kubeconfigTemp {
 			os.Remove(kubeconfigPath)
 		}
-		if doCreate && doDelete {
-			integration.CleanupAws(clusterName, region)
-		}
 	})
 
 	Describe("when creating a cluster with 1 node", func() {
-		var (
-			err     error
-			session *gexec.Session
-		)
-
 		It("should not return an error", func() {
 			if !doCreate {
 				fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", clusterName)
@@ -124,26 +115,25 @@ var _ = Describe("Create (Integration)", func() {
 			}
 
 			command := exec.Command(eksctlPath, args...)
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
 			if err != nil {
 				Fail(fmt.Sprintf("error starting process: %v", err), 1)
 			}
 
-			session.Wait(createTimeout * time.Minute)
-			Expect(session.ExitCode()).Should(Equal(0))
+			cmdSession.Wait(createTimeout * time.Minute)
+			Expect(cmdSession.ExitCode()).Should(Equal(0))
 		})
 
+		awsSession := aws.NewSession(region)
+
 		It("should have created an EKS cluster", func() {
-			session := aws.NewSession(region)
-			Expect(session).To(HaveEksCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
+			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
 		})
 
 		It("should have the required cloudformation stacks", func() {
-			session := aws.NewSession(region)
-
-			Expect(session).To(HaveCfnStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-			Expect(session).To(HaveCfnStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -159,7 +149,10 @@ var _ = Describe("Create (Integration)", func() {
 		})
 
 		Context("and we create a deployment using kubectl", func() {
-			var test *harness.Test
+			var (
+				err  error
+				test *harness.Test
+			)
 
 			BeforeEach(func() {
 				test, err = newKubeTest()
@@ -192,71 +185,62 @@ var _ = Describe("Create (Integration)", func() {
 					Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.0.1"))
 				}
 			})
+
+			Context("when listing clusters", func() {
+				args := []string{"get", "cluster", "--region", region}
+
+				command := exec.Command(eksctlPath, args...)
+				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+				It("should not return an error", func() {
+
+					if err != nil {
+						Fail(fmt.Sprintf("error starting process: %v", err), 1)
+					}
+
+					cmdSession.Wait(getTimeout * time.Minute)
+					Expect(cmdSession.ExitCode()).Should(Equal(0))
+				})
+
+				It("should return the previously created cluster", func() {
+					Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
+				})
+			})
+
+			Context("when deleting a cluster", func() {
+				if !doDelete {
+					fmt.Fprintf(GinkgoWriter, "will not delete cluster %s", clusterName)
+					return
+				}
+
+				It("should not return an error", func() {
+					args := []string{"delete", "cluster", "--name", clusterName, "--region", region}
+
+					command := exec.Command(eksctlPath, args...)
+					cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+					if err != nil {
+						Fail(fmt.Sprintf("error starting process: %v", err), 1)
+					}
+
+					cmdSession.Wait(deleteTimeout * time.Minute)
+					Expect(cmdSession.ExitCode()).Should(Equal(0))
+				})
+
+				awsSession := aws.NewSession(region)
+
+				It("should have deleted the EKS cluster", func() {
+					Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
+				})
+
+				It("should have the required cloudformation stacks", func() {
+					Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
+					Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
+				})
+
+			})
+
 		})
-	})
-
-	Describe("when listing clusters", func() {
-		var (
-			err     error
-			session *gexec.Session
-		)
-
-		It("should not return an error", func() {
-			args := []string{"get", "cluster", "--region", region}
-
-			command := exec.Command(eksctlPath, args...)
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-			if err != nil {
-				Fail(fmt.Sprintf("error starting process: %v", err), 1)
-			}
-
-			session.Wait(getTimeout * time.Minute)
-			Expect(session.ExitCode()).Should(Equal(0))
-		})
-
-		It("should return the previously created cluster", func() {
-			Expect(string(session.Buffer().Contents())).To(ContainSubstring(clusterName))
-		})
-	})
-
-	Describe("when deleting a cluster", func() {
-		var (
-			err     error
-			session *gexec.Session
-		)
-
-		if !doDelete {
-			fmt.Fprintf(GinkgoWriter, "will not delete cluster %s", clusterName)
-			return
-		}
-
-		It("should not return an error", func() {
-			args := []string{"delete", "cluster", "--name", clusterName, "--region", region}
-
-			command := exec.Command(eksctlPath, args...)
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-			if err != nil {
-				Fail(fmt.Sprintf("error starting process: %v", err), 1)
-			}
-
-			session.Wait(deleteTimeout * time.Minute)
-			Expect(session.ExitCode()).Should(Equal(0))
-		})
-
-		It("should have deleted the EKS cluster", func() {
-			session := aws.NewSession(region)
-			Expect(session).ToNot(HaveEksCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
-		})
-
-		It("should have the required cloudformation stacks", func() {
-			session := aws.NewSession(region)
-
-			Expect(session).ToNot(HaveCfnStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-			Expect(session).ToNot(HaveCfnStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
-		})
-
 	})
 })
 
