@@ -43,7 +43,8 @@ func scaleNodeGroupCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
-	fs.IntVarP(&cfg.Nodes, "nodes", "N", 0, "total number of nodes (scale to this number)")
+
+	fs.IntVarP(&cfg.Nodes, "nodes", "N", -1, "total number of nodes (scale to this number)")
 
 	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
@@ -64,8 +65,8 @@ func doScaleNodeGroup(cfg *api.ClusterConfig) error {
 		return fmt.Errorf("no cluster name supplied. Use the --name= flag")
 	}
 
-	if cfg.Nodes < 1 {
-		return fmt.Errorf("number of nodes must be greater than 0. Use the --nodes/-N flag")
+	if cfg.Nodes < 0 {
+		return fmt.Errorf("number of nodes must be 0 or greater. Use the --nodes/-N flag")
 	}
 
 	stackManager := ctl.NewStackManager()

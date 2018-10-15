@@ -143,8 +143,7 @@ func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *st
 		if err != nil {
 			logger.Debug("describeChangesetErr=%v", err)
 		} else {
-			logger.Critical("unexpected status %q while %s", *s.Status, msg)
-			c.troubleshootStackFailureCause(i, desiredStatus)
+			logger.Critical("unexpected status %q while %s, reason %s", *s.Status, msg, *s.StatusReason)
 		}
 		return errors.Wrap(waitErr, msg)
 	}

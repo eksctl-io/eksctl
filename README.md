@@ -155,6 +155,19 @@ To delete a cluster, run:
 ```
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
+### Scaling
+A node group can be scaled by using the `scale nodegroup` command. For example, to scale to 5 nodes:
+
+```
+eksctl scale nodegroup --name=<clustername> --nodes=5
+```
+
+If the desired number of nodes is greater than the current maximum set on the ASG then the max value will be increased to match the number of requested nodes. And likewise for the minimum.
+
+Scaling a node group works by modifying the node group CloudFormation template. The modified template is applied by creating and executing a CloudFormation changeset.
+
+> Scaling a node group down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+
 ### GPU Support
 
 If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/instance-types/p2/) or [p3](https://aws.amazon.com/ec2/instance-types/p3/) ) then the first thing you need to do is subscribe to the [EKS-optimized AMI with GPU Support](https://aws.amazon.com/marketplace/pp/B07GRHFXGM). If you don't do this then node creation will fail.
