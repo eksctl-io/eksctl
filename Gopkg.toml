@@ -29,7 +29,7 @@ required = [
   version = "kubernetes-1.10.8"
 
 
-[[constraint]]
+[[override]]
   name = "k8s.io/apimachinery"
   version = "kubernetes-1.10.8"
 

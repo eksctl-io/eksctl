@@ -134,9 +134,9 @@ To use a pre-existing EC2 key pair in `us-east-1` region, you can specify key pa
 eksctl create cluster --ssh-access  --ssh-public-key=my_kubernetes_key --region=us-east-1
 ```
 
-To add custom tags for all resources, use `--tags`. Note that until
-https://github.com/weaveworks/eksctl/issues/25 is resolved, tags will
-apply to CloudFormation stacks but not EKS clusters.
+To add custom tags for all resources, use `--tags`.
+
+> NOTE: Until [https://github.com/weaveworks/eksctl/issues/25] is resolved, tags cannot be applied to EKS cluster itself, but most of other resources (e.g. EC2 nodes).
 
 ```
 eksctl create cluster --tags environment=staging --region=us-east-1
@@ -155,6 +155,21 @@ To delete a cluster, run:
 ```
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
+
+### Scaling nodegroup
+
+The default nodegroup can be scaled by using the `eksctl scale nodegroup` command. For example, to scale to 5 nodes:
+
+```
+eksctl scale nodegroup --name=<name> --nodes=5
+```
+
+If the desired number of nodes is greater than the current maximum set on the ASG then the maximum value will be increased to match the number of requested nodes. And likewise for the minimum.
+
+Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a ChangeSet.
+
+> NOTE: Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+
 ### GPU Support
 
 If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/instance-types/p2/) or [p3](https://aws.amazon.com/ec2/instance-types/p3/) ) then the first thing you need to do is subscribe to the [EKS-optimized AMI with GPU Support](https://aws.amazon.com/marketplace/pp/B07GRHFXGM). If you don't do this then node creation will fail.
@@ -173,9 +188,10 @@ Once the cluster is created you will need to install the [NVIDIA Kubernetes devi
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
 ```
 
-> Once `addon` support has been added as part of 0.2.0 its envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
+> NOTE: Once `addon` support has been added as part of 0.2.0 its envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
 
 ### Latest & Custom AMI Support
+
 With the the 0.1.2 release we have introduced the `--node-ami` flag for use when creating a cluster. This enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use (non-GPU and GPU instances).
 
 The `--node-ami` can take the AMI image id for an image to explicitly use. It also can take the following 'special' keywords:
