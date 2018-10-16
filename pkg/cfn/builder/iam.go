@@ -132,5 +132,18 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		},
 	)
 
+	if n.spec.Addons.WithIAM.PolicyAutoScaling {
+		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
+			[]string{
+				"autoscaling:DescribeAutoScalingGroups",
+				"autoscaling:DescribeAutoScalingInstances",
+				"autoscaling:DescribeLaunchConfigurations",
+				"autoscaling:DescribeTags",
+				"autoscaling:SetDesiredCapacity",
+				"autoscaling:TerminateInstanceInAutoScalingGroup",
+			},
+		)
+	}
+
 	n.rs.newOutputFromAtt(cfnOutputNodeInstanceRoleARN, "NodeInstanceRole.Arn", true)
 }
