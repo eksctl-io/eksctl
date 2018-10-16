@@ -1,13 +1,12 @@
 ARG EKSCTL_BUILD_IMAGE
 FROM $EKSCTL_BUILD_IMAGE AS build
 
-RUN apk add --update \
+RUN apk add --no-cache \
       py-pip \
       python \
       python-dev \
       && true
 
-RUN mkdir /out
 RUN mkdir -p /out/etc/apk && cp -r /etc/apk/* /out/etc/apk/
 RUN apk add --no-cache --initdb --root /out \
     alpine-baselayout \
@@ -29,13 +28,15 @@ ARG COVERALLS_TOKEN
 ENV COVERALLS_TOKEN $COVERALLS_TOKEN
 
 WORKDIR $EKSCTL
-RUN make lint && make test && make build \
+RUN make lint
+RUN make test
+RUN make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 
 RUN go build ./vendor/github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
     && cp ./aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
 
-RUN pip install --root=/out aws-mfa==0.0.12 awscli==1.15.40
+RUN pip install --root=/out aws-mfa==0.0.12 awscli==1.16.34
 
 WORKDIR /out
 
