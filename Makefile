@@ -41,7 +41,7 @@ integration-test-dev: build ## Run the integration tests without cluster teardow
 	@./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
-	@go test -tags integration -v -timeout 21m ./tests/integration/... \
+	@go test -tags integration -v -timeout 21m ./integration/... \
 		-args \
 		-eksctl.cluster=$(TEST_CLUSTER) \
 		-eksctl.create=false \
@@ -56,7 +56,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 .PHONY: integration-test
 integration-test: build ## Run the integration tests (with cluster creation and cleanup)
-	@go test -tags integration -v -timeout 21m ./tests/integration/...
+	@go test -tags integration -v -timeout 60m ./integration/...
 
 ##@ Code Generation
 
