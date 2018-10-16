@@ -12,15 +12,15 @@ import (
 
 // HaveExistingStack returns a GoMega matcher that will check for the existence of an cloudformation stack
 func HaveExistingStack(expectedStackName string) types.GomegaMatcher {
-	return &ExistingStack{expectedStackName: expectedStackName}
+	return &existingStack{expectedStackName: expectedStackName}
 }
 
-type ExistingStack struct {
+type existingStack struct {
 	expectedStackName string
 	stackNotFound     bool
 }
 
-func (m *ExistingStack) Match(actual interface{}) (success bool, err error) {
+func (m *existingStack) Match(actual interface{}) (success bool, err error) {
 	if actual == nil {
 		return false, errors.New("input is nil")
 	}
@@ -39,10 +39,10 @@ func (m *ExistingStack) Match(actual interface{}) (success bool, err error) {
 	return found, nil
 }
 
-func (m *ExistingStack) FailureMessage(actual interface{}) (message string) {
+func (m *existingStack) FailureMessage(actual interface{}) (message string) {
 	return fmt.Sprintf("Expected to find a Cloudformation stack named %s but it wasn't found", m.expectedStackName)
 }
 
-func (m *ExistingStack) NegatedFailureMessage(_ interface{}) (message string) {
+func (m *existingStack) NegatedFailureMessage(_ interface{}) (message string) {
 	return fmt.Sprintf("Expected NOT to find a Cloudformation stack named %s but it found", m.expectedStackName)
 }

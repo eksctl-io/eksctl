@@ -1,14 +1,12 @@
 // +build integration
 
-package create_get_delete
+package integration_test
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"testing"
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -25,30 +23,6 @@ import (
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
-
-const (
-	createTimeout = 20
-	deleteTimeout = 10
-	getTimeout    = 1
-	region        = "us-west-2"
-)
-
-var (
-	eksctlPath string
-
-	// Flags to help with the development of the integration tests
-	clusterName    string
-	doCreate       bool
-	doDelete       bool
-	kubeconfigPath string
-
-	kubeconfigTemp bool
-)
-
-func TestCreateIntegration(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Integration - Create Suite")
-}
 
 type tInterface interface {
 	GinkgoTInterface
@@ -73,7 +47,7 @@ func newKubeTest() (*harness.Test, error) {
 	return h.NewTest(t), nil
 }
 
-var _ = Describe("Create (Integration)", func() {
+var _ = Describe("(Integration) Create, Get & Delete", func() {
 
 	BeforeSuite(func() {
 		kubeconfigTemp = false
@@ -107,7 +81,7 @@ var _ = Describe("Create (Integration)", func() {
 
 			args := []string{"create", "cluster",
 				"--name", clusterName,
-				"--tags", "Purpose=ekscltIntegrationTest",
+				"--tags", "eksctl.cluster.k8s.io/v1alpha1/description=eksctl integration test",
 				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--region", region,
@@ -121,7 +95,7 @@ var _ = Describe("Create (Integration)", func() {
 				Fail(fmt.Sprintf("error starting process: %v", err), 1)
 			}
 
-			cmdSession.Wait(createTimeout * time.Minute)
+			cmdSession.Wait(createTimeout)
 			Expect(cmdSession.ExitCode()).Should(Equal(0))
 		})
 
@@ -193,8 +167,6 @@ var _ = Describe("Create (Integration)", func() {
 				var err error
 				args := []string{"get", "clusters", "--region", region}
 
-				fmt.Printf("wtf[eksctlPath]: '%s'", eksctlPath)
-
 				command := exec.Command(eksctlPath, args...)
 				cmdSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
@@ -202,7 +174,7 @@ var _ = Describe("Create (Integration)", func() {
 					Fail(fmt.Sprintf("error starting process: %v", err), 1)
 				}
 
-				cmdSession.Wait(getTimeout * time.Minute)
+				cmdSession.Wait(getTimeout)
 				Expect(cmdSession.ExitCode()).Should(Equal(0))
 			})
 
@@ -217,7 +189,11 @@ var _ = Describe("Create (Integration)", func() {
 					Skip("will not delete cluster " + clusterName)
 				}
 
-				args := []string{"delete", "cluster", "--name", clusterName, "--region", region, "--wait"}
+				args := []string{"delete", "cluster",
+					"--name", clusterName,
+					"--region", region,
+					"--wait",
+				}
 
 				command := exec.Command(eksctlPath, args...)
 				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -226,7 +202,7 @@ var _ = Describe("Create (Integration)", func() {
 					Fail(fmt.Sprintf("error starting process: %v", err), 1)
 				}
 
-				cmdSession.Wait(deleteTimeout * time.Minute)
+				cmdSession.Wait(deleteTimeout)
 				Expect(cmdSession.ExitCode()).Should(Equal(0))
 			})
 
@@ -251,13 +227,3 @@ var _ = Describe("Create (Integration)", func() {
 		})
 	})
 })
-
-func init() {
-	flag.StringVar(&eksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
-
-	// Flags to help with the development of the integration tests
-	flag.StringVar(&clusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
-	flag.BoolVar(&doCreate, "eksctl.create", true, "Skip the creation tests. Useful for debugging the tests")
-	flag.BoolVar(&doDelete, "eksctl.delete", true, "Skip the cleanup after the tests have run")
-	flag.StringVar(&kubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create it a temporary file)")
-}
