@@ -60,7 +60,14 @@ type Template struct {
 
 				PropagateAtLaunch string
 			}
-			UserData string
+			UserData       string
+			PolicyDocument struct {
+				Statement []struct {
+					Action   []string
+					Effect   string
+					Resource interface{}
+				}
+			}
 		}
 	}
 }
@@ -94,9 +101,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 			VPC:                      "vpc-0e265ad953062b94b",
 			Endpoint:                 endpoint,
 			CertificateAuthorityData: caCertData,
-			ARN:                      arn,
-			NodeInstanceRoleARN:      "",
-			AvailabilityZones:        testAZs,
+			ARN:                 arn,
+			NodeInstanceRoleARN: "",
+			AvailabilityZones:   testAZs,
 		}
 
 		initial := &api.ClusterConfig{
@@ -113,8 +120,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      "vpc-0e265ad953062b94b",
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                      arn,
-			"ClusterStackName":         "",
+			"ARN":              arn,
+			"ClusterStackName": "",
 		})
 
 		It("should not error", func() {
@@ -199,6 +206,47 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Key).To(Equal("kubernetes.io/cluster/" + clusterName))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Value).To(Equal("owned"))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].PropagateAtLaunch).To(Equal("true"))
+		})
+	})
+
+	Describe("NodeGroupAutoScaling", func() {
+		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
+			ClusterName:       clusterName,
+			AvailabilityZones: testAZs,
+			NodeType:          "t2.medium",
+			Region:            "us-west-2",
+			Addons: api.ClusterAddons{
+				WithIAM: api.AddonIAM{
+					AutoScalingGroup: true,
+				},
+			},
+		}, "eksctl-test-123-cluster", 0)
+		rs.AddAllResources()
+
+		template, err := rs.RenderJSON()
+		It("should serialise JSON without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		obj := Template{}
+		It("should parse JSON withon errors", func() {
+			err := json.Unmarshal(template, &obj)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("NodeGroup should have correct tags", func() {
+			Expect(len(obj.Resources)).ToNot(Equal(0))
+			Expect(obj.Resources["AutoScalingControl"]).ToNot(BeNil())
+			Expect(len(obj.Resources["AutoScalingControl"].Properties.PolicyDocument.Statement)).To(Equal(1))
+			Expect(obj.Resources["AutoScalingControl"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["AutoScalingControl"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(obj.Resources["AutoScalingControl"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"autoscaling:DescribeAutoScalingGroups",
+				"autoscaling:DescribeAutoScalingInstances",
+				"autoscaling:DescribeLaunchConfigurations",
+				"autoscaling:DescribeTags",
+				"autoscaling:SetDesiredCapacity",
+				"autoscaling:TerminateInstanceInAutoScalingGroup",
+			}))
 		})
 	})
 
