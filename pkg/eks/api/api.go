@@ -89,4 +89,5 @@ type ClusterAddons struct {
 // AddonIAM provides an addon for the AWS IAM integration
 type AddonIAM struct {
 	PolicyAmazonEC2ContainerRegistryPowerUser bool
+	AutoScalingGroup                          bool
 }

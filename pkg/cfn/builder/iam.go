@@ -94,7 +94,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	refIR := n.newResource("NodeInstanceRole", &gfn.AWSIAMRole{
-		Path:                     gfn.NewString("/"),
+		Path: gfn.NewString("/"),
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(n.spec.NodePolicyARNs...),
 	})
@@ -131,6 +131,19 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			"cloudformation:SignalResource",
 		},
 	)
+
+	if n.spec.Addons.WithIAM.AutoScalingGroup {
+		n.rs.attachAllowPolicy("AutoScalingControl", refIR, "*",
+			[]string{
+				"autoscaling:DescribeAutoScalingGroups",
+				"autoscaling:DescribeAutoScalingInstances",
+				"autoscaling:DescribeLaunchConfigurations",
+				"autoscaling:DescribeTags",
+				"autoscaling:SetDesiredCapacity",
+				"autoscaling:TerminateInstanceInAutoScalingGroup",
+			},
+		)
+	}
 
 	n.rs.newOutputFromAtt(cfnOutputNodeInstanceRoleARN, "NodeInstanceRole.Arn", true)
 }
