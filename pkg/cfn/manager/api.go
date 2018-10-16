@@ -24,10 +24,14 @@ const (
 	NodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 )
 
+var (
+	stackCapabilitiesIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam})
+)
+
 // Stack represents the CloudFormation stack
 type Stack = cloudformation.Stack
 
-// ChangeSet represents a Cloudformation changeset
+// ChangeSet represents a Cloudformation changeSet
 type ChangeSet = cloudformation.DescribeChangeSetOutput
 
 // StackCollection stores the CloudFormation stack information
@@ -66,7 +70,7 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, pa
 	input.SetTemplateBody(string(templateBody))
 
 	if withIAM {
-		input.SetCapabilities(aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam}))
+		input.SetCapabilities(stackCapabilitiesIAM)
 	}
 
 	for k, v := range parameters {
@@ -108,26 +112,26 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, pa
 	return nil
 }
 
-// UpdateStack will update a cloudformation stack. It uses changesets and if in debug it will log the changes.
+// UpdateStack will update a cloudformation stack. It uses changeSets and if in debug it will log the changes.
 // This is used bu things like nodegroup scaling
 func (c *StackCollection) UpdateStack(stackName string, action string, description string, template []byte, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
-	changesetName, err := c.doCreateChangesetRequest(i, action, description, template, parameters, true)
+	changeSetName, err := c.doCreateChangeSetRequest(i, action, description, template, parameters, true)
 	if err != nil {
 		return err
 	}
-	err = c.doWaitUntilChangeSetIsCreated(i, &changesetName)
+	err = c.doWaitUntilChangeSetIsCreated(i, &changeSetName)
 	if err != nil {
 		return err
 	}
-	changeset, err := c.describeStackChangeset(i, &changesetName)
+	changeSet, err := c.describeStackChangeSet(i, &changeSetName)
 	if err != nil {
 		return err
 	}
-	logger.Debug("changes = %#v", changeset.Changes)
-	if err := c.doExecuteChangeset(stackName, changesetName); err != nil {
-		logger.Warning("error executing Cloudformation changeset %s in stack %s. Check the Cloudformation console for further details", changesetName, stackName)
+	logger.Debug("changes = %#v", changeSet.Changes)
+	if err := c.doExecuteChangeSet(stackName, changeSetName); err != nil {
+		logger.Warning("error executing Cloudformation changeSet %s in stack %s. Check the Cloudformation console for further details", changeSetName, stackName)
 		return err
 	}
 	return c.doWaitUntilStackIsUpdated(i)
@@ -250,21 +254,26 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 	return resp.StackEvents, nil
 }
 
-func (c *StackCollection) doCreateChangesetRequest(i *Stack, action string, description string, templateBody []byte,
+func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, description string, templateBody []byte,
 	parameters map[string]string, withIAM bool) (string, error) {
 
-	changesetName := fmt.Sprintf("eksctl-%s-%d", action, time.Now().Unix())
+	changeSetName := fmt.Sprintf("eksctl-%s-%d", action, time.Now().Unix())
 
-	input := &cloudformation.CreateChangeSetInput{}
-	input.SetChangeSetName(changesetName)
-	input.SetChangeSetType("UPDATE")
-	input.SetDescription(description)
-	input.SetStackName(*i.StackName)
+	input := &cloudformation.CreateChangeSetInput{
+		StackName:     i.StackName,
+		ChangeSetName: &changeSetName,
+		Description:   &description,
+	}
+
+	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
+
 	input.SetTags(c.tags)
 	input.SetTemplateBody(string(templateBody))
+
 	if withIAM {
-		input.SetCapabilities(aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam}))
+		input.SetCapabilities(stackCapabilitiesIAM)
 	}
+
 	for k, v := range parameters {
 		p := &cloudformation.Parameter{
 			ParameterKey:   aws.String(k),
@@ -272,38 +281,41 @@ func (c *StackCollection) doCreateChangesetRequest(i *Stack, action string, desc
 		}
 		input.Parameters = append(input.Parameters, p)
 	}
-	logger.Debug("creating changeset, input = %#v", input)
+
+	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.cfn.CreateChangeSet(input)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("creating changest %q for stack %q", changesetName, *i.StackName))
+		return "", errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
 	}
-	logger.Debug("changeset = %#v", s)
-	return changesetName, nil
+	logger.Debug("changeSet = %#v", s)
+	return changeSetName, nil
 }
-func (c *StackCollection) doExecuteChangeset(stackName string, changesetName string) error {
-	input := &cloudformation.ExecuteChangeSetInput{}
-	input.SetChangeSetName(changesetName)
-	input.SetStackName(stackName)
-	logger.Debug("executing changeset, input = %#v", input)
-	output, err := c.cfn.ExecuteChangeSet(input)
-	if err != nil {
-		return errors.Wrapf(err, "executing CloudFormation changeset %q for stack %q", changesetName, stackName)
+
+func (c *StackCollection) doExecuteChangeSet(stackName string, changeSetName string) error {
+	input := &cloudformation.ExecuteChangeSetInput{
+		ChangeSetName: &changeSetName,
+		StackName:     &stackName,
 	}
-	logger.Debug("execute changeset = %#v", output)
+
+	logger.Debug("executing changeSet, input = %#v", input)
+
+	if _, err := c.cfn.ExecuteChangeSet(input); err != nil {
+		return errors.Wrapf(err, "executing CloudFormation ChangeSet %q for stack %q", changeSetName, stackName)
+	}
 	return nil
 }
 
-func (c *StackCollection) describeStackChangeset(i *Stack, changesetName *string) (*ChangeSet, error) {
+func (c *StackCollection) describeStackChangeSet(i *Stack, changeSetName *string) (*ChangeSet, error) {
 	input := &cloudformation.DescribeChangeSetInput{
 		StackName:     i.StackName,
-		ChangeSetName: changesetName,
+		ChangeSetName: changeSetName,
 	}
 	if i.StackId != nil {
 		input.StackName = i.StackId
 	}
 	resp, err := c.cfn.DescribeChangeSet(input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation changeset %s for stack %s", *changesetName, *i.StackName)
+		return nil, errors.Wrapf(err, "describing CloudFormation ChangeSet %s for stack %s", *changeSetName, *i.StackName)
 	}
 	return resp, nil
 }

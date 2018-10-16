@@ -139,9 +139,9 @@ func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *st
 	}
 	logger.Debug("start %s", msg)
 	if waitErr := w.WaitWithContext(ctx); waitErr != nil {
-		s, err := c.describeStackChangeset(i, changesetName)
+		s, err := c.describeStackChangeSet(i, changesetName)
 		if err != nil {
-			logger.Debug("describeChangesetErr=%v", err)
+			logger.Debug("describeChangeSetErr=%v", err)
 		} else {
 			logger.Critical("unexpected status %q while %s, reason %s", *s.Status, msg, *s.StatusReason)
 		}

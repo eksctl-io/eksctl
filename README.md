@@ -156,7 +156,7 @@ To delete a cluster, run:
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
 ### Scaling
-A node group can be scaled by using the `scale nodegroup` command. For example, to scale to 5 nodes:
+A nodegroup can be scaled by using the `scale nodegroup` command. For example, to scale to 5 nodes:
 
 ```
 eksctl scale nodegroup --name=<clustername> --nodes=5
@@ -164,9 +164,9 @@ eksctl scale nodegroup --name=<clustername> --nodes=5
 
 If the desired number of nodes is greater than the current maximum set on the ASG then the max value will be increased to match the number of requested nodes. And likewise for the minimum.
 
-Scaling a node group works by modifying the node group CloudFormation template. The modified template is applied by creating and executing a CloudFormation changeset.
+Scaling a nodegroup works by modifying the nodegroup CloudFormation template. The modified template is applied by creating and executing a CloudFormation changeset.
 
-> Scaling a node group down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+> Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
 ### GPU Support
 
