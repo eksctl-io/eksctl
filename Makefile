@@ -56,7 +56,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 .PHONY: integration-test
 integration-test: build ## Run the integration tests (with cluster creation and cleanup)
-	@go test -tags integration -v -timeout 21m ./integration/...
+	@go test -tags integration -v -timeout 60m ./integration/...
 
 ##@ Code Generation
 
