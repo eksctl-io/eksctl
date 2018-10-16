@@ -27,3 +27,8 @@ func (c *StackCollection) DeleteCluster() error {
 	_, err := c.DeleteStack(c.makeClusterStackName())
 	return err
 }
+
+// WaitDeleteCluster waits till the cluster is deleted
+func (c *StackCollection) WaitDeleteCluster() error {
+	return c.WaitDeleteStack(c.makeClusterStackName())
+}

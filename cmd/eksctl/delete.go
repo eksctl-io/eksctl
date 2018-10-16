@@ -14,6 +14,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
+var (
+	waitDelete bool
+)
+
 func deleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
@@ -50,6 +54,8 @@ func deleteClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+
+	fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
 
 	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 
@@ -94,14 +100,23 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 	stackManager := ctl.NewStackManager()
 
 	handleIfError(stackManager.WaitDeleteNodeGroup(), "node group")
-	if handleIfError(stackManager.DeleteCluster(), "cluster") {
+
+	var clusterErr bool
+	if waitDelete {
+		clusterErr = handleIfError(stackManager.WaitDeleteCluster(), "cluster")
+	} else {
+		clusterErr = handleIfError(stackManager.DeleteCluster(), "cluster")
+	}
+
+	if clusterErr {
 		if handleIfError(ctl.DeprecatedDeleteControlPlane(), "control plane") {
-			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(), "stack control plane")
+			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(waitDelete), "stack control plane")
 		}
 	}
-	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(), "node group")
-	handleIfError(stackManager.DeprecatedDeleteStackVPC(), "stack VPC")
-	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(), "default node group")
+
+	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(waitDelete), "node group")
+	handleIfError(stackManager.DeprecatedDeleteStackVPC(waitDelete), "stack VPC")
+	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(waitDelete), "default node group")
 
 	ctl.MaybeDeletePublicSSHKey()
 
