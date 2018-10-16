@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	desirecCapacityPath = "Resources.NodeGroup.Properties.DesiredCapacity"
+	desiredCapacityPath = "Resources.NodeGroup.Properties.DesiredCapacity"
 	maxSizePath         = "Resources.NodeGroup.Properties.MaxSize"
 	minSizePath         = "Resources.NodeGroup.Properties.MinSize"
 )
@@ -80,13 +80,13 @@ func (c *StackCollection) ScaleNodeGroup(sequence int) error {
 	descriptionBuffer.WriteString("scaling nodegroup, ")
 
 	// Get the current values
-	currentCapacity := gjson.Get(template, desirecCapacityPath)
+	currentCapacity := gjson.Get(template, desiredCapacityPath)
 	currentMaxSize := gjson.Get(template, maxSizePath)
 	currentMinSize := gjson.Get(template, minSizePath)
 
 	// Set the new values
 	newCapacity := fmt.Sprintf("%d", c.spec.Nodes)
-	template, err = sjson.Set(template, desirecCapacityPath, newCapacity)
+	template, err = sjson.Set(template, desiredCapacityPath, newCapacity)
 	if err != nil {
 		return errors.Wrap(err, "setting desired capacity")
 	}
