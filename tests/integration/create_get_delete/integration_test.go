@@ -185,61 +185,69 @@ var _ = Describe("Create (Integration)", func() {
 					Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.0.1"))
 				}
 			})
+		})
 
-			Context("when listing clusters", func() {
-				args := []string{"get", "cluster", "--region", region}
+		Context("and listing clusters", func() {
+			var cmdSession *gexec.Session
+			It("should not return an error", func() {
+				var err error
+				args := []string{"get", "clusters", "--region", region}
+
+				fmt.Printf("wtf[eksctlPath]: '%s'", eksctlPath)
+
+				command := exec.Command(eksctlPath, args...)
+				cmdSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+				if err != nil {
+					Fail(fmt.Sprintf("error starting process: %v", err), 1)
+				}
+
+				cmdSession.Wait(getTimeout * time.Minute)
+				Expect(cmdSession.ExitCode()).Should(Equal(0))
+			})
+
+			It("should return the previously created cluster", func() {
+				Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
+			})
+		})
+
+		Context("and deleting the cluster", func() {
+			It("should not return an error", func() {
+				if !doDelete {
+					Skip("will not delete cluster " + clusterName)
+				}
+
+				args := []string{"delete", "cluster", "--name", clusterName, "--region", region, "--wait"}
 
 				command := exec.Command(eksctlPath, args...)
 				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
-				It("should not return an error", func() {
-
-					if err != nil {
-						Fail(fmt.Sprintf("error starting process: %v", err), 1)
-					}
-
-					cmdSession.Wait(getTimeout * time.Minute)
-					Expect(cmdSession.ExitCode()).Should(Equal(0))
-				})
-
-				It("should return the previously created cluster", func() {
-					Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
-				})
-			})
-
-			Context("when deleting a cluster", func() {
-				if !doDelete {
-					fmt.Fprintf(GinkgoWriter, "will not delete cluster %s", clusterName)
-					return
+				if err != nil {
+					Fail(fmt.Sprintf("error starting process: %v", err), 1)
 				}
 
-				It("should not return an error", func() {
-					args := []string{"delete", "cluster", "--name", clusterName, "--region", region}
-
-					command := exec.Command(eksctlPath, args...)
-					cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-					if err != nil {
-						Fail(fmt.Sprintf("error starting process: %v", err), 1)
-					}
-
-					cmdSession.Wait(deleteTimeout * time.Minute)
-					Expect(cmdSession.ExitCode()).Should(Equal(0))
-				})
-
-				awsSession := aws.NewSession(region)
-
-				It("should have deleted the EKS cluster", func() {
-					Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
-				})
-
-				It("should have the required cloudformation stacks", func() {
-					Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-					Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
-				})
-
+				cmdSession.Wait(deleteTimeout * time.Minute)
+				Expect(cmdSession.ExitCode()).Should(Equal(0))
 			})
 
+			awsSession := aws.NewSession(region)
+
+			It("should have deleted the EKS cluster", func() {
+				if !doDelete {
+					Skip("will not delete cluster " + clusterName)
+				}
+
+				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
+			})
+
+			It("should have deleted the required cloudformation stacks", func() {
+				if !doDelete {
+					Skip("will not delete cluster " + clusterName)
+				}
+
+				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
+				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
+			})
 		})
 	})
 })
