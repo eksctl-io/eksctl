@@ -7,7 +7,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/commands"
+	"github.com/weaveworks/eksctl/pkg/ctl"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -27,7 +27,7 @@ func writeKubeconfigCmd() *cobra.Command {
 		Use:   "write-kubeconfig",
 		Short: "Write kubeconfig file for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doWriteKubeconfigCmd(cfg, commands.GetNameArg(args)); err != nil {
+			if err := doWriteKubeconfigCmd(cfg, ctl.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}

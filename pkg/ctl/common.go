@@ -1,4 +1,4 @@
-package commands
+package ctl
 
 import (
 	"os"

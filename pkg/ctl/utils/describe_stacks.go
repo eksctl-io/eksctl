@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/commands"
+	"github.com/weaveworks/eksctl/pkg/ctl"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
@@ -24,7 +24,7 @@ func describeStacksCmd() *cobra.Command {
 		Use:   "describe-stacks",
 		Short: "Describe CloudFormation stack for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doDescribeStacksCmd(cfg, commands.GetNameArg(args)); err != nil {
+			if err := doDescribeStacksCmd(cfg, ctl.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}

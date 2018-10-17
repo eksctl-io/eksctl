@@ -7,7 +7,7 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/commands"
+	"github.com/weaveworks/eksctl/pkg/ctl"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -20,7 +20,7 @@ func deleteClusterCmd() *cobra.Command {
 		Use:   "cluster",
 		Short: "Delete a cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doDeleteCluster(cfg, commands.GetNameArg(args)); err != nil {
+			if err := doDeleteCluster(cfg, ctl.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}

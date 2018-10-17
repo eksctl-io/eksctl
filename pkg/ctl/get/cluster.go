@@ -6,7 +6,7 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/commands"
+	"github.com/weaveworks/eksctl/pkg/ctl"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
@@ -19,7 +19,7 @@ func getClusterCmd() *cobra.Command {
 		Short:   "Get cluster(s)",
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doGetCluster(cfg, commands.GetNameArg(args)); err != nil {
+			if err := doGetCluster(cfg, ctl.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
