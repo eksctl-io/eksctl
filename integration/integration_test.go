@@ -17,6 +17,7 @@ const (
 	createTimeout = 25 * time.Minute
 	deleteTimeout = 15 * time.Minute
 	getTimeout    = 1 * time.Minute
+	scaleTimeout  = 5 * time.Minute
 	region        = api.DefaultEKSRegion
 )
 
@@ -44,5 +45,5 @@ func init() {
 
 func TestCreateIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "(Integration) Create, Get & Delete")
+	RunSpecs(t, "(Integration) Create, Get, Scale & Delete")
 }
