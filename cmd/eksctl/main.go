@@ -3,10 +3,14 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/commands/create"
+	"github.com/weaveworks/eksctl/pkg/commands/delete"
+	"github.com/weaveworks/eksctl/pkg/commands/get"
+	"github.com/weaveworks/eksctl/pkg/commands/scale"
+	"github.com/weaveworks/eksctl/pkg/commands/utils"
 )
 
 var rootCmd = &cobra.Command{
@@ -36,20 +40,9 @@ func main() {
 
 func addCommands() {
 	rootCmd.AddCommand(versionCmd())
-	rootCmd.AddCommand(createCmd())
-	rootCmd.AddCommand(deleteCmd())
-	rootCmd.AddCommand(getCmd())
-	rootCmd.AddCommand(scaleCmd())
-	rootCmd.AddCommand(utilsCmd())
-}
-
-func getNameArg(args []string) string {
-	if len(args) > 1 {
-		logger.Critical("only one argument is allowed to be used as a name")
-		os.Exit(1)
-	}
-	if len(args) == 1 {
-		return (strings.TrimSpace(args[0]))
-	}
-	return ""
+	rootCmd.AddCommand(create.Command())
+	rootCmd.AddCommand(delete.Command())
+	rootCmd.AddCommand(get.Command())
+	rootCmd.AddCommand(scale.Command())
+	rootCmd.AddCommand(utils.Command())
 }

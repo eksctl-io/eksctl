@@ -1,38 +1,17 @@
-package main
+package delete
 
 import (
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/kubicorn/kubicorn/pkg/logger"
-
+	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/commands"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
-
-var (
-	waitDelete bool
-)
-
-func deleteCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "delete",
-		Short: "Delete resource(s)",
-		Run: func(c *cobra.Command, _ []string) {
-			if err := c.Help(); err != nil {
-				logger.Debug("ignoring error %q", err.Error())
-			}
-		},
-	}
-
-	cmd.AddCommand(deleteClusterCmd())
-
-	return cmd
-}
 
 func deleteClusterCmd() *cobra.Command {
 	cfg := &api.ClusterConfig{}
@@ -41,7 +20,7 @@ func deleteClusterCmd() *cobra.Command {
 		Use:   "cluster",
 		Short: "Delete a cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doDeleteCluster(cfg, getNameArg(args)); err != nil {
+			if err := doDeleteCluster(cfg, commands.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}

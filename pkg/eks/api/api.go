@@ -29,6 +29,9 @@ const (
 // DefaultWaitTimeout defines the default wait timeout
 var DefaultWaitTimeout = 20 * time.Minute
 
+// DefaultNodeCount defines the default number of nodes to be created
+var DefaultNodeCount = 2
+
 // ClusterProvider provides an interface with the needed AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI

@@ -1,40 +1,21 @@
-package main
+package create
 
 import (
 	"fmt"
 	"os"
 
+	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
-
 	"github.com/weaveworks/eksctl/pkg/ami"
+	"github.com/weaveworks/eksctl/pkg/commands"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-func createCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create resource(s)",
-		Run: func(c *cobra.Command, _ []string) {
-			if err := c.Help(); err != nil {
-				logger.Debug("ignoring error %q", err.Error())
-			}
-		},
-	}
-
-	cmd.AddCommand(createClusterCmd())
-
-	return cmd
-}
-
 const (
-	// DefaultNodeCount defines the default number of nodes to be created
-	DefaultNodeCount    = 2
 	defaultNodeType     = "m5.large"
 	defaultSSHPublicKey = "~/.ssh/id_rsa.pub"
 )
@@ -54,7 +35,7 @@ func createClusterCmd() *cobra.Command {
 		Use:   "cluster",
 		Short: "Create a cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doCreateCluster(cfg, getNameArg(args)); err != nil {
+			if err := doCreateCluster(cfg, commands.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -72,7 +53,7 @@ func createClusterCmd() *cobra.Command {
 	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
 	fs.StringVarP(&cfg.NodeType, "node-type", "t", defaultNodeType, "node instance type")
-	fs.IntVarP(&cfg.Nodes, "nodes", "N", DefaultNodeCount, "total number of nodes (for a static ASG)")
+	fs.IntVarP(&cfg.Nodes, "nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
 
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")

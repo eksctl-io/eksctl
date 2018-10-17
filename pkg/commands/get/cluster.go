@@ -1,4 +1,4 @@
-package main
+package get
 
 import (
 	"fmt"
@@ -6,35 +6,10 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-
+	"github.com/weaveworks/eksctl/pkg/commands"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
-
-const (
-	defaultChunkSize = 100
-)
-
-var (
-	chunkSize int
-	output    string
-)
-
-func getCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "get",
-		Short: "Get resource(s)",
-		Run: func(c *cobra.Command, _ []string) {
-			if err := c.Help(); err != nil {
-				logger.Debug("ignoring error %q", err.Error())
-			}
-		},
-	}
-
-	cmd.AddCommand(getClusterCmd())
-
-	return cmd
-}
 
 func getClusterCmd() *cobra.Command {
 	cfg := &api.ClusterConfig{}
@@ -44,7 +19,7 @@ func getClusterCmd() *cobra.Command {
 		Short:   "Get cluster(s)",
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doGetCluster(cfg, getNameArg(args)); err != nil {
+			if err := doGetCluster(cfg, commands.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
