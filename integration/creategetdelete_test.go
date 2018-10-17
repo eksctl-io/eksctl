@@ -199,7 +199,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Fail(fmt.Sprintf("error starting process: %v", err), 1)
 				}
 
-				cmdSession.Wait(deleteTimeout)
+				cmdSession.Wait(scaleTimeout)
 				Expect(cmdSession.ExitCode()).Should(Equal(0))
 			})
 

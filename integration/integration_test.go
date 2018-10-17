@@ -17,7 +17,7 @@ const (
 	createTimeout = 25 * time.Minute
 	deleteTimeout = 15 * time.Minute
 	getTimeout    = 1 * time.Minute
-	scaleTimeout  = 1 * time.Minute
+	scaleTimeout  = 5 * time.Minute
 	region        = api.DefaultEKSRegion
 )
 
