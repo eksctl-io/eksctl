@@ -1,4 +1,4 @@
-package main
+package scale
 
 import (
 	"fmt"
@@ -9,22 +9,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
-
-func scaleCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "scale",
-		Short: "Scale resources(s)",
-		Run: func(c *cobra.Command, _ []string) {
-			if err := c.Help(); err != nil {
-				logger.Debug("ignoring error %q", err.Error())
-			}
-		},
-	}
-
-	cmd.AddCommand(scaleNodeGroupCmd())
-
-	return cmd
-}
 
 func scaleNodeGroupCmd() *cobra.Command {
 	cfg := &api.ClusterConfig{}
