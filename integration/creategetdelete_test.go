@@ -10,6 +10,7 @@ import (
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
 	harness "github.com/dlespiau/kube-test-harness"
@@ -47,7 +48,7 @@ func newKubeTest() (*harness.Test, error) {
 	return h.NewTest(t), nil
 }
 
-var _ = Describe("(Integration) Create, Get & Delete", func() {
+var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 	BeforeSuite(func() {
 		kubeconfigTemp = false
@@ -180,6 +181,38 @@ var _ = Describe("(Integration) Create, Get & Delete", func() {
 
 			It("should return the previously created cluster", func() {
 				Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
+			})
+		})
+
+		Context("and scale the cluster", func() {
+			It("should not return an error", func() {
+				args := []string{"scale", "nodegroup",
+					"--name", clusterName,
+					"--region", region,
+					"--nodes", "2",
+				}
+
+				command := exec.Command(eksctlPath, args...)
+				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+				if err != nil {
+					Fail(fmt.Sprintf("error starting process: %v", err), 1)
+				}
+
+				cmdSession.Wait(deleteTimeout)
+				Expect(cmdSession.ExitCode()).Should(Equal(0))
+			})
+
+			It("should make it 2 nodes total", func() {
+				test, err := newKubeTest()
+				Expect(err).ShouldNot(HaveOccurred())
+				defer test.Close()
+
+				test.WaitForNodesReady(2, scaleTimeout)
+
+				nodes := test.ListNodes(metav1.ListOptions{})
+
+				Expect(len(nodes.Items)).To(Equal(2))
 			})
 		})
 
