@@ -161,3 +161,30 @@ spec:
 ```
 
 TBD: it may be possible to chain different tools, e.g. render a Helm chart (via `helm template`), and pass it to `kustomize`.
+
+### Parameters
+
+A way to define parameters in a portable way will be required for optimal user (and/or add-on author) exprience.
+
+At add-on management layer, there following key asepects of paramters:
+
+- parameters are a map of strings to a value of a primitive type
+- initial set of primitive types - `bool`, `number` and `string`
+- non-primive types (`object` and `array`) are initially out of scope (yet could probaly be handled at underlying provider level)
+- a parameter may be either optional with a default value or non-optional without a default value
+
+#### How would this map to different providers?
+
+Helm values are essentially `map[string]interface{}`, which implies there is no type information or required params, and default values are defind inside a chart. The management layer could take care of the concerns above and pass an appropriate set of value.
+
+Ksonnet – TBD
+
+With kustomize, there are no params, but they can be intoroduced with auto-generate ConfigMap and `vars` stanza. So potentially is should be doable, given underlying add-on base layer was written with paramers in mind, otherwise kustomizations would be required as another layer where params are referenced.
+
+#### Alternatives
+
+- only backend-specific params, i.e.
+  - an add-on based on Helm chart would use Helm values format
+  - a ksonnet-based add-on will use its own
+  - a kustomize-based add-on won't have any
+In Helm, we would be 
