@@ -60,7 +60,14 @@ type Template struct {
 
 				PropagateAtLaunch string
 			}
-			UserData string
+			UserData       string
+			PolicyDocument struct {
+				Statement []struct {
+					Action   []string
+					Effect   string
+					Resource interface{}
+				}
+			}
 		}
 	}
 }
@@ -190,7 +197,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		It("NodeGroup should have correct tags", func() {
+		It("should have correct tags", func() {
 			Expect(len(obj.Resources)).ToNot(Equal(0))
 			Expect(len(obj.Resources["NodeGroup"].Properties.Tags)).To(Equal(2))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].Key).To(Equal("Name"))
@@ -199,6 +206,47 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Key).To(Equal("kubernetes.io/cluster/" + clusterName))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Value).To(Equal("owned"))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].PropagateAtLaunch).To(Equal("true"))
+		})
+	})
+
+	Describe("NodeGroupAutoScaling", func() {
+		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
+			ClusterName:       clusterName,
+			AvailabilityZones: testAZs,
+			NodeType:          "t2.medium",
+			Region:            "us-west-2",
+			Addons: api.ClusterAddons{
+				WithIAM: api.AddonIAM{
+					PolicyAutoScaling: true,
+				},
+			},
+		}, "eksctl-test-123-cluster", 0)
+		rs.AddAllResources()
+
+		template, err := rs.RenderJSON()
+		It("should serialise JSON without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		obj := Template{}
+		It("should parse JSON withon errors", func() {
+			err := json.Unmarshal(template, &obj)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct policies", func() {
+			Expect(len(obj.Resources)).ToNot(Equal(0))
+			Expect(obj.Resources["PolicyAutoScaling"]).ToNot(BeNil())
+			Expect(len(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement)).To(Equal(1))
+			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"autoscaling:DescribeAutoScalingGroups",
+				"autoscaling:DescribeAutoScalingInstances",
+				"autoscaling:DescribeLaunchConfigurations",
+				"autoscaling:DescribeTags",
+				"autoscaling:SetDesiredCapacity",
+				"autoscaling:TerminateInstanceInAutoScalingGroup",
+			}))
 		})
 	})
 
