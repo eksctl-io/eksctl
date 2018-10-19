@@ -25,6 +25,7 @@ func RegisterAndRun(t *testing.T, testDecsription string) {
 	reportPath := os.Getenv("JUNIT_REPORT_FOLDER")
 	if reportPath != "" {
 		reportPath := fmt.Sprintf("%s/%s_%d.xml", reportPath, filename, config.GinkgoConfig.ParallelNode)
+		fmt.Printf("test result output: %s\n", reportPath)
 		junitReporter := reporters.NewJUnitReporter(reportPath)
 		RunSpecsWithDefaultAndCustomReporters(t, testDecsription, []Reporter{junitReporter})
 	} else {
