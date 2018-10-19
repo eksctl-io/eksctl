@@ -15,7 +15,7 @@ const (
 
 //nolint:interfacer
 func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
-	refVPC := c.newResource("VPC", &gfn.AWSEC2VPC{
+	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(globalCIDR.String()),
 		EnableDnsSupport:   gfn.True(),
 		EnableDnsHostnames: gfn.True(),
@@ -24,11 +24,11 @@ func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
 	c.newResource("VPCGatewayAttachment", &gfn.AWSEC2VPCGatewayAttachment{
 		InternetGatewayId: refIG,
-		VpcId:             refVPC,
+		VpcId:             c.vpc,
 	})
 
 	refRT := c.newResource("RouteTable", &gfn.AWSEC2RouteTable{
-		VpcId: refVPC,
+		VpcId: c.vpc,
 	})
 
 	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
@@ -42,7 +42,7 @@ func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 		refSubnet := c.newResource("Subnet"+alias, &gfn.AWSEC2Subnet{
 			AvailabilityZone: gfn.NewString(az),
 			CidrBlock:        gfn.NewString(subnet.String()),
-			VpcId:            refVPC,
+			VpcId:            c.vpc,
 		})
 		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
 			SubnetId:     refSubnet,
@@ -50,16 +50,27 @@ func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 		})
 		c.subnets = append(c.subnets, refSubnet)
 	}
+}
 
+func (c *ClusterResourceSet) importResourcesForVPC() {
+	c.vpc = gfn.NewString(c.spec.VPC)
+	for _, subnet := range c.spec.Subnets {
+		c.subnets = append(c.subnets, gfn.NewString(subnet))
+	}
+}
+
+func (c *ClusterResourceSet) addOutputsForVPC() {
+	c.rs.newOutput(cfnOutputClusterVPC, c.vpc, true)
+	c.rs.newJoinedOutput(cfnOutputClusterSubnets, c.subnets, true)
+}
+
+func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 	refSG := c.newResource("ControlPlaneSecurityGroup", &gfn.AWSEC2SecurityGroup{
 		GroupDescription: gfn.NewString("Communication between the control plane and worker node groups"),
-		VpcId:            refVPC,
+		VpcId:            c.vpc,
 	})
 	c.securityGroups = []*gfn.Value{refSG}
-
-	c.rs.newOutput(cfnOutputClusterVPC, refVPC, true)
 	c.rs.newJoinedOutput(cfnOutputClusterSecurityGroup, c.securityGroups, true)
-	c.rs.newJoinedOutput(cfnOutputClusterSubnets, c.subnets, true)
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
