@@ -84,6 +84,9 @@ EKSCTL_IMAGE_BUILD_ARGS := --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE)
 ifneq ($(COVERALLS_TOKEN),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
 endif
+ifneq ($(JUNIT_REPORT_FOLDER),)
+EKSCTL_IMAGE_BUILD_ARGS += --build-arg=JUNIT_REPORT_FOLDER=$(JUNIT_REPORT_FOLDER)
+endif
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image

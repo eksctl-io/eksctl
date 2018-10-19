@@ -3,11 +3,9 @@ package printers_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 func TestPrinters(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Printers Suite")
+	testutils.RegisterAndRun(t, "Printers Suite")
 }
