@@ -17,7 +17,6 @@ limitations under the License.
 package transport
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"strings"
@@ -336,7 +335,7 @@ func (r *requestInfo) toCurl() string {
 		}
 	}
 
-	return fmt.Sprintf("curl -k -v -X%s %s %s", r.RequestVerb, headers, r.RequestURL)
+	return fmt.Sprintf("curl -k -v -X%s %s '%s'", r.RequestVerb, headers, r.RequestURL)
 }
 
 // debuggingRoundTripper will display information about the requests passing
@@ -435,7 +434,7 @@ func shouldEscape(b byte) bool {
 }
 
 func headerKeyEscape(key string) string {
-	var buf bytes.Buffer
+	buf := strings.Builder{}
 	for i := 0; i < len(key); i++ {
 		b := key[i]
 		if shouldEscape(b) {
