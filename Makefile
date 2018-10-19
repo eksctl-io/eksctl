@@ -91,6 +91,7 @@ endif
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image
 	@docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) ./
+	./get-testresults.sh
 
 ##@ Release
 

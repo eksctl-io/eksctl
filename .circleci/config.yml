@@ -9,7 +9,7 @@ jobs:
       - run:
             command: make eksctl-image
             environment:
-                JUNIT_REPORT_FOLDER: ./test-results/ginkgo
+                TEST_OUTPUT: "true"
       - store_test_results:
           path: ./test-results
   make-release:

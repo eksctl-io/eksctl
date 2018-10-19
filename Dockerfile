@@ -1,6 +1,8 @@
 ARG EKSCTL_BUILD_IMAGE
 FROM $EKSCTL_BUILD_IMAGE AS build
 
+LABEL eksctl.builder=true
+
 RUN apk add --no-cache \
       py-pip \
       python \
@@ -27,12 +29,12 @@ COPY . $EKSCTL
 ARG COVERALLS_TOKEN
 ENV COVERALLS_TOKEN $COVERALLS_TOKEN
 
-ARG JUNIT_REPORT_FOLDER
-ENV JUNIT_REPORT_FOLDER $JUNIT_REPORT_FOLDER
+ENV JUNIT_REPORT_FOLDER $GOPATH/src/github.com/weaveworks/eksctl/test-results/ginkgo
+RUN mkdir -p "${JUNIT_REPORT_FOLDER}"
 
 WORKDIR $EKSCTL
-RUN make lint
 RUN make test
+RUN make lint
 RUN make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 
