@@ -18,3 +18,6 @@ _site
 
 # Test coverage output
 coverage.out
+
+# Test results
+test-results/

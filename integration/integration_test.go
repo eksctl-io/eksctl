@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -44,6 +45,5 @@ func init() {
 }
 
 func TestCreateIntegration(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "(Integration) Create, Get, Scale & Delete")
+	testutils.RegisterAndRun(t, "(Integration) Create, Get, Scale & Delete")
 }

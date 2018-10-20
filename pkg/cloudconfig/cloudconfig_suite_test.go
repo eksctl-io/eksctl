@@ -3,11 +3,9 @@ package cloudconfig_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 func TestCFNBuilder(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "cloud-config Suite")
+	testutils.RegisterAndRun(t, "cloud-config Suite")
 }

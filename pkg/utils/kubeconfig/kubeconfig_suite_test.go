@@ -3,11 +3,9 @@ package kubeconfig
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 func TestKubeConfig(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "KubeConfig Suite")
+	testutils.RegisterAndRun(t, "KubeConfig Suite")
 }
