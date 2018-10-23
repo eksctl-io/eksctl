@@ -30,6 +30,12 @@ const (
 	ImageClassGPU
 )
 
+// ImageClasses is a list of image class names
+var ImageClasses = []string{
+	"ImageClassGeneral",
+	"ImageClassGPU",
+}
+
 // IsAvailable checks if a given AMI ID is available in AWS EC2
 func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 	input := &ec2.DescribeImagesInput{
