@@ -26,6 +26,13 @@ const (
 	DefaultEKSRegion = EKSRegionUSWest2
 )
 
+// SupportedRegions are the regions where EKS is available
+var SupportedRegions = []string{
+	EKSRegionUSWest2,
+	EKSRegionUSEast1,
+	EKSRegionEUWest1,
+}
+
 // DefaultWaitTimeout defines the default wait timeout
 var DefaultWaitTimeout = 20 * time.Minute
 
