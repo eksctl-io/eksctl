@@ -14,7 +14,7 @@ import (
 )
 
 func deleteClusterCmd() *cobra.Command {
-	cfg := &api.ClusterConfig{}
+	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
 		Use:   "cluster",
@@ -78,7 +78,17 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	stackManager := ctl.NewStackManager()
 
-	handleIfError(stackManager.WaitDeleteNodeGroup(), "node group")
+	{
+		errs := stackManager.WaitDeleteAllNodeGroups()
+		if len(errs) > 0 {
+			logger.Info("%d error(s) occurred while deleting nodegroup(s)", len(errs))
+			for _, err := range errs {
+				logger.Critical("%s\n", err.Error())
+			}
+			handleIfError(fmt.Errorf("failed to delete nodegroup(s)"), "nodegroup(s)")
+		}
+		logger.Debug("all nodegroups were deleted")
+	}
 
 	var clusterErr bool
 	if waitDelete {
@@ -89,13 +99,13 @@ func doDeleteCluster(cfg *api.ClusterConfig, name string) error {
 
 	if clusterErr {
 		if handleIfError(ctl.DeprecatedDeleteControlPlane(), "control plane") {
-			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(waitDelete), "stack control plane")
+			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(waitDelete), "stack control plane (deprecated)")
 		}
 	}
 
-	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(waitDelete), "node group")
-	handleIfError(stackManager.DeprecatedDeleteStackVPC(waitDelete), "stack VPC")
-	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(waitDelete), "default node group")
+	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(waitDelete), "service group (deprecated)")
+	handleIfError(stackManager.DeprecatedDeleteStackVPC(waitDelete), "stack VPC (deprecated)")
+	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(waitDelete), "default nodegroup (deprecated)")
 
 	ctl.MaybeDeletePublicSSHKey()
 

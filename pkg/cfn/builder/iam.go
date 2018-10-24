@@ -5,8 +5,6 @@ import (
 )
 
 const (
-	cfnOutputNodeInstanceRoleARN = "NodeInstanceRoleARN"
-
 	iamPolicyAmazonEKSServicePolicyARN = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 	iamPolicyAmazonEKSClusterPolicyARN = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 
@@ -84,19 +82,19 @@ func (n *NodeGroupResourceSet) WithIAM() bool {
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	n.rs.withIAM = true
 
-	if len(n.spec.NodePolicyARNs) == 0 {
-		n.spec.NodePolicyARNs = iamDefaultNodePolicyARNs
+	if len(n.spec.PolicyARNs) == 0 {
+		n.spec.PolicyARNs = iamDefaultNodePolicyARNs
 	}
-	if n.spec.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser {
-		n.spec.NodePolicyARNs = append(n.spec.NodePolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
+	if n.clusterSpec.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser {
+		n.spec.PolicyARNs = append(n.spec.PolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
 	} else {
-		n.spec.NodePolicyARNs = append(n.spec.NodePolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
+		n.spec.PolicyARNs = append(n.spec.PolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
 	}
 
 	refIR := n.newResource("NodeInstanceRole", &gfn.AWSIAMRole{
 		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("ec2.amazonaws.com"),
-		ManagedPolicyArns:        makeStringSlice(n.spec.NodePolicyARNs...),
+		ManagedPolicyArns:        makeStringSlice(n.spec.PolicyARNs...),
 	})
 
 	n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
@@ -132,7 +130,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		},
 	)
 
-	if n.spec.Addons.WithIAM.PolicyAutoScaling {
+	if n.clusterSpec.Addons.WithIAM.PolicyAutoScaling {
 		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
 			[]string{
 				"autoscaling:DescribeAutoScalingGroups",
@@ -145,5 +143,5 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	n.rs.newOutputFromAtt(cfnOutputNodeInstanceRoleARN, "NodeInstanceRole.Arn", true)
+	n.rs.newOutputFromAtt(cfnOutputInstanceRoleARN, "NodeInstanceRole.Arn", true)
 }

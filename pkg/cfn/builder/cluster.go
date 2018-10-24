@@ -1,19 +1,10 @@
 package builder
 
 import (
-	"net"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-)
-
-const (
-	cfnOutputClusterCertificateAuthorityData = "CertificateAuthorityData"
-	cfnOutputClusterEndpoint                 = "Endpoint"
-	cfnOutputClusterARN                      = "ARN"
-	cfnOutputClusterStackName                = "ClusterStackName"
 )
 
 // ClusterResourceSet stores the resource information of the cluster
@@ -21,15 +12,17 @@ type ClusterResourceSet struct {
 	rs             *resourceSet
 	spec           *api.ClusterConfig
 	vpc            *gfn.Value
-	subnets        []*gfn.Value
+	subnets        map[api.SubnetTopology][]*gfn.Value
 	securityGroups []*gfn.Value
+	outputs        *ClusterStackOutputs
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
 func NewClusterResourceSet(spec *api.ClusterConfig) *ClusterResourceSet {
 	return &ClusterResourceSet{
-		rs:   newResourceSet(),
-		spec: spec,
+		rs:      newResourceSet(),
+		spec:    spec,
+		outputs: &ClusterStackOutputs{},
 	}
 }
 
@@ -38,18 +31,11 @@ func (c *ClusterResourceSet) AddAllResources() error {
 
 	templateDescriptionFeatures := clusterTemplateDescriptionDefaultFeatures
 
-	if c.spec.VPC != "" && len(c.spec.Subnets) >= 3 {
+	if c.spec.VPC.ID != "" && c.spec.VPC.HasSufficientPublicSubnets() {
 		c.importResourcesForVPC()
 		templateDescriptionFeatures = " (with shared VPC and dedicated IAM role) "
 	} else {
-		_, globalCIDR, _ := net.ParseCIDR("192.168.0.0/16")
-
-		subnets := map[string]*net.IPNet{}
-		_, subnets[c.spec.AvailabilityZones[0]], _ = net.ParseCIDR("192.168.64.0/18")
-		_, subnets[c.spec.AvailabilityZones[1]], _ = net.ParseCIDR("192.168.128.0/18")
-		_, subnets[c.spec.AvailabilityZones[2]], _ = net.ParseCIDR("192.168.192.0/18")
-
-		c.addResourcesForVPC(globalCIDR, subnets)
+		c.addResourcesForVPC()
 	}
 	c.addOutputsForVPC()
 
@@ -86,7 +72,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
 		RoleArn: gfn.MakeFnGetAttString("ServiceRole.Arn"),
 		Version: gfn.NewString(version),
 		ResourcesVpcConfig: &gfn.AWSEKSCluster_ResourcesVpcConfig{
-			SubnetIds:        c.subnets,
+			SubnetIds:        c.subnets[api.SubnetTopologyPublic],
 			SecurityGroupIds: c.securityGroups,
 		},
 	})
@@ -98,5 +84,26 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
 
 // GetAllOutputs collects all outputs of the cluster
 func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
-	return c.rs.GetAllOutputs(stack, c.spec)
+	if err := c.rs.GetAllOutputs(stack, c.outputs); err != nil {
+		return err
+	}
+
+	c.spec.VPC.ID = c.outputs.VPC
+	c.spec.VPC.SecurityGroup = c.outputs.SecurityGroup
+
+	// TODO: shouldn't assume the order is the same, can probably do an API lookup
+	for i, subnet := range c.outputs.SubnetsPrivate {
+		c.spec.VPC.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet)
+	}
+
+	for i, subnet := range c.outputs.SubnetsPublic {
+		c.spec.VPC.ImportSubnet(api.SubnetTopologyPublic, c.spec.AvailabilityZones[i], subnet)
+	}
+
+	c.spec.ClusterStackName = c.outputs.ClusterStackName
+	c.spec.Endpoint = c.outputs.Endpoint
+	c.spec.CertificateAuthorityData = c.outputs.CertificateAuthorityData
+	c.spec.ARN = c.outputs.ARN
+
+	return nil
 }

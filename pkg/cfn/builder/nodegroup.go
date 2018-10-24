@@ -15,7 +15,8 @@ import (
 type NodeGroupResourceSet struct {
 	rs               *resourceSet
 	id               int
-	spec             *api.ClusterConfig
+	clusterSpec      *api.ClusterConfig
+	spec             *api.NodeGroup
 	clusterStackName string
 	nodeGroupName    string
 	instanceProfile  *gfn.Value
@@ -37,7 +38,8 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, i
 		id:               id,
 		clusterStackName: clusterStackName,
 		nodeGroupName:    fmt.Sprintf("%s-%d", spec.ClusterName, id),
-		spec:             spec,
+		clusterSpec:      spec,
+		spec:             spec.NodeGroups[id],
 	}
 }
 
@@ -49,15 +51,15 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
 
-	userData, err := nodebootstrap.NewUserDataForAmazonLinux2(n.spec)
+	userData, err := nodebootstrap.NewUserDataForAmazonLinux2(n.clusterSpec, n.id)
 	if err != nil {
 		return err
 	}
 	n.userData = gfn.NewString(userData)
 
-	if n.spec.MinNodes == 0 && n.spec.MaxNodes == 0 {
-		n.spec.MinNodes = n.spec.Nodes
-		n.spec.MaxNodes = n.spec.Nodes
+	if n.spec.MinSize == 0 && n.spec.MaxSize == 0 {
+		n.spec.MinSize = n.spec.DesiredCapacity
+		n.spec.MaxSize = n.spec.DesiredCapacity
 	}
 
 	n.addResourcesForIAM()
@@ -87,19 +89,19 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 		IamInstanceProfile:       n.instanceProfile,
 		SecurityGroups:           n.securityGroups,
 
-		ImageId:      gfn.NewString(n.spec.NodeAMI),
-		InstanceType: gfn.NewString(n.spec.NodeType),
+		ImageId:      gfn.NewString(n.spec.AMI),
+		InstanceType: gfn.NewString(n.spec.InstanceType),
 		UserData:     n.userData,
 	}
-	if n.spec.NodeSSH {
+	if n.spec.AllowSSH {
 		lc.KeyName = gfn.NewString(n.spec.SSHPublicKeyName)
 	}
-	if n.spec.NodeVolumeSize > 0 {
+	if n.spec.VolumeSize > 0 {
 		lc.BlockDeviceMappings = []gfn.AWSAutoScalingLaunchConfiguration_BlockDeviceMapping{
 			{
 				DeviceName: gfn.NewString("/dev/xvda"),
 				Ebs: &gfn.AWSAutoScalingLaunchConfiguration_BlockDevice{
-					VolumeSize: gfn.NewInteger(n.spec.NodeVolumeSize),
+					VolumeSize: gfn.NewInteger(n.spec.VolumeSize),
 				},
 			},
 		}
@@ -107,22 +109,28 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 	refLC := n.newResource("NodeLaunchConfig", lc)
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
+	var vpcZoneIdentifier interface{}
+	if len(n.spec.AvailabilityZones) > 0 {
+		vpcZoneIdentifier = n.clusterSpec.VPC.SubnetIDs(api.SubnetTopologyPublic)
+	} else {
+		vpcZoneIdentifier = map[string][]interface{}{
+			gfn.FnSplit: []interface{}{
+				",",
+				makeImportValue(n.clusterStackName, cfnOutputClusterSubnets+string(api.SubnetTopologyPublic)),
+			},
+		}
+	}
 	n.newResource("NodeGroup", &awsCloudFormationResource{
 		Type: "AWS::AutoScaling::AutoScalingGroup",
 		Properties: map[string]interface{}{
 			"LaunchConfigurationName": refLC,
-			"DesiredCapacity":         fmt.Sprintf("%d", n.spec.Nodes),
-			"MinSize":                 fmt.Sprintf("%d", n.spec.MinNodes),
-			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxNodes),
-			"VPCZoneIdentifier": map[string][]interface{}{
-				gfn.FnSplit: []interface{}{
-					",",
-					makeImportValue(n.clusterStackName, cfnOutputClusterSubnets),
-				},
-			},
+			"DesiredCapacity":         fmt.Sprintf("%d", n.spec.DesiredCapacity),
+			"MinSize":                 fmt.Sprintf("%d", n.spec.MinSize),
+			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxSize),
+			"VPCZoneIdentifier":       vpcZoneIdentifier,
 			"Tags": []map[string]interface{}{
 				{"Key": "Name", "Value": fmt.Sprintf("%s-Node", n.nodeGroupName), "PropagateAtLaunch": "true"},
-				{"Key": "kubernetes.io/cluster/" + n.spec.ClusterName, "Value": "owned", "PropagateAtLaunch": "true"},
+				{"Key": "kubernetes.io/cluster/" + n.clusterSpec.ClusterName, "Value": "owned", "PropagateAtLaunch": "true"},
 			},
 		},
 		UpdatePolicy: map[string]map[string]string{

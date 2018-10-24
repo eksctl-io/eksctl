@@ -21,7 +21,7 @@ var (
 )
 
 func writeKubeconfigCmd() *cobra.Command {
-	cfg := &api.ClusterConfig{}
+	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
 		Use:   "write-kubeconfig",

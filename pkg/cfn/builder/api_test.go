@@ -3,6 +3,7 @@ package builder_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"net"
 	"path/filepath"
 	"strings"
 
@@ -90,33 +91,84 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
+	newClusterConfig := func() *api.ClusterConfig {
+		cfg := api.NewClusterConfig()
+		ng := cfg.NewNodeGroup()
+
+		cfg.Region = "us-west-2"
+		cfg.ClusterName = clusterName
+		cfg.AvailabilityZones = testAZs
+		ng.InstanceType = "t2.medium"
+
+		return cfg
+	}
+
 	Describe("GetAllOutputsFromClusterStack", func() {
 		caCertData, err := base64.StdEncoding.DecodeString(caCert)
 		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
 
 		expected := &api.ClusterConfig{
+			Region:                   "us-west-2",
 			ClusterName:              clusterName,
-			SecurityGroup:            "sg-0b44c48bcba5b7362",
-			Subnets:                  []string{"subnet-0f98135715dfcf55f", "subnet-0ade11bad78dced9e", "subnet-0e2e63ff1712bf6ef"},
-			VPC:                      "vpc-0e265ad953062b94b",
 			Endpoint:                 endpoint,
 			CertificateAuthorityData: caCertData,
 			ARN:                      arn,
-			NodeInstanceRoleARN:      "",
 			AvailabilityZones:        testAZs,
+
+			VPC: api.ClusterVPC{
+				Network: api.Network{
+					ID: "vpc-0e265ad953062b94b",
+					CIDR: &net.IPNet{
+						IP:   []byte{192, 168, 0, 0},
+						Mask: []byte{255, 255, 0, 0},
+					},
+				},
+				SecurityGroup: "sg-0b44c48bcba5b7362",
+				Subnets: map[api.SubnetTopology]map[string]api.Network{
+					"Public": map[string]api.Network{
+						"us-west-2b": {
+							ID: "subnet-0f98135715dfcf55f",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 64, 0},
+								Mask: []byte{255, 255, 192, 0},
+							},
+						},
+						"us-west-2a": {
+							ID: "subnet-0ade11bad78dced9e",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 128, 0},
+								Mask: []byte{255, 255, 192, 0},
+							},
+						},
+						"us-west-2c": {
+							ID: "subnet-0e2e63ff1712bf6ef",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 192, 0},
+								Mask: []byte{255, 255, 192, 0},
+							},
+						},
+					},
+				},
+			},
+			NodeGroups: []*api.NodeGroup{
+				{
+					AMI:            "",
+					InstanceType:   "t2.medium",
+					SubnetTopology: "Public",
+				},
+			},
 		}
 
-		initial := &api.ClusterConfig{
-			ClusterName:       clusterName,
-			AvailabilityZones: testAZs,
-		}
+		initial := newClusterConfig()
+
+		initial.SetSubnets()
 
 		rs := NewClusterResourceSet(initial)
 		rs.AddAllResources()
 
 		sampleStack := newStackWithOutputs(map[string]string{
 			"SecurityGroup":            "sg-0b44c48bcba5b7362",
-			"Subnets":                  "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef",
+			"SubnetsPublic":            "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef",
 			"VPC":                      "vpc-0e265ad953062b94b",
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
@@ -130,17 +182,14 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		It("should be equal", func() {
-			Expect(initial).To(Equal(expected))
+			Expect(*initial).To(Equal(*expected))
 		})
 	})
 
 	Describe("AutoNameTag", func() {
-		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
-			ClusterName:       clusterName,
-			AvailabilityZones: testAZs,
-			NodeType:          "t2.medium",
-			Region:            "us-west-2",
-		}, "eksctl-test-123-cluster", 0)
+		cfg := newClusterConfig()
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
 
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
@@ -179,12 +228,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("NodeGroupTags", func() {
-		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
-			ClusterName:       clusterName,
-			AvailabilityZones: testAZs,
-			NodeType:          "t2.medium",
-			Region:            "us-west-2",
-		}, "eksctl-test-123-cluster", 0)
+		cfg := api.NewClusterConfig()
+		ng := cfg.NewNodeGroup()
+
+		cfg.Region = "us-west-2"
+		cfg.ClusterName = clusterName
+		cfg.AvailabilityZones = testAZs
+		ng.InstanceType = "t2.medium"
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		template, err := rs.RenderJSON()
@@ -210,17 +262,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("NodeGroupAutoScaling", func() {
-		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
-			ClusterName:       clusterName,
-			AvailabilityZones: testAZs,
-			NodeType:          "t2.medium",
-			Region:            "us-west-2",
-			Addons: api.ClusterAddons{
-				WithIAM: api.AddonIAM{
-					PolicyAutoScaling: true,
-				},
+		cfg := newClusterConfig()
+
+		cfg.Addons = api.ClusterAddons{
+			WithIAM: api.AddonIAM{
+				PolicyAutoScaling: true,
 			},
-		}, "eksctl-test-123-cluster", 0)
+		}
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		template, err := rs.RenderJSON()
@@ -251,20 +301,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("UserData", func() {
+		cfg := newClusterConfig()
 
 		var c *cloudconfig.CloudConfig
 
 		caCertData, err := base64.StdEncoding.DecodeString(caCert)
 		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
 
-		rs := NewNodeGroupResourceSet(&api.ClusterConfig{
-			ClusterName:              clusterName,
-			AvailabilityZones:        testAZs,
-			NodeType:                 "m5.large",
-			Region:                   "us-west-2",
-			Endpoint:                 endpoint,
-			CertificateAuthorityData: caCertData,
-		}, "eksctl-test-123-cluster", 0)
+		cfg.Endpoint = endpoint
+		cfg.CertificateAuthorityData = caCertData
+		cfg.NodeGroups[0].InstanceType = "m5.large"
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
 		rs.AddAllResources()
 
 		template, err := rs.RenderJSON()

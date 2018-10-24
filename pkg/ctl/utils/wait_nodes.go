@@ -13,13 +13,14 @@ import (
 )
 
 func waitNodesCmd() *cobra.Command {
-	cfg := &api.ClusterConfig{}
+	cfg := api.NewClusterConfig()
+	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
 		Use:   "wait-nodes",
 		Short: "Wait for nodes",
 		Run: func(_ *cobra.Command, _ []string) {
-			if err := doWaitNodes(cfg); err != nil {
+			if err := doWaitNodes(cfg, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -29,13 +30,13 @@ func waitNodesCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVar(&utilsKubeconfigInputPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
-	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
+	fs.IntVarP(&ng.MinSize, "nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
 	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 
 	return cmd
 }
 
-func doWaitNodes(cfg *api.ClusterConfig) error {
+func doWaitNodes(cfg *api.ClusterConfig, ng *api.NodeGroup) error {
 	ctl := eks.New(cfg)
 
 	if utilsKubeconfigInputPath == "" {
@@ -52,7 +53,7 @@ func doWaitNodes(cfg *api.ClusterConfig) error {
 		return err
 	}
 
-	if err := ctl.WaitForNodes(clientset); err != nil {
+	if err := ctl.WaitForNodes(clientset, ng); err != nil {
 		return err
 	}
 
