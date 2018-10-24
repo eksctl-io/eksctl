@@ -20,6 +20,7 @@ const (
 type ClusterResourceSet struct {
 	rs             *resourceSet
 	spec           *api.ClusterConfig
+	vpc            *gfn.Value
 	subnets        []*gfn.Value
 	securityGroups []*gfn.Value
 }
@@ -34,22 +35,33 @@ func NewClusterResourceSet(spec *api.ClusterConfig) *ClusterResourceSet {
 
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources() error {
-	c.rs.template.Description = clusterTemplateDescription
-	c.rs.template.Description += clusterTemplateDescriptionDefaultFeatures
-	c.rs.template.Description += templateDescriptionSuffix
 
-	_, globalCIDR, _ := net.ParseCIDR("192.168.0.0/16")
+	templateDescriptionFeatures := clusterTemplateDescriptionDefaultFeatures
 
-	subnets := map[string]*net.IPNet{}
-	_, subnets[c.spec.AvailabilityZones[0]], _ = net.ParseCIDR("192.168.64.0/18")
-	_, subnets[c.spec.AvailabilityZones[1]], _ = net.ParseCIDR("192.168.128.0/18")
-	_, subnets[c.spec.AvailabilityZones[2]], _ = net.ParseCIDR("192.168.192.0/18")
+	if c.spec.VPC != "" && len(c.spec.Subnets) >= 3 {
+		c.importResourcesForVPC()
+		templateDescriptionFeatures = " (with shared VPC and dedicated IAM role) "
+	} else {
+		_, globalCIDR, _ := net.ParseCIDR("192.168.0.0/16")
 
-	c.addResourcesForVPC(globalCIDR, subnets)
+		subnets := map[string]*net.IPNet{}
+		_, subnets[c.spec.AvailabilityZones[0]], _ = net.ParseCIDR("192.168.64.0/18")
+		_, subnets[c.spec.AvailabilityZones[1]], _ = net.ParseCIDR("192.168.128.0/18")
+		_, subnets[c.spec.AvailabilityZones[2]], _ = net.ParseCIDR("192.168.192.0/18")
+
+		c.addResourcesForVPC(globalCIDR, subnets)
+	}
+	c.addOutputsForVPC()
+
+	c.addResourcesForSecurityGroups()
 	c.addResourcesForIAM()
 	c.addResourcesForControlPlane("1.10")
 
 	c.rs.newOutput(cfnOutputClusterStackName, gfn.RefStackName, false)
+
+	c.rs.template.Description = clusterTemplateDescription
+	c.rs.template.Description += templateDescriptionFeatures
+	c.rs.template.Description += templateDescriptionSuffix
 
 	return nil
 }

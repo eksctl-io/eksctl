@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
@@ -26,6 +27,8 @@ var (
 	autoKubeconfigPath bool
 	setContext         bool
 	availabilityZones  []string
+
+	kopsClusterNameForVPC string
 )
 
 func createClusterCmd() *cobra.Command {
@@ -84,6 +87,8 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVar(&cfg.NodeAMI, "node-ami", ami.ResolverStatic, "Advanced use cases only. If 'static' is supplied (default) then eksctl will use static AMIs; if 'auto' is supplied then eksctl will automatically set the AMI based on region/instance type; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
 
+	fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
+
 	return cmd
 }
 
@@ -114,8 +119,24 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
 
-	if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
-		return err
+	if kopsClusterNameForVPC != "" {
+		if len(availabilityZones) != 0 {
+			return fmt.Errorf("--vpc-from-kops-cluster and --zones cannot be used at the same time")
+		}
+		kw, err := kops.NewWrapper(cfg.Region, kopsClusterNameForVPC)
+		if err != nil {
+			return err
+		}
+
+		if err := kw.UseVPC(cfg); err != nil {
+			return err
+		}
+		logger.Success("using VPC (%s) and subnets (%v) from kops cluster %q", cfg.VPC, cfg.Subnets, kopsClusterNameForVPC)
+	} else {
+		// kw.UseVPC() sets AZs based on subenets used
+		if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
+			return err
+		}
 	}
 
 	if err := ctl.EnsureAMI(); err != nil {

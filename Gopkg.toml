@@ -26,16 +26,15 @@ required = [
 
 [[override]]
   name = "k8s.io/api"
-  version = "kubernetes-1.10.8"
-
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "k8s.io/apimachinery"
-  version = "kubernetes-1.10.8"
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.10.8"
+  version = "kubernetes-1.11.3"
 
 [[override]]
   name = "github.com/json-iterator/go"
@@ -44,6 +43,14 @@ required = [
 [[constraint]]
   name = "k8s.io/kops"
   branch = "master"
+
+# copied from https://github.com/kubernetes/kops/blob/master/Gopkg.toml
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "edc3ab29cdff8694dd6feb85cfeb4b5f1b38ed9c"
+[[override]]
+  name = "github.com/miekg/dns"
+  revision = "5d001d020961ae1c184f9f8152fdc73810481677"
 
 [[constraint]]
   name = "github.com/kubernetes-sigs/aws-iam-authenticator"
@@ -71,7 +78,7 @@ required = [
 
 [[constraint]]
   name = "github.com/dlespiau/kube-test-harness"
-  branch = "master"
+  branch = "kubernetes-1.11"
 
 [[constraint]]
    name = "github.com/awslabs/goformation"
