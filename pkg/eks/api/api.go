@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -54,28 +55,11 @@ type ClusterConfig struct {
 	Tags        map[string]string
 	ClusterName string
 
-	NodeAMI  string
-	NodeType string
-	Nodes    int
-	MinNodes int
-	MaxNodes int
-
-	NodeVolumeSize int
-
-	MaxPodsPerNode int
-
-	NodePolicyARNs []string
-
-	NodeSSH          bool
-	SSHPublicKeyPath string
-	SSHPublicKey     []byte
-	SSHPublicKeyName string
-
 	WaitTimeout time.Duration
 
-	SecurityGroup string
-	Subnets       []string
-	VPC           string
+	VPC ClusterVPC
+
+	NodeGroups []*NodeGroup
 
 	Endpoint                 string
 	CertificateAuthorityData []byte
@@ -83,21 +67,156 @@ type ClusterConfig struct {
 
 	ClusterStackName string
 
-	NodeInstanceRoleARN string
-
 	AvailabilityZones []string
 
 	Addons ClusterAddons
 }
 
-// ClusterAddons provides addons for the created EKS cluster
-type ClusterAddons struct {
-	WithIAM AddonIAM
-	Storage bool
+// NewClusterConfig create new config for a cluster;
+// it doesn't include initial nodegroup, so user must
+// call NewNodeGroup to create one
+func NewClusterConfig() *ClusterConfig {
+	return &ClusterConfig{}
 }
 
-// AddonIAM provides an addon for the AWS IAM integration
-type AddonIAM struct {
-	PolicyAmazonEC2ContainerRegistryPowerUser bool
-	PolicyAutoScaling                         bool
+// SetSubnets defines CIDRs for each of the subnets,
+// it must be called after SetAvailabilityZones
+func (c *ClusterConfig) SetSubnets() {
+	_, c.VPC.CIDR, _ = net.ParseCIDR("192.168.0.0/16")
+
+	c.VPC.Subnets = map[SubnetTopology]map[string]Network{
+		SubnetTopologyPublic: map[string]Network{},
+	}
+
+	zoneCIDRs := []string{
+		"192.168.64.0/18",
+		"192.168.128.0/18",
+		"192.168.192.0/18",
+	}
+	for i, zone := range c.AvailabilityZones {
+		_, zoneCIDR, _ := net.ParseCIDR(zoneCIDRs[i])
+		c.VPC.Subnets[SubnetTopologyPublic][zone] = Network{
+			CIDR: zoneCIDR,
+		}
+	}
 }
+
+// NewNodeGroup crears new nodegroup inside cluster config,
+// it returns pointer to the nodegroup for convenience
+func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
+	ng := &NodeGroup{
+		ID:             len(c.NodeGroups),
+		SubnetTopology: SubnetTopologyPublic,
+	}
+
+	c.NodeGroups = append(c.NodeGroups, ng)
+
+	return ng
+}
+
+// NodeGroup holds all configuration attributes that are
+// specific to a nodegroup
+type NodeGroup struct {
+	ID int
+
+	AMI               string
+	InstanceType      string
+	AvailabilityZones []string
+	Tags              map[string]string
+	SubnetTopology    SubnetTopology
+
+	DesiredCapacity int
+	MinSize         int
+	MaxSize         int
+
+	VolumeSize int
+
+	MaxPodsPerNode int
+
+	PolicyARNs      []string
+	InstanceRoleARN string
+
+	AllowSSH         bool
+	SSHPublicKeyPath string
+	SSHPublicKey     []byte
+	SSHPublicKeyName string
+}
+
+type (
+	// ClusterVPC holds global subnet and all child public/private subnet
+	ClusterVPC struct {
+		Network              // global CIRD and VPC ID
+		SecurityGroup string // cluster SG
+		// subnets are either public or private for use with separate nodegroups
+		// these are keyed by AZ for conveninece
+		Subnets map[SubnetTopology]map[string]Network
+		// for additional CIRD associations, e.g. to use with separate CIDR for
+		// private subnets or any ad-hoc subnets
+		ExtraCIDRs []*net.IPNet
+	}
+	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
+	SubnetTopology string
+	// Network holds ID and CIDR
+	Network struct {
+		ID   string
+		CIDR *net.IPNet
+	}
+)
+
+const (
+	// SubnetTopologyPrivate repesents privately-routed subnets
+	SubnetTopologyPrivate SubnetTopology = "Private"
+	// SubnetTopologyPublic repesents publicly-routed subnets
+	SubnetTopologyPublic SubnetTopology = "Public"
+)
+
+// SubnetIDs returns list of subnets
+func (c ClusterVPC) SubnetIDs(topology SubnetTopology) []string {
+	subnets := []string{}
+	for _, s := range c.Subnets[topology] {
+		subnets = append(subnets, s.ID)
+	}
+	return subnets
+}
+
+// SubnetTopologies returns list of topologies supported
+// by a given cluster config
+func (c ClusterVPC) SubnetTopologies() []SubnetTopology {
+	topologies := []SubnetTopology{}
+	for topology := range c.Subnets {
+		topologies = append(topologies, topology)
+	}
+	return topologies
+}
+
+// ImportSubnet loads a given subnet into cluster config
+func (c ClusterVPC) ImportSubnet(topology SubnetTopology, az, subnetID string) {
+	if _, ok := c.Subnets[topology]; !ok {
+		c.Subnets[topology] = map[string]Network{}
+	}
+	if network, ok := c.Subnets[topology][az]; !ok {
+		c.Subnets[topology][az] = Network{ID: subnetID}
+	} else {
+		network.ID = subnetID
+		c.Subnets[topology][az] = network
+	}
+}
+
+// HasSuffiecentPublicSubnets validates if there is a suffiecent
+// number of subnets available to create a cluster
+func (c ClusterVPC) HasSuffiecentPublicSubnets() bool {
+	return len(c.SubnetIDs(SubnetTopologyPublic)) >= 3
+}
+
+type (
+	// ClusterAddons provides addons for the created EKS cluster
+	ClusterAddons struct {
+		WithIAM AddonIAM
+		Storage bool
+	}
+	// AddonIAM provides an addon for the AWS IAM integration
+	AddonIAM struct {
+		PolicyAmazonEC2ContainerRegistryPowerUser bool
+		PolicyAutoScaling                         bool
+	}
+)

@@ -11,13 +11,14 @@ import (
 )
 
 func scaleNodeGroupCmd() *cobra.Command {
-	cfg := &api.ClusterConfig{}
+	cfg := api.NewClusterConfig()
+	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
 		Use:   "nodegroup",
 		Short: "Scale a nodegroup",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doScaleNodeGroup(cfg); err != nil {
+			if err := doScaleNodeGroup(cfg, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -28,7 +29,7 @@ func scaleNodeGroupCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
 
-	fs.IntVarP(&cfg.Nodes, "nodes", "N", -1, "total number of nodes (scale to this number)")
+	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
 
 	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
@@ -38,7 +39,7 @@ func scaleNodeGroupCmd() *cobra.Command {
 	return cmd
 }
 
-func doScaleNodeGroup(cfg *api.ClusterConfig) error {
+func doScaleNodeGroup(cfg *api.ClusterConfig, ng *api.NodeGroup) error {
 	ctl := eks.New(cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -49,7 +50,7 @@ func doScaleNodeGroup(cfg *api.ClusterConfig) error {
 		return fmt.Errorf("no cluster name supplied. Use the --name= flag")
 	}
 
-	if cfg.Nodes < 0 {
+	if ng.DesiredCapacity < 0 {
 		return fmt.Errorf("number of nodes must be 0 or greater. Use the --nodes/-N flag")
 	}
 

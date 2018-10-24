@@ -1,22 +1,33 @@
 package builder
 
 import (
-	"net"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-const (
-	cfnOutputClusterVPC           = "VPC"
-	cfnOutputClusterSubnets       = "Subnets"
-	cfnOutputClusterSecurityGroup = "SecurityGroup"
-)
+func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
+	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
+	for az, subnet := range c.spec.VPC.Subnets[topology] {
+		alias := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
+		refSubnet := c.newResource("Subnet"+string(topology)+alias, &gfn.AWSEC2Subnet{
+			AvailabilityZone: gfn.NewString(az),
+			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
+			VpcId:            c.vpc,
+		})
+		c.newResource("RouteTableAssociation"+string(topology)+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
+			SubnetId:     refSubnet,
+			RouteTableId: refRT,
+		})
+		c.subnets[topology] = append(c.subnets[topology], refSubnet)
+	}
+}
 
 //nolint:interfacer
-func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
+func (c *ClusterResourceSet) addResourcesForVPC() {
 	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
-		CidrBlock:          gfn.NewString(globalCIDR.String()),
+		CidrBlock:          gfn.NewString(c.spec.VPC.CIDR.String()),
 		EnableDnsSupport:   gfn.True(),
 		EnableDnsHostnames: gfn.True(),
 	})
@@ -27,41 +38,39 @@ func (c *ClusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets m
 		VpcId:             c.vpc,
 	})
 
-	refRT := c.newResource("RouteTable", &gfn.AWSEC2RouteTable{
+	refPrivateRT := c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
+		VpcId: c.vpc,
+	})
+
+	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
+
+	refPublicRT := c.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
 		VpcId: c.vpc,
 	})
 
 	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
-		RouteTableId:         refRT,
+		RouteTableId:         refPublicRT,
 		DestinationCidrBlock: gfn.NewString("0.0.0.0/0"),
 		GatewayId:            refIG,
 	})
 
-	for az, subnet := range subnets {
-		alias := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
-		refSubnet := c.newResource("Subnet"+alias, &gfn.AWSEC2Subnet{
-			AvailabilityZone: gfn.NewString(az),
-			CidrBlock:        gfn.NewString(subnet.String()),
-			VpcId:            c.vpc,
-		})
-		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
-			SubnetId:     refSubnet,
-			RouteTableId: refRT,
-		})
-		c.subnets = append(c.subnets, refSubnet)
-	}
+	c.addSubnets(refPublicRT, api.SubnetTopologyPublic)
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {
-	c.vpc = gfn.NewString(c.spec.VPC)
-	for _, subnet := range c.spec.Subnets {
-		c.subnets = append(c.subnets, gfn.NewString(subnet))
+	c.vpc = gfn.NewString(c.spec.VPC.ID)
+	for _, topology := range c.spec.VPC.SubnetTopologies() {
+		for _, subnet := range c.spec.VPC.SubnetIDs(topology) {
+			c.subnets[topology] = append(c.subnets[topology], gfn.NewString(subnet))
+		}
 	}
 }
 
 func (c *ClusterResourceSet) addOutputsForVPC() {
 	c.rs.newOutput(cfnOutputClusterVPC, c.vpc, true)
-	c.rs.newJoinedOutput(cfnOutputClusterSubnets, c.subnets, true)
+	for _, topology := range c.spec.VPC.SubnetTopologies() {
+		c.rs.newJoinedOutput(cfnOutputClusterSubnets+string(topology), c.subnets[topology], true)
+	}
 }
 
 func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
@@ -93,7 +102,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		VpcId:            makeImportValue(n.clusterStackName, cfnOutputClusterVPC),
 		GroupDescription: gfn.NewString("Communication between the control plane and " + desc),
 		Tags: []gfn.Tag{{
-			Key:   gfn.NewString("kubernetes.io/cluster/" + n.spec.ClusterName),
+			Key:   gfn.NewString("kubernetes.io/cluster/" + n.clusterSpec.ClusterName),
 			Value: gfn.NewString("owned"),
 		}},
 	})
@@ -147,7 +156,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              apiPort,
 		ToPort:                apiPort,
 	})
-	if n.spec.NodeSSH {
+	if n.spec.AllowSSH {
 		n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
 			GroupId:     refSG,
 			CidrIp:      anywhereIPv4,

@@ -141,34 +141,34 @@ func (c *ClusterProvider) CheckAuth() error {
 }
 
 // EnsureAMI ensures that the node AMI is set and is available
-func (c *ClusterProvider) EnsureAMI() error {
+func (c *ClusterProvider) EnsureAMI(ng *api.NodeGroup) error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	// - improve validation of parameter set overall, probably in another package
-	if c.Spec.NodeAMI == ami.ResolverAuto {
+	if ng.AMI == ami.ResolverAuto {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
-	if c.Spec.NodeAMI == ami.ResolverStatic || c.Spec.NodeAMI == ami.ResolverAuto {
-		id, err := ami.Resolve(c.Spec.Region, c.Spec.NodeType)
+	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
+		id, err := ami.Resolve(c.Spec.Region, ng.InstanceType)
 		if err != nil {
 			return errors.Wrap(err, "Unable to determine AMI to use")
 		}
 		if id == "" {
-			return ami.NewErrFailedResolution(c.Spec.Region, c.Spec.NodeType)
+			return ami.NewErrFailedResolution(c.Spec.Region, ng.InstanceType)
 		}
-		c.Spec.NodeAMI = id
+		ng.AMI = id
 	}
 
 	// Check the AMI is available
-	available, err := ami.IsAvailable(c.Provider.EC2(), c.Spec.NodeAMI)
+	available, err := ami.IsAvailable(c.Provider.EC2(), ng.AMI)
 	if err != nil {
-		return errors.Wrapf(err, "%s is not available", c.Spec.NodeAMI)
+		return errors.Wrapf(err, "%s is not available", ng.AMI)
 	}
 
 	if !available {
-		return ami.NewErrNotFound(c.Spec.NodeAMI)
+		return ami.NewErrNotFound(ng.AMI)
 	}
 
-	logger.Info("using %q for nodes", c.Spec.NodeAMI)
+	logger.Info("using %q for nodes", ng.AMI)
 
 	return nil
 }

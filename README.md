@@ -158,7 +158,7 @@ eksctl delete cluster --name=<name> [--region=<region>]
 
 ### Scaling nodegroup
 
-The default nodegroup can be scaled by using the `eksctl scale nodegroup` command. For example, to scale to 5 nodes:
+The initial nodegroup can be scaled by using the `eksctl scale nodegroup` command. For example, to scale to 5 nodes:
 
 ```
 eksctl scale nodegroup --name=<name> --nodes=5

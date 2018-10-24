@@ -11,7 +11,7 @@ func (c *StackCollection) makeClusterStackName() string {
 }
 
 // CreateCluster creates the cluster
-func (c *StackCollection) CreateCluster(errs chan error) error {
+func (c *StackCollection) CreateCluster(errs chan error, _ interface{}) error {
 	name := c.makeClusterStackName()
 	logger.Info("creating cluster stack %q", name)
 	stack := builder.NewClusterResourceSet(c.spec)
