@@ -90,6 +90,8 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 
+	fs.IPNetVar(cfg.VPC.CIDR, "vpc-cidr", api.DefaultCIDR(), "global CIDR to use for VPC")
+
 	return cmd
 }
 
@@ -138,7 +140,9 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 		if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
 			return err
 		}
-		cfg.SetSubnets()
+		if err := ctl.SetSubnets(); err != nil {
+			return err
+		}
 	}
 
 	if err := ctl.EnsureAMI(ng); err != nil {

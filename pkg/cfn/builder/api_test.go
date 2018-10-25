@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -100,6 +101,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.AvailabilityZones = testAZs
 		ng.InstanceType = "t2.medium"
 
+		*cfg.VPC.CIDR = api.DefaultCIDR()
+
 		return cfg
 	}
 
@@ -127,24 +130,47 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Subnets: map[api.SubnetTopology]map[string]api.Network{
 					"Public": map[string]api.Network{
 						"us-west-2b": {
-							ID: "subnet-0f98135715dfcf55f",
+							//ID: "subnet-0f98135715dfcf55f",
 							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 64, 0},
-								Mask: []byte{255, 255, 192, 0},
+								IP:   []byte{192, 168, 0, 0},
+								Mask: []byte{255, 255, 224, 0},
 							},
 						},
 						"us-west-2a": {
-							ID: "subnet-0ade11bad78dced9e",
+							//ID: "subnet-0ade11bad78dced9e",
 							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 128, 0},
-								Mask: []byte{255, 255, 192, 0},
+								IP:   []byte{192, 168, 32, 0},
+								Mask: []byte{255, 255, 224, 0},
 							},
 						},
 						"us-west-2c": {
-							ID: "subnet-0e2e63ff1712bf6ef",
+							//ID: "subnet-0e2e63ff1712bf6ef",
 							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 192, 0},
-								Mask: []byte{255, 255, 192, 0},
+								IP:   []byte{192, 168, 64, 0},
+								Mask: []byte{255, 255, 224, 0},
+							},
+						},
+					},
+					"Private": map[string]api.Network{
+						"us-west-2b": {
+							//ID: "subnet-0f98135715dfcf55f",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 96, 0},
+								Mask: []byte{255, 255, 224, 0},
+							},
+						},
+						"us-west-2a": {
+							//ID: "subnet-0ade11bad78dced9e",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 128, 0},
+								Mask: []byte{255, 255, 224, 0},
+							},
+						},
+						"us-west-2c": {
+							//ID: "subnet-0e2e63ff1712bf6ef",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 160, 0},
+								Mask: []byte{255, 255, 224, 0},
 							},
 						},
 					},
@@ -160,8 +186,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		initial := newClusterConfig()
-
-		initial.SetSubnets()
+		ctl := eks.New(initial)
+		It("should not error when calling SetSubnets", func() {
+			err := ctl.SetSubnets()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		rs := NewClusterResourceSet(initial)
 		rs.AddAllResources()

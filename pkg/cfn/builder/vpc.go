@@ -8,7 +8,6 @@ import (
 )
 
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
-	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 	for az, subnet := range c.spec.VPC.Subnets[topology] {
 		alias := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 		refSubnet := c.newResource("Subnet"+string(topology)+alias, &gfn.AWSEC2Subnet{
@@ -31,6 +30,8 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		EnableDnsSupport:   gfn.True(),
 		EnableDnsHostnames: gfn.True(),
 	})
+
+	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 
 	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
 	c.newResource("VPCGatewayAttachment", &gfn.AWSEC2VPCGatewayAttachment{

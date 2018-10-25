@@ -38,7 +38,15 @@ var SupportedRegions = []string{
 var DefaultWaitTimeout = 20 * time.Minute
 
 // DefaultNodeCount defines the default number of nodes to be created
-var DefaultNodeCount = 2
+const DefaultNodeCount = 2
+
+// DefaultCIDR returns default global CIDR for VPC
+func DefaultCIDR() net.IPNet {
+	return net.IPNet{
+		IP:   []byte{192, 168, 0, 0},
+		Mask: []byte{255, 255, 0, 0},
+	}
+}
 
 // ClusterProvider provides an interface with the needed AWS APIs
 type ClusterProvider interface {
@@ -76,29 +84,13 @@ type ClusterConfig struct {
 // it doesn't include initial nodegroup, so user must
 // call NewNodeGroup to create one
 func NewClusterConfig() *ClusterConfig {
-	return &ClusterConfig{}
-}
-
-// SetSubnets defines CIDRs for each of the subnets,
-// it must be called after SetAvailabilityZones
-func (c *ClusterConfig) SetSubnets() {
-	_, c.VPC.CIDR, _ = net.ParseCIDR("192.168.0.0/16")
-
-	c.VPC.Subnets = map[SubnetTopology]map[string]Network{
-		SubnetTopologyPublic: map[string]Network{},
+	cfg := &ClusterConfig{
+		VPC: ClusterVPC{},
 	}
 
-	zoneCIDRs := []string{
-		"192.168.64.0/18",
-		"192.168.128.0/18",
-		"192.168.192.0/18",
-	}
-	for i, zone := range c.AvailabilityZones {
-		_, zoneCIDR, _ := net.ParseCIDR(zoneCIDRs[i])
-		c.VPC.Subnets[SubnetTopologyPublic][zone] = Network{
-			CIDR: zoneCIDR,
-		}
-	}
+	cfg.VPC.CIDR = &net.IPNet{}
+
+	return cfg
 }
 
 // NewNodeGroup crears new nodegroup inside cluster config,
