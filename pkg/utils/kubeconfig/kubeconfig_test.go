@@ -153,7 +153,7 @@ var _ = Describe("Kubeconfig", func() {
 					InstanceRoleARN:   "",
 				},
 			},
-			VPC: eksctlapi.ClusterVPC{
+			VPC: &eksctlapi.ClusterVPC{
 				Network: eksctlapi.Network{
 					ID:   "",
 					CIDR: nil,

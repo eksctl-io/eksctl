@@ -77,10 +77,15 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFil
 		c.MaxPodsPerNode = maxPodsPerNodeType[c.InstanceType]
 	}
 	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
+	clusterDNS := "10.100.0.10"
+	if spec.VPC.CIDR.IP[0] == 10 {
+		// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
+		// is anywhere within 10.0.0.0/8
+		clusterDNS = "172.20.0.10"
+	}
 	kubeletParams := []string{
 		fmt.Sprintf("MAX_PODS=%d", c.MaxPodsPerNode),
-		// TODO: this will need to change when we provide options for using different VPCs and CIDRs – https://github.com/weaveworks/eksctl/issues/158
-		"CLUSTER_DNS=10.100.0.10",
+		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS),
 	}
 
 	metadata := []string{
