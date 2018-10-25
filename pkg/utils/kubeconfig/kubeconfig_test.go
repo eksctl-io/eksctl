@@ -140,7 +140,7 @@ var _ = Describe("Kubeconfig", func() {
 					AMI:               "",
 					InstanceType:      "m5.large",
 					AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
-					SubnetTopology:    "Public",
+					PrivateNetworking: false,
 					AllowSSH:          false,
 					SSHPublicKeyPath:  "~/.ssh/id_rsa.pub",
 					SSHPublicKey:      []uint8(nil),

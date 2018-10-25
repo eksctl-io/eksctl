@@ -25,12 +25,6 @@ type NodeGroupResourceSet struct {
 	userData         *gfn.Value
 }
 
-type awsCloudFormationResource struct {
-	Type         string
-	Properties   map[string]interface{}
-	UpdatePolicy map[string]map[string]string
-}
-
 // NewNodeGroupResourceSet returns a resource set for the new node group
 func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
@@ -85,16 +79,19 @@ func (n *NodeGroupResourceSet) newResource(name string, resource interface{}) *g
 
 func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 	lc := &gfn.AWSAutoScalingLaunchConfiguration{
-		AssociatePublicIpAddress: gfn.True(),
-		IamInstanceProfile:       n.instanceProfile,
-		SecurityGroups:           n.securityGroups,
-
-		ImageId:      gfn.NewString(n.spec.AMI),
-		InstanceType: gfn.NewString(n.spec.InstanceType),
-		UserData:     n.userData,
+		IamInstanceProfile: n.instanceProfile,
+		SecurityGroups:     n.securityGroups,
+		ImageId:            gfn.NewString(n.spec.AMI),
+		InstanceType:       gfn.NewString(n.spec.InstanceType),
+		UserData:           n.userData,
 	}
 	if n.spec.AllowSSH {
 		lc.KeyName = gfn.NewString(n.spec.SSHPublicKeyName)
+	}
+	if n.spec.PrivateNetworking {
+		lc.AssociatePublicIpAddress = gfn.False()
+	} else {
+		lc.AssociatePublicIpAddress = gfn.True()
 	}
 	if n.spec.VolumeSize > 0 {
 		lc.BlockDeviceMappings = []gfn.AWSAutoScalingLaunchConfiguration_BlockDeviceMapping{
@@ -111,12 +108,12 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 	var vpcZoneIdentifier interface{}
 	if len(n.spec.AvailabilityZones) > 0 {
-		vpcZoneIdentifier = n.clusterSpec.SubnetIDs(api.SubnetTopologyPublic)
+		vpcZoneIdentifier = n.clusterSpec.SubnetIDs(n.spec.SubnetTopology())
 	} else {
 		vpcZoneIdentifier = map[string][]interface{}{
 			gfn.FnSplit: []interface{}{
 				",",
-				makeImportValue(n.clusterStackName, cfnOutputClusterSubnets+string(api.SubnetTopologyPublic)),
+				makeImportValue(n.clusterStackName, cfnOutputClusterSubnets+string(n.spec.SubnetTopology())),
 			},
 		}
 	}

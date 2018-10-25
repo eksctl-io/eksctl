@@ -9,13 +9,20 @@ import (
 
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
 	for az, subnet := range c.spec.VPC.Subnets[topology] {
-		alias := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
-		refSubnet := c.newResource("Subnet"+string(topology)+alias, &gfn.AWSEC2Subnet{
+		alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
+		subnet := &gfn.AWSEC2Subnet{
 			AvailabilityZone: gfn.NewString(az),
 			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
 			VpcId:            c.vpc,
-		})
-		c.newResource("RouteTableAssociation"+string(topology)+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
+		}
+		if topology == api.SubnetTopologyPrivate {
+			subnet.Tags = []gfn.Tag{{
+				Key:   gfn.NewString("kubernetes.io/role/internal-elb"),
+				Value: gfn.NewString("1"),
+			}}
+		}
+		refSubnet := c.newResource("Subnet"+alias, subnet)
+		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
 			SubnetId:     refSubnet,
 			RouteTableId: refRT,
 		})
@@ -25,6 +32,8 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 
 //nolint:interfacer
 func (c *ClusterResourceSet) addResourcesForVPC() {
+	internetCIDR := gfn.NewString("0.0.0.0/0")
+
 	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(c.spec.VPC.CIDR.String()),
 		EnableDnsSupport:   gfn.True(),
@@ -39,23 +48,39 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		VpcId:             c.vpc,
 	})
 
-	refPrivateRT := c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
-		VpcId: c.vpc,
-	})
-
-	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
-
 	refPublicRT := c.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
 		VpcId: c.vpc,
 	})
 
 	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
 		RouteTableId:         refPublicRT,
-		DestinationCidrBlock: gfn.NewString("0.0.0.0/0"),
+		DestinationCidrBlock: internetCIDR,
 		GatewayId:            refIG,
 	})
 
 	c.addSubnets(refPublicRT, api.SubnetTopologyPublic)
+
+	c.newResource("NATIP", &gfn.AWSEC2EIP{
+		Domain: gfn.NewString("vpc"),
+	})
+	refNG := c.newResource("NATGateway", &gfn.AWSEC2NatGateway{
+		AllocationId: gfn.MakeFnGetAttString("NATIP.AllocationId"),
+		// A multi-AZ NAT Gateway is possible, but it's not very
+		// clear from the docs how to achieve it
+		SubnetId: c.subnets[api.SubnetTopologyPublic][0],
+	})
+
+	refPrivateRT := c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
+		VpcId: c.vpc,
+	})
+
+	c.newResource("PrivateSubnetRoute", &gfn.AWSEC2Route{
+		RouteTableId:         refPrivateRT,
+		DestinationCidrBlock: internetCIDR,
+		NatGatewayId:         refNG,
+	})
+
+	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {
@@ -158,21 +183,32 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		ToPort:                apiPort,
 	})
 	if n.spec.AllowSSH {
-		n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
-			GroupId:     refSG,
-			CidrIp:      anywhereIPv4,
-			Description: gfn.NewString("Allow SSH access to " + desc),
-			IpProtocol:  tcp,
-			FromPort:    sshPort,
-			ToPort:      sshPort,
-		})
-		n.newResource("SSHIPv6", &gfn.AWSEC2SecurityGroupIngress{
-			GroupId:     refSG,
-			CidrIpv6:    anywhereIPv6,
-			Description: gfn.NewString("Allow SSH access to " + desc),
-			IpProtocol:  tcp,
-			FromPort:    sshPort,
-			ToPort:      sshPort,
-		})
+		if n.spec.PrivateNetworking {
+			n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
+				GroupId:     refSG,
+				CidrIp:      gfn.NewString(n.clusterSpec.VPC.CIDR.String()),
+				Description: gfn.NewString("Allow SSH access to " + desc + " (private, only inside VPC)"),
+				IpProtocol:  tcp,
+				FromPort:    sshPort,
+				ToPort:      sshPort,
+			})
+		} else {
+			n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
+				GroupId:     refSG,
+				CidrIp:      anywhereIPv4,
+				Description: gfn.NewString("Allow SSH access to " + desc),
+				IpProtocol:  tcp,
+				FromPort:    sshPort,
+				ToPort:      sshPort,
+			})
+			n.newResource("SSHIPv6", &gfn.AWSEC2SecurityGroupIngress{
+				GroupId:     refSG,
+				CidrIpv6:    anywhereIPv6,
+				Description: gfn.NewString("Allow SSH access to " + desc),
+				IpProtocol:  tcp,
+				FromPort:    sshPort,
+				ToPort:      sshPort,
+			})
+		}
 	}
 }

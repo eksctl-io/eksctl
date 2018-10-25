@@ -78,14 +78,18 @@ func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn
 }
 
 func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
+	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
+		SecurityGroupIds: c.securityGroups,
+	}
+	for topology := range c.spec.VPC.Subnets {
+		clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, c.subnets[topology]...)
+	}
+
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
-		Name:    gfn.NewString(c.spec.ClusterName),
-		RoleArn: gfn.MakeFnGetAttString("ServiceRole.Arn"),
-		Version: gfn.NewString(version),
-		ResourcesVpcConfig: &gfn.AWSEKSCluster_ResourcesVpcConfig{
-			SubnetIds:        c.subnets[api.SubnetTopologyPublic],
-			SecurityGroupIds: c.securityGroups,
-		},
+		Name:               gfn.NewString(c.spec.ClusterName),
+		RoleArn:            gfn.MakeFnGetAttString("ServiceRole.Arn"),
+		Version:            gfn.NewString(version),
+		ResourcesVpcConfig: clusterVPC,
 	})
 
 	c.rs.newOutputFromAtt(cfnOutputClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)

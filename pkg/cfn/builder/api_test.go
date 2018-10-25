@@ -181,10 +181,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:            "",
-					AMIFamily:      "AmazonLinux2",
-					InstanceType:   "t2.medium",
-					SubnetTopology: "Public",
+					AMI:               "",
+					AMIFamily:         "AmazonLinux2",
+					InstanceType:      "t2.medium",
+					PrivateNetworking: false,
 				},
 			},
 		}
