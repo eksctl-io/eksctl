@@ -18,6 +18,13 @@ const (
 	templateDescriptionSuffix = " [created and managed by eksctl]"
 )
 
+type awsCloudFormationResource struct {
+	Type         string
+	Properties   map[string]interface{}
+	UpdatePolicy map[string]map[string]string `json:",omitempty"`
+	DependsOn    []string                     `json:",omitempty"`
+}
+
 // ResourceSet is an interface which cluster and nodegroup builders
 // must implement
 type ResourceSet interface {

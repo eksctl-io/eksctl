@@ -92,6 +92,10 @@ func createClusterCmd() *cobra.Command {
 
 	fs.IPNetVar(cfg.VPC.CIDR, "vpc-cidr", api.DefaultCIDR(), "global CIDR to use for VPC")
 
+	if p := fs.Bool("node-private-networking", false, "whether to make initial nodegroup networking private"); *p {
+		ng.SubnetTopology = api.SubnetTopologyPrivate
+	}
+
 	return cmd
 }
 

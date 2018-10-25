@@ -25,6 +25,8 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 
 //nolint:interfacer
 func (c *ClusterResourceSet) addResourcesForVPC() {
+	internetCIDR := gfn.NewString("0.0.0.0/0")
+
 	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(c.spec.VPC.CIDR.String()),
 		EnableDnsSupport:   gfn.True(),
@@ -39,23 +41,39 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		VpcId:             c.vpc,
 	})
 
-	refPrivateRT := c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
-		VpcId: c.vpc,
-	})
-
-	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
-
 	refPublicRT := c.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
 		VpcId: c.vpc,
 	})
 
 	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
 		RouteTableId:         refPublicRT,
-		DestinationCidrBlock: gfn.NewString("0.0.0.0/0"),
+		DestinationCidrBlock: internetCIDR,
 		GatewayId:            refIG,
 	})
 
 	c.addSubnets(refPublicRT, api.SubnetTopologyPublic)
+
+	c.newResource("NATIP", &gfn.AWSEC2EIP{
+		Domain: gfn.NewString("vpc"),
+	})
+	refNG := c.newResource("NATGateway", &gfn.AWSEC2NatGateway{
+		AllocationId: gfn.MakeFnGetAttString("NATIP.AllocationId"),
+		// A multi-AZ NAT Gateway is possible, but it's not very
+		// clear from the docs how to achieve it
+		SubnetId: c.subnets[api.SubnetTopologyPublic][0],
+	})
+
+	refPrivateRT := c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
+		VpcId: c.vpc,
+	})
+
+	c.newResource("PrivateSubnetRoute", &gfn.AWSEC2Route{
+		RouteTableId:         refPrivateRT,
+		DestinationCidrBlock: internetCIDR,
+		NatGatewayId:         refNG,
+	})
+
+	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {

@@ -25,12 +25,6 @@ type NodeGroupResourceSet struct {
 	userData         *gfn.Value
 }
 
-type awsCloudFormationResource struct {
-	Type         string
-	Properties   map[string]interface{}
-	UpdatePolicy map[string]map[string]string
-}
-
 // NewNodeGroupResourceSet returns a resource set for the new node group
 func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
