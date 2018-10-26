@@ -55,20 +55,20 @@ func (k *Wrapper) UseVPC(spec *api.ClusterConfig) error {
 	if len(vpcs) > 1 {
 		return fmt.Errorf("more then one VPC found for kops cluster %q", k.clusterName)
 	}
-	spec.VPC = vpcs[0]
+	spec.VPC.ID = vpcs[0]
 
 	for _, subnet := range allSubnets {
 		subnet := subnet.Obj.(*ec2.Subnet)
 		for _, tag := range subnet.Tags {
 			if k.isOwned(tag) && *subnet.VpcId == vpcs[0] {
-				spec.Subnets = append(spec.Subnets, *subnet.SubnetId)
+				spec.VPC.ImportSubnet(api.SubnetTopologyPublic, *subnet.AvailabilityZone, *subnet.SubnetId)
 				spec.AvailabilityZones = append(spec.AvailabilityZones, *subnet.AvailabilityZone)
 			}
 		}
 	}
-	logger.Debug("subnets = %#v", spec.Subnets)
-	if len(spec.Subnets) < 3 {
-		return fmt.Errorf("cannot use VPC from kops cluster less then 3 subnets")
+	logger.Debug("subnets = %#v", spec.VPC.Subnets)
+	if !spec.VPC.HasSufficientPublicSubnets() {
+		return fmt.Errorf("cannot use VPC from kops cluster with less then 3 subnets")
 	}
 
 	return nil

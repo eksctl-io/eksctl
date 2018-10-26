@@ -12,7 +12,7 @@ import (
 )
 
 func getClusterCmd() *cobra.Command {
-	cfg := &api.ClusterConfig{}
+	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
 		Use:     "cluster",

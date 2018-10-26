@@ -32,13 +32,14 @@ var (
 )
 
 func createClusterCmd() *cobra.Command {
-	cfg := &api.ClusterConfig{}
+	cfg := api.NewClusterConfig()
+	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Create a cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doCreateCluster(cfg, ctl.GetNameArg(args)); err != nil {
+			if err := doCreateCluster(cfg, ng, ctl.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -55,19 +56,19 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
-	fs.StringVarP(&cfg.NodeType, "node-type", "t", defaultNodeType, "node instance type")
-	fs.IntVarP(&cfg.Nodes, "nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
+	fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
+	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
 
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
-	fs.IntVarP(&cfg.MinNodes, "nodes-min", "m", 0, "minimum nodes in ASG")
-	fs.IntVarP(&cfg.MaxNodes, "nodes-max", "M", 0, "maximum nodes in ASG")
+	fs.IntVarP(&ng.MinSize, "nodes-min", "m", 0, "minimum nodes in ASG")
+	fs.IntVarP(&ng.MaxSize, "nodes-max", "M", 0, "maximum nodes in ASG")
 
-	fs.IntVarP(&cfg.NodeVolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
-	fs.IntVar(&cfg.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
+	fs.IntVarP(&ng.VolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
+	fs.IntVar(&ng.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
 	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 
-	fs.BoolVar(&cfg.NodeSSH, "ssh-access", false, "control SSH access for nodes")
-	fs.StringVar(&cfg.SSHPublicKeyPath, "ssh-public-key", defaultSSHPublicKey, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
+	fs.BoolVar(&ng.AllowSSH, "ssh-access", false, "control SSH access for nodes")
+	fs.StringVar(&ng.SSHPublicKeyPath, "ssh-public-key", defaultSSHPublicKey, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleClusterName)))
@@ -85,14 +86,14 @@ func createClusterCmd() *cobra.Command {
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
 	fs.BoolVar(&cfg.Addons.Storage, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
 
-	fs.StringVar(&cfg.NodeAMI, "node-ami", ami.ResolverStatic, "Advanced use cases only. If 'static' is supplied (default) then eksctl will use static AMIs; if 'auto' is supplied then eksctl will automatically set the AMI based on region/instance type; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
+	fs.StringVar(&ng.AMI, "node-ami", ami.ResolverStatic, "Advanced use cases only. If 'static' is supplied (default) then eksctl will use static AMIs; if 'auto' is supplied then eksctl will automatically set the AMI based on region/instance type; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
 
 	fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 
 	return cmd
 }
 
-func doCreateCluster(cfg *api.ClusterConfig, name string) error {
+func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) error {
 	ctl := eks.New(cfg)
 
 	if cfg.Region != api.EKSRegionUSWest2 && cfg.Region != api.EKSRegionUSEast1 && cfg.Region != api.EKSRegionEUWest1 {
@@ -115,7 +116,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		kubeconfigPath = kubeconfig.AutoPath(cfg.ClusterName)
 	}
 
-	if cfg.SSHPublicKeyPath == "" {
+	if ng.SSHPublicKeyPath == "" {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
 
@@ -131,19 +132,20 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		if err := kw.UseVPC(cfg); err != nil {
 			return err
 		}
-		logger.Success("using VPC (%s) and subnets (%v) from kops cluster %q", cfg.VPC, cfg.Subnets, kopsClusterNameForVPC)
+		logger.Success("using VPC (%s) and subnets (%v) from kops cluster %q", cfg.VPC.ID, cfg.VPC.SubnetIDs(api.SubnetTopologyPublic), kopsClusterNameForVPC)
 	} else {
 		// kw.UseVPC() sets AZs based on subenets used
 		if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
 			return err
 		}
+		cfg.SetSubnets()
 	}
 
-	if err := ctl.EnsureAMI(); err != nil {
+	if err := ctl.EnsureAMI(ng); err != nil {
 		return err
 	}
 
-	if err := ctl.LoadSSHPublicKey(); err != nil {
+	if err := ctl.LoadSSHPublicKey(ng); err != nil {
 		return err
 	}
 
@@ -155,7 +157,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		stackManager := ctl.NewStackManager()
 		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
-		errs := stackManager.CreateClusterWithInitialNodeGroup()
+		errs := stackManager.CreateClusterWithNodeGroups()
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
@@ -200,12 +202,12 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		}
 
 		// authorise nodes to join
-		if err = ctl.CreateDefaultNodeGroupAuthConfigMap(clientSet); err != nil {
+		if err = ctl.CreateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
 			return err
 		}
 
 		// wait for nodes to join
-		if err = ctl.WaitForNodes(clientSet); err != nil {
+		if err = ctl.WaitForNodes(clientSet, ng); err != nil {
 			return err
 		}
 
@@ -229,7 +231,7 @@ func doCreateCluster(cfg *api.ClusterConfig, name string) error {
 		}
 
 		// If GPU instance type, give instructions
-		if utils.IsGPUInstanceType(cfg.NodeType) {
+		if utils.IsGPUInstanceType(ng.InstanceType) {
 			logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
 			logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 		}

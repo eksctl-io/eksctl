@@ -14,6 +14,42 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+// Outputs of CloudFormation stacks are collected into a struct with fields
+// matching names of the outputs. Here is a set of reflect-based helpers that
+// make this happen. Some data types get special treatment, e.g. string slices
+// and byte slices.
+
+const (
+	// outputs that are destined for ClusterStackOutputs
+	cfnOutputClusterVPC           = "VPC"
+	cfnOutputClusterSecurityGroup = "SecurityGroup"
+	cfnOutputClusterSubnets       = "Subnets"
+
+	cfnOutputClusterCertificateAuthorityData = "CertificateAuthorityData"
+	cfnOutputClusterEndpoint                 = "Endpoint"
+	cfnOutputClusterARN                      = "ARN"
+	cfnOutputClusterStackName                = "ClusterStackName"
+
+	// this is set inside of NodeGroup
+	cfnOutputInstanceRoleARN = "InstanceRoleARN"
+)
+
+// ClusterStackOutputs is a struct that hold all of cluster stack outputs,
+// it's needed because some of the destination fields in ClusterConfig are
+// deeply nested and we would need to do something complicated to handle
+// those otherwise
+type ClusterStackOutputs struct {
+	VPC            string
+	SecurityGroup  string
+	SubnetsPrivate []string
+	SubnetsPublic  []string
+
+	ClusterStackName         string
+	Endpoint                 string
+	CertificateAuthorityData []byte
+	ARN                      string
+}
+
 // newOutput defines a new output and optionally exports it
 func (r *resourceSet) newOutput(name string, value interface{}, export bool) {
 	o := map[string]interface{}{"Value": value}

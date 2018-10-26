@@ -71,13 +71,14 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	return nil
 }
 
-func makeAmazonLinux2Config(spec *api.ClusterConfig) (configFiles, error) {
-	if spec.MaxPodsPerNode == 0 {
-		spec.MaxPodsPerNode = maxPodsPerNodeType[spec.NodeType]
+func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles, error) {
+	c := spec.NodeGroups[nodeGroupID]
+	if c.MaxPodsPerNode == 0 {
+		c.MaxPodsPerNode = maxPodsPerNodeType[c.InstanceType]
 	}
 	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
 	kubeletParams := []string{
-		fmt.Sprintf("MAX_PODS=%d", spec.MaxPodsPerNode),
+		fmt.Sprintf("MAX_PODS=%d", c.MaxPodsPerNode),
 		// TODO: this will need to change when we provide options for using different VPCs and CIDRs – https://github.com/weaveworks/eksctl/issues/158
 		"CLUSTER_DNS=10.100.0.10",
 	}
@@ -113,14 +114,14 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig) (configFiles, error) {
 }
 
 // NewUserDataForAmazonLinux2 creates new user data for Amazon Linux 2 nodes
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
+func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
 		"bootstrap.al2.sh",
 	}
 
-	files, err := makeAmazonLinux2Config(spec)
+	files, err := makeAmazonLinux2Config(spec, nodeGroupID)
 	if err != nil {
 		return "", err
 	}

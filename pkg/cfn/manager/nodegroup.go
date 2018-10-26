@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kubicorn/kubicorn/pkg/logger"
@@ -20,50 +21,71 @@ const (
 	minSizePath         = "Resources.NodeGroup.Properties.MinSize"
 )
 
-func (c *StackCollection) makeNodeGroupStackName(sequence int) string {
-	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.ClusterName, sequence)
+func (c *StackCollection) makeNodeGroupStackName(id int) string {
+	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.ClusterName, id)
 }
 
-// CreateInitialNodeGroup creates the initial node group
-func (c *StackCollection) CreateInitialNodeGroup(errs chan error) error {
-	return c.CreateNodeGroup(0, errs)
-}
-
-// CreateNodeGroup creates the node group
-func (c *StackCollection) CreateNodeGroup(seq int, errs chan error) error {
-	name := c.makeNodeGroupStackName(seq)
+// CreateNodeGroup creates the nodegroup
+func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) error {
+	ng := data.(*api.NodeGroup)
+	name := c.makeNodeGroupStackName(ng.ID)
 	logger.Info("creating nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), seq)
+	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
 
-	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", seq)))
+	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", ng.ID)))
+
+	for k, v := range ng.Tags {
+		c.tags = append(c.tags, newTag(k, v))
+	}
 
 	return c.CreateStack(name, stack, nil, errs)
 }
 
-// DeleteNodeGroup deletes the node group
-func (c *StackCollection) DeleteNodeGroup() error {
-	_, err := c.DeleteStack(c.makeNodeGroupStackName(0))
+func (c *StackCollection) listAllNodeGroups() ([]string, error) {
+	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-\\d$", c.spec.ClusterName))
+	if err != nil {
+		return nil, err
+	}
+	stackNames := []string{}
+	for _, s := range stacks {
+		if *s.StackStatus == cfn.StackStatusDeleteComplete {
+			continue
+		}
+		stackNames = append(stackNames, *s.StackName)
+	}
+	logger.Debug("nodegroups = %v", stackNames)
+	return stackNames, nil
+}
+
+// DeleteNodeGroup deletes a nodegroup stack
+func (c *StackCollection) DeleteNodeGroup(errs chan error, data interface{}) error {
+	defer close(errs)
+	name := data.(string)
+	_, err := c.DeleteStack(name)
 	return err
 }
 
-// WaitDeleteNodeGroup waits till the node group is deleted
-func (c *StackCollection) WaitDeleteNodeGroup() error {
-	return c.WaitDeleteStack(c.makeNodeGroupStackName(0))
+// WaitDeleteNodeGroup waits until the nodegroup is deleted
+func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
+	defer close(errs)
+	name := data.(string)
+	return c.WaitDeleteStack(name)
 }
 
-// ScaleInitialNodeGroup will scale the first (sequence 0) nodegroup
+// ScaleInitialNodeGroup will scale the first nodegroup (ID: 0)
 func (c *StackCollection) ScaleInitialNodeGroup() error {
 	return c.ScaleNodeGroup(0)
 }
 
-// ScaleNodeGroup will scale an existing node group
-func (c *StackCollection) ScaleNodeGroup(sequence int) error {
+// ScaleNodeGroup will scale an existing nodegroup
+func (c *StackCollection) ScaleNodeGroup(id int) error {
+	ng := c.spec.NodeGroups[id]
 	clusterName := c.makeClusterStackName()
 	c.spec.ClusterStackName = clusterName
-	name := c.makeNodeGroupStackName(sequence)
+	name := c.makeNodeGroupStackName(id)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	// Get current stack
@@ -85,30 +107,30 @@ func (c *StackCollection) ScaleNodeGroup(sequence int) error {
 	currentMinSize := gjson.Get(template, minSizePath)
 
 	// Set the new values
-	newCapacity := fmt.Sprintf("%d", c.spec.Nodes)
+	newCapacity := fmt.Sprintf("%d", ng.DesiredCapacity)
 	template, err = sjson.Set(template, desiredCapacityPath, newCapacity)
 	if err != nil {
 		return errors.Wrap(err, "setting desired capacity")
 	}
-	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Str, c.spec.Nodes))
+	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Str, ng.DesiredCapacity))
 
 	// If the desired number of nodes is less than the min then update the min
-	if int64(c.spec.Nodes) < currentMinSize.Int() {
-		newMinSize := fmt.Sprintf("%d", c.spec.Nodes)
+	if int64(ng.DesiredCapacity) < currentMinSize.Int() {
+		newMinSize := fmt.Sprintf("%d", ng.DesiredCapacity)
 		template, err = sjson.Set(template, minSizePath, newMinSize)
 		if err != nil {
 			return errors.Wrap(err, "setting min size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Str, c.spec.Nodes))
+		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Str, ng.DesiredCapacity))
 	}
 	// If the desired number of nodes is greater than the max then update the max
-	if int64(c.spec.Nodes) > currentMaxSize.Int() {
-		newMaxSize := fmt.Sprintf("%d", c.spec.Nodes)
+	if int64(ng.DesiredCapacity) > currentMaxSize.Int() {
+		newMaxSize := fmt.Sprintf("%d", ng.DesiredCapacity)
 		template, err = sjson.Set(template, maxSizePath, newMaxSize)
 		if err != nil {
 			return errors.Wrap(err, "setting max size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Str, c.spec.Nodes))
+		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Str, ng.DesiredCapacity))
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
 
