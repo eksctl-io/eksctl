@@ -50,21 +50,26 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 Example output:
 ```
 $ eksctl create cluster
-2018-08-06T16:32:59+01:00 [ℹ]  setting availability zones to [us-west-2c us-west-2b us-west-2a]
-2018-08-06T16:32:59+01:00 [ℹ]  creating EKS cluster "adorable-painting-1533569578" in "us-west-2" region
-2018-08-06T16:32:59+01:00 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
-2018-08-06T16:32:59+01:00 [ℹ]  if you encounter any issues, check CloudFormation console first
-2018-08-06T16:32:59+01:00 [ℹ]  creating cluster stack "eksctl-adorable-painting-1533569578-cluster"
-2018-08-06T16:43:43+01:00 [ℹ]  creating nodegroup stack "eksctl-adorable-painting-1533569578-nodegroup-0"
-2018-08-06T16:47:14+01:00 [✔]  all EKS cluster resource for "adorable-painting-1533569578" had been created
-2018-08-06T16:47:14+01:00 [✔]  saved kubeconfig as "/Users/ilya/.kube/config"
-2018-08-06T16:47:20+01:00 [ℹ]  the cluster has 0 nodes
-2018-08-06T16:47:20+01:00 [ℹ]  waiting for at least 2 nodes to become ready
-2018-08-06T16:47:57+01:00 [ℹ]  the cluster has 2 nodes
-2018-08-06T16:47:57+01:00 [ℹ]  node "ip-192-168-115-52.us-west-2.compute.internal" is ready
-2018-08-06T16:47:57+01:00 [ℹ]  node "ip-192-168-217-205.us-west-2.compute.internal" is ready
-2018-08-06T16:48:00+01:00 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
-2018-08-06T16:48:00+01:00 [✔]  EKS cluster "adorable-painting-1533569578" in "us-west-2" region is ready
+2018-10-26T16:22:17+01:00 [ℹ]  using region us-west-2
+2018-10-26T16:22:19+01:00 [ℹ]  setting availability zones to [us-west-2a us-west-2b us-west-2c]
+2018-10-26T16:22:19+01:00 [ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
+2018-10-26T16:22:19+01:00 [ℹ]  subnets for us-west-2b - public:192.168.32.0/19 private:192.168.128.0/19
+2018-10-26T16:22:19+01:00 [ℹ]  subnets for us-west-2c - public:192.168.64.0/19 private:192.168.160.0/19
+2018-10-26T16:22:19+01:00 [ℹ]  using "ami-0a54c984b9f908c81" for nodes
+2018-10-26T16:22:19+01:00 [ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
+2018-10-26T16:22:19+01:00 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+2018-10-26T16:22:19+01:00 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --name=floral-unicorn-1540567338'
+2018-10-26T16:22:19+01:00 [ℹ]  creating cluster stack "eksctl-floral-unicorn-1540567338-cluster"
+2018-10-26T16:33:03+01:00 [ℹ]  creating nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-0"
+2018-10-26T16:36:44+01:00 [✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
+2018-10-26T16:36:44+01:00 [✔]  saved kubeconfig as "/Users/ilya/.kube/config"
+2018-10-26T16:36:46+01:00 [ℹ]  the cluster has 0 nodes
+2018-10-26T16:36:46+01:00 [ℹ]  waiting for at least 2 nodes to become ready
+2018-10-26T16:37:22+01:00 [ℹ]  the cluster has 2 nodes
+2018-10-26T16:37:22+01:00 [ℹ]  node "ip-192-168-25-215.us-west-2.compute.internal" is ready
+2018-10-26T16:37:22+01:00 [ℹ]  node "ip-192-168-83-60.us-west-2.compute.internal" is ready
+2018-10-26T16:37:23+01:00 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
+2018-10-26T16:37:23+01:00 [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
 ```
 
 To list the details about a cluster or all of the clusters, use:
