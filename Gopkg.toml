@@ -42,7 +42,8 @@ required = [
 
 [[constraint]]
   name = "k8s.io/kops"
-  branch = "master"
+  source = "https://github.com/errordeveloper/kops"
+  revision = "17a2c474956b3aa8513124efe6f5f431212e5216"
 
 # copied from https://github.com/kubernetes/kops/blob/master/Gopkg.toml
 [[override]]

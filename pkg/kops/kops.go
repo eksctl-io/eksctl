@@ -61,13 +61,13 @@ func (k *Wrapper) UseVPC(spec *api.ClusterConfig) error {
 		subnet := subnet.Obj.(*ec2.Subnet)
 		for _, tag := range subnet.Tags {
 			if k.isOwned(tag) && *subnet.VpcId == vpcs[0] {
-				spec.VPC.ImportSubnet(api.SubnetTopologyPublic, *subnet.AvailabilityZone, *subnet.SubnetId)
+				spec.ImportSubnet(api.SubnetTopologyPublic, *subnet.AvailabilityZone, *subnet.SubnetId)
 				spec.AvailabilityZones = append(spec.AvailabilityZones, *subnet.AvailabilityZone)
 			}
 		}
 	}
 	logger.Debug("subnets = %#v", spec.VPC.Subnets)
-	if !spec.VPC.HasSufficientPublicSubnets() {
+	if !spec.HasSufficientPublicSubnets() {
 		return fmt.Errorf("cannot use VPC from kops cluster with less then 3 subnets")
 	}
 

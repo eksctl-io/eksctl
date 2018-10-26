@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"fmt"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 
@@ -31,10 +33,19 @@ func (c *ClusterResourceSet) AddAllResources() error {
 
 	templateDescriptionFeatures := clusterTemplateDescriptionDefaultFeatures
 
-	if c.spec.VPC.ID != "" && c.spec.VPC.HasSufficientPublicSubnets() {
+	if c.spec.VPC.ID != "" && c.spec.HasSufficientPublicSubnets() {
 		c.importResourcesForVPC()
 		templateDescriptionFeatures = " (with shared VPC and dedicated IAM role) "
 	} else {
+		topologies := len(c.spec.VPC.Subnets)
+		switch {
+		case topologies < 1:
+			return fmt.Errorf("too few subnet topologies: %v", c.spec.VPC.Subnets)
+		case topologies == 1 && !c.spec.HasSufficientPublicSubnets():
+			return fmt.Errorf("too few public subnets: %v", c.spec.VPC.Subnets["Public"])
+		case topologies == 2 && !c.spec.HasSufficientPrivateSubnets():
+			return fmt.Errorf("too few private subnets: %v", c.spec.VPC.Subnets["Private"])
+		}
 		c.addResourcesForVPC()
 	}
 	c.addOutputsForVPC()
@@ -93,11 +104,11 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 
 	// TODO: shouldn't assume the order is the same, can probably do an API lookup
 	for i, subnet := range c.outputs.SubnetsPrivate {
-		c.spec.VPC.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet)
+		c.spec.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet)
 	}
 
 	for i, subnet := range c.outputs.SubnetsPublic {
-		c.spec.VPC.ImportSubnet(api.SubnetTopologyPublic, c.spec.AvailabilityZones[i], subnet)
+		c.spec.ImportSubnet(api.SubnetTopologyPublic, c.spec.AvailabilityZones[i], subnet)
 	}
 
 	c.spec.ClusterStackName = c.outputs.ClusterStackName

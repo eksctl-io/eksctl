@@ -111,7 +111,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 	var vpcZoneIdentifier interface{}
 	if len(n.spec.AvailabilityZones) > 0 {
-		vpcZoneIdentifier = n.clusterSpec.VPC.SubnetIDs(api.SubnetTopologyPublic)
+		vpcZoneIdentifier = n.clusterSpec.SubnetIDs(api.SubnetTopologyPublic)
 	} else {
 		vpcZoneIdentifier = map[string][]interface{}{
 			gfn.FnSplit: []interface{}{

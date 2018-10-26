@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
@@ -100,6 +101,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.AvailabilityZones = testAZs
 		ng.InstanceType = "t2.medium"
 
+		*cfg.VPC.CIDR = api.DefaultCIDR()
+
 		return cfg
 	}
 
@@ -115,7 +118,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			ARN:                      arn,
 			AvailabilityZones:        testAZs,
 
-			VPC: api.ClusterVPC{
+			VPC: &api.ClusterVPC{
 				Network: api.Network{
 					ID: "vpc-0e265ad953062b94b",
 					CIDR: &net.IPNet{
@@ -129,22 +132,45 @@ var _ = Describe("CloudFormation template builder API", func() {
 						"us-west-2b": {
 							ID: "subnet-0f98135715dfcf55f",
 							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 64, 0},
-								Mask: []byte{255, 255, 192, 0},
+								IP:   []byte{192, 168, 0, 0},
+								Mask: []byte{255, 255, 224, 0},
 							},
 						},
 						"us-west-2a": {
 							ID: "subnet-0ade11bad78dced9e",
 							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 128, 0},
-								Mask: []byte{255, 255, 192, 0},
+								IP:   []byte{192, 168, 32, 0},
+								Mask: []byte{255, 255, 224, 0},
 							},
 						},
 						"us-west-2c": {
 							ID: "subnet-0e2e63ff1712bf6ef",
 							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 192, 0},
-								Mask: []byte{255, 255, 192, 0},
+								IP:   []byte{192, 168, 64, 0},
+								Mask: []byte{255, 255, 224, 0},
+							},
+						},
+					},
+					"Private": map[string]api.Network{
+						"us-west-2b": {
+							ID: "subnet-0f98135715dfcf55a",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 96, 0},
+								Mask: []byte{255, 255, 224, 0},
+							},
+						},
+						"us-west-2a": {
+							ID: "subnet-0ade11bad78dced9f",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 128, 0},
+								Mask: []byte{255, 255, 224, 0},
+							},
+						},
+						"us-west-2c": {
+							ID: "subnet-0e2e63ff1712bf6ea",
+							CIDR: &net.IPNet{
+								IP:   []byte{192, 168, 160, 0},
+								Mask: []byte{255, 255, 224, 0},
 							},
 						},
 					},
@@ -159,22 +185,40 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 		}
 
-		initial := newClusterConfig()
+		cfg := newClusterConfig()
+		ctl := eks.New(cfg)
 
-		initial.SetSubnets()
+		It("should not error when calling SetSubnets", func() {
+			err := ctl.SetSubnets()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
-		rs := NewClusterResourceSet(initial)
-		rs.AddAllResources()
+		It("should have public and private subnets", func() {
+			Expect(len(cfg.VPC.Subnets)).To(Equal(2))
+			for _, k := range []api.SubnetTopology{"Public", "Private"} {
+				Expect(cfg.VPC.Subnets).To(HaveKey(k))
+				Expect(len(cfg.VPC.Subnets[k])).To(Equal(3))
+			}
+		})
 
-		sampleStack := newStackWithOutputs(map[string]string{
+		rs := NewClusterResourceSet(cfg)
+		It("should add all resources without error", func() {
+			err := rs.AddAllResources()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		sampleOutputs := map[string]string{
 			"SecurityGroup":            "sg-0b44c48bcba5b7362",
 			"SubnetsPublic":            "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef",
+			"SubnetsPrivate":           "subnet-0f98135715dfcf55a,subnet-0ade11bad78dced9f,subnet-0e2e63ff1712bf6ea",
 			"VPC":                      "vpc-0e265ad953062b94b",
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
 			"ARN":                      arn,
 			"ClusterStackName":         "",
-		})
+		}
+
+		sampleStack := newStackWithOutputs(sampleOutputs)
 
 		It("should not error", func() {
 			err := rs.GetAllOutputs(sampleStack)
@@ -182,7 +226,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		It("should be equal", func() {
-			Expect(*initial).To(Equal(*expected))
+			Expect(*cfg).To(Equal(*expected))
 		})
 	})
 
