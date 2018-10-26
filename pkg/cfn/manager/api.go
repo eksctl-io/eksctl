@@ -234,7 +234,7 @@ func (c *StackCollection) WaitDeleteStack(name string) error {
 
 // DescribeStacks describes the existing stacks
 func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^(eksclt|EKS)-%s-((cluster|nodegroup)-\\d+|(VPC|ServiceRole|DefaultNodeGroup))$", name))
+	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-((cluster|nodegroup-\\d+)|(VPC|ServiceRole|DefaultNodeGroup))$", name))
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", name)
 	}

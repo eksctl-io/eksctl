@@ -39,7 +39,7 @@ func describeStacksCmd() *cobra.Command {
 	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.BoolVar(&utilsDescribeStackAll, "all", false, "include deleted stacks")
-	fs.BoolVar(&utilsDescribeStackEvents, "events", true, "include stack events")
+	fs.BoolVar(&utilsDescribeStackEvents, "events", false, "include stack events")
 
 	return cmd
 }
