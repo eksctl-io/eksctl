@@ -3,8 +3,9 @@ package manager
 import (
 	"bytes"
 	"fmt"
+	"strconv"
+	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -19,7 +20,21 @@ const (
 	desiredCapacityPath = "Resources.NodeGroup.Properties.DesiredCapacity"
 	maxSizePath         = "Resources.NodeGroup.Properties.MaxSize"
 	minSizePath         = "Resources.NodeGroup.Properties.MinSize"
+	instanceTypePath    = "Resources.NodeLaunchConfig.Properties.InstanceType"
+	imageIDPath         = "Resources.NodeLaunchConfig.Properties.ImageId"
 )
+
+// NodeGroupSummary represents a summary of a nodegroup stack
+type NodeGroupSummary struct {
+	Seq             int
+	StackName       string
+	MaxSize         int
+	MinSize         int
+	DesiredCapacity int
+	InstanceType    string
+	ImageID         string
+	CreationTime    *time.Time
+}
 
 func (c *StackCollection) makeNodeGroupStackName(id int) string {
 	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.ClusterName, id)
@@ -89,7 +104,7 @@ func (c *StackCollection) ScaleNodeGroup(id int) error {
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	// Get current stack
-	template, err := c.getStackTemplate(name)
+	template, err := c.GetStackTemplate(name)
 	if err != nil {
 		return errors.Wrapf(err, "error getting stack template %s", name)
 	}
@@ -137,15 +152,70 @@ func (c *StackCollection) ScaleNodeGroup(id int) error {
 	return c.UpdateStack(name, "scale-nodegroup", descriptionBuffer.String(), []byte(template), nil)
 }
 
-func (c *StackCollection) getStackTemplate(stackName string) (string, error) {
-	input := &cfn.GetTemplateInput{
-		StackName: aws.String(stackName),
-	}
-
-	output, err := c.cfn.GetTemplate(input)
+// GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster
+func (c *StackCollection) GetNodeGroupSummaries() ([]*NodeGroupSummary, error) {
+	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-\\d+$", c.spec.ClusterName), cfn.StackStatusCreateComplete)
 	if err != nil {
-		return "", err
+		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
 
-	return *output.TemplateBody, nil
+	summaries := []*NodeGroupSummary{}
+	for _, stack := range stacks {
+		logger.Info("stack %s\n", *stack.StackName)
+		logger.Debug("stack = %#v", stack)
+
+		template, err := c.GetStackTemplate(*stack.StackName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
+		}
+
+		//TODO: create a map function
+		seq := getNodeGroupID(stack.Tags)
+		maxSize := gjson.Get(template, maxSizePath)
+		minSize := gjson.Get(template, minSizePath)
+		desired := gjson.Get(template, desiredCapacityPath)
+		instanceType := gjson.Get(template, instanceTypePath)
+		imageID := gjson.Get(template, imageIDPath)
+
+		summary := &NodeGroupSummary{
+			Seq:             seq,
+			StackName:       *stack.StackName,
+			MaxSize:         int(maxSize.Int()),
+			MinSize:         int(minSize.Int()),
+			DesiredCapacity: int(desired.Int()),
+			InstanceType:    instanceType.String(),
+			ImageID:         imageID.String(),
+			CreationTime:    stack.CreationTime,
+		}
+
+		summaries = append(summaries, summary)
+	}
+
+	return summaries, nil
+}
+
+// GetMaxNodeGroupSeq returns the sequence number og the highest node group
+func (c *StackCollection) GetMaxNodeGroupSeq() (int, error) {
+	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-\\d+$", c.spec.ClusterName))
+	if err != nil {
+		return -1, errors.Wrap(err, "getting nodegroup stacks")
+	}
+	seq := -1
+	for _, stack := range stacks {
+		stackSeq := getNodeGroupID(stack.Tags)
+		if stackSeq > seq {
+			seq = stackSeq
+		}
+	}
+	return seq, nil
+}
+
+func getNodeGroupID(tags []*cfn.Tag) int {
+	for _, tag := range tags {
+		if *tag.Key == NodeGroupIDTag {
+			i, _ := strconv.Atoi(*tag.Value)
+			return i
+		}
+	}
+	return -1
 }

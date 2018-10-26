@@ -67,6 +67,30 @@ func (s *StackCollection) CreateClusterWithNodeGroups() []error {
 	return nil
 }
 
+// CreateNodeGroups runs all tasks required to create the node groups;
+// any errors will be returned as a slice as soon as one of the tasks
+// or group of tasks is completed
+func (s *StackCollection) CreateNodeGroups() []error {
+	errs := []error{}
+	appendErr := func(err error) {
+		errs = append(errs, err)
+	}
+
+	createAllNodeGroups := []task{}
+	for i := range s.spec.NodeGroups {
+		t := task{
+			call: s.CreateNodeGroup,
+			data: s.spec.NodeGroups[i],
+		}
+		createAllNodeGroups = append(createAllNodeGroups, t)
+	}
+	if Run(appendErr, createAllNodeGroups...); len(errs) > 0 {
+		return errs
+	}
+
+	return nil
+}
+
 // deleteAllNodeGroupsTasks returns a list of tasks for deleting all the
 // nodegroup stacks
 func (s *StackCollection) deleteAllNodeGroupsTasks(call func(chan error, interface{}) error) ([]task, error) {
