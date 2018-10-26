@@ -6,7 +6,10 @@ import (
 )
 
 const (
-	DefaultPrefix      = ""
+	// DefaultPrefix defines the default prefix
+	DefaultPrefix = ""
+
+	// DefaultIndentation defines the default indentation
 	DefaultIndentation = "  "
 )
 
@@ -30,7 +33,9 @@ func (j *JSONPrinter) PrintObj(kind string, obj interface{}, writer io.Writer) e
 	if err != nil {
 		return err
 	}
-	writer.Write(b)
+	if _, err := writer.Write(b); err != nil {
+		return err
+	}
 
 	return nil
 }

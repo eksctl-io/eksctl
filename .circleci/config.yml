@@ -5,7 +5,15 @@ jobs:
     machine: true
     steps:
       - checkout
-      - run: make eksctl-image
+      - run: mkdir -p ./test-results/ginkgo
+      - run:
+            command: make eksctl-image
+            environment:
+                TEST_OUTPUT: "true"
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
   make-release:
     machine: true
     steps:

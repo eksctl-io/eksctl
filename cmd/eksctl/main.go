@@ -3,17 +3,23 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/create"
+	"github.com/weaveworks/eksctl/pkg/ctl/delete"
+	"github.com/weaveworks/eksctl/pkg/ctl/get"
+	"github.com/weaveworks/eksctl/pkg/ctl/scale"
+	"github.com/weaveworks/eksctl/pkg/ctl/utils"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "eksctl",
 	Short: "a CLI for Amazon EKS",
 	Run: func(c *cobra.Command, _ []string) {
-		c.Help()
+		if err := c.Help(); err != nil {
+			logger.Debug("ignoring error %q", err.Error())
+		}
 	},
 }
 
@@ -34,19 +40,9 @@ func main() {
 
 func addCommands() {
 	rootCmd.AddCommand(versionCmd())
-	rootCmd.AddCommand(createCmd())
-	rootCmd.AddCommand(deleteCmd())
-	rootCmd.AddCommand(getCmd())
-	rootCmd.AddCommand(utilsCmd())
-}
-
-func getNameArg(args []string) string {
-	if len(args) > 1 {
-		logger.Critical("only one argument is allowed to be used as a name")
-		os.Exit(1)
-	}
-	if len(args) == 1 {
-		return (strings.TrimSpace(args[0]))
-	}
-	return ""
+	rootCmd.AddCommand(create.Command())
+	rootCmd.AddCommand(delete.Command())
+	rootCmd.AddCommand(get.Command())
+	rootCmd.AddCommand(scale.Command())
+	rootCmd.AddCommand(utils.Command())
 }

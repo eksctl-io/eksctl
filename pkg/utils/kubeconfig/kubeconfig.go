@@ -16,18 +16,22 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+// DefaultPath defines the default path
 var DefaultPath = clientcmd.RecommendedHomeFile
 
 const (
+	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
-	AWSIAMAuthenticator    = "aws-iam-authenticator"
+
+	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
+	AWSIAMAuthenticator = "aws-iam-authenticator"
 )
 
 // New creates Kubernetes client configuration for a given username
 // if certificateAuthorityPath is no empty, it is used instead of
 // embedded certificate-authority-data
 func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
-	clusterName := fmt.Sprintf("%s.%s.eksctl.io", spec.ClusterName, spec.Region)
+	clusterName := getCompleteClusterName(spec)
 	contextName := fmt.Sprintf("%s@%s", username, clusterName)
 
 	c := &clientcmdapi.Config{
@@ -57,6 +61,7 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 	return c, clusterName, contextName
 }
 
+// AppendAuthenticator appends the AWS IAM  authenticator
 func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, command string) {
 	c.AuthInfos[c.CurrentContext].Exec = &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
@@ -76,12 +81,12 @@ func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string
 	configAccess := getConfigAccess(path)
 
 	config, err := configAccess.GetStartingConfig()
+	if err != nil {
+		return "", errors.Wrapf(err, "enable to read existing kubeconfig file %q", path)
+	}
 
 	logger.Debug("merging kubeconfig files")
-	merged, err := merge(config, newConfig)
-	if err != nil {
-		return "", errors.Wrapf(err, "unable to merge configuration with existing kubeconfig file %q", path)
-	}
+	merged := merge(config, newConfig)
 
 	if setContext && newConfig.CurrentContext != "" {
 		logger.Debug("setting current-context to %s", newConfig.CurrentContext)
@@ -95,6 +100,10 @@ func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string
 	return configAccess.GetDefaultFilename(), nil
 }
 
+func getCompleteClusterName(spec *api.ClusterConfig) string {
+	return fmt.Sprintf("%s.%s.eksctl.io", spec.ClusterName, spec.Region)
+}
+
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 	pathOptions := clientcmd.NewDefaultPathOptions()
 	if explicitPath != "" && explicitPath != DefaultPath {
@@ -103,7 +112,7 @@ func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 
 	return interface{}(pathOptions).(clientcmd.ConfigAccess)
 }
-func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) (*clientcmdapi.Config, error) {
+func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) *clientcmdapi.Config {
 	for k, v := range tomerge.Clusters {
 		existing.Clusters[k] = v
 	}
@@ -114,9 +123,10 @@ func merge(existing *clientcmdapi.Config, tomerge *clientcmdapi.Config) (*client
 		existing.Contexts[k] = v
 	}
 
-	return existing, nil
+	return existing
 }
 
+// AutoPath returns the path for the auto-generated kubeconfig
 func AutoPath(name string) string {
 	return path.Join(clientcmd.RecommendedConfigDir, "eksctl", "clusters", name)
 }
@@ -146,18 +156,9 @@ func isValidConfig(p, name string) error {
 	return ctxFmtErr
 }
 
-func tryDeleteConfig(p, name string) {
-	if err := isValidConfig(p, name); err != nil {
-		logger.Debug("ignoring error while checking config file %q: %s", p, err.Error())
-		return
-	}
-	if err := os.Remove(p); err != nil {
-		logger.Debug("ignoring error while removing config file %q: %s", p, err.Error())
-	}
-}
-
-func MaybeDeleteConfig(name string) {
-	p := AutoPath(name)
+// MaybeDeleteConfig will delete the auto-generated kubeconfig, if it exists
+func MaybeDeleteConfig(ctl *api.ClusterConfig) {
+	p := AutoPath(ctl.ClusterName)
 
 	autoConfExists, err := utils.FileExists(p)
 	if err != nil {
@@ -165,12 +166,59 @@ func MaybeDeleteConfig(name string) {
 		return
 	}
 	if autoConfExists {
-		if err := os.Remove(p); err != nil {
+		if err = isValidConfig(p, ctl.ClusterName); err != nil {
+			logger.Debug(err.Error())
+			return
+		}
+		if err = os.Remove(p); err != nil {
 			logger.Debug("ignoring error while removing auto-generated config file %q: %s", p, err.Error())
 		}
 		return
 	}
 
-	// Print message to manually remove from config file
-	logger.Warning("as you are not using the auto-generated kubeconfig file you will need to remove the details of cluster %s manually", name)
+	configAccess := getConfigAccess(DefaultPath)
+	config, err := configAccess.GetStartingConfig()
+	if err != nil {
+		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath, err.Error())
+		return
+	}
+
+	if !deleteClusterInfo(config, ctl) {
+		return
+	}
+
+	if err := clientcmd.ModifyConfig(configAccess, *config, true); err != nil {
+		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath, err.Error())
+	} else {
+		logger.Success("kubeconfig has been updated")
+	}
+}
+
+// deleteClusterInfo removes a cluster's information from the kubeconfig if the cluster name
+// provided by ctl matches a eksctl-created cluster in the kubeconfig
+// returns 'true' if the existing config has changes and 'false' otherwise
+func deleteClusterInfo(existing *clientcmdapi.Config, ctl *api.ClusterConfig) bool {
+	isChanged := false
+	clusterName := getCompleteClusterName(ctl)
+
+	if existing.Clusters[clusterName] != nil {
+		delete(existing.Clusters, clusterName)
+		logger.Debug("removed cluster %q from kubeconfig", clusterName)
+		isChanged = true
+	}
+
+	for username, context := range existing.Contexts {
+		if context.Cluster == clusterName {
+			delete(existing.Contexts, username)
+			logger.Debug("removed context for %q from kubeconfig", username)
+			isChanged = true
+			if existing.AuthInfos[username] != nil {
+				delete(existing.AuthInfos, username)
+				logger.Debug("removed auth info for %q from kubeconfig", username)
+			}
+			break
+		}
+	}
+
+	return isChanged
 }

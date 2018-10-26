@@ -10,16 +10,36 @@ import (
 )
 
 const (
+	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
 
-	EKS_REGION_US_WEST_2 = "us-west-2"
-	EKS_REGION_US_EAST_1 = "us-east-1"
-	EKS_REGION_EU_WEST_1 = "eu-west-1"
-	DEFAULT_EKS_REGION   = EKS_REGION_US_WEST_2
+	// EKSRegionUSWest2 represents the US West Region Oregon
+	EKSRegionUSWest2 = "us-west-2"
+
+	// EKSRegionUSEast1 represents the US East Region North Virgina
+	EKSRegionUSEast1 = "us-east-1"
+
+	// EKSRegionEUWest1 represents the EU West Region Ireland
+	EKSRegionEUWest1 = "eu-west-1"
+
+	// DefaultEKSRegion defines the default region, where to deploy the EKS cluster
+	DefaultEKSRegion = EKSRegionUSWest2
 )
 
+// SupportedRegions are the regions where EKS is available
+var SupportedRegions = []string{
+	EKSRegionUSWest2,
+	EKSRegionUSEast1,
+	EKSRegionEUWest1,
+}
+
+// DefaultWaitTimeout defines the default wait timeout
 var DefaultWaitTimeout = 20 * time.Minute
 
+// DefaultNodeCount defines the default number of nodes to be created
+const DefaultNodeCount = 2
+
+// ClusterProvider provides an interface with the needed AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
 	EKS() eksiface.EKSAPI
@@ -27,33 +47,18 @@ type ClusterProvider interface {
 	STS() stsiface.STSAPI
 }
 
-// simple config, to be replaced with Cluster API
+// ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
 	Region      string
 	Profile     string
 	Tags        map[string]string
 	ClusterName string
 
-	NodeAMI  string
-	NodeType string
-	Nodes    int
-	MinNodes int
-	MaxNodes int
-
-	MaxPodsPerNode int
-
-	NodePolicyARNs []string
-
-	NodeSSH          bool
-	SSHPublicKeyPath string
-	SSHPublicKey     []byte
-	SSHPublicKeyName string
-
 	WaitTimeout time.Duration
 
-	SecurityGroup string
-	Subnets       []string
-	VPC           string
+	VPC *ClusterVPC
+
+	NodeGroups []*NodeGroup
 
 	Endpoint                 string
 	CertificateAuthorityData []byte
@@ -61,17 +66,75 @@ type ClusterConfig struct {
 
 	ClusterStackName string
 
-	NodeInstanceRoleARN string
-
 	AvailabilityZones []string
 
 	Addons ClusterAddons
 }
 
-type ClusterAddons struct {
-	WithIAM AddonIAM
+// NewClusterConfig create new config for a cluster;
+// it doesn't include initial nodegroup, so user must
+// call NewNodeGroup to create one
+func NewClusterConfig() *ClusterConfig {
+	cfg := &ClusterConfig{
+		VPC: &ClusterVPC{},
+	}
+
+	cidr := DefaultCIDR()
+	cfg.VPC.CIDR = &cidr
+
+	return cfg
 }
 
-type AddonIAM struct {
-	PolicyAmazonEC2ContainerRegistryPowerUser bool
+// NewNodeGroup crears new nodegroup inside cluster config,
+// it returns pointer to the nodegroup for convenience
+func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
+	ng := &NodeGroup{
+		ID:             len(c.NodeGroups),
+		SubnetTopology: SubnetTopologyPublic,
+	}
+
+	c.NodeGroups = append(c.NodeGroups, ng)
+
+	return ng
 }
+
+// NodeGroup holds all configuration attributes that are
+// specific to a nodegroup
+type NodeGroup struct {
+	ID int
+
+	AMI               string
+	InstanceType      string
+	AvailabilityZones []string
+	Tags              map[string]string
+	SubnetTopology    SubnetTopology
+
+	DesiredCapacity int
+	MinSize         int
+	MaxSize         int
+
+	VolumeSize int
+
+	MaxPodsPerNode int
+
+	PolicyARNs      []string
+	InstanceRoleARN string
+
+	AllowSSH         bool
+	SSHPublicKeyPath string
+	SSHPublicKey     []byte
+	SSHPublicKeyName string
+}
+
+type (
+	// ClusterAddons provides addons for the created EKS cluster
+	ClusterAddons struct {
+		WithIAM AddonIAM
+		Storage bool
+	}
+	// AddonIAM provides an addon for the AWS IAM integration
+	AddonIAM struct {
+		PolicyAmazonEC2ContainerRegistryPowerUser bool
+		PolicyAutoScaling                         bool
+	}
+)

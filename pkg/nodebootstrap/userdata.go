@@ -16,6 +16,7 @@ import (
 )
 
 //go:generate ${GOPATH}/bin/go-bindata -pkg ${GOPACKAGE} -prefix assets -modtime 1 -o assets.go assets
+//go:generate go run ./maxpods_generate.go
 
 const (
 	configDir            = "/etc/eksctl/"
@@ -70,15 +71,21 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	return nil
 }
 
-func makeAmazonLinux2Config(config *cloudconfig.CloudConfig, spec *api.ClusterConfig) (configFiles, error) {
-	if spec.MaxPodsPerNode == 0 {
-		spec.MaxPodsPerNode = maxPodsPerNodeType[spec.NodeType]
+func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles, error) {
+	c := spec.NodeGroups[nodeGroupID]
+	if c.MaxPodsPerNode == 0 {
+		c.MaxPodsPerNode = maxPodsPerNodeType[c.InstanceType]
 	}
 	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
+	clusterDNS := "10.100.0.10"
+	if spec.VPC.CIDR.IP[0] == 10 {
+		// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
+		// is anywhere within 10.0.0.0/8
+		clusterDNS = "172.20.0.10"
+	}
 	kubeletParams := []string{
-		fmt.Sprintf("MAX_PODS=%d", spec.MaxPodsPerNode),
-		// TODO: this will need to change when we provide options for using different VPCs and CIDRs – https://github.com/weaveworks/eksctl/issues/158
-		"CLUSTER_DNS=10.100.0.10",
+		fmt.Sprintf("MAX_PODS=%d", c.MaxPodsPerNode),
+		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS),
 	}
 
 	metadata := []string{
@@ -111,19 +118,20 @@ func makeAmazonLinux2Config(config *cloudconfig.CloudConfig, spec *api.ClusterCo
 	return files, nil
 }
 
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
+// NewUserDataForAmazonLinux2 creates new user data for Amazon Linux 2 nodes
+func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
 		"bootstrap.al2.sh",
 	}
 
-	files, err := makeAmazonLinux2Config(config, spec)
+	files, err := makeAmazonLinux2Config(spec, nodeGroupID)
 	if err != nil {
 		return "", err
 	}
 
-	if err := addFilesAndScripts(config, files, scripts); err != nil {
+	if err = addFilesAndScripts(config, files, scripts); err != nil {
 		return "", err
 	}
 
@@ -132,6 +140,6 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig) (string, error) {
 		return "", errors.Wrap(err, "encoding user data")
 	}
 
-	logger.Debug("user-data = %s", string(body))
-	return string(body), nil
+	logger.Debug("user-data = %s", body)
+	return body, nil
 }

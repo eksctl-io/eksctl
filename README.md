@@ -50,21 +50,26 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 Example output:
 ```
 $ eksctl create cluster
-2018-08-06T16:32:59+01:00 [ℹ]  setting availability zones to [us-west-2c us-west-2b us-west-2a]
-2018-08-06T16:32:59+01:00 [ℹ]  creating EKS cluster "adorable-painting-1533569578" in "us-west-2" region
-2018-08-06T16:32:59+01:00 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
-2018-08-06T16:32:59+01:00 [ℹ]  if you encounter any issues, check CloudFormation console first
-2018-08-06T16:32:59+01:00 [ℹ]  creating cluster stack "eksctl-adorable-painting-1533569578-cluster"
-2018-08-06T16:43:43+01:00 [ℹ]  creating nodegroup stack "eksctl-adorable-painting-1533569578-nodegroup-0"
-2018-08-06T16:47:14+01:00 [✔]  all EKS cluster resource for "adorable-painting-1533569578" had been created
-2018-08-06T16:47:14+01:00 [✔]  saved kubeconfig as "/Users/ilya/.kube/config"
-2018-08-06T16:47:20+01:00 [ℹ]  the cluster has 0 nodes
-2018-08-06T16:47:20+01:00 [ℹ]  waiting for at least 2 nodes to become ready
-2018-08-06T16:47:57+01:00 [ℹ]  the cluster has 2 nodes
-2018-08-06T16:47:57+01:00 [ℹ]  node "ip-192-168-115-52.us-west-2.compute.internal" is ready
-2018-08-06T16:47:57+01:00 [ℹ]  node "ip-192-168-217-205.us-west-2.compute.internal" is ready
-2018-08-06T16:48:00+01:00 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
-2018-08-06T16:48:00+01:00 [✔]  EKS cluster "adorable-painting-1533569578" in "us-west-2" region is ready
+2018-10-26T16:22:17+01:00 [ℹ]  using region us-west-2
+2018-10-26T16:22:19+01:00 [ℹ]  setting availability zones to [us-west-2a us-west-2b us-west-2c]
+2018-10-26T16:22:19+01:00 [ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
+2018-10-26T16:22:19+01:00 [ℹ]  subnets for us-west-2b - public:192.168.32.0/19 private:192.168.128.0/19
+2018-10-26T16:22:19+01:00 [ℹ]  subnets for us-west-2c - public:192.168.64.0/19 private:192.168.160.0/19
+2018-10-26T16:22:19+01:00 [ℹ]  using "ami-0a54c984b9f908c81" for nodes
+2018-10-26T16:22:19+01:00 [ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
+2018-10-26T16:22:19+01:00 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
+2018-10-26T16:22:19+01:00 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --name=floral-unicorn-1540567338'
+2018-10-26T16:22:19+01:00 [ℹ]  creating cluster stack "eksctl-floral-unicorn-1540567338-cluster"
+2018-10-26T16:33:03+01:00 [ℹ]  creating nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-0"
+2018-10-26T16:36:44+01:00 [✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
+2018-10-26T16:36:44+01:00 [✔]  saved kubeconfig as "/Users/ilya/.kube/config"
+2018-10-26T16:36:46+01:00 [ℹ]  the cluster has 0 nodes
+2018-10-26T16:36:46+01:00 [ℹ]  waiting for at least 2 nodes to become ready
+2018-10-26T16:37:22+01:00 [ℹ]  the cluster has 2 nodes
+2018-10-26T16:37:22+01:00 [ℹ]  node "ip-192-168-25-215.us-west-2.compute.internal" is ready
+2018-10-26T16:37:22+01:00 [ℹ]  node "ip-192-168-83-60.us-west-2.compute.internal" is ready
+2018-10-26T16:37:23+01:00 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
+2018-10-26T16:37:23+01:00 [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
 ```
 
 To list the details about a cluster or all of the clusters, use:
@@ -77,6 +82,12 @@ To create the same kind of basic cluster, but with a different name, run:
 
 ```
 eksctl create cluster --name=cluster-1 --nodes=4
+```
+
+A default [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/) (gp2 volume type provisioned by EBS) will be added automatically when creating a cluster.  If you want to prevent this, use the `--storage-class` flag.  For example:
+
+```
+eksctl create cluster --storage-class=false
 ```
 
 To write cluster credentials to a file other than default, run:
@@ -119,21 +130,27 @@ eksctl create cluster --name=cluster-6 --nodes=30 --node-type=c4.xlarge --set-ku
 In order to allow SSH access to nodes, `eksctl` imports `~/.ssh/id_rsa.pub` by default, to use a different SSH public key, e.g. `my_eks_node_id.pub`, run:
 
 ```
-eksctl create cluster --ssh-public-key=my_eks_node_id.pub
+eksctl create cluster --ssh-access --ssh-public-key=my_eks_node_id.pub
 ```
 
 To use a pre-existing EC2 key pair in `us-east-1` region, you can specify key pair name (which must not resolve to a local file path), e.g. to use `my_kubernetes_key` run:
 
 ```
-eksctl create cluster --ssh-public-key=my_kubernetes_key --region=us-east-1
+eksctl create cluster --ssh-access  --ssh-public-key=my_kubernetes_key --region=us-east-1
 ```
 
-To add custom tags for all resources, use `--tags`. Note that until
-https://github.com/weaveworks/eksctl/issues/25 is resolved, tags will
-apply to CloudFormation stacks but not EKS clusters.
+To add custom tags for all resources, use `--tags`.
+
+> NOTE: Until [https://github.com/weaveworks/eksctl/issues/25] is resolved, tags cannot be applied to EKS cluster itself, but most of other resources (e.g. EC2 nodes).
 
 ```
 eksctl create cluster --tags environment=staging --region=us-east-1
+```
+
+To configure node volume size, use the `--node-volume-size` flag.
+
+```
+eksctl create cluster --node-volume-size=50
 ```
 
 > NOTE: In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.
@@ -143,6 +160,54 @@ To delete a cluster, run:
 ```
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
+
+### Scaling nodegroup
+
+The initial nodegroup can be scaled by using the `eksctl scale nodegroup` command. For example, to scale to 5 nodes:
+
+```
+eksctl scale nodegroup --name=<name> --nodes=5
+```
+
+If the desired number of nodes is greater than the current maximum set on the ASG then the maximum value will be increased to match the number of requested nodes. And likewise for the minimum.
+
+Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a ChangeSet.
+
+> NOTE: Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+
+### VPC Networking
+
+By default, `eksctl create cluster` instatiates a dedicated VPC, in order to avoid interference with any existing EC2 networks.
+Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
+Initial nodegroup is create in public subnets, with SSH access disabled unless `--allow-ssh` is specified. However, this implies
+that each of the EC2 isntances in the initial nodegroup get assigned public IPs and can be access on ports 1025 - 65535, which is
+not unsecure in principle, yet some compromised workload can risk access violation.
+
+If that functionality doesn't suite you, the following options are currently available.
+
+#### chage VPC CIDR
+
+If you need to setup peering with another VPC, or simply need larger or smaller range of IPs, you can use `--vpc-cidr` flag to
+change it. You cannot use just any sort of CIDR, there only certain ranges that can be used in [AWS VPC](vpcsizing).
+
+[vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
+
+#### use existing VPC: shared with kops
+
+You can use a VPC of an existing Kubernetes cluster managed by kops. This is feature is provided to facilitate migration and/or
+cluster peering.
+
+If you have previously created a cluster with kops, e.g. using commands similar to this:
+```
+export KOPS_STATE_STORE=s3://kops
+kops create cluster cluster-1.k8s.local --zones=us-west-2c,us-west-2b,us-west-2a --networking=weave --yes
+```
+
+You can create an EKS cluster in the same AZs using the same VPC subnets (NOTE: at least 3 subnets are required):
+```
+eksctl crearte cluster --name=cluster-2 --region=us-west-2 --vpc-from-kops-cluster=cluster-1.k8s.local
+```
+
 ### GPU Support
 
 If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/instance-types/p2/) or [p3](https://aws.amazon.com/ec2/instance-types/p3/) ) then the first thing you need to do is subscribe to the [EKS-optimized AMI with GPU Support](https://aws.amazon.com/marketplace/pp/B07GRHFXGM). If you don't do this then node creation will fail.
@@ -161,9 +226,10 @@ Once the cluster is created you will need to install the [NVIDIA Kubernetes devi
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
 ```
 
-> Once `addon` support has been added as part of 0.2.0 its envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
+> NOTE: Once `addon` support has been added as part of 0.2.0 its envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
 
 ### Latest & Custom AMI Support
+
 With the the 0.1.2 release we have introduced the `--node-ami` flag for use when creating a cluster. This enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use (non-GPU and GPU instances).
 
 The `--node-ami` can take the AMI image id for an image to explicitly use. It also can take the following 'special' keywords:
@@ -171,7 +237,7 @@ The `--node-ami` can take the AMI image id for an image to explicitly use. It al
 | Keyword | Description |
 | ------------ | -------------- |
 | static       | Indicates that the AMI images ids embedded into eksctl should be used. This relates to the static resolvers. |
-| auto        | Indicates that the AMI to use for the nodes should be found by querying AWS. This relates to the auto resolver. | 
+| auto        | Indicates that the AMI to use for the nodes should be found by querying AWS. This relates to the auto resolver. |
 
 If, for example, AWS release a new version of the EKS node AMIs and a new version of eksctl hasn't been released you can use the latest AMI by doing the following:
 
@@ -193,7 +259,7 @@ eksctl apply --cluster-config advanced-cluster.yaml
 
 It should suffice to install a cluster for development with just a single command. Here are some examples:
 
-To create a cluster with default configuration (2 `m4.large` nodes), run:
+To create a cluster with default configuration (2 `m5.large` nodes), run:
 
 ```
 eksctl create cluster

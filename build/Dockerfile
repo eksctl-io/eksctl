@@ -1,13 +1,13 @@
-FROM golang:1.10.2-alpine3.7
+FROM golang:1.11-alpine3.8
 
-RUN apk add --update \
+RUN apk add --no-cache \
       curl \
       git \
       make \
       gcc \
       && true
 
-ENV DEP_VERSION v0.4.1
+ENV DEP_VERSION v0.5.0
 
 # Install dep to avoid vendoring all the things
 RUN curl --silent --location "https://github.com/golang/dep/releases/download/${DEP_VERSION}/dep-linux-amd64" --output /usr/local/bin/dep \
@@ -20,8 +20,6 @@ COPY . $EKSCTL_BUILD
 WORKDIR $EKSCTL_BUILD
 
 RUN dep ensure
-
-WORKDIR $EKSCTL_BUILD
 
 RUN ./install.sh
 

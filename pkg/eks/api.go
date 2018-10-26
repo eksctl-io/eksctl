@@ -29,6 +29,7 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+// ClusterProvider stores information about the cluster
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
 	Spec     *api.ClusterConfig
@@ -37,6 +38,7 @@ type ClusterProvider struct {
 	Status *ProviderStatus
 }
 
+// ProviderServices stores the used APIs
 type ProviderServices struct {
 	cfn cloudformationiface.CloudFormationAPI
 	eks eksiface.EKSAPI
@@ -44,18 +46,25 @@ type ProviderServices struct {
 	sts stsiface.STSAPI
 }
 
+// CloudFormation returns a representation of the CloudFormation API
 func (p ProviderServices) CloudFormation() cloudformationiface.CloudFormationAPI { return p.cfn }
 
+// EKS returns a representation of the EKS API
 func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
+
+// EC2 returns a representation of the EC2 API
 func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
+
+// STS returns a representation of the STS API
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
+// ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
-	iamRoleARN        string
-	sessionCreds      *credentials.Credentials
-	availabilityZones []string
+	iamRoleARN   string
+	sessionCreds *credentials.Credentials
 }
 
+// New creates a new setup of the used AWS APIs
 func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
@@ -98,6 +107,7 @@ func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
 	}
 }
 
+// GetCredentialsEnv returns the AWS credentials for env usage
 func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 	creds, err := c.Status.sessionCreds.Get()
 	if err != nil {
@@ -110,6 +120,7 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 	}, nil
 }
 
+// CheckAuth checks the AWS authentication
 func (c *ClusterProvider) CheckAuth() error {
 	{
 		input := &sts.GetCallerIdentityInput{}
@@ -130,38 +141,39 @@ func (c *ClusterProvider) CheckAuth() error {
 }
 
 // EnsureAMI ensures that the node AMI is set and is available
-func (c *ClusterProvider) EnsureAMI() error {
+func (c *ClusterProvider) EnsureAMI(ng *api.NodeGroup) error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	// - improve validation of parameter set overall, probably in another package
-	if c.Spec.NodeAMI == ami.ResolverAuto {
+	if ng.AMI == ami.ResolverAuto {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
-	if c.Spec.NodeAMI == ami.ResolverStatic || c.Spec.NodeAMI == ami.ResolverAuto {
-		id, err := ami.Resolve(c.Spec.Region, c.Spec.NodeType)
+	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
+		id, err := ami.Resolve(c.Spec.Region, ng.InstanceType)
 		if err != nil {
 			return errors.Wrap(err, "Unable to determine AMI to use")
 		}
 		if id == "" {
-			return ami.NewErrFailedResolution(c.Spec.Region, c.Spec.NodeType)
+			return ami.NewErrFailedResolution(c.Spec.Region, ng.InstanceType)
 		}
-		c.Spec.NodeAMI = id
+		ng.AMI = id
 	}
 
 	// Check the AMI is available
-	available, err := ami.IsAvailable(c.Provider.EC2(), c.Spec.NodeAMI)
+	available, err := ami.IsAvailable(c.Provider.EC2(), ng.AMI)
 	if err != nil {
-		return errors.Wrapf(err, "%s is not available", c.Spec.NodeAMI)
+		return errors.Wrapf(err, "%s is not available", ng.AMI)
 	}
 
 	if !available {
-		return ami.NewErrNotFound(c.Spec.NodeAMI)
+		return ami.NewErrNotFound(ng.AMI)
 	}
 
-	logger.Info("using %q for nodes", c.Spec.NodeAMI)
+	logger.Info("using %q for nodes", ng.AMI)
 
 	return nil
 }
 
+// SetAvailabilityZones sets the given (or chooses) the availability zones
 func (c *ClusterProvider) SetAvailabilityZones(given []string) error {
 	if len(given) == 0 {
 		logger.Debug("determining availability zones")
@@ -187,7 +199,11 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig()
-	config = config.WithRegion(clusterConfig.Region)
+
+	if clusterConfig.Region != "" {
+		config = config.WithRegion(clusterConfig.Region)
+	}
+
 	config = config.WithCredentialsChainVerboseErrors(true)
 	if logger.Level >= api.AWSDebugLevel {
 		config = config.WithLogLevel(aws.LogDebug |
@@ -218,9 +234,25 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 		opts.Config.Credentials = credentials
 	}
 
-	return session.Must(session.NewSessionWithOptions(opts))
+	s := session.Must(session.NewSessionWithOptions(opts))
+
+	if clusterConfig.Region == "" {
+		if *s.Config.Region != "" {
+			// set cluster config region, based on session config
+			clusterConfig.Region = *s.Config.Region
+		} else {
+			// if session config doesn't have region set, make recursive call forcing default region
+			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
+			clusterConfig.Region = api.DefaultEKSRegion
+			return newSession(clusterConfig, endpoint, credentials)
+		}
+	}
+
+	logger.Info("using region %s", clusterConfig.Region)
+	return s
 }
 
+// NewStackManager returns a new stack manager
 func (c *ClusterProvider) NewStackManager() *manager.StackCollection {
 	return manager.NewStackCollection(c.Provider, c.Spec)
 }

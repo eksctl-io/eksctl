@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
-	"github.com/heptio/authenticator/pkg/token"
+	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 
 	clientset "k8s.io/client-go/kubernetes"
@@ -28,8 +28,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-func (c *ClusterProvider) getKeyPairName(fingerprint *string) string {
+func (c *ClusterProvider) getKeyPairName(ng *api.NodeGroup, fingerprint *string) string {
 	keyNameParts := []string{"eksctl", c.Spec.ClusterName}
+	if ng != nil {
+		keyNameParts = append(keyNameParts, fmt.Sprintf("ng%d", ng.ID))
+	}
 	if fingerprint != nil {
 		keyNameParts = append(keyNameParts, *fingerprint)
 	}
@@ -51,32 +54,32 @@ func (c *ClusterProvider) getKeyPair(name string) (*ec2.KeyPairInfo, error) {
 	return output.KeyPairs[0], nil
 }
 
-func (c *ClusterProvider) tryExistingSSHPublicKeyFromPath() error {
-	logger.Info("SSH public key file %q does not exist; will assume existing EC2 key pair", c.Spec.SSHPublicKeyPath)
-	existing, err := c.getKeyPair(c.Spec.SSHPublicKeyPath)
+func (c *ClusterProvider) tryExistingSSHPublicKeyFromPath(ng *api.NodeGroup) error {
+	logger.Info("SSH public key file %q does not exist; will assume existing EC2 key pair", ng.SSHPublicKeyPath)
+	existing, err := c.getKeyPair(ng.SSHPublicKeyPath)
 	if err != nil {
 		return err
 	}
-	c.Spec.SSHPublicKeyName = *existing.KeyName
-	logger.Info("found EC2 key pair %q", c.Spec.SSHPublicKeyName)
+	ng.SSHPublicKeyName = *existing.KeyName
+	logger.Info("found EC2 key pair %q", ng.SSHPublicKeyName)
 	return nil
 }
 
-func (c *ClusterProvider) importSSHPublicKeyIfNeeded() error {
-	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(c.Spec.SSHPublicKey))
+func (c *ClusterProvider) importSSHPublicKeyIfNeeded(ng *api.NodeGroup) error {
+	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(ng.SSHPublicKey))
 	if err != nil {
 		return err
 	}
-	c.Spec.SSHPublicKeyName = c.getKeyPairName(&fingerprint)
-	existing, err := c.getKeyPair(c.Spec.SSHPublicKeyName)
+	ng.SSHPublicKeyName = c.getKeyPairName(ng, &fingerprint)
+	existing, err := c.getKeyPair(ng.SSHPublicKeyName)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "cannot find EC2 key pair") {
 			input := &ec2.ImportKeyPairInput{
-				KeyName:           &c.Spec.SSHPublicKeyName,
-				PublicKeyMaterial: c.Spec.SSHPublicKey,
+				KeyName:           &ng.SSHPublicKeyName,
+				PublicKeyMaterial: ng.SSHPublicKey,
 			}
-			logger.Info("importing SSH public key %q as %q", c.Spec.SSHPublicKeyPath, c.Spec.SSHPublicKeyName)
-			if _, err := c.Provider.EC2().ImportKeyPair(input); err != nil {
+			logger.Info("importing SSH public key %q as %q", ng.SSHPublicKeyPath, ng.SSHPublicKeyName)
+			if _, err = c.Provider.EC2().ImportKeyPair(input); err != nil {
 				return errors.Wrap(err, "importing SSH public key")
 			}
 			return nil
@@ -84,34 +87,36 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded() error {
 		return errors.Wrap(err, "checking existing key pair")
 	}
 	if *existing.KeyFingerprint != fingerprint {
-		return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", c.Spec.SSHPublicKeyName, fingerprint, *existing.KeyFingerprint)
+		return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", ng.SSHPublicKeyName, fingerprint, *existing.KeyFingerprint)
 	}
-	logger.Debug("SSH public key %s already exists", c.Spec.SSHPublicKeyName)
+	logger.Debug("SSH public key %s already exists", ng.SSHPublicKeyName)
 	return nil
 }
 
-func (c *ClusterProvider) LoadSSHPublicKey() error {
-	if !c.Spec.NodeSSH {
+// LoadSSHPublicKey loads the given SSH public key
+func (c *ClusterProvider) LoadSSHPublicKey(ng *api.NodeGroup) error {
+	if !ng.AllowSSH {
 		// TODO: https://github.com/weaveworks/eksctl/issues/144
 		return nil
 	}
-	c.Spec.SSHPublicKeyPath = utils.ExpandPath(c.Spec.SSHPublicKeyPath)
-	sshPublicKey, err := ioutil.ReadFile(c.Spec.SSHPublicKeyPath)
+	ng.SSHPublicKeyPath = utils.ExpandPath(ng.SSHPublicKeyPath)
+	sshPublicKey, err := ioutil.ReadFile(ng.SSHPublicKeyPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// if file not found – try to use existing EC2 key pair
-			return c.tryExistingSSHPublicKeyFromPath()
+			return c.tryExistingSSHPublicKeyFromPath(ng)
 		}
-		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", c.Spec.SSHPublicKeyPath))
+		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", ng.SSHPublicKeyPath))
 	}
 	// on successful read – import it
-	c.Spec.SSHPublicKey = sshPublicKey
-	if err := c.importSSHPublicKeyIfNeeded(); err != nil {
+	ng.SSHPublicKey = sshPublicKey
+	if err := c.importSSHPublicKeyIfNeeded(ng); err != nil {
 		return err
 	}
 	return nil
 }
 
+// MaybeDeletePublicSSHKey will delete the public SSH key, if it exists
 func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 	existing, err := c.Provider.EC2().DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
 	if err != nil {
@@ -119,7 +124,7 @@ func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 		return
 	}
 	matching := []*string{}
-	prefix := c.getKeyPairName(nil)
+	prefix := c.getKeyPairName(nil, nil)
 	logger.Debug("existing = %#v", existing)
 	for _, e := range existing.KeyPairs {
 		if strings.HasPrefix(*e.KeyName, prefix) {
@@ -131,16 +136,14 @@ func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
 			}
 		}
 	}
-	if len(matching) > 1 {
-		logger.Debug("too many matching keys, will not delete any")
-		return
-	}
-	if len(matching) == 1 {
+	for i := range matching {
 		input := &ec2.DeleteKeyPairInput{
-			KeyName: matching[0],
+			KeyName: matching[i],
 		}
-		logger.Debug("deleting key %q", *matching[0])
-		c.Provider.EC2().DeleteKeyPair(input)
+		logger.Debug("deleting key %q", *matching[i])
+		if _, err := c.Provider.EC2().DeleteKeyPair(input); err != nil {
+			logger.Debug("key pair couldn't be deleted: %v", err)
+		}
 	}
 }
 
@@ -152,6 +155,7 @@ func (c *ClusterProvider) getUsername() string {
 	return "iam-root-account"
 }
 
+// ClientConfig stores information about the client config
 type ClientConfig struct {
 	Client      *clientcmdapi.Config
 	Cluster     *api.ClusterConfig
@@ -161,6 +165,7 @@ type ClientConfig struct {
 	sts         stsiface.STSAPI
 }
 
+// NewClientConfig creates a new client config
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 // these are small, so we can copy these, and no need to deal with k/k as dependency
 func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
@@ -196,10 +201,11 @@ func (c *ClientConfig) WithExecAuthenticator() *ClientConfig {
 	return &clientConfigCopy
 }
 
+// WithEmbeddedToken embeds the STS token
 func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 	clientConfigCopy := *c
 
-	gen, err := token.NewGenerator()
+	gen, err := token.NewGenerator(true)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get token generator")
 	}
@@ -215,6 +221,7 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 	return &clientConfigCopy, nil
 }
 
+// NewClientSet creates a new API client
 func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 	clientConfig, err := clientcmd.NewDefaultClientConfig(*c.Client, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
@@ -228,6 +235,7 @@ func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 	return client, nil
 }
 
+// NewClientSetWithEmbeddedToken creates a new API client with an embedded STS token
 func (c *ClientConfig) NewClientSetWithEmbeddedToken() (*clientset.Clientset, error) {
 	clientConfig, err := c.WithEmbeddedToken()
 	if err != nil {

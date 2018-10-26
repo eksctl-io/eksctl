@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// DefaultRequiredAvailabilityZones defines the number of required availability zones
 	DefaultRequiredAvailabilityZones = 3
 )
 

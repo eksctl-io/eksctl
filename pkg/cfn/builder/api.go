@@ -58,23 +58,6 @@ func makeStringSlice(s ...string) []*gfn.Value {
 	return slice
 }
 
-func (r *resourceSet) newParameter(name, valueType, defaultValue string) *gfn.Value {
-	p := map[string]string{"Type": valueType}
-	if defaultValue != "" {
-		p["Default"] = defaultValue
-	}
-	r.template.Parameters[name] = p
-	return gfn.MakeRef(name)
-}
-
-func (r *resourceSet) newStringParameter(name, defaultValue string) *gfn.Value {
-	return r.newParameter(name, "String", defaultValue)
-}
-
-func (r *resourceSet) newNumberParameter(name, defaultValue string) *gfn.Value {
-	return r.newParameter(name, "Number", defaultValue)
-}
-
 // makeAutoNameTag create a new Name tag in the following format:
 // {Key: "Name", Value: !Sub "${AWS::StackName}/<logicalResourceName>"}
 func makeAutoNameTag(suffix string) gfn.Tag {

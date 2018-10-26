@@ -3,11 +3,9 @@ package eks_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 func TestEks(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Eks Suite")
+	testutils.RegisterAndRun(t, "Eks Suite")
 }

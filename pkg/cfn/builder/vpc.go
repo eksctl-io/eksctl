@@ -1,67 +1,89 @@
 package builder
 
 import (
-	"net"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-const (
-	cfnOutputClusterVPC           = "VPC"
-	cfnOutputClusterSubnets       = "Subnets"
-	cfnOutputClusterSecurityGroup = "SecurityGroup"
-)
+func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
+	for az, subnet := range c.spec.VPC.Subnets[topology] {
+		alias := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
+		refSubnet := c.newResource("Subnet"+string(topology)+alias, &gfn.AWSEC2Subnet{
+			AvailabilityZone: gfn.NewString(az),
+			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
+			VpcId:            c.vpc,
+		})
+		c.newResource("RouteTableAssociation"+string(topology)+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
+			SubnetId:     refSubnet,
+			RouteTableId: refRT,
+		})
+		c.subnets[topology] = append(c.subnets[topology], refSubnet)
+	}
+}
 
-func (c *clusterResourceSet) addResourcesForVPC(globalCIDR *net.IPNet, subnets map[string]*net.IPNet) {
-	refVPC := c.newResource("VPC", &gfn.AWSEC2VPC{
-		CidrBlock:          gfn.NewString(globalCIDR.String()),
+//nolint:interfacer
+func (c *ClusterResourceSet) addResourcesForVPC() {
+	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
+		CidrBlock:          gfn.NewString(c.spec.VPC.CIDR.String()),
 		EnableDnsSupport:   gfn.True(),
 		EnableDnsHostnames: gfn.True(),
 	})
 
+	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
+
 	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
 	c.newResource("VPCGatewayAttachment", &gfn.AWSEC2VPCGatewayAttachment{
 		InternetGatewayId: refIG,
-		VpcId:             refVPC,
+		VpcId:             c.vpc,
 	})
 
-	refRT := c.newResource("RouteTable", &gfn.AWSEC2RouteTable{
-		VpcId: refVPC,
+	refPrivateRT := c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
+		VpcId: c.vpc,
+	})
+
+	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
+
+	refPublicRT := c.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
+		VpcId: c.vpc,
 	})
 
 	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
-		RouteTableId:         refRT,
+		RouteTableId:         refPublicRT,
 		DestinationCidrBlock: gfn.NewString("0.0.0.0/0"),
 		GatewayId:            refIG,
 	})
 
-	for az, subnet := range subnets {
-		alias := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
-		refSubnet := c.newResource("Subnet"+alias, &gfn.AWSEC2Subnet{
-			AvailabilityZone: gfn.NewString(az),
-			CidrBlock:        gfn.NewString(subnet.String()),
-			VpcId:            refVPC,
-		})
-		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
-			SubnetId:     refSubnet,
-			RouteTableId: refRT,
-		})
-		c.subnets = append(c.subnets, refSubnet)
-	}
-
-	refSG := c.newResource("ControlPlaneSecurityGroup", &gfn.AWSEC2SecurityGroup{
-		GroupDescription: gfn.NewString("Communication between the control plane and worker node groups"),
-		VpcId:            refVPC,
-	})
-	c.securityGroups = []*gfn.Value{refSG}
-
-	c.rs.newOutput(cfnOutputClusterVPC, refVPC, true)
-	c.rs.newJoinedOutput(cfnOutputClusterSecurityGroup, c.securityGroups, true)
-	c.rs.newJoinedOutput(cfnOutputClusterSubnets, c.subnets, true)
+	c.addSubnets(refPublicRT, api.SubnetTopologyPublic)
 }
 
-func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
+func (c *ClusterResourceSet) importResourcesForVPC() {
+	c.vpc = gfn.NewString(c.spec.VPC.ID)
+	for topology := range c.spec.VPC.Subnets {
+		for _, subnet := range c.spec.SubnetIDs(topology) {
+			c.subnets[topology] = append(c.subnets[topology], gfn.NewString(subnet))
+		}
+	}
+}
+
+func (c *ClusterResourceSet) addOutputsForVPC() {
+	c.rs.newOutput(cfnOutputClusterVPC, c.vpc, true)
+	for topology := range c.spec.VPC.Subnets {
+		c.rs.newJoinedOutput(cfnOutputClusterSubnets+string(topology), c.subnets[topology], true)
+	}
+}
+
+func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
+	refSG := c.newResource("ControlPlaneSecurityGroup", &gfn.AWSEC2SecurityGroup{
+		GroupDescription: gfn.NewString("Communication between the control plane and worker node groups"),
+		VpcId:            c.vpc,
+	})
+	c.securityGroups = []*gfn.Value{refSG}
+	c.rs.newJoinedOutput(cfnOutputClusterSecurityGroup, c.securityGroups, true)
+}
+
+func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	desc := "worker nodes in group " + n.nodeGroupName
 
 	tcp := gfn.NewString("tcp")
@@ -81,7 +103,7 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 		VpcId:            makeImportValue(n.clusterStackName, cfnOutputClusterVPC),
 		GroupDescription: gfn.NewString("Communication between the control plane and " + desc),
 		Tags: []gfn.Tag{{
-			Key:   gfn.NewString("kubernetes.io/cluster/" + n.spec.ClusterName),
+			Key:   gfn.NewString("kubernetes.io/cluster/" + n.clusterSpec.ClusterName),
 			Value: gfn.NewString("owned"),
 		}},
 	})
@@ -106,10 +128,26 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.newResource("EgressInterCluster", &gfn.AWSEC2SecurityGroupEgress{
 		GroupId:                    refCP,
 		DestinationSecurityGroupId: refSG,
-		Description:                gfn.NewString("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
+		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (kubelet and workload TCP ports)"),
 		IpProtocol:                 tcp,
 		FromPort:                   nodeMinPort,
 		ToPort:                     nodeMaxPort,
+	})
+	n.newResource("IngressInterClusterAPI", &gfn.AWSEC2SecurityGroupIngress{
+		GroupId:               refSG,
+		SourceSecurityGroupId: refCP,
+		Description:           gfn.NewString("Allow " + desc + " to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)"),
+		IpProtocol:            tcp,
+		FromPort:              apiPort,
+		ToPort:                apiPort,
+	})
+	n.newResource("EgressInterClusterAPI", &gfn.AWSEC2SecurityGroupEgress{
+		GroupId:                    refCP,
+		DestinationSecurityGroupId: refSG,
+		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (workloads using HTTPS port, commonly used with extension API servers)"),
+		IpProtocol:                 tcp,
+		FromPort:                   apiPort,
+		ToPort:                     apiPort,
 	})
 	n.newResource("IngressInterClusterCP", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refCP,
@@ -119,7 +157,7 @@ func (n *nodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              apiPort,
 		ToPort:                apiPort,
 	})
-	if n.spec.NodeSSH {
+	if n.spec.AllowSSH {
 		n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
 			GroupId:     refSG,
 			CidrIp:      anywhereIPv4,

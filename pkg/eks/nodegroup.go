@@ -7,6 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,11 +15,11 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
-func (c *ClusterProvider) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
+func (c *ClusterProvider) newNodeAuthConfigMap(ng *api.NodeGroup) (*corev1.ConfigMap, error) {
 	mapRoles := make([]map[string]interface{}, 1)
 	mapRoles[0] = make(map[string]interface{})
 
-	mapRoles[0]["rolearn"] = c.Spec.NodeInstanceRoleARN
+	mapRoles[0]["rolearn"] = ng.InstanceRoleARN
 	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
 	mapRoles[0]["groups"] = []string{
 		"system:bootstrappers",
@@ -43,8 +44,9 @@ func (c *ClusterProvider) newNodeAuthConfigMap() (*corev1.ConfigMap, error) {
 	return cm, nil
 }
 
-func (c *ClusterProvider) CreateDefaultNodeGroupAuthConfigMap(clientSet *clientset.Clientset) error {
-	cm, err := c.newNodeAuthConfigMap()
+// CreateNodeGroupAuthConfigMap creates the auth config map for the default node group
+func (c *ClusterProvider) CreateNodeGroupAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+	cm, err := c.newNodeAuthConfigMap(ng)
 	if err != nil {
 		return errors.Wrap(err, "constructing auth ConfigMap for DefaultNodeGroup")
 	}
@@ -64,7 +66,7 @@ func isNodeReady(node *corev1.Node) bool {
 }
 
 func getNodes(clientSet *clientset.Clientset) (int, error) {
-	nodes, err := clientSet.Core().Nodes().List(metav1.ListOptions{})
+	nodes, err := clientSet.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		return 0, err
 	}
@@ -80,13 +82,14 @@ func getNodes(clientSet *clientset.Clientset) (int, error) {
 	return len(nodes.Items), nil
 }
 
-func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
-	if c.Spec.MinNodes == 0 {
+// WaitForNodes waits till the nodes are ready
+func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+	if ng.MinSize == 0 {
 		return nil
 	}
 	timer := time.After(c.Spec.WaitTimeout)
 	timeout := false
-	watcher, err := clientSet.Core().Nodes().Watch(metav1.ListOptions{})
+	watcher, err := clientSet.CoreV1().Nodes().Watch(metav1.ListOptions{})
 	if err != nil {
 		return errors.Wrap(err, "creating node watcher")
 	}
@@ -96,10 +99,10 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
 		return errors.Wrap(err, "listing nodes")
 	}
 
-	logger.Info("waiting for at least %d nodes to become ready", c.Spec.MinNodes)
-	for !timeout && counter <= c.Spec.MinNodes {
+	logger.Info("waiting for at least %d nodes to become ready", ng.MinSize)
+	for !timeout && counter <= ng.MinSize {
 		select {
-		case event, _ := <-watcher.ResultChan():
+		case event := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
 			if event.Object != nil && event.Type != watch.Deleted {
 				if node, ok := event.Object.(*corev1.Node); ok {
@@ -117,11 +120,11 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset) error {
 		}
 	}
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.Spec.WaitTimeout, c.Spec.MinNodes)
+		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.Spec.WaitTimeout, ng.MinSize)
 	}
 
 	if _, err = getNodes(clientSet); err != nil {
-		errors.Wrap(err, "re-listing nodes")
+		return errors.Wrap(err, "re-listing nodes")
 	}
 
 	return nil

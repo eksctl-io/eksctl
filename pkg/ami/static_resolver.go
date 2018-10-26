@@ -7,7 +7,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-//go:generate go run generate/main.go
+//go:generate go run ./static_resolver_ami_generate.go
 
 // StaticDefaultResolver resolves the AMI to the defaults for the region
 type StaticDefaultResolver struct {

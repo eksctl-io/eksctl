@@ -13,12 +13,12 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 )
 
-// HaveEksCluster returns a GoMega matcher that will check for the existence of an EKS cluster
-func HaveEksCluster(expectedName string, expectedStatus string, expectedVersion string) types.GomegaMatcher {
-	return &haveEksClusterMatcher{expectedName: expectedName, expectedStatus: expectedStatus, expectedVersion: expectedVersion}
+// HaveExistingCluster returns a GoMega matcher that will check for the existence of an EKS cluster
+func HaveExistingCluster(expectedName string, expectedStatus string, expectedVersion string) types.GomegaMatcher {
+	return &existingCluster{expectedName: expectedName, expectedStatus: expectedStatus, expectedVersion: expectedVersion}
 }
 
-type haveEksClusterMatcher struct {
+type existingCluster struct {
 	expectedName    string
 	expectedStatus  string
 	expectedVersion string
@@ -33,7 +33,7 @@ type haveEksClusterMatcher struct {
 	region string
 }
 
-func (m *haveEksClusterMatcher) Match(actual interface{}) (success bool, err error) {
+func (m *existingCluster) Match(actual interface{}) (success bool, err error) {
 	if actual == nil {
 		return false, errors.New("input is nil")
 	}
@@ -74,7 +74,7 @@ func (m *haveEksClusterMatcher) Match(actual interface{}) (success bool, err err
 	return true, nil
 }
 
-func (m *haveEksClusterMatcher) FailureMessage(actual interface{}) (message string) {
+func (m *existingCluster) FailureMessage(actual interface{}) (message string) {
 	if m.statusMismatch {
 		return fmt.Sprintf("Expected EKS cluster status: %s to equal actual EKS cluster status: %s", m.expectedStatus, m.actualStatus)
 	}
@@ -85,7 +85,7 @@ func (m *haveEksClusterMatcher) FailureMessage(actual interface{}) (message stri
 	return fmt.Sprintf("Expected to find a cluster named %s but it wasn't found", m.expectedName)
 }
 
-func (m *haveEksClusterMatcher) NegatedFailureMessage(_ interface{}) (message string) {
+func (m *existingCluster) NegatedFailureMessage(_ interface{}) (message string) {
 	if m.statusMismatch {
 		return fmt.Sprintf("Expected EKS cluster status: %s NOT to equal actual EKS cluster status: %s", m.expectedStatus, m.actualStatus)
 	}

@@ -1,0 +1,21 @@
+kind: Config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /Users/bob/.minikube/ca.crt
+    server: https://192.168.64.19:8443
+  name: minikube
+contexts:
+- context:
+    cluster: minikube
+    user: minikube
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:
+- name: minikube
+  user:
+    as-user-extra: {}
+    client-certificate: /Users/bob/.minikube/client.crt
+    client-key: /Users/bob/.minikube/client.key

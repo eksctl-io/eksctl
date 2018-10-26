@@ -1,20 +1,23 @@
 package kubeconfig_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
-	"testing"
 
+	eksctlapi "github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestCreateNewKubeConfig(t *testing.T) {
-	configFile, _ := ioutil.TempFile("", "")
-	defer os.Remove(configFile.Name())
+var _ = Describe("Kubeconfig", func() {
+	var configFile *os.File
 
-	testConfig := api.Config{
+	var testConfig = api.Config{
 		AuthInfos: map[string]*api.AuthInfo{
 			"test-user": {Token: "test-token"}},
 		Clusters: map[string]*api.Cluster{
@@ -23,205 +26,217 @@ func TestCreateNewKubeConfig(t *testing.T) {
 			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 	}
 
-	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
-	if err != nil {
-		t.Fatalf("Error writing configuration: %v", err)
+	BeforeEach(func() {
+		configFile, _ = ioutil.TempFile("", "")
+	})
+
+	AfterEach(func() {
+		os.Remove(configFile.Name())
+	})
+
+	var writeConfig = func(filename string) error {
+		minikubeSample, err := ioutil.ReadFile("testdata/minikube_sample.golden")
+		if err != nil {
+			GinkgoT().Fatalf("failed reading .golden: %s", err)
+		}
+
+		return ioutil.WriteFile(filename, []byte(minikubeSample), os.FileMode(0755))
 	}
 
-	readConfig, err := clientcmd.LoadFromFile(filename)
-	if err != nil {
-		t.Fatalf("Error reading configuration file: %v", err)
-	}
+	It("creating new Kubeconfig", func() {
+		filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
+		Expect(err).To(BeNil())
 
-	if len(readConfig.Clusters) != 1 || readConfig.Clusters["test-cluster"].Server != testConfig.Clusters["test-cluster"].Server {
-		t.Fatalf("Cluster contents not the same")
-	}
+		readConfig, err := clientcmd.LoadFromFile(filename)
+		Expect(err).To(BeNil())
 
-	if len(readConfig.AuthInfos) != 1 || readConfig.AuthInfos["test-user"].Token != testConfig.AuthInfos["test-user"].Token {
-		t.Fatalf("AuthInfos contents not the same")
-	}
+		Expect(len(readConfig.Clusters)).To(Equal(1))
+		Expect(readConfig.Clusters["test-cluster"].Server).To(Equal(testConfig.Clusters["test-cluster"].Server))
 
-	if len(readConfig.Contexts) != 1 || readConfig.Contexts["test-context"].Namespace != testConfig.Contexts["test-context"].Namespace {
-		t.Fatalf("Context contents not the same")
-	}
-}
+		Expect(len(readConfig.AuthInfos)).To(Equal(1))
+		Expect(readConfig.AuthInfos["test-user"].Token).To(Equal(testConfig.AuthInfos["test-user"].Token))
 
-func TestNewConfigSetsContext(t *testing.T) {
-	const expectedContext = "test-context"
+		Expect(len(readConfig.Contexts)).To(Equal(1))
+		Expect(readConfig.Contexts["test-context"].Namespace).To(Equal(testConfig.Contexts["test-context"].Namespace))
+	})
 
-	configFile, _ := ioutil.TempFile("", "")
-	defer os.Remove(configFile.Name())
+	It("sets new Kubeconfig context", func() {
+		testConfigContext := testConfig
+		testConfigContext.CurrentContext = "test-context"
 
-	testConfig := api.Config{
-		AuthInfos: map[string]*api.AuthInfo{
-			"test-user": {Token: "test-token"}},
-		Clusters: map[string]*api.Cluster{
-			"test-cluster": {Server: "https://127.0.0.1:8443"}},
-		Contexts: map[string]*api.Context{
-			expectedContext: {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
-		CurrentContext: expectedContext,
-	}
+		filename, err := kubeconfig.Write(configFile.Name(), &testConfigContext, true)
+		Expect(err).To(BeNil())
 
-	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, true)
-	if err != nil {
-		t.Fatalf("Error writing configuration: %v", err)
-	}
+		readConfig, err := clientcmd.LoadFromFile(filename)
+		Expect(err).To(BeNil())
 
-	readConfig, err := clientcmd.LoadFromFile(filename)
-	if err != nil {
-		t.Fatalf("Error reading configuration file: %v", err)
-	}
+		Expect(readConfig.CurrentContext).To(Equal("test-context"))
+	})
 
-	if readConfig.CurrentContext != expectedContext {
-		t.Fatalf("Current context is %s but expected %s", readConfig.CurrentContext, expectedContext)
-	}
-}
+	It("merge new Kubeconfig", func() {
+		err := writeConfig(configFile.Name())
+		Expect(err).To(BeNil())
 
-func TestMergeKubeConfig(t *testing.T) {
-	configFile, _ := ioutil.TempFile("", "")
-	defer os.Remove(configFile.Name())
+		filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
+		Expect(err).To(BeNil())
 
-	err := writeConfig(configFile.Name())
-	if err != nil {
-		t.Errorf("Error writing initial configuration file: %v", err)
-	}
+		readConfig, err := clientcmd.LoadFromFile(filename)
+		Expect(err).To(BeNil())
 
-	testConfig := api.Config{
-		AuthInfos: map[string]*api.AuthInfo{
-			"test-user": {Token: "test-token"}},
-		Clusters: map[string]*api.Cluster{
-			"test-cluster": {Server: "https://127.0.0.1:8443"}},
-		Contexts: map[string]*api.Context{
-			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
-	}
+		Expect(len(readConfig.Clusters)).To(Equal(2))
+		Expect(readConfig.Clusters["test-cluster"].Server).To(Equal(testConfig.Clusters["test-cluster"].Server))
+		Expect(readConfig.Clusters["minikube"].Server).To(Equal("https://192.168.64.19:8443"))
 
-	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
-	if err != nil {
-		t.Fatalf("Error writing configuration: %v", err)
-	}
+		Expect(len(readConfig.AuthInfos)).To(Equal(2))
+		Expect(readConfig.AuthInfos["test-user"].Token).To(Equal(testConfig.AuthInfos["test-user"].Token))
+		Expect(readConfig.AuthInfos["minikube"].ClientCertificate).To(Equal("/Users/bob/.minikube/client.crt"))
 
-	readConfig, err := clientcmd.LoadFromFile(filename)
-	if err != nil {
-		t.Fatalf("Error reading configuration file: %v", err)
-	}
+		Expect(len(readConfig.Contexts)).To(Equal(2))
+		Expect(readConfig.Contexts["test-context"].Namespace).To(Equal(testConfig.Contexts["test-context"].Namespace))
+		Expect(readConfig.Contexts["minikube"].Cluster).To(Equal("minikube"))
+	})
 
-	if len(readConfig.Clusters) != 2 || readConfig.Clusters["test-cluster"].Server != testConfig.Clusters["test-cluster"].Server {
-		t.Fatalf("Cluster contents not the same")
-	}
-	if readConfig.Clusters["minikube"].Server != "https://192.168.64.19:8443" {
-		t.Fatalf("Error in merging as existing cluster configuration not the same")
-	}
+	It("merge sets context", func() {
+		err := writeConfig(configFile.Name())
+		Expect(err).To(BeNil())
 
-	if len(readConfig.AuthInfos) != 2 || readConfig.AuthInfos["test-user"].Token != testConfig.AuthInfos["test-user"].Token {
-		t.Fatalf("AuthInfos contents not the same")
-	}
-	if readConfig.AuthInfos["minikube"].ClientCertificate != "/Users/bob/.minikube/client.crt" {
-		t.Fatalf("Error in merging as existing AuthInfos configuration not the same")
-	}
+		testConfigContext := testConfig
+		testConfigContext.CurrentContext = "test-context"
 
-	if len(readConfig.Contexts) != 2 || readConfig.Contexts["test-context"].Namespace != testConfig.Contexts["test-context"].Namespace {
-		t.Fatalf("Context contents not the same")
-	}
-	if readConfig.Contexts["minikube"].Cluster != "minikube" {
-		t.Fatalf("Error in merging as existing Contexts configuration not the same")
-	}
-}
+		filename, err := kubeconfig.Write(configFile.Name(), &testConfigContext, true)
+		Expect(err).To(BeNil())
 
-func TestMergeSetsContext(t *testing.T) {
-	const expectedContext = "test-context"
+		readConfig, err := clientcmd.LoadFromFile(filename)
+		Expect(err).To(BeNil())
 
-	configFile, _ := ioutil.TempFile("", "")
-	defer os.Remove(configFile.Name())
+		Expect(readConfig.CurrentContext).To(Equal("test-context"))
+	})
 
-	err := writeConfig(configFile.Name())
-	if err != nil {
-		t.Errorf("Error writing initial configuration file: %v", err)
-	}
+	It("merge does not sets context", func() {
+		err := writeConfig(configFile.Name())
+		Expect(err).To(BeNil())
 
-	testConfig := api.Config{
-		AuthInfos: map[string]*api.AuthInfo{
-			"test-user": {Token: "test-token"}},
-		Clusters: map[string]*api.Cluster{
-			"test-cluster": {Server: "https://127.0.0.1:8443"}},
-		Contexts: map[string]*api.Context{
-			expectedContext: {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
-		CurrentContext: expectedContext,
-	}
+		testConfigContext := testConfig
+		testConfigContext.CurrentContext = "test-context"
 
-	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, true)
-	if err != nil {
-		t.Fatalf("Error writing configuration: %v", err)
-	}
+		filename, err := kubeconfig.Write(configFile.Name(), &testConfigContext, false)
+		Expect(err).To(BeNil())
 
-	readConfig, err := clientcmd.LoadFromFile(filename)
-	if err != nil {
-		t.Fatalf("Error reading configuration file: %v", err)
-	}
+		readConfig, err := clientcmd.LoadFromFile(filename)
+		Expect(err).To(BeNil())
 
-	if readConfig.CurrentContext != expectedContext {
-		t.Fatalf("Current context is %s but expected %s", readConfig.CurrentContext, expectedContext)
-	}
-}
+		Expect(readConfig.CurrentContext).To(Equal("minikube"))
+	})
 
-func TestMergeDoesNotSetContext(t *testing.T) {
-	expectedContext := "minikube"
-	configFile, _ := ioutil.TempFile("", "")
-	defer os.Remove(configFile.Name())
+	Context("delete config", func() {
+		// Default cluster name is 'foo' and region is 'us-west-2'
+		var apiClusterConfigSample = eksctlapi.ClusterConfig{
+			Region:      "us-west-2",
+			Profile:     "",
+			Tags:        map[string]string{},
+			ClusterName: "foo",
+			NodeGroups: []*eksctlapi.NodeGroup{
+				{
+					AMI:               "",
+					InstanceType:      "m5.large",
+					AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
+					SubnetTopology:    "Public",
+					AllowSSH:          false,
+					SSHPublicKeyPath:  "~/.ssh/id_rsa.pub",
+					SSHPublicKey:      []uint8(nil),
+					SSHPublicKeyName:  "",
+					DesiredCapacity:   2,
+					MinSize:           0,
+					MaxSize:           0,
+					MaxPodsPerNode:    0,
+					PolicyARNs:        []string(nil),
+					InstanceRoleARN:   "",
+				},
+			},
+			VPC: &eksctlapi.ClusterVPC{
+				Network: eksctlapi.Network{
+					ID:   "",
+					CIDR: nil,
+				},
+				SecurityGroup: "",
+			},
+			WaitTimeout:              1200000000000,
+			Endpoint:                 "",
+			CertificateAuthorityData: []uint8(nil),
+			ARN:                      "",
+			ClusterStackName:         "",
+			AvailabilityZones:        []string{"us-west-2b", "us-west-2a", "us-west-2c"},
+			Addons:                   eksctlapi.ClusterAddons{},
+		}
 
-	err := writeConfig(configFile.Name())
-	if err != nil {
-		t.Errorf("Error writing initial configuration file: %v", err)
-	}
+		var (
+			oneClusterAsBytes       []byte
+			twoClustersAsBytes      []byte
+			kubeconfigPathToRestore string
+			hasKubeconfigPath       bool
+		)
 
-	testConfig := api.Config{
-		AuthInfos: map[string]*api.AuthInfo{
-			"test-user": {Token: "test-token"}},
-		Clusters: map[string]*api.Cluster{
-			"test-cluster": {Server: "https://127.0.0.1:8443"}},
-		Contexts: map[string]*api.Context{
-			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
-		CurrentContext: "test-context",
-	}
+		// Returns an ClusterConfig with a cluster name equal to the provided clusterName.
+		GetClusterConfig := func(clusterName string) *eksctlapi.ClusterConfig {
+			apiClusterConfig := apiClusterConfigSample
+			apiClusterConfig.ClusterName = clusterName
+			return &apiClusterConfig
+		}
 
-	filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
-	if err != nil {
-		t.Fatalf("Error writing configuration: %v", err)
-	}
+		ChangeKubeconfig := func() {
+			if _, err := os.Stat(configFile.Name()); os.IsNotExist(err) {
+				GinkgoT().Fatal(err)
+			}
 
-	readConfig, err := clientcmd.LoadFromFile(filename)
-	if err != nil {
-		t.Fatalf("Error reading configuration file: %v", err)
-	}
+			kubeconfigPathToRestore, hasKubeconfigPath = os.LookupEnv("KUBECONFIG")
+			os.Setenv("KUBECONFIG", configFile.Name())
+		}
 
-	if readConfig.CurrentContext != expectedContext {
-		t.Fatalf("Current context is %s but expected %s", readConfig.CurrentContext, expectedContext)
-	}
-}
+		RestoreKubeconfig := func() {
+			if hasKubeconfigPath {
+				os.Setenv("KUBECONFIG", kubeconfigPathToRestore)
+			} else {
+				os.Unsetenv("KUBECONFIG")
+			}
+		}
 
-var minikubeSample = `
-kind: Config
-apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority: /Users/bob/.minikube/ca.crt
-    server: https://192.168.64.19:8443
-  name: minikube
-contexts:
-- context:
-    cluster: minikube
-    user: minikube
-  name: minikube
-current-context: minikube
-kind: Config
-preferences: {}
-users:
-- name: minikube
-  user:
-    as-user-extra: {}
-    client-certificate: /Users/bob/.minikube/client.crt
-    client-key: /Users/bob/.minikube/client.key		
-`
+		BeforeEach(func() {
+			ChangeKubeconfig()
 
-func writeConfig(filename string) error {
-	return ioutil.WriteFile(filename, []byte(minikubeSample), os.FileMode(0755))
-}
+			var err error
+
+			if oneClusterAsBytes, err = ioutil.ReadFile("testdata/one_cluster.golden"); err != nil {
+				GinkgoT().Fatalf("failed reading .golden: %v", err)
+			}
+
+			if twoClustersAsBytes, err = ioutil.ReadFile("testdata/two_clusters.golden"); err != nil {
+				GinkgoT().Fatalf("failed reading .golden: %v", err)
+			}
+
+			_, err = configFile.Write(twoClustersAsBytes)
+			Expect(err).To(BeNil())
+		})
+
+		AfterEach(func() {
+			RestoreKubeconfig()
+		})
+
+		It("removes a cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
+			existingClusterConfig := GetClusterConfig("cluster-two")
+			kubeconfig.MaybeDeleteConfig(existingClusterConfig)
+
+			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			Expect(err).To(BeNil())
+			Expect(bytes.Equal(configFileAsBytes, oneClusterAsBytes)).To(BeTrue(), "Failed to delete cluster from config")
+		})
+
+		It("not change the kubeconfig if the kubeconfig does not include the cluster", func() {
+			nonExistentClusterConfig := GetClusterConfig("not-a-cluster")
+			kubeconfig.MaybeDeleteConfig(nonExistentClusterConfig)
+
+			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			Expect(err).To(BeNil())
+			Expect(bytes.Equal(configFileAsBytes, twoClustersAsBytes)).To(BeTrue(), "Should not change")
+		})
+	})
+})

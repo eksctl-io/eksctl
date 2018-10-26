@@ -3,11 +3,9 @@ package az_test
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 func TestAZ(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "AZ Suite")
+	testutils.RegisterAndRun(t, "AZ Suite")
 }
