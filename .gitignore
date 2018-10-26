@@ -9,6 +9,7 @@
 
 # Bad deps
 vendor/k8s.io/kops/docs
+vendor/github.com/docker/docker/hack
 
 # Jekyll
 _site
@@ -21,3 +22,4 @@ coverage.out
 
 # Test results
 test-results/
+
