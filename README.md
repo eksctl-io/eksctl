@@ -170,6 +170,39 @@ Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a 
 
 > NOTE: Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
+### VPC Networking
+
+By default, `eksctl create cluster` instatiates a dedicated VPC, in order to avoid interference with any existing EC2 networks.
+Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
+Initial nodegroup is create in public subnets, with SSH access disabled unless `--allow-ssh` is specified. However, this implies
+that each of the EC2 isntances in the initial nodegroup get assigned public IPs and can be access on ports 1025 - 65535, which is
+not unsecure in principle, yet some compromised workload can risk access violation.
+
+If that functionality doesn't suite you, the following options are currently available.
+
+#### chage VPC CIDR
+
+If you need to setup peering with another VPC, or simply need larger or smaller range of IPs, you can use `--vpc-cidr` flag to
+change it. You cannot use just any sort of CIDR, there only certain ranges that can be used in [AWS VPC](vpcsizing).
+
+[vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
+
+#### use existing VPC: shared with kops
+
+You can use a VPC of an existing Kubernetes cluster managed by kops. This is feature is provided to facilitate migration and/or
+cluster peering.
+
+If you have previously created a cluster with kops, e.g. using commands similar to this:
+```
+export KOPS_STATE_STORE=s3://kops
+kops create cluster cluster-1.k8s.local --zones=us-west-2c,us-west-2b,us-west-2a --networking=weave --yes
+```
+
+You can create an EKS cluster in the same AZs using the same VPC subnets (NOTE: at least 3 subnets are required):
+```
+eksctl crearte cluster --name=cluster-2 --region=us-west-2 --vpc-from-kops-cluster=cluster-1.k8s.local
+```
+
 ### GPU Support
 
 If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/instance-types/p2/) or [p3](https://aws.amazon.com/ec2/instance-types/p3/) ) then the first thing you need to do is subscribe to the [EKS-optimized AMI with GPU Support](https://aws.amazon.com/marketplace/pp/B07GRHFXGM). If you don't do this then node creation will fail.
