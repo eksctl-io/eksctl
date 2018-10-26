@@ -27,6 +27,7 @@ func Command() *cobra.Command {
 	}
 
 	cmd.AddCommand(getClusterCmd())
+	cmd.AddCommand(getNodegroupCmd())
 
 	return cmd
 }

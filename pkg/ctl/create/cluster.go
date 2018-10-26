@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -18,11 +17,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-)
-
-const (
-	defaultNodeType     = "m5.large"
-	defaultSSHPublicKey = "~/.ssh/id_rsa.pub"
 )
 
 var (
@@ -60,31 +54,17 @@ func createClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 
-	fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
-
-	fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
-	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (desired capacity of ASG)")
-
-	// TODO: https://github.com/weaveworks/eksctl/issues/28
-	fs.IntVarP(&ng.MinSize, "nodes-min", "m", 0, "minimum nodes in ASG (leave unset for a static nodegroup)")
-	fs.IntVarP(&ng.MaxSize, "nodes-max", "M", 0, "maximum nodes in ASG (leave unset for a static nodegroup)")
-
-	fs.IntVarP(&ng.VolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
-	fs.IntVar(&ng.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
-	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
-
-	fs.BoolVar(&ng.AllowSSH, "ssh-access", false, "control SSH access for nodes")
-	fs.StringVar(&ng.SSHPublicKeyPath, "ssh-public-key", defaultSSHPublicKey, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
+	addCommonCreateFlags(fs, p, cfg, ng)
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	cmdutils.AddCommonFlagsForKubeconfig(fs, &kubeconfigPath, &setContext, &autoKubeconfigPath, exampleClusterName)
 
+	//TODO: is this needed for nodegroup creation????
+	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
+
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
 	fs.BoolVar(&cfg.Addons.Storage, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
-
-	fs.StringVar(&ng.AMI, "node-ami", ami.ResolverStatic, "Advanced use cases only. If 'static' is supplied (default) then eksctl will use static AMIs; if 'auto' is supplied then eksctl will automatically set the AMI based on region/instance type; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
-	fs.StringVar(&ng.AMIFamily, "node-ami-family", ami.ImageFamilyAmazonLinux2, "Advanced use cases only. If 'AmazonLinux2' is supplied (default), then eksctl will use the offical AWS EKS AMIs (Amazon Linux 2); if 'Ubuntu1804' is supplied, then eksctl will use the offical Canonical EKS AMIs (Ubuntu 18.04).")
 
 	fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 
