@@ -148,12 +148,12 @@ func (c *ClusterProvider) EnsureAMI(ng *api.NodeGroup) error {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
 	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
-		id, err := ami.Resolve(c.Spec.Region, ng.InstanceType)
+		id, err := ami.Resolve(c.Spec.Region, ng.InstanceType, ng.AMIFamily)
 		if err != nil {
 			return errors.Wrap(err, "Unable to determine AMI to use")
 		}
 		if id == "" {
-			return ami.NewErrFailedResolution(c.Spec.Region, ng.InstanceType)
+			return ami.NewErrFailedResolution(c.Spec.Region, ng.InstanceType, ng.AMIFamily)
 		}
 		ng.AMI = id
 	}

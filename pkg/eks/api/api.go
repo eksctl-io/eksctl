@@ -104,6 +104,7 @@ type NodeGroup struct {
 	ID int
 
 	AMI               string
+	AMIFamily         string
 	InstanceType      string
 	AvailabilityZones []string
 	Tags              map[string]string

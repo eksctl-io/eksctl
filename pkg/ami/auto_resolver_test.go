@@ -27,6 +27,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 			err          error
 			region       string
 			instanceType string
+			imageFamily  string
 			resolvedAmi  string
 			expectedAmi  string
 			imageState   string
@@ -41,6 +42,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 			Context("and non-gpu instance type", func() {
 				BeforeEach(func() {
 					instanceType = "t2.medium"
+					imageFamily = "AmazonLinux2"
 				})
 
 				Context("and ami is available", func() {
@@ -51,7 +53,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockDescribeImages(p, "amazon-eks-node-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z")
 
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, instanceType)
+						resolvedAmi, err = resolver.Resolve(region, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -75,7 +77,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockDescribeImagesMultiple(p, "amazon-eks-node-*", []returnAmi{})
 
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, instanceType)
+						resolvedAmi, err = resolver.Resolve(region, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -113,7 +115,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockDescribeImagesMultiple(p, "amazon-eks-node-*", images)
 
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, instanceType)
+						resolvedAmi, err = resolver.Resolve(region, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
@@ -143,7 +145,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						addMockDescribeImages(p, "amazon-eks-gpu-node-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z")
 
 						resolver := NewAutoResolver(p.MockEC2())
-						resolvedAmi, err = resolver.Resolve(region, instanceType)
+						resolvedAmi, err = resolver.Resolve(region, instanceType, imageFamily)
 					})
 
 					It("should not error", func() {
