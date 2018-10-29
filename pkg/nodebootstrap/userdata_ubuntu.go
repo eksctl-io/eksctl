@@ -11,16 +11,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles, error) {
+func makeUbuntu1804Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles, error) {
 	clientConfigData, err := makeClientConfigData(spec, nodeGroupID)
 	if err != nil {
 		return nil, err
 	}
 
 	files := configFiles{
-		kubeletDropInUnitDir: {
-			"10-eksclt.al2.conf": {isAsset: true},
-		},
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
 			"kubelet.env":  {content: strings.Join(makeKubeletParams(spec, nodeGroupID), "\n")},
@@ -33,15 +30,15 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFil
 	return files, nil
 }
 
-// NewUserDataForAmazonLinux2 creates new user data for Amazon Linux 2 nodes
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
+// NewUserDataForUbuntu1804 creates new user data for Ubuntu 18.04 nodes
+func NewUserDataForUbuntu1804(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
-		"bootstrap.al2.sh",
+		"bootstrap.ubuntu.sh",
 	}
 
-	files, err := makeAmazonLinux2Config(spec, nodeGroupID)
+	files, err := makeUbuntu1804Config(spec, nodeGroupID)
 	if err != nil {
 		return "", err
 	}

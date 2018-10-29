@@ -68,10 +68,13 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	return nil
 }
 
-func makeClientConfigData(spec *api.ClusterConfig) ([]byte, error) {
+func makeClientConfigData(spec *api.ClusterConfig, nodeGroupID int) ([]byte, error) {
 	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
-	kubeconfig.AppendAuthenticator(clientConfig, spec, kubeconfig.AWSIAMAuthenticator)
-
+	authenticator := kubeconfig.AWSIAMAuthenticator
+	if spec.NodeGroups[nodeGroupID].AMIFamily == ami.ImageFamilyUbuntu1804 {
+		authenticator = kubeconfig.HeptioAuthenticatorAWS
+	}
+	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator)
 	clientConfigData, err := clientcmd.Write(*clientConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "serialising kubeconfig for nodegroup")
