@@ -146,6 +146,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - goimports
     - maligned
     - prealloc
     - gocyclo # TODO: enable this in the future
