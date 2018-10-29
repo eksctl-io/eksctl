@@ -3,12 +3,9 @@ package nodebootstrap
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
 
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -71,29 +68,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	return nil
 }
 
-func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles, error) {
-	c := spec.NodeGroups[nodeGroupID]
-	if c.MaxPodsPerNode == 0 {
-		c.MaxPodsPerNode = maxPodsPerNodeType[c.InstanceType]
-	}
-	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
-	clusterDNS := "10.100.0.10"
-	if spec.VPC.CIDR.IP[0] == 10 {
-		// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
-		// is anywhere within 10.0.0.0/8
-		clusterDNS = "172.20.0.10"
-	}
-	kubeletParams := []string{
-		fmt.Sprintf("MAX_PODS=%d", c.MaxPodsPerNode),
-		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS),
-	}
-
-	metadata := []string{
-		fmt.Sprintf("AWS_DEFAULT_REGION=%s", spec.Region),
-		fmt.Sprintf("AWS_EKS_CLUSTER_NAME=%s", spec.ClusterName),
-		fmt.Sprintf("AWS_EKS_ENDPOINT=%s", spec.Endpoint),
-	}
-
+func makeClientConfigData(spec *api.ClusterConfig) ([]byte, error) {
 	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
 	kubeconfig.AppendAuthenticator(clientConfig, spec, kubeconfig.AWSIAMAuthenticator)
 
@@ -101,45 +76,34 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFil
 	if err != nil {
 		return nil, errors.Wrap(err, "serialising kubeconfig for nodegroup")
 	}
-
-	files := configFiles{
-		kubeletDropInUnitDir: {
-			"10-eksclt.al2.conf": {isAsset: true},
-		},
-		configDir: {
-			"metadata.env": {content: strings.Join(metadata, "\n")},
-			"kubelet.env":  {content: strings.Join(kubeletParams, "\n")},
-			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":          {content: string(spec.CertificateAuthorityData)},
-			"kubeconfig.yaml": {content: string(clientConfigData)},
-		},
-	}
-
-	return files, nil
+	return clientConfigData, nil
 }
 
-// NewUserDataForAmazonLinux2 creates new user data for Amazon Linux 2 nodes
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
-	config := cloudconfig.New()
-
-	scripts := []string{
-		"bootstrap.al2.sh",
+func clusterDNS(spec *api.ClusterConfig) string {
+	// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
+	// is anywhere within 10.0.0.0/8
+	if spec.VPC.CIDR.IP[0] == 10 {
+		return "172.20.0.10"
 	}
+	return "10.100.0.10"
+}
 
-	files, err := makeAmazonLinux2Config(spec, nodeGroupID)
-	if err != nil {
-		return "", err
+func makeKubeletParams(spec *api.ClusterConfig, nodeGroupID int) []string {
+	ng := spec.NodeGroups[nodeGroupID]
+	if ng.MaxPodsPerNode == 0 {
+		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
 	}
-
-	if err = addFilesAndScripts(config, files, scripts); err != nil {
-		return "", err
+	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
+	return []string{
+		fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode),
+		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec)),
 	}
+}
 
-	body, err := config.Encode()
-	if err != nil {
-		return "", errors.Wrap(err, "encoding user data")
+func makeMetadata(spec *api.ClusterConfig) []string {
+	return []string{
+		fmt.Sprintf("AWS_DEFAULT_REGION=%s", spec.Region),
+		fmt.Sprintf("AWS_EKS_CLUSTER_NAME=%s", spec.ClusterName),
+		fmt.Sprintf("AWS_EKS_ENDPOINT=%s", spec.Endpoint),
 	}
-
-	logger.Debug("user-data = %s", body)
-	return body, nil
 }
