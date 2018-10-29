@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -108,5 +109,17 @@ func makeMetadata(spec *api.ClusterConfig) []string {
 		fmt.Sprintf("AWS_DEFAULT_REGION=%s", spec.Region),
 		fmt.Sprintf("AWS_EKS_CLUSTER_NAME=%s", spec.ClusterName),
 		fmt.Sprintf("AWS_EKS_ENDPOINT=%s", spec.Endpoint),
+	}
+}
+
+// NewUserData creates new user data for a given node image family
+func NewUserData(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
+	switch spec.NodeGroups[nodeGroupID].AMIFamily {
+	case ami.ImageFamilyAmazonLinux2:
+		return NewUserDataForAmazonLinux2(spec, nodeGroupID)
+	case ami.ImageFamilyUbuntu1804:
+		return NewUserDataForUbuntu1804(spec, nodeGroupID)
+	default:
+		return "", nil
 	}
 }
