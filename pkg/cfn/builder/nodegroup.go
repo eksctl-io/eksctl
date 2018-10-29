@@ -51,7 +51,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
 
-	userData, err := nodebootstrap.NewUserDataForAmazonLinux2(n.clusterSpec, n.id)
+	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.id)
 	if err != nil {
 		return err
 	}

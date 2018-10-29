@@ -24,8 +24,31 @@ const (
 	endpoint           = "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com"
 	caCert             = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNE1EWXdOekExTlRBMU5Wb1hEVEk0TURZd05EQTFOVEExTlZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWJoCnpvZElYR0drckNSZE1jUmVEN0YvMnB1NFZweTdvd3FEVDgrdk9zeGs2bXFMNWxQd3ZicFhmYkE3R0xzMDVHa0wKaDdqL0ZjcU91cnMwUFZSK3N5REtuQXltdDFORWxGNllGQktSV1dUQ1hNd2lwN1pweW9XMXdoYTlJYUlPUGxCTQpPTEVlckRabFVrVDFVV0dWeVdsMmxPeFgxa2JhV2gvakptWWdkeW5jMXhZZ3kxa2JybmVMSkkwLzVUVTRCajJxClB1emtrYW5Xd3lKbGdXQzhBSXlpWW82WFh2UVZmRzYrM3RISE5XM1F1b3ZoRng2MTFOYnl6RUI3QTdtZGNiNmgKR0ZpWjdOeThHZnFzdjJJSmI2Nk9FVzBSdW9oY1k3UDZPdnZmYnlKREhaU2hqTStRWFkxQXN5b3g4Ri9UelhHSgpQUWpoWUZWWEVhZU1wQmJqNmNFQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCa2hKRVd4MHk1LzlMSklWdXJ1c1hZbjN6Z2EKRkZ6V0JsQU44WTlqUHB3S2t0Vy9JNFYyUGg3bWY2Z3ZwZ3Jhc2t1Slk1aHZPcDdBQmcxSTFhaHUxNUFpMUI0ZApuMllRaDlOaHdXM2pKMmhuRXk0VElpb0gza2JFdHRnUVB2bWhUQzNEYUJreEpkbmZJSEJCV1RFTTU1czRwRmxUClpzQVJ3aDc1Q3hYbjdScVU0akpKcWNPaTRjeU5qeFVpRDBqR1FaTmNiZWEyMkRCeTJXaEEzUWZnbGNScGtDVGUKRDVPS3NOWlF4MW9MZFAwci9TSmtPT1NPeUdnbVJURTIrODQxN21PRW02Z3RPMCszdWJkbXQ0aENsWEtFTTZYdwpuQWNlK0JxVUNYblVIN2ZNS3p2TDE5UExvMm5KbFU1TnlCbU1nL1pNVHVlUy80eFZmKy94WnpsQ0Q1WT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
 	arn                = "arn:aws:eks:us-west-2:376248598259:cluster/" + clusterName
+)
 
-	kubeconfigBody = `apiVersion: v1
+type Template struct {
+	Resources map[string]struct {
+		Properties struct {
+			Tags []struct {
+				Key   interface{}
+				Value interface{}
+
+				PropagateAtLaunch string
+			}
+			UserData       string
+			PolicyDocument struct {
+				Statement []struct {
+					Action   []string
+					Effect   string
+					Resource interface{}
+				}
+			}
+		}
+	}
+}
+
+func kubeconfigBody(authenticator string) string {
+	return `apiVersion: v1
 clusters:
 - cluster:
     certificate-authority: /etc/eksctl/ca.crt
@@ -48,30 +71,9 @@ users:
       - token
       - -i
       - ` + clusterName + `
-      command: aws-iam-authenticator
+      command: ` + authenticator + `
       env: null
 `
-)
-
-type Template struct {
-	Resources map[string]struct {
-		Properties struct {
-			Tags []struct {
-				Key   interface{}
-				Value interface{}
-
-				PropagateAtLaunch string
-			}
-			UserData       string
-			PolicyDocument struct {
-				Statement []struct {
-					Action   []string
-					Effect   string
-					Resource interface{}
-				}
-			}
-		}
-	}
 }
 
 func newStackWithOutputs(outputs map[string]string) cfn.Stack {
@@ -100,6 +102,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.ClusterName = clusterName
 		cfg.AvailabilityZones = testAZs
 		ng.InstanceType = "t2.medium"
+		ng.AMIFamily = "AmazonLinux2"
 
 		*cfg.VPC.CIDR = api.DefaultCIDR()
 
@@ -179,6 +182,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			NodeGroups: []*api.NodeGroup{
 				{
 					AMI:            "",
+					AMIFamily:      "AmazonLinux2",
 					InstanceType:   "t2.medium",
 					SubnetTopology: "Public",
 				},
@@ -344,7 +348,39 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Describe("UserData", func() {
+	checkAsset := func(name, expectedContent string) {
+		assetContent, err := nodebootstrap.Asset(name)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(string(assetContent)).ToNot(BeEmpty())
+		Expect(expectedContent).To(Equal(string(assetContent)))
+	}
+
+	getFile := func(c *cloudconfig.CloudConfig, p string) *cloudconfig.File {
+		for _, f := range c.WriteFiles {
+			if f.Path == p {
+				return &f
+			}
+		}
+		return nil
+	}
+
+	checkScript := func(c *cloudconfig.CloudConfig, p string, assetContent bool) {
+		script := getFile(c, p)
+		Expect(script).ToNot(BeNil())
+		Expect(script.Permissions).To(Equal("0755"))
+		scriptRuns := false
+		for _, s := range c.Commands {
+			if s.([]interface{})[0] == script.Path {
+				scriptRuns = true
+			}
+		}
+		Expect(scriptRuns).To(BeTrue())
+		if assetContent {
+			checkAsset(filepath.Base(p), script.Content)
+		}
+	}
+
+	Describe("UserData - AmazonLinux2", func() {
 		cfg := newClusterConfig()
 
 		var c *cloudconfig.CloudConfig
@@ -382,23 +418,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(c.Packages).Should(BeEmpty())
 
-			getFile := func(p string) *cloudconfig.File {
-				for _, f := range c.WriteFiles {
-					if f.Path == p {
-						return &f
-					}
-				}
-				return nil
-			}
-
-			checkAsset := func(name, expectedContent string) {
-				assetContent, err := nodebootstrap.Asset(name)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(string(assetContent)).ToNot(BeEmpty())
-				Expect(expectedContent).To(Equal(string(assetContent)))
-			}
-
-			kubeletEnv := getFile("/etc/eksctl/kubelet.env")
+			kubeletEnv := getFile(c, "/etc/eksctl/kubelet.env")
 			Expect(kubeletEnv).ToNot(BeNil())
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
@@ -406,38 +426,84 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"CLUSTER_DNS=10.100.0.10",
 			}))
 
-			kubeletDropInUnit := getFile("/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
+			kubeletDropInUnit := getFile(c, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
 			Expect(kubeletDropInUnit).ToNot(BeNil())
 			Expect(kubeletDropInUnit.Permissions).To(Equal("0644"))
 			checkAsset("10-eksclt.al2.conf", kubeletDropInUnit.Content)
 
-			kubeconfig := getFile("/etc/eksctl/kubeconfig.yaml")
+			kubeconfig := getFile(c, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
 			Expect(kubeconfig.Permissions).To(Equal("0644"))
-			Expect(kubeconfig.Content).To(Equal(kubeconfigBody))
+			Expect(kubeconfig.Content).To(Equal(kubeconfigBody("aws-iam-authenticator")))
 
-			ca := getFile("/etc/eksctl/ca.crt")
+			ca := getFile(c, "/etc/eksctl/ca.crt")
 			Expect(ca).ToNot(BeNil())
 			Expect(ca.Permissions).To(Equal("0644"))
 			Expect(ca.Content).To(Equal(string(caCertData)))
 
-			checkScript := func(p string, assetContent bool) {
-				script := getFile(p)
-				Expect(script).ToNot(BeNil())
-				Expect(script.Permissions).To(Equal("0755"))
-				scriptRuns := false
-				for _, s := range c.Commands {
-					if s.([]interface{})[0] == script.Path {
-						scriptRuns = true
-					}
-				}
-				Expect(scriptRuns).To(BeTrue())
-				if assetContent {
-					checkAsset(filepath.Base(p), script.Content)
-				}
-			}
+			checkScript(c, "/var/lib/cloud/scripts/per-instance/bootstrap.al2.sh", true)
+		})
+	})
 
-			checkScript("/var/lib/cloud/scripts/per-instance/bootstrap.al2.sh", true)
+	Describe("UserData - Ubuntu1804", func() {
+		cfg := newClusterConfig()
+
+		var c *cloudconfig.CloudConfig
+
+		caCertData, err := base64.StdEncoding.DecodeString(caCert)
+		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
+
+		cfg.Endpoint = endpoint
+		cfg.CertificateAuthorityData = caCertData
+		_, cfg.VPC.CIDR, _ = net.ParseCIDR("10.1.0.0/16")
+		cfg.NodeGroups[0].AMIFamily = "Ubuntu1804"
+		cfg.NodeGroups[0].InstanceType = "m5.large"
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
+		rs.AddAllResources()
+
+		template, err := rs.RenderJSON()
+		It("should serialise JSON without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should parse JSON withon errors and extract valid cloud-config using our implementation", func() {
+			obj := Template{}
+			err = json.Unmarshal(template, &obj)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(len(obj.Resources)).ToNot(Equal(0))
+
+			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
+			Expect(userData).ToNot(BeEmpty())
+
+			c, err = cloudconfig.DecodeCloudConfig(userData)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have packages, scripts and commands in cloud-config", func() {
+			Expect(c).ToNot(BeNil())
+
+			Expect(c.Packages).Should(BeEmpty())
+
+			kubeletEnv := getFile(c, "/etc/eksctl/kubelet.env")
+			Expect(kubeletEnv).ToNot(BeNil())
+			Expect(kubeletEnv.Permissions).To(Equal("0644"))
+			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
+				"MAX_PODS=29",
+				"CLUSTER_DNS=172.20.0.10",
+			}))
+
+			kubeconfig := getFile(c, "/etc/eksctl/kubeconfig.yaml")
+			Expect(kubeconfig).ToNot(BeNil())
+			Expect(kubeconfig.Permissions).To(Equal("0644"))
+			Expect(kubeconfig.Content).To(Equal(kubeconfigBody("heptio-authenticator-aws")))
+
+			ca := getFile(c, "/etc/eksctl/ca.crt")
+			Expect(ca).ToNot(BeNil())
+			Expect(ca.Permissions).To(Equal("0644"))
+			Expect(ca.Content).To(Equal(string(caCertData)))
+
+			checkScript(c, "/var/lib/cloud/scripts/per-instance/bootstrap.ubuntu.sh", true)
 		})
 	})
 })
