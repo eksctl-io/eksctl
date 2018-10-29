@@ -15,7 +15,10 @@ const (
 	DefaultImageFamily = ImageFamilyAmazonLinux2
 
 	// ImageFamilyAmazonLinux2 represents Amazon Linux 2 family
-	ImageFamilyAmazonLinux2 = "AmazonLinux2"
+	ImageFamilyAmazonLinux2 = "AmazonLinux2" // Owner 602401143452
+
+	// ImageFamilyUbuntu1804 represents Ubuntu 18.04 family
+	ImageFamilyUbuntu1804 = "Ubuntu1804" // Owner 099720109477
 
 	// ResolverStatic is used to indicate that the static (i.e. compiled into eksctl) AMIs should be used
 	ResolverStatic = "static"

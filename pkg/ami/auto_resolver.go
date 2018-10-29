@@ -1,8 +1,6 @@
 package ami
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
@@ -16,6 +14,9 @@ var ImageSearchPatterns = map[string]map[int]string{
 		ImageClassGeneral: "amazon-eks-node-*",
 		ImageClassGPU:     "amazon-eks-gpu-node-*",
 	},
+	ImageFamilyUbuntu1804: {
+		ImageClassGeneral: "ubuntu-eks/1.10.3/*",
+	},
 }
 
 // AutoResolver resolves the AMi to the defaults for the region
@@ -26,15 +27,16 @@ type AutoResolver struct {
 
 // Resolve will return an AMI to use based on the default AMI for
 // each region
-func (r *AutoResolver) Resolve(region string, instanceType string) (string, error) {
-	logger.Debug("resolving AMI using AutoResolver for region %s and instanceType %s", region, instanceType)
+func (r *AutoResolver) Resolve(region string, instanceType string, imageFamily string) (string, error) {
+	logger.Debug("resolving AMI using AutoResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
-	p := ImageSearchPatterns[DefaultImageFamily][ImageClassGeneral]
+	p := ImageSearchPatterns[imageFamily][ImageClassGeneral]
 	if utils.IsGPUInstanceType(instanceType) {
 		var ok bool
-		p, ok = ImageSearchPatterns[DefaultImageFamily][ImageClassGPU]
+		p, ok = ImageSearchPatterns[imageFamily][ImageClassGPU]
 		if !ok {
-			return "", fmt.Errorf("image family %s doesn't support GPU image class", DefaultImageFamily)
+			logger.Critical("image family %s doesn't support GPU image class", imageFamily)
+			return "", NewErrFailedResolution(region, instanceType, imageFamily)
 		}
 	}
 

@@ -185,7 +185,7 @@ not unsecure in principle, yet some compromised workload can risk access violati
 
 If that functionality doesn't suite you, the following options are currently available.
 
-#### chage VPC CIDR
+#### change VPC CIDR
 
 If you need to setup peering with another VPC, or simply need larger or smaller range of IPs, you can use `--vpc-cidr` flag to
 change it. You cannot use just any sort of CIDR, there only certain ranges that can be used in [AWS VPC](vpcsizing).
@@ -230,7 +230,7 @@ kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.
 
 ### Latest & Custom AMI Support
 
-With the the 0.1.2 release we have introduced the `--node-ami` flag for use when creating a cluster. This enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use (non-GPU and GPU instances).
+With the 0.1.2 release we have introduced the `--node-ami` flag for use when creating a cluster. This enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use (non-GPU and GPU instances).
 
 The `--node-ami` can take the AMI image id for an image to explicitly use. It also can take the following 'special' keywords:
 
@@ -244,6 +244,15 @@ If, for example, AWS release a new version of the EKS node AMIs and a new versio
 ```
 eksctl create cluster --node-ami=auto
 ```
+
+With the 0.1.9 release we have introduced the `--node-ami-family` flag for use when creating the cluster. This makes it possible to choose between different offically supported EKS AMI families.
+
+The `--node-ami-family` can take following keywords:
+
+| Keyword | Description |
+| --- | --- |
+| AmazonLinux2 | Indicates that the EKS AMI image based on Amazon Linux 2 should be used. (default)|
+| Ubuntu1804 | Indicates that the EKS AMI image based on Ubuntu 18.04 should be used. |
 
 <!-- TODO for 0.3.0
 To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):

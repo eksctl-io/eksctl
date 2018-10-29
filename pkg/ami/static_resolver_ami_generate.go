@@ -43,9 +43,9 @@ func main() {
 				}
 				classImages[Lit(region)] = Lit(image)
 			}
-			familyImages[Id(ami.ImageClasses[class])] = Block(classImages)
+			familyImages[Id(ami.ImageClasses[class])] = Values(classImages)
 		}
-		d[Lit(family)] = Block(familyImages)
+		d[Lit(family)] = Values(familyImages)
 	}
 
 	f.Comment("StaticImages is a map that holds the list of AMIs to be used by for static resolution")

@@ -1,7 +1,5 @@
 package ami
 
-import "github.com/pkg/errors"
-
 var (
 	// DefaultResolvers contains a list of resolvers to try in order
 	DefaultResolvers = []Resolver{&StaticGPUResolver{}, &StaticDefaultResolver{}}
@@ -10,22 +8,22 @@ var (
 // Resolve will resolve an AMI from the supplied region
 // and instance type. It will invoke a specific resolver
 // to do the actual determining of AMI.
-func Resolve(region string, instanceType string) (string, error) {
+func Resolve(region string, instanceType string, imageFamily string) (string, error) {
 	for _, resolver := range DefaultResolvers {
-		ami, err := resolver.Resolve(region, instanceType)
+		ami, err := resolver.Resolve(region, instanceType, imageFamily)
 		if err != nil {
-			return "", errors.Wrap(err, "error whilst resolving AMI")
+			return "", err
 		}
 		if ami != "" {
 			return ami, nil
 		}
 	}
 
-	return "", NewErrFailedResolution(region, instanceType)
+	return "", NewErrFailedResolution(region, instanceType, imageFamily)
 }
 
 // Resolver provides an interface to enable implementing multiple
-// ways to determine which AMI to use from the region/instance type.
+// ways to determine which AMI to use from the region/instance type/image family.
 type Resolver interface {
-	Resolve(region string, instanceType string) (string, error)
+	Resolve(region string, instanceType string, imageFamily string) (string, error)
 }
