@@ -25,12 +25,6 @@ type NodeGroupResourceSet struct {
 	userData         *gfn.Value
 }
 
-type awsCloudFormationResource struct {
-	Type         string
-	Properties   map[string]interface{}
-	UpdatePolicy map[string]map[string]string
-}
-
 // NewNodeGroupResourceSet returns a resource set for the new node group
 func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
@@ -64,9 +58,8 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.addResourcesForIAM()
 	n.addResourcesForSecurityGroups()
-	n.addResourcesForNodeGroup()
 
-	return nil
+	return n.addResourcesForNodeGroup()
 }
 
 // RenderJSON returns the rendered JSON
@@ -83,18 +76,21 @@ func (n *NodeGroupResourceSet) newResource(name string, resource interface{}) *g
 	return n.rs.newResource(name, resource)
 }
 
-func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
+func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	lc := &gfn.AWSAutoScalingLaunchConfiguration{
-		AssociatePublicIpAddress: gfn.True(),
-		IamInstanceProfile:       n.instanceProfile,
-		SecurityGroups:           n.securityGroups,
-
-		ImageId:      gfn.NewString(n.spec.AMI),
-		InstanceType: gfn.NewString(n.spec.InstanceType),
-		UserData:     n.userData,
+		IamInstanceProfile: n.instanceProfile,
+		SecurityGroups:     n.securityGroups,
+		ImageId:            gfn.NewString(n.spec.AMI),
+		InstanceType:       gfn.NewString(n.spec.InstanceType),
+		UserData:           n.userData,
 	}
 	if n.spec.AllowSSH {
 		lc.KeyName = gfn.NewString(n.spec.SSHPublicKeyName)
+	}
+	if n.spec.PrivateNetworking {
+		lc.AssociatePublicIpAddress = gfn.False()
+	} else {
+		lc.AssociatePublicIpAddress = gfn.True()
 	}
 	if n.spec.VolumeSize > 0 {
 		lc.BlockDeviceMappings = []gfn.AWSAutoScalingLaunchConfiguration_BlockDeviceMapping{
@@ -110,13 +106,25 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 	var vpcZoneIdentifier interface{}
-	if len(n.spec.AvailabilityZones) > 0 {
-		vpcZoneIdentifier = n.clusterSpec.SubnetIDs(api.SubnetTopologyPublic)
+	if numNodeGroupsAZs := len(n.spec.AvailabilityZones); numNodeGroupsAZs > 0 {
+		subnets := n.clusterSpec.VPC.Subnets[n.spec.SubnetTopology()]
+		errorDesc := fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, n.spec.AvailabilityZones)
+		if len(subnets) < numNodeGroupsAZs {
+			return fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", errorDesc)
+		}
+		vpcZoneIdentifier = make([]interface{}, numNodeGroupsAZs)
+		for i, az := range n.spec.AvailabilityZones {
+			subnet, ok := subnets[az]
+			if !ok {
+				return fmt.Errorf("VPC doesn't have subnets in %s %s", az, errorDesc)
+			}
+			vpcZoneIdentifier.([]interface{})[i] = subnet.ID
+		}
 	} else {
 		vpcZoneIdentifier = map[string][]interface{}{
 			gfn.FnSplit: []interface{}{
 				",",
-				makeImportValue(n.clusterStackName, cfnOutputClusterSubnets+string(api.SubnetTopologyPublic)),
+				makeImportValue(n.clusterStackName, cfnOutputClusterSubnets+string(n.spec.SubnetTopology())),
 			},
 		}
 	}
@@ -140,6 +148,8 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() {
 			},
 		},
 	})
+
+	return nil
 }
 
 // GetAllOutputs collects all outputs of the node group

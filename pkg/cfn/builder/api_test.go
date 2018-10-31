@@ -43,6 +43,13 @@ type Template struct {
 					Resource interface{}
 				}
 			}
+			VPCZoneIdentifier        interface{}
+			AssociatePublicIpAddress bool
+			CidrIp                   string
+			CidrIpv6                 string
+			IpProtocol               string
+			FromPort                 int
+			ToPort                   int
 		}
 	}
 }
@@ -181,10 +188,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:            "",
-					AMIFamily:      "AmazonLinux2",
-					InstanceType:   "t2.medium",
-					SubnetTopology: "Public",
+					AMI:               "",
+					AMIFamily:         "AmazonLinux2",
+					InstanceType:      "t2.medium",
+					PrivateNetworking: false,
 				},
 			},
 		}
@@ -345,6 +352,189 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"autoscaling:SetDesiredCapacity",
 				"autoscaling:TerminateInstanceInAutoScalingGroup",
 			}))
+		})
+	})
+
+	Describe("NodeGroup{PrivateNetworking=true}", func() {
+		cfg := api.NewClusterConfig()
+		ng := cfg.NewNodeGroup()
+
+		cfg.Region = "us-west-2"
+		cfg.ClusterName = clusterName
+		cfg.AvailabilityZones = testAZs
+		ng.AllowSSH = true
+		ng.InstanceType = "t2.medium"
+		ng.PrivateNetworking = true
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-private-ng", 0)
+		rs.AddAllResources()
+
+		template, err := rs.RenderJSON()
+		It("should serialise JSON without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		obj := Template{}
+		It("should parse JSON withon errors", func() {
+			err := json.Unmarshal(template, &obj)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct resources and attributes", func() {
+			Expect(len(obj.Resources)).ToNot(Equal(0))
+
+			Expect(obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier).To(Not(BeNil()))
+			x, ok := obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier.(map[string]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(x)).To(Equal(1))
+			refSubnets := map[string]interface{}{
+				"Fn::Split": []interface{}{
+					",",
+					map[string]interface{}{
+						"Fn::ImportValue": "eksctl-test-private-ng::SubnetsPrivate",
+					},
+				},
+			}
+			Expect(x).To(Equal(refSubnets))
+
+			Expect(obj.Resources["NodeLaunchConfig"].Properties.AssociatePublicIpAddress).To(BeFalse())
+
+			Expect(obj.Resources["SSHIPv4"].Properties.CidrIp).To(Equal("192.168.0.0/16"))
+			Expect(obj.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
+			Expect(obj.Resources["SSHIPv4"].Properties.ToPort).To(Equal(22))
+
+			Expect(obj.Resources).To(Not(HaveKey("SSHIPv6")))
+		})
+	})
+
+	Describe("NodeGroup{PrivateNetworking=false AllowSSH=true}", func() {
+		cfg := api.NewClusterConfig()
+		ng := cfg.NewNodeGroup()
+
+		cfg.Region = "us-west-2"
+		cfg.ClusterName = clusterName
+		cfg.AvailabilityZones = testAZs
+		ng.AllowSSH = true
+		ng.InstanceType = "t2.medium"
+		ng.PrivateNetworking = false
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", 0)
+		rs.AddAllResources()
+
+		template, err := rs.RenderJSON()
+		It("should serialise JSON without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		obj := Template{}
+		It("should parse JSON withon errors", func() {
+			err := json.Unmarshal(template, &obj)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct resources and attributes", func() {
+			Expect(len(obj.Resources)).ToNot(Equal(0))
+
+			Expect(obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier).To(Not(BeNil()))
+			x, ok := obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier.(map[string]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(x)).To(Equal(1))
+			refSubnets := map[string]interface{}{
+				"Fn::Split": []interface{}{
+					",",
+					map[string]interface{}{
+						"Fn::ImportValue": "eksctl-test-public-ng::SubnetsPublic",
+					},
+				},
+			}
+			Expect(x).To(Equal(refSubnets))
+
+			Expect(obj.Resources["NodeLaunchConfig"].Properties.AssociatePublicIpAddress).To(BeTrue())
+
+			Expect(obj.Resources["SSHIPv4"].Properties.CidrIp).To(Equal("0.0.0.0/0"))
+			Expect(obj.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
+			Expect(obj.Resources["SSHIPv4"].Properties.ToPort).To(Equal(22))
+
+			Expect(obj.Resources["SSHIPv6"].Properties.CidrIpv6).To(Equal("::/0"))
+			Expect(obj.Resources["SSHIPv6"].Properties.FromPort).To(Equal(22))
+			Expect(obj.Resources["SSHIPv6"].Properties.ToPort).To(Equal(22))
+		})
+	})
+
+	Describe("NodeGroup{PrivateNetworking=false AllowSSH=false}", func() {
+		cfg := api.NewClusterConfig()
+		ng := cfg.NewNodeGroup()
+
+		cfg.Region = "us-west-2"
+		cfg.ClusterName = clusterName
+		cfg.AvailabilityZones = testAZs
+		cfg.VPC = &api.ClusterVPC{
+			Network: api.Network{
+				ID: "vpc-0e265ad953062b94b",
+			},
+			SecurityGroup: "sg-0b44c48bcba5b7362",
+			Subnets: map[api.SubnetTopology]map[string]api.Network{
+				"Public": map[string]api.Network{
+					"us-west-2b": {
+						ID: "subnet-0f98135715dfcf55f",
+					},
+					"us-west-2a": {
+						ID: "subnet-0ade11bad78dced9e",
+					},
+					"us-west-2c": {
+						ID: "subnet-0e2e63ff1712bf6ef",
+					},
+				},
+				"Private": map[string]api.Network{
+					"us-west-2b": {
+						ID: "subnet-0f98135715dfcf55a",
+					},
+					"us-west-2a": {
+						ID: "subnet-0ade11bad78dced9f",
+					},
+					"us-west-2c": {
+						ID: "subnet-0e2e63ff1712bf6ea",
+					},
+				},
+			},
+		}
+		ng.AvailabilityZones = []string{testAZs[1]}
+		ng.AllowSSH = false
+		ng.InstanceType = "t2.medium"
+		ng.PrivateNetworking = false
+
+		It("should have 1 AZ for the nodegroup", func() {
+			Expect(ng.AvailabilityZones).To(Equal([]string{"us-west-2a"}))
+		})
+
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", 0)
+		rs.AddAllResources()
+
+		template, err := rs.RenderJSON()
+		It("should serialise JSON without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		obj := Template{}
+		It("should parse JSON withon errors", func() {
+			err := json.Unmarshal(template, &obj)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct resources and attributes", func() {
+			Expect(len(obj.Resources)).ToNot(Equal(0))
+
+			Expect(obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier).To(Not(BeNil()))
+			x, ok := obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier.([]interface{})
+			Expect(ok).To(BeTrue())
+			refSubnets := []interface{}{
+				cfg.VPC.Subnets["Public"]["us-west-2a"].ID,
+			}
+			Expect(x).To((Equal(refSubnets)))
+
+			Expect(obj.Resources["NodeLaunchConfig"].Properties.AssociatePublicIpAddress).To(BeTrue())
+
+			Expect(obj.Resources).To(Not(HaveKey("SSHIPv4")))
+
+			Expect(obj.Resources).To(Not(HaveKey("SSHIPv6")))
+
 		})
 	})
 

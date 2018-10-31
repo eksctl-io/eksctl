@@ -89,8 +89,8 @@ func NewClusterConfig() *ClusterConfig {
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	ng := &NodeGroup{
-		ID:             len(c.NodeGroups),
-		SubnetTopology: SubnetTopologyPublic,
+		ID:                len(c.NodeGroups),
+		PrivateNetworking: false,
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -108,7 +108,7 @@ type NodeGroup struct {
 	InstanceType      string
 	AvailabilityZones []string
 	Tags              map[string]string
-	SubnetTopology    SubnetTopology
+	PrivateNetworking bool
 
 	DesiredCapacity int
 	MinSize         int
@@ -125,6 +125,15 @@ type NodeGroup struct {
 	SSHPublicKeyPath string
 	SSHPublicKey     []byte
 	SSHPublicKeyName string
+}
+
+// SubnetTopology check which topology is used for the subnet of
+// the given nodegroup
+func (n *NodeGroup) SubnetTopology() SubnetTopology {
+	if n.PrivateNetworking {
+		return SubnetTopologyPrivate
+	}
+	return SubnetTopologyPublic
 }
 
 type (

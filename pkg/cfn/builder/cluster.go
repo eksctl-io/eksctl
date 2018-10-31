@@ -78,14 +78,18 @@ func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn
 }
 
 func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
+	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
+		SecurityGroupIds: c.securityGroups,
+	}
+	for topology := range c.spec.VPC.Subnets {
+		clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, c.subnets[topology]...)
+	}
+
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
-		Name:    gfn.NewString(c.spec.ClusterName),
-		RoleArn: gfn.MakeFnGetAttString("ServiceRole.Arn"),
-		Version: gfn.NewString(version),
-		ResourcesVpcConfig: &gfn.AWSEKSCluster_ResourcesVpcConfig{
-			SubnetIds:        c.subnets[api.SubnetTopologyPublic],
-			SecurityGroupIds: c.securityGroups,
-		},
+		Name:               gfn.NewString(c.spec.ClusterName),
+		RoleArn:            gfn.MakeFnGetAttString("ServiceRole.Arn"),
+		Version:            gfn.NewString(version),
+		ResourcesVpcConfig: clusterVPC,
 	})
 
 	c.rs.newOutputFromAtt(cfnOutputClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)
@@ -102,7 +106,7 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	c.spec.VPC.ID = c.outputs.VPC
 	c.spec.VPC.SecurityGroup = c.outputs.SecurityGroup
 
-	// TODO: shouldn't assume the order is the same, can probably do an API lookup
+	// TODO: shouldn't assume the order - https://github.com/weaveworks/eksctl/issues/293
 	for i, subnet := range c.outputs.SubnetsPrivate {
 		c.spec.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet)
 	}

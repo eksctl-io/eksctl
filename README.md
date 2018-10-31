@@ -192,6 +192,12 @@ change it. You cannot use just any sort of CIDR, there only certain ranges that 
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
 
+
+#### use private subnets for initial nodegroup
+
+If you prefer to isolate initial nodegroup from the public internet, you can use `--node-private-networking` flag.
+When used in conjunction with `--ssh-access` flag, SSH port can only be accessed inside the VPC.
+
 #### use existing VPC: shared with kops
 
 You can use a VPC of an existing Kubernetes cluster managed by kops. This is feature is provided to facilitate migration and/or
