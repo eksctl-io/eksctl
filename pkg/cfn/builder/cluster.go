@@ -106,7 +106,7 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	c.spec.VPC.ID = c.outputs.VPC
 	c.spec.VPC.SecurityGroup = c.outputs.SecurityGroup
 
-	// TODO: shouldn't assume the order is the same, can probably do an API lookup
+	// TODO: shouldn't assume the order - https://github.com/weaveworks/eksctl/issues/293
 	for i, subnet := range c.outputs.SubnetsPrivate {
 		c.spec.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet)
 	}
