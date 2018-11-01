@@ -21,14 +21,14 @@ build: ## Build eksctl
 ##@ Testing & CI
 
 .PHONY: test
-test: generate ## Run unit tests
+test: generate ## Run unit test (and re-generate code under test)
 	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff; exit 1)
 	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff; exit 1)
 	@$(MAKE) unit-test
 	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
 
 .PHONY: unit-test
-unit-test:
+unit-test: ## Run unit test only
 	@CGO_ENABLED=0 go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
 
 LINTER ?= gometalinter ./...
