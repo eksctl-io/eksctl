@@ -18,6 +18,11 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
+type clusterWithRegion struct {
+	Name   string
+	Region string
+}
+
 // DescribeControlPlane describes the cluster control plane
 func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
@@ -84,7 +89,7 @@ func (c *ClusterProvider) ListClusters(chunkSize int, output string) error {
 }
 
 func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter) error {
-	allClusterNames := []*string{}
+	allClusters := []*clusterWithRegion{}
 
 	getFunc := func(chunkSize int64, nextToken string) ([]*string, *string, error) {
 		input := &awseks.ListClustersInput{MaxResults: &chunkSize}
@@ -104,7 +109,11 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		if err != nil {
 			return err
 		}
-		allClusterNames = append(allClusterNames, clusters...)
+
+		for _, clusterName := range clusters {
+			allClusters = append(allClusters, &clusterWithRegion{Name: *clusterName, Region: c.Spec.Region})
+		}
+
 		if nextToken != nil && *nextToken != "" {
 			token = *nextToken
 		} else {
@@ -112,7 +121,7 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		}
 	}
 
-	if err := printer.PrintObj("clusters", allClusterNames, os.Stdout); err != nil {
+	if err := printer.PrintObj("clusters", allClusters, os.Stdout); err != nil {
 		return err
 	}
 
@@ -218,7 +227,10 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 }
 
 func addListTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("NAME", func(c *string) string {
-		return *c
+	printer.AddColumn("NAME", func(c *clusterWithRegion) string {
+		return c.Name
+	})
+	printer.AddColumn("REGION", func(c *clusterWithRegion) string {
+		return c.Region
 	})
 }

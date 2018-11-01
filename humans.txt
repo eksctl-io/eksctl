@@ -23,6 +23,7 @@ Karinna Iniguez         @karinnainiguez
 Michael Seiwald         @mseiwald
 Anton Gruebel           @gruebel
 Bryan Peterson          @lazyshot
+Josue Abreu             @gotjosh
 
 /* Thanks */
 
