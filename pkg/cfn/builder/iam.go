@@ -72,6 +72,9 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		"ec2:CreateSecurityGroup",
 		"ec2:Describe*",
 	})
+	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, "*", []string{
+		"cloudwatch:PutMetricData",
+	})
 }
 
 // WithIAM states, if IAM roles will be created or not
