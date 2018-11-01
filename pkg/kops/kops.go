@@ -68,7 +68,7 @@ func (k *Wrapper) UseVPC(spec *api.ClusterConfig) error {
 	}
 	logger.Debug("subnets = %#v", spec.VPC.Subnets)
 	if !spec.HasSufficientPublicSubnets() {
-		return fmt.Errorf("cannot use VPC from kops cluster with less then 3 subnets")
+		return fmt.Errorf("cannot use VPC from kops cluster with less then 2 subnets")
 	}
 
 	return nil

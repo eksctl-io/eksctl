@@ -12,7 +12,7 @@ import (
 
 const (
 	// DefaultRequiredAvailabilityZones defines the number of required availability zones
-	DefaultRequiredAvailabilityZones = 3
+	DefaultRequiredAvailabilityZones = 2
 )
 
 // SelectionStrategy provides an interface to allow changing the strategy used to

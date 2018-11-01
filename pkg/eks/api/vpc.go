@@ -65,11 +65,11 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID strin
 // HasSufficientPublicSubnets validates if there is a sufficient
 // number of public subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPublicSubnets() bool {
-	return len(c.SubnetIDs(SubnetTopologyPublic)) >= 3
+	return len(c.SubnetIDs(SubnetTopologyPublic)) >= 2
 }
 
 // HasSufficientPrivateSubnets validates if there is a sufficient
 // number of private subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
-	return len(c.SubnetIDs(SubnetTopologyPrivate)) >= 3
+	return len(c.SubnetIDs(SubnetTopologyPrivate)) >= 2
 }

@@ -70,7 +70,7 @@ var _ = Describe("AZ", func() {
 				})
 
 				It("should have returned 3 availability zones", func() {
-					Expect(len(selectedZones)).To(Equal(3))
+					Expect(len(selectedZones)).To(Equal(2))
 				})
 			})
 
@@ -112,7 +112,7 @@ var _ = Describe("AZ", func() {
 				})
 
 				It("should have returned 3 identical availability zones", func() {
-					Expect(len(selectedZones)).To(Equal(3))
+					Expect(len(selectedZones)).To(Equal(2))
 
 					for _, actualZoneName := range selectedZones {
 						Expect(actualZoneName).To(Equal(*expectedZoneName))
@@ -161,7 +161,7 @@ var _ = Describe("AZ", func() {
 			})
 
 			It("should have returned 3 availability zones", func() {
-				Expect(len(selectedZones)).To(Equal(3))
+				Expect(len(selectedZones)).To(Equal(2))
 			})
 
 			It("should have returned none of the zones to avoid", func() {
