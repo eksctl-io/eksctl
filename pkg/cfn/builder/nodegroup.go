@@ -6,6 +6,8 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 
+	"github.com/kubicorn/kubicorn/pkg/logger"
+
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
@@ -51,9 +53,25 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	}
 	n.userData = gfn.NewString(userData)
 
-	if n.spec.MinSize == 0 && n.spec.MaxSize == 0 {
+	switch {
+	case n.spec.MinSize == 0 && n.spec.MaxSize == 0:
 		n.spec.MinSize = n.spec.DesiredCapacity
 		n.spec.MaxSize = n.spec.DesiredCapacity
+	case n.spec.MinSize > 0 && n.spec.MaxSize > 0:
+		if n.spec.DesiredCapacity == api.DefaultNodeCount {
+			msgPrefix := fmt.Sprintf("as --nodes-min=%d and --nodes-max=%d were given", n.spec.MinSize, n.spec.MaxSize)
+			if n.spec.DesiredCapacity < n.spec.MinSize {
+				n.spec.DesiredCapacity = n.spec.MaxSize
+				logger.Info("%s, --nodes=%d was set automatically as default value (--node=%d) was outside the set renge",
+					msgPrefix, n.spec.DesiredCapacity, api.DefaultNodeCount)
+			} else {
+				logger.Info("%s, default value of --nodes=%d was kept as it is within the set range",
+					msgPrefix, n.spec.DesiredCapacity)
+			}
+		}
+		if n.spec.DesiredCapacity > n.spec.MaxSize {
+			return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", n.spec.MaxSize, n.spec.DesiredCapacity)
+		}
 	}
 
 	n.addResourcesForIAM()
