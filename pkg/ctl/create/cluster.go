@@ -3,6 +3,7 @@ package create
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
@@ -101,9 +102,10 @@ func createClusterCmd() *cobra.Command {
 func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) error {
 	ctl := eks.New(cfg)
 
-	if cfg.Region != api.EKSRegionUSWest2 && cfg.Region != api.EKSRegionUSEast1 && cfg.Region != api.EKSRegionEUWest1 {
-		return fmt.Errorf("%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKSRegionUSWest2, api.EKSRegionUSEast1, api.EKSRegionEUWest1)
+	if !cfg.IsSupportedRegion() {
+		return fmt.Errorf("--region=%s is not supported - use one of: %s", cfg.Region, strings.Join(api.SupportedRegions(), ", "))
 	}
+	logger.Info("using region %s", cfg.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

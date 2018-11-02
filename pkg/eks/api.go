@@ -248,7 +248,6 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 		}
 	}
 
-	logger.Info("using region %s", clusterConfig.Region)
 	return s
 }
 
