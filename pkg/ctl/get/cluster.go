@@ -11,6 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
+var listAllRegions bool
+
 func getClusterCmd() *cobra.Command {
 	cfg := api.NewClusterConfig()
 
@@ -19,16 +21,25 @@ func getClusterCmd() *cobra.Command {
 		Short:   "Get cluster(s)",
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doGetCluster(cfg, ctl.GetNameArg(args)); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
+			if listAllRegions {
+				if err := doGetClusterForAllRegions(cfg); err != nil {
+					logger.Critical("%s\n", err.Error())
+					os.Exit(1)
+				}
+			} else {
+				if err := doGetCluster(cfg, ctl.GetNameArg(args)); err != nil {
+					logger.Critical("%s\n", err.Error())
+					os.Exit(1)
+				}
 			}
+
 		},
 	}
 
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
+	fs.BoolVarP(&listAllRegions, "all-regions", "a", false, "List clusters across all supported regions")
 	fs.IntVar(&chunkSize, "chunk-size", defaultChunkSize, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
 
 	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
@@ -55,6 +66,24 @@ func doGetCluster(cfg *api.ClusterConfig, name string) error {
 
 	if err := ctl.ListClusters(chunkSize, output); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func doGetClusterForAllRegions(cfg *api.ClusterConfig) error {
+	for _, region := range api.SupportedRegions() {
+		logger.Info("using region %s", region)
+		cfg.Region = region
+		ctl := eks.New(cfg)
+
+		if err := ctl.CheckAuth(); err != nil {
+			return err
+		}
+
+		if err := ctl.ListClusters(chunkSize, output); err != nil {
+			return err
+		}
 	}
 
 	return nil
