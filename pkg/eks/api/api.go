@@ -27,10 +27,12 @@ const (
 )
 
 // SupportedRegions are the regions where EKS is available
-var SupportedRegions = []string{
-	EKSRegionUSWest2,
-	EKSRegionUSEast1,
-	EKSRegionEUWest1,
+func SupportedRegions() []string {
+	return []string{
+		EKSRegionUSWest2,
+		EKSRegionUSEast1,
+		EKSRegionEUWest1,
+	}
 }
 
 // DefaultWaitTimeout defines the default wait timeout
@@ -83,6 +85,16 @@ func NewClusterConfig() *ClusterConfig {
 	cfg.VPC.CIDR = &cidr
 
 	return cfg
+}
+
+// IsSupportedRegion check if given region is supported
+func (c *ClusterConfig) IsSupportedRegion() bool {
+	for _, supportedRegion := range SupportedRegions() {
+		if c.Region == supportedRegion {
+			return true
+		}
+	}
+	return false
 }
 
 // NewNodeGroup crears new nodegroup inside cluster config,
