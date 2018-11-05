@@ -63,23 +63,23 @@ func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 func FindImage(api ec2iface.EC2API, namePattern string) (string, error) {
 	input := &ec2.DescribeImagesInput{
 		Filters: []*ec2.Filter{
-			&ec2.Filter{
+			{
 				Name:   aws.String("name"),
 				Values: []*string{aws.String(namePattern)},
 			},
-			&ec2.Filter{
+			{
 				Name:   aws.String("virtualization-type"),
 				Values: []*string{aws.String("hvm")},
 			},
-			&ec2.Filter{
+			{
 				Name:   aws.String("root-device-type"),
 				Values: []*string{aws.String("ebs")},
 			},
-			&ec2.Filter{
+			{
 				Name:   aws.String("is-public"),
 				Values: []*string{aws.String("true")},
 			},
-			&ec2.Filter{
+			{
 				Name:   aws.String("state"),
 				Values: []*string{aws.String("available")},
 			},
