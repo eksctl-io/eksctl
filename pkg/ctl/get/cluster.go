@@ -21,18 +21,10 @@ func getClusterCmd() *cobra.Command {
 		Short:   "Get cluster(s)",
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, args []string) {
-			if listAllRegions {
-				if err := doGetClusterForAllRegions(cfg); err != nil {
-					logger.Critical("%s\n", err.Error())
-					os.Exit(1)
-				}
-			} else {
-				if err := doGetCluster(cfg, ctl.GetNameArg(args)); err != nil {
-					logger.Critical("%s\n", err.Error())
-					os.Exit(1)
-				}
+			if err := doGetCluster(cfg, ctl.GetNameArg(args)); err != nil {
+				logger.Critical("%s\n", err.Error())
+				os.Exit(1)
 			}
-
 		},
 	}
 
@@ -64,27 +56,5 @@ func doGetCluster(cfg *api.ClusterConfig, name string) error {
 		cfg.ClusterName = name
 	}
 
-	if err := ctl.ListClusters(chunkSize, output); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func doGetClusterForAllRegions(cfg *api.ClusterConfig) error {
-	for _, region := range api.SupportedRegions() {
-		logger.Info("using region %s", region)
-		cfg.Region = region
-		ctl := eks.New(cfg)
-
-		if err := ctl.CheckAuth(); err != nil {
-			return err
-		}
-
-		if err := ctl.ListClusters(chunkSize, output); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return ctl.ListClusters(chunkSize, output, listAllRegions)
 }
