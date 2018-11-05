@@ -87,6 +87,16 @@ func NewClusterConfig() *ClusterConfig {
 	return cfg
 }
 
+// AppendAvailabilityZone appends a new AZ to the set
+func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
+	for _, az := range c.AvailabilityZones {
+		if az == newAZ {
+			return
+		}
+	}
+	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
+}
+
 // IsSupportedRegion check if given region is supported
 func (c *ClusterConfig) IsSupportedRegion() bool {
 	for _, supportedRegion := range SupportedRegions() {

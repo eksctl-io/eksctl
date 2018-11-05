@@ -30,6 +30,15 @@ func (k *Wrapper) isOwned(t *ec2.Tag) bool {
 	return *t.Key == "kubernetes.io/cluster/"+k.clusterName && *t.Value == "owned"
 }
 
+func (k *Wrapper) topologyOf(s *ec2.Subnet) api.SubnetTopology {
+	for _, t := range s.Tags {
+		if *t.Key == "SubnetType" && *t.Value == "Private" {
+			return api.SubnetTopologyPrivate
+		}
+	}
+	return api.SubnetTopologyPublic // "Utility", "Public" or unspecified
+}
+
 // UseVPC finds VPC and subnets that give kops cluster uses and add those to EKS cluster config
 func (k *Wrapper) UseVPC(spec *api.ClusterConfig) error {
 	allVPCs, err := aws.ListVPCs(k.cloud, k.clusterName)
@@ -60,9 +69,9 @@ func (k *Wrapper) UseVPC(spec *api.ClusterConfig) error {
 	for _, subnet := range allSubnets {
 		subnet := subnet.Obj.(*ec2.Subnet)
 		for _, tag := range subnet.Tags {
-			if k.isOwned(tag) && *subnet.VpcId == vpcs[0] {
-				spec.ImportSubnet(api.SubnetTopologyPublic, *subnet.AvailabilityZone, *subnet.SubnetId)
-				spec.AvailabilityZones = append(spec.AvailabilityZones, *subnet.AvailabilityZone)
+			if k.isOwned(tag) && *subnet.VpcId == spec.VPC.ID {
+				spec.ImportSubnet(k.topologyOf(subnet), *subnet.AvailabilityZone, *subnet.SubnetId)
+				spec.AppendAvailabilityZone(*subnet.AvailabilityZone)
 			}
 		}
 	}
