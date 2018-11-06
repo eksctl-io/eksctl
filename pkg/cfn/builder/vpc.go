@@ -85,6 +85,7 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 
 func (c *ClusterResourceSet) importResourcesForVPC() {
 	c.vpc = gfn.NewString(c.spec.VPC.ID)
+	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 	for topology := range c.spec.VPC.Subnets {
 		for _, subnet := range c.spec.SubnetIDs(topology) {
 			c.subnets[topology] = append(c.subnets[topology], gfn.NewString(subnet))
