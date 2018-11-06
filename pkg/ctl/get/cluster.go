@@ -3,6 +3,7 @@ package get
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
@@ -10,6 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
+
+var listAllRegions bool
 
 func getClusterCmd() *cobra.Command {
 	cfg := api.NewClusterConfig()
@@ -29,6 +32,7 @@ func getClusterCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name")
+	fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
 	fs.IntVar(&chunkSize, "chunk-size", defaultChunkSize, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
 
 	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
@@ -39,10 +43,15 @@ func getClusterCmd() *cobra.Command {
 }
 
 func doGetCluster(cfg *api.ClusterConfig, name string) error {
+	regionGiven := cfg.Region != "" // eks.New resets this field, so we need to check if it was set in the fist place
 	ctl := eks.New(cfg)
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
+	if !cfg.IsSupportedRegion() {
+		return fmt.Errorf("--region=%s is not supported - use one of: %s", cfg.Region, strings.Join(api.SupportedRegions(), ", "))
+	}
+
+	if regionGiven && listAllRegions {
+		logger.Warning("--region=%s is ignored, as --all-regions is given", cfg.Region)
 	}
 
 	if cfg.ClusterName != "" && name != "" {
@@ -53,9 +62,13 @@ func doGetCluster(cfg *api.ClusterConfig, name string) error {
 		cfg.ClusterName = name
 	}
 
-	if err := ctl.ListClusters(chunkSize, output); err != nil {
+	if cfg.ClusterName != "" && listAllRegions {
+		return fmt.Errorf("--all-regions is for listing all clusters, it must be used without cluster name flag/argument")
+	}
+
+	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	return nil
+	return ctl.ListClusters(chunkSize, output, listAllRegions)
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/printers"
 
 	"github.com/pkg/errors"
@@ -66,7 +67,7 @@ func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, output string) error {
+func (c *ClusterProvider) ListClusters(chunkSize int, output string, eachRegion bool) error {
 	// NOTE: this needs to be reworked in the future so that the functionality
 	// is combined. This require the ability to return details of all clusters
 	// in a single call.
@@ -85,33 +86,49 @@ func (c *ClusterProvider) ListClusters(chunkSize int, output string) error {
 	if output == "table" {
 		addListTableColumns(printer.(*printers.TablePrinter))
 	}
-	return c.doListClusters(int64(chunkSize), printer)
+	allClusters := []*clusterWithRegion{}
+	if err := c.doListClusters(int64(chunkSize), printer, &allClusters, eachRegion); err != nil {
+		return err
+	}
+	return printer.PrintObj("clusters", allClusters, os.Stdout)
 }
 
-func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter) error {
-	allClusters := []*clusterWithRegion{}
+func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
+	input := &awseks.ListClustersInput{MaxResults: &chunkSize}
+	if nextToken != "" {
+		input = input.SetNextToken(nextToken)
+	}
+	output, err := c.Provider.EKS().ListClusters(input)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "listing control planes")
+	}
+	return output.Clusters, output.NextToken, nil
+}
 
-	getFunc := func(chunkSize int64, nextToken string) ([]*string, *string, error) {
-		input := &awseks.ListClustersInput{MaxResults: &chunkSize}
-		if nextToken != "" {
-			input = input.SetNextToken(nextToken)
+func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter, allClusters *[]*clusterWithRegion, eachRegion bool) error {
+	if eachRegion {
+		// reset region and re-create the client, then make a recursive call
+		for _, region := range api.SupportedRegions() {
+			c.Spec.Region = region
+			if err := New(c.Spec).doListClusters(chunkSize, printer, allClusters, false); err != nil {
+				return err
+			}
 		}
-		output, err := c.Provider.EKS().ListClusters(input)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "listing control planes")
-		}
-		return output.Clusters, output.NextToken, nil
+		return nil
 	}
 
 	token := ""
 	for {
-		clusters, nextToken, err := getFunc(chunkSize, token)
+		clusters, nextToken, err := c.getClustersRequest(chunkSize, token)
 		if err != nil {
 			return err
 		}
 
 		for _, clusterName := range clusters {
-			allClusters = append(allClusters, &clusterWithRegion{Name: *clusterName, Region: c.Spec.Region})
+			*allClusters = append(*allClusters, &clusterWithRegion{
+				Name:   *clusterName,
+				Region: c.Spec.Region,
+			})
 		}
 
 		if nextToken != nil && *nextToken != "" {
@@ -119,10 +136,6 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		} else {
 			break
 		}
-	}
-
-	if err := printer.PrintObj("clusters", allClusters, os.Stdout); err != nil {
-		return err
 	}
 
 	return nil

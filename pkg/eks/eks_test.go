@@ -61,7 +61,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100, output)
+					err = c.ListClusters(100, output, false)
 				})
 
 				It("should not error", func() {
@@ -92,7 +92,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100, output)
+					err = c.ListClusters(100, output, false)
 				})
 
 				It("should not error", func() {
@@ -143,7 +143,7 @@ var _ = Describe("Eks", func() {
 			})
 
 			JustBeforeEach(func() {
-				err = c.ListClusters(100, output)
+				err = c.ListClusters(100, output, false)
 			})
 
 			AfterEach(func() {
@@ -222,7 +222,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(chunkSize, output)
+					err = c.ListClusters(chunkSize, output, false)
 				})
 
 				It("should not error", func() {
@@ -257,7 +257,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(chunkSize, output)
+					err = c.ListClusters(chunkSize, output, false)
 				})
 
 				It("should not error", func() {
