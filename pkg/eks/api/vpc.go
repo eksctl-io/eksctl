@@ -26,6 +26,10 @@ type (
 )
 
 const (
+	// MinRequiredSubnets is the minimum required number of subnets
+	MinRequiredSubnets = 2
+	// RecommendedSubnets is the recommended number of subnets
+	RecommendedSubnets = 3
 	// SubnetTopologyPrivate represents privately-routed subnets
 	SubnetTopologyPrivate SubnetTopology = "Private"
 	// SubnetTopologyPublic represents publicly-routed subnets
@@ -43,8 +47,10 @@ func DefaultCIDR() net.IPNet {
 // SubnetIDs returns list of subnets
 func (c *ClusterConfig) SubnetIDs(topology SubnetTopology) []string {
 	subnets := []string{}
-	for _, s := range c.VPC.Subnets[topology] {
-		subnets = append(subnets, s.ID)
+	if t, ok := c.VPC.Subnets[topology]; ok {
+		for _, s := range t {
+			subnets = append(subnets, s.ID)
+		}
 	}
 	return subnets
 }
@@ -65,11 +71,30 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID strin
 // HasSufficientPublicSubnets validates if there is a sufficient
 // number of public subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPublicSubnets() bool {
-	return len(c.SubnetIDs(SubnetTopologyPublic)) >= 2
+	return len(c.SubnetIDs(SubnetTopologyPublic)) >= MinRequiredSubnets
 }
 
 // HasSufficientPrivateSubnets validates if there is a sufficient
 // number of private subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
-	return len(c.SubnetIDs(SubnetTopologyPrivate)) >= 2
+	return len(c.SubnetIDs(SubnetTopologyPrivate)) >= MinRequiredSubnets
+}
+
+// HasSufficientSubnets validates if there is a sufficient number
+// of either private and/or public subnets available to create
+// a cluster, i.e. either non-zero of public or private, and not
+// less then MinRequiredSubnets of each, but allowing to have
+// public-only or private-only
+func (c *ClusterConfig) HasSufficientSubnets() bool {
+	numPublic := len(c.SubnetIDs(SubnetTopologyPublic))
+	if numPublic > 0 && numPublic < MinRequiredSubnets {
+		return false
+	}
+
+	numPrivate := len(c.SubnetIDs(SubnetTopologyPrivate))
+	if numPrivate > 0 && numPrivate < MinRequiredSubnets {
+		return false
+	}
+
+	return !(numPublic == 0 && numPrivate == 0)
 }
