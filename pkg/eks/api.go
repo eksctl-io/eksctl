@@ -187,8 +187,8 @@ func (c *ClusterProvider) SetAvailabilityZones(given []string) error {
 		c.Spec.AvailabilityZones = zones
 		return nil
 	}
-	if len(given) < az.DefaultRequiredAvailabilityZones {
-		return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(given), given, az.DefaultRequiredAvailabilityZones)
+	if len(given) < az.MinRequiredAvailabilityZones {
+		return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(given), given, az.MinRequiredAvailabilityZones)
 	}
 	c.Spec.AvailabilityZones = given
 	return nil

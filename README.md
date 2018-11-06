@@ -209,7 +209,7 @@ export KOPS_STATE_STORE=s3://kops
 kops create cluster cluster-1.k8s.local --zones=us-west-2c,us-west-2b,us-west-2a --networking=weave --yes
 ```
 
-You can create an EKS cluster in the same AZs using the same VPC subnets (NOTE: at least 3 subnets are required):
+You can create an EKS cluster in the same AZs using the same VPC subnets (NOTE: at least 2 AZs/subnets are required):
 ```
 eksctl create cluster --name=cluster-2 --region=us-west-2 --vpc-from-kops-cluster=cluster-1.k8s.local
 ```

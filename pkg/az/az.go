@@ -8,11 +8,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
+
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
 const (
-	// DefaultRequiredAvailabilityZones defines the number of required availability zones
-	DefaultRequiredAvailabilityZones = 3
+	// RecommendedAvailabilityZones defines the default number of required availability zones
+	RecommendedAvailabilityZones = api.RecommendedSubnets
+	// MinRequiredAvailabilityZones defines the minimum number of required availability zones
+	MinRequiredAvailabilityZones = api.MinRequiredSubnets
 )
 
 // SelectionStrategy provides an interface to allow changing the strategy used to
@@ -43,10 +47,16 @@ func (r *RequiredNumberRandomStrategy) Select(availableZones []string) []string 
 	return zones
 }
 
-// NewRequiredNumberRandomStrategy returns a RequiredNumberRandomStrategy that
-// has the number of required zones set to the default (DefaultRequiredAvailabilityZones)
-func NewRequiredNumberRandomStrategy() *RequiredNumberRandomStrategy {
-	return &RequiredNumberRandomStrategy{RequiredAvailabilityZones: DefaultRequiredAvailabilityZones}
+// NewRecommendedNumberRandomStrategy returns a RequiredNumberRandomStrategy that
+// has the number of required zones set to the default (RecommendedAvailabilityZones)
+func NewRecommendedNumberRandomStrategy() *RequiredNumberRandomStrategy {
+	return &RequiredNumberRandomStrategy{RequiredAvailabilityZones: RecommendedAvailabilityZones}
+}
+
+// NewMinRequiredNumberRandomStrategy returns a RequiredNumberRandomStrategy that
+// has the number of required zones set to the default (MinRequiredAvailabilityZones)
+func NewMinRequiredNumberRandomStrategy() *RequiredNumberRandomStrategy {
+	return &RequiredNumberRandomStrategy{RequiredAvailabilityZones: MinRequiredAvailabilityZones}
 }
 
 // ZoneUsageRule provides an interface to enable rules to determine if a
@@ -83,15 +93,23 @@ type AvailabilityZoneSelector struct {
 // NewSelectorWithDefaults create a new AvailabilityZoneSelector with the
 // default selection strategy and usage rules
 func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
-	avoidZones := map[string]bool{
-		// well-known over-populated zones
-		// "us-east-1a": true,
-		// "us-east-1b": true,
-	}
+	avoidZones := map[string]bool{}
 
 	return &AvailabilityZoneSelector{
 		ec2api:   ec2api,
-		strategy: NewRequiredNumberRandomStrategy(),
+		strategy: NewRecommendedNumberRandomStrategy(),
+		rules:    []ZoneUsageRule{NewZonesToAvoidRule(avoidZones)},
+	}
+}
+
+// NewSelectorWithMinRequired create a new AvailabilityZoneSelector with the
+// minimum required selection strategy and usage rules
+func NewSelectorWithMinRequired(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
+	avoidZones := map[string]bool{}
+
+	return &AvailabilityZoneSelector{
+		ec2api:   ec2api,
+		strategy: NewMinRequiredNumberRandomStrategy(),
 		rules:    []ZoneUsageRule{NewZonesToAvoidRule(avoidZones)},
 	}
 }
