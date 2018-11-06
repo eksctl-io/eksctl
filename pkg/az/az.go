@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	// DefaultRequiredAvailabilityZones defines the number of required availability zones
-	DefaultRequiredAvailabilityZones = 2
+	// DefaultRequiredAvailabilityZones defines the default number of required availability zones
+	DefaultRequiredAvailabilityZones = 3
+	// MinRequiredAvailabilityZones defines the minimum number of required availability zones
+	MinRequiredAvailabilityZones = 2
 )
 
 // SelectionStrategy provides an interface to allow changing the strategy used to
@@ -43,10 +45,14 @@ func (r *RequiredNumberRandomStrategy) Select(availableZones []string) []string 
 	return zones
 }
 
-// NewRequiredNumberRandomStrategy returns a RequiredNumberRandomStrategy that
+// NewDefaultRequiredNumberRandomStrategy returns a RequiredNumberRandomStrategy that
 // has the number of required zones set to the default (DefaultRequiredAvailabilityZones)
-func NewRequiredNumberRandomStrategy() *RequiredNumberRandomStrategy {
+func NewDefaultRequiredNumberRandomStrategy() *RequiredNumberRandomStrategy {
 	return &RequiredNumberRandomStrategy{RequiredAvailabilityZones: DefaultRequiredAvailabilityZones}
+}
+
+func NewMinRequiredNumberRandomStrategy() *RequiredNumberRandomStrategy {
+	return &RequiredNumberRandomStrategy{RequiredAvailabilityZones: MinRequiredAvailabilityZones}
 }
 
 // ZoneUsageRule provides an interface to enable rules to determine if a
@@ -91,7 +97,17 @@ func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
 
 	return &AvailabilityZoneSelector{
 		ec2api:   ec2api,
-		strategy: NewRequiredNumberRandomStrategy(),
+		strategy: NewDefaultRequiredNumberRandomStrategy(),
+		rules:    []ZoneUsageRule{NewZonesToAvoidRule(avoidZones)},
+	}
+}
+
+func NewSelectorWithMinRequired(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
+	avoidZones := map[string]bool{}
+
+	return &AvailabilityZoneSelector{
+		ec2api:   ec2api,
+		strategy: NewMinRequiredNumberRandomStrategy(),
 		rules:    []ZoneUsageRule{NewZonesToAvoidRule(avoidZones)},
 	}
 }
