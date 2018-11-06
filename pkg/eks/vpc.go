@@ -2,6 +2,10 @@ package eks
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -44,6 +48,33 @@ func (c *ClusterProvider) SetSubnets() error {
 			CIDR: private,
 		}
 		logger.Info("subnets for %s - public:%s private:%s", zone, public.String(), private.String())
+	}
+
+	return nil
+}
+
+// UseSubnets imports
+func (c *ClusterProvider) UseSubnets(topology api.SubnetTopology, subnetIDs []string) error {
+	if len(subnetIDs) == 0 {
+		return nil
+	}
+	input := &ec2.DescribeSubnetsInput{
+		SubnetIds: aws.StringSlice(subnetIDs),
+	}
+	output, err := c.Provider.EC2().DescribeSubnets(input)
+	if err != nil {
+		return err
+	}
+
+	for _, subnet := range output.Subnets {
+		if c.Spec.VPC.ID == "" {
+			c.Spec.VPC.ID = *subnet.VpcId
+		} else if c.Spec.VPC.ID != *subnet.VpcId {
+			return fmt.Errorf("given subnets (%s) are not in the same VPC", strings.Join(subnetIDs, ", "))
+		}
+
+		c.Spec.ImportSubnet(topology, *subnet.AvailabilityZone, *subnet.SubnetId)
+		c.Spec.AppendAvailabilityZone(*subnet.AvailabilityZone)
 	}
 
 	return nil
