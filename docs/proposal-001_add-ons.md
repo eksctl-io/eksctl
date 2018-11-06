@@ -1,10 +1,10 @@
-# Desing Proposal #001: Add-ons
+# Design Proposal #001: Add-ons
 
 ## What's an add-ons?
 
-An add-on extends functionality of a Kubernetes cluster, it may consist of a workload and/or configuration within the give cluster or the cloud provider. The workload, if present, would may classify as an operator or a controller, however that is not neccessary.
+An add-on extends functionality of a Kubernetes cluster, it may consist of a workload and/or configuration within the give cluster or the cloud provider. The workload, if present, would may classify as an operator or a controller, however that is not necessary.
 
-The difference between add-ons and anything a user decided to run themselves, is that from user's point of view, add-on is something they don't need to maintain directly. A cluster provider or bootstrap tool (i.e. eksctl), is expected to ensure ease of use, by providing minumum viable (that configuration to ensure end-to-end integration and compatibility), as well as catering for reconfiguration and upgrades.
+The difference between add-ons and anything a user decided to run themselves, is that from user's point of view, add-on is something they don't need to maintain directly. A cluster provider or bootstrap tool (i.e. eksctl), is expected to ensure ease of use, by providing minimum viable (that configuration to ensure end-to-end integration and compatibility), as well as catering for reconfiguration and upgrades.
 
 ## Design Requirements and Goals
 
@@ -19,7 +19,7 @@ Internally, an add-on may consist of any and/or all of the following elements:
 
 - Kubernetes workload definitions
 - Kubernetes configuration objects - PersistentVolumes, ConfigMaps, ...etc
-- cloud provider resource definitons (e.g. CloudFormation sub-resources)
+- cloud provider resource definitions (e.g. CloudFormation sub-resources)
 - dependencies (supported Kubernetes versions and corresponding cloud providers, list of references to other add-ons)
 - incompatibilities (supported Kubernetes versions and corresponding cloud providers, list of reference to other add-ons)
 
@@ -35,7 +35,7 @@ The implementation must also ensure:
 - fully deterministic behaviour for a given version of eksctl, thereby it should have
     - strict versioning of built-in add-ons by default
     - any externally-sourced config has to be pinned down or vendored *[TBD]*
-    - there should be an option to use latest version or altenative source URL
+    - there should be an option to use latest version or alternative source URL
 - user should be able:
     - remove any add-on (including it's dependencies) at any time
     - customise an add-on in an arbitrary fashion
@@ -47,7 +47,7 @@ The implementation must also ensure:
 
 ## Review of Prior Art
 
-This section aimes to briefly review some of the existing add-on management implementations.
+This section aims to briefly review some of the existing add-on management implementations.
 
 ### kube-addon-manager
 
@@ -55,7 +55,7 @@ This section aimes to briefly review some of the existing add-on management impl
 
 This is a long-lived component, which started as a shell script (part of `kube-up.sh`). It's been used by a few
 cluster providers (including GKE), yet it's behaviour is very opaque to most users. It's mostly a very simple
-component, yet it's not designed to be consumed by a user and is promarely aimed to solve private needs of a
+component, yet it's not designed to be consumed by a user and is primarily aimed to solve private needs of a
 cluster provider.
 
 ### kubernetes/kops
@@ -68,7 +68,7 @@ Add-ons are defined in `deploy/addons` and referenced in `pkg/minikube/assets/ad
 are flat YAML files. The `kubernetes.io/minikube-addons` and `kubernetes.io/minikube-addons-endpoint` labels are
 commonly used. Custom add-ons can be provided via `~/.minikube/addons`.
 
-It uses `kube-addon-manager`. The manifests are compiled-in, and extract to `/etc/kubernetes/addons` at runtimer,
+It uses `kube-addon-manager`. The manifests are compiled-in, and extract to `/etc/kubernetes/addons` at runtime,
 which is mounted into `kube-addon-manager` pod.
 
 Many of the add-ons are using `RepicationControllers`, and it's (probably) `kube-addon-manager` job to do rolling
@@ -108,7 +108,7 @@ if they wished to do so.
 
 ### GoogleCloudPlatform/k8s-cluster-bundle (TBC)
 
-***More technical infomration is needed***
+***More technical information is needed***
 
 This project aims at defining an API for defining custom collections of manifests.
 
@@ -116,7 +116,7 @@ This project aims at defining an API for defining custom collections of manifest
 
 Most of the implementations described above have custom add-on management mechanisms. The goal of this proposal is
 to provide a design that would work for eksctl short-term (MVP), but also suggest a direction for an implementation
-that could be applied more widely and addopted by other projects in the future.
+that could be applied more widely and adopted by other projects in the future.
 While majority of add-on manifests are based on a canonical source, the way copies are updates is different for each
 of the implementations, and it's hard for user to find out whether any of such copies are up-to-date date or not.
 Some of the implementations set set custom labels, but it's not clear what customisations had been applied to each
@@ -147,7 +147,7 @@ Helm, Ksonnet and others.
 
 ### Add-on instance examples
 
-Install a built-in `flux` addon:
+Install a built-in `flux` add-on:
 
 ```YAML
 apiVersion: eksctl.io/v1alpha1
@@ -171,7 +171,7 @@ metadata:
 It will be possible to list built-in add-ons with `eksctl addons list`, and install them as simply as `eksctl create cluster --addons=<name>` or `eksctl addons install <name>`.
 It should be possible to also specify parameters using a flag, the syntax is _TBD_.
 
-Install a external example addon:
+Install a external example add-on:
 
 ```YAML
 apiVersion: eksctl.io/v1alpha1
@@ -244,22 +244,22 @@ TBD: it may be possible to chain different tools, e.g. render a Helm chart (via 
 
 ### Parameters
 
-A way to define parameters in a portable way will be required for optimal user (and/or add-on author) exprience.
+A way to define parameters in a portable way will be required for optimal user (and/or add-on author) experience.
 
-At add-on management layer, there following key asepects of paramters:
+At add-on management layer, there following key aspects of parameters:
 
 - parameters are a map of strings to a value of a primitive type
 - initial set of primitive types - `bool`, `number` and `string`
-- non-primive types (`object` and `array`) are initially out of scope (yet could probaly be handled at underlying provider level)
+- non-primive types (`object` and `array`) are initially out of scope (yet could probably be handled at underlying provider level)
 - a parameter may be either optional with a default value or non-optional without a default value
 
 #### How would this map to different providers?
 
-Helm values are essentially `map[string]interface{}`, which implies there is no type information or required params, and default values are defind inside a chart. The management layer could take care of the concerns above and pass an appropriate set of value.
+Helm values are essentially `map[string]interface{}`, which implies there is no type information or required params, and default values are defined inside a chart. The management layer could take care of the concerns above and pass an appropriate set of value.
 
 Ksonnet – TBD
 
-With kustomize, there are no params, but they can be intoroduced with auto-generate ConfigMap and `vars` stanza. So potentially is should be doable, given underlying add-on base layer was written with paramers in mind, otherwise kustomizations would be required as another layer where params are referenced.
+With kustomize, there are no params, but they can be introduced with auto-generate ConfigMap and `vars` stanza. So potentially is should be doable, given underlying add-on base layer was written with parameters in mind, otherwise kustomizations would be required as another layer where params are referenced.
 
 #### Alternatives
 
@@ -267,4 +267,5 @@ With kustomize, there are no params, but they can be intoroduced with auto-gener
   - an add-on based on Helm chart would use Helm values format
   - a ksonnet-based add-on will use its own
   - a kustomize-based add-on won't have any
-In Helm, we would be 
+
+In Helm, we would be ...TBD
