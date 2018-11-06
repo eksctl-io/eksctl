@@ -30,6 +30,7 @@ var (
 	availabilityZones  []string
 
 	kopsClusterNameForVPC string
+	subnets               map[api.SubnetTopology]*[]string
 )
 
 func createClusterCmd() *cobra.Command {
@@ -94,6 +95,11 @@ func createClusterCmd() *cobra.Command {
 
 	fs.IPNetVar(cfg.VPC.CIDR, "vpc-cidr", api.DefaultCIDR(), "global CIDR to use for VPC")
 
+	subnets = map[api.SubnetTopology]*[]string{
+		api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
+		api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
+	}
+
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make initial nodegroup networking private")
 
 	return cmd
@@ -127,27 +133,90 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
 
-	if kopsClusterNameForVPC != "" {
-		if len(availabilityZones) != 0 {
-			return fmt.Errorf("--vpc-from-kops-cluster and --zones cannot be used at the same time")
+	createOrImportVPC := func() error {
+		subnetsGiven := len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
+
+		subnetInfo := func() string {
+			return fmt.Sprintf("VPC (%s) and subnets (private:%v public:%v)",
+				cfg.VPC.ID, cfg.SubnetIDs(api.SubnetTopologyPrivate), cfg.SubnetIDs(api.SubnetTopologyPublic))
 		}
-		kw, err := kops.NewWrapper(cfg.Region, kopsClusterNameForVPC)
-		if err != nil {
+
+		customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
+
+		canUseForPrivateNodeGroup := func() error {
+			if ng.PrivateNetworking && !cfg.HasSufficientPrivateSubnets() {
+				return fmt.Errorf("none or too few private subnets to use with --node-private-networking")
+			}
+			return nil
+		}
+
+		if !subnetsGiven && kopsClusterNameForVPC == "" {
+			// default: create dedicated VPC
+			if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
+				return err
+			}
+			if err := ctl.SetSubnets(); err != nil {
+				return err
+			}
+			return nil
+		}
+
+		if kopsClusterNameForVPC != "" {
+			// import VPC from a given kops cluster
+			if len(availabilityZones) != 0 {
+				return fmt.Errorf("--vpc-from-kops-cluster and --zones cannot be used at the same time")
+			}
+
+			if subnetsGiven {
+				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets cannot be used at the same time")
+			}
+
+			kw, err := kops.NewWrapper(cfg.Region, kopsClusterNameForVPC)
+			if err != nil {
+				return err
+			}
+
+			if err := kw.UseVPC(cfg); err != nil {
+				return err
+			}
+
+			if err := canUseForPrivateNodeGroup(); err != nil {
+				return err
+			}
+
+			logger.Success("using %s from kops cluster %q", subnetInfo(), kopsClusterNameForVPC)
+			logger.Warning(customNetworkingNotice)
+			return nil
+		}
+
+		// use subnets as specified by --vpc-{private,public}-subnets flags
+
+		if len(availabilityZones) != 0 {
+			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones cannot be used at the same time")
+		}
+
+		for topology := range subnets {
+			if err := ctl.UseSubnets(topology, *subnets[topology]); err != nil {
+				return err
+			}
+		}
+
+		if err := cfg.HasSufficientSubnets(); err != nil {
+			logger.Critical("unable to use given %s", subnetInfo())
 			return err
 		}
 
-		if err := kw.UseVPC(cfg); err != nil {
+		if err := canUseForPrivateNodeGroup(); err != nil {
 			return err
 		}
-		logger.Success("using VPC (%s) and subnets (%v) from kops cluster %q", cfg.VPC.ID, cfg.SubnetIDs(api.SubnetTopologyPublic), kopsClusterNameForVPC)
-	} else {
-		// kw.UseVPC() sets AZs based on subenets used
-		if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
-			return err
-		}
-		if err := ctl.SetSubnets(); err != nil {
-			return err
-		}
+
+		logger.Success("using existing %s", subnetInfo())
+		logger.Warning(customNetworkingNotice)
+		return nil
+	}
+
+	if err := createOrImportVPC(); err != nil {
+		return err
 	}
 
 	if err := ctl.EnsureAMI(ng); err != nil {
