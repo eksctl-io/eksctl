@@ -5,6 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"k8s.io/kops/pkg/resources/aws"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
@@ -76,9 +77,8 @@ func (k *Wrapper) UseVPC(spec *api.ClusterConfig) error {
 		}
 	}
 	logger.Debug("subnets = %#v", spec.VPC.Subnets)
-	if !spec.HasSufficientPublicSubnets() {
-		return fmt.Errorf("cannot use VPC from kops cluster with less then 2 subnets")
+	if err := spec.HasSufficientSubnets(); err != nil {
+		return errors.Wrapf(err, "using VPC from kops cluster %q", k.clusterName)
 	}
-
 	return nil
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net"
 )
 
@@ -57,6 +58,9 @@ func (c *ClusterConfig) SubnetIDs(topology SubnetTopology) []string {
 
 // ImportSubnet loads a given subnet into cluster config
 func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID string) {
+	if c.VPC.Subnets == nil {
+		c.VPC.Subnets = make(map[SubnetTopology]map[string]Network)
+	}
 	if _, ok := c.VPC.Subnets[topology]; !ok {
 		c.VPC.Subnets[topology] = map[string]Network{}
 	}
@@ -80,21 +84,29 @@ func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
 	return len(c.SubnetIDs(SubnetTopologyPrivate)) >= MinRequiredSubnets
 }
 
+var errInsufficientSubnets = fmt.Errorf(
+	"inssuficient number of subnets, at least %dx public and/or %dx private subnets are required",
+	MinRequiredSubnets, MinRequiredSubnets)
+
 // HasSufficientSubnets validates if there is a sufficient number
 // of either private and/or public subnets available to create
 // a cluster, i.e. either non-zero of public or private, and not
 // less then MinRequiredSubnets of each, but allowing to have
 // public-only or private-only
-func (c *ClusterConfig) HasSufficientSubnets() bool {
+func (c *ClusterConfig) HasSufficientSubnets() error {
 	numPublic := len(c.SubnetIDs(SubnetTopologyPublic))
 	if numPublic > 0 && numPublic < MinRequiredSubnets {
-		return false
+		return errInsufficientSubnets
 	}
 
 	numPrivate := len(c.SubnetIDs(SubnetTopologyPrivate))
 	if numPrivate > 0 && numPrivate < MinRequiredSubnets {
-		return false
+		return errInsufficientSubnets
 	}
 
-	return !(numPublic == 0 && numPrivate == 0)
+	if numPublic == 0 && numPrivate == 0 {
+		return errInsufficientSubnets
+	}
+
+	return nil
 }
