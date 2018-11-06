@@ -178,6 +178,9 @@ func (c *ClusterProvider) SetAvailabilityZones(given []string) error {
 	if len(given) == 0 {
 		logger.Debug("determining availability zones")
 		azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
+		if c.Spec.Region == api.EKSRegionUSEast1 {
+			azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2())
+		}
 		zones, err := azSelector.SelectZones(c.Spec.Region)
 		if err != nil {
 			return errors.Wrap(err, "getting availability zones")
