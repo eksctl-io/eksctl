@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -170,9 +169,6 @@ func createProviders() (*eks.ClusterProvider, *testutils.MockProvider) {
 
 	c := &eks.ClusterProvider{
 		Provider: p,
-		Spec: &api.ClusterConfig{
-			Region: "eu-west-1",
-		},
 	}
 
 	return c, p

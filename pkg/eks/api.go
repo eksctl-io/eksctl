@@ -32,7 +32,6 @@ import (
 // ClusterProvider stores information about the cluster
 type ClusterProvider struct {
 	// core fields used for config and AWS APIs
-	Spec     *api.ClusterConfig
 	Provider api.ClusterProvider
 	// informative fields, i.e. used as outputs
 	Status *ProviderStatus
@@ -40,10 +39,11 @@ type ClusterProvider struct {
 
 // ProviderServices stores the used APIs
 type ProviderServices struct {
-	cfn cloudformationiface.CloudFormationAPI
-	eks eksiface.EKSAPI
-	ec2 ec2iface.EC2API
-	sts stsiface.STSAPI
+	spec *api.ProviderConfig
+	cfn  cloudformationiface.CloudFormationAPI
+	eks  eksiface.EKSAPI
+	ec2  ec2iface.EC2API
+	sts  stsiface.STSAPI
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -58,6 +58,15 @@ func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
 // STS returns a representation of the STS API
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
+// Region returns provider-level region setting
+func (p ProviderServices) Region() string { return p.spec.Region }
+
+// Profile returns provider-level profile name
+func (p ProviderServices) Profile() string { return p.spec.Profile }
+
+// WaitTimeout returns provider-level duration after which any wait operation has to timeout
+func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeout }
+
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
 	iamRoleARN   string
@@ -65,46 +74,60 @@ type ProviderStatus struct {
 }
 
 // New creates a new setup of the used AWS APIs
-func New(clusterConfig *api.ClusterConfig) *ClusterProvider {
+func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvider {
+	provider := &ProviderServices{
+		spec: spec,
+	}
+	c := &ClusterProvider{
+		Provider: provider,
+	}
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
-	s := newSession(clusterConfig, "", nil)
+	s := c.newSession(spec, "", nil)
 
-	provider := &ProviderServices{
-		cfn: cloudformation.New(s),
-		eks: awseks.New(s),
-		ec2: ec2.New(s),
-		sts: sts.New(s),
-	}
+	provider.cfn = cloudformation.New(s)
+	provider.eks = awseks.New(s)
+	provider.ec2 = ec2.New(s)
+	provider.sts = sts.New(s)
 
-	status := &ProviderStatus{
+	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
 	}
 
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
-		provider.cfn = cloudformation.New(newSession(clusterConfig, endpoint, status.sessionCreds))
+		provider.cfn = cloudformation.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		provider.eks = awseks.New(newSession(clusterConfig, endpoint, status.sessionCreds))
+		provider.eks = awseks.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
-		provider.ec2 = ec2.New(newSession(clusterConfig, endpoint, status.sessionCreds))
+		provider.ec2 = ec2.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
 
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
-		provider.sts = sts.New(newSession(clusterConfig, endpoint, status.sessionCreds))
+		provider.sts = sts.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
 	}
 
-	return &ClusterProvider{
-		Spec:     clusterConfig,
-		Provider: provider,
-		Status:   status,
+	if clusterSpec != nil {
+		clusterSpec.Metadata.Region = c.Provider.Region()
 	}
+
+	return c
+}
+
+// IsSupportedRegion check if given region is supported
+func (c *ClusterProvider) IsSupportedRegion() bool {
+	for _, supportedRegion := range api.SupportedRegions() {
+		if c.Provider.Region() == supportedRegion {
+			return true
+		}
+	}
+	return false
 }
 
 // GetCredentialsEnv returns the AWS credentials for env usage
@@ -148,12 +171,12 @@ func (c *ClusterProvider) EnsureAMI(ng *api.NodeGroup) error {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
 	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
-		id, err := ami.Resolve(c.Spec.Region, ng.InstanceType, ng.AMIFamily)
+		id, err := ami.Resolve(c.Provider.Region(), ng.InstanceType, ng.AMIFamily)
 		if err != nil {
 			return errors.Wrap(err, "Unable to determine AMI to use")
 		}
 		if id == "" {
-			return ami.NewErrFailedResolution(c.Spec.Region, ng.InstanceType, ng.AMIFamily)
+			return ami.NewErrFailedResolution(c.Provider.Region(), ng.InstanceType, ng.AMIFamily)
 		}
 		ng.AMI = id
 	}
@@ -174,37 +197,37 @@ func (c *ClusterProvider) EnsureAMI(ng *api.NodeGroup) error {
 }
 
 // SetAvailabilityZones sets the given (or chooses) the availability zones
-func (c *ClusterProvider) SetAvailabilityZones(given []string) error {
+func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
 	if len(given) == 0 {
 		logger.Debug("determining availability zones")
 		azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
-		if c.Spec.Region == api.EKSRegionUSEast1 {
+		if c.Provider.Region() == api.EKSRegionUSEast1 {
 			azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2())
 		}
-		zones, err := azSelector.SelectZones(c.Spec.Region)
+		zones, err := azSelector.SelectZones(c.Provider.Region())
 		if err != nil {
 			return errors.Wrap(err, "getting availability zones")
 		}
 
 		logger.Info("setting availability zones to %v", zones)
-		c.Spec.AvailabilityZones = zones
+		spec.AvailabilityZones = zones
 		return nil
 	}
 	if len(given) < az.MinRequiredAvailabilityZones {
 		return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(given), given, az.MinRequiredAvailabilityZones)
 	}
-	c.Spec.AvailabilityZones = given
+	spec.AvailabilityZones = given
 	return nil
 }
 
-func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *credentials.Credentials) *session.Session {
+func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, credentials *credentials.Credentials) *session.Session {
 	// we might want to use bits from kops, although right now it seems like too many thing we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
 	config := aws.NewConfig()
 
-	if clusterConfig.Region != "" {
-		config = config.WithRegion(clusterConfig.Region)
+	if c.Provider.Region() != "" {
+		config = config.WithRegion(c.Provider.Region())
 	}
 
 	config = config.WithCredentialsChainVerboseErrors(true)
@@ -223,7 +246,7 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 	opts := session.Options{
 		Config:                  *config,
 		SharedConfigState:       session.SharedConfigEnable,
-		Profile:                 clusterConfig.Profile,
+		Profile:                 spec.Profile,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 	}
 
@@ -239,15 +262,15 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 
 	s := session.Must(session.NewSessionWithOptions(opts))
 
-	if clusterConfig.Region == "" {
+	if spec.Region == "" {
 		if *s.Config.Region != "" {
 			// set cluster config region, based on session config
-			clusterConfig.Region = *s.Config.Region
+			spec.Region = *s.Config.Region
 		} else {
 			// if session config doesn't have region set, make recursive call forcing default region
 			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
-			clusterConfig.Region = api.DefaultEKSRegion
-			return newSession(clusterConfig, endpoint, credentials)
+			spec.Region = api.DefaultEKSRegion
+			return c.newSession(spec, endpoint, credentials)
 		}
 	}
 
@@ -255,6 +278,6 @@ func newSession(clusterConfig *api.ClusterConfig, endpoint string, credentials *
 }
 
 // NewStackManager returns a new stack manager
-func (c *ClusterProvider) NewStackManager() *manager.StackCollection {
-	return manager.NewStackCollection(c.Provider, c.Spec)
+func (c *ClusterProvider) NewStackManager(spec *api.ClusterConfig) *manager.StackCollection {
+	return manager.NewStackCollection(c.Provider, spec)
 }

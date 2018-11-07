@@ -21,13 +21,14 @@ var (
 )
 
 func writeKubeconfigCmd() *cobra.Command {
+	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
 		Use:   "write-kubeconfig",
 		Short: "Write kubeconfig file for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doWriteKubeconfigCmd(cfg, ctl.GetNameArg(args)); err != nil {
+			if err := doWriteKubeconfigCmd(p, cfg, ctl.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -36,10 +37,10 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.ClusterName, "name", "n", "", "EKS cluster name (required)")
+	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
+	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
 	fs.BoolVar(&utilsAutoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name – %q", kubeconfig.AutoPath("<name>")))
 	fs.StringVar(&utilsKubeconfigOutputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig")
@@ -48,22 +49,22 @@ func writeKubeconfigCmd() *cobra.Command {
 	return cmd
 }
 
-func doWriteKubeconfigCmd(cfg *api.ClusterConfig, name string) error {
-	ctl := eks.New(cfg)
+func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
+	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.ClusterName != "" && name != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.ClusterName, name)
+	if cfg.Metadata.Name != "" && name != "" {
+		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, name)
 	}
 
 	if name != "" {
-		cfg.ClusterName = name
+		cfg.Metadata.Name = name
 	}
 
-	if cfg.ClusterName == "" {
+	if cfg.Metadata.Name == "" {
 		return fmt.Errorf("--name must be set")
 	}
 
@@ -71,21 +72,21 @@ func doWriteKubeconfigCmd(cfg *api.ClusterConfig, name string) error {
 		if utilsKubeconfigOutputPath != kubeconfig.DefaultPath {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
 		}
-		utilsKubeconfigOutputPath = kubeconfig.AutoPath(cfg.ClusterName)
+		utilsKubeconfigOutputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
 	}
 
-	cluster, err := ctl.DescribeControlPlane()
+	cluster, err := ctl.DescribeControlPlane(cfg.Metadata)
 	if err != nil {
 		return err
 	}
 
 	logger.Debug("cluster = %#v", cluster)
 
-	if err = ctl.GetCredentials(*cluster); err != nil {
+	if err = ctl.GetCredentials(*cluster, cfg); err != nil {
 		return err
 	}
 
-	clientConfigBase, err := ctl.NewClientConfig()
+	clientConfigBase, err := ctl.NewClientConfig(cfg)
 	if err != nil {
 		return err
 	}

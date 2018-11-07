@@ -33,7 +33,7 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, i
 		rs:               newResourceSet(),
 		id:               id,
 		clusterStackName: clusterStackName,
-		nodeGroupName:    fmt.Sprintf("%s-%d", spec.ClusterName, id),
+		nodeGroupName:    fmt.Sprintf("%s-%d", spec.Metadata.Name, id),
 		clusterSpec:      spec,
 		spec:             spec.NodeGroups[id],
 	}
@@ -156,7 +156,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			"VPCZoneIdentifier":       vpcZoneIdentifier,
 			"Tags": []map[string]interface{}{
 				{"Key": "Name", "Value": fmt.Sprintf("%s-Node", n.nodeGroupName), "PropagateAtLaunch": "true"},
-				{"Key": "kubernetes.io/cluster/" + n.clusterSpec.ClusterName, "Value": "owned", "PropagateAtLaunch": "true"},
+				{"Key": "kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name, "Value": "owned", "PropagateAtLaunch": "true"},
 			},
 		},
 		UpdatePolicy: map[string]map[string]string{

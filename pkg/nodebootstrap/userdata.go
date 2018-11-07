@@ -106,8 +106,8 @@ func makeKubeletParams(spec *api.ClusterConfig, nodeGroupID int) []string {
 
 func makeMetadata(spec *api.ClusterConfig) []string {
 	return []string{
-		fmt.Sprintf("AWS_DEFAULT_REGION=%s", spec.Region),
-		fmt.Sprintf("AWS_EKS_CLUSTER_NAME=%s", spec.ClusterName),
+		fmt.Sprintf("AWS_DEFAULT_REGION=%s", spec.Metadata.Region),
+		fmt.Sprintf("AWS_EKS_CLUSTER_NAME=%s", spec.Metadata.Name),
 		fmt.Sprintf("AWS_EKS_ENDPOINT=%s", spec.Endpoint),
 	}
 }

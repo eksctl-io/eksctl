@@ -129,7 +129,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		VpcId:            makeImportValue(n.clusterStackName, cfnOutputClusterVPC),
 		GroupDescription: gfn.NewString("Communication between the control plane and " + desc),
 		Tags: []gfn.Tag{{
-			Key:   gfn.NewString("kubernetes.io/cluster/" + n.clusterSpec.ClusterName),
+			Key:   gfn.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
 			Value: gfn.NewString("owned"),
 		}},
 	})

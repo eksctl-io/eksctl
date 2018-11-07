@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 const (
@@ -105,8 +106,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg := api.NewClusterConfig()
 		ng := cfg.NewNodeGroup()
 
-		cfg.Region = "us-west-2"
-		cfg.ClusterName = clusterName
+		cfg.Metadata.Region = "us-west-2"
+		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
@@ -121,8 +122,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
 
 		expected := &api.ClusterConfig{
-			Region:                   "us-west-2",
-			ClusterName:              clusterName,
+			Metadata: &api.ClusterMeta{
+				Region: "us-west-2",
+				Name:   clusterName,
+			},
 			Endpoint:                 endpoint,
 			CertificateAuthorityData: caCertData,
 			ARN:                      arn,
@@ -197,10 +200,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		cfg := newClusterConfig()
-		ctl := eks.New(cfg)
+		ctl := eks.New(testutils.ProviderConfig, cfg)
 
 		It("should not error when calling SetSubnets", func() {
-			err := ctl.SetSubnets()
+			err := ctl.SetSubnets(cfg)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -286,8 +289,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg := api.NewClusterConfig()
 		ng := cfg.NewNodeGroup()
 
-		cfg.Region = "us-west-2"
-		cfg.ClusterName = clusterName
+		cfg.Metadata.Region = "us-west-2"
+		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
 		ng.InstanceType = "t2.medium"
 
@@ -359,8 +362,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg := api.NewClusterConfig()
 		ng := cfg.NewNodeGroup()
 
-		cfg.Region = "us-west-2"
-		cfg.ClusterName = clusterName
+		cfg.Metadata.Region = "us-west-2"
+		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
@@ -410,8 +413,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg := api.NewClusterConfig()
 		ng := cfg.NewNodeGroup()
 
-		cfg.Region = "us-west-2"
-		cfg.ClusterName = clusterName
+		cfg.Metadata.Region = "us-west-2"
+		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
@@ -463,8 +466,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg := api.NewClusterConfig()
 		ng := cfg.NewNodeGroup()
 
-		cfg.Region = "us-west-2"
-		cfg.ClusterName = clusterName
+		cfg.Metadata.Region = "us-west-2"
+		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
 		cfg.VPC = &api.ClusterVPC{
 			Network: api.Network{

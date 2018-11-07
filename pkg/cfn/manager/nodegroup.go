@@ -22,7 +22,7 @@ const (
 )
 
 func (c *StackCollection) makeNodeGroupStackName(id int) string {
-	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.ClusterName, id)
+	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.Metadata.Name, id)
 }
 
 // CreateNodeGroup creates the nodegroup
@@ -45,7 +45,7 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 }
 
 func (c *StackCollection) listAllNodeGroups() ([]string, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-\\d$", c.spec.ClusterName))
+	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-\\d$", c.spec.Metadata.Name))
 	if err != nil {
 		return nil, err
 	}

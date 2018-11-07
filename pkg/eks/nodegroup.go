@@ -87,7 +87,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 	if ng.MinSize == 0 {
 		return nil
 	}
-	timer := time.After(c.Spec.WaitTimeout)
+	timer := time.After(c.Provider.WaitTimeout())
 	timeout := false
 	watcher, err := clientSet.CoreV1().Nodes().Watch(metav1.ListOptions{})
 	if err != nil {
@@ -120,7 +120,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 		}
 	}
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.Spec.WaitTimeout, ng.MinSize)
+		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.Provider.WaitTimeout(), ng.MinSize)
 	}
 
 	if _, err = getNodes(clientSet); err != nil {

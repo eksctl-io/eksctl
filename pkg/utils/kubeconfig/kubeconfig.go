@@ -31,7 +31,7 @@ const (
 // if certificateAuthorityPath is no empty, it is used instead of
 // embedded certificate-authority-data
 func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
-	clusterName := getCompleteClusterName(spec)
+	clusterName := spec.Metadata.String()
 	contextName := fmt.Sprintf("%s@%s", username, clusterName)
 
 	c := &clientcmdapi.Config{
@@ -66,7 +66,7 @@ func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, comman
 	c.AuthInfos[c.CurrentContext].Exec = &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
 		Command:    command,
-		Args:       []string{"token", "-i", spec.ClusterName},
+		Args:       []string{"token", "-i", spec.Metadata.Name},
 		/*
 			Args:       []string{"token", "-i", c.Cluster.ClusterName, "-r", c.roleARN},
 		*/
@@ -98,10 +98,6 @@ func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string
 	}
 
 	return configAccess.GetDefaultFilename(), nil
-}
-
-func getCompleteClusterName(spec *api.ClusterConfig) string {
-	return fmt.Sprintf("%s.%s.eksctl.io", spec.ClusterName, spec.Region)
 }
 
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
@@ -157,8 +153,8 @@ func isValidConfig(p, name string) error {
 }
 
 // MaybeDeleteConfig will delete the auto-generated kubeconfig, if it exists
-func MaybeDeleteConfig(ctl *api.ClusterConfig) {
-	p := AutoPath(ctl.ClusterName)
+func MaybeDeleteConfig(cl *api.ClusterMeta) {
+	p := AutoPath(cl.Name)
 
 	autoConfExists, err := utils.FileExists(p)
 	if err != nil {
@@ -166,7 +162,7 @@ func MaybeDeleteConfig(ctl *api.ClusterConfig) {
 		return
 	}
 	if autoConfExists {
-		if err = isValidConfig(p, ctl.ClusterName); err != nil {
+		if err = isValidConfig(p, cl.Name); err != nil {
 			logger.Debug(err.Error())
 			return
 		}
@@ -183,7 +179,7 @@ func MaybeDeleteConfig(ctl *api.ClusterConfig) {
 		return
 	}
 
-	if !deleteClusterInfo(config, ctl) {
+	if !deleteClusterInfo(config, cl) {
 		return
 	}
 
@@ -197,9 +193,9 @@ func MaybeDeleteConfig(ctl *api.ClusterConfig) {
 // deleteClusterInfo removes a cluster's information from the kubeconfig if the cluster name
 // provided by ctl matches a eksctl-created cluster in the kubeconfig
 // returns 'true' if the existing config has changes and 'false' otherwise
-func deleteClusterInfo(existing *clientcmdapi.Config, ctl *api.ClusterConfig) bool {
+func deleteClusterInfo(existing *clientcmdapi.Config, cl *api.ClusterMeta) bool {
 	isChanged := false
-	clusterName := getCompleteClusterName(ctl)
+	clusterName := cl.String()
 
 	if existing.Clusters[clusterName] != nil {
 		delete(existing.Clusters, clusterName)

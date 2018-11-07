@@ -28,8 +28,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-func (c *ClusterProvider) getKeyPairName(ng *api.NodeGroup, fingerprint *string) string {
-	keyNameParts := []string{"eksctl", c.Spec.ClusterName}
+func (c *ClusterProvider) getKeyPairName(clusterName string, ng *api.NodeGroup, fingerprint *string) string {
+	keyNameParts := []string{"eksctl", clusterName}
 	if ng != nil {
 		keyNameParts = append(keyNameParts, fmt.Sprintf("ng%d", ng.ID))
 	}
@@ -65,12 +65,12 @@ func (c *ClusterProvider) tryExistingSSHPublicKeyFromPath(ng *api.NodeGroup) err
 	return nil
 }
 
-func (c *ClusterProvider) importSSHPublicKeyIfNeeded(ng *api.NodeGroup) error {
+func (c *ClusterProvider) importSSHPublicKeyIfNeeded(clusterName string, ng *api.NodeGroup) error {
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(ng.SSHPublicKey))
 	if err != nil {
 		return err
 	}
-	ng.SSHPublicKeyName = c.getKeyPairName(ng, &fingerprint)
+	ng.SSHPublicKeyName = c.getKeyPairName(clusterName, ng, &fingerprint)
 	existing, err := c.getKeyPair(ng.SSHPublicKeyName)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "cannot find EC2 key pair") {
@@ -94,7 +94,7 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded(ng *api.NodeGroup) error {
 }
 
 // LoadSSHPublicKey loads the given SSH public key
-func (c *ClusterProvider) LoadSSHPublicKey(ng *api.NodeGroup) error {
+func (c *ClusterProvider) LoadSSHPublicKey(clusterName string, ng *api.NodeGroup) error {
 	if !ng.AllowSSH {
 		// TODO: https://github.com/weaveworks/eksctl/issues/144
 		return nil
@@ -110,21 +110,21 @@ func (c *ClusterProvider) LoadSSHPublicKey(ng *api.NodeGroup) error {
 	}
 	// on successful read – import it
 	ng.SSHPublicKey = sshPublicKey
-	if err := c.importSSHPublicKeyIfNeeded(ng); err != nil {
+	if err := c.importSSHPublicKeyIfNeeded(clusterName, ng); err != nil {
 		return err
 	}
 	return nil
 }
 
 // MaybeDeletePublicSSHKey will delete the public SSH key, if it exists
-func (c *ClusterProvider) MaybeDeletePublicSSHKey() {
+func (c *ClusterProvider) MaybeDeletePublicSSHKey(clusterName string) {
 	existing, err := c.Provider.EC2().DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
 	if err != nil {
 		logger.Debug("cannot describe keys: %v", err)
 		return
 	}
 	matching := []*string{}
-	prefix := c.getKeyPairName(nil, nil)
+	prefix := c.getKeyPairName(clusterName, nil, nil)
 	logger.Debug("existing = %#v", existing)
 	for _, e := range existing.KeyPairs {
 		if strings.HasPrefix(*e.KeyName, prefix) {
@@ -163,20 +163,22 @@ type ClientConfig struct {
 	ContextName string
 	roleARN     string
 	sts         stsiface.STSAPI
+	profile     string
 }
 
 // NewClientConfig creates a new client config
 // based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
 // these are small, so we can copy these, and no need to deal with k/k as dependency
-func (c *ClusterProvider) NewClientConfig() (*ClientConfig, error) {
-	client, clusterName, contextName := kubeconfig.New(c.Spec, c.getUsername(), "")
+func (c *ClusterProvider) NewClientConfig(spec *api.ClusterConfig) (*ClientConfig, error) {
+	client, clusterName, contextName := kubeconfig.New(spec, c.getUsername(), "")
 	clientConfig := &ClientConfig{
-		Cluster:     c.Spec,
+		Cluster:     spec,
 		Client:      client,
 		ClusterName: clusterName,
 		ContextName: contextName,
 		roleARN:     c.Status.iamRoleARN,
 		sts:         c.Provider.STS(),
+		profile:     c.Provider.Profile(),
 	}
 
 	return clientConfig, nil
@@ -189,11 +191,11 @@ func (c *ClientConfig) WithExecAuthenticator() *ClientConfig {
 
 	kubeconfig.AppendAuthenticator(clientConfigCopy.Client, c.Cluster, utils.DetectAuthenticator())
 
-	if len(c.Cluster.Profile) > 0 {
+	if len(c.profile) > 0 {
 		clientConfigCopy.Client.AuthInfos[c.ContextName].Exec.Env = []clientcmdapi.ExecEnvVar{
 			clientcmdapi.ExecEnvVar{
 				Name:  "AWS_PROFILE",
-				Value: c.Cluster.Profile,
+				Value: c.profile,
 			},
 		}
 	}
@@ -210,7 +212,7 @@ func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
 		return nil, errors.Wrap(err, "could not get token generator")
 	}
 
-	tok, err := gen.GetWithSTS(c.Cluster.ClusterName, c.sts.(*sts.STS))
+	tok, err := gen.GetWithSTS(c.Cluster.Metadata.Name, c.sts.(*sts.STS))
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get token")
 	}

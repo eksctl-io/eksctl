@@ -19,15 +19,10 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
-type clusterWithRegion struct {
-	Name   string
-	Region string
-}
-
 // DescribeControlPlane describes the cluster control plane
-func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
+func (c *ClusterProvider) DescribeControlPlane(cl *api.ClusterMeta) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
-		Name: &c.Spec.ClusterName,
+		Name: &cl.Name,
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
@@ -37,8 +32,8 @@ func (c *ClusterProvider) DescribeControlPlane() (*awseks.Cluster, error) {
 }
 
 // DeprecatedDeleteControlPlane deletes the control plane
-func (c *ClusterProvider) DeprecatedDeleteControlPlane() error {
-	cluster, err := c.DescribeControlPlane()
+func (c *ClusterProvider) DeprecatedDeleteControlPlane(cl *api.ClusterMeta) error {
+	cluster, err := c.DescribeControlPlane(cl)
 	if err != nil {
 		return errors.Wrap(err, "not able to get control plane for deletion")
 	}
@@ -54,20 +49,20 @@ func (c *ClusterProvider) DeprecatedDeleteControlPlane() error {
 }
 
 // GetCredentials retrieves the certificate authority data
-func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster) error {
-	c.Spec.Endpoint = *cluster.Endpoint
+func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster, spec *api.ClusterConfig) error {
+	spec.Endpoint = *cluster.Endpoint
 
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {
 		return errors.Wrap(err, "decoding certificate authority data")
 	}
 
-	c.Spec.CertificateAuthorityData = data
+	spec.CertificateAuthorityData = data
 	return nil
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(chunkSize int, output string, eachRegion bool) error {
+func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output string, eachRegion bool) error {
 	// NOTE: this needs to be reworked in the future so that the functionality
 	// is combined. This require the ability to return details of all clusters
 	// in a single call.
@@ -76,17 +71,17 @@ func (c *ClusterProvider) ListClusters(chunkSize int, output string, eachRegion 
 		return err
 	}
 
-	if c.Spec.ClusterName != "" {
+	if clusterName != "" {
 		if output == "table" {
 			addSummaryTableColumns(printer.(*printers.TablePrinter))
 		}
-		return c.doGetCluster(&c.Spec.ClusterName, printer)
+		return c.doGetCluster(clusterName, printer)
 	}
 
 	if output == "table" {
 		addListTableColumns(printer.(*printers.TablePrinter))
 	}
-	allClusters := []*clusterWithRegion{}
+	allClusters := []*api.ClusterMeta{}
 	if err := c.doListClusters(int64(chunkSize), printer, &allClusters, eachRegion); err != nil {
 		return err
 	}
@@ -105,12 +100,16 @@ func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) 
 	return output.Clusters, output.NextToken, nil
 }
 
-func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter, allClusters *[]*clusterWithRegion, eachRegion bool) error {
+func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.OutputPrinter, allClusters *[]*api.ClusterMeta, eachRegion bool) error {
 	if eachRegion {
 		// reset region and re-create the client, then make a recursive call
 		for _, region := range api.SupportedRegions() {
-			c.Spec.Region = region
-			if err := New(c.Spec).doListClusters(chunkSize, printer, allClusters, false); err != nil {
+			spec := &api.ProviderConfig{
+				Region:      region,
+				Profile:     c.Provider.Profile(),
+				WaitTimeout: c.Provider.WaitTimeout(),
+			}
+			if err := New(spec, nil).doListClusters(chunkSize, printer, allClusters, false); err != nil {
 				return err
 			}
 		}
@@ -125,9 +124,9 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 		}
 
 		for _, clusterName := range clusters {
-			*allClusters = append(*allClusters, &clusterWithRegion{
+			*allClusters = append(*allClusters, &api.ClusterMeta{
 				Name:   *clusterName,
-				Region: c.Spec.Region,
+				Region: c.Provider.Region(),
 			})
 		}
 
@@ -141,13 +140,13 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 	return nil
 }
 
-func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.OutputPrinter) error {
+func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.OutputPrinter) error {
 	input := &awseks.DescribeClusterInput{
-		Name: clusterName,
+		Name: &clusterName,
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
-		return errors.Wrapf(err, "unable to describe control plane %q", *clusterName)
+		return errors.Wrapf(err, "unable to describe control plane %q", clusterName)
 	}
 	logger.Debug("cluster = %#v", output)
 
@@ -159,9 +158,10 @@ func (c *ClusterProvider) doGetCluster(clusterName *string, printer printers.Out
 	if *output.Cluster.Status == awseks.ClusterStatusActive {
 
 		if logger.Level >= 4 {
-			stacks, err := c.NewStackManager().ListReadyStacks(fmt.Sprintf("^(eksclt|EKS)-%s-.*$", *clusterName))
+			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
+			stacks, err := c.NewStackManager(spec).ListReadyStacks(fmt.Sprintf("^(eksclt|EKS)-%s-.*$", clusterName))
 			if err != nil {
-				return errors.Wrapf(err, "listing CloudFormation stack for %q", *clusterName)
+				return errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
 			}
 			for _, s := range stacks {
 				logger.Debug("stack = %#v", *s)
@@ -178,7 +178,7 @@ func (c *ClusterProvider) ListAllTaggedResources() error {
 }
 
 // WaitForControlPlane waits till the control plane is ready
-func (c *ClusterProvider) WaitForControlPlane(clientSet *kubernetes.Clientset) error {
+func (c *ClusterProvider) WaitForControlPlane(id *api.ClusterMeta, clientSet *kubernetes.Clientset) error {
 	if _, err := clientSet.ServerVersion(); err == nil {
 		return nil
 	}
@@ -186,7 +186,7 @@ func (c *ClusterProvider) WaitForControlPlane(clientSet *kubernetes.Clientset) e
 	ticker := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
 
-	timer := time.NewTimer(c.Spec.WaitTimeout)
+	timer := time.NewTimer(c.Provider.WaitTimeout())
 	defer timer.Stop()
 
 	for {
@@ -198,7 +198,7 @@ func (c *ClusterProvider) WaitForControlPlane(clientSet *kubernetes.Clientset) e
 			}
 			logger.Debug("control plane not ready yet – %s", err.Error())
 		case <-timer.C:
-			return fmt.Errorf("timed out waiting for control plane %q after %s", c.Spec.ClusterName, c.Spec.WaitTimeout)
+			return fmt.Errorf("timed out waiting for control plane %q after %s", id.Name, c.Provider.WaitTimeout())
 		}
 	}
 }
@@ -240,10 +240,10 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 }
 
 func addListTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("NAME", func(c *clusterWithRegion) string {
+	printer.AddColumn("NAME", func(c *api.ClusterMeta) string {
 		return c.Name
 	})
-	printer.AddColumn("REGION", func(c *clusterWithRegion) string {
+	printer.AddColumn("REGION", func(c *api.ClusterMeta) string {
 		return c.Region
 	})
 }

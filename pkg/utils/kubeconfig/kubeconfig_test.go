@@ -131,10 +131,11 @@ var _ = Describe("Kubeconfig", func() {
 	Context("delete config", func() {
 		// Default cluster name is 'foo' and region is 'us-west-2'
 		var apiClusterConfigSample = eksctlapi.ClusterConfig{
-			Region:      "us-west-2",
-			Profile:     "",
-			Tags:        map[string]string{},
-			ClusterName: "foo",
+			Metadata: &eksctlapi.ClusterMeta{
+				Region: "us-west-2",
+				Name:   "foo",
+				Tags:   map[string]string{},
+			},
 			NodeGroups: []*eksctlapi.NodeGroup{
 				{
 					AMI:               "",
@@ -160,7 +161,6 @@ var _ = Describe("Kubeconfig", func() {
 				},
 				SecurityGroup: "",
 			},
-			WaitTimeout:              1200000000000,
 			Endpoint:                 "",
 			CertificateAuthorityData: []uint8(nil),
 			ARN:                      "",
@@ -179,7 +179,7 @@ var _ = Describe("Kubeconfig", func() {
 		// Returns an ClusterConfig with a cluster name equal to the provided clusterName.
 		GetClusterConfig := func(clusterName string) *eksctlapi.ClusterConfig {
 			apiClusterConfig := apiClusterConfigSample
-			apiClusterConfig.ClusterName = clusterName
+			apiClusterConfig.Metadata.Name = clusterName
 			return &apiClusterConfig
 		}
 
@@ -223,7 +223,7 @@ var _ = Describe("Kubeconfig", func() {
 
 		It("removes a cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
 			existingClusterConfig := GetClusterConfig("cluster-two")
-			kubeconfig.MaybeDeleteConfig(existingClusterConfig)
+			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
 
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
@@ -232,7 +232,7 @@ var _ = Describe("Kubeconfig", func() {
 
 		It("not change the kubeconfig if the kubeconfig does not include the cluster", func() {
 			nonExistentClusterConfig := GetClusterConfig("not-a-cluster")
-			kubeconfig.MaybeDeleteConfig(nonExistentClusterConfig)
+			kubeconfig.MaybeDeleteConfig(nonExistentClusterConfig.Metadata)
 
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
