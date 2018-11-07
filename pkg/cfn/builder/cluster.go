@@ -1,8 +1,6 @@
 package builder
 
 import (
-	"fmt"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 
@@ -33,19 +31,14 @@ func (c *ClusterResourceSet) AddAllResources() error {
 
 	templateDescriptionFeatures := clusterTemplateDescriptionDefaultFeatures
 
-	if c.spec.VPC.ID != "" && c.spec.HasSufficientPublicSubnets() {
+	if err := c.spec.HasSufficientSubnets(); err != nil {
+		return err
+	}
+
+	if c.spec.VPC.ID != "" {
 		c.importResourcesForVPC()
 		templateDescriptionFeatures = " (with shared VPC and dedicated IAM role) "
 	} else {
-		topologies := len(c.spec.VPC.Subnets)
-		switch {
-		case topologies < 1:
-			return fmt.Errorf("too few subnet topologies: %v", c.spec.VPC.Subnets)
-		case topologies == 1 && !c.spec.HasSufficientPublicSubnets():
-			return fmt.Errorf("too few public subnets: %v", c.spec.VPC.Subnets["Public"])
-		case topologies == 2 && !c.spec.HasSufficientPrivateSubnets():
-			return fmt.Errorf("too few private subnets: %v", c.spec.VPC.Subnets["Private"])
-		}
 		c.addResourcesForVPC()
 	}
 	c.addOutputsForVPC()
