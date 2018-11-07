@@ -13,10 +13,9 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 const (
@@ -200,10 +199,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		cfg := newClusterConfig()
-		ctl := eks.New(testutils.ProviderConfig, cfg)
+		//ctl := eks.New(testutils.ProviderConfig, cfg)
 
 		It("should not error when calling SetSubnets", func() {
-			err := ctl.SetSubnets(cfg)
+			err := vpc.SetSubnets(cfg)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 

@@ -101,11 +101,11 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 
 	// TODO: shouldn't assume the order - https://github.com/weaveworks/eksctl/issues/293
 	for i, subnet := range c.outputs.SubnetsPrivate {
-		c.spec.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet)
+		c.spec.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet, "")
 	}
 
 	for i, subnet := range c.outputs.SubnetsPublic {
-		c.spec.ImportSubnet(api.SubnetTopologyPublic, c.spec.AvailabilityZones[i], subnet)
+		c.spec.ImportSubnet(api.SubnetTopologyPublic, c.spec.AvailabilityZones[i], subnet, "")
 	}
 
 	c.spec.ClusterStackName = c.outputs.ClusterStackName

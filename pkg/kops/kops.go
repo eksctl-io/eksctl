@@ -1,14 +1,16 @@
 package kops
 
 import (
-	"fmt"
-
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/vpc"
+
 	"k8s.io/kops/pkg/resources/aws"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
+
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 // Wrapper for interacting with a kops cluster
@@ -41,41 +43,32 @@ func (k *Wrapper) topologyOf(s *ec2.Subnet) api.SubnetTopology {
 }
 
 // UseVPC finds VPC and subnets that give kops cluster uses and add those to EKS cluster config
-func (k *Wrapper) UseVPC(spec *api.ClusterConfig) error {
-	allVPCs, err := aws.ListVPCs(k.cloud, k.clusterName)
-	if err != nil {
-		return err
-	}
-
+func (k *Wrapper) UseVPC(provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	allSubnets, err := aws.ListSubnets(k.cloud, k.clusterName)
 	if err != nil {
 		return err
 	}
 
-	vpcs := []string{}
-	for _, vpc := range allVPCs {
-		vpc := vpc.Obj.(*ec2.Vpc)
-		for _, tag := range vpc.Tags {
-			if k.isOwned(tag) {
-				vpcs = append(vpcs, *vpc.VpcId)
-			}
-		}
+	subnetsByTopology := map[api.SubnetTopology][]*ec2.Subnet{
+		api.SubnetTopologyPrivate: {},
+		api.SubnetTopologyPublic:  {},
 	}
-	logger.Debug("vpcs = %#v", vpcs)
-	if len(vpcs) > 1 {
-		return fmt.Errorf("more then one VPC found for kops cluster %q", k.clusterName)
-	}
-	spec.VPC.ID = vpcs[0]
 
 	for _, subnet := range allSubnets {
 		subnet := subnet.Obj.(*ec2.Subnet)
 		for _, tag := range subnet.Tags {
-			if k.isOwned(tag) && *subnet.VpcId == spec.VPC.ID {
-				spec.ImportSubnet(k.topologyOf(subnet), *subnet.AvailabilityZone, *subnet.SubnetId)
-				spec.AppendAvailabilityZone(*subnet.AvailabilityZone)
+			if k.isOwned(tag) {
+				t := k.topologyOf(subnet)
+				subnetsByTopology[t] = append(subnetsByTopology[t], subnet)
 			}
 		}
 	}
+	for t, subnets := range subnetsByTopology {
+		if err := vpc.ImportSubnets(provider, spec, t, subnets); err != nil {
+			return err
+		}
+	}
+
 	logger.Debug("subnets = %#v", spec.VPC.Subnets)
 	if err := spec.HasSufficientSubnets(); err != nil {
 		return errors.Wrapf(err, "using VPC from kops cluster %q", k.clusterName)

@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 const (
@@ -157,7 +158,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 			if err := ctl.SetAvailabilityZones(cfg, availabilityZones); err != nil {
 				return err
 			}
-			if err := ctl.SetSubnets(cfg); err != nil {
+			if err := vpc.SetSubnets(cfg); err != nil {
 				return err
 			}
 			return nil
@@ -178,7 +179,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 				return err
 			}
 
-			if err := kw.UseVPC(cfg); err != nil {
+			if err := kw.UseVPC(ctl.Provider, cfg); err != nil {
 				return err
 			}
 
@@ -198,7 +199,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		}
 
 		for topology := range subnets {
-			if err := ctl.UseSubnets(cfg, topology, *subnets[topology]); err != nil {
+			if err := vpc.UseSubnets(ctl.Provider, cfg, topology, *subnets[topology]); err != nil {
 				return err
 			}
 		}
