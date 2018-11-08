@@ -215,7 +215,7 @@ eksctl create cluster --name=cluster-2 --region=us-west-2 --vpc-from-kops-cluste
 
 #### use existing VPC: any custom configuration
 
-If you must configured a VPC in manner that's different to how dedicated VPC is configured by `eksctl`, or have to use a VPC
+If you must configure a VPC in manner that's different to how dedicated VPC is configured by `eksctl`, or have to use a VPC
 that already exists and your EKS cluster requires shared access to some resources inside the VPC, or you have any other use-case
 that requires you to manage VPCs separately, you can supply private and/or public subnets using `--vpc-private-subnets` and
 `--vpc-public-subnets` flags. It is up to you to ensure which subnets you use, as there is no simple way to determine automatically
