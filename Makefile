@@ -4,7 +4,11 @@ git_commit := $(shell git describe --dirty --always)
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
-.DEFAULT_GOAL:=help
+.DEFAULT_GOAL := help
+
+ifneq ($(TEST_V),)
+TEST_ARGS ?= -v -ginkgo.v
+endif
 
 ##@ Dependencies
 
@@ -29,7 +33,7 @@ test: generate ## Run unit test (and re-generate code under test)
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	@CGO_ENABLED=0 go test -v -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/...
+	CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(TEST_ARGS)
 
 LINTER ?= gometalinter ./...
 .PHONY: lint
@@ -45,7 +49,8 @@ integration-test-dev: build ## Run the integration tests without cluster teardow
 	@./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
-	@go test -tags integration -v -timeout 21m ./integration/... \
+	@go test -tags integration -timeout 21m ./integration/... \
+		$(TEST_ARGS) \
 		-args \
 		-eksctl.cluster=$(TEST_CLUSTER) \
 		-eksctl.create=false \
@@ -60,7 +65,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 .PHONY: integration-test
 integration-test: build ## Run the integration tests (with cluster creation and cleanup)
-	@go test -tags integration -v -timeout 60m ./integration/...
+	@go test -tags integration -timeout 60m ./integration/... $(TEST_ARGS)
 
 ##@ Code Generation
 
@@ -91,6 +96,7 @@ endif
 ifneq ($(JUNIT_REPORT_FOLDER),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=JUNIT_REPORT_FOLDER=$(JUNIT_REPORT_FOLDER)
 endif
+
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image
