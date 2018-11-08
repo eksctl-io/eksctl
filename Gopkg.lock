@@ -1137,6 +1137,7 @@
   version = "kubernetes-1.11.3"
 
 [[projects]]
+  branch = "master"
   name = "k8s.io/kops"
   packages = [
     ".",
@@ -1180,8 +1181,7 @@
     "util/pkg/tables",
     "util/pkg/vfs"
   ]
-  revision = "17a2c474956b3aa8513124efe6f5f431212e5216"
-  source = "https://github.com/errordeveloper/kops"
+  revision = "8aa61bc98383160ad82c563301486c8b465d8c1e"
 
 [[projects]]
   branch = "master"
@@ -1254,6 +1254,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "75f8d73c54982feb2bc70d55e89b303a3cbd3b8154402bad9c01d70a1bda9630"
+  inputs-digest = "0b4cb8fc05860bde8b2393be972f4da98b0a8204a6d91da50b2279ef93d7c5fd"
   solver-name = "gps-cdcl"
   solver-version = 1
