@@ -13,6 +13,7 @@ import (
 )
 
 func waitNodesCmd() *cobra.Command {
+	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 
@@ -20,7 +21,7 @@ func waitNodesCmd() *cobra.Command {
 		Use:   "wait-nodes",
 		Short: "Wait for nodes",
 		Run: func(_ *cobra.Command, _ []string) {
-			if err := doWaitNodes(cfg, ng); err != nil {
+			if err := doWaitNodes(p, cfg, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -31,13 +32,13 @@ func waitNodesCmd() *cobra.Command {
 
 	fs.StringVar(&utilsKubeconfigInputPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
 	fs.IntVarP(&ng.MinSize, "nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
-	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
+	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 
 	return cmd
 }
 
-func doWaitNodes(cfg *api.ClusterConfig, ng *api.NodeGroup) error {
-	ctl := eks.New(cfg)
+func doWaitNodes(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) error {
+	ctl := eks.New(p, cfg)
 
 	if utilsKubeconfigInputPath == "" {
 		return fmt.Errorf("--kubeconfig must be set")

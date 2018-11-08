@@ -34,6 +34,7 @@ var (
 )
 
 func createClusterCmd() *cobra.Command {
+	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 
@@ -41,7 +42,7 @@ func createClusterCmd() *cobra.Command {
 		Use:   "cluster",
 		Short: "Create a cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doCreateCluster(cfg, ng, ctl.GetNameArg(args)); err != nil {
+			if err := doCreateCluster(p, cfg, ng, ctl.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -52,11 +53,11 @@ func createClusterCmd() *cobra.Command {
 
 	exampleClusterName := utils.ClusterName("", "")
 
-	fs.StringVarP(&cfg.ClusterName, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
+	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 
-	fs.StringVarP(&cfg.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&cfg.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
-	fs.StringToStringVarP(&cfg.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
+	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
+	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+	fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
 	fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
 	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (desired capacity of AGS)")
@@ -77,12 +78,12 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVar(&kubeconfigPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 	fs.BoolVar(&setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 
-	fs.DurationVar(&cfg.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
+	fs.DurationVar(&p.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
 	// TODO deprecate in 0.2.0
 	if err := fs.MarkHidden("aws-api-timeout"); err != nil {
 		logger.Debug("ignoring error %q", err.Error())
 	}
-	fs.DurationVar(&cfg.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
@@ -105,28 +106,29 @@ func createClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) error {
-	ctl := eks.New(cfg)
+func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
+	cl := cfg.Metadata
+	ctl := eks.New(p, cfg)
 
-	if !cfg.IsSupportedRegion() {
-		return fmt.Errorf("--region=%s is not supported - use one of: %s", cfg.Region, strings.Join(api.SupportedRegions(), ", "))
+	if !ctl.IsSupportedRegion() {
+		return fmt.Errorf("--region=%s is not supported - use one of: %s", cl.Region, strings.Join(api.SupportedRegions(), ", "))
 	}
-	logger.Info("using region %s", cfg.Region)
+	logger.Info("using region %s", cl.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if utils.ClusterName(cfg.ClusterName, name) == "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.ClusterName, name)
+	if utils.ClusterName(cl.Name, nameArg) == "" {
+		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cl.Name, nameArg)
 	}
-	cfg.ClusterName = utils.ClusterName(cfg.ClusterName, name)
+	cl.Name = utils.ClusterName(cl.Name, nameArg)
 
 	if autoKubeconfigPath {
 		if kubeconfigPath != kubeconfig.DefaultPath {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
 		}
-		kubeconfigPath = kubeconfig.AutoPath(cfg.ClusterName)
+		kubeconfigPath = kubeconfig.AutoPath(cl.Name)
 	}
 
 	if ng.SSHPublicKeyPath == "" {
@@ -152,10 +154,10 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 
 		if !subnetsGiven && kopsClusterNameForVPC == "" {
 			// default: create dedicated VPC
-			if err := ctl.SetAvailabilityZones(availabilityZones); err != nil {
+			if err := ctl.SetAvailabilityZones(cfg, availabilityZones); err != nil {
 				return err
 			}
-			if err := ctl.SetSubnets(); err != nil {
+			if err := ctl.SetSubnets(cfg); err != nil {
 				return err
 			}
 			return nil
@@ -171,7 +173,7 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets cannot be used at the same time")
 			}
 
-			kw, err := kops.NewWrapper(cfg.Region, kopsClusterNameForVPC)
+			kw, err := kops.NewWrapper(p.Region, kopsClusterNameForVPC)
 			if err != nil {
 				return err
 			}
@@ -196,7 +198,7 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 		}
 
 		for topology := range subnets {
-			if err := ctl.UseSubnets(topology, *subnets[topology]); err != nil {
+			if err := ctl.UseSubnets(cfg, topology, *subnets[topology]); err != nil {
 				return err
 			}
 		}
@@ -223,36 +225,36 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 		return err
 	}
 
-	if err := ctl.LoadSSHPublicKey(ng); err != nil {
+	if err := ctl.LoadSSHPublicKey(cl.Name, ng); err != nil {
 		return err
 	}
 
 	logger.Debug("cfg = %#v", cfg)
 
-	logger.Info("creating EKS cluster %q in %q region", cfg.ClusterName, cfg.Region)
+	logger.Info("creating %s", cl.LogString())
 
 	{ // core action
-		stackManager := ctl.NewStackManager()
+		stackManager := ctl.NewStackManager(cfg)
 		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
-		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
+		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", cl.Region, cl.Name)
 		errs := stackManager.CreateClusterWithNodeGroups()
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
-			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cfg.Region, cfg.ClusterName)
+			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cl.Region, cl.Name)
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
 			}
-			return fmt.Errorf("failed to create cluster %q", cfg.ClusterName)
+			return fmt.Errorf("failed to create cluster %q", cl.Name)
 		}
 	}
 
-	logger.Success("all EKS cluster resource for %q had been created", cfg.ClusterName)
+	logger.Success("all EKS cluster resource for %q had been created", cl.Name)
 
 	// obtain cluster credentials, write kubeconfig
 
 	{ // post-creation action
-		clientConfigBase, err := ctl.NewClientConfig()
+		clientConfigBase, err := ctl.NewClientConfig(cfg)
 		if err != nil {
 			return err
 		}
@@ -275,7 +277,7 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 			return err
 		}
 
-		if err = ctl.WaitForControlPlane(clientSet); err != nil {
+		if err = ctl.WaitForControlPlane(cl, clientSet); err != nil {
 			return err
 		}
 
@@ -315,7 +317,7 @@ func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) err
 		}
 	}
 
-	logger.Success("EKS cluster %q in %q region is ready", cfg.ClusterName, cfg.Region)
+	logger.Success("%s is ready", cl.LogString())
 
 	return nil
 }

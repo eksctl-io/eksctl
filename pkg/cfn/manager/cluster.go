@@ -7,7 +7,7 @@ import (
 )
 
 func (c *StackCollection) makeClusterStackName() string {
-	return "eksctl-" + c.spec.ClusterName + "-cluster"
+	return "eksctl-" + c.spec.Metadata.Name + "-cluster"
 }
 
 // CreateCluster creates the cluster

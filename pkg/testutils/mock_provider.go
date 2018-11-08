@@ -1,10 +1,13 @@
 package testutils
 
 import (
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 )
 
@@ -24,6 +27,13 @@ func NewMockProvider() *MockProvider {
 		ec2: &mocks.EC2API{},
 		sts: &mocks.STSAPI{},
 	}
+}
+
+// ProviderConfig holds current global config
+var ProviderConfig = &api.ProviderConfig{
+	Region:      api.DefaultEKSRegion,
+	Profile:     "default",
+	WaitTimeout: 1200000000000,
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -51,3 +61,12 @@ func (m MockProvider) STS() stsiface.STSAPI { return m.sts }
 
 // MockSTS returns a mocked STS API
 func (m MockProvider) MockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }
+
+// Profile returns current profile setting
+func (m MockProvider) Profile() string { return ProviderConfig.Profile }
+
+// Region returns current region setting
+func (m MockProvider) Region() string { return ProviderConfig.Region }
+
+// WaitTimeout returns current timeout setting
+func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }

@@ -14,7 +14,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
@@ -42,9 +41,6 @@ var _ = Describe("Eks", func() {
 				p = testutils.NewMockProvider()
 
 				c = &ClusterProvider{
-					Spec: &api.ClusterConfig{
-						ClusterName: clusterName,
-					},
 					Provider: p,
 				}
 
@@ -61,7 +57,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100, output, false)
+					err = c.ListClusters(clusterName, 100, output, false)
 				})
 
 				It("should not error", func() {
@@ -92,7 +88,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(100, output, false)
+					err = c.ListClusters(clusterName, 100, output, false)
 				})
 
 				It("should not error", func() {
@@ -129,9 +125,6 @@ var _ = Describe("Eks", func() {
 				p = testutils.NewMockProvider()
 
 				c = &ClusterProvider{
-					Spec: &api.ClusterConfig{
-						ClusterName: clusterName,
-					},
 					Provider: p,
 				}
 
@@ -143,7 +136,7 @@ var _ = Describe("Eks", func() {
 			})
 
 			JustBeforeEach(func() {
-				err = c.ListClusters(100, output, false)
+				err = c.ListClusters(clusterName, 100, output, false)
 			})
 
 			AfterEach(func() {
@@ -199,11 +192,10 @@ var _ = Describe("Eks", func() {
 					p = testutils.NewMockProvider()
 
 					c = &ClusterProvider{
-						Spec:     &api.ClusterConfig{},
 						Provider: p,
 					}
 
-					mockResultFn := func(input *awseks.ListClustersInput) *awseks.ListClustersOutput {
+					mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
 						clusterName := fmt.Sprintf("cluster-%d", callNumber)
 						output := &awseks.ListClustersOutput{
 							Clusters: []*string{aws.String(clusterName)},
@@ -212,7 +204,7 @@ var _ = Describe("Eks", func() {
 							output.NextToken = aws.String("SOMERANDOMTOKEN")
 						}
 
-						callNumber = callNumber + 1
+						callNumber++
 						return output
 					}
 
@@ -222,7 +214,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(chunkSize, output, false)
+					err = c.ListClusters("", chunkSize, output, false)
 				})
 
 				It("should not error", func() {
@@ -240,11 +232,10 @@ var _ = Describe("Eks", func() {
 					p = testutils.NewMockProvider()
 
 					c = &ClusterProvider{
-						Spec:     &api.ClusterConfig{},
 						Provider: p,
 					}
 
-					mockResultFn := func(input *awseks.ListClustersInput) *awseks.ListClustersOutput {
+					mockResultFn := func(_ *awseks.ListClustersInput) *awseks.ListClustersOutput {
 						output := &awseks.ListClustersOutput{
 							Clusters: []*string{aws.String("cluster-1"), aws.String("cluster-2")},
 						}
@@ -257,7 +248,7 @@ var _ = Describe("Eks", func() {
 				})
 
 				JustBeforeEach(func() {
-					err = c.ListClusters(chunkSize, output, false)
+					err = c.ListClusters("", chunkSize, output, false)
 				})
 
 				It("should not error", func() {

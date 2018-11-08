@@ -79,7 +79,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
 	}
 
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
-		Name:               gfn.NewString(c.spec.ClusterName),
+		Name:               gfn.NewString(c.spec.Metadata.Name),
 		RoleArn:            gfn.MakeFnGetAttString("ServiceRole.Arn"),
 		Version:            gfn.NewString(version),
 		ResourcesVpcConfig: clusterVPC,

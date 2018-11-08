@@ -36,9 +36,10 @@ type ChangeSet = cloudformation.DescribeChangeSetOutput
 
 // StackCollection stores the CloudFormation stack information
 type StackCollection struct {
-	cfn  cloudformationiface.CloudFormationAPI
-	spec *api.ClusterConfig
-	tags []*cloudformation.Tag
+	cfn         cloudformationiface.CloudFormationAPI
+	waitTimeout time.Duration
+	spec        *api.ClusterConfig
+	tags        []*cloudformation.Tag
 }
 
 func newTag(key, value string) *cloudformation.Tag {
@@ -48,16 +49,17 @@ func newTag(key, value string) *cloudformation.Tag {
 // NewStackCollection create a stack manager for a single cluster
 func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
 	tags := []*cloudformation.Tag{
-		newTag(ClusterNameTag, spec.ClusterName),
+		newTag(ClusterNameTag, spec.Metadata.Name),
 	}
-	for key, value := range spec.Tags {
+	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
 	}
 	logger.Debug("tags = %#v", tags)
 	return &StackCollection{
-		cfn:  provider.CloudFormation(),
-		spec: spec,
-		tags: tags,
+		cfn:         provider.CloudFormation(),
+		waitTimeout: provider.WaitTimeout(),
+		spec:        spec,
+		tags:        tags,
 	}
 }
 
@@ -203,7 +205,7 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 	}
 	i.StackId = s.StackId
 	for _, tag := range s.Tags {
-		if *tag.Key == ClusterNameTag && *tag.Value == c.spec.ClusterName {
+		if *tag.Key == ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
 			input := &cloudformation.DeleteStackInput{
 				StackName: i.StackId,
 			}
@@ -217,7 +219,7 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 	}
 
 	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q tag", *s.StackName,
-		fmt.Sprintf("%s:%s", ClusterNameTag, c.spec.ClusterName))
+		fmt.Sprintf("%s:%s", ClusterNameTag, c.spec.Metadata.Name))
 }
 
 // WaitDeleteStack kills a stack by name and waits for DELETED status
