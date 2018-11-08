@@ -142,7 +142,7 @@ func (c *StackCollection) getStackTemplate(stackName string) (string, error) {
 		StackName: aws.String(stackName),
 	}
 
-	output, err := c.cfn.GetTemplate(input)
+	output, err := c.provider.CloudFormation().GetTemplate(input)
 	if err != nil {
 		return "", err
 	}

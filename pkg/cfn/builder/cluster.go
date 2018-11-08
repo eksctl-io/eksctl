@@ -5,12 +5,14 @@ import (
 	gfn "github.com/awslabs/goformation/cloudformation"
 
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // ClusterResourceSet stores the resource information of the cluster
 type ClusterResourceSet struct {
 	rs             *resourceSet
 	spec           *api.ClusterConfig
+	provider       api.ClusterProvider
 	vpc            *gfn.Value
 	subnets        map[api.SubnetTopology][]*gfn.Value
 	securityGroups []*gfn.Value
@@ -18,11 +20,12 @@ type ClusterResourceSet struct {
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
-func NewClusterResourceSet(spec *api.ClusterConfig) *ClusterResourceSet {
+func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig) *ClusterResourceSet {
 	return &ClusterResourceSet{
-		rs:      newResourceSet(),
-		spec:    spec,
-		outputs: &ClusterStackOutputs{},
+		rs:       newResourceSet(),
+		spec:     spec,
+		provider: provider,
+		outputs:  &ClusterStackOutputs{},
 	}
 }
 
@@ -99,13 +102,12 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	c.spec.VPC.ID = c.outputs.VPC
 	c.spec.VPC.SecurityGroup = c.outputs.SecurityGroup
 
-	// TODO: shouldn't assume the order - https://github.com/weaveworks/eksctl/issues/293
-	for i, subnet := range c.outputs.SubnetsPrivate {
-		c.spec.ImportSubnet(api.SubnetTopologyPrivate, c.spec.AvailabilityZones[i], subnet, "")
+	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPrivate, c.outputs.SubnetsPrivate); err != nil {
+		return err
 	}
 
-	for i, subnet := range c.outputs.SubnetsPublic {
-		c.spec.ImportSubnet(api.SubnetTopologyPublic, c.spec.AvailabilityZones[i], subnet, "")
+	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPublic, c.outputs.SubnetsPublic); err != nil {
+		return err
 	}
 
 	c.spec.ClusterStackName = c.outputs.ClusterStackName

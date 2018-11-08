@@ -14,7 +14,7 @@ func (c *StackCollection) makeClusterStackName() string {
 func (c *StackCollection) CreateCluster(errs chan error, _ interface{}) error {
 	name := c.makeClusterStackName()
 	logger.Info("creating cluster stack %q", name)
-	stack := builder.NewClusterResourceSet(c.spec)
+	stack := builder.NewClusterResourceSet(c.provider, c.spec)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
