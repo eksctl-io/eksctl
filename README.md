@@ -192,7 +192,6 @@ change it. You cannot use just any sort of CIDR, there only certain ranges that 
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
 
-
 #### use private subnets for initial nodegroup
 
 If you prefer to isolate initial nodegroup from the public internet, you can use `--node-private-networking` flag.
@@ -212,6 +211,57 @@ kops create cluster cluster-1.k8s.local --zones=us-west-2c,us-west-2b,us-west-2a
 You can create an EKS cluster in the same AZs using the same VPC subnets (NOTE: at least 2 AZs/subnets are required):
 ```
 eksctl create cluster --name=cluster-2 --region=us-west-2 --vpc-from-kops-cluster=cluster-1.k8s.local
+```
+
+#### use existing VPC: any custom configuration
+
+If you must configured a VPC in manner that's different to how dedicated VPC is configured by `eksctl`, or have to use a VPC
+that already exists and your EKS cluster requires shared access to some resources inside the VPC, or you have any other use-case
+that requires you to manage VPCs separately, you can supply private and/or public subnets using `--vpc-private-subnets` and
+`--vpc-public-subnets` flags. It is up to you to ensure which subnets you use, as there is no simple way to determine automatically
+whether a subnets is private or public, because configurations vary.
+
+You must ensure you provide at least 2 subnets in different AZs. There are other requirements that you will need to follow, but
+it's entirely up to you to address those. For example, tagging is not strictly necessary, tests have shown that its possible to create
+a functional cluster without any tags set on the subnets, however there is no guarantee of that it will always hold and tagging is
+recommended.
+
+- all subnets in the same VPC, within the same block of IPs
+- sufficient IP addresses are available
+- sufficient number of subnets (minimum 2)
+- internet and/or NAT gateways are configured correctly
+- routing tables have correct entries and the network is functional
+- tagging of subnets
+  - `kubernetes.io/cluster/<name>` tag set to either `shared` or `owned`
+  - `kubernetes.io/role/internal-elb` tag set to `1` for private subnets
+
+There maybe other requirements imposed by EKS or Kubernetes, and it is entirely up to you to stay up-to-date on any requirements and/or
+recommendations, and implement those as needed/possible.
+
+If you are in doubt, don't use custom VPC. Using `eksctl create cluster` without any `--vpc-*` flags will always configure the cluster
+with fully-functional dedicated VPC.
+
+To create a cluster using 2x private and 2x public subnets, run:
+
+```
+eksctl create cluster \
+  --vpc-private-subnets=subnet-0ff156e0c4a6d300c,subnet-0426fb4a607393184 \
+  --vpc-public-subnets=subnet-0153e560b3129a696,subnet-009fa0199ec203c37
+```
+
+To create a cluster using 3x private subnets and make initial nodegroup use those subnets, run:
+
+```
+eksctl create cluster \
+  --vpc-private-subnets=subnet-0ff156e0c4a6d300c,subnet-0549cdab573695c03,subnet-0426fb4a607393184 \
+  --node-private-networking
+```
+
+To create a cluster using 4x public subnets, run:
+
+```
+eksctl create cluster \
+  --vpc-public-subnets=subnet-0153e560b3129a696,subnet-0cc9c5aebe75083fd,subnet-009fa0199ec203c37,subnet-018fa0176ba320e45
 ```
 
 ### GPU Support
