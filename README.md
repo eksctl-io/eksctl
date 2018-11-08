@@ -70,6 +70,7 @@ $ eksctl create cluster
 2018-10-26T16:37:22+01:00 [ℹ]  node "ip-192-168-83-60.us-west-2.compute.internal" is ready
 2018-10-26T16:37:23+01:00 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
 2018-10-26T16:37:23+01:00 [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
+$
 ```
 
 To list the details about a cluster or all of the clusters, use:
