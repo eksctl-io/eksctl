@@ -33,7 +33,7 @@ test: generate ## Run unit test (and re-generate code under test)
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(TEST_ARGS)
+	@CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(TEST_ARGS)
 
 LINTER ?= gometalinter ./...
 .PHONY: lint

@@ -7,14 +7,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/ctl"
+
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
 var (
-	utilsDescribeStackAll    bool
-	utilsDescribeStackEvents bool
+	describeStacksAll    bool
+	describeStacksEvents bool
 )
 
 func describeStacksCmd() *cobra.Command {
@@ -25,7 +26,7 @@ func describeStacksCmd() *cobra.Command {
 		Use:   "describe-stacks",
 		Short: "Describe CloudFormation stack for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doDescribeStacksCmd(p, cfg, ctl.GetNameArg(args)); err != nil {
+			if err := doDescribeStacksCmd(p, cfg, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -34,30 +35,29 @@ func describeStacksCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
+	cmdutils.AddCommonFlagsForAWS(fs, p)
+
 	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
-
-	fs.BoolVar(&utilsDescribeStackAll, "all", false, "include deleted stacks")
-	fs.BoolVar(&utilsDescribeStackEvents, "events", false, "include stack events")
+	fs.BoolVar(&describeStacksAll, "all", false, "include deleted stacks")
+	fs.BoolVar(&describeStacksEvents, "events", false, "include stack events")
 
 	return cmd
 }
 
-func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
+func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && name != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, name)
+	if cfg.Metadata.Name != "" && nameArg != "" {
+		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, nameArg)
 	}
 
-	if name != "" {
-		cfg.Metadata.Name = name
+	if nameArg != "" {
+		cfg.Metadata.Name = nameArg
 	}
 
 	if cfg.Metadata.Name == "" {
@@ -76,11 +76,11 @@ func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, name str
 	}
 
 	for _, s := range stacks {
-		if !utilsDescribeStackAll && *s.StackStatus == cloudformation.StackStatusDeleteComplete {
+		if !describeStacksAll && *s.StackStatus == cloudformation.StackStatusDeleteComplete {
 			continue
 		}
 		logger.Info("stack/%s = %#v", *s.StackName, s)
-		if utilsDescribeStackEvents {
+		if describeStacksEvents {
 			events, err := stackManager.DescribeStackEvents(s)
 			if err != nil {
 				logger.Critical(err.Error())

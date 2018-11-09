@@ -7,17 +7,17 @@ import (
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/ctl"
+
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 var (
-	utilsKubeconfigInputPath  string
-	utilsKubeconfigOutputPath string
-	utilsSetContext           bool
-	utilsAutoKubeconfigPath   bool
+	writeKubeconfigOutputPath string
+	writeKubeconfigSetContext bool
+	writeKubeconfigAutoPath   bool
 )
 
 func writeKubeconfigCmd() *cobra.Command {
@@ -28,7 +28,7 @@ func writeKubeconfigCmd() *cobra.Command {
 		Use:   "write-kubeconfig",
 		Short: "Write kubeconfig file for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doWriteKubeconfigCmd(p, cfg, ctl.GetNameArg(args)); err != nil {
+			if err := doWriteKubeconfigCmd(p, cfg, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -39,40 +39,37 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+	cmdutils.AddCommonFlagsForAWS(fs, p)
 
-	fs.BoolVar(&utilsAutoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name – %q", kubeconfig.AutoPath("<name>")))
-	fs.StringVar(&utilsKubeconfigOutputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig")
-	fs.BoolVar(&utilsSetContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
+	cmdutils.AddCommonFlagsForKubeconfig(fs, &writeKubeconfigOutputPath, &writeKubeconfigSetContext, &writeKubeconfigAutoPath, "<name>")
 
 	return cmd
 }
 
-func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
+func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && name != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, name)
+	if cfg.Metadata.Name != "" && nameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, nameArg)
 	}
 
-	if name != "" {
-		cfg.Metadata.Name = name
+	if nameArg != "" {
+		cfg.Metadata.Name = nameArg
 	}
 
 	if cfg.Metadata.Name == "" {
 		return fmt.Errorf("--name must be set")
 	}
 
-	if utilsAutoKubeconfigPath {
-		if utilsKubeconfigOutputPath != kubeconfig.DefaultPath {
-			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
+	if writeKubeconfigAutoPath {
+		if writeKubeconfigOutputPath != kubeconfig.DefaultPath {
+			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
-		utilsKubeconfigOutputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
+		writeKubeconfigOutputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
 	}
 
 	cluster, err := ctl.DescribeControlPlane(cfg.Metadata)
@@ -92,7 +89,7 @@ func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, name st
 	}
 
 	config := clientConfigBase.WithExecAuthenticator()
-	filename, err := kubeconfig.Write(utilsKubeconfigOutputPath, config.Client, utilsSetContext)
+	filename, err := kubeconfig.Write(writeKubeconfigOutputPath, config.Client, writeKubeconfigSetContext)
 	if err != nil {
 		return errors.Wrap(err, "writing kubeconfig")
 	}

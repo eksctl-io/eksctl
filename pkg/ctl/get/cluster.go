@@ -3,11 +3,11 @@ package get
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/ctl"
+
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
@@ -23,7 +23,7 @@ func getClusterCmd() *cobra.Command {
 		Short:   "Get cluster(s)",
 		Aliases: []string{"clusters"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doGetCluster(p, cfg, ctl.GetNameArg(args)); err != nil {
+			if err := doGetCluster(p, cfg, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -44,24 +44,24 @@ func getClusterCmd() *cobra.Command {
 	return cmd
 }
 
-func doGetCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
+func doGetCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the fist place
 	ctl := eks.New(p, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return fmt.Errorf("--region=%s is not supported - use one of: %s", cfg.Metadata.Region, strings.Join(api.SupportedRegions(), ", "))
+		return cmdutils.ErrUnsupportedRegion(p)
 	}
 
 	if regionGiven && listAllRegions {
 		logger.Warning("--region=%s is ignored, as --all-regions is given", cfg.Metadata.Region)
 	}
 
-	if cfg.Metadata.Name != "" && name != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, name)
+	if cfg.Metadata.Name != "" && nameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, nameArg)
 	}
 
-	if name != "" {
-		cfg.Metadata.Name = name
+	if nameArg != "" {
+		cfg.Metadata.Name = nameArg
 	}
 
 	if cfg.Metadata.Name != "" && listAllRegions {

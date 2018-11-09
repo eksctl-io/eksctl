@@ -3,13 +3,12 @@ package create
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ami"
-	"github.com/weaveworks/eksctl/pkg/ctl"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/kops"
@@ -43,7 +42,7 @@ func createClusterCmd() *cobra.Command {
 		Use:   "cluster",
 		Short: "Create a cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doCreateCluster(p, cfg, ng, ctl.GetNameArg(args)); err != nil {
+			if err := doCreateCluster(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -52,12 +51,12 @@ func createClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
+	cmdutils.AddCommonFlagsForAWS(fs, p)
+
 	exampleClusterName := utils.ClusterName("", "")
 
 	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 	fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 
 	fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
@@ -75,16 +74,7 @@ func createClusterCmd() *cobra.Command {
 	fs.StringVar(&ng.SSHPublicKeyPath, "ssh-public-key", defaultSSHPublicKey, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
 	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
-	fs.BoolVar(&autoKubeconfigPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleClusterName)))
-	fs.StringVar(&kubeconfigPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
-	fs.BoolVar(&setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
-
-	fs.DurationVar(&p.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
-	// TODO deprecate in 0.2.0
-	if err := fs.MarkHidden("aws-api-timeout"); err != nil {
-		logger.Debug("ignoring error %q", err.Error())
-	}
-	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+	cmdutils.AddCommonFlagsForKubeconfig(fs, &kubeconfigPath, &setContext, &autoKubeconfigPath, exampleClusterName)
 
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
 	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
@@ -108,28 +98,28 @@ func createClusterCmd() *cobra.Command {
 }
 
 func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
-	cl := cfg.Metadata
+	meta := cfg.Metadata
 	ctl := eks.New(p, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return fmt.Errorf("--region=%s is not supported - use one of: %s", cl.Region, strings.Join(api.SupportedRegions(), ", "))
+		return cmdutils.ErrUnsupportedRegion(p)
 	}
-	logger.Info("using region %s", cl.Region)
+	logger.Info("using region %s", meta.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if utils.ClusterName(cl.Name, nameArg) == "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cl.Name, nameArg)
+	if utils.ClusterName(meta.Name, nameArg) == "" {
+		return cmdutils.ErrNameFlagAndArg(meta.Name, nameArg)
 	}
-	cl.Name = utils.ClusterName(cl.Name, nameArg)
+	meta.Name = utils.ClusterName(meta.Name, nameArg)
 
 	if autoKubeconfigPath {
 		if kubeconfigPath != kubeconfig.DefaultPath {
-			return fmt.Errorf("--kubeconfig and --auto-kubeconfig cannot be used at the same time")
+			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
-		kubeconfigPath = kubeconfig.AutoPath(cl.Name)
+		kubeconfigPath = kubeconfig.AutoPath(meta.Name)
 	}
 
 	if ng.SSHPublicKeyPath == "" {
@@ -167,11 +157,11 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		if kopsClusterNameForVPC != "" {
 			// import VPC from a given kops cluster
 			if len(availabilityZones) != 0 {
-				return fmt.Errorf("--vpc-from-kops-cluster and --zones cannot be used at the same time")
+				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
 			}
 
 			if subnetsGiven {
-				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets cannot be used at the same time")
+				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
 
 			kw, err := kops.NewWrapper(p.Region, kopsClusterNameForVPC)
@@ -195,7 +185,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		// use subnets as specified by --vpc-{private,public}-subnets flags
 
 		if len(availabilityZones) != 0 {
-			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones cannot be used at the same time")
+			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
 		}
 
 		for topology := range subnets {
@@ -226,31 +216,31 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		return err
 	}
 
-	if err := ctl.LoadSSHPublicKey(cl.Name, ng); err != nil {
+	if err := ctl.LoadSSHPublicKey(meta.Name, ng); err != nil {
 		return err
 	}
 
 	logger.Debug("cfg = %#v", cfg)
 
-	logger.Info("creating %s", cl.LogString())
+	logger.Info("creating %s", meta.LogString())
 
 	{ // core action
 		stackManager := ctl.NewStackManager(cfg)
 		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
-		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", cl.Region, cl.Name)
+		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
 		errs := stackManager.CreateClusterWithNodeGroups()
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
-			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", cl.Region, cl.Name)
+			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
 			}
-			return fmt.Errorf("failed to create cluster %q", cl.Name)
+			return fmt.Errorf("failed to create cluster %q", meta.Name)
 		}
 	}
 
-	logger.Success("all EKS cluster resource for %q had been created", cl.Name)
+	logger.Success("all EKS cluster resource for %q had been created", meta.Name)
 
 	// obtain cluster credentials, write kubeconfig
 
@@ -278,7 +268,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 			return err
 		}
 
-		if err = ctl.WaitForControlPlane(cl, clientSet); err != nil {
+		if err = ctl.WaitForControlPlane(meta, clientSet); err != nil {
 			return err
 		}
 
@@ -318,7 +308,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		}
 	}
 
-	logger.Success("%s is ready", cl.LogString())
+	logger.Success("%s is ready", meta.LogString())
 
 	return nil
 }
