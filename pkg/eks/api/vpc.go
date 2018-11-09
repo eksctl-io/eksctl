@@ -57,7 +57,9 @@ func (c *ClusterConfig) SubnetIDs(topology SubnetTopology) []string {
 }
 
 // ImportSubnet loads a given subnet into cluster config
-func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID string) {
+func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) {
+	_, subnetCIDR, _ := net.ParseCIDR(cidr)
+
 	if c.VPC.Subnets == nil {
 		c.VPC.Subnets = make(map[SubnetTopology]map[string]Network)
 	}
@@ -65,9 +67,10 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID strin
 		c.VPC.Subnets[topology] = map[string]Network{}
 	}
 	if network, ok := c.VPC.Subnets[topology][az]; !ok {
-		c.VPC.Subnets[topology][az] = Network{ID: subnetID}
+		c.VPC.Subnets[topology][az] = Network{ID: subnetID, CIDR: subnetCIDR}
 	} else {
 		network.ID = subnetID
+		network.CIDR = subnetCIDR
 		c.VPC.Subnets[topology][az] = network
 	}
 }

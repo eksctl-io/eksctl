@@ -73,7 +73,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 	desiredStatus := fmt.Sprintf("%v", acceptors[0].Expected)
 	msg := fmt.Sprintf("waiting for CloudFormation stack %q to reach %q status", *i.StackName, desiredStatus)
 
-	ctx, cancel := context.WithTimeout(context.Background(), c.waitTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), c.provider.WaitTimeout())
 	defer cancel()
 
 	startTime := time.Now()
@@ -91,7 +91,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 				input.StackName = i.StackId
 			}
 			logger.Debug(msg)
-			req, _ := c.cfn.DescribeStacksRequest(input)
+			req, _ := c.provider.CloudFormation().DescribeStacksRequest(input)
 			req.SetContext(ctx)
 			return req, nil
 		},
@@ -118,7 +118,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *string, acceptors []request.WaiterAcceptor) error {
 	desiredStatus := fmt.Sprintf("%v", acceptors[0].Expected)
 	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q to reach %q status", *changesetName, *i.StackName, desiredStatus)
-	ctx, cancel := context.WithTimeout(context.Background(), c.waitTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), c.provider.WaitTimeout())
 	defer cancel()
 	startTime := time.Now()
 	w := request.Waiter{
@@ -132,7 +132,7 @@ func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *st
 				ChangeSetName: changesetName,
 			}
 			logger.Debug(msg)
-			req, _ := c.cfn.DescribeChangeSetRequest(input)
+			req, _ := c.provider.CloudFormation().DescribeChangeSetRequest(input)
 			req.SetContext(ctx)
 			return req, nil
 		},

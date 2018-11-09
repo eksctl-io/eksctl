@@ -3,20 +3,23 @@ package builder_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net"
 	"path/filepath"
 	"strings"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 const (
@@ -25,6 +28,10 @@ const (
 	endpoint           = "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com"
 	caCert             = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNE1EWXdOekExTlRBMU5Wb1hEVEk0TURZd05EQTFOVEExTlZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWJoCnpvZElYR0drckNSZE1jUmVEN0YvMnB1NFZweTdvd3FEVDgrdk9zeGs2bXFMNWxQd3ZicFhmYkE3R0xzMDVHa0wKaDdqL0ZjcU91cnMwUFZSK3N5REtuQXltdDFORWxGNllGQktSV1dUQ1hNd2lwN1pweW9XMXdoYTlJYUlPUGxCTQpPTEVlckRabFVrVDFVV0dWeVdsMmxPeFgxa2JhV2gvakptWWdkeW5jMXhZZ3kxa2JybmVMSkkwLzVUVTRCajJxClB1emtrYW5Xd3lKbGdXQzhBSXlpWW82WFh2UVZmRzYrM3RISE5XM1F1b3ZoRng2MTFOYnl6RUI3QTdtZGNiNmgKR0ZpWjdOeThHZnFzdjJJSmI2Nk9FVzBSdW9oY1k3UDZPdnZmYnlKREhaU2hqTStRWFkxQXN5b3g4Ri9UelhHSgpQUWpoWUZWWEVhZU1wQmJqNmNFQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCa2hKRVd4MHk1LzlMSklWdXJ1c1hZbjN6Z2EKRkZ6V0JsQU44WTlqUHB3S2t0Vy9JNFYyUGg3bWY2Z3ZwZ3Jhc2t1Slk1aHZPcDdBQmcxSTFhaHUxNUFpMUI0ZApuMllRaDlOaHdXM2pKMmhuRXk0VElpb0gza2JFdHRnUVB2bWhUQzNEYUJreEpkbmZJSEJCV1RFTTU1czRwRmxUClpzQVJ3aDc1Q3hYbjdScVU0akpKcWNPaTRjeU5qeFVpRDBqR1FaTmNiZWEyMkRCeTJXaEEzUWZnbGNScGtDVGUKRDVPS3NOWlF4MW9MZFAwci9TSmtPT1NPeUdnbVJURTIrODQxN21PRW02Z3RPMCszdWJkbXQ0aENsWEtFTTZYdwpuQWNlK0JxVUNYblVIN2ZNS3p2TDE5UExvMm5KbFU1TnlCbU1nL1pNVHVlUy80eFZmKy94WnpsQ0Q1WT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
 	arn                = "arn:aws:eks:us-west-2:376248598259:cluster/" + clusterName
+
+	vpcID          = "vpc-0e265ad953062b94b"
+	subnetsPublic  = "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef"
+	subnetsPrivate = "subnet-0f98135715dfcf55a,subnet-0ade11bad78dced9f,subnet-0e2e63ff1712bf6ea"
 )
 
 type Template struct {
@@ -84,6 +91,72 @@ users:
 `
 }
 
+func testVPC() *api.ClusterVPC {
+	return &api.ClusterVPC{
+		Network: api.Network{
+			ID: vpcID,
+			CIDR: &net.IPNet{
+				IP:   []byte{192, 168, 0, 0},
+				Mask: []byte{255, 255, 0, 0},
+			},
+		},
+		SecurityGroup: "sg-0b44c48bcba5b7362",
+		Subnets: map[api.SubnetTopology]map[string]api.Network{
+			"Public": map[string]api.Network{
+				"us-west-2b": {
+					ID: "subnet-0f98135715dfcf55f",
+					CIDR: &net.IPNet{
+						IP:   []byte{192, 168, 0, 0},
+						Mask: []byte{255, 255, 224, 0},
+					},
+				},
+				"us-west-2a": {
+					ID: "subnet-0ade11bad78dced9e",
+					CIDR: &net.IPNet{
+						IP:   []byte{192, 168, 32, 0},
+						Mask: []byte{255, 255, 224, 0},
+					},
+				},
+				"us-west-2c": {
+					ID: "subnet-0e2e63ff1712bf6ef",
+					CIDR: &net.IPNet{
+						IP:   []byte{192, 168, 64, 0},
+						Mask: []byte{255, 255, 224, 0},
+					},
+				},
+			},
+			"Private": map[string]api.Network{
+				"us-west-2b": {
+					ID: "subnet-0f98135715dfcf55a",
+					CIDR: &net.IPNet{
+						IP:   []byte{192, 168, 96, 0},
+						Mask: []byte{255, 255, 224, 0},
+					},
+				},
+				"us-west-2a": {
+					ID: "subnet-0ade11bad78dced9f",
+					CIDR: &net.IPNet{
+						IP:   []byte{192, 168, 128, 0},
+						Mask: []byte{255, 255, 224, 0},
+					},
+				},
+				"us-west-2c": {
+					ID: "subnet-0e2e63ff1712bf6ea",
+					CIDR: &net.IPNet{
+						IP:   []byte{192, 168, 160, 0},
+						Mask: []byte{255, 255, 224, 0},
+					},
+				},
+			},
+		},
+	}
+}
+
+var subnetLists = map[api.SubnetTopology]string{
+	"Public":  subnetsPublic,
+	"Private": subnetsPrivate,
+}
+
 func newStackWithOutputs(outputs map[string]string) cfn.Stack {
 	s := cfn.Stack{}
 	for k, v := range outputs {
@@ -117,6 +190,46 @@ var _ = Describe("CloudFormation template builder API", func() {
 		return cfg
 	}
 
+	p := testutils.NewMockProvider()
+
+	{
+		joinCompare := func(input *ec2.DescribeSubnetsInput, compare string) bool {
+			ids := make([]string, len(input.SubnetIds))
+			for x, id := range input.SubnetIds {
+				ids[x] = *id
+			}
+			return strings.Join(ids, ",") == compare
+		}
+		testVPC := testVPC()
+		for t := range subnetLists {
+			func(list string, subnetsByAz map[string]api.Network) {
+				subnets := strings.Split(list, ",")
+
+				output := &ec2.DescribeSubnetsOutput{
+					Subnets: make([]*ec2.Subnet, len(subnets)),
+				}
+
+				for i := range subnets {
+					subnet := &ec2.Subnet{}
+					subnet.SetSubnetId(subnets[i])
+					subnet.SetVpcId(vpcID)
+					for az := range subnetsByAz {
+						if subnetsByAz[az].ID == subnets[i] {
+							subnet.SetAvailabilityZone(az)
+							subnet.SetCidrBlock(subnetsByAz[az].CIDR.String())
+						}
+					}
+					output.Subnets[i] = subnet
+
+				}
+				p.MockEC2().On("DescribeSubnets", mock.MatchedBy(func(input *ec2.DescribeSubnetsInput) bool {
+					fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
+					return joinCompare(input, list)
+				})).Return(output, nil)
+			}(subnetLists[t], testVPC.Subnets[t])
+		}
+	}
+
 	Describe("GetAllOutputsFromClusterStack", func() {
 		caCertData, err := base64.StdEncoding.DecodeString(caCert)
 		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
@@ -130,65 +243,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			CertificateAuthorityData: caCertData,
 			ARN:                      arn,
 			AvailabilityZones:        testAZs,
-
-			VPC: &api.ClusterVPC{
-				Network: api.Network{
-					ID: "vpc-0e265ad953062b94b",
-					CIDR: &net.IPNet{
-						IP:   []byte{192, 168, 0, 0},
-						Mask: []byte{255, 255, 0, 0},
-					},
-				},
-				SecurityGroup: "sg-0b44c48bcba5b7362",
-				Subnets: map[api.SubnetTopology]map[string]api.Network{
-					"Public": map[string]api.Network{
-						"us-west-2b": {
-							ID: "subnet-0f98135715dfcf55f",
-							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 0, 0},
-								Mask: []byte{255, 255, 224, 0},
-							},
-						},
-						"us-west-2a": {
-							ID: "subnet-0ade11bad78dced9e",
-							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 32, 0},
-								Mask: []byte{255, 255, 224, 0},
-							},
-						},
-						"us-west-2c": {
-							ID: "subnet-0e2e63ff1712bf6ef",
-							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 64, 0},
-								Mask: []byte{255, 255, 224, 0},
-							},
-						},
-					},
-					"Private": map[string]api.Network{
-						"us-west-2b": {
-							ID: "subnet-0f98135715dfcf55a",
-							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 96, 0},
-								Mask: []byte{255, 255, 224, 0},
-							},
-						},
-						"us-west-2a": {
-							ID: "subnet-0ade11bad78dced9f",
-							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 128, 0},
-								Mask: []byte{255, 255, 224, 0},
-							},
-						},
-						"us-west-2c": {
-							ID: "subnet-0e2e63ff1712bf6ea",
-							CIDR: &net.IPNet{
-								IP:   []byte{192, 168, 160, 0},
-								Mask: []byte{255, 255, 224, 0},
-							},
-						},
-					},
-				},
-			},
+			VPC:                      testVPC(),
 			NodeGroups: []*api.NodeGroup{
 				{
 					AMI:               "",
@@ -200,10 +255,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		cfg := newClusterConfig()
-		ctl := eks.New(testutils.ProviderConfig, cfg)
 
 		It("should not error when calling SetSubnets", func() {
-			err := ctl.SetSubnets(cfg)
+			err := vpc.SetSubnets(cfg)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -215,7 +269,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}
 		})
 
-		rs := NewClusterResourceSet(cfg)
+		rs := NewClusterResourceSet(p, cfg)
 		It("should add all resources without error", func() {
 			err := rs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
@@ -223,9 +277,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		sampleOutputs := map[string]string{
 			"SecurityGroup":            "sg-0b44c48bcba5b7362",
-			"SubnetsPublic":            "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef",
-			"SubnetsPrivate":           "subnet-0f98135715dfcf55a,subnet-0ade11bad78dced9f,subnet-0e2e63ff1712bf6ea",
-			"VPC":                      "vpc-0e265ad953062b94b",
+			"SubnetsPublic":            subnetsPublic,
+			"SubnetsPrivate":           subnetsPrivate,
+			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
 			"ARN":                      arn,
@@ -471,7 +525,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.AvailabilityZones = testAZs
 		cfg.VPC = &api.ClusterVPC{
 			Network: api.Network{
-				ID: "vpc-0e265ad953062b94b",
+				ID: vpcID,
 			},
 			SecurityGroup: "sg-0b44c48bcba5b7362",
 			Subnets: map[api.SubnetTopology]map[string]api.Network{
