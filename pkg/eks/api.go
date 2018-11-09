@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/version"
 
 	"github.com/weaveworks/eksctl/pkg/az"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -261,6 +263,12 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, 
 	}
 
 	s := session.Must(session.NewSessionWithOptions(opts))
+
+	s.Handlers.Build.PushFrontNamed(request.NamedHandler{
+		Name: "eksctlUserAgent",
+		Fn: request.MakeAddToUserAgentHandler(
+			"eksctl", version.String()),
+	})
 
 	if spec.Region == "" {
 		if *s.Config.Region != "" {
