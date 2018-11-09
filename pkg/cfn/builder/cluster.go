@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"fmt"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 
@@ -31,18 +33,22 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources() error {
+	dedicatedVPC := c.spec.VPC.ID == ""
 
-	templateDescriptionFeatures := clusterTemplateDescriptionDefaultFeatures
+	c.rs.template.Description = fmt.Sprintf(
+		"%s (dedicated VPC: %v, dedicatd IAM: %v) %s",
+		clusterTemplateDescription,
+		dedicatedVPC, true,
+		templateDescriptionSuffix)
 
 	if err := c.spec.HasSufficientSubnets(); err != nil {
 		return err
 	}
 
-	if c.spec.VPC.ID != "" {
-		c.importResourcesForVPC()
-		templateDescriptionFeatures = " (with shared VPC and dedicated IAM role) "
-	} else {
+	if dedicatedVPC {
 		c.addResourcesForVPC()
+	} else {
+		c.importResourcesForVPC()
 	}
 	c.addOutputsForVPC()
 
@@ -51,10 +57,6 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.addResourcesForControlPlane("1.10")
 
 	c.rs.newOutput(cfnOutputClusterStackName, gfn.RefStackName, false)
-
-	c.rs.template.Description = clusterTemplateDescription
-	c.rs.template.Description += templateDescriptionFeatures
-	c.rs.template.Description += templateDescriptionSuffix
 
 	return nil
 }

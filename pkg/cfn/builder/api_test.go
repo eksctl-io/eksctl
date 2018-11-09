@@ -35,7 +35,8 @@ const (
 )
 
 type Template struct {
-	Resources map[string]struct {
+	Description string
+	Resources   map[string]struct {
 		Properties struct {
 			Tags []struct {
 				Key   interface{}
@@ -319,7 +320,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(templateBody).ShouldNot(BeEmpty())
 		})
-
 		obj := Template{}
 		It("should parse JSON withon errors", func() {
 			err := json.Unmarshal(templateBody, &obj)
@@ -412,7 +412,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Describe("NodeGroup{PrivateNetworking=true}", func() {
+	Describe("NodeGroup{PrivateNetworking=true AllowSSH=true}", func() {
 		cfg := api.NewClusterConfig()
 		ng := cfg.NewNodeGroup()
 
@@ -422,6 +422,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = true
+		ng.AMIFamily = "AmazonLinux2"
 
 		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-private-ng", 0)
 		rs.AddAllResources()
@@ -434,6 +435,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should parse JSON withon errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct description", func() {
+			Expect(obj.Description).To(ContainSubstring("AMI family: AmazonLinux2"))
+			Expect(obj.Description).To(ContainSubstring("SSH access: true"))
+			Expect(obj.Description).To(ContainSubstring("subnet topology: Private"))
 		})
 
 		It("should have correct resources and attributes", func() {
@@ -473,6 +480,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
+		ng.AMIFamily = "AmazonLinux2"
 
 		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", 0)
 		rs.AddAllResources()
@@ -485,6 +493,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should parse JSON withon errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct description", func() {
+			Expect(obj.Description).To(ContainSubstring("AMI family: AmazonLinux2"))
+			Expect(obj.Description).To(ContainSubstring("SSH access: true"))
+			Expect(obj.Description).To(ContainSubstring("subnet topology: Public"))
 		})
 
 		It("should have correct resources and attributes", func() {
@@ -557,6 +571,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.AllowSSH = false
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
+		ng.AMIFamily = "AmazonLinux2"
 
 		It("should have 1 AZ for the nodegroup", func() {
 			Expect(ng.AvailabilityZones).To(Equal([]string{"us-west-2a"}))
@@ -573,6 +588,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should parse JSON withon errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct description", func() {
+			Expect(obj.Description).To(ContainSubstring("AMI family: AmazonLinux2"))
+			Expect(obj.Description).To(ContainSubstring("SSH access: false"))
+			Expect(obj.Description).To(ContainSubstring("subnet topology: Public"))
 		})
 
 		It("should have correct resources and attributes", func() {
@@ -646,9 +667,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should serialise JSON without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
-
+		obj := Template{}
 		It("should parse JSON withon errors and extract valid cloud-config using our implementation", func() {
-			obj := Template{}
 			err = json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(obj.Resources)).ToNot(Equal(0))
@@ -713,9 +733,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should serialise JSON without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
-
+		obj := Template{}
 		It("should parse JSON withon errors and extract valid cloud-config using our implementation", func() {
-			obj := Template{}
 			err = json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(obj.Resources)).ToNot(Equal(0))
@@ -725,6 +744,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			c, err = cloudconfig.DecodeCloudConfig(userData)
 			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should have correct description", func() {
+			Expect(obj.Description).To(ContainSubstring("AMI family: Ubuntu1804"))
+			Expect(obj.Description).To(ContainSubstring("SSH access: false"))
+			Expect(obj.Description).To(ContainSubstring("subnet topology: Public"))
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {

@@ -9,13 +9,9 @@ import (
 )
 
 const (
-	clusterTemplateDescription                = "EKS cluster"
-	clusterTemplateDescriptionDefaultFeatures = " (with dedicated VPC & IAM role) "
-
-	nodeGroupTemplateDescription                = "EKS nodes"
-	nodeGroupTemplateDescriptionDefaultFeatures = " (Amazon Linux 2 with SSH) "
-
-	templateDescriptionSuffix = " [created and managed by eksctl]"
+	clusterTemplateDescription   = "EKS cluster"
+	nodeGroupTemplateDescription = "EKS nodes"
+	templateDescriptionSuffix    = "[created and managed by eksctl]"
 )
 
 type awsCloudFormationResource struct {
