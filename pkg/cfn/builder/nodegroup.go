@@ -41,9 +41,11 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, i
 
 // AddAllResources adds all the information about the node group to the resource set
 func (n *NodeGroupResourceSet) AddAllResources() error {
-	n.rs.template.Description = nodeGroupTemplateDescription
-	n.rs.template.Description += nodeGroupTemplateDescriptionDefaultFeatures
-	n.rs.template.Description += templateDescriptionSuffix
+	n.rs.template.Description = fmt.Sprintf(
+		"%s (AMI family: %s, SSH access: %v, subnet topology: %s) %s",
+		nodeGroupTemplateDescription,
+		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.SubnetTopology(),
+		templateDescriptionSuffix)
 
 	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
 

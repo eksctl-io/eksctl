@@ -86,7 +86,7 @@ func makeClientConfigData(spec *api.ClusterConfig, nodeGroupID int) ([]byte, err
 func clusterDNS(spec *api.ClusterConfig) string {
 	// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
 	// is anywhere within 10.0.0.0/8
-	if spec.VPC.CIDR.IP[0] == 10 {
+	if spec.VPC.CIDR != nil && spec.VPC.CIDR.IP[0] == 10 {
 		return "172.20.0.10"
 	}
 	return "10.100.0.10"
