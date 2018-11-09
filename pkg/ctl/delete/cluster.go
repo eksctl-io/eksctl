@@ -7,7 +7,7 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/ctl"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -21,7 +21,7 @@ func deleteClusterCmd() *cobra.Command {
 		Use:   "cluster",
 		Short: "Delete a cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doDeleteCluster(p, cfg, ctl.GetNameArg(args)); err != nil {
+			if err := doDeleteCluster(p, cfg, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -32,29 +32,26 @@ func deleteClusterCmd() *cobra.Command {
 
 	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+	cmdutils.AddCommonFlagsForAWS(fs, p)
 
 	fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
-
-	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 
 	return cmd
 }
 
-func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
+func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && name != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, name)
+	if cfg.Metadata.Name != "" && nameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, nameArg)
 	}
 
-	if name != "" {
-		cfg.Metadata.Name = name
+	if nameArg != "" {
+		cfg.Metadata.Name = nameArg
 	}
 
 	if cfg.Metadata.Name == "" {

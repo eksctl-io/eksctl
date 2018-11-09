@@ -12,6 +12,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+var waitNodesKubeconfigPath string
+
 func waitNodesCmd() *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
@@ -30,7 +32,7 @@ func waitNodesCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVar(&utilsKubeconfigInputPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
+	fs.StringVar(&waitNodesKubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
 	fs.IntVarP(&ng.MinSize, "nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
 	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 
@@ -40,11 +42,11 @@ func waitNodesCmd() *cobra.Command {
 func doWaitNodes(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) error {
 	ctl := eks.New(p, cfg)
 
-	if utilsKubeconfigInputPath == "" {
+	if waitNodesKubeconfigPath == "" {
 		return fmt.Errorf("--kubeconfig must be set")
 	}
 
-	clientConfig, err := clientcmd.BuildConfigFromFlags("", utilsKubeconfigInputPath)
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", waitNodesKubeconfigPath)
 	if err != nil {
 		return err
 	}
