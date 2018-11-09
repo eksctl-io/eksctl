@@ -6,19 +6,22 @@ package ami
 var StaticImages = map[string]map[int]map[string]string{
 	"AmazonLinux2": {
 		ImageClassGPU: {
-			"eu-west-1": "ami-0706dc8a5eed2eed9",
-			"us-east-1": "ami-058bfb8c236caae89",
-			"us-west-2": "ami-0731694d53ef9604b",
+			"eu-west-1": "ami-0c3479bcd739094f0",
+			"us-east-1": "ami-0c974dde3f6d691a1",
+			"us-east-2": "ami-089849e811ace242f",
+			"us-west-2": "ami-08156e8fd65879a13",
 		},
 		ImageClassGeneral: {
-			"eu-west-1": "ami-0c7a4976cb6fafd3a",
-			"us-east-1": "ami-0440e4f6b9713faf6",
-			"us-west-2": "ami-0a54c984b9f908c81",
+			"eu-west-1": "ami-00c3b2d35bddd4f5c",
+			"us-east-1": "ami-0a0b913ef3249b655",
+			"us-east-2": "ami-0958a76db2d150238",
+			"us-west-2": "ami-0f54a2f7d2e9c88b3",
 		},
 	},
 	"Ubuntu1804": {ImageClassGeneral: {
 		"eu-west-1": "ami-07036622490f7e97b",
 		"us-east-1": "ami-06fd8200ac0eb656d",
+		"us-east-2": "ami-0866798422f5d546b",
 		"us-west-2": "ami-6322011b",
 	}},
 }
