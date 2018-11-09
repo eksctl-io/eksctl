@@ -36,7 +36,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	dedicatedVPC := c.spec.VPC.ID == ""
 
 	c.rs.template.Description = fmt.Sprintf(
-		"%s (dedicated VPC: %v, dedicatd IAM: %v) %s",
+		"%s (dedicated VPC: %v, dedicated IAM: %v) %s",
 		clusterTemplateDescription,
 		dedicatedVPC, true,
 		templateDescriptionSuffix)
