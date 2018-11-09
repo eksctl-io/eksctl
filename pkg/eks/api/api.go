@@ -20,6 +20,9 @@ const (
 	// EKSRegionUSEast1 represents the US East Region North Virgina
 	EKSRegionUSEast1 = "us-east-1"
 
+	// EKSRegionUSEast2 represents the US East Region Ohio
+	EKSRegionUSEast2 = "us-east-2"
+
 	// EKSRegionEUWest1 represents the EU West Region Ireland
 	EKSRegionEUWest1 = "eu-west-1"
 
@@ -32,6 +35,7 @@ func SupportedRegions() []string {
 	return []string{
 		EKSRegionUSWest2,
 		EKSRegionUSEast1,
+		EKSRegionUSEast2,
 		EKSRegionEUWest1,
 	}
 }

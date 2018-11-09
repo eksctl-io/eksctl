@@ -34,7 +34,7 @@ func main() {
 		log.Printf("looking up %s images", family)
 		for class := range ami.ImageSearchPatterns[family] {
 			classImages := Dict{}
-			for _, region := range api.SupportedRegions {
+			for _, region := range api.SupportedRegions() {
 				p := ami.ImageSearchPatterns[family][class]
 				log.Printf("looking up images matching %q in %q", p, region)
 				image, err := ami.FindImage(client[region], p)
@@ -76,7 +76,7 @@ func newSession(region string) *session.Session {
 
 func newMultiRegionClient() map[string]*ec2.EC2 {
 	clients := make(map[string]*ec2.EC2)
-	for _, region := range api.SupportedRegions {
+	for _, region := range api.SupportedRegions() {
 		clients[region] = ec2.New(newSession(region))
 	}
 	return clients
