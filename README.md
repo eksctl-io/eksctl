@@ -190,7 +190,7 @@ If that functionality doesn't suite you, the following options are currently ava
 #### change VPC CIDR
 
 If you need to setup peering with another VPC, or simply need larger or smaller range of IPs, you can use `--vpc-cidr` flag to
-change it. You cannot use just any sort of CIDR, there only certain ranges that can be used in [AWS VPC](vpcsizing).
+change it. You cannot use just any sort of CIDR, there only certain ranges that can be used in [AWS VPC][vpcsizing].
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
 
