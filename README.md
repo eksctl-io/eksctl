@@ -182,10 +182,10 @@ By default, `eksctl create cluster` instatiates a dedicated VPC, in order to avo
 variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC. 
 Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
 Initial nodegroup is create in public subnets, with SSH access disabled unless `--allow-ssh` is specified. However, this implies
-that each of the EC2 isntances in the initial nodegroup gets a public IP and can be access on ports 1025 - 65535, which is
-not unsecure in principle, yet some compromised workload can risk access violation.
+that each of the EC2 instances in the initial nodegroup gets a public IP and can be accessed on ports 1025 - 65535, which is
+not insecure in principle, but some compromised workload could risk an access violation.
 
-If that functionality doesn't suite you, the following options are currently available.
+If that functionality doesn't suit you, the following options are currently available.
 
 #### change VPC CIDR
 
@@ -232,7 +232,7 @@ plane.
 
 You must ensure to provide at least 2 subnets in different AZs. There are other requirements that you will need to follow, but it's
 entirely up to you to address those. For example, tagging is not strictly necessary, tests have shown that its possible to create
-a functional cluster without any tags set on the subnets, however there is no guarantee of that it will always hold and tagging is
+a functional cluster without any tags set on the subnets, however there is no guarantee that this will always hold and tagging is
 recommended.
 
 - all subnets in the same VPC, within the same block of IPs
@@ -251,7 +251,7 @@ Default security group settings applied by `eksctl` may or may not be sufficient
 groups. If you wish to modify the ingress/egress rules of the either of security groups, you might need to use another tool to automate
 changes, or do it via EC2 console.
 
-If you are in doubt, don't use custom VPC. Using `eksctl create cluster` without any `--vpc-*` flags will always configure the cluster
+If you are in doubt, don't use a custom VPC. Using `eksctl create cluster` without any `--vpc-*` flags will always configure the cluster
 with a fully-functional dedicated VPC.
 
 To create a cluster using 2x private and 2x public subnets, run:
@@ -295,7 +295,7 @@ Once the cluster is created you will need to install the [NVIDIA Kubernetes devi
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
 ```
 
-> NOTE: Once `addon` support has been added as part of 0.2.0 its envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
+> NOTE: Once `addon` support has been added as part of 0.2.0 it is envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
 
 ### Latest & Custom AMI Support
 
