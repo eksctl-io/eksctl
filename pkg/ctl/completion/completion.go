@@ -33,10 +33,12 @@ To configure your bash shell to load completions for each session add to your ba
 
 . <(eksctl completion zsh)
 
-To configure your zsh shell to load completions for each session add to your zshrc
+To configure your zsh shell, run:
 
-# ~/.zshrc or ~/.profile
-. <(eksctl completion zsh)
+mkdir -p ~/.zsh/completion/
+eksctl completion zsh > ~/.zsh/completion/_eksctl
+fpath=($fpath ~/.zsh/completion)
+
 `,
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenZshCompletion(os.Stdout)
