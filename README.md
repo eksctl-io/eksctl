@@ -338,7 +338,7 @@ To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.pr
 . <(eksctl completion bash)
 ```
 
-Or for zsh
+Or for zsh:
 ```
 . <(eksctl completion zsh)
 ```
