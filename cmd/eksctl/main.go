@@ -52,7 +52,7 @@ To configure your zsh shell to load completions for each session add to your zsh
 . <(eksctl completion zsh)
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		rootCmd.GenBashCompletion(os.Stdout)
+		rootCmd.GenZshCompletion(os.Stdout)
 	},
 }
 
