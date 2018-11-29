@@ -23,24 +23,56 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-// completionCmd represents the completion command
-var completionCmd = &cobra.Command{
-	Use:   "completion",
+var bashCompletionCmd = &cobra.Command{
+	Use:   "bash",
 	Short: "Generates bash completion scripts",
 	Long: `To load completion run
 
-. <(eksctl completion)
+. <(eksctl completion bash)
 
 To configure your bash shell to load completions for each session add to your bashrc
 
 # ~/.bashrc or ~/.profile
-. <(eksctl completion)
+. <(eksctl completion bash)
+`,
+	Run: func(cmd *cobra.Command, args []string) {
+		rootCmd.GenBashCompletion(os.Stdout)
+	},
+}
+var zshCompletionCmd = &cobra.Command{
+	Use:   "zsh",
+	Short: "Generates zsh completion scripts",
+	Long: `To load completion run
+
+. <(eksctl completion zsh)
+
+To configure your zsh shell to load completions for each session add to your zshrc
+
+# ~/.zshrc or ~/.profile
+. <(eksctl completion zsh)
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		rootCmd.GenBashCompletion(os.Stdout)
 	},
 }
 
+// completionCmd will create the `completion` commands
+func completionCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "completion",
+		Short: "Generates shell completion scripts",
+		Run: func(c *cobra.Command, _ []string) {
+			if err := c.Help(); err != nil {
+				logger.Debug("ignoring error %q", err.Error())
+			}
+		},
+	}
+
+	cmd.AddCommand(bashCompletionCmd)
+	cmd.AddCommand(zshCompletionCmd)
+
+	return cmd
+}
 func init() {
 
 	addCommands()
@@ -63,5 +95,5 @@ func addCommands() {
 	rootCmd.AddCommand(get.Command())
 	rootCmd.AddCommand(scale.Command())
 	rootCmd.AddCommand(utils.Command())
-	rootCmd.AddCommand(completionCmd)
+	rootCmd.AddCommand(completionCmd())
 }
