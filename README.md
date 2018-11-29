@@ -331,6 +331,19 @@ eksctl apply --cluster-config advanced-cluster.yaml
 ```
 -->
 
+### Shell Completion
+
+To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.profile`:
+```
+. <(eksctl completion bash)
+```
+
+Or for zsh
+```
+. <(eksctl completion zsh)
+```
+
+
 ## Project Roadmap
 
 ### Developer use-case (0.2.0)
