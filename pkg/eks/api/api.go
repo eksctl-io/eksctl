@@ -88,6 +88,7 @@ func (c *ClusterMeta) LogString() string {
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
+	CloudFormationRoleARN() string
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	STS() stsiface.STSAPI
@@ -98,6 +99,8 @@ type ClusterProvider interface {
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
 type ProviderConfig struct {
+	CloudFormationRoleARN string
+
 	Region      string
 	Profile     string
 	WaitTimeout time.Duration

@@ -13,6 +13,8 @@ import (
 
 // MockProvider stores the mocked APIs
 type MockProvider struct {
+	cfnRoleARN string
+
 	cfn *mocks.CloudFormationAPI
 	eks *mocks.EKSAPI
 	ec2 *mocks.EC2API
@@ -38,6 +40,9 @@ var ProviderConfig = &api.ProviderConfig{
 
 // CloudFormation returns a representation of the CloudFormation API
 func (m MockProvider) CloudFormation() cloudformationiface.CloudFormationAPI { return m.cfn }
+
+// CloudFormationRoleARN returns, if any,  a service role used by CloudFormation to call AWS API on your behalf
+func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
 
 // MockCloudFormation returns a mocked CloudFormation API
 func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
