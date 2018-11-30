@@ -3,10 +3,13 @@ package create
 import (
 	"fmt"
 	"os"
+	"strings"
+	"unicode"
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
@@ -94,7 +97,56 @@ func createClusterCmd() *cobra.Command {
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make initial nodegroup networking private")
 
+	groupFlagsInUsage(cmd)
+
 	return cmd
+}
+
+func groupFlagsInUsage(cmd *cobra.Command) {
+	// Group flags by their categories determined by name prefixes
+	groupToPatterns := map[string][]string{
+		"Node":       {"node", "storage-class", "ssh", "max-pods-per-node", "full-ecr-access", "asg-access"},
+		"Networking": {"vpc", "zones",},
+		"Stack":      {"region", "tags"},
+		"Other":      {},
+	}
+	groups := []string{}
+	for k := range groupToPatterns {
+		groups = append(groups, k)
+	}
+	groupToFlagSet := make(map[string]*pflag.FlagSet)
+	for _, g := range groups {
+		groupToFlagSet[g] = pflag.NewFlagSet(g, /* Unused. Can be anythng. */ pflag.ContinueOnError)
+	}
+	cmd.LocalFlags().VisitAll(func(f *pflag.Flag) {
+		for _, g := range groups {
+			for _, p := range groupToPatterns[g] {
+				if strings.HasPrefix(f.Name, p) {
+					groupToFlagSet[g].AddFlag(f)
+					return
+				}
+			}
+		}
+		groupToFlagSet["Other"].AddFlag(f)
+	})
+
+	// The usage template is based on the one bundled into cobra
+	// https://github.com/spf13/cobra/blob/1e58aa3361fd650121dceeedc399e7189c05674a/command.go#L397
+	origFlagUsages := `
+
+Flags:
+{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}`
+
+	altFlagUsages := ``
+	for _, g := range groups {
+		set := groupToFlagSet[g]
+		altFlagUsages += fmt.Sprintf(`
+
+%s Flags:
+%s`, g, strings.TrimRightFunc(set.FlagUsages(), unicode.IsSpace))
+	}
+
+	cmd.SetUsageTemplate(strings.Replace(cmd.UsageTemplate(), origFlagUsages, altFlagUsages, 1))
 }
 
 func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
