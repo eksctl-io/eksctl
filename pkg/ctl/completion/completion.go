@@ -29,14 +29,13 @@ To configure your bash shell to load completions for each session add to your ba
 	var zshCompletionCmd = &cobra.Command{
 		Use:   "zsh",
 		Short: "Generates zsh completion scripts",
-		Long: `To load completion run
-
-. <(eksctl completion zsh)
-
-To configure your zsh shell, run:
+		Long: `To configure your zsh shell, run:
 
 mkdir -p ~/.zsh/completion/
 eksctl completion zsh > ~/.zsh/completion/_eksctl
+
+and put the following in ~/.zshrc:
+
 fpath=($fpath ~/.zsh/completion)
 
 `,
