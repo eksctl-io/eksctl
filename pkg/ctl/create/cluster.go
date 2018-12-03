@@ -48,8 +48,6 @@ func createClusterCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	cmdutils.AddCommonFlagsForAWS(fs, p)
-
 	exampleClusterName := utils.ClusterName("", "")
 
 	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))

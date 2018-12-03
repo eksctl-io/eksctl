@@ -19,7 +19,7 @@ import (
 
 func getNodegroupCmd() *cobra.Command {
 	p := &api.ProviderConfig{}
-	cfg := &api.ClusterConfig{}
+	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
 		Use:     "nodegroup",

@@ -59,7 +59,7 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	return c.CreateStack(name, stack, nil, errs)
 }
 
-func (c *StackCollection) listAllNodeGroups() ([]string, error) {
+func (c *StackCollection) listAllNodeGroupStacks() ([]string, error) {
 	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-\\d$", c.spec.Metadata.Name))
 	if err != nil {
 		return nil, err
@@ -77,30 +77,29 @@ func (c *StackCollection) listAllNodeGroups() ([]string, error) {
 
 // DeleteNodeGroup deletes a nodegroup stack
 func (c *StackCollection) DeleteNodeGroup(errs chan error, data interface{}) error {
-	defer close(errs)
-	name := data.(string)
+	id := data.(int)
+	name := c.makeNodeGroupStackName(id)
 	_, err := c.DeleteStack(name)
 	return err
 }
 
 // WaitDeleteNodeGroup waits until the nodegroup is deleted
 func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
-	defer close(errs)
-	name := data.(string)
+	id := data.(int)
+	name := c.makeNodeGroupStackName(id)
 	return c.WaitDeleteStack(name)
 }
 
 // ScaleInitialNodeGroup will scale the first nodegroup (ID: 0)
 func (c *StackCollection) ScaleInitialNodeGroup() error {
-	return c.ScaleNodeGroup(0)
+	return c.ScaleNodeGroup(c.spec.NodeGroups[0])
 }
 
 // ScaleNodeGroup will scale an existing nodegroup
-func (c *StackCollection) ScaleNodeGroup(id int) error {
-	ng := c.spec.NodeGroups[id]
+func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.ClusterStackName = clusterName
-	name := c.makeNodeGroupStackName(id)
+	name := c.makeNodeGroupStackName(ng.ID)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	// Get current stack

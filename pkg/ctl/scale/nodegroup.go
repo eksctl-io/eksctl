@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"strconv"
 )
 
 func scaleNodeGroupCmd() *cobra.Command {
@@ -16,19 +17,25 @@ func scaleNodeGroupCmd() *cobra.Command {
 	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
-		Use:   "nodegroup",
+		Use:   "nodegroup ID",
 		Short: "Scale a nodegroup",
-		Run: func(_ *cobra.Command, args []string) {
+		RunE: func(_ *cobra.Command, args []string) error {
+			id, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+			ng.ID = id
 			if err := doScaleNodeGroup(p, cfg, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
+			return err
 		},
 	}
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+	fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "EKS cluster name")
 
 	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
 
@@ -56,7 +63,7 @@ func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	err := stackManager.ScaleInitialNodeGroup()
+	err := stackManager.ScaleNodeGroup(ng)
 	if err != nil {
 		return fmt.Errorf("failed to scale nodegroup for cluster %q, error %v", cfg.Metadata.Name, err)
 	}
