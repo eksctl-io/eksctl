@@ -1,6 +1,8 @@
 built_at := $(shell date +%s)
 git_commit := $(shell git describe --dirty --always)
 
+version_pkg := github.com/weaveworks/eksctl/pkg/version
+
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
@@ -20,7 +22,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: build
 build: ## Build eksctl
-	@go build -ldflags "-X main.gitCommit=$(git_commit) -X main.builtAt=$(built_at)" ./cmd/eksctl
+	@go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
