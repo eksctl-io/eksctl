@@ -6,6 +6,7 @@ import (
 
 	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/completion"
 	"github.com/weaveworks/eksctl/pkg/ctl/create"
 	"github.com/weaveworks/eksctl/pkg/ctl/delete"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
@@ -45,4 +46,5 @@ func addCommands() {
 	rootCmd.AddCommand(get.Command())
 	rootCmd.AddCommand(scale.Command())
 	rootCmd.AddCommand(utils.Command())
+	rootCmd.AddCommand(completion.Command(rootCmd))
 }
