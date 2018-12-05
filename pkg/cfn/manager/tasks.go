@@ -67,7 +67,7 @@ func (s *StackCollection) CreateClusterWithNodeGroups() []error {
 	createAllNodeGroups := []task{}
 	for i := range s.spec.NodeGroups {
 		t := task{
-			call: s.CreateNodeGroupInCluster,
+			call: s.CreateEmbeddedNodeGroup,
 			data: s.spec.NodeGroups[i],
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)
@@ -91,7 +91,7 @@ func (s *StackCollection) CreateNodeGroups() []error {
 	createAllNodeGroups := []task{}
 	for i := range s.spec.NodeGroups {
 		t := task{
-			call: s.CreateNodeGroupInCluster,
+			call: s.CreateEmbeddedNodeGroup,
 			data: s.spec.NodeGroups[i],
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)

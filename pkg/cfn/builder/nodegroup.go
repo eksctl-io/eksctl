@@ -27,8 +27,8 @@ type NodeGroupResourceSet struct {
 	userData         *gfn.Value
 }
 
-// NewNodeGroupResourceSet returns a resource set for the new node group in a cluster spec
-func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
+// NewEmbeddedNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
+func NewEmbeddedNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
 		id:               id,
@@ -39,8 +39,8 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, i
 	}
 }
 
-// NewNodeGroupResourceSetFromSpec returns a resource set for the new node group
-func NewNodeGroupResourceSetFromSpec(spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
+// NewNodeGroupResourceSet returns a resource set for a node group
+func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
 		id:               ng.ID,

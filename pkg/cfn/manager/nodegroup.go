@@ -40,12 +40,12 @@ func (c *StackCollection) MakeNodeGroupStackName(id int) string {
 	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.Metadata.Name, id)
 }
 
-// CreateNodeGroupInCluster creates the nodegroup defined in the cluster spec
-func (c *StackCollection) CreateNodeGroupInCluster(errs chan error, data interface{}) error {
+// CreateEmbeddedNodeGroup creates the nodegroup embedded in the cluster spec
+func (c *StackCollection) CreateEmbeddedNodeGroup(errs chan error, data interface{}) error {
 	ng := data.(*api.NodeGroup)
 	name := c.MakeNodeGroupStackName(ng.ID)
 	logger.Info("creating nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
+	stack := builder.NewEmbeddedNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	ng := data.(*api.NodeGroup)
 	name := c.MakeNodeGroupStackName(ng.ID)
 	logger.Info("creating nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSetFromSpec(c.spec, c.makeClusterStackName(), ng)
+	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}

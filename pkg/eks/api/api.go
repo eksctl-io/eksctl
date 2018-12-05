@@ -125,7 +125,7 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
 }
 
-// NewNodeGroup crears new nodegroup inside cluster config,
+// NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	ng := &NodeGroup{
