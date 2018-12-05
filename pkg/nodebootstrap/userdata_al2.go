@@ -17,6 +17,10 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		return nil, err
 	}
 
+	if spec.CertificateAuthorityData == nil || len(spec.CertificateAuthorityData) == 0 {
+		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
+	}
+
 	files := configFiles{
 		kubeletDropInUnitDir: {
 			"10-eksclt.al2.conf": {isAsset: true},

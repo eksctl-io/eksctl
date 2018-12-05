@@ -80,6 +80,12 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 	logger.Info("found cluster %s", *eksCluster.Name)
 	logger.Debug("cluster = %#v", eksCluster)
 
+	// Populate cfg with the endopoint, CA data, and so on obtained from the described control-plane
+	// So that we won't end up rendering a incomplete useradata missing those things
+	if err = ctl.GetCredentials(*eksCluster, cfg); err != nil {
+		return err
+	}
+
 	{
 		stackManager := ctl.NewStackManager(cfg)
 		maxSeq, err := stackManager.GetMaxNodeGroupSeq()
@@ -102,10 +108,6 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 	}
 
 	{ // post-creation action
-		if err = ctl.GetCredentials(*eksCluster, cfg); err != nil {
-			return err
-		}
-
 		clientConfigBase, err := ctl.NewClientConfig(cfg)
 		if err != nil {
 			return err
