@@ -53,4 +53,6 @@ func addCommonCreateFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg *api.Clu
 	fs.StringVar(&ng.AMIFamily, "node-ami-family", ami.ImageFamilyAmazonLinux2, "Advanced use cases only. If 'AmazonLinux2' is supplied (default), then eksctl will use the offical AWS EKS AMIs (Amazon Linux 2); if 'Ubuntu1804' is supplied, then eksctl will use the offical Canonical EKS AMIs (Ubuntu 18.04).")
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make initial nodegroup networking private")
+
+	fs.Var(&ng.Labels, "node-labels", "Put labels on nodes in the format of K_1=V_1,K_2=V_2. A label key and value must begin with a letter or number, and may contain letters, numbers, hyphens, dots, and underscores, up to  63 characters each")
 }

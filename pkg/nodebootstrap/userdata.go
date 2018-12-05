@@ -92,7 +92,7 @@ func clusterDNS(spec *api.ClusterConfig) string {
 	return "10.100.0.10"
 }
 
-func makeKubeletParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
+func makeKubeletParamsCommon(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
 	if ng.MaxPodsPerNode == 0 {
 		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
 	}
