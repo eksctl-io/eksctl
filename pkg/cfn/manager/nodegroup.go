@@ -36,16 +36,35 @@ type NodeGroupSummary struct {
 	CreationTime    *time.Time
 }
 
-func (c *StackCollection) makeNodeGroupStackName(id int) string {
+func (c *StackCollection) MakeNodeGroupStackName(id int) string {
 	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.Metadata.Name, id)
+}
+
+// CreateNodeGroupInCluster creates the nodegroup defined in the cluster spec
+func (c *StackCollection) CreateNodeGroupInCluster(errs chan error, data interface{}) error {
+	ng := data.(*api.NodeGroup)
+	name := c.MakeNodeGroupStackName(ng.ID)
+	logger.Info("creating nodegroup stack %q", name)
+	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
+	if err := stack.AddAllResources(); err != nil {
+		return err
+	}
+
+	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", ng.ID)))
+
+	for k, v := range ng.Tags {
+		c.tags = append(c.tags, newTag(k, v))
+	}
+
+	return c.CreateStack(name, stack, nil, errs)
 }
 
 // CreateNodeGroup creates the nodegroup
 func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) error {
 	ng := data.(*api.NodeGroup)
-	name := c.makeNodeGroupStackName(ng.ID)
+	name := c.MakeNodeGroupStackName(ng.ID)
 	logger.Info("creating nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
+	stack := builder.NewNodeGroupResourceSetFromSpec(c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -77,16 +96,14 @@ func (c *StackCollection) listAllNodeGroupStacks() ([]string, error) {
 
 // DeleteNodeGroup deletes a nodegroup stack
 func (c *StackCollection) DeleteNodeGroup(errs chan error, data interface{}) error {
-	id := data.(int)
-	name := c.makeNodeGroupStackName(id)
+	name := data.(string)
 	_, err := c.DeleteStack(name)
 	return err
 }
 
 // WaitDeleteNodeGroup waits until the nodegroup is deleted
 func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
-	id := data.(int)
-	name := c.makeNodeGroupStackName(id)
+	name := data.(string)
 	return c.WaitDeleteStack(name)
 }
 
@@ -99,7 +116,7 @@ func (c *StackCollection) ScaleInitialNodeGroup() error {
 func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.ClusterStackName = clusterName
-	name := c.makeNodeGroupStackName(ng.ID)
+	name := c.MakeNodeGroupStackName(ng.ID)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	// Get current stack
@@ -206,6 +223,7 @@ func (c *StackCollection) GetMaxNodeGroupSeq() (int, error) {
 			seq = stackSeq
 		}
 	}
+	logger.Debug("stacks = %v", stacks)
 	return seq, nil
 }
 

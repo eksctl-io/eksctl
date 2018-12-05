@@ -1,7 +1,6 @@
 package get
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -35,7 +34,7 @@ func getNodegroupCmd() *cobra.Command {
 
 	fs := cmd.Flags()
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+	fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "EKS cluster name")
 
 	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
 	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
@@ -51,12 +50,8 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, name string)
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && name != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, name)
-	}
-
-	if name != "" {
-		cfg.Metadata.Name = name
+	if cfg.Metadata.Name == "" {
+		return errors.New("--cluster must not be omitted.")
 	}
 
 	manager := ctl.NewStackManager(cfg)

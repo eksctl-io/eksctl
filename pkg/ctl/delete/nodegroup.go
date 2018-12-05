@@ -56,7 +56,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, id int) er
 		return errors.New("`--cluster` must be set")
 	}
 
-	logger.Info("deleting EKS cluster %q", cfg.Metadata.Name)
+	logger.Info("deleting EKS nodegroup %q-nodegroup-%d", cfg.Metadata.Name, id)
 
 	var deletedResources []string
 
@@ -75,12 +75,15 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, id int) er
 	stackManager := ctl.NewStackManager(cfg)
 
 	{
-		err := stackManager.WaitDeleteNodeGroup(nil, id)
+		name := stackManager.MakeNodeGroupStackName(id)
+		err := stackManager.WaitDeleteNodeGroup(nil, name)
 		errs := []error{err}
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred while deleting nodegroup(s)", len(errs))
 			for _, err := range errs {
-				logger.Critical("%s\n", err.Error())
+				if err != nil {
+					logger.Critical("%s\n", err.Error())
+				}
 			}
 			handleIfError(fmt.Errorf("failed to delete nodegroup(s)"), "nodegroup(s)")
 		}

@@ -73,8 +73,6 @@ func createClusterCmd() *cobra.Command {
 		api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
 	}
 
-	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make initial nodegroup networking private")
-
 	groupFlagsInUsage(cmd)
 
 	return cmd

@@ -27,7 +27,7 @@ type NodeGroupResourceSet struct {
 	userData         *gfn.Value
 }
 
-// NewNodeGroupResourceSet returns a resource set for the new node group
+// NewNodeGroupResourceSet returns a resource set for the new node group in a cluster spec
 func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
@@ -36,6 +36,18 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, i
 		nodeGroupName:    fmt.Sprintf("%s-%d", spec.Metadata.Name, id),
 		clusterSpec:      spec,
 		spec:             spec.NodeGroups[id],
+	}
+}
+
+// NewNodeGroupResourceSetFromSpec returns a resource set for the new node group
+func NewNodeGroupResourceSetFromSpec(spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
+	return &NodeGroupResourceSet{
+		rs:               newResourceSet(),
+		id:               ng.ID,
+		clusterStackName: clusterStackName,
+		nodeGroupName:    fmt.Sprintf("%s-%d", spec.Metadata.Name, ng.ID),
+		clusterSpec:      spec,
+		spec:             ng,
 	}
 }
 
@@ -49,7 +61,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
 
-	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.id)
+	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
 		return err
 	}

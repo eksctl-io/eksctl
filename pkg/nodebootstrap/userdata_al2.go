@@ -11,8 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles, error) {
-	clientConfigData, err := makeClientConfigData(spec, nodeGroupID)
+func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
+	clientConfigData, err := makeClientConfigData(spec, ng)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFil
 		},
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(makeKubeletParams(spec, nodeGroupID), "\n")},
+			"kubelet.env":  {content: strings.Join(makeKubeletParams(spec, ng), "\n")},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":          {content: string(spec.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
@@ -34,14 +34,14 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, nodeGroupID int) (configFil
 }
 
 // NewUserDataForAmazonLinux2 creates new user data for Amazon Linux 2 nodes
-func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
+func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
 		"bootstrap.al2.sh",
 	}
 
-	files, err := makeAmazonLinux2Config(spec, nodeGroupID)
+	files, err := makeAmazonLinux2Config(spec, ng)
 	if err != nil {
 		return "", err
 	}

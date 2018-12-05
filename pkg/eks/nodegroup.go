@@ -56,6 +56,38 @@ func (c *ClusterProvider) CreateNodeGroupAuthConfigMap(clientSet *clientset.Clie
 	return nil
 }
 
+// CreateNodeGroupAuthConfigMap creates the auth config map for the default node group
+func (c *ClusterProvider) AddNodeGroupToAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+	cm, err := clientSet.CoreV1().ConfigMaps("kube-system").Get("aws-auth", metav1.GetOptions{})
+
+	mapRoles := []map[string]interface{}{}
+
+	if err := yaml.Unmarshal([]byte(cm.Data["mapRoles"]), &mapRoles); err != nil {
+		return err
+	}
+
+	m := make(map[string]interface{})
+	m["rolearn"] = ng.InstanceRoleARN
+	m["username"] = "system:node:{{EC2PrivateDNSName}}"
+	m["groups"] = []string{
+		"system:bootstrappers",
+		"system:nodes",
+	}
+	mapRoles = append(mapRoles, m)
+
+	mapRolesBytes, err := yaml.Marshal(mapRoles)
+	if err != nil {
+		return err
+	}
+
+	cm.Data["mapRoles"] = string(mapRolesBytes)
+
+	if _, err := clientSet.CoreV1().ConfigMaps("kube-system").Update(cm); err != nil {
+		return errors.Wrapf(err, "updating auth ConfigMap for %d", ng.ID)
+	}
+	return nil
+}
+
 func isNodeReady(node *corev1.Node) bool {
 	for _, c := range node.Status.Conditions {
 		if c.Type == corev1.NodeReady && c.Status == corev1.ConditionTrue {

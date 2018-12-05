@@ -9,9 +9,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"github.com/weaveworks/eksctl/pkg/utils"
-
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/pkg/errors"
 )
 
 func createNodeGroupCmd() *cobra.Command {
@@ -33,7 +32,7 @@ func createNodeGroupCmd() *cobra.Command {
 	fs := cmd.Flags()
 
 	addCommonCreateFlags(fs, p, cfg, ng)
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "Name of the EKS cluster to add the nodegroup to")
+	fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "Name of the EKS cluster to add the nodegroup to")
 
 	return cmd
 }
@@ -49,10 +48,9 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 		return err
 	}
 
-	if utils.ClusterName(cfg.Metadata.Name, name) == "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, name)
+	if cfg.Metadata.Name == "" {
+		return errors.New("--cluster must be specified. run `eksctl get cluster` to show existing clusters")
 	}
-	cfg.Metadata.Name = utils.ClusterName(cfg.Metadata.Name, name)
 
 	if ng.SSHPublicKeyPath == "" {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
@@ -79,7 +77,7 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 	if *eksCluster.Status != awseks.ClusterStatusActive {
 		return fmt.Errorf("cluster %s status is %s, its needs to be active to add a nodegroup", *eksCluster.Name, *eksCluster.Status)
 	}
-	logger.Info("found cluster %s", eksCluster.Name)
+	logger.Info("found cluster %s", *eksCluster.Name)
 	logger.Debug("cluster = %#v", eksCluster)
 
 	{
@@ -90,30 +88,38 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 		}
 		ng.ID = maxSeq + 1
 		logger.Info("will create a Cloudformation stack for nodegroup %d for cluster %s", ng.ID, cfg.Metadata.Name)
-		errs := stackManager.CreateNodeGroups()
+		errs := stackManager.RunTask(stackManager.CreateNodeGroup, ng)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroup hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup %d --region=%s --name=%s'", ng.ID, cfg.Metadata.Region, cfg.Metadata.Name)
 			for _, err := range errs {
-				logger.Critical("%s\n", err.Error())
+				if err != nil {
+					logger.Critical("%s\n", err.Error())
+				}
 			}
 			return fmt.Errorf("failed to create nodegroup %d for cluster %q", ng.ID, cfg.Metadata.Name)
 		}
 	}
 
 	{ // post-creation action
+		if err = ctl.GetCredentials(*eksCluster, cfg); err != nil {
+			return err
+		}
+
 		clientConfigBase, err := ctl.NewClientConfig(cfg)
 		if err != nil {
 			return err
 		}
 
-		clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
+		clientConfig := clientConfigBase.WithExecAuthenticator()
+
+		clientSet, err := clientConfig.NewClientSet()
 		if err != nil {
 			return err
 		}
 
 		// authorise nodes to join
-		if err = ctl.CreateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+		if err = ctl.AddNodeGroupToAuthConfigMap(clientSet, ng); err != nil {
 			return err
 		}
 

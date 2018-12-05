@@ -39,6 +39,18 @@ func Run(passError func(error), tasks ...task) {
 	wg.Wait()
 }
 
+// RunTask runs a single task with a proper error handling
+func (s *StackCollection) RunTask(call func(chan error, interface{}) error, data interface{}) []error {
+	errs := []error{}
+	appendErr := func(err error) {
+		errs = append(errs, err)
+	}
+	if Run(appendErr, task{call: call, data: data}); len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
+
 // CreateClusterWithNodeGroups runs all tasks required to create
 // the stacks (a cluster and one or more nodegroups); any errors
 // will be returned as a slice as soon as one of the tasks or group
@@ -55,7 +67,7 @@ func (s *StackCollection) CreateClusterWithNodeGroups() []error {
 	createAllNodeGroups := []task{}
 	for i := range s.spec.NodeGroups {
 		t := task{
-			call: s.CreateNodeGroup,
+			call: s.CreateNodeGroupInCluster,
 			data: s.spec.NodeGroups[i],
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)
@@ -79,7 +91,7 @@ func (s *StackCollection) CreateNodeGroups() []error {
 	createAllNodeGroups := []task{}
 	for i := range s.spec.NodeGroups {
 		t := task{
-			call: s.CreateNodeGroup,
+			call: s.CreateNodeGroupInCluster,
 			data: s.spec.NodeGroups[i],
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)
