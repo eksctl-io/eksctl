@@ -6,12 +6,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 )
 
 // Outputs of CloudFormation stacks are collected into a struct with fields

@@ -6,10 +6,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-
 	"k8s.io/kops/pkg/util/subnet"
 )
 

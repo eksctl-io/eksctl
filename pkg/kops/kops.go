@@ -1,16 +1,13 @@
 package kops
 
 import (
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-
 	"k8s.io/kops/pkg/resources/aws"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
-
-	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
 // Wrapper for interacting with a kops cluster

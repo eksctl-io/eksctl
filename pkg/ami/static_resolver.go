@@ -1,7 +1,7 @@
 package ami
 
 import (
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 

@@ -1,7 +1,7 @@
 package eks
 
 import (
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	storage "k8s.io/api/storage/v1"
