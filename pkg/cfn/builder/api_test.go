@@ -18,8 +18,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 const (
@@ -191,7 +191,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		return cfg
 	}
 
-	p := testutils.NewMockProvider()
+	p := mockprovider.NewMockProvider()
 
 	{
 		joinCompare := func(input *ec2.DescribeSubnetsInput, compare string) bool {

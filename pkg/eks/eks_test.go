@@ -15,12 +15,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("Eks", func() {
 	var (
 		c      *ClusterProvider
-		p      *testutils.MockProvider
+		p      *mockprovider.MockProvider
 		output string
 	)
 
@@ -38,7 +39,7 @@ var _ = Describe("Eks", func() {
 			BeforeEach(func() {
 				clusterName = "test-cluster"
 
-				p = testutils.NewMockProvider()
+				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
 					Provider: p,
@@ -122,7 +123,7 @@ var _ = Describe("Eks", func() {
 				clusterName = "test-cluster"
 				logger.Level = 1
 
-				p = testutils.NewMockProvider()
+				p = mockprovider.NewMockProvider()
 
 				c = &ClusterProvider{
 					Provider: p,
@@ -189,7 +190,7 @@ var _ = Describe("Eks", func() {
 					chunkSize = 1
 					callNumber = 0
 
-					p = testutils.NewMockProvider()
+					p = mockprovider.NewMockProvider()
 
 					c = &ClusterProvider{
 						Provider: p,
@@ -229,7 +230,7 @@ var _ = Describe("Eks", func() {
 				BeforeEach(func() {
 					chunkSize = 100
 
-					p = testutils.NewMockProvider()
+					p = mockprovider.NewMockProvider()
 
 					c = &ClusterProvider{
 						Provider: p,
