@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"errors"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -17,7 +16,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 		cc *api.ClusterConfig
 		sc *StackCollection
 
-		p *testutils.MockProvider
+		p *mockprovider.MockProvider
 	)
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}

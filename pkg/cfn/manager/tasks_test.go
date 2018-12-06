@@ -3,7 +3,6 @@ package manager
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"errors"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -14,7 +13,7 @@ var _ = Describe("StackCollection Tasks", func() {
 		cc *api.ClusterConfig
 		sc *StackCollection
 
-		p *testutils.MockProvider
+		p *mockprovider.MockProvider
 
 		call func(chan error, interface{}) error
 	)
