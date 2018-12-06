@@ -51,7 +51,7 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, name string)
 	}
 
 	if cfg.Metadata.Name == "" {
-		return errors.New("--cluster must not be omitted.")
+		return errors.New("--cluster must not be omitted")
 	}
 
 	manager := ctl.NewStackManager(cfg)

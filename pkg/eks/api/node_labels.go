@@ -17,6 +17,9 @@ func (f NodeLabels) String() string {
 	return s
 }
 
+// Set parses the value and add the resulting key-value pairs as node labels.
+// Each value is expected to include one or more key-value pairs, formatted as `KEY_1=VAL_1,KEY_2=VAL_2,...`.
+// That is, the key and the value must be delimited by an equal sign, while each pair must be delimited by a comma.
 func (f *NodeLabels) Set(value string) error {
 	if *f == nil {
 		*f = map[string]string{}
@@ -35,6 +38,7 @@ func (f *NodeLabels) Set(value string) error {
 	return nil
 }
 
+// Type returns the name of the type as a string
 func (f *NodeLabels) Type() string {
 	return "NodeLabels"
 }

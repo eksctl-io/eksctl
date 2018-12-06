@@ -36,6 +36,7 @@ type NodeGroupSummary struct {
 	CreationTime    *time.Time
 }
 
+// MakeNodeGroupStackName generates the name of the node group identified by its ID, isolated by the cluster this StackCollection operates on
 func (c *StackCollection) MakeNodeGroupStackName(id int) string {
 	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.Metadata.Name, id)
 }

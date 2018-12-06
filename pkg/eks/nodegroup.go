@@ -56,7 +56,7 @@ func (c *ClusterProvider) CreateNodeGroupAuthConfigMap(clientSet *clientset.Clie
 	return nil
 }
 
-// CreateNodeGroupAuthConfigMap creates the auth config map for the default node group
+// AddNodeGroupToAuthConfigMap updates the auth config map to include the node group
 func (c *ClusterProvider) AddNodeGroupToAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
 	cm, err := clientSet.CoreV1().ConfigMaps("kube-system").Get("aws-auth", metav1.GetOptions{})
 
