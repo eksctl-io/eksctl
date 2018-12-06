@@ -184,7 +184,7 @@ Whereas the nodegroup `SEQ` is an integer value starting from `0` which is used 
 
 ### Scaling nodegroup
 
-A nodegroup can be scaled by using the `eksctl scale nodegroug` command:
+A nodegroup can be scaled by using the `eksctl scale nodegroup` command:
 
 ```
 eksctl delete nodegroup --cluster=<cluster name> --nodes=<desired count> SEQ
