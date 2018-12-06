@@ -181,34 +181,42 @@ func (c *StackCollection) GetNodeGroupSummaries() ([]*NodeGroupSummary, error) {
 		logger.Info("stack %s\n", *stack.StackName)
 		logger.Debug("stack = %#v", stack)
 
-		template, err := c.GetStackTemplate(*stack.StackName)
+		err, summary := c.mapStackToNodeGroupSummary(stack)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
-		}
-
-		//TODO: create a map function
-		seq := getNodeGroupID(stack.Tags)
-		maxSize := gjson.Get(template, maxSizePath)
-		minSize := gjson.Get(template, minSizePath)
-		desired := gjson.Get(template, desiredCapacityPath)
-		instanceType := gjson.Get(template, instanceTypePath)
-		imageID := gjson.Get(template, imageIDPath)
-
-		summary := &NodeGroupSummary{
-			Seq:             seq,
-			StackName:       *stack.StackName,
-			MaxSize:         int(maxSize.Int()),
-			MinSize:         int(minSize.Int()),
-			DesiredCapacity: int(desired.Int()),
-			InstanceType:    instanceType.String(),
-			ImageID:         imageID.String(),
-			CreationTime:    stack.CreationTime,
+			return nil, errors.New("error mapping stack to node gorup summary")
 		}
 
 		summaries = append(summaries, summary)
 	}
 
 	return summaries, nil
+}
+
+func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSummary, error) {
+	template, err := c.GetStackTemplate(*stack.StackName)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
+	}
+
+	seq := getNodeGroupID(stack.Tags)
+	maxSize := gjson.Get(template, maxSizePath)
+	minSize := gjson.Get(template, minSizePath)
+	desired := gjson.Get(template, desiredCapacityPath)
+	instanceType := gjson.Get(template, instanceTypePath)
+	imageID := gjson.Get(template, imageIDPath)
+
+	summary := &NodeGroupSummary{
+		Seq:             seq,
+		StackName:       *stack.StackName,
+		MaxSize:         int(maxSize.Int()),
+		MinSize:         int(minSize.Int()),
+		DesiredCapacity: int(desired.Int()),
+		InstanceType:    instanceType.String(),
+		ImageID:         imageID.String(),
+		CreationTime:    stack.CreationTime,
+	}
+
+	return summary, nil
 }
 
 // GetMaxNodeGroupSeq returns the sequence number og the highest node group
