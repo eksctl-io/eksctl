@@ -74,6 +74,8 @@ func createClusterCmd() *cobra.Command {
 
 	groupFlagsInUsage(cmd)
 
+	groupFlagsInUsage(cmd)
+
 	return cmd
 }
 
