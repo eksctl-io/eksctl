@@ -181,7 +181,7 @@ func (c *StackCollection) GetNodeGroupSummaries() ([]*NodeGroupSummary, error) {
 		logger.Info("stack %s\n", *stack.StackName)
 		logger.Debug("stack = %#v", stack)
 
-		err, summary := c.mapStackToNodeGroupSummary(stack)
+		summary, err := c.mapStackToNodeGroupSummary(stack)
 		if err != nil {
 			return nil, errors.New("error mapping stack to node gorup summary")
 		}
