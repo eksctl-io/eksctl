@@ -33,6 +33,7 @@ func deleteClusterCmd() *cobra.Command {
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+		cmdutils.AddRegionFlag(fs, p)
 		fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
 	})
 

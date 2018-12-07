@@ -38,18 +38,18 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig) {
 		}
 		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 	})
+}
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	})
-
+// AddRegionFlag adds common --region flag
+func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
+	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
 }
 
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written
 func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath *string, setContext, autoPath *bool, exampleName string) {
-	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
 	fs.StringVar(outputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 	fs.BoolVar(setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
+	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
 }
 
 // ErrUnsupportedRegion is a common error message

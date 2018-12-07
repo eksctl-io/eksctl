@@ -40,6 +40,7 @@ func writeKubeconfigCmd() *cobra.Command {
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+		cmdutils.AddRegionFlag(fs, p)
 	})
 
 	group.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {

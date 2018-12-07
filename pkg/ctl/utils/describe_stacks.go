@@ -38,7 +38,7 @@ func describeStacksCmd() *cobra.Command {
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
-
+		cmdutils.AddRegionFlag(fs, p)
 		fs.BoolVar(&describeStacksAll, "all", false, "include deleted stacks")
 		fs.BoolVar(&describeStacksEvents, "events", false, "include stack events")
 	})
