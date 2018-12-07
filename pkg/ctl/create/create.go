@@ -44,7 +44,7 @@ func addCommonCreateFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg *api.Clu
 
 	fs.IntVarP(&ng.VolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
 	fs.IntVar(&ng.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
-	fs.StringSliceVar(&ng.AvailabilityZones, "nodes-zones", nil, "(auto-select if unspecified)")
+	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(auto-select if unspecified)")
 
 	fs.BoolVar(&ng.AllowSSH, "ssh-access", false, "control SSH access for nodes")
 	fs.StringVar(&ng.SSHPublicKeyPath, "ssh-public-key", defaultSSHPublicKey, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
