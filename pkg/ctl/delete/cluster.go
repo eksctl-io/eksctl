@@ -7,6 +7,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -28,14 +29,16 @@ func deleteClusterCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := &cmdutils.NamedFlagSetGroup{}
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+		fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
+	})
 
-	cmdutils.AddCommonFlagsForAWS(fs, p)
+	cmdutils.AddCommonFlagsForAWS(group, p)
 
-	fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
-
+	group.AddTo(cmd)
 	return cmd
 }
 
