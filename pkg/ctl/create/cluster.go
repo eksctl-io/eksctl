@@ -101,8 +101,8 @@ func createClusterCmd() *cobra.Command {
 func doCreateCluster(cfg *api.ClusterConfig, ng *api.NodeGroup, name string) error {
 	ctl := eks.New(cfg)
 
-	if cfg.Region != api.EKSRegionUSWest2 && cfg.Region != api.EKSRegionUSEast1 && cfg.Region != api.EKSRegionEUWest1 {
-		return fmt.Errorf("%s is not supported only %s, %s and %s are supported", cfg.Region, api.EKSRegionUSWest2, api.EKSRegionUSEast1, api.EKSRegionEUWest1)
+	if !api.IsSupportedRegion(cfg.Region) {
+		return fmt.Errorf("%s is not supported. Only %v are supported", cfg.Region, api.SupportedRegions)
 	}
 
 	if err := ctl.CheckAuth(); err != nil {

@@ -24,6 +24,7 @@ Michael Seiwald         @mseiwald
 Anton Gruebel           @gruebel
 Bryan Peterson          @lazyshot
 Josue Abreu             @gotjosh
+Nick Turner             @nckturner
 
 /* Thanks */
 

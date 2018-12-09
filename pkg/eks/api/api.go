@@ -19,6 +19,9 @@ const (
 	// EKSRegionUSEast1 represents the US East Region North Virgina
 	EKSRegionUSEast1 = "us-east-1"
 
+	// EKSRegionUSEast2 represents the US East Region Ohio
+	EKSRegionUSEast2 = "us-east-2"
+
 	// EKSRegionEUWest1 represents the EU West Region Ireland
 	EKSRegionEUWest1 = "eu-west-1"
 
@@ -30,7 +33,18 @@ const (
 var SupportedRegions = []string{
 	EKSRegionUSWest2,
 	EKSRegionUSEast1,
+	EKSRegionUSEast2,
 	EKSRegionEUWest1,
+}
+
+// IsSupportedRegion returns true if EKS is available in the region
+func IsSupportedRegion(region string) bool {
+	for _, r := range SupportedRegions {
+		if r == region {
+			return true
+		}
+	}
+	return false
 }
 
 // DefaultWaitTimeout defines the default wait timeout
