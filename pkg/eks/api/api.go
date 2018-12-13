@@ -26,6 +26,9 @@ const (
 	// EKSRegionEUWest1 represents the EU West Region Ireland
 	EKSRegionEUWest1 = "eu-west-1"
 
+	// EKSRegionEUNorth1 represents the EU North Region Stockholm
+	EKSRegionEUNorth1 = "eu-north-1"
+
 	// DefaultEKSRegion defines the default region, where to deploy the EKS cluster
 	DefaultEKSRegion = EKSRegionUSWest2
 )
@@ -37,6 +40,7 @@ func SupportedRegions() []string {
 		EKSRegionUSEast1,
 		EKSRegionUSEast2,
 		EKSRegionEUWest1,
+		EKSRegionEUNorth1,
 	}
 }
 
