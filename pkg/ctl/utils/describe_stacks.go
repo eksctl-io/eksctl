@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -32,15 +34,18 @@ func describeStacksCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := &cmdutils.NamedFlagSetGroup{}
 
-	cmdutils.AddCommonFlagsForAWS(fs, p)
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+		cmdutils.AddRegionFlag(fs, p)
+		fs.BoolVar(&describeStacksAll, "all", false, "include deleted stacks")
+		fs.BoolVar(&describeStacksEvents, "events", false, "include stack events")
+	})
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+	cmdutils.AddCommonFlagsForAWS(group, p)
 
-	fs.BoolVar(&describeStacksAll, "all", false, "include deleted stacks")
-	fs.BoolVar(&describeStacksEvents, "events", false, "include stack events")
-
+	group.AddTo(cmd)
 	return cmd
 }
 

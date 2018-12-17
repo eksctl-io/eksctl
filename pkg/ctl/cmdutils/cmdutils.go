@@ -27,23 +27,29 @@ func GetNameArg(args []string) string {
 }
 
 // AddCommonFlagsForAWS adds common flags for api.ProviderConfig
-func AddCommonFlagsForAWS(fs *pflag.FlagSet, p *api.ProviderConfig) {
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig) {
+	group.InFlagSet("AWS client", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
-	fs.DurationVar(&p.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
-	// TODO deprecate in 0.2.0
-	if err := fs.MarkHidden("aws-api-timeout"); err != nil {
-		logger.Debug("ignoring error %q", err.Error())
-	}
-	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+		fs.DurationVar(&p.WaitTimeout, "aws-api-timeout", api.DefaultWaitTimeout, "")
+		// TODO deprecate in 0.2.0
+		if err := fs.MarkHidden("aws-api-timeout"); err != nil {
+			logger.Debug("ignoring error %q", err.Error())
+		}
+		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+	})
+}
+
+// AddRegionFlag adds common --region flag
+func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
+	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
 }
 
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written
 func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath *string, setContext, autoPath *bool, exampleName string) {
-	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
 	fs.StringVar(outputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 	fs.BoolVar(setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
+	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
 }
 
 // ErrUnsupportedRegion is a common error message

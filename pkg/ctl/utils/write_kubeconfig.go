@@ -7,6 +7,8 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -34,14 +36,20 @@ func writeKubeconfigCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := &cmdutils.NamedFlagSetGroup{}
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
+		cmdutils.AddRegionFlag(fs, p)
+	})
 
-	cmdutils.AddCommonFlagsForAWS(fs, p)
+	group.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
+		cmdutils.AddCommonFlagsForKubeconfig(fs, &writeKubeconfigOutputPath, &writeKubeconfigSetContext, &writeKubeconfigAutoPath, "<name>")
+	})
 
-	cmdutils.AddCommonFlagsForKubeconfig(fs, &writeKubeconfigOutputPath, &writeKubeconfigSetContext, &writeKubeconfigAutoPath, "<name>")
+	cmdutils.AddCommonFlagsForAWS(group, p)
 
+	group.AddTo(cmd)
 	return cmd
 }
 
