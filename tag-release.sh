@@ -13,9 +13,9 @@ v="${1}"
 
 export RELEASE_GIT_TAG="${v}"
 
-go generate ./cmd/eksctl
+go generate ./pkg/version
 
-git add ./cmd/eksctl/version_release.go
+git add ./pkg/version/release.go
 
 m="Tag ${v} release"
 
