@@ -103,7 +103,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		awsSession := aws.NewSession(region)
 
 		It("should have created an EKS cluster", func() {
-			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
+			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.11"))
 		})
 
 		It("should have the required cloudformation stacks", func() {
@@ -246,7 +246,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Skip("will not delete cluster " + clusterName)
 				}
 
-				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.10"))
+				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.11"))
 			})
 
 			It("should have deleted the required cloudformation stacks", func() {
