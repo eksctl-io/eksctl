@@ -1,8 +1,9 @@
 package create
 
 import (
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -15,7 +16,7 @@ const (
 )
 
 // Command will create the `create` commands
-func Command() *cobra.Command {
+func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create resource(s)",
@@ -26,15 +27,13 @@ func Command() *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(createClusterCmd())
+	cmd.AddCommand(createClusterCmd(g))
 	cmd.AddCommand(createNodeGroupCmd())
 
 	return cmd
 }
 
 func addCommonCreateFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) {
-	cmdutils.AddCommonFlagsForAWS(fs, p)
-
 	fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
 	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
 

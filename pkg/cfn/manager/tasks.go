@@ -3,7 +3,7 @@ package manager
 import (
 	"sync"
 
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 )
 
 type task struct {

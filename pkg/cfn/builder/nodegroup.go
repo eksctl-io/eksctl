@@ -5,11 +5,8 @@ import (
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
-
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 

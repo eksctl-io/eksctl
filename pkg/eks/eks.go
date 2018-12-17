@@ -7,16 +7,13 @@ import (
 	"strings"
 	"time"
 
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/printers"
-
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 // DescribeControlPlane describes the cluster control plane

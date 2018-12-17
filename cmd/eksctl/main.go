@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"
 	"github.com/weaveworks/eksctl/pkg/ctl/create"
 	"github.com/weaveworks/eksctl/pkg/ctl/delete"
@@ -15,7 +16,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "eksctl",
+	Use:   "eksctl [command]",
 	Short: "a CLI for Amazon EKS",
 	Run: func(c *cobra.Command, _ []string) {
 		if err := c.Help(); err != nil {
@@ -26,10 +27,38 @@ var rootCmd = &cobra.Command{
 
 func init() {
 
-	addCommands()
+	var colorValue string
 
+	g := cmdutils.NewGrouping()
+
+	addCommands(g)
+
+	rootCmd.PersistentFlags().BoolP("help", "h", false, "help for this command")
+	rootCmd.PersistentFlags().StringVarP(&colorValue, "color", "C", "true", "toggle colorized logs (true,false,fabulous)")
 	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 3, "set log level, use 0 to silence, 4 for debugging and 5 for debugging with AWS debug logging")
-	rootCmd.PersistentFlags().BoolVarP(&logger.Color, "color", "C", true, "toggle colorized logs")
+
+	cobra.OnInitialize(func() {
+		// Control colored output
+		color := true
+		fabulous := false
+		switch colorValue {
+		case "false":
+			color = false
+		case "fabulous":
+			color = false
+			fabulous = true
+		}
+		logger.Color = color
+		logger.Fabulous = fabulous
+
+		// Add timestamps for debugging
+		logger.Timestamps = false
+		if logger.Level >= 4 {
+			logger.Timestamps = true
+		}
+	})
+
+	rootCmd.SetUsageFunc(g.Usage)
 }
 
 func main() {
@@ -39,9 +68,9 @@ func main() {
 	}
 }
 
-func addCommands() {
+func addCommands(g *cmdutils.Grouping) {
 	rootCmd.AddCommand(versionCmd())
-	rootCmd.AddCommand(create.Command())
+	rootCmd.AddCommand(create.Command(g))
 	rootCmd.AddCommand(delete.Command())
 	rootCmd.AddCommand(get.Command())
 	rootCmd.AddCommand(scale.Command())

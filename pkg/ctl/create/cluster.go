@@ -3,10 +3,8 @@ package create
 import (
 	"fmt"
 	"os"
-	"strings"
-	"unicode"
 
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -30,7 +28,7 @@ var (
 	subnets               map[api.SubnetTopology]*[]string
 )
 
-func createClusterCmd() *cobra.Command {
+func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
@@ -46,84 +44,46 @@ func createClusterCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := g.New(cmd)
 
 	exampleClusterName := utils.ClusterName("", "")
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
-
-	addCommonCreateFlags(fs, p, cfg, ng)
-
-	fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
-	cmdutils.AddCommonFlagsForKubeconfig(fs, &kubeconfigPath, &setContext, &autoKubeconfigPath, exampleClusterName)
-
-	fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
-
-	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
-	fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
-	fs.BoolVar(&cfg.Addons.Storage, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
-
-	fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
-
-	fs.IPNetVar(cfg.VPC.CIDR, "vpc-cidr", api.DefaultCIDR(), "global CIDR to use for VPC")
-
-	subnets = map[api.SubnetTopology]*[]string{
-		api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
-		api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
-	}
-
-	groupFlagsInUsage(cmd)
-
-	groupFlagsInUsage(cmd)
-
-	return cmd
-}
-
-func groupFlagsInUsage(cmd *cobra.Command) {
-	// Group flags by their categories determined by name prefixes
-	groupToPatterns := map[string][]string{
-		"Node":       {"node", "storage-class", "ssh", "max-pods-per-node", "full-ecr-access", "asg-access"},
-		"Networking": {"vpc", "zones",},
-		"Stack":      {"region", "tags"},
-		"Other":      {},
-	}
-	groups := []string{}
-	for k := range groupToPatterns {
-		groups = append(groups, k)
-	}
-	groupToFlagSet := make(map[string]*pflag.FlagSet)
-	for _, g := range groups {
-		groupToFlagSet[g] = pflag.NewFlagSet(g, /* Unused. Can be anythng. */ pflag.ContinueOnError)
-	}
-	cmd.LocalFlags().VisitAll(func(f *pflag.Flag) {
-		for _, g := range groups {
-			for _, p := range groupToPatterns[g] {
-				if strings.HasPrefix(f.Name, p) {
-					groupToFlagSet[g].AddFlag(f)
-					return
-				}
-			}
-		}
-		groupToFlagSet["Other"].AddFlag(f)
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
+		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
+		cmdutils.AddRegionFlag(fs, p)
+		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 	})
 
-	// The usage template is based on the one bundled into cobra
-	// https://github.com/spf13/cobra/blob/1e58aa3361fd650121dceeedc399e7189c05674a/command.go#L397
-	origFlagUsages := `
+	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
+		addCommonCreateFlags(fs, p, cfg, ng)
+	})
 
-Flags:
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}`
+	group.InFlagSet("Cluster add-ons", func(fs *pflag.FlagSet) {
+		fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
+		fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
+		fs.BoolVar(&cfg.Addons.Storage, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
+	})
 
-	altFlagUsages := ``
-	for _, g := range groups {
-		set := groupToFlagSet[g]
-		altFlagUsages += fmt.Sprintf(`
+	group.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
+		fs.IPNetVar(cfg.VPC.CIDR, "vpc-cidr", api.DefaultCIDR(), "global CIDR to use for VPC")
+		subnets = map[api.SubnetTopology]*[]string{
+			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
+			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
+		}
+		fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
+	})
 
-%s Flags:
-%s`, g, strings.TrimRightFunc(set.FlagUsages(), unicode.IsSpace))
-	}
+	cmdutils.AddCommonFlagsForAWS(group, p)
 
-	cmd.SetUsageTemplate(strings.Replace(cmd.UsageTemplate(), origFlagUsages, altFlagUsages, 1))
+	group.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
+		cmdutils.AddCommonFlagsForKubeconfig(fs, &kubeconfigPath, &setContext, &autoKubeconfigPath, exampleClusterName)
+		fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
+	})
+
+	group.AddTo(cmd)
+
+	return cmd
 }
 
 func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {

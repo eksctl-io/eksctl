@@ -5,10 +5,9 @@ import (
 	"time"
 
 	"github.com/ghodss/yaml"
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"

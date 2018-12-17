@@ -3,10 +3,8 @@ package nodebootstrap
 import (
 	"strings"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
-
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"fmt"

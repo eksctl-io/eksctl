@@ -1,11 +1,10 @@
 package main
 
 import (
+	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/eksctl/pkg/version"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 func versionCmd() *cobra.Command {

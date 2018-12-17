@@ -6,14 +6,12 @@ import (
 	"path"
 	"strings"
 
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
-
-	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 // DefaultPath defines the default path

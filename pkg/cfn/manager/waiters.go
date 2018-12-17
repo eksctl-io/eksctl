@@ -7,13 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/aws/aws-sdk-go/aws/request"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
-
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 

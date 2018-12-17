@@ -2,7 +2,7 @@ package ami
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
