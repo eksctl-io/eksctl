@@ -6,26 +6,20 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-
+	"github.com/kris-nova/logger"
 	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
-	"github.com/kubicorn/kubicorn/pkg/logger"
-
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	clientset "k8s.io/client-go/kubernetes"
-
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-
 	"k8s.io/kops/pkg/pki"
-
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func (c *ClusterProvider) getKeyPairName(clusterName string, ng *api.NodeGroup, fingerprint *string) string {

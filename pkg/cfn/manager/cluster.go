@@ -1,9 +1,8 @@
 package manager
 
 import (
+	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
 )
 
 func (c *StackCollection) makeClusterStackName() string {

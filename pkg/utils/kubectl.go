@@ -7,12 +7,10 @@ import (
 
 	"github.com/blang/semver"
 	shellquote "github.com/kballard/go-shellquote"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
-	"k8s.io/client-go/tools/clientcmd"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
 	"github.com/weaveworks/launcher/pkg/kubectl"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func fmtKubectlCmd(ktl *kubectl.LocalClient, cmds ...string) string {
