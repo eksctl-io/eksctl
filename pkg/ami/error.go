@@ -8,15 +8,17 @@ import (
 // failure to resolve a region/instance type/image family to an AMI
 type ErrFailedResolution struct {
 	region       string
+	version      string
 	instanceType string
 	imageFamily  string
 }
 
 // NewErrFailedResolution creates a new instance of ErrFailedResolution for a
 // give region, instance type and image family
-func NewErrFailedResolution(region string, instanceType string, imageFamily string) *ErrFailedResolution {
+func NewErrFailedResolution(region, version, instanceType, imageFamily string) *ErrFailedResolution {
 	return &ErrFailedResolution{
 		region:       region,
+		version:      version,
 		instanceType: instanceType,
 		imageFamily:  imageFamily,
 	}
@@ -24,7 +26,7 @@ func NewErrFailedResolution(region string, instanceType string, imageFamily stri
 
 // Error return the error message
 func (e *ErrFailedResolution) Error() string {
-	return fmt.Sprintf("Unable to determine AMI for region %s, instance type %s and image family %s", e.region, e.instanceType, e.imageFamily)
+	return fmt.Sprintf("Unable to determine AMI for region %s, version %s, instance type %s and image family %s", e.region, e.version, e.instanceType, e.imageFamily)
 }
 
 // ErrNotFound is an error type that represents

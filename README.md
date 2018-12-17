@@ -85,6 +85,12 @@ To create the same kind of basic cluster, but with a different name, run:
 eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
+EKS supports two versions `1.10` and `1.11` (default), with `eksctl` you can deploy either version by passing `--version`.
+
+```
+eksctl create cluster --version=1.10
+```
+
 A default [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/) (gp2 volume type provisioned by EBS) will be added automatically when creating a cluster.  If you want to prevent this, use the `--storage-class` flag.  For example:
 
 ```

@@ -54,7 +54,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 
 	c.addResourcesForSecurityGroups()
 	c.addResourcesForIAM()
-	c.addResourcesForControlPlane("1.10")
+	c.addResourcesForControlPlane()
 
 	c.rs.newOutput(cfnOutputClusterStackName, gfn.RefStackName, false)
 
@@ -75,7 +75,7 @@ func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn
 	return c.rs.newResource(name, resource)
 }
 
-func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
+func (c *ClusterResourceSet) addResourcesForControlPlane() {
 	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
 		SecurityGroupIds: c.securityGroups,
 	}
@@ -86,7 +86,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane(version string) {
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
 		Name:               gfn.NewString(c.spec.Metadata.Name),
 		RoleArn:            gfn.MakeFnGetAttString("ServiceRole.Arn"),
-		Version:            gfn.NewString(version),
+		Version:            gfn.NewString(c.provider.Version()),
 		ResourcesVpcConfig: clusterVPC,
 	})
 
