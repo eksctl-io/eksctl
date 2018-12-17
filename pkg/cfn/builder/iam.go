@@ -146,5 +146,19 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
+	if n.clusterSpec.Addons.WithIAM.PolicyExternalDNS {
+		n.rs.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
+			[]string{
+				"route53:ChangeResourceRecordSets",
+			},
+		)
+		n.rs.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, "*",
+			[]string{
+				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
+			},
+		)
+	}
+
 	n.rs.newOutputFromAtt(cfnOutputInstanceRoleARN, "NodeInstanceRole.Arn", true)
 }
