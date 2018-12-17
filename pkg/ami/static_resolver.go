@@ -13,10 +13,10 @@ type StaticDefaultResolver struct {
 
 // Resolve will return an AMI to use based on the default AMI for each region
 // currently source of truth for these is here
-func (r *StaticDefaultResolver) Resolve(region string, instanceType string, imageFamily string) (string, error) {
-	logger.Debug("resolving AMI using StaticDefaultResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
+func (r *StaticDefaultResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
+	logger.Debug("resolving AMI using StaticDefaultResolver for region %s, version %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
-	regionalAMIs := StaticImages[imageFamily][ImageClassGeneral]
+	regionalAMIs := StaticImages[version][imageFamily][ImageClassGeneral]
 	return regionalAMIs[region], nil
 }
 
@@ -25,7 +25,7 @@ type StaticGPUResolver struct {
 }
 
 // Resolve will return an AMI based on the region for GPU instance types
-func (r *StaticGPUResolver) Resolve(region string, instanceType string, imageFamily string) (string, error) {
+func (r *StaticGPUResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using StaticGPUResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
 	if !utils.IsGPUInstanceType(instanceType) {
@@ -33,10 +33,10 @@ func (r *StaticGPUResolver) Resolve(region string, instanceType string, imageFam
 		return "", nil
 	}
 
-	regionalAMIs, ok := StaticImages[imageFamily][ImageClassGPU]
+	regionalAMIs, ok := StaticImages[version][imageFamily][ImageClassGPU]
 	if !ok {
 		logger.Critical("image family %s doesn't support GPU image class", imageFamily)
-		return "", NewErrFailedResolution(region, instanceType, imageFamily)
+		return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 	}
 
 	return regionalAMIs[region], nil

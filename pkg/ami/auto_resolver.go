@@ -9,13 +9,24 @@ import (
 
 // ImageSearchPatterns is a map of image search patterns by
 // image OS family and by class
-var ImageSearchPatterns = map[string]map[int]string{
-	ImageFamilyAmazonLinux2: {
-		ImageClassGeneral: "amazon-eks-node-*",
-		ImageClassGPU:     "amazon-eks-gpu-node-*",
+var ImageSearchPatterns = map[string]map[string]map[int]string{
+	"1.10": {
+		ImageFamilyAmazonLinux2: {
+			ImageClassGeneral: "amazon-eks-node-1.10-v*",
+			ImageClassGPU:     "amazon-eks-gpu-node-1.10-v*",
+		},
+		ImageFamilyUbuntu1804: {
+			ImageClassGeneral: "ubuntu-eks/1.10.3/*",
+		},
 	},
-	ImageFamilyUbuntu1804: {
-		ImageClassGeneral: "ubuntu-eks/1.10.3/*",
+	"1.11": {
+		ImageFamilyAmazonLinux2: {
+			ImageClassGeneral: "amazon-eks-node-1.11-v*",
+			ImageClassGPU:     "amazon-eks-gpu-node-1.11-v*",
+		},
+		ImageFamilyUbuntu1804: {
+			ImageClassGeneral: "ubuntu-eks/1.11.5/*",
+		},
 	},
 }
 
@@ -27,16 +38,16 @@ type AutoResolver struct {
 
 // Resolve will return an AMI to use based on the default AMI for
 // each region
-func (r *AutoResolver) Resolve(region string, instanceType string, imageFamily string) (string, error) {
+func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using AutoResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
-	p := ImageSearchPatterns[imageFamily][ImageClassGeneral]
+	p := ImageSearchPatterns[version][imageFamily][ImageClassGeneral]
 	if utils.IsGPUInstanceType(instanceType) {
 		var ok bool
-		p, ok = ImageSearchPatterns[imageFamily][ImageClassGPU]
+		p, ok = ImageSearchPatterns[version][imageFamily][ImageClassGPU]
 		if !ok {
 			logger.Critical("image family %s doesn't support GPU image class", imageFamily)
-			return "", NewErrFailedResolution(region, instanceType, imageFamily)
+			return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 		}
 	}
 
