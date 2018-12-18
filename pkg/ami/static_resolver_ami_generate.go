@@ -29,29 +29,33 @@ func main() {
 
 	client := newMultiRegionClient()
 
-	for family := range ami.ImageSearchPatterns {
-		familyImages := Dict{}
-		log.Printf("looking up %s images", family)
-		for class := range ami.ImageSearchPatterns[family] {
-			classImages := Dict{}
-			for _, region := range api.SupportedRegions() {
-				p := ami.ImageSearchPatterns[family][class]
-				log.Printf("looking up images matching %q in %q", p, region)
-				image, err := ami.FindImage(client[region], p)
-				if err != nil {
-					log.Fatal(err)
+	for version := range ami.ImageSearchPatterns {
+		versionImages := Dict{}
+		for family := range ami.ImageSearchPatterns[version] {
+			familyImages := Dict{}
+			log.Printf("looking up %s/%s images", family, version)
+			for class := range ami.ImageSearchPatterns[version][family] {
+				classImages := Dict{}
+				for _, region := range api.SupportedRegions() {
+					p := ami.ImageSearchPatterns[version][family][class]
+					log.Printf("looking up images matching %q in %q", p, region)
+					image, err := ami.FindImage(client[region], p)
+					if err != nil {
+						log.Fatal(err)
+					}
+					classImages[Lit(region)] = Lit(image)
 				}
-				classImages[Lit(region)] = Lit(image)
+				familyImages[Id(ami.ImageClasses[class])] = Values(classImages)
 			}
-			familyImages[Id(ami.ImageClasses[class])] = Values(classImages)
+			versionImages[Lit(family)] = Values(familyImages)
 		}
-		d[Lit(family)] = Values(familyImages)
+		d[Lit(version)] = Values(versionImages)
 	}
 
 	f.Comment("StaticImages is a map that holds the list of AMIs to be used by for static resolution")
 
 	f.Var().Id("StaticImages").Op("=").
-		Map(String()).Map(Int()).Map(String()).String().Values(d)
+		Map(String()).Map(String()).Map(Int()).Map(String()).String().Values(d)
 
 	if err := f.Save("static_resolver_ami.go"); err != nil {
 		log.Fatal(err.Error())

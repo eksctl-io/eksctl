@@ -45,7 +45,7 @@ RUN pip install --root=/out aws-mfa==0.0.12 awscli==1.16.34
 
 WORKDIR /out
 
-ENV KUBECTL_VERSION v1.10.3
+ENV KUBECTL_VERSION v1.11.5
 RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output usr/local/bin/kubectl \
     && chmod +x usr/local/bin/kubectl
 

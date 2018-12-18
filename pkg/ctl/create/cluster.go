@@ -53,6 +53,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
+		fs.StringVar(&p.Version, "version", "1.11", "Kubernetes version (valid options: 1.10, 1.11)")
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -271,8 +272,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 			return err
 		}
 
-		// add default storage class
-		if cfg.Addons.Storage {
+		// add default storage class only for version 1.10 clusters
+		if cfg.Addons.Storage && p.Version == "1.10" {
 			if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 				return err
 			}

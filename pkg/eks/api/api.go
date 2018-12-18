@@ -26,6 +26,9 @@ const (
 	// EKSRegionEUWest1 represents the EU West Region Ireland
 	EKSRegionEUWest1 = "eu-west-1"
 
+	// EKSRegionEUNorth1 represents the EU North Region Stockholm
+	EKSRegionEUNorth1 = "eu-north-1"
+
 	// DefaultEKSRegion defines the default region, where to deploy the EKS cluster
 	DefaultEKSRegion = EKSRegionUSWest2
 )
@@ -37,6 +40,7 @@ func SupportedRegions() []string {
 		EKSRegionUSEast1,
 		EKSRegionUSEast2,
 		EKSRegionEUWest1,
+		EKSRegionEUNorth1,
 	}
 }
 
@@ -48,9 +52,10 @@ const DefaultNodeCount = 2
 
 // ClusterMeta is what identifies a cluster
 type ClusterMeta struct {
-	Name   string
-	Region string
-	Tags   map[string]string
+	Name    string
+	Region  string
+	Version string
+	Tags    map[string]string
 }
 
 // String returns canonical representation of ClusterMeta
@@ -70,6 +75,7 @@ type ClusterProvider interface {
 	EC2() ec2iface.EC2API
 	STS() stsiface.STSAPI
 	Region() string
+	Version() string
 	Profile() string
 	WaitTimeout() time.Duration
 }
@@ -78,6 +84,7 @@ type ClusterProvider interface {
 type ProviderConfig struct {
 	Region      string
 	Profile     string
+	Version     string
 	WaitTimeout time.Duration
 }
 
