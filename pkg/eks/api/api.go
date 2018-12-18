@@ -193,5 +193,6 @@ type (
 	AddonIAM struct {
 		PolicyAmazonEC2ContainerRegistryPowerUser bool
 		PolicyAutoScaling                         bool
+		PolicyExternalDNS                         bool
 	}
 )
