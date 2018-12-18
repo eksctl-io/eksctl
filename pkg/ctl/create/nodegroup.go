@@ -34,6 +34,8 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "Name of the EKS cluster to add the nodegroup to")
+		cmdutils.AddRegionFlag(fs, p)
+		fs.StringVar(&p.Version, "version", "1.11", "Kubernetes version (valid options: 1.10, 1.11)")
 	})
 
 	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
