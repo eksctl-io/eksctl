@@ -31,6 +31,15 @@ const (
 
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
+
+	// Version1_10 represents Kubernetes version 1.10.x
+	Version1_10 = "1.10"
+
+	// Version1_11 represents Kubernetes version 1.11.x
+	Version1_11 = "1.11"
+
+	// LatestVersion represents latest Kubernetes version supported by EKS
+	LatestVersion = Version1_11
 )
 
 // SupportedRegions are the regions where EKS is available
@@ -41,6 +50,14 @@ func SupportedRegions() []string {
 		RegionUSEast2,
 		RegionEUWest1,
 		RegionEUNorth1,
+	}
+}
+
+// SupportedVersions are the versions of Kubernetes that EKS supports
+func SupportedVersions() []string {
+	return []string{
+		Version1_10,
+		Version1_11,
 	}
 }
 
@@ -75,7 +92,6 @@ type ClusterProvider interface {
 	EC2() ec2iface.EC2API
 	STS() stsiface.STSAPI
 	Region() string
-	Version() string
 	Profile() string
 	WaitTimeout() time.Duration
 }
@@ -84,7 +100,6 @@ type ClusterProvider interface {
 type ProviderConfig struct {
 	Region      string
 	Profile     string
-	Version     string
 	WaitTimeout time.Duration
 }
 

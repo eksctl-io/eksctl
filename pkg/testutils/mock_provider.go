@@ -33,7 +33,6 @@ func NewMockProvider() *MockProvider {
 var ProviderConfig = &api.ProviderConfig{
 	Region:      api.DefaultRegion,
 	Profile:     "default",
-	Version:     "1.10",
 	WaitTimeout: 1200000000000,
 }
 
@@ -68,9 +67,6 @@ func (m MockProvider) Profile() string { return ProviderConfig.Profile }
 
 // Region returns current region setting
 func (m MockProvider) Region() string { return ProviderConfig.Region }
-
-// Version returns current version setting
-func (m MockProvider) Version() string { return ProviderConfig.Version }
 
 // WaitTimeout returns current timeout setting
 func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }

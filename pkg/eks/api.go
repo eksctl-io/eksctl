@@ -62,9 +62,6 @@ func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 // Region returns provider-level region setting
 func (p ProviderServices) Region() string { return p.spec.Region }
 
-// Version returns provider-level version setting
-func (p ProviderServices) Version() string { return p.spec.Version }
-
 // Profile returns provider-level profile name
 func (p ProviderServices) Profile() string { return p.spec.Profile }
 
@@ -168,19 +165,19 @@ func (c *ClusterProvider) CheckAuth() error {
 }
 
 // EnsureAMI ensures that the node AMI is set and is available
-func (c *ClusterProvider) EnsureAMI(ng *api.NodeGroup) error {
+func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	// - improve validation of parameter set overall, probably in another package
 	if ng.AMI == ami.ResolverAuto {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
 	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
-		id, err := ami.Resolve(c.Provider.Region(), c.Provider.Version(), ng.InstanceType, ng.AMIFamily)
+		id, err := ami.Resolve(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)
 		if err != nil {
 			return errors.Wrap(err, "Unable to determine AMI to use")
 		}
 		if id == "" {
-			return ami.NewErrFailedResolution(c.Provider.Region(), c.Provider.Version(), ng.InstanceType, ng.AMIFamily)
+			return ami.NewErrFailedResolution(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)
 		}
 		ng.AMI = id
 	}
