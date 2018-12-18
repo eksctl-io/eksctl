@@ -14,33 +14,33 @@ const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
 
-	// EKSRegionUSWest2 represents the US West Region Oregon
-	EKSRegionUSWest2 = "us-west-2"
+	// RegionUSWest2 represents the US West Region Oregon
+	RegionUSWest2 = "us-west-2"
 
-	// EKSRegionUSEast1 represents the US East Region North Virgina
-	EKSRegionUSEast1 = "us-east-1"
+	// RegionUSEast1 represents the US East Region North Virgina
+	RegionUSEast1 = "us-east-1"
 
-	// EKSRegionUSEast2 represents the US East Region Ohio
-	EKSRegionUSEast2 = "us-east-2"
+	// RegionUSEast2 represents the US East Region Ohio
+	RegionUSEast2 = "us-east-2"
 
-	// EKSRegionEUWest1 represents the EU West Region Ireland
-	EKSRegionEUWest1 = "eu-west-1"
+	// RegionEUWest1 represents the EU West Region Ireland
+	RegionEUWest1 = "eu-west-1"
 
-	// EKSRegionEUNorth1 represents the EU North Region Stockholm
-	EKSRegionEUNorth1 = "eu-north-1"
+	// RegionEUNorth1 represents the EU North Region Stockholm
+	RegionEUNorth1 = "eu-north-1"
 
-	// DefaultEKSRegion defines the default region, where to deploy the EKS cluster
-	DefaultEKSRegion = EKSRegionUSWest2
+	// DefaultRegion defines the default region, where to deploy the EKS cluster
+	DefaultRegion = RegionUSWest2
 )
 
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{
-		EKSRegionUSWest2,
-		EKSRegionUSEast1,
-		EKSRegionUSEast2,
-		EKSRegionEUWest1,
-		EKSRegionEUNorth1,
+		RegionUSWest2,
+		RegionUSEast1,
+		RegionUSEast2,
+		RegionEUWest1,
+		RegionEUNorth1,
 	}
 }
 

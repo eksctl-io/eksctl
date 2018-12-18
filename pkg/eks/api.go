@@ -205,7 +205,7 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 	if len(given) == 0 {
 		logger.Debug("determining availability zones")
 		azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
-		if c.Provider.Region() == api.EKSRegionUSEast1 {
+		if c.Provider.Region() == api.RegionUSEast1 {
 			azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2())
 		}
 		zones, err := azSelector.SelectZones(c.Provider.Region())
@@ -278,8 +278,8 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, 
 			spec.Region = *s.Config.Region
 		} else {
 			// if session config doesn't have region set, make recursive call forcing default region
-			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
-			spec.Region = api.DefaultEKSRegion
+			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultRegion)
+			spec.Region = api.DefaultRegion
 			return c.newSession(spec, endpoint, credentials)
 		}
 	}

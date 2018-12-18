@@ -31,7 +31,7 @@ func NewMockProvider() *MockProvider {
 
 // ProviderConfig holds current global config
 var ProviderConfig = &api.ProviderConfig{
-	Region:      api.DefaultEKSRegion,
+	Region:      api.DefaultRegion,
 	Profile:     "default",
 	Version:     "1.10",
 	WaitTimeout: 1200000000000,
