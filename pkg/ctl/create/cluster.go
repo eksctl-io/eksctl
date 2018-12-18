@@ -3,6 +3,7 @@ package create
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -59,7 +60,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
-		fs.StringVar(&p.Version, "version", "1.11", "Kubernetes version (valid options: 1.10, 1.11)")
+		fs.StringVar(&cfg.Metadata.Version, "version", api.LatestVersion, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ",")))
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -226,7 +227,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		return err
 	}
 
-	if err := ctl.EnsureAMI(ng); err != nil {
+	if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 		return err
 	}
 
@@ -297,7 +298,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		}
 
 		// add default storage class only for version 1.10 clusters
-		if cfg.Addons.Storage && p.Version == "1.10" {
+		if cfg.Addons.Storage && meta.Version == "1.10" {
 			if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 				return err
 			}
