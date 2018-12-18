@@ -11,9 +11,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
 )
 
-func createNodeGroupCmd() *cobra.Command {
+func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
@@ -29,10 +30,17 @@ func createNodeGroupCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := g.New(cmd)
 
-	addCommonCreateFlags(fs, p, cfg, ng)
-	fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "Name of the EKS cluster to add the nodegroup to")
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "Name of the EKS cluster to add the nodegroup to")
+	})
+
+	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
+		addCommonCreateFlags(fs, p, cfg, ng)
+	})
+
+	cmdutils.AddCommonFlagsForAWS(group, p)
 
 	return cmd
 }

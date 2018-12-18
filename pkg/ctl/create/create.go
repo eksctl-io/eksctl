@@ -3,7 +3,6 @@ package create
 import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -28,7 +27,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	}
 
 	cmd.AddCommand(createClusterCmd(g))
-	cmd.AddCommand(createNodeGroupCmd())
+	cmd.AddCommand(createNodeGroupCmd(g))
 
 	return cmd
 }

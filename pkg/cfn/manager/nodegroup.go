@@ -6,14 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
-
-	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/kris-nova/logger"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"

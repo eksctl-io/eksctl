@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"errors"
 	"strconv"
+	"github.com/spf13/pflag"
 )
 
 func deleteNodeGroupCmd() *cobra.Command {
@@ -34,13 +35,15 @@ func deleteNodeGroupCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := &cmdutils.NamedFlagSetGroup{}
 
-	fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "EKS cluster name (required)")
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "EKS cluster name (required)")
+		cmdutils.AddRegionFlag(fs, p)
+		fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
+	})
 
-	cmdutils.AddCommonFlagsForAWS(fs, p)
-
-	fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
+	cmdutils.AddCommonFlagsForAWS(group, p)
 
 	return cmd
 }
