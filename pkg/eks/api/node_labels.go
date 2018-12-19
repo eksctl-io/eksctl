@@ -1,9 +1,9 @@
 package api
 
 import (
-	"strings"
-	"fmt"
 	"errors"
+	"fmt"
+	"strings"
 )
 
 func (f NodeLabels) String() string {

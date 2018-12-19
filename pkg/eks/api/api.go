@@ -163,7 +163,7 @@ type NodeGroup struct {
 
 	VolumeSize int
 
-	Labels NodeLabels
+	Labels         NodeLabels
 	MaxPodsPerNode int
 
 	PolicyARNs      []string

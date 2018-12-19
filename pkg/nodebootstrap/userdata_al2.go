@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"fmt"
 )
 
 func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
@@ -26,7 +25,7 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		},
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(makeKubeletParamsAmazon(spec, ng), "\n")},
+			"kubelet.env":  {content: strings.Join(makeKubeletParamsCommon(spec, ng), "\n")},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":          {content: string(spec.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
@@ -60,12 +59,4 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 
 	logger.Debug("user-data = %s", body)
 	return body, nil
-}
-
-func makeKubeletParamsAmazon(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
-	params := makeKubeletParamsCommon(spec, ng)
-	if len(ng.Labels) > 0 {
-		params = append(params, fmt.Sprintf("KUBELET_EXTRA_ARGS=--node-labels=%s", ng.Labels))
-	}
-	return params
 }

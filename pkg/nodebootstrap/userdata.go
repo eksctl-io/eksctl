@@ -96,10 +96,12 @@ func makeKubeletParamsCommon(spec *api.ClusterConfig, ng *api.NodeGroup) []strin
 	if ng.MaxPodsPerNode == 0 {
 		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
 	}
+
 	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
 	return []string{
 		fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode),
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec)),
+		fmt.Sprintf("NODE_LABELS=%s", ng.Labels),
 	}
 }
 

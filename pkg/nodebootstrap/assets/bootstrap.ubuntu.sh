@@ -22,6 +22,7 @@ systemctl reset-failed
     "node-ip=${NODE_IP}"
     "cluster-dns=${CLUSTER_DNS}"
     "max-pods=${MAX_PODS}"
+    "node-labels=${NODE_LABELS}"
     "authentication-token-webhook=true"
     "authorization-mode=Webhook"
     "allow-privileged=true"

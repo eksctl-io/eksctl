@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"fmt"
 )
 
 func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
@@ -19,7 +18,7 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 	files := configFiles{
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(makeKubeletParamsUbuntu(spec, ng), "\n")},
+			"kubelet.env":  {content: strings.Join(makeKubeletParamsCommon(spec, ng), "\n")},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":          {content: string(spec.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
@@ -53,12 +52,4 @@ func NewUserDataForUbuntu1804(spec *api.ClusterConfig, ng *api.NodeGroup) (strin
 
 	logger.Debug("user-data = %s", body)
 	return body, nil
-}
-
-func makeKubeletParamsUbuntu(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
-	params := makeKubeletParamsCommon(spec, ng)
-	if len(ng.Labels) > 0 {
-		params = append(params, fmt.Sprintf("KUBELET_EXTRA_ARGS=node-labels=%s", ng.Labels))
-	}
-	return params
 }
