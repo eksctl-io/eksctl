@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/pkg/errors"
-	"github.com/spf13/pflag"
 )
 
 func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -39,7 +39,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	})
 
 	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		addCommonCreateFlags(fs, p, cfg, ng)
+		cmdutils.AddCommonFlagsForNodeGroup(fs, p, cfg, ng)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p)
