@@ -70,6 +70,10 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, pa
 		input.SetCapabilities(stackCapabilitiesIAM)
 	}
 
+	if cfnRole := c.provider.CloudFormationRoleARN(); cfnRole != "" {
+		input = input.SetRoleARN(cfnRole)
+	}
+
 	for k, v := range parameters {
 		p := &cloudformation.Parameter{
 			ParameterKey:   aws.String(k),
@@ -205,6 +209,10 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 				StackName: i.StackId,
 			}
 
+			if cfnRole := c.provider.CloudFormationRoleARN(); cfnRole != "" {
+				input = input.SetRoleARN(cfnRole)
+			}
+
 			if _, err := c.provider.CloudFormation().DeleteStack(input); err != nil {
 				return nil, errors.Wrapf(err, "not able to delete stack %q", name)
 			}
@@ -269,6 +277,10 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, desc
 
 	if withIAM {
 		input.SetCapabilities(stackCapabilitiesIAM)
+	}
+
+	if cfnRole := c.provider.CloudFormationRoleARN(); cfnRole != "" {
+		input.SetRoleARN(cfnRole)
 	}
 
 	for k, v := range parameters {
