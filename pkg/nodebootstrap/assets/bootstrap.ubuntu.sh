@@ -41,7 +41,7 @@ systemctl reset-failed
     "client-ca-file=/etc/eksctl/ca.crt"
   )
 
-  snap set kubelet-eks "${flags[@]}" "${KUBELET_EXTRA_ARGS}"
+  snap set kubelet-eks "${flags[@]}"
 )
 
 snap start kubelet-eks

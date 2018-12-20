@@ -59,7 +59,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForNodeGroup(fs, p, cfg, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
 	group.InFlagSet("Cluster add-ons", func(fs *pflag.FlagSet) {

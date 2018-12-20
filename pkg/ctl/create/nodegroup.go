@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"strings"
 )
 
 func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -35,24 +36,29 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "Name of the EKS cluster to add the nodegroup to")
 		cmdutils.AddRegionFlag(fs, p)
-		fs.StringVar(&p.Version, "version", "1.11", "Kubernetes version (valid options: 1.10, 1.11)")
+		cmdutils.AddCFNRoleARNFlag(fs, p)
+		fs.StringVar(&cfg.Metadata.Version, "version", api.LatestVersion, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ",")))
 	})
 
 	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForNodeGroup(fs, p, cfg, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p)
+
+	group.AddTo(cmd)
 
 	return cmd
 }
 
 func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, name string) error {
 	ctl := eks.New(p, cfg)
+	meta := cfg.Metadata
 
-	if cfg.Metadata.Region != api.EKSRegionUSWest2 && cfg.Metadata.Region != api.EKSRegionUSEast1 && cfg.Metadata.Region != api.EKSRegionEUWest1 {
-		return fmt.Errorf("%s is not supported only %s, %s and %s are supported", cfg.Metadata.Region, api.EKSRegionUSWest2, api.EKSRegionUSEast1, api.EKSRegionEUWest1)
+	if !ctl.IsSupportedRegion() {
+		return cmdutils.ErrUnsupportedRegion(p)
 	}
+	logger.Info("using region %s", meta.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -68,7 +74,7 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 
 	//TODO:  do we need to do the AZ stuff from create????
 
-	if err := ctl.EnsureAMI(ng); err != nil {
+	if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 		return err
 	}
 

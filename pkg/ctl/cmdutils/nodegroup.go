@@ -11,6 +11,7 @@ const (
 	defaultSSHPublicKey = "~/.ssh/id_rsa.pub"
 )
 
+// AddCommonCreateNodeGroupFlags adds common flags for creating a node group
 func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) {
 	fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
 	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
@@ -32,5 +33,4 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg
 
 	fs.Var(&ng.Labels, "node-labels", `labels to set for the nodegroup, e.g. "partition=backend,nodeclass=hugememory"`)
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(iherited from the cluster if unspecified)")
-
 }

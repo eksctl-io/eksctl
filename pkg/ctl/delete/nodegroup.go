@@ -45,6 +45,8 @@ func deleteNodeGroupCmd() *cobra.Command {
 
 	cmdutils.AddCommonFlagsForAWS(group, p)
 
+	group.AddTo(cmd)
+
 	return cmd
 }
 
