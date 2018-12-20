@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"errors"
-	"strconv"
 	"github.com/spf13/pflag"
 )
 
@@ -19,15 +18,11 @@ func deleteNodeGroupCmd() *cobra.Command {
 	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
-		Use:   "nodegroup ID",
+		Use:   "nodegroup NAME",
 		Short: "Delete a nodegroup",
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			id, err := strconv.Atoi(args[0])
-			if err != nil {
-				return err
-			}
-			if err := doDeleteNodeGroup(p, cfg, id); err != nil {
+			if err := doDeleteNodeGroup(p, cfg, args[0]); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -50,7 +45,7 @@ func deleteNodeGroupCmd() *cobra.Command {
 	return cmd
 }
 
-func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, id int) error {
+func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -61,7 +56,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, id int) er
 		return errors.New("`--cluster` must be set")
 	}
 
-	logger.Info("deleting EKS nodegroup %q-nodegroup-%d", cfg.Metadata.Name, id)
+	logger.Info("deleting EKS nodegroup %q-nodegroup-%s", cfg.Metadata.Name, name)
 
 	var deletedResources []string
 
@@ -80,7 +75,6 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, id int) er
 	stackManager := ctl.NewStackManager(cfg)
 
 	{
-		name := stackManager.MakeNodeGroupStackName(id)
 		err := stackManager.WaitDeleteNodeGroup(nil, name)
 		errs := []error{err}
 		if len(errs) > 0 {

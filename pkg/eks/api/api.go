@@ -184,6 +184,8 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 type NodeGroup struct {
 	ID int
 
+	Name string
+
 	AMI               string
 	AMIFamily         string
 	InstanceType      string

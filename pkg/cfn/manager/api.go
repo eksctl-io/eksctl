@@ -17,7 +17,10 @@ const (
 	// ClusterNameTag defines the tag of the clsuter name
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
-	// NodeGroupIDTag defines the tag of the ndoe group id
+	// NodeGroupNameTag defines the tag of the node group name
+	NodeGroupNameTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-name"
+
+	// NodeGroupIDTag defines the tag of the node group id
 	NodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 )
 

@@ -27,6 +27,8 @@ const (
 type NodeGroupSummary struct {
 	Seq             int
 	StackName       string
+	Cluster         string
+	Name            string
 	MaxSize         int
 	MinSize         int
 	DesiredCapacity int
@@ -36,14 +38,14 @@ type NodeGroupSummary struct {
 }
 
 // MakeNodeGroupStackName generates the name of the node group identified by its ID, isolated by the cluster this StackCollection operates on
-func (c *StackCollection) MakeNodeGroupStackName(id int) string {
-	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.Metadata.Name, id)
+func (c *StackCollection) MakeNodeGroupStackName(name string) string {
+	return fmt.Sprintf("eksctl-%s-nodegroup-%s", c.spec.Metadata.Name, name)
 }
 
 // CreateEmbeddedNodeGroup creates the nodegroup embedded in the cluster spec
 func (c *StackCollection) CreateEmbeddedNodeGroup(errs chan error, data interface{}) error {
 	ng := data.(*api.NodeGroup)
-	name := c.MakeNodeGroupStackName(ng.ID)
+	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("creating nodegroup stack %q", name)
 	stack := builder.NewEmbeddedNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
 	if err := stack.AddAllResources(); err != nil {
@@ -51,6 +53,7 @@ func (c *StackCollection) CreateEmbeddedNodeGroup(errs chan error, data interfac
 	}
 
 	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", ng.ID)))
+	c.tags = append(c.tags, newTag(NodeGroupNameTag, fmt.Sprintf("%s", ng.Name)))
 
 	for k, v := range ng.Tags {
 		c.tags = append(c.tags, newTag(k, v))
@@ -62,7 +65,7 @@ func (c *StackCollection) CreateEmbeddedNodeGroup(errs chan error, data interfac
 // CreateNodeGroup creates the nodegroup
 func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) error {
 	ng := data.(*api.NodeGroup)
-	name := c.MakeNodeGroupStackName(ng.ID)
+	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("creating nodegroup stack %q", name)
 	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
@@ -70,6 +73,7 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	}
 
 	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", ng.ID)))
+	c.tags = append(c.tags, newTag(NodeGroupNameTag, fmt.Sprintf("%s", ng.Name)))
 
 	for k, v := range ng.Tags {
 		c.tags = append(c.tags, newTag(k, v))
@@ -116,7 +120,7 @@ func (c *StackCollection) ScaleInitialNodeGroup() error {
 func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.ClusterStackName = clusterName
-	name := c.MakeNodeGroupStackName(ng.ID)
+	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	// Get current stack
@@ -170,7 +174,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 
 // GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster
 func (c *StackCollection) GetNodeGroupSummaries() ([]*NodeGroupSummary, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-\\d+$", c.spec.Metadata.Name), cfn.StackStatusCreateComplete)
+	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-.+$", c.spec.Metadata.Name), cfn.StackStatusCreateComplete)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
@@ -198,6 +202,8 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 	}
 
 	seq := getNodeGroupID(stack.Tags)
+	cluster := getClusterName(stack.Tags)
+	name := getNodeGroupName(stack.Tags)
 	maxSize := gjson.Get(template, maxSizePath)
 	minSize := gjson.Get(template, minSizePath)
 	desired := gjson.Get(template, desiredCapacityPath)
@@ -207,6 +213,8 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 	summary := &NodeGroupSummary{
 		Seq:             seq,
 		StackName:       *stack.StackName,
+		Cluster:         cluster,
+		Name:            name,
 		MaxSize:         int(maxSize.Int()),
 		MinSize:         int(minSize.Int()),
 		DesiredCapacity: int(desired.Int()),
@@ -220,7 +228,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 
 // GetMaxNodeGroupSeq returns the sequence number og the highest node group
 func (c *StackCollection) GetMaxNodeGroupSeq() (int, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-\\d+$", c.spec.Metadata.Name))
+	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-.+$", c.spec.Metadata.Name))
 	if err != nil {
 		return -1, errors.Wrap(err, "getting nodegroup stacks")
 	}
@@ -243,4 +251,22 @@ func getNodeGroupID(tags []*cfn.Tag) int {
 		}
 	}
 	return -1
+}
+
+func getNodeGroupName(tags []*cfn.Tag) string {
+	for _, tag := range tags {
+		if *tag.Key == NodeGroupNameTag {
+			return *tag.Value
+		}
+	}
+	return ""
+}
+
+func getClusterName(tags []*cfn.Tag) string {
+	for _, tag := range tags {
+		if *tag.Key == ClusterNameTag {
+			return *tag.Value
+		}
+	}
+	return ""
 }

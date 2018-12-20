@@ -24,7 +24,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		Use:   "nodegroup",
 		Short: "Create a nodegroup",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doAddNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
+			if err := doAddNodeGroup(p, cfg, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -34,13 +34,14 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&cfg.Metadata.Name, "cluster", "n", "", "Name of the EKS cluster to add the nodegroup to")
+		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "Name of the EKS cluster to add the nodegroup to")
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddCFNRoleARNFlag(fs, p)
 		fs.StringVar(&cfg.Metadata.Version, "version", api.LatestVersion, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ",")))
 	})
 
 	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup. Defaults to \"ng-<ID>\"")
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
@@ -51,7 +52,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, name string) error {
+func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) error {
 	ctl := eks.New(p, cfg)
 	meta := cfg.Metadata
 
@@ -109,7 +110,10 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 			return err
 		}
 		ng.ID = maxSeq + 1
-		logger.Info("will create a Cloudformation stack for nodegroup %d for cluster %s", ng.ID, cfg.Metadata.Name)
+		if ng.Name == "" {
+			ng.Name = fmt.Sprintf("ng-%d", ng.ID)
+		}
+		logger.Info("will create a Cloudformation stack for nodegroup %s for cluster %s", ng.Name, cfg.Metadata.Name)
 		errs := stackManager.RunTask(stackManager.CreateNodeGroup, ng)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroup hasn't been created properly, you may wish to check CloudFormation console", len(errs))

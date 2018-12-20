@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"strconv"
 )
 
 func scaleNodeGroupCmd() *cobra.Command {
@@ -17,19 +16,15 @@ func scaleNodeGroupCmd() *cobra.Command {
 	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
-		Use:   "nodegroup ID",
+		Use:   "nodegroup NAME",
 		Short: "Scale a nodegroup",
 		RunE: func(_ *cobra.Command, args []string) error {
-			id, err := strconv.Atoi(args[0])
-			if err != nil {
-				return err
-			}
-			ng.ID = id
+			ng.Name = args[0]
 			if err := doScaleNodeGroup(p, cfg, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
-			return err
+			return nil
 		},
 	}
 

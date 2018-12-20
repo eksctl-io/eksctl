@@ -77,11 +77,11 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, name string)
 }
 
 func addSummaryTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("STACKNAME", func(s *manager.NodeGroupSummary) string {
-		return s.StackName
+	printer.AddColumn("CLUSTER", func(s *manager.NodeGroupSummary) string {
+		return s.Cluster
 	})
-	printer.AddColumn("SEQ", func(s *manager.NodeGroupSummary) string {
-		return strconv.Itoa(s.Seq)
+	printer.AddColumn("NODEGROUP", func(s *manager.NodeGroupSummary) string {
+		return s.Name
 	})
 	printer.AddColumn("CREATED", func(s *manager.NodeGroupSummary) string {
 		return s.CreationTime.Format(time.RFC3339)
