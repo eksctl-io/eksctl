@@ -184,12 +184,82 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and scale the cluster", func() {
+		Context("and scale the initial nodegroup", func() {
 			It("should not return an error", func() {
 				args := []string{"scale", "nodegroup",
-					"--name", clusterName,
+					"--cluster", clusterName,
+					"--name", "ng-0",
 					"--region", region,
 					"--nodes", "2",
+				}
+
+				command := exec.Command(eksctlPath, args...)
+				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+				if err != nil {
+					Fail(fmt.Sprintf("error starting process: %v", err), 1)
+				}
+
+				cmdSession.Wait(scaleTimeout)
+				Expect(cmdSession.ExitCode()).Should(Equal(0))
+			})
+
+			It("should make it 2 nodes total", func() {
+				test, err := newKubeTest()
+				Expect(err).ShouldNot(HaveOccurred())
+				defer test.Close()
+
+				test.WaitForNodesReady(2, scaleTimeout)
+
+				nodes := test.ListNodes(metav1.ListOptions{})
+
+				Expect(len(nodes.Items)).To(Equal(2))
+			})
+		})
+
+		Context("and add the second nodegroup", func() {
+			It("should not return an error", func() {
+				args := []string{"scale", "nodegroup",
+					"--cluster", clusterName,
+					"--name", nodegroupName,
+					"--region", region,
+					"--nodes", "1",
+				}
+
+				command := exec.Command(eksctlPath, args...)
+				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+				if err != nil {
+					Fail(fmt.Sprintf("error starting process: %v", err), 1)
+				}
+
+				cmdSession.Wait(scaleTimeout)
+				Expect(cmdSession.ExitCode()).Should(Equal(0))
+			})
+
+			It("should make it 3 nodes total", func() {
+				test, err := newKubeTest()
+				Expect(err).ShouldNot(HaveOccurred())
+				defer test.Close()
+
+				test.WaitForNodesReady(3, scaleTimeout)
+
+				nodes := test.ListNodes(metav1.ListOptions{})
+
+				Expect(len(nodes.Items)).To(Equal(3))
+			})
+		})
+
+		Context("and delete the second nodegroup", func() {
+			It("should not return an error", func() {
+				if !doDelete {
+					Skip("will not delete nodegroup " + nodegroupName)
+				}
+
+				args := []string{"delete", "nodegroup",
+					"--cluster", clusterName,
+					"--name", nodegroupName,
+					"--region", region,
 				}
 
 				command := exec.Command(eksctlPath, args...)
