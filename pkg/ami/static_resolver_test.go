@@ -57,7 +57,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance and non-eks enabled region", ResolveCase{
-			Region:       "ap-northeast-1",
+			Region:       "ap-northeast-2",
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "AmazonLinux2",
@@ -89,7 +89,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p3) instance and non-eks enabled region", ResolveCase{
-			Region:       "ap-northeast-1",
+			Region:       "ap-northeast-2",
 			Version:      "1.10",
 			InstanceType: "p3.2xlarge",
 			ImageFamily:  "AmazonLinux2",
@@ -121,7 +121,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance, non-eks enabled region and Ubuntu image", ResolveCase{
-			Region:       "ap-northeast-1",
+			Region:       "ap-northeast-2",
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "Ubuntu1804",

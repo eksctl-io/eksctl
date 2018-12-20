@@ -29,6 +29,18 @@ const (
 	// RegionEUNorth1 represents the EU North Region Stockholm
 	RegionEUNorth1 = "eu-north-1"
 
+	// RegionEUCentral1 represents the EU Central Region Frankfurt
+	RegionEUCentral1 = "eu-central-1"
+
+	// RegionAPNorthEast1 represents the Asia-Pacific North East Region Tokyo
+	RegionAPNorthEast1 = "ap-northeast-1"
+
+	// RegionAPSouthEast1 represents the Asia-Pacific South East Region Singapore
+	RegionAPSouthEast1 = "ap-southeast-1"
+
+	// RegionAPSouthEast2 represents the Asia-Pacific South East Region Sydney
+	RegionAPSouthEast2 = "ap-southeast-2"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -50,6 +62,10 @@ func SupportedRegions() []string {
 		RegionUSEast2,
 		RegionEUWest1,
 		RegionEUNorth1,
+		RegionEUCentral1,
+		RegionAPNorthEast1,
+		RegionAPSouthEast1,
+		RegionAPSouthEast2,
 	}
 }
 
