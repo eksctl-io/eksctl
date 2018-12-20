@@ -3,7 +3,7 @@
 if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJECT_USERNAME}" = "weaveworks" ] ; then
   export RELEASE_DESCRIPTION="${CIRCLE_TAG} (permalink)"
   cat ./.goreleaser.yml ./.goreleaser.brew.yml > .goreleaser.brew.combined.yml
-  goreleaser release --config=./.goreleaser.brew.combined.yml
+  goreleaser release --skip-validate --config=./.goreleaser.brew.combined.yml
 
   sleep 90 # GitHub API resolves the time to the nearest minute, so in order to control the sorting oder we need this
 

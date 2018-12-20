@@ -13,6 +13,8 @@ import (
 
 // MockProvider stores the mocked APIs
 type MockProvider struct {
+	cfnRoleARN string
+
 	cfn *mocks.CloudFormationAPI
 	eks *mocks.EKSAPI
 	ec2 *mocks.EC2API
@@ -31,14 +33,16 @@ func NewMockProvider() *MockProvider {
 
 // ProviderConfig holds current global config
 var ProviderConfig = &api.ProviderConfig{
-	Region:      api.DefaultEKSRegion,
+	Region:      api.DefaultRegion,
 	Profile:     "default",
-	Version:     "1.10",
 	WaitTimeout: 1200000000000,
 }
 
 // CloudFormation returns a representation of the CloudFormation API
 func (m MockProvider) CloudFormation() cloudformationiface.CloudFormationAPI { return m.cfn }
+
+// CloudFormationRoleARN returns, if any,  a service role used by CloudFormation to call AWS API on your behalf
+func (m MockProvider) CloudFormationRoleARN() string { return m.cfnRoleARN }
 
 // MockCloudFormation returns a mocked CloudFormation API
 func (m MockProvider) MockCloudFormation() *mocks.CloudFormationAPI {
@@ -68,9 +72,6 @@ func (m MockProvider) Profile() string { return ProviderConfig.Profile }
 
 // Region returns current region setting
 func (m MockProvider) Region() string { return ProviderConfig.Region }
-
-// Version returns current version setting
-func (m MockProvider) Version() string { return ProviderConfig.Version }
 
 // WaitTimeout returns current timeout setting
 func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }

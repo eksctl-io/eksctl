@@ -45,6 +45,11 @@ func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
 	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
 }
 
+// AddCFNRoleARNFlag adds common --cfn-role-arn flag
+func AddCFNRoleARNFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
+	fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
+}
+
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written
 func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath *string, setContext, autoPath *bool, exampleName string) {
 	fs.StringVar(outputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")

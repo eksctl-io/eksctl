@@ -14,33 +14,66 @@ const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
 
-	// EKSRegionUSWest2 represents the US West Region Oregon
-	EKSRegionUSWest2 = "us-west-2"
+	// RegionUSWest2 represents the US West Region Oregon
+	RegionUSWest2 = "us-west-2"
 
-	// EKSRegionUSEast1 represents the US East Region North Virgina
-	EKSRegionUSEast1 = "us-east-1"
+	// RegionUSEast1 represents the US East Region North Virgina
+	RegionUSEast1 = "us-east-1"
 
-	// EKSRegionUSEast2 represents the US East Region Ohio
-	EKSRegionUSEast2 = "us-east-2"
+	// RegionUSEast2 represents the US East Region Ohio
+	RegionUSEast2 = "us-east-2"
 
-	// EKSRegionEUWest1 represents the EU West Region Ireland
-	EKSRegionEUWest1 = "eu-west-1"
+	// RegionEUWest1 represents the EU West Region Ireland
+	RegionEUWest1 = "eu-west-1"
 
-	// EKSRegionEUNorth1 represents the EU North Region Stockholm
-	EKSRegionEUNorth1 = "eu-north-1"
+	// RegionEUNorth1 represents the EU North Region Stockholm
+	RegionEUNorth1 = "eu-north-1"
 
-	// DefaultEKSRegion defines the default region, where to deploy the EKS cluster
-	DefaultEKSRegion = EKSRegionUSWest2
+	// RegionEUCentral1 represents the EU Central Region Frankfurt
+	RegionEUCentral1 = "eu-central-1"
+
+	// RegionAPNorthEast1 represents the Asia-Pacific North East Region Tokyo
+	RegionAPNorthEast1 = "ap-northeast-1"
+
+	// RegionAPSouthEast1 represents the Asia-Pacific South East Region Singapore
+	RegionAPSouthEast1 = "ap-southeast-1"
+
+	// RegionAPSouthEast2 represents the Asia-Pacific South East Region Sydney
+	RegionAPSouthEast2 = "ap-southeast-2"
+
+	// DefaultRegion defines the default region, where to deploy the EKS cluster
+	DefaultRegion = RegionUSWest2
+
+	// Version1_10 represents Kubernetes version 1.10.x
+	Version1_10 = "1.10"
+
+	// Version1_11 represents Kubernetes version 1.11.x
+	Version1_11 = "1.11"
+
+	// LatestVersion represents latest Kubernetes version supported by EKS
+	LatestVersion = Version1_11
 )
 
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{
-		EKSRegionUSWest2,
-		EKSRegionUSEast1,
-		EKSRegionUSEast2,
-		EKSRegionEUWest1,
-		EKSRegionEUNorth1,
+		RegionUSWest2,
+		RegionUSEast1,
+		RegionUSEast2,
+		RegionEUWest1,
+		RegionEUNorth1,
+		RegionEUCentral1,
+		RegionAPNorthEast1,
+		RegionAPSouthEast1,
+		RegionAPSouthEast2,
+	}
+}
+
+// SupportedVersions are the versions of Kubernetes that EKS supports
+func SupportedVersions() []string {
+	return []string{
+		Version1_10,
+		Version1_11,
 	}
 }
 
@@ -71,20 +104,21 @@ func (c *ClusterMeta) LogString() string {
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
+	CloudFormationRoleARN() string
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	STS() stsiface.STSAPI
 	Region() string
-	Version() string
 	Profile() string
 	WaitTimeout() time.Duration
 }
 
 // ProviderConfig holds global parameters for all interactions with AWS APIs
 type ProviderConfig struct {
+	CloudFormationRoleARN string
+
 	Region      string
 	Profile     string
-	Version     string
 	WaitTimeout time.Duration
 }
 
@@ -194,6 +228,7 @@ type (
 	AddonIAM struct {
 		PolicyAmazonEC2ContainerRegistryPowerUser bool
 		PolicyAutoScaling                         bool
+		PolicyExternalDNS                         bool
 	}
 	// NodeLabels labels nodes via kubelet's --node-labels flag
 	NodeLabels map[string]string

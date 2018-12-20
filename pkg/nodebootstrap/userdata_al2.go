@@ -27,8 +27,9 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
 			"kubelet.env":  {content: strings.Join(makeKubeletParamsCommon(spec, ng), "\n")},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":          {content: string(spec.CertificateAuthorityData)},
-			"kubeconfig.yaml": {content: string(clientConfigData)},
+			"kubelet-config.json": {isAsset: true},
+			"ca.crt":              {content: string(spec.CertificateAuthorityData)},
+			"kubeconfig.yaml":     {content: string(clientConfigData)},
 		},
 	}
 

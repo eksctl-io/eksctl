@@ -50,6 +50,9 @@ type ProviderServices struct {
 // CloudFormation returns a representation of the CloudFormation API
 func (p ProviderServices) CloudFormation() cloudformationiface.CloudFormationAPI { return p.cfn }
 
+// CloudFormationRoleARN returns, if any,  a service role used by CloudFormation to call AWS API on your behalf
+func (p ProviderServices) CloudFormationRoleARN() string { return p.spec.CloudFormationRoleARN }
+
 // EKS returns a representation of the EKS API
 func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
 
@@ -61,9 +64,6 @@ func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 // Region returns provider-level region setting
 func (p ProviderServices) Region() string { return p.spec.Region }
-
-// Version returns provider-level version setting
-func (p ProviderServices) Version() string { return p.spec.Version }
 
 // Profile returns provider-level profile name
 func (p ProviderServices) Profile() string { return p.spec.Profile }
@@ -168,19 +168,19 @@ func (c *ClusterProvider) CheckAuth() error {
 }
 
 // EnsureAMI ensures that the node AMI is set and is available
-func (c *ClusterProvider) EnsureAMI(ng *api.NodeGroup) error {
+func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
 	// - improve validation of parameter set overall, probably in another package
 	if ng.AMI == ami.ResolverAuto {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
 	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
-		id, err := ami.Resolve(c.Provider.Region(), c.Provider.Version(), ng.InstanceType, ng.AMIFamily)
+		id, err := ami.Resolve(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)
 		if err != nil {
 			return errors.Wrap(err, "Unable to determine AMI to use")
 		}
 		if id == "" {
-			return ami.NewErrFailedResolution(c.Provider.Region(), c.Provider.Version(), ng.InstanceType, ng.AMIFamily)
+			return ami.NewErrFailedResolution(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)
 		}
 		ng.AMI = id
 	}
@@ -205,7 +205,7 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 	if len(given) == 0 {
 		logger.Debug("determining availability zones")
 		azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
-		if c.Provider.Region() == api.EKSRegionUSEast1 {
+		if c.Provider.Region() == api.RegionUSEast1 {
 			azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2())
 		}
 		zones, err := azSelector.SelectZones(c.Provider.Region())
@@ -278,8 +278,8 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, 
 			spec.Region = *s.Config.Region
 		} else {
 			// if session config doesn't have region set, make recursive call forcing default region
-			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultEKSRegion)
-			spec.Region = api.DefaultEKSRegion
+			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultRegion)
+			spec.Region = api.DefaultRegion
 			return c.newSession(spec, endpoint, credentials)
 		}
 	}
