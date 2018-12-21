@@ -6,11 +6,13 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-func scaleNodeGroupCmd() *cobra.Command {
+func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
@@ -26,16 +28,18 @@ func scaleNodeGroupCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := g.New(cmd)
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 
-	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
+		fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
 
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
+		fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
+		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
 
-	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+	})
 
 	return cmd
 }

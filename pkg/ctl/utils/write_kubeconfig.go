@@ -21,7 +21,7 @@ var (
 	writeKubeconfigAutoPath   bool
 )
 
-func writeKubeconfigCmd() *cobra.Command {
+func writeKubeconfigCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 
@@ -36,7 +36,7 @@ func writeKubeconfigCmd() *cobra.Command {
 		},
 	}
 
-	group := &cmdutils.NamedFlagSetGroup{}
+	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")

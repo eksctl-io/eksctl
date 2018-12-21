@@ -6,6 +6,8 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"k8s.io/client-go/kubernetes"
@@ -14,7 +16,7 @@ import (
 
 var waitNodesKubeconfigPath string
 
-func waitNodesCmd() *cobra.Command {
+func waitNodesCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
@@ -30,11 +32,13 @@ func waitNodesCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := g.New(cmd)
 
-	fs.StringVar(&waitNodesKubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
-	fs.IntVarP(&ng.MinSize, "nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
-	fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&waitNodesKubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
+		fs.IntVarP(&ng.MinSize, "nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
+		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
+	})
 
 	return cmd
 }
