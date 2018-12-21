@@ -3,10 +3,11 @@ package scale
 import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 // Command will create the `scale` commands
-func Command() *cobra.Command {
+func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "scale",
 		Short: "Scale resources(s)",
@@ -17,7 +18,7 @@ func Command() *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(scaleNodeGroupCmd())
+	cmd.AddCommand(scaleNodeGroupCmd(g))
 
 	return cmd
 }

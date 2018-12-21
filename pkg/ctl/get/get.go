@@ -3,6 +3,7 @@ package get
 import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 const (
@@ -15,7 +16,7 @@ var (
 )
 
 // Command will create the `get` commands
-func Command() *cobra.Command {
+func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Get resource(s)",
@@ -26,7 +27,7 @@ func Command() *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(getClusterCmd())
+	cmd.AddCommand(getClusterCmd(g))
 
 	return cmd
 }
