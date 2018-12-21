@@ -24,6 +24,7 @@ var (
 
 	// Flags to help with the development of the integration tests
 	clusterName    string
+	nodegroupName  string
 	doCreate       bool
 	doDelete       bool
 	kubeconfigPath string

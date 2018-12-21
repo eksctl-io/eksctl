@@ -219,11 +219,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and add the second nodegroup", func() {
 			It("should not return an error", func() {
-				args := []string{"scale", "nodegroup",
+				args := []string{"create", "nodegroup",
 					"--cluster", clusterName,
-					"--name", nodegroupName,
 					"--region", region,
 					"--nodes", "1",
+					nodegroupName,
 				}
 
 				command := exec.Command(eksctlPath, args...)
@@ -252,14 +252,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and delete the second nodegroup", func() {
 			It("should not return an error", func() {
-				if !doDelete {
-					Skip("will not delete nodegroup " + nodegroupName)
-				}
-
 				args := []string{"delete", "nodegroup",
 					"--cluster", clusterName,
-					"--name", nodegroupName,
 					"--region", region,
+					nodegroupName,
 				}
 
 				command := exec.Command(eksctlPath, args...)
