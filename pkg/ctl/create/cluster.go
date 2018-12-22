@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -17,11 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/vpc"
-)
-
-const (
-	defaultNodeType     = "m5.large"
-	defaultSSHPublicKey = "~/.ssh/id_rsa.pub"
 )
 
 var (
@@ -65,24 +59,8 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
-		fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (desired capacity of ASG)")
-
-		// TODO: https://github.com/weaveworks/eksctl/issues/28
-		fs.IntVarP(&ng.MinSize, "nodes-min", "m", 0, "minimum nodes in ASG (leave unset for a static nodegroup)")
-		fs.IntVarP(&ng.MaxSize, "nodes-max", "M", 0, "maximum nodes in ASG (leave unset for a static nodegroup)")
-
-		fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
-
-		fs.IntVarP(&ng.VolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
-		fs.IntVar(&ng.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
-
-		fs.StringVar(&ng.AMI, "node-ami", ami.ResolverStatic, "Advanced use cases only. If 'static' is supplied (default) then eksctl will use static AMIs; if 'auto' is supplied then eksctl will automatically set the AMI based on version/region/instance type; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
-		fs.StringVar(&ng.AMIFamily, "node-ami-family", ami.ImageFamilyAmazonLinux2, "Advanced use cases only. If 'AmazonLinux2' is supplied (default), then eksctl will use the offical AWS EKS AMIs (Amazon Linux 2); if 'Ubuntu1804' is supplied, then eksctl will use the offical Canonical EKS AMIs (Ubuntu 18.04).")
-
-		fs.BoolVar(&ng.AllowSSH, "ssh-access", false, "control SSH access for nodes")
-		fs.StringVar(&ng.SSHPublicKeyPath, "ssh-public-key", defaultSSHPublicKey, "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
-
-		fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make initial nodegroup networking private")
+		fs.StringVar(&ng.Name, "nodegroup", "", "Name of the nodegroup. Generated if unset, e.g. \"ng-a345f4\"")
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
 	group.InFlagSet("Cluster add-ons", func(fs *pflag.FlagSet) {
@@ -130,6 +108,10 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		return cmdutils.ErrNameFlagAndArg(meta.Name, nameArg)
 	}
 	meta.Name = utils.ClusterName(meta.Name, nameArg)
+
+	if ng.Name == "" {
+		ng.Name = utils.NodeGroupName()
+	}
 
 	if autoKubeconfigPath {
 		if kubeconfigPath != kubeconfig.DefaultPath {

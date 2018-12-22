@@ -13,7 +13,6 @@ import (
 // NodeGroupResourceSet stores the resource information of the node group
 type NodeGroupResourceSet struct {
 	rs               *resourceSet
-	id               int
 	clusterSpec      *api.ClusterConfig
 	spec             *api.NodeGroup
 	clusterStackName string
@@ -24,15 +23,14 @@ type NodeGroupResourceSet struct {
 	userData         *gfn.Value
 }
 
-// NewNodeGroupResourceSet returns a resource set for the new node group
-func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
+// NewNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
+func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
-		id:               id,
 		clusterStackName: clusterStackName,
-		nodeGroupName:    fmt.Sprintf("%s-%d", spec.Metadata.Name, id),
+		nodeGroupName:    ng.Name,
 		clusterSpec:      spec,
-		spec:             spec.NodeGroups[id],
+		spec:             ng,
 	}
 }
 
@@ -46,7 +44,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
 
-	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.id)
+	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
 		return err
 	}
@@ -154,7 +152,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxSize),
 			"VPCZoneIdentifier":       vpcZoneIdentifier,
 			"Tags": []map[string]interface{}{
-				{"Key": "Name", "Value": fmt.Sprintf("%s-Node", n.nodeGroupName), "PropagateAtLaunch": "true"},
+				{"Key": "Name", "Value": fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName), "PropagateAtLaunch": "true"},
 				{"Key": "kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name, "Value": "owned", "PropagateAtLaunch": "true"},
 			},
 		},

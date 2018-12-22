@@ -24,6 +24,7 @@ var (
 
 	// Flags to help with the development of the integration tests
 	clusterName    string
+	nodegroupName  string
 	doCreate       bool
 	doDelete       bool
 	kubeconfigPath string
@@ -36,6 +37,7 @@ func init() {
 
 	// Flags to help with the development of the integration tests
 	flag.StringVar(&clusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
+	flag.StringVar(&nodegroupName, "eksctl.nodegroup", "", "Nodegroup name (default: generate one)")
 	flag.BoolVar(&doCreate, "eksctl.create", true, "Skip the creation tests. Useful for debugging the tests")
 	flag.BoolVar(&doDelete, "eksctl.delete", true, "Skip the cleanup after the tests have run")
 	flag.StringVar(&kubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create it a temporary file)")

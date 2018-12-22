@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
-	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -176,22 +176,28 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
-	newClusterConfig := func() *api.ClusterConfig {
+	newClusterConfigAndNodegroup := func() (*api.ClusterConfig, *api.NodeGroup) {
 		cfg := api.NewClusterConfig()
 		ng := cfg.NewNodeGroup()
 
 		cfg.Metadata.Region = "us-west-2"
 		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
+		ng.Name = "ng-abcd1234"
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
 
 		*cfg.VPC.CIDR = api.DefaultCIDR()
 
+		return cfg, ng
+	}
+
+	newClusterConfig := func() *api.ClusterConfig {
+		cfg, _ := newClusterConfigAndNodegroup()
 		return cfg
 	}
 
-	p := testutils.NewMockProvider()
+	p := mockprovider.NewMockProvider()
 
 	{
 		joinCompare := func(input *ec2.DescribeSubnetsInput, compare string) bool {
@@ -250,6 +256,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					AMI:               "",
 					AMIFamily:         "AmazonLinux2",
 					InstanceType:      "t2.medium",
+					Name:              "ng-abcd1234",
 					PrivateNetworking: false,
 				},
 			},
@@ -300,9 +307,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("AutoNameTag", func() {
-		cfg := newClusterConfig()
+		cfg, ng := newClusterConfigAndNodegroup()
+		cfg.CertificateAuthorityData = []byte("MyCA")
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
 
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
@@ -347,9 +355,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
 		ng.InstanceType = "t2.medium"
+		ng.Name = "ng-abcd1234"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
-		rs.AddAllResources()
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		err := rs.AddAllResources()
+		It("should add all resources without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		template, err := rs.RenderJSON()
 		It("should serialise JSON without errors", func() {
@@ -365,7 +377,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(len(obj.Resources)).ToNot(Equal(0))
 			Expect(len(obj.Resources["NodeGroup"].Properties.Tags)).To(Equal(2))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].Key).To(Equal("Name"))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].Value).To(Equal(clusterName + "-0-Node"))
+			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].Value).To(Equal(clusterName + "-ng-abcd1234-Node"))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].PropagateAtLaunch).To(Equal("true"))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Key).To(Equal("kubernetes.io/cluster/" + clusterName))
 			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Value).To(Equal("owned"))
@@ -374,7 +386,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("NodeGroupAutoScaling", func() {
-		cfg := newClusterConfig()
+		cfg, ng := newClusterConfigAndNodegroup()
+		cfg.CertificateAuthorityData = []byte("MyCA")
 
 		cfg.Addons = api.ClusterAddons{
 			WithIAM: api.AddonIAM{
@@ -382,8 +395,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 		}
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
-		rs.AddAllResources()
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		err := rs.AddAllResources()
+		It("should add all resources without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		template, err := rs.RenderJSON()
 		It("should serialise JSON without errors", func() {
@@ -419,13 +435,17 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.Metadata.Region = "us-west-2"
 		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
+		cfg.CertificateAuthorityData = []byte("MyCA")
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = true
 		ng.AMIFamily = "AmazonLinux2"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-private-ng", 0)
-		rs.AddAllResources()
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-private-ng", ng)
+		err := rs.AddAllResources()
+		It("should add all resources without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		template, err := rs.RenderJSON()
 		It("should serialise JSON without errors", func() {
@@ -477,18 +497,23 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.Metadata.Region = "us-west-2"
 		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
+		cfg.CertificateAuthorityData = []byte("MyCA")
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
 		ng.AMIFamily = "AmazonLinux2"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", 0)
-		rs.AddAllResources()
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", ng)
+		err := rs.AddAllResources()
+		It("should add all resources without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		template, err := rs.RenderJSON()
 		It("should serialise JSON without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
+
 		obj := Template{}
 		It("should parse JSON withon errors", func() {
 			err := json.Unmarshal(template, &obj)
@@ -567,6 +592,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				},
 			},
 		}
+		cfg.CertificateAuthorityData = []byte("MyCA")
 		ng.AvailabilityZones = []string{testAZs[1]}
 		ng.AllowSSH = false
 		ng.InstanceType = "t2.medium"
@@ -577,8 +603,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.AvailabilityZones).To(Equal([]string{"us-west-2a"}))
 		})
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", 0)
-		rs.AddAllResources()
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", ng)
+		err := rs.AddAllResources()
+		It("should add all resources without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		template, err := rs.RenderJSON()
 		It("should serialise JSON without errors", func() {
@@ -649,7 +678,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	}
 
 	Describe("UserData - AmazonLinux2", func() {
-		cfg := newClusterConfig()
+		cfg, ng := newClusterConfigAndNodegroup()
 
 		var c *cloudconfig.CloudConfig
 
@@ -660,8 +689,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.CertificateAuthorityData = caCertData
 		cfg.NodeGroups[0].InstanceType = "m5.large"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
-		rs.AddAllResources()
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		err = rs.AddAllResources()
+		It("should add all resources without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		template, err := rs.RenderJSON()
 		It("should serialise JSON without errors", func() {
@@ -691,6 +723,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"MAX_PODS=29",
 				"CLUSTER_DNS=10.100.0.10",
+				"NODE_LABELS=",
 			}))
 
 			kubeletDropInUnit := getFile(c, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -713,7 +746,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("UserData - Ubuntu1804", func() {
-		cfg := newClusterConfig()
+		cfg, ng := newClusterConfigAndNodegroup()
 
 		var c *cloudconfig.CloudConfig
 
@@ -726,8 +759,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.NodeGroups[0].AMIFamily = "Ubuntu1804"
 		cfg.NodeGroups[0].InstanceType = "m5.large"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", 0)
-		rs.AddAllResources()
+		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		err = rs.AddAllResources()
+		It("should add all resources without errors", func() {
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 
 		template, err := rs.RenderJSON()
 		It("should serialise JSON without errors", func() {
@@ -763,6 +799,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"MAX_PODS=29",
 				"CLUSTER_DNS=172.20.0.10",
+				"NODE_LABELS=",
 			}))
 
 			kubeconfig := getFile(c, "/etc/eksctl/kubeconfig.yaml")

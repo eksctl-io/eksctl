@@ -23,6 +23,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	}
 
 	cmd.AddCommand(deleteClusterCmd(g))
+	cmd.AddCommand(deleteNodeGroupCmd(g))
 
 	return cmd
 }

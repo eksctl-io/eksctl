@@ -69,10 +69,10 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	return nil
 }
 
-func makeClientConfigData(spec *api.ClusterConfig, nodeGroupID int) ([]byte, error) {
+func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
 	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
 	authenticator := kubeconfig.AWSIAMAuthenticator
-	if spec.NodeGroups[nodeGroupID].AMIFamily == ami.ImageFamilyUbuntu1804 {
+	if ng.AMIFamily == ami.ImageFamilyUbuntu1804 {
 		authenticator = kubeconfig.HeptioAuthenticatorAWS
 	}
 	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator)
@@ -92,15 +92,16 @@ func clusterDNS(spec *api.ClusterConfig) string {
 	return "10.100.0.10"
 }
 
-func makeKubeletParams(spec *api.ClusterConfig, nodeGroupID int) []string {
-	ng := spec.NodeGroups[nodeGroupID]
+func makeKubeletParamsCommon(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
 	if ng.MaxPodsPerNode == 0 {
 		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
 	}
+
 	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
 	return []string{
 		fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode),
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec)),
+		fmt.Sprintf("NODE_LABELS=%s", ng.Labels),
 	}
 }
 
@@ -113,12 +114,12 @@ func makeMetadata(spec *api.ClusterConfig) []string {
 }
 
 // NewUserData creates new user data for a given node image family
-func NewUserData(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
-	switch spec.NodeGroups[nodeGroupID].AMIFamily {
+func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
+	switch ng.AMIFamily {
 	case ami.ImageFamilyAmazonLinux2:
-		return NewUserDataForAmazonLinux2(spec, nodeGroupID)
+		return NewUserDataForAmazonLinux2(spec, ng)
 	case ami.ImageFamilyUbuntu1804:
-		return NewUserDataForUbuntu1804(spec, nodeGroupID)
+		return NewUserDataForUbuntu1804(spec, ng)
 	default:
 		return "", nil
 	}

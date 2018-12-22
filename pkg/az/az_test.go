@@ -5,21 +5,20 @@ import (
 
 	. "github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/testutils"
-
 	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 var _ = Describe("AZ", func() {
 
 	Describe("When calling SelectZones", func() {
 		var (
-			p   *testutils.MockProvider
+			p   *mockprovider.MockProvider
 			err error
 		)
 
@@ -249,8 +248,8 @@ var _ = Describe("AZ", func() {
 	})
 })
 
-func createProviders() (*eks.ClusterProvider, *testutils.MockProvider) {
-	p := testutils.NewMockProvider()
+func createProviders() (*eks.ClusterProvider, *mockprovider.MockProvider) {
+	p := mockprovider.NewMockProvider()
 
 	c := &eks.ClusterProvider{
 		Provider: p,

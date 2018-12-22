@@ -3,8 +3,8 @@ package manager
 import (
 	"bytes"
 	"fmt"
+	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -18,23 +18,39 @@ const (
 	desiredCapacityPath = "Resources.NodeGroup.Properties.DesiredCapacity"
 	maxSizePath         = "Resources.NodeGroup.Properties.MaxSize"
 	minSizePath         = "Resources.NodeGroup.Properties.MinSize"
+	instanceTypePath    = "Resources.NodeLaunchConfig.Properties.InstanceType"
+	imageIDPath         = "Resources.NodeLaunchConfig.Properties.ImageId"
 )
 
-func (c *StackCollection) makeNodeGroupStackName(id int) string {
-	return fmt.Sprintf("eksctl-%s-nodegroup-%d", c.spec.Metadata.Name, id)
+// NodeGroupSummary represents a summary of a nodegroup stack
+type NodeGroupSummary struct {
+	StackName       string
+	Cluster         string
+	Name            string
+	MaxSize         int
+	MinSize         int
+	DesiredCapacity int
+	InstanceType    string
+	ImageID         string
+	CreationTime    *time.Time
+}
+
+// MakeNodeGroupStackName generates the name of the node group identified by its ID, isolated by the cluster this StackCollection operates on
+func (c *StackCollection) MakeNodeGroupStackName(name string) string {
+	return fmt.Sprintf("eksctl-%s-nodegroup-%s", c.spec.Metadata.Name, name)
 }
 
 // CreateNodeGroup creates the nodegroup
 func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) error {
 	ng := data.(*api.NodeGroup)
-	name := c.makeNodeGroupStackName(ng.ID)
+	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("creating nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
+	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
 
-	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", ng.ID)))
+	c.tags = append(c.tags, newTag(NodeGroupNameTag, fmt.Sprintf("%s", ng.Name)))
 
 	for k, v := range ng.Tags {
 		c.tags = append(c.tags, newTag(k, v))
@@ -44,7 +60,7 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 }
 
 func (c *StackCollection) listAllNodeGroups() ([]string, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-\\d$", c.spec.Metadata.Name))
+	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-.+$", c.spec.Metadata.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +69,7 @@ func (c *StackCollection) listAllNodeGroups() ([]string, error) {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
-		stackNames = append(stackNames, *s.StackName)
+		stackNames = append(stackNames, getNodeGroupName(s.Tags))
 	}
 	logger.Debug("nodegroups = %v", stackNames)
 	return stackNames, nil
@@ -63,32 +79,33 @@ func (c *StackCollection) listAllNodeGroups() ([]string, error) {
 func (c *StackCollection) DeleteNodeGroup(errs chan error, data interface{}) error {
 	defer close(errs)
 	name := data.(string)
-	_, err := c.DeleteStack(name)
-	return err
+	stack := c.MakeNodeGroupStackName(name)
+	_, err := c.DeleteStack(stack)
+	errs <- err
+	return nil
 }
 
 // WaitDeleteNodeGroup waits until the nodegroup is deleted
 func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
-	defer close(errs)
 	name := data.(string)
-	return c.WaitDeleteStack(name)
+	stack := c.MakeNodeGroupStackName(name)
+	return c.WaitDeleteStackTask(stack, errs)
 }
 
 // ScaleInitialNodeGroup will scale the first nodegroup (ID: 0)
 func (c *StackCollection) ScaleInitialNodeGroup() error {
-	return c.ScaleNodeGroup(0)
+	return c.ScaleNodeGroup(c.spec.NodeGroups[0])
 }
 
 // ScaleNodeGroup will scale an existing nodegroup
-func (c *StackCollection) ScaleNodeGroup(id int) error {
-	ng := c.spec.NodeGroups[id]
+func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.ClusterStackName = clusterName
-	name := c.makeNodeGroupStackName(id)
+	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	// Get current stack
-	template, err := c.getStackTemplate(name)
+	template, err := c.GetStackTemplate(name)
 	if err != nil {
 		return errors.Wrapf(err, "error getting stack template %s", name)
 	}
@@ -136,15 +153,72 @@ func (c *StackCollection) ScaleNodeGroup(id int) error {
 	return c.UpdateStack(name, "scale-nodegroup", descriptionBuffer.String(), []byte(template), nil)
 }
 
-func (c *StackCollection) getStackTemplate(stackName string) (string, error) {
-	input := &cfn.GetTemplateInput{
-		StackName: aws.String(stackName),
-	}
-
-	output, err := c.provider.CloudFormation().GetTemplate(input)
+// GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster
+func (c *StackCollection) GetNodeGroupSummaries() ([]*NodeGroupSummary, error) {
+	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-.+$", c.spec.Metadata.Name))
 	if err != nil {
-		return "", err
+		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
 
-	return *output.TemplateBody, nil
+	summaries := []*NodeGroupSummary{}
+	for _, stack := range stacks {
+		logger.Info("stack %s\n", *stack.StackName)
+		logger.Debug("stack = %#v", stack)
+
+		summary, err := c.mapStackToNodeGroupSummary(stack)
+		if err != nil {
+			return nil, errors.New("error mapping stack to node gorup summary")
+		}
+
+		summaries = append(summaries, summary)
+	}
+
+	return summaries, nil
+}
+
+func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSummary, error) {
+	template, err := c.GetStackTemplate(*stack.StackName)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
+	}
+
+	cluster := getClusterName(stack.Tags)
+	name := getNodeGroupName(stack.Tags)
+	maxSize := gjson.Get(template, maxSizePath)
+	minSize := gjson.Get(template, minSizePath)
+	desired := gjson.Get(template, desiredCapacityPath)
+	instanceType := gjson.Get(template, instanceTypePath)
+	imageID := gjson.Get(template, imageIDPath)
+
+	summary := &NodeGroupSummary{
+		StackName:       *stack.StackName,
+		Cluster:         cluster,
+		Name:            name,
+		MaxSize:         int(maxSize.Int()),
+		MinSize:         int(minSize.Int()),
+		DesiredCapacity: int(desired.Int()),
+		InstanceType:    instanceType.String(),
+		ImageID:         imageID.String(),
+		CreationTime:    stack.CreationTime,
+	}
+
+	return summary, nil
+}
+
+func getNodeGroupName(tags []*cfn.Tag) string {
+	for _, tag := range tags {
+		if *tag.Key == NodeGroupNameTag {
+			return *tag.Value
+		}
+	}
+	return ""
+}
+
+func getClusterName(tags []*cfn.Tag) string {
+	for _, tag := range tags {
+		if *tag.Key == ClusterNameTag {
+			return *tag.Value
+		}
+	}
+	return ""
 }

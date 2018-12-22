@@ -168,12 +168,32 @@ To delete a cluster, run:
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
 
-### Scaling nodegroup
+### Managing nodegroups
 
-The initial nodegroup can be scaled by using the `eksctl scale nodegroup` command. For example, to scale to 5 nodes:
+You can add one or more nodegroups in addition to the initial nodegroup created along with the cluster.
+
+To create an additional nodegroup, run:
 
 ```
-eksctl scale nodegroup --name=<name> --nodes=5
+eksctl create nodegroup --cluster=<cluser name>
+```
+
+To list the details about a nodegroup or all of the nodegroups, use:
+
+```
+eksctl get nodegroup --cluster=<cluster name> [<nodegroup name>]
+```
+
+A nodegroup can be scaled by using the `eksctl scale nodegroup` command:
+
+```
+eksctl delete nodegroup --cluster=<cluster name> --nodes=<desired count> <nodegroup name>
+```
+
+For example, to scale the nodegroup `ng-abcd1234` to 5 nodes:
+
+```
+eksctl scale nodegroup --cluster=<cluster name> --nodes=5 ng-abcd1234
 ```
 
 If the desired number of nodes is greater than the current maximum set on the ASG then the maximum value will be increased to match the number of requested nodes. And likewise for the minimum.
@@ -181,6 +201,12 @@ If the desired number of nodes is greater than the current maximum set on the AS
 Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a ChangeSet.
 
 > NOTE: Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+
+To delete a nodegroup, run:
+
+```
+eksctl delete nodegroup --cluster=<cluster name> <nodegroup name>
+```
 
 ### VPC Networking
 

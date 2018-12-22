@@ -261,6 +261,16 @@ func (c *StackCollection) doWaitUntilStackIsDeleted(i *Stack) error {
 	)
 }
 
+func (c *StackCollection) waitUntilStackIsDeleted(i *Stack, errs chan error) {
+	defer close(errs)
+
+	if err := c.doWaitUntilStackIsDeleted(i); err != nil {
+		errs <- err
+		return
+	}
+	errs <- nil
+}
+
 func (c *StackCollection) doWaitUntilStackIsUpdated(i *Stack) error {
 	return c.waitWithAcceptors(i,
 		makeAcceptors(
