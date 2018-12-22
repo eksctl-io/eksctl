@@ -41,6 +41,8 @@ func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 	})
 
+	group.AddTo(cmd)
+
 	return cmd
 }
 

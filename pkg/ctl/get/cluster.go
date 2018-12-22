@@ -43,6 +43,8 @@ func getClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
 	})
 
+	group.AddTo(cmd)
+
 	return cmd
 }
 
