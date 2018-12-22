@@ -46,7 +46,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	})
 
 	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup. Defaults to \"ng-<ID>\"")
+		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup. Defaults to \"ng-<random string>\"")
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 

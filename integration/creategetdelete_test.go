@@ -68,6 +68,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 	})
 
 	Describe("when creating a cluster with 1 node", func() {
+		firstNgName := "ng-0"
 		It("should not return an error", func() {
 			if !doCreate {
 				fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", clusterName)
@@ -83,6 +84,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			args := []string{"create", "cluster",
 				"--name", clusterName,
 				"--tags", "eksctl.cluster.k8s.io/v1alpha1/description=eksctl integration test",
+				"--nodegroup", firstNgName,
 				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--region", region,
@@ -108,7 +110,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		It("should have the required cloudformation stacks", func() {
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-ng-%d", clusterName, 0)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", clusterName, firstNgName)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -190,7 +192,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "2",
-					"ng-0",
+					firstNgName,
 				}
 
 				command := exec.Command(eksctlPath, args...)
