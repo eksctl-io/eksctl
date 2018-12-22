@@ -40,6 +40,8 @@ func waitNodesCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 	})
 
+	group.AddTo(cmd)
+
 	return cmd
 }
 
