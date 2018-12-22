@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 func scaleNodeGroupCmd() *cobra.Command {
@@ -19,7 +20,10 @@ func scaleNodeGroupCmd() *cobra.Command {
 		Use:   "nodegroup NAME",
 		Short: "Scale a nodegroup",
 		RunE: func(_ *cobra.Command, args []string) error {
-			ng.Name = args[0]
+			name := cmdutils.GetNameArg(args)
+			if name != "" {
+				ng.Name = name
+			}
 			if err := doScaleNodeGroup(p, cfg, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)

@@ -16,13 +16,18 @@ import (
 func deleteNodeGroupCmd() *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
+	var nodegroupName string
 
 	cmd := &cobra.Command{
 		Use:   "nodegroup NAME",
 		Short: "Delete a nodegroup",
-		Args: cobra.MinimumNArgs(1),
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			if err := doDeleteNodeGroup(p, cfg, args[0]); err != nil {
+			name := cmdutils.GetNameArg(args)
+			if name != "" {
+				nodegroupName = name
+			}
+			if err := doDeleteNodeGroup(p, cfg, nodegroupName); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}

@@ -58,6 +58,9 @@ func (c *ClusterProvider) CreateNodeGroupAuthConfigMap(clientSet *clientset.Clie
 // AddNodeGroupToAuthConfigMap updates the auth config map to include the node group
 func (c *ClusterProvider) AddNodeGroupToAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
 	cm, err := clientSet.CoreV1().ConfigMaps("kube-system").Get("aws-auth", metav1.GetOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "failed getting auth ConfigMap for %s", ng.Name)
+	}
 
 	mapRoles := []map[string]interface{}{}
 
@@ -82,7 +85,7 @@ func (c *ClusterProvider) AddNodeGroupToAuthConfigMap(clientSet *clientset.Clien
 	cm.Data["mapRoles"] = string(mapRolesBytes)
 
 	if _, err := clientSet.CoreV1().ConfigMaps("kube-system").Update(cm); err != nil {
-		return errors.Wrapf(err, "updating auth ConfigMap for %d", ng.ID)
+		return errors.Wrapf(err, "updating auth ConfigMap for %s", ng.Name)
 	}
 	return nil
 }

@@ -217,8 +217,6 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 
 	logger.Info("creating %s", meta.LogString())
 
-	ng.Name = fmt.Sprintf("ng-%d", 0)
-
 	{ // core action
 		stackManager := ctl.NewStackManager(cfg)
 		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")

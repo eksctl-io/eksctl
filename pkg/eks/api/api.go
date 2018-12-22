@@ -169,8 +169,12 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 // NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
+	id := len(c.NodeGroups)
+	name := fmt.Sprintf("ng-%d", id)
 	ng := &NodeGroup{
-		ID:                len(c.NodeGroups),
+		ID:   id,
+		Name: name,
+
 		PrivateNetworking: false,
 	}
 

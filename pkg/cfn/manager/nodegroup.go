@@ -82,8 +82,8 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	return c.CreateStack(name, stack, nil, errs)
 }
 
-func (c *StackCollection) listAllNodeGroupStacks() ([]string, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-\\d$", c.spec.Metadata.Name))
+func (c *StackCollection) listAllNodeGroups() ([]string, error) {
+	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-.+$", c.spec.Metadata.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (c *StackCollection) listAllNodeGroupStacks() ([]string, error) {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
-		stackNames = append(stackNames, *s.StackName)
+		stackNames = append(stackNames, getNodeGroupName(s.Tags))
 	}
 	logger.Debug("nodegroups = %v", stackNames)
 	return stackNames, nil
@@ -100,15 +100,19 @@ func (c *StackCollection) listAllNodeGroupStacks() ([]string, error) {
 
 // DeleteNodeGroup deletes a nodegroup stack
 func (c *StackCollection) DeleteNodeGroup(errs chan error, data interface{}) error {
+	defer close(errs)
 	name := data.(string)
-	_, err := c.DeleteStack(name)
-	return err
+	stack := c.MakeNodeGroupStackName(name)
+	_, err := c.DeleteStack(stack)
+	errs <- err
+	return nil
 }
 
 // WaitDeleteNodeGroup waits until the nodegroup is deleted
 func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
 	name := data.(string)
-	return c.WaitDeleteStack(name)
+	stack := c.MakeNodeGroupStackName(name)
+	return c.WaitDeleteStackTask(stack, errs)
 }
 
 // ScaleInitialNodeGroup will scale the first nodegroup (ID: 0)

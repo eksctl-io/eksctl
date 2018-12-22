@@ -106,7 +106,7 @@ func (s *StackCollection) CreateNodeGroups() []error {
 // deleteAllNodeGroupsTasks returns a list of tasks for deleting all the
 // nodegroup stacks
 func (s *StackCollection) deleteAllNodeGroupsTasks(call func(chan error, interface{}) error) ([]task, error) {
-	stacks, err := s.listAllNodeGroupStacks()
+	stacks, err := s.listAllNodeGroups()
 	if err != nil {
 		return nil, err
 	}
