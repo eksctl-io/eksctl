@@ -25,7 +25,7 @@ import (
 func (c *ClusterProvider) getKeyPairName(clusterName string, ng *api.NodeGroup, fingerprint *string) string {
 	keyNameParts := []string{"eksctl", clusterName}
 	if ng != nil {
-		keyNameParts = append(keyNameParts, fmt.Sprintf("ng%d", ng.ID))
+		keyNameParts = append(keyNameParts, fmt.Sprintf("nodegroup-%s", ng.Name))
 	}
 	if fingerprint != nil {
 		keyNameParts = append(keyNameParts, *fingerprint)

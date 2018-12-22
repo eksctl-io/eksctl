@@ -13,7 +13,6 @@ import (
 // NodeGroupResourceSet stores the resource information of the node group
 type NodeGroupResourceSet struct {
 	rs               *resourceSet
-	id               int
 	clusterSpec      *api.ClusterConfig
 	spec             *api.NodeGroup
 	clusterStackName string
@@ -25,14 +24,13 @@ type NodeGroupResourceSet struct {
 }
 
 // NewEmbeddedNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
-func NewEmbeddedNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, id int) *NodeGroupResourceSet {
+func NewEmbeddedNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
-		id:               id,
 		clusterStackName: clusterStackName,
-		nodeGroupName:    fmt.Sprintf("%s-%d", spec.Metadata.Name, id),
+		nodeGroupName:    ng.Name,
 		clusterSpec:      spec,
-		spec:             spec.NodeGroups[id],
+		spec:             ng,
 	}
 }
 
@@ -40,9 +38,8 @@ func NewEmbeddedNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName s
 func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
-		id:               ng.ID,
 		clusterStackName: clusterStackName,
-		nodeGroupName:    fmt.Sprintf("%s-%d", spec.Metadata.Name, ng.ID),
+		nodeGroupName:    ng.Name,
 		clusterSpec:      spec,
 		spec:             ng,
 	}
@@ -166,7 +163,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxSize),
 			"VPCZoneIdentifier":       vpcZoneIdentifier,
 			"Tags": []map[string]interface{}{
-				{"Key": "Name", "Value": fmt.Sprintf("%s-Node", n.nodeGroupName), "PropagateAtLaunch": "true"},
+				{"Key": "Name", "Value": fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName), "PropagateAtLaunch": "true"},
 				{"Key": "kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name, "Value": "owned", "PropagateAtLaunch": "true"},
 			},
 		},

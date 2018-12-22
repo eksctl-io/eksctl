@@ -3,7 +3,6 @@ package manager
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"time"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -25,7 +24,6 @@ const (
 
 // NodeGroupSummary represents a summary of a nodegroup stack
 type NodeGroupSummary struct {
-	Seq             int
 	StackName       string
 	Cluster         string
 	Name            string
@@ -47,12 +45,11 @@ func (c *StackCollection) CreateEmbeddedNodeGroup(errs chan error, data interfac
 	ng := data.(*api.NodeGroup)
 	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("creating nodegroup stack %q", name)
-	stack := builder.NewEmbeddedNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng.ID)
+	stack := builder.NewEmbeddedNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
 
-	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", ng.ID)))
 	c.tags = append(c.tags, newTag(NodeGroupNameTag, fmt.Sprintf("%s", ng.Name)))
 
 	for k, v := range ng.Tags {
@@ -72,7 +69,6 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 		return err
 	}
 
-	c.tags = append(c.tags, newTag(NodeGroupIDTag, fmt.Sprintf("%d", ng.ID)))
 	c.tags = append(c.tags, newTag(NodeGroupNameTag, fmt.Sprintf("%s", ng.Name)))
 
 	for k, v := range ng.Tags {
@@ -205,7 +201,6 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
 	}
 
-	seq := getNodeGroupID(stack.Tags)
 	cluster := getClusterName(stack.Tags)
 	name := getNodeGroupName(stack.Tags)
 	maxSize := gjson.Get(template, maxSizePath)
@@ -215,7 +210,6 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 	imageID := gjson.Get(template, imageIDPath)
 
 	summary := &NodeGroupSummary{
-		Seq:             seq,
 		StackName:       *stack.StackName,
 		Cluster:         cluster,
 		Name:            name,
@@ -228,33 +222,6 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 	}
 
 	return summary, nil
-}
-
-// GetMaxNodeGroupSeq returns the sequence number og the highest node group
-func (c *StackCollection) GetMaxNodeGroupSeq() (int, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-.+$", c.spec.Metadata.Name))
-	if err != nil {
-		return -1, errors.Wrap(err, "getting nodegroup stacks")
-	}
-	seq := -1
-	for _, stack := range stacks {
-		stackSeq := getNodeGroupID(stack.Tags)
-		if stackSeq > seq {
-			seq = stackSeq
-		}
-	}
-	logger.Debug("stacks = %v", stacks)
-	return seq, nil
-}
-
-func getNodeGroupID(tags []*cfn.Tag) int {
-	for _, tag := range tags {
-		if *tag.Key == NodeGroupIDTag {
-			i, _ := strconv.Atoi(*tag.Value)
-			return i
-		}
-	}
-	return -1
 }
 
 func getNodeGroupName(tags []*cfn.Tag) string {

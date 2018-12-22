@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"strings"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -109,25 +110,20 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 
 	{
 		stackManager := ctl.NewStackManager(cfg)
-		maxSeq, err := stackManager.GetMaxNodeGroupSeq()
-		if err != nil {
-			return err
-		}
-		ng.ID = maxSeq + 1
 		if ng.Name == "" {
-			ng.Name = fmt.Sprintf("ng-%d", ng.ID)
+			ng.Name = utils.NodegroupName()
 		}
 		logger.Info("will create a Cloudformation stack for nodegroup %s for cluster %s", ng.Name, cfg.Metadata.Name)
 		errs := stackManager.RunTask(stackManager.CreateNodeGroup, ng)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroup hasn't been created properly, you may wish to check CloudFormation console", len(errs))
-			logger.Info("to cleanup resources, run 'eksctl delete nodegroup %d --region=%s --name=%s'", ng.ID, cfg.Metadata.Region, cfg.Metadata.Name)
+			logger.Info("to cleanup resources, run 'eksctl delete nodegroup %s --region=%s --name=%s'", ng.Name, cfg.Metadata.Region, cfg.Metadata.Name)
 			for _, err := range errs {
 				if err != nil {
 					logger.Critical("%s\n", err.Error())
 				}
 			}
-			return fmt.Errorf("failed to create nodegroup %d for cluster %q", ng.ID, cfg.Metadata.Name)
+			return fmt.Errorf("failed to create nodegroup %s for cluster %q", ng.Name, cfg.Metadata.Name)
 		}
 	}
 
@@ -154,7 +150,7 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 			return err
 		}
 	}
-	logger.Success("EKS cluster %q in %q region has a new nodegroup with with id %d", cfg.Metadata.Name, cfg.Metadata.Region, ng.ID)
+	logger.Success("EKS cluster %q in %q region has a new nodegroup with name %d", cfg.Metadata.Name, cfg.Metadata.Region, ng.Name)
 
 	return nil
 
