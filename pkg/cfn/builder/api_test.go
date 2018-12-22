@@ -36,7 +36,7 @@ const (
 
 type Template struct {
 	Description string
-	Resources   map[string]struct {
+	Resources map[string]struct {
 		Properties struct {
 			Tags []struct {
 				Key   interface{}
@@ -44,7 +44,7 @@ type Template struct {
 
 				PropagateAtLaunch string
 			}
-			UserData       string
+			UserData string
 			PolicyDocument struct {
 				Statement []struct {
 					Action   []string
@@ -250,6 +250,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					AMI:               "",
 					AMIFamily:         "AmazonLinux2",
 					InstanceType:      "t2.medium",
+					Name:              "ng-0",
 					PrivateNetworking: false,
 				},
 			},
