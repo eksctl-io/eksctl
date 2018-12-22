@@ -69,11 +69,11 @@ func main() {
 }
 
 func addCommands(g *cmdutils.Grouping) {
-	rootCmd.AddCommand(versionCmd())
+	rootCmd.AddCommand(versionCmd(g))
 	rootCmd.AddCommand(create.Command(g))
-	rootCmd.AddCommand(delete.Command())
-	rootCmd.AddCommand(get.Command())
-	rootCmd.AddCommand(scale.Command())
-	rootCmd.AddCommand(utils.Command())
+	rootCmd.AddCommand(delete.Command(g))
+	rootCmd.AddCommand(get.Command(g))
+	rootCmd.AddCommand(scale.Command(g))
+	rootCmd.AddCommand(utils.Command(g))
 	rootCmd.AddCommand(completion.Command(rootCmd))
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -13,7 +14,7 @@ import (
 
 var listAllRegions bool
 
-func getClusterCmd() *cobra.Command {
+func getClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 
@@ -29,16 +30,18 @@ func getClusterCmd() *cobra.Command {
 		},
 	}
 
-	fs := cmd.Flags()
+	group := g.New(cmd)
 
-	fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
-	fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
-	fs.IntVar(&chunkSize, "chunk-size", defaultChunkSize, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
+	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
+		fs.IntVar(&chunkSize, "chunk-size", defaultChunkSize, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
 
-	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-	fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
+		fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
+		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
-	fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
+		fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
+	})
 
 	return cmd
 }

@@ -3,10 +3,11 @@ package utils
 import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 // Command will create the `utils` commands
-func Command() *cobra.Command {
+func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "utils",
 		Short: "Various utils",
@@ -17,9 +18,9 @@ func Command() *cobra.Command {
 		},
 	}
 
-	cmd.AddCommand(waitNodesCmd())
-	cmd.AddCommand(writeKubeconfigCmd())
-	cmd.AddCommand(describeStacksCmd())
+	cmd.AddCommand(waitNodesCmd(g))
+	cmd.AddCommand(writeKubeconfigCmd(g))
+	cmd.AddCommand(describeStacksCmd(g))
 
 	return cmd
 }
