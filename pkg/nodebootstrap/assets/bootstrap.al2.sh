@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 
-echo "NODE_IP=$(hostname -i)" > /etc/eksctl/kubelet.local.env
+echo "NODE_IP=$(curl 169.254.169.254/latest/meta-data/local-ipv4)" > /etc/eksctl/kubelet.local.env
 
 systemctl daemon-reload
 systemctl enable kubelet
