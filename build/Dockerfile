@@ -24,6 +24,6 @@ RUN dep ensure
 RUN ./install.sh
 
 WORKDIR $EKSCTL_BUILD/vendor/github.com/goreleaser/goreleaser
-RUN make build && go install
+RUN CGO_ENABLED=0 make build && go install
 
 WORKDIR $GOPATH
