@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 
-echo "NODE_IP=$(curl 169.254.169.254/latest/meta-data/local-ipv4)" > /etc/eksctl/kubelet.local.env
+echo "NODE_IP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)" > /etc/eksctl/kubelet.local.env
 
 snap alias kubelet-eks.kubelet kubelet
 snap alias kubectl-eks.kubectl kubectl
