@@ -50,6 +50,11 @@ func newKubeTest() (*harness.Test, error) {
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
+	const (
+		initNG = "ng-0"
+		testNG = "ng-1"
+	)
+
 	BeforeSuite(func() {
 		kubeconfigTemp = false
 		if kubeconfigPath == "" {
@@ -68,7 +73,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 	})
 
 	Describe("when creating a cluster with 1 node", func() {
-		firstNgName := "ng-0"
 		It("should not return an error", func() {
 			if !doCreate {
 				fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", clusterName)
@@ -84,7 +88,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			args := []string{"create", "cluster",
 				"--name", clusterName,
 				"--tags", "eksctl.cluster.k8s.io/v1alpha1/description=eksctl integration test",
-				"--nodegroup", firstNgName,
+				"--nodegroup-name", initNG,
+				"--node-labels", "ng-name=" + initNG,
 				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--region", region,
@@ -110,7 +115,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		It("should have the required cloudformation stacks", func() {
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", clusterName, firstNgName)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", clusterName, initNG)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -192,7 +197,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "2",
-					firstNgName,
+					"--name", initNG,
 				}
 
 				command := exec.Command(eksctlPath, args...)
@@ -221,15 +226,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and add the second nodegroup", func() {
 			It("should not return an error", func() {
-				if nodegroupName == "" {
-					nodegroupName = "secondng"
-				}
-
 				args := []string{"create", "nodegroup",
 					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "1",
-					nodegroupName,
+					testNG,
 				}
 
 				command := exec.Command(eksctlPath, args...)
@@ -260,7 +261,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					args := []string{"delete", "nodegroup",
 						"--cluster", clusterName,
 						"--region", region,
-						nodegroupName,
+						testNG,
 					}
 
 					command := exec.Command(eksctlPath, args...)

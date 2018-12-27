@@ -1,6 +1,7 @@
 package scale
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -18,18 +19,13 @@ func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
-		Use:   "nodegroup NAME",
+		Use:   "nodegroup",
 		Short: "Scale a nodegroup",
-		RunE: func(_ *cobra.Command, args []string) error {
-			name := cmdutils.GetNameArg(args)
-			if name != "" {
-				ng.Name = name
-			}
-			if err := doScaleNodeGroup(p, cfg, ng); err != nil {
+		Run: func(_ *cobra.Command, args []string) {
+			if err := doScaleNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
-			return nil
 		},
 	}
 
@@ -37,25 +33,21 @@ func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
 
 		fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
 
-		fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
-
-		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+		cmdutils.AddRegionFlag(fs, p)
 	})
 
-	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup. Generated if unset, e.g. \"ng-a345f4\"")
-	})
+	cmdutils.AddCommonFlagsForAWS(group, p, false)
 
 	group.AddTo(cmd)
 
 	return cmd
 }
 
-func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) error {
+func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -63,7 +55,19 @@ func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 	}
 
 	if cfg.Metadata.Name == "" {
-		return fmt.Errorf("no cluster name supplied. Use the --name= flag")
+		return errors.New("--cluster must be set")
+	}
+
+	if ng.Name != "" && nameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	}
+
+	if nameArg != "" {
+		ng.Name = nameArg
+	}
+
+	if ng.Name == "" {
+		return fmt.Errorf("--name must be set")
 	}
 
 	if ng.DesiredCapacity < 0 {

@@ -3,6 +3,7 @@ package manager
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"time"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -59,42 +60,42 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	return c.CreateStack(name, stack, nil, errs)
 }
 
-func (c *StackCollection) listAllNodeGroups() ([]string, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^eksctl-%s-nodegroup-.+$", c.spec.Metadata.Name))
+// DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
+func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
+	stacks, err := c.DescribeStacks()
 	if err != nil {
 		return nil, err
 	}
-	stackNames := []string{}
+
 	for _, s := range stacks {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
-		stackNames = append(stackNames, getNodeGroupName(s.Tags))
+		if getNodeGroupName(s) != "" {
+			stacks = append(stacks, s)
+		}
 	}
-	logger.Debug("nodegroups = %v", stackNames)
-	return stackNames, nil
+	logger.Debug("nodegroups = %v", stacks)
+	return stacks, nil
 }
 
 // DeleteNodeGroup deletes a nodegroup stack
-func (c *StackCollection) DeleteNodeGroup(errs chan error, data interface{}) error {
-	defer close(errs)
-	name := data.(string)
-	stack := c.MakeNodeGroupStackName(name)
-	_, err := c.DeleteStack(stack)
-	errs <- err
-	return nil
+func (c *StackCollection) DeleteNodeGroup(name string) error {
+	name = c.MakeNodeGroupStackName(name)
+	_, err := c.DeleteStack(name)
+	return err
 }
 
 // WaitDeleteNodeGroup waits until the nodegroup is deleted
 func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
-	name := data.(string)
-	stack := c.MakeNodeGroupStackName(name)
-	return c.WaitDeleteStackTask(stack, errs)
+	name := c.MakeNodeGroupStackName(data.(string))
+	return c.WaitDeleteStack(name, errs)
 }
 
-// ScaleInitialNodeGroup will scale the first nodegroup (ID: 0)
-func (c *StackCollection) ScaleInitialNodeGroup() error {
-	return c.ScaleNodeGroup(c.spec.NodeGroups[0])
+// BlockingWaitDeleteNodeGroup waits until the nodegroup is deleted
+func (c *StackCollection) BlockingWaitDeleteNodeGroup(name string) error {
+	name = c.MakeNodeGroupStackName(name)
+	return c.BlockingWaitDeleteStack(name)
 }
 
 // ScaleNodeGroup will scale an existing nodegroup
@@ -154,23 +155,24 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 }
 
 // GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster
-func (c *StackCollection) GetNodeGroupSummaries() ([]*NodeGroupSummary, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-nodegroup-.+$", c.spec.Metadata.Name))
+func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummary, error) {
+	stacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
 
 	summaries := []*NodeGroupSummary{}
-	for _, stack := range stacks {
-		logger.Info("stack %s\n", *stack.StackName)
-		logger.Debug("stack = %#v", stack)
-
-		summary, err := c.mapStackToNodeGroupSummary(stack)
+	for _, s := range stacks {
+		summary, err := c.mapStackToNodeGroupSummary(s)
 		if err != nil {
-			return nil, errors.New("error mapping stack to node gorup summary")
+			return nil, errors.Wrap(err, "mapping stack to nodegorup summary")
 		}
 
-		summaries = append(summaries, summary)
+		if name == "" {
+			summaries = append(summaries, summary)
+		} else if summary.Name == name {
+			summaries = append(summaries, summary)
+		}
 	}
 
 	return summaries, nil
@@ -182,8 +184,8 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
 	}
 
-	cluster := getClusterName(stack.Tags)
-	name := getNodeGroupName(stack.Tags)
+	cluster := getClusterName(stack)
+	name := getNodeGroupName(stack)
 	maxSize := gjson.Get(template, maxSizePath)
 	minSize := gjson.Get(template, minSizePath)
 	desired := gjson.Get(template, desiredCapacityPath)
@@ -205,17 +207,23 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 	return summary, nil
 }
 
-func getNodeGroupName(tags []*cfn.Tag) string {
-	for _, tag := range tags {
+func getNodeGroupName(s *Stack) string {
+	for _, tag := range s.Tags {
 		if *tag.Key == NodeGroupNameTag {
 			return *tag.Value
 		}
+		if *tag.Key == oldNodeGroupIDTag {
+			return *tag.Value
+		}
+	}
+	if strings.HasSuffix(*s.StackName, "-DefaultNodeGroup") {
+		return "legacy-default"
 	}
 	return ""
 }
 
-func getClusterName(tags []*cfn.Tag) string {
-	for _, tag := range tags {
+func getClusterName(s *Stack) string {
+	for _, tag := range s.Tags {
 		if *tag.Key == ClusterNameTag {
 			return *tag.Value
 		}

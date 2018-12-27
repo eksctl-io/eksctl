@@ -99,12 +99,12 @@ func isNodeReady(node *corev1.Node) bool {
 	return false
 }
 
-func getNodes(clientSet *clientset.Clientset) (int, error) {
+func getNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) (int, error) {
 	nodes, err := clientSet.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		return 0, err
 	}
-	logger.Info("the cluster has %d nodes", len(nodes.Items))
+	logger.Info("nodegroup %q has %d nodes", ng.Name, len(nodes.Items))
 	for _, node := range nodes.Items {
 		// logger.Debug("node[%d]=%#v", n, node)
 		ready := "not ready"
@@ -128,7 +128,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 		return errors.Wrap(err, "creating node watcher")
 	}
 
-	counter, err := getNodes(clientSet)
+	counter, err := getNodes(clientSet, ng)
 	if err != nil {
 		return errors.Wrap(err, "listing nodes")
 	}
@@ -157,7 +157,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.Provider.WaitTimeout(), ng.MinSize)
 	}
 
-	if _, err = getNodes(clientSet); err != nil {
+	if _, err = getNodes(clientSet, ng); err != nil {
 		return errors.Wrap(err, "re-listing nodes")
 	}
 

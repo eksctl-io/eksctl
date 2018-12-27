@@ -3,14 +3,13 @@ package create
 import (
 	"fmt"
 	"os"
-
 	"strings"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -26,11 +25,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		Use:   "nodegroup",
 		Short: "Create a nodegroup",
 		Run: func(_ *cobra.Command, args []string) {
-			name := cmdutils.GetNameArg(args)
-			if name != "" {
-				ng.Name = name
-			}
-			if err := doAddNodeGroup(p, cfg, ng); err != nil {
+			if err := doCreateNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -39,26 +34,27 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group := g.New(cmd)
 
+	exampleNodeGroupName := utils.NodeGroupName("", "")
+
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "Name of the EKS cluster to add the nodegroup to")
+		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddCFNRoleARNFlag(fs, p)
 		fs.StringVar(&cfg.Metadata.Version, "version", api.LatestVersion, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ",")))
 	})
 
-	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup. Generated if unset, e.g. \"ng-a345f4\"")
+	group.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p)
+	cmdutils.AddCommonFlagsForAWS(group, p, true)
 
 	group.AddTo(cmd)
 
 	return cmd
 }
 
-func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) error {
+func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
 	ctl := eks.New(p, cfg)
 	meta := cfg.Metadata
 
@@ -72,14 +68,17 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 	}
 
 	if cfg.Metadata.Name == "" {
-		return errors.New("--cluster must be specified. run `eksctl get cluster` to show existing clusters")
+		return errors.New("--cluster must be set")
 	}
+
+	if utils.NodeGroupName(ng.Name, nameArg) == "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	}
+	ng.Name = utils.NodeGroupName(ng.Name, nameArg)
 
 	if ng.SSHPublicKeyPath == "" {
 		return fmt.Errorf("--ssh-public-key must be non-empty string")
 	}
-
-	//TODO:  do we need to do the AZ stuff from create????
 
 	if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 		return err
@@ -91,31 +90,14 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 
 	logger.Debug("cfg = %#v", cfg)
 
-	//TODO: is this check needed????
-	// Check the cluster exists and is active
-	eksCluster, err := ctl.DescribeControlPlane(cfg.Metadata)
-	if err != nil {
-		return err
-	}
-	if *eksCluster.Status != awseks.ClusterStatusActive {
-		return fmt.Errorf("cluster %s status is %s, its needs to be active to add a nodegroup", *eksCluster.Name, *eksCluster.Status)
-	}
-	logger.Info("found cluster %s", *eksCluster.Name)
-	logger.Debug("cluster = %#v", eksCluster)
-
-	// Populate cfg with the endopoint, CA data, and so on obtained from the described control-plane
-	// So that we won't end up rendering a incomplete useradata missing those things
-	if err = ctl.GetCredentials(*eksCluster, cfg); err != nil {
-		return err
+	if err := ctl.GetCredentials(cfg); err != nil {
+		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
 	{
 		stackManager := ctl.NewStackManager(cfg)
-		if ng.Name == "" {
-			ng.Name = utils.NodeGroupName()
-		}
-		logger.Info("will create a Cloudformation stack for nodegroup %s for cluster %s", ng.Name, cfg.Metadata.Name)
-		errs := stackManager.RunTask(stackManager.CreateNodeGroup, ng)
+		logger.Info("will create a Cloudformation stack for nodegroup %s in cluster %s", ng.Name, cfg.Metadata.Name)
+		errs := stackManager.CreateOneNodeGroup(ng)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroup hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup %s --region=%s --name=%s'", ng.Name, cfg.Metadata.Region, cfg.Metadata.Name)
@@ -151,7 +133,7 @@ func doAddNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeG
 			return err
 		}
 	}
-	logger.Success("EKS cluster %q in %q region has a new nodegroup with name %d", cfg.Metadata.Name, cfg.Metadata.Region, ng.Name)
+	logger.Success("created nodegroup %q in cluster %q", cfg.Metadata.Name, ng.Name)
 
 	return nil
 

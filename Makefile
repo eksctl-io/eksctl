@@ -46,7 +46,6 @@ lint: ## Run linter over the codebase
 ci: test lint ## Target for CI system to invoke to run tests and linting
 
 TEST_CLUSTER ?= integration-test-dev
-TEST_NODEGROUP ?= integration-test-dev
 .PHONY: integration-test-dev
 integration-test-dev: build ## Run the integration tests without cluster teardown. For use when developing integration tests.
 	@./eksctl utils write-kubeconfig \
@@ -56,13 +55,12 @@ integration-test-dev: build ## Run the integration tests without cluster teardow
 		$(TEST_ARGS) \
 		-args \
 		-eksctl.cluster=$(TEST_CLUSTER) \
-		-eksctl.nodegroup=$(TEST_NODEGROUP) \
 		-eksctl.create=false \
 		-eksctl.delete=false \
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
-	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig
+	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig --nodegroup-name=ng-0
 
 delete-integration-test-dev-cluster: build ## Delete the test cluster for use when developing integration tests
 	@./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig

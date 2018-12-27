@@ -1,13 +1,14 @@
 package manager
 
 import (
+	"errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"errors"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -79,8 +80,9 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})).Return(&cfn.DescribeStacksOutput{
 					Stacks: []*cfn.Stack{
 						{
-							StackName: aws.String("eksctl-test-cluster-nodegroup-12345"),
-							StackId: aws.String("eksctl-test-cluster-nodegroup-12345-id"),
+							StackName:   aws.String("eksctl-test-cluster-nodegroup-12345"),
+							StackId:     aws.String("eksctl-test-cluster-nodegroup-12345-id"),
+							StackStatus: aws.String("CREATE_COMPLETE"),
 						},
 					},
 				}, nil)
@@ -94,7 +96,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					out, err = sc.GetNodeGroupSummaries()
+					out, err = sc.GetNodeGroupSummaries("")
 				})
 
 				It("should not error", func() {
@@ -116,7 +118,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				})
 
 				JustBeforeEach(func() {
-					out, err = sc.GetNodeGroupSummaries()
+					out, err = sc.GetNodeGroupSummaries("")
 				})
 
 				It("should not error", func() {

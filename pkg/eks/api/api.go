@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 const (
@@ -170,9 +169,7 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 // NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
-	name := utils.NodeGroupName()
 	ng := &NodeGroup{
-		Name:              name,
 		PrivateNetworking: false,
 	}
 

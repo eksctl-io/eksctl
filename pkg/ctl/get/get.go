@@ -6,10 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-const (
-	defaultChunkSize = 100
-)
-
 var (
 	chunkSize int
 	output    string

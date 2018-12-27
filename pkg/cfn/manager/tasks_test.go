@@ -1,10 +1,11 @@
 package manager
 
 import (
+	"errors"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"errors"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -75,7 +76,7 @@ var _ = Describe("StackCollection Tasks", func() {
 
 			Context("With an unsuccessful call", func() {
 				JustBeforeEach(func() {
-					errs = sc.RunTask(call, "fail")
+					errs = sc.RunSingleTask(Task{call, "fail"})
 				})
 
 				It("should error", func() {
@@ -86,7 +87,7 @@ var _ = Describe("StackCollection Tasks", func() {
 
 			Context("With a successful call", func() {
 				JustBeforeEach(func() {
-					errs = sc.RunTask(call, "ok")
+					errs = sc.RunSingleTask(Task{call, "ok"})
 				})
 
 				It("should not error", func() {

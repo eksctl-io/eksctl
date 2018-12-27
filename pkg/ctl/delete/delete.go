@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	waitDelete bool
+	wait bool
 )
 
 // Command will create the `delete` commands

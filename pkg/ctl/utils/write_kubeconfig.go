@@ -47,7 +47,7 @@ func writeKubeconfigCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &writeKubeconfigOutputPath, &writeKubeconfigSetContext, &writeKubeconfigAutoPath, "<name>")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p)
+	cmdutils.AddCommonFlagsForAWS(group, p, false)
 
 	group.AddTo(cmd)
 	return cmd
@@ -79,14 +79,7 @@ func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg
 		writeKubeconfigOutputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
 	}
 
-	cluster, err := ctl.DescribeControlPlane(cfg.Metadata)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug("cluster = %#v", cluster)
-
-	if err = ctl.GetCredentials(*cluster, cfg); err != nil {
+	if err := ctl.GetCredentials(cfg); err != nil {
 		return err
 	}
 

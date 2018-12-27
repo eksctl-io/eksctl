@@ -35,13 +35,11 @@ func getClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
-		fs.IntVar(&chunkSize, "chunk-size", defaultChunkSize, "Return large lists in chunks rather than all at once. Pass 0 to disable.")
-
-		fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
-
-		fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
+		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)
 	})
+
+	cmdutils.AddCommonFlagsForAWS(group, p, false)
 
 	group.AddTo(cmd)
 

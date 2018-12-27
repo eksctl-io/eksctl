@@ -18,7 +18,8 @@ const (
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
 	// NodeGroupNameTag defines the tag of the node group name
-	NodeGroupNameTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-name"
+	NodeGroupNameTag  = "eksctl.io/v1alpha2/nodegroup-name"
+	oldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 )
 
 var (
@@ -95,7 +96,7 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, pa
 // CreateStack with given name, stack builder instance and parameters;
 // any errors will be written to errs channel, when nil is written,
 // assume completion, do not expect more then one error value on the
-// channel, it's closed immediately after it is written two
+// channel, it's closed immediately after it is written to
 func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, parameters map[string]string, errs chan error) error {
 	i := &Stack{StackName: &name}
 	templateBody, err := stack.RenderJSON()
@@ -225,21 +226,11 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 		fmt.Sprintf("%s:%s", ClusterNameTag, c.spec.Metadata.Name))
 }
 
-// WaitDeleteStack kills a stack by name and waits for DELETED status
-func (c *StackCollection) WaitDeleteStack(name string) error {
-	i, err := c.DeleteStack(name)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("waiting for stack %q to get deleted", *i.StackName)
-
-	return c.doWaitUntilStackIsDeleted(i)
-}
-
-// WaitDeleteStackTask kills a stack by name and waits for DELETED status
-// When nil is returned, the `errs` channel must receive an `error` object or `nil`.
-func (c *StackCollection) WaitDeleteStackTask(name string, errs chan error) error {
+// WaitDeleteStack kills a stack by name and waits for DELETED status;
+// any errors will be written to errs channel, when nil is written,
+// assume completion, do not expect more then one error value on the
+// channel, it's closed immediately after it is written to
+func (c *StackCollection) WaitDeleteStack(name string, errs chan error) error {
 	i, err := c.DeleteStack(name)
 	if err != nil {
 		return err
@@ -252,11 +243,28 @@ func (c *StackCollection) WaitDeleteStackTask(name string, errs chan error) erro
 	return nil
 }
 
-// DescribeStacks describes the existing stacks
-func (c *StackCollection) DescribeStacks(name string) ([]*Stack, error) {
-	stacks, err := c.ListStacks(fmt.Sprintf("^(eksctl|EKS)-%s-((cluster|nodegroup-.+)|(VPC|ServiceRole|DefaultNodeGroup))$", name))
+// BlockingWaitDeleteStack kills a stack by name and waits for DELETED status
+func (c *StackCollection) BlockingWaitDeleteStack(name string) error {
+	i, err := c.DeleteStack(name)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", name)
+		return err
+	}
+
+	logger.Info("waiting for stack %q to get deleted", *i.StackName)
+
+	return c.doWaitUntilStackIsDeleted(i)
+}
+
+func fmtStacksRegexForCluster(name string) string {
+	const ourStackRegexFmt = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+)|(VPC|ServiceRoleDefaultNodeGroup))$"
+	return fmt.Sprintf(ourStackRegexFmt, name)
+}
+
+// DescribeStacks describes the existing stacks
+func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
+	stacks, err := c.ListStacks(fmtStacksRegexForCluster(c.spec.Metadata.Name))
+	if err != nil {
+		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", c.spec.Metadata.Name)
 	}
 	return stacks, nil
 }
@@ -287,7 +295,6 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, desc
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
 
-	input.SetTags(c.tags)
 	input.SetTemplateBody(string(templateBody))
 
 	if withIAM {

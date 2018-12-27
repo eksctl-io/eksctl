@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"errors"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
@@ -20,42 +20,33 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
-		Use:   "nodegroup NAME",
+		Use:   "nodegroup",
 		Short: "Delete a nodegroup",
-		Args:  cobra.MinimumNArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			name := cmdutils.GetNameArg(args)
-			if name != "" {
-				ng.Name = name
-			}
-			if err := doDeleteNodeGroup(p, cfg, ng.Name); err != nil {
+		Run: func(_ *cobra.Command, args []string) {
+			if err := doDeleteNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
-			return nil
 		},
 	}
 
-	group := &cmdutils.NamedFlagSetGroup{}
+	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name (required)")
 		cmdutils.AddRegionFlag(fs, p)
-		fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
+		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete (required)")
+		cmdutils.AddWaitFlag(&wait, fs)
 	})
 
-	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup. Generated if unset, e.g. \"ng-a345f4\"")
-	})
-
-	cmdutils.AddCommonFlagsForAWS(group, p)
+	cmdutils.AddCommonFlagsForAWS(group, p, true)
 
 	group.AddTo(cmd)
 
 	return cmd
 }
 
-func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
+func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -66,37 +57,38 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, name strin
 		return errors.New("--cluster must be set")
 	}
 
-	logger.Info("deleting EKS nodegroup %q-nodegroup-%s", cfg.Metadata.Name, name)
-
-	var deletedResources []string
-
-	handleIfError := func(err error, name string) bool {
-		if err != nil {
-			logger.Debug("continue despite error: %v", err)
-			return true
-		}
-		logger.Debug("deleted %q", name)
-		deletedResources = append(deletedResources, name)
-		return false
+	if ng.Name != "" && nameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
 	}
 
-	// We can remove all 'DeprecatedDelete*' calls in 0.2.0
+	if nameArg != "" {
+		ng.Name = nameArg
+	}
+
+	if ng.Name == "" {
+		return fmt.Errorf("--name must be set")
+	}
+
+	logger.Info("deleting nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
 
 	stackManager := ctl.NewStackManager(cfg)
 
 	{
-		err := stackManager.WaitDeleteNodeGroup(nil, name)
-		errs := []error{err}
-		if len(errs) > 0 {
-			logger.Info("%d error(s) occurred while deleting nodegroup(s)", len(errs))
-			for _, err := range errs {
-				if err != nil {
-					logger.Critical("%s\n", err.Error())
-				}
-			}
-			handleIfError(fmt.Errorf("failed to delete nodegroup(s)"), "nodegroup(s)")
+		var (
+			err  error
+			verb string
+		)
+		if wait {
+			err = stackManager.BlockingWaitDeleteNodeGroup(ng.Name)
+			verb = "was"
+		} else {
+			err = stackManager.DeleteNodeGroup(ng.Name)
+			verb = "will be"
 		}
-		logger.Debug("all nodegroups were deleted")
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete nodegroup %q", ng.Name)
+		}
+		logger.Success("nodegroup %q %s deleted", ng.Name, verb)
 	}
 
 	return nil

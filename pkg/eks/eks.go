@@ -46,7 +46,17 @@ func (c *ClusterProvider) DeprecatedDeleteControlPlane(cl *api.ClusterMeta) erro
 }
 
 // GetCredentials retrieves the certificate authority data
-func (c *ClusterProvider) GetCredentials(cluster awseks.Cluster, spec *api.ClusterConfig) error {
+func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
+	// Check the cluster exists and is active
+	cluster, err := c.DescribeControlPlane(spec.Metadata)
+	if err != nil {
+		return err
+	}
+	if *cluster.Status != awseks.ClusterStatusActive {
+		return fmt.Errorf("status of cluster %q is %q, has to be %q", *cluster.Name, *cluster.Status, awseks.ClusterStatusActive)
+	}
+	logger.Debug("cluster = %#v", cluster)
+
 	spec.Endpoint = *cluster.Endpoint
 
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)

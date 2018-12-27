@@ -5,16 +5,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-
-	"github.com/kubicorn/kubicorn/pkg/logger"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/spf13/pflag"
 )
 
 func getNodegroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -27,11 +27,7 @@ func getNodegroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		Short:   "Get nodegroups(s)",
 		Aliases: []string{"nodegroups"},
 		Run: func(_ *cobra.Command, args []string) {
-			name := cmdutils.GetNameArg(args)
-			if name != "" {
-				ng.Name = name
-			}
-			if err := doGetNodegroups(p, cfg, ng.Name); err != nil {
+			if err := doGetNodegroups(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -42,23 +38,19 @@ func getNodegroupCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
-
-		fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
-		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS creditials profile to use (overrides the AWS_PROFILE environment variable)")
-
-		fs.StringVarP(&output, "output", "o", "table", "Specifies the output format. Choose from table,json,yaml. Defaults to table.")
+		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup")
+		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)
 	})
 
-	group.InFlagSet("Nodegroup", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup. Generated if unset, e.g. \"ng-a345f4\"")
-	})
+	cmdutils.AddCommonFlagsForAWS(group, p, false)
 
 	group.AddTo(cmd)
 
 	return cmd
 }
 
-func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, name string) error {
+func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -69,8 +61,16 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, name string)
 		return errors.New("--cluster must be set")
 	}
 
+	if ng.Name != "" && nameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	}
+
+	if nameArg != "" {
+		ng.Name = nameArg
+	}
+
 	manager := ctl.NewStackManager(cfg)
-	summaries, err := manager.GetNodeGroupSummaries()
+	summaries, err := manager.GetNodeGroupSummaries(ng.Name)
 	if err != nil {
 		return errors.Wrap(err, "getting nodegroup stack summaries")
 	}

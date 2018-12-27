@@ -27,7 +27,7 @@ func GetNameArg(args []string) string {
 }
 
 // AddCommonFlagsForAWS adds common flags for api.ProviderConfig
-func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig) {
+func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRole bool) {
 	group.InFlagSet("AWS client", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
@@ -37,6 +37,9 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig) {
 			logger.Debug("ignoring error %q", err.Error())
 		}
 		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+		if cfnRole {
+			fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
+		}
 	})
 }
 
@@ -45,9 +48,9 @@ func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
 	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
 }
 
-// AddCFNRoleARNFlag adds common --cfn-role-arn flag
-func AddCFNRoleARNFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
-	fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
+// AddWaitFlag adds common --wait flag
+func AddWaitFlag(wait *bool, fs *pflag.FlagSet) {
+	fs.BoolVarP(wait, "wait", "w", false, "Wait for deletion of all resources before exiting")
 }
 
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written
@@ -55,6 +58,12 @@ func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath *string, setConte
 	fs.StringVar(outputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
 	fs.BoolVar(setContext, "set-kubeconfig-context", true, "if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten")
 	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
+}
+
+// AddCommonFlagsForGetCmd adds common flafs for get commands
+func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *string) {
+	fs.IntVar(chunkSize, "chunk-size", 100, "return large lists in chunks rather than all at once, pass 0 to disable")
+	fs.StringVarP(outputMode, "output", "o", "table", "specifies the output format (valid option: table, json, yaml)")
 }
 
 // ErrUnsupportedRegion is a common error message
