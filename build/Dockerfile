@@ -27,6 +27,6 @@ RUN dep ensure
 RUN ./install.sh
 
 WORKDIR $EKSCTL_BUILD/vendor/github.com/goreleaser/goreleaser
-RUN go build -tag netgo && go install -tag netgo
+RUN go build -tags netgo && go install -tags netgo
 
 WORKDIR $GOPATH
