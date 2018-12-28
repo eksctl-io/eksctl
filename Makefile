@@ -32,6 +32,7 @@ test: generate ## Run unit test (and re-generate code under test)
 	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff; exit 1)
 	@$(MAKE) unit-test
 	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
+	@go test -tags integration ./integration/... -c && rm -f integration.test
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
