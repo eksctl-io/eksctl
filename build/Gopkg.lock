@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/Masterminds/semver"
-  packages = ["."]
-  revision = "8d82589cda2d7b5b9167396841975c4535c9bec6"
-  version = "v1.4.1"
-
-[[projects]]
   name = "github.com/alecthomas/kingpin"
   packages = ["."]
   revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
@@ -126,52 +120,57 @@
   revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 
 [[projects]]
+  name = "github.com/goreleaser/archive"
+  packages = [
+    ".",
+    "tar",
+    "zip"
+  ]
+  revision = "c373877947a8e6aeca89a9baf33c313c8371a7b8"
+  version = "v1.1.1"
+
+[[projects]]
   name = "github.com/goreleaser/goreleaser"
   packages = [
     ".",
+    "build",
+    "checksum",
+    "config",
+    "context",
     "internal/artifact",
     "internal/builders/golang",
     "internal/client",
     "internal/deprecate",
+    "internal/filenametemplate",
     "internal/git",
-    "internal/http",
     "internal/linux",
-    "internal/pipe",
-    "internal/pipe/archive",
-    "internal/pipe/artifactory",
-    "internal/pipe/before",
-    "internal/pipe/brew",
-    "internal/pipe/build",
-    "internal/pipe/changelog",
-    "internal/pipe/checksums",
-    "internal/pipe/defaults",
-    "internal/pipe/dist",
-    "internal/pipe/docker",
-    "internal/pipe/effectiveconfig",
-    "internal/pipe/env",
-    "internal/pipe/git",
-    "internal/pipe/nfpm",
-    "internal/pipe/project",
-    "internal/pipe/publish",
-    "internal/pipe/put",
-    "internal/pipe/release",
-    "internal/pipe/s3",
-    "internal/pipe/scoop",
-    "internal/pipe/sign",
-    "internal/pipe/snapcraft",
-    "internal/pipe/snapshot",
-    "internal/pipeline",
-    "internal/semerrgroup",
-    "internal/tmpl",
-    "pkg/archive",
-    "pkg/archive/tar",
-    "pkg/archive/zip",
-    "pkg/build",
-    "pkg/config",
-    "pkg/context",
-    "pkg/defaults"
+    "internal/nametemplate",
+    "pipeline",
+    "pipeline/archive",
+    "pipeline/artifactory",
+    "pipeline/before",
+    "pipeline/brew",
+    "pipeline/build",
+    "pipeline/changelog",
+    "pipeline/checksums",
+    "pipeline/defaults",
+    "pipeline/dist",
+    "pipeline/docker",
+    "pipeline/effectiveconfig",
+    "pipeline/env",
+    "pipeline/fpm",
+    "pipeline/git",
+    "pipeline/nfpm",
+    "pipeline/project",
+    "pipeline/release",
+    "pipeline/s3",
+    "pipeline/scoop",
+    "pipeline/sign",
+    "pipeline/snapcraft",
+    "pipeline/snapshot"
   ]
-  revision = "6e09a19a83ed4b643981800aa2ecf1143dcb23c9"
+  revision = "411a73d410c3f87b2040636b49458e7b3abd0224"
+  version = "v0.77.2"
 
 [[projects]]
   name = "github.com/goreleaser/nfpm"
@@ -202,6 +201,12 @@
     "go-bindata"
   ]
   revision = "6025e8de665b31fa74ab1a66f2cddd8c0abf887e"
+
+[[projects]]
+  name = "github.com/masterminds/semver"
+  packages = ["."]
+  revision = "c7af12943936e8c39859482e61f0574c2fd7fc75"
+  version = "v1.4.2"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -330,6 +335,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b8ea6a6d59e125ef030a0808b6b1dce14cb794b8e2e7ea2144da976a3f23bcf7"
+  inputs-digest = "b2b5c25eb07cb42ebfbdccae10082424b1698326512566b3561e181772484595"
   solver-name = "gps-cdcl"
   solver-version = 1
