@@ -67,16 +67,17 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 		return nil, err
 	}
 
+	nodeGroupStacks := []*Stack{}
 	for _, s := range stacks {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
 		if getNodeGroupName(s) != "" {
-			stacks = append(stacks, s)
+			nodeGroupStacks = append(nodeGroupStacks, s)
 		}
 	}
-	logger.Debug("nodegroups = %v", stacks)
-	return stacks, nil
+	logger.Debug("nodegroups = %v", nodeGroupStacks)
+	return nodeGroupStacks, nil
 }
 
 // DeleteNodeGroup deletes a nodegroup stack
