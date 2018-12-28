@@ -8,6 +8,8 @@ RUN apk add --no-cache \
       musl-dev \
       && true
 
+ENV CGO_ENABLED=0
+
 ENV DEP_VERSION v0.5.0
 
 # Install dep to avoid vendoring all the things
@@ -25,6 +27,6 @@ RUN dep ensure
 RUN ./install.sh
 
 WORKDIR $EKSCTL_BUILD/vendor/github.com/goreleaser/goreleaser
-RUN make build && go install
+RUN go build -tag netgo && go install -tag netgo
 
 WORKDIR $GOPATH
