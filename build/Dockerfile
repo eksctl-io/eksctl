@@ -5,6 +5,7 @@ RUN apk add --no-cache \
       git \
       make \
       gcc \
+      musl-dev \
       && true
 
 ENV DEP_VERSION v0.5.0
@@ -24,6 +25,6 @@ RUN dep ensure
 RUN ./install.sh
 
 WORKDIR $EKSCTL_BUILD/vendor/github.com/goreleaser/goreleaser
-RUN CGO_ENABLED=0 make build && go install
+RUN make build && go install
 
 WORKDIR $GOPATH
