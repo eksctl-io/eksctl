@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	waitDelete bool
+	wait bool
 )
 
 // Command will create the `delete` commands
@@ -23,6 +23,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	}
 
 	cmd.AddCommand(deleteClusterCmd(g))
+	cmd.AddCommand(deleteNodeGroupCmd(g))
 
 	return cmd
 }

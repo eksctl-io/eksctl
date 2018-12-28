@@ -29,5 +29,5 @@ func (c *StackCollection) DeleteCluster() error {
 
 // WaitDeleteCluster waits till the cluster is deleted
 func (c *StackCollection) WaitDeleteCluster() error {
-	return c.WaitDeleteStack(c.makeClusterStackName())
+	return c.BlockingWaitDeleteStack(c.makeClusterStackName())
 }

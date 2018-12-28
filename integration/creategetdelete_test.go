@@ -50,6 +50,11 @@ func newKubeTest() (*harness.Test, error) {
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
+	const (
+		initNG = "ng-0"
+		testNG = "ng-1"
+	)
+
 	BeforeSuite(func() {
 		kubeconfigTemp = false
 		if kubeconfigPath == "" {
@@ -83,6 +88,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			args := []string{"create", "cluster",
 				"--name", clusterName,
 				"--tags", "eksctl.cluster.k8s.io/v1alpha1/description=eksctl integration test",
+				"--nodegroup-name", initNG,
+				"--node-labels", "ng-name=" + initNG,
 				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--region", region,
@@ -108,7 +115,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		It("should have the required cloudformation stacks", func() {
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
+			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", clusterName, initNG)))
 		})
 
 		It("should have created a valid kubectl config file", func() {
@@ -184,12 +191,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and scale the cluster", func() {
+		Context("and scale the initial nodegroup", func() {
 			It("should not return an error", func() {
 				args := []string{"scale", "nodegroup",
-					"--name", clusterName,
+					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "2",
+					"--name", initNG,
 				}
 
 				command := exec.Command(eksctlPath, args...)
@@ -213,6 +221,71 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				nodes := test.ListNodes(metav1.ListOptions{})
 
 				Expect(len(nodes.Items)).To(Equal(2))
+			})
+		})
+
+		Context("and add the second nodegroup", func() {
+			It("should not return an error", func() {
+				args := []string{"create", "nodegroup",
+					"--cluster", clusterName,
+					"--region", region,
+					"--nodes", "1",
+					testNG,
+				}
+
+				command := exec.Command(eksctlPath, args...)
+				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+				if err != nil {
+					Fail(fmt.Sprintf("error starting process: %v", err), 1)
+				}
+
+				cmdSession.Wait(scaleTimeout)
+				Expect(cmdSession.ExitCode()).Should(Equal(0))
+			})
+
+			It("should make it 3 nodes total", func() {
+				test, err := newKubeTest()
+				Expect(err).ShouldNot(HaveOccurred())
+				defer test.Close()
+
+				test.WaitForNodesReady(3, scaleTimeout)
+
+				nodes := test.ListNodes(metav1.ListOptions{})
+
+				Expect(len(nodes.Items)).To(Equal(3))
+			})
+
+			Context("and delete the second nodegroup", func() {
+				It("should not return an error", func() {
+					args := []string{"delete", "nodegroup",
+						"--cluster", clusterName,
+						"--region", region,
+						testNG,
+					}
+
+					command := exec.Command(eksctlPath, args...)
+					cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
+					if err != nil {
+						Fail(fmt.Sprintf("error starting process: %v", err), 1)
+					}
+
+					cmdSession.Wait(deleteTimeout)
+					Expect(cmdSession.ExitCode()).Should(Equal(0))
+				})
+
+				It("should make it 2 nodes total", func() {
+					test, err := newKubeTest()
+					Expect(err).ShouldNot(HaveOccurred())
+					defer test.Close()
+
+					test.WaitForNodesReady(2, scaleTimeout)
+
+					nodes := test.ListNodes(metav1.ListOptions{})
+
+					Expect(len(nodes.Items)).To(Equal(2))
+				})
 			})
 		})
 
@@ -255,7 +328,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				}
 
 				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%d", clusterName, 0)))
+				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-ng-%d", clusterName, 0)))
 			})
 		})
 	})

@@ -6,10 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-const (
-	defaultChunkSize = 100
-)
-
 var (
 	chunkSize int
 	output    string
@@ -28,6 +24,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	}
 
 	cmd.AddCommand(getClusterCmd(g))
+	cmd.AddCommand(getNodegroupCmd(g))
 
 	return cmd
 }

@@ -4,11 +4,15 @@ import (
 	"sync"
 
 	"github.com/kris-nova/logger"
+	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-type task struct {
-	call func(chan error, interface{}) error
-	data interface{}
+type taskFunc func(chan error, interface{}) error
+
+// Task has a function with an opaque payload
+type Task struct {
+	Call taskFunc
+	Data interface{}
 }
 
 // Run a set of tests in parallel and wait for them to complete;
@@ -16,7 +20,7 @@ type task struct {
 // a given context, e.g. during serial CLI-driven execution one
 // can keep errors in a slice, while in a daemon channel maybe
 // more suitable
-func Run(passError func(error), tasks ...task) {
+func Run(passError func(error), tasks ...Task) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(tasks))
 	for t := range tasks {
@@ -24,7 +28,7 @@ func Run(passError func(error), tasks ...task) {
 			defer wg.Done()
 			logger.Debug("task %d started", t)
 			errs := make(chan error)
-			if err := tasks[t].call(errs, tasks[t].data); err != nil {
+			if err := tasks[t].Call(errs, tasks[t].Data); err != nil {
 				passError(err)
 				return
 			}
@@ -39,24 +43,44 @@ func Run(passError func(error), tasks ...task) {
 	wg.Wait()
 }
 
-// CreateClusterWithNodeGroups runs all tasks required to create
-// the stacks (a cluster and one or more nodegroups); any errors
-// will be returned as a slice as soon as one of the tasks or group
-// of tasks is completed
-func (s *StackCollection) CreateClusterWithNodeGroups() []error {
+// RunSingleTask runs a task with a proper error handling
+func (c *StackCollection) RunSingleTask(t Task) []error {
 	errs := []error{}
 	appendErr := func(err error) {
 		errs = append(errs, err)
 	}
-	if Run(appendErr, task{s.CreateCluster, nil}); len(errs) > 0 {
+	if Run(appendErr, t); len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
+
+// CreateClusterWithNodeGroups runs all tasks required to create
+// the stacks (a cluster and one or more nodegroups); any errors
+// will be returned as a slice as soon as one of the tasks or group
+// of tasks is completed
+func (c *StackCollection) CreateClusterWithNodeGroups() []error {
+	if errs := c.RunSingleTask(Task{c.CreateCluster, nil}); len(errs) > 0 {
 		return errs
 	}
 
-	createAllNodeGroups := []task{}
-	for i := range s.spec.NodeGroups {
-		t := task{
-			call: s.CreateNodeGroup,
-			data: s.spec.NodeGroups[i],
+	return c.CreateAllNodeGroups()
+}
+
+// CreateAllNodeGroups runs all tasks required to create the node groups;
+// any errors will be returned as a slice as soon as one of the tasks
+// or group of tasks is completed
+func (c *StackCollection) CreateAllNodeGroups() []error {
+	errs := []error{}
+	appendErr := func(err error) {
+		errs = append(errs, err)
+	}
+
+	createAllNodeGroups := []Task{}
+	for i := range c.spec.NodeGroups {
+		t := Task{
+			Call: c.CreateNodeGroup,
+			Data: c.spec.NodeGroups[i],
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)
 	}
@@ -67,61 +91,55 @@ func (s *StackCollection) CreateClusterWithNodeGroups() []error {
 	return nil
 }
 
-// deleteAllNodeGroupsTasks returns a list of tasks for deleting all the
-// nodegroup stacks
-func (s *StackCollection) deleteAllNodeGroupsTasks(call func(chan error, interface{}) error) ([]task, error) {
-	stacks, err := s.listAllNodeGroups()
-	if err != nil {
-		return nil, err
-	}
-	deleteAllNodeGroups := []task{}
-	for i := range stacks {
-		t := task{
-			call: call,
-			data: stacks[i],
-		}
-		deleteAllNodeGroups = append(deleteAllNodeGroups, t)
-	}
-	return deleteAllNodeGroups, nil
+// CreateOneNodeGroup runs a task to create a single node groups;
+// any errors will be returned as a slice as soon as the tasks is
+// completed
+func (c *StackCollection) CreateOneNodeGroup(ng *api.NodeGroup) []error {
+	return c.RunSingleTask(Task{
+		Call: c.CreateNodeGroup,
+		Data: ng,
+	})
 }
 
-// DeleteAllNodeGroups runs all tasks required to delete all the nodegroup
-// stacks; any errors will be returned as a slice as soon as the group
-// of tasks is completed
-func (s *StackCollection) DeleteAllNodeGroups() []error {
-	errs := []error{}
-	appendErr := func(err error) {
-		errs = append(errs, err)
-	}
-
-	deleteAllNodeGroups, err := s.deleteAllNodeGroupsTasks(s.DeleteNodeGroup)
+// DeleteAllNodeGroups deletes all nodegroups without waiting
+func (c *StackCollection) DeleteAllNodeGroups(call taskFunc) []error {
+	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
-		appendErr(err)
-		return errs
+		return []error{err}
 	}
 
-	if Run(appendErr, deleteAllNodeGroups...); len(errs) > 0 {
-		return errs
+	errs := []error{}
+	for _, s := range nodeGroupStacks {
+		if err := c.DeleteNodeGroup(getNodeGroupName(s)); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
-	return nil
+	return errs
 }
 
 // WaitDeleteAllNodeGroups runs all tasks required to delete all the nodegroup
-// stacks, it waits for each nodegroup to get deleted; any errors will be
-// returned as a slice as soon as the group of tasks is completed
-func (s *StackCollection) WaitDeleteAllNodeGroups() []error {
+// stacks and wait for all nodegroups to be deleted; any errors will be returned
+// as a slice as soon as the group of tasks is completed
+func (c *StackCollection) WaitDeleteAllNodeGroups() []error {
+	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
+	if err != nil {
+		return []error{err}
+	}
+
 	errs := []error{}
 	appendErr := func(err error) {
 		errs = append(errs, err)
 	}
 
-	deleteAllNodeGroups, err := s.deleteAllNodeGroupsTasks(s.WaitDeleteNodeGroup)
-	if err != nil {
-		appendErr(err)
-		return errs
+	deleteAllNodeGroups := []Task{}
+	for i := range nodeGroupStacks {
+		t := Task{
+			Call: c.WaitDeleteNodeGroup,
+			Data: getNodeGroupName(nodeGroupStacks[i]),
+		}
+		deleteAllNodeGroups = append(deleteAllNodeGroups, t)
 	}
-
 	if Run(appendErr, deleteAllNodeGroups...); len(errs) > 0 {
 		return errs
 	}

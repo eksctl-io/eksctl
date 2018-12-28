@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	. "github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/testutils"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
 type returnAmi struct {
@@ -22,7 +22,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 	Describe("When resolving an AMI to use", func() {
 
 		var (
-			p            *testutils.MockProvider
+			p            *mockprovider.MockProvider
 			err          error
 			region       string
 			version      string
@@ -166,8 +166,8 @@ var _ = Describe("AMI Auto Resolution", func() {
 	})
 })
 
-func createProviders() (*eks.ClusterProvider, *testutils.MockProvider) {
-	p := testutils.NewMockProvider()
+func createProviders() (*eks.ClusterProvider, *mockprovider.MockProvider) {
+	p := mockprovider.NewMockProvider()
 
 	c := &eks.ClusterProvider{
 		Provider: p,
@@ -176,7 +176,7 @@ func createProviders() (*eks.ClusterProvider, *testutils.MockProvider) {
 	return c, p
 }
 
-func addMockDescribeImages(p *testutils.MockProvider, expectedNamePattern string, amiId string, amiState string, createdDate string) {
+func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiId string, amiState string, createdDate string) {
 	p.MockEC2().On("DescribeImages",
 		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 			for _, filter := range input.Filters {
@@ -200,7 +200,7 @@ func addMockDescribeImages(p *testutils.MockProvider, expectedNamePattern string
 	}, nil)
 }
 
-func addMockDescribeImagesMultiple(p *testutils.MockProvider, expectedNamePattern string, returnAmis []returnAmi) {
+func addMockDescribeImagesMultiple(p *mockprovider.MockProvider, expectedNamePattern string, returnAmis []returnAmi) {
 	images := make([]*ec2.Image, len(returnAmis))
 	for index, ami := range returnAmis {
 		images[index] = &ec2.Image{

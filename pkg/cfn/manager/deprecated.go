@@ -6,7 +6,7 @@ func (c *StackCollection) DeprecatedDeleteStackVPC(wait bool) error {
 	stackName := "EKS-" + c.spec.Metadata.Name + "-VPC"
 
 	if wait {
-		err = c.WaitDeleteStack(stackName)
+		err = c.BlockingWaitDeleteStack(stackName)
 	} else {
 		_, err = c.DeleteStack(stackName)
 	}
@@ -20,7 +20,7 @@ func (c *StackCollection) DeprecatedDeleteStackServiceRole(wait bool) error {
 	stackName := "EKS-" + c.spec.Metadata.Name + "-ServiceRole"
 
 	if wait {
-		err = c.WaitDeleteStack(stackName)
+		err = c.BlockingWaitDeleteStack(stackName)
 	} else {
 		_, err = c.DeleteStack(stackName)
 	}
@@ -34,7 +34,7 @@ func (c *StackCollection) DeprecatedDeleteStackDefaultNodeGroup(wait bool) error
 	stackName := "EKS-" + c.spec.Metadata.Name + "-DefaultNodeGroup"
 
 	if wait {
-		err = c.WaitDeleteStack(stackName)
+		err = c.BlockingWaitDeleteStack(stackName)
 	} else {
 		_, err = c.DeleteStack(stackName)
 	}
@@ -48,7 +48,7 @@ func (c *StackCollection) DeprecatedDeleteStackControlPlane(wait bool) error {
 	stackName := "EKS-" + c.spec.Metadata.Name + "-ControlPlane"
 
 	if wait {
-		err = c.WaitDeleteStack(stackName)
+		err = c.BlockingWaitDeleteStack(stackName)
 	} else {
 		_, err = c.DeleteStack(stackName)
 	}

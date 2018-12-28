@@ -166,11 +166,10 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
 }
 
-// NewNodeGroup crears new nodegroup inside cluster config,
+// NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	ng := &NodeGroup{
-		ID:                len(c.NodeGroups),
 		PrivateNetworking: false,
 	}
 
@@ -182,7 +181,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // NodeGroup holds all configuration attributes that are
 // specific to a nodegroup
 type NodeGroup struct {
-	ID int
+	Name string
 
 	AMI               string
 	AMIFamily         string
@@ -197,6 +196,7 @@ type NodeGroup struct {
 
 	VolumeSize int
 
+	Labels         NodeLabels
 	MaxPodsPerNode int
 
 	PolicyARNs      []string

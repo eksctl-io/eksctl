@@ -43,7 +43,7 @@ func describeStacksCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.BoolVar(&describeStacksEvents, "events", false, "include stack events")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p)
+	cmdutils.AddCommonFlagsForAWS(group, p, false)
 
 	group.AddTo(cmd)
 	return cmd
@@ -70,7 +70,7 @@ func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg 
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	stacks, err := stackManager.DescribeStacks(cfg.Metadata.Name)
+	stacks, err := stackManager.DescribeStacks()
 	if err != nil {
 		return err
 	}

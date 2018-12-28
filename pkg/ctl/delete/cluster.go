@@ -34,11 +34,10 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddCFNRoleARNFlag(fs, p)
-		fs.BoolVarP(&waitDelete, "wait", "w", false, "Wait for deletion of all resources before exiting")
+		cmdutils.AddWaitFlag(&wait, fs)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p)
+	cmdutils.AddCommonFlagsForAWS(group, p, true)
 
 	group.AddTo(cmd)
 	return cmd
@@ -94,7 +93,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	var clusterErr bool
-	if waitDelete {
+	if wait {
 		clusterErr = handleIfError(stackManager.WaitDeleteCluster(), "cluster")
 	} else {
 		clusterErr = handleIfError(stackManager.DeleteCluster(), "cluster")
@@ -102,13 +101,13 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 	if clusterErr {
 		if handleIfError(ctl.DeprecatedDeleteControlPlane(cfg.Metadata), "control plane") {
-			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(waitDelete), "stack control plane (deprecated)")
+			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(wait), "stack control plane (deprecated)")
 		}
 	}
 
-	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(waitDelete), "service group (deprecated)")
-	handleIfError(stackManager.DeprecatedDeleteStackVPC(waitDelete), "stack VPC (deprecated)")
-	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(waitDelete), "default nodegroup (deprecated)")
+	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(wait), "service group (deprecated)")
+	handleIfError(stackManager.DeprecatedDeleteStackVPC(wait), "stack VPC (deprecated)")
+	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(wait), "default nodegroup (deprecated)")
 
 	ctl.MaybeDeletePublicSSHKey(cfg.Metadata.Name)
 

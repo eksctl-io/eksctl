@@ -9,8 +9,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
-func makeUbuntu1804Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles, error) {
-	clientConfigData, err := makeClientConfigData(spec, nodeGroupID)
+func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
+	clientConfigData, err := makeClientConfigData(spec, ng)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +18,7 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles
 	files := configFiles{
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(makeKubeletParams(spec, nodeGroupID), "\n")},
+			"kubelet.env":  {content: strings.Join(makeKubeletParamsCommon(spec, ng), "\n")},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":          {content: string(spec.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
@@ -29,14 +29,14 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, nodeGroupID int) (configFiles
 }
 
 // NewUserDataForUbuntu1804 creates new user data for Ubuntu 18.04 nodes
-func NewUserDataForUbuntu1804(spec *api.ClusterConfig, nodeGroupID int) (string, error) {
+func NewUserDataForUbuntu1804(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	config := cloudconfig.New()
 
 	scripts := []string{
 		"bootstrap.ubuntu.sh",
 	}
 
-	files, err := makeUbuntu1804Config(spec, nodeGroupID)
+	files, err := makeUbuntu1804Config(spec, ng)
 	if err != nil {
 		return "", err
 	}

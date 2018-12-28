@@ -25,6 +25,7 @@ Anton Gruebel           @gruebel
 Bryan Peterson          @lazyshot
 Josue Abreu             @gotjosh
 Timothy Mukaibo         @mukaibot
+Yusuke Kuoka            @mumoshu
 
 /* Thanks */
 

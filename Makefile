@@ -22,7 +22,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: build
 build: ## Build eksctl
-	@go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	@CGO_ENABLED=0 go build -v -tags netgo -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
@@ -32,6 +32,7 @@ test: generate ## Run unit test (and re-generate code under test)
 	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff; exit 1)
 	@$(MAKE) unit-test
 	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
+	@go test -tags integration ./integration/... -c && rm -f integration.test
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
@@ -60,7 +61,7 @@ integration-test-dev: build ## Run the integration tests without cluster teardow
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
-	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig
+	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig --nodegroup-name=ng-0
 
 delete-integration-test-dev-cluster: build ## Delete the test cluster for use when developing integration tests
 	@./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig
