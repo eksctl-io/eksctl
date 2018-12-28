@@ -60,7 +60,6 @@ $ eksctl create cluster
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --name=floral-unicorn-1540567338'
 [ℹ]  creating cluster stack "eksctl-floral-unicorn-1540567338-cluster"
-
 [ℹ]  creating nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-39d54824"
 [✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
 [✔]  saved kubeconfig as "~/.kube/config"
