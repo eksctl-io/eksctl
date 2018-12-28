@@ -8,6 +8,8 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 ![Gophers: E, K, S, C, T, & L](logo/eksctl.png)
 
+*Need help? Join [Weave Community Slack][slackjoin].*
+
 ## Usage
 
 To download the latest release, run:
@@ -427,7 +429,10 @@ Code contributions are very welcome. If you are interested in helping make eksct
 
 ## Get in touch
 
-[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)](https://weave-community.slack.com/messages/CAYBZBWGL/) ([signup](https://slack.weave.works/)).
+[Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
+
+[slackjoin]: https://slack.weave.works/
+[slackchan]: https://weave-community.slack.com/messages/CAYBZBWGL/
 
 > ***Logo Credits***
 >
