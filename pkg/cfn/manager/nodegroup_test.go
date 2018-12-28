@@ -83,6 +83,12 @@ var _ = Describe("StackCollection NodeGroup", func() {
 							StackName:   aws.String("eksctl-test-cluster-nodegroup-12345"),
 							StackId:     aws.String("eksctl-test-cluster-nodegroup-12345-id"),
 							StackStatus: aws.String("CREATE_COMPLETE"),
+							Tags: []*cfn.Tag{
+								&cfn.Tag{
+									Key:   aws.String(NodeGroupNameTag),
+									Value: aws.String("12345"),
+								},
+							},
 						},
 					},
 				}, nil)
@@ -125,8 +131,12 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					Expect(err).NotTo(HaveOccurred())
 				})
 
-				It("should have called AWS CloudFormation GetTemplate once", func() {
+				It("should not have called AWS CloudFormation GetTemplate", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "GetTemplate", 1)).To(BeTrue())
+				})
+
+				It("should have called AWS CloudFormation DescribeStacks once", func() {
+					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "DescribeStacks", 1)).To(BeTrue())
 				})
 
 				It("the output should equal the expectation", func() {
