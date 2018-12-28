@@ -4,7 +4,8 @@ builds:
   - main: ./cmd/eksctl
     binary: eksctl
     flags:
-      - -tags=netgo,release
+      - -tags
+      - netgo release
     env:
       - CGO_ENABLED=0
     ldflags:
