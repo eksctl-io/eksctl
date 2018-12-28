@@ -50,26 +50,27 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 Example output:
 ```
 $ eksctl create cluster
-[ℹ]  using region eu-central-1
-[ℹ]  setting availability zones to [eu-central-1c eu-central-1a eu-central-1b]
-[ℹ]  subnets for eu-central-1c - public:192.168.0.0/19 private:192.168.96.0/19
-[ℹ]  subnets for eu-central-1a - public:192.168.32.0/19 private:192.168.128.0/19
-[ℹ]  subnets for eu-central-1b - public:192.168.64.0/19 private:192.168.160.0/19
+[ℹ]  using region us-west-2
+[ℹ]  setting availability zones to [us-west-2c us-west-2a us-west-2b]
+[ℹ]  subnets for us-west-2c - public:192.168.0.0/19 private:192.168.96.0/19
+[ℹ]  subnets for us-west-2a - public:192.168.32.0/19 private:192.168.128.0/19
+[ℹ]  subnets for us-west-2b - public:192.168.64.0/19 private:192.168.160.0/19
 [ℹ]  using "ami-0ce0ec06e682ee10e" for nodes
-[ℹ]  creating EKS cluster "test-1" in "eu-central-1" region
+[ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
-[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=eu-central-1 --name=test-1'
-[ℹ]  creating cluster stack "eksctl-test-1-cluster"
+[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --name=floral-unicorn-1540567338'
+[ℹ]  creating cluster stack "eksctl-floral-unicorn-1540567338-cluster"
 
-[ℹ]  creating nodegroup stack "eksctl-test-1-nodegroup-ng-39d54824"
-[✔]  all EKS cluster resource for "test-1" had been created
+[ℹ]  creating nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-39d54824"
+[✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
 [✔]  saved kubeconfig as "~/.kube/config"
 [ℹ]  nodegroup "ng-39d54824" has 0 nodes
-[ℹ]  waiting for at least 1 nodes to become ready
-[ℹ]  nodegroup "ng-39d54824" has 1 nodes
-[ℹ]  node "ip-192-168-71-20.eu-central-1.compute.internal" is ready
+[ℹ]  waiting for at least 2 nodes to become ready
+[ℹ]  nodegroup "ng-39d54824" has 2 nodes
+[ℹ]  node "ip-192-168-71-20.us-west-2.compute.internal" is ready
+[ℹ]  node "ip-192-168-25-215.us-west-2.compute.internal" is ready
 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
-[✔]  EKS cluster "test-1" in "eu-central-1" region is ready
+[✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
 $
 ```
 
