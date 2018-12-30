@@ -38,7 +38,7 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources() error {
 	dedicatedVPC := c.spec.VPC.ID == ""
-	internetGatewayGiven := c.spec.VPC.IGW.ID == ""
+	internetGatewayGiven := c.spec.VPC.IGW.ID != ""
 	dedicatedSubnets := len(c.subnets[api.SubnetTopologyPrivate])+len(c.subnets[api.SubnetTopologyPublic]) == 0
 
 	c.rs.template.Description = fmt.Sprintf(
@@ -97,7 +97,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
 		SecurityGroupIds: c.securityGroups,
 	}
-	for topology := range c.spec.VPC.Subnets {
+	for topology := range c.subnets {
 		clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, c.subnets[topology]...)
 	}
 

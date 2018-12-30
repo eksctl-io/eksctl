@@ -81,7 +81,7 @@ func (c *ClusterResourceSet) addResourcesForRouting() {
 	})
 	for topology, subnets := range c.subnets {
 		for i, subnet := range subnets {
-			c.newResource("RouteTableAssociation"+string(topology)+string(i), &gfn.AWSEC2SubnetRouteTableAssociation{
+			c.newResource(fmt.Sprintf("RouteTableAssociation%s%v", string(topology), i), &gfn.AWSEC2SubnetRouteTableAssociation{
 				SubnetId:     subnet,
 				RouteTableId: routeTables[topology],
 			})
