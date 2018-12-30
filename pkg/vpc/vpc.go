@@ -5,69 +5,26 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-	"k8s.io/kops/pkg/util/subnet"
 )
 
-// SetSubnets defines CIDRs for each of the subnets,
-// it must be called after SetAvailabilityZones
-func SetSubnets(spec *api.ClusterConfig) error {
-	var err error
-
-	vpc := spec.VPC
-	vpc.Subnets = map[api.SubnetTopology]map[string]api.Network{
-		api.SubnetTopologyPublic:  map[string]api.Network{},
-		api.SubnetTopologyPrivate: map[string]api.Network{},
-	}
-	prefix, _ := spec.VPC.CIDR.Mask.Size()
-	if (prefix < 16) || (prefix > 24) {
-		return fmt.Errorf("VPC CIDR prefix must be betwee /16 and /24")
-	}
-	zoneCIDRs, err := subnet.SplitInto8(&spec.VPC.CIDR.IPNet)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug("VPC CIDR (%s) was divided into 8 subnets %v", vpc.CIDR.String(), zoneCIDRs)
-
-	zonesTotal := len(spec.AvailabilityZones)
-	if 2*zonesTotal > len(zoneCIDRs) {
-		return fmt.Errorf("insufficient number of subnets (have %d, but need %d) for %d availability zones", len(zoneCIDRs), 2*zonesTotal, zonesTotal)
-	}
-
-	for i, zone := range spec.AvailabilityZones {
-		public := zoneCIDRs[i]
-		private := zoneCIDRs[i+zonesTotal]
-		vpc.Subnets[api.SubnetTopologyPublic][zone] = api.Network{
-			CIDR: &ipnet.IPNet{IPNet: *public},
-		}
-		vpc.Subnets[api.SubnetTopologyPrivate][zone] = api.Network{
-			CIDR: &ipnet.IPNet{IPNet: *private},
-		}
-		logger.Info("subnets for %s - public:%s private:%s", zone, public.String(), private.String())
-	}
-
-	return nil
-}
-
-func describeSubnets(porvider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
+func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
 	input := &ec2.DescribeSubnetsInput{
 		SubnetIds: aws.StringSlice(subnetIDs),
 	}
-	output, err := porvider.EC2().DescribeSubnets(input)
+	output, err := provider.EC2().DescribeSubnets(input)
 	if err != nil {
 		return nil, err
 	}
 	return output.Subnets, nil
 }
 
-func describeVPC(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
+func describeVPC(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []*string{aws.String(vpcID)},
 	}
-	output, err := povider.EC2().DescribeVpcs(input)
+	output, err := provider.EC2().DescribeVpcs(input)
 	if err != nil {
 		return nil, err
 	}

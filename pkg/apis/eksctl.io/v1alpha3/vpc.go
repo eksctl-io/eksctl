@@ -22,6 +22,7 @@ type (
 		// private subnets or any ad-hoc subnets
 		// +optional
 		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
+		IGW        InternetGateway
 	}
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string
@@ -31,6 +32,10 @@ type (
 		ID string `json:"id,omitempty"`
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+	}
+	// InternetGateway holds the ID of the Internet Gateway for that VPC
+	InternetGateway struct {
+		ID string
 	}
 )
 

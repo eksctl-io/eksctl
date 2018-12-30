@@ -20,7 +20,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 const (
@@ -278,7 +277,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN:                      arn,
+				ARN: arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -298,19 +297,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg := newClusterConfig()
 
-		It("should not error when calling SetSubnets", func() {
-			err := vpc.SetSubnets(cfg)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		It("should have public and private subnets", func() {
-			Expect(len(cfg.VPC.Subnets)).To(Equal(2))
-			for _, k := range []api.SubnetTopology{"Public", "Private"} {
-				Expect(cfg.VPC.Subnets).To(HaveKey(k))
-				Expect(len(cfg.VPC.Subnets[k])).To(Equal(3))
-			}
-		})
-
 		rs := NewClusterResourceSet(p, cfg)
 		It("should add all resources without error", func() {
 			err := rs.AddAllResources()
@@ -324,8 +310,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                      arn,
-			"ClusterStackName":         "",
+			"ARN":              arn,
+			"ClusterStackName": "",
 		}
 
 		sampleStack := newStackWithOutputs(sampleOutputs)

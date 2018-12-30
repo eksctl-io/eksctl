@@ -84,6 +84,8 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
 		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", cfg.VPC.CIDR.IPNet, "global CIDR to use for VPC")
+		fs.StringVar(&cfg.VPC.ID, "vpc-id", "", "ID of existing VPC to use (can be omitted if providing existing subnets)")
+		fs.StringVar(&cfg.VPC.IGW.ID, "igw-id", "", "use existing Internet Gateway (must be supplied if using an existing VPC which has an Internet Gateway), and not providing subnets")
 		subnets = map[api.SubnetTopology]*[]string{
 			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
 			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
@@ -296,9 +298,6 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		if !subnetsGiven && kopsClusterNameForVPC == "" {
 			// default: create dedicated VPC
 			if err := ctl.SetAvailabilityZones(cfg, availabilityZones); err != nil {
-				return err
-			}
-			if err := vpc.SetSubnets(cfg); err != nil {
 				return err
 			}
 			return nil

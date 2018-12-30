@@ -19,6 +19,7 @@ type ClusterResourceSet struct {
 	spec           *api.ClusterConfig
 	provider       api.ClusterProvider
 	vpc            *gfn.Value
+	igw            *gfn.Value
 	subnets        map[api.SubnetTopology][]*gfn.Value
 	securityGroups []*gfn.Value
 	outputs        map[string]string
@@ -37,6 +38,8 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 // AddAllResources adds all the information about the cluster to the resource set
 func (c *ClusterResourceSet) AddAllResources() error {
 	dedicatedVPC := c.spec.VPC.ID == ""
+	internetGatewayGiven := c.spec.VPC.IGW.ID == ""
+	dedicatedSubnets := len(c.subnets[api.SubnetTopologyPrivate])+len(c.subnets[api.SubnetTopologyPublic]) == 0
 
 	c.rs.template.Description = fmt.Sprintf(
 		"%s (dedicated VPC: %v, dedicated IAM: %v) %s",
@@ -44,14 +47,26 @@ func (c *ClusterResourceSet) AddAllResources() error {
 		dedicatedVPC, true,
 		templateDescriptionSuffix)
 
-	if err := c.spec.HasSufficientSubnets(); err != nil {
-		return err
-	}
-
 	if dedicatedVPC {
 		c.addResourcesForVPC()
 	} else {
 		c.importResourcesForVPC()
+	}
+	if internetGatewayGiven {
+		c.importResourcesForIGW()
+	} else {
+		c.addResourcesForIGW()
+	}
+	if dedicatedSubnets {
+		if err := c.addResourcesForSubnets(); err != nil {
+			return err
+		}
+		c.addResourcesForRouting()
+	} else {
+		if err := c.spec.HasSufficientSubnets(); err != nil {
+			return err
+		}
+		c.importResourcesForSubnets()
 	}
 	c.addOutputsForVPC()
 

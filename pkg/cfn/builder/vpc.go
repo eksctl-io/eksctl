@@ -1,65 +1,65 @@
 package builder
 
 import (
+	"fmt"
+	"net"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
+	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"k8s.io/kops/pkg/util/subnet"
 )
 
-func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
-	for az, subnet := range c.spec.VPC.Subnets[topology] {
-		alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
-		subnet := &gfn.AWSEC2Subnet{
-			AvailabilityZone: gfn.NewString(az),
-			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
-			VpcId:            c.vpc,
-		}
-		if topology == api.SubnetTopologyPrivate {
-			subnet.Tags = []gfn.Tag{{
-				Key:   gfn.NewString("kubernetes.io/role/internal-elb"),
-				Value: gfn.NewString("1"),
-			}}
-		}
-		refSubnet := c.newResource("Subnet"+alias, subnet)
-		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
-			SubnetId:     refSubnet,
-			RouteTableId: refRT,
-		})
-		c.subnets[topology] = append(c.subnets[topology], refSubnet)
+func (c *ClusterResourceSet) addSubnet(CIDR *net.IPNet, az string, topology api.SubnetTopology) {
+	alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
+	subnet := &gfn.AWSEC2Subnet{
+		AvailabilityZone: gfn.NewString(az),
+		CidrBlock:        gfn.NewString(CIDR.String()),
+		VpcId:            c.vpc,
 	}
+	if topology == api.SubnetTopologyPrivate {
+		subnet.Tags = []gfn.Tag{{
+			Key:   gfn.NewString("kubernetes.io/role/internal-elb"),
+			Value: gfn.NewString("1"),
+		}}
+	}
+	refSubnet := c.newResource("Subnet"+alias, subnet)
+	c.subnets[topology] = append(c.subnets[topology], refSubnet)
 }
 
 //nolint:interfacer
 func (c *ClusterResourceSet) addResourcesForVPC() {
-	internetCIDR := gfn.NewString("0.0.0.0/0")
-
 	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(c.spec.VPC.CIDR.String()),
 		EnableDnsSupport:   gfn.True(),
 		EnableDnsHostnames: gfn.True(),
 	})
 
-	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
+}
 
-	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
+//nolint:interfacer
+func (c *ClusterResourceSet) addResourcesForIGW() {
+	c.igw = c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
 	c.newResource("VPCGatewayAttachment", &gfn.AWSEC2VPCGatewayAttachment{
-		InternetGatewayId: refIG,
+		InternetGatewayId: c.igw,
 		VpcId:             c.vpc,
 	})
+}
 
-	refPublicRT := c.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
+//nolint:interfacer
+func (c *ClusterResourceSet) addResourcesForRouting() {
+	internetCIDR := gfn.NewString("0.0.0.0/0")
+	routeTables := make(map[api.SubnetTopology]*gfn.Value)
+	routeTables[api.SubnetTopologyPublic] = c.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
 		VpcId: c.vpc,
 	})
 
 	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
-		RouteTableId:         refPublicRT,
+		RouteTableId:         routeTables[api.SubnetTopologyPublic],
 		DestinationCidrBlock: internetCIDR,
-		GatewayId:            refIG,
+		GatewayId:            c.igw,
 	})
-
-	c.addSubnets(refPublicRT, api.SubnetTopologyPublic)
-
 	c.newResource("NATIP", &gfn.AWSEC2EIP{
 		Domain: gfn.NewString("vpc"),
 	})
@@ -70,21 +70,65 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		SubnetId: c.subnets[api.SubnetTopologyPublic][0],
 	})
 
-	refPrivateRT := c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
+	routeTables[api.SubnetTopologyPrivate] = c.newResource("PrivateRouteTable", &gfn.AWSEC2RouteTable{
 		VpcId: c.vpc,
 	})
 
 	c.newResource("PrivateSubnetRoute", &gfn.AWSEC2Route{
-		RouteTableId:         refPrivateRT,
+		RouteTableId:         routeTables[api.SubnetTopologyPrivate],
 		DestinationCidrBlock: internetCIDR,
 		NatGatewayId:         refNG,
 	})
+	for topology, subnets := range c.subnets {
+		for i, subnet := range subnets {
+			c.newResource("RouteTableAssociation"+string(topology)+string(i), &gfn.AWSEC2SubnetRouteTableAssociation{
+				SubnetId:     subnet,
+				RouteTableId: routeTables[topology],
+			})
+		}
+	}
+}
 
-	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
+//nolint:interfacer
+func (c *ClusterResourceSet) addResourcesForSubnets() error {
+	var err error
+
+	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
+	prefix, _ := c.spec.VPC.CIDR.Mask.Size()
+	if (prefix < 16) || (prefix > 24) {
+		return fmt.Errorf("VPC CIDR prefix must be betwee /16 and /24")
+	}
+	zoneCIDRs, err := subnet.SplitInto8(c.spec.VPC.CIDR)
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("VPC CIDR (%s) was divided into 8 subnets %v", c.spec.VPC.CIDR.String(), zoneCIDRs)
+
+	zonesTotal := len(c.spec.AvailabilityZones)
+	if 2*zonesTotal > len(zoneCIDRs) {
+		return fmt.Errorf("insufficient number of subnets (have %d, but need %d) for %d availability zones", len(zoneCIDRs), 2*zonesTotal, zonesTotal)
+	}
+
+	for i, zone := range c.spec.AvailabilityZones {
+		public := zoneCIDRs[i]
+		private := zoneCIDRs[i+zonesTotal]
+		c.addSubnet(public, zone, api.SubnetTopologyPublic)
+		c.addSubnet(private, zone, api.SubnetTopologyPrivate)
+		logger.Info("subnets for %s - public:%s private:%s", zone, public.String(), private.String())
+	}
+
+	return nil
+
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {
 	c.vpc = gfn.NewString(c.spec.VPC.ID)
+}
+func (c *ClusterResourceSet) importResourcesForIGW() {
+	c.igw = gfn.NewString(c.spec.VPC.IGW.ID)
+}
+func (c *ClusterResourceSet) importResourcesForSubnets() {
 	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 	for topology := range c.spec.VPC.Subnets {
 		for _, subnet := range c.spec.SubnetIDs(topology) {
@@ -95,7 +139,7 @@ func (c *ClusterResourceSet) importResourcesForVPC() {
 
 func (c *ClusterResourceSet) addOutputsForVPC() {
 	c.rs.newOutput(cfnOutputClusterVPC, c.vpc, true)
-	for topology := range c.spec.VPC.Subnets {
+	for topology := range c.subnets {
 		c.rs.newJoinedOutput(cfnOutputClusterSubnets+string(topology), c.subnets[topology], true)
 	}
 }
