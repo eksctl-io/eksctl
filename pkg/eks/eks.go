@@ -92,7 +92,7 @@ func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output
 	if err := c.doListClusters(int64(chunkSize), printer, &allClusters, eachRegion); err != nil {
 		return err
 	}
-	return printer.PrintObj("clusters", allClusters, os.Stdout)
+	return printer.PrintObjWithKind("clusters", allClusters, os.Stdout)
 }
 
 func (c *ClusterProvider) getClustersRequest(chunkSize int64, nextToken string) ([]*string, *string, error) {
@@ -158,7 +158,7 @@ func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.Outp
 	logger.Debug("cluster = %#v", output)
 
 	clusters := []*awseks.Cluster{output.Cluster} // TODO: in the future this will have multiple clusters
-	if err := printer.PrintObj("clusters", clusters, os.Stdout); err != nil {
+	if err := printer.PrintObjWithKind("clusters", clusters, os.Stdout); err != nil {
 		return err
 	}
 

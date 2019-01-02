@@ -3,7 +3,6 @@ package printers_test
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -34,7 +33,7 @@ var _ = Describe("JSON Printer", func() {
 			_ = printer.(*JSONPrinter)
 		})
 
-		Context("given a cluster struct and calling PrintObj", func() {
+		Context("given a cluster struct and calling PrintObjWithKind", func() {
 			var (
 				cluster     *awseks.Cluster
 				err         error
@@ -57,7 +56,7 @@ var _ = Describe("JSON Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj("clusters", []*awseks.Cluster{cluster}, w)
+				err = printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, w)
 				w.Flush()
 			})
 
@@ -75,18 +74,11 @@ var _ = Describe("JSON Printer", func() {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
 
-				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
-
-				if !bytesAreEqual {
-					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
-					fmt.Printf("Expected:\n%s\n", string(g))
-				}
-
-				Expect(bytesAreEqual).To(BeTrue())
+				Expect(actualBytes.Bytes()).Should(MatchJSON(g))
 			})
 		})
 
-		Context("given 2 cluster structs and calling PrintObj", func() {
+		Context("given 2 cluster structs and calling PrintObjWithKind", func() {
 			var (
 				clusters    []*awseks.Cluster
 				err         error
@@ -121,7 +113,7 @@ var _ = Describe("JSON Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj("clusters", clusters, w)
+				err = printer.PrintObjWithKind("clusters", clusters, w)
 				w.Flush()
 			})
 
@@ -139,14 +131,7 @@ var _ = Describe("JSON Printer", func() {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
 
-				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
-
-				if !bytesAreEqual {
-					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
-					fmt.Printf("Expected:\n%s\n", string(g))
-				}
-
-				Expect(bytesAreEqual).To(BeTrue())
+				Expect(actualBytes.Bytes()).Should(MatchJSON(g))
 			})
 		})
 	})

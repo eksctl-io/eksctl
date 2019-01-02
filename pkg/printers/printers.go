@@ -3,12 +3,16 @@ package printers
 import (
 	"fmt"
 	"io"
+
+	"github.com/kris-nova/logger"
 )
 
 // OutputPrinter is the interface that printer must implement. This allows
 // new printers to be added in the future.
 type OutputPrinter interface {
-	PrintObj(kind string, obj interface{}, writer io.Writer) error
+	PrintObjWithKind(kind string, obj interface{}, writer io.Writer) error
+	PrintObj(obj interface{}, writer io.Writer) error
+	LogObj(log logger.Logger, prefixFmt string, obj interface{}) error
 }
 
 // NewPrinter creates a new printer based in the printer type requested
