@@ -84,7 +84,7 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		addSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	if err := printer.PrintObj("nodegroups", summaries, os.Stdout); err != nil {
+	if err := printer.PrintObjWithKind("nodegroups", summaries, os.Stdout); err != nil {
 		return err
 	}
 

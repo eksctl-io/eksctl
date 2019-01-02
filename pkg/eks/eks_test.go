@@ -1,7 +1,6 @@
 package eks_test
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -165,14 +164,7 @@ var _ = Describe("Eks", func() {
 
 				actualOutput, _ := ioutil.ReadAll(reader)
 
-				bytesAreEqual := bytes.Equal(actualOutput, g)
-
-				if !bytesAreEqual {
-					fmt.Printf("\nActual:\n%s\n", string(actualOutput))
-					fmt.Printf("Expected:\n%s\n", string(g))
-				}
-
-				Expect(bytesAreEqual).To(BeTrue())
+				Expect(actualOutput).Should(MatchJSON(string(g)))
 			})
 		})
 

@@ -3,7 +3,6 @@ package printers_test
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -41,7 +40,7 @@ var _ = Describe("Table Printer", func() {
 			_ = printer.(*TablePrinter)
 		})
 
-		Context("given just a cluster struct (no slice) and calling PrintObj", func() {
+		Context("given just a cluster struct (no slice) and calling PrintObjWithKind", func() {
 			var (
 				cluster     *awseks.Cluster
 				err         error
@@ -64,7 +63,7 @@ var _ = Describe("Table Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj("clusters", cluster, w)
+				err = printer.PrintObjWithKind("clusters", cluster, w)
 				w.Flush()
 			})
 
@@ -77,7 +76,7 @@ var _ = Describe("Table Printer", func() {
 			})
 		})
 
-		Context("given an empty slice with no cluster structs and calling PrintObj", func() {
+		Context("given an empty slice with no cluster structs and calling PrintObjWithKind", func() {
 			var (
 				err         error
 				actualBytes bytes.Buffer
@@ -85,7 +84,7 @@ var _ = Describe("Table Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj("clusters", []*awseks.Cluster{}, w)
+				err = printer.PrintObjWithKind("clusters", []*awseks.Cluster{}, w)
 				w.Flush()
 			})
 
@@ -103,18 +102,11 @@ var _ = Describe("Table Printer", func() {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
 
-				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
-
-				if !bytesAreEqual {
-					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
-					fmt.Printf("Expected:\n%s\n", string(g))
-				}
-
-				Expect(bytesAreEqual).To(BeTrue())
+				Expect(actualBytes.String()).To(Equal(string(g)))
 			})
 		})
 
-		Context("given a slice with a cluster struct and calling PrintObj", func() {
+		Context("given a slice with a cluster struct and calling PrintObjWithKind", func() {
 			var (
 				cluster     *awseks.Cluster
 				err         error
@@ -137,7 +129,7 @@ var _ = Describe("Table Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj("clusters", []*awseks.Cluster{cluster}, w)
+				err = printer.PrintObjWithKind("clusters", []*awseks.Cluster{cluster}, w)
 				w.Flush()
 			})
 
@@ -155,18 +147,11 @@ var _ = Describe("Table Printer", func() {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
 
-				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
-
-				if !bytesAreEqual {
-					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
-					fmt.Printf("Expected:\n%s\n", string(g))
-				}
-
-				Expect(bytesAreEqual).To(BeTrue())
+				Expect(actualBytes.String()).To(Equal(string(g)))
 			})
 		})
 
-		Context("given a slice with 2 cluster structs and calling PrintObj", func() {
+		Context("given a slice with 2 cluster structs and calling PrintObjWithKind", func() {
 			var (
 				clusters    []*awseks.Cluster
 				err         error
@@ -201,7 +186,7 @@ var _ = Describe("Table Printer", func() {
 
 			JustBeforeEach(func() {
 				w := bufio.NewWriter(&actualBytes)
-				err = printer.PrintObj("clusters", clusters, w)
+				err = printer.PrintObjWithKind("clusters", clusters, w)
 				w.Flush()
 			})
 
@@ -219,14 +204,7 @@ var _ = Describe("Table Printer", func() {
 					GinkgoT().Fatalf("failed reading .golden: %s", err)
 				}
 
-				bytesAreEqual := bytes.Equal(actualBytes.Bytes(), g)
-
-				if !bytesAreEqual {
-					fmt.Printf("\nActual:\n%s\n", string(actualBytes.Bytes()))
-					fmt.Printf("Expected:\n%s\n", string(g))
-				}
-
-				Expect(bytesAreEqual).To(BeTrue())
+				Expect(actualBytes.String()).To(Equal(string(g)))
 			})
 		})
 	})
