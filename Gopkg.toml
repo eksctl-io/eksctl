@@ -8,13 +8,8 @@ required = [
   version = "v1.14.0"
 
 [[constraint]]
-  name = "github.com/ghodss/yaml"
-  version = "1.0.0"
-
-[[constraint]]
   name = "github.com/kubicorn/kubicorn"
   branch = "master"
-
 
 [[constraint]]
   name = "github.com/pkg/errors"
@@ -39,6 +34,10 @@ required = [
 [[constraint]]
   branch = "master"
   name = "k8s.io/cli-runtime"
+
+[[constraint]]
+  name = "sigs.k8s.io/yaml"
+  version = "v1.1.0"
 
 [[override]]
   name = "github.com/json-iterator/go"

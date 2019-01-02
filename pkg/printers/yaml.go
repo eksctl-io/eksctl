@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/ghodss/yaml"
 	"github.com/kris-nova/logger"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	cliruntime "k8s.io/cli-runtime/pkg/genericclioptions/printers"
+	"sigs.k8s.io/yaml"
 )
 
 // YAMLPrinter is a printer that outputs an object formatted

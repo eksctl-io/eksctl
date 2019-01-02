@@ -8,8 +8,9 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/ghodss/yaml"
 	"github.com/kris-nova/logger"
+
+	"sigs.k8s.io/yaml"
 )
 
 const (

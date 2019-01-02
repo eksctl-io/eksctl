@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ghodss/yaml"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/eks/api"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	clientset "k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/yaml"
 )
 
 func (c *ClusterProvider) newNodeAuthConfigMap(ng *api.NodeGroup) (*corev1.ConfigMap, error) {
