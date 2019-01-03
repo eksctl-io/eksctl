@@ -140,6 +140,9 @@ func (c *StackCollection) describeStack(i *Stack) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
 	}
+	if i.StackId != nil && *i.StackId != "" {
+		input.StackName = i.StackId
+	}
 	if i.StackId != nil {
 		input.StackName = i.StackId
 	}

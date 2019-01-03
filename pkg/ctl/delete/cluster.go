@@ -87,7 +87,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
 			}
-			handleIfError(fmt.Errorf("failed to delete nodegroup(s)"), "nodegroup(s)")
+			return fmt.Errorf("failed to delete nodegroup(s)")
 		}
 		logger.Debug("all nodegroups were deleted")
 	}
