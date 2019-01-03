@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 
 	. "github.com/dave/jennifer/jen"
 )

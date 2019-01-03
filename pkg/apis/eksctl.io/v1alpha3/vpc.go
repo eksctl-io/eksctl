@@ -1,28 +1,36 @@
-package api
+package v1alpha3
 
 import (
 	"fmt"
 	"net"
+
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
 type (
 	// ClusterVPC holds global subnet and all child public/private subnet
 	ClusterVPC struct {
-		Network              // global CIDR and VPC ID
-		SecurityGroup string // cluster SG
+		// +optional
+		Network `json:",inline"` // global CIDR and VPC ID
+		// +optional
+		SecurityGroup string `json:"securityGroup,omitempty"` // cluster SG
 		// subnets are either public or private for use with separate nodegroups
 		// these are keyed by AZ for convenience
-		Subnets map[SubnetTopology]map[string]Network
+		// +optional
+		Subnets map[SubnetTopology]map[string]Network `json:"subnets,omitempty"`
 		// for additional CIDR associations, e.g. to use with separate CIDR for
 		// private subnets or any ad-hoc subnets
-		ExtraCIDRs []*net.IPNet
+		// +optional
+		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
 	}
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string
 	// Network holds ID and CIDR
 	Network struct {
-		ID   string
-		CIDR *net.IPNet
+		// +optional
+		ID string `json:"id,omitempty"`
+		// +optional
+		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
 	}
 )
 
@@ -38,10 +46,12 @@ const (
 )
 
 // DefaultCIDR returns default global CIDR for VPC
-func DefaultCIDR() net.IPNet {
-	return net.IPNet{
-		IP:   []byte{192, 168, 0, 0},
-		Mask: []byte{255, 255, 0, 0},
+func DefaultCIDR() ipnet.IPNet {
+	return ipnet.IPNet{
+		IPNet: net.IPNet{
+			IP:   []byte{192, 168, 0, 0},
+			Mask: []byte{255, 255, 0, 0},
+		},
 	}
 }
 
@@ -58,7 +68,7 @@ func (c *ClusterConfig) SubnetIDs(topology SubnetTopology) []string {
 
 // ImportSubnet loads a given subnet into cluster config
 func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) {
-	_, subnetCIDR, _ := net.ParseCIDR(cidr)
+	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
 
 	if c.VPC.Subnets == nil {
 		c.VPC.Subnets = make(map[SubnetTopology]map[string]Network)

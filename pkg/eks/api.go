@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/version"
 
 	"github.com/weaveworks/eksctl/pkg/az"

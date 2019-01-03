@@ -1,9 +1,10 @@
-package api
+package v1alpha3
 
 import (
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"strings"
 )
 
 var _ = Describe("StackCollection Template", func() {

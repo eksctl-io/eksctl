@@ -4,7 +4,8 @@ import (
 	"sync"
 
 	"github.com/kris-nova/logger"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 )
 
 type taskFunc func(chan error, interface{}) error

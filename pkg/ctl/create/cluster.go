@@ -9,9 +9,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -71,7 +72,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	})
 
 	group.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
-		fs.IPNetVar(cfg.VPC.CIDR, "vpc-cidr", api.DefaultCIDR(), "global CIDR to use for VPC")
+		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", api.DefaultCIDR().IPNet, "global CIDR to use for VPC")
 		subnets = map[api.SubnetTopology]*[]string{
 			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
 			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),

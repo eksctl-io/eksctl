@@ -7,7 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/eksctl/pkg/eks/api"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
