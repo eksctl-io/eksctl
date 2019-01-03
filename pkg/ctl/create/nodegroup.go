@@ -124,7 +124,7 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		}
 
 		// authorise nodes to join
-		if err = ctl.AddNodeGroupToAuthConfigMap(clientSet, ng); err != nil {
+		if err = ctl.CreateOrUpdateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
 			return err
 		}
 

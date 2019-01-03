@@ -426,7 +426,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
-			if err = ctl.CreateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+			if err = ctl.CreateOrUpdateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
 				return err
 			}
 

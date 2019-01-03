@@ -8,87 +8,48 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/utils"
 
 	corev1 "k8s.io/api/core/v1"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	clientset "k8s.io/client-go/kubernetes"
-	"sigs.k8s.io/yaml"
 )
 
-func (c *ClusterProvider) newNodeAuthConfigMap(ng *api.NodeGroup) (*corev1.ConfigMap, error) {
-	mapRoles := make([]map[string]interface{}, 1)
-	mapRoles[0] = make(map[string]interface{})
+// CreateOrUpdateNodeGroupAuthConfigMap creates or updates the auth config map for the given nodegroup
+func (c *ClusterProvider) CreateOrUpdateNodeGroupAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+	cm := &corev1.ConfigMap{}
+	client := clientSet.CoreV1().ConfigMaps(utils.AuthConfigMapNamespace)
+	create := false
 
-	mapRoles[0]["rolearn"] = ng.InstanceRoleARN
-	mapRoles[0]["username"] = "system:node:{{EC2PrivateDNSName}}"
-	mapRoles[0]["groups"] = []string{
-		"system:bootstrappers",
-		"system:nodes",
+	if existing, err := client.Get(utils.AuthConfigMapName, metav1.GetOptions{}); err != nil {
+		if kerr.IsNotFound(err) {
+			create = true
+		} else {
+			return errors.Wrapf(err, "getting auth ConfigMap")
+		}
+	} else {
+		*cm = *existing
 	}
 
-	mapRolesBytes, err := yaml.Marshal(mapRoles)
-	if err != nil {
-		return nil, err
+	if create {
+		cm, err := utils.NewAuthConfigMap(ng.InstanceRoleARN)
+		if err != nil {
+			return errors.Wrap(err, "constructing auth ConfigMap")
+		}
+		if _, err := client.Create(cm); err != nil {
+			return errors.Wrap(err, "creating auth ConfigMap")
+		}
+		logger.Debug("created auth ConfigMap for %s", ng.Name)
+		return nil
 	}
 
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "aws-auth",
-			Namespace: "kube-system",
-		},
-		Data: map[string]string{
-			"mapRoles": string(mapRolesBytes),
-		},
+	utils.UpdateAuthConfigMap(cm, ng.InstanceRoleARN)
+	if _, err := client.Update(cm); err != nil {
+		return errors.Wrap(err, "updating auth ConfigMap")
 	}
-
-	return cm, nil
-}
-
-// CreateNodeGroupAuthConfigMap creates the auth config map for the default node group
-func (c *ClusterProvider) CreateNodeGroupAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
-	cm, err := c.newNodeAuthConfigMap(ng)
-	if err != nil {
-		return errors.Wrap(err, "constructing auth ConfigMap for DefaultNodeGroup")
-	}
-	if _, err := clientSet.CoreV1().ConfigMaps("kube-system").Create(cm); err != nil {
-		return errors.Wrap(err, "creating auth ConfigMap for DefaultNodeGroup")
-	}
-	return nil
-}
-
-// AddNodeGroupToAuthConfigMap updates the auth config map to include the node group
-func (c *ClusterProvider) AddNodeGroupToAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
-	cm, err := clientSet.CoreV1().ConfigMaps("kube-system").Get("aws-auth", metav1.GetOptions{})
-	if err != nil {
-		return errors.Wrapf(err, "failed getting auth ConfigMap for %s", ng.Name)
-	}
-
-	mapRoles := []map[string]interface{}{}
-
-	if err := yaml.Unmarshal([]byte(cm.Data["mapRoles"]), &mapRoles); err != nil {
-		return err
-	}
-
-	m := make(map[string]interface{})
-	m["rolearn"] = ng.InstanceRoleARN
-	m["username"] = "system:node:{{EC2PrivateDNSName}}"
-	m["groups"] = []string{
-		"system:bootstrappers",
-		"system:nodes",
-	}
-	mapRoles = append(mapRoles, m)
-
-	mapRolesBytes, err := yaml.Marshal(mapRoles)
-	if err != nil {
-		return err
-	}
-
-	cm.Data["mapRoles"] = string(mapRolesBytes)
-
-	if _, err := clientSet.CoreV1().ConfigMaps("kube-system").Update(cm); err != nil {
-		return errors.Wrapf(err, "updating auth ConfigMap for %s", ng.Name)
-	}
+	logger.Debug("updated auth ConfigMap for %s", ng.Name)
 	return nil
 }
 
@@ -135,7 +96,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 		return errors.Wrap(err, "listing nodes")
 	}
 
-	logger.Info("waiting for at least %d nodes to become ready", ng.MinSize)
+	logger.Info("waiting for at least %d nodes to become ready in %q", ng.MinSize, ng.Name)
 	for !timeout && counter <= ng.MinSize {
 		select {
 		case event := <-watcher.ResultChan():
@@ -144,9 +105,9 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 				if node, ok := event.Object.(*corev1.Node); ok {
 					if isNodeReady(node) {
 						counter++
-						logger.Debug("node %q is ready", node.ObjectMeta.Name)
+						logger.Debug("node %q is ready in %q", node.ObjectMeta.Name, ng.Name)
 					} else {
-						logger.Debug("node %q seen, but not ready yet", node.ObjectMeta.Name)
+						logger.Debug("node %q seen in %q, but not ready yet", node.ObjectMeta.Name, ng.Name)
 						logger.Debug("node = %#v", *node)
 					}
 				}
@@ -156,7 +117,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 		}
 	}
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready", c.Provider.WaitTimeout(), ng.MinSize)
+		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), ng.MinSize, ng.Name)
 	}
 
 	if _, err = getNodes(clientSet, ng); err != nil {
