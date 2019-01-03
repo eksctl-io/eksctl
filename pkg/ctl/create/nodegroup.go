@@ -133,7 +133,7 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 			return err
 		}
 	}
-	logger.Success("created nodegroup %q in cluster %q", cfg.Metadata.Name, ng.Name)
+	logger.Success("created nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
 
 	return nil
 
