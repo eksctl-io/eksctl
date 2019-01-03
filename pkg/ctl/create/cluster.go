@@ -10,13 +10,19 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kops"
+	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/vpc"
+)
+
+const (
+	defaultSSHPublicKey = "~/.ssh/id_rsa.pub"
 )
 
 var (
@@ -26,8 +32,11 @@ var (
 	setContext         bool
 	availabilityZones  []string
 
+	configFile = ""
+
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
+	subnetsGiven          bool
 )
 
 func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -38,8 +47,8 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Create a cluster",
-		Run: func(_ *cobra.Command, args []string) {
-			if err := doCreateCluster(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := doCreateCluster(p, cfg, ng, cmdutils.GetNameArg(args), cmd); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -56,7 +65,9 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
-		fs.StringVar(&cfg.Metadata.Version, "version", api.LatestVersion, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ",")))
+		fs.StringVar(&cfg.Metadata.Version, "version", cfg.Metadata.Version, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ",")))
+
+		fs.StringVarP(&configFile, "config-file", "f", "", "load configuration from a file")
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -72,7 +83,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	})
 
 	group.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
-		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", api.DefaultCIDR().IPNet, "global CIDR to use for VPC")
+		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", cfg.VPC.CIDR.IPNet, "global CIDR to use for VPC")
 		subnets = map[api.SubnetTopology]*[]string{
 			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
 			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
@@ -92,8 +103,108 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
+func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, cmd *cobra.Command) error {
 	meta := cfg.Metadata
+
+	printer := printers.NewJSONPrinter()
+
+	if err := api.Register(); err != nil {
+		return err
+	}
+
+	if configFile != "" {
+		if err := eks.LoadConfigFromFile(configFile, cfg); err != nil {
+			return err
+		}
+		meta = cfg.Metadata
+
+		incompatibleFlags := []string{
+			"name",
+			"tags",
+			"zones",
+			"version",
+			"region",
+			"nodes",
+			"nodes-min",
+			"nodes-max",
+			"node-type",
+			"node-volume-size",
+			"max-pods-per-node",
+			"node-ami",
+			"node-ami-family",
+			"ssh-access",
+			"ssh-public-key",
+			"node-private-networking",
+			"asg-access",
+			"external-dns-access",
+			"full-ecr-access",
+			"storage-class",
+			"vpc-private-subnets",
+			"vpc-public-subnets",
+			"vpc-cidr",
+		}
+
+		for _, f := range incompatibleFlags {
+			if cmd.Flag(f).Changed {
+				return fmt.Errorf("cannot use --%s when --config-file/-f is set", f)
+			}
+		}
+
+		if meta.Name == "" {
+			return fmt.Errorf("metadata.name must be set")
+		}
+
+		if meta.Region == "" {
+			return fmt.Errorf("metadata.region must be set")
+		}
+
+		p.Region = meta.Region
+
+		for i, ng := range cfg.NodeGroups {
+			if ng.Name == "" {
+				return fmt.Errorf("nodegroups[%d].name must be set", i)
+			}
+			if ng.InstanceType == "" {
+				ng.InstanceType = api.DefaultNodeType
+			}
+			if ng.AMIFamily == "" {
+				ng.AMIFamily = ami.ImageFamilyAmazonLinux2
+			}
+			if ng.AMI == "" {
+				ng.AMI = ami.ResolverStatic
+			}
+			if ng.AllowSSH {
+				if ng.SSHPublicKeyPath == "" {
+					ng.SSHPublicKeyPath = defaultSSHPublicKey
+				}
+			}
+		}
+
+		subnetsGiven = false
+		if cfg.VPC == nil {
+			cfg.VPC = api.NewClusterVPC()
+		} else {
+			subnetsGiven = len(cfg.VPC.Subnets[api.SubnetTopologyPrivate])+len(cfg.VPC.Subnets[api.SubnetTopologyPublic]) != 0
+		}
+	} else {
+		// validation and defaulting specific to when --config-file is unused
+
+		// generate cluster name or use either flag or argument
+		if utils.ClusterName(meta.Name, nameArg) == "" {
+			return cmdutils.ErrNameFlagAndArg(meta.Name, nameArg)
+		}
+		meta.Name = utils.ClusterName(meta.Name, nameArg)
+
+		if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
+			return fmt.Errorf("--ssh-public-key must be non-empty string")
+		}
+
+		// generate nodegroup name or use flag
+		ng.Name = utils.NodeGroupName(ng.Name, "")
+
+		subnetsGiven = len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
+	}
+
 	ctl := eks.New(p, cfg)
 
 	if !ctl.IsSupportedRegion() {
@@ -101,17 +212,24 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 	}
 	logger.Info("using region %s", meta.Region)
 
+	if cfg.Metadata.Version == "" {
+		cfg.Metadata.Version = api.LatestVersion
+	}
+	if cfg.Metadata.Version != api.LatestVersion {
+		validVersion := false
+		for _, v := range api.SupportedVersions() {
+			if cfg.Metadata.Version == v {
+				validVersion = true
+			}
+		}
+		if !validVersion {
+			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ","))
+		}
+	}
+
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-
-	if utils.ClusterName(meta.Name, nameArg) == "" {
-		return cmdutils.ErrNameFlagAndArg(meta.Name, nameArg)
-	}
-	meta.Name = utils.ClusterName(meta.Name, nameArg)
-
-	// Use given name or generate one, no argument mode here
-	ng.Name = utils.NodeGroupName(ng.Name, "")
 
 	if autoKubeconfigPath {
 		if kubeconfigPath != kubeconfig.DefaultPath {
@@ -120,12 +238,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		kubeconfigPath = kubeconfig.AutoPath(meta.Name)
 	}
 
-	if ng.SSHPublicKeyPath == "" {
-		return fmt.Errorf("--ssh-public-key must be non-empty string")
-	}
-
 	createOrImportVPC := func() error {
-		subnetsGiven := len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
 
 		subnetInfo := func() string {
 			return fmt.Sprintf("VPC (%s) and subnets (private:%v public:%v)",
@@ -222,6 +335,14 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 
 	logger.Info("creating %s", meta.LogString())
 
+	// TODO dry-run mode should provide a way to render config with all defaults set
+	// we should also make a call to resolve the AMI and write the result, similaraly
+	// the body of the SSH key can be read
+
+	if err := printer.LogObj(logger.Info, "cfg = \\\n", cfg); err != nil { // TODO: move this to debug level
+		return err
+	}
+
 	{ // core action
 		stackManager := ctl.NewStackManager(cfg)
 		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
@@ -281,9 +402,14 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		}
 
 		// add default storage class only for version 1.10 clusters
-		if cfg.Addons.Storage && meta.Version == "1.10" {
-			if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
-				return err
+		if meta.Version == "1.10" {
+			// --storage-class flag is only for backwards compatibility,
+			// we always create the storage class when --config-file is
+			// used, as this is 1.10-only
+			if cfg.Addons.Storage || configFile != "" {
+				if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
+					return err
+				}
 			}
 		}
 
