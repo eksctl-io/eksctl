@@ -1,0 +1,12 @@
+# An example of Cluster object custom VPC CIDR, and without any nodegroups:
+--- 
+apiVersion: eksctl.io/v1alpha3
+kind: ClusterConfig
+
+metadata:
+  name: cluster-2
+  region: eu-north-1
+
+vpc: {cidr: 10.10.0.0/16}
+
+nodeGroups: []
