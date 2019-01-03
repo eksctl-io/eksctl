@@ -85,7 +85,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 							StackStatus: aws.String("CREATE_COMPLETE"),
 							Tags: []*cfn.Tag{
 								&cfn.Tag{
-									Key:   aws.String(NodeGroupNameTag),
+									Key:   aws.String(api.NodeGroupNameTag),
 									Value: aws.String("12345"),
 								},
 							},

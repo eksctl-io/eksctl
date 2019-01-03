@@ -57,6 +57,20 @@ const (
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
+
+	// ClusterNameTag defines the tag of the clsuter name
+	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+
+	// NodeGroupNameTag defines the tag of the node group name
+	NodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
+	// OldNodeGroupIDTag defines the old version of tag of the node group name
+	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
+
+	// ClusterNameLabel defines the tag of the clsuter name
+	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
+
+	// NodeGroupNameLabel defines the label of the node group name
+	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 )
 
 // SupportedRegions are the regions where EKS is available

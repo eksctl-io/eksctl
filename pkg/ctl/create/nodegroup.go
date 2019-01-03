@@ -83,6 +83,11 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 		return err
 	}
+	logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
+
+	if err := ctl.SetNodeLabels(ng, meta); err != nil {
+		return err
+	}
 
 	if err := ctl.LoadSSHPublicKey(cfg.Metadata.Name, ng); err != nil {
 		return err
