@@ -220,8 +220,6 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 		return ami.NewErrNotFound(ng.AMI)
 	}
 
-	logger.Info("using %q for nodes", ng.AMI)
-
 	return nil
 }
 

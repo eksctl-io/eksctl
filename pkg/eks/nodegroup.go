@@ -67,7 +67,7 @@ func getNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	logger.Info("nodegroup %q has %d nodes", ng.Name, len(nodes.Items))
+	logger.Info("nodegroup %q has %d node(s)", ng.Name, len(nodes.Items))
 	for _, node := range nodes.Items {
 		// logger.Debug("node[%d]=%#v", n, node)
 		ready := "not ready"
@@ -96,7 +96,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 		return errors.Wrap(err, "listing nodes")
 	}
 
-	logger.Info("waiting for at least %d nodes to become ready in %q", ng.MinSize, ng.Name)
+	logger.Info("waiting for at least %d node(s) to become ready in %q", ng.MinSize, ng.Name)
 	for !timeout && counter <= ng.MinSize {
 		select {
 		case event := <-watcher.ResultChan():

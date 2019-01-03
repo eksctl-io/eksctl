@@ -352,6 +352,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
 		}
+		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 
 		// load or use SSH key - name includes cluster name and the
 		// fingerprint, so if unique keys provided, each will get
@@ -378,7 +379,12 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 	{ // core action
 		stackManager := ctl.NewStackManager(cfg)
-		logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
+		if len(cfg.NodeGroups) == 1 {
+			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
+		} else {
+			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(cfg.NodeGroups))
+
+		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
 		errs := stackManager.CreateClusterWithNodeGroups()
 		// read any errors (it only gets non-nil errors)
