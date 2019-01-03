@@ -48,7 +48,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		Use:   "cluster",
 		Short: "Create a cluster",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateCluster(p, cfg, ng, cmdutils.GetNameArg(args), cmd); err != nil {
+			if err := doCreateCluster(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -103,7 +103,18 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, cmd *cobra.Command) error {
+// checkEachNodeGroup iterates over each nodegroup and calls check function
+// (this is need to avoid common goroutine-for-loop pitfall)
+func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
+	for i := range cfg.NodeGroups {
+		if err := check(i, cfg.NodeGroups[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	meta := cfg.Metadata
 
 	printer := printers.NewJSONPrinter()
@@ -160,7 +171,14 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 
 		p.Region = meta.Region
 
-		for i, ng := range cfg.NodeGroups {
+		subnetsGiven = false
+		if cfg.VPC == nil {
+			cfg.VPC = api.NewClusterVPC()
+		} else {
+			subnetsGiven = len(cfg.VPC.Subnets[api.SubnetTopologyPrivate])+len(cfg.VPC.Subnets[api.SubnetTopologyPublic]) != 0
+		}
+
+		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
 			if ng.Name == "" {
 				return fmt.Errorf("nodegroups[%d].name must be set", i)
 			}
@@ -173,18 +191,17 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 			if ng.AMI == "" {
 				ng.AMI = ami.ResolverStatic
 			}
+
 			if ng.AllowSSH {
 				if ng.SSHPublicKeyPath == "" {
 					ng.SSHPublicKeyPath = defaultSSHPublicKey
 				}
 			}
-		}
 
-		subnetsGiven = false
-		if cfg.VPC == nil {
-			cfg.VPC = api.NewClusterVPC()
-		} else {
-			subnetsGiven = len(cfg.VPC.Subnets[api.SubnetTopologyPrivate])+len(cfg.VPC.Subnets[api.SubnetTopologyPublic]) != 0
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	} else {
 		// validation and defaulting specific to when --config-file is unused
@@ -195,14 +212,21 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		}
 		meta.Name = utils.ClusterName(meta.Name, nameArg)
 
-		if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
-			return fmt.Errorf("--ssh-public-key must be non-empty string")
-		}
-
-		// generate nodegroup name or use flag
-		ng.Name = utils.NodeGroupName(ng.Name, "")
-
 		subnetsGiven = len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
+
+		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
+			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
+				return fmt.Errorf("--ssh-public-key must be non-empty string")
+			}
+
+			// generate nodegroup name or use flag
+			ng.Name = utils.NodeGroupName(ng.Name, "")
+
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	ctl := eks.New(p, cfg)
@@ -247,7 +271,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 
 		customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
 
-		canUseForPrivateNodeGroup := func() error {
+		canUseForPrivateNodeGroups := func(_ int, ng *api.NodeGroup) error {
 			if ng.PrivateNetworking && !cfg.HasSufficientPrivateSubnets() {
 				return fmt.Errorf("none or too few private subnets to use with --node-private-networking")
 			}
@@ -284,7 +308,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 				return err
 			}
 
-			if err := canUseForPrivateNodeGroup(); err != nil {
+			if err := checkEachNodeGroup(cfg, canUseForPrivateNodeGroups); err != nil {
 				return err
 			}
 
@@ -310,7 +334,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 			return err
 		}
 
-		if err := canUseForPrivateNodeGroup(); err != nil {
+		if err := checkEachNodeGroup(cfg, canUseForPrivateNodeGroups); err != nil {
 			return err
 		}
 
@@ -323,15 +347,24 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		return err
 	}
 
-	if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
+	err := checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+		// resolve AMI
+		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
+			return err
+		}
+
+		// load or use SSH key - name includes cluster name and the
+		// fingerprint, so if unique keys provided, each will get
+		// loaded and used as intended and there is no need to have
+		// nodegroup name in the key name
+		if err := ctl.LoadSSHPublicKey(meta.Name, ng); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return err
 	}
-
-	if err := ctl.LoadSSHPublicKey(meta.Name, ng); err != nil {
-		return err
-	}
-
-	logger.Debug("cfg = %#v", cfg)
 
 	logger.Info("creating %s", meta.LogString())
 
@@ -339,7 +372,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 	// we should also make a call to resolve the AMI and write the result, similaraly
 	// the body of the SSH key can be read
 
-	if err := printer.LogObj(logger.Info, "cfg = \\\n", cfg); err != nil { // TODO: move this to debug level
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
 		return err
 	}
 
@@ -391,13 +424,26 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 			return err
 		}
 
-		// authorise nodes to join
-		if err = ctl.CreateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
-			return err
-		}
+		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+			// authorise nodes to join
+			if err = ctl.CreateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+				return err
+			}
 
-		// wait for nodes to join
-		if err = ctl.WaitForNodes(clientSet, ng); err != nil {
+			// wait for nodes to join
+			if err = ctl.WaitForNodes(clientSet, ng); err != nil {
+				return err
+			}
+
+			// if GPU instance type, give instructions
+			if utils.IsGPUInstanceType(ng.InstanceType) {
+				logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
+				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
+			}
+
+			return nil
+		})
+		if err != nil {
 			return err
 		}
 
@@ -423,12 +469,6 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
-		}
-
-		// If GPU instance type, give instructions
-		if utils.IsGPUInstanceType(ng.InstanceType) {
-			logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
-			logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 		}
 	}
 
