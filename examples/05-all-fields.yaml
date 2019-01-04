@@ -1,5 +1,7 @@
-# An example of a fully-populated Cluster object (e.g. as read-back after cluster was created):
---- 
+# An example to show a fully-populated ClusterConfig object,
+# e.g. as observed after cluster was created. You won't be
+# able to use this directly as is.
+---
 apiVersion: eksctl.io/v1alpha3
 kind: ClusterConfig
 
