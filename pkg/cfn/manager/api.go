@@ -42,7 +42,6 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
 	}
-	logger.Debug("tags = %#v", tags)
 	return &StackCollection{
 		provider:   provider,
 		spec:       spec,
@@ -80,12 +79,11 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, ta
 		input.Parameters = append(input.Parameters, p)
 	}
 
-	logger.Debug("input = %#v", input)
+	logger.Debug("CreateStackInput = %#v", input)
 	s, err := c.provider.CloudFormation().CreateStack(input)
 	if err != nil {
 		return errors.Wrapf(err, "creating CloudFormation stack %q", *i.StackName)
 	}
-	logger.Debug("stack = %#v", s)
 	i.StackId = s.StackId
 	return nil
 }
@@ -100,7 +98,6 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 	if err != nil {
 		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
 	}
-	logger.Debug("templateBody = %s", string(templateBody))
 
 	if err := c.doCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM()); err != nil {
 		return err
