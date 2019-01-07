@@ -161,9 +161,6 @@ type ClusterConfig struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
-	// TODO: refactor and move IAM addons to nodegroup
-	Addons ClusterAddons
-
 	// TODO: move under status
 	Endpoint                 string
 	CertificateAuthorityData []byte
@@ -270,11 +267,6 @@ type NodeGroup struct {
 	// +optional
 	Labels NodeLabels `json:"labels,omitempty"`
 
-	// +optional
-	PolicyARNs []string `json:"policyARNs,omitempty"`
-	// +optional
-	InstanceRoleARN string `json:"instanceRoleARN,omitempty"`
-
 	// TODO move to separate struct
 	// +optional
 	AllowSSH bool `json:"allowSSH"`
@@ -284,6 +276,9 @@ type NodeGroup struct {
 	SSHPublicKey []byte `json:"SSHPublicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
 	// +optional
 	SSHPublicKeyName string `json:"sshPublicKeyName,omitempty"`
+
+	// +optional
+	IAM NodeGroupIAM `json:"iam"`
 }
 
 // SubnetTopology check which topology is used for the subnet of
@@ -296,14 +291,22 @@ func (n *NodeGroup) SubnetTopology() SubnetTopology {
 }
 
 type (
-	// ClusterAddons provides addons for the created EKS cluster
-	ClusterAddons struct {
-		WithIAM AddonIAM
+	// NodeGroupIAM holds all IAM attributes of a NodeGroup
+	NodeGroupIAM struct {
+		// +optional
+		AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+		// +optional
+		InstanceRoleARN string `json:"instanceRoleARN,omitempty"`
+		// +optional
+		WithAddonPolicies NodeGroupIAMAddonPolicies `json:"withAddonsPolicies,omitempty"`
 	}
-	// AddonIAM provides an addon for the AWS IAM integration
-	AddonIAM struct {
-		PolicyAmazonEC2ContainerRegistryPowerUser bool
-		PolicyAutoScaling                         bool
-		PolicyExternalDNS                         bool
+	// NodeGroupIAMAddonPolicies holds all IAM addon policies
+	NodeGroupIAMAddonPolicies struct {
+		// +optional
+		ImageBuilder bool `json:"imageBuilder"`
+		// +optional
+		AutoScaler bool `json:"autoScaler"`
+		// +optional
+		ExternalDNS bool `json:"externalDNS"`
 	}
 )

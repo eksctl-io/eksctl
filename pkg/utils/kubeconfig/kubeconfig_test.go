@@ -150,8 +150,10 @@ var _ = Describe("Kubeconfig", func() {
 					MinSize:           0,
 					MaxSize:           0,
 					MaxPodsPerNode:    0,
-					PolicyARNs:        []string(nil),
-					InstanceRoleARN:   "",
+					IAM: eksctlapi.NodeGroupIAM{
+						AttachPolicyARNs: []string(nil),
+						InstanceRoleARN:  "",
+					},
 				},
 			},
 			VPC: &eksctlapi.ClusterVPC{
@@ -166,7 +168,6 @@ var _ = Describe("Kubeconfig", func() {
 			ARN:                      "",
 			ClusterStackName:         "",
 			AvailabilityZones:        []string{"us-west-2b", "us-west-2a", "us-west-2c"},
-			Addons:                   eksctlapi.ClusterAddons{},
 		}
 
 		var (

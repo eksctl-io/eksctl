@@ -412,11 +412,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup()
 		cfg.CertificateAuthorityData = []byte("MyCA")
 
-		cfg.Addons = api.ClusterAddons{
-			WithIAM: api.AddonIAM{
-				PolicyAutoScaling: true,
-			},
-		}
+		ng.IAM.WithAddonPolicies.AutoScaler = true
 
 		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
 		err := rs.AddAllResources()

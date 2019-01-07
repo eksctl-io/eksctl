@@ -28,7 +28,7 @@ const (
 	cfnOutputClusterARN                      = "ARN"
 	cfnOutputClusterStackName                = "ClusterStackName"
 
-	// this is set inside of NodeGroup
+	// outputs that are destined for NodeGroupStackOutputs
 	cfnOutputInstanceRoleARN = "InstanceRoleARN"
 )
 
@@ -46,6 +46,11 @@ type ClusterStackOutputs struct {
 	Endpoint                 string
 	CertificateAuthorityData []byte
 	ARN                      string
+}
+
+// NodeGroupStackOutputs is a struct that hold all of nodegroup stack outputs
+type NodeGroupStackOutputs struct {
+	InstanceRoleARN string
 }
 
 // newOutput defines a new output and optionally exports it
