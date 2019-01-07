@@ -37,6 +37,7 @@ var (
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
 	subnetsGiven          bool
+	addonsStorageClass    bool
 )
 
 func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -79,7 +80,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
 		fs.BoolVar(&cfg.Addons.WithIAM.PolicyExternalDNS, "external-dns-access", false, "enable iam policy dependency for external-dns")
 		fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
-		fs.BoolVar(&cfg.Addons.Storage, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
+		fs.BoolVar(&addonsStorageClass, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
 	})
 
 	group.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
@@ -462,7 +463,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			// --storage-class flag is only for backwards compatibility,
 			// we always create the storage class when --config-file is
 			// used, as this is 1.10-only
-			if cfg.Addons.Storage || configFile != "" {
+			if addonsStorageClass || configFile != "" {
 				if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 					return err
 				}
