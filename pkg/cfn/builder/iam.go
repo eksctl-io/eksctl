@@ -104,34 +104,6 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		Path:  gfn.NewString("/"),
 		Roles: makeSlice(refIR),
 	})
-	n.rs.attachAllowPolicy("PolicyTagDiscovery", refIR, "*", []string{
-		"ec2:DescribeTags",
-	})
-	n.rs.attachAllowPolicy("PolicyStackSignal", refIR,
-		map[string]interface{}{
-			gfn.FnJoin: []interface{}{
-				":",
-				[]interface{}{
-					"arn:aws:cloudformation",
-					map[string]string{"Ref": gfn.Region},
-					map[string]string{"Ref": gfn.AccountID},
-					map[string]interface{}{
-						gfn.FnJoin: []interface{}{
-							"/",
-							[]interface{}{
-								"stack",
-								map[string]string{"Ref": gfn.StackName},
-								"*",
-							},
-						},
-					},
-				},
-			},
-		},
-		[]string{
-			"cloudformation:SignalResource",
-		},
-	)
 
 	if n.clusterSpec.Addons.WithIAM.PolicyAutoScaling {
 		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
