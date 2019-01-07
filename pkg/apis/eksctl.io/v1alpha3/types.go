@@ -299,7 +299,6 @@ type (
 	// ClusterAddons provides addons for the created EKS cluster
 	ClusterAddons struct {
 		WithIAM AddonIAM
-		Storage bool
 	}
 	// AddonIAM provides an addon for the AWS IAM integration
 	AddonIAM struct {
