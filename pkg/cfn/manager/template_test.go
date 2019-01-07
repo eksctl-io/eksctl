@@ -1,13 +1,14 @@
 package manager
 
 import (
+	"errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
-	"errors"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 

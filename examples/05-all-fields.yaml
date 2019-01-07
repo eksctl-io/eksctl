@@ -1,0 +1,74 @@
+# An example to show a fully-populated ClusterConfig object,
+# e.g. as observed after cluster was created. You won't be
+# able to use this directly as is.
+---
+apiVersion: eksctl.io/v1alpha3
+kind: ClusterConfig
+
+metadata:
+  name: cluster-4
+  region: eu-north-1
+  version: "1.11"
+  tags: {team: a}
+
+vpc:
+  id: vpc-123456
+  cidr: 192.168.0.0/16
+  securityGroup: sg-123456
+  extraCIDRs: []
+  subnets:
+    private:
+      eu-north-1a:
+        id: subnet-123456
+        cidr: 192.168.0.0/19
+      eu-north-1b:
+        id: subnet-123456
+        cidr: 192.168.32.0/19
+      eu-north-1c:
+        id: subnet-123456
+        cidr: 192.168.64.0/19
+    public:
+      eu-north-1a:
+        id: subnet-123456
+        cidr: 192.168.96.0/19
+      eu-north-1b:
+        id: subnet-123456
+        cidr: 192.168.128.0/19
+      eu-north-1c:
+        id: subnet-123456
+        cidr: 192.168.160.0/19
+
+availabilityZones: ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
+
+nodeGroups:
+
+  - instanceType: m5.xlarge
+    tags: {purpose: build}
+    volumeSize: 30
+    desiredCapacity: 10
+    minSize: 5
+    maxSize: 15
+    availabilityZones: ["eu-north-1a"]
+    ami: ami-123456
+    amiFamily: AmazonLinux2
+    privateNetworking: true
+    maxPodsPerNode: 234
+    policyARNs: []
+    instanceRoleARN: "..."
+    allowSSH: true
+    SSHPublicKeyName: team-a-shared-key
+
+  - instanceType: m5.24xlarge
+    tags: {purpose: production}
+    volumeSize: 8
+    desiredCapacity: 100
+    minSize: 50
+    maxSize: 150
+    availabilityZones: ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
+    ami: ami-123456
+    amiFamily: AmazonLinux2
+    privateNetworking: true
+    maxPodsPerNode: 737
+    policyARNs: []
+    instanceRoleARN: "..."
+    allowSSH: false

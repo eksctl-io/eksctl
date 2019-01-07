@@ -141,7 +141,6 @@ func (r *resourceSet) GetAllOutputs(stack cfn.Stack, obj interface{}) error {
 			return errors.Wrap(err, "processing stack outputs")
 		}
 	}
-	logger.Debug("obj = %#v", obj)
 	return nil
 }
 

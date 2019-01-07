@@ -2,8 +2,9 @@ package cmdutils
 
 import (
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/eksctl/pkg/ami"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 )
 
 const (

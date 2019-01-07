@@ -1,4 +1,4 @@
-package api
+package v1alpha3
 
 import (
 	"fmt"
@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -52,6 +54,23 @@ const (
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
 	LatestVersion = Version1_11
+
+	// DefaultNodeType is the default instance type to use for nodes
+	DefaultNodeType = "m5.large"
+
+	// ClusterNameTag defines the tag of the clsuter name
+	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+
+	// NodeGroupNameTag defines the tag of the node group name
+	NodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
+	// OldNodeGroupIDTag defines the old version of tag of the node group name
+	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
+
+	// ClusterNameLabel defines the tag of the clsuter name
+	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
+
+	// NodeGroupNameLabel defines the label of the node group name
+	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 )
 
 // SupportedRegions are the regions where EKS is available
@@ -85,10 +104,12 @@ const DefaultNodeCount = 2
 
 // ClusterMeta is what identifies a cluster
 type ClusterMeta struct {
-	Name    string
-	Region  string
-	Version string
-	Tags    map[string]string
+	Name   string `json:"name"`
+	Region string `json:"region"`
+	// +optional
+	Version string `json:"version,omitempty"`
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // String returns canonical representation of ClusterMeta
@@ -122,38 +143,75 @@ type ProviderConfig struct {
 	WaitTimeout time.Duration
 }
 
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
-	Metadata *ClusterMeta
+	metav1.TypeMeta `json:",inline"`
 
-	VPC *ClusterVPC
+	Metadata *ClusterMeta `json:"metadata"`
 
-	NodeGroups []*NodeGroup
+	// +optional
+	VPC *ClusterVPC `json:"vpc,omitempty"`
 
+	// +optional
+	NodeGroups []*NodeGroup `json:"nodeGroups,omitempty"`
+
+	// +optional
+	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+
+	// TODO: refactor and move IAM addons to nodegroup
+	Addons ClusterAddons
+
+	// TODO: move under status
 	Endpoint                 string
 	CertificateAuthorityData []byte
 	ARN                      string
-
-	ClusterStackName string
-
-	AvailabilityZones []string
-
-	Addons ClusterAddons
+	ClusterStackName         string
 }
 
-// NewClusterConfig create new config for a cluster;
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// ClusterConfigList is a list of ClusterConfigs
+type ClusterConfigList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata"`
+
+	Items []ClusterConfig `json:"items"`
+}
+
+// ClusterConfigTypeMeta constructs TypeMeta for ClusterConfig
+func ClusterConfigTypeMeta() metav1.TypeMeta {
+	return metav1.TypeMeta{
+		Kind:       ClusterConfigKind,
+		APIVersion: SchemeGroupVersion.String(),
+	}
+}
+
+// NewClusterConfig creates new config for a cluster;
 // it doesn't include initial nodegroup, so user must
 // call NewNodeGroup to create one
 func NewClusterConfig() *ClusterConfig {
 	cfg := &ClusterConfig{
-		Metadata: &ClusterMeta{},
-		VPC:      &ClusterVPC{},
+		TypeMeta: ClusterConfigTypeMeta(),
+		Metadata: &ClusterMeta{
+			Version: LatestVersion,
+		},
+		VPC: NewClusterVPC(),
 	}
 
-	cidr := DefaultCIDR()
-	cfg.VPC.CIDR = &cidr
-
 	return cfg
+}
+
+// NewClusterVPC creates new VPC config for a cluster
+func NewClusterVPC() *ClusterVPC {
+	cidr := DefaultCIDR()
+	return &ClusterVPC{
+		Network: Network{
+			CIDR: &cidr,
+		},
+	}
 }
 
 // AppendAvailabilityZone appends a new AZ to the set
@@ -171,6 +229,8 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	ng := &NodeGroup{
 		PrivateNetworking: false,
+		DesiredCapacity:   DefaultNodeCount,
+		InstanceType:      DefaultNodeType,
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -181,31 +241,49 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // NodeGroup holds all configuration attributes that are
 // specific to a nodegroup
 type NodeGroup struct {
-	Name string
+	Name string `json:"name"`
+	// +optional
+	AMI string `json:"ami,omitempty"`
+	// +optional
+	AMIFamily string `json:"amiFamily,omitempty"`
+	// +optional
+	InstanceType string `json:"instanceType,omitempty"`
+	// +optional
+	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
+	// +optional
+	PrivateNetworking bool `json:"privateNetworking"`
 
-	AMI               string
-	AMIFamily         string
-	InstanceType      string
-	AvailabilityZones []string
-	Tags              map[string]string
-	PrivateNetworking bool
+	// +optional
+	DesiredCapacity int `json:"desiredCapacity"`
+	// +optional
+	MinSize int `json:"minSize,omitempty"`
+	// +optional
+	MaxSize int `json:"maxSize,omitempty"`
 
-	DesiredCapacity int
-	MinSize         int
-	MaxSize         int
+	// +optional
+	VolumeSize int `json:"volumeSize"`
+	// +optional
+	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
-	VolumeSize int
+	// +optional
+	Labels NodeLabels `json:"labels,omitempty"`
 
-	Labels         NodeLabels
-	MaxPodsPerNode int
+	// +optional
+	PolicyARNs []string `json:"policyARNs,omitempty"`
+	// +optional
+	InstanceRoleARN string `json:"instanceRoleARN,omitempty"`
 
-	PolicyARNs      []string
-	InstanceRoleARN string
-
-	AllowSSH         bool
-	SSHPublicKeyPath string
-	SSHPublicKey     []byte
-	SSHPublicKeyName string
+	// TODO move to separate struct
+	// +optional
+	AllowSSH bool `json:"allowSSH"`
+	// +optional
+	SSHPublicKeyPath string `json:"sshPublicKeyPath,omitempty"`
+	// +optional
+	SSHPublicKey []byte `json:"SSHPublicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
+	// +optional
+	SSHPublicKeyName string `json:"sshPublicKeyName,omitempty"`
 }
 
 // SubnetTopology check which topology is used for the subnet of

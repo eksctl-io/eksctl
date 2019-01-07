@@ -1,4 +1,4 @@
-package api
+package v1alpha3
 
 import (
 	"testing"

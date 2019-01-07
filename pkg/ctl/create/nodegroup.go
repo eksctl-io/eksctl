@@ -10,9 +10,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
@@ -83,6 +83,11 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 		return err
 	}
+	logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
+
+	if err := ctl.SetNodeLabels(ng, meta); err != nil {
+		return err
+	}
 
 	if err := ctl.LoadSSHPublicKey(cfg.Metadata.Name, ng); err != nil {
 		return err
@@ -124,7 +129,7 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		}
 
 		// authorise nodes to join
-		if err = ctl.AddNodeGroupToAuthConfigMap(clientSet, ng); err != nil {
+		if err = ctl.CreateOrUpdateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
 			return err
 		}
 

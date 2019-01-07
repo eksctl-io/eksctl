@@ -2,12 +2,12 @@ package vpc
 
 import (
 	"fmt"
-	"net"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/kris-nova/logger"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"k8s.io/kops/pkg/util/subnet"
 )
 
@@ -25,7 +25,7 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	if (prefix < 16) || (prefix > 24) {
 		return fmt.Errorf("VPC CIDR prefix must be betwee /16 and /24")
 	}
-	zoneCIDRs, err := subnet.SplitInto8(spec.VPC.CIDR)
+	zoneCIDRs, err := subnet.SplitInto8(&spec.VPC.CIDR.IPNet)
 	if err != nil {
 		return err
 	}
@@ -41,10 +41,10 @@ func SetSubnets(spec *api.ClusterConfig) error {
 		public := zoneCIDRs[i]
 		private := zoneCIDRs[i+zonesTotal]
 		vpc.Subnets[api.SubnetTopologyPublic][zone] = api.Network{
-			CIDR: public,
+			CIDR: &ipnet.IPNet{IPNet: *public},
 		}
 		vpc.Subnets[api.SubnetTopologyPrivate][zone] = api.Network{
-			CIDR: private,
+			CIDR: &ipnet.IPNet{IPNet: *private},
 		}
 		logger.Info("subnets for %s - public:%s private:%s", zone, public.String(), private.String())
 	}
@@ -85,7 +85,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 				return err
 			}
 			spec.VPC.ID = *vpc.VpcId
-			_, spec.VPC.CIDR, err = net.ParseCIDR(*vpc.CidrBlock)
+			spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
 			if err != nil {
 				return err
 			}

@@ -5,6 +5,8 @@ required = [
   "github.com/vektra/mockery/cmd/mockery",
   "github.com/weaveworks/github-release",
   "golang.org/x/tools/cmd/stringer",
+  "k8s.io/code-generator/cmd/deepcopy-gen",
+  "k8s.io/code-generator/cmd/defaulter-gen",
 ]
 
 [[constraint]]
@@ -14,3 +16,7 @@ required = [
 [[constraint]]
   name = "github.com/goreleaser/goreleaser"
   version = "v0.77.2"
+
+[[constraint]]
+  branch = "master"
+  name = "k8s.io/code-generator"

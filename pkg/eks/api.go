@@ -2,13 +2,17 @@ package eks
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
 	"github.com/weaveworks/eksctl/pkg/version"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	"github.com/weaveworks/eksctl/pkg/az"
 
@@ -124,6 +128,28 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	return c
 }
 
+// LoadConfigFromFile populates cfg based on contents of configFile
+func LoadConfigFromFile(configFile string, cfg *api.ClusterConfig) error {
+	data, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return errors.Wrapf(err, "reading config file %q", configFile)
+	}
+
+	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), data)
+	if err != nil {
+		return errors.Wrapf(err, "loading config file %q", configFile)
+	}
+
+	cfgLoaded, ok := obj.(*api.ClusterConfig)
+	if !ok {
+		return fmt.Errorf("decoded object of wrong type")
+	}
+
+	*cfg = *cfgLoaded // mutate the content, not the reference
+
+	return nil
+}
+
 // IsSupportedRegion check if given region is supported
 func (c *ClusterProvider) IsSupportedRegion() bool {
 	for _, supportedRegion := range api.SupportedRegions() {
@@ -195,8 +221,23 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 		return ami.NewErrNotFound(ng.AMI)
 	}
 
-	logger.Info("using %q for nodes", ng.AMI)
+	return nil
+}
 
+// SetNodeLabels initialises and validate node labels based on cluster and nodegroup names
+func (c *ClusterProvider) SetNodeLabels(ng *api.NodeGroup, meta *api.ClusterMeta) error {
+	if ng.Labels == nil {
+		ng.Labels = make(api.NodeLabels)
+	}
+
+	ng.Labels[api.ClusterNameLabel] = meta.Name
+	ng.Labels[api.NodeGroupNameLabel] = ng.Name
+
+	for l := range ng.Labels {
+		if len(strings.Split(l, "/")) > 2 {
+			return fmt.Errorf("node label key %q is of invalid format, can only use one '/' separator", l)
+		}
+	}
 	return nil
 }
 

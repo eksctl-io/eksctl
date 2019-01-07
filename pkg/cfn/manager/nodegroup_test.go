@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
@@ -85,7 +85,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 							StackStatus: aws.String("CREATE_COMPLETE"),
 							Tags: []*cfn.Tag{
 								&cfn.Tag{
-									Key:   aws.String(NodeGroupNameTag),
+									Key:   aws.String(api.NodeGroupNameTag),
 									Value: aws.String("12345"),
 								},
 							},

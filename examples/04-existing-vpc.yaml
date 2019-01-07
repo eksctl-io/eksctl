@@ -1,0 +1,26 @@
+# An example of ClusterConfig object using an existing VPC:
+--- 
+apiVersion: eksctl.io/v1alpha3
+kind: ClusterConfig
+
+metadata:
+  name: cluster-3
+  region: eu-north-1
+
+vpc:
+  subnets:
+    private:
+      # NOTE: you cannot run this example directly,
+      # you will need to set actual subenet IDs here
+      eu-north-1a:
+        id: subnet-a123456
+      eu-north-1b:
+        id: subnet-b123456
+      eu-north-1c:
+        id: subnet-c123456
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    privateNetworking: true

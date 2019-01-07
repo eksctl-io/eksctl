@@ -9,17 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
-)
-
-const (
-	// ClusterNameTag defines the tag of the clsuter name
-	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
-
-	// NodeGroupNameTag defines the tag of the node group name
-	NodeGroupNameTag  = "eksctl.io/v1alpha2/nodegroup-name"
-	oldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 )
 
 var (
@@ -34,9 +25,9 @@ type ChangeSet = cloudformation.DescribeChangeSetOutput
 
 // StackCollection stores the CloudFormation stack information
 type StackCollection struct {
-	provider api.ClusterProvider
-	spec     *api.ClusterConfig
-	tags     []*cloudformation.Tag
+	provider   api.ClusterProvider
+	spec       *api.ClusterConfig
+	sharedTags []*cloudformation.Tag
 }
 
 func newTag(key, value string) *cloudformation.Tag {
@@ -46,25 +37,30 @@ func newTag(key, value string) *cloudformation.Tag {
 // NewStackCollection create a stack manager for a single cluster
 func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
 	tags := []*cloudformation.Tag{
-		newTag(ClusterNameTag, spec.Metadata.Name),
+		newTag(api.ClusterNameTag, spec.Metadata.Name),
 	}
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
 	}
-	logger.Debug("tags = %#v", tags)
 	return &StackCollection{
-		provider: provider,
-		spec:     spec,
-		tags:     tags,
+		provider:   provider,
+		spec:       spec,
+		sharedTags: tags,
 	}
 }
 
-func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, parameters map[string]string, withIAM bool) error {
+func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, tags, parameters map[string]string, withIAM bool) error {
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
 
-	input.SetTags(c.tags)
+	for _, t := range c.sharedTags {
+		input.Tags = append(input.Tags, t)
+	}
+	for k, v := range tags {
+		input.Tags = append(input.Tags, newTag(k, v))
+	}
+
 	input.SetTemplateBody(string(templateBody))
 
 	if withIAM {
@@ -83,12 +79,11 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, pa
 		input.Parameters = append(input.Parameters, p)
 	}
 
-	logger.Debug("input = %#v", input)
+	logger.Debug("CreateStackInput = %#v", input)
 	s, err := c.provider.CloudFormation().CreateStack(input)
 	if err != nil {
 		return errors.Wrapf(err, "creating CloudFormation stack %q", *i.StackName)
 	}
-	logger.Debug("stack = %#v", s)
 	i.StackId = s.StackId
 	return nil
 }
@@ -97,15 +92,14 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, pa
 // any errors will be written to errs channel, when nil is written,
 // assume completion, do not expect more then one error value on the
 // channel, it's closed immediately after it is written to
-func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, parameters map[string]string, errs chan error) error {
+func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error {
 	i := &Stack{StackName: &name}
 	templateBody, err := stack.RenderJSON()
 	if err != nil {
 		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
 	}
-	logger.Debug("templateBody = %s", string(templateBody))
 
-	if err := c.doCreateStackRequest(i, templateBody, parameters, stack.WithIAM()); err != nil {
+	if err := c.doCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM()); err != nil {
 		return err
 	}
 
@@ -142,6 +136,9 @@ func (c *StackCollection) UpdateStack(stackName string, action string, descripti
 func (c *StackCollection) describeStack(i *Stack) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
+	}
+	if i.StackId != nil && *i.StackId != "" {
+		input.StackName = i.StackId
 	}
 	if i.StackId != nil {
 		input.StackName = i.StackId
@@ -205,7 +202,7 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 	}
 	i.StackId = s.StackId
 	for _, tag := range s.Tags {
-		if *tag.Key == ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
+		if *tag.Key == api.ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
 			input := &cloudformation.DeleteStackInput{
 				StackName: i.StackId,
 			}
@@ -223,7 +220,7 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 	}
 
 	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q tag", *s.StackName,
-		fmt.Sprintf("%s:%s", ClusterNameTag, c.spec.Metadata.Name))
+		fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
 }
 
 // WaitDeleteStack kills a stack by name and waits for DELETED status;

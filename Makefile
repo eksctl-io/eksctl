@@ -22,7 +22,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: build
 build: ## Build eksctl
-	@CGO_ENABLED=0 go build -tags netgo -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	@CGO_ENABLED=0 go build -tags "release netgo" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
@@ -84,6 +84,11 @@ generate-ami: ## Generate the list of AMIs for use with static resolver. Queries
 .PHONY: ami-check
 ami-check: generate-ami  ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
 	@git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
+
+
+.PHONY: generate-kubernetes-types
+generate-kubernetes-types:
+	@build/vendor/k8s.io/code-generator/generate-groups.sh deepcopy,defaulter _ github.com/weaveworks/eksctl/pkg/apis eksctl.io:v1alpha3
 
 ##@ Docker
 

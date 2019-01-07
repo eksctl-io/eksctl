@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/eks/api"
 )
 
 const (
@@ -51,13 +51,12 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 		return err
 	}
 
-	c.tags = append(c.tags, newTag(NodeGroupNameTag, fmt.Sprintf("%s", ng.Name)))
-
-	for k, v := range ng.Tags {
-		c.tags = append(c.tags, newTag(k, v))
+	if ng.Tags == nil {
+		ng.Tags = make(map[string]string)
 	}
+	ng.Tags[api.NodeGroupNameTag] = ng.Name
 
-	return c.CreateStack(name, stack, nil, errs)
+	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
 // DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
@@ -210,10 +209,10 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 
 func getNodeGroupName(s *Stack) string {
 	for _, tag := range s.Tags {
-		if *tag.Key == NodeGroupNameTag {
+		if *tag.Key == api.NodeGroupNameTag {
 			return *tag.Value
 		}
-		if *tag.Key == oldNodeGroupIDTag {
+		if *tag.Key == api.OldNodeGroupIDTag {
 			return *tag.Value
 		}
 	}
@@ -225,7 +224,7 @@ func getNodeGroupName(s *Stack) string {
 
 func getClusterName(s *Stack) string {
 	for _, tag := range s.Tags {
-		if *tag.Key == ClusterNameTag {
+		if *tag.Key == api.ClusterNameTag {
 			return *tag.Value
 		}
 	}
