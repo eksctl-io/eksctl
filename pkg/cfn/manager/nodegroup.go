@@ -101,7 +101,7 @@ func (c *StackCollection) BlockingWaitDeleteNodeGroup(name string) error {
 // ScaleNodeGroup will scale an existing nodegroup
 func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	clusterName := c.makeClusterStackName()
-	c.spec.ClusterStackName = clusterName
+	c.spec.Status = &api.ClusterStatus{StackName: clusterName}
 	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 

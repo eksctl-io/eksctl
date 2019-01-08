@@ -213,6 +213,10 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		}
 		meta.Name = utils.ClusterName(meta.Name, nameArg)
 
+		if cfg.Status != nil {
+			return fmt.Errorf("status fields are read-only")
+		}
+
 		subnetsGiven = len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
 
 		if withoutNodeGroup {

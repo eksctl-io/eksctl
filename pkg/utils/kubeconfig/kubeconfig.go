@@ -35,7 +35,7 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 	c := &clientcmdapi.Config{
 		Clusters: map[string]*clientcmdapi.Cluster{
 			clusterName: {
-				Server: spec.Endpoint,
+				Server: spec.Status.Endpoint,
 			},
 		},
 		Contexts: map[string]*clientcmdapi.Context{
@@ -51,7 +51,7 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 	}
 
 	if certificateAuthorityPath == "" {
-		c.Clusters[clusterName].CertificateAuthorityData = spec.CertificateAuthorityData
+		c.Clusters[clusterName].CertificateAuthorityData = spec.Status.CertificateAuthorityData
 	} else {
 		c.Clusters[clusterName].CertificateAuthority = certificateAuthorityPath
 	}
