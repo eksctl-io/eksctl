@@ -309,7 +309,7 @@ type (
 		// +optional
 		InstanceRoleARN string `json:"instanceRoleARN,omitempty"`
 		// +optional
-		WithAddonPolicies NodeGroupIAMAddonPolicies `json:"withAddonsPolicies,omitempty"`
+		WithAddonPolicies NodeGroupIAMAddonPolicies `json:"withAddonPolicies,omitempty"`
 	}
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies
 	NodeGroupIAMAddonPolicies struct {

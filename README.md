@@ -311,6 +311,66 @@ eksctl create cluster \
   --vpc-public-subnets=subnet-0153e560b3129a696,subnet-0cc9c5aebe75083fd,subnet-009fa0199ec203c37,subnet-018fa0176ba320e45
 ```
 
+### Using Config Files
+
+You can create a cluster using a config file instead of flags.
+
+First, create `cluster.yaml` file:
+```YAML
+apiVersion: eksctl.io/v1alpha3
+kind: ClusterConfig
+
+metadata:
+  name: basic-cluster
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 10
+```
+
+Next, run this command:
+```
+eksctl create cluster -f cluster.yaml
+```
+
+This will create a cluster as described.
+
+If you needed to use an existing VPC, you can use a config file like this:
+```YAML
+apiVersion: eksctl.io/v1alpha3
+kind: ClusterConfig
+
+metadata:
+  name: cluster-in-existing-vpc
+  region: eu-north-1
+
+vpc:
+  subnets:
+    private:
+      eu-north-1a: {id: subnet-0ff156e0c4a6d300c}
+      eu-north-1b: {id: subnet-0549cdab573695c03}
+      eu-north-1c: {id: subnet-0426fb4a607393184}
+
+nodeGroups:
+  - name: ng-1-workers
+    labels: {role: workers}
+    instanceType: m5.xlarge
+    desiredCapacity: 10
+    privateNetworking: true
+  - name: ng-2-builders
+    labels: {role: builders}
+    instanceType: m5.2xlarge
+    desiredCapacity: 2
+    privateNetworking: true
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+```
+
+See [`examples/`](examples) directory for more sample config files.
+
 ### GPU Support
 
 If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/instance-types/p2/) or [p3](https://aws.amazon.com/ec2/instance-types/p3/) ) then the first thing you need to do is subscribe to the [EKS-optimized AMI with GPU Support](https://aws.amazon.com/marketplace/pp/B07GRHFXGM). If you don't do this then node creation will fail.
