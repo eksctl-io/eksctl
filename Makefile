@@ -1,7 +1,8 @@
 built_at := $(shell date +%s)
 git_commit := $(shell git describe --dirty --always)
 
-version_pkg := github.com/weaveworks/eksctl/pkg/version
+import_prefix := github.com/weaveworks/eksctl
+version_pkg := $(import_prefix)/pkg/version
 
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
@@ -44,6 +45,11 @@ ifneq ($(INTEGRATION_TEST_VERSION),)
 INTEGRATION_TEST_ARGS += -eksctl.version=$(INTEGRATION_TEST_VERSION)
 $(info will launch integration tests for Kubernetes version $(INTEGRATION_TEST_VERSION))
 endif
+
+.PHONY: github-build
+github-build:
+	cp -a . $(GOPATH)/src/$(import_prefix)
+	$(MAKE) -C $(GOPATH)/src/$(import_prefix) test build
 
 .PHONY: lint
 lint: ## Run linter over the codebase
@@ -130,7 +136,7 @@ ami-check: generate-ami ## Check whether the AMIs have been updated and fail if 
 
 .PHONY: generate-kubernetes-types
 generate-kubernetes-types: ## Generate Kubernetes API helpers
-	@build/vendor/k8s.io/code-generator/generate-groups.sh deepcopy,defaulter _ github.com/weaveworks/eksctl/pkg/apis eksctl.io:v1alpha5
+	@build/vendor/k8s.io/code-generator/generate-groups.sh deepcopy,defaulter _ $(import_prefix)/pkg/apis eksctl.io:v1alpha5
 
 ##@ Docker
 
@@ -168,8 +174,8 @@ release: eksctl-build-image ## Create a new eksctl release
 	  --env=GITHUB_TOKEN \
 	  --env=CIRCLE_TAG \
 	  --env=CIRCLE_PROJECT_USERNAME \
-	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
-	  --workdir=/go/src/github.com/weaveworks/eksctl \
+	  --volume=$(CURDIR):/go/src/$(import_prefix) \
+	  --workdir=/go/src/$(import_prefix) \
 	    $(EKSCTL_BUILD_IMAGE) \
 	      ./do-release.sh
 
