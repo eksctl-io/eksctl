@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+
 	harness "github.com/dlespiau/kube-test-harness"
-	"github.com/dlespiau/kube-test-harness/logger"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,35 +25,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-type tInterface interface {
-	GinkgoTInterface
-	Helper()
-}
-
-type tHelper struct{ GinkgoTInterface }
-
-func (t *tHelper) Helper()      { return }
-func (t *tHelper) Name() string { return "eksctl-test" }
-
-func newKubeTest() (*harness.Test, error) {
-	t := &tHelper{GinkgoT()}
-	l := &logger.TestLogger{}
-	h := harness.New(harness.Options{Logger: l.ForTest(t)})
-	if err := h.Setup(); err != nil {
-		return nil, err
-	}
-	if err := h.SetKubeconfig(kubeconfigPath); err != nil {
-		return nil, err
-	}
-	return h.NewTest(t), nil
-}
-
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 	const (
 		initNG = "ng-0"
 		testNG = "ng-1"
 	)
+
+	commonTimeout := 5 * time.Minute
 
 	BeforeSuite(func() {
 		kubeconfigTemp = false
@@ -85,26 +64,17 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				clusterName = utils.ClusterName("", "")
 			}
 
-			args := []string{"create", "cluster",
+			eksctl("create", "cluster",
+				"--verbose", "4",
 				"--name", clusterName,
 				"--tags", "eksctl.cluster.k8s.io/v1alpha1/description=eksctl integration test",
 				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name=" + initNG,
+				"--node-labels", "ng-name="+initNG,
 				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--region", region,
 				"--kubeconfig", kubeconfigPath,
-			}
-
-			command := exec.Command(eksctlPath, args...)
-			cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-			if err != nil {
-				Fail(fmt.Sprintf("error starting process: %v", err), 1)
-			}
-
-			cmdSession.Wait(createTimeout)
-			Expect(cmdSession.ExitCode()).Should(Equal(0))
+			)
 		})
 
 		awsSession := aws.NewSession(region)
@@ -170,45 +140,21 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		})
 
 		Context("and listing clusters", func() {
-			var cmdSession *gexec.Session
-			It("should not return an error", func() {
-				var err error
-				args := []string{"get", "clusters", "--region", region}
-
-				command := exec.Command(eksctlPath, args...)
-				cmdSession, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-				if err != nil {
-					Fail(fmt.Sprintf("error starting process: %v", err), 1)
-				}
-
-				cmdSession.Wait(getTimeout)
-				Expect(cmdSession.ExitCode()).Should(Equal(0))
-			})
-
 			It("should return the previously created cluster", func() {
+				cmdSession := eksctl("get", "clusters", "--region", region)
 				Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
 			})
 		})
 
 		Context("and scale the initial nodegroup", func() {
 			It("should not return an error", func() {
-				args := []string{"scale", "nodegroup",
+				eksctl("scale", "nodegroup",
+					"--verbose", "4",
 					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "2",
 					"--name", initNG,
-				}
-
-				command := exec.Command(eksctlPath, args...)
-				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-				if err != nil {
-					Fail(fmt.Sprintf("error starting process: %v", err), 1)
-				}
-
-				cmdSession.Wait(scaleTimeout)
-				Expect(cmdSession.ExitCode()).Should(Equal(0))
+				)
 			})
 
 			It("should make it 2 nodes total", func() {
@@ -216,9 +162,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				defer test.Close()
 
-				test.WaitForNodesReady(2, scaleTimeout)
+				test.WaitForNodesReady(2, commonTimeout)
 
-				nodes := test.ListNodes(metav1.ListOptions{})
+				nodes := test.ListNodes((metav1.ListOptions{
+					LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
+				}))
 
 				Expect(len(nodes.Items)).To(Equal(2))
 			})
@@ -226,22 +174,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and add the second nodegroup", func() {
 			It("should not return an error", func() {
-				args := []string{"create", "nodegroup",
+				eksctl("create", "nodegroup",
 					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "1",
 					testNG,
-				}
-
-				command := exec.Command(eksctlPath, args...)
-				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-				if err != nil {
-					Fail(fmt.Sprintf("error starting process: %v", err), 1)
-				}
-
-				cmdSession.Wait(scaleTimeout)
-				Expect(cmdSession.ExitCode()).Should(Equal(0))
+				)
 			})
 
 			It("should make it 3 nodes total", func() {
@@ -249,7 +187,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				defer test.Close()
 
-				test.WaitForNodesReady(3, scaleTimeout)
+				test.WaitForNodesReady(3, commonTimeout)
 
 				nodes := test.ListNodes(metav1.ListOptions{})
 
@@ -258,21 +196,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 			Context("and delete the second nodegroup", func() {
 				It("should not return an error", func() {
-					args := []string{"delete", "nodegroup",
+					eksctl("delete", "nodegroup",
+						"--verbose", "4",
 						"--cluster", clusterName,
 						"--region", region,
 						testNG,
-					}
-
-					command := exec.Command(eksctlPath, args...)
-					cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-					if err != nil {
-						Fail(fmt.Sprintf("error starting process: %v", err), 1)
-					}
-
-					cmdSession.Wait(deleteTimeout)
-					Expect(cmdSession.ExitCode()).Should(Equal(0))
+					)
 				})
 
 				It("should make it 2 nodes total", func() {
@@ -280,9 +209,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					defer test.Close()
 
-					test.WaitForNodesReady(2, scaleTimeout)
+					test.WaitForNodesReady(2, commonTimeout)
 
-					nodes := test.ListNodes(metav1.ListOptions{})
+					nodes := test.ListNodes((metav1.ListOptions{
+						LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
+					}))
 
 					Expect(len(nodes.Items)).To(Equal(2))
 				})
@@ -295,21 +226,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Skip("will not delete cluster " + clusterName)
 				}
 
-				args := []string{"delete", "cluster",
+				eksctl("delete", "cluster",
+					"--verbose", "4",
 					"--name", clusterName,
 					"--region", region,
 					"--wait",
-				}
-
-				command := exec.Command(eksctlPath, args...)
-				cmdSession, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-
-				if err != nil {
-					Fail(fmt.Sprintf("error starting process: %v", err), 1)
-				}
-
-				cmdSession.Wait(deleteTimeout)
-				Expect(cmdSession.ExitCode()).Should(Equal(0))
+				)
 			})
 
 			awsSession := aws.NewSession(region)
