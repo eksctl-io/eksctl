@@ -85,55 +85,27 @@ func (n *NodeGroupResourceSet) WithIAM() bool {
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	n.rs.withIAM = true
 
-	if len(n.spec.PolicyARNs) == 0 {
-		n.spec.PolicyARNs = iamDefaultNodePolicyARNs
+	if len(n.spec.IAM.AttachPolicyARNs) == 0 {
+		n.spec.IAM.AttachPolicyARNs = iamDefaultNodePolicyARNs
 	}
-	if n.clusterSpec.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser {
-		n.spec.PolicyARNs = append(n.spec.PolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
+	if n.spec.IAM.WithAddonPolicies.ImageBuilder {
+		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
 	} else {
-		n.spec.PolicyARNs = append(n.spec.PolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
+		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
 	}
 
 	refIR := n.newResource("NodeInstanceRole", &gfn.AWSIAMRole{
 		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("ec2.amazonaws.com"),
-		ManagedPolicyArns:        makeStringSlice(n.spec.PolicyARNs...),
+		ManagedPolicyArns:        makeStringSlice(n.spec.IAM.AttachPolicyARNs...),
 	})
 
 	n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),
 		Roles: makeSlice(refIR),
 	})
-	n.rs.attachAllowPolicy("PolicyTagDiscovery", refIR, "*", []string{
-		"ec2:DescribeTags",
-	})
-	n.rs.attachAllowPolicy("PolicyStackSignal", refIR,
-		map[string]interface{}{
-			gfn.FnJoin: []interface{}{
-				":",
-				[]interface{}{
-					"arn:aws:cloudformation",
-					map[string]string{"Ref": gfn.Region},
-					map[string]string{"Ref": gfn.AccountID},
-					map[string]interface{}{
-						gfn.FnJoin: []interface{}{
-							"/",
-							[]interface{}{
-								"stack",
-								map[string]string{"Ref": gfn.StackName},
-								"*",
-							},
-						},
-					},
-				},
-			},
-		},
-		[]string{
-			"cloudformation:SignalResource",
-		},
-	)
 
-	if n.clusterSpec.Addons.WithIAM.PolicyAutoScaling {
+	if n.spec.IAM.WithAddonPolicies.AutoScaler {
 		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
 			[]string{
 				"autoscaling:DescribeAutoScalingGroups",
@@ -146,14 +118,10 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if n.clusterSpec.Addons.WithIAM.PolicyExternalDNS {
-		n.rs.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
+	if n.spec.IAM.WithAddonPolicies.ExternalDNS {
+		n.rs.attachAllowPolicy("PolicyExternalDNS", refIR, "arn:aws:route53:::hostedzone/*",
 			[]string{
 				"route53:ChangeResourceRecordSets",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, "*",
-			[]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 			},

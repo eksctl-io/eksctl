@@ -47,6 +47,10 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
+	group.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
+		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
+	})
+
 	cmdutils.AddCommonFlagsForAWS(group, p, true)
 
 	group.AddTo(cmd)

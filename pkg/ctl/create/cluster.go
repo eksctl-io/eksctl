@@ -76,10 +76,8 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
-	group.InFlagSet("Cluster add-ons", func(fs *pflag.FlagSet) {
-		fs.BoolVar(&cfg.Addons.WithIAM.PolicyAutoScaling, "asg-access", false, "enable iam policy dependency for cluster-autoscaler")
-		fs.BoolVar(&cfg.Addons.WithIAM.PolicyExternalDNS, "external-dns-access", false, "enable iam policy dependency for external-dns")
-		fs.BoolVar(&cfg.Addons.WithIAM.PolicyAmazonEC2ContainerRegistryPowerUser, "full-ecr-access", false, "enable full access to ECR")
+	group.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
+		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 		fs.BoolVar(&addonsStorageClass, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
 	})
 

@@ -34,7 +34,7 @@ func (c *ClusterProvider) CreateOrUpdateNodeGroupAuthConfigMap(clientSet *client
 	}
 
 	if create {
-		cm, err := utils.NewAuthConfigMap(ng.InstanceRoleARN)
+		cm, err := utils.NewAuthConfigMap(ng.IAM.InstanceRoleARN)
 		if err != nil {
 			return errors.Wrap(err, "constructing auth ConfigMap")
 		}
@@ -45,7 +45,7 @@ func (c *ClusterProvider) CreateOrUpdateNodeGroupAuthConfigMap(clientSet *client
 		return nil
 	}
 
-	utils.UpdateAuthConfigMap(cm, ng.InstanceRoleARN)
+	utils.UpdateAuthConfigMap(cm, ng.IAM.InstanceRoleARN)
 	if _, err := client.Update(cm); err != nil {
 		return errors.Wrap(err, "updating auth ConfigMap")
 	}
