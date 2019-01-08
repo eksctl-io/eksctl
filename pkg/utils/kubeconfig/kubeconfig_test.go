@@ -163,11 +163,7 @@ var _ = Describe("Kubeconfig", func() {
 				},
 				SecurityGroup: "",
 			},
-			Endpoint:                 "",
-			CertificateAuthorityData: []uint8(nil),
-			ARN:                      "",
-			ClusterStackName:         "",
-			AvailabilityZones:        []string{"us-west-2b", "us-west-2a", "us-west-2c"},
+			AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
 		}
 
 		var (
