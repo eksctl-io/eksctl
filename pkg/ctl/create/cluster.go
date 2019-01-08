@@ -140,6 +140,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			"nodes-max",
 			"node-type",
 			"node-volume-size",
+			"node-volume-type",
 			"max-pods-per-node",
 			"node-ami",
 			"node-ami-family",
@@ -198,6 +199,11 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				}
 			}
 
+			if ng.VolumeSize > 0 {
+				if ng.VolumeType == "" {
+					ng.VolumeType = api.DefaultNodeVolumeType
+				}
+			}
 			return nil
 		})
 		if err != nil {

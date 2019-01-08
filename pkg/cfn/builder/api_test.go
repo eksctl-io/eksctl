@@ -214,6 +214,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.Name = "ng-abcd1234"
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
+		ng.VolumeSize = 2
+		ng.VolumeType = api.NodeVolumeTypeIO1
 
 		*cfg.VPC.CIDR = api.DefaultCIDR()
 
@@ -288,6 +290,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 					Name:              "ng-abcd1234",
 					PrivateNetworking: false,
 					DesiredCapacity:   2,
+					VolumeSize:        2,
+					VolumeType:        api.NodeVolumeTypeIO1,
 				},
 			},
 		}

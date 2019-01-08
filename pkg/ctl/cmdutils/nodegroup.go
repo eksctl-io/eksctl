@@ -1,6 +1,9 @@
 package cmdutils
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/spf13/pflag"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
@@ -21,7 +24,9 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg
 	fs.IntVarP(&ng.MinSize, "nodes-min", "m", 0, "minimum nodes in ASG")
 	fs.IntVarP(&ng.MaxSize, "nodes-max", "M", 0, "maximum nodes in ASG")
 
-	fs.IntVarP(&ng.VolumeSize, "node-volume-size", "", 0, "Node volume size (in GB)")
+	fs.IntVar(&ng.VolumeSize, "node-volume-size", ng.VolumeSize, "node volume size in GB")
+	fs.StringVar(&ng.VolumeType, "node-volume-type", ng.VolumeType, fmt.Sprintf("node volume type (valid options: %s)", strings.Join(api.SupportedNodeVolumeTypes(), ", ")))
+
 	fs.IntVar(&ng.MaxPodsPerNode, "max-pods-per-node", 0, "maximum number of pods per node (set automatically if unspecified)")
 
 	fs.BoolVar(&ng.AllowSSH, "ssh-access", false, "control SSH access for nodes")

@@ -115,6 +115,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 				DeviceName: gfn.NewString("/dev/xvda"),
 				Ebs: &gfn.AWSAutoScalingLaunchConfiguration_BlockDevice{
 					VolumeSize: gfn.NewInteger(n.spec.VolumeSize),
+					VolumeType: gfn.NewString(n.spec.VolumeType),
 				},
 			},
 		}
