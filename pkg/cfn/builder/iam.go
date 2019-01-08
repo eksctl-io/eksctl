@@ -128,5 +128,5 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	n.rs.newOutputFromAtt(cfnOutputInstanceRoleARN, "NodeInstanceRole.Arn", true)
+	n.rs.newOutputFromAtt(cfnOutputNodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true)
 }

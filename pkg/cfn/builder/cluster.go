@@ -1,10 +1,13 @@
 package builder
 
 import (
+	"encoding/base64"
 	"fmt"
+	"strings"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
+	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -18,7 +21,7 @@ type ClusterResourceSet struct {
 	vpc            *gfn.Value
 	subnets        map[api.SubnetTopology][]*gfn.Value
 	securityGroups []*gfn.Value
-	outputs        *ClusterStackOutputs
+	outputs        map[string]string
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
@@ -27,7 +30,7 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 		rs:       newResourceSet(),
 		spec:     spec,
 		provider: provider,
-		outputs:  &ClusterStackOutputs{},
+		outputs:  make(map[string]string),
 	}
 }
 
@@ -101,21 +104,26 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 		return err
 	}
 
-	c.spec.VPC.ID = c.outputs.VPC
-	c.spec.VPC.SecurityGroup = c.outputs.SecurityGroup
+	c.spec.VPC.ID = c.outputs[cfnOutputClusterVPC]
+	c.spec.VPC.SecurityGroup = c.outputs[cfnOutputClusterSecurityGroup]
 
-	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPrivate, c.outputs.SubnetsPrivate); err != nil {
+	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(c.outputs[cfnOutputClusterSubnetsPrivate], ",")); err != nil {
 		return err
 	}
 
-	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPublic, c.outputs.SubnetsPublic); err != nil {
+	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(c.outputs[cfnOutputClusterSubnetsPublic], ",")); err != nil {
 		return err
 	}
 
-	c.spec.ClusterStackName = c.outputs.ClusterStackName
-	c.spec.Endpoint = c.outputs.Endpoint
-	c.spec.CertificateAuthorityData = c.outputs.CertificateAuthorityData
-	c.spec.ARN = c.outputs.ARN
+	caData, err := base64.StdEncoding.DecodeString(c.outputs[cfnOutputClusterCertificateAuthorityData])
+	if err != nil {
+		return errors.Wrap(err, "decoding certificate authority data")
+	}
+	c.spec.CertificateAuthorityData = caData
+
+	c.spec.Endpoint = c.outputs[cfnOutputClusterEndpoint]
+	c.spec.ARN = c.outputs[cfnOutputClusterARN]
+	c.spec.ClusterStackName = c.outputs[cfnOutputClusterStackName]
 
 	return nil
 }

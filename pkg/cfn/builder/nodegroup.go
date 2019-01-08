@@ -21,7 +21,7 @@ type NodeGroupResourceSet struct {
 	securityGroups   []*gfn.Value
 	vpc              *gfn.Value
 	userData         *gfn.Value
-	outputs          *NodeGroupStackOutputs
+	outputs          map[string]string
 }
 
 // NewNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
@@ -32,7 +32,7 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, n
 		nodeGroupName:    ng.Name,
 		clusterSpec:      spec,
 		spec:             ng,
-		outputs:          &NodeGroupStackOutputs{},
+		outputs:          make(map[string]string),
 	}
 }
 
@@ -175,7 +175,7 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 		return err
 	}
 
-	n.spec.IAM.InstanceRoleARN = n.outputs.InstanceRoleARN
+	n.spec.IAM.InstanceRoleARN = n.outputs[cfnOutputNodeGroupInstanceRoleARN]
 
 	return nil
 }
