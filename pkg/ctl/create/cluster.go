@@ -38,6 +38,7 @@ var (
 	subnets               map[api.SubnetTopology]*[]string
 	subnetsGiven          bool
 	addonsStorageClass    bool
+	withoutNodeGroup      bool
 )
 
 func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -73,6 +74,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVar(&ng.Name, "nodegroup-name", "", fmt.Sprintf("name of the nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
+		fs.BoolVar(&withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
 	})
 
@@ -212,6 +214,11 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		meta.Name = utils.ClusterName(meta.Name, nameArg)
 
 		subnetsGiven = len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
+
+		if withoutNodeGroup {
+			cfg.NodeGroups = nil
+			logger.Warning("cluster will be created without an initial nodegroup")
+		}
 
 		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
 			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
