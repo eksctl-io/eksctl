@@ -294,6 +294,13 @@ func (n *NodeGroup) SubnetTopology() SubnetTopology {
 	return SubnetTopologyPublic
 }
 
+// ListOptions returns metav1.ListOptions with label selector for the nodegroup
+func (n *NodeGroup) ListOptions() metav1.ListOptions {
+	return metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, n.Name),
+	}
+}
+
 type (
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {

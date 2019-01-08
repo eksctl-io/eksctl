@@ -63,7 +63,7 @@ func isNodeReady(node *corev1.Node) bool {
 }
 
 func getNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) (int, error) {
-	nodes, err := clientSet.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 	if err != nil {
 		return 0, err
 	}
@@ -86,7 +86,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 	}
 	timer := time.After(c.Provider.WaitTimeout())
 	timeout := false
-	watcher, err := clientSet.CoreV1().Nodes().Watch(metav1.ListOptions{})
+	watcher, err := clientSet.CoreV1().Nodes().Watch(ng.ListOptions())
 	if err != nil {
 		return errors.Wrap(err, "creating node watcher")
 	}
