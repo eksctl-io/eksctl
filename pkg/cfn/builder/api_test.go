@@ -188,6 +188,13 @@ func newStackWithOutputs(outputs map[string]string) cfn.Stack {
 }
 
 var _ = Describe("CloudFormation template builder API", func() {
+	var caCertData []byte
+
+	Describe("should decode CA data", func() {
+		var err error
+		caCertData, err = base64.StdEncoding.DecodeString(caCert)
+		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
+	})
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
@@ -197,6 +204,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg.Metadata.Region = "us-west-2"
 		cfg.Metadata.Name = clusterName
+
+		cfg.Status = &api.ClusterStatus{
+			CertificateAuthorityData: caCertData,
+			Endpoint:                 endpoint,
+		}
+
 		cfg.AvailabilityZones = testAZs
 		ng.Name = "ng-abcd1234"
 		ng.InstanceType = "t2.medium"
@@ -253,9 +266,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 	}
 
 	Describe("GetAllOutputsFromClusterStack", func() {
-		caCertData, err := base64.StdEncoding.DecodeString(caCert)
-		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
-
 		expected := &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{
@@ -263,11 +273,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Name:    clusterName,
 				Version: "1.11",
 			},
-			Endpoint:                 endpoint,
-			CertificateAuthorityData: caCertData,
-			ARN:                      arn,
-			AvailabilityZones:        testAZs,
-			VPC:                      testVPC(),
+			Status: &api.ClusterStatus{
+				Endpoint:                 endpoint,
+				CertificateAuthorityData: caCertData,
+				ARN:                      arn,
+			},
+			AvailabilityZones: testAZs,
+			VPC:               testVPC(),
 			NodeGroups: []*api.NodeGroup{
 				{
 					AMI:               "",
@@ -331,7 +343,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	Describe("AutoNameTag", func() {
 		cfg, ng := newClusterConfigAndNodegroup()
-		cfg.CertificateAuthorityData = []byte("MyCA")
 
 		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
 
@@ -371,12 +382,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("NodeGroupTags", func() {
-		cfg := api.NewClusterConfig()
-		ng := cfg.NewNodeGroup()
+		cfg, ng := newClusterConfigAndNodegroup()
 
-		cfg.Metadata.Region = "us-west-2"
-		cfg.Metadata.Name = clusterName
-		cfg.AvailabilityZones = testAZs
 		ng.InstanceType = "t2.medium"
 		ng.Name = "ng-abcd1234"
 
@@ -410,7 +417,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	Describe("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup()
-		cfg.CertificateAuthorityData = []byte("MyCA")
 
 		ng.IAM.WithAddonPolicies.AutoScaler = true
 
@@ -448,13 +454,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("NodeGroup{PrivateNetworking=true AllowSSH=true}", func() {
-		cfg := api.NewClusterConfig()
-		ng := cfg.NewNodeGroup()
+		cfg, ng := newClusterConfigAndNodegroup()
 
-		cfg.Metadata.Region = "us-west-2"
-		cfg.Metadata.Name = clusterName
-		cfg.AvailabilityZones = testAZs
-		cfg.CertificateAuthorityData = []byte("MyCA")
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = true
@@ -510,13 +511,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("NodeGroup{PrivateNetworking=false AllowSSH=true}", func() {
-		cfg := api.NewClusterConfig()
-		ng := cfg.NewNodeGroup()
+		cfg, ng := newClusterConfigAndNodegroup()
 
-		cfg.Metadata.Region = "us-west-2"
-		cfg.Metadata.Name = clusterName
-		cfg.AvailabilityZones = testAZs
-		cfg.CertificateAuthorityData = []byte("MyCA")
 		ng.AllowSSH = true
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
@@ -575,12 +571,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	})
 
 	Describe("NodeGroup{PrivateNetworking=false AllowSSH=false}", func() {
-		cfg := api.NewClusterConfig()
-		ng := cfg.NewNodeGroup()
+		cfg, ng := newClusterConfigAndNodegroup()
 
-		cfg.Metadata.Region = "us-west-2"
-		cfg.Metadata.Name = clusterName
-		cfg.AvailabilityZones = testAZs
 		cfg.VPC = &api.ClusterVPC{
 			Network: api.Network{
 				ID: vpcID,
@@ -611,7 +603,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				},
 			},
 		}
-		cfg.CertificateAuthorityData = []byte("MyCA")
+
 		ng.AvailabilityZones = []string{testAZs[1]}
 		ng.AllowSSH = false
 		ng.InstanceType = "t2.medium"
@@ -701,15 +693,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		var c *cloudconfig.CloudConfig
 
-		caCertData, err := base64.StdEncoding.DecodeString(caCert)
-		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
-
-		cfg.Endpoint = endpoint
-		cfg.CertificateAuthorityData = caCertData
 		cfg.NodeGroups[0].InstanceType = "m5.large"
 
 		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
-		err = rs.AddAllResources()
+		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -769,17 +756,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		var c *cloudconfig.CloudConfig
 
-		caCertData, err := base64.StdEncoding.DecodeString(caCert)
-		It("should not error", func() { Expect(err).ShouldNot(HaveOccurred()) })
-
-		cfg.Endpoint = endpoint
-		cfg.CertificateAuthorityData = caCertData
 		cfg.VPC.CIDR, _ = ipnet.ParseCIDR("10.1.0.0/16")
 		cfg.NodeGroups[0].AMIFamily = "Ubuntu1804"
 		cfg.NodeGroups[0].InstanceType = "m5.large"
 
 		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
-		err = rs.AddAllResources()
+		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})

@@ -119,11 +119,13 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	if err != nil {
 		return errors.Wrap(err, "decoding certificate authority data")
 	}
-	c.spec.CertificateAuthorityData = caData
 
-	c.spec.Endpoint = c.outputs[cfnOutputClusterEndpoint]
-	c.spec.ARN = c.outputs[cfnOutputClusterARN]
-	c.spec.ClusterStackName = c.outputs[cfnOutputClusterStackName]
+	c.spec.Status = &api.ClusterStatus{
+		CertificateAuthorityData: caData,
+		Endpoint:                 c.outputs[cfnOutputClusterEndpoint],
+		ARN:                      c.outputs[cfnOutputClusterARN],
+		StackName:                c.outputs[cfnOutputClusterStackName],
+	}
 
 	return nil
 }

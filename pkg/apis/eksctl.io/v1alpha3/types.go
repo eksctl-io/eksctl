@@ -112,6 +112,14 @@ type ClusterMeta struct {
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
+// ClusterStatus hold read-only attributes of a cluster
+type ClusterStatus struct {
+	Endpoint                 string `json:"endpoint,omitempty"`
+	CertificateAuthorityData []byte `json:"certificateAuthorityData,omitempty"`
+	ARN                      string `json:"arn,omitempty"`
+	StackName                string `json:"stackName,omitempty"`
+}
+
 // String returns canonical representation of ClusterMeta
 func (c *ClusterMeta) String() string {
 	return fmt.Sprintf("%s.%s.eksctl.io", c.Name, c.Region)
@@ -161,11 +169,7 @@ type ClusterConfig struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
-	// TODO: move under status
-	Endpoint                 string
-	CertificateAuthorityData []byte
-	ARN                      string
-	ClusterStackName         string
+	Status *ClusterStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -57,14 +57,16 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 	}
 	logger.Debug("cluster = %#v", cluster)
 
-	spec.Endpoint = *cluster.Endpoint
-
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {
 		return errors.Wrap(err, "decoding certificate authority data")
 	}
 
-	spec.CertificateAuthorityData = data
+	spec.Status = &api.ClusterStatus{
+		Endpoint:                 *cluster.Endpoint,
+		CertificateAuthorityData: data,
+	}
+
 	return nil
 }
 
