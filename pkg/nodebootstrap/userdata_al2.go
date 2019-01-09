@@ -15,7 +15,7 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		return nil, err
 	}
 
-	if spec.Status.CertificateAuthorityData == nil || len(spec.Status.CertificateAuthorityData) == 0 {
+	if len(spec.Status.CertificateAuthorityData) == 0 {
 		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
 	}
 

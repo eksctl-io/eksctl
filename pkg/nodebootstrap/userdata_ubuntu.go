@@ -15,6 +15,10 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 		return nil, err
 	}
 
+	if len(spec.Status.CertificateAuthorityData) == 0 {
+		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
+	}
+
 	files := configFiles{
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
