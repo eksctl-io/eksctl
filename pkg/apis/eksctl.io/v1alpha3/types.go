@@ -58,6 +58,20 @@ const (
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
 
+	// DefaultNodeCount defines the default number of nodes to be created
+	DefaultNodeCount = 2
+
+	// DefaultNodeVolumeType defines the default root volume type to use
+	DefaultNodeVolumeType = NodeVolumeTypeGP2
+	// NodeVolumeTypeGP2 is General Purpose SSD
+	NodeVolumeTypeGP2 = "gp2"
+	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
+	NodeVolumeTypeIO1 = "io1"
+	// NodeVolumeTypeSC1 is Throughput Optimized HDD
+	NodeVolumeTypeSC1 = "sc1"
+	// NodeVolumeTypeST1 is Cold HDD
+	NodeVolumeTypeST1 = "st1"
+
 	// ClusterNameTag defines the tag of the clsuter name
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
@@ -71,6 +85,11 @@ const (
 
 	// NodeGroupNameLabel defines the label of the node group name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
+)
+
+var (
+	// DefaultWaitTimeout defines the default wait timeout
+	DefaultWaitTimeout = 20 * time.Minute
 )
 
 // SupportedRegions are the regions where EKS is available
@@ -96,11 +115,15 @@ func SupportedVersions() []string {
 	}
 }
 
-// DefaultWaitTimeout defines the default wait timeout
-var DefaultWaitTimeout = 20 * time.Minute
-
-// DefaultNodeCount defines the default number of nodes to be created
-const DefaultNodeCount = 2
+// SupportedNodeVolumeTypes are the volume types that can be used for a node root volume
+func SupportedNodeVolumeTypes() []string {
+	return []string{
+		NodeVolumeTypeGP2,
+		NodeVolumeTypeIO1,
+		NodeVolumeTypeSC1,
+		NodeVolumeTypeST1,
+	}
+}
 
 // ClusterMeta is what identifies a cluster
 type ClusterMeta struct {
@@ -232,6 +255,8 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 		PrivateNetworking: false,
 		DesiredCapacity:   DefaultNodeCount,
 		InstanceType:      DefaultNodeType,
+		VolumeSize:        0,
+		VolumeType:        DefaultNodeVolumeType,
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -265,6 +290,8 @@ type NodeGroup struct {
 
 	// +optional
 	VolumeSize int `json:"volumeSize"`
+	// +optional
+	VolumeType string `json:"volumeType"`
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
