@@ -48,6 +48,11 @@ func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
 	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
 }
 
+// AddVersionFlag adds common --region flag
+func AddVersionFlag(fs *pflag.FlagSet, meta *api.ClusterMeta) {
+	fs.StringVar(&meta.Version, "version", meta.Version, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ", ")))
+}
+
 // AddWaitFlag adds common --wait flag
 func AddWaitFlag(wait *bool, fs *pflag.FlagSet) {
 	fs.BoolVarP(wait, "wait", "w", false, "Wait for deletion of all resources before exiting")

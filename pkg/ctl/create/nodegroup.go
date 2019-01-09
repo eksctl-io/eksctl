@@ -3,7 +3,6 @@ package create
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -39,7 +38,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 		cmdutils.AddRegionFlag(fs, p)
-		fs.StringVar(&cfg.Metadata.Version, "version", api.LatestVersion, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ",")))
+		cmdutils.AddVersionFlag(fs, cfg.Metadata)
 	})
 
 	group.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
