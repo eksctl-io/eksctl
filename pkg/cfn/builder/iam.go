@@ -57,6 +57,11 @@ func (c *ClusterResourceSet) WithIAM() bool {
 	return c.rs.withIAM
 }
 
+// WithNamedIAM states, if specifically named IAM roles will be created or not
+func (c *ClusterResourceSet) WithNamedIAM() bool {
+	return c.rs.withNamedIAM
+}
+
 func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withIAM = true
 
@@ -82,8 +87,17 @@ func (n *NodeGroupResourceSet) WithIAM() bool {
 	return n.rs.withIAM
 }
 
+// WithNamedIAM states, if specifically named IAM roles will be created or not
+func (n *NodeGroupResourceSet) WithNamedIAM() bool {
+	return n.rs.withNamedIAM
+}
+
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	n.rs.withIAM = true
+
+	if n.spec.IAM.InstanceRoleName != "" {
+		n.rs.withNamedIAM = true
+	}
 
 	if len(n.spec.IAM.AttachPolicyARNs) == 0 {
 		n.spec.IAM.AttachPolicyARNs = iamDefaultNodePolicyARNs
@@ -94,11 +108,17 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
 	}
 
-	refIR := n.newResource("NodeInstanceRole", &gfn.AWSIAMRole{
+	role := gfn.AWSIAMRole{
 		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(n.spec.IAM.AttachPolicyARNs...),
-	})
+	}
+
+	if n.spec.IAM.InstanceRoleName != "" {
+		role.RoleName = gfn.NewString(n.spec.IAM.InstanceRoleName)
+	}
+
+	refIR := n.newResource("NodeInstanceRole", &role)
 
 	n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),

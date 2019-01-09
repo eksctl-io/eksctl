@@ -26,6 +26,7 @@ type awsCloudFormationResource struct {
 type ResourceSet interface {
 	AddAllResources() error
 	WithIAM() bool
+	WithNamedIAM() bool
 	RenderJSON() ([]byte, error)
 	GetAllOutputs(cfn.Stack) error
 }
@@ -34,6 +35,7 @@ type resourceSet struct {
 	template *gfn.Template
 	outputs  []string
 	withIAM  bool
+	withNamedIAM bool
 }
 
 func newResourceSet() *resourceSet {

@@ -345,6 +345,8 @@ type (
 		// +optional
 		InstanceRoleARN string `json:"instanceRoleARN,omitempty"`
 		// +optional
+		InstanceRoleName string `json:"instanceRoleName,omitempty"`
+		// +optional
 		WithAddonPolicies NodeGroupIAMAddonPolicies `json:"withAddonPolicies,omitempty"`
 	}
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies

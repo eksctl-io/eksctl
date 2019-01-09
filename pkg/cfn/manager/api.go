@@ -15,6 +15,7 @@ import (
 
 var (
 	stackCapabilitiesIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam})
+	stackCapabilitiesNamedIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityNamedIam})
 )
 
 // Stack represents the CloudFormation stack
@@ -49,7 +50,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	}
 }
 
-func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, tags, parameters map[string]string, withIAM bool) error {
+func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
@@ -65,6 +66,10 @@ func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, ta
 
 	if withIAM {
 		input.SetCapabilities(stackCapabilitiesIAM)
+	}
+
+	if withNamedIAM {
+		input.SetCapabilities(stackCapabilitiesNamedIAM)
 	}
 
 	if cfnRole := c.provider.CloudFormationRoleARN(); cfnRole != "" {
@@ -99,7 +104,7 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
 	}
 
-	if err := c.doCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM()); err != nil {
+	if err := c.doCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM(), stack.WithNamedIAM()); err != nil {
 		return err
 	}
 
