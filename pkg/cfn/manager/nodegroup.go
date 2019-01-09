@@ -51,6 +51,10 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 		return err
 	}
 
+	if ng.SecurityGroups == nil {
+		ng.SecurityGroups = []string{}
+	}
+
 	if ng.Tags == nil {
 		ng.Tags = make(map[string]string)
 	}

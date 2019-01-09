@@ -252,6 +252,8 @@ type NodeGroup struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 	// +optional
+	SecurityGroups []string `json:"securityGroups,omitempty"`
+	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
