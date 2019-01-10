@@ -18,7 +18,8 @@ func (c *StackCollection) CreateCluster(errs chan error, _ interface{}) error {
 		return err
 	}
 
-	return c.CreateStack(name, stack, c.spec.Metadata.Tags, nil, errs)
+	// Unlike with `CreateNodeGroup`, all tags are already set for the cluster stack
+	return c.CreateStack(name, stack, nil, nil, errs)
 }
 
 // DeleteCluster deletes the cluster
