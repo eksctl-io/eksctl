@@ -113,10 +113,13 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	desc := "worker nodes in group " + n.nodeGroupName
 
 	tcp := gfn.NewString("tcp")
+	udp := gfn.NewString("udp")
+	allInternalIPv4 := gfn.NewString(n.clusterSpec.VPC.CIDR.String())
 	anywhereIPv4 := gfn.NewString("0.0.0.0/0")
 	anywhereIPv6 := gfn.NewString("::/0")
 	var (
 		apiPort = gfn.NewInteger(443)
+		dnsPort = gfn.NewInteger(53)
 		sshPort = gfn.NewInteger(22)
 
 		portZero    = gfn.NewInteger(0)
@@ -193,7 +196,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		if n.spec.PrivateNetworking {
 			n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
 				GroupId:     refSG,
-				CidrIp:      gfn.NewString(n.clusterSpec.VPC.CIDR.String()),
+				CidrIp:      allInternalIPv4,
 				Description: gfn.NewString("Allow SSH access to " + desc + " (private, only inside VPC)"),
 				IpProtocol:  tcp,
 				FromPort:    sshPort,
@@ -218,4 +221,20 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 			})
 		}
 	}
+	n.newResource("DNSUDPIPv4", &gfn.AWSEC2SecurityGroupIngress{
+		GroupId:     refSG,
+		CidrIp:      allInternalIPv4,
+		Description: gfn.NewString("Allow DNS access to " + desc + " inside VPC"),
+		IpProtocol:  udp,
+		FromPort:    dnsPort,
+		ToPort:      dnsPort,
+	})
+	n.newResource("DNSTCPIPv4", &gfn.AWSEC2SecurityGroupIngress{
+		GroupId:     refSG,
+		CidrIp:      allInternalIPv4,
+		Description: gfn.NewString("Allow DNS access to " + desc + " inside VPC"),
+		IpProtocol:  tcp,
+		FromPort:    dnsPort,
+		ToPort:      dnsPort,
+	})
 }
