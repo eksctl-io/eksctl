@@ -37,7 +37,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-07af9511082779ae7",
+			ExpectedAMI:  "ami-09e1df3bad220af0b",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance and us-east-1", ResolveCase{
@@ -45,7 +45,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-027792c3cc6de7b5b",
+			ExpectedAMI:  "ami-04358410d28eaab63",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance and eu-west-1", ResolveCase{
@@ -53,7 +53,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-03612357ac9da2c7d",
+			ExpectedAMI:  "ami-0de10c614955da932",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance and non-eks enabled region", ResolveCase{
@@ -69,7 +69,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "p2.xlarge",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-08754f7ac73185331",
+			ExpectedAMI:  "ami-0ebf0561e61a2be02",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p3) instance and us-east-1", ResolveCase{
@@ -77,7 +77,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "p3.2xlarge",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-03c499c67bc65c089",
+			ExpectedAMI:  "ami-0131c0ca222183def",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p2) instance and eu-west-1", ResolveCase{
@@ -85,7 +85,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "p2.xlarge",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-047637529a86c7237",
+			ExpectedAMI:  "ami-0dafd3a1dc43781f7",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p3) instance and non-eks enabled region", ResolveCase{
