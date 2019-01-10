@@ -164,8 +164,8 @@
   revision = "a0026e2d173daac7748efb20d29288c7514d5419"
 
 [[projects]]
-  branch = "kubernetes-1.11"
-  digest = "1:3e43d2a877365f72e2be06baf8e153a9ccd21b5de781344045d6ca027b180b29"
+  branch = "master"
+  digest = "1:afa611e1ab786796914aa750c7418e9146d6edab2b95d1ef41019ed2ccf2e0bc"
   name = "github.com/dlespiau/kube-test-harness"
   packages = [
     ".",
@@ -173,7 +173,7 @@
     "testing",
   ]
   pruneopts = "NUT"
-  revision = "43875ed2c8e1aab164b7555537b5b2b307471fd2"
+  revision = "c51c87635b61295bd789b7b979dd445b86ee7ab3"
 
 [[projects]]
   digest = "1:4189ee6a3844f555124d9d2656fe7af02fca961c2a9bad9074789df13a0c62e0"
@@ -1535,8 +1535,10 @@
     "github.com/vektra/mockery",
     "github.com/vektra/mockery/cmd/mockery",
     "github.com/weaveworks/launcher/pkg/kubectl",
+    "gopkg.in/yaml.v2",
     "k8s.io/api/core/v1",
     "k8s.io/api/storage/v1",
+    "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
