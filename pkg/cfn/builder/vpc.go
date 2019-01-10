@@ -135,6 +135,12 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	})
 	n.securityGroups = []*gfn.Value{refSG}
 
+	if len(n.spec.SecurityGroups) > 0 {
+		for _, arn := range n.spec.SecurityGroups {
+			n.securityGroups = append(n.securityGroups, gfn.NewString(arn))
+		}
+	}
+
 	n.newResource("IngressInterSG", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refSG,
 		SourceSecurityGroupId: refSG,
