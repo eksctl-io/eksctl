@@ -61,7 +61,7 @@ integration-test-dev: build ## Run the integration tests without cluster teardow
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
-	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig --nodegroup-name=ng-0
+	@./eksctl create cluster --name=integration-test-dev --auto-kubeconfig --nodes=1 --nodegroup-name=ng-0
 
 delete-integration-test-dev-cluster: build ## Delete the test cluster for use when developing integration tests
 	@./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig

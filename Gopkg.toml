@@ -81,7 +81,7 @@ required = [
 
 [[constraint]]
   name = "github.com/dlespiau/kube-test-harness"
-  branch = "kubernetes-1.11"
+  branch = "master"
 
 [[constraint]]
    name = "github.com/awslabs/goformation"

@@ -9,12 +9,11 @@ import (
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
+	harness "github.com/dlespiau/kube-test-harness"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
-
-	harness "github.com/dlespiau/kube-test-harness"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -100,45 +99,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			Expect(config.CurrentContext).To(ContainSubstring(region))
 		})
 
-		Context("and we create a deployment using kubectl", func() {
-			var (
-				err  error
-				test *harness.Test
-			)
-
-			BeforeEach(func() {
-				test, err = newKubeTest()
-				Expect(err).ShouldNot(HaveOccurred())
-				test.CreateNamespace(test.Namespace)
-			})
-
-			AfterEach(func() {
-				test.Close()
-			})
-
-			It("should deploy the service to the cluster", func() {
-				d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
-				test.WaitForDeploymentReady(d, 1*time.Minute)
-
-				pods := test.ListPodsFromDeployment(d)
-				Expect(len(pods.Items)).To(Equal(2))
-
-				// For each pod of the Deployment, check we receive a sensible response to a
-				// GET request on /version.
-				for _, pod := range pods.Items {
-					Expect(pod.Namespace).To(Equal(test.Namespace))
-
-					req := test.PodProxyGet(&pod, "", "/version")
-					fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
-
-					var js interface{}
-					test.PodProxyGetJSON(&pod, "", "/version", &js)
-
-					Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.0.1"))
-				}
-			})
-		})
-
 		Context("and listing clusters", func() {
 			It("should return the previously created cluster", func() {
 				cmdSession := eksctl("get", "clusters", "--region", region)
@@ -194,6 +154,61 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(len(nodes.Items)).To(Equal(3))
 			})
 
+			Context("and we create a deployment using kubectl", func() {
+				var (
+					err  error
+					test *harness.Test
+				)
+
+				BeforeEach(func() {
+					test, err = newKubeTest()
+					Expect(err).ShouldNot(HaveOccurred())
+					test.CreateNamespace(test.Namespace)
+				})
+
+				AfterEach(func() {
+					test.Close()
+				})
+
+				It("should deploy the service to the cluster", func() {
+					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
+					test.WaitForDeploymentReady(d, 1*time.Minute)
+
+					pods := test.ListPodsFromDeployment(d)
+					Expect(len(pods.Items)).To(Equal(2))
+
+					// For each pod of the Deployment, check we receive a sensible response to a
+					// GET request on /version.
+					for _, pod := range pods.Items {
+						Expect(pod.Namespace).To(Equal(test.Namespace))
+
+						req := test.PodProxyGet(&pod, "", "/version")
+						fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
+
+						var js interface{}
+						test.PodProxyGetJSON(&pod, "", "/version", &js)
+
+						Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.0.1"))
+					}
+				})
+
+				It("should have functional DNS", func() {
+					test, err := newKubeTest()
+					Expect(err).ShouldNot(HaveOccurred())
+					defer test.Close()
+
+					d := test.CreateDaemonSetFromFile(test.Namespace, "dns-test.yaml")
+
+					test.WaitForDaemonSetReady(d, 3*time.Minute)
+
+					{
+						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
+						Expect(err).ShouldNot(HaveOccurred())
+						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
+					}
+				})
+			})
+
 			Context("and delete the second nodegroup", func() {
 				It("should not return an error", func() {
 					eksctl("delete", "nodegroup",
@@ -217,6 +232,32 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 					Expect(len(nodes.Items)).To(Equal(2))
 				})
+			})
+		})
+
+		Context("and scale the initial nodegroup back to 1 node", func() {
+			It("should not return an error", func() {
+				eksctl("scale", "nodegroup",
+					"--verbose", "4",
+					"--cluster", clusterName,
+					"--region", region,
+					"--nodes", "1",
+					"--name", initNG,
+				)
+			})
+
+			It("should make it 1 nodes total", func() {
+				test, err := newKubeTest()
+				Expect(err).ShouldNot(HaveOccurred())
+				defer test.Close()
+
+				test.WaitForNodesReady(1, commonTimeout)
+
+				nodes := test.ListNodes((metav1.ListOptions{
+					LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
+				}))
+
+				Expect(len(nodes.Items)).To(Equal(1))
 			})
 		})
 
