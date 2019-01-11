@@ -204,22 +204,29 @@ Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a 
 
 > NOTE: Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
+You can also enable SSH, ASG access and other feature for each particular nodegroup, e.g.:
+
+```
+eksctl create nodegroup --cluster=cluster-1 --node-labels="autoscaling=enabled,purpose=ci-worker" --asg-access --full-ecr-access --ssh-access
+```
+
 To delete a nodegroup, run:
 
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
+
 ### Enable Autoscaling
 
-```bash
+You can create a cluster (or nodegroup in an existing cluster) with IAM role that will allow use of [cluster autoscaler][]:
 
-eksctl create cluster --asg-access=true
-
-or
-
-eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>] --asg-access=true
-
+```bashs
+eksctl create cluster --asg-access
 ```
+
+Once cluster is running, you will need to install [cluster autoscaler][] itself.
+
+[cluster autoscaler]: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 
 ### VPC Networking
 
