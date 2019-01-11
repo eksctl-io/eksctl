@@ -12,6 +12,9 @@ ifneq ($(TEST_V),)
 TEST_ARGS ?= -v -ginkgo.v
 endif
 
+ifneq ($(DELETE_TEST_CLUSTER),)
+INTEGRATION_TEST_ARGS ?= -eksctl.delete=false
+endif
 ##@ Dependencies
 
 .PHONY: install-build-deps
@@ -68,7 +71,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 .PHONY: integration-test
 integration-test: build ## Run the integration tests (with cluster creation and cleanup)
-	@go test -tags integration -timeout 60m ./integration/... $(TEST_ARGS)
+	@go test -tags integration -timeout 60m ./integration/... $(TEST_ARGS) $(INTEGRATION_TEST_ARGS)
 
 ##@ Code Generation
 
