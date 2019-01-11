@@ -83,6 +83,30 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	return nodeGroupStacks, nil
 }
 
+// DescribeResourcesOfNodeGroupStacks calls DescribeNodeGroupStacks and fetches all resources,
+// then returns it in a map by nodegroup name
+func (c *StackCollection) DescribeResourcesOfNodeGroupStacks() (map[string]cfn.DescribeStackResourcesOutput, error) {
+	stacks, err := c.DescribeNodeGroupStacks()
+	if err != nil {
+		return nil, err
+	}
+
+	allResources := make(map[string]cfn.DescribeStackResourcesOutput)
+
+	for _, s := range stacks {
+		input := &cfn.DescribeStackResourcesInput{
+			StackName: s.StackName,
+		}
+		resources, err := c.provider.CloudFormation().DescribeStackResources(input)
+		if err != nil {
+			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
+		}
+		allResources[getNodeGroupName(s)] = *resources
+	}
+
+	return allResources, nil
+}
+
 // DeleteNodeGroup deletes a nodegroup stack
 func (c *StackCollection) DeleteNodeGroup(name string) error {
 	name = c.MakeNodeGroupStackName(name)

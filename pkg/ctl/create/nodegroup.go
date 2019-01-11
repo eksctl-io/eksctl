@@ -143,6 +143,10 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	}
 	logger.Success("created nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
 
-	return nil
+	logger.Info("will inspect security group configuration for all nodegroups")
+	if err := ctl.ValidateConfigForExistingNodeGroups(cfg); err != nil {
+		logger.Critical("failed checking nodegroups", err.Error())
+	}
 
+	return nil
 }
