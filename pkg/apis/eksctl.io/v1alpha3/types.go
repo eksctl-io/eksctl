@@ -37,6 +37,9 @@ const (
 	// RegionAPNorthEast1 represents the Asia-Pacific North East Region Tokyo
 	RegionAPNorthEast1 = "ap-northeast-1"
 
+	// RegionAPNorthEast2 represents the Asia-Pacific North East Region Seoul
+	RegionAPNorthEast2 = "ap-northeast-2"
+
 	// RegionAPSouthEast1 represents the Asia-Pacific South East Region Singapore
 	RegionAPSouthEast1 = "ap-southeast-1"
 
@@ -102,6 +105,7 @@ func SupportedRegions() []string {
 		RegionEUNorth1,
 		RegionEUCentral1,
 		RegionAPNorthEast1,
+		RegionAPNorthEast2,
 		RegionAPSouthEast1,
 		RegionAPSouthEast2,
 	}
