@@ -209,6 +209,17 @@ To delete a nodegroup, run:
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
+### Enable Autoscaling
+
+```bash
+
+eksctl create cluster --asg-access=true
+
+or
+
+eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>] --asg-access=true
+
+```
 
 ### VPC Networking
 
