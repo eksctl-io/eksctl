@@ -8,6 +8,7 @@ var StaticImages = map[string]map[string]map[int]map[string]string{
 		"AmazonLinux2": {
 			ImageClassGPU: {
 				"ap-northeast-1": "ami-0afc9d14b2fe11ad9",
+				"ap-northeast-2": "ami-0d75b9ab57bfc8c9a",
 				"ap-southeast-1": "ami-0ecce0670cb66d17b",
 				"ap-southeast-2": "ami-03b048bd9d3861ce9",
 				"eu-central-1":   "ami-000622b1016d2a5bf",
@@ -19,6 +20,7 @@ var StaticImages = map[string]map[string]map[int]map[string]string{
 			},
 			ImageClassGeneral: {
 				"ap-northeast-1": "ami-06398bdd37d76571d",
+				"ap-northeast-2": "ami-08a87e0a7c32fa649",
 				"ap-southeast-1": "ami-0ac3510e44b5bf8ef",
 				"ap-southeast-2": "ami-0d2c929ace88cfebe",
 				"eu-central-1":   "ami-08eb700778f03ea94",
@@ -31,6 +33,7 @@ var StaticImages = map[string]map[string]map[int]map[string]string{
 		},
 		"Ubuntu1804": {ImageClassGeneral: {
 			"ap-northeast-1": "ami-0d1700e2b1ee4a7d1",
+			"ap-northeast-2": "ami-0482114d05cc56007",
 			"ap-southeast-1": "ami-02c9850ed9fb6e7dd",
 			"ap-southeast-2": "ami-0e862d31afc398f91",
 			"eu-central-1":   "ami-0734d5f3fa10dcafc",
@@ -45,6 +48,7 @@ var StaticImages = map[string]map[string]map[int]map[string]string{
 		"AmazonLinux2": {
 			ImageClassGPU: {
 				"ap-northeast-1": "ami-036b3969c5eb8d3cf",
+				"ap-northeast-2": "ami-0b7f163f7194396f7",
 				"ap-southeast-1": "ami-093f742654a955ee6",
 				"ap-southeast-2": "ami-05e09575123ff498b",
 				"eu-central-1":   "ami-0d6f0554fd4743a9d",
@@ -56,6 +60,7 @@ var StaticImages = map[string]map[string]map[int]map[string]string{
 			},
 			ImageClassGeneral: {
 				"ap-northeast-1": "ami-0f0e8066383e7a2cb",
+				"ap-northeast-2": "ami-0b7baa90de70f683f",
 				"ap-southeast-1": "ami-019966ed970c18502",
 				"ap-southeast-2": "ami-06ade0abbd8eca425",
 				"eu-central-1":   "ami-010caa98bae9a09e2",
@@ -68,6 +73,7 @@ var StaticImages = map[string]map[string]map[int]map[string]string{
 		},
 		"Ubuntu1804": {ImageClassGeneral: {
 			"ap-northeast-1": "",
+			"ap-northeast-2": "",
 			"ap-southeast-1": "",
 			"ap-southeast-2": "",
 			"eu-central-1":   "",
