@@ -180,12 +180,6 @@ func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.Outp
 	return nil
 }
 
-// ListAllTaggedResources lists all tagged resources
-func (c *ClusterProvider) ListAllTaggedResources() error {
-	// TODO: https://github.com/weaveworks/eksctl/issues/26
-	return nil
-}
-
 // WaitForControlPlane waits till the control plane is ready
 func (c *ClusterProvider) WaitForControlPlane(id *api.ClusterMeta, clientSet *kubernetes.Clientset) error {
 	if _, err := clientSet.ServerVersion(); err == nil {
