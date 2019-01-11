@@ -40,10 +40,10 @@ func newKubeTest() (*harness.Test, error) {
 
 func eksctl(args ...string) *gexec.Session {
 	command := exec.Command(eksctlPath, args...)
-	fmt.Fprintf(GinkgoWriter, "calling %q with %v", eksctlPath, args)
+	fmt.Fprintf(GinkgoWriter, "calling %q with %v\n", eksctlPath, args)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	if err != nil {
-		Fail(fmt.Sprintf("error starting process: %v", err), 1)
+		Fail(fmt.Sprintf("error starting process: %v\n", err), 1)
 	}
 
 	t := time.Minute
