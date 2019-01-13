@@ -98,7 +98,7 @@ func (c *ClusterResourceSet) addResourcesForSubnets() error {
 	if (prefix < 16) || (prefix > 24) {
 		return fmt.Errorf("VPC CIDR prefix must be betwee /16 and /24")
 	}
-	zoneCIDRs, err := subnet.SplitInto8(c.spec.VPC.CIDR)
+	zoneCIDRs, err := subnet.SplitInto8(&c.spec.VPC.CIDR.IPNet)
 	if err != nil {
 		return err
 	}

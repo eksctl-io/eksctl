@@ -277,7 +277,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -310,8 +310,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":              arn,
-			"ClusterStackName": "",
+			"ARN":                      arn,
+			"ClusterStackName":         "",
 		}
 
 		sampleStack := newStackWithOutputs(sampleOutputs)
