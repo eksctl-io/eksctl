@@ -253,7 +253,7 @@ func (c *StackCollection) BlockingWaitDeleteStack(name string) error {
 }
 
 func fmtStacksRegexForCluster(name string) string {
-	const ourStackRegexFmt = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+)|(VPC|ServiceRole|DefaultNodeGroup))$"
+	const ourStackRegexFmt = "^(eksctl|EKS)-%s-((cluster|nodegroup-.+)|(VPC|ServiceRole|ControlPlane|DefaultNodeGroup))$"
 	return fmt.Sprintf(ourStackRegexFmt, name)
 }
 
