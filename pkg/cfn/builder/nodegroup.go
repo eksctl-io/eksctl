@@ -44,7 +44,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.SubnetTopology(),
 		templateDescriptionSuffix)
 
-	n.vpc = makeImportValue(n.clusterStackName, cfnOutputClusterVPC)
+	n.vpc = makeImportValue(n.clusterStackName, CfnOutputClusterVPC)
 
 	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
@@ -142,7 +142,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		vpcZoneIdentifier = map[string][]interface{}{
 			gfn.FnSplit: []interface{}{
 				",",
-				makeImportValue(n.clusterStackName, cfnOutputClusterSubnets+string(n.spec.SubnetTopology())),
+				makeImportValue(n.clusterStackName, CfnOutputClusterSubnets+string(n.spec.SubnetTopology())),
 			},
 		}
 	}
@@ -199,7 +199,7 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 		return err
 	}
 
-	n.spec.IAM.InstanceRoleARN = n.outputs[cfnOutputNodeGroupInstanceRoleARN]
+	n.spec.IAM.InstanceRoleARN = n.outputs[CfnOutputNodeGroupInstanceRoleARN]
 
 	return nil
 }
