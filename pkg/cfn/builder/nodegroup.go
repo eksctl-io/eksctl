@@ -146,6 +146,32 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			},
 		}
 	}
+	tags := []map[string]interface{}{
+		{
+			"Key":               "Name",
+			"Value":             fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName),
+			"PropagateAtLaunch": "true",
+		},
+		{
+			"Key":               "kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name,
+			"Value":             "owned",
+			"PropagateAtLaunch": "true",
+		},
+	}
+	if n.spec.IAM.WithAddonPolicies.AutoScaler {
+		tags = append(tags,
+			map[string]interface{}{
+				"Key":               "k8s.io/cluster-autoscaler/enabled",
+				"Value":             "true",
+				"PropagateAtLaunch": "true",
+			},
+			map[string]interface{}{
+				"Key":               "k8s.io/cluster-autoscaler/" + n.clusterSpec.Metadata.Name,
+				"Value":             "owned",
+				"PropagateAtLaunch": "true",
+			},
+		)
+	}
 	n.newResource("NodeGroup", &awsCloudFormationResource{
 		Type: "AWS::AutoScaling::AutoScalingGroup",
 		Properties: map[string]interface{}{
@@ -154,10 +180,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			"MinSize":                 fmt.Sprintf("%d", n.spec.MinSize),
 			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxSize),
 			"VPCZoneIdentifier":       vpcZoneIdentifier,
-			"Tags": []map[string]interface{}{
-				{"Key": "Name", "Value": fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName), "PropagateAtLaunch": "true"},
-				{"Key": "kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name, "Value": "owned", "PropagateAtLaunch": "true"},
-			},
+			"Tags":                    tags,
 		},
 		UpdatePolicy: map[string]map[string]string{
 			"AutoScalingRollingUpdate": {

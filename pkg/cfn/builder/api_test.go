@@ -35,16 +35,18 @@ const (
 	subnetsPrivate = "subnet-0f98135715dfcf55a,subnet-0ade11bad78dced9f,subnet-0e2e63ff1712bf6ea"
 )
 
+type Tag struct {
+	Key   interface{}
+	Value interface{}
+
+	PropagateAtLaunch string
+}
+
 type Template struct {
 	Description string
 	Resources   map[string]struct {
 		Properties struct {
-			Tags []struct {
-				Key   interface{}
-				Value interface{}
-
-				PropagateAtLaunch string
-			}
+			Tags           []Tag
 			UserData       string
 			PolicyDocument struct {
 				Statement []struct {
@@ -454,6 +456,38 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"autoscaling:SetDesiredCapacity",
 				"autoscaling:TerminateInstanceInAutoScalingGroup",
 			}))
+		})
+
+		It("should have auto-dicovery tags", func() {
+			expectedTags := []Tag{
+				{
+					Key:               "Name",
+					Value:             fmt.Sprintf("%s-%s-Node", clusterName, "ng-abcd1234"),
+					PropagateAtLaunch: "true",
+				},
+				{
+					Key:               "kubernetes.io/cluster/" + clusterName,
+					Value:             "owned",
+					PropagateAtLaunch: "true",
+				},
+				{
+					Key:               "k8s.io/cluster-autoscaler/enabled",
+					Value:             "true",
+					PropagateAtLaunch: "true",
+				},
+				{
+					Key:               "k8s.io/cluster-autoscaler/" + clusterName,
+					Value:             "owned",
+					PropagateAtLaunch: "true",
+				},
+			}
+
+			Expect(obj.Resources).To(HaveKey("NodeGroup"))
+			ng := obj.Resources["NodeGroup"]
+			Expect(ng).ToNot(BeNil())
+			Expect(ng.Properties).ToNot(BeNil())
+			Expect(ng.Properties.Tags).ToNot(BeNil())
+			Expect(ng.Properties.Tags).To(Equal(expectedTags))
 		})
 	})
 

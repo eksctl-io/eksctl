@@ -224,7 +224,8 @@ You can create a cluster (or nodegroup in an existing cluster) with IAM role tha
 eksctl create cluster --asg-access
 ```
 
-Once cluster is running, you will need to install [cluster autoscaler][] itself.
+Once cluster is running, you will need to install [cluster autoscaler][] itself. This flag also sets `k8s.io/cluster-autoscaler/enabled`
+and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery should work.
 
 [cluster autoscaler]: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 
