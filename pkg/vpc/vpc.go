@@ -74,19 +74,27 @@ func describeVPC(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	return output.Vpcs[0], nil
 }
 
+// ImportVPC will update spec with VPC ID/CIDR
+func ImportVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+	vpc, err := describeVPC(provider, id)
+	if err != nil {
+		return err
+	}
+	spec.VPC.ID = *vpc.VpcId
+	spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // ImportSubnets will update spec with subnets, if VPC ID/CIDR is unknown
 // it will use provider to call describeVPC based on the VPC ID of the
 // first subnet; all subnets must be in the same VPC
 func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnets []*ec2.Subnet) error {
 	for _, subnet := range subnets {
 		if spec.VPC.ID == "" {
-			vpc, err := describeVPC(provider, *subnet.VpcId)
-			if err != nil {
-				return err
-			}
-			spec.VPC.ID = *vpc.VpcId
-			spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
-			if err != nil {
+			if err := ImportVPC(provider, spec, *subnet.VpcId); err != nil {
 				return err
 			}
 		} else if spec.VPC.ID != *subnet.VpcId {
