@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 )
@@ -26,6 +27,19 @@ func (c *ClusterProvider) DescribeControlPlane(cl *api.ClusterMeta) (*awseks.Clu
 		return nil, errors.Wrap(err, "unable to describe cluster control plane")
 	}
 	return output.Cluster, nil
+}
+
+// DescribeControlPlaneMustBeActive describes the cluster control plane and checks if status is active
+func (c *ClusterProvider) DescribeControlPlaneMustBeActive(cl *api.ClusterMeta) (*awseks.Cluster, error) {
+	cluster, err := c.DescribeControlPlane(cl)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to describe cluster control plane")
+	}
+	if *cluster.Status != awseks.ClusterStatusActive {
+		return nil, fmt.Errorf("status of cluster %q is %q, has to be %q", *cluster.Name, *cluster.Status, awseks.ClusterStatusActive)
+	}
+
+	return cluster, nil
 }
 
 // DeprecatedDeleteControlPlane deletes the control plane
@@ -48,12 +62,9 @@ func (c *ClusterProvider) DeprecatedDeleteControlPlane(cl *api.ClusterMeta) erro
 // GetCredentials retrieves the certificate authority data
 func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 	// Check the cluster exists and is active
-	cluster, err := c.DescribeControlPlane(spec.Metadata)
+	cluster, err := c.DescribeControlPlaneMustBeActive(spec.Metadata)
 	if err != nil {
 		return err
-	}
-	if *cluster.Status != awseks.ClusterStatusActive {
-		return fmt.Errorf("status of cluster %q is %q, has to be %q", *cluster.Name, *cluster.Status, awseks.ClusterStatusActive)
 	}
 	logger.Debug("cluster = %#v", cluster)
 
@@ -62,9 +73,38 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 		return errors.Wrap(err, "decoding certificate authority data")
 	}
 
-	spec.Status = &api.ClusterStatus{
-		Endpoint:                 *cluster.Endpoint,
-		CertificateAuthorityData: data,
+	if spec.Status == nil {
+		spec.Status = &api.ClusterStatus{}
+	}
+
+	spec.Status.Endpoint = *cluster.Endpoint
+	spec.Status.CertificateAuthorityData = data
+	spec.Status.ARN = *cluster.Arn
+
+	return nil
+}
+
+// GetClusterVPC retrieves the VPC configuration
+func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
+	// Check the cluster exists and is active
+	cluster, err := c.DescribeControlPlaneMustBeActive(spec.Metadata)
+	if err != nil {
+		return err
+	}
+	logger.Debug("cluster = %#v", cluster)
+
+	if spec.VPC == nil {
+		spec.VPC = &api.ClusterVPC{}
+	}
+
+	if err := vpc.ImportVPC(c.Provider, spec, *cluster.ResourcesVpcConfig.VpcId); err != nil {
+		return err
+	}
+
+	if numSGs := len(cluster.ResourcesVpcConfig.SecurityGroupIds); numSGs == 1 {
+		spec.VPC.SecurityGroup = *cluster.ResourcesVpcConfig.SecurityGroupIds[0]
+	} else {
+		return fmt.Errorf("cluster %q has %d security groups, expected 1", spec.Metadata.Name, numSGs)
 	}
 
 	return nil

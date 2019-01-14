@@ -103,6 +103,10 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		return err
 	}
 
+	if err := ctl.GetClusterVPC(cfg); err != nil {
+		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+	}
+
 	if err := ctl.GetCredentials(cfg); err != nil {
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
