@@ -12,6 +12,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
@@ -61,6 +62,12 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	ctl := eks.New(p, cfg)
 	meta := cfg.Metadata
 
+	printer := printers.NewJSONPrinter()
+
+	if err := api.Register(); err != nil {
+		return err
+	}
+
 	if !ctl.IsSupportedRegion() {
 		return cmdutils.ErrUnsupportedRegion(p)
 	}
@@ -96,10 +103,12 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		return err
 	}
 
-	logger.Debug("cfg = %#v", cfg)
-
 	if err := ctl.GetCredentials(cfg); err != nil {
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	}
+
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+		return err
 	}
 
 	{
