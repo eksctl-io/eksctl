@@ -116,6 +116,12 @@ func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
 		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSecurityGroup)
 	}
 
+	if sharedNodeSecurityGroup, ok := outputs[builder.CfnOutputClusterSharedNodeSecurityGroup]; ok {
+		spec.VPC.SharedNodeSecurityGroup = sharedNodeSecurityGroup
+	} else {
+		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSharedNodeSecurityGroup)
+	}
+
 	for _, topology := range api.SubnetTopologies() {
 		// either of subnet topologies are optional
 		if subnets, ok := outputs[builder.CfnOutputClusterSubnets+string(topology)]; ok {

@@ -103,6 +103,12 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		return err
 	}
 
+	stackManager := ctl.NewStackManager(cfg)
+
+	if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
+		return errors.Wrap(err, "cluster compatibility check failed")
+	}
+
 	if err := ctl.GetClusterVPC(cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
@@ -116,7 +122,6 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	}
 
 	{
-		stackManager := ctl.NewStackManager(cfg)
 		logger.Info("will create a Cloudformation stack for nodegroup %s in cluster %s", ng.Name, cfg.Metadata.Name)
 		errs := stackManager.CreateOneNodeGroup(ng)
 		if len(errs) > 0 {
@@ -157,7 +162,7 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	logger.Success("created nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
 
 	logger.Info("will inspect security group configuration for all nodegroups")
-	if err := ctl.ValidateConfigForExistingNodeGroups(cfg); err != nil {
+	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
