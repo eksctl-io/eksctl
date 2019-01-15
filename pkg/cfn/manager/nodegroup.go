@@ -158,6 +158,11 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	currentMaxSize := gjson.Get(template, maxSizePath)
 	currentMinSize := gjson.Get(template, minSizePath)
 
+	if int64(ng.DesiredCapacity) == currentCapacity.Int() {
+		logger.Info("desired capacity of nodegroup %q in cluster %q is already %d", ng.Name, clusterName, ng.DesiredCapacity)
+		return nil
+	}
+
 	// Set the new values
 	newCapacity := fmt.Sprintf("%d", ng.DesiredCapacity)
 	template, err = sjson.Set(template, desiredCapacityPath, newCapacity)
