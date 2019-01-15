@@ -56,7 +56,7 @@ nodeGroups:
     policyARNs: []
     instanceRoleARN: "..."
     allowSSH: true
-    SSHPublicKeyName: team-a-shared-key
+    sshPublicKeyPath: ~/.id_rsa/eks_node_key.pem
 
   - instanceType: m5.24xlarge
     tags: {purpose: production}
