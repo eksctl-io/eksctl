@@ -22,6 +22,8 @@ type (
 		// private subnets or any ad-hoc subnets
 		// +optional
 		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
+		// for pre-defined shared node SG
+		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
 	}
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string

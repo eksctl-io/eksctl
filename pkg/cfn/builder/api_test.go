@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	totalNodeResources = 13
+	totalNodeResources = 10
 	clusterName        = "ferocious-mushroom-1532594698"
 	endpoint           = "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com"
 	caCert             = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNE1EWXdOekExTlRBMU5Wb1hEVEk0TURZd05EQTFOVEExTlZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWJoCnpvZElYR0drckNSZE1jUmVEN0YvMnB1NFZweTdvd3FEVDgrdk9zeGs2bXFMNWxQd3ZicFhmYkE3R0xzMDVHa0wKaDdqL0ZjcU91cnMwUFZSK3N5REtuQXltdDFORWxGNllGQktSV1dUQ1hNd2lwN1pweW9XMXdoYTlJYUlPUGxCTQpPTEVlckRabFVrVDFVV0dWeVdsMmxPeFgxa2JhV2gvakptWWdkeW5jMXhZZ3kxa2JybmVMSkkwLzVUVTRCajJxClB1emtrYW5Xd3lKbGdXQzhBSXlpWW82WFh2UVZmRzYrM3RISE5XM1F1b3ZoRng2MTFOYnl6RUI3QTdtZGNiNmgKR0ZpWjdOeThHZnFzdjJJSmI2Nk9FVzBSdW9oY1k3UDZPdnZmYnlKREhaU2hqTStRWFkxQXN5b3g4Ri9UelhHSgpQUWpoWUZWWEVhZU1wQmJqNmNFQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCa2hKRVd4MHk1LzlMSklWdXJ1c1hZbjN6Z2EKRkZ6V0JsQU44WTlqUHB3S2t0Vy9JNFYyUGg3bWY2Z3ZwZ3Jhc2t1Slk1aHZPcDdBQmcxSTFhaHUxNUFpMUI0ZApuMllRaDlOaHdXM2pKMmhuRXk0VElpb0gza2JFdHRnUVB2bWhUQzNEYUJreEpkbmZJSEJCV1RFTTU1czRwRmxUClpzQVJ3aDc1Q3hYbjdScVU0akpKcWNPaTRjeU5qeFVpRDBqR1FaTmNiZWEyMkRCeTJXaEEzUWZnbGNScGtDVGUKRDVPS3NOWlF4MW9MZFAwci9TSmtPT1NPeUdnbVJURTIrODQxN21PRW02Z3RPMCszdWJkbXQ0aENsWEtFTTZYdwpuQWNlK0JxVUNYblVIN2ZNS3p2TDE5UExvMm5KbFU1TnlCbU1nL1pNVHVlUy80eFZmKy94WnpsQ0Q1WT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
@@ -106,7 +106,8 @@ func testVPC() *api.ClusterVPC {
 				},
 			},
 		},
-		SecurityGroup: "sg-0b44c48bcba5b7362",
+		SecurityGroup:           "sg-0b44c48bcba5b7362",
+		SharedNodeSecurityGroup: "sg-shared",
 		Subnets: map[api.SubnetTopology]map[string]api.Network{
 			"Public": map[string]api.Network{
 				"us-west-2b": {
@@ -286,14 +287,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 			VPC:               testVPC(),
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:               "",
-					AMIFamily:         "AmazonLinux2",
-					InstanceType:      "t2.medium",
-					Name:              "ng-abcd1234",
-					PrivateNetworking: false,
-					DesiredCapacity:   2,
-					VolumeSize:        2,
-					VolumeType:        api.NodeVolumeTypeIO1,
+					AMI:                 "",
+					AMIFamily:           "AmazonLinux2",
+					InstanceType:        "t2.medium",
+					Name:                "ng-abcd1234",
+					PrivateNetworking:   false,
+					SharedSecurityGroup: true,
+					DesiredCapacity:     2,
+					VolumeSize:          2,
+					VolumeType:          api.NodeVolumeTypeIO1,
 				},
 			},
 		}
@@ -328,6 +330,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"CertificateAuthorityData": caCert,
 			"ARN":                      arn,
 			"ClusterStackName":         "",
+			"SharedNodeSecurityGroup":  "sg-shared",
 		}
 
 		sampleStack := newStackWithOutputs(sampleOutputs)
@@ -342,7 +345,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			expectedData, err := json.Marshal(expected)
 			Expect(err).ShouldNot(HaveOccurred())
-
 			Expect(cfgData).To(MatchJSON(expectedData))
 		})
 	})

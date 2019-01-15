@@ -23,6 +23,7 @@ const (
 	CfnOutputClusterEndpoint                 = "Endpoint"
 	CfnOutputClusterARN                      = "ARN"
 	CfnOutputClusterStackName                = "ClusterStackName"
+	CfnOutputClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
 
 	// outputs from nodegroup stack
 	CfnOutputNodeGroupInstanceRoleARN = "InstanceRoleARN"
