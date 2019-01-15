@@ -249,12 +249,3 @@ func getNodeGroupName(s *Stack) string {
 	}
 	return ""
 }
-
-func getClusterName(s *Stack) string {
-	for _, tag := range s.Tags {
-		if *tag.Key == api.ClusterNameTag {
-			return *tag.Value
-		}
-	}
-	return ""
-}

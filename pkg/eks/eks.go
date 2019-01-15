@@ -7,12 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/vpc"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 )
@@ -86,25 +88,42 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 
 // GetClusterVPC retrieves the VPC configuration
 func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
-	// Check the cluster exists and is active
-	cluster, err := c.DescribeControlPlaneMustBeActive(spec.Metadata)
+	cluster, err := c.NewStackManager(spec).DescribeClusterStack()
 	if err != nil {
 		return err
 	}
-	logger.Debug("cluster = %#v", cluster)
+
+	outputs := map[string]string{}
+	for _, x := range cluster.Outputs {
+		outputs[*x.OutputKey] = *x.OutputValue
+	}
 
 	if spec.VPC == nil {
 		spec.VPC = &api.ClusterVPC{}
 	}
 
-	if err := vpc.ImportVPC(c.Provider, spec, *cluster.ResourcesVpcConfig.VpcId); err != nil {
-		return err
+	requiredKeyErrFmt := "cluster stack has no output key %q"
+
+	if vpc, ok := outputs[builder.CfnOutputClusterVPC]; ok {
+		spec.VPC.ID = vpc
+	} else {
+		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterVPC)
 	}
 
-	if numSGs := len(cluster.ResourcesVpcConfig.SecurityGroupIds); numSGs == 1 {
-		spec.VPC.SecurityGroup = *cluster.ResourcesVpcConfig.SecurityGroupIds[0]
+	if securityGroup, ok := outputs[builder.CfnOutputClusterSecurityGroup]; ok {
+		spec.VPC.SecurityGroup = securityGroup
 	} else {
-		return fmt.Errorf("cluster %q has %d security groups, expected 1", spec.Metadata.Name, numSGs)
+		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSecurityGroup)
+	}
+
+	for _, topology := range api.SubnetTopologies() {
+		// either of subnet topologies are optional
+		if subnets, ok := outputs[builder.CfnOutputClusterSubnets+string(topology)]; ok {
+			subnets := strings.Split(subnets, ",")
+			if err := vpc.UseSubnets(c.Provider, spec, topology, subnets); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
