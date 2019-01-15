@@ -59,7 +59,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.addResourcesForIAM()
 	c.addResourcesForControlPlane()
 
-	c.rs.newOutput(cfnOutputClusterStackName, gfn.RefStackName, false)
+	c.rs.newOutput(CfnOutputClusterStackName, gfn.RefStackName, false)
 
 	return nil
 }
@@ -93,9 +93,9 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		ResourcesVpcConfig: clusterVPC,
 	})
 
-	c.rs.newOutputFromAtt(cfnOutputClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)
-	c.rs.newOutputFromAtt(cfnOutputClusterEndpoint, "ControlPlane.Endpoint", true)
-	c.rs.newOutputFromAtt(cfnOutputClusterARN, "ControlPlane.Arn", true)
+	c.rs.newOutputFromAtt(CfnOutputClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)
+	c.rs.newOutputFromAtt(CfnOutputClusterEndpoint, "ControlPlane.Endpoint", true)
+	c.rs.newOutputFromAtt(CfnOutputClusterARN, "ControlPlane.Arn", true)
 }
 
 // GetAllOutputs collects all outputs of the cluster
@@ -104,27 +104,27 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 		return err
 	}
 
-	c.spec.VPC.ID = c.outputs[cfnOutputClusterVPC]
-	c.spec.VPC.SecurityGroup = c.outputs[cfnOutputClusterSecurityGroup]
+	c.spec.VPC.ID = c.outputs[CfnOutputClusterVPC]
+	c.spec.VPC.SecurityGroup = c.outputs[CfnOutputClusterSecurityGroup]
 
-	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(c.outputs[cfnOutputClusterSubnetsPrivate], ",")); err != nil {
+	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(c.outputs[CfnOutputClusterSubnetsPrivate], ",")); err != nil {
 		return err
 	}
 
-	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(c.outputs[cfnOutputClusterSubnetsPublic], ",")); err != nil {
+	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(c.outputs[CfnOutputClusterSubnetsPublic], ",")); err != nil {
 		return err
 	}
 
-	caData, err := base64.StdEncoding.DecodeString(c.outputs[cfnOutputClusterCertificateAuthorityData])
+	caData, err := base64.StdEncoding.DecodeString(c.outputs[CfnOutputClusterCertificateAuthorityData])
 	if err != nil {
 		return errors.Wrap(err, "decoding certificate authority data")
 	}
 
 	c.spec.Status = &api.ClusterStatus{
 		CertificateAuthorityData: caData,
-		Endpoint:                 c.outputs[cfnOutputClusterEndpoint],
-		ARN:                      c.outputs[cfnOutputClusterARN],
-		StackName:                c.outputs[cfnOutputClusterStackName],
+		Endpoint:                 c.outputs[CfnOutputClusterEndpoint],
+		ARN:                      c.outputs[CfnOutputClusterARN],
+		StackName:                c.outputs[CfnOutputClusterStackName],
 	}
 
 	return nil

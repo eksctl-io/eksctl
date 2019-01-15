@@ -10,21 +10,22 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 )
 
+// Stack output names
 const (
 	// outputs from cluster stack
-	cfnOutputClusterVPC            = "VPC"
-	cfnOutputClusterSecurityGroup  = "SecurityGroup"
-	cfnOutputClusterSubnets        = "Subnets"
-	cfnOutputClusterSubnetsPrivate = string(cfnOutputClusterSubnets + api.SubnetTopologyPrivate)
-	cfnOutputClusterSubnetsPublic  = string(cfnOutputClusterSubnets + api.SubnetTopologyPublic)
+	CfnOutputClusterVPC            = "VPC"
+	CfnOutputClusterSecurityGroup  = "SecurityGroup"
+	CfnOutputClusterSubnets        = "Subnets"
+	CfnOutputClusterSubnetsPrivate = string(CfnOutputClusterSubnets + api.SubnetTopologyPrivate)
+	CfnOutputClusterSubnetsPublic  = string(CfnOutputClusterSubnets + api.SubnetTopologyPublic)
 
-	cfnOutputClusterCertificateAuthorityData = "CertificateAuthorityData"
-	cfnOutputClusterEndpoint                 = "Endpoint"
-	cfnOutputClusterARN                      = "ARN"
-	cfnOutputClusterStackName                = "ClusterStackName"
+	CfnOutputClusterCertificateAuthorityData = "CertificateAuthorityData"
+	CfnOutputClusterEndpoint                 = "Endpoint"
+	CfnOutputClusterARN                      = "ARN"
+	CfnOutputClusterStackName                = "ClusterStackName"
 
 	// outputs from nodegroup stack
-	cfnOutputNodeGroupInstanceRoleARN = "InstanceRoleARN"
+	CfnOutputNodeGroupInstanceRoleARN = "InstanceRoleARN"
 )
 
 // newOutput defines a new output and optionally exports it

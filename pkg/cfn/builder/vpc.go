@@ -94,9 +94,9 @@ func (c *ClusterResourceSet) importResourcesForVPC() {
 }
 
 func (c *ClusterResourceSet) addOutputsForVPC() {
-	c.rs.newOutput(cfnOutputClusterVPC, c.vpc, true)
+	c.rs.newOutput(CfnOutputClusterVPC, c.vpc, true)
 	for topology := range c.spec.VPC.Subnets {
-		c.rs.newJoinedOutput(cfnOutputClusterSubnets+string(topology), c.subnets[topology], true)
+		c.rs.newJoinedOutput(CfnOutputClusterSubnets+string(topology), c.subnets[topology], true)
 	}
 }
 
@@ -106,7 +106,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 		VpcId:            c.vpc,
 	})
 	c.securityGroups = []*gfn.Value{refSG}
-	c.rs.newJoinedOutput(cfnOutputClusterSecurityGroup, c.securityGroups, true)
+	c.rs.newJoinedOutput(CfnOutputClusterSecurityGroup, c.securityGroups, true)
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
@@ -127,9 +127,9 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		nodeMaxPort = gfn.NewInteger(65535)
 	)
 
-	refCP := makeImportValue(n.clusterStackName, cfnOutputClusterSecurityGroup)
+	refCP := makeImportValue(n.clusterStackName, CfnOutputClusterSecurityGroup)
 	refSG := n.newResource("SG", &gfn.AWSEC2SecurityGroup{
-		VpcId:            makeImportValue(n.clusterStackName, cfnOutputClusterVPC),
+		VpcId:            makeImportValue(n.clusterStackName, CfnOutputClusterVPC),
 		GroupDescription: gfn.NewString("Communication between the control plane and " + desc),
 		Tags: []gfn.Tag{{
 			Key:   gfn.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
