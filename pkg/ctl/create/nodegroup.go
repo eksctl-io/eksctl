@@ -109,7 +109,7 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		return errors.Wrap(err, "cluster compatibility check failed")
 	}
 
-	if err := ctl.GetClusterVPC(cfg); err != nil {
+	if err := ctl.GetClusterVPC(cfg, false); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
