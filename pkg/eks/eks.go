@@ -87,7 +87,7 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 }
 
 // GetClusterVPC retrieves the VPC configuration
-func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, withSecurityGroups bool) error {
+func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
 	cluster, err := c.NewStackManager(spec).DescribeClusterStack()
 	if err != nil {
 		return err
@@ -110,18 +110,16 @@ func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, withSecurityGro
 		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterVPC)
 	}
 
-	if withSecurityGroups {
-		if securityGroup, ok := outputs[builder.CfnOutputClusterSecurityGroup]; ok {
-			spec.VPC.SecurityGroup = securityGroup
-		} else {
-			return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSecurityGroup)
-		}
+	if securityGroup, ok := outputs[builder.CfnOutputClusterSecurityGroup]; ok {
+		spec.VPC.SecurityGroup = securityGroup
+	} else {
+		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSecurityGroup)
+	}
 
-		if sharedNodeSecurityGroup, ok := outputs[builder.CfnOutputClusterSharedNodeSecurityGroup]; ok {
-			spec.VPC.SharedNodeSecurityGroup = sharedNodeSecurityGroup
-		} else {
-			return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSharedNodeSecurityGroup)
-		}
+	if sharedNodeSecurityGroup, ok := outputs[builder.CfnOutputClusterSharedNodeSecurityGroup]; ok {
+		spec.VPC.SharedNodeSecurityGroup = sharedNodeSecurityGroup
+	} else {
+		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSharedNodeSecurityGroup)
 	}
 
 	for _, topology := range api.SubnetTopologies() {
