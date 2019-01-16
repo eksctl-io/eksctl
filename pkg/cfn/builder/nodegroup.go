@@ -44,6 +44,9 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.SubnetTopology(),
 		templateDescriptionSuffix)
 
+	n.rs.newOutput(CfnOutputNodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
+	n.rs.newOutput(CfnOutputNodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
+
 	n.vpc = makeImportValue(n.clusterStackName, CfnOutputClusterVPC)
 
 	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -124,62 +122,6 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 
 	if _, err = getNodes(clientSet, ng); err != nil {
 		return errors.Wrap(err, "re-listing nodes")
-	}
-
-	return nil
-}
-
-// ValidateConfigForExistingNodeGroups looks at each of the existing nodegroups and
-// validates configuration, if it find issues it logs messages
-func (c *ClusterProvider) ValidateConfigForExistingNodeGroups(cfg *api.ClusterConfig) error {
-	stackManager := c.NewStackManager(cfg)
-	resourcesByNodeGroup, err := stackManager.DescribeResourcesOfNodeGroupStacks()
-	if err != nil {
-		return errors.Wrap(err, "getting resources for of all nodegroup stacks")
-	}
-
-	{
-		securityGroupIDs := []string{}
-		securityGroupIDsToNodeGroup := map[string]string{}
-		for ng, resources := range resourcesByNodeGroup {
-			for n := range resources.StackResources {
-				r := resources.StackResources[n]
-				if *r.ResourceType == "AWS::EC2::SecurityGroup" {
-					securityGroupIDs = append(securityGroupIDs, *r.PhysicalResourceId)
-					securityGroupIDsToNodeGroup[*r.PhysicalResourceId] = ng
-				}
-			}
-		}
-
-		input := &ec2.DescribeSecurityGroupsInput{
-			GroupIds: aws.StringSlice(securityGroupIDs),
-		}
-		output, err := c.Provider.EC2().DescribeSecurityGroups(input)
-		if err != nil {
-			return errors.Wrap(err, "describing security groups")
-		}
-
-		for _, sg := range output.SecurityGroups {
-			id := *sg.GroupId
-			ng := securityGroupIDsToNodeGroup[id]
-			logger.Debug("%s/%s = %#v", ng, id, sg)
-			hasDNS := 0
-			for _, p := range sg.IpPermissions {
-				if p.FromPort != nil && *p.FromPort == 53 && p.ToPort != nil && *p.ToPort == 53 {
-					if *p.IpProtocol == "tcp" || *p.IpProtocol == "udp" {
-						// we cannot check p.IpRanges as we don't have VPC CIDR info when
-						// we create the nodegroup, it may become important, but for now
-						// it does't appear critical to check it
-						hasDNS++
-					}
-				}
-			}
-			if hasDNS != 2 {
-				logger.Critical("nodegroup %q may not have DNS port open to other nodegroups, so cluster DNS maybe be broken", ng)
-				logger.Critical("it's recommended to delete the nodegroup %q and use new one instead")
-				logger.Critical("check/update %q ingress rules - port 53 (TCP & UDP) has to be open for all sources inside the VPC", sg)
-			}
-		}
 	}
 
 	return nil

@@ -83,15 +83,21 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	return nodeGroupStacks, nil
 }
 
-// DescribeResourcesOfNodeGroupStacks calls DescribeNodeGroupStacks and fetches all resources,
+// NodeGroupStacksAndResources hold the stack along with resources
+type NodeGroupStacksAndResources struct {
+	Stack     *Stack
+	Resources []*cfn.StackResource
+}
+
+// DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
 // then returns it in a map by nodegroup name
-func (c *StackCollection) DescribeResourcesOfNodeGroupStacks() (map[string]cfn.DescribeStackResourcesOutput, error) {
+func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]NodeGroupStacksAndResources, error) {
 	stacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
 	}
 
-	allResources := make(map[string]cfn.DescribeStackResourcesOutput)
+	allResources := make(map[string]NodeGroupStacksAndResources)
 
 	for _, s := range stacks {
 		input := &cfn.DescribeStackResourcesInput{
@@ -101,7 +107,10 @@ func (c *StackCollection) DescribeResourcesOfNodeGroupStacks() (map[string]cfn.D
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
 		}
-		allResources[getNodeGroupName(s)] = *resources
+		allResources[getNodeGroupName(s)] = NodeGroupStacksAndResources{
+			Resources: resources.StackResources,
+			Stack:     s,
+		}
 	}
 
 	return allResources, nil

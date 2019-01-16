@@ -256,11 +256,12 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	ng := &NodeGroup{
-		PrivateNetworking: false,
-		DesiredCapacity:   DefaultNodeCount,
-		InstanceType:      DefaultNodeType,
-		VolumeSize:        0,
-		VolumeType:        DefaultNodeVolumeType,
+		PrivateNetworking:   false,
+		SharedSecurityGroup: true,
+		DesiredCapacity:     DefaultNodeCount,
+		InstanceType:        DefaultNodeType,
+		VolumeSize:          0,
+		VolumeType:          DefaultNodeVolumeType,
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -280,6 +281,8 @@ type NodeGroup struct {
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	// +optional
+	SharedSecurityGroup bool `json:"sharedSecurityGroup,omitempty"`
 	// +optional
 	SecurityGroups []string `json:"securityGroups,omitempty"`
 	// +optional

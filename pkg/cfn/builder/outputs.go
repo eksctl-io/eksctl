@@ -23,9 +23,15 @@ const (
 	CfnOutputClusterEndpoint                 = "Endpoint"
 	CfnOutputClusterARN                      = "ARN"
 	CfnOutputClusterStackName                = "ClusterStackName"
+	CfnOutputClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
 
 	// outputs from nodegroup stack
 	CfnOutputNodeGroupInstanceRoleARN = "InstanceRoleARN"
+	// outputs to indicate configuration attributes that may have critical effect
+	// on integration with the rest of the cluster and/or forward-compatibility
+	// with respect to e.g. upgrades
+	CfnOutputNodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
+	CfnOutputNodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
 )
 
 // newOutput defines a new output and optionally exports it

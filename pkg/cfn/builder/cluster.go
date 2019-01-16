@@ -106,6 +106,7 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 
 	c.spec.VPC.ID = c.outputs[CfnOutputClusterVPC]
 	c.spec.VPC.SecurityGroup = c.outputs[CfnOutputClusterSecurityGroup]
+	c.spec.VPC.SharedNodeSecurityGroup = c.outputs[CfnOutputClusterSharedNodeSecurityGroup]
 
 	if err := vpc.UseSubnets(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(c.outputs[CfnOutputClusterSubnetsPrivate], ",")); err != nil {
 		return err

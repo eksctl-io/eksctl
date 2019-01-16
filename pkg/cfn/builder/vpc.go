@@ -100,35 +100,61 @@ func (c *ClusterResourceSet) addOutputsForVPC() {
 	}
 }
 
+var (
+	sgProtoTCP           = gfn.NewString("tcp")
+	sgSourceAnywhereIPv4 = gfn.NewString("0.0.0.0/0")
+	sgSourceAnywhereIPv6 = gfn.NewString("::/0")
+
+	sgPortZero    = gfn.NewInteger(0)
+	sgMinNodePort = gfn.NewInteger(1025)
+	sgMaxNodePort = gfn.NewInteger(65535)
+
+	sgPortHTTPS = gfn.NewInteger(443)
+	sgPortSSH   = gfn.NewInteger(22)
+)
+
 func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
-	refSG := c.newResource("ControlPlaneSecurityGroup", &gfn.AWSEC2SecurityGroup{
-		GroupDescription: gfn.NewString("Communication between the control plane and worker node groups"),
-		VpcId:            c.vpc,
-	})
-	c.securityGroups = []*gfn.Value{refSG}
-	c.rs.newJoinedOutput(CfnOutputClusterSecurityGroup, c.securityGroups, true)
+	var refControlPlaneSG, refClusterSharedNodeSG *gfn.Value
+
+	if c.spec.VPC.SecurityGroup == "" {
+		refControlPlaneSG = c.newResource("ControlPlaneSecurityGroup", &gfn.AWSEC2SecurityGroup{
+			GroupDescription: gfn.NewString("Communication between the control plane and worker nodegroups"),
+			VpcId:            c.vpc,
+		})
+	} else {
+		refControlPlaneSG = gfn.NewString(c.spec.VPC.SecurityGroup)
+	}
+	c.securityGroups = []*gfn.Value{refControlPlaneSG} // only this one SG is passed to EKS API, nodes are isolated
+
+	if c.spec.VPC.SharedNodeSecurityGroup == "" {
+		refClusterSharedNodeSG = c.newResource("ClusterSharedNodeSecurityGroup", &gfn.AWSEC2SecurityGroup{
+			GroupDescription: gfn.NewString("Communication between all nodes in the cluster"),
+			VpcId:            c.vpc,
+		})
+		c.newResource("IngressInterNodeGroupSG", &gfn.AWSEC2SecurityGroupIngress{
+			GroupId:               refClusterSharedNodeSG,
+			SourceSecurityGroupId: refClusterSharedNodeSG,
+			Description:           gfn.NewString("Allow nodes to communicate with each other (all ports)"),
+			IpProtocol:            gfn.NewString("-1"),
+			FromPort:              sgPortZero,
+			ToPort:                sgMaxNodePort,
+		})
+	} else {
+		refClusterSharedNodeSG = gfn.NewString(c.spec.VPC.SharedNodeSecurityGroup)
+	}
+
+	c.rs.newOutput(CfnOutputClusterSecurityGroup, refControlPlaneSG, true)
+	c.rs.newOutput(CfnOutputClusterSharedNodeSecurityGroup, refClusterSharedNodeSG, true)
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	desc := "worker nodes in group " + n.nodeGroupName
 
-	tcp := gfn.NewString("tcp")
-	udp := gfn.NewString("udp")
 	allInternalIPv4 := gfn.NewString(n.clusterSpec.VPC.CIDR.String())
-	anywhereIPv4 := gfn.NewString("0.0.0.0/0")
-	anywhereIPv6 := gfn.NewString("::/0")
-	var (
-		apiPort = gfn.NewInteger(443)
-		dnsPort = gfn.NewInteger(53)
-		sshPort = gfn.NewInteger(22)
 
-		portZero    = gfn.NewInteger(0)
-		nodeMinPort = gfn.NewInteger(1025)
-		nodeMaxPort = gfn.NewInteger(65535)
-	)
+	refControlPlaneSG := makeImportValue(n.clusterStackName, CfnOutputClusterSecurityGroup)
 
-	refCP := makeImportValue(n.clusterStackName, CfnOutputClusterSecurityGroup)
-	refSG := n.newResource("SG", &gfn.AWSEC2SecurityGroup{
+	refNodeGroupLocalSG := n.newResource("SG", &gfn.AWSEC2SecurityGroup{
 		VpcId:            makeImportValue(n.clusterStackName, CfnOutputClusterVPC),
 		GroupDescription: gfn.NewString("Communication between the control plane and " + desc),
 		Tags: []gfn.Tag{{
@@ -136,105 +162,85 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 			Value: gfn.NewString("owned"),
 		}},
 	})
-	n.securityGroups = []*gfn.Value{refSG}
 
-	if len(n.spec.SecurityGroups) > 0 {
-		for _, arn := range n.spec.SecurityGroups {
-			n.securityGroups = append(n.securityGroups, gfn.NewString(arn))
-		}
+	n.securityGroups = []*gfn.Value{refNodeGroupLocalSG}
+
+	if n.spec.SharedSecurityGroup {
+		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, CfnOutputClusterSharedNodeSecurityGroup)
+		n.securityGroups = append(n.securityGroups, refClusterSharedNodeSG)
 	}
 
-	n.newResource("IngressInterSG", &gfn.AWSEC2SecurityGroupIngress{
-		GroupId:               refSG,
-		SourceSecurityGroupId: refSG,
-		Description:           gfn.NewString("Allow " + desc + " to communicate with each other (all ports)"),
-		IpProtocol:            gfn.NewString("-1"),
-		FromPort:              portZero,
-		ToPort:                nodeMaxPort,
-	})
+	for _, id := range n.spec.SecurityGroups {
+		n.securityGroups = append(n.securityGroups, gfn.NewString(id))
+	}
+
 	n.newResource("IngressInterCluster", &gfn.AWSEC2SecurityGroupIngress{
-		GroupId:               refSG,
-		SourceSecurityGroupId: refCP,
+		GroupId:               refNodeGroupLocalSG,
+		SourceSecurityGroupId: refControlPlaneSG,
 		Description:           gfn.NewString("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
-		IpProtocol:            tcp,
-		FromPort:              nodeMinPort,
-		ToPort:                nodeMaxPort,
+		IpProtocol:            sgProtoTCP,
+		FromPort:              sgMinNodePort,
+		ToPort:                sgMaxNodePort,
 	})
 	n.newResource("EgressInterCluster", &gfn.AWSEC2SecurityGroupEgress{
-		GroupId:                    refCP,
-		DestinationSecurityGroupId: refSG,
+		GroupId:                    refControlPlaneSG,
+		DestinationSecurityGroupId: refNodeGroupLocalSG,
 		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (kubelet and workload TCP ports)"),
-		IpProtocol:                 tcp,
-		FromPort:                   nodeMinPort,
-		ToPort:                     nodeMaxPort,
+		IpProtocol:                 sgProtoTCP,
+		FromPort:                   sgMinNodePort,
+		ToPort:                     sgMaxNodePort,
 	})
 	n.newResource("IngressInterClusterAPI", &gfn.AWSEC2SecurityGroupIngress{
-		GroupId:               refSG,
-		SourceSecurityGroupId: refCP,
+		GroupId:               refNodeGroupLocalSG,
+		SourceSecurityGroupId: refControlPlaneSG,
 		Description:           gfn.NewString("Allow " + desc + " to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)"),
-		IpProtocol:            tcp,
-		FromPort:              apiPort,
-		ToPort:                apiPort,
+		IpProtocol:            sgProtoTCP,
+		FromPort:              sgPortHTTPS,
+		ToPort:                sgPortHTTPS,
 	})
 	n.newResource("EgressInterClusterAPI", &gfn.AWSEC2SecurityGroupEgress{
-		GroupId:                    refCP,
-		DestinationSecurityGroupId: refSG,
+		GroupId:                    refControlPlaneSG,
+		DestinationSecurityGroupId: refNodeGroupLocalSG,
 		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (workloads using HTTPS port, commonly used with extension API servers)"),
-		IpProtocol:                 tcp,
-		FromPort:                   apiPort,
-		ToPort:                     apiPort,
+		IpProtocol:                 sgProtoTCP,
+		FromPort:                   sgPortHTTPS,
+		ToPort:                     sgPortHTTPS,
 	})
 	n.newResource("IngressInterClusterCP", &gfn.AWSEC2SecurityGroupIngress{
-		GroupId:               refCP,
-		SourceSecurityGroupId: refSG,
+		GroupId:               refControlPlaneSG,
+		SourceSecurityGroupId: refNodeGroupLocalSG,
 		Description:           gfn.NewString("Allow control plane to receive API requests from " + desc),
-		IpProtocol:            tcp,
-		FromPort:              apiPort,
-		ToPort:                apiPort,
+		IpProtocol:            sgProtoTCP,
+		FromPort:              sgPortHTTPS,
+		ToPort:                sgPortHTTPS,
 	})
 	if n.spec.AllowSSH {
 		if n.spec.PrivateNetworking {
 			n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
-				GroupId:     refSG,
+				GroupId:     refNodeGroupLocalSG,
 				CidrIp:      allInternalIPv4,
 				Description: gfn.NewString("Allow SSH access to " + desc + " (private, only inside VPC)"),
-				IpProtocol:  tcp,
-				FromPort:    sshPort,
-				ToPort:      sshPort,
+				IpProtocol:  sgProtoTCP,
+				FromPort:    sgPortSSH,
+				ToPort:      sgPortSSH,
 			})
 		} else {
 			n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
-				GroupId:     refSG,
-				CidrIp:      anywhereIPv4,
+				GroupId:     refNodeGroupLocalSG,
+				CidrIp:      sgSourceAnywhereIPv4,
 				Description: gfn.NewString("Allow SSH access to " + desc),
-				IpProtocol:  tcp,
-				FromPort:    sshPort,
-				ToPort:      sshPort,
+				IpProtocol:  sgProtoTCP,
+				FromPort:    sgPortSSH,
+				ToPort:      sgPortSSH,
 			})
 			n.newResource("SSHIPv6", &gfn.AWSEC2SecurityGroupIngress{
-				GroupId:     refSG,
-				CidrIpv6:    anywhereIPv6,
+				GroupId:     refNodeGroupLocalSG,
+				CidrIpv6:    sgSourceAnywhereIPv6,
 				Description: gfn.NewString("Allow SSH access to " + desc),
-				IpProtocol:  tcp,
-				FromPort:    sshPort,
-				ToPort:      sshPort,
+				IpProtocol:  sgProtoTCP,
+				FromPort:    sgPortSSH,
+				ToPort:      sgPortSSH,
 			})
 		}
 	}
-	n.newResource("DNSUDPIPv4", &gfn.AWSEC2SecurityGroupIngress{
-		GroupId:     refSG,
-		CidrIp:      allInternalIPv4,
-		Description: gfn.NewString("Allow DNS access to " + desc + " inside VPC"),
-		IpProtocol:  udp,
-		FromPort:    dnsPort,
-		ToPort:      dnsPort,
-	})
-	n.newResource("DNSTCPIPv4", &gfn.AWSEC2SecurityGroupIngress{
-		GroupId:     refSG,
-		CidrIp:      allInternalIPv4,
-		Description: gfn.NewString("Allow DNS access to " + desc + " inside VPC"),
-		IpProtocol:  tcp,
-		FromPort:    dnsPort,
-		ToPort:      dnsPort,
-	})
 }
