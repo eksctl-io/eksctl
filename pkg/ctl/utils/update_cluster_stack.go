@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -61,30 +62,14 @@ func doUpdateClusterStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nam
 		return fmt.Errorf("--name must be set")
 	}
 
+	if err := ctl.GetClusterVPC(cfg); err != nil {
+		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+	}
+
 	stackManager := ctl.NewStackManager(cfg)
 
-	{
-		stack, err := stackManager.DescribeClusterStack()
-		if err != nil {
-			return err
-		}
-		logger.Info("cluster = %#v", stack)
-	}
-
-	// if err := ctl.GetClusterVPC(cfg); err != nil {
-	// 	return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
-	// }
-
-	if err := stackManager.UpdateClusterForCompability(); err != nil {
+	if err := stackManager.AppendNewClusterStackResource(); err != nil {
 		return err
-	}
-
-	{
-		stack, err := stackManager.DescribeClusterStack()
-		if err != nil {
-			return err
-		}
-		logger.Info("cluster = %#v", stack)
 	}
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {

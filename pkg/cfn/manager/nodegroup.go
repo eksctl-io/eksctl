@@ -18,11 +18,11 @@ import (
 )
 
 const (
-	desiredCapacityPath = "Resources.NodeGroup.Properties.DesiredCapacity"
-	maxSizePath         = "Resources.NodeGroup.Properties.MaxSize"
-	minSizePath         = "Resources.NodeGroup.Properties.MinSize"
-	instanceTypePath    = "Resources.NodeLaunchConfig.Properties.InstanceType"
-	imageIDPath         = "Resources.NodeLaunchConfig.Properties.ImageId"
+	desiredCapacityPath = resourcesRootPath + ".NodeGroup.Properties.DesiredCapacity"
+	maxSizePath         = resourcesRootPath + ".NodeGroup.Properties.MaxSize"
+	minSizePath         = resourcesRootPath + ".NodeGroup.Properties.MinSize"
+	instanceTypePath    = resourcesRootPath + ".NodeLaunchConfig.Properties.InstanceType"
+	imageIDPath         = resourcesRootPath + ".NodeLaunchConfig.Properties.ImageId"
 )
 
 // NodeGroupSummary represents a summary of a nodegroup stack
