@@ -29,7 +29,11 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 	}
 
 	if sharedClusterNodeSG == "" {
-		return fmt.Errorf("cluster %q does not have shared node security group", cfg.Metadata.Name)
+		return fmt.Errorf(
+			"shared node security group missing, to fix this run 'eksctl utils update-cluster-stack --name=%s --region=%s'",
+			cfg.Metadata.Name,
+			cfg.Metadata.Region,
+		)
 	}
 
 	return nil
