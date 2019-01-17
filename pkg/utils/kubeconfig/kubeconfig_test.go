@@ -153,6 +153,7 @@ var _ = Describe("Kubeconfig", func() {
 					IAM: eksctlapi.NodeGroupIAM{
 						AttachPolicyARNs: []string(nil),
 						InstanceRoleARN:  "",
+						InstanceRoleName:  "",
 					},
 				},
 			},
