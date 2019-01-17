@@ -72,9 +72,11 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 
 	logger.Critical("found %d nodegroup(s) (%s) without shared security group, cluster networking maybe be broken",
 		numIncompatibleNodeGroups, strings.Join(incompatibleNodeGroups, ", "))
-	logger.Critical("it's recommended to delete these nodegroups and create new ones instead")
-	logger.Critical("as a temporary fix, you can patch the configuration and add each of these nodegroup(s) to %q",
-		cfg.VPC.SharedNodeSecurityGroup)
+	logger.Critical("it's recommended to create new nodegroups, then delete old ones")
+	if cfg.VPC.SharedNodeSecurityGroup != "" {
+		logger.Critical("as a temporary fix, you can patch the configuration and add each of these nodegroup(s) to %q",
+			cfg.VPC.SharedNodeSecurityGroup)
+	}
 
 	return nil
 }
