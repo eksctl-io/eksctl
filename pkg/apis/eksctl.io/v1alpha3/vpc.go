@@ -77,7 +77,7 @@ func (c *ClusterConfig) SubnetIDs(topology SubnetTopology) []string {
 }
 
 // ImportSubnet loads a given subnet into cluster config
-func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) {
+func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) error {
 	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
 
 	if c.VPC.Subnets == nil {
@@ -89,10 +89,19 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr
 	if network, ok := c.VPC.Subnets[topology][az]; !ok {
 		c.VPC.Subnets[topology][az] = Network{ID: subnetID, CIDR: subnetCIDR}
 	} else {
-		network.ID = subnetID
-		network.CIDR = subnetCIDR
+		if network.ID == "" {
+			network.ID = subnetID
+		} else if network.ID != subnetID {
+			return fmt.Errorf("subnet ID %q is not the same as %q", network.ID, subnetID)
+		}
+		if network.CIDR == nil {
+			network.CIDR = subnetCIDR
+		} else if network.CIDR.String() != subnetCIDR.String() {
+			return fmt.Errorf("subnet CIDR %q is not the same as %q", network.CIDR.String(), subnetCIDR.String())
+		}
 		c.VPC.Subnets[topology][az] = network
 	}
+	return nil
 }
 
 // HasSufficientPublicSubnets validates if there is a sufficient

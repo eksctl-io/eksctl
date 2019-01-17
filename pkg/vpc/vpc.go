@@ -84,11 +84,23 @@ func ImportVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string)
 	if err != nil {
 		return err
 	}
-	spec.VPC.ID = *vpc.VpcId
-	spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
-	if err != nil {
-		return err
+	if spec.VPC.ID == "" {
+		spec.VPC.ID = *vpc.VpcId
+	} else if spec.VPC.ID != *vpc.VpcId {
+		return fmt.Errorf("VPC ID %q is the same as not %q", spec.VPC.ID, *vpc.VpcId)
 	}
+	if spec.VPC.CIDR == nil {
+		spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
+		if err != nil {
+			return err
+		}
+	} else if cidr := spec.VPC.CIDR.String(); cidr != *vpc.CidrBlock {
+		return fmt.Errorf("VPC CIDR block %q is not the same as %q",
+			cidr,
+			*vpc.CidrBlock,
+		)
+	}
+
 	return nil
 }
 
@@ -96,32 +108,61 @@ func ImportVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string)
 // it will use provider to call describeVPC based on the VPC ID of the
 // first subnet; all subnets must be in the same VPC
 func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnets []*ec2.Subnet) error {
+	if spec.VPC.ID != "" {
+		// ensure VPC gets imported and validated firt, if it's already set
+		if err := ImportVPC(provider, spec, spec.VPC.ID); err != nil {
+			return err
+		}
+	}
 	for _, subnet := range subnets {
 		if spec.VPC.ID == "" {
+			// if VPC wasn't defined, import it based on VPC of the first
+			// subnet that we have
 			if err := ImportVPC(provider, spec, *subnet.VpcId); err != nil {
 				return err
 			}
-		} else if spec.VPC.ID != *subnet.VpcId {
+		} else if spec.VPC.ID != *subnet.VpcId { // be sure to use the same VPC
 			return fmt.Errorf("given %s is in %s, not in %s", *subnet.SubnetId, *subnet.VpcId, spec.VPC.ID)
 		}
 
-		spec.ImportSubnet(topology, *subnet.AvailabilityZone, *subnet.SubnetId, *subnet.CidrBlock)
+		if err := spec.ImportSubnet(topology, *subnet.AvailabilityZone, *subnet.SubnetId, *subnet.CidrBlock); err != nil {
+			return err
+		}
 		spec.AppendAvailabilityZone(*subnet.AvailabilityZone)
 	}
 	return nil
 }
 
-// UseSubnets will update spec with subnets, it will call describeSubnets first,
+// UseSubnetsFromList will update spec with subnets, it will call describeSubnets first,
 // then pass resulting subnets to ImportSubnets
-func UseSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs []string) error {
+func UseSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-
 	subnets, err := describeSubnets(provider, subnetIDs...)
 	if err != nil {
 		return err
 	}
-
 	return ImportSubnets(provider, spec, topology, subnets)
+}
+
+// UseSubnets will update spec with subnets, it will call describeSubnets first,
+// then pass resulting subnets to ImportSubnets
+func UseSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+	if spec.VPC.ID != "" {
+		// ensure VPC gets imported and validated firt, if it's already set
+		if err := ImportVPC(provider, spec, spec.VPC.ID); err != nil {
+			return err
+		}
+	}
+	for topology := range spec.VPC.Subnets {
+		subnetIDs := []string{}
+		for _, subnet := range spec.VPC.Subnets[topology] {
+			subnetIDs = append(subnetIDs, subnet.ID)
+		}
+		if err := UseSubnetsFromList(provider, spec, topology, subnetIDs); err != nil {
+			return err
+		}
+	}
+	return nil
 }
