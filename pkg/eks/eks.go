@@ -87,7 +87,7 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 }
 
 // GetClusterVPC retrieves the VPC configuration
-func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
+func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, ignoreMissingKeys ...string) error {
 	cluster, err := c.NewStackManager(spec).DescribeClusterStack()
 	if err != nil {
 		return err
@@ -103,7 +103,14 @@ func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
 	}
 
 	requiredKeyErrFmt := "cluster stack has no output key %q"
-
+	isKeyRequired := func(k string) bool {
+		for _, key := range ignoreMissingKeys {
+			if key == k {
+				return false
+			}
+		}
+		return true
+	}
 	if vpc, ok := outputs[builder.CfnOutputClusterVPC]; ok {
 		spec.VPC.ID = vpc
 	} else {
@@ -112,13 +119,13 @@ func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
 
 	if securityGroup, ok := outputs[builder.CfnOutputClusterSecurityGroup]; ok {
 		spec.VPC.SecurityGroup = securityGroup
-	} else {
+	} else if isKeyRequired(builder.CfnOutputClusterSharedNodeSecurityGroup) {
 		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSecurityGroup)
 	}
 
 	if sharedNodeSecurityGroup, ok := outputs[builder.CfnOutputClusterSharedNodeSecurityGroup]; ok {
 		spec.VPC.SharedNodeSecurityGroup = sharedNodeSecurityGroup
-	} else {
+	} else if isKeyRequired(builder.CfnOutputClusterSharedNodeSecurityGroup) {
 		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSharedNodeSecurityGroup)
 	}
 

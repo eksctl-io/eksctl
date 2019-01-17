@@ -13,6 +13,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
+const (
+	resourcesRootPath = "Resources"
+	outputsRootPath   = "Outputs"
+)
+
 var (
 	stackCapabilitiesIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam})
 )
@@ -108,8 +113,7 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 	return nil
 }
 
-// UpdateStack will update a cloudformation stack. It uses changeSets and if in debug it will log the changes.
-// This is used bu things like nodegroup scaling
+// UpdateStack will update a cloudformation stack by creating and executing a ChangeSet.
 func (c *StackCollection) UpdateStack(stackName string, action string, description string, template []byte, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
@@ -138,9 +142,6 @@ func (c *StackCollection) describeStack(i *Stack) (*Stack, error) {
 		StackName: i.StackName,
 	}
 	if i.StackId != nil && *i.StackId != "" {
-		input.StackName = i.StackId
-	}
-	if i.StackId != nil {
 		input.StackName = i.StackId
 	}
 	resp, err := c.provider.CloudFormation().DescribeStacks(input)
@@ -269,9 +270,11 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 // DescribeStackEvents describes the occurred stack events
 func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error) {
 	input := &cloudformation.DescribeStackEventsInput{
-		StackName: i.StackId,
+		StackName: i.StackName,
 	}
-
+	if i.StackId != nil && *i.StackId != "" {
+		input.StackName = i.StackId
+	}
 	resp, err := c.provider.CloudFormation().DescribeStackEvents(input)
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *i.StackName)

@@ -1,10 +1,16 @@
 package manager
 
 import (
+	"fmt"
 	"strings"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
+
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
@@ -53,6 +59,90 @@ func (c *StackCollection) DeleteCluster() error {
 // WaitDeleteCluster waits till the cluster is deleted
 func (c *StackCollection) WaitDeleteCluster() error {
 	return c.BlockingWaitDeleteStack(c.makeClusterStackName())
+}
+
+// AppendNewClusterStackResource will update cluster
+// stack with new resources in append-only way
+func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
+	name := c.makeClusterStackName()
+
+	// NOTE: currently we can only append new resources to the stack,
+	// as there are a few limitations:
+	// - it must work with VPC that are imported as well as VPC that
+	//   is mamaged as part of the stack;
+	// - CloudFormation cannot yet upgrade EKS control plane itself;
+
+	currentTemplate, err := c.GetStackTemplate(name)
+	if err != nil {
+		return errors.Wrapf(err, "error getting stack template %s", name)
+	}
+
+	addResources := []string{}
+	addOutputs := []string{}
+
+	currentResources := gjson.Get(currentTemplate, resourcesRootPath)
+	currentOutputs := gjson.Get(currentTemplate, outputsRootPath)
+	if !currentResources.IsObject() || !currentOutputs.IsObject() {
+		return fmt.Errorf("unexpected template format of the current stack ")
+	}
+
+	logger.Info("creating cluster stack %q", name)
+	newStack := builder.NewClusterResourceSet(c.provider, c.spec)
+	if err := newStack.AddAllResources(); err != nil {
+		return err
+	}
+
+	newTemplate, err := newStack.RenderJSON()
+	if err != nil {
+		return errors.Wrapf(err, "rendering template for %q stack", name)
+	}
+	logger.Debug("newTemplate = %s", newTemplate)
+
+	newResources := gjson.Get(string(newTemplate), resourcesRootPath)
+	newOutputs := gjson.Get(string(newTemplate), outputsRootPath)
+	if !newResources.IsObject() || !newOutputs.IsObject() {
+		return fmt.Errorf("unexpected template format of the new version of the stack ")
+	}
+
+	logger.Debug("currentTemplate = %s", currentTemplate)
+
+	var iterErr error
+	iterFunc := func(list *[]string, root string, currentSet, key, value gjson.Result) bool {
+		k := key.String()
+		if currentSet.Get(k).Exists() {
+			return true
+		}
+		*list = append(*list, k)
+		path := root + "." + k
+		currentTemplate, iterErr = sjson.Set(currentTemplate, path, value.Value())
+		return iterErr == nil
+	}
+	newResources.ForEach(func(k, v gjson.Result) bool {
+		return iterFunc(&addResources, resourcesRootPath, currentResources, k, v)
+	})
+	if iterErr != nil {
+		return errors.Wrap(iterErr, "adding resources to current stack template")
+	}
+	newOutputs.ForEach(func(k, v gjson.Result) bool {
+		return iterFunc(&addOutputs, outputsRootPath, currentOutputs, k, v)
+	})
+	if iterErr != nil {
+		return errors.Wrap(iterErr, "adding outputs to current stack template")
+	}
+
+	if len(addResources) == 0 && len(addOutputs) == 0 {
+		logger.Success("all resources in cluster stack %q are up-to-date", name)
+		return nil
+	}
+
+	logger.Debug("currentTemplate = %s", currentTemplate)
+
+	describeUpdate := fmt.Sprintf("updating stack to add new resources %v and ouputs %v", addResources, addOutputs)
+	if dryRun {
+		logger.Info("(dry-run) %s", describeUpdate)
+		return nil
+	}
+	return c.UpdateStack(name, "update-cluster", describeUpdate, []byte(currentTemplate), nil)
 }
 
 func getClusterName(s *Stack) string {

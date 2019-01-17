@@ -21,6 +21,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd.AddCommand(waitNodesCmd(g))
 	cmd.AddCommand(writeKubeconfigCmd(g))
 	cmd.AddCommand(describeStacksCmd(g))
+	cmd.AddCommand(updateClusterStackCmd(g))
 
 	return cmd
 }

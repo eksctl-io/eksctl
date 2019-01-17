@@ -29,7 +29,11 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 	}
 
 	if sharedClusterNodeSG == "" {
-		return fmt.Errorf("cluster %q does not have shared node security group", cfg.Metadata.Name)
+		return fmt.Errorf(
+			"shared node security group missing, to fix this run 'eksctl utils update-cluster-stack --name=%s --region=%s'",
+			cfg.Metadata.Name,
+			cfg.Metadata.Region,
+		)
 	}
 
 	return nil
@@ -42,7 +46,11 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 	if err != nil {
 		return errors.Wrap(err, "getting resources for of all nodegroup stacks")
 	}
+	if len(resourcesByNodeGroup) == 0 {
+		return nil
+	}
 
+	logger.Info("checking security group configuration for all nodegroups")
 	incompatibleNodeGroups := []string{}
 	for ng, resources := range resourcesByNodeGroup {
 		compatible := false
@@ -58,14 +66,17 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 
 	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
 	if numIncompatibleNodeGroups == 0 {
+		logger.Info("all security group nodegroups have up-to-date configuration")
 		return nil
 	}
 
 	logger.Critical("found %d nodegroup(s) (%s) without shared security group, cluster networking maybe be broken",
 		numIncompatibleNodeGroups, strings.Join(incompatibleNodeGroups, ", "))
-	logger.Critical("it's recommended to delete these nodegroups and create new ones instead")
-	logger.Critical("as a temporary fix, you can patch the configuration and add each of these nodegroup(s) to %q",
-		cfg.VPC.SharedNodeSecurityGroup)
+	logger.Critical("it's recommended to create new nodegroups, then delete old ones")
+	if cfg.VPC.SharedNodeSecurityGroup != "" {
+		logger.Critical("as a temporary fix, you can patch the configuration and add each of these nodegroup(s) to %q",
+			cfg.VPC.SharedNodeSecurityGroup)
+	}
 
 	return nil
 }

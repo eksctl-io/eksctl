@@ -6,21 +6,23 @@ import (
 	"strings"
 	"time"
 
-	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
 const (
-	desiredCapacityPath = "Resources.NodeGroup.Properties.DesiredCapacity"
-	maxSizePath         = "Resources.NodeGroup.Properties.MaxSize"
-	minSizePath         = "Resources.NodeGroup.Properties.MinSize"
-	instanceTypePath    = "Resources.NodeLaunchConfig.Properties.InstanceType"
-	imageIDPath         = "Resources.NodeLaunchConfig.Properties.ImageId"
+	desiredCapacityPath = resourcesRootPath + ".NodeGroup.Properties.DesiredCapacity"
+	maxSizePath         = resourcesRootPath + ".NodeGroup.Properties.MaxSize"
+	minSizePath         = resourcesRootPath + ".NodeGroup.Properties.MinSize"
+	instanceTypePath    = resourcesRootPath + ".NodeLaunchConfig.Properties.InstanceType"
+	imageIDPath         = resourcesRootPath + ".NodeLaunchConfig.Properties.ImageId"
 )
 
 // NodeGroupSummary represents a summary of a nodegroup stack
@@ -49,10 +51,6 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
-	}
-
-	if ng.SecurityGroups == nil {
-		ng.SecurityGroups = []string{}
 	}
 
 	if ng.Tags == nil {
