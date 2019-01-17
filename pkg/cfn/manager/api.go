@@ -13,7 +13,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
-const resourcesRootPath = "Resources"
+const (
+	resourcesRootPath = "Resources"
+	outputsRootPath   = "Outputs"
+)
 
 var (
 	stackCapabilitiesIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam})

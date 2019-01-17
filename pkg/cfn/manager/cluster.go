@@ -78,9 +78,11 @@ func (c *StackCollection) AppendNewClusterStackResource() error {
 	}
 
 	addResources := []string{}
+	addOutputs := []string{}
 
 	currentResources := gjson.Get(currentTemplate, resourcesRootPath)
-	if !currentResources.IsObject() {
+	currentOutputs := gjson.Get(currentTemplate, outputsRootPath)
+	if !currentResources.IsObject() || !currentOutputs.IsObject() {
 		return fmt.Errorf("unexpected template format of the current stack ")
 	}
 
@@ -97,35 +99,45 @@ func (c *StackCollection) AppendNewClusterStackResource() error {
 	logger.Debug("newTemplate = %s", newTemplate)
 
 	newResources := gjson.Get(string(newTemplate), resourcesRootPath)
-	if !newResources.IsObject() {
+	newOutputs := gjson.Get(string(newTemplate), outputsRootPath)
+	if !newResources.IsObject() || !newOutputs.IsObject() {
 		return fmt.Errorf("unexpected template format of the new version of the stack ")
 	}
 
 	logger.Debug("currentTemplate = %s", currentTemplate)
 
 	var iterErr error
-	newResources.ForEach(func(resourceKey, resource gjson.Result) bool {
-		key := resourceKey.String()
-		if currentResources.Get(key).Exists() {
+	iterFunc := func(list *[]string, root string, currentSet, key, value gjson.Result) bool {
+		k := key.String()
+		if currentSet.Get(k).Exists() {
 			return true
 		}
-		addResources = append(addResources, key)
-		path := resourcesRootPath + "." + key
-		currentTemplate, iterErr = sjson.Set(currentTemplate, path, resource.Value())
+		*list = append(*list, k)
+		path := root + "." + k
+		currentTemplate, iterErr = sjson.Set(currentTemplate, path, value.Value())
 		return iterErr == nil
+	}
+	newResources.ForEach(func(k, v gjson.Result) bool {
+		return iterFunc(&addResources, resourcesRootPath, currentResources, k, v)
 	})
 	if iterErr != nil {
-		return errors.Wrap(iterErr, "updating stack template")
+		return errors.Wrap(iterErr, "adding resources to current stack template")
+	}
+	newOutputs.ForEach(func(k, v gjson.Result) bool {
+		return iterFunc(&addOutputs, outputsRootPath, currentOutputs, k, v)
+	})
+	if iterErr != nil {
+		return errors.Wrap(iterErr, "adding outputs to current stack template")
 	}
 
-	if len(addResources) == 0 {
+	if len(addResources) == 0 && len(addOutputs) == 0 {
 		logger.Success("all resources in cluster stack %q are up-to-date", name)
 		return nil
 	}
 
 	logger.Debug("currentTemplate = %s", currentTemplate)
 
-	describeUpdate := fmt.Sprintf("updating stack to add new resources: %v", addResources)
+	describeUpdate := fmt.Sprintf("updating stack to add new resources %v and ouputs %v", addResources, addOutputs)
 	return c.UpdateStack(name, "update-cluster", describeUpdate, []byte(currentTemplate), nil)
 }
 
