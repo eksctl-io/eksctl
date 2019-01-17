@@ -241,27 +241,40 @@ func (c *ClusterProvider) SetNodeLabels(ng *api.NodeGroup, meta *api.ClusterMeta
 	return nil
 }
 
+func errTooFewAvailabilityZones(azs []string) error {
+	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(azs), azs, az.MinRequiredAvailabilityZones)
+}
+
 // SetAvailabilityZones sets the given (or chooses) the availability zones
 func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []string) error {
-	if len(given) == 0 {
-		logger.Debug("determining availability zones")
-		azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
-		if c.Provider.Region() == api.RegionUSEast1 {
-			azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2())
+	if count := len(given); count != 0 {
+		if count < az.MinRequiredAvailabilityZones {
+			return errTooFewAvailabilityZones(given)
 		}
-		zones, err := azSelector.SelectZones(c.Provider.Region())
-		if err != nil {
-			return errors.Wrap(err, "getting availability zones")
-		}
-
-		logger.Info("setting availability zones to %v", zones)
-		spec.AvailabilityZones = zones
+		spec.AvailabilityZones = given
 		return nil
 	}
-	if len(given) < az.MinRequiredAvailabilityZones {
-		return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(given), given, az.MinRequiredAvailabilityZones)
+
+	if count := len(spec.AvailabilityZones); count != 0 {
+		if count < az.MinRequiredAvailabilityZones {
+			return errTooFewAvailabilityZones(given)
+		}
+		return nil
 	}
-	spec.AvailabilityZones = given
+
+	logger.Debug("determining availability zones")
+	azSelector := az.NewSelectorWithDefaults(c.Provider.EC2())
+	if c.Provider.Region() == api.RegionUSEast1 {
+		azSelector = az.NewSelectorWithMinRequired(c.Provider.EC2())
+	}
+	zones, err := azSelector.SelectZones(c.Provider.Region())
+	if err != nil {
+		return errors.Wrap(err, "getting availability zones")
+	}
+
+	logger.Info("setting availability zones to %v", zones)
+	spec.AvailabilityZones = zones
+
 	return nil
 }
 
