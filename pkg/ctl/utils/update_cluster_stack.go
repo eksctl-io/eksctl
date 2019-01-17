@@ -15,13 +15,15 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
+var updateClusterStackDryRun = true
+
 func updateClusterStackCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
 		Use:   "update-cluster-stack",
-		Short: "Update cluster stack based on latest configuration",
+		Short: "Update cluster stack based on latest configuration (append-only)",
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doUpdateClusterStacksCmd(p, cfg, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
@@ -36,6 +38,7 @@ func updateClusterStackCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata)
+		fs.BoolVar(&updateClusterStackDryRun, "dry-run", updateClusterStackDryRun, "do not apply any change, only show what resources would be added")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, false)
@@ -69,7 +72,7 @@ func doUpdateClusterStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nam
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := stackManager.AppendNewClusterStackResource(); err != nil {
+	if err := stackManager.AppendNewClusterStackResource(updateClusterStackDryRun); err != nil {
 		return err
 	}
 
@@ -77,5 +80,8 @@ func doUpdateClusterStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nam
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
+	if updateClusterStackDryRun {
+		logger.Warning("no changes were applied, run again with '--dry-run=false' to apply the changes")
+	}
 	return nil
 }

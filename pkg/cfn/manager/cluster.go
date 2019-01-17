@@ -63,7 +63,7 @@ func (c *StackCollection) WaitDeleteCluster() error {
 
 // AppendNewClusterStackResource will update cluster
 // stack with new resources in append-only way
-func (c *StackCollection) AppendNewClusterStackResource() error {
+func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
 	name := c.makeClusterStackName()
 
 	// NOTE: currently we can only append new resources to the stack,
@@ -138,6 +138,10 @@ func (c *StackCollection) AppendNewClusterStackResource() error {
 	logger.Debug("currentTemplate = %s", currentTemplate)
 
 	describeUpdate := fmt.Sprintf("updating stack to add new resources %v and ouputs %v", addResources, addOutputs)
+	if dryRun {
+		logger.Info("(dry-run) %s", describeUpdate)
+		return nil
+	}
 	return c.UpdateStack(name, "update-cluster", describeUpdate, []byte(currentTemplate), nil)
 }
 
