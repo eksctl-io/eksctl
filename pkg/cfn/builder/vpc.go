@@ -15,9 +15,15 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
 			VpcId:            c.vpc,
 		}
-		if topology == api.SubnetTopologyPrivate {
+		switch topology {
+		case api.SubnetTopologyPrivate:
 			subnet.Tags = []gfn.Tag{{
 				Key:   gfn.NewString("kubernetes.io/role/internal-elb"),
+				Value: gfn.NewString("1"),
+			}}
+		case api.SubnetTopologyPublic:
+			subnet.Tags = []gfn.Tag{{
+				Key:   gfn.NewString("kubernetes.io/role/elb"),
 				Value: gfn.NewString("1"),
 			}}
 		}
