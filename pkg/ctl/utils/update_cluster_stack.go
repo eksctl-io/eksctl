@@ -87,7 +87,6 @@ func doUpdateClusterStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nam
 		logger.Info("cluster = %#v", stack)
 	}
 
-	logger.Info("will inspect security group configuration for all nodegroups")
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}

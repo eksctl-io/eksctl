@@ -42,7 +42,11 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 	if err != nil {
 		return errors.Wrap(err, "getting resources for of all nodegroup stacks")
 	}
+	if len(resourcesByNodeGroup) == 0 {
+		return nil
+	}
 
+	logger.Info("checking security group configuration for all nodegroups")
 	incompatibleNodeGroups := []string{}
 	for ng, resources := range resourcesByNodeGroup {
 		compatible := false
@@ -58,6 +62,7 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 
 	numIncompatibleNodeGroups := len(incompatibleNodeGroups)
 	if numIncompatibleNodeGroups == 0 {
+		logger.Info("all security group nodegroups have up-to-date configuration")
 		return nil
 	}
 
