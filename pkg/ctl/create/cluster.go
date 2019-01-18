@@ -194,9 +194,11 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		}
 
 		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
-			if ng.Name == "" {
-				return fmt.Errorf("nodegroups[%d].name must be set", i)
+			if err := api.ValidateNodeGroup(i, ng); err != nil {
+				return err
 			}
+
+			// apply defaults
 			if ng.InstanceType == "" {
 				ng.InstanceType = api.DefaultNodeType
 			}
@@ -218,6 +220,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 					ng.VolumeType = api.DefaultNodeVolumeType
 				}
 			}
+
 			return nil
 		})
 		if err != nil {

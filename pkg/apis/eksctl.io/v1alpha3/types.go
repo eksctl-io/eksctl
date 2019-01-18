@@ -188,6 +188,9 @@ type ClusterConfig struct {
 	Metadata *ClusterMeta `json:"metadata"`
 
 	// +optional
+	IAM ClusterIAM `json:"iam"`
+
+	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
 
 	// +optional
@@ -197,6 +200,12 @@ type ClusterConfig struct {
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
 	Status *ClusterStatus `json:"status,omitempty"`
+}
+
+// ClusterIAM holds all IAM attributes of a cluster
+type ClusterIAM struct {
+	// +optional
+	ServiceRoleARN string `json:"serviceRoleARN,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

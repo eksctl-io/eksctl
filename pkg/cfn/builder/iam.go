@@ -63,6 +63,13 @@ func (c *ClusterResourceSet) WithNamedIAM() bool {
 }
 
 func (c *ClusterResourceSet) addResourcesForIAM() {
+	c.rs.withNamedIAM = false
+
+	if c.spec.IAM.ServiceRoleARN != "" {
+		c.rs.withIAM = false
+		return
+	}
+
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
@@ -93,6 +100,18 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 }
 
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
+	if n.spec.IAM.InstanceRoleARN != "" {
+		n.rs.withIAM = false
+		n.rs.withNamedIAM = false
+
+		n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+			Path:  gfn.NewString("/"),
+			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
+		})
+		n.rs.newOutputFromAtt(CfnOutputNodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
+		return
+	}
+
 	n.rs.withIAM = true
 
 	if n.spec.IAM.InstanceRoleName != "" {
