@@ -86,9 +86,14 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, c.subnets[topology]...)
 	}
 
+	serviceRoleARN := gfn.MakeFnGetAttString("ServiceRole.Arn")
+	if c.spec.IAM.ServiceRoleARN != "" {
+		serviceRoleARN = gfn.NewString(c.spec.IAM.ServiceRoleARN)
+	}
+
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
 		Name:               gfn.NewString(c.spec.Metadata.Name),
-		RoleArn:            gfn.MakeFnGetAttString("ServiceRole.Arn"),
+		RoleArn:            serviceRoleARN,
 		Version:            gfn.NewString(c.spec.Metadata.Version),
 		ResourcesVpcConfig: clusterVPC,
 	})

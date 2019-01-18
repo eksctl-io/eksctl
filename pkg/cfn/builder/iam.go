@@ -63,6 +63,13 @@ func (c *ClusterResourceSet) WithNamedIAM() bool {
 }
 
 func (c *ClusterResourceSet) addResourcesForIAM() {
+	c.rs.withNamedIAM = false
+
+	if c.spec.IAM.ServiceRoleARN != "" {
+		c.rs.withIAM = false
+		return
+	}
+
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
