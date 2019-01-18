@@ -114,6 +114,14 @@ func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGr
 	return nil
 }
 
+func doCheckSubnetsGivenAsConfigFile(cfg *api.ClusterConfig) bool {
+	return len(cfg.VPC.Subnets[api.SubnetTopologyPrivate])+len(cfg.VPC.Subnets[api.SubnetTopologyPublic]) != 0
+}
+
+func doCheckSubnetsGivenAsFlags() bool {
+	return len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
+}
+
 func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	meta := cfg.Metadata
 
@@ -147,6 +155,11 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			"ssh-access",
 			"ssh-public-key",
 			"node-private-networking",
+			"node-security-groups",
+			"node-labels",
+			"node-zones",
+			"temp-node-role-policies",
+			"temp-node-role-name",
 			"asg-access",
 			"external-dns-access",
 			"full-ecr-access",
@@ -172,11 +185,14 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		p.Region = meta.Region
 
-		subnetsGiven = false
 		if cfg.VPC == nil {
 			cfg.VPC = api.NewClusterVPC()
-		} else {
-			subnetsGiven = len(cfg.VPC.Subnets[api.SubnetTopologyPrivate])+len(cfg.VPC.Subnets[api.SubnetTopologyPublic]) != 0
+		}
+
+		subnetsGiven = doCheckSubnetsGivenAsConfigFile(cfg)
+
+		if subnetsGiven && len(cfg.AvailabilityZones) != 0 {
+			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
 		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
@@ -222,7 +238,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		subnetsGiven = len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
+		subnetsGiven = doCheckSubnetsGivenAsFlags()
 
 		if withoutNodeGroup {
 			cfg.NodeGroups = nil
