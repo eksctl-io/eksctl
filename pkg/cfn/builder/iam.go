@@ -93,6 +93,18 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 }
 
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
+	if n.spec.IAM.InstanceRoleARN != "" {
+		n.rs.withIAM = false
+		n.rs.withNamedIAM = false
+
+		n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+			Path:  gfn.NewString("/"),
+			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
+		})
+		n.rs.newOutputFromAtt(CfnOutputNodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
+		return
+	}
+
 	n.rs.withIAM = true
 
 	if n.spec.IAM.InstanceRoleName != "" {
