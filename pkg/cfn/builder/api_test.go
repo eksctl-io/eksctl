@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/stretchr/testify/mock"
@@ -241,6 +242,16 @@ var _ = Describe("CloudFormation template builder API", func() {
 			return strings.Join(ids, ",") == compare
 		}
 		testVPC := testVPC()
+
+		p.MockEC2().On("DescribeVpcs", mock.MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
+			return *input.VpcIds[0] == vpcID
+		})).Return(&ec2.DescribeVpcsOutput{
+			Vpcs: []*ec2.Vpc{{
+				VpcId:     aws.String(vpcID),
+				CidrBlock: aws.String("192.168.0.0/16"),
+			}},
+		}, nil)
+
 		for t := range subnetLists {
 			func(list string, subnetsByAz map[string]api.Network) {
 				subnets := strings.Split(list, ",")

@@ -36,7 +36,6 @@ var (
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
-	subnetsGiven          bool
 	addonsStorageClass    bool
 	withoutNodeGroup      bool
 )
@@ -114,11 +113,11 @@ func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGr
 	return nil
 }
 
-func doCheckSubnetsGivenAsConfigFile(cfg *api.ClusterConfig) bool {
+func checkSubnetsGiven(cfg *api.ClusterConfig) bool {
 	return len(cfg.VPC.Subnets[api.SubnetTopologyPrivate])+len(cfg.VPC.Subnets[api.SubnetTopologyPublic]) != 0
 }
 
-func doCheckSubnetsGivenAsFlags() bool {
+func checkSubnetsGivenAsFlags() bool {
 	return len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
 }
 
@@ -167,6 +166,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			"vpc-private-subnets",
 			"vpc-public-subnets",
 			"vpc-cidr",
+			"vpc-from-kops-cluster",
 		}
 
 		for _, f := range incompatibleFlags {
@@ -189,9 +189,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			cfg.VPC = api.NewClusterVPC()
 		}
 
-		subnetsGiven = doCheckSubnetsGivenAsConfigFile(cfg)
-
-		if subnetsGiven && len(cfg.AvailabilityZones) != 0 {
+		if checkSubnetsGiven(cfg) && len(cfg.AvailabilityZones) != 0 {
 			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
@@ -237,8 +235,6 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		if cfg.Status != nil {
 			return fmt.Errorf("status fields are read-only")
 		}
-
-		subnetsGiven = doCheckSubnetsGivenAsFlags()
 
 		if withoutNodeGroup {
 			cfg.NodeGroups = nil
@@ -292,6 +288,16 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		}
 		kubeconfigPath = kubeconfig.AutoPath(meta.Name)
 	}
+
+	if checkSubnetsGivenAsFlags() {
+		// load subnets from local map created from flags, into the config
+		for topology := range subnets {
+			if err := vpc.UseSubnetsFromList(ctl.Provider, cfg, topology, *subnets[topology]); err != nil {
+				return err
+			}
+		}
+	}
+	subnetsGiven := checkSubnetsGiven(cfg) // this will be false when neither flags nor config has any subnets
 
 	createOrImportVPC := func() error {
 
@@ -354,10 +360,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
 		}
 
-		for topology := range subnets {
-			if err := vpc.UseSubnets(ctl.Provider, cfg, topology, *subnets[topology]); err != nil {
-				return err
-			}
+		if err := vpc.UseSubnets(ctl.Provider, cfg); err != nil {
+			return err
 		}
 
 		if err := cfg.HasSufficientSubnets(); err != nil {

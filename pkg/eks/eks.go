@@ -133,7 +133,7 @@ func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, ignoreMissingKe
 		// either of subnet topologies are optional
 		if subnets, ok := outputs[builder.CfnOutputClusterSubnets+string(topology)]; ok {
 			subnets := strings.Split(subnets, ",")
-			if err := vpc.UseSubnets(c.Provider, spec, topology, subnets); err != nil {
+			if err := vpc.UseSubnetsFromList(c.Provider, spec, topology, subnets); err != nil {
 				return err
 			}
 		}
