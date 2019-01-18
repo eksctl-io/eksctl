@@ -15,7 +15,7 @@ required = [
 
 [[constraint]]
   name = "github.com/goreleaser/goreleaser"
-  version = "v0.77.2"
+  revision = "c22b3677efd86cf6bbb2eca3751dfa1fdd948aa6"
 
 [[constraint]]
   branch = "master"
