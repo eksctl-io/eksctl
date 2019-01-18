@@ -257,7 +257,7 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 
 	if count := len(spec.AvailabilityZones); count != 0 {
 		if count < az.MinRequiredAvailabilityZones {
-			return errTooFewAvailabilityZones(given)
+			return errTooFewAvailabilityZones(spec.AvailabilityZones)
 		}
 		return nil
 	}
