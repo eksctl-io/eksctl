@@ -6,6 +6,7 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/kris-nova/logger"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 // newOutput defines a new output and optionally exports it
@@ -36,22 +37,8 @@ func makeImportValue(stackName, output string) *gfn.Value {
 }
 
 // GetAllOutputs collects all outputs from an instance of an active stack,
-// the outputs are defined by the current resourceSet, and are generally
-// private to how builder chooses to define them
-func (r *resourceSet) GetAllOutputs(stack cfn.Stack, outputs map[string]string) error {
+// the outputs are defined by the current resourceSet
+func (r *resourceSet) GetAllOutputs(stack cfn.Stack, results map[string]string) error {
 	logger.Debug("processing stack outputs")
-	for _, key := range r.outputs {
-		var value *string
-		for _, x := range stack.Outputs {
-			if *x.OutputKey == key {
-				value = x.OutputValue
-				break
-			}
-		}
-		if value == nil {
-			return fmt.Errorf("%s is nil", key)
-		}
-		outputs[key] = *value
-	}
-	return nil
+	return outputs.MustCollect(stack, r.outputs, results)
 }
