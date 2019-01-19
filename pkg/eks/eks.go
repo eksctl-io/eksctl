@@ -7,16 +7,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
-	"github.com/weaveworks/eksctl/pkg/vpc"
-
-	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
-	"github.com/weaveworks/eksctl/pkg/printers"
+
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	cfnoutputs "github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // DescribeControlPlane describes the cluster control plane
@@ -111,27 +113,27 @@ func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, ignoreMissingKe
 		}
 		return true
 	}
-	if vpc, ok := outputs[builder.CfnOutputClusterVPC]; ok {
+	if vpc, ok := outputs[cfnoutputs.ClusterVPC]; ok {
 		spec.VPC.ID = vpc
 	} else {
-		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterVPC)
+		return fmt.Errorf(requiredKeyErrFmt, cfnoutputs.ClusterVPC)
 	}
 
-	if securityGroup, ok := outputs[builder.CfnOutputClusterSecurityGroup]; ok {
+	if securityGroup, ok := outputs[cfnoutputs.ClusterSecurityGroup]; ok {
 		spec.VPC.SecurityGroup = securityGroup
-	} else if isKeyRequired(builder.CfnOutputClusterSharedNodeSecurityGroup) {
-		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSecurityGroup)
+	} else if isKeyRequired(cfnoutputs.ClusterSharedNodeSecurityGroup) {
+		return fmt.Errorf(requiredKeyErrFmt, cfnoutputs.ClusterSecurityGroup)
 	}
 
-	if sharedNodeSecurityGroup, ok := outputs[builder.CfnOutputClusterSharedNodeSecurityGroup]; ok {
+	if sharedNodeSecurityGroup, ok := outputs[cfnoutputs.ClusterSharedNodeSecurityGroup]; ok {
 		spec.VPC.SharedNodeSecurityGroup = sharedNodeSecurityGroup
-	} else if isKeyRequired(builder.CfnOutputClusterSharedNodeSecurityGroup) {
-		return fmt.Errorf(requiredKeyErrFmt, builder.CfnOutputClusterSharedNodeSecurityGroup)
+	} else if isKeyRequired(cfnoutputs.ClusterSharedNodeSecurityGroup) {
+		return fmt.Errorf(requiredKeyErrFmt, cfnoutputs.ClusterSharedNodeSecurityGroup)
 	}
 
 	for _, topology := range api.SubnetTopologies() {
 		// either of subnet topologies are optional
-		if subnets, ok := outputs[builder.CfnOutputClusterSubnets+string(topology)]; ok {
+		if subnets, ok := outputs[cfnoutputs.ClusterSubnets+string(topology)]; ok {
 			subnets := strings.Split(subnets, ",")
 			if err := vpc.UseSubnetsFromList(c.Provider, spec, topology, subnets); err != nil {
 				return err

@@ -3,10 +3,13 @@ package builder
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
-	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
@@ -44,10 +47,10 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.SubnetTopology(),
 		templateDescriptionSuffix)
 
-	n.rs.newOutput(CfnOutputNodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
-	n.rs.newOutput(CfnOutputNodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
+	n.rs.newOutput(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
+	n.rs.newOutput(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
 
-	n.vpc = makeImportValue(n.clusterStackName, CfnOutputClusterVPC)
+	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
 
 	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
@@ -145,7 +148,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		vpcZoneIdentifier = map[string][]interface{}{
 			gfn.FnSplit: []interface{}{
 				",",
-				makeImportValue(n.clusterStackName, CfnOutputClusterSubnets+string(n.spec.SubnetTopology())),
+				makeImportValue(n.clusterStackName, outputs.ClusterSubnets+string(n.spec.SubnetTopology())),
 			},
 		}
 	}
@@ -202,7 +205,7 @@ func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 		return err
 	}
 
-	n.spec.IAM.InstanceRoleARN = n.outputs[CfnOutputNodeGroupInstanceRoleARN]
+	n.spec.IAM.InstanceRoleARN = n.outputs[outputs.NodeGroupInstanceRoleARN]
 
 	return nil
 }

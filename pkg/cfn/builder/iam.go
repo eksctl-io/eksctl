@@ -2,6 +2,8 @@ package builder
 
 import (
 	gfn "github.com/awslabs/goformation/cloudformation"
+
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 const (
@@ -108,7 +110,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
 		})
-		n.rs.newOutputFromAtt(CfnOutputNodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
+		n.rs.newOutputFromAtt(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
 		return
 	}
 
@@ -167,5 +169,5 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	n.rs.newOutputFromAtt(CfnOutputNodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true)
+	n.rs.newOutputFromAtt(outputs.NodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true)
 }

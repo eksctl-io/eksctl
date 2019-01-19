@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
@@ -66,7 +66,7 @@ func doUpdateClusterStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nam
 		return fmt.Errorf("--name must be set")
 	}
 
-	if err := ctl.GetClusterVPC(cfg, builder.CfnOutputClusterSharedNodeSecurityGroup); err != nil {
+	if err := ctl.GetClusterVPC(cfg, outputs.ClusterSharedNodeSecurityGroup); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 

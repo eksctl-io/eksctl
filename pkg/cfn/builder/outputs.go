@@ -6,32 +6,6 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/kris-nova/logger"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
-)
-
-// Stack output names
-const (
-	// outputs from cluster stack
-	CfnOutputClusterVPC            = "VPC"
-	CfnOutputClusterSecurityGroup  = "SecurityGroup"
-	CfnOutputClusterSubnets        = "Subnets"
-	CfnOutputClusterSubnetsPrivate = string(CfnOutputClusterSubnets + api.SubnetTopologyPrivate)
-	CfnOutputClusterSubnetsPublic  = string(CfnOutputClusterSubnets + api.SubnetTopologyPublic)
-
-	CfnOutputClusterCertificateAuthorityData = "CertificateAuthorityData"
-	CfnOutputClusterEndpoint                 = "Endpoint"
-	CfnOutputClusterARN                      = "ARN"
-	CfnOutputClusterStackName                = "ClusterStackName"
-	CfnOutputClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
-
-	// outputs from nodegroup stack
-	CfnOutputNodeGroupInstanceRoleARN = "InstanceRoleARN"
-	// outputs to indicate configuration attributes that may have critical effect
-	// on critical effect on forward-compatibility with respect to overal functionality
-	// and integrity, e.g. networking
-	CfnOutputNodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
-	CfnOutputNodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
 )
 
 // newOutput defines a new output and optionally exports it

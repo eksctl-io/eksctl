@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -59,7 +60,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.addResourcesForIAM()
 	c.addResourcesForControlPlane()
 
-	c.rs.newOutput(CfnOutputClusterStackName, gfn.RefStackName, false)
+	c.rs.newOutput(outputs.ClusterStackName, gfn.RefStackName, false)
 
 	return nil
 }
@@ -98,9 +99,9 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		ResourcesVpcConfig: clusterVPC,
 	})
 
-	c.rs.newOutputFromAtt(CfnOutputClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)
-	c.rs.newOutputFromAtt(CfnOutputClusterEndpoint, "ControlPlane.Endpoint", true)
-	c.rs.newOutputFromAtt(CfnOutputClusterARN, "ControlPlane.Arn", true)
+	c.rs.newOutputFromAtt(outputs.ClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)
+	c.rs.newOutputFromAtt(outputs.ClusterEndpoint, "ControlPlane.Endpoint", true)
+	c.rs.newOutputFromAtt(outputs.ClusterARN, "ControlPlane.Arn", true)
 }
 
 // GetAllOutputs collects all outputs of the cluster
@@ -109,28 +110,28 @@ func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
 		return err
 	}
 
-	c.spec.VPC.ID = c.outputs[CfnOutputClusterVPC]
-	c.spec.VPC.SecurityGroup = c.outputs[CfnOutputClusterSecurityGroup]
-	c.spec.VPC.SharedNodeSecurityGroup = c.outputs[CfnOutputClusterSharedNodeSecurityGroup]
+	c.spec.VPC.ID = c.outputs[outputs.ClusterVPC]
+	c.spec.VPC.SecurityGroup = c.outputs[outputs.ClusterSecurityGroup]
+	c.spec.VPC.SharedNodeSecurityGroup = c.outputs[outputs.ClusterSharedNodeSecurityGroup]
 
-	if err := vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(c.outputs[CfnOutputClusterSubnetsPrivate], ",")); err != nil {
+	if err := vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(c.outputs[outputs.ClusterSubnetsPrivate], ",")); err != nil {
 		return err
 	}
 
-	if err := vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(c.outputs[CfnOutputClusterSubnetsPublic], ",")); err != nil {
+	if err := vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(c.outputs[outputs.ClusterSubnetsPublic], ",")); err != nil {
 		return err
 	}
 
-	caData, err := base64.StdEncoding.DecodeString(c.outputs[CfnOutputClusterCertificateAuthorityData])
+	caData, err := base64.StdEncoding.DecodeString(c.outputs[outputs.ClusterCertificateAuthorityData])
 	if err != nil {
 		return errors.Wrap(err, "decoding certificate authority data")
 	}
 
 	c.spec.Status = &api.ClusterStatus{
 		CertificateAuthorityData: caData,
-		Endpoint:                 c.outputs[CfnOutputClusterEndpoint],
-		ARN:                      c.outputs[CfnOutputClusterARN],
-		StackName:                c.outputs[CfnOutputClusterStackName],
+		Endpoint:                 c.outputs[outputs.ClusterEndpoint],
+		ARN:                      c.outputs[outputs.ClusterARN],
+		StackName:                c.outputs[outputs.ClusterStackName],
 	}
 
 	return nil

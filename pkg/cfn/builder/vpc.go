@@ -4,7 +4,9 @@ import (
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
@@ -100,9 +102,9 @@ func (c *ClusterResourceSet) importResourcesForVPC() {
 }
 
 func (c *ClusterResourceSet) addOutputsForVPC() {
-	c.rs.newOutput(CfnOutputClusterVPC, c.vpc, true)
+	c.rs.newOutput(outputs.ClusterVPC, c.vpc, true)
 	for topology := range c.spec.VPC.Subnets {
-		c.rs.newJoinedOutput(CfnOutputClusterSubnets+string(topology), c.subnets[topology], true)
+		c.rs.newJoinedOutput(outputs.ClusterSubnets+string(topology), c.subnets[topology], true)
 	}
 }
 
@@ -149,8 +151,8 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 		refClusterSharedNodeSG = gfn.NewString(c.spec.VPC.SharedNodeSecurityGroup)
 	}
 
-	c.rs.newOutput(CfnOutputClusterSecurityGroup, refControlPlaneSG, true)
-	c.rs.newOutput(CfnOutputClusterSharedNodeSecurityGroup, refClusterSharedNodeSG, true)
+	c.rs.newOutput(outputs.ClusterSecurityGroup, refControlPlaneSG, true)
+	c.rs.newOutput(outputs.ClusterSharedNodeSecurityGroup, refClusterSharedNodeSG, true)
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
@@ -158,10 +160,10 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 
 	allInternalIPv4 := gfn.NewString(n.clusterSpec.VPC.CIDR.String())
 
-	refControlPlaneSG := makeImportValue(n.clusterStackName, CfnOutputClusterSecurityGroup)
+	refControlPlaneSG := makeImportValue(n.clusterStackName, outputs.ClusterSecurityGroup)
 
 	refNodeGroupLocalSG := n.newResource("SG", &gfn.AWSEC2SecurityGroup{
-		VpcId:            makeImportValue(n.clusterStackName, CfnOutputClusterVPC),
+		VpcId:            makeImportValue(n.clusterStackName, outputs.ClusterVPC),
 		GroupDescription: gfn.NewString("Communication between the control plane and " + desc),
 		Tags: []gfn.Tag{{
 			Key:   gfn.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
@@ -172,7 +174,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.securityGroups = []*gfn.Value{refNodeGroupLocalSG}
 
 	if n.spec.SharedSecurityGroup {
-		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, CfnOutputClusterSharedNodeSecurityGroup)
+		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, outputs.ClusterSharedNodeSecurityGroup)
 		n.securityGroups = append(n.securityGroups, refClusterSharedNodeSG)
 	}
 
