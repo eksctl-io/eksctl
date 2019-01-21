@@ -17,7 +17,7 @@ import (
 func RegisterAndRun(t *testing.T) {
 	_, suitePath, _, _ := runtime.Caller(1)
 	RegisterFailHandler(Fail)
-	reportPath := os.Getenv("JUNIT_REPORT_FOLDER")
+	reportPath := os.Getenv("JUNIT_REPORT_DIR")
 	if reportPath != "" {
 		name := regexp.MustCompile("[^a-zA-Z0-9]+").ReplaceAllString(suitePath, "__")
 		reportPath := fmt.Sprintf("%s/%s_%d.xml", reportPath, name, config.GinkgoConfig.ParallelNode)
