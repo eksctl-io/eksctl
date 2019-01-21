@@ -110,7 +110,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
 		})
-		n.rs.newOutputFromAtt(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
+		n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
 		return
 	}
 
@@ -169,5 +169,8 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	n.rs.newOutputFromAtt(outputs.NodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true)
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true, func(v string) error {
+		n.spec.IAM.InstanceRoleARN = v
+		return nil
+	})
 }

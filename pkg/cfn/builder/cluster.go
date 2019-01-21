@@ -3,7 +3,6 @@ package builder
 import (
 	"encoding/base64"
 	"fmt"
-	"strings"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
@@ -11,7 +10,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
-	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 // ClusterResourceSet stores the resource information of the cluster
@@ -22,7 +20,6 @@ type ClusterResourceSet struct {
 	vpc            *gfn.Value
 	subnets        map[api.SubnetTopology][]*gfn.Value
 	securityGroups []*gfn.Value
-	outputs        map[string]string
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
@@ -31,7 +28,6 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 		rs:       newResourceSet(),
 		spec:     spec,
 		provider: provider,
-		outputs:  make(map[string]string),
 	}
 }
 
@@ -60,7 +56,13 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.addResourcesForIAM()
 	c.addResourcesForControlPlane()
 
-	c.rs.newOutput(outputs.ClusterStackName, gfn.RefStackName, false)
+	c.rs.defineOutput(outputs.ClusterStackName, gfn.RefStackName, false, func(v string) error {
+		if c.spec.Status == nil {
+			c.spec.Status = &api.ClusterStatus{}
+		}
+		c.spec.Status.StackName = v
+		return nil
+	})
 
 	return nil
 }
@@ -99,40 +101,29 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		ResourcesVpcConfig: clusterVPC,
 	})
 
-	c.rs.newOutputFromAtt(outputs.ClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false)
-	c.rs.newOutputFromAtt(outputs.ClusterEndpoint, "ControlPlane.Endpoint", true)
-	c.rs.newOutputFromAtt(outputs.ClusterARN, "ControlPlane.Arn", true)
+	if c.spec.Status == nil {
+		c.spec.Status = &api.ClusterStatus{}
+	}
+
+	c.rs.defineOutputFromAtt(outputs.ClusterCertificateAuthorityData, "ControlPlane.CertificateAuthorityData", false, func(v string) error {
+		caData, err := base64.StdEncoding.DecodeString(v)
+		if err != nil {
+			return errors.Wrap(err, "decoding certificate authority data")
+		}
+		c.spec.Status.CertificateAuthorityData = caData
+		return nil
+	})
+	c.rs.defineOutputFromAtt(outputs.ClusterEndpoint, "ControlPlane.Endpoint", true, func(v string) error {
+		c.spec.Status.Endpoint = v
+		return nil
+	})
+	c.rs.defineOutputFromAtt(outputs.ClusterARN, "ControlPlane.Arn", true, func(v string) error {
+		c.spec.Status.ARN = v
+		return nil
+	})
 }
 
 // GetAllOutputs collects all outputs of the cluster
 func (c *ClusterResourceSet) GetAllOutputs(stack cfn.Stack) error {
-	if err := c.rs.GetAllOutputs(stack, c.outputs); err != nil {
-		return err
-	}
-
-	c.spec.VPC.ID = c.outputs[outputs.ClusterVPC]
-	c.spec.VPC.SecurityGroup = c.outputs[outputs.ClusterSecurityGroup]
-	c.spec.VPC.SharedNodeSecurityGroup = c.outputs[outputs.ClusterSharedNodeSecurityGroup]
-
-	if err := vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(c.outputs[outputs.ClusterSubnetsPrivate], ",")); err != nil {
-		return err
-	}
-
-	if err := vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(c.outputs[outputs.ClusterSubnetsPublic], ",")); err != nil {
-		return err
-	}
-
-	caData, err := base64.StdEncoding.DecodeString(c.outputs[outputs.ClusterCertificateAuthorityData])
-	if err != nil {
-		return errors.Wrap(err, "decoding certificate authority data")
-	}
-
-	c.spec.Status = &api.ClusterStatus{
-		CertificateAuthorityData: caData,
-		Endpoint:                 c.outputs[outputs.ClusterEndpoint],
-		ARN:                      c.outputs[outputs.ClusterARN],
-		StackName:                c.outputs[outputs.ClusterStackName],
-	}
-
-	return nil
+	return c.rs.GetAllOutputs(stack)
 }

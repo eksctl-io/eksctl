@@ -9,36 +9,30 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
-// newOutput defines a new output and optionally exports it
-func (r *resourceSet) newOutput(name string, value interface{}, export bool) {
-	o := map[string]interface{}{"Value": value}
-	if export {
-		o["Export"] = map[string]*gfn.Value{
-			"Name": gfn.MakeFnSubString(fmt.Sprintf("${%s}::%s", gfn.StackName, name)),
-		}
-	}
-	r.template.Outputs[name] = o
-	r.outputs = append(r.outputs, name)
-}
-
-// newJoinedOutput defines a new output as comma-separated list
-func (r *resourceSet) newJoinedOutput(name string, values []*gfn.Value, export bool) {
-	r.newOutput(name, gfn.MakeFnJoin(",", values), export)
-}
-
-// newOutputFromAtt defines a new output from an attributes
-func (r *resourceSet) newOutputFromAtt(name, att string, export bool) {
-	r.newOutput(name, gfn.MakeFnGetAttString(att), export)
-}
-
 // makeImportValue imports output of another stack
 func makeImportValue(stackName, output string) *gfn.Value {
 	return gfn.MakeFnImportValueString(fmt.Sprintf("%s::%s", stackName, output))
 }
 
+func (r *resourceSet) defineOutput(name string, value interface{}, export bool, fn outputs.Collector) {
+	r.outputs.Define(r.template, name, value, export, fn)
+}
+
+func (r *resourceSet) defineJoinedOutput(name string, values []*gfn.Value, export bool, fn outputs.Collector) {
+	r.outputs.DefineJoined(r.template, name, values, export, fn)
+}
+
+func (r *resourceSet) defineOutputFromAtt(name, att string, export bool, fn outputs.Collector) {
+	r.outputs.DefineFromAtt(r.template, name, att, export, fn)
+}
+
+func (r *resourceSet) defineOutputWithoutCollector(name string, value interface{}, export bool) {
+	r.outputs.DefineWithoutCollector(r.template, name, value, export)
+}
+
 // GetAllOutputs collects all outputs from an instance of an active stack,
 // the outputs are defined by the current resourceSet
-func (r *resourceSet) GetAllOutputs(stack cfn.Stack, results map[string]string) error {
+func (r *resourceSet) GetAllOutputs(stack cfn.Stack) error {
 	logger.Debug("processing stack outputs")
-	return outputs.MustCollect(stack, r.outputs, results)
+	return r.outputs.MustCollect(stack)
 }

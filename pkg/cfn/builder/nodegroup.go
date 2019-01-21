@@ -24,7 +24,6 @@ type NodeGroupResourceSet struct {
 	securityGroups   []*gfn.Value
 	vpc              *gfn.Value
 	userData         *gfn.Value
-	outputs          map[string]string
 }
 
 // NewNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
@@ -35,7 +34,6 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, n
 		nodeGroupName:    ng.Name,
 		clusterSpec:      spec,
 		spec:             ng,
-		outputs:          make(map[string]string),
 	}
 }
 
@@ -47,8 +45,8 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.SubnetTopology(),
 		templateDescriptionSuffix)
 
-	n.rs.newOutput(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
-	n.rs.newOutput(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
 
 	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
 
@@ -201,11 +199,5 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 
 // GetAllOutputs collects all outputs of the node group
 func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
-	if err := n.rs.GetAllOutputs(stack, n.outputs); err != nil {
-		return err
-	}
-
-	n.spec.IAM.InstanceRoleARN = n.outputs[outputs.NodeGroupInstanceRoleARN]
-
-	return nil
+	return n.rs.GetAllOutputs(stack)
 }

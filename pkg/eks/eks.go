@@ -16,7 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
-	cfnoutputs "github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -90,58 +90,40 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 
 // GetClusterVPC retrieves the VPC configuration
 func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, ignoreMissingKeys ...string) error {
-	cluster, err := c.NewStackManager(spec).DescribeClusterStack()
+	stack, err := c.NewStackManager(spec).DescribeClusterStack()
 	if err != nil {
 		return err
-	}
-
-	outputs := map[string]string{}
-	for _, x := range cluster.Outputs {
-		outputs[*x.OutputKey] = *x.OutputValue
 	}
 
 	if spec.VPC == nil {
 		spec.VPC = &api.ClusterVPC{}
 	}
 
-	requiredKeyErrFmt := "cluster stack has no output key %q"
-	isKeyRequired := func(k string) bool {
-		for _, key := range ignoreMissingKeys {
-			if key == k {
-				return false
-			}
-		}
-		return true
-	}
-	if vpc, ok := outputs[cfnoutputs.ClusterVPC]; ok {
-		spec.VPC.ID = vpc
-	} else {
-		return fmt.Errorf(requiredKeyErrFmt, cfnoutputs.ClusterVPC)
+	requiredCollectors := map[string]outputs.Collector{
+		outputs.ClusterVPC: func(v string) error {
+			spec.VPC.ID = v
+			return nil
+		},
+		outputs.ClusterSecurityGroup: func(v string) error {
+			spec.VPC.SecurityGroup = v
+			return nil
+		},
 	}
 
-	if securityGroup, ok := outputs[cfnoutputs.ClusterSecurityGroup]; ok {
-		spec.VPC.SecurityGroup = securityGroup
-	} else if isKeyRequired(cfnoutputs.ClusterSharedNodeSecurityGroup) {
-		return fmt.Errorf(requiredKeyErrFmt, cfnoutputs.ClusterSecurityGroup)
+	optionalCollectors := map[string]outputs.Collector{
+		outputs.ClusterSharedNodeSecurityGroup: func(v string) error {
+			spec.VPC.SharedNodeSecurityGroup = v
+			return nil
+		},
+		outputs.ClusterSubnetsPrivate: func(v string) error {
+			return vpc.UseSubnetsFromList(c.Provider, spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
+		},
+		outputs.ClusterSubnetsPublic: func(v string) error {
+			return vpc.UseSubnetsFromList(c.Provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+		},
 	}
 
-	if sharedNodeSecurityGroup, ok := outputs[cfnoutputs.ClusterSharedNodeSecurityGroup]; ok {
-		spec.VPC.SharedNodeSecurityGroup = sharedNodeSecurityGroup
-	} else if isKeyRequired(cfnoutputs.ClusterSharedNodeSecurityGroup) {
-		return fmt.Errorf(requiredKeyErrFmt, cfnoutputs.ClusterSharedNodeSecurityGroup)
-	}
-
-	for _, topology := range api.SubnetTopologies() {
-		// either of subnet topologies are optional
-		if subnets, ok := outputs[cfnoutputs.ClusterSubnets+string(topology)]; ok {
-			subnets := strings.Split(subnets, ",")
-			if err := vpc.UseSubnetsFromList(c.Provider, spec, topology, subnets); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
 }
 
 // ListClusters display details of all the EKS cluster in your account
