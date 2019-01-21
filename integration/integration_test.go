@@ -36,6 +36,6 @@ func init() {
 	flag.StringVar(&kubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create it a temporary file)")
 }
 
-func TestCreateIntegration(t *testing.T) {
-	testutils.RegisterAndRun(t, "(Integration) Create, Get, Scale & Delete")
+func IntegrationSuite(t *testing.T) {
+	testutils.RegisterAndRun(t)
 }

@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestAmi(t *testing.T) {
-	testutils.RegisterAndRun(t, "Ami Suite")
+func TestSuite(t *testing.T) {
+	testutils.RegisterAndRun(t)
 }

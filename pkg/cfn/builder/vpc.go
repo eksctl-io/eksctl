@@ -4,7 +4,10 @@ import (
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
@@ -100,9 +103,22 @@ func (c *ClusterResourceSet) importResourcesForVPC() {
 }
 
 func (c *ClusterResourceSet) addOutputsForVPC() {
-	c.rs.newOutput(CfnOutputClusterVPC, c.vpc, true)
-	for topology := range c.spec.VPC.Subnets {
-		c.rs.newJoinedOutput(CfnOutputClusterSubnets+string(topology), c.subnets[topology], true)
+	if c.spec.VPC == nil {
+		c.spec.VPC = &api.ClusterVPC{}
+	}
+	c.rs.defineOutput(outputs.ClusterVPC, c.vpc, true, func(v string) error {
+		c.spec.VPC.ID = v
+		return nil
+	})
+	if refs, ok := c.subnets[api.SubnetTopologyPrivate]; ok {
+		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPrivate, refs, true, func(v string) error {
+			return vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
+		})
+	}
+	if refs, ok := c.subnets[api.SubnetTopologyPublic]; ok {
+		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPublic, refs, true, func(v string) error {
+			return vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+		})
 	}
 }
 
@@ -149,8 +165,17 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 		refClusterSharedNodeSG = gfn.NewString(c.spec.VPC.SharedNodeSecurityGroup)
 	}
 
-	c.rs.newOutput(CfnOutputClusterSecurityGroup, refControlPlaneSG, true)
-	c.rs.newOutput(CfnOutputClusterSharedNodeSecurityGroup, refClusterSharedNodeSG, true)
+	if c.spec.VPC == nil {
+		c.spec.VPC = &api.ClusterVPC{}
+	}
+	c.rs.defineOutput(outputs.ClusterSecurityGroup, refControlPlaneSG, true, func(v string) error {
+		c.spec.VPC.SecurityGroup = v
+		return nil
+	})
+	c.rs.defineOutput(outputs.ClusterSharedNodeSecurityGroup, refClusterSharedNodeSG, true, func(v string) error {
+		c.spec.VPC.SharedNodeSecurityGroup = v
+		return nil
+	})
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
@@ -158,10 +183,10 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 
 	allInternalIPv4 := gfn.NewString(n.clusterSpec.VPC.CIDR.String())
 
-	refControlPlaneSG := makeImportValue(n.clusterStackName, CfnOutputClusterSecurityGroup)
+	refControlPlaneSG := makeImportValue(n.clusterStackName, outputs.ClusterSecurityGroup)
 
 	refNodeGroupLocalSG := n.newResource("SG", &gfn.AWSEC2SecurityGroup{
-		VpcId:            makeImportValue(n.clusterStackName, CfnOutputClusterVPC),
+		VpcId:            makeImportValue(n.clusterStackName, outputs.ClusterVPC),
 		GroupDescription: gfn.NewString("Communication between the control plane and " + desc),
 		Tags: []gfn.Tag{{
 			Key:   gfn.NewString("kubernetes.io/cluster/" + n.clusterSpec.Metadata.Name),
@@ -172,7 +197,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.securityGroups = []*gfn.Value{refNodeGroupLocalSG}
 
 	if n.spec.SharedSecurityGroup {
-		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, CfnOutputClusterSharedNodeSecurityGroup)
+		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, outputs.ClusterSharedNodeSecurityGroup)
 		n.securityGroups = append(n.securityGroups, refClusterSharedNodeSG)
 	}
 

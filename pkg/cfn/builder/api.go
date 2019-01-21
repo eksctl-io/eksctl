@@ -6,6 +6,7 @@ import (
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 const (
@@ -32,15 +33,16 @@ type ResourceSet interface {
 }
 
 type resourceSet struct {
-	template *gfn.Template
-	outputs  []string
-	withIAM  bool
+	template     *gfn.Template
+	outputs      *outputs.CollectorSet
+	withIAM      bool
 	withNamedIAM bool
 }
 
 func newResourceSet() *resourceSet {
 	return &resourceSet{
 		template: gfn.NewTemplate(),
+		outputs:  outputs.NewCollectorSet(nil),
 	}
 }
 

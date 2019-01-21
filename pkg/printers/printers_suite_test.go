@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestPrinters(t *testing.T) {
-	testutils.RegisterAndRun(t, "Printers Suite")
+func TestSuite(t *testing.T) {
+	testutils.RegisterAndRun(t)
 }

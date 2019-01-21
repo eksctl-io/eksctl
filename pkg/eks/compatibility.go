@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
-	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 // ValidateClusterForCompatibility looks at the cluster stack and check if it's
@@ -23,7 +23,7 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 
 	sharedClusterNodeSG := ""
 	for _, x := range cluster.Outputs {
-		if *x.OutputKey == builder.CfnOutputClusterSharedNodeSecurityGroup {
+		if *x.OutputKey == outputs.ClusterSharedNodeSecurityGroup {
 			sharedClusterNodeSG = *x.OutputValue
 		}
 	}
@@ -55,7 +55,7 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 	for ng, resources := range resourcesByNodeGroup {
 		compatible := false
 		for _, x := range resources.Stack.Outputs {
-			if *x.OutputKey == builder.CfnOutputNodeGroupFeatureSharedSecurityGroup {
+			if *x.OutputKey == outputs.NodeGroupFeatureSharedSecurityGroup {
 				compatible = true
 			}
 		}

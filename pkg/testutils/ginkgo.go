@@ -2,9 +2,9 @@ package testutils
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"regexp"
+	"runtime"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -14,22 +14,17 @@ import (
 )
 
 // RegisterAndRun setup and run Ginkgo tests
-func RegisterAndRun(t *testing.T, testDecsription string) {
-	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
-	if err != nil {
-		log.Fatal(err)
-	}
-	filename := reg.ReplaceAllString(testDecsription, "")
-
+func RegisterAndRun(t *testing.T) {
+	_, suitePath, _, _ := runtime.Caller(1)
 	RegisterFailHandler(Fail)
-	reportPath := os.Getenv("JUNIT_REPORT_FOLDER")
+	reportPath := os.Getenv("JUNIT_REPORT_DIR")
 	if reportPath != "" {
-		reportPath := fmt.Sprintf("%s/%s_%d.xml", reportPath, filename, config.GinkgoConfig.ParallelNode)
+		name := regexp.MustCompile("[^a-zA-Z0-9]+").ReplaceAllString(suitePath, "__")
+		reportPath := fmt.Sprintf("%s/%s_%d.xml", reportPath, name, config.GinkgoConfig.ParallelNode)
 		fmt.Printf("test result output: %s\n", reportPath)
 		junitReporter := reporters.NewJUnitReporter(reportPath)
-		RunSpecsWithDefaultAndCustomReporters(t, testDecsription, []Reporter{junitReporter})
+		RunSpecsWithDefaultAndCustomReporters(t, suitePath, []Reporter{junitReporter})
 	} else {
-		RunSpecs(t, testDecsription)
+		RunSpecs(t, suitePath)
 	}
-
 }

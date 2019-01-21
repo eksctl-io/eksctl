@@ -6,78 +6,33 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/kris-nova/logger"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
-
-// Stack output names
-const (
-	// outputs from cluster stack
-	CfnOutputClusterVPC            = "VPC"
-	CfnOutputClusterSecurityGroup  = "SecurityGroup"
-	CfnOutputClusterSubnets        = "Subnets"
-	CfnOutputClusterSubnetsPrivate = string(CfnOutputClusterSubnets + api.SubnetTopologyPrivate)
-	CfnOutputClusterSubnetsPublic  = string(CfnOutputClusterSubnets + api.SubnetTopologyPublic)
-
-	CfnOutputClusterCertificateAuthorityData = "CertificateAuthorityData"
-	CfnOutputClusterEndpoint                 = "Endpoint"
-	CfnOutputClusterARN                      = "ARN"
-	CfnOutputClusterStackName                = "ClusterStackName"
-	CfnOutputClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
-
-	// outputs from nodegroup stack
-	CfnOutputNodeGroupInstanceRoleARN = "InstanceRoleARN"
-	// outputs to indicate configuration attributes that may have critical effect
-	// on critical effect on forward-compatibility with respect to overal functionality
-	// and integrity, e.g. networking
-	CfnOutputNodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
-	CfnOutputNodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
-)
-
-// newOutput defines a new output and optionally exports it
-func (r *resourceSet) newOutput(name string, value interface{}, export bool) {
-	o := map[string]interface{}{"Value": value}
-	if export {
-		o["Export"] = map[string]*gfn.Value{
-			"Name": gfn.MakeFnSubString(fmt.Sprintf("${%s}::%s", gfn.StackName, name)),
-		}
-	}
-	r.template.Outputs[name] = o
-	r.outputs = append(r.outputs, name)
-}
-
-// newJoinedOutput defines a new output as comma-separated list
-func (r *resourceSet) newJoinedOutput(name string, values []*gfn.Value, export bool) {
-	r.newOutput(name, gfn.MakeFnJoin(",", values), export)
-}
-
-// newOutputFromAtt defines a new output from an attributes
-func (r *resourceSet) newOutputFromAtt(name, att string, export bool) {
-	r.newOutput(name, gfn.MakeFnGetAttString(att), export)
-}
 
 // makeImportValue imports output of another stack
 func makeImportValue(stackName, output string) *gfn.Value {
 	return gfn.MakeFnImportValueString(fmt.Sprintf("%s::%s", stackName, output))
 }
 
+func (r *resourceSet) defineOutput(name string, value interface{}, export bool, fn outputs.Collector) {
+	r.outputs.Define(r.template, name, value, export, fn)
+}
+
+func (r *resourceSet) defineJoinedOutput(name string, values []*gfn.Value, export bool, fn outputs.Collector) {
+	r.outputs.DefineJoined(r.template, name, values, export, fn)
+}
+
+func (r *resourceSet) defineOutputFromAtt(name, att string, export bool, fn outputs.Collector) {
+	r.outputs.DefineFromAtt(r.template, name, att, export, fn)
+}
+
+func (r *resourceSet) defineOutputWithoutCollector(name string, value interface{}, export bool) {
+	r.outputs.DefineWithoutCollector(r.template, name, value, export)
+}
+
 // GetAllOutputs collects all outputs from an instance of an active stack,
-// the outputs are defined by the current resourceSet, and are generally
-// private to how builder chooses to define them
-func (r *resourceSet) GetAllOutputs(stack cfn.Stack, outputs map[string]string) error {
+// the outputs are defined by the current resourceSet
+func (r *resourceSet) GetAllOutputs(stack cfn.Stack) error {
 	logger.Debug("processing stack outputs")
-	for _, key := range r.outputs {
-		var value *string
-		for _, x := range stack.Outputs {
-			if *x.OutputKey == key {
-				value = x.OutputValue
-				break
-			}
-		}
-		if value == nil {
-			return fmt.Errorf("%s is nil", key)
-		}
-		outputs[key] = *value
-	}
-	return nil
+	return r.outputs.MustCollect(stack)
 }

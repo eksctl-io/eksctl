@@ -3,10 +3,13 @@ package builder
 import (
 	"fmt"
 
+	"github.com/kris-nova/logger"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
-	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
@@ -21,7 +24,6 @@ type NodeGroupResourceSet struct {
 	securityGroups   []*gfn.Value
 	vpc              *gfn.Value
 	userData         *gfn.Value
-	outputs          map[string]string
 }
 
 // NewNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
@@ -32,7 +34,6 @@ func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, n
 		nodeGroupName:    ng.Name,
 		clusterSpec:      spec,
 		spec:             ng,
-		outputs:          make(map[string]string),
 	}
 }
 
@@ -44,10 +45,10 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.SubnetTopology(),
 		templateDescriptionSuffix)
 
-	n.rs.newOutput(CfnOutputNodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
-	n.rs.newOutput(CfnOutputNodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
 
-	n.vpc = makeImportValue(n.clusterStackName, CfnOutputClusterVPC)
+	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
 
 	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
@@ -145,7 +146,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		vpcZoneIdentifier = map[string][]interface{}{
 			gfn.FnSplit: []interface{}{
 				",",
-				makeImportValue(n.clusterStackName, CfnOutputClusterSubnets+string(n.spec.SubnetTopology())),
+				makeImportValue(n.clusterStackName, outputs.ClusterSubnets+string(n.spec.SubnetTopology())),
 			},
 		}
 	}
@@ -198,11 +199,5 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 
 // GetAllOutputs collects all outputs of the node group
 func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
-	if err := n.rs.GetAllOutputs(stack, n.outputs); err != nil {
-		return err
-	}
-
-	n.spec.IAM.InstanceRoleARN = n.outputs[CfnOutputNodeGroupInstanceRoleARN]
-
-	return nil
+	return n.rs.GetAllOutputs(stack)
 }

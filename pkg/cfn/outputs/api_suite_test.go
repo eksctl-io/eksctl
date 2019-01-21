@@ -1,4 +1,4 @@
-package kubeconfig
+package outputs_test
 
 import (
 	"testing"
