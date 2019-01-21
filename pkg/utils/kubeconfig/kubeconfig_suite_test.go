@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestKubeConfig(t *testing.T) {
-	testutils.RegisterAndRun(t, "KubeConfig Suite")
+func TestSuite(t *testing.T) {
+	testutils.RegisterAndRun(t)
 }

@@ -6,6 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-func TestCFNBuilder(t *testing.T) {
-	testutils.RegisterAndRun(t, "cloud-config Suite")
+func TestSuite(t *testing.T) {
+	testutils.RegisterAndRun(t)
 }
