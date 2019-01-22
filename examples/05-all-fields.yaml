@@ -42,7 +42,8 @@ availabilityZones: ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
 
 nodeGroups:
 
-  - instanceType: m5.xlarge
+  - name: build
+    instanceType: m5.xlarge
     tags: {purpose: build}
     volumeSize: 30
     desiredCapacity: 10
@@ -58,7 +59,8 @@ nodeGroups:
     allowSSH: true
     sshPublicKeyPath: ~/.id_rsa/eks_node_key.pem
 
-  - instanceType: m5.24xlarge
+  - name: production
+    instanceType: m5.24xlarge
     tags: {purpose: production}
     volumeSize: 8
     desiredCapacity: 100
