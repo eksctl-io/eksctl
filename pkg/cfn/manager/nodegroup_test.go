@@ -24,18 +24,66 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 	newClusterConfig := func(clusterName string) *api.ClusterConfig {
 		cfg := api.NewClusterConfig()
-		ng := cfg.NewNodeGroup()
 
 		cfg.Metadata.Region = "us-west-2"
 		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
-		ng.InstanceType = "t2.medium"
-		ng.AMIFamily = "AmazonLinux2"
 
 		*cfg.VPC.CIDR = api.DefaultCIDR()
 
 		return cfg
 	}
+
+	newNodeGroup := func(cfg *api.ClusterConfig) *api.NodeGroup {
+		ng := cfg.NewNodeGroup()
+		ng.InstanceType = "t2.medium"
+		ng.AMIFamily = "AmazonLinux2"
+
+		return ng
+	}
+
+	Describe("ScaleNodeGroup", func() {
+		var (
+			ng *api.NodeGroup
+		)
+
+		JustBeforeEach(func() {
+			p = mockprovider.NewMockProvider()
+		})
+
+		Context("With an existing NodeGroup", func() {
+			JustBeforeEach(func() {
+				cc = newClusterConfig("test-cluster")
+				ng = newNodeGroup(cc)
+				sc = NewStackCollection(p, cc)
+
+				p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
+					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
+				})).Return(&cfn.GetTemplateOutput{
+					TemplateBody: aws.String(`{
+						"Resources": {
+							"NodeGroup": {
+								"Properties": {
+									"DesiredCapacity": 2,
+									"MinSize": 1,
+									"MaxSize: 3
+								}
+							}
+						}
+					}`),
+				}, nil)
+			})
+
+			It("should be a no-op if attempting to scale to the existing desired capacity", func() {
+				ng.Name = "12345"
+				ng.DesiredCapacity = 2
+
+				err := sc.ScaleNodeGroup(ng)
+
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+	})
 
 	Describe("GetNodeGroupSummaries", func() {
 		Context("With a cluster name", func() {
@@ -49,6 +97,8 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				p = mockprovider.NewMockProvider()
 
 				cc = newClusterConfig(clusterName)
+
+				newNodeGroup(cc)
 
 				sc = NewStackCollection(p, cc)
 
