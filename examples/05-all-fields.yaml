@@ -2,7 +2,7 @@
 # e.g. as observed after cluster was created. You won't be
 # able to use this directly as is.
 ---
-apiVersion: eksctl.io/v1alpha3
+apiVersion: eksctl.io/v1alpha4
 kind: ClusterConfig
 
 metadata:

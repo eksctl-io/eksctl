@@ -91,7 +91,7 @@ ami-check: generate-ami  ## Check whether the AMIs have been updated and fail if
 
 .PHONY: generate-kubernetes-types
 generate-kubernetes-types:
-	@build/vendor/k8s.io/code-generator/generate-groups.sh deepcopy,defaulter _ github.com/weaveworks/eksctl/pkg/apis eksctl.io:v1alpha3
+	@build/vendor/k8s.io/code-generator/generate-groups.sh deepcopy,defaulter _ github.com/weaveworks/eksctl/pkg/apis eksctl.io:v1alpha4
 
 ##@ Docker
 

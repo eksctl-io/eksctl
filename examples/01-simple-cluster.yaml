@@ -1,6 +1,6 @@
 # A simple example of ClusterConfig object:
 --- 
-apiVersion: eksctl.io/v1alpha3
+apiVersion: eksctl.io/v1alpha4
 kind: ClusterConfig
 
 metadata:

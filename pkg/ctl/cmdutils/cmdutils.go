@@ -7,7 +7,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/pflag"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 

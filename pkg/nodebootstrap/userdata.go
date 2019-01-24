@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )

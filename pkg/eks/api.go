@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/version"
 	"k8s.io/apimachinery/pkg/runtime"

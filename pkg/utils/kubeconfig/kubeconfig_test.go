@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"

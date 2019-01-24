@@ -15,7 +15,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"

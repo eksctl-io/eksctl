@@ -13,7 +13,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	clientset "k8s.io/client-go/kubernetes"
