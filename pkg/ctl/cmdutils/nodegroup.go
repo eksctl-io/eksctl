@@ -37,7 +37,7 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make nodegroup networking private")
 
-	fs.StringSliceVar(&ng.SecurityGroups, "node-security-groups", []string{}, "Attach additional security groups to nodes, so that it can be used to allow extra ingress/egress access from/to pods")
+	fs.StringSliceVar(&ng.SecurityGroups.AttachIDs, "node-security-groups", []string{}, "Attach additional security groups to nodes, so that it can be used to allow extra ingress/egress access from/to pods")
 
 	fs.Var(&ng.Labels, "node-labels", `Extra labels to add when registering the nodes in the nodegroup, e.g. "partition=backend,nodeclass=hugememory"`)
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
@@ -45,8 +45,8 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg
 
 // AddCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
 func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup) {
-	fs.StringSliceVar(&ng.IAM.AttachPolicyARNs, "temp-node-role-policies", []string{}, "Advanced use cases only. " +
-		"All the IAM policies to be associated to the node's instance role. " +
+	fs.StringSliceVar(&ng.IAM.AttachPolicyARNs, "temp-node-role-policies", []string{}, "Advanced use cases only. "+
+		"All the IAM policies to be associated to the node's instance role. "+
 		"Beware that you MUST include the policies for EKS and CNI related AWS API Access, like `arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy` and `arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy` that are used by default when this flag is omitted.")
 	fs.MarkHidden("temp-node-role-policies")
 	fs.StringVar(&ng.IAM.InstanceRoleName, "temp-node-role-name", "", "Advanced use cases only. Specify the exact name of the node's instance role for easier integration with K8S-IAM integrations like kube2iam. See https://github.com/weaveworks/eksctl/issues/398 for more information.")

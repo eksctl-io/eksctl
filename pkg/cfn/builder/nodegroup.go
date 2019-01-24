@@ -46,7 +46,8 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		templateDescriptionSuffix)
 
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
-	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SharedSecurityGroup, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SecurityGroups.WithShared, false)
+	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, n.spec.SecurityGroups.WithLocal, false)
 
 	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
 

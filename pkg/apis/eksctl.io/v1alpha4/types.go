@@ -265,12 +265,16 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	ng := &NodeGroup{
-		PrivateNetworking:   false,
-		SharedSecurityGroup: true,
-		DesiredCapacity:     DefaultNodeCount,
-		InstanceType:        DefaultNodeType,
-		VolumeSize:          0,
-		VolumeType:          DefaultNodeVolumeType,
+		PrivateNetworking: false,
+		SecurityGroups: &NodeGroupSGs{
+			WithShared: true,
+			WithLocal:  true,
+			AttachIDs:  []string{},
+		},
+		DesiredCapacity: DefaultNodeCount,
+		InstanceType:    DefaultNodeType,
+		VolumeSize:      0,
+		VolumeType:      DefaultNodeVolumeType,
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -291,13 +295,12 @@ type NodeGroup struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 	// +optional
-	SharedSecurityGroup bool `json:"sharedSecurityGroup,omitempty"`
-	// +optional
-	SecurityGroups []string `json:"securityGroups,omitempty"`
-	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
+
+	// +optional
+	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
 
 	// +optional
 	DesiredCapacity int `json:"desiredCapacity"`
@@ -347,6 +350,15 @@ func (n *NodeGroup) ListOptions() metav1.ListOptions {
 }
 
 type (
+	// NodeGroupSGs holds all SG attributes of a NodeGroup
+	NodeGroupSGs struct {
+		// +optional
+		AttachIDs []string
+		// +optional
+		WithShared bool
+		// +optional
+		WithLocal bool
+	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {
 		// +optional

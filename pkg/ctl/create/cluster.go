@@ -209,6 +209,14 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				ng.AMI = ami.ResolverStatic
 			}
 
+			if ng.SecurityGroups == nil {
+				ng.SecurityGroups = &api.NodeGroupSGs{
+					WithShared: true,
+					WithLocal:  true,
+					AttachIDs:  []string{},
+				}
+			}
+
 			if ng.AllowSSH {
 				if ng.SSHPublicKeyPath == "" {
 					ng.SSHPublicKeyPath = defaultSSHPublicKey
