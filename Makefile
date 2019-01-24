@@ -31,8 +31,8 @@ build: ## Build eksctl
 
 .PHONY: test
 test: generate ## Run unit test (and re-generate code under test)
-	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff; exit 1)
-	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff; exit 1)
+	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
+	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
 	@$(MAKE) unit-test
 	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
 	@go test -tags integration ./integration/... -c && rm -f integration.test
