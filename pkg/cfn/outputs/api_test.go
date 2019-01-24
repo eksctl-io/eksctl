@@ -6,8 +6,8 @@ import (
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 
-	//	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	//	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	. "github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/kris-nova/logger"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha3"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 )
 
 type taskFunc func(chan error, interface{}) error

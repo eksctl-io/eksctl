@@ -1,4 +1,4 @@
-package v1alpha3
+package v1alpha4
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,7 +11,7 @@ import (
 
 // Conventional Kubernetes API contants
 const (
-	CurrentGroupVersion = "v1alpha3"
+	CurrentGroupVersion = "v1alpha4"
 	ClusterConfigKind   = "ClusterConfig"
 )
 
