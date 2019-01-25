@@ -15,7 +15,6 @@ import (
 // ValidateClusterForCompatibility looks at the cluster stack and check if it's
 // compatible with current nodegroup configuration, if it find issues it returns an error
 func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig, stackManager *manager.StackCollection) error {
-	// TODO: must move this before we try to create the nodegroup actually
 	cluster, err := stackManager.DescribeClusterStack()
 	if err != nil {
 		return errors.Wrap(err, "getting cluster stacks")
