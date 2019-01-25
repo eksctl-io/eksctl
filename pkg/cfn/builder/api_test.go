@@ -298,15 +298,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 			VPC:               testVPC(),
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:                 "",
-					AMIFamily:           "AmazonLinux2",
-					InstanceType:        "t2.medium",
-					Name:                "ng-abcd1234",
-					PrivateNetworking:   false,
-					SharedSecurityGroup: true,
-					DesiredCapacity:     2,
-					VolumeSize:          2,
-					VolumeType:          api.NodeVolumeTypeIO1,
+					AMI:               "",
+					AMIFamily:         "AmazonLinux2",
+					InstanceType:      "t2.medium",
+					Name:              "ng-abcd1234",
+					PrivateNetworking: false,
+					SecurityGroups: &api.NodeGroupSGs{
+						WithLocal:  true,
+						WithShared: true,
+						AttachIDs:  []string{},
+					},
+					DesiredCapacity: 2,
+					VolumeSize:      2,
+					VolumeType:      api.NodeVolumeTypeIO1,
 				},
 			},
 		}

@@ -179,6 +179,19 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 }
 
 func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
+	for _, id := range n.spec.SecurityGroups.AttachIDs {
+		n.securityGroups = append(n.securityGroups, gfn.NewString(id))
+	}
+
+	if n.spec.SecurityGroups.WithShared {
+		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, outputs.ClusterSharedNodeSecurityGroup)
+		n.securityGroups = append(n.securityGroups, refClusterSharedNodeSG)
+	}
+
+	if !n.spec.SecurityGroups.WithLocal {
+		return
+	}
+
 	desc := "worker nodes in group " + n.nodeGroupName
 
 	allInternalIPv4 := gfn.NewString(n.clusterSpec.VPC.CIDR.String())
@@ -194,16 +207,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		}},
 	})
 
-	n.securityGroups = []*gfn.Value{refNodeGroupLocalSG}
-
-	if n.spec.SharedSecurityGroup {
-		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, outputs.ClusterSharedNodeSecurityGroup)
-		n.securityGroups = append(n.securityGroups, refClusterSharedNodeSG)
-	}
-
-	for _, id := range n.spec.SecurityGroups {
-		n.securityGroups = append(n.securityGroups, gfn.NewString(id))
-	}
+	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
 
 	n.newResource("IngressInterCluster", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refNodeGroupLocalSG,

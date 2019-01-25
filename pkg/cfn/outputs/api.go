@@ -31,6 +31,7 @@ const (
 	// and integrity, e.g. networking
 	NodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
 	NodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
+	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
 )
 
 // MustCollect will use each of the keys and attempt to find an output in the given
