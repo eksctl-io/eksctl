@@ -19,12 +19,19 @@ const (
 )
 
 var (
-	stackCapabilitiesIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam})
+	stackCapabilitiesIAM      = aws.StringSlice([]string{cloudformation.CapabilityCapabilityIam})
 	stackCapabilitiesNamedIAM = aws.StringSlice([]string{cloudformation.CapabilityCapabilityNamedIam})
 )
 
 // Stack represents the CloudFormation stack
 type Stack = cloudformation.Stack
+
+// StackInfo hold the stack along with template and resources
+type StackInfo struct {
+	Stack     *Stack
+	Resources []*cloudformation.StackResource
+	Template  *string
+}
 
 // ChangeSet represents a Cloudformation changeSet
 type ChangeSet = cloudformation.DescribeChangeSetOutput

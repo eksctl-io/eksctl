@@ -81,32 +81,31 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	return nodeGroupStacks, nil
 }
 
-// NodeGroupStacksAndResources hold the stack along with resources
-type NodeGroupStacksAndResources struct {
-	Stack     *Stack
-	Resources []*cfn.StackResource
-}
-
 // DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
 // then returns it in a map by nodegroup name
-func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]NodeGroupStacksAndResources, error) {
+func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error) {
 	stacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
 	}
 
-	allResources := make(map[string]NodeGroupStacksAndResources)
+	allResources := make(map[string]StackInfo)
 
 	for _, s := range stacks {
 		input := &cfn.DescribeStackResourcesInput{
 			StackName: s.StackName,
 		}
+		template, err := c.GetStackTemplate(*s.StackName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "getting template for %q stack", *s.StackName)
+		}
 		resources, err := c.provider.CloudFormation().DescribeStackResources(input)
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
 		}
-		allResources[getNodeGroupName(s)] = NodeGroupStacksAndResources{
+		allResources[getNodeGroupName(s)] = StackInfo{
 			Resources: resources.StackResources,
+			Template:  &template,
 			Stack:     s,
 		}
 	}
