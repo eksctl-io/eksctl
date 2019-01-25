@@ -311,6 +311,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 					DesiredCapacity: 2,
 					VolumeSize:      2,
 					VolumeType:      api.NodeVolumeTypeIO1,
+					IAM: &api.NodeGroupIAM{
+						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
+							ImageBuilder: api.NewBoolFalse(),
+							AutoScaler:   api.NewBoolFalse(),
+							ExternalDNS:  api.NewBoolFalse(),
+						},
+					},
 				},
 			},
 		}
@@ -367,7 +374,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Describe("AutoNameTag", func() {
 		cfg, ng := newClusterConfigAndNodegroup()
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-123-cluster", ng)
 
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
@@ -410,7 +417,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.InstanceType = "t2.medium"
 		ng.Name = "ng-abcd1234"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-123-cluster", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
@@ -443,7 +450,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		ng.IAM.WithAddonPolicies.AutoScaler = api.NewBoolTrue()
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-123-cluster", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
@@ -516,7 +523,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.PrivateNetworking = true
 		ng.AMIFamily = "AmazonLinux2"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-private-ng", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-private-ng", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
@@ -573,7 +580,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.PrivateNetworking = false
 		ng.AMIFamily = "AmazonLinux2"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-public-ng", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
@@ -669,7 +676,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.AvailabilityZones).To(Equal([]string{"us-west-2a"}))
 		})
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-public-ng", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-public-ng", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
@@ -750,7 +757,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg.NodeGroups[0].InstanceType = "m5.large"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-123-cluster", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())
@@ -815,7 +822,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.NodeGroups[0].AMIFamily = "Ubuntu1804"
 		cfg.NodeGroups[0].InstanceType = "m5.large"
 
-		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
+		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-123-cluster", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
 			Expect(err).ShouldNot(HaveOccurred())

@@ -25,7 +25,9 @@ const (
 	ClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
 
 	// outputs from nodegroup stack
-	NodeGroupInstanceRoleARN = "InstanceRoleARN"
+	NodeGroupInstanceRoleARN    = "InstanceRoleARN"
+	NodeGroupInstanceProfileARN = "InstanceProfileARN"
+
 	// outputs to indicate configuration attributes that may have critical effect
 	// on critical effect on forward-compatibility with respect to overal functionality
 	// and integrity, e.g. networking

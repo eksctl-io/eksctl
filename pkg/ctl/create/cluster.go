@@ -233,6 +233,9 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				}
 			}
 
+			if ng.IAM == nil {
+				ng.IAM = &api.NodeGroupIAM{}
+			}
 			if ng.IAM.WithAddonPolicies.ImageBuilder == nil {
 				ng.IAM.WithAddonPolicies.ImageBuilder = api.NewBoolFalse()
 			}

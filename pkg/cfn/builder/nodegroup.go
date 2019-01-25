@@ -18,6 +18,7 @@ type NodeGroupResourceSet struct {
 	rs               *resourceSet
 	clusterSpec      *api.ClusterConfig
 	spec             *api.NodeGroup
+	provider         api.ClusterProvider
 	clusterStackName string
 	nodeGroupName    string
 	instanceProfile  *gfn.Value
@@ -27,13 +28,14 @@ type NodeGroupResourceSet struct {
 }
 
 // NewNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
-func NewNodeGroupResourceSet(spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
 		clusterStackName: clusterStackName,
 		nodeGroupName:    ng.Name,
 		clusterSpec:      spec,
 		spec:             ng,
+		provider:         provider,
 	}
 }
 
