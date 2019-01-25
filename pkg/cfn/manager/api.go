@@ -269,6 +269,9 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stacks for %q", c.spec.Metadata.Name)
 	}
+	if len(stacks) == 0 {
+		return nil, fmt.Errorf("no eksctl-managed CloudFormation stacks found for %q", c.spec.Metadata.Name)
+	}
 	return stacks, nil
 }
 
