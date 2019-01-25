@@ -95,6 +95,20 @@ var (
 	DefaultWaitTimeout = 20 * time.Minute
 )
 
+// NewBoolTrue return pointer to true value
+// for use in defaulters of *bool fields
+func NewBoolTrue() *bool {
+	v := true
+	return &v
+}
+
+// NewBoolFalse return pointer to false value
+// for use in defaulters of *bool fields
+func NewBoolFalse() *bool {
+	v := false
+	return &v
+}
+
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{
@@ -264,17 +278,19 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 // NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
+	securityGroups := &NodeGroupSGs{
+		AttachIDs:  []string{},
+		WithLocal:  NewBoolTrue(),
+		WithShared: NewBoolTrue(),
+	}
+
 	ng := &NodeGroup{
 		PrivateNetworking: false,
-		SecurityGroups: &NodeGroupSGs{
-			WithShared: true,
-			WithLocal:  true,
-			AttachIDs:  []string{},
-		},
-		DesiredCapacity: DefaultNodeCount,
-		InstanceType:    DefaultNodeType,
-		VolumeSize:      0,
-		VolumeType:      DefaultNodeVolumeType,
+		SecurityGroups:    securityGroups,
+		DesiredCapacity:   DefaultNodeCount,
+		InstanceType:      DefaultNodeType,
+		VolumeSize:        0,
+		VolumeType:        DefaultNodeVolumeType,
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -355,9 +371,9 @@ type (
 		// +optional
 		AttachIDs []string
 		// +optional
-		WithShared bool
+		WithShared *bool
 		// +optional
-		WithLocal bool
+		WithLocal *bool
 	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {
@@ -373,10 +389,10 @@ type (
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies
 	NodeGroupIAMAddonPolicies struct {
 		// +optional
-		ImageBuilder bool `json:"imageBuilder"`
+		ImageBuilder *bool `json:"imageBuilder"`
 		// +optional
-		AutoScaler bool `json:"autoScaler"`
+		AutoScaler *bool `json:"autoScaler"`
 		// +optional
-		ExternalDNS bool `json:"externalDNS"`
+		ExternalDNS *bool `json:"externalDNS"`
 	}
 )

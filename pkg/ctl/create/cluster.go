@@ -211,10 +211,14 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 			if ng.SecurityGroups == nil {
 				ng.SecurityGroups = &api.NodeGroupSGs{
-					WithShared: true,
-					WithLocal:  true,
-					AttachIDs:  []string{},
+					AttachIDs: []string{},
 				}
+			}
+			if ng.SecurityGroups.WithLocal == nil {
+				ng.SecurityGroups.WithLocal = api.NewBoolTrue()
+			}
+			if ng.SecurityGroups.WithShared == nil {
+				ng.SecurityGroups.WithShared = api.NewBoolTrue()
 			}
 
 			if ng.AllowSSH {
@@ -227,6 +231,16 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				if ng.VolumeType == "" {
 					ng.VolumeType = api.DefaultNodeVolumeType
 				}
+			}
+
+			if ng.IAM.WithAddonPolicies.ImageBuilder == nil {
+				ng.IAM.WithAddonPolicies.ImageBuilder = api.NewBoolFalse()
+			}
+			if ng.IAM.WithAddonPolicies.AutoScaler == nil {
+				ng.IAM.WithAddonPolicies.AutoScaler = api.NewBoolFalse()
+			}
+			if ng.IAM.WithAddonPolicies.ExternalDNS == nil {
+				ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolFalse()
 			}
 
 			return nil
