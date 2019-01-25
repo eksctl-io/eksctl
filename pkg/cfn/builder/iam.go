@@ -123,7 +123,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	if len(n.spec.IAM.AttachPolicyARNs) == 0 {
 		n.spec.IAM.AttachPolicyARNs = iamDefaultNodePolicyARNs
 	}
-	if n.spec.IAM.WithAddonPolicies.ImageBuilder {
+	if v := n.spec.IAM.WithAddonPolicies.ImageBuilder; v != nil && *v {
 		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
 	} else {
 		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
@@ -146,7 +146,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		Roles: makeSlice(refIR),
 	})
 
-	if n.spec.IAM.WithAddonPolicies.AutoScaler {
+	if v := n.spec.IAM.WithAddonPolicies.AutoScaler; v != nil && *v {
 		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
 			[]string{
 				"autoscaling:DescribeAutoScalingGroups",
@@ -159,7 +159,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if n.spec.IAM.WithAddonPolicies.ExternalDNS {
+	if v := n.spec.IAM.WithAddonPolicies.ExternalDNS; v != nil && *v {
 		n.rs.attachAllowPolicy("PolicyExternalDNS", refIR, "arn:aws:route53:::hostedzone/*",
 			[]string{
 				"route53:ChangeResourceRecordSets",

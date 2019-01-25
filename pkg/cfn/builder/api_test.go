@@ -304,8 +304,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 					Name:              "ng-abcd1234",
 					PrivateNetworking: false,
 					SecurityGroups: &api.NodeGroupSGs{
-						WithLocal:  true,
-						WithShared: true,
+						WithLocal:  api.NewBoolTrue(),
+						WithShared: api.NewBoolTrue(),
 						AttachIDs:  []string{},
 					},
 					DesiredCapacity: 2,
@@ -441,7 +441,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Describe("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup()
 
-		ng.IAM.WithAddonPolicies.AutoScaler = true
+		ng.IAM.WithAddonPolicies.AutoScaler = api.NewBoolTrue()
 
 		rs := NewNodeGroupResourceSet(cfg, "eksctl-test-123-cluster", ng)
 		err := rs.AddAllResources()
