@@ -544,5 +544,9 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 	logger.Success("%s is ready", meta.LogString())
 
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+		return err
+	}
+
 	return nil
 }
