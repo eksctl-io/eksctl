@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -178,6 +179,7 @@ type ClusterProvider interface {
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	STS() stsiface.STSAPI
+	IAM() iamiface.IAMAPI
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
