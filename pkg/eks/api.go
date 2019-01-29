@@ -29,6 +29,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/kris-nova/logger"
@@ -49,6 +51,7 @@ type ProviderServices struct {
 	eks  eksiface.EKSAPI
 	ec2  ec2iface.EC2API
 	sts  stsiface.STSAPI
+	iam  iamiface.IAMAPI
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -65,6 +68,9 @@ func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
 
 // STS returns a representation of the STS API
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
+
+// IAM returns a representation of the IAM API
+func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
 
 // Region returns provider-level region setting
 func (p ProviderServices) Region() string { return p.spec.Region }
@@ -97,6 +103,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
 	provider.sts = sts.New(s)
+	provider.iam = iam.New(s)
 
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
@@ -119,6 +126,10 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
 		provider.sts = sts.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+	}
+	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
+		logger.Debug("Setting IAM endpoint to %s", endpoint)
+		provider.iam = iam.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
 	}
 
 	if clusterSpec != nil {

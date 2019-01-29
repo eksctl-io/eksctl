@@ -150,10 +150,10 @@ var _ = Describe("Kubeconfig", func() {
 					MinSize:           0,
 					MaxSize:           0,
 					MaxPodsPerNode:    0,
-					IAM: eksctlapi.NodeGroupIAM{
+					IAM: &eksctlapi.NodeGroupIAM{
 						AttachPolicyARNs: []string(nil),
 						InstanceRoleARN:  "",
-						InstanceRoleName:  "",
+						InstanceRoleName: "",
 					},
 				},
 			},

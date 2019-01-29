@@ -3,7 +3,9 @@ package builder
 import (
 	gfn "github.com/awslabs/goformation/cloudformation"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
 const (
@@ -102,10 +104,34 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 }
 
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
-	if n.spec.IAM.InstanceRoleARN != "" {
+	if n.spec.IAM == nil {
+		n.spec.IAM = &api.NodeGroupIAM{}
+	}
+
+	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
 
+		// if instance profile is given, as well as the role, we simply use both and export the role
+		// (which is needed in order to authorise the nodegroup)
+		n.instanceProfile = gfn.NewString(n.spec.IAM.InstanceProfileARN)
+		if n.spec.IAM.InstanceRoleARN != "" {
+			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true)
+			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
+			return
+		}
+		// if instance role is not given, export profile and use the getter to call importer function
+		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
+			return iam.ImportInstanceRoleFromProfileARN(n.provider, n.spec, v)
+		})
+
+		return
+	}
+
+	n.rs.withIAM = true
+
+	if n.spec.IAM.InstanceRoleARN != "" {
+		// if role is set, but profile isn't - create profile
 		n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
@@ -114,9 +140,10 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		return
 	}
 
-	n.rs.withIAM = true
+	// if neither role nor profile are given - create both
 
-	if n.spec.IAM.InstanceRoleName != "" {
+	if n.spec.IAM.InstanceRoleName == "" {
+		// setting role name requires addtional capabilities
 		n.rs.withNamedIAM = true
 	}
 

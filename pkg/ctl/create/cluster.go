@@ -233,6 +233,9 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				}
 			}
 
+			if ng.IAM == nil {
+				ng.IAM = &api.NodeGroupIAM{}
+			}
 			if ng.IAM.WithAddonPolicies.ImageBuilder == nil {
 				ng.IAM.WithAddonPolicies.ImageBuilder = api.NewBoolFalse()
 			}
@@ -543,6 +546,10 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	logger.Success("%s is ready", meta.LogString())
+
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+		return err
+	}
 
 	return nil
 }

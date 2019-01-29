@@ -48,7 +48,7 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	ng := data.(*api.NodeGroup)
 	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("creating nodegroup stack %q", name)
-	stack := builder.NewNodeGroupResourceSet(c.spec, c.makeClusterStackName(), ng)
+	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}

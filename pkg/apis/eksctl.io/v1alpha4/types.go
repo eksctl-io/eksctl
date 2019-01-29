@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -178,6 +179,7 @@ type ClusterProvider interface {
 	EKS() eksiface.EKSAPI
 	EC2() ec2iface.EC2API
 	STS() stsiface.STSAPI
+	IAM() iamiface.IAMAPI
 	Region() string
 	Profile() string
 	WaitTimeout() time.Duration
@@ -278,19 +280,25 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 // NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
-	securityGroups := &NodeGroupSGs{
-		AttachIDs:  []string{},
-		WithLocal:  NewBoolTrue(),
-		WithShared: NewBoolTrue(),
-	}
 
 	ng := &NodeGroup{
 		PrivateNetworking: false,
-		SecurityGroups:    securityGroups,
-		DesiredCapacity:   DefaultNodeCount,
-		InstanceType:      DefaultNodeType,
-		VolumeSize:        0,
-		VolumeType:        DefaultNodeVolumeType,
+		SecurityGroups: &NodeGroupSGs{
+			AttachIDs:  []string{},
+			WithLocal:  NewBoolTrue(),
+			WithShared: NewBoolTrue(),
+		},
+		DesiredCapacity: DefaultNodeCount,
+		InstanceType:    DefaultNodeType,
+		VolumeSize:      0,
+		VolumeType:      DefaultNodeVolumeType,
+		IAM: &NodeGroupIAM{
+			WithAddonPolicies: NodeGroupIAMAddonPolicies{
+				ImageBuilder: NewBoolFalse(),
+				AutoScaler:   NewBoolFalse(),
+				ExternalDNS:  NewBoolFalse(),
+			},
+		},
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -346,7 +354,7 @@ type NodeGroup struct {
 	SSHPublicKeyName string `json:"sshPublicKeyName,omitempty"`
 
 	// +optional
-	IAM NodeGroupIAM `json:"iam"`
+	IAM *NodeGroupIAM `json:"iam"`
 }
 
 // SubnetTopology check which topology is used for the subnet of
@@ -379,6 +387,8 @@ type (
 	NodeGroupIAM struct {
 		// +optional
 		AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+		// +optional
+		InstanceProfileARN string `json:"instanceProfileARN,omitempty"`
 		// +optional
 		InstanceRoleARN string `json:"instanceRoleARN,omitempty"`
 		// +optional

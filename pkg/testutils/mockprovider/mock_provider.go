@@ -6,7 +6,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 )
@@ -19,6 +21,7 @@ type MockProvider struct {
 	eks *mocks.EKSAPI
 	ec2 *mocks.EC2API
 	sts *mocks.STSAPI
+	iam *mocks.IAMAPI
 }
 
 // NewMockProvider returns a new MockProvider
@@ -28,6 +31,7 @@ func NewMockProvider() *MockProvider {
 		eks: &mocks.EKSAPI{},
 		ec2: &mocks.EC2API{},
 		sts: &mocks.STSAPI{},
+		iam: &mocks.IAMAPI{},
 	}
 }
 
@@ -66,6 +70,12 @@ func (m MockProvider) STS() stsiface.STSAPI { return m.sts }
 
 // MockSTS returns a mocked STS API
 func (m MockProvider) MockSTS() *mocks.STSAPI { return m.STS().(*mocks.STSAPI) }
+
+// IAM returns a representation of the IAM API
+func (m MockProvider) IAM() iamiface.IAMAPI { return m.iam }
+
+// MockIAM returns a mocked IAM API
+func (m MockProvider) MockIAM() *mocks.IAMAPI { return m.IAM().(*mocks.IAMAPI) }
 
 // Profile returns current profile setting
 func (m MockProvider) Profile() string { return ProviderConfig.Profile }

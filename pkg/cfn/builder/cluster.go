@@ -35,12 +35,6 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 func (c *ClusterResourceSet) AddAllResources() error {
 	dedicatedVPC := c.spec.VPC.ID == ""
 
-	c.rs.template.Description = fmt.Sprintf(
-		"%s (dedicated VPC: %v, dedicated IAM: %v) %s",
-		clusterTemplateDescription,
-		dedicatedVPC, true,
-		templateDescriptionSuffix)
-
 	if err := c.spec.HasSufficientSubnets(); err != nil {
 		return err
 	}
@@ -63,6 +57,12 @@ func (c *ClusterResourceSet) AddAllResources() error {
 		c.spec.Status.StackName = v
 		return nil
 	})
+
+	c.rs.template.Description = fmt.Sprintf(
+		"%s (dedicated VPC: %v, dedicated IAM: %v) %s",
+		clusterTemplateDescription,
+		dedicatedVPC, c.rs.withIAM,
+		templateDescriptionSuffix)
 
 	return nil
 }

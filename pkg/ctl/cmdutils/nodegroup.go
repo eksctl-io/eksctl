@@ -52,6 +52,9 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	fs.StringVar(&ng.IAM.InstanceRoleName, "temp-node-role-name", "", "Advanced use cases only. Specify the exact name of the node's instance role for easier integration with K8S-IAM integrations like kube2iam. See https://github.com/weaveworks/eksctl/issues/398 for more information.")
 	fs.MarkHidden("temp-node-role-name")
 
+	ng.IAM.WithAddonPolicies.AutoScaler = new(bool)
+	ng.IAM.WithAddonPolicies.ExternalDNS = new(bool)
+	ng.IAM.WithAddonPolicies.ImageBuilder = new(bool)
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AutoScaler, "asg-access", false, "enable IAM policy for cluster-autoscaler")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ExternalDNS, "external-dns-access", false, "enable IAM policy for external-dns")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "full-ecr-access", false, "enable full access to ECR")
