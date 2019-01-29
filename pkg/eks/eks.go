@@ -98,6 +98,12 @@ func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, ignoreMissingKe
 	if spec.VPC == nil {
 		spec.VPC = &api.ClusterVPC{}
 	}
+	if spec.VPC.CIDR != nil {
+		// CIDR has to be reset, as otherwise it will error
+		// as the default value may be different from that
+		// cluster actually uses
+		spec.VPC.CIDR = nil
+	}
 
 	requiredCollectors := map[string]outputs.Collector{
 		outputs.ClusterVPC: func(v string) error {

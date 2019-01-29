@@ -359,7 +359,9 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			if len(availabilityZones) != 0 {
 				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
 			}
-
+			if cmd.Flag("vpc-cidr").Changed {
+				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
+			}
 			if subnetsGiven {
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
@@ -386,6 +388,9 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		if len(availabilityZones) != 0 {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
+		}
+		if cmd.Flag("vpc-cidr").Changed {
+			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 		}
 
 		if err := vpc.UseSubnets(ctl.Provider, cfg); err != nil {
