@@ -36,25 +36,6 @@ const (
 	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
 )
 
-// MustCollect will use each of the keys and attempt to find an output in the given
-// stack, if any of the keys are not preset it will return an error
-func MustCollect(stack cfn.Stack, keys []string, results map[string]string) error {
-	for _, key := range keys {
-		var value *string
-		for _, x := range stack.Outputs {
-			if *x.OutputKey == key {
-				value = x.OutputValue
-				break
-			}
-		}
-		if value == nil {
-			return fmt.Errorf("no ouput %q in stack %q", key, *stack.StackName)
-		}
-		results[key] = *value
-	}
-	return nil
-}
-
 type (
 	// Collector is a callback function that takes an output value
 	// and may return an error
