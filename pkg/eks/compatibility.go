@@ -20,14 +20,18 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 		return errors.Wrap(err, "getting cluster stacks")
 	}
 
-	sharedClusterNodeSG := ""
-	for _, x := range cluster.Outputs {
-		if *x.OutputKey == outputs.ClusterSharedNodeSecurityGroup {
-			sharedClusterNodeSG = *x.OutputValue
-		}
-	}
+	err = outputs.Collect(*cluster,
+		map[string]outputs.Collector{
+			outputs.ClusterSharedNodeSecurityGroup: func(v string) error {
+				logger.Debug("ClusterSharedNodeSecurityGroup = %s", v)
+				return nil
+			},
+		},
+		nil,
+	)
 
-	if sharedClusterNodeSG == "" {
+	if err != nil {
+		logger.Debug("err = %s", err.Error())
 		return fmt.Errorf(
 			"shared node security group missing, to fix this run 'eksctl utils update-cluster-stack --name=%s --region=%s'",
 			cfg.Metadata.Name,
@@ -43,37 +47,41 @@ func isNodeGroupCompatible(name string, info manager.StackInfo) bool {
 	usesSharedSecurityGroup := false
 	hasLocalSecurityGroupFlag := false
 
-	for _, x := range info.Stack.Outputs {
-		if *x.OutputKey == outputs.NodeGroupFeatureSharedSecurityGroup {
-			hasSharedSecurityGroupFlag = true
-			switch *x.OutputValue {
-			case "true":
-				usesSharedSecurityGroup = true
-			case "false":
-				usesSharedSecurityGroup = false
-			}
-		}
-		if *x.OutputKey == outputs.NodeGroupFeatureLocalSecurityGroup {
-			hasLocalSecurityGroupFlag = true
-		}
-	}
+	_ = outputs.Collect(*info.Stack,
+		nil,
+		map[string]outputs.Collector{
+			outputs.NodeGroupFeatureSharedSecurityGroup: func(v string) error {
+				hasSharedSecurityGroupFlag = true
+				switch v {
+				case "true":
+					usesSharedSecurityGroup = true
+				case "false":
+					usesSharedSecurityGroup = false
+				}
+				return nil
+			},
+			outputs.NodeGroupFeatureLocalSecurityGroup: func(v string) error {
+				hasLocalSecurityGroupFlag = true
+				return nil
+			},
+		},
+	)
 
-	if !hasSharedSecurityGroupFlag && !hasLocalSecurityGroupFlag {
-		// has none of the feture flags makes it incompatible
+	if !hasSharedSecurityGroupFlag {
+		// if it doesn't have `outputs.NodeGroupFeatureSharedSecurityGroup` flags at all,
+		// it must be incompatible
 		return false
 	}
 
-	if hasSharedSecurityGroupFlag {
-		if !hasLocalSecurityGroupFlag && !usesSharedSecurityGroup {
-			// when `outputs.NodeGroupFeatureSharedSecurityGroup` was added in 0.1.19, v1alpha3 didn't set
-			// `ng.SharedSecurityGroup=true` by default, and (technically) it implies the nodegroup maybe compatible,
-			// however users are unaware of that API v1alpha3 was broken this way, so we need this warning;
-			// as `outputs.NodeGroupFeatureLocalSecurityGroup` was added in 0.1.20/v1alpha4, it can be used to
-			// infer use of v1alpha3 and thereby warn the user that their cluster may had been misconfigured
-			logger.Warning("looks like nodegroup %q was created using v1alpha3 API and is not using shared SG", name)
-			logger.Warning("if you didn't disable shared SG and expect that pods running on %q should have access to all other pods", name)
-			logger.Warning("then you should replace nodegroup %q or patch the configuration", name)
-		}
+	if !hasLocalSecurityGroupFlag && !usesSharedSecurityGroup {
+		// when `outputs.NodeGroupFeatureSharedSecurityGroup` was added in 0.1.19, v1alpha3 didn't set
+		// `ng.SharedSecurityGroup=true` by default, and (technically) it implies the nodegroup maybe compatible,
+		// however users are unaware of that API v1alpha3 was broken this way, so we need this warning;
+		// as `outputs.NodeGroupFeatureLocalSecurityGroup` was added in 0.1.20/v1alpha4, it can be used to
+		// infer use of v1alpha3 and thereby warn the user that their cluster may had been misconfigured
+		logger.Warning("looks like nodegroup %q was created using v1alpha3 API and is not using shared SG", name)
+		logger.Warning("if you didn't disable shared SG and expect that pods running on %q should have access to all other pods", name)
+		logger.Warning("then you should replace nodegroup %q or patch the configuration", name)
 	}
 
 	return true
