@@ -157,18 +157,19 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 			}
 
 			{
-				appendOutput(&stack, "test2", "")
+				appendOutput(&stack, "test3", "")
+				appendOutput(&stack, "test4", "")
 
-				test1 := false
-				test2 := false
+				test3 := false
+				test4 := false
 
 				optionalCollectors := map[string]Collector{
-					"test1": func(_ string) error {
-						test1 = true
+					"test3": func(_ string) error {
+						test3 = true
 						return nil
 					},
-					"test2": func(_ string) error {
-						test2 = true
+					"test4": func(_ string) error {
+						test4 = true
 						return nil
 					},
 				}
@@ -176,8 +177,8 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 				err := Collect(stack, nil, optionalCollectors)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(test1).To(BeTrue())
-				Expect(test2).To(BeTrue())
+				Expect(test3).To(BeTrue())
+				Expect(test4).To(BeTrue())
 			}
 		}
 	})

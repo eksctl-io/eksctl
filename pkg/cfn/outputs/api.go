@@ -36,25 +36,6 @@ const (
 	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
 )
 
-// MustCollect will use each of the keys and attempt to find an output in the given
-// stack, if any of the keys are not preset it will return an error
-func MustCollect(stack cfn.Stack, keys []string, results map[string]string) error {
-	for _, key := range keys {
-		var value *string
-		for _, x := range stack.Outputs {
-			if *x.OutputKey == key {
-				value = x.OutputValue
-				break
-			}
-		}
-		if value == nil {
-			return fmt.Errorf("no ouput %q in stack %q", key, *stack.StackName)
-		}
-		results[key] = *value
-	}
-	return nil
-}
-
 type (
 	// Collector is a callback function that takes an output value
 	// and may return an error
@@ -75,7 +56,7 @@ func NewCollectorSet(set map[string]Collector) *CollectorSet {
 }
 
 func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
-	for key, collect := range c.set {
+	for key, collector := range c.set {
 		var value *string
 		for _, x := range stack.Outputs {
 			if *x.OutputKey == key {
@@ -84,16 +65,16 @@ func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
 			}
 		}
 		if value == nil {
-			if !must {
-				return nil
+			if must {
+				err := fmt.Errorf("no ouput %q", key)
+				if stack.StackName != nil {
+					return fmt.Errorf("%s in stack %q", err.Error(), *stack.StackName)
+				}
+				return err
 			}
-			err := fmt.Errorf("no ouput %q", key)
-			if stack.StackName != nil {
-				return fmt.Errorf("%s in stack %q", err.Error(), *stack.StackName)
-			}
-			return err
+			continue
 		}
-		if err := collect(*value); err != nil {
+		if err := collector(*value); err != nil {
 			return err
 		}
 	}
