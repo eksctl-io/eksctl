@@ -377,11 +377,11 @@ type (
 	// NodeGroupSGs holds all SG attributes of a NodeGroup
 	NodeGroupSGs struct {
 		// +optional
-		AttachIDs []string
+		AttachIDs []string `json:"attachIDs,omitempty"`
 		// +optional
-		WithShared *bool
+		WithShared *bool `json:"withShared"`
 		// +optional
-		WithLocal *bool
+		WithLocal *bool `json:"withLocal"`
 	}
 	// NodeGroupIAM holds all IAM attributes of a NodeGroup
 	NodeGroupIAM struct {
