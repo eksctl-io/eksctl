@@ -81,7 +81,7 @@ func getNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) (int, error) {
 
 // WaitForNodes waits till the nodes are ready
 func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
-	if ng.MinSize == 0 {
+	if *ng.MinSize == 0 {
 		return nil
 	}
 	timer := time.After(c.Provider.WaitTimeout())
@@ -97,7 +97,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 	}
 
 	logger.Info("waiting for at least %d node(s) to become ready in %q", ng.MinSize, ng.Name)
-	for !timeout && counter <= ng.MinSize {
+	for !timeout && counter <= *ng.MinSize {
 		select {
 		case event := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)

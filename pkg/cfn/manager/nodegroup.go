@@ -157,7 +157,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	currentMaxSize := gjson.Get(template, maxSizePath)
 	currentMinSize := gjson.Get(template, minSizePath)
 
-	if int64(ng.DesiredCapacity) == currentCapacity.Int() {
+	if ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) == currentCapacity.Int() {
 		logger.Info("desired capacity of nodegroup %q in cluster %q is already %d", ng.Name, clusterName, ng.DesiredCapacity)
 		return nil
 	}
@@ -171,7 +171,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Str, ng.DesiredCapacity))
 
 	// If the desired number of nodes is less than the min then update the min
-	if int64(ng.DesiredCapacity) < currentMinSize.Int() {
+	if int64(*ng.DesiredCapacity) < currentMinSize.Int() {
 		newMinSize := fmt.Sprintf("%d", ng.DesiredCapacity)
 		template, err = sjson.Set(template, minSizePath, newMinSize)
 		if err != nil {
@@ -180,7 +180,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Str, ng.DesiredCapacity))
 	}
 	// If the desired number of nodes is greater than the max then update the max
-	if int64(ng.DesiredCapacity) > currentMaxSize.Int() {
+	if int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
 		newMaxSize := fmt.Sprintf("%d", ng.DesiredCapacity)
 		template, err = sjson.Set(template, maxSizePath, newMaxSize)
 		if err != nil {

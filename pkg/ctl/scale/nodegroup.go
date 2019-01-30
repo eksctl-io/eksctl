@@ -35,7 +35,13 @@ func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
 
-		fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
+		var desiredCapacity int
+		fs.IntVarP(&desiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
+		cmd.PreRun = func(cmd *cobra.Command, args[] string) {
+			if f := cmd.Flag("nodes"); f.Changed {
+				ng.DesiredCapacity = &desiredCapacity
+			}
+		}
 
 		cmdutils.AddRegionFlag(fs, p)
 	})
@@ -70,7 +76,7 @@ func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 		return fmt.Errorf("--name must be set")
 	}
 
-	if ng.DesiredCapacity < 0 {
+	if ng.DesiredCapacity == nil || *ng.DesiredCapacity < 0 {
 		return fmt.Errorf("number of nodes must be 0 or greater. Use the --nodes/-N flag")
 	}
 

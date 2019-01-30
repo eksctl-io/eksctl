@@ -59,25 +59,28 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	}
 	n.userData = gfn.NewString(userData)
 
-	switch {
-	case n.spec.MinSize == 0 && n.spec.MaxSize == 0:
-		n.spec.MinSize = n.spec.DesiredCapacity
-		n.spec.MaxSize = n.spec.DesiredCapacity
-	case n.spec.MinSize > 0 && n.spec.MaxSize > 0:
-		if n.spec.DesiredCapacity == api.DefaultNodeCount {
-			msgPrefix := fmt.Sprintf("as --nodes-min=%d and --nodes-max=%d were given", n.spec.MinSize, n.spec.MaxSize)
-			if n.spec.DesiredCapacity < n.spec.MinSize {
-				n.spec.DesiredCapacity = n.spec.MaxSize
-				logger.Info("%s, --nodes=%d was set automatically as default value (--node=%d) was outside the set renge",
-					msgPrefix, n.spec.DesiredCapacity, api.DefaultNodeCount)
-			} else {
-				logger.Info("%s, default value of --nodes=%d was kept as it is within the set range",
-					msgPrefix, n.spec.DesiredCapacity)
-			}
+	// Ensure MinSize is set, as it is required by the ASG cfn resource
+	if n.spec.MinSize == nil {
+		if n.spec.DesiredCapacity == nil {
+			count := api.DefaultNodeCount
+			n.spec.MinSize = &count
+			logger.Info("--nodes-min=%d was set automatically", count)
+		} else {
+			n.spec.MinSize = n.spec.DesiredCapacity
 		}
-		if n.spec.DesiredCapacity > n.spec.MaxSize {
-			return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", n.spec.MaxSize, n.spec.DesiredCapacity)
+	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity < *n.spec.MinSize {
+		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *n.spec.MinSize, *n.spec.DesiredCapacity)
+	}
+
+	// Ensure MaxSize is set, as it is required by the ASG cfn resource
+	if n.spec.MaxSize == nil {
+		if n.spec.DesiredCapacity == nil {
+			n.spec.MaxSize = n.spec.MinSize
 		}
+	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity > *n.spec.MaxSize {
+		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *n.spec.MaxSize, *n.spec.DesiredCapacity)
+	} else if *n.spec.MaxSize < *n.spec.MinSize {
+		return fmt.Errorf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
 	n.addResourcesForIAM()
@@ -179,16 +182,23 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			},
 		)
 	}
+	ngProps := map[string]interface{}{
+		"LaunchConfigurationName": refLC,
+		"VPCZoneIdentifier":       vpcZoneIdentifier,
+		"Tags":                    tags,
+	}
+	if n.spec.DesiredCapacity != nil {
+		ngProps["DesiredCapacity"] = fmt.Sprintf("%d", *n.spec.DesiredCapacity)
+	}
+	if n.spec.MinSize != nil {
+		ngProps["MinSize"] = fmt.Sprintf("%d", *n.spec.MinSize)
+	}
+	if n.spec.MaxSize != nil {
+		ngProps["MaxSize"] = fmt.Sprintf("%d", *n.spec.MaxSize)
+	}
 	n.newResource("NodeGroup", &awsCloudFormationResource{
-		Type: "AWS::AutoScaling::AutoScalingGroup",
-		Properties: map[string]interface{}{
-			"LaunchConfigurationName": refLC,
-			"DesiredCapacity":         fmt.Sprintf("%d", n.spec.DesiredCapacity),
-			"MinSize":                 fmt.Sprintf("%d", n.spec.MinSize),
-			"MaxSize":                 fmt.Sprintf("%d", n.spec.MaxSize),
-			"VPCZoneIdentifier":       vpcZoneIdentifier,
-			"Tags":                    tags,
-		},
+		Type:       "AWS::AutoScaling::AutoScalingGroup",
+		Properties: ngProps,
 		UpdatePolicy: map[string]map[string]string{
 			"AutoScalingRollingUpdate": {
 				"MinInstancesInService": "1",

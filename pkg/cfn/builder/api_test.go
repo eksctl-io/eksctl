@@ -308,7 +308,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 						WithShared: api.NewBoolTrue(),
 						AttachIDs:  []string{},
 					},
-					DesiredCapacity: 2,
+					DesiredCapacity: nil,
 					VolumeSize:      2,
 					VolumeType:      api.NodeVolumeTypeIO1,
 					IAM: &api.NodeGroupIAM{
