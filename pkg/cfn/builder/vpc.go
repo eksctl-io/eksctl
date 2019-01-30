@@ -112,12 +112,12 @@ func (c *ClusterResourceSet) addOutputsForVPC() {
 	})
 	if refs, ok := c.subnets[api.SubnetTopologyPrivate]; ok {
 		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPrivate, refs, true, func(v string) error {
-			return vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
+			return vpc.ImportSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
 		})
 	}
 	if refs, ok := c.subnets[api.SubnetTopologyPublic]; ok {
 		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPublic, refs, true, func(v string) error {
-			return vpc.UseSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+			return vpc.ImportSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(v, ","))
 		})
 	}
 }

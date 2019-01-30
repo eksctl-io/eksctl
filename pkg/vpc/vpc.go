@@ -2,12 +2,18 @@ package vpc
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/kris-nova/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+
 	"k8s.io/kops/pkg/util/subnet"
 )
 
@@ -67,7 +73,7 @@ func describeSubnets(porvider api.ClusterProvider, subnetIDs ...string) ([]*ec2.
 	return output.Subnets, nil
 }
 
-func describeVPC(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
+func describe(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []*string{aws.String(vpcID)},
 	}
@@ -78,9 +84,50 @@ func describeVPC(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	return output.Vpcs[0], nil
 }
 
-// ImportVPC will update spec with VPC ID/CIDR
-func ImportVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
-	vpc, err := describeVPC(provider, id)
+// UseFromCluster retrieves the VPC configuration from an existing cluster
+// based on stack outputs
+// NOTE: it doesn't expect any fields in spec.VPC to be set, the remote state
+// is treated as the source of truth
+func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
+	if spec.VPC == nil {
+		spec.VPC = &api.ClusterVPC{}
+	}
+	// this call is authoritive, and we can safely override the
+	// CIDR, as it can only be set to anything due to defaulting
+	spec.VPC.CIDR = nil
+
+	requiredCollectors := map[string]outputs.Collector{
+		outputs.ClusterVPC: func(v string) error {
+			spec.VPC.ID = v
+			return nil
+		},
+		outputs.ClusterSecurityGroup: func(v string) error {
+			spec.VPC.SecurityGroup = v
+			return nil
+		},
+	}
+
+	optionalCollectors := map[string]outputs.Collector{
+		outputs.ClusterSharedNodeSecurityGroup: func(v string) error {
+			spec.VPC.SharedNodeSecurityGroup = v
+			return nil
+		},
+		outputs.ClusterSubnetsPrivate: func(v string) error {
+			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
+		},
+		outputs.ClusterSubnetsPublic: func(v string) error {
+			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+		},
+	}
+
+	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+}
+
+// Import will update spec with VPC ID/CIDR
+// NOTE: it does respect all fields set in spec.VPC, and will error if
+// there is a mismatch of local vs remote states
+func Import(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+	vpc, err := describe(provider, id)
 	if err != nil {
 		return err
 	}
@@ -107,10 +154,12 @@ func ImportVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string)
 // ImportSubnets will update spec with subnets, if VPC ID/CIDR is unknown
 // it will use provider to call describeVPC based on the VPC ID of the
 // first subnet; all subnets must be in the same VPC
+// NOTE: it does respect all fields set in spec.VPC, and will error if
+// there is a mismatch of local vs remote states
 func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnets []*ec2.Subnet) error {
 	if spec.VPC.ID != "" {
 		// ensure VPC gets imported and validated firt, if it's already set
-		if err := ImportVPC(provider, spec, spec.VPC.ID); err != nil {
+		if err := Import(provider, spec, spec.VPC.ID); err != nil {
 			return err
 		}
 	}
@@ -118,7 +167,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 		if spec.VPC.ID == "" {
 			// if VPC wasn't defined, import it based on VPC of the first
 			// subnet that we have
-			if err := ImportVPC(provider, spec, *subnet.VpcId); err != nil {
+			if err := Import(provider, spec, *subnet.VpcId); err != nil {
 				return err
 			}
 		} else if spec.VPC.ID != *subnet.VpcId { // be sure to use the same VPC
@@ -133,9 +182,11 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 	return nil
 }
 
-// UseSubnetsFromList will update spec with subnets, it will call describeSubnets first,
+// ImportSubnetsFromList will update spec with subnets, it will call describeSubnets first,
 // then pass resulting subnets to ImportSubnets
-func UseSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs []string) error {
+// NOTE: it does respect all fields set in spec.VPC, and will error if
+// there is a mismatch of local vs remote states
+func ImportSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnetIDs []string) error {
 	if len(subnetIDs) == 0 {
 		return nil
 	}
@@ -146,12 +197,14 @@ func UseSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig, t
 	return ImportSubnets(provider, spec, topology, subnets)
 }
 
-// UseSubnets will update spec with subnets, it will call describeSubnets first,
+// ImportAllSubnets will update spec with subnets, it will call describeSubnets first,
 // then pass resulting subnets to ImportSubnets
-func UseSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+// NOTE: it does respect all fields set in spec.VPC, and will error if
+// there is a mismatch of local vs remote states
+func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	if spec.VPC.ID != "" {
 		// ensure VPC gets imported and validated firt, if it's already set
-		if err := ImportVPC(provider, spec, spec.VPC.ID); err != nil {
+		if err := Import(provider, spec, spec.VPC.ID); err != nil {
 			return err
 		}
 	}
@@ -160,7 +213,7 @@ func UseSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) error {
 		for _, subnet := range spec.VPC.Subnets[topology] {
 			subnetIDs = append(subnetIDs, subnet.ID)
 		}
-		if err := UseSubnetsFromList(provider, spec, topology, subnetIDs); err != nil {
+		if err := ImportSubnetsFromList(provider, spec, topology, subnetIDs); err != nil {
 			return err
 		}
 	}

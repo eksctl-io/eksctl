@@ -41,6 +41,8 @@ func (k *Wrapper) topologyOf(s *ec2.Subnet) api.SubnetTopology {
 
 // UseVPC finds VPC and subnets that give kops cluster uses and add those to EKS cluster config
 func (k *Wrapper) UseVPC(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+	spec.VPC.CIDR = nil // ensure to reset the CIDR
+
 	allSubnets, err := aws.ListSubnets(k.cloud, k.clusterName)
 	if err != nil {
 		return err
