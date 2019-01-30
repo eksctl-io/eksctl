@@ -27,6 +27,7 @@ Josue Abreu             @gotjosh
 Timothy Mukaibo         @mukaibot
 Yusuke Kuoka            @mumoshu
 Daniel Herman           @dcherman
+Takuma Hashimoto        @af12066
 
 /* Thanks */
 
