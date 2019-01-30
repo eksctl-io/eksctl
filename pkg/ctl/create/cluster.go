@@ -318,9 +318,13 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	if checkSubnetsGivenAsFlags() {
+		// undo defaulting and reset it, as it's not set via config file;
+		// default value here causes errors as vpc.ImportVPC doesn't
+		// treat remote state as authority over local state
+		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
 		for topology := range subnets {
-			if err := vpc.UseSubnetsFromList(ctl.Provider, cfg, topology, *subnets[topology]); err != nil {
+			if err := vpc.ImportSubnetsFromList(ctl.Provider, cfg, topology, *subnets[topology]); err != nil {
 				return err
 			}
 		}
@@ -362,6 +366,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			if cmd.Flag("vpc-cidr").Changed {
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 			}
+
 			if subnetsGiven {
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
@@ -393,7 +398,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 		}
 
-		if err := vpc.UseSubnets(ctl.Provider, cfg); err != nil {
+		if err := vpc.ImportAllSubnets(ctl.Provider, cfg); err != nil {
 			return err
 		}
 

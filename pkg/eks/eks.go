@@ -16,7 +16,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -89,47 +88,13 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 }
 
 // GetClusterVPC retrieves the VPC configuration
-func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig, ignoreMissingKeys ...string) error {
+func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
 	stack, err := c.NewStackManager(spec).DescribeClusterStack()
 	if err != nil {
 		return err
 	}
 
-	if spec.VPC == nil {
-		spec.VPC = &api.ClusterVPC{}
-	}
-	if spec.VPC.CIDR != nil {
-		// CIDR has to be reset, as otherwise it will error
-		// as the default value may be different from that
-		// cluster actually uses
-		spec.VPC.CIDR = nil
-	}
-
-	requiredCollectors := map[string]outputs.Collector{
-		outputs.ClusterVPC: func(v string) error {
-			spec.VPC.ID = v
-			return nil
-		},
-		outputs.ClusterSecurityGroup: func(v string) error {
-			spec.VPC.SecurityGroup = v
-			return nil
-		},
-	}
-
-	optionalCollectors := map[string]outputs.Collector{
-		outputs.ClusterSharedNodeSecurityGroup: func(v string) error {
-			spec.VPC.SharedNodeSecurityGroup = v
-			return nil
-		},
-		outputs.ClusterSubnetsPrivate: func(v string) error {
-			return vpc.UseSubnetsFromList(c.Provider, spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
-		},
-		outputs.ClusterSubnetsPublic: func(v string) error {
-			return vpc.UseSubnetsFromList(c.Provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
-		},
-	}
-
-	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+	return vpc.UseFromCluster(c.Provider, stack, spec)
 }
 
 // ListClusters display details of all the EKS cluster in your account
