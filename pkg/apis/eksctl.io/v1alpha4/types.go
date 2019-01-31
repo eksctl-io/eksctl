@@ -327,7 +327,7 @@ type NodeGroup struct {
 	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
 
 	// +optional
-	DesiredCapacity *int `json:"desiredCapacity"`
+	DesiredCapacity *int `json:"desiredCapacity,omitempty"`
 	// +optional
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
