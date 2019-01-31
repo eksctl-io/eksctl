@@ -35,11 +35,10 @@ func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
 
-		var desiredCapacity int
-		fs.IntVarP(&desiredCapacity, "nodes", "N", -1, "total number of nodes (scale to this number)")
-		cmd.PreRun = func(cmd *cobra.Command, args[] string) {
+		desiredCapacity := fs.IntP("nodes", "N", -1, "total number of nodes (scale to this number)")
+		cmd.PreRun = func(cmd *cobra.Command, args []string) {
 			if f := cmd.Flag("nodes"); f.Changed {
-				ng.DesiredCapacity = &desiredCapacity
+				ng.DesiredCapacity = desiredCapacity
 			}
 		}
 
