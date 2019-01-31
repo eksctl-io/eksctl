@@ -146,9 +146,9 @@ var _ = Describe("Kubeconfig", func() {
 					SSHPublicKeyPath:  "~/.ssh/id_rsa.pub",
 					SSHPublicKey:      []uint8(nil),
 					SSHPublicKeyName:  "",
-					DesiredCapacity:   2,
-					MinSize:           0,
-					MaxSize:           0,
+					DesiredCapacity:   nil,
+					MinSize:           nil,
+					MaxSize:           nil,
 					MaxPodsPerNode:    0,
 					IAM: &eksctlapi.NodeGroupIAM{
 						AttachPolicyARNs: []string(nil),

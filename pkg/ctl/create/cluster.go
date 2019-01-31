@@ -73,7 +73,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVar(&ng.Name, "nodegroup-name", "", fmt.Sprintf("name of the nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
 		fs.BoolVar(&withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
-		cmdutils.AddCommonCreateNodeGroupFlags(fs, p, cfg, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(cmd, fs, p, cfg, ng)
 	})
 
 	group.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {

@@ -76,7 +76,8 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 			It("should be a no-op if attempting to scale to the existing desired capacity", func() {
 				ng.Name = "12345"
-				ng.DesiredCapacity = 2
+				cap := 2
+				ng.DesiredCapacity = &cap
 
 				err := sc.ScaleNodeGroup(ng)
 

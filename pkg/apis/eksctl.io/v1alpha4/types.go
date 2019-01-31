@@ -288,7 +288,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 			WithLocal:  NewBoolTrue(),
 			WithShared: NewBoolTrue(),
 		},
-		DesiredCapacity: DefaultNodeCount,
+		DesiredCapacity: nil,
 		InstanceType:    DefaultNodeType,
 		VolumeSize:      0,
 		VolumeType:      DefaultNodeVolumeType,
@@ -327,11 +327,11 @@ type NodeGroup struct {
 	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
 
 	// +optional
-	DesiredCapacity int `json:"desiredCapacity"`
+	DesiredCapacity *int `json:"desiredCapacity"`
 	// +optional
-	MinSize int `json:"minSize,omitempty"`
+	MinSize *int `json:"minSize,omitempty"`
 	// +optional
-	MaxSize int `json:"maxSize,omitempty"`
+	MaxSize *int `json:"maxSize,omitempty"`
 
 	// +optional
 	VolumeSize int `json:"volumeSize"`

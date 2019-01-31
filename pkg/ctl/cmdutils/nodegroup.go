@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
@@ -16,13 +17,29 @@ const (
 )
 
 // AddCommonCreateNodeGroupFlags adds common flags for creating a node group
-func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) {
+func AddCommonCreateNodeGroupFlags(cmd *cobra.Command, fs *pflag.FlagSet, p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) {
+	var desiredCapacity int
+	var minSize int
+	var maxSize int
+
 	fs.StringVarP(&ng.InstanceType, "node-type", "t", defaultNodeType, "node instance type")
-	fs.IntVarP(&ng.DesiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
+	fs.IntVarP(&desiredCapacity, "nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
 
 	// TODO: https://github.com/weaveworks/eksctl/issues/28
-	fs.IntVarP(&ng.MinSize, "nodes-min", "m", 0, "minimum nodes in ASG")
-	fs.IntVarP(&ng.MaxSize, "nodes-max", "M", 0, "maximum nodes in ASG")
+	fs.IntVarP(&minSize, "nodes-min", "m", api.DefaultNodeCount, "minimum nodes in ASG")
+	fs.IntVarP(&maxSize, "nodes-max", "M", api.DefaultNodeCount, "maximum nodes in ASG")
+
+	cmd.PreRun = func(cmd *cobra.Command, args[] string) {
+		if f := cmd.Flag("nodes"); f.Changed {
+			ng.DesiredCapacity = &desiredCapacity
+		}
+		if f := cmd.Flag("nodes-min"); f.Changed {
+			ng.MinSize= &minSize
+		}
+		if f := cmd.Flag("nodes-max"); f.Changed {
+			ng.MaxSize= &maxSize
+		}
+	}
 
 	fs.IntVar(&ng.VolumeSize, "node-volume-size", ng.VolumeSize, "node volume size in GB")
 	fs.StringVar(&ng.VolumeType, "node-volume-type", ng.VolumeType, fmt.Sprintf("node volume type (valid options: %s)", strings.Join(api.SupportedNodeVolumeTypes(), ", ")))
