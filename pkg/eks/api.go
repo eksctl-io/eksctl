@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
@@ -236,18 +235,13 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 // SetNodeLabels initialises and validate node labels based on cluster and nodegroup names
 func (c *ClusterProvider) SetNodeLabels(ng *api.NodeGroup, meta *api.ClusterMeta) error {
 	if ng.Labels == nil {
-		ng.Labels = make(api.NodeLabels)
+		ng.Labels = make(map[string]string)
 	}
 
 	ng.Labels[api.ClusterNameLabel] = meta.Name
 	ng.Labels[api.NodeGroupNameLabel] = ng.Name
 
-	for l := range ng.Labels {
-		if len(strings.Split(l, "/")) > 2 {
-			return fmt.Errorf("node label key %q is of invalid format, can only use one '/' separator", l)
-		}
-	}
-	return nil
+	return api.ValidateNodeGroupLabels(ng)
 }
 
 func errTooFewAvailabilityZones(azs []string) error {
