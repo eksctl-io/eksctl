@@ -19,8 +19,9 @@ func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
-		Use:   "nodegroup",
-		Short: "Scale a nodegroup",
+		Use:     "nodegroup",
+		Short:   "Scale a nodegroup",
+		Aliases: []string{"ng"},
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doScaleNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
