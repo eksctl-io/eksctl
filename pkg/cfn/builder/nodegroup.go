@@ -62,12 +62,12 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
 	if n.spec.MinSize == nil {
 		if n.spec.DesiredCapacity == nil {
-			count := api.DefaultNodeCount
-			n.spec.MinSize = &count
-			logger.Info("--nodes-min=%d was set automatically", count)
+			defaultNodeCount := api.DefaultNodeCount
+			n.spec.MinSize = &defaultNodeCount
 		} else {
 			n.spec.MinSize = n.spec.DesiredCapacity
 		}
+		logger.Info("--nodes-min=%d was set automatically", *n.spec.MinSize)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity < *n.spec.MinSize {
 		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *n.spec.MinSize, *n.spec.DesiredCapacity)
 	}
@@ -76,7 +76,10 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	if n.spec.MaxSize == nil {
 		if n.spec.DesiredCapacity == nil {
 			n.spec.MaxSize = n.spec.MinSize
+		} else {
+			n.spec.MaxSize = n.spec.DesiredCapacity
 		}
+		logger.Info("--nodes-max=%d was set automatically", *n.spec.MaxSize)
 	} else if n.spec.DesiredCapacity != nil && *n.spec.DesiredCapacity > *n.spec.MaxSize {
 		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *n.spec.MaxSize, *n.spec.DesiredCapacity)
 	} else if *n.spec.MaxSize < *n.spec.MinSize {
