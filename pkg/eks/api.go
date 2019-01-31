@@ -206,8 +206,6 @@ func (c *ClusterProvider) CheckAuth() error {
 
 // EnsureAMI ensures that the node AMI is set and is available
 func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
-	// TODO: https://github.com/weaveworks/eksctl/issues/28
-	// - improve validation of parameter set overall, probably in another package
 	if ng.AMI == ami.ResolverAuto {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}

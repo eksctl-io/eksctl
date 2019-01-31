@@ -22,8 +22,9 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	ng := cfg.NewNodeGroup()
 
 	cmd := &cobra.Command{
-		Use:   "nodegroup",
-		Short: "Create a nodegroup",
+		Use:     "nodegroup",
+		Short:   "Create a nodegroup",
+		Aliases: []string{"ng"},
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doCreateNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
