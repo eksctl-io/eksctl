@@ -341,7 +341,7 @@ type NodeGroup struct {
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
 	// +optional
-	Labels NodeLabels `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
 
 	// TODO move to separate struct
 	// +optional

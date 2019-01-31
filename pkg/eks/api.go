@@ -236,7 +236,7 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 // SetNodeLabels initialises and validate node labels based on cluster and nodegroup names
 func (c *ClusterProvider) SetNodeLabels(ng *api.NodeGroup, meta *api.ClusterMeta) error {
 	if ng.Labels == nil {
-		ng.Labels = make(api.NodeLabels)
+		ng.Labels = make(map[string]string)
 	}
 
 	ng.Labels[api.ClusterNameLabel] = meta.Name
