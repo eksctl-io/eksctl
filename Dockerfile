@@ -29,11 +29,13 @@ COPY . $EKSCTL
 ARG COVERALLS_TOKEN
 ENV COVERALLS_TOKEN $COVERALLS_TOKEN
 
+ARG TEST_TARGET
+
 ENV JUNIT_REPORT_DIR $GOPATH/src/github.com/weaveworks/eksctl/test-results/ginkgo
 RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 WORKDIR $EKSCTL
-RUN make test
+RUN make $TEST_TARGET
 RUN make lint
 RUN make build \
     && cp ./eksctl /out/usr/local/bin/eksctl

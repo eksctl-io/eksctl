@@ -15,6 +15,7 @@ endif
 ifneq ($(DELETE_TEST_CLUSTER),)
 INTEGRATION_TEST_ARGS ?= -eksctl.delete=false
 endif
+
 ##@ Dependencies
 
 .PHONY: install-build-deps
@@ -107,7 +108,11 @@ endif
 ifneq ($(JUNIT_REPORT_DIR),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=JUNIT_REPORT_DIR=$(JUNIT_REPORT_DIR)
 endif
-
+ifeq ($(OS),Windows_NT)
+EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=unit-test
+else
+EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=test
+endif
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image
