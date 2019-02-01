@@ -138,6 +138,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "1",
+					"--node-private-networking",
 					testNG,
 				)
 			})
