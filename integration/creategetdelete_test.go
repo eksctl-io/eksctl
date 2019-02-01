@@ -198,7 +198,23 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					defer test.Close()
 
-					d := test.CreateDaemonSetFromFile(test.Namespace, "dns-test.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
+
+					test.WaitForDaemonSetReady(d, 3*time.Minute)
+
+					{
+						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
+						Expect(err).ShouldNot(HaveOccurred())
+						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
+					}
+				})
+
+				It("should have access to HTTP(S) sites", func() {
+					test, err := newKubeTest()
+					Expect(err).ShouldNot(HaveOccurred())
+					defer test.Close()
+
+					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
 
 					test.WaitForDaemonSetReady(d, 3*time.Minute)
 
