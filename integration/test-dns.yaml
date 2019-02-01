@@ -1,18 +1,14 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  labels:
-    run: dns-test
-  name: dns-test
+  name: test-dns
+  labels: {test: dns}
 spec:
   selector:
-    matchLabels:
-      run: dns-test
+    matchLabels: {test: dns}
   template:
     metadata:
-      creationTimestamp: null
-      labels:
-        run: dns-test
+      labels: {test: dns}
     spec:
       containers:
       - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
@@ -119,4 +115,16 @@ spec:
             command:
             - nslookup
             - ec2.eu-west-2.amazonaws.com
-
+      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
+        name: dns-test-ifconfig
+        stdin: true
+        tty: true
+        readinessProbe:
+          initialDelaySeconds: 0
+          periodSeconds: 3
+          failureThreshold: 3
+          timeoutSeconds: 1
+          exec:
+            command:
+            - nslookup
+            - ifconfig.co
