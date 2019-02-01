@@ -15,7 +15,7 @@ spec:
         run: dns-test
     spec:
       containers:
-      - image: tutum/dnsutils
+      - image: tutum/dnsutils@sha256:d2244ad47219529f1003bd1513f5c99e71655353a3a63624ea9cb19f8393d5fe
         name: dns-test
         stdin: true
         tty: true
