@@ -296,6 +296,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
+			IAM: api.ClusterIAM{
+				ServiceRoleARN: arn,
+			},
 			NodeGroups: []*api.NodeGroup{
 				{
 					AMI:               "",
@@ -353,6 +356,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"ARN":                      arn,
 			"ClusterStackName":         "",
 			"SharedNodeSecurityGroup":  "sg-shared",
+			"ServiceRoleARN":           arn,
 		}
 
 		sampleStack := newStackWithOutputs(sampleOutputs)
