@@ -32,7 +32,7 @@ var (
 	setContext         bool
 	availabilityZones  []string
 
-	configFile = ""
+	clusterConfigFile = ""
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
@@ -67,7 +67,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata)
-		fs.StringVarP(&configFile, "config-file", "f", "", "load configuration from a file")
+		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -130,8 +130,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	if configFile != "" {
-		if err := eks.LoadConfigFromFile(configFile, cfg); err != nil {
+	if clusterConfigFile != "" {
+		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
 			return err
 		}
 		meta = cfg.Metadata
@@ -535,7 +535,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			// --storage-class flag is only for backwards compatibility,
 			// we always create the storage class when --config-file is
 			// used, as this is 1.10-only
-			if addonsStorageClass || configFile != "" {
+			if addonsStorageClass || clusterConfigFile != "" {
 				if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 					return err
 				}
