@@ -71,6 +71,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	if c.spec.IAM.ServiceRoleARN != "" {
 		c.rs.withIAM = false
+		c.rs.defineOutputWithoutCollector(outputs.ClusterServiceRoleARN, c.spec.IAM.ServiceRoleARN, true)
 		return
 	}
 
@@ -90,6 +91,10 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	})
 	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, "*", []string{
 		"cloudwatch:PutMetricData",
+	})
+	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole.Arn", true, func(v string) error {
+		c.spec.IAM.ServiceRoleARN = v
+		return nil
 	})
 }
 
@@ -135,6 +140,10 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
+		})
+		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
+			n.spec.IAM.InstanceProfileARN = v
+			return nil
 		})
 		n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
 		return
@@ -196,6 +205,10 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
+		n.spec.IAM.InstanceProfileARN = v
+		return nil
+	})
 	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true, func(v string) error {
 		n.spec.IAM.InstanceRoleARN = v
 		return nil

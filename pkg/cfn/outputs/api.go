@@ -23,6 +23,7 @@ const (
 	ClusterARN                      = "ARN"
 	ClusterStackName                = "ClusterStackName"
 	ClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
+	ClusterServiceRoleARN           = "ServiceRoleARN"
 
 	// outputs from nodegroup stack
 	NodeGroupInstanceRoleARN    = "InstanceRoleARN"
