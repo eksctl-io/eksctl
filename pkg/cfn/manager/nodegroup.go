@@ -223,7 +223,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
 	}
 
-	cluster := getClusterName(stack)
+	cluster := getClusterNameTag(stack)
 	name := getNodeGroupName(stack)
 	maxSize := gjson.Get(template, maxSizePath)
 	minSize := gjson.Get(template, minSizePath)
