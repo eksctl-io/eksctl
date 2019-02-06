@@ -148,7 +148,9 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
 func getClusterName(s *Stack) string {
 	for _, tag := range s.Tags {
 		if *tag.Key == api.ClusterNameTag {
-			if strings.HasSuffix(*s.StackName, "-cluster") {
+			if strings.HasSuffix(*s.StackName, "-cluster") ||
+				strings.Contains(*s.StackName, "-nodegroup-") {
+
 				return *tag.Value
 			}
 		}
