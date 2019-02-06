@@ -86,12 +86,12 @@ generate-ami: ## Generate the list of AMIs for use with static resolver. Queries
 	@go generate ./pkg/ami
 
 .PHONY: ami-check
-ami-check: generate-ami  ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
+ami-check: generate-ami ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
 	@git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
 
 
 .PHONY: generate-kubernetes-types
-generate-kubernetes-types:
+generate-kubernetes-types: ## Generate Kubernetes API helpers
 	@build/vendor/k8s.io/code-generator/generate-groups.sh deepcopy,defaulter _ github.com/weaveworks/eksctl/pkg/apis eksctl.io:v1alpha4
 
 ##@ Docker
