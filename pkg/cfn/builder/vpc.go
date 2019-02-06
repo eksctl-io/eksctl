@@ -10,8 +10,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology) {
-	for az, subnet := range c.spec.VPC.Subnets[topology] {
+func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
+	for az, subnet := range subnets {
 		alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 		subnet := &gfn.AWSEC2Subnet{
 			AvailabilityZone: gfn.NewString(az),
@@ -67,7 +67,7 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		GatewayId:            refIG,
 	})
 
-	c.addSubnets(refPublicRT, api.SubnetTopologyPublic)
+	c.addSubnets(refPublicRT, api.SubnetTopologyPublic, c.spec.VPC.Subnets.Public)
 
 	c.newResource("NATIP", &gfn.AWSEC2EIP{
 		Domain: gfn.NewString("vpc"),
@@ -89,17 +89,19 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		NatGatewayId:         refNG,
 	})
 
-	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate)
+	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private)
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {
 	c.vpc = gfn.NewString(c.spec.VPC.ID)
 	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
-	for topology := range c.spec.VPC.Subnets {
-		for _, subnet := range c.spec.SubnetIDs(topology) {
-			c.subnets[topology] = append(c.subnets[topology], gfn.NewString(subnet))
-		}
+	for _, subnet := range c.spec.PrivateSubnetIDs() {
+		c.subnets[api.SubnetTopologyPrivate] = append(c.subnets[api.SubnetTopologyPrivate], gfn.NewString(subnet))
 	}
+	for _, subnet := range c.spec.PublicSubnetIDs() {
+		c.subnets[api.SubnetTopologyPublic] = append(c.subnets[api.SubnetTopologyPublic], gfn.NewString(subnet))
+	}
+
 }
 
 func (c *ClusterResourceSet) addOutputsForVPC() {

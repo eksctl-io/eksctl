@@ -357,15 +357,6 @@ type NodeGroup struct {
 	IAM *NodeGroupIAM `json:"iam"`
 }
 
-// SubnetTopology check which topology is used for the subnet of
-// the given nodegroup
-func (n *NodeGroup) SubnetTopology() SubnetTopology {
-	if n.PrivateNetworking {
-		return SubnetTopologyPrivate
-	}
-	return SubnetTopologyPublic
-}
-
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
 func (n *NodeGroup) ListOptions() metav1.ListOptions {
 	return metav1.ListOptions{

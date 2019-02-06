@@ -42,9 +42,9 @@ func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConf
 // AddAllResources adds all the information about the node group to the resource set
 func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.rs.template.Description = fmt.Sprintf(
-		"%s (AMI family: %s, SSH access: %v, subnet topology: %s) %s",
+		"%s (AMI family: %s, SSH access: %v, private networking: %v) %s",
 		nodeGroupTemplateDescription,
-		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.SubnetTopology(),
+		n.spec.AMIFamily, n.spec.AllowSSH, n.spec.PrivateNetworking,
 		templateDescriptionSuffix)
 
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
@@ -138,7 +138,10 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 	var vpcZoneIdentifier interface{}
 	if numNodeGroupsAZs := len(n.spec.AvailabilityZones); numNodeGroupsAZs > 0 {
-		subnets := n.clusterSpec.VPC.Subnets[n.spec.SubnetTopology()]
+		subnets := n.clusterSpec.VPC.Subnets.Private
+		if !n.spec.PrivateNetworking {
+			subnets = n.clusterSpec.VPC.Subnets.Public
+		}
 		errorDesc := fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, n.spec.AvailabilityZones)
 		if len(subnets) < numNodeGroupsAZs {
 			return fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", errorDesc)
@@ -152,11 +155,12 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			vpcZoneIdentifier.([]interface{})[i] = subnet.ID
 		}
 	} else {
+		subnets := makeImportValue(n.clusterStackName, outputs.ClusterSubnetsPrivate)
+		if !n.spec.PrivateNetworking {
+			subnets = makeImportValue(n.clusterStackName, outputs.ClusterSubnetsPublic)
+		}
 		vpcZoneIdentifier = map[string][]interface{}{
-			gfn.FnSplit: []interface{}{
-				",",
-				makeImportValue(n.clusterStackName, outputs.ClusterSubnets+string(n.spec.SubnetTopology())),
-			},
+			gfn.FnSplit: []interface{}{",", subnets},
 		}
 	}
 	tags := []map[string]interface{}{

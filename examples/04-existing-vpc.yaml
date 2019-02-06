@@ -11,8 +11,8 @@ vpc:
   id: "vpc-0dd338ecf29863c55"  # (optional, must match VPC ID used for each subnet below)
   cidr: "192.168.0.0/16"       # (optional, must match CIDR used by the given VPC)
   subnets:
-    # must provide 'Private' and/or 'Public' subnets by availibility zone as shown
-    Private:
+    # must provide 'private' and/or 'public' subnets by availibility zone as shown
+    private:
       us-west-2a:
         id: "subnet-0b2512f8c6ae9bf30"
         cidr: "192.168.128.0/19" # (optional, must match CIDR used by the given subnet)
