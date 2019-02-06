@@ -61,6 +61,6 @@ func eksctl(args ...string) *gexec.Session {
 	}
 
 	session.Wait(t)
-	Expect(session.ExitCode()).Should(Equal(0))
+	Expect(session.ExitCode()).To(Equal(0))
 	return session
 }
