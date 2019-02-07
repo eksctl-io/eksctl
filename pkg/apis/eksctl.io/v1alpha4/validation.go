@@ -30,8 +30,8 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 }
 
 // ValidateNodeGroupLabels uses proper Kubernetes label validation,
-// it's desinged to make sure users don't pass weird labels to the
-// nodes, which would prevent kubelets to startup propertly
+// it's designed to make sure users don't pass weird labels to the
+// nodes, which would prevent kubelets to startup properly
 func ValidateNodeGroupLabels(ng *NodeGroup) error {
 	// compact version based on:
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/cmd/kubelet/app/options/options.go#L257-L267

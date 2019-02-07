@@ -3,7 +3,8 @@
         "vet",
         "golint",
         "errcheck",
-        "deadcode"
+        "deadcode",
+        "misspell"
     ],
     "Exclude": [
         "^pkg\/nodebootstrap\/assets.go",

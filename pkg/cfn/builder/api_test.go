@@ -486,7 +486,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}))
 		})
 
-		It("should have auto-dicovery tags", func() {
+		It("should have auto-discovery tags", func() {
 			expectedTags := []Tag{
 				{
 					Key:               "Name",

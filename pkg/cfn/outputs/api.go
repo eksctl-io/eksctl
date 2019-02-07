@@ -41,14 +41,14 @@ type (
 	// Collector is a callback function that takes an output value
 	// and may return an error
 	Collector func(string) error
-	// Collectors are a map of ouput names to Collector callbacks
+	// Collectors are a map of output names to Collector callbacks
 	collectors = map[string]Collector
 	// CollectorSet is a wrapper to define methods for collectors
 	CollectorSet struct{ set collectors }
 )
 
 // NewCollectorSet creates a new CollectorSet based on a map of
-// ouput names to Collector callbacks
+// output names to Collector callbacks
 func NewCollectorSet(set map[string]Collector) *CollectorSet {
 	if set == nil {
 		return &CollectorSet{make(collectors)}
@@ -67,7 +67,7 @@ func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
 		}
 		if value == nil {
 			if must {
-				err := fmt.Errorf("no ouput %q", key)
+				err := fmt.Errorf("no output %q", key)
 				if stack.StackName != nil {
 					return fmt.Errorf("%s in stack %q", err.Error(), *stack.StackName)
 				}

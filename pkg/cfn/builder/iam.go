@@ -152,7 +152,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	// if neither role nor profile are given - create both
 
 	if n.spec.IAM.InstanceRoleName == "" {
-		// setting role name requires addtional capabilities
+		// setting role name requires additional capabilities
 		n.rs.withNamedIAM = true
 	}
 
