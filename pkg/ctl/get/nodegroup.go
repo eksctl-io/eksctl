@@ -25,7 +25,7 @@ func getNodegroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Get nodegroups(s)",
-		Aliases: []string{"ng"},
+		Aliases: []string{"ng", "nodegroups"},
 		Run: func(_ *cobra.Command, args []string) {
 			if err := doGetNodegroups(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
