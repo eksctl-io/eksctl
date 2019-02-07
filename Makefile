@@ -30,7 +30,7 @@ endif
 .PHONY: ci
 ci: lint test ## Target for CI system to invoke to run tests and linting
 
-LINTER ?= gometalinter ./...
+LINTER ?= gometalinter ./pkg/... ./cmd/... ./integration/...
 .PHONY: lint
 lint: ## Run linter over the codebase
 	@$(GOPATH)/bin/$(LINTER)
