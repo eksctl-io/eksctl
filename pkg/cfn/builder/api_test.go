@@ -109,8 +109,8 @@ func testVPC() *api.ClusterVPC {
 		},
 		SecurityGroup:           "sg-0b44c48bcba5b7362",
 		SharedNodeSecurityGroup: "sg-shared",
-		Subnets: map[api.SubnetTopology]map[string]api.Network{
-			"Public": map[string]api.Network{
+		Subnets: &api.ClusterSubnets{
+			Public: map[string]api.Network{
 				"us-west-2b": {
 					ID: "subnet-0f98135715dfcf55f",
 					CIDR: &ipnet.IPNet{
@@ -139,7 +139,7 @@ func testVPC() *api.ClusterVPC {
 					},
 				},
 			},
-			"Private": map[string]api.Network{
+			Private: map[string]api.Network{
 				"us-west-2b": {
 					ID: "subnet-0f98135715dfcf55a",
 					CIDR: &ipnet.IPNet{
@@ -253,7 +253,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}, nil)
 
 		for t := range subnetLists {
-			func(list string, subnetsByAz map[string]api.Network) {
+			fn := func(list string, subnetsByAz map[string]api.Network) {
 				subnets := strings.Split(list, ",")
 
 				output := &ec2.DescribeSubnetsOutput{
@@ -277,7 +277,14 @@ var _ = Describe("CloudFormation template builder API", func() {
 					fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
 					return joinCompare(input, list)
 				})).Return(output, nil)
-			}(subnetLists[t], testVPC.Subnets[t])
+			}
+			switch t {
+			case "Private":
+				fn(subnetLists[t], testVPC.Subnets.Private)
+			case "Public":
+				fn(subnetLists[t], testVPC.Subnets.Public)
+			}
+
 		}
 	}
 
@@ -333,11 +340,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		It("should have public and private subnets", func() {
-			Expect(len(cfg.VPC.Subnets)).To(Equal(2))
-			for _, k := range []api.SubnetTopology{"Public", "Private"} {
-				Expect(cfg.VPC.Subnets).To(HaveKey(k))
-				Expect(len(cfg.VPC.Subnets[k])).To(Equal(3))
-			}
+			Expect(len(cfg.VPC.Subnets.Private)).To(Equal(3))
+			Expect(len(cfg.VPC.Subnets.Public)).To(Equal(3))
 		})
 
 		rs := NewClusterResourceSet(p, cfg)
@@ -546,7 +550,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: AmazonLinux2"))
 			Expect(obj.Description).To(ContainSubstring("SSH access: true"))
-			Expect(obj.Description).To(ContainSubstring("subnet topology: Private"))
+			Expect(obj.Description).To(ContainSubstring("private networking: true"))
 		})
 
 		It("should have correct resources and attributes", func() {
@@ -604,7 +608,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: AmazonLinux2"))
 			Expect(obj.Description).To(ContainSubstring("SSH access: true"))
-			Expect(obj.Description).To(ContainSubstring("subnet topology: Public"))
+			Expect(obj.Description).To(ContainSubstring("private networking: false"))
 		})
 
 		It("should have correct resources and attributes", func() {
@@ -644,8 +648,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 				ID: vpcID,
 			},
 			SecurityGroup: "sg-0b44c48bcba5b7362",
-			Subnets: map[api.SubnetTopology]map[string]api.Network{
-				"Public": map[string]api.Network{
+			Subnets: &api.ClusterSubnets{
+				Public: map[string]api.Network{
 					"us-west-2b": {
 						ID: "subnet-0f98135715dfcf55f",
 					},
@@ -656,7 +660,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 						ID: "subnet-0e2e63ff1712bf6ef",
 					},
 				},
-				"Private": map[string]api.Network{
+				Private: map[string]api.Network{
 					"us-west-2b": {
 						ID: "subnet-0f98135715dfcf55a",
 					},
@@ -699,7 +703,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: AmazonLinux2"))
 			Expect(obj.Description).To(ContainSubstring("SSH access: false"))
-			Expect(obj.Description).To(ContainSubstring("subnet topology: Public"))
+			Expect(obj.Description).To(ContainSubstring("private networking: false"))
 		})
 
 		It("should have correct resources and attributes", func() {
@@ -709,7 +713,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			x, ok := obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier.([]interface{})
 			Expect(ok).To(BeTrue())
 			refSubnets := []interface{}{
-				cfg.VPC.Subnets["Public"]["us-west-2a"].ID,
+				cfg.VPC.Subnets.Public["us-west-2a"].ID,
 			}
 			Expect(x).To((Equal(refSubnets)))
 
@@ -852,7 +856,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: Ubuntu1804"))
 			Expect(obj.Description).To(ContainSubstring("SSH access: false"))
-			Expect(obj.Description).To(ContainSubstring("subnet topology: Public"))
+			Expect(obj.Description).To(ContainSubstring("private networking: false"))
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {

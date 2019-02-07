@@ -14,9 +14,8 @@ const (
 	// outputs from cluster stack
 	ClusterVPC            = "VPC"
 	ClusterSecurityGroup  = "SecurityGroup"
-	ClusterSubnets        = "Subnets"
-	ClusterSubnetsPrivate = string(ClusterSubnets + api.SubnetTopologyPrivate)
-	ClusterSubnetsPublic  = string(ClusterSubnets + api.SubnetTopologyPublic)
+	ClusterSubnetsPrivate = string("Subnets" + api.SubnetTopologyPrivate)
+	ClusterSubnetsPublic  = string("Subnets" + api.SubnetTopologyPublic)
 
 	ClusterCertificateAuthorityData = "CertificateAuthorityData"
 	ClusterEndpoint                 = "Endpoint"
