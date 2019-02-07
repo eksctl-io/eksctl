@@ -62,11 +62,11 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	return nil
 }
 
-func describeSubnets(porvider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
+func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
 	input := &ec2.DescribeSubnetsInput{
 		SubnetIds: aws.StringSlice(subnetIDs),
 	}
-	output, err := porvider.EC2().DescribeSubnets(input)
+	output, err := provider.EC2().DescribeSubnets(input)
 	if err != nil {
 		return nil, err
 	}
