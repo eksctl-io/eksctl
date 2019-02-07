@@ -31,3 +31,4 @@ coverage.out
 # Test results
 test-results/
 
+integration/kubeconfig-*
