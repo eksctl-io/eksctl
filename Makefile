@@ -27,9 +27,6 @@ UNIT_TEST_ARGS ?= -v -ginkgo.v
 INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v
 endif
 
-.PHONY: ci
-ci: lint test ## Target for CI system to invoke to run tests and linting
-
 LINTER ?= gometalinter ./pkg/... ./cmd/... ./integration/...
 .PHONY: lint
 lint: ## Run linter over the codebase
@@ -37,6 +34,7 @@ lint: ## Run linter over the codebase
 
 .PHONY: test
 test: generate ## Run unit test (and re-generate code under test)
+	@$(MAKE) lint
 	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
 	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
 	@$(MAKE) unit-test

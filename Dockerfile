@@ -35,7 +35,6 @@ ENV JUNIT_REPORT_DIR $GOPATH/src/github.com/weaveworks/eksctl/test-results/ginkg
 RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 WORKDIR $EKSCTL
-RUN make lint
 RUN make $TEST_TARGET
 RUN make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
