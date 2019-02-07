@@ -212,7 +212,7 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	for _, s := range stacks {
 		summary, err := c.mapStackToNodeGroupSummary(s)
 		if err != nil {
-			return nil, errors.Wrap(err, "mapping stack to nodegorup summary")
+			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
 
 		if name == "" {
