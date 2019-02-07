@@ -80,7 +80,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 			verb string
 		)
 		if wait {
-			err = stackManager.BlockingWaitDeleteNodeGroup(ng.Name)
+			err = stackManager.BlockingWaitDeleteNodeGroup(ng.Name, false)
 			verb = "was"
 		} else {
 			err = stackManager.DeleteNodeGroup(ng.Name)

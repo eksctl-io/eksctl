@@ -5,6 +5,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/vpc"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -130,22 +133,38 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	stackManager := ctl.NewStackManager(cfg)
 
 	{
-		errs := stackManager.WaitDeleteAllNodeGroups()
-		if len(errs) > 0 {
-			logger.Info("%d error(s) occurred while deleting nodegroup(s)", len(errs))
-			for _, err := range errs {
-				logger.Critical("%s\n", err.Error())
+		tryDeleteAllNodeGroups := func(force bool) error {
+			errs := stackManager.WaitDeleteAllNodeGroups(force)
+			if len(errs) > 0 {
+				logger.Info("%d error(s) occurred while deleting nodegroup(s)", len(errs))
+				for _, err := range errs {
+					logger.Critical("%s\n", err.Error())
+				}
+				return fmt.Errorf("failed to delete nodegroup(s)")
 			}
-			return fmt.Errorf("failed to delete nodegroup(s)")
+			return nil
+		}
+		if err := tryDeleteAllNodeGroups(false); err != nil {
+			logger.Info("will retry deleting nodegroup")
+			logger.Info("trying to cleanup dangling network interfaces")
+			if err := ctl.GetClusterVPC(cfg); err != nil {
+				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+			}
+			if err := vpc.CleanupNetworkInterfaces(ctl.Provider, cfg); err != nil {
+				return err
+			}
+			if err := tryDeleteAllNodeGroups(true); err != nil {
+				return err
+			}
 		}
 		logger.Debug("all nodegroups were deleted")
 	}
 
 	var clusterErr bool
 	if wait {
-		clusterErr = handleIfError(stackManager.WaitDeleteCluster(), "cluster")
+		clusterErr = handleIfError(stackManager.WaitDeleteCluster(true), "cluster")
 	} else {
-		clusterErr = handleIfError(stackManager.DeleteCluster(), "cluster")
+		clusterErr = handleIfError(stackManager.DeleteCluster(true), "cluster")
 	}
 
 	if clusterErr {
