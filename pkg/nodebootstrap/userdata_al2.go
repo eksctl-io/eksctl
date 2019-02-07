@@ -40,13 +40,17 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	config := cloudconfig.New()
 
-	scripts := []string{
-		"bootstrap.al2.sh",
-	}
-
 	files, err := makeAmazonLinux2Config(spec, ng)
 	if err != nil {
 		return "", err
+	}
+
+	scripts := []string{}
+
+	if ng.OverrideBootstrapCommand != nil {
+		config.AddShellCommand(*ng.OverrideBootstrapCommand)
+	} else {
+		scripts = append(scripts, "bootstrap.al2.sh")
 	}
 
 	if err = addFilesAndScripts(config, files, scripts); err != nil {
