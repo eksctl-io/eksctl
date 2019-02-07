@@ -42,7 +42,7 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 			}
 			err := Collect(stack, requiredCollectors, nil)
 			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).To(Equal("no ouput \"" + ClusterVPC + "\""))
+			Expect(err.Error()).To(Equal("no output \"" + ClusterVPC + "\""))
 		}
 
 		{
@@ -65,7 +65,7 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 
 				err := Collect(stack, requiredCollectors, nil)
 				Expect(err).Should(HaveOccurred())
-				Expect(err.Error()).To(Equal("no ouput \"" + ClusterSecurityGroup + "\" in stack \"foo\""))
+				Expect(err.Error()).To(Equal("no output \"" + ClusterSecurityGroup + "\" in stack \"foo\""))
 			}
 
 			appendOutput(&stack, ClusterSecurityGroup, "sg-123")
@@ -109,7 +109,7 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 			}
 			err := Collect(stack, requiredCollectors, nil)
 			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).To(Equal("no ouput \"" + ClusterVPC + "\""))
+			Expect(err.Error()).To(Equal("no output \"" + ClusterVPC + "\""))
 		}
 
 		{

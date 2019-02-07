@@ -211,7 +211,17 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 	i := &Stack{StackName: &name}
 	s, err := c.describeStack(i)
 	if err != nil {
-		return nil, errors.Wrapf(err, "not able to get stack %q for deletion", name)
+		err = errors.Wrapf(err, "not able to get stack %q for deletion", name)
+		stacks, newErr := c.ListStacks(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
+		if newErr != nil {
+			logger.Critical("not able double-check if stack was already deleted: %s", newErr.Error())
+		}
+		if count := len(stacks); count > 0 {
+			logger.Debug("%d deleted stacks found {%v}", count, stacks)
+			logger.Info("stack %q was already deleted", name)
+			return nil, nil
+		}
+		return nil, err
 	}
 	i.StackId = s.StackId
 	for _, tag := range s.Tags {
