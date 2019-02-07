@@ -1,6 +1,10 @@
 package utils
 
 import (
+	"fmt"
+
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -70,4 +74,32 @@ func UpdateAuthConfigMap(cm *corev1.ConfigMap, ngInstanceRoleARN string) error {
 	}
 	appendNodeGroupToAuthConfigMap(&mapRoles, ngInstanceRoleARN)
 	return updateAuthConfigMap(cm, mapRoles)
+}
+
+// RemoveNodeGroupFromAuthConfigMap removes a node group's instance mapped role from the ConfigMap
+func RemoveNodeGroupFromAuthConfigMap(cm *corev1.ConfigMap, ngInstanceRoleARN string) error {
+	if ngInstanceRoleARN == "" {
+		return errors.New("config map is unchanged as the node group instance ARN is not set")
+	}
+	mapRoles := makeMapRolesData()
+	found := false
+	var mapRolesUpdated mapRolesData
+	if err := yaml.Unmarshal([]byte(cm.Data["mapRoles"]), &mapRoles); err != nil {
+		return err
+	}
+
+	for _, role := range mapRoles {
+		if role["rolearn"] == ngInstanceRoleARN {
+			found = true
+			logger.Info("removing %s from config map", ngInstanceRoleARN)
+		} else {
+			mapRolesUpdated = append(mapRolesUpdated, role)
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("instance role ARN %s not found in config map", ngInstanceRoleARN)
+	}
+
+	return updateAuthConfigMap(cm, mapRolesUpdated)
 }

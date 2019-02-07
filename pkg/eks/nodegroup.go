@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/utils"
 
 	corev1 "k8s.io/api/core/v1"
@@ -50,6 +51,26 @@ func (c *ClusterProvider) CreateOrUpdateNodeGroupAuthConfigMap(clientSet *client
 	}
 	if _, err := client.Update(cm); err != nil {
 		return errors.Wrap(err, "updating auth ConfigMap")
+	}
+	logger.Debug("updated auth ConfigMap for %s", ng.Name)
+	return nil
+}
+
+//RemoveNodeGroupAuthConfigMap removes a nodegroup from the config map
+func (c *ClusterProvider) RemoveNodeGroupAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+	client := clientSet.CoreV1().ConfigMaps(utils.AuthConfigMapNamespace)
+
+	cm, err := client.Get(utils.AuthConfigMapName, metav1.GetOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "getting auth ConfigMap")
+	}
+
+	err = utils.RemoveNodeGroupFromAuthConfigMap(cm, ng.IAM.InstanceRoleARN)
+	if err != nil {
+		return errors.Wrapf(err, "removing node group from auth ConfigMap")
+	}
+	if _, err := client.Update(cm); err != nil {
+		return errors.Wrap(err, "updating auth ConfigMap and removing instance role")
 	}
 	logger.Debug("updated auth ConfigMap for %s", ng.Name)
 	return nil
@@ -127,4 +148,18 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 	}
 
 	return nil
+}
+
+// GetNodeGroupIAM retrieves the IAM configuration of the node group
+func (c *ClusterProvider) GetNodeGroupIAM(spec *api.ClusterConfig, ng *api.NodeGroup) error {
+	stacks, err := c.NewStackManager(spec).DescribeNodeGroupStacksAndResources()
+	if err != nil {
+		return err
+	}
+
+	stack, ok := stacks[ng.Name]
+	if !ok {
+		return fmt.Errorf("stack not found for node group %s", ng.Name)
+	}
+	return iam.UseFromNodeGroup(c.Provider, stack.Stack, ng)
 }

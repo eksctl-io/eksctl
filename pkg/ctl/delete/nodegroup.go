@@ -50,6 +50,10 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
+	if err := api.Register(); err != nil {
+		return err
+	}
+
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
@@ -70,9 +74,19 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		return fmt.Errorf("--name must be set")
 	}
 
-	logger.Info("deleting nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
+	if err := ctl.GetCredentials(cfg); err != nil {
+		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	}
 
 	stackManager := ctl.NewStackManager(cfg)
+
+	if ng.IAM.InstanceRoleARN == "" {
+		if err := ctl.GetNodeGroupIAM(cfg, ng); err != nil {
+			logger.Warning("%s getting instance role ARN for node group %q", err.Error(), ng.Name)
+		}
+	}
+
+	logger.Info("deleting nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
 
 	{
 		var (
@@ -90,6 +104,25 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 			return errors.Wrapf(err, "failed to delete nodegroup %q", ng.Name)
 		}
 		logger.Success("nodegroup %q %s deleted", ng.Name, verb)
+	}
+
+	{ // post-deletion action
+		clientConfigBase, err := ctl.NewClientConfig(cfg)
+		if err != nil {
+			return err
+		}
+
+		clientConfig := clientConfigBase.WithExecAuthenticator()
+
+		clientSet, err := clientConfig.NewClientSet()
+		if err != nil {
+			return err
+		}
+
+		// remove node group from config map
+		if err := ctl.RemoveNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+			logger.Warning(err.Error())
+		}
 	}
 
 	return nil
