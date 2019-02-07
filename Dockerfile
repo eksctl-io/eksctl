@@ -35,10 +35,12 @@ ENV JUNIT_REPORT_DIR $GOPATH/src/github.com/weaveworks/eksctl/test-results/ginkg
 RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 WORKDIR $EKSCTL
-RUN make $TEST_TARGET
 RUN make lint
+RUN make $TEST_TARGET
 RUN make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
+RUN make build-integration-test \
+    && cp ./eksctl-integration-test /out/usr/local/bin/eksctl-integration-test
 
 RUN go build ./vendor/github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
     && cp ./aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator

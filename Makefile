@@ -8,14 +8,6 @@ EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 .DEFAULT_GOAL := help
 
-ifneq ($(TEST_V),)
-TEST_ARGS ?= -v -ginkgo.v
-endif
-
-ifneq ($(DELETE_TEST_CLUSTER),)
-INTEGRATION_TEST_ARGS ?= -eksctl.delete=false
-endif
-
 ##@ Dependencies
 
 .PHONY: install-build-deps
@@ -30,34 +22,59 @@ build: ## Build eksctl
 
 ##@ Testing & CI
 
-.PHONY: test
-test: generate ## Run unit test (and re-generate code under test)
-	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
-	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
-	@$(MAKE) unit-test
-	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
-	@go test -tags integration ./integration/... -c && rm -f integration.test
+ifneq ($(TEST_V),)
+UNIT_TEST_ARGS ?= -v -ginkgo.v
+INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v
+endif
 
-.PHONY: unit-test
-unit-test: ## Run unit test only
-	@CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(TEST_ARGS)
+.PHONY: ci
+ci: lint test ## Target for CI system to invoke to run tests and linting
 
 LINTER ?= gometalinter ./...
 .PHONY: lint
 lint: ## Run linter over the codebase
 	@$(GOPATH)/bin/$(LINTER)
 
-.PHONY: ci
-ci: test lint ## Target for CI system to invoke to run tests and linting
+.PHONY: test
+test: generate ## Run unit test (and re-generate code under test)
+	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
+	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
+	@$(MAKE) unit-test
+	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
+	@$(MAKE) build-integration-test
+
+.PHONY: unit-test
+unit-test: ## Run unit test only
+	@CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+
+.PHONY: build-integration-test
+build-integration-test: ## Build integration test binary
+	@go test -tags integration ./integration/... -c -o ./eksctl-integration-test
+
+.PHONY: integration-test
+integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
+	@./eksctl-integration-test -test.timeout 60m \
+		$(INTEGRATION_TEST_ARGS)
+
+.PHONY: integration-test-container
+integration-test-container: eksctl-image
+	@docker run \
+	  --env=AWS_PROFILE \
+	  --volume=$(HOME)/.aws:/root/.aws \
+	    $(EKSCTL_IMAGE) \
+		  eksctl-integration-test \
+		    -eksctl.path=/usr/local/bin/eksctl \
+			-eksctl.kubeconfig=/tmp/kubeconfig \
+			  $(INTEGRATION_TEST_ARGS)
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
-integration-test-dev: build ## Run the integration tests without cluster teardown. For use when developing integration tests.
+integration-test-dev: build build-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
 	@./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
-	@go test -tags integration -timeout 21m ./integration/... \
-		$(TEST_ARGS) \
+	@./eksctl-integration-test -test.timeout 21m \
+		$(INTEGRATION_TEST_ARGS) \
 		-args \
 		-eksctl.cluster=$(TEST_CLUSTER) \
 		-eksctl.create=false \
@@ -69,10 +86,6 @@ create-integration-test-dev-cluster: build ## Create a test cluster for use when
 
 delete-integration-test-dev-cluster: build ## Delete the test cluster for use when developing integration tests
 	@./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig
-
-.PHONY: integration-test
-integration-test: build ## Run the integration tests (with cluster creation and cleanup)
-	@go test -tags integration -timeout 60m ./integration/... $(TEST_ARGS) $(INTEGRATION_TEST_ARGS)
 
 ##@ Code Generation
 
