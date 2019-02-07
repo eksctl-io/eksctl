@@ -61,6 +61,7 @@ integration-test-container: eksctl-image
 	@docker run \
 	  --env=AWS_PROFILE \
 	  --volume=$(HOME)/.aws:/root/.aws \
+	  --workdir=/usr/local/share/eksctl \
 	    $(EKSCTL_IMAGE) \
 		  eksctl-integration-test \
 		    -eksctl.path=/usr/local/bin/eksctl \

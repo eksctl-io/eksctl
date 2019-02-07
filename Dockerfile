@@ -40,6 +40,8 @@ RUN make $TEST_TARGET
 RUN make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 RUN make build-integration-test \
+    && mkdir -p /out/usr/local/share/eksctl \
+    && cp integration/*.yaml /out/usr/local/share/eksctl \
     && cp ./eksctl-integration-test /out/usr/local/bin/eksctl-integration-test
 
 RUN go build ./vendor/github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
