@@ -27,6 +27,10 @@ UNIT_TEST_ARGS ?= -v -ginkgo.v
 INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v
 endif
 
+ifneq ($(INTEGRATION_TEST_FOCUS),)
+INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v -ginkgo.focus "$(INTEGRATION_TEST_FOCUS)"
+endif
+
 LINTER ?= gometalinter ./pkg/... ./cmd/... ./integration/...
 .PHONY: lint
 lint: ## Run linter over the codebase
@@ -51,7 +55,7 @@ build-integration-test: ## Build integration test binary
 
 .PHONY: integration-test
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
-	@./eksctl-integration-test -test.timeout 60m \
+	@cd integration; ../eksctl-integration-test -test.timeout 60m \
 		$(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
@@ -72,9 +76,8 @@ integration-test-dev: build build-integration-test ## Run the integration tests 
 	@./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
-	@./eksctl-integration-test -test.timeout 21m \
+	@cd integration ; ../eksctl-integration-test -test.timeout 21m \
 		$(INTEGRATION_TEST_ARGS) \
-		-args \
 		-eksctl.cluster=$(TEST_CLUSTER) \
 		-eksctl.create=false \
 		-eksctl.delete=false \
