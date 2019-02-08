@@ -403,7 +403,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(templateBody).ShouldNot(BeEmpty())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors", func() {
+		It("should parse JSON without errors", func() {
 			err := json.Unmarshal(templateBody, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -438,7 +438,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors", func() {
+		It("should parse JSON without errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -471,7 +471,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors", func() {
+		It("should parse JSON without errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -544,7 +544,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors", func() {
+		It("should parse JSON without errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -602,7 +602,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		obj := Template{}
-		It("should parse JSON withon errors", func() {
+		It("should parse JSON without errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -697,7 +697,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors", func() {
+		It("should parse JSON without errors", func() {
 			err := json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -778,7 +778,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors and extract valid cloud-config using our implementation", func() {
+		It("should parse JSON without errors and extract valid cloud-config using our implementation", func() {
 			err = json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(obj.Resources)).ToNot(Equal(0))
@@ -846,7 +846,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors and extract valid cloud-config using our implementation", func() {
+		It("should parse JSON without errors and extract valid cloud-config using our implementation", func() {
 			err = json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(obj.Resources)).ToNot(Equal(0))
@@ -918,7 +918,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors and extract valid cloud-config using our implementation", func() {
+		It("should parse JSON without errors and extract valid cloud-config using our implementation", func() {
 			err = json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(obj.Resources)).ToNot(Equal(0))
@@ -990,7 +990,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		obj := Template{}
-		It("should parse JSON withon errors and extract valid cloud-config using our implementation", func() {
+		It("should parse JSON without errors and extract valid cloud-config using our implementation", func() {
 			err = json.Unmarshal(template, &obj)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(len(obj.Resources)).ToNot(Equal(0))
