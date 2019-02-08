@@ -155,7 +155,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(len(nodes.Items)).To(Equal(8))
 			})
 
-			Context("and we create a deployment and access pods via proxy", func() {
+			Context("create test workloads", func() {
 				var (
 					err  error
 					test *harness.Test
@@ -164,14 +164,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				BeforeEach(func() {
 					test, err = newKubeTest()
 					Expect(err).ShouldNot(HaveOccurred())
-					test.CreateNamespace(test.Namespace)
 				})
 
 				AfterEach(func() {
 					test.Close()
 				})
 
-				It("should deploy podinfo service to the cluster", func() {
+				It("should deploy podinfo service to the cluster and access it via proxy", func() {
 					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
 					test.WaitForDeploymentReady(d, 1*time.Minute)
 
@@ -194,10 +193,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have functional DNS", func() {
-					test, err := newKubeTest()
-					Expect(err).ShouldNot(HaveOccurred())
-					defer test.Close()
-
 					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
 
 					test.WaitForDaemonSetReady(d, 3*time.Minute)
@@ -210,10 +205,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have access to HTTP(S) sites", func() {
-					test, err := newKubeTest()
-					Expect(err).ShouldNot(HaveOccurred())
-					defer test.Close()
-
 					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
 
 					test.WaitForDaemonSetReady(d, 3*time.Minute)
