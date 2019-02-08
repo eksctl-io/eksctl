@@ -355,6 +355,9 @@ type NodeGroup struct {
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
+
+	// +optional
+	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

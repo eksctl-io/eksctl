@@ -36,13 +36,17 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 func NewUserDataForUbuntu1804(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	config := cloudconfig.New()
 
-	scripts := []string{
-		"bootstrap.ubuntu.sh",
-	}
-
 	files, err := makeUbuntu1804Config(spec, ng)
 	if err != nil {
 		return "", err
+	}
+
+	scripts := []string{}
+
+	if ng.OverrideBootstrapCommand != nil {
+		config.AddShellCommand(*ng.OverrideBootstrapCommand)
+	} else {
+		scripts = append(scripts, "bootstrap.ubuntu.sh")
 	}
 
 	if err = addFilesAndScripts(config, files, scripts); err != nil {
