@@ -168,6 +168,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				AfterEach(func() {
 					test.Close()
+					Eventually(func() int {
+						return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
+					}, "3m", "1s").Should(BeZero())
 				})
 
 				It("should deploy podinfo service to the cluster and access it via proxy", func() {
