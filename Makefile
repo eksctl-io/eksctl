@@ -60,6 +60,10 @@ integration-test: build build-integration-test ## Run the integration tests (wit
 
 .PHONY: integration-test-container
 integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
+	$(MAKE) integration-test-container-pre-built
+
+.PHONY: integration-test-container-pre-built
+integration-test-container-pre-built: ## Run the integration tests inside a Docker container
 	@docker run \
 	  --env=AWS_PROFILE \
 	  --volume=$(HOME)/.aws:/root/.aws \
