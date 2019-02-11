@@ -80,6 +80,7 @@ integration-test-dev: build build-integration-test ## Run the integration tests 
 	@./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
+	$(info it is recommended to watch events with "kubectl get events --watch --all-namespaces --kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)")
 	@cd integration ; ../eksctl-integration-test -test.timeout 21m \
 		$(INTEGRATION_TEST_ARGS) \
 		-eksctl.cluster=$(TEST_CLUSTER) \
