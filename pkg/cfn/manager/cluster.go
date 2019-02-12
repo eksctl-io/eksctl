@@ -51,14 +51,14 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 }
 
 // DeleteCluster deletes the cluster
-func (c *StackCollection) DeleteCluster() error {
-	_, err := c.DeleteStack(c.makeClusterStackName())
+func (c *StackCollection) DeleteCluster(force bool) error {
+	_, err := c.DeleteStack(c.makeClusterStackName(), force)
 	return err
 }
 
 // WaitDeleteCluster waits till the cluster is deleted
-func (c *StackCollection) WaitDeleteCluster() error {
-	return c.BlockingWaitDeleteStack(c.makeClusterStackName())
+func (c *StackCollection) WaitDeleteCluster(force bool) error {
+	return c.BlockingWaitDeleteStack(c.makeClusterStackName(), force)
 }
 
 // AppendNewClusterStackResource will update cluster

@@ -116,20 +116,28 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 // DeleteNodeGroup deletes a nodegroup stack
 func (c *StackCollection) DeleteNodeGroup(name string) error {
 	name = c.MakeNodeGroupStackName(name)
-	_, err := c.DeleteStack(name)
+	_, err := c.DeleteStack(name, false)
 	return err
 }
 
-// WaitDeleteNodeGroup waits until the nodegroup is deleted
+// WaitDeleteNodeGroup waits until the nodegroup is deleted,
+// it calls WaitDeleteStack without force
 func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
 	name := c.MakeNodeGroupStackName(data.(string))
-	return c.WaitDeleteStack(name, errs)
+	return c.WaitDeleteStack(name, false, errs)
+}
+
+// WaitForceDeleteNodeGroup waits until the nodegroup is deleted,
+// it calls WaitDeleteStack with force
+func (c *StackCollection) WaitForceDeleteNodeGroup(errs chan error, data interface{}) error {
+	name := c.MakeNodeGroupStackName(data.(string))
+	return c.WaitDeleteStack(name, true, errs)
 }
 
 // BlockingWaitDeleteNodeGroup waits until the nodegroup is deleted
-func (c *StackCollection) BlockingWaitDeleteNodeGroup(name string) error {
+func (c *StackCollection) BlockingWaitDeleteNodeGroup(name string, force bool) error {
 	name = c.MakeNodeGroupStackName(name)
-	return c.BlockingWaitDeleteStack(name)
+	return c.BlockingWaitDeleteStack(name, force)
 }
 
 // ScaleNodeGroup will scale an existing nodegroup
