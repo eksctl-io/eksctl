@@ -201,17 +201,25 @@ func deleteClusterInfo(existing *clientcmdapi.Config, cl *api.ClusterMeta) bool 
 		isChanged = true
 	}
 
-	for username, context := range existing.Contexts {
+	var currentContextName string
+	for name, context := range existing.Contexts {
 		if context.Cluster == clusterName {
-			delete(existing.Contexts, username)
-			logger.Debug("removed context for %q from kubeconfig", username)
+			delete(existing.Contexts, name)
+			logger.Debug("removed context for %q from kubeconfig", name)
 			isChanged = true
-			if existing.AuthInfos[username] != nil {
-				delete(existing.AuthInfos, username)
-				logger.Debug("removed auth info for %q from kubeconfig", username)
+			if existing.AuthInfos[name] != nil {
+				delete(existing.AuthInfos, name)
+				logger.Debug("removed auth info for %q from kubeconfig", name)
 			}
+			currentContextName = name
 			break
 		}
+	}
+
+	if existing.CurrentContext == currentContextName {
+		existing.CurrentContext = ""
+		logger.Debug("removed current-context %q from kubeconfig", currentContextName)
+		isChanged = true
 	}
 
 	return isChanged

@@ -17,13 +17,16 @@ import (
 var _ = Describe("Kubeconfig", func() {
 	var configFile *os.File
 
+	var contextName = "test-context"
+
 	var testConfig = api.Config{
 		AuthInfos: map[string]*api.AuthInfo{
 			"test-user": {Token: "test-token"}},
 		Clusters: map[string]*api.Cluster{
 			"test-cluster": {Server: "https://127.0.0.1:8443"}},
 		Contexts: map[string]*api.Context{
-			"test-context": {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
+			contextName: {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
+		CurrentContext: contextName,
 	}
 
 	BeforeEach(func() {
@@ -168,10 +171,12 @@ var _ = Describe("Kubeconfig", func() {
 		}
 
 		var (
-			oneClusterAsBytes       []byte
-			twoClustersAsBytes      []byte
-			kubeconfigPathToRestore string
-			hasKubeconfigPath       bool
+			emptyClusterAsBytes             []byte
+			oneClusterAsBytes               []byte
+			twoClustersAsBytes              []byte
+			oneClusterWithoutContextAsBytes []byte
+			kubeconfigPathToRestore         string
+			hasKubeconfigPath               bool
 		)
 
 		// Returns an ClusterConfig with a cluster name equal to the provided clusterName.
@@ -203,11 +208,19 @@ var _ = Describe("Kubeconfig", func() {
 
 			var err error
 
+			if emptyClusterAsBytes, err = ioutil.ReadFile("testdata/empty_cluster.golden"); err != nil {
+				GinkgoT().Fatalf("failed reading .golden: %v", err)
+			}
+
 			if oneClusterAsBytes, err = ioutil.ReadFile("testdata/one_cluster.golden"); err != nil {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
 			if twoClustersAsBytes, err = ioutil.ReadFile("testdata/two_clusters.golden"); err != nil {
+				GinkgoT().Fatalf("failed reading .golden: %v", err)
+			}
+
+			if oneClusterWithoutContextAsBytes, err = ioutil.ReadFile("testdata/one_cluster_without_context.golden"); err != nil {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
@@ -219,7 +232,28 @@ var _ = Describe("Kubeconfig", func() {
 			RestoreKubeconfig()
 		})
 
-		It("removes a cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
+		It("removes the only current cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
+			_, err := configFile.Write(oneClusterAsBytes)
+			Expect(err).To(BeNil())
+
+			existingClusterConfig := GetClusterConfig("cluster-one")
+			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
+
+			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			Expect(err).To(BeNil())
+			Expect(bytes.Equal(configFileAsBytes, emptyClusterAsBytes)).To(BeTrue(), "Failed to delete cluster from config")
+		})
+
+		It("removes current cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
+			existingClusterConfig := GetClusterConfig("cluster-one")
+			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
+
+			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			Expect(err).To(BeNil())
+			Expect(bytes.Equal(configFileAsBytes, oneClusterWithoutContextAsBytes)).To(BeTrue(), "Failed to delete cluster from config")
+		})
+
+		It("removes a secondary cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
 			existingClusterConfig := GetClusterConfig("cluster-two")
 			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
 
