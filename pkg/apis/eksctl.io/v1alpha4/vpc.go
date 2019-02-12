@@ -92,22 +92,28 @@ func (c *ClusterConfig) PublicSubnetIDs() []string {
 
 // ImportSubnet loads a given subnet into cluster config
 func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) error {
-	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
-
 	if c.VPC.Subnets == nil {
 		c.VPC.Subnets = &ClusterSubnets{}
 	}
 
-	var subnets map[string]Network
 	switch topology {
 	case SubnetTopologyPrivate:
-		subnets = c.VPC.Subnets.Private
+		if c.VPC.Subnets.Private == nil {
+			c.VPC.Subnets.Private = make(map[string]Network)
+		}
+		return doImportSubnet(c.VPC.Subnets.Private, az, subnetID, cidr)
 	case SubnetTopologyPublic:
-		subnets = c.VPC.Subnets.Public
+		if c.VPC.Subnets.Public == nil {
+			c.VPC.Subnets.Public = make(map[string]Network)
+		}
+		return doImportSubnet(c.VPC.Subnets.Public, az, subnetID, cidr)
+	default:
+		return fmt.Errorf("unexpected subnet topology: %s", topology)
 	}
-	if subnets == nil {
-		subnets = make(map[string]Network)
-	}
+}
+
+func doImportSubnet(subnets map[string]Network, az, subnetID, cidr string) error {
+	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
 
 	if network, ok := subnets[az]; !ok {
 		subnets[az] = Network{ID: subnetID, CIDR: subnetCIDR}
