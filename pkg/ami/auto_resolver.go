@@ -13,7 +13,7 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 	"1.10": {
 		ImageFamilyAmazonLinux2: {
 			ImageClassGeneral: "amazon-eks-node-1.10-v*",
-			ImageClassGPU:     "amazon-eks-gpu-node-1.10-v*",
+			ImageClassGPU:     "amazon-eks-gpu-node-1.10-*",
 		},
 		ImageFamilyUbuntu1804: {
 			ImageClassGeneral: "ubuntu-eks/1.10.3/*",
@@ -22,7 +22,7 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 	"1.11": {
 		ImageFamilyAmazonLinux2: {
 			ImageClassGeneral: "amazon-eks-node-1.11-v*",
-			ImageClassGPU:     "amazon-eks-gpu-node-1.11-v*",
+			ImageClassGPU:     "amazon-eks-gpu-node-1.11-*",
 		},
 		ImageFamilyUbuntu1804: {
 			ImageClassGeneral: "ubuntu-eks/1.11.5/*",
