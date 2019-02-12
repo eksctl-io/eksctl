@@ -12,6 +12,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 var updateClusterStackDryRun = true
@@ -49,6 +50,12 @@ func updateClusterStackCmd(g *cmdutils.Grouping) *cobra.Command {
 func doUpdateClusterStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
+	printer := printers.NewJSONPrinter()
+
+	if err := api.Register(); err != nil {
+		return err
+	}
+
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
@@ -67,6 +74,10 @@ func doUpdateClusterStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nam
 
 	if err := ctl.GetClusterVPC(cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+	}
+
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+		return err
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
