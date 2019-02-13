@@ -19,3 +19,13 @@ Topics:
 - docs and website
     - need to separate basic usage, getting-started vs advanced config file examples
 
+### 13/02/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+
+Topics:
+- 0.1.20 release update - it's out
+- next release and `v1alpha5`
+- separation of `NodeGroupConfig` object, so that nodegroups can be managed with a config file
