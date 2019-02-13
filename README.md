@@ -170,6 +170,8 @@ To delete a cluster, run:
 ```
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
+> NOTE: Cluster info will be cleaned up in kubernetes config file. Please run `kubectl config get-contexts` to select right context.
+
 
 ### Managing nodegroups
 
