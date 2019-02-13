@@ -263,6 +263,9 @@ func getNodeGroupName(s *Stack) string {
 			return *tag.Value
 		}
 	}
+	if strings.HasSuffix(*s.StackName, "-nodegroup-0") {
+		return "legacy-nodegroup-0"
+	}
 	if strings.HasSuffix(*s.StackName, "-DefaultNodeGroup") {
 		return "legacy-default"
 	}
