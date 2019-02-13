@@ -84,8 +84,10 @@ func (c *ClusterConfig) PrivateSubnetIDs() []string {
 // PublicSubnetIDs returns list of subnets
 func (c *ClusterConfig) PublicSubnetIDs() []string {
 	subnets := []string{}
-	for _, s := range c.VPC.Subnets.Public {
-		subnets = append(subnets, s.ID)
+	if c.VPC.Subnets != nil {
+		for _, s := range c.VPC.Subnets.Public {
+			subnets = append(subnets, s.ID)
+		}
 	}
 	return subnets
 }
