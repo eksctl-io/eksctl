@@ -222,5 +222,15 @@ func deleteClusterInfo(existing *clientcmdapi.Config, cl *api.ClusterMeta) bool 
 		isChanged = true
 	}
 
+	if parts := strings.Split(existing.CurrentContext, "@"); len(parts) == 2 {
+		if strings.HasSuffix(parts[1], "eksctl.io") {
+			if _, ok := existing.Contexts[existing.CurrentContext]; !ok {
+				existing.CurrentContext = ""
+				logger.Debug("reset stale current-context in kubeconfig", currentContextName)
+				isChanged = true
+			}
+		}
+	}
+
 	return isChanged
 }

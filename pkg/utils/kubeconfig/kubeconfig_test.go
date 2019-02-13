@@ -170,12 +170,13 @@ var _ = Describe("Kubeconfig", func() {
 		}
 
 		var (
-			emptyClusterAsBytes             []byte
-			oneClusterAsBytes               []byte
-			twoClustersAsBytes              []byte
-			oneClusterWithoutContextAsBytes []byte
-			kubeconfigPathToRestore         string
-			hasKubeconfigPath               bool
+			emptyClusterAsBytes               []byte
+			oneClusterAsBytes                 []byte
+			twoClustersAsBytes                []byte
+			oneClusterWithoutContextAsBytes   []byte
+			oneClusterWithStaleContextAsBytes []byte
+			kubeconfigPathToRestore           string
+			hasKubeconfigPath                 bool
 		)
 
 		// Returns an ClusterConfig with a cluster name equal to the provided clusterName.
@@ -223,6 +224,10 @@ var _ = Describe("Kubeconfig", func() {
 				GinkgoT().Fatalf("failed reading .golden: %v", err)
 			}
 
+			if oneClusterWithStaleContextAsBytes, err = ioutil.ReadFile("testdata/one_cluster_with_stale_context.golden"); err != nil {
+				GinkgoT().Fatalf("failed reading .golden: %v", err)
+			}
+
 			_, err = configFile.Write(twoClustersAsBytes)
 			Expect(err).To(BeNil())
 		})
@@ -250,6 +255,19 @@ var _ = Describe("Kubeconfig", func() {
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(oneClusterWithoutContextAsBytes), "Failed to delete cluster from config")
+		})
+
+		It("removes current cluster from the kubeconfig and clears stale context", func() {
+			_, err := configFile.Write(oneClusterWithStaleContextAsBytes)
+			Expect(err).To(BeNil())
+
+			existingClusterConfig := GetClusterConfig("cluster-one")
+			kubeconfig.MaybeDeleteConfig(existingClusterConfig.Metadata)
+
+			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
+			Expect(err).To(BeNil())
+			Expect(configFileAsBytes).To(MatchYAML(oneClusterWithoutContextAsBytes), "Updated config")
+
 		})
 
 		It("removes a secondary cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
