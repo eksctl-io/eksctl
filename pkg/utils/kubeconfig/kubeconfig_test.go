@@ -1,7 +1,6 @@
 package kubeconfig_test
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 
@@ -241,7 +240,7 @@ var _ = Describe("Kubeconfig", func() {
 
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
-			Expect(bytes.Equal(configFileAsBytes, emptyClusterAsBytes)).To(BeTrue(), "Failed to delete cluster from config")
+			Expect(configFileAsBytes).To(MatchYAML(emptyClusterAsBytes), "Failed to delete cluster from config")
 		})
 
 		It("removes current cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
@@ -250,7 +249,7 @@ var _ = Describe("Kubeconfig", func() {
 
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
-			Expect(bytes.Equal(configFileAsBytes, oneClusterWithoutContextAsBytes)).To(BeTrue(), "Failed to delete cluster from config")
+			Expect(configFileAsBytes).To(MatchYAML(oneClusterWithoutContextAsBytes), "Failed to delete cluster from config")
 		})
 
 		It("removes a secondary cluster from the kubeconfig if the kubeconfig file includes the cluster", func() {
@@ -259,7 +258,7 @@ var _ = Describe("Kubeconfig", func() {
 
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
-			Expect(bytes.Equal(configFileAsBytes, oneClusterAsBytes)).To(BeTrue(), "Failed to delete cluster from config")
+			Expect(configFileAsBytes).To(MatchYAML(oneClusterAsBytes), "Failed to delete cluster from config")
 		})
 
 		It("not change the kubeconfig if the kubeconfig does not include the cluster", func() {
@@ -268,7 +267,7 @@ var _ = Describe("Kubeconfig", func() {
 
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
-			Expect(bytes.Equal(configFileAsBytes, twoClustersAsBytes)).To(BeTrue(), "Should not change")
+			Expect(configFileAsBytes).To(MatchYAML(twoClustersAsBytes), "Should not change")
 		})
 	})
 })
