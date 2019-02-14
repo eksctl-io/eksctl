@@ -30,6 +30,7 @@ Daniel Herman           @dcherman
 Takuma Hashimoto        @af12066
 Yasuhiro Hara           @toricls
 Jiaxin Shan             @Jeffwan
+tiffany jernigan        @tiffanyfay
 
 /* Thanks */
 
