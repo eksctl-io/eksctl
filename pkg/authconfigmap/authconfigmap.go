@@ -19,15 +19,21 @@ import (
 type mapRolesData []map[string]interface{}
 
 const (
-	// AuthConfigMapName is the name of the ConfigMap
-	AuthConfigMapName = "aws-auth"
-	// AuthConfigMapNamespace is the namespace of the ConfigMap
-	AuthConfigMapNamespace = "kube-system"
+	objectName      = "aws-auth"
+	objectNamespace = "kube-system"
 )
+
+// ObjectMeta constructs metadata for the configmap
+func ObjectMeta() metav1.ObjectMeta {
+	return metav1.ObjectMeta{
+		Name:      objectName,
+		Namespace: objectNamespace,
+	}
+}
 
 func makeMapRolesData() mapRolesData { return []map[string]interface{}{} }
 
-func appendNodeRoleToMapRoles(mapRoles *mapRolesData, ngInstanceRoleARN string) {
+func appendNodeRole(mapRoles *mapRolesData, ngInstanceRoleARN string) {
 	newEntry := map[string]interface{}{
 		"rolearn":  ngInstanceRoleARN,
 		"username": "system:node:{{EC2PrivateDNSName}}",
@@ -45,10 +51,7 @@ func new(mapRoles *mapRolesData) (*corev1.ConfigMap, error) {
 		return nil, err
 	}
 	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      AuthConfigMapName,
-			Namespace: AuthConfigMapNamespace,
-		},
+		ObjectMeta: ObjectMeta(),
 		Data: map[string]string{
 			"mapRoles": string(mapRolesBytes),
 		},
@@ -56,14 +59,7 @@ func new(mapRoles *mapRolesData) (*corev1.ConfigMap, error) {
 	return cm, nil
 }
 
-// New creates ConfigMap with a single nodegroup ARN
-func New(ngInstanceRoleARN string) (*corev1.ConfigMap, error) {
-	mapRoles := makeMapRolesData()
-	appendNodeRoleToMapRoles(&mapRoles, ngInstanceRoleARN)
-	return new(&mapRoles)
-}
-
-func updateAuthConfigMap(cm *corev1.ConfigMap, mapRoles *mapRolesData) error {
+func update(cm *corev1.ConfigMap, mapRoles *mapRolesData) error {
 	mapRolesBytes, err := yaml.Marshal(*mapRoles)
 	if err != nil {
 		return err
@@ -72,37 +68,48 @@ func updateAuthConfigMap(cm *corev1.ConfigMap, mapRoles *mapRolesData) error {
 	return nil
 }
 
-// AddNodeRoleToAuthConfigMap updates ConfigMap by appending a single nodegroup ARN
-func AddNodeRoleToAuthConfigMap(cm *corev1.ConfigMap, ngInstanceRoleARN string) error {
+// NewForRole creates ConfigMap with a single role ARN
+func NewForRole(arn string) (*corev1.ConfigMap, error) {
+	mapRoles := makeMapRolesData()
+	appendNodeRole(&mapRoles, arn)
+	return new(&mapRoles)
+}
+
+// AddRole updates ConfigMap by appending a single nodegroup ARN
+func AddRole(cm *corev1.ConfigMap, arn string) error {
 	mapRoles := makeMapRolesData()
 	if err := yaml.Unmarshal([]byte(cm.Data["mapRoles"]), &mapRoles); err != nil {
 		return err
 	}
-	appendNodeRoleToMapRoles(&mapRoles, ngInstanceRoleARN)
-	return updateAuthConfigMap(cm, &mapRoles)
+	appendNodeRole(&mapRoles, arn)
+	return update(cm, &mapRoles)
 }
 
-// CreateOrAddNodeGroupRole creates or adds a node group IAM role the auth config map for the given nodegroup
-func CreateOrAddNodeGroupRole(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+// AddNodeGroup creates or adds a nodegroup IAM role in the auth config map for the given nodegroup
+func AddNodeGroup(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
 	cm := &corev1.ConfigMap{}
-	client := clientSet.CoreV1().ConfigMaps(AuthConfigMapNamespace)
+	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
 	create := false
 
-	if existing, err := client.Get(AuthConfigMapName, metav1.GetOptions{}); err != nil {
+	// check if object exists
+	if existing, err := client.Get(objectName, metav1.GetOptions{}); err != nil {
 		if kerr.IsNotFound(err) {
-			create = true
+			create = true // doesn't exsits, will create
 		} else {
+			// something must have gone terribly wrong
 			return errors.Wrapf(err, "getting auth ConfigMap")
 		}
 	} else {
-		*cm = *existing
+		*cm = *existing // use existing object
 	}
 
 	if create {
-		cm, err := New(ng.IAM.InstanceRoleARN)
+		// build new object with the given role
+		cm, err := NewForRole(ng.IAM.InstanceRoleARN)
 		if err != nil {
 			return errors.Wrap(err, "constructing auth ConfigMap")
 		}
+		// and create it in the cluster
 		if _, err := client.Create(cm); err != nil {
 			return errors.Wrap(err, "creating auth ConfigMap")
 		}
@@ -110,9 +117,11 @@ func CreateOrAddNodeGroupRole(clientSet *clientset.Clientset, ng *api.NodeGroup)
 		return nil
 	}
 
-	if err := AddNodeRoleToAuthConfigMap(cm, ng.IAM.InstanceRoleARN); err != nil {
+	// in case we already have an onject, and the given role to it
+	if err := AddRole(cm, ng.IAM.InstanceRoleARN); err != nil {
 		return errors.Wrap(err, "creating an update for auth ConfigMap")
 	}
+	// and update it in the cluster
 	if _, err := client.Update(cm); err != nil {
 		return errors.Wrap(err, "updating auth ConfigMap")
 	}
@@ -120,54 +129,54 @@ func CreateOrAddNodeGroupRole(clientSet *clientset.Clientset, ng *api.NodeGroup)
 	return nil
 }
 
-func removeNodeRoleFromMapRoles(mapRoles *mapRolesData, ngInstanceRoleARN string) (mapRolesData, error) {
+func doRemoveRole(mapRoles *mapRolesData, arn string) (mapRolesData, error) {
 	found := false
 	mapRolesUpdated := makeMapRolesData()
 
 	for _, role := range *mapRoles {
-		if role["rolearn"] == ngInstanceRoleARN && !found {
+		if role["rolearn"] == arn && !found {
 			found = true
-			logger.Info("removing %s from config map", ngInstanceRoleARN)
+			logger.Info("removing %s from config map", arn)
 		} else {
 			mapRolesUpdated = append(mapRolesUpdated, role)
 		}
 	}
 
 	if !found {
-		return nil, fmt.Errorf("instance role ARN %s not found in config map", ngInstanceRoleARN)
+		return nil, fmt.Errorf("instance role ARN %s not found in config map", arn)
 	}
 
 	return mapRolesUpdated, nil
 }
 
-// RemoveNodeRoleFromAuthConfigMap removes a node group's instance mapped role from the config map
-func RemoveNodeRoleFromAuthConfigMap(cm *corev1.ConfigMap, ngInstanceRoleARN string) error {
+// RemoveRole removes a nodegroup's instance mapped role from the config map
+func RemoveRole(cm *corev1.ConfigMap, ngInstanceRoleARN string) error {
 	if ngInstanceRoleARN == "" {
-		return errors.New("config map is unchanged as the node group instance ARN is not set")
+		return errors.New("config map is unchanged as the nodegroup instance ARN is not set")
 	}
 	mapRoles := makeMapRolesData()
 
 	if err := yaml.Unmarshal([]byte(cm.Data["mapRoles"]), &mapRoles); err != nil {
 		return err
 	}
-	mapRolesUpdated, err := removeNodeRoleFromMapRoles(&mapRoles, ngInstanceRoleARN)
+	mapRolesUpdated, err := doRemoveRole(&mapRoles, ngInstanceRoleARN)
 	if err != nil {
 		return err
 	}
-	return updateAuthConfigMap(cm, &mapRolesUpdated)
+	return update(cm, &mapRolesUpdated)
 }
 
-// RemoveNodeGroupRole removes a nodegroup from the config map and does a client update
-func RemoveNodeGroupRole(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
-	client := clientSet.CoreV1().ConfigMaps(AuthConfigMapNamespace)
+// RemoveNodeGroup removes a nodegroup from the config map and does a client update
+func RemoveNodeGroup(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
 
-	cm, err := client.Get(AuthConfigMapName, metav1.GetOptions{})
+	cm, err := client.Get(objectName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "getting auth ConfigMap")
 	}
 
-	if err := RemoveNodeRoleFromAuthConfigMap(cm, ng.IAM.InstanceRoleARN); err != nil {
-		return errors.Wrapf(err, "removing node group from auth ConfigMap")
+	if err := RemoveRole(cm, ng.IAM.InstanceRoleARN); err != nil {
+		return errors.Wrapf(err, "removing nodegroup from auth ConfigMap")
 	}
 	if _, err := client.Update(cm); err != nil {
 		return errors.Wrap(err, "updating auth ConfigMap and removing instance role")

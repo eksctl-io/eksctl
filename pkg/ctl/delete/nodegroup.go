@@ -127,7 +127,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		}
 
 		// remove node group from config map
-		if err := authconfigmap.RemoveNodeGroupRole(clientSet, ng); err != nil {
+		if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
 			logger.Warning(err.Error())
 		}
 	}
