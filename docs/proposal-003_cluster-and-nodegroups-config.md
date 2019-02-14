@@ -75,3 +75,20 @@ Two way that these config files can be use to create cluster:
 - How will `ClusterConfig` and `NodeGroup` comapare when ispected in a running cluster? Namely, are all nodegroups
   supposed to be inline in `ClusterConfig` as well as represented as distinct object? (This is currently hard to
   say,  but in the future it will become importnat that there is coherent representation).
+
+### Alternative Approach
+
+One alternative could be to avoid creating a separate object, and keep objects and relationships simpler.
+
+Given the `cluster.yaml` above, we could allow creating cluster with an empty list of nodegroups, as well as
+a flag to force creation of node or some of the nodegroups.
+
+Examples:
+
+```
+eksctl create cluster --config-file=cluster.yaml --exclude-nodegroups='.*-private' ## only nodegroups matching regex will be created
+eksctl create cluster --config-file=cluster.yaml --exclude-nodegroups='.*' ## no nodegroups will be created all
+eksctl create ng --config-file=cluster.yaml ## all nodegroups will be created
+eksctl create ng --config-file=cluster.yaml --only=ng1-public ## only one nodegroup will be created
+eksctl create ng --config-file=cluster.yaml --only=ng1-public,ng2-private ## both nodegroups will be created
+```
