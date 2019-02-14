@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -123,7 +124,7 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	}
 
 	{
-		logger.Info("will create a Cloudformation stack for nodegroup %s in cluster %s", ng.Name, cfg.Metadata.Name)
+		logger.Info("will create a CloudFormation stack for nodegroup %s in cluster %s", ng.Name, cfg.Metadata.Name)
 		errs := stackManager.CreateOneNodeGroup(ng)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroup hasn't been created properly, you may wish to check CloudFormation console", len(errs))
@@ -151,7 +152,7 @@ func doCreateNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		}
 
 		// authorise nodes to join
-		if err = ctl.CreateOrUpdateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+		if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 			return err
 		}
 
