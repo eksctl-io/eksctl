@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
@@ -18,13 +19,14 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	updateAuthConfigMap := true
 
 	cmd := &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Delete a nodegroup",
 		Aliases: []string{"ng"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doDeleteNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
+			if err := doDeleteNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args), updateAuthConfigMap); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -38,6 +40,7 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete (required)")
 		cmdutils.AddWaitFlag(&wait, fs)
+		fs.BoolVar(&updateAuthConfigMap, "update-auth-config-map", true, "Remove nodegroup IAM role from aws-auth config map")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, true)
@@ -47,7 +50,7 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
+func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, updateAuthConfigMap bool) error {
 	ctl := eks.New(p, cfg)
 
 	if err := api.Register(); err != nil {
@@ -106,21 +109,25 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		logger.Success("nodegroup %q %s deleted", ng.Name, verb)
 	}
 
-	{ // post-deletion action
+	// post-deletion action
+	if updateAuthConfigMap {
 		clientConfigBase, err := ctl.NewClientConfig(cfg)
 		if err != nil {
 			return err
 		}
 
-		clientConfig := clientConfigBase.WithExecAuthenticator()
+		clientConfig, err := clientConfigBase.WithEmbeddedToken()
+		if err != nil {
+			return err
+		}
 
-		clientSet, err := clientConfig.NewClientSet()
+		clientSet, err := clientConfig.NewClientSetWithEmbeddedToken()
 		if err != nil {
 			return err
 		}
 
 		// remove node group from config map
-		if err := ctl.RemoveNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+		if err := authconfigmap.RemoveNodeGroupRole(clientSet, ng); err != nil {
 			logger.Warning(err.Error())
 		}
 	}

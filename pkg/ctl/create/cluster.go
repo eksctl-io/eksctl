@@ -12,6 +12,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kops"
@@ -509,7 +510,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
-			if err = ctl.CreateOrUpdateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+			if err = authconfigmap.CreateOrAddNodeGroupRole(clientSet, ng); err != nil {
 				return err
 			}
 

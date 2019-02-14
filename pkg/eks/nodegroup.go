@@ -6,75 +6,14 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/iam"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
-	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/utils"
 
 	corev1 "k8s.io/api/core/v1"
-	kerr "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	clientset "k8s.io/client-go/kubernetes"
 )
-
-// CreateOrUpdateNodeGroupAuthConfigMap creates or updates the auth config map for the given nodegroup
-func (c *ClusterProvider) CreateOrUpdateNodeGroupAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
-	cm := &corev1.ConfigMap{}
-	client := clientSet.CoreV1().ConfigMaps(utils.AuthConfigMapNamespace)
-	create := false
-
-	if existing, err := client.Get(utils.AuthConfigMapName, metav1.GetOptions{}); err != nil {
-		if kerr.IsNotFound(err) {
-			create = true
-		} else {
-			return errors.Wrapf(err, "getting auth ConfigMap")
-		}
-	} else {
-		*cm = *existing
-	}
-
-	if create {
-		cm, err := utils.NewAuthConfigMap(ng.IAM.InstanceRoleARN)
-		if err != nil {
-			return errors.Wrap(err, "constructing auth ConfigMap")
-		}
-		if _, err := client.Create(cm); err != nil {
-			return errors.Wrap(err, "creating auth ConfigMap")
-		}
-		logger.Debug("created auth ConfigMap for %s", ng.Name)
-		return nil
-	}
-
-	if err := utils.UpdateAuthConfigMap(cm, ng.IAM.InstanceRoleARN); err != nil {
-		return errors.Wrap(err, "creating an update for auth ConfigMap")
-	}
-	if _, err := client.Update(cm); err != nil {
-		return errors.Wrap(err, "updating auth ConfigMap")
-	}
-	logger.Debug("updated auth ConfigMap for %s", ng.Name)
-	return nil
-}
-
-//RemoveNodeGroupAuthConfigMap removes a nodegroup from the config map
-func (c *ClusterProvider) RemoveNodeGroupAuthConfigMap(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
-	client := clientSet.CoreV1().ConfigMaps(utils.AuthConfigMapNamespace)
-
-	cm, err := client.Get(utils.AuthConfigMapName, metav1.GetOptions{})
-	if err != nil {
-		return errors.Wrapf(err, "getting auth ConfigMap")
-	}
-
-	err = utils.RemoveNodeGroupFromAuthConfigMap(cm, ng.IAM.InstanceRoleARN)
-	if err != nil {
-		return errors.Wrapf(err, "removing node group from auth ConfigMap")
-	}
-	if _, err := client.Update(cm); err != nil {
-		return errors.Wrap(err, "updating auth ConfigMap and removing instance role")
-	}
-	logger.Debug("updated auth ConfigMap for %s", ng.Name)
-	return nil
-}
 
 func isNodeReady(node *corev1.Node) bool {
 	for _, c := range node.Status.Conditions {

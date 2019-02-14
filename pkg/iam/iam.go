@@ -55,8 +55,5 @@ func UseFromNodeGroup(provider api.ClusterProvider, stack *cfn.Stack, ng *api.No
 			return nil
 		},
 	}
-
-	optionalCollectors := map[string]outputs.Collector{}
-
-	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+	return outputs.Collect(*stack, requiredCollectors, nil)
 }
