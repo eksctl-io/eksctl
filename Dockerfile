@@ -3,12 +3,6 @@ FROM $EKSCTL_BUILD_IMAGE AS build
 
 LABEL eksctl.builder=true
 
-RUN apk add --no-cache \
-      py-pip \
-      python \
-      python-dev \
-      && true
-
 RUN mkdir -p /out/etc/apk && cp -r /etc/apk/* /out/etc/apk/
 RUN apk add --no-cache --initdb --root /out \
     alpine-baselayout \
@@ -17,12 +11,7 @@ RUN apk add --no-cache --initdb --root /out \
     coreutils \
     git \
     libc6-compat \
-    libgcc \
-    libstdc++ \
-    python \
     && true
-
-RUN pip install --root=/out aws-mfa==0.0.12 awscli==1.16.34
 
 ENV KUBECTL_VERSION v1.11.5
 RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
