@@ -1,7 +1,7 @@
 # Design Proposal #002: Existing VPC
 
 > **STATUS**: This proposal is a _working draft_, it will get refined and augment as needed.
-> If any non-trivial changes are need to functionality defined here, in particular the user
+> If any non-trivial changes are needed to functionality defined here, in particular the user
 > experience, those changes should be suggested via a PR to this proposal document.
 > Any other changes to the text of the proposal or technical corrections are also very welcome.
 
