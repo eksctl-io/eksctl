@@ -22,6 +22,12 @@ RUN apk add --no-cache --initdb --root /out \
     python \
     && true
 
+RUN pip install --root=/out aws-mfa==0.0.12 awscli==1.16.34
+
+ENV KUBECTL_VERSION v1.11.5
+RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
+    && chmod +x /out/usr/local/bin/kubectl
+
 ENV EKSCTL $GOPATH/src/github.com/weaveworks/eksctl
 RUN mkdir -p "$(dirname ${EKSCTL})"
 COPY . $EKSCTL
@@ -45,14 +51,6 @@ RUN make build-integration-test \
 
 RUN go build ./vendor/github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
     && cp ./aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
-
-RUN pip install --root=/out aws-mfa==0.0.12 awscli==1.16.34
-
-WORKDIR /out
-
-ENV KUBECTL_VERSION v1.11.5
-RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output usr/local/bin/kubectl \
-    && chmod +x usr/local/bin/kubectl
 
 FROM scratch
 CMD eksctl
