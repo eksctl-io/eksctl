@@ -3,7 +3,7 @@ git_commit := $(shell git describe --dirty --always)
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
-EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
+EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 .DEFAULT_GOAL := help
