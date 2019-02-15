@@ -20,3 +20,8 @@ required = [
 [[constraint]]
   branch = "master"
   name = "k8s.io/code-generator"
+
+[prune]
+  go-tests = true
+  unused-packages = true
+  non-go = true
