@@ -6,9 +6,9 @@
 > Any other changes to the text of the proposal or technical corrections are also very welcome.
 
 Support for config files had been added in eksctl 0.1.17 as an experimental alpha feature, it has
-become popular amongs users.
+become popular amongst users.
 Users currently can specify `ClusterConfig` object in JSON or YAML, which allows them to set more
-different fields then they currently can with CLI flags. They can also specify several nodegroups,
+fields then they currently can with CLI flags. They can also specify several nodegroups,
 and create a cluster in one go. Besides many missing features in `v1alpha4` incarnation (where there
 is little of  management functionality beyond initial cluster creation), one of commonly requested
 features is management of nodegroups through config files. 
