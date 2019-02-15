@@ -3,3 +3,4 @@ build
 *.md
 DCO
 LICENSE*
+skaffold.yaml
