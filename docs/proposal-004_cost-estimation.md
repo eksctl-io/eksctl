@@ -9,7 +9,6 @@ For future versions, we can introduce new features like: EC2 Data Transfer, Elas
 
 **API Used**
 Amazon provides AWS Price List API : https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/index.json. We can use it to get the current pricing of each service, in our case: EC2, EBS, EKS.
-
 *********************
 **Parameters**
 `eksctl calculator` uses the same parameters as `eksctl create` and `eksctl scale` (V2) + specifics parameters.
