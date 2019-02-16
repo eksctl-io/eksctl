@@ -112,23 +112,23 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--verbose", "4",
 					"--cluster", clusterName,
 					"--region", region,
-					"--nodes", "2",
+					"--nodes", "4",
 					"--name", initNG,
 				)
 			})
 
-			It("should make it 2 nodes total", func() {
+			It("should make it 4 nodes total", func() {
 				test, err := newKubeTest()
 				Expect(err).ShouldNot(HaveOccurred())
 				defer test.Close()
 
-				test.WaitForNodesReady(2, commonTimeout)
+				test.WaitForNodesReady(4, commonTimeout)
 
 				nodes := test.ListNodes((metav1.ListOptions{
 					LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
 				}))
 
-				Expect(len(nodes.Items)).To(Equal(2))
+				Expect(len(nodes.Items)).To(Equal(4))
 			})
 		})
 
@@ -137,24 +137,25 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				eksctl("create", "nodegroup",
 					"--cluster", clusterName,
 					"--region", region,
-					"--nodes", "1",
+					"--nodes", "4",
+					"--node-private-networking",
 					testNG,
 				)
 			})
 
-			It("should make it 3 nodes total", func() {
+			It("should make it 8 nodes total", func() {
 				test, err := newKubeTest()
 				Expect(err).ShouldNot(HaveOccurred())
 				defer test.Close()
 
-				test.WaitForNodesReady(3, commonTimeout)
+				test.WaitForNodesReady(8, commonTimeout)
 
 				nodes := test.ListNodes(metav1.ListOptions{})
 
-				Expect(len(nodes.Items)).To(Equal(3))
+				Expect(len(nodes.Items)).To(Equal(8))
 			})
 
-			Context("and we create a deployment using kubectl", func() {
+			Context("create test workloads", func() {
 				var (
 					err  error
 					test *harness.Test
@@ -163,14 +164,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				BeforeEach(func() {
 					test, err = newKubeTest()
 					Expect(err).ShouldNot(HaveOccurred())
-					test.CreateNamespace(test.Namespace)
 				})
 
 				AfterEach(func() {
 					test.Close()
+					Eventually(func() int {
+						return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
+					}, "3m", "1s").Should(BeZero())
 				})
 
-				It("should deploy the service to the cluster", func() {
+				It("should deploy podinfo service to the cluster and access it via proxy", func() {
 					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
 					test.WaitForDeploymentReady(d, 1*time.Minute)
 
@@ -193,11 +196,19 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have functional DNS", func() {
-					test, err := newKubeTest()
-					Expect(err).ShouldNot(HaveOccurred())
-					defer test.Close()
+					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
 
-					d := test.CreateDaemonSetFromFile(test.Namespace, "dns-test.yaml")
+					test.WaitForDaemonSetReady(d, 3*time.Minute)
+
+					{
+						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
+						Expect(err).ShouldNot(HaveOccurred())
+						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
+					}
+				})
+
+				It("should have access to HTTP(S) sites", func() {
+					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
 
 					test.WaitForDaemonSetReady(d, 3*time.Minute)
 
@@ -219,18 +230,19 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 				})
 
-				It("should make it 2 nodes total", func() {
+				It("should make it 4 nodes total", func() {
 					test, err := newKubeTest()
 					Expect(err).ShouldNot(HaveOccurred())
 					defer test.Close()
 
-					test.WaitForNodesReady(2, commonTimeout)
+					test.WaitForNodesReady(4, commonTimeout)
 
 					nodes := test.ListNodes((metav1.ListOptions{
 						LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
 					}))
-
-					Expect(len(nodes.Items)).To(Equal(2))
+					allNodes := test.ListNodes((metav1.ListOptions{}))
+					Expect(len(nodes.Items)).To(Equal(4))
+					Expect(len(allNodes.Items)).To(Equal(4))
 				})
 			})
 		})

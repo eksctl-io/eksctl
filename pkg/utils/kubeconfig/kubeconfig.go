@@ -195,22 +195,40 @@ func deleteClusterInfo(existing *clientcmdapi.Config, cl *api.ClusterMeta) bool 
 	isChanged := false
 	clusterName := cl.String()
 
-	if existing.Clusters[clusterName] != nil {
+	if _, ok := existing.Clusters[clusterName]; ok {
 		delete(existing.Clusters, clusterName)
 		logger.Debug("removed cluster %q from kubeconfig", clusterName)
 		isChanged = true
 	}
 
-	for username, context := range existing.Contexts {
+	var currentContextName string
+	for name, context := range existing.Contexts {
 		if context.Cluster == clusterName {
-			delete(existing.Contexts, username)
-			logger.Debug("removed context for %q from kubeconfig", username)
+			delete(existing.Contexts, name)
+			logger.Debug("removed context for %q from kubeconfig", name)
 			isChanged = true
-			if existing.AuthInfos[username] != nil {
-				delete(existing.AuthInfos, username)
-				logger.Debug("removed auth info for %q from kubeconfig", username)
+			if _, ok := existing.AuthInfos[name]; ok {
+				delete(existing.AuthInfos, name)
+				logger.Debug("removed user for %q from kubeconfig", name)
 			}
+			currentContextName = name
 			break
+		}
+	}
+
+	if existing.CurrentContext == currentContextName {
+		existing.CurrentContext = ""
+		logger.Debug("reset current-context in kubeconfig", currentContextName)
+		isChanged = true
+	}
+
+	if parts := strings.Split(existing.CurrentContext, "@"); len(parts) == 2 {
+		if strings.HasSuffix(parts[1], "eksctl.io") {
+			if _, ok := existing.Contexts[existing.CurrentContext]; !ok {
+				existing.CurrentContext = ""
+				logger.Debug("reset stale current-context in kubeconfig", currentContextName)
+				isChanged = true
+			}
 		}
 	}
 

@@ -21,8 +21,8 @@ To configure your bash shell to load completions for each session add to your ba
 # ~/.bashrc or ~/.profile
 . <(eksctl completion bash)
 `,
-		Run: func(cmd *cobra.Command, args []string) {
-			rootCmd.GenBashCompletion(os.Stdout)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return rootCmd.GenBashCompletion(os.Stdout)
 		},
 	}
 	var zshCompletionCmd = &cobra.Command{
@@ -38,8 +38,8 @@ and put the following in ~/.zshrc:
 fpath=($fpath ~/.zsh/completion)
 
 `,
-		Run: func(cmd *cobra.Command, args []string) {
-			rootCmd.GenZshCompletion(os.Stdout)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return rootCmd.GenZshCompletion(os.Stdout)
 		},
 	}
 

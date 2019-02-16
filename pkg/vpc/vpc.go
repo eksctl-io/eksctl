@@ -23,9 +23,9 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	var err error
 
 	vpc := spec.VPC
-	vpc.Subnets = map[api.SubnetTopology]map[string]api.Network{
-		api.SubnetTopologyPublic:  map[string]api.Network{},
-		api.SubnetTopologyPrivate: map[string]api.Network{},
+	vpc.Subnets = &api.ClusterSubnets{
+		Private: map[string]api.Network{},
+		Public:  map[string]api.Network{},
 	}
 	if vpc.CIDR == nil {
 		cidr := api.DefaultCIDR()
@@ -50,11 +50,11 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	for i, zone := range spec.AvailabilityZones {
 		public := zoneCIDRs[i]
 		private := zoneCIDRs[i+zonesTotal]
-		vpc.Subnets[api.SubnetTopologyPublic][zone] = api.Network{
-			CIDR: &ipnet.IPNet{IPNet: *public},
-		}
-		vpc.Subnets[api.SubnetTopologyPrivate][zone] = api.Network{
+		vpc.Subnets.Private[zone] = api.Network{
 			CIDR: &ipnet.IPNet{IPNet: *private},
+		}
+		vpc.Subnets.Public[zone] = api.Network{
+			CIDR: &ipnet.IPNet{IPNet: *public},
 		}
 		logger.Info("subnets for %s - public:%s private:%s", zone, public.String(), private.String())
 	}
@@ -62,11 +62,11 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	return nil
 }
 
-func describeSubnets(porvider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
+func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
 	input := &ec2.DescribeSubnetsInput{
 		SubnetIds: aws.StringSlice(subnetIDs),
 	}
-	output, err := porvider.EC2().DescribeSubnets(input)
+	output, err := provider.EC2().DescribeSubnets(input)
 	if err != nil {
 		return nil, err
 	}
@@ -208,14 +208,12 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 			return err
 		}
 	}
-	for topology := range spec.VPC.Subnets {
-		subnetIDs := []string{}
-		for _, subnet := range spec.VPC.Subnets[topology] {
-			subnetIDs = append(subnetIDs, subnet.ID)
-		}
-		if err := ImportSubnetsFromList(provider, spec, topology, subnetIDs); err != nil {
-			return err
-		}
+	if err := ImportSubnetsFromList(provider, spec, api.SubnetTopologyPrivate, spec.PrivateSubnetIDs()); err != nil {
+		return err
 	}
+	if err := ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, spec.PublicSubnetIDs()); err != nil {
+		return err
+	}
+
 	return nil
 }

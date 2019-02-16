@@ -35,7 +35,9 @@ func newKubeTest() (*harness.Test, error) {
 	if err := h.SetKubeconfig(kubeconfigPath); err != nil {
 		return nil, err
 	}
-	return h.NewTest(t), nil
+	test := h.NewTest(t)
+	test.Setup()
+	return test, nil
 }
 
 func eksctl(args ...string) *gexec.Session {
@@ -61,6 +63,6 @@ func eksctl(args ...string) *gexec.Session {
 	}
 
 	session.Wait(t)
-	Expect(session.ExitCode()).Should(Equal(0))
+	Expect(session.ExitCode()).To(Equal(0))
 	return session
 }

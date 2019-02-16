@@ -1,6 +1,7 @@
 #!/bin/bash -eu
 
 echo "NODE_IP=$(curl --silent http://169.254.169.254/latest/meta-data/local-ipv4)" > /etc/eksctl/kubelet.local.env
+echo "INSTANCE_ID=$(curl --silent http://169.254.169.254/latest/meta-data/instance-id)" >> /etc/eksctl/kubelet.local.env
 
 snap alias kubelet-eks.kubelet kubelet
 snap alias kubectl-eks.kubectl kubectl
@@ -22,7 +23,7 @@ systemctl reset-failed
     "node-ip=${NODE_IP}"
     "cluster-dns=${CLUSTER_DNS}"
     "max-pods=${MAX_PODS}"
-    "node-labels=${NODE_LABELS}"
+    "node-labels=${NODE_LABELS},alpha.eksctl.io/instance-id=${INSTANCE_ID}"
     "authentication-token-webhook=true"
     "authorization-mode=Webhook"
     "allow-privileged=true"

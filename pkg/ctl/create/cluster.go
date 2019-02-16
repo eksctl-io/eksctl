@@ -12,6 +12,7 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/kops"
@@ -32,7 +33,7 @@ var (
 	setContext         bool
 	availabilityZones  []string
 
-	configFile = ""
+	clusterConfigFile = ""
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
@@ -67,7 +68,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata)
-		fs.StringVarP(&configFile, "config-file", "f", "", "load configuration from a file")
+		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -114,7 +115,7 @@ func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGr
 }
 
 func checkSubnetsGiven(cfg *api.ClusterConfig) bool {
-	return len(cfg.VPC.Subnets[api.SubnetTopologyPrivate])+len(cfg.VPC.Subnets[api.SubnetTopologyPublic]) != 0
+	return cfg.VPC.Subnets != nil && len(cfg.VPC.Subnets.Private)+len(cfg.VPC.Subnets.Public) != 0
 }
 
 func checkSubnetsGivenAsFlags() bool {
@@ -130,8 +131,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	if configFile != "" {
-		if err := eks.LoadConfigFromFile(configFile, cfg); err != nil {
+	if clusterConfigFile != "" {
+		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
 			return err
 		}
 		meta = cfg.Metadata
@@ -335,7 +336,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		subnetInfo := func() string {
 			return fmt.Sprintf("VPC (%s) and subnets (private:%v public:%v)",
-				cfg.VPC.ID, cfg.SubnetIDs(api.SubnetTopologyPrivate), cfg.SubnetIDs(api.SubnetTopologyPublic))
+				cfg.VPC.ID, cfg.PrivateSubnetIDs(), cfg.PublicSubnetIDs())
 		}
 
 		customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
@@ -509,7 +510,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
-			if err = ctl.CreateOrUpdateNodeGroupAuthConfigMap(clientSet, ng); err != nil {
+			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err
 			}
 
@@ -535,7 +536,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			// --storage-class flag is only for backwards compatibility,
 			// we always create the storage class when --config-file is
 			// used, as this is 1.10-only
-			if addonsStorageClass || configFile != "" {
+			if addonsStorageClass || clusterConfigFile != "" {
 				if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 					return err
 				}

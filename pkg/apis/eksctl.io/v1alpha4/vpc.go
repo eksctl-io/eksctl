@@ -17,13 +17,18 @@ type (
 		// subnets are either public or private for use with separate nodegroups
 		// these are keyed by AZ for convenience
 		// +optional
-		Subnets map[SubnetTopology]map[string]Network `json:"subnets,omitempty"`
+		Subnets *ClusterSubnets `json:"subnets,omitempty"`
 		// for additional CIDR associations, e.g. to use with separate CIDR for
 		// private subnets or any ad-hoc subnets
 		// +optional
 		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
 		// for pre-defined shared node SG
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
+	}
+	// ClusterSubnets holds private and public subnets
+	ClusterSubnets struct {
+		Private map[string]Network `json:"private,omitempty"`
+		Public  map[string]Network `json:"public,omitempty"`
 	}
 	// SubnetTopology can be SubnetTopologyPrivate or SubnetTopologyPublic
 	SubnetTopology string
@@ -65,11 +70,22 @@ func DefaultCIDR() ipnet.IPNet {
 	}
 }
 
-// SubnetIDs returns list of subnets
-func (c *ClusterConfig) SubnetIDs(topology SubnetTopology) []string {
+// PrivateSubnetIDs returns list of subnets
+func (c *ClusterConfig) PrivateSubnetIDs() []string {
 	subnets := []string{}
-	if t, ok := c.VPC.Subnets[topology]; ok {
-		for _, s := range t {
+	if c.VPC.Subnets != nil {
+		for _, s := range c.VPC.Subnets.Private {
+			subnets = append(subnets, s.ID)
+		}
+	}
+	return subnets
+}
+
+// PublicSubnetIDs returns list of subnets
+func (c *ClusterConfig) PublicSubnetIDs() []string {
+	subnets := []string{}
+	if c.VPC.Subnets != nil {
+		for _, s := range c.VPC.Subnets.Public {
 			subnets = append(subnets, s.ID)
 		}
 	}
@@ -78,16 +94,31 @@ func (c *ClusterConfig) SubnetIDs(topology SubnetTopology) []string {
 
 // ImportSubnet loads a given subnet into cluster config
 func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr string) error {
+	if c.VPC.Subnets == nil {
+		c.VPC.Subnets = &ClusterSubnets{}
+	}
+
+	switch topology {
+	case SubnetTopologyPrivate:
+		if c.VPC.Subnets.Private == nil {
+			c.VPC.Subnets.Private = make(map[string]Network)
+		}
+		return doImportSubnet(c.VPC.Subnets.Private, az, subnetID, cidr)
+	case SubnetTopologyPublic:
+		if c.VPC.Subnets.Public == nil {
+			c.VPC.Subnets.Public = make(map[string]Network)
+		}
+		return doImportSubnet(c.VPC.Subnets.Public, az, subnetID, cidr)
+	default:
+		return fmt.Errorf("unexpected subnet topology: %s", topology)
+	}
+}
+
+func doImportSubnet(subnets map[string]Network, az, subnetID, cidr string) error {
 	subnetCIDR, _ := ipnet.ParseCIDR(cidr)
 
-	if c.VPC.Subnets == nil {
-		c.VPC.Subnets = make(map[SubnetTopology]map[string]Network)
-	}
-	if _, ok := c.VPC.Subnets[topology]; !ok {
-		c.VPC.Subnets[topology] = map[string]Network{}
-	}
-	if network, ok := c.VPC.Subnets[topology][az]; !ok {
-		c.VPC.Subnets[topology][az] = Network{ID: subnetID, CIDR: subnetCIDR}
+	if network, ok := subnets[az]; !ok {
+		subnets[az] = Network{ID: subnetID, CIDR: subnetCIDR}
 	} else {
 		if network.ID == "" {
 			network.ID = subnetID
@@ -99,21 +130,21 @@ func (c *ClusterConfig) ImportSubnet(topology SubnetTopology, az, subnetID, cidr
 		} else if network.CIDR.String() != subnetCIDR.String() {
 			return fmt.Errorf("subnet CIDR %q is not the same as %q", network.CIDR.String(), subnetCIDR.String())
 		}
-		c.VPC.Subnets[topology][az] = network
+		subnets[az] = network
 	}
 	return nil
-}
-
-// HasSufficientPublicSubnets validates if there is a sufficient
-// number of public subnets available to create a cluster
-func (c *ClusterConfig) HasSufficientPublicSubnets() bool {
-	return len(c.SubnetIDs(SubnetTopologyPublic)) >= MinRequiredSubnets
 }
 
 // HasSufficientPrivateSubnets validates if there is a sufficient
 // number of private subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {
-	return len(c.SubnetIDs(SubnetTopologyPrivate)) >= MinRequiredSubnets
+	return len(c.PrivateSubnetIDs()) >= MinRequiredSubnets
+}
+
+// HasSufficientPublicSubnets validates if there is a sufficient
+// number of public subnets available to create a cluster
+func (c *ClusterConfig) HasSufficientPublicSubnets() bool {
+	return len(c.PublicSubnetIDs()) >= MinRequiredSubnets
 }
 
 var errInsufficientSubnets = fmt.Errorf(
@@ -126,12 +157,12 @@ var errInsufficientSubnets = fmt.Errorf(
 // less then MinRequiredSubnets of each, but allowing to have
 // public-only or private-only
 func (c *ClusterConfig) HasSufficientSubnets() error {
-	numPublic := len(c.SubnetIDs(SubnetTopologyPublic))
+	numPublic := len(c.PublicSubnetIDs())
 	if numPublic > 0 && numPublic < MinRequiredSubnets {
 		return errInsufficientSubnets
 	}
 
-	numPrivate := len(c.SubnetIDs(SubnetTopologyPrivate))
+	numPrivate := len(c.PrivateSubnetIDs())
 	if numPrivate > 0 && numPrivate < MinRequiredSubnets {
 		return errInsufficientSubnets
 	}

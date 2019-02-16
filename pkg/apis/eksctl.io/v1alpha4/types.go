@@ -327,7 +327,7 @@ type NodeGroup struct {
 	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`
 
 	// +optional
-	DesiredCapacity *int `json:"desiredCapacity"`
+	DesiredCapacity *int `json:"desiredCapacity,omitempty"`
 	// +optional
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
@@ -341,7 +341,7 @@ type NodeGroup struct {
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
 	// +optional
-	Labels NodeLabels `json:"labels,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
 
 	// TODO move to separate struct
 	// +optional
@@ -355,15 +355,9 @@ type NodeGroup struct {
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
-}
 
-// SubnetTopology check which topology is used for the subnet of
-// the given nodegroup
-func (n *NodeGroup) SubnetTopology() SubnetTopology {
-	if n.PrivateNetworking {
-		return SubnetTopologyPrivate
-	}
-	return SubnetTopologyPublic
+	// +optional
+	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

@@ -143,7 +143,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "available"
 
 						_, p = createProviders()
-						addMockDescribeImages(p, "amazon-eks-gpu-node-1.10-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z")
+						addMockDescribeImages(p, "amazon-eks-gpu-node-1.10-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z")
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)

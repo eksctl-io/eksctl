@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: test-http
+  labels: {test: http}
+spec:
+  selector:
+    matchLabels: {test: http}
+  template:
+    metadata:
+      labels: {test: http}
+    spec:
+      containers:
+      - image: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f
+        name: https-test-eksctl
+        stdin: true
+        tty: true
+        readinessProbe:
+          initialDelaySeconds: 0
+          periodSeconds: 3
+          failureThreshold: 3
+          timeoutSeconds: 1
+          exec:
+            command:
+            - curl
+            - --fail
+            - --silent
+            - --head
+            - eksctl.io
+      - image: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f
+        name: https-test-kubernetes
+        stdin: true
+        tty: true
+        readinessProbe:
+          initialDelaySeconds: 0
+          periodSeconds: 3
+          failureThreshold: 3
+          timeoutSeconds: 1
+          exec:
+            command:
+            - curl
+            - --fail
+            - --silent
+            - --head
+            - kubernetes.io
+      - image: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f
+        name: https-test-ifconfig
+        stdin: true
+        tty: true
+        readinessProbe:
+          initialDelaySeconds: 0
+          periodSeconds: 3
+          failureThreshold: 3
+          timeoutSeconds: 1
+          exec:
+            command:
+            - curl
+            - --fail
+            - --silent
+            - https://ifconfig.co/
+      - image: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f
+        name: https-test-metadata
+        stdin: true
+        tty: true
+        readinessProbe:
+          initialDelaySeconds: 0
+          periodSeconds: 3
+          failureThreshold: 3
+          timeoutSeconds: 1
+          exec:
+            command:
+            - curl
+            - --fail
+            - --silent
+            - http://169.254.169.254/latest/meta-data/local-ipv4
+        

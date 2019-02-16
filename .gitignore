@@ -4,8 +4,9 @@
 # Release config file backups
 .goreleaser.brew.combined.yml
 
-# Locally built binary
+# Locally built binaries
 /eksctl
+/eksctl-integration-test
 
 # Bad deps
 vendor/k8s.io/kops/docs
@@ -31,3 +32,4 @@ coverage.out
 # Test results
 test-results/
 
+integration/kubeconfig-*

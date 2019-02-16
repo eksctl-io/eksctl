@@ -3,18 +3,10 @@ git_commit := $(shell git describe --dirty --always)
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
-EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl:build
+EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 .DEFAULT_GOAL := help
-
-ifneq ($(TEST_V),)
-TEST_ARGS ?= -v -ginkgo.v
-endif
-
-ifneq ($(DELETE_TEST_CLUSTER),)
-INTEGRATION_TEST_ARGS ?= -eksctl.delete=false
-endif
 
 ##@ Dependencies
 
@@ -30,35 +22,67 @@ build: ## Build eksctl
 
 ##@ Testing & CI
 
-.PHONY: test
-test: generate ## Run unit test (and re-generate code under test)
-	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
-	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
-	@$(MAKE) unit-test
-	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
-	@go test -tags integration ./integration/... -c && rm -f integration.test
+ifneq ($(TEST_V),)
+UNIT_TEST_ARGS ?= -v -ginkgo.v
+INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v
+endif
 
-.PHONY: unit-test
-unit-test: ## Run unit test only
-	@CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(TEST_ARGS)
+ifneq ($(INTEGRATION_TEST_FOCUS),)
+INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v -ginkgo.focus "$(INTEGRATION_TEST_FOCUS)"
+endif
 
-LINTER ?= gometalinter ./...
+LINTER ?= gometalinter ./pkg/... ./cmd/... ./integration/...
 .PHONY: lint
 lint: ## Run linter over the codebase
 	@$(GOPATH)/bin/$(LINTER)
 
-.PHONY: ci
-ci: test lint ## Target for CI system to invoke to run tests and linting
+.PHONY: test
+test: generate ## Run unit test (and re-generate code under test)
+	@$(MAKE) lint
+	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
+	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
+	@$(MAKE) unit-test
+	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
+	@$(MAKE) build-integration-test
+
+.PHONY: unit-test
+unit-test: ## Run unit test only
+	@CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+
+.PHONY: build-integration-test
+build-integration-test: ## Build integration test binary
+	@go test -tags integration ./integration/... -c -o ./eksctl-integration-test
+
+.PHONY: integration-test
+integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
+	@cd integration; ../eksctl-integration-test -test.timeout 60m \
+		$(INTEGRATION_TEST_ARGS)
+
+.PHONY: integration-test-container
+integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
+	$(MAKE) integration-test-container-pre-built
+
+.PHONY: integration-test-container-pre-built
+integration-test-container-pre-built: ## Run the integration tests inside a Docker container
+	@docker run \
+	  --env=AWS_PROFILE \
+	  --volume=$(HOME)/.aws:/root/.aws \
+	  --workdir=/usr/local/share/eksctl \
+	    $(EKSCTL_IMAGE) \
+		  eksctl-integration-test \
+		    -eksctl.path=/usr/local/bin/eksctl \
+			-eksctl.kubeconfig=/tmp/kubeconfig \
+			  $(INTEGRATION_TEST_ARGS)
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
-integration-test-dev: build ## Run the integration tests without cluster teardown. For use when developing integration tests.
+integration-test-dev: build build-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
 	@./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
-	@go test -tags integration -timeout 21m ./integration/... \
-		$(TEST_ARGS) \
-		-args \
+	$(info it is recommended to watch events with "kubectl get events --watch --all-namespaces --kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)")
+	@cd integration ; ../eksctl-integration-test -test.timeout 21m \
+		$(INTEGRATION_TEST_ARGS) \
 		-eksctl.cluster=$(TEST_CLUSTER) \
 		-eksctl.create=false \
 		-eksctl.delete=false \
@@ -69,10 +93,6 @@ create-integration-test-dev-cluster: build ## Create a test cluster for use when
 
 delete-integration-test-dev-cluster: build ## Delete the test cluster for use when developing integration tests
 	@./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig
-
-.PHONY: integration-test
-integration-test: build ## Run the integration tests (with cluster creation and cleanup)
-	@go test -tags integration -timeout 60m ./integration/... $(TEST_ARGS) $(INTEGRATION_TEST_ARGS)
 
 ##@ Code Generation
 
@@ -86,12 +106,12 @@ generate-ami: ## Generate the list of AMIs for use with static resolver. Queries
 	@go generate ./pkg/ami
 
 .PHONY: ami-check
-ami-check: generate-ami  ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
+ami-check: generate-ami ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
 	@git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
 
 
 .PHONY: generate-kubernetes-types
-generate-kubernetes-types:
+generate-kubernetes-types: ## Generate Kubernetes API helpers
 	@build/vendor/k8s.io/code-generator/generate-groups.sh deepcopy,defaulter _ github.com/weaveworks/eksctl/pkg/apis eksctl.io:v1alpha4
 
 ##@ Docker

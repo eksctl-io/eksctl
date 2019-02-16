@@ -207,11 +207,24 @@ func (c *StackCollection) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 }
 
 // DeleteStack kills a stack by name without waiting for DELETED status
-func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
+func (c *StackCollection) DeleteStack(name string, force bool) (*Stack, error) {
 	i := &Stack{StackName: &name}
 	s, err := c.describeStack(i)
 	if err != nil {
-		return nil, errors.Wrapf(err, "not able to get stack %q for deletion", name)
+		err = errors.Wrapf(err, "not able to get stack %q for deletion", name)
+		stacks, newErr := c.ListStacks(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
+		if newErr != nil {
+			logger.Critical("not able double-check if stack was already deleted: %s", newErr.Error())
+		}
+		if count := len(stacks); count > 0 {
+			logger.Debug("%d deleted stacks found {%v}", count, stacks)
+			logger.Info("stack %q was already deleted", name)
+			return nil, nil
+		}
+		return nil, err
+	}
+	if *s.StackStatus == cloudformation.StackStatusDeleteFailed && !force {
+		return nil, fmt.Errorf("stack %q previously couldn't be deleted", name)
 	}
 	i.StackId = s.StackId
 	for _, tag := range s.Tags {
@@ -240,8 +253,8 @@ func (c *StackCollection) DeleteStack(name string) (*Stack, error) {
 // any errors will be written to errs channel, when nil is written,
 // assume completion, do not expect more then one error value on the
 // channel, it's closed immediately after it is written to
-func (c *StackCollection) WaitDeleteStack(name string, errs chan error) error {
-	i, err := c.DeleteStack(name)
+func (c *StackCollection) WaitDeleteStack(name string, force bool, errs chan error) error {
+	i, err := c.DeleteStack(name, force)
 	if err != nil {
 		return err
 	}
@@ -254,8 +267,8 @@ func (c *StackCollection) WaitDeleteStack(name string, errs chan error) error {
 }
 
 // BlockingWaitDeleteStack kills a stack by name and waits for DELETED status
-func (c *StackCollection) BlockingWaitDeleteStack(name string) error {
-	i, err := c.DeleteStack(name)
+func (c *StackCollection) BlockingWaitDeleteStack(name string, force bool) error {
+	i, err := c.DeleteStack(name, force)
 	if err != nil {
 		return err
 	}

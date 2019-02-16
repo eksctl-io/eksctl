@@ -3,6 +3,7 @@ package nodebootstrap
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"k8s.io/client-go/tools/clientcmd"
@@ -97,11 +98,16 @@ func makeKubeletParamsCommon(spec *api.ClusterConfig, ng *api.NodeGroup) []strin
 		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
 	}
 
+	labels := []string{}
+	for k, v := range ng.Labels {
+		labels = append(labels, fmt.Sprintf("%s=%s", k, v))
+	}
+
 	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
 	return []string{
 		fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode),
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec)),
-		fmt.Sprintf("NODE_LABELS=%s", ng.Labels),
+		fmt.Sprintf("NODE_LABELS=%s", strings.Join(labels, ",")),
 	}
 }
 

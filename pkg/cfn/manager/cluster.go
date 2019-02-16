@@ -51,14 +51,14 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 }
 
 // DeleteCluster deletes the cluster
-func (c *StackCollection) DeleteCluster() error {
-	_, err := c.DeleteStack(c.makeClusterStackName())
+func (c *StackCollection) DeleteCluster(force bool) error {
+	_, err := c.DeleteStack(c.makeClusterStackName(), force)
 	return err
 }
 
 // WaitDeleteCluster waits till the cluster is deleted
-func (c *StackCollection) WaitDeleteCluster() error {
-	return c.BlockingWaitDeleteStack(c.makeClusterStackName())
+func (c *StackCollection) WaitDeleteCluster(force bool) error {
+	return c.BlockingWaitDeleteStack(c.makeClusterStackName(), force)
 }
 
 // AppendNewClusterStackResource will update cluster
@@ -146,16 +146,23 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
 }
 
 func getClusterName(s *Stack) string {
-	for _, tag := range s.Tags {
-		if *tag.Key == api.ClusterNameTag {
-			if strings.HasSuffix(*s.StackName, "-cluster") {
-				return *tag.Value
-			}
+	if strings.HasSuffix(*s.StackName, "-cluster") {
+		if v := getClusterNameTag(s); v != "" {
+			return v
 		}
 	}
 
 	if strings.HasPrefix(*s.StackName, "EKS-") && strings.HasSuffix(*s.StackName, "-ControlPlane") {
 		return strings.TrimPrefix("EKS-", strings.TrimSuffix(*s.StackName, "-ControlPlane"))
+	}
+	return ""
+}
+
+func getClusterNameTag(s *Stack) string {
+	for _, tag := range s.Tags {
+		if *tag.Key == api.ClusterNameTag {
+			return *tag.Value
+		}
 	}
 	return ""
 }

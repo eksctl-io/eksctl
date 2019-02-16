@@ -116,20 +116,28 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 // DeleteNodeGroup deletes a nodegroup stack
 func (c *StackCollection) DeleteNodeGroup(name string) error {
 	name = c.MakeNodeGroupStackName(name)
-	_, err := c.DeleteStack(name)
+	_, err := c.DeleteStack(name, false)
 	return err
 }
 
-// WaitDeleteNodeGroup waits until the nodegroup is deleted
+// WaitDeleteNodeGroup waits until the nodegroup is deleted,
+// it calls WaitDeleteStack without force
 func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
 	name := c.MakeNodeGroupStackName(data.(string))
-	return c.WaitDeleteStack(name, errs)
+	return c.WaitDeleteStack(name, false, errs)
+}
+
+// WaitForceDeleteNodeGroup waits until the nodegroup is deleted,
+// it calls WaitDeleteStack with force
+func (c *StackCollection) WaitForceDeleteNodeGroup(errs chan error, data interface{}) error {
+	name := c.MakeNodeGroupStackName(data.(string))
+	return c.WaitDeleteStack(name, true, errs)
 }
 
 // BlockingWaitDeleteNodeGroup waits until the nodegroup is deleted
-func (c *StackCollection) BlockingWaitDeleteNodeGroup(name string) error {
+func (c *StackCollection) BlockingWaitDeleteNodeGroup(name string, force bool) error {
 	name = c.MakeNodeGroupStackName(name)
-	return c.BlockingWaitDeleteStack(name)
+	return c.BlockingWaitDeleteStack(name, force)
 }
 
 // ScaleNodeGroup will scale an existing nodegroup
@@ -158,35 +166,35 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	currentMinSize := gjson.Get(template, minSizePath)
 
 	if ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) == currentCapacity.Int() {
-		logger.Info("desired capacity of nodegroup %q in cluster %q is already %d", ng.Name, clusterName, ng.DesiredCapacity)
+		logger.Info("desired capacity of nodegroup %q in cluster %q is already %d", ng.Name, clusterName, *ng.DesiredCapacity)
 		return nil
 	}
 
 	// Set the new values
-	newCapacity := fmt.Sprintf("%d", ng.DesiredCapacity)
+	newCapacity := fmt.Sprintf("%d", *ng.DesiredCapacity)
 	template, err = sjson.Set(template, desiredCapacityPath, newCapacity)
 	if err != nil {
 		return errors.Wrap(err, "setting desired capacity")
 	}
-	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Str, ng.DesiredCapacity))
+	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Str, *ng.DesiredCapacity))
 
 	// If the desired number of nodes is less than the min then update the min
 	if int64(*ng.DesiredCapacity) < currentMinSize.Int() {
-		newMinSize := fmt.Sprintf("%d", ng.DesiredCapacity)
+		newMinSize := fmt.Sprintf("%d", *ng.DesiredCapacity)
 		template, err = sjson.Set(template, minSizePath, newMinSize)
 		if err != nil {
 			return errors.Wrap(err, "setting min size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Str, ng.DesiredCapacity))
+		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Str, *ng.DesiredCapacity))
 	}
 	// If the desired number of nodes is greater than the max then update the max
 	if int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
-		newMaxSize := fmt.Sprintf("%d", ng.DesiredCapacity)
+		newMaxSize := fmt.Sprintf("%d", *ng.DesiredCapacity)
 		template, err = sjson.Set(template, maxSizePath, newMaxSize)
 		if err != nil {
 			return errors.Wrap(err, "setting max size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Str, ng.DesiredCapacity))
+		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Str, *ng.DesiredCapacity))
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
 
@@ -204,7 +212,7 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	for _, s := range stacks {
 		summary, err := c.mapStackToNodeGroupSummary(s)
 		if err != nil {
-			return nil, errors.Wrap(err, "mapping stack to nodegorup summary")
+			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
 
 		if name == "" {
@@ -223,7 +231,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
 	}
 
-	cluster := getClusterName(stack)
+	cluster := getClusterNameTag(stack)
 	name := getNodeGroupName(stack)
 	maxSize := gjson.Get(template, maxSizePath)
 	minSize := gjson.Get(template, minSizePath)
@@ -254,6 +262,9 @@ func getNodeGroupName(s *Stack) string {
 		if *tag.Key == api.OldNodeGroupIDTag {
 			return *tag.Value
 		}
+	}
+	if strings.HasSuffix(*s.StackName, "-nodegroup-0") {
+		return "legacy-nodegroup-0"
 	}
 	if strings.HasSuffix(*s.StackName, "-DefaultNodeGroup") {
 		return "legacy-default"

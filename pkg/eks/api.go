@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/version"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-
-	"github.com/weaveworks/eksctl/pkg/az"
-
-	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -236,18 +235,13 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 // SetNodeLabels initialises and validate node labels based on cluster and nodegroup names
 func (c *ClusterProvider) SetNodeLabels(ng *api.NodeGroup, meta *api.ClusterMeta) error {
 	if ng.Labels == nil {
-		ng.Labels = make(api.NodeLabels)
+		ng.Labels = make(map[string]string)
 	}
 
 	ng.Labels[api.ClusterNameLabel] = meta.Name
 	ng.Labels[api.NodeGroupNameLabel] = ng.Name
 
-	for l := range ng.Labels {
-		if len(strings.Split(l, "/")) > 2 {
-			return fmt.Errorf("node label key %q is of invalid format, can only use one '/' separator", l)
-		}
-	}
-	return nil
+	return api.ValidateNodeGroupLabels(ng)
 }
 
 func errTooFewAvailabilityZones(azs []string) error {

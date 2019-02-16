@@ -21,6 +21,7 @@ sudo mv /tmp/eksctl /usr/local/bin
 
 Alternatively, macOS users can use [Homebrew](https://brew.sh):
 ```
+brew tap weaveworks/tap
 brew install weaveworks/tap/eksctl
 ```
 
@@ -169,6 +170,8 @@ To delete a cluster, run:
 ```
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
+> NOTE: Cluster info will be cleaned up in kubernetes config file. Please run `kubectl config get-contexts` to select right context.
+
 
 ### Managing nodegroups
 
@@ -189,7 +192,7 @@ eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 A nodegroup can be scaled by using the `eksctl scale nodegroup` command:
 
 ```
-eksctl delete nodegroup --cluster=<clusterName> --nodes=<desiredCount> --name=<nodegroupName>
+eksctl scale nodegroup --cluster=<clusterName> --nodes=<desiredCount> --name=<nodegroupName>
 ```
 
 For example, to scale nodegroup `ng-a345f4e1` in `cluster-1` to 5 nodes, run:
@@ -336,7 +339,7 @@ You can create a cluster using a config file instead of flags.
 
 First, create `cluster.yaml` file:
 ```YAML
-apiVersion: eksctl.io/v1alpha3
+apiVersion: eksctl.io/v1alpha4
 kind: ClusterConfig
 
 metadata:
@@ -358,7 +361,7 @@ This will create a cluster as described.
 
 If you needed to use an existing VPC, you can use a config file like this:
 ```YAML
-apiVersion: eksctl.io/v1alpha3
+apiVersion: eksctl.io/v1alpha4
 kind: ClusterConfig
 
 metadata:
@@ -386,6 +389,11 @@ nodeGroups:
     iam:
       withAddonPolicies:
         imageBuilder: true
+```
+
+To delete this cluster, run:
+```
+eksctl delete cluster -f cluster.yaml
 ```
 
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
