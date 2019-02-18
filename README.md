@@ -245,6 +245,16 @@ You can also enable SSH, ASG access and other feature for each particular nodegr
 eksctl create nodegroup --cluster=cluster-1 --node-labels="autoscaling=enabled,purpose=ci-worker" --asg-access --full-ecr-access --ssh-access
 ```
 
+To cordon a nodegroup and evict all of the pods, run:
+```
+eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName>
+```
+
+To uncordon a nodegroup, run:
+```
+eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName> --undo
+```
+
 To delete a nodegroup, run:
 
 ```
