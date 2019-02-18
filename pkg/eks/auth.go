@@ -178,6 +178,21 @@ func (c *ClusterProvider) NewClientConfig(spec *api.ClusterConfig) (*ClientConfi
 	return clientConfig, nil
 }
 
+// NewStandardClientSet returns a new clientset using emebedded token
+func (c *ClusterProvider) NewStandardClientSet(spec *api.ClusterConfig) (*clientset.Clientset, error) {
+	clientConfigBase, err := c.NewClientConfig(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	clientConfig, err := clientConfigBase.WithEmbeddedToken()
+	if err != nil {
+		return nil, err
+	}
+
+	return clientConfig.NewClientSetWithEmbeddedToken()
+}
+
 // WithExecAuthenticator creates a copy of ClientConfig with authenticator exec plugin
 // it ensures that AWS_PROFILE environment variable gets added to config also
 func (c *ClientConfig) WithExecAuthenticator() *ClientConfig {

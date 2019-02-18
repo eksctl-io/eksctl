@@ -111,17 +111,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 
 	// post-deletion action
 	if updateAuthConfigMap {
-		clientConfigBase, err := ctl.NewClientConfig(cfg)
-		if err != nil {
-			return err
-		}
-
-		clientConfig, err := clientConfigBase.WithEmbeddedToken()
-		if err != nil {
-			return err
-		}
-
-		clientSet, err := clientConfig.NewClientSetWithEmbeddedToken()
+		clientSet, err := ctl.NewStandardClientSet(cfg)
 		if err != nil {
 			return err
 		}
