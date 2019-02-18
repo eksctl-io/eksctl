@@ -99,15 +99,14 @@ func filterNodeGroups(cfg *api.ClusterConfig) error {
 }
 
 func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, cmd *cobra.Command) error {
-	ctl := eks.New(p, cfg)
 	meta := cfg.Metadata
-
 	printer := printers.NewJSONPrinter()
 
 	if err := api.Register(); err != nil {
 		return err
 	}
 
+	var ctl *eks.ClusterProvider
 	var stackManager *manager.StackCollection
 
 	if clusterConfigFile != "" {
@@ -163,6 +162,8 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 		}
 
 		p.Region = meta.Region
+		// update with region from config file
+		ctl = eks.New(p, cfg)
 
 		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
 			if err := api.ValidateNodeGroup(i, ng); err != nil {
@@ -217,11 +218,44 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 				ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolFalse()
 			}
 
+			if cfg.Metadata.Version == "" {
+				cfg.Metadata.Version = api.LatestVersion
+			}
+			if cfg.Metadata.Version != api.LatestVersion {
+				validVersion := false
+				for _, v := range api.SupportedVersions() {
+					if cfg.Metadata.Version == v {
+						validVersion = true
+					}
+				}
+				if !validVersion {
+					return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ","))
+				}
+			}
+
+			// resolve AMI
+			if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
+				return err
+			}
+			logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
+
+			if err := ctl.SetNodeLabels(ng, meta); err != nil {
+				return err
+			}
+
+			// load or use SSH key - name includes cluster name and the
+			// fingerprint, so if unique keys provided, each will get
+			// loaded and used as intended and there is no need to have
+			// nodegroup name in the key name
+			if err := ctl.LoadSSHPublicKey(meta.Name, ng); err != nil {
+				return err
+			}
 			return nil
 		})
 		if err != nil {
 			return err
 		}
+
 		stackManager = ctl.NewStackManager(cfg)
 
 		// Use the normal single nodegroup path if only one nodegroup is specified in the filtered file
@@ -229,11 +263,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 			ng = cfg.NodeGroups[0]
 		}
 	} else {
-		if !ctl.IsSupportedRegion() {
-			return cmdutils.ErrUnsupportedRegion(p)
-		}
-		logger.Info("using region %s", meta.Region)
-
+		ctl := eks.New(p, cfg)
 		if err := ctl.CheckAuth(); err != nil {
 			return err
 		}
@@ -269,18 +299,27 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 		if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
 			return errors.Wrap(err, "cluster compatibility check failed")
 		}
+	}
 
-		if err := ctl.GetClusterVPC(cfg); err != nil {
-			return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
-		}
+	if !ctl.IsSupportedRegion() {
+		return cmdutils.ErrUnsupportedRegion(p)
+	}
+	logger.Info("using region %s", meta.Region)
 
-		if err := ctl.GetCredentials(cfg); err != nil {
-			return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
-		}
+	if err := ctl.CheckAuth(); err != nil {
+		return err
+	}
 
-		if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
-			return err
-		}
+	if err := ctl.GetClusterVPC(cfg); err != nil {
+		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+	}
+
+	if err := ctl.GetCredentials(cfg); err != nil {
+		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	}
+
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+		return err
 	}
 	{
 		if clusterConfigFile != "" && len(cfg.NodeGroups) > 1 {
@@ -288,7 +327,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 			errs := stackManager.CreateAllNodeGroups()
 			if len(errs) > 0 {
 				logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
-				logger.Info("to cleanup resources, run 'eksctl delete nodegroup <name> --region=%s --name=%s' for each specified nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
+				logger.Info("to cleanup resources, run 'eksctl delete nodegroup <name> --region=%s --cluster=%s' for each specified nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
 				for _, err := range errs {
 					if err != nil {
 						logger.Critical("%s\n", err.Error())
@@ -301,7 +340,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 			errs := stackManager.CreateOneNodeGroup(ng)
 			if len(errs) > 0 {
 				logger.Info("%d error(s) occurred and nodegroup hasn't been created properly, you may wish to check CloudFormation console", len(errs))
-				logger.Info("to cleanup resources, run 'eksctl delete nodegroup %s --region=%s --name=%s'", ng.Name, cfg.Metadata.Region, cfg.Metadata.Name)
+				logger.Info("to cleanup resources, run 'eksctl delete nodegroup %s --region=%s --cluster=%s'", ng.Name, cfg.Metadata.Region, cfg.Metadata.Name)
 				for _, err := range errs {
 					if err != nil {
 						logger.Critical("%s\n", err.Error())
