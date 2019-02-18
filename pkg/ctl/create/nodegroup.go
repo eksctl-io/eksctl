@@ -71,10 +71,10 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func filterNodeGroups(cfg *api.ClusterConfig) {
+func filterNodeGroups(cfg *api.ClusterConfig) error {
 	if nodeGroupFilter == "" {
 		// no filter supplied
-		return
+		return nil
 	}
 	globstrs := strings.Split(nodeGroupFilter, ",")
 	globs := make([]glob.Glob, len(globstrs))
@@ -91,7 +91,11 @@ func filterNodeGroups(cfg *api.ClusterConfig) {
 			}
 		}
 	}
+	if len(filtered) == 0 {
+		return fmt.Errorf("No nodegroups match filter specification: %s", nodeGroupFilter)
+	}
 	cfg.NodeGroups = filtered
+	return nil
 }
 
 func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, cmd *cobra.Command) error {
@@ -113,7 +117,9 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 		meta = cfg.Metadata
 
 		// Limit nodegroups to set specified on command line via globs
-		filterNodeGroups(cfg)
+		if err := filterNodeGroups(cfg); err != nil {
+			return err
+		}
 
 		incompatibleFlags := []string{
 			"name",
