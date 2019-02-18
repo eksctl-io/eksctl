@@ -358,6 +358,9 @@ type NodeGroup struct {
 
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+
+	// +optional
+	ClusterDNS string `json:"clusterDNS,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup

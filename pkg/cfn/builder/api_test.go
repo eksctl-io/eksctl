@@ -835,6 +835,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg.NodeGroups[0].OverrideBootstrapCommand = &overrideBootstrapCommand
 
+		cfg.NodeGroups[0].ClusterDNS = "169.254.20.10"
+
 		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-123-cluster", ng)
 		err := rs.AddAllResources()
 		It("should add all resources without errors", func() {
@@ -868,7 +870,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"MAX_PODS=29",
-				"CLUSTER_DNS=10.100.0.10",
+				"CLUSTER_DNS=169.254.20.10",
 				"NODE_LABELS=os=al2",
 			}))
 
@@ -977,6 +979,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"os": "ubuntu",
 		}
 
+		cfg.NodeGroups[0].ClusterDNS = "169.254.20.10"
+
 		cfg.NodeGroups[0].OverrideBootstrapCommand = &overrideBootstrapCommand
 
 		rs := NewNodeGroupResourceSet(p, cfg, "eksctl-test-123-cluster", ng)
@@ -1018,7 +1022,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"MAX_PODS=29",
-				"CLUSTER_DNS=172.20.0.10",
+				"CLUSTER_DNS=169.254.20.10",
 				"NODE_LABELS=os=ubuntu",
 			}))
 
