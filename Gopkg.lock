@@ -253,6 +253,23 @@
   version = "v1.37.0"
 
 [[projects]]
+  digest = "1:6a7159c5f8f8826207545407a458b43ab6599c1c8a2271465c2e979ecea1dcd4"
+  name = "github.com/gobwas/glob"
+  packages = [
+    ".",
+    "compiler",
+    "match",
+    "syntax",
+    "syntax/ast",
+    "syntax/lexer",
+    "util/runes",
+    "util/strings",
+  ]
+  pruneopts = "NUT"
+  revision = "5ccd90ef52e1e632236f7326478d4faa74f99438"
+  version = "v0.2.3"
+
+[[projects]]
   digest = "1:1b3dd24f14a5280710fc7a3aa2480b6e4d20fdfc905841de9a3aa2aa2f1d4ee9"
   name = "github.com/gogo/protobuf"
   packages = [
@@ -1516,6 +1533,7 @@
     "github.com/dave/jennifer/jen",
     "github.com/dlespiau/kube-test-harness",
     "github.com/dlespiau/kube-test-harness/logger",
+    "github.com/gobwas/glob",
     "github.com/kballard/go-shellquote",
     "github.com/kris-nova/logger",
     "github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator",
@@ -1545,6 +1563,7 @@
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/util/sets",
+    "k8s.io/apimachinery/pkg/util/validation",
     "k8s.io/apimachinery/pkg/watch",
     "k8s.io/cli-runtime/pkg/genericclioptions/printers",
     "k8s.io/client-go/kubernetes",
