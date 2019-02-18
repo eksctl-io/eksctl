@@ -1,5 +1,5 @@
-> **STATUS**: This proposal is a _working draft_, it will get refined and augment as needed.
-> If any non-trivial changes are need to functionality defined here, in particular the user
+> **STATUS**: This proposal is a _working draft_, it will get refined and augmented as needed.
+> If any non-trivial changes are needed to functionality defined here, in particular the user
 > experience, those changes should be suggested via a PR to this proposal document.
 > Any other changes to the text of the proposal or technical corrections are also very welcome.
 
@@ -44,15 +44,19 @@ Amazon provides AWS Price List API : https://pricing.us-east-1.amazonaws.com/off
 * __vpc-private-subnets__: ignored. (V2)
 * __vpc-public-subnets__: ignored. (V2)
 * __vpc-cidr__: ignored. (V2)
-* __vpc-from-kops-cluster__: ignored. (V2) 
+* __vpc-from-kops-cluster__: ignored. (V2)
 
 **Specifics parameters**
 
 ***Usage***
 
 Used to estimate the usage of the cluster and its nodes. By default, it's a full utilization: `--usage-type=utilization --usage-value=100`.
-* __usage-type__: String. Possible values: `demo`, `utilization`, `day`, `week`, `month`.
-* __usage-value__: Integer. Min value is `1`. Max value depends on usage type, `24` for `demo` and `day`, `100` for `utilization`, `168` for `week`, `732` for `month`.
+* __usage-type__: String. Possible values: `demo` or `utilization` or `day` or `week` or `month`.
+* __usage-value__: Integer. Min value is `1` hour. Max value depends on `usage-type`:
+    * `24` hours for `demo` and `day`,
+    * `100` % for `utilization`,
+    * `168` hours for `week`,
+    * `732` hours for `month`.
 
 Examples:
 - Demo ` --usage-type=demo --usage-value=3`
@@ -65,21 +69,22 @@ Examples:
 * __free-tier__: yes/no (yes by default) 
 
 ***Response example***
-`eksctl calculator cluster --name=cluster-1 --region=eu-west-1 --nodes=2`
+`eksctl calculator --name=cluster-1 --region=eu-west-1 --nodes=2`
 
 ```
 [ℹ]  using region eu-west-1
 [ℹ]  using "ami-0ce0ec06e682ee10e" for nodes
 [ℹ]  2 nodes m5.large
+[ℹ]  EBS volumes 20go
 [ℹ]  free tier "yes"
 [ℹ]  usage type "utilization"
 [ℹ]  usage value "100%"
-[✔]  estimation (per month): 
-     - Amazon EC2 Service (US East (N. Virginia)): $ 142.56
-     -- Compute: $ 140.56
-     -- EBS Volumes: $ 2.00
+[✔]  estimation (per month):
+     - Amazon EC2 Service (EU (Ireland)): $ 158.86
+     -- Compute: $ 156.66
+     -- EBS Volumes: $ 2.20
      - EKS Cluster: $ 146.4
-     total: $ 288.96 
+     total: $ 305.26
 ```
 
 ***Usecase (V2)***
