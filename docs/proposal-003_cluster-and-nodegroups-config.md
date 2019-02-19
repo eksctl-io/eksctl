@@ -71,19 +71,19 @@ nodeGroups:
     desiredCapacity: 4
     privateNetworking: true
 ```
-`eksctl create nodegroup` will be updated to support glob pattern matching for nodegroup names contained within the cluster config.  Therefore, a user can create these additional nodegroups using `eksctl create nodegroup --config-file=cluster.yaml --only="*dev,*test" --cluster="cluster-5"`.  Eksctl will create two nodegroups in cluster named cluster-5.
+`eksctl create nodegroup` will be updated to support glob pattern matching for nodegroup names contained within the cluster config.  Therefore, a user can create these additional nodegroups using `eksctl create nodegroup --config-file=cluster.yaml --only="*dev,*test"`.  Eksctl will create two nodegroups in cluster named cluster-5.
 
 Here are some additional examples:
 
 ```
-eksctl create ng --config-file=cluster.yaml --cluster=cluster5 ## all nodegroups will be created
-eksctl create ng --config-file=cluster.yaml --only=ng1-public  --cluster=cluster5 ## only one nodegroup will be created
-eksctl create ng --config-file=cluster.yaml --only=ng1-public,ng2-private  --cluster=cluster5 ## both nodegroups will be created
+eksctl create ng --config-file=cluster.yaml ## all nodegroups will be created
+eksctl create ng --config-file=cluster.yaml --only=ng1-public  ## only one nodegroup will be created
+eksctl create ng --config-file=cluster.yaml --only=ng1-public,ng2-private ## both nodegroups will be created
 ```
 
 The `eksctl create cluster` cli will be updated to optionally ignore all nodegroups in the cluster config. https://github.com/weaveworks/eksctl/issues/555
 
-By using a single configuration file, users can keep their cluster definition together and most importantly checked into source control.
+By using a single configuration file, users can keep their cluster definitions together and most importantly checked into source control.
 
 ## Possible future enhancements
 
