@@ -11,10 +11,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -35,7 +33,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		Short:   "Create a nodegroup",
 		Aliases: []string{"ng"},
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateNodeGroups(p, cfg, ng, cmdutils.GetNameArg(args), cmd); err != nil {
+			if err := doCreateNodeGroups(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -98,16 +96,14 @@ func filterNodeGroups(cfg *api.ClusterConfig) error {
 	return nil
 }
 
-func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, cmd *cobra.Command) error {
+func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	meta := cfg.Metadata
+
 	printer := printers.NewJSONPrinter()
 
 	if err := api.Register(); err != nil {
 		return err
 	}
-
-	var ctl *eks.ClusterProvider
-	var stackManager *manager.StackCollection
 
 	if clusterConfigFile != "" {
 		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
@@ -162,125 +158,72 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 		}
 
 		p.Region = meta.Region
-		// update with region from config file
-		ctl = eks.New(p, cfg)
+
+		if err := checkEachNodeGroup(cfg, newNodeGroupChecker); err != nil {
+			return err
+		}
+	} else {
+		// validation and defaulting specific to when --config-file is unused
+
+		if cfg.Metadata.Name == "" {
+			return errors.New("--cluster must be set")
+		}
 
 		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
-			if err := api.ValidateNodeGroup(i, ng); err != nil {
-				return err
+			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
+				return fmt.Errorf("--ssh-public-key must be non-empty string")
 			}
 
-			// apply defaults
-			if ng.InstanceType == "" {
-				ng.InstanceType = api.DefaultNodeType
+			// generate nodegroup name or use either flag or argument
+			if utils.NodeGroupName(ng.Name, nameArg) == "" {
+				return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
 			}
-			if ng.AMIFamily == "" {
-				ng.AMIFamily = ami.ImageFamilyAmazonLinux2
-			}
-			if ng.AMI == "" {
-				ng.AMI = ami.ResolverStatic
-			}
+			ng.Name = utils.NodeGroupName(ng.Name, nameArg)
 
-			if ng.SecurityGroups == nil {
-				ng.SecurityGroups = &api.NodeGroupSGs{
-					AttachIDs: []string{},
-				}
-			}
-			if ng.SecurityGroups.WithLocal == nil {
-				ng.SecurityGroups.WithLocal = api.NewBoolTrue()
-			}
-			if ng.SecurityGroups.WithShared == nil {
-				ng.SecurityGroups.WithShared = api.NewBoolTrue()
-			}
-
-			if ng.AllowSSH {
-				if ng.SSHPublicKeyPath == "" {
-					ng.SSHPublicKeyPath = defaultSSHPublicKey
-				}
-			}
-
-			if ng.VolumeSize > 0 {
-				if ng.VolumeType == "" {
-					ng.VolumeType = api.DefaultNodeVolumeType
-				}
-			}
-
-			if ng.IAM == nil {
-				ng.IAM = &api.NodeGroupIAM{}
-			}
-			if ng.IAM.WithAddonPolicies.ImageBuilder == nil {
-				ng.IAM.WithAddonPolicies.ImageBuilder = api.NewBoolFalse()
-			}
-			if ng.IAM.WithAddonPolicies.AutoScaler == nil {
-				ng.IAM.WithAddonPolicies.AutoScaler = api.NewBoolFalse()
-			}
-			if ng.IAM.WithAddonPolicies.ExternalDNS == nil {
-				ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolFalse()
-			}
-
-			if cfg.Metadata.Version == "" {
-				cfg.Metadata.Version = api.LatestVersion
-			}
-			if cfg.Metadata.Version != api.LatestVersion {
-				validVersion := false
-				for _, v := range api.SupportedVersions() {
-					if cfg.Metadata.Version == v {
-						validVersion = true
-					}
-				}
-				if !validVersion {
-					return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ","))
-				}
-			}
-
-			// resolve AMI
-			if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
-				return err
-			}
-			logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
-
-			if err := ctl.SetNodeLabels(ng, meta); err != nil {
-				return err
-			}
-
-			// load or use SSH key - name includes cluster name and the
-			// fingerprint, so if unique keys provided, each will get
-			// loaded and used as intended and there is no need to have
-			// nodegroup name in the key name
-			if err := ctl.LoadSSHPublicKey(meta.Name, ng); err != nil {
-				return err
-			}
 			return nil
 		})
 		if err != nil {
 			return err
 		}
 
-		stackManager = ctl.NewStackManager(cfg)
+	}
 
-		// Use the normal single nodegroup path if only one nodegroup is specified in the filtered file
-		if len(cfg.NodeGroups) == 1 {
-			ng = cfg.NodeGroups[0]
-		}
-	} else {
-		ctl = eks.New(p, cfg)
-		if err := ctl.CheckAuth(); err != nil {
-			return err
-		}
+	ctl := eks.New(p, cfg)
 
-		if cfg.Metadata.Name == "" {
-			return errors.New("--cluster must be set")
-		}
+	if !ctl.IsSupportedRegion() {
+		return cmdutils.ErrUnsupportedRegion(p)
+	}
+	logger.Info("using region %s", meta.Region)
 
-		if utils.NodeGroupName(ng.Name, nameArg) == "" {
-			return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	if cfg.Metadata.Version == "" {
+		cfg.Metadata.Version = api.LatestVersion
+	}
+	if cfg.Metadata.Version != api.LatestVersion {
+		validVersion := false
+		for _, v := range api.SupportedVersions() {
+			if cfg.Metadata.Version == v {
+				validVersion = true
+			}
 		}
-		ng.Name = utils.NodeGroupName(ng.Name, nameArg)
-
-		if ng.SSHPublicKeyPath == "" {
-			return fmt.Errorf("--ssh-public-key must be non-empty string")
+		if !validVersion {
+			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ","))
 		}
+	}
 
+	if err := ctl.CheckAuth(); err != nil {
+		return err
+	}
+
+	if err := ctl.GetCredentials(cfg); err != nil {
+		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	}
+
+	if err := ctl.GetClusterVPC(cfg); err != nil {
+		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
+	}
+
+	err := checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
 		}
@@ -290,105 +233,51 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 			return err
 		}
 
-		if err := ctl.LoadSSHPublicKey(cfg.Metadata.Name, ng); err != nil {
+		// load or use SSH key - name includes cluster name and the
+		// fingerprint, so if unique keys provided, each will get
+		// loaded and used as intended and there is no need to have
+		// nodegroup name in the key name
+		if err := ctl.LoadSSHPublicKey(meta.Name, ng); err != nil {
 			return err
 		}
-
-		stackManager = ctl.NewStackManager(cfg)
-
-		if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
-			return errors.Wrap(err, "cluster compatibility check failed")
-		}
-	}
-
-	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
-	}
-	logger.Info("using region %s", meta.Region)
-
-	if err := ctl.CheckAuth(); err != nil {
+		return nil
+	})
+	if err != nil {
 		return err
-	}
-
-	if err := ctl.GetClusterVPC(cfg); err != nil {
-		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
-	}
-
-	if err := ctl.GetCredentials(cfg); err != nil {
-		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
 		return err
 	}
+
+	stackManager := ctl.NewStackManager(cfg)
+
+	if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
+		return errors.Wrap(err, "cluster compatibility check failed")
+	}
+
 	{
-		if clusterConfigFile != "" && len(cfg.NodeGroups) > 1 {
-			logger.Info("will create a Cloudformation stack for selected nodegroups in cluster %s", cfg.Metadata.Name)
-			errs := stackManager.CreateAllNodeGroups()
-			if len(errs) > 0 {
-				logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
-				logger.Info("to cleanup resources, run 'eksctl delete nodegroup <name> --region=%s --cluster=%s' for each specified nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
-				for _, err := range errs {
-					if err != nil {
-						logger.Critical("%s\n", err.Error())
-					}
+		logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
+		errs := stackManager.CreateAllNodeGroups()
+		if len(errs) > 0 {
+			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
+			for _, err := range errs {
+				if err != nil {
+					logger.Critical("%s\n", err.Error())
 				}
-				return fmt.Errorf("failed to create selected nodegroups for cluster %q", ng.Name, cfg.Metadata.Name)
 			}
-		} else {
-			logger.Info("will create a Cloudformation stack for nodegroup %s in cluster %s", ng.Name, cfg.Metadata.Name)
-			errs := stackManager.CreateOneNodeGroup(ng)
-			if len(errs) > 0 {
-				logger.Info("%d error(s) occurred and nodegroup hasn't been created properly, you may wish to check CloudFormation console", len(errs))
-				logger.Info("to cleanup resources, run 'eksctl delete nodegroup %s --region=%s --cluster=%s'", ng.Name, cfg.Metadata.Region, cfg.Metadata.Name)
-				for _, err := range errs {
-					if err != nil {
-						logger.Critical("%s\n", err.Error())
-					}
-				}
-				return fmt.Errorf("failed to create nodegroup %s for cluster %q", ng.Name, cfg.Metadata.Name)
-			}
+			return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
 		}
 	}
 
 	{ // post-creation action
-		clientConfigBase, err := ctl.NewClientConfig(cfg)
+		clientSet, err := ctl.NewStandardClientSet(cfg)
 		if err != nil {
 			return err
 		}
 
-		clientConfig := clientConfigBase.WithExecAuthenticator()
-
-		clientSet, err := clientConfig.NewClientSet()
-		if err != nil {
-			return err
-		}
-
-		if clusterConfigFile != "" {
-			err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
-				// authorise nodes to join
-				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
-					return err
-				}
-
-				// wait for nodes to join
-				if err = ctl.WaitForNodes(clientSet, ng); err != nil {
-					return err
-				}
-
-				// if GPU instance type, give instructions
-				if utils.IsGPUInstanceType(ng.InstanceType) {
-					logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
-					logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
-				}
-
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-			logger.Success("created nodegroups in cluster %q", cfg.Metadata.Name)
-		} else {
+		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err
@@ -398,8 +287,19 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 			if err = ctl.WaitForNodes(clientSet, ng); err != nil {
 				return err
 			}
-			logger.Success("created nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
+
+			// if GPU instance type, give instructions
+			if utils.IsGPUInstanceType(ng.InstanceType) {
+				logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
+				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
+			}
+
+			return nil
+		})
+		if err != nil {
+			return err
 		}
+		logger.Success("created nodegroups in cluster %q", cfg.Metadata.Name)
 	}
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
