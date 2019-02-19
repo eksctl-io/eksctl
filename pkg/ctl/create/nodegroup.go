@@ -169,6 +169,10 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			return errors.New("--cluster must be set")
 		}
 
+		if nodeGroupFilter != "" {
+			return errors.New("cannot use --only unless a config file is specified via --config-file/-f")
+		}
+
 		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
 			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
 				return fmt.Errorf("--ssh-public-key must be non-empty string")
