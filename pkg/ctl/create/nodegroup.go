@@ -111,6 +111,16 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		}
 		meta = cfg.Metadata
 
+		if meta.Name == "" {
+			return fmt.Errorf("metadata.name must be set")
+		}
+
+		if meta.Region == "" {
+			return fmt.Errorf("metadata.region must be set")
+		}
+
+		p.Region = meta.Region
+
 		// Limit nodegroups to set specified on command line via globs
 		if err := filterNodeGroups(cfg); err != nil {
 			return err
@@ -148,16 +158,6 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 				return fmt.Errorf("cannot use --%s when --config-file/-f is set", f)
 			}
 		}
-
-		if meta.Name == "" {
-			return fmt.Errorf("metadata.name must be set")
-		}
-
-		if meta.Region == "" {
-			return fmt.Errorf("metadata.region must be set")
-		}
-
-		p.Region = meta.Region
 
 		if err := checkEachNodeGroup(cfg, newNodeGroupChecker); err != nil {
 			return err
