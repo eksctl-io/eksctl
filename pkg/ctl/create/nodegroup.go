@@ -51,7 +51,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata)
 		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
-		fs.StringVarP(&nodeGroupFilter, "only", "o", "",
+		fs.StringVarP(&nodeGroupFilter, "only", "", "",
 			"select a subset of nodegroups via comma-separted list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
 	})
 
@@ -263,7 +263,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.N
 			ng = cfg.NodeGroups[0]
 		}
 	} else {
-		ctl := eks.New(p, cfg)
+		ctl = eks.New(p, cfg)
 		if err := ctl.CheckAuth(); err != nil {
 			return err
 		}
