@@ -84,7 +84,10 @@ func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, e
 	return clientConfigData, nil
 }
 
-func clusterDNS(spec *api.ClusterConfig) string {
+func clusterDNS(spec *api.ClusterConfig, ng *api.NodeGroup) string {
+	if ng.ClusterDNS != "" {
+		return ng.ClusterDNS
+	}
 	// Default service network is 10.100.0.0, but it gets set 172.20.0.0 automatically when pod network
 	// is anywhere within 10.0.0.0/8
 	if spec.VPC.CIDR != nil && spec.VPC.CIDR.IP[0] == 10 {
@@ -106,7 +109,7 @@ func makeKubeletParamsCommon(spec *api.ClusterConfig, ng *api.NodeGroup) []strin
 	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
 	return []string{
 		fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode),
-		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec)),
+		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
 		fmt.Sprintf("NODE_LABELS=%s", strings.Join(labels, ",")),
 	}
 }
