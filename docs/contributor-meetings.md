@@ -29,3 +29,15 @@ Topics:
 - 0.1.20 release update - it's out
 - next release and `v1alpha5`
 - separation of `NodeGroupConfig` object, so that nodegroups can be managed with a config file
+
+### 20/02/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+
+Topics:
+- 0.1.22 release
+- update on latest contributions
+- progress update on `kubectl drain` refactoring
+- `eksctl create nodegroup` with `--config-file`
