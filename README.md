@@ -167,6 +167,13 @@ eksctl create cluster --node-volume-size=50 --node-volume-type=io1
 
 > NOTE: In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.
 
+You can also create a cluster passing all configuration information in a file
+using `--config-file`:
+
+```
+eksctl create cluster --config-file=<path>
+```
+
 To delete a cluster, run:
 
 ```
@@ -183,6 +190,19 @@ To create an additional nodegroup, use:
 
 ```
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
+```
+
+Additionally, you can use the same config file used for `eksctl create cluster`:
+
+```
+eksctl create nodegroup --config-file=<path>
+```
+
+If there are multiple nodegroups specified in the file, you can select
+a subset via `--only=<glob,glob,...>`:
+
+```
+eksctl create nodegroup --config-file=<path> --only='ng-*,nodegroup?,N*group'
 ```
 
 To list the details about a nodegroup or all of the nodegroups, use:
@@ -237,7 +257,7 @@ and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery shoul
 ### VPC Networking
 
 By default, `eksctl create cluster` instatiates a dedicated VPC, in order to avoid interference with any existing resources for a
-variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC. 
+variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC.
 Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
 Initial nodegroup is create in public subnets, with SSH access disabled unless `--allow-ssh` is specified. However, this implies
 that each of the EC2 instances in the initial nodegroup gets a public IP and can be accessed on ports 1025 - 65535, which is

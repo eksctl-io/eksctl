@@ -14,7 +14,7 @@ type StaticDefaultResolver struct {
 // Resolve will return an AMI to use based on the default AMI for each region
 // currently source of truth for these is here
 func (r *StaticDefaultResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
-	logger.Debug("resolving AMI using StaticDefaultResolver for region %s, version %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
+	logger.Debug("resolving AMI using StaticDefaultResolver for region %s, version %s, instanceType %s and imageFamily %s", region, version, instanceType, imageFamily)
 
 	regionalAMIs := StaticImages[version][imageFamily][ImageClassGeneral]
 	return regionalAMIs[region], nil
