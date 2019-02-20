@@ -9,7 +9,7 @@ if [ "$#" -ne 1 ] ; then
   exit 1
 fi
 
-if [ ! "$(git rev-parse --abbrev-ref)" = master ] ; then
+if [ ! "$(git rev-parse --abbrev-ref @)" = master ] ; then
   echo "Must be on master branch"
   exit 2
 fi
