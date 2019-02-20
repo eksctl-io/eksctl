@@ -192,8 +192,7 @@ To create an additional nodegroup, use:
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
-Additionally, you can use the same config file used for create
-cluster:
+Additionally, you can use the same config file used for `eksctl create cluster`:
 
 ```
 eksctl create nodegroup --config-file=<path>
