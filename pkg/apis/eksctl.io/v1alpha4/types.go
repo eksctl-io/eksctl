@@ -29,6 +29,9 @@ const (
 	// RegionEUWest1 represents the EU West Region Ireland
 	RegionEUWest1 = "eu-west-1"
 
+	// RegionEUWest2 represents the EU West Region London
+	RegionEUWest2 = "eu-west-2"
+
 	// RegionEUNorth1 represents the EU North Region Stockholm
 	RegionEUNorth1 = "eu-north-1"
 
@@ -117,6 +120,7 @@ func SupportedRegions() []string {
 		RegionUSEast1,
 		RegionUSEast2,
 		RegionEUWest1,
+		RegionEUWest2,
 		RegionEUNorth1,
 		RegionEUCentral1,
 		RegionAPNorthEast1,
