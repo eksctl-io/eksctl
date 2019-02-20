@@ -196,9 +196,13 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	if v := n.spec.IAM.WithAddonPolicies.ExternalDNS; v != nil && *v {
-		n.rs.attachAllowPolicy("PolicyExternalDNS", refIR, "arn:aws:route53:::hostedzone/*",
+		n.rs.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
 			[]string{
 				"route53:ChangeResourceRecordSets",
+			},
+		)
+		n.rs.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, "*",
+			[]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 			},
