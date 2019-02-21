@@ -46,7 +46,7 @@ var _ = Describe("Kubeconfig", func() {
 	}
 
 	It("creating new Kubeconfig", func() {
-		filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
+		filename, err := kubeconfig.Write(configFile.Name(), testConfig, false)
 		Expect(err).To(BeNil())
 
 		readConfig, err := clientcmd.LoadFromFile(filename)
@@ -66,7 +66,7 @@ var _ = Describe("Kubeconfig", func() {
 		testConfigContext := testConfig
 		testConfigContext.CurrentContext = "test-context"
 
-		filename, err := kubeconfig.Write(configFile.Name(), &testConfigContext, true)
+		filename, err := kubeconfig.Write(configFile.Name(), testConfigContext, true)
 		Expect(err).To(BeNil())
 
 		readConfig, err := clientcmd.LoadFromFile(filename)
@@ -79,7 +79,7 @@ var _ = Describe("Kubeconfig", func() {
 		err := writeConfig(configFile.Name())
 		Expect(err).To(BeNil())
 
-		filename, err := kubeconfig.Write(configFile.Name(), &testConfig, false)
+		filename, err := kubeconfig.Write(configFile.Name(), testConfig, false)
 		Expect(err).To(BeNil())
 
 		readConfig, err := clientcmd.LoadFromFile(filename)
@@ -105,7 +105,7 @@ var _ = Describe("Kubeconfig", func() {
 		testConfigContext := testConfig
 		testConfigContext.CurrentContext = "test-context"
 
-		filename, err := kubeconfig.Write(configFile.Name(), &testConfigContext, true)
+		filename, err := kubeconfig.Write(configFile.Name(), testConfigContext, true)
 		Expect(err).To(BeNil())
 
 		readConfig, err := clientcmd.LoadFromFile(filename)
@@ -121,7 +121,7 @@ var _ = Describe("Kubeconfig", func() {
 		testConfigContext := testConfig
 		testConfigContext.CurrentContext = "test-context"
 
-		filename, err := kubeconfig.Write(configFile.Name(), &testConfigContext, false)
+		filename, err := kubeconfig.Write(configFile.Name(), testConfigContext, false)
 		Expect(err).To(BeNil())
 
 		readConfig, err := clientcmd.LoadFromFile(filename)

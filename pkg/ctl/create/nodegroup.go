@@ -276,7 +276,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 	}
 
 	{ // post-creation action
-		clientSet, err := ctl.NewStandardClientSet(cfg)
+		clientSet, err := ctl.NewStdClientSet(cfg)
 		if err != nil {
 			return err
 		}

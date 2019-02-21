@@ -59,15 +59,27 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 	return c, clusterName, contextName
 }
 
-// AppendAuthenticator appends the AWS IAM  authenticator
-func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, command string) {
-	c.AuthInfos[c.CurrentContext].Exec = &clientcmdapi.ExecConfig{
+// AppendAuthenticator appends the AWS IAM  authenticator, and
+// if profile is non-empty string it sets AWS_PROFILE environment
+// variable also
+func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, command, profile string) {
+	execConfig := &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
 		Command:    command,
 		Args:       []string{"token", "-i", spec.Metadata.Name},
-		/*
-			Args:       []string{"token", "-i", c.Cluster.ClusterName, "-r", c.roleARN},
-		*/
+	}
+
+	if profile != "" {
+		execConfig.Env = []clientcmdapi.ExecEnvVar{
+			clientcmdapi.ExecEnvVar{
+				Name:  "AWS_PROFILE",
+				Value: profile,
+			},
+		}
+	}
+
+	c.AuthInfos[c.CurrentContext] = &clientcmdapi.AuthInfo{
+		Exec: execConfig,
 	}
 }
 
@@ -75,7 +87,7 @@ func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, comman
 // If path isn't specified then the path will be determined by client-go.
 // If file pointed to by path doesn't exist it will be created.
 // If the file already exists then the configuration will be merged with the existing file.
-func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string, error) {
+func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string, error) {
 	configAccess := getConfigAccess(path)
 
 	config, err := configAccess.GetStartingConfig()
@@ -84,7 +96,7 @@ func Write(path string, newConfig *clientcmdapi.Config, setContext bool) (string
 	}
 
 	logger.Debug("merging kubeconfig files")
-	merged := merge(config, newConfig)
+	merged := merge(config, &newConfig)
 
 	if setContext && newConfig.CurrentContext != "" {
 		logger.Debug("setting current-context to %s", newConfig.CurrentContext)

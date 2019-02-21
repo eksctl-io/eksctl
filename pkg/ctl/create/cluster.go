@@ -111,7 +111,6 @@ func skipNodeGroupsIfRequested(cfg *api.ClusterConfig) {
 	}
 }
 
-
 // checkEachNodeGroup iterates over each nodegroup and calls check function
 // (this is need to avoid common goroutine-for-loop pitfall)
 func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
@@ -490,25 +489,26 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	// obtain cluster credentials, write kubeconfig
 
 	{ // post-creation action
-		clientConfigBase, err := ctl.NewClientConfig(cfg)
-		if err != nil {
-			return err
-		}
+		var kubeconfigContextName string
 
 		if writeKubeconfig {
-			config := clientConfigBase.WithExecAuthenticator()
-			kubeconfigPath, err = kubeconfig.Write(kubeconfigPath, config.Client, setContext)
+			clientConfig, err := ctl.NewClientConfig(cfg, false)
+			if err != nil {
+				return err
+			}
+			kubeconfigContextName = clientConfig.ContextName
+
+			kubeconfigPath, err = kubeconfig.Write(kubeconfigPath, *clientConfig.Client, setContext)
 			if err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}
-
 			logger.Success("saved kubeconfig as %q", kubeconfigPath)
 		} else {
 			kubeconfigPath = ""
 		}
 
 		// create Kubernetes client
-		clientSet, err := clientConfigBase.NewClientSetWithEmbeddedToken()
+		clientSet, err := ctl.NewStdClientSet(cfg)
 		if err != nil {
 			return err
 		}
@@ -559,7 +559,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		if err != nil {
 			return err
 		}
-		if err := utils.CheckAllCommands(kubeconfigPath, setContext, clientConfigBase.ContextName, env); err != nil {
+		if err := utils.CheckAllCommands(kubeconfigPath, setContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}
