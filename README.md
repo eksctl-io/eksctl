@@ -174,6 +174,13 @@ using `--config-file`:
 eksctl create cluster --config-file=<path>
 ```
 
+To create a cluster using a configuration file and skip creating
+nodegroups until later:
+
+```
+eksctl create cluster --config-file=<path> --without-nodegroup
+```
+
 To delete a cluster, run:
 
 ```

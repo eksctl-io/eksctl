@@ -103,6 +103,15 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
+// When passing the --without-nodegroup option, don't create nodegroups
+func skipNodeGroupsIfRequested(cfg *api.ClusterConfig) {
+	if withoutNodeGroup {
+		cfg.NodeGroups = nil
+		logger.Warning("cluster will be created without an initial nodegroup")
+	}
+}
+
+
 // checkEachNodeGroup iterates over each nodegroup and calls check function
 // (this is need to avoid common goroutine-for-loop pitfall)
 func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
@@ -250,6 +259,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
+		skipNodeGroupsIfRequested(cfg)
+
 		if err := checkEachNodeGroup(cfg, newNodeGroupChecker); err != nil {
 			return err
 		}
@@ -266,10 +277,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		if withoutNodeGroup {
-			cfg.NodeGroups = nil
-			logger.Warning("cluster will be created without an initial nodegroup")
-		}
+		skipNodeGroupsIfRequested(cfg)
 
 		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
 			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
