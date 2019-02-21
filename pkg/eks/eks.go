@@ -62,7 +62,7 @@ func (c *ClusterProvider) DeprecatedDeleteControlPlane(cl *api.ClusterMeta) erro
 	return nil
 }
 
-// GetCredentials retrieves the certificate authority data
+// GetCredentials retrieves cluster endpoint and the certificate authority data
 func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 	// Check the cluster exists and is active
 	cluster, err := c.DescribeControlPlaneMustBeActive(spec.Metadata)
@@ -84,7 +84,17 @@ func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 	spec.Status.CertificateAuthorityData = data
 	spec.Status.ARN = *cluster.Arn
 
+	c.Status.cachedClusterInfo = cluster
+
 	return nil
+}
+
+// ControlPlaneVersion returns cached version
+func (c *ClusterProvider) ControlPlaneVersion() string {
+	if c.Status.cachedClusterInfo == nil || c.Status.cachedClusterInfo.Version == nil {
+		return ""
+	}
+	return *c.Status.cachedClusterInfo.Version
 }
 
 // GetClusterVPC retrieves the VPC configuration

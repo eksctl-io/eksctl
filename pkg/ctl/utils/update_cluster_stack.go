@@ -37,7 +37,7 @@ func updateClusterStackCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddVersionFlag(fs, cfg.Metadata)
+		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		fs.BoolVar(&updateClusterStackDryRun, "dry-run", updateClusterStackDryRun, "do not apply any change, only show what resources would be added")
 	})
 
