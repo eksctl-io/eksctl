@@ -76,7 +76,7 @@ func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, e
 	if ng.AMIFamily == ami.ImageFamilyUbuntu1804 {
 		authenticator = kubeconfig.HeptioAuthenticatorAWS
 	}
-	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator)
+	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator, "")
 	clientConfigData, err := clientcmd.Write(*clientConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "serialising kubeconfig for nodegroup")

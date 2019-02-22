@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/kris-nova/logger"
 	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
 	"github.com/pkg/errors"
@@ -152,84 +151,44 @@ func (c *ClusterProvider) getUsername() string {
 // ClientConfig stores information about the client config
 type ClientConfig struct {
 	Client      *clientcmdapi.Config
-	Cluster     *api.ClusterConfig
-	ClusterName string
 	ContextName string
-	roleARN     string
-	sts         stsiface.STSAPI
-	profile     string
 }
 
-// NewClientConfig creates a new client config
-// based on "k8s.io/kubernetes/cmd/kubeadm/app/util/kubeconfig"
-// these are small, so we can copy these, and no need to deal with k/k as dependency
-func (c *ClusterProvider) NewClientConfig(spec *api.ClusterConfig) (*ClientConfig, error) {
-	client, clusterName, contextName := kubeconfig.New(spec, c.getUsername(), "")
-	clientConfig := &ClientConfig{
-		Cluster:     spec,
+// NewClientConfig creates a new client config, if withEmbeddedToken is true
+// it will embed the STS token, otherwise it will use authenticator exec plugin
+// and ensures that AWS_PROFILE environment variable gets set also
+func (c *ClusterProvider) NewClientConfig(spec *api.ClusterConfig, withEmbeddedToken bool) (*ClientConfig, error) {
+	client, _, contextName := kubeconfig.New(spec, c.getUsername(), "")
+
+	config := &ClientConfig{
 		Client:      client,
-		ClusterName: clusterName,
 		ContextName: contextName,
-		roleARN:     c.Status.iamRoleARN,
-		sts:         c.Provider.STS(),
-		profile:     c.Provider.Profile(),
 	}
 
-	return clientConfig, nil
-}
-
-// NewStandardClientSet returns a new clientset using emebedded token
-func (c *ClusterProvider) NewStandardClientSet(spec *api.ClusterConfig) (*clientset.Clientset, error) {
-	clientConfigBase, err := c.NewClientConfig(spec)
-	if err != nil {
-		return nil, err
-	}
-
-	clientConfig, err := clientConfigBase.WithEmbeddedToken()
-	if err != nil {
-		return nil, err
-	}
-
-	return clientConfig.NewClientSetWithEmbeddedToken()
-}
-
-// WithExecAuthenticator creates a copy of ClientConfig with authenticator exec plugin
-// it ensures that AWS_PROFILE environment variable gets added to config also
-func (c *ClientConfig) WithExecAuthenticator() *ClientConfig {
-	clientConfigCopy := *c
-
-	kubeconfig.AppendAuthenticator(clientConfigCopy.Client, c.Cluster, utils.DetectAuthenticator())
-
-	if len(c.profile) > 0 {
-		clientConfigCopy.Client.AuthInfos[c.ContextName].Exec.Env = []clientcmdapi.ExecEnvVar{
-			clientcmdapi.ExecEnvVar{
-				Name:  "AWS_PROFILE",
-				Value: c.profile,
-			},
+	if withEmbeddedToken {
+		if err := config.useEmbeddedToken(spec, c.Provider.STS().(*sts.STS)); err != nil {
+			return nil, err
 		}
+	} else {
+		kubeconfig.AppendAuthenticator(config.Client, spec, utils.DetectAuthenticator(), c.Provider.Profile())
 	}
 
-	return &clientConfigCopy
+	return config, nil
 }
 
-// WithEmbeddedToken embeds the STS token
-func (c *ClientConfig) WithEmbeddedToken() (*ClientConfig, error) {
-	clientConfigCopy := *c
-
+func (c *ClientConfig) useEmbeddedToken(spec *api.ClusterConfig, sts *sts.STS) error {
 	gen, err := token.NewGenerator(true)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get token generator")
+		return errors.Wrap(err, "could not get token generator")
 	}
 
-	tok, err := gen.GetWithSTS(c.Cluster.Metadata.Name, c.sts.(*sts.STS))
+	tok, err := gen.GetWithSTS(spec.Metadata.Name, sts)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not get token")
+		return errors.Wrap(err, "could not get token")
 	}
 
-	x := c.Client.AuthInfos[c.ContextName]
-	x.Token = tok
-
-	return &clientConfigCopy, nil
+	c.Client.AuthInfos[c.ContextName].Token = tok
+	return nil
 }
 
 // NewClientSet creates a new API client
@@ -246,12 +205,13 @@ func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 	return client, nil
 }
 
-// NewClientSetWithEmbeddedToken creates a new API client with an embedded STS token
-func (c *ClientConfig) NewClientSetWithEmbeddedToken() (*clientset.Clientset, error) {
-	clientConfig, err := c.WithEmbeddedToken()
+// NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
+func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*clientset.Clientset, error) {
+	clientConfig, err := c.NewClientConfig(spec, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
 	}
+
 	clientSet, err := clientConfig.NewClientSet()
 	if err != nil {
 		return nil, errors.Wrap(err, "creating Kubernetes client")
