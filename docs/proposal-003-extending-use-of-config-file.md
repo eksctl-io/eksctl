@@ -1,4 +1,4 @@
-# Design Proposal #003: ClusterConfig and NodeGroupConfig
+# Design Proposal #003: Extending Use of `--config-file`
 
 > **STATUS**: This proposal is a _final_ state, and we expect minimal additional refinements.
 > If any non-trivial changes are needed to functionality defined here, in particular the user
