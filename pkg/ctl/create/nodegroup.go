@@ -100,6 +100,8 @@ func filterNodeGroups(cfg *api.ClusterConfig) error {
 
 func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	switch meta.Version {
+	case "auto":
+		break
 	case "":
 		meta.Version = "auto"
 	case "latest":
