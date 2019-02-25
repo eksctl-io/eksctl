@@ -222,8 +222,6 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			"node-security-groups",
 			"node-labels",
 			"node-zones",
-			"temp-node-role-policies",
-			"temp-node-role-name",
 			"asg-access",
 			"external-dns-access",
 			"full-ecr-access",
