@@ -47,6 +47,10 @@ func NewUserDataForAmazonLinux2(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 
 	scripts := []string{}
 
+	for _, command := range ng.PreBootstrapCommands {
+		config.AddShellCommand(command)
+	}
+
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {

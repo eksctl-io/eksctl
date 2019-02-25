@@ -1,0 +1,44 @@
+# An advanced example of ClusterConfig object with customised nodegroups:
+--- 
+apiVersion: eksctl.io/v1alpha4
+kind: ClusterConfig
+
+metadata:
+  name: cluster-5
+  region: eu-west-2
+
+nodeGroups:
+  - name: ng1-public
+    instanceType: m5.xlarge
+    minSize: 2
+    maxSize: 8
+    labels:
+      nodegroup-type: frontend-workloads
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+
+  - name: ng2-private-a
+    instanceType: m5.large
+    desiredCapacity: 2
+    labels:
+      nodegroup-type: backend-cluster-addons
+    privateNetworking: true
+    preBootsrapCommands:
+      # allow docker registries to be deployed as cluster service 
+      - 'echo {\"insecure-registries\": [\"172.20.0.0/16\",\"10.100.0.0/16\"]} > /etc/docker/daemon.json'
+      - "systemctl restart docker"
+
+  - name: ng3-private-b
+    instanceType: c3.8xlarge
+    desiredCapacity: 4
+    labels:
+      nodegroup-type: very-special-science-workloads
+    privateNetworking: true
+    availabilityZones: ["eu-west-2a"] # use single AZ to optimise data transfer between isntances
+    preBootsrapCommands:
+      # disable hyperthreding
+      - "for n in $(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | cut -s -d, -f2- | tr ',' '\n' | sort -un); do echo 0 > /sys/devices/system/cpu/cpu${n}/online; done"
+
+# cluster AZs must be set explicitly for single AZ nodegroup example to work
+availabilityZones: ["eu-west-2a", "eu-west-2b", "eu-west-2c"]

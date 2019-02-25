@@ -1,10 +1,10 @@
-# A simple example of ClusterConfig object:
+# A simple example of ClusterConfig object with two nodegroups:
 --- 
 apiVersion: eksctl.io/v1alpha4
 kind: ClusterConfig
 
 metadata:
-  name: cluster-5
+  name: cluster-3
   region: eu-north-1
 
 nodeGroups:

@@ -369,6 +369,8 @@ type NodeGroup struct {
 	IAM *NodeGroupIAM `json:"iam"`
 
 	// +optional
+	PreBootstrapCommands []string `json:"preBootstrapCommand,omitempty"`
+	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 
 	// +optional
