@@ -199,6 +199,9 @@ To create an additional nodegroup, use:
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
+> NOTE: By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
+> version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
+
 Additionally, you can use the same config file used for `eksctl create cluster`:
 
 ```

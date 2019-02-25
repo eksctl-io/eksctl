@@ -67,7 +67,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
-		cmdutils.AddVersionFlag(fs, cfg.Metadata)
+		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
 	})
 
@@ -311,7 +311,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			}
 		}
 		if !validVersion {
-			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ","))
+			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
 		}
 	}
 

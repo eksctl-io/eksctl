@@ -48,9 +48,13 @@ func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
 	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
 }
 
-// AddVersionFlag adds common --region flag
-func AddVersionFlag(fs *pflag.FlagSet, meta *api.ClusterMeta) {
-	fs.StringVar(&meta.Version, "version", meta.Version, fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ", ")))
+// AddVersionFlag adds common --version flag
+func AddVersionFlag(fs *pflag.FlagSet, meta *api.ClusterMeta, extraUsageInfo string) {
+	usage := fmt.Sprintf("Kubernetes version (valid options: %s)", strings.Join(api.SupportedVersions(), ", "))
+	if extraUsageInfo != "" {
+		usage = fmt.Sprintf("%s [%s]", usage, extraUsageInfo)
+	}
+	fs.StringVar(&meta.Version, "version", meta.Version, usage)
 }
 
 // AddWaitFlag adds common --wait flag

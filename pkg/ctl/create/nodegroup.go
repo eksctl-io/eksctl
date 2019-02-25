@@ -28,6 +28,8 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 
+	cfg.Metadata.Version = "auto"
+
 	cmd := &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Create a nodegroup",
@@ -47,7 +49,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddVersionFlag(fs, cfg.Metadata)
+		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
 		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
 		fs.StringVarP(&nodeGroupFilter, "only", "", "",
 			"select a subset of nodegroups via comma-separted list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
@@ -93,6 +95,41 @@ func filterNodeGroups(cfg *api.ClusterConfig) error {
 		return fmt.Errorf("No nodegroups match filter specification: %s", nodeGroupFilter)
 	}
 	cfg.NodeGroups = filtered
+	return nil
+}
+
+func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
+	switch meta.Version {
+	case "":
+		meta.Version = "auto"
+	case "latest":
+		meta.Version = api.LatestVersion
+		logger.Info("will use version latest version (%s) for new nodegroup(s)", meta.Version)
+	default:
+		validVersion := false
+		for _, v := range api.SupportedVersions() {
+			if meta.Version == v {
+				validVersion = true
+			}
+		}
+		if !validVersion {
+			return fmt.Errorf("invalid version %s, supported values: auto, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
+		}
+	}
+
+	if v := ctl.ControlPlaneVersion(); v == "" {
+		return fmt.Errorf("unable to get control plane version")
+	} else if meta.Version == "auto" {
+		meta.Version = v
+		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
+	} else if meta.Version != v {
+		hint := "--version=auto"
+		if clusterConfigFile != "" {
+			hint = "metadata.version: auto"
+		}
+		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)
+	}
+
 	return nil
 }
 
@@ -199,27 +236,16 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 	}
 	logger.Info("using region %s", meta.Region)
 
-	if cfg.Metadata.Version == "" {
-		cfg.Metadata.Version = api.LatestVersion
-	}
-	if cfg.Metadata.Version != api.LatestVersion {
-		validVersion := false
-		for _, v := range api.SupportedVersions() {
-			if cfg.Metadata.Version == v {
-				validVersion = true
-			}
-		}
-		if !validVersion {
-			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ","))
-		}
-	}
-
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
 	if err := ctl.GetCredentials(cfg); err != nil {
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	}
+
+	if err := checkVersion(ctl, cfg.Metadata); err != nil {
+		return err
 	}
 
 	if err := ctl.GetClusterVPC(cfg); err != nil {
