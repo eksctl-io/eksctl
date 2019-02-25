@@ -43,6 +43,10 @@ func NewUserDataForUbuntu1804(spec *api.ClusterConfig, ng *api.NodeGroup) (strin
 
 	scripts := []string{}
 
+	for _, command := range ng.PreBootstrapCommands {
+		config.AddShellCommand(command)
+	}
+
 	if ng.OverrideBootstrapCommand != nil {
 		config.AddShellCommand(*ng.OverrideBootstrapCommand)
 	} else {
