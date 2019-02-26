@@ -10,7 +10,7 @@
   version = "v0.30.0"
 
 [[projects]]
-  digest = "1:f472bd6185ddaac1638cea7ee770487c45126af2885a710efa022563fbedb12d"
+  digest = "1:cd3a168ac30e198d79d79f433ff3d809c586164bb14b27db64f63ce6306c9bb2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -50,6 +50,8 @@
     "service/autoscaling/autoscalingiface",
     "service/cloudformation",
     "service/cloudformation/cloudformationiface",
+    "service/cloudtrail",
+    "service/cloudtrail/cloudtrailiface",
     "service/ec2",
     "service/ec2/ec2iface",
     "service/ecr",
@@ -1520,6 +1522,8 @@
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/cloudformation",
     "github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface",
+    "github.com/aws/aws-sdk-go/service/cloudtrail",
+    "github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface",
     "github.com/aws/aws-sdk-go/service/ec2",
     "github.com/aws/aws-sdk-go/service/ec2/ec2iface",
     "github.com/aws/aws-sdk-go/service/eks",
