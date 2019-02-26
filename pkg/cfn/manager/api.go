@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
@@ -308,6 +309,37 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *i.StackName)
 	}
 	return resp.StackEvents, nil
+}
+
+// LookupCloudTrailEvents looks up stack events in CloudTrail
+func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error) {
+	id := i.StackId
+	if id == nil {
+		stack, err := c.describeStack(i)
+		if err != nil {
+			return nil, err
+		}
+		id = stack.StackId
+	}
+
+	input := &cloudtrail.LookupEventsInput{
+		LookupAttributes: []*cloudtrail.LookupAttribute{{
+			AttributeKey:   aws.String(cloudtrail.LookupAttributeKeyResourceName),
+			AttributeValue: id,
+		}},
+	}
+
+	events := []*cloudtrail.Event{}
+
+	pager := func(p *cloudtrail.LookupEventsOutput, last bool) (shouldContinue bool) {
+		events = append(events, p.Events...)
+		return true
+	}
+	if err := c.provider.CloudTrail().LookupEventsPages(input, pager); err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }
 
 func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, description string, templateBody []byte,

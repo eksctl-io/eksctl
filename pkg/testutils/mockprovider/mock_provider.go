@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
+	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
@@ -16,22 +17,23 @@ import (
 // MockProvider stores the mocked APIs
 type MockProvider struct {
 	cfnRoleARN string
-
-	cfn *mocks.CloudFormationAPI
-	eks *mocks.EKSAPI
-	ec2 *mocks.EC2API
-	sts *mocks.STSAPI
-	iam *mocks.IAMAPI
+	cfn        *mocks.CloudFormationAPI
+	eks        *mocks.EKSAPI
+	ec2        *mocks.EC2API
+	sts        *mocks.STSAPI
+	iam        *mocks.IAMAPI
+	cloudtrail *mocks.CloudTrailAPI
 }
 
 // NewMockProvider returns a new MockProvider
 func NewMockProvider() *MockProvider {
 	return &MockProvider{
-		cfn: &mocks.CloudFormationAPI{},
-		eks: &mocks.EKSAPI{},
-		ec2: &mocks.EC2API{},
-		sts: &mocks.STSAPI{},
-		iam: &mocks.IAMAPI{},
+		cfn:        &mocks.CloudFormationAPI{},
+		eks:        &mocks.EKSAPI{},
+		ec2:        &mocks.EC2API{},
+		sts:        &mocks.STSAPI{},
+		iam:        &mocks.IAMAPI{},
+		cloudtrail: &mocks.CloudTrailAPI{},
 	}
 }
 
@@ -76,6 +78,14 @@ func (m MockProvider) IAM() iamiface.IAMAPI { return m.iam }
 
 // MockIAM returns a mocked IAM API
 func (m MockProvider) MockIAM() *mocks.IAMAPI { return m.IAM().(*mocks.IAMAPI) }
+
+// CloudTrail returns a representation of the CloudTrail API
+func (m MockProvider) CloudTrail() cloudtrailiface.CloudTrailAPI { return m.cloudtrail }
+
+// MockCloudTrail returns a mocked CloudTrail API
+func (m MockProvider) MockCloudTrail() *mocks.CloudTrailAPI {
+	return m.CloudTrail().(*mocks.CloudTrailAPI)
+}
 
 // Profile returns current profile setting
 func (m MockProvider) Profile() string { return ProviderConfig.Profile }
