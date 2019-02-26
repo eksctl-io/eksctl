@@ -65,7 +65,7 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 				}
 			}
 
-			for _, domain := range []string{"kubelet.kubernetes.io", "node.kubernetes.io"} {
+			for _, domain := range []string{"kubelet.kubernetes.io", "node.kubernetes.io", "node-role.kubernetes.io"} {
 				if ns == domain || strings.HasSuffix(ns, "."+domain) {
 					allowedKubeletNamespace = true
 				}
