@@ -320,19 +320,10 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 
 // LookupCloudTrailEvents looks up stack events in CloudTrail
 func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error) {
-	id := i.StackId
-	if id == nil {
-		stack, err := c.describeStack(i)
-		if err != nil {
-			return nil, err
-		}
-		id = stack.StackId
-	}
-
 	input := &cloudtrail.LookupEventsInput{
 		LookupAttributes: []*cloudtrail.LookupAttribute{{
 			AttributeKey:   aws.String(cloudtrail.LookupAttributeKeyResourceName),
-			AttributeValue: id,
+			AttributeValue: i.StackId,
 		}},
 	}
 
