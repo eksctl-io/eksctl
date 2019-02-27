@@ -181,7 +181,7 @@ func (c *StackCollection) ListStacks(nameRegex string, statusFilters ...string) 
 	}
 	stacks := []*Stack{}
 
-	pager := func(p *cloudformation.ListStacksOutput, last bool) (shouldContinue bool) {
+	pager := func(p *cloudformation.ListStacksOutput, _ bool) bool {
 		for _, s := range p.StackSummaries {
 			if re.MatchString(*s.StackName) {
 				stack, subErr = c.describeStack(&Stack{StackName: s.StackName, StackId: s.StackId})
@@ -304,11 +304,18 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 	if i.StackId != nil && *i.StackId != "" {
 		input.StackName = i.StackId
 	}
-	resp, err := c.provider.CloudFormation().DescribeStackEvents(input)
-	if err != nil {
+
+	events := []*cloudformation.StackEvent{}
+
+	pager := func(p *cloudformation.DescribeStackEventsOutput, _ bool) bool {
+		events = append(events, p.StackEvents...)
+		return true
+	}
+	if err := c.provider.CloudFormation().DescribeStackEventsPages(input, pager); err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *i.StackName)
 	}
-	return resp.StackEvents, nil
+
+	return events, nil
 }
 
 // LookupCloudTrailEvents looks up stack events in CloudTrail
@@ -331,12 +338,12 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 
 	events := []*cloudtrail.Event{}
 
-	pager := func(p *cloudtrail.LookupEventsOutput, last bool) (shouldContinue bool) {
+	pager := func(p *cloudtrail.LookupEventsOutput, _ bool) bool {
 		events = append(events, p.Events...)
 		return true
 	}
 	if err := c.provider.CloudTrail().LookupEventsPages(input, pager); err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "looking up CloduTrail events for stack %q", *i.StackName)
 	}
 
 	return events, nil
