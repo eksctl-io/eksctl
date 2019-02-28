@@ -13,12 +13,12 @@ There maybe additional manual steps with some versions, however most parts shoul
 When upgrading a cluster, one needs to call `eks.UpdateClusterVersion`. After that they need
 to replace nodegroups one by one.
 
-## Intiail phase
+## Initial phase
 
 - provide command that checks cluster stack for upgradability
   - let's user update cluster stack to cater for any additional reources
   - allows to call `eks.UpdateClusterVersion` out-of-band and wait for completion
-- provide instruction on how to iterate and replace nodegouprs
+- provide instruction on how to iterate and replace nodegoups
 - provide instruction on how to 
 
 ## Final phase
