@@ -18,7 +18,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: build
 build: ## Build eksctl
-	@CGO_ENABLED=0 go build -tags "release netgo" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	@CGO_ENABLED=0 go build -tags "netgo" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
