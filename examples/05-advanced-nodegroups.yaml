@@ -24,7 +24,7 @@ nodeGroups:
     labels:
       nodegroup-type: backend-cluster-addons
     privateNetworking: true
-    preBootsrapCommands:
+    preBootsrapCommand:
       # allow docker registries to be deployed as cluster service 
       - 'echo {\"insecure-registries\": [\"172.20.0.0/16\",\"10.100.0.0/16\"]} > /etc/docker/daemon.json'
       - "systemctl restart docker"
@@ -36,7 +36,7 @@ nodeGroups:
       nodegroup-type: very-special-science-workloads
     privateNetworking: true
     availabilityZones: ["eu-west-2a"] # use single AZ to optimise data transfer between isntances
-    preBootsrapCommands:
+    preBootsrapCommand:
       # disable hyperthreding
       - "for n in $(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | cut -s -d, -f2- | tr ',' '\n' | sort -un); do echo 0 > /sys/devices/system/cpu/cpu${n}/online; done"
 
