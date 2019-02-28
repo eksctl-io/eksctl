@@ -17,6 +17,7 @@ import (
 var (
 	describeStacksAll    bool
 	describeStacksEvents bool
+	describeStacksTrail  bool
 )
 
 func describeStacksCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -41,6 +42,7 @@ func describeStacksCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		fs.BoolVar(&describeStacksAll, "all", false, "include deleted stacks")
 		fs.BoolVar(&describeStacksEvents, "events", false, "include stack events")
+		fs.BoolVar(&describeStacksTrail, "trail", false, "lookup CloudTrail events for the cluster")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, false)
@@ -90,7 +92,16 @@ func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg 
 				logger.Critical(err.Error())
 			}
 			for i, e := range events {
-				logger.Info("events/%s[%d] = %#v", *s.StackName, i, e)
+				logger.Info("CloudFormation.events/%s[%d] = %#v", *s.StackName, i, e)
+			}
+		}
+		if describeStacksTrail {
+			events, err := stackManager.LookupCloudTrailEvents(s)
+			if err != nil {
+				logger.Critical(err.Error())
+			}
+			for i, e := range events {
+				logger.Info("CloudTrail.events/%s[%d] = %#v", *s.StackName, i, e)
 			}
 		}
 	}

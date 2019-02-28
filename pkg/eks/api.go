@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
@@ -24,6 +25,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
+	"github.com/aws/aws-sdk-go/service/cloudtrail"
+	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -32,7 +35,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"github.com/kris-nova/logger"
 )
 
 // ClusterProvider stores information about the cluster
@@ -51,6 +53,8 @@ type ProviderServices struct {
 	ec2  ec2iface.EC2API
 	sts  stsiface.STSAPI
 	iam  iamiface.IAMAPI
+
+	cloudtrail cloudtrailiface.CloudTrailAPI
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -70,6 +74,9 @@ func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
 
 // IAM returns a representation of the IAM API
 func (p ProviderServices) IAM() iamiface.IAMAPI { return p.iam }
+
+// CloudTrail returns a representation of the CloudTrail API
+func (p ProviderServices) CloudTrail() cloudtrailiface.CloudTrailAPI { return p.cloudtrail }
 
 // Region returns provider-level region setting
 func (p ProviderServices) Region() string { return p.spec.Region }
@@ -104,6 +111,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	provider.ec2 = ec2.New(s)
 	provider.sts = sts.New(s)
 	provider.iam = iam.New(s)
+	provider.cloudtrail = cloudtrail.New(s)
 
 	c.Status = &ProviderStatus{
 		sessionCreds: s.Config.Credentials,
@@ -130,6 +138,10 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)
 		provider.iam = iam.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+	}
+	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
+		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
+		provider.cloudtrail = cloudtrail.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
 	}
 
 	if clusterSpec != nil {

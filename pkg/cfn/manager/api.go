@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
@@ -180,7 +181,7 @@ func (c *StackCollection) ListStacks(nameRegex string, statusFilters ...string) 
 	}
 	stacks := []*Stack{}
 
-	pager := func(p *cloudformation.ListStacksOutput, last bool) (shouldContinue bool) {
+	pager := func(p *cloudformation.ListStacksOutput, _ bool) bool {
 		for _, s := range p.StackSummaries {
 			if re.MatchString(*s.StackName) {
 				stack, subErr = c.describeStack(&Stack{StackName: s.StackName, StackId: s.StackId})
@@ -303,11 +304,40 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 	if i.StackId != nil && *i.StackId != "" {
 		input.StackName = i.StackId
 	}
-	resp, err := c.provider.CloudFormation().DescribeStackEvents(input)
-	if err != nil {
+
+	events := []*cloudformation.StackEvent{}
+
+	pager := func(p *cloudformation.DescribeStackEventsOutput, _ bool) bool {
+		events = append(events, p.StackEvents...)
+		return true
+	}
+	if err := c.provider.CloudFormation().DescribeStackEventsPages(input, pager); err != nil {
 		return nil, errors.Wrapf(err, "describing CloudFormation stack %q events", *i.StackName)
 	}
-	return resp.StackEvents, nil
+
+	return events, nil
+}
+
+// LookupCloudTrailEvents looks up stack events in CloudTrail
+func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event, error) {
+	input := &cloudtrail.LookupEventsInput{
+		LookupAttributes: []*cloudtrail.LookupAttribute{{
+			AttributeKey:   aws.String(cloudtrail.LookupAttributeKeyResourceName),
+			AttributeValue: i.StackId,
+		}},
+	}
+
+	events := []*cloudtrail.Event{}
+
+	pager := func(p *cloudtrail.LookupEventsOutput, _ bool) bool {
+		events = append(events, p.Events...)
+		return true
+	}
+	if err := c.provider.CloudTrail().LookupEventsPages(input, pager); err != nil {
+		return nil, errors.Wrapf(err, "looking up CloduTrail events for stack %q", *i.StackName)
+	}
+
+	return events, nil
 }
 
 func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, description string, templateBody []byte,

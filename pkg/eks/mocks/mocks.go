@@ -7,3 +7,4 @@ import _ "github.com/vektra/mockery" // used for testing
 //go:generate ${GOPATH}/bin/mockery -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/ec2/ec2iface -name=EC2API -output=./
 //go:generate ${GOPATH}/bin/mockery -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/sts/stsiface -name=STSAPI -output=./
 //go:generate ${GOPATH}/bin/mockery -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/iam/iamiface -name=IAMAPI -output=./
+//go:generate ${GOPATH}/bin/mockery -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface -name=CloudTrailAPI -output=./
