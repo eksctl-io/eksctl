@@ -15,18 +15,21 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
+var (
+	updateAuthConfigMap bool
+)
+
 func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
-	updateAuthConfigMap := true
 
 	cmd := &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Delete a nodegroup",
 		Aliases: []string{"ng"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doDeleteNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args), updateAuthConfigMap); err != nil {
+			if err := doDeleteNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -50,7 +53,7 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, updateAuthConfigMap bool) error {
+func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
 	ctl := eks.New(p, cfg)
 
 	if err := api.Register(); err != nil {
@@ -81,6 +84,18 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
+	clientSet, err := ctl.NewStdClientSet(cfg)
+	if err != nil {
+		return err
+	}
+
+	if updateAuthConfigMap {
+		// remove node group from config map
+		if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
+			logger.Warning(err.Error())
+		}
+	}
+
 	stackManager := ctl.NewStackManager(cfg)
 
 	if ng.IAM.InstanceRoleARN == "" {
@@ -107,19 +122,6 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 			return errors.Wrapf(err, "failed to delete nodegroup %q", ng.Name)
 		}
 		logger.Success("nodegroup %q %s deleted", ng.Name, verb)
-	}
-
-	// post-deletion action
-	if updateAuthConfigMap {
-		clientSet, err := ctl.NewStdClientSet(cfg)
-		if err != nil {
-			return err
-		}
-
-		// remove node group from config map
-		if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
-			logger.Warning(err.Error())
-		}
 	}
 
 	return nil
