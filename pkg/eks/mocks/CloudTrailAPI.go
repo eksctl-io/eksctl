@@ -2,9 +2,9 @@
 
 package mocks
 
-import aws "github.com/aws/aws-sdk-go/aws"
 import cloudtrail "github.com/aws/aws-sdk-go/service/cloudtrail"
 
+import context "context"
 import mock "github.com/stretchr/testify/mock"
 import request "github.com/aws/aws-sdk-go/aws/request"
 
@@ -62,7 +62,7 @@ func (_m *CloudTrailAPI) AddTagsRequest(_a0 *cloudtrail.AddTagsInput) (*request.
 }
 
 // AddTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) AddTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.AddTagsInput, _a2 ...request.Option) (*cloudtrail.AddTagsOutput, error) {
+func (_m *CloudTrailAPI) AddTagsWithContext(_a0 context.Context, _a1 *cloudtrail.AddTagsInput, _a2 ...request.Option) (*cloudtrail.AddTagsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -73,7 +73,7 @@ func (_m *CloudTrailAPI) AddTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.Add
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.AddTagsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.AddTagsInput, ...request.Option) *cloudtrail.AddTagsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.AddTagsInput, ...request.Option) *cloudtrail.AddTagsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -82,7 +82,7 @@ func (_m *CloudTrailAPI) AddTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.Add
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.AddTagsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.AddTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -140,7 +140,7 @@ func (_m *CloudTrailAPI) CreateTrailRequest(_a0 *cloudtrail.CreateTrailInput) (*
 }
 
 // CreateTrailWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) CreateTrailWithContext(_a0 aws.Context, _a1 *cloudtrail.CreateTrailInput, _a2 ...request.Option) (*cloudtrail.CreateTrailOutput, error) {
+func (_m *CloudTrailAPI) CreateTrailWithContext(_a0 context.Context, _a1 *cloudtrail.CreateTrailInput, _a2 ...request.Option) (*cloudtrail.CreateTrailOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -151,7 +151,7 @@ func (_m *CloudTrailAPI) CreateTrailWithContext(_a0 aws.Context, _a1 *cloudtrail
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.CreateTrailOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.CreateTrailInput, ...request.Option) *cloudtrail.CreateTrailOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.CreateTrailInput, ...request.Option) *cloudtrail.CreateTrailOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -160,7 +160,7 @@ func (_m *CloudTrailAPI) CreateTrailWithContext(_a0 aws.Context, _a1 *cloudtrail
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.CreateTrailInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.CreateTrailInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -218,7 +218,7 @@ func (_m *CloudTrailAPI) DeleteTrailRequest(_a0 *cloudtrail.DeleteTrailInput) (*
 }
 
 // DeleteTrailWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) DeleteTrailWithContext(_a0 aws.Context, _a1 *cloudtrail.DeleteTrailInput, _a2 ...request.Option) (*cloudtrail.DeleteTrailOutput, error) {
+func (_m *CloudTrailAPI) DeleteTrailWithContext(_a0 context.Context, _a1 *cloudtrail.DeleteTrailInput, _a2 ...request.Option) (*cloudtrail.DeleteTrailOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -229,7 +229,7 @@ func (_m *CloudTrailAPI) DeleteTrailWithContext(_a0 aws.Context, _a1 *cloudtrail
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.DeleteTrailOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.DeleteTrailInput, ...request.Option) *cloudtrail.DeleteTrailOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DeleteTrailInput, ...request.Option) *cloudtrail.DeleteTrailOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -238,7 +238,7 @@ func (_m *CloudTrailAPI) DeleteTrailWithContext(_a0 aws.Context, _a1 *cloudtrail
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.DeleteTrailInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DeleteTrailInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -296,7 +296,7 @@ func (_m *CloudTrailAPI) DescribeTrailsRequest(_a0 *cloudtrail.DescribeTrailsInp
 }
 
 // DescribeTrailsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) DescribeTrailsWithContext(_a0 aws.Context, _a1 *cloudtrail.DescribeTrailsInput, _a2 ...request.Option) (*cloudtrail.DescribeTrailsOutput, error) {
+func (_m *CloudTrailAPI) DescribeTrailsWithContext(_a0 context.Context, _a1 *cloudtrail.DescribeTrailsInput, _a2 ...request.Option) (*cloudtrail.DescribeTrailsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -307,7 +307,7 @@ func (_m *CloudTrailAPI) DescribeTrailsWithContext(_a0 aws.Context, _a1 *cloudtr
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.DescribeTrailsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.DescribeTrailsInput, ...request.Option) *cloudtrail.DescribeTrailsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.DescribeTrailsInput, ...request.Option) *cloudtrail.DescribeTrailsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -316,7 +316,7 @@ func (_m *CloudTrailAPI) DescribeTrailsWithContext(_a0 aws.Context, _a1 *cloudtr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.DescribeTrailsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.DescribeTrailsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -374,7 +374,7 @@ func (_m *CloudTrailAPI) GetEventSelectorsRequest(_a0 *cloudtrail.GetEventSelect
 }
 
 // GetEventSelectorsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) GetEventSelectorsWithContext(_a0 aws.Context, _a1 *cloudtrail.GetEventSelectorsInput, _a2 ...request.Option) (*cloudtrail.GetEventSelectorsOutput, error) {
+func (_m *CloudTrailAPI) GetEventSelectorsWithContext(_a0 context.Context, _a1 *cloudtrail.GetEventSelectorsInput, _a2 ...request.Option) (*cloudtrail.GetEventSelectorsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -385,7 +385,7 @@ func (_m *CloudTrailAPI) GetEventSelectorsWithContext(_a0 aws.Context, _a1 *clou
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.GetEventSelectorsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.GetEventSelectorsInput, ...request.Option) *cloudtrail.GetEventSelectorsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetEventSelectorsInput, ...request.Option) *cloudtrail.GetEventSelectorsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -394,7 +394,7 @@ func (_m *CloudTrailAPI) GetEventSelectorsWithContext(_a0 aws.Context, _a1 *clou
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.GetEventSelectorsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetEventSelectorsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -452,7 +452,7 @@ func (_m *CloudTrailAPI) GetTrailStatusRequest(_a0 *cloudtrail.GetTrailStatusInp
 }
 
 // GetTrailStatusWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) GetTrailStatusWithContext(_a0 aws.Context, _a1 *cloudtrail.GetTrailStatusInput, _a2 ...request.Option) (*cloudtrail.GetTrailStatusOutput, error) {
+func (_m *CloudTrailAPI) GetTrailStatusWithContext(_a0 context.Context, _a1 *cloudtrail.GetTrailStatusInput, _a2 ...request.Option) (*cloudtrail.GetTrailStatusOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -463,7 +463,7 @@ func (_m *CloudTrailAPI) GetTrailStatusWithContext(_a0 aws.Context, _a1 *cloudtr
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.GetTrailStatusOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.GetTrailStatusInput, ...request.Option) *cloudtrail.GetTrailStatusOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetTrailStatusInput, ...request.Option) *cloudtrail.GetTrailStatusOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -472,7 +472,7 @@ func (_m *CloudTrailAPI) GetTrailStatusWithContext(_a0 aws.Context, _a1 *cloudtr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.GetTrailStatusInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetTrailStatusInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -530,7 +530,7 @@ func (_m *CloudTrailAPI) ListPublicKeysRequest(_a0 *cloudtrail.ListPublicKeysInp
 }
 
 // ListPublicKeysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) ListPublicKeysWithContext(_a0 aws.Context, _a1 *cloudtrail.ListPublicKeysInput, _a2 ...request.Option) (*cloudtrail.ListPublicKeysOutput, error) {
+func (_m *CloudTrailAPI) ListPublicKeysWithContext(_a0 context.Context, _a1 *cloudtrail.ListPublicKeysInput, _a2 ...request.Option) (*cloudtrail.ListPublicKeysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -541,7 +541,7 @@ func (_m *CloudTrailAPI) ListPublicKeysWithContext(_a0 aws.Context, _a1 *cloudtr
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.ListPublicKeysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.ListPublicKeysInput, ...request.Option) *cloudtrail.ListPublicKeysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListPublicKeysInput, ...request.Option) *cloudtrail.ListPublicKeysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -550,7 +550,7 @@ func (_m *CloudTrailAPI) ListPublicKeysWithContext(_a0 aws.Context, _a1 *cloudtr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.ListPublicKeysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListPublicKeysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -608,7 +608,7 @@ func (_m *CloudTrailAPI) ListTagsRequest(_a0 *cloudtrail.ListTagsInput) (*reques
 }
 
 // ListTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) ListTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.ListTagsInput, _a2 ...request.Option) (*cloudtrail.ListTagsOutput, error) {
+func (_m *CloudTrailAPI) ListTagsWithContext(_a0 context.Context, _a1 *cloudtrail.ListTagsInput, _a2 ...request.Option) (*cloudtrail.ListTagsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -619,7 +619,7 @@ func (_m *CloudTrailAPI) ListTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.Li
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.ListTagsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.ListTagsInput, ...request.Option) *cloudtrail.ListTagsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListTagsInput, ...request.Option) *cloudtrail.ListTagsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -628,7 +628,7 @@ func (_m *CloudTrailAPI) ListTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.Li
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.ListTagsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -675,7 +675,7 @@ func (_m *CloudTrailAPI) LookupEventsPages(_a0 *cloudtrail.LookupEventsInput, _a
 }
 
 // LookupEventsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *CloudTrailAPI) LookupEventsPagesWithContext(_a0 aws.Context, _a1 *cloudtrail.LookupEventsInput, _a2 func(*cloudtrail.LookupEventsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *CloudTrailAPI) LookupEventsPagesWithContext(_a0 context.Context, _a1 *cloudtrail.LookupEventsInput, _a2 func(*cloudtrail.LookupEventsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -686,7 +686,7 @@ func (_m *CloudTrailAPI) LookupEventsPagesWithContext(_a0 aws.Context, _a1 *clou
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.LookupEventsInput, func(*cloudtrail.LookupEventsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.LookupEventsInput, func(*cloudtrail.LookupEventsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -721,7 +721,7 @@ func (_m *CloudTrailAPI) LookupEventsRequest(_a0 *cloudtrail.LookupEventsInput) 
 }
 
 // LookupEventsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) LookupEventsWithContext(_a0 aws.Context, _a1 *cloudtrail.LookupEventsInput, _a2 ...request.Option) (*cloudtrail.LookupEventsOutput, error) {
+func (_m *CloudTrailAPI) LookupEventsWithContext(_a0 context.Context, _a1 *cloudtrail.LookupEventsInput, _a2 ...request.Option) (*cloudtrail.LookupEventsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -732,7 +732,7 @@ func (_m *CloudTrailAPI) LookupEventsWithContext(_a0 aws.Context, _a1 *cloudtrai
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.LookupEventsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.LookupEventsInput, ...request.Option) *cloudtrail.LookupEventsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.LookupEventsInput, ...request.Option) *cloudtrail.LookupEventsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -741,7 +741,7 @@ func (_m *CloudTrailAPI) LookupEventsWithContext(_a0 aws.Context, _a1 *cloudtrai
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.LookupEventsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.LookupEventsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -799,7 +799,7 @@ func (_m *CloudTrailAPI) PutEventSelectorsRequest(_a0 *cloudtrail.PutEventSelect
 }
 
 // PutEventSelectorsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) PutEventSelectorsWithContext(_a0 aws.Context, _a1 *cloudtrail.PutEventSelectorsInput, _a2 ...request.Option) (*cloudtrail.PutEventSelectorsOutput, error) {
+func (_m *CloudTrailAPI) PutEventSelectorsWithContext(_a0 context.Context, _a1 *cloudtrail.PutEventSelectorsInput, _a2 ...request.Option) (*cloudtrail.PutEventSelectorsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -810,7 +810,7 @@ func (_m *CloudTrailAPI) PutEventSelectorsWithContext(_a0 aws.Context, _a1 *clou
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.PutEventSelectorsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.PutEventSelectorsInput, ...request.Option) *cloudtrail.PutEventSelectorsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.PutEventSelectorsInput, ...request.Option) *cloudtrail.PutEventSelectorsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -819,7 +819,7 @@ func (_m *CloudTrailAPI) PutEventSelectorsWithContext(_a0 aws.Context, _a1 *clou
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.PutEventSelectorsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.PutEventSelectorsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -877,7 +877,7 @@ func (_m *CloudTrailAPI) RemoveTagsRequest(_a0 *cloudtrail.RemoveTagsInput) (*re
 }
 
 // RemoveTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) RemoveTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.RemoveTagsInput, _a2 ...request.Option) (*cloudtrail.RemoveTagsOutput, error) {
+func (_m *CloudTrailAPI) RemoveTagsWithContext(_a0 context.Context, _a1 *cloudtrail.RemoveTagsInput, _a2 ...request.Option) (*cloudtrail.RemoveTagsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -888,7 +888,7 @@ func (_m *CloudTrailAPI) RemoveTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.RemoveTagsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.RemoveTagsInput, ...request.Option) *cloudtrail.RemoveTagsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.RemoveTagsInput, ...request.Option) *cloudtrail.RemoveTagsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -897,7 +897,7 @@ func (_m *CloudTrailAPI) RemoveTagsWithContext(_a0 aws.Context, _a1 *cloudtrail.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.RemoveTagsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.RemoveTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -955,7 +955,7 @@ func (_m *CloudTrailAPI) StartLoggingRequest(_a0 *cloudtrail.StartLoggingInput) 
 }
 
 // StartLoggingWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) StartLoggingWithContext(_a0 aws.Context, _a1 *cloudtrail.StartLoggingInput, _a2 ...request.Option) (*cloudtrail.StartLoggingOutput, error) {
+func (_m *CloudTrailAPI) StartLoggingWithContext(_a0 context.Context, _a1 *cloudtrail.StartLoggingInput, _a2 ...request.Option) (*cloudtrail.StartLoggingOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -966,7 +966,7 @@ func (_m *CloudTrailAPI) StartLoggingWithContext(_a0 aws.Context, _a1 *cloudtrai
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.StartLoggingOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.StartLoggingInput, ...request.Option) *cloudtrail.StartLoggingOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StartLoggingInput, ...request.Option) *cloudtrail.StartLoggingOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -975,7 +975,7 @@ func (_m *CloudTrailAPI) StartLoggingWithContext(_a0 aws.Context, _a1 *cloudtrai
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.StartLoggingInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StartLoggingInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1033,7 +1033,7 @@ func (_m *CloudTrailAPI) StopLoggingRequest(_a0 *cloudtrail.StopLoggingInput) (*
 }
 
 // StopLoggingWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) StopLoggingWithContext(_a0 aws.Context, _a1 *cloudtrail.StopLoggingInput, _a2 ...request.Option) (*cloudtrail.StopLoggingOutput, error) {
+func (_m *CloudTrailAPI) StopLoggingWithContext(_a0 context.Context, _a1 *cloudtrail.StopLoggingInput, _a2 ...request.Option) (*cloudtrail.StopLoggingOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1044,7 +1044,7 @@ func (_m *CloudTrailAPI) StopLoggingWithContext(_a0 aws.Context, _a1 *cloudtrail
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.StopLoggingOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.StopLoggingInput, ...request.Option) *cloudtrail.StopLoggingOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.StopLoggingInput, ...request.Option) *cloudtrail.StopLoggingOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1053,7 +1053,7 @@ func (_m *CloudTrailAPI) StopLoggingWithContext(_a0 aws.Context, _a1 *cloudtrail
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.StopLoggingInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.StopLoggingInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1111,7 +1111,7 @@ func (_m *CloudTrailAPI) UpdateTrailRequest(_a0 *cloudtrail.UpdateTrailInput) (*
 }
 
 // UpdateTrailWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudTrailAPI) UpdateTrailWithContext(_a0 aws.Context, _a1 *cloudtrail.UpdateTrailInput, _a2 ...request.Option) (*cloudtrail.UpdateTrailOutput, error) {
+func (_m *CloudTrailAPI) UpdateTrailWithContext(_a0 context.Context, _a1 *cloudtrail.UpdateTrailInput, _a2 ...request.Option) (*cloudtrail.UpdateTrailOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1122,7 +1122,7 @@ func (_m *CloudTrailAPI) UpdateTrailWithContext(_a0 aws.Context, _a1 *cloudtrail
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudtrail.UpdateTrailOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudtrail.UpdateTrailInput, ...request.Option) *cloudtrail.UpdateTrailOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.UpdateTrailInput, ...request.Option) *cloudtrail.UpdateTrailOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1131,7 +1131,7 @@ func (_m *CloudTrailAPI) UpdateTrailWithContext(_a0 aws.Context, _a1 *cloudtrail
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudtrail.UpdateTrailInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.UpdateTrailInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

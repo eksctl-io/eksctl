@@ -2,7 +2,7 @@
 
 package mocks
 
-import aws "github.com/aws/aws-sdk-go/aws"
+import context "context"
 import eks "github.com/aws/aws-sdk-go/service/eks"
 
 import mock "github.com/stretchr/testify/mock"
@@ -62,7 +62,7 @@ func (_m *EKSAPI) CreateClusterRequest(_a0 *eks.CreateClusterInput) (*request.Re
 }
 
 // CreateClusterWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EKSAPI) CreateClusterWithContext(_a0 aws.Context, _a1 *eks.CreateClusterInput, _a2 ...request.Option) (*eks.CreateClusterOutput, error) {
+func (_m *EKSAPI) CreateClusterWithContext(_a0 context.Context, _a1 *eks.CreateClusterInput, _a2 ...request.Option) (*eks.CreateClusterOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -73,7 +73,7 @@ func (_m *EKSAPI) CreateClusterWithContext(_a0 aws.Context, _a1 *eks.CreateClust
 	ret := _m.Called(_ca...)
 
 	var r0 *eks.CreateClusterOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *eks.CreateClusterInput, ...request.Option) *eks.CreateClusterOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateClusterInput, ...request.Option) *eks.CreateClusterOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -82,7 +82,7 @@ func (_m *EKSAPI) CreateClusterWithContext(_a0 aws.Context, _a1 *eks.CreateClust
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *eks.CreateClusterInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateClusterInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -140,7 +140,7 @@ func (_m *EKSAPI) DeleteClusterRequest(_a0 *eks.DeleteClusterInput) (*request.Re
 }
 
 // DeleteClusterWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EKSAPI) DeleteClusterWithContext(_a0 aws.Context, _a1 *eks.DeleteClusterInput, _a2 ...request.Option) (*eks.DeleteClusterOutput, error) {
+func (_m *EKSAPI) DeleteClusterWithContext(_a0 context.Context, _a1 *eks.DeleteClusterInput, _a2 ...request.Option) (*eks.DeleteClusterOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -151,7 +151,7 @@ func (_m *EKSAPI) DeleteClusterWithContext(_a0 aws.Context, _a1 *eks.DeleteClust
 	ret := _m.Called(_ca...)
 
 	var r0 *eks.DeleteClusterOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *eks.DeleteClusterInput, ...request.Option) *eks.DeleteClusterOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteClusterInput, ...request.Option) *eks.DeleteClusterOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -160,7 +160,7 @@ func (_m *EKSAPI) DeleteClusterWithContext(_a0 aws.Context, _a1 *eks.DeleteClust
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *eks.DeleteClusterInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteClusterInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -218,7 +218,7 @@ func (_m *EKSAPI) DescribeClusterRequest(_a0 *eks.DescribeClusterInput) (*reques
 }
 
 // DescribeClusterWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EKSAPI) DescribeClusterWithContext(_a0 aws.Context, _a1 *eks.DescribeClusterInput, _a2 ...request.Option) (*eks.DescribeClusterOutput, error) {
+func (_m *EKSAPI) DescribeClusterWithContext(_a0 context.Context, _a1 *eks.DescribeClusterInput, _a2 ...request.Option) (*eks.DescribeClusterOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -229,7 +229,7 @@ func (_m *EKSAPI) DescribeClusterWithContext(_a0 aws.Context, _a1 *eks.DescribeC
 	ret := _m.Called(_ca...)
 
 	var r0 *eks.DescribeClusterOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *eks.DescribeClusterInput, ...request.Option) *eks.DescribeClusterOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterInput, ...request.Option) *eks.DescribeClusterOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -238,7 +238,85 @@ func (_m *EKSAPI) DescribeClusterWithContext(_a0 aws.Context, _a1 *eks.DescribeC
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *eks.DescribeClusterInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeClusterInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeUpdate provides a mock function with given fields: _a0
+func (_m *EKSAPI) DescribeUpdate(_a0 *eks.DescribeUpdateInput) (*eks.DescribeUpdateOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.DescribeUpdateOutput
+	if rf, ok := ret.Get(0).(func(*eks.DescribeUpdateInput) *eks.DescribeUpdateOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeUpdateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DescribeUpdateInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeUpdateRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) DescribeUpdateRequest(_a0 *eks.DescribeUpdateInput) (*request.Request, *eks.DescribeUpdateOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DescribeUpdateInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DescribeUpdateOutput
+	if rf, ok := ret.Get(1).(func(*eks.DescribeUpdateInput) *eks.DescribeUpdateOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DescribeUpdateOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeUpdateWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) DescribeUpdateWithContext(_a0 context.Context, _a1 *eks.DescribeUpdateInput, _a2 ...request.Option) (*eks.DescribeUpdateOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DescribeUpdateOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeUpdateInput, ...request.Option) *eks.DescribeUpdateOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeUpdateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeUpdateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -296,7 +374,7 @@ func (_m *EKSAPI) ListClustersRequest(_a0 *eks.ListClustersInput) (*request.Requ
 }
 
 // ListClustersWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EKSAPI) ListClustersWithContext(_a0 aws.Context, _a1 *eks.ListClustersInput, _a2 ...request.Option) (*eks.ListClustersOutput, error) {
+func (_m *EKSAPI) ListClustersWithContext(_a0 context.Context, _a1 *eks.ListClustersInput, _a2 ...request.Option) (*eks.ListClustersOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -307,7 +385,7 @@ func (_m *EKSAPI) ListClustersWithContext(_a0 aws.Context, _a1 *eks.ListClusters
 	ret := _m.Called(_ca...)
 
 	var r0 *eks.ListClustersOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *eks.ListClustersInput, ...request.Option) *eks.ListClustersOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListClustersInput, ...request.Option) *eks.ListClustersOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -316,11 +394,237 @@ func (_m *EKSAPI) ListClustersWithContext(_a0 aws.Context, _a1 *eks.ListClusters
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *eks.ListClustersInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListClustersInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
 	}
 
 	return r0, r1
+}
+
+// ListUpdates provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListUpdates(_a0 *eks.ListUpdatesInput) (*eks.ListUpdatesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.ListUpdatesOutput
+	if rf, ok := ret.Get(0).(func(*eks.ListUpdatesInput) *eks.ListUpdatesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListUpdatesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.ListUpdatesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListUpdatesRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListUpdatesRequest(_a0 *eks.ListUpdatesInput) (*request.Request, *eks.ListUpdatesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.ListUpdatesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.ListUpdatesOutput
+	if rf, ok := ret.Get(1).(func(*eks.ListUpdatesInput) *eks.ListUpdatesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.ListUpdatesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListUpdatesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) ListUpdatesWithContext(_a0 context.Context, _a1 *eks.ListUpdatesInput, _a2 ...request.Option) (*eks.ListUpdatesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.ListUpdatesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListUpdatesInput, ...request.Option) *eks.ListUpdatesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListUpdatesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListUpdatesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateClusterVersion provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateClusterVersion(_a0 *eks.UpdateClusterVersionInput) (*eks.UpdateClusterVersionOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.UpdateClusterVersionOutput
+	if rf, ok := ret.Get(0).(func(*eks.UpdateClusterVersionInput) *eks.UpdateClusterVersionOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateClusterVersionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.UpdateClusterVersionInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateClusterVersionRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateClusterVersionRequest(_a0 *eks.UpdateClusterVersionInput) (*request.Request, *eks.UpdateClusterVersionOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.UpdateClusterVersionInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.UpdateClusterVersionOutput
+	if rf, ok := ret.Get(1).(func(*eks.UpdateClusterVersionInput) *eks.UpdateClusterVersionOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.UpdateClusterVersionOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateClusterVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) UpdateClusterVersionWithContext(_a0 context.Context, _a1 *eks.UpdateClusterVersionInput, _a2 ...request.Option) (*eks.UpdateClusterVersionOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.UpdateClusterVersionOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateClusterVersionInput, ...request.Option) *eks.UpdateClusterVersionOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateClusterVersionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateClusterVersionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// WaitUntilClusterActive provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilClusterActive(_a0 *eks.DescribeClusterInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeClusterInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilClusterActiveWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilClusterActiveWithContext(_a0 context.Context, _a1 *eks.DescribeClusterInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilClusterDeleted provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilClusterDeleted(_a0 *eks.DescribeClusterInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeClusterInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilClusterDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilClusterDeletedWithContext(_a0 context.Context, _a1 *eks.DescribeClusterInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }

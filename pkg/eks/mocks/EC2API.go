@@ -2,7 +2,7 @@
 
 package mocks
 
-import aws "github.com/aws/aws-sdk-go/aws"
+import context "context"
 import ec2 "github.com/aws/aws-sdk-go/service/ec2"
 
 import mock "github.com/stretchr/testify/mock"
@@ -62,7 +62,7 @@ func (_m *EC2API) AcceptReservedInstancesExchangeQuoteRequest(_a0 *ec2.AcceptRes
 }
 
 // AcceptReservedInstancesExchangeQuoteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AcceptReservedInstancesExchangeQuoteWithContext(_a0 aws.Context, _a1 *ec2.AcceptReservedInstancesExchangeQuoteInput, _a2 ...request.Option) (*ec2.AcceptReservedInstancesExchangeQuoteOutput, error) {
+func (_m *EC2API) AcceptReservedInstancesExchangeQuoteWithContext(_a0 context.Context, _a1 *ec2.AcceptReservedInstancesExchangeQuoteInput, _a2 ...request.Option) (*ec2.AcceptReservedInstancesExchangeQuoteOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -73,7 +73,7 @@ func (_m *EC2API) AcceptReservedInstancesExchangeQuoteWithContext(_a0 aws.Contex
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AcceptReservedInstancesExchangeQuoteOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AcceptReservedInstancesExchangeQuoteInput, ...request.Option) *ec2.AcceptReservedInstancesExchangeQuoteOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AcceptReservedInstancesExchangeQuoteInput, ...request.Option) *ec2.AcceptReservedInstancesExchangeQuoteOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -82,7 +82,85 @@ func (_m *EC2API) AcceptReservedInstancesExchangeQuoteWithContext(_a0 aws.Contex
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AcceptReservedInstancesExchangeQuoteInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AcceptReservedInstancesExchangeQuoteInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AcceptTransitGatewayVpcAttachment provides a mock function with given fields: _a0
+func (_m *EC2API) AcceptTransitGatewayVpcAttachment(_a0 *ec2.AcceptTransitGatewayVpcAttachmentInput) (*ec2.AcceptTransitGatewayVpcAttachmentOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.AcceptTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AcceptTransitGatewayVpcAttachmentInput) *ec2.AcceptTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AcceptTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AcceptTransitGatewayVpcAttachmentInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AcceptTransitGatewayVpcAttachmentRequest provides a mock function with given fields: _a0
+func (_m *EC2API) AcceptTransitGatewayVpcAttachmentRequest(_a0 *ec2.AcceptTransitGatewayVpcAttachmentInput) (*request.Request, *ec2.AcceptTransitGatewayVpcAttachmentOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AcceptTransitGatewayVpcAttachmentInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AcceptTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AcceptTransitGatewayVpcAttachmentInput) *ec2.AcceptTransitGatewayVpcAttachmentOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AcceptTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AcceptTransitGatewayVpcAttachmentWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) AcceptTransitGatewayVpcAttachmentWithContext(_a0 context.Context, _a1 *ec2.AcceptTransitGatewayVpcAttachmentInput, _a2 ...request.Option) (*ec2.AcceptTransitGatewayVpcAttachmentOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AcceptTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AcceptTransitGatewayVpcAttachmentInput, ...request.Option) *ec2.AcceptTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AcceptTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AcceptTransitGatewayVpcAttachmentInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -140,7 +218,7 @@ func (_m *EC2API) AcceptVpcEndpointConnectionsRequest(_a0 *ec2.AcceptVpcEndpoint
 }
 
 // AcceptVpcEndpointConnectionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AcceptVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1 *ec2.AcceptVpcEndpointConnectionsInput, _a2 ...request.Option) (*ec2.AcceptVpcEndpointConnectionsOutput, error) {
+func (_m *EC2API) AcceptVpcEndpointConnectionsWithContext(_a0 context.Context, _a1 *ec2.AcceptVpcEndpointConnectionsInput, _a2 ...request.Option) (*ec2.AcceptVpcEndpointConnectionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -151,7 +229,7 @@ func (_m *EC2API) AcceptVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AcceptVpcEndpointConnectionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AcceptVpcEndpointConnectionsInput, ...request.Option) *ec2.AcceptVpcEndpointConnectionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AcceptVpcEndpointConnectionsInput, ...request.Option) *ec2.AcceptVpcEndpointConnectionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -160,7 +238,7 @@ func (_m *EC2API) AcceptVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AcceptVpcEndpointConnectionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AcceptVpcEndpointConnectionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -218,7 +296,7 @@ func (_m *EC2API) AcceptVpcPeeringConnectionRequest(_a0 *ec2.AcceptVpcPeeringCon
 }
 
 // AcceptVpcPeeringConnectionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AcceptVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec2.AcceptVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.AcceptVpcPeeringConnectionOutput, error) {
+func (_m *EC2API) AcceptVpcPeeringConnectionWithContext(_a0 context.Context, _a1 *ec2.AcceptVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.AcceptVpcPeeringConnectionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -229,7 +307,7 @@ func (_m *EC2API) AcceptVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AcceptVpcPeeringConnectionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AcceptVpcPeeringConnectionInput, ...request.Option) *ec2.AcceptVpcPeeringConnectionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AcceptVpcPeeringConnectionInput, ...request.Option) *ec2.AcceptVpcPeeringConnectionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -238,7 +316,85 @@ func (_m *EC2API) AcceptVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AcceptVpcPeeringConnectionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AcceptVpcPeeringConnectionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AdvertiseByoipCidr provides a mock function with given fields: _a0
+func (_m *EC2API) AdvertiseByoipCidr(_a0 *ec2.AdvertiseByoipCidrInput) (*ec2.AdvertiseByoipCidrOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.AdvertiseByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AdvertiseByoipCidrInput) *ec2.AdvertiseByoipCidrOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AdvertiseByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AdvertiseByoipCidrInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AdvertiseByoipCidrRequest provides a mock function with given fields: _a0
+func (_m *EC2API) AdvertiseByoipCidrRequest(_a0 *ec2.AdvertiseByoipCidrInput) (*request.Request, *ec2.AdvertiseByoipCidrOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AdvertiseByoipCidrInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AdvertiseByoipCidrOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AdvertiseByoipCidrInput) *ec2.AdvertiseByoipCidrOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AdvertiseByoipCidrOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AdvertiseByoipCidrWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) AdvertiseByoipCidrWithContext(_a0 context.Context, _a1 *ec2.AdvertiseByoipCidrInput, _a2 ...request.Option) (*ec2.AdvertiseByoipCidrOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AdvertiseByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AdvertiseByoipCidrInput, ...request.Option) *ec2.AdvertiseByoipCidrOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AdvertiseByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AdvertiseByoipCidrInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -296,7 +452,7 @@ func (_m *EC2API) AllocateAddressRequest(_a0 *ec2.AllocateAddressInput) (*reques
 }
 
 // AllocateAddressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AllocateAddressWithContext(_a0 aws.Context, _a1 *ec2.AllocateAddressInput, _a2 ...request.Option) (*ec2.AllocateAddressOutput, error) {
+func (_m *EC2API) AllocateAddressWithContext(_a0 context.Context, _a1 *ec2.AllocateAddressInput, _a2 ...request.Option) (*ec2.AllocateAddressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -307,7 +463,7 @@ func (_m *EC2API) AllocateAddressWithContext(_a0 aws.Context, _a1 *ec2.AllocateA
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AllocateAddressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AllocateAddressInput, ...request.Option) *ec2.AllocateAddressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AllocateAddressInput, ...request.Option) *ec2.AllocateAddressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -316,7 +472,7 @@ func (_m *EC2API) AllocateAddressWithContext(_a0 aws.Context, _a1 *ec2.AllocateA
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AllocateAddressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AllocateAddressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -374,7 +530,7 @@ func (_m *EC2API) AllocateHostsRequest(_a0 *ec2.AllocateHostsInput) (*request.Re
 }
 
 // AllocateHostsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AllocateHostsWithContext(_a0 aws.Context, _a1 *ec2.AllocateHostsInput, _a2 ...request.Option) (*ec2.AllocateHostsOutput, error) {
+func (_m *EC2API) AllocateHostsWithContext(_a0 context.Context, _a1 *ec2.AllocateHostsInput, _a2 ...request.Option) (*ec2.AllocateHostsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -385,7 +541,7 @@ func (_m *EC2API) AllocateHostsWithContext(_a0 aws.Context, _a1 *ec2.AllocateHos
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AllocateHostsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AllocateHostsInput, ...request.Option) *ec2.AllocateHostsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AllocateHostsInput, ...request.Option) *ec2.AllocateHostsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -394,7 +550,85 @@ func (_m *EC2API) AllocateHostsWithContext(_a0 aws.Context, _a1 *ec2.AllocateHos
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AllocateHostsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AllocateHostsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ApplySecurityGroupsToClientVpnTargetNetwork provides a mock function with given fields: _a0
+func (_m *EC2API) ApplySecurityGroupsToClientVpnTargetNetwork(_a0 *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) (*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ApplySecurityGroupsToClientVpnTargetNetworkRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ApplySecurityGroupsToClientVpnTargetNetworkRequest(_a0 *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) (*request.Request, *ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput) *ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ApplySecurityGroupsToClientVpnTargetNetworkWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ApplySecurityGroupsToClientVpnTargetNetworkWithContext(_a0 context.Context, _a1 *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput, _a2 ...request.Option) (*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput, ...request.Option) *ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ApplySecurityGroupsToClientVpnTargetNetworkOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ApplySecurityGroupsToClientVpnTargetNetworkInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -452,7 +686,7 @@ func (_m *EC2API) AssignIpv6AddressesRequest(_a0 *ec2.AssignIpv6AddressesInput) 
 }
 
 // AssignIpv6AddressesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssignIpv6AddressesWithContext(_a0 aws.Context, _a1 *ec2.AssignIpv6AddressesInput, _a2 ...request.Option) (*ec2.AssignIpv6AddressesOutput, error) {
+func (_m *EC2API) AssignIpv6AddressesWithContext(_a0 context.Context, _a1 *ec2.AssignIpv6AddressesInput, _a2 ...request.Option) (*ec2.AssignIpv6AddressesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -463,7 +697,7 @@ func (_m *EC2API) AssignIpv6AddressesWithContext(_a0 aws.Context, _a1 *ec2.Assig
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssignIpv6AddressesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssignIpv6AddressesInput, ...request.Option) *ec2.AssignIpv6AddressesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssignIpv6AddressesInput, ...request.Option) *ec2.AssignIpv6AddressesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -472,7 +706,7 @@ func (_m *EC2API) AssignIpv6AddressesWithContext(_a0 aws.Context, _a1 *ec2.Assig
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssignIpv6AddressesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssignIpv6AddressesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -530,7 +764,7 @@ func (_m *EC2API) AssignPrivateIpAddressesRequest(_a0 *ec2.AssignPrivateIpAddres
 }
 
 // AssignPrivateIpAddressesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssignPrivateIpAddressesWithContext(_a0 aws.Context, _a1 *ec2.AssignPrivateIpAddressesInput, _a2 ...request.Option) (*ec2.AssignPrivateIpAddressesOutput, error) {
+func (_m *EC2API) AssignPrivateIpAddressesWithContext(_a0 context.Context, _a1 *ec2.AssignPrivateIpAddressesInput, _a2 ...request.Option) (*ec2.AssignPrivateIpAddressesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -541,7 +775,7 @@ func (_m *EC2API) AssignPrivateIpAddressesWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssignPrivateIpAddressesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssignPrivateIpAddressesInput, ...request.Option) *ec2.AssignPrivateIpAddressesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssignPrivateIpAddressesInput, ...request.Option) *ec2.AssignPrivateIpAddressesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -550,7 +784,7 @@ func (_m *EC2API) AssignPrivateIpAddressesWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssignPrivateIpAddressesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssignPrivateIpAddressesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -608,7 +842,7 @@ func (_m *EC2API) AssociateAddressRequest(_a0 *ec2.AssociateAddressInput) (*requ
 }
 
 // AssociateAddressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssociateAddressWithContext(_a0 aws.Context, _a1 *ec2.AssociateAddressInput, _a2 ...request.Option) (*ec2.AssociateAddressOutput, error) {
+func (_m *EC2API) AssociateAddressWithContext(_a0 context.Context, _a1 *ec2.AssociateAddressInput, _a2 ...request.Option) (*ec2.AssociateAddressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -619,7 +853,7 @@ func (_m *EC2API) AssociateAddressWithContext(_a0 aws.Context, _a1 *ec2.Associat
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssociateAddressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssociateAddressInput, ...request.Option) *ec2.AssociateAddressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateAddressInput, ...request.Option) *ec2.AssociateAddressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -628,7 +862,85 @@ func (_m *EC2API) AssociateAddressWithContext(_a0 aws.Context, _a1 *ec2.Associat
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssociateAddressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateAddressInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateClientVpnTargetNetwork provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateClientVpnTargetNetwork(_a0 *ec2.AssociateClientVpnTargetNetworkInput) (*ec2.AssociateClientVpnTargetNetworkOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.AssociateClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateClientVpnTargetNetworkInput) *ec2.AssociateClientVpnTargetNetworkOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateClientVpnTargetNetworkOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateClientVpnTargetNetworkInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateClientVpnTargetNetworkRequest provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateClientVpnTargetNetworkRequest(_a0 *ec2.AssociateClientVpnTargetNetworkInput) (*request.Request, *ec2.AssociateClientVpnTargetNetworkOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateClientVpnTargetNetworkInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AssociateClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateClientVpnTargetNetworkInput) *ec2.AssociateClientVpnTargetNetworkOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AssociateClientVpnTargetNetworkOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AssociateClientVpnTargetNetworkWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) AssociateClientVpnTargetNetworkWithContext(_a0 context.Context, _a1 *ec2.AssociateClientVpnTargetNetworkInput, _a2 ...request.Option) (*ec2.AssociateClientVpnTargetNetworkOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AssociateClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateClientVpnTargetNetworkInput, ...request.Option) *ec2.AssociateClientVpnTargetNetworkOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateClientVpnTargetNetworkOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateClientVpnTargetNetworkInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -686,7 +998,7 @@ func (_m *EC2API) AssociateDhcpOptionsRequest(_a0 *ec2.AssociateDhcpOptionsInput
 }
 
 // AssociateDhcpOptionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssociateDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.AssociateDhcpOptionsInput, _a2 ...request.Option) (*ec2.AssociateDhcpOptionsOutput, error) {
+func (_m *EC2API) AssociateDhcpOptionsWithContext(_a0 context.Context, _a1 *ec2.AssociateDhcpOptionsInput, _a2 ...request.Option) (*ec2.AssociateDhcpOptionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -697,7 +1009,7 @@ func (_m *EC2API) AssociateDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.Asso
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssociateDhcpOptionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssociateDhcpOptionsInput, ...request.Option) *ec2.AssociateDhcpOptionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateDhcpOptionsInput, ...request.Option) *ec2.AssociateDhcpOptionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -706,7 +1018,7 @@ func (_m *EC2API) AssociateDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.Asso
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssociateDhcpOptionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateDhcpOptionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -764,7 +1076,7 @@ func (_m *EC2API) AssociateIamInstanceProfileRequest(_a0 *ec2.AssociateIamInstan
 }
 
 // AssociateIamInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssociateIamInstanceProfileWithContext(_a0 aws.Context, _a1 *ec2.AssociateIamInstanceProfileInput, _a2 ...request.Option) (*ec2.AssociateIamInstanceProfileOutput, error) {
+func (_m *EC2API) AssociateIamInstanceProfileWithContext(_a0 context.Context, _a1 *ec2.AssociateIamInstanceProfileInput, _a2 ...request.Option) (*ec2.AssociateIamInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -775,7 +1087,7 @@ func (_m *EC2API) AssociateIamInstanceProfileWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssociateIamInstanceProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssociateIamInstanceProfileInput, ...request.Option) *ec2.AssociateIamInstanceProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateIamInstanceProfileInput, ...request.Option) *ec2.AssociateIamInstanceProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -784,7 +1096,7 @@ func (_m *EC2API) AssociateIamInstanceProfileWithContext(_a0 aws.Context, _a1 *e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssociateIamInstanceProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateIamInstanceProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -842,7 +1154,7 @@ func (_m *EC2API) AssociateRouteTableRequest(_a0 *ec2.AssociateRouteTableInput) 
 }
 
 // AssociateRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssociateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.AssociateRouteTableInput, _a2 ...request.Option) (*ec2.AssociateRouteTableOutput, error) {
+func (_m *EC2API) AssociateRouteTableWithContext(_a0 context.Context, _a1 *ec2.AssociateRouteTableInput, _a2 ...request.Option) (*ec2.AssociateRouteTableOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -853,7 +1165,7 @@ func (_m *EC2API) AssociateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.Assoc
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssociateRouteTableOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssociateRouteTableInput, ...request.Option) *ec2.AssociateRouteTableOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateRouteTableInput, ...request.Option) *ec2.AssociateRouteTableOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -862,7 +1174,7 @@ func (_m *EC2API) AssociateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.Assoc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssociateRouteTableInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateRouteTableInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -920,7 +1232,7 @@ func (_m *EC2API) AssociateSubnetCidrBlockRequest(_a0 *ec2.AssociateSubnetCidrBl
 }
 
 // AssociateSubnetCidrBlockWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssociateSubnetCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.AssociateSubnetCidrBlockInput, _a2 ...request.Option) (*ec2.AssociateSubnetCidrBlockOutput, error) {
+func (_m *EC2API) AssociateSubnetCidrBlockWithContext(_a0 context.Context, _a1 *ec2.AssociateSubnetCidrBlockInput, _a2 ...request.Option) (*ec2.AssociateSubnetCidrBlockOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -931,7 +1243,7 @@ func (_m *EC2API) AssociateSubnetCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssociateSubnetCidrBlockOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssociateSubnetCidrBlockInput, ...request.Option) *ec2.AssociateSubnetCidrBlockOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateSubnetCidrBlockInput, ...request.Option) *ec2.AssociateSubnetCidrBlockOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -940,7 +1252,85 @@ func (_m *EC2API) AssociateSubnetCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssociateSubnetCidrBlockInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateSubnetCidrBlockInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateTransitGatewayRouteTable provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateTransitGatewayRouteTable(_a0 *ec2.AssociateTransitGatewayRouteTableInput) (*ec2.AssociateTransitGatewayRouteTableOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.AssociateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateTransitGatewayRouteTableInput) *ec2.AssociateTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateTransitGatewayRouteTableInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AssociateTransitGatewayRouteTableRequest provides a mock function with given fields: _a0
+func (_m *EC2API) AssociateTransitGatewayRouteTableRequest(_a0 *ec2.AssociateTransitGatewayRouteTableInput) (*request.Request, *ec2.AssociateTransitGatewayRouteTableOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AssociateTransitGatewayRouteTableInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AssociateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AssociateTransitGatewayRouteTableInput) *ec2.AssociateTransitGatewayRouteTableOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AssociateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AssociateTransitGatewayRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) AssociateTransitGatewayRouteTableWithContext(_a0 context.Context, _a1 *ec2.AssociateTransitGatewayRouteTableInput, _a2 ...request.Option) (*ec2.AssociateTransitGatewayRouteTableOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AssociateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateTransitGatewayRouteTableInput, ...request.Option) *ec2.AssociateTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AssociateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateTransitGatewayRouteTableInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -998,7 +1388,7 @@ func (_m *EC2API) AssociateVpcCidrBlockRequest(_a0 *ec2.AssociateVpcCidrBlockInp
 }
 
 // AssociateVpcCidrBlockWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AssociateVpcCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.AssociateVpcCidrBlockInput, _a2 ...request.Option) (*ec2.AssociateVpcCidrBlockOutput, error) {
+func (_m *EC2API) AssociateVpcCidrBlockWithContext(_a0 context.Context, _a1 *ec2.AssociateVpcCidrBlockInput, _a2 ...request.Option) (*ec2.AssociateVpcCidrBlockOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1009,7 +1399,7 @@ func (_m *EC2API) AssociateVpcCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.Ass
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AssociateVpcCidrBlockOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AssociateVpcCidrBlockInput, ...request.Option) *ec2.AssociateVpcCidrBlockOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AssociateVpcCidrBlockInput, ...request.Option) *ec2.AssociateVpcCidrBlockOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1018,7 +1408,7 @@ func (_m *EC2API) AssociateVpcCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.Ass
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AssociateVpcCidrBlockInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AssociateVpcCidrBlockInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1076,7 +1466,7 @@ func (_m *EC2API) AttachClassicLinkVpcRequest(_a0 *ec2.AttachClassicLinkVpcInput
 }
 
 // AttachClassicLinkVpcWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AttachClassicLinkVpcWithContext(_a0 aws.Context, _a1 *ec2.AttachClassicLinkVpcInput, _a2 ...request.Option) (*ec2.AttachClassicLinkVpcOutput, error) {
+func (_m *EC2API) AttachClassicLinkVpcWithContext(_a0 context.Context, _a1 *ec2.AttachClassicLinkVpcInput, _a2 ...request.Option) (*ec2.AttachClassicLinkVpcOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1087,7 +1477,7 @@ func (_m *EC2API) AttachClassicLinkVpcWithContext(_a0 aws.Context, _a1 *ec2.Atta
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AttachClassicLinkVpcOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AttachClassicLinkVpcInput, ...request.Option) *ec2.AttachClassicLinkVpcOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AttachClassicLinkVpcInput, ...request.Option) *ec2.AttachClassicLinkVpcOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1096,7 +1486,7 @@ func (_m *EC2API) AttachClassicLinkVpcWithContext(_a0 aws.Context, _a1 *ec2.Atta
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AttachClassicLinkVpcInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AttachClassicLinkVpcInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1154,7 +1544,7 @@ func (_m *EC2API) AttachInternetGatewayRequest(_a0 *ec2.AttachInternetGatewayInp
 }
 
 // AttachInternetGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AttachInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.AttachInternetGatewayInput, _a2 ...request.Option) (*ec2.AttachInternetGatewayOutput, error) {
+func (_m *EC2API) AttachInternetGatewayWithContext(_a0 context.Context, _a1 *ec2.AttachInternetGatewayInput, _a2 ...request.Option) (*ec2.AttachInternetGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1165,7 +1555,7 @@ func (_m *EC2API) AttachInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Att
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AttachInternetGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AttachInternetGatewayInput, ...request.Option) *ec2.AttachInternetGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AttachInternetGatewayInput, ...request.Option) *ec2.AttachInternetGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1174,7 +1564,7 @@ func (_m *EC2API) AttachInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Att
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AttachInternetGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AttachInternetGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1232,7 +1622,7 @@ func (_m *EC2API) AttachNetworkInterfaceRequest(_a0 *ec2.AttachNetworkInterfaceI
 }
 
 // AttachNetworkInterfaceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AttachNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.AttachNetworkInterfaceInput, _a2 ...request.Option) (*ec2.AttachNetworkInterfaceOutput, error) {
+func (_m *EC2API) AttachNetworkInterfaceWithContext(_a0 context.Context, _a1 *ec2.AttachNetworkInterfaceInput, _a2 ...request.Option) (*ec2.AttachNetworkInterfaceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1243,7 +1633,7 @@ func (_m *EC2API) AttachNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.At
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AttachNetworkInterfaceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AttachNetworkInterfaceInput, ...request.Option) *ec2.AttachNetworkInterfaceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AttachNetworkInterfaceInput, ...request.Option) *ec2.AttachNetworkInterfaceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1252,7 +1642,7 @@ func (_m *EC2API) AttachNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.At
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AttachNetworkInterfaceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AttachNetworkInterfaceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1310,7 +1700,7 @@ func (_m *EC2API) AttachVolumeRequest(_a0 *ec2.AttachVolumeInput) (*request.Requ
 }
 
 // AttachVolumeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AttachVolumeWithContext(_a0 aws.Context, _a1 *ec2.AttachVolumeInput, _a2 ...request.Option) (*ec2.VolumeAttachment, error) {
+func (_m *EC2API) AttachVolumeWithContext(_a0 context.Context, _a1 *ec2.AttachVolumeInput, _a2 ...request.Option) (*ec2.VolumeAttachment, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1321,7 +1711,7 @@ func (_m *EC2API) AttachVolumeWithContext(_a0 aws.Context, _a1 *ec2.AttachVolume
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.VolumeAttachment
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AttachVolumeInput, ...request.Option) *ec2.VolumeAttachment); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AttachVolumeInput, ...request.Option) *ec2.VolumeAttachment); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1330,7 +1720,7 @@ func (_m *EC2API) AttachVolumeWithContext(_a0 aws.Context, _a1 *ec2.AttachVolume
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AttachVolumeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AttachVolumeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1388,7 +1778,7 @@ func (_m *EC2API) AttachVpnGatewayRequest(_a0 *ec2.AttachVpnGatewayInput) (*requ
 }
 
 // AttachVpnGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AttachVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.AttachVpnGatewayInput, _a2 ...request.Option) (*ec2.AttachVpnGatewayOutput, error) {
+func (_m *EC2API) AttachVpnGatewayWithContext(_a0 context.Context, _a1 *ec2.AttachVpnGatewayInput, _a2 ...request.Option) (*ec2.AttachVpnGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1399,7 +1789,7 @@ func (_m *EC2API) AttachVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.AttachVp
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AttachVpnGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AttachVpnGatewayInput, ...request.Option) *ec2.AttachVpnGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AttachVpnGatewayInput, ...request.Option) *ec2.AttachVpnGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1408,7 +1798,85 @@ func (_m *EC2API) AttachVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.AttachVp
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AttachVpnGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AttachVpnGatewayInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AuthorizeClientVpnIngress provides a mock function with given fields: _a0
+func (_m *EC2API) AuthorizeClientVpnIngress(_a0 *ec2.AuthorizeClientVpnIngressInput) (*ec2.AuthorizeClientVpnIngressOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.AuthorizeClientVpnIngressOutput
+	if rf, ok := ret.Get(0).(func(*ec2.AuthorizeClientVpnIngressInput) *ec2.AuthorizeClientVpnIngressOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AuthorizeClientVpnIngressOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.AuthorizeClientVpnIngressInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// AuthorizeClientVpnIngressRequest provides a mock function with given fields: _a0
+func (_m *EC2API) AuthorizeClientVpnIngressRequest(_a0 *ec2.AuthorizeClientVpnIngressInput) (*request.Request, *ec2.AuthorizeClientVpnIngressOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.AuthorizeClientVpnIngressInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.AuthorizeClientVpnIngressOutput
+	if rf, ok := ret.Get(1).(func(*ec2.AuthorizeClientVpnIngressInput) *ec2.AuthorizeClientVpnIngressOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.AuthorizeClientVpnIngressOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// AuthorizeClientVpnIngressWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) AuthorizeClientVpnIngressWithContext(_a0 context.Context, _a1 *ec2.AuthorizeClientVpnIngressInput, _a2 ...request.Option) (*ec2.AuthorizeClientVpnIngressOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.AuthorizeClientVpnIngressOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AuthorizeClientVpnIngressInput, ...request.Option) *ec2.AuthorizeClientVpnIngressOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.AuthorizeClientVpnIngressOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AuthorizeClientVpnIngressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1466,7 +1934,7 @@ func (_m *EC2API) AuthorizeSecurityGroupEgressRequest(_a0 *ec2.AuthorizeSecurity
 }
 
 // AuthorizeSecurityGroupEgressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AuthorizeSecurityGroupEgressWithContext(_a0 aws.Context, _a1 *ec2.AuthorizeSecurityGroupEgressInput, _a2 ...request.Option) (*ec2.AuthorizeSecurityGroupEgressOutput, error) {
+func (_m *EC2API) AuthorizeSecurityGroupEgressWithContext(_a0 context.Context, _a1 *ec2.AuthorizeSecurityGroupEgressInput, _a2 ...request.Option) (*ec2.AuthorizeSecurityGroupEgressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1477,7 +1945,7 @@ func (_m *EC2API) AuthorizeSecurityGroupEgressWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AuthorizeSecurityGroupEgressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AuthorizeSecurityGroupEgressInput, ...request.Option) *ec2.AuthorizeSecurityGroupEgressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AuthorizeSecurityGroupEgressInput, ...request.Option) *ec2.AuthorizeSecurityGroupEgressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1486,7 +1954,7 @@ func (_m *EC2API) AuthorizeSecurityGroupEgressWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AuthorizeSecurityGroupEgressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AuthorizeSecurityGroupEgressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1544,7 +2012,7 @@ func (_m *EC2API) AuthorizeSecurityGroupIngressRequest(_a0 *ec2.AuthorizeSecurit
 }
 
 // AuthorizeSecurityGroupIngressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) AuthorizeSecurityGroupIngressWithContext(_a0 aws.Context, _a1 *ec2.AuthorizeSecurityGroupIngressInput, _a2 ...request.Option) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
+func (_m *EC2API) AuthorizeSecurityGroupIngressWithContext(_a0 context.Context, _a1 *ec2.AuthorizeSecurityGroupIngressInput, _a2 ...request.Option) (*ec2.AuthorizeSecurityGroupIngressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1555,7 +2023,7 @@ func (_m *EC2API) AuthorizeSecurityGroupIngressWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.AuthorizeSecurityGroupIngressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.AuthorizeSecurityGroupIngressInput, ...request.Option) *ec2.AuthorizeSecurityGroupIngressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.AuthorizeSecurityGroupIngressInput, ...request.Option) *ec2.AuthorizeSecurityGroupIngressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1564,7 +2032,7 @@ func (_m *EC2API) AuthorizeSecurityGroupIngressWithContext(_a0 aws.Context, _a1 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.AuthorizeSecurityGroupIngressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.AuthorizeSecurityGroupIngressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1622,7 +2090,7 @@ func (_m *EC2API) BundleInstanceRequest(_a0 *ec2.BundleInstanceInput) (*request.
 }
 
 // BundleInstanceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) BundleInstanceWithContext(_a0 aws.Context, _a1 *ec2.BundleInstanceInput, _a2 ...request.Option) (*ec2.BundleInstanceOutput, error) {
+func (_m *EC2API) BundleInstanceWithContext(_a0 context.Context, _a1 *ec2.BundleInstanceInput, _a2 ...request.Option) (*ec2.BundleInstanceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1633,7 +2101,7 @@ func (_m *EC2API) BundleInstanceWithContext(_a0 aws.Context, _a1 *ec2.BundleInst
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.BundleInstanceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.BundleInstanceInput, ...request.Option) *ec2.BundleInstanceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.BundleInstanceInput, ...request.Option) *ec2.BundleInstanceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1642,7 +2110,7 @@ func (_m *EC2API) BundleInstanceWithContext(_a0 aws.Context, _a1 *ec2.BundleInst
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.BundleInstanceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.BundleInstanceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1700,7 +2168,7 @@ func (_m *EC2API) CancelBundleTaskRequest(_a0 *ec2.CancelBundleTaskInput) (*requ
 }
 
 // CancelBundleTaskWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CancelBundleTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelBundleTaskInput, _a2 ...request.Option) (*ec2.CancelBundleTaskOutput, error) {
+func (_m *EC2API) CancelBundleTaskWithContext(_a0 context.Context, _a1 *ec2.CancelBundleTaskInput, _a2 ...request.Option) (*ec2.CancelBundleTaskOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1711,7 +2179,7 @@ func (_m *EC2API) CancelBundleTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelBu
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CancelBundleTaskOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CancelBundleTaskInput, ...request.Option) *ec2.CancelBundleTaskOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelBundleTaskInput, ...request.Option) *ec2.CancelBundleTaskOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1720,7 +2188,85 @@ func (_m *EC2API) CancelBundleTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelBu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CancelBundleTaskInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelBundleTaskInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CancelCapacityReservation provides a mock function with given fields: _a0
+func (_m *EC2API) CancelCapacityReservation(_a0 *ec2.CancelCapacityReservationInput) (*ec2.CancelCapacityReservationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CancelCapacityReservationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CancelCapacityReservationInput) *ec2.CancelCapacityReservationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CancelCapacityReservationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CancelCapacityReservationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CancelCapacityReservationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CancelCapacityReservationRequest(_a0 *ec2.CancelCapacityReservationInput) (*request.Request, *ec2.CancelCapacityReservationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CancelCapacityReservationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CancelCapacityReservationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CancelCapacityReservationInput) *ec2.CancelCapacityReservationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CancelCapacityReservationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CancelCapacityReservationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CancelCapacityReservationWithContext(_a0 context.Context, _a1 *ec2.CancelCapacityReservationInput, _a2 ...request.Option) (*ec2.CancelCapacityReservationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CancelCapacityReservationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelCapacityReservationInput, ...request.Option) *ec2.CancelCapacityReservationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CancelCapacityReservationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelCapacityReservationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1778,7 +2324,7 @@ func (_m *EC2API) CancelConversionTaskRequest(_a0 *ec2.CancelConversionTaskInput
 }
 
 // CancelConversionTaskWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CancelConversionTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelConversionTaskInput, _a2 ...request.Option) (*ec2.CancelConversionTaskOutput, error) {
+func (_m *EC2API) CancelConversionTaskWithContext(_a0 context.Context, _a1 *ec2.CancelConversionTaskInput, _a2 ...request.Option) (*ec2.CancelConversionTaskOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1789,7 +2335,7 @@ func (_m *EC2API) CancelConversionTaskWithContext(_a0 aws.Context, _a1 *ec2.Canc
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CancelConversionTaskOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CancelConversionTaskInput, ...request.Option) *ec2.CancelConversionTaskOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelConversionTaskInput, ...request.Option) *ec2.CancelConversionTaskOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1798,7 +2344,7 @@ func (_m *EC2API) CancelConversionTaskWithContext(_a0 aws.Context, _a1 *ec2.Canc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CancelConversionTaskInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelConversionTaskInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1856,7 +2402,7 @@ func (_m *EC2API) CancelExportTaskRequest(_a0 *ec2.CancelExportTaskInput) (*requ
 }
 
 // CancelExportTaskWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CancelExportTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelExportTaskInput, _a2 ...request.Option) (*ec2.CancelExportTaskOutput, error) {
+func (_m *EC2API) CancelExportTaskWithContext(_a0 context.Context, _a1 *ec2.CancelExportTaskInput, _a2 ...request.Option) (*ec2.CancelExportTaskOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1867,7 +2413,7 @@ func (_m *EC2API) CancelExportTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelEx
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CancelExportTaskOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CancelExportTaskInput, ...request.Option) *ec2.CancelExportTaskOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelExportTaskInput, ...request.Option) *ec2.CancelExportTaskOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1876,7 +2422,7 @@ func (_m *EC2API) CancelExportTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelEx
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CancelExportTaskInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelExportTaskInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1934,7 +2480,7 @@ func (_m *EC2API) CancelImportTaskRequest(_a0 *ec2.CancelImportTaskInput) (*requ
 }
 
 // CancelImportTaskWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CancelImportTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelImportTaskInput, _a2 ...request.Option) (*ec2.CancelImportTaskOutput, error) {
+func (_m *EC2API) CancelImportTaskWithContext(_a0 context.Context, _a1 *ec2.CancelImportTaskInput, _a2 ...request.Option) (*ec2.CancelImportTaskOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1945,7 +2491,7 @@ func (_m *EC2API) CancelImportTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelIm
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CancelImportTaskOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CancelImportTaskInput, ...request.Option) *ec2.CancelImportTaskOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelImportTaskInput, ...request.Option) *ec2.CancelImportTaskOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1954,7 +2500,7 @@ func (_m *EC2API) CancelImportTaskWithContext(_a0 aws.Context, _a1 *ec2.CancelIm
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CancelImportTaskInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelImportTaskInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2012,7 +2558,7 @@ func (_m *EC2API) CancelReservedInstancesListingRequest(_a0 *ec2.CancelReservedI
 }
 
 // CancelReservedInstancesListingWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CancelReservedInstancesListingWithContext(_a0 aws.Context, _a1 *ec2.CancelReservedInstancesListingInput, _a2 ...request.Option) (*ec2.CancelReservedInstancesListingOutput, error) {
+func (_m *EC2API) CancelReservedInstancesListingWithContext(_a0 context.Context, _a1 *ec2.CancelReservedInstancesListingInput, _a2 ...request.Option) (*ec2.CancelReservedInstancesListingOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2023,7 +2569,7 @@ func (_m *EC2API) CancelReservedInstancesListingWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CancelReservedInstancesListingOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CancelReservedInstancesListingInput, ...request.Option) *ec2.CancelReservedInstancesListingOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelReservedInstancesListingInput, ...request.Option) *ec2.CancelReservedInstancesListingOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2032,7 +2578,7 @@ func (_m *EC2API) CancelReservedInstancesListingWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CancelReservedInstancesListingInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelReservedInstancesListingInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2090,7 +2636,7 @@ func (_m *EC2API) CancelSpotFleetRequestsRequest(_a0 *ec2.CancelSpotFleetRequest
 }
 
 // CancelSpotFleetRequestsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CancelSpotFleetRequestsWithContext(_a0 aws.Context, _a1 *ec2.CancelSpotFleetRequestsInput, _a2 ...request.Option) (*ec2.CancelSpotFleetRequestsOutput, error) {
+func (_m *EC2API) CancelSpotFleetRequestsWithContext(_a0 context.Context, _a1 *ec2.CancelSpotFleetRequestsInput, _a2 ...request.Option) (*ec2.CancelSpotFleetRequestsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2101,7 +2647,7 @@ func (_m *EC2API) CancelSpotFleetRequestsWithContext(_a0 aws.Context, _a1 *ec2.C
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CancelSpotFleetRequestsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CancelSpotFleetRequestsInput, ...request.Option) *ec2.CancelSpotFleetRequestsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelSpotFleetRequestsInput, ...request.Option) *ec2.CancelSpotFleetRequestsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2110,7 +2656,7 @@ func (_m *EC2API) CancelSpotFleetRequestsWithContext(_a0 aws.Context, _a1 *ec2.C
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CancelSpotFleetRequestsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelSpotFleetRequestsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2168,7 +2714,7 @@ func (_m *EC2API) CancelSpotInstanceRequestsRequest(_a0 *ec2.CancelSpotInstanceR
 }
 
 // CancelSpotInstanceRequestsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CancelSpotInstanceRequestsWithContext(_a0 aws.Context, _a1 *ec2.CancelSpotInstanceRequestsInput, _a2 ...request.Option) (*ec2.CancelSpotInstanceRequestsOutput, error) {
+func (_m *EC2API) CancelSpotInstanceRequestsWithContext(_a0 context.Context, _a1 *ec2.CancelSpotInstanceRequestsInput, _a2 ...request.Option) (*ec2.CancelSpotInstanceRequestsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2179,7 +2725,7 @@ func (_m *EC2API) CancelSpotInstanceRequestsWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CancelSpotInstanceRequestsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CancelSpotInstanceRequestsInput, ...request.Option) *ec2.CancelSpotInstanceRequestsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CancelSpotInstanceRequestsInput, ...request.Option) *ec2.CancelSpotInstanceRequestsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2188,7 +2734,7 @@ func (_m *EC2API) CancelSpotInstanceRequestsWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CancelSpotInstanceRequestsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CancelSpotInstanceRequestsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2246,7 +2792,7 @@ func (_m *EC2API) ConfirmProductInstanceRequest(_a0 *ec2.ConfirmProductInstanceI
 }
 
 // ConfirmProductInstanceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ConfirmProductInstanceWithContext(_a0 aws.Context, _a1 *ec2.ConfirmProductInstanceInput, _a2 ...request.Option) (*ec2.ConfirmProductInstanceOutput, error) {
+func (_m *EC2API) ConfirmProductInstanceWithContext(_a0 context.Context, _a1 *ec2.ConfirmProductInstanceInput, _a2 ...request.Option) (*ec2.ConfirmProductInstanceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2257,7 +2803,7 @@ func (_m *EC2API) ConfirmProductInstanceWithContext(_a0 aws.Context, _a1 *ec2.Co
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ConfirmProductInstanceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ConfirmProductInstanceInput, ...request.Option) *ec2.ConfirmProductInstanceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ConfirmProductInstanceInput, ...request.Option) *ec2.ConfirmProductInstanceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2266,7 +2812,7 @@ func (_m *EC2API) ConfirmProductInstanceWithContext(_a0 aws.Context, _a1 *ec2.Co
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ConfirmProductInstanceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ConfirmProductInstanceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2324,7 +2870,7 @@ func (_m *EC2API) CopyFpgaImageRequest(_a0 *ec2.CopyFpgaImageInput) (*request.Re
 }
 
 // CopyFpgaImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CopyFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.CopyFpgaImageInput, _a2 ...request.Option) (*ec2.CopyFpgaImageOutput, error) {
+func (_m *EC2API) CopyFpgaImageWithContext(_a0 context.Context, _a1 *ec2.CopyFpgaImageInput, _a2 ...request.Option) (*ec2.CopyFpgaImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2335,7 +2881,7 @@ func (_m *EC2API) CopyFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.CopyFpgaIma
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CopyFpgaImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CopyFpgaImageInput, ...request.Option) *ec2.CopyFpgaImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CopyFpgaImageInput, ...request.Option) *ec2.CopyFpgaImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2344,7 +2890,7 @@ func (_m *EC2API) CopyFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.CopyFpgaIma
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CopyFpgaImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CopyFpgaImageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2402,7 +2948,7 @@ func (_m *EC2API) CopyImageRequest(_a0 *ec2.CopyImageInput) (*request.Request, *
 }
 
 // CopyImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CopyImageWithContext(_a0 aws.Context, _a1 *ec2.CopyImageInput, _a2 ...request.Option) (*ec2.CopyImageOutput, error) {
+func (_m *EC2API) CopyImageWithContext(_a0 context.Context, _a1 *ec2.CopyImageInput, _a2 ...request.Option) (*ec2.CopyImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2413,7 +2959,7 @@ func (_m *EC2API) CopyImageWithContext(_a0 aws.Context, _a1 *ec2.CopyImageInput,
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CopyImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CopyImageInput, ...request.Option) *ec2.CopyImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CopyImageInput, ...request.Option) *ec2.CopyImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2422,7 +2968,7 @@ func (_m *EC2API) CopyImageWithContext(_a0 aws.Context, _a1 *ec2.CopyImageInput,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CopyImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CopyImageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2480,7 +3026,7 @@ func (_m *EC2API) CopySnapshotRequest(_a0 *ec2.CopySnapshotInput) (*request.Requ
 }
 
 // CopySnapshotWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CopySnapshotWithContext(_a0 aws.Context, _a1 *ec2.CopySnapshotInput, _a2 ...request.Option) (*ec2.CopySnapshotOutput, error) {
+func (_m *EC2API) CopySnapshotWithContext(_a0 context.Context, _a1 *ec2.CopySnapshotInput, _a2 ...request.Option) (*ec2.CopySnapshotOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2491,7 +3037,7 @@ func (_m *EC2API) CopySnapshotWithContext(_a0 aws.Context, _a1 *ec2.CopySnapshot
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CopySnapshotOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CopySnapshotInput, ...request.Option) *ec2.CopySnapshotOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CopySnapshotInput, ...request.Option) *ec2.CopySnapshotOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2500,7 +3046,241 @@ func (_m *EC2API) CopySnapshotWithContext(_a0 aws.Context, _a1 *ec2.CopySnapshot
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CopySnapshotInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CopySnapshotInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateCapacityReservation provides a mock function with given fields: _a0
+func (_m *EC2API) CreateCapacityReservation(_a0 *ec2.CreateCapacityReservationInput) (*ec2.CreateCapacityReservationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateCapacityReservationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateCapacityReservationInput) *ec2.CreateCapacityReservationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateCapacityReservationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateCapacityReservationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateCapacityReservationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateCapacityReservationRequest(_a0 *ec2.CreateCapacityReservationInput) (*request.Request, *ec2.CreateCapacityReservationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateCapacityReservationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateCapacityReservationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateCapacityReservationInput) *ec2.CreateCapacityReservationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateCapacityReservationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateCapacityReservationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateCapacityReservationWithContext(_a0 context.Context, _a1 *ec2.CreateCapacityReservationInput, _a2 ...request.Option) (*ec2.CreateCapacityReservationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateCapacityReservationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateCapacityReservationInput, ...request.Option) *ec2.CreateCapacityReservationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateCapacityReservationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateCapacityReservationInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateClientVpnEndpoint provides a mock function with given fields: _a0
+func (_m *EC2API) CreateClientVpnEndpoint(_a0 *ec2.CreateClientVpnEndpointInput) (*ec2.CreateClientVpnEndpointOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateClientVpnEndpointOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateClientVpnEndpointInput) *ec2.CreateClientVpnEndpointOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateClientVpnEndpointOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateClientVpnEndpointInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateClientVpnEndpointRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateClientVpnEndpointRequest(_a0 *ec2.CreateClientVpnEndpointInput) (*request.Request, *ec2.CreateClientVpnEndpointOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateClientVpnEndpointInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateClientVpnEndpointOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateClientVpnEndpointInput) *ec2.CreateClientVpnEndpointOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateClientVpnEndpointOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateClientVpnEndpointWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateClientVpnEndpointWithContext(_a0 context.Context, _a1 *ec2.CreateClientVpnEndpointInput, _a2 ...request.Option) (*ec2.CreateClientVpnEndpointOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateClientVpnEndpointOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateClientVpnEndpointInput, ...request.Option) *ec2.CreateClientVpnEndpointOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateClientVpnEndpointOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateClientVpnEndpointInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateClientVpnRoute provides a mock function with given fields: _a0
+func (_m *EC2API) CreateClientVpnRoute(_a0 *ec2.CreateClientVpnRouteInput) (*ec2.CreateClientVpnRouteOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateClientVpnRouteOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateClientVpnRouteInput) *ec2.CreateClientVpnRouteOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateClientVpnRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateClientVpnRouteInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateClientVpnRouteRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateClientVpnRouteRequest(_a0 *ec2.CreateClientVpnRouteInput) (*request.Request, *ec2.CreateClientVpnRouteOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateClientVpnRouteInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateClientVpnRouteOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateClientVpnRouteInput) *ec2.CreateClientVpnRouteOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateClientVpnRouteOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateClientVpnRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateClientVpnRouteWithContext(_a0 context.Context, _a1 *ec2.CreateClientVpnRouteInput, _a2 ...request.Option) (*ec2.CreateClientVpnRouteOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateClientVpnRouteOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateClientVpnRouteInput, ...request.Option) *ec2.CreateClientVpnRouteOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateClientVpnRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateClientVpnRouteInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2558,7 +3338,7 @@ func (_m *EC2API) CreateCustomerGatewayRequest(_a0 *ec2.CreateCustomerGatewayInp
 }
 
 // CreateCustomerGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateCustomerGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateCustomerGatewayInput, _a2 ...request.Option) (*ec2.CreateCustomerGatewayOutput, error) {
+func (_m *EC2API) CreateCustomerGatewayWithContext(_a0 context.Context, _a1 *ec2.CreateCustomerGatewayInput, _a2 ...request.Option) (*ec2.CreateCustomerGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2569,7 +3349,7 @@ func (_m *EC2API) CreateCustomerGatewayWithContext(_a0 aws.Context, _a1 *ec2.Cre
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateCustomerGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateCustomerGatewayInput, ...request.Option) *ec2.CreateCustomerGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateCustomerGatewayInput, ...request.Option) *ec2.CreateCustomerGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2578,7 +3358,7 @@ func (_m *EC2API) CreateCustomerGatewayWithContext(_a0 aws.Context, _a1 *ec2.Cre
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateCustomerGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateCustomerGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2636,7 +3416,7 @@ func (_m *EC2API) CreateDefaultSubnetRequest(_a0 *ec2.CreateDefaultSubnetInput) 
 }
 
 // CreateDefaultSubnetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateDefaultSubnetWithContext(_a0 aws.Context, _a1 *ec2.CreateDefaultSubnetInput, _a2 ...request.Option) (*ec2.CreateDefaultSubnetOutput, error) {
+func (_m *EC2API) CreateDefaultSubnetWithContext(_a0 context.Context, _a1 *ec2.CreateDefaultSubnetInput, _a2 ...request.Option) (*ec2.CreateDefaultSubnetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2647,7 +3427,7 @@ func (_m *EC2API) CreateDefaultSubnetWithContext(_a0 aws.Context, _a1 *ec2.Creat
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateDefaultSubnetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateDefaultSubnetInput, ...request.Option) *ec2.CreateDefaultSubnetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateDefaultSubnetInput, ...request.Option) *ec2.CreateDefaultSubnetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2656,7 +3436,7 @@ func (_m *EC2API) CreateDefaultSubnetWithContext(_a0 aws.Context, _a1 *ec2.Creat
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateDefaultSubnetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateDefaultSubnetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2714,7 +3494,7 @@ func (_m *EC2API) CreateDefaultVpcRequest(_a0 *ec2.CreateDefaultVpcInput) (*requ
 }
 
 // CreateDefaultVpcWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateDefaultVpcWithContext(_a0 aws.Context, _a1 *ec2.CreateDefaultVpcInput, _a2 ...request.Option) (*ec2.CreateDefaultVpcOutput, error) {
+func (_m *EC2API) CreateDefaultVpcWithContext(_a0 context.Context, _a1 *ec2.CreateDefaultVpcInput, _a2 ...request.Option) (*ec2.CreateDefaultVpcOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2725,7 +3505,7 @@ func (_m *EC2API) CreateDefaultVpcWithContext(_a0 aws.Context, _a1 *ec2.CreateDe
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateDefaultVpcOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateDefaultVpcInput, ...request.Option) *ec2.CreateDefaultVpcOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateDefaultVpcInput, ...request.Option) *ec2.CreateDefaultVpcOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2734,7 +3514,7 @@ func (_m *EC2API) CreateDefaultVpcWithContext(_a0 aws.Context, _a1 *ec2.CreateDe
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateDefaultVpcInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateDefaultVpcInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2792,7 +3572,7 @@ func (_m *EC2API) CreateDhcpOptionsRequest(_a0 *ec2.CreateDhcpOptionsInput) (*re
 }
 
 // CreateDhcpOptionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.CreateDhcpOptionsInput, _a2 ...request.Option) (*ec2.CreateDhcpOptionsOutput, error) {
+func (_m *EC2API) CreateDhcpOptionsWithContext(_a0 context.Context, _a1 *ec2.CreateDhcpOptionsInput, _a2 ...request.Option) (*ec2.CreateDhcpOptionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2803,7 +3583,7 @@ func (_m *EC2API) CreateDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.CreateD
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateDhcpOptionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateDhcpOptionsInput, ...request.Option) *ec2.CreateDhcpOptionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateDhcpOptionsInput, ...request.Option) *ec2.CreateDhcpOptionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2812,7 +3592,7 @@ func (_m *EC2API) CreateDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.CreateD
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateDhcpOptionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateDhcpOptionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2870,7 +3650,7 @@ func (_m *EC2API) CreateEgressOnlyInternetGatewayRequest(_a0 *ec2.CreateEgressOn
 }
 
 // CreateEgressOnlyInternetGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateEgressOnlyInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateEgressOnlyInternetGatewayInput, _a2 ...request.Option) (*ec2.CreateEgressOnlyInternetGatewayOutput, error) {
+func (_m *EC2API) CreateEgressOnlyInternetGatewayWithContext(_a0 context.Context, _a1 *ec2.CreateEgressOnlyInternetGatewayInput, _a2 ...request.Option) (*ec2.CreateEgressOnlyInternetGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2881,7 +3661,7 @@ func (_m *EC2API) CreateEgressOnlyInternetGatewayWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateEgressOnlyInternetGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateEgressOnlyInternetGatewayInput, ...request.Option) *ec2.CreateEgressOnlyInternetGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateEgressOnlyInternetGatewayInput, ...request.Option) *ec2.CreateEgressOnlyInternetGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2890,7 +3670,7 @@ func (_m *EC2API) CreateEgressOnlyInternetGatewayWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateEgressOnlyInternetGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateEgressOnlyInternetGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2948,7 +3728,7 @@ func (_m *EC2API) CreateFleetRequest(_a0 *ec2.CreateFleetInput) (*request.Reques
 }
 
 // CreateFleetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateFleetWithContext(_a0 aws.Context, _a1 *ec2.CreateFleetInput, _a2 ...request.Option) (*ec2.CreateFleetOutput, error) {
+func (_m *EC2API) CreateFleetWithContext(_a0 context.Context, _a1 *ec2.CreateFleetInput, _a2 ...request.Option) (*ec2.CreateFleetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2959,7 +3739,7 @@ func (_m *EC2API) CreateFleetWithContext(_a0 aws.Context, _a1 *ec2.CreateFleetIn
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateFleetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateFleetInput, ...request.Option) *ec2.CreateFleetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateFleetInput, ...request.Option) *ec2.CreateFleetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2968,7 +3748,7 @@ func (_m *EC2API) CreateFleetWithContext(_a0 aws.Context, _a1 *ec2.CreateFleetIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateFleetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateFleetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3026,7 +3806,7 @@ func (_m *EC2API) CreateFlowLogsRequest(_a0 *ec2.CreateFlowLogsInput) (*request.
 }
 
 // CreateFlowLogsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.CreateFlowLogsInput, _a2 ...request.Option) (*ec2.CreateFlowLogsOutput, error) {
+func (_m *EC2API) CreateFlowLogsWithContext(_a0 context.Context, _a1 *ec2.CreateFlowLogsInput, _a2 ...request.Option) (*ec2.CreateFlowLogsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3037,7 +3817,7 @@ func (_m *EC2API) CreateFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.CreateFlow
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateFlowLogsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateFlowLogsInput, ...request.Option) *ec2.CreateFlowLogsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateFlowLogsInput, ...request.Option) *ec2.CreateFlowLogsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3046,7 +3826,7 @@ func (_m *EC2API) CreateFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.CreateFlow
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateFlowLogsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateFlowLogsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3104,7 +3884,7 @@ func (_m *EC2API) CreateFpgaImageRequest(_a0 *ec2.CreateFpgaImageInput) (*reques
 }
 
 // CreateFpgaImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.CreateFpgaImageInput, _a2 ...request.Option) (*ec2.CreateFpgaImageOutput, error) {
+func (_m *EC2API) CreateFpgaImageWithContext(_a0 context.Context, _a1 *ec2.CreateFpgaImageInput, _a2 ...request.Option) (*ec2.CreateFpgaImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3115,7 +3895,7 @@ func (_m *EC2API) CreateFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.CreateFpg
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateFpgaImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateFpgaImageInput, ...request.Option) *ec2.CreateFpgaImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateFpgaImageInput, ...request.Option) *ec2.CreateFpgaImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3124,7 +3904,7 @@ func (_m *EC2API) CreateFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.CreateFpg
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateFpgaImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateFpgaImageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3182,7 +3962,7 @@ func (_m *EC2API) CreateImageRequest(_a0 *ec2.CreateImageInput) (*request.Reques
 }
 
 // CreateImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateImageWithContext(_a0 aws.Context, _a1 *ec2.CreateImageInput, _a2 ...request.Option) (*ec2.CreateImageOutput, error) {
+func (_m *EC2API) CreateImageWithContext(_a0 context.Context, _a1 *ec2.CreateImageInput, _a2 ...request.Option) (*ec2.CreateImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3193,7 +3973,7 @@ func (_m *EC2API) CreateImageWithContext(_a0 aws.Context, _a1 *ec2.CreateImageIn
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateImageInput, ...request.Option) *ec2.CreateImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateImageInput, ...request.Option) *ec2.CreateImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3202,7 +3982,7 @@ func (_m *EC2API) CreateImageWithContext(_a0 aws.Context, _a1 *ec2.CreateImageIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateImageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3260,7 +4040,7 @@ func (_m *EC2API) CreateInstanceExportTaskRequest(_a0 *ec2.CreateInstanceExportT
 }
 
 // CreateInstanceExportTaskWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateInstanceExportTaskWithContext(_a0 aws.Context, _a1 *ec2.CreateInstanceExportTaskInput, _a2 ...request.Option) (*ec2.CreateInstanceExportTaskOutput, error) {
+func (_m *EC2API) CreateInstanceExportTaskWithContext(_a0 context.Context, _a1 *ec2.CreateInstanceExportTaskInput, _a2 ...request.Option) (*ec2.CreateInstanceExportTaskOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3271,7 +4051,7 @@ func (_m *EC2API) CreateInstanceExportTaskWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateInstanceExportTaskOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateInstanceExportTaskInput, ...request.Option) *ec2.CreateInstanceExportTaskOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateInstanceExportTaskInput, ...request.Option) *ec2.CreateInstanceExportTaskOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3280,7 +4060,7 @@ func (_m *EC2API) CreateInstanceExportTaskWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateInstanceExportTaskInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateInstanceExportTaskInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3338,7 +4118,7 @@ func (_m *EC2API) CreateInternetGatewayRequest(_a0 *ec2.CreateInternetGatewayInp
 }
 
 // CreateInternetGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateInternetGatewayInput, _a2 ...request.Option) (*ec2.CreateInternetGatewayOutput, error) {
+func (_m *EC2API) CreateInternetGatewayWithContext(_a0 context.Context, _a1 *ec2.CreateInternetGatewayInput, _a2 ...request.Option) (*ec2.CreateInternetGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3349,7 +4129,7 @@ func (_m *EC2API) CreateInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Cre
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateInternetGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateInternetGatewayInput, ...request.Option) *ec2.CreateInternetGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateInternetGatewayInput, ...request.Option) *ec2.CreateInternetGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3358,7 +4138,7 @@ func (_m *EC2API) CreateInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Cre
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateInternetGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateInternetGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3416,7 +4196,7 @@ func (_m *EC2API) CreateKeyPairRequest(_a0 *ec2.CreateKeyPairInput) (*request.Re
 }
 
 // CreateKeyPairWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateKeyPairWithContext(_a0 aws.Context, _a1 *ec2.CreateKeyPairInput, _a2 ...request.Option) (*ec2.CreateKeyPairOutput, error) {
+func (_m *EC2API) CreateKeyPairWithContext(_a0 context.Context, _a1 *ec2.CreateKeyPairInput, _a2 ...request.Option) (*ec2.CreateKeyPairOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3427,7 +4207,7 @@ func (_m *EC2API) CreateKeyPairWithContext(_a0 aws.Context, _a1 *ec2.CreateKeyPa
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateKeyPairOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateKeyPairInput, ...request.Option) *ec2.CreateKeyPairOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateKeyPairInput, ...request.Option) *ec2.CreateKeyPairOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3436,7 +4216,7 @@ func (_m *EC2API) CreateKeyPairWithContext(_a0 aws.Context, _a1 *ec2.CreateKeyPa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateKeyPairInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateKeyPairInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3542,7 +4322,7 @@ func (_m *EC2API) CreateLaunchTemplateVersionRequest(_a0 *ec2.CreateLaunchTempla
 }
 
 // CreateLaunchTemplateVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateLaunchTemplateVersionWithContext(_a0 aws.Context, _a1 *ec2.CreateLaunchTemplateVersionInput, _a2 ...request.Option) (*ec2.CreateLaunchTemplateVersionOutput, error) {
+func (_m *EC2API) CreateLaunchTemplateVersionWithContext(_a0 context.Context, _a1 *ec2.CreateLaunchTemplateVersionInput, _a2 ...request.Option) (*ec2.CreateLaunchTemplateVersionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3553,7 +4333,7 @@ func (_m *EC2API) CreateLaunchTemplateVersionWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateLaunchTemplateVersionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateLaunchTemplateVersionInput, ...request.Option) *ec2.CreateLaunchTemplateVersionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateLaunchTemplateVersionInput, ...request.Option) *ec2.CreateLaunchTemplateVersionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3562,7 +4342,7 @@ func (_m *EC2API) CreateLaunchTemplateVersionWithContext(_a0 aws.Context, _a1 *e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateLaunchTemplateVersionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateLaunchTemplateVersionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3572,7 +4352,7 @@ func (_m *EC2API) CreateLaunchTemplateVersionWithContext(_a0 aws.Context, _a1 *e
 }
 
 // CreateLaunchTemplateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.CreateLaunchTemplateInput, _a2 ...request.Option) (*ec2.CreateLaunchTemplateOutput, error) {
+func (_m *EC2API) CreateLaunchTemplateWithContext(_a0 context.Context, _a1 *ec2.CreateLaunchTemplateInput, _a2 ...request.Option) (*ec2.CreateLaunchTemplateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3583,7 +4363,7 @@ func (_m *EC2API) CreateLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.Crea
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateLaunchTemplateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateLaunchTemplateInput, ...request.Option) *ec2.CreateLaunchTemplateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateLaunchTemplateInput, ...request.Option) *ec2.CreateLaunchTemplateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3592,7 +4372,7 @@ func (_m *EC2API) CreateLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.Crea
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateLaunchTemplateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateLaunchTemplateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3650,7 +4430,7 @@ func (_m *EC2API) CreateNatGatewayRequest(_a0 *ec2.CreateNatGatewayInput) (*requ
 }
 
 // CreateNatGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateNatGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateNatGatewayInput, _a2 ...request.Option) (*ec2.CreateNatGatewayOutput, error) {
+func (_m *EC2API) CreateNatGatewayWithContext(_a0 context.Context, _a1 *ec2.CreateNatGatewayInput, _a2 ...request.Option) (*ec2.CreateNatGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3661,7 +4441,7 @@ func (_m *EC2API) CreateNatGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateNa
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateNatGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateNatGatewayInput, ...request.Option) *ec2.CreateNatGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateNatGatewayInput, ...request.Option) *ec2.CreateNatGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3670,7 +4450,7 @@ func (_m *EC2API) CreateNatGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateNa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateNatGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateNatGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3751,7 +4531,7 @@ func (_m *EC2API) CreateNetworkAclEntryRequest(_a0 *ec2.CreateNetworkAclEntryInp
 }
 
 // CreateNetworkAclEntryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.CreateNetworkAclEntryInput, _a2 ...request.Option) (*ec2.CreateNetworkAclEntryOutput, error) {
+func (_m *EC2API) CreateNetworkAclEntryWithContext(_a0 context.Context, _a1 *ec2.CreateNetworkAclEntryInput, _a2 ...request.Option) (*ec2.CreateNetworkAclEntryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3762,7 +4542,7 @@ func (_m *EC2API) CreateNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.Cre
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateNetworkAclEntryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateNetworkAclEntryInput, ...request.Option) *ec2.CreateNetworkAclEntryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateNetworkAclEntryInput, ...request.Option) *ec2.CreateNetworkAclEntryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3771,7 +4551,7 @@ func (_m *EC2API) CreateNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.Cre
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateNetworkAclEntryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateNetworkAclEntryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3806,7 +4586,7 @@ func (_m *EC2API) CreateNetworkAclRequest(_a0 *ec2.CreateNetworkAclInput) (*requ
 }
 
 // CreateNetworkAclWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateNetworkAclWithContext(_a0 aws.Context, _a1 *ec2.CreateNetworkAclInput, _a2 ...request.Option) (*ec2.CreateNetworkAclOutput, error) {
+func (_m *EC2API) CreateNetworkAclWithContext(_a0 context.Context, _a1 *ec2.CreateNetworkAclInput, _a2 ...request.Option) (*ec2.CreateNetworkAclOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3817,7 +4597,7 @@ func (_m *EC2API) CreateNetworkAclWithContext(_a0 aws.Context, _a1 *ec2.CreateNe
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateNetworkAclOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateNetworkAclInput, ...request.Option) *ec2.CreateNetworkAclOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateNetworkAclInput, ...request.Option) *ec2.CreateNetworkAclOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3826,7 +4606,7 @@ func (_m *EC2API) CreateNetworkAclWithContext(_a0 aws.Context, _a1 *ec2.CreateNe
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateNetworkAclInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateNetworkAclInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3907,7 +4687,7 @@ func (_m *EC2API) CreateNetworkInterfacePermissionRequest(_a0 *ec2.CreateNetwork
 }
 
 // CreateNetworkInterfacePermissionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateNetworkInterfacePermissionWithContext(_a0 aws.Context, _a1 *ec2.CreateNetworkInterfacePermissionInput, _a2 ...request.Option) (*ec2.CreateNetworkInterfacePermissionOutput, error) {
+func (_m *EC2API) CreateNetworkInterfacePermissionWithContext(_a0 context.Context, _a1 *ec2.CreateNetworkInterfacePermissionInput, _a2 ...request.Option) (*ec2.CreateNetworkInterfacePermissionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3918,7 +4698,7 @@ func (_m *EC2API) CreateNetworkInterfacePermissionWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateNetworkInterfacePermissionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateNetworkInterfacePermissionInput, ...request.Option) *ec2.CreateNetworkInterfacePermissionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateNetworkInterfacePermissionInput, ...request.Option) *ec2.CreateNetworkInterfacePermissionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3927,7 +4707,7 @@ func (_m *EC2API) CreateNetworkInterfacePermissionWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateNetworkInterfacePermissionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateNetworkInterfacePermissionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3962,7 +4742,7 @@ func (_m *EC2API) CreateNetworkInterfaceRequest(_a0 *ec2.CreateNetworkInterfaceI
 }
 
 // CreateNetworkInterfaceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.CreateNetworkInterfaceInput, _a2 ...request.Option) (*ec2.CreateNetworkInterfaceOutput, error) {
+func (_m *EC2API) CreateNetworkInterfaceWithContext(_a0 context.Context, _a1 *ec2.CreateNetworkInterfaceInput, _a2 ...request.Option) (*ec2.CreateNetworkInterfaceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3973,7 +4753,7 @@ func (_m *EC2API) CreateNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.Cr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateNetworkInterfaceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateNetworkInterfaceInput, ...request.Option) *ec2.CreateNetworkInterfaceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateNetworkInterfaceInput, ...request.Option) *ec2.CreateNetworkInterfaceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3982,7 +4762,7 @@ func (_m *EC2API) CreateNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.Cr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateNetworkInterfaceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateNetworkInterfaceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4040,7 +4820,7 @@ func (_m *EC2API) CreatePlacementGroupRequest(_a0 *ec2.CreatePlacementGroupInput
 }
 
 // CreatePlacementGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreatePlacementGroupWithContext(_a0 aws.Context, _a1 *ec2.CreatePlacementGroupInput, _a2 ...request.Option) (*ec2.CreatePlacementGroupOutput, error) {
+func (_m *EC2API) CreatePlacementGroupWithContext(_a0 context.Context, _a1 *ec2.CreatePlacementGroupInput, _a2 ...request.Option) (*ec2.CreatePlacementGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4051,7 +4831,7 @@ func (_m *EC2API) CreatePlacementGroupWithContext(_a0 aws.Context, _a1 *ec2.Crea
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreatePlacementGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreatePlacementGroupInput, ...request.Option) *ec2.CreatePlacementGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreatePlacementGroupInput, ...request.Option) *ec2.CreatePlacementGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4060,7 +4840,7 @@ func (_m *EC2API) CreatePlacementGroupWithContext(_a0 aws.Context, _a1 *ec2.Crea
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreatePlacementGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreatePlacementGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4118,7 +4898,7 @@ func (_m *EC2API) CreateReservedInstancesListingRequest(_a0 *ec2.CreateReservedI
 }
 
 // CreateReservedInstancesListingWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateReservedInstancesListingWithContext(_a0 aws.Context, _a1 *ec2.CreateReservedInstancesListingInput, _a2 ...request.Option) (*ec2.CreateReservedInstancesListingOutput, error) {
+func (_m *EC2API) CreateReservedInstancesListingWithContext(_a0 context.Context, _a1 *ec2.CreateReservedInstancesListingInput, _a2 ...request.Option) (*ec2.CreateReservedInstancesListingOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4129,7 +4909,7 @@ func (_m *EC2API) CreateReservedInstancesListingWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateReservedInstancesListingOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateReservedInstancesListingInput, ...request.Option) *ec2.CreateReservedInstancesListingOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateReservedInstancesListingInput, ...request.Option) *ec2.CreateReservedInstancesListingOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4138,7 +4918,7 @@ func (_m *EC2API) CreateReservedInstancesListingWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateReservedInstancesListingInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateReservedInstancesListingInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4244,7 +5024,7 @@ func (_m *EC2API) CreateRouteTableRequest(_a0 *ec2.CreateRouteTableInput) (*requ
 }
 
 // CreateRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.CreateRouteTableInput, _a2 ...request.Option) (*ec2.CreateRouteTableOutput, error) {
+func (_m *EC2API) CreateRouteTableWithContext(_a0 context.Context, _a1 *ec2.CreateRouteTableInput, _a2 ...request.Option) (*ec2.CreateRouteTableOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4255,7 +5035,7 @@ func (_m *EC2API) CreateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.CreateRo
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateRouteTableOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateRouteTableInput, ...request.Option) *ec2.CreateRouteTableOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateRouteTableInput, ...request.Option) *ec2.CreateRouteTableOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4264,7 +5044,7 @@ func (_m *EC2API) CreateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.CreateRo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateRouteTableInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateRouteTableInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4274,7 +5054,7 @@ func (_m *EC2API) CreateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.CreateRo
 }
 
 // CreateRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateRouteWithContext(_a0 aws.Context, _a1 *ec2.CreateRouteInput, _a2 ...request.Option) (*ec2.CreateRouteOutput, error) {
+func (_m *EC2API) CreateRouteWithContext(_a0 context.Context, _a1 *ec2.CreateRouteInput, _a2 ...request.Option) (*ec2.CreateRouteOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4285,7 +5065,7 @@ func (_m *EC2API) CreateRouteWithContext(_a0 aws.Context, _a1 *ec2.CreateRouteIn
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateRouteOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateRouteInput, ...request.Option) *ec2.CreateRouteOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateRouteInput, ...request.Option) *ec2.CreateRouteOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4294,7 +5074,7 @@ func (_m *EC2API) CreateRouteWithContext(_a0 aws.Context, _a1 *ec2.CreateRouteIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateRouteInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateRouteInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4352,7 +5132,7 @@ func (_m *EC2API) CreateSecurityGroupRequest(_a0 *ec2.CreateSecurityGroupInput) 
 }
 
 // CreateSecurityGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateSecurityGroupWithContext(_a0 aws.Context, _a1 *ec2.CreateSecurityGroupInput, _a2 ...request.Option) (*ec2.CreateSecurityGroupOutput, error) {
+func (_m *EC2API) CreateSecurityGroupWithContext(_a0 context.Context, _a1 *ec2.CreateSecurityGroupInput, _a2 ...request.Option) (*ec2.CreateSecurityGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4363,7 +5143,7 @@ func (_m *EC2API) CreateSecurityGroupWithContext(_a0 aws.Context, _a1 *ec2.Creat
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateSecurityGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateSecurityGroupInput, ...request.Option) *ec2.CreateSecurityGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSecurityGroupInput, ...request.Option) *ec2.CreateSecurityGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4372,7 +5152,7 @@ func (_m *EC2API) CreateSecurityGroupWithContext(_a0 aws.Context, _a1 *ec2.Creat
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateSecurityGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateSecurityGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4430,7 +5210,7 @@ func (_m *EC2API) CreateSnapshotRequest(_a0 *ec2.CreateSnapshotInput) (*request.
 }
 
 // CreateSnapshotWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateSnapshotWithContext(_a0 aws.Context, _a1 *ec2.CreateSnapshotInput, _a2 ...request.Option) (*ec2.Snapshot, error) {
+func (_m *EC2API) CreateSnapshotWithContext(_a0 context.Context, _a1 *ec2.CreateSnapshotInput, _a2 ...request.Option) (*ec2.Snapshot, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4441,7 +5221,7 @@ func (_m *EC2API) CreateSnapshotWithContext(_a0 aws.Context, _a1 *ec2.CreateSnap
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.Snapshot
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateSnapshotInput, ...request.Option) *ec2.Snapshot); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSnapshotInput, ...request.Option) *ec2.Snapshot); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4450,7 +5230,7 @@ func (_m *EC2API) CreateSnapshotWithContext(_a0 aws.Context, _a1 *ec2.CreateSnap
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateSnapshotInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateSnapshotInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4508,7 +5288,7 @@ func (_m *EC2API) CreateSpotDatafeedSubscriptionRequest(_a0 *ec2.CreateSpotDataf
 }
 
 // CreateSpotDatafeedSubscriptionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _a1 *ec2.CreateSpotDatafeedSubscriptionInput, _a2 ...request.Option) (*ec2.CreateSpotDatafeedSubscriptionOutput, error) {
+func (_m *EC2API) CreateSpotDatafeedSubscriptionWithContext(_a0 context.Context, _a1 *ec2.CreateSpotDatafeedSubscriptionInput, _a2 ...request.Option) (*ec2.CreateSpotDatafeedSubscriptionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4519,7 +5299,7 @@ func (_m *EC2API) CreateSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateSpotDatafeedSubscriptionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateSpotDatafeedSubscriptionInput, ...request.Option) *ec2.CreateSpotDatafeedSubscriptionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSpotDatafeedSubscriptionInput, ...request.Option) *ec2.CreateSpotDatafeedSubscriptionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4528,7 +5308,7 @@ func (_m *EC2API) CreateSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateSpotDatafeedSubscriptionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateSpotDatafeedSubscriptionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4586,7 +5366,7 @@ func (_m *EC2API) CreateSubnetRequest(_a0 *ec2.CreateSubnetInput) (*request.Requ
 }
 
 // CreateSubnetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateSubnetWithContext(_a0 aws.Context, _a1 *ec2.CreateSubnetInput, _a2 ...request.Option) (*ec2.CreateSubnetOutput, error) {
+func (_m *EC2API) CreateSubnetWithContext(_a0 context.Context, _a1 *ec2.CreateSubnetInput, _a2 ...request.Option) (*ec2.CreateSubnetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4597,7 +5377,7 @@ func (_m *EC2API) CreateSubnetWithContext(_a0 aws.Context, _a1 *ec2.CreateSubnet
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateSubnetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateSubnetInput, ...request.Option) *ec2.CreateSubnetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateSubnetInput, ...request.Option) *ec2.CreateSubnetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4606,7 +5386,7 @@ func (_m *EC2API) CreateSubnetWithContext(_a0 aws.Context, _a1 *ec2.CreateSubnet
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateSubnetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateSubnetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4664,7 +5444,7 @@ func (_m *EC2API) CreateTagsRequest(_a0 *ec2.CreateTagsInput) (*request.Request,
 }
 
 // CreateTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateTagsWithContext(_a0 aws.Context, _a1 *ec2.CreateTagsInput, _a2 ...request.Option) (*ec2.CreateTagsOutput, error) {
+func (_m *EC2API) CreateTagsWithContext(_a0 context.Context, _a1 *ec2.CreateTagsInput, _a2 ...request.Option) (*ec2.CreateTagsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4675,7 +5455,7 @@ func (_m *EC2API) CreateTagsWithContext(_a0 aws.Context, _a1 *ec2.CreateTagsInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateTagsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateTagsInput, ...request.Option) *ec2.CreateTagsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTagsInput, ...request.Option) *ec2.CreateTagsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4684,7 +5464,319 @@ func (_m *EC2API) CreateTagsWithContext(_a0 aws.Context, _a1 *ec2.CreateTagsInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateTagsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTagsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGateway provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGateway(_a0 *ec2.CreateTransitGatewayInput) (*ec2.CreateTransitGatewayOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateTransitGatewayOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayInput) *ec2.CreateTransitGatewayOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGatewayRequest(_a0 *ec2.CreateTransitGatewayInput) (*request.Request, *ec2.CreateTransitGatewayOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateTransitGatewayOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayInput) *ec2.CreateTransitGatewayOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateTransitGatewayOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRoute provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGatewayRoute(_a0 *ec2.CreateTransitGatewayRouteInput) (*ec2.CreateTransitGatewayRouteOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateTransitGatewayRouteOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayRouteInput) *ec2.CreateTransitGatewayRouteOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayRouteInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRouteRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGatewayRouteRequest(_a0 *ec2.CreateTransitGatewayRouteInput) (*request.Request, *ec2.CreateTransitGatewayRouteOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayRouteInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateTransitGatewayRouteOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayRouteInput) *ec2.CreateTransitGatewayRouteOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateTransitGatewayRouteOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRouteTable provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGatewayRouteTable(_a0 *ec2.CreateTransitGatewayRouteTableInput) (*ec2.CreateTransitGatewayRouteTableOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayRouteTableInput) *ec2.CreateTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayRouteTableInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRouteTableRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGatewayRouteTableRequest(_a0 *ec2.CreateTransitGatewayRouteTableInput) (*request.Request, *ec2.CreateTransitGatewayRouteTableOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayRouteTableInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayRouteTableInput) *ec2.CreateTransitGatewayRouteTableOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateTransitGatewayRouteTableWithContext(_a0 context.Context, _a1 *ec2.CreateTransitGatewayRouteTableInput, _a2 ...request.Option) (*ec2.CreateTransitGatewayRouteTableOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayRouteTableInput, ...request.Option) *ec2.CreateTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayRouteTableInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateTransitGatewayRouteWithContext(_a0 context.Context, _a1 *ec2.CreateTransitGatewayRouteInput, _a2 ...request.Option) (*ec2.CreateTransitGatewayRouteOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateTransitGatewayRouteOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayRouteInput, ...request.Option) *ec2.CreateTransitGatewayRouteOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayRouteInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayVpcAttachment provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGatewayVpcAttachment(_a0 *ec2.CreateTransitGatewayVpcAttachmentInput) (*ec2.CreateTransitGatewayVpcAttachmentOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.CreateTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayVpcAttachmentInput) *ec2.CreateTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayVpcAttachmentInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayVpcAttachmentRequest provides a mock function with given fields: _a0
+func (_m *EC2API) CreateTransitGatewayVpcAttachmentRequest(_a0 *ec2.CreateTransitGatewayVpcAttachmentInput) (*request.Request, *ec2.CreateTransitGatewayVpcAttachmentOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.CreateTransitGatewayVpcAttachmentInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.CreateTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(1).(func(*ec2.CreateTransitGatewayVpcAttachmentInput) *ec2.CreateTransitGatewayVpcAttachmentOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.CreateTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayVpcAttachmentWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateTransitGatewayVpcAttachmentWithContext(_a0 context.Context, _a1 *ec2.CreateTransitGatewayVpcAttachmentInput, _a2 ...request.Option) (*ec2.CreateTransitGatewayVpcAttachmentOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayVpcAttachmentInput, ...request.Option) *ec2.CreateTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayVpcAttachmentInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTransitGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) CreateTransitGatewayWithContext(_a0 context.Context, _a1 *ec2.CreateTransitGatewayInput, _a2 ...request.Option) (*ec2.CreateTransitGatewayOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.CreateTransitGatewayOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateTransitGatewayInput, ...request.Option) *ec2.CreateTransitGatewayOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.CreateTransitGatewayOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateTransitGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4742,7 +5834,7 @@ func (_m *EC2API) CreateVolumeRequest(_a0 *ec2.CreateVolumeInput) (*request.Requ
 }
 
 // CreateVolumeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVolumeWithContext(_a0 aws.Context, _a1 *ec2.CreateVolumeInput, _a2 ...request.Option) (*ec2.Volume, error) {
+func (_m *EC2API) CreateVolumeWithContext(_a0 context.Context, _a1 *ec2.CreateVolumeInput, _a2 ...request.Option) (*ec2.Volume, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4753,7 +5845,7 @@ func (_m *EC2API) CreateVolumeWithContext(_a0 aws.Context, _a1 *ec2.CreateVolume
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.Volume
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVolumeInput, ...request.Option) *ec2.Volume); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVolumeInput, ...request.Option) *ec2.Volume); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4762,7 +5854,7 @@ func (_m *EC2API) CreateVolumeWithContext(_a0 aws.Context, _a1 *ec2.CreateVolume
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVolumeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVolumeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4866,7 +5958,7 @@ func (_m *EC2API) CreateVpcEndpointConnectionNotificationRequest(_a0 *ec2.Create
 }
 
 // CreateVpcEndpointConnectionNotificationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpcEndpointConnectionNotificationWithContext(_a0 aws.Context, _a1 *ec2.CreateVpcEndpointConnectionNotificationInput, _a2 ...request.Option) (*ec2.CreateVpcEndpointConnectionNotificationOutput, error) {
+func (_m *EC2API) CreateVpcEndpointConnectionNotificationWithContext(_a0 context.Context, _a1 *ec2.CreateVpcEndpointConnectionNotificationInput, _a2 ...request.Option) (*ec2.CreateVpcEndpointConnectionNotificationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4877,7 +5969,7 @@ func (_m *EC2API) CreateVpcEndpointConnectionNotificationWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpcEndpointConnectionNotificationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpcEndpointConnectionNotificationInput, ...request.Option) *ec2.CreateVpcEndpointConnectionNotificationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpcEndpointConnectionNotificationInput, ...request.Option) *ec2.CreateVpcEndpointConnectionNotificationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4886,7 +5978,7 @@ func (_m *EC2API) CreateVpcEndpointConnectionNotificationWithContext(_a0 aws.Con
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpcEndpointConnectionNotificationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpcEndpointConnectionNotificationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4969,7 +6061,7 @@ func (_m *EC2API) CreateVpcEndpointServiceConfigurationRequest(_a0 *ec2.CreateVp
 }
 
 // CreateVpcEndpointServiceConfigurationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpcEndpointServiceConfigurationWithContext(_a0 aws.Context, _a1 *ec2.CreateVpcEndpointServiceConfigurationInput, _a2 ...request.Option) (*ec2.CreateVpcEndpointServiceConfigurationOutput, error) {
+func (_m *EC2API) CreateVpcEndpointServiceConfigurationWithContext(_a0 context.Context, _a1 *ec2.CreateVpcEndpointServiceConfigurationInput, _a2 ...request.Option) (*ec2.CreateVpcEndpointServiceConfigurationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4980,7 +6072,7 @@ func (_m *EC2API) CreateVpcEndpointServiceConfigurationWithContext(_a0 aws.Conte
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpcEndpointServiceConfigurationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpcEndpointServiceConfigurationInput, ...request.Option) *ec2.CreateVpcEndpointServiceConfigurationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpcEndpointServiceConfigurationInput, ...request.Option) *ec2.CreateVpcEndpointServiceConfigurationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4989,7 +6081,7 @@ func (_m *EC2API) CreateVpcEndpointServiceConfigurationWithContext(_a0 aws.Conte
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpcEndpointServiceConfigurationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpcEndpointServiceConfigurationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4999,7 +6091,7 @@ func (_m *EC2API) CreateVpcEndpointServiceConfigurationWithContext(_a0 aws.Conte
 }
 
 // CreateVpcEndpointWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpcEndpointWithContext(_a0 aws.Context, _a1 *ec2.CreateVpcEndpointInput, _a2 ...request.Option) (*ec2.CreateVpcEndpointOutput, error) {
+func (_m *EC2API) CreateVpcEndpointWithContext(_a0 context.Context, _a1 *ec2.CreateVpcEndpointInput, _a2 ...request.Option) (*ec2.CreateVpcEndpointOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5010,7 +6102,7 @@ func (_m *EC2API) CreateVpcEndpointWithContext(_a0 aws.Context, _a1 *ec2.CreateV
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpcEndpointOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpcEndpointInput, ...request.Option) *ec2.CreateVpcEndpointOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpcEndpointInput, ...request.Option) *ec2.CreateVpcEndpointOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5019,7 +6111,7 @@ func (_m *EC2API) CreateVpcEndpointWithContext(_a0 aws.Context, _a1 *ec2.CreateV
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpcEndpointInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpcEndpointInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5077,7 +6169,7 @@ func (_m *EC2API) CreateVpcPeeringConnectionRequest(_a0 *ec2.CreateVpcPeeringCon
 }
 
 // CreateVpcPeeringConnectionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec2.CreateVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.CreateVpcPeeringConnectionOutput, error) {
+func (_m *EC2API) CreateVpcPeeringConnectionWithContext(_a0 context.Context, _a1 *ec2.CreateVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.CreateVpcPeeringConnectionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5088,7 +6180,7 @@ func (_m *EC2API) CreateVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpcPeeringConnectionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpcPeeringConnectionInput, ...request.Option) *ec2.CreateVpcPeeringConnectionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpcPeeringConnectionInput, ...request.Option) *ec2.CreateVpcPeeringConnectionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5097,7 +6189,7 @@ func (_m *EC2API) CreateVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpcPeeringConnectionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpcPeeringConnectionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5132,7 +6224,7 @@ func (_m *EC2API) CreateVpcRequest(_a0 *ec2.CreateVpcInput) (*request.Request, *
 }
 
 // CreateVpcWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpcWithContext(_a0 aws.Context, _a1 *ec2.CreateVpcInput, _a2 ...request.Option) (*ec2.CreateVpcOutput, error) {
+func (_m *EC2API) CreateVpcWithContext(_a0 context.Context, _a1 *ec2.CreateVpcInput, _a2 ...request.Option) (*ec2.CreateVpcOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5143,7 +6235,7 @@ func (_m *EC2API) CreateVpcWithContext(_a0 aws.Context, _a1 *ec2.CreateVpcInput,
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpcOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpcInput, ...request.Option) *ec2.CreateVpcOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpcInput, ...request.Option) *ec2.CreateVpcOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5152,7 +6244,7 @@ func (_m *EC2API) CreateVpcWithContext(_a0 aws.Context, _a1 *ec2.CreateVpcInput,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpcInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpcInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5258,7 +6350,7 @@ func (_m *EC2API) CreateVpnConnectionRouteRequest(_a0 *ec2.CreateVpnConnectionRo
 }
 
 // CreateVpnConnectionRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.CreateVpnConnectionRouteInput, _a2 ...request.Option) (*ec2.CreateVpnConnectionRouteOutput, error) {
+func (_m *EC2API) CreateVpnConnectionRouteWithContext(_a0 context.Context, _a1 *ec2.CreateVpnConnectionRouteInput, _a2 ...request.Option) (*ec2.CreateVpnConnectionRouteOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5269,7 +6361,7 @@ func (_m *EC2API) CreateVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpnConnectionRouteOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpnConnectionRouteInput, ...request.Option) *ec2.CreateVpnConnectionRouteOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpnConnectionRouteInput, ...request.Option) *ec2.CreateVpnConnectionRouteOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5278,7 +6370,7 @@ func (_m *EC2API) CreateVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpnConnectionRouteInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpnConnectionRouteInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5288,7 +6380,7 @@ func (_m *EC2API) CreateVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.
 }
 
 // CreateVpnConnectionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpnConnectionWithContext(_a0 aws.Context, _a1 *ec2.CreateVpnConnectionInput, _a2 ...request.Option) (*ec2.CreateVpnConnectionOutput, error) {
+func (_m *EC2API) CreateVpnConnectionWithContext(_a0 context.Context, _a1 *ec2.CreateVpnConnectionInput, _a2 ...request.Option) (*ec2.CreateVpnConnectionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5299,7 +6391,7 @@ func (_m *EC2API) CreateVpnConnectionWithContext(_a0 aws.Context, _a1 *ec2.Creat
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpnConnectionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpnConnectionInput, ...request.Option) *ec2.CreateVpnConnectionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpnConnectionInput, ...request.Option) *ec2.CreateVpnConnectionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5308,7 +6400,7 @@ func (_m *EC2API) CreateVpnConnectionWithContext(_a0 aws.Context, _a1 *ec2.Creat
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpnConnectionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpnConnectionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5366,7 +6458,7 @@ func (_m *EC2API) CreateVpnGatewayRequest(_a0 *ec2.CreateVpnGatewayInput) (*requ
 }
 
 // CreateVpnGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) CreateVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateVpnGatewayInput, _a2 ...request.Option) (*ec2.CreateVpnGatewayOutput, error) {
+func (_m *EC2API) CreateVpnGatewayWithContext(_a0 context.Context, _a1 *ec2.CreateVpnGatewayInput, _a2 ...request.Option) (*ec2.CreateVpnGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5377,7 +6469,7 @@ func (_m *EC2API) CreateVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateVp
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.CreateVpnGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.CreateVpnGatewayInput, ...request.Option) *ec2.CreateVpnGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.CreateVpnGatewayInput, ...request.Option) *ec2.CreateVpnGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5386,7 +6478,163 @@ func (_m *EC2API) CreateVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.CreateVp
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.CreateVpnGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.CreateVpnGatewayInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteClientVpnEndpoint provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteClientVpnEndpoint(_a0 *ec2.DeleteClientVpnEndpointInput) (*ec2.DeleteClientVpnEndpointOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeleteClientVpnEndpointOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteClientVpnEndpointInput) *ec2.DeleteClientVpnEndpointOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteClientVpnEndpointOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteClientVpnEndpointInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteClientVpnEndpointRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteClientVpnEndpointRequest(_a0 *ec2.DeleteClientVpnEndpointInput) (*request.Request, *ec2.DeleteClientVpnEndpointOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteClientVpnEndpointInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteClientVpnEndpointOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteClientVpnEndpointInput) *ec2.DeleteClientVpnEndpointOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteClientVpnEndpointOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteClientVpnEndpointWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeleteClientVpnEndpointWithContext(_a0 context.Context, _a1 *ec2.DeleteClientVpnEndpointInput, _a2 ...request.Option) (*ec2.DeleteClientVpnEndpointOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteClientVpnEndpointOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteClientVpnEndpointInput, ...request.Option) *ec2.DeleteClientVpnEndpointOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteClientVpnEndpointOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteClientVpnEndpointInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteClientVpnRoute provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteClientVpnRoute(_a0 *ec2.DeleteClientVpnRouteInput) (*ec2.DeleteClientVpnRouteOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeleteClientVpnRouteOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteClientVpnRouteInput) *ec2.DeleteClientVpnRouteOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteClientVpnRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteClientVpnRouteInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteClientVpnRouteRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteClientVpnRouteRequest(_a0 *ec2.DeleteClientVpnRouteInput) (*request.Request, *ec2.DeleteClientVpnRouteOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteClientVpnRouteInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteClientVpnRouteOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteClientVpnRouteInput) *ec2.DeleteClientVpnRouteOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteClientVpnRouteOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteClientVpnRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeleteClientVpnRouteWithContext(_a0 context.Context, _a1 *ec2.DeleteClientVpnRouteInput, _a2 ...request.Option) (*ec2.DeleteClientVpnRouteOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteClientVpnRouteOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteClientVpnRouteInput, ...request.Option) *ec2.DeleteClientVpnRouteOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteClientVpnRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteClientVpnRouteInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5444,7 +6692,7 @@ func (_m *EC2API) DeleteCustomerGatewayRequest(_a0 *ec2.DeleteCustomerGatewayInp
 }
 
 // DeleteCustomerGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteCustomerGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteCustomerGatewayInput, _a2 ...request.Option) (*ec2.DeleteCustomerGatewayOutput, error) {
+func (_m *EC2API) DeleteCustomerGatewayWithContext(_a0 context.Context, _a1 *ec2.DeleteCustomerGatewayInput, _a2 ...request.Option) (*ec2.DeleteCustomerGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5455,7 +6703,7 @@ func (_m *EC2API) DeleteCustomerGatewayWithContext(_a0 aws.Context, _a1 *ec2.Del
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteCustomerGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteCustomerGatewayInput, ...request.Option) *ec2.DeleteCustomerGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteCustomerGatewayInput, ...request.Option) *ec2.DeleteCustomerGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5464,7 +6712,7 @@ func (_m *EC2API) DeleteCustomerGatewayWithContext(_a0 aws.Context, _a1 *ec2.Del
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteCustomerGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteCustomerGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5522,7 +6770,7 @@ func (_m *EC2API) DeleteDhcpOptionsRequest(_a0 *ec2.DeleteDhcpOptionsInput) (*re
 }
 
 // DeleteDhcpOptionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.DeleteDhcpOptionsInput, _a2 ...request.Option) (*ec2.DeleteDhcpOptionsOutput, error) {
+func (_m *EC2API) DeleteDhcpOptionsWithContext(_a0 context.Context, _a1 *ec2.DeleteDhcpOptionsInput, _a2 ...request.Option) (*ec2.DeleteDhcpOptionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5533,7 +6781,7 @@ func (_m *EC2API) DeleteDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.DeleteD
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteDhcpOptionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteDhcpOptionsInput, ...request.Option) *ec2.DeleteDhcpOptionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteDhcpOptionsInput, ...request.Option) *ec2.DeleteDhcpOptionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5542,7 +6790,7 @@ func (_m *EC2API) DeleteDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.DeleteD
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteDhcpOptionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteDhcpOptionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5600,7 +6848,7 @@ func (_m *EC2API) DeleteEgressOnlyInternetGatewayRequest(_a0 *ec2.DeleteEgressOn
 }
 
 // DeleteEgressOnlyInternetGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteEgressOnlyInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteEgressOnlyInternetGatewayInput, _a2 ...request.Option) (*ec2.DeleteEgressOnlyInternetGatewayOutput, error) {
+func (_m *EC2API) DeleteEgressOnlyInternetGatewayWithContext(_a0 context.Context, _a1 *ec2.DeleteEgressOnlyInternetGatewayInput, _a2 ...request.Option) (*ec2.DeleteEgressOnlyInternetGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5611,7 +6859,7 @@ func (_m *EC2API) DeleteEgressOnlyInternetGatewayWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteEgressOnlyInternetGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteEgressOnlyInternetGatewayInput, ...request.Option) *ec2.DeleteEgressOnlyInternetGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteEgressOnlyInternetGatewayInput, ...request.Option) *ec2.DeleteEgressOnlyInternetGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5620,7 +6868,7 @@ func (_m *EC2API) DeleteEgressOnlyInternetGatewayWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteEgressOnlyInternetGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteEgressOnlyInternetGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5678,7 +6926,7 @@ func (_m *EC2API) DeleteFleetsRequest(_a0 *ec2.DeleteFleetsInput) (*request.Requ
 }
 
 // DeleteFleetsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteFleetsWithContext(_a0 aws.Context, _a1 *ec2.DeleteFleetsInput, _a2 ...request.Option) (*ec2.DeleteFleetsOutput, error) {
+func (_m *EC2API) DeleteFleetsWithContext(_a0 context.Context, _a1 *ec2.DeleteFleetsInput, _a2 ...request.Option) (*ec2.DeleteFleetsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5689,7 +6937,7 @@ func (_m *EC2API) DeleteFleetsWithContext(_a0 aws.Context, _a1 *ec2.DeleteFleets
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteFleetsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteFleetsInput, ...request.Option) *ec2.DeleteFleetsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteFleetsInput, ...request.Option) *ec2.DeleteFleetsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5698,7 +6946,7 @@ func (_m *EC2API) DeleteFleetsWithContext(_a0 aws.Context, _a1 *ec2.DeleteFleets
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteFleetsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteFleetsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5756,7 +7004,7 @@ func (_m *EC2API) DeleteFlowLogsRequest(_a0 *ec2.DeleteFlowLogsInput) (*request.
 }
 
 // DeleteFlowLogsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.DeleteFlowLogsInput, _a2 ...request.Option) (*ec2.DeleteFlowLogsOutput, error) {
+func (_m *EC2API) DeleteFlowLogsWithContext(_a0 context.Context, _a1 *ec2.DeleteFlowLogsInput, _a2 ...request.Option) (*ec2.DeleteFlowLogsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5767,7 +7015,7 @@ func (_m *EC2API) DeleteFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.DeleteFlow
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteFlowLogsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteFlowLogsInput, ...request.Option) *ec2.DeleteFlowLogsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteFlowLogsInput, ...request.Option) *ec2.DeleteFlowLogsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5776,7 +7024,7 @@ func (_m *EC2API) DeleteFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.DeleteFlow
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteFlowLogsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteFlowLogsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5834,7 +7082,7 @@ func (_m *EC2API) DeleteFpgaImageRequest(_a0 *ec2.DeleteFpgaImageInput) (*reques
 }
 
 // DeleteFpgaImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.DeleteFpgaImageInput, _a2 ...request.Option) (*ec2.DeleteFpgaImageOutput, error) {
+func (_m *EC2API) DeleteFpgaImageWithContext(_a0 context.Context, _a1 *ec2.DeleteFpgaImageInput, _a2 ...request.Option) (*ec2.DeleteFpgaImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5845,7 +7093,7 @@ func (_m *EC2API) DeleteFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.DeleteFpg
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteFpgaImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteFpgaImageInput, ...request.Option) *ec2.DeleteFpgaImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteFpgaImageInput, ...request.Option) *ec2.DeleteFpgaImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5854,7 +7102,7 @@ func (_m *EC2API) DeleteFpgaImageWithContext(_a0 aws.Context, _a1 *ec2.DeleteFpg
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteFpgaImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteFpgaImageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5912,7 +7160,7 @@ func (_m *EC2API) DeleteInternetGatewayRequest(_a0 *ec2.DeleteInternetGatewayInp
 }
 
 // DeleteInternetGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteInternetGatewayInput, _a2 ...request.Option) (*ec2.DeleteInternetGatewayOutput, error) {
+func (_m *EC2API) DeleteInternetGatewayWithContext(_a0 context.Context, _a1 *ec2.DeleteInternetGatewayInput, _a2 ...request.Option) (*ec2.DeleteInternetGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5923,7 +7171,7 @@ func (_m *EC2API) DeleteInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Del
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteInternetGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteInternetGatewayInput, ...request.Option) *ec2.DeleteInternetGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteInternetGatewayInput, ...request.Option) *ec2.DeleteInternetGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5932,7 +7180,7 @@ func (_m *EC2API) DeleteInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Del
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteInternetGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteInternetGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5990,7 +7238,7 @@ func (_m *EC2API) DeleteKeyPairRequest(_a0 *ec2.DeleteKeyPairInput) (*request.Re
 }
 
 // DeleteKeyPairWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteKeyPairWithContext(_a0 aws.Context, _a1 *ec2.DeleteKeyPairInput, _a2 ...request.Option) (*ec2.DeleteKeyPairOutput, error) {
+func (_m *EC2API) DeleteKeyPairWithContext(_a0 context.Context, _a1 *ec2.DeleteKeyPairInput, _a2 ...request.Option) (*ec2.DeleteKeyPairOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6001,7 +7249,7 @@ func (_m *EC2API) DeleteKeyPairWithContext(_a0 aws.Context, _a1 *ec2.DeleteKeyPa
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteKeyPairOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteKeyPairInput, ...request.Option) *ec2.DeleteKeyPairOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteKeyPairInput, ...request.Option) *ec2.DeleteKeyPairOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6010,7 +7258,7 @@ func (_m *EC2API) DeleteKeyPairWithContext(_a0 aws.Context, _a1 *ec2.DeleteKeyPa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteKeyPairInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteKeyPairInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6116,7 +7364,7 @@ func (_m *EC2API) DeleteLaunchTemplateVersionsRequest(_a0 *ec2.DeleteLaunchTempl
 }
 
 // DeleteLaunchTemplateVersionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteLaunchTemplateVersionsWithContext(_a0 aws.Context, _a1 *ec2.DeleteLaunchTemplateVersionsInput, _a2 ...request.Option) (*ec2.DeleteLaunchTemplateVersionsOutput, error) {
+func (_m *EC2API) DeleteLaunchTemplateVersionsWithContext(_a0 context.Context, _a1 *ec2.DeleteLaunchTemplateVersionsInput, _a2 ...request.Option) (*ec2.DeleteLaunchTemplateVersionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6127,7 +7375,7 @@ func (_m *EC2API) DeleteLaunchTemplateVersionsWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteLaunchTemplateVersionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteLaunchTemplateVersionsInput, ...request.Option) *ec2.DeleteLaunchTemplateVersionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteLaunchTemplateVersionsInput, ...request.Option) *ec2.DeleteLaunchTemplateVersionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6136,7 +7384,7 @@ func (_m *EC2API) DeleteLaunchTemplateVersionsWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteLaunchTemplateVersionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteLaunchTemplateVersionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6146,7 +7394,7 @@ func (_m *EC2API) DeleteLaunchTemplateVersionsWithContext(_a0 aws.Context, _a1 *
 }
 
 // DeleteLaunchTemplateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.DeleteLaunchTemplateInput, _a2 ...request.Option) (*ec2.DeleteLaunchTemplateOutput, error) {
+func (_m *EC2API) DeleteLaunchTemplateWithContext(_a0 context.Context, _a1 *ec2.DeleteLaunchTemplateInput, _a2 ...request.Option) (*ec2.DeleteLaunchTemplateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6157,7 +7405,7 @@ func (_m *EC2API) DeleteLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.Dele
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteLaunchTemplateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteLaunchTemplateInput, ...request.Option) *ec2.DeleteLaunchTemplateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteLaunchTemplateInput, ...request.Option) *ec2.DeleteLaunchTemplateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6166,7 +7414,7 @@ func (_m *EC2API) DeleteLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.Dele
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteLaunchTemplateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteLaunchTemplateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6224,7 +7472,7 @@ func (_m *EC2API) DeleteNatGatewayRequest(_a0 *ec2.DeleteNatGatewayInput) (*requ
 }
 
 // DeleteNatGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteNatGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteNatGatewayInput, _a2 ...request.Option) (*ec2.DeleteNatGatewayOutput, error) {
+func (_m *EC2API) DeleteNatGatewayWithContext(_a0 context.Context, _a1 *ec2.DeleteNatGatewayInput, _a2 ...request.Option) (*ec2.DeleteNatGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6235,7 +7483,7 @@ func (_m *EC2API) DeleteNatGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteNa
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteNatGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteNatGatewayInput, ...request.Option) *ec2.DeleteNatGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteNatGatewayInput, ...request.Option) *ec2.DeleteNatGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6244,7 +7492,7 @@ func (_m *EC2API) DeleteNatGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteNa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteNatGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteNatGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6325,7 +7573,7 @@ func (_m *EC2API) DeleteNetworkAclEntryRequest(_a0 *ec2.DeleteNetworkAclEntryInp
 }
 
 // DeleteNetworkAclEntryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.DeleteNetworkAclEntryInput, _a2 ...request.Option) (*ec2.DeleteNetworkAclEntryOutput, error) {
+func (_m *EC2API) DeleteNetworkAclEntryWithContext(_a0 context.Context, _a1 *ec2.DeleteNetworkAclEntryInput, _a2 ...request.Option) (*ec2.DeleteNetworkAclEntryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6336,7 +7584,7 @@ func (_m *EC2API) DeleteNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.Del
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteNetworkAclEntryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteNetworkAclEntryInput, ...request.Option) *ec2.DeleteNetworkAclEntryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteNetworkAclEntryInput, ...request.Option) *ec2.DeleteNetworkAclEntryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6345,7 +7593,7 @@ func (_m *EC2API) DeleteNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.Del
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteNetworkAclEntryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteNetworkAclEntryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6380,7 +7628,7 @@ func (_m *EC2API) DeleteNetworkAclRequest(_a0 *ec2.DeleteNetworkAclInput) (*requ
 }
 
 // DeleteNetworkAclWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteNetworkAclWithContext(_a0 aws.Context, _a1 *ec2.DeleteNetworkAclInput, _a2 ...request.Option) (*ec2.DeleteNetworkAclOutput, error) {
+func (_m *EC2API) DeleteNetworkAclWithContext(_a0 context.Context, _a1 *ec2.DeleteNetworkAclInput, _a2 ...request.Option) (*ec2.DeleteNetworkAclOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6391,7 +7639,7 @@ func (_m *EC2API) DeleteNetworkAclWithContext(_a0 aws.Context, _a1 *ec2.DeleteNe
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteNetworkAclOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteNetworkAclInput, ...request.Option) *ec2.DeleteNetworkAclOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteNetworkAclInput, ...request.Option) *ec2.DeleteNetworkAclOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6400,7 +7648,7 @@ func (_m *EC2API) DeleteNetworkAclWithContext(_a0 aws.Context, _a1 *ec2.DeleteNe
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteNetworkAclInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteNetworkAclInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6481,7 +7729,7 @@ func (_m *EC2API) DeleteNetworkInterfacePermissionRequest(_a0 *ec2.DeleteNetwork
 }
 
 // DeleteNetworkInterfacePermissionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteNetworkInterfacePermissionWithContext(_a0 aws.Context, _a1 *ec2.DeleteNetworkInterfacePermissionInput, _a2 ...request.Option) (*ec2.DeleteNetworkInterfacePermissionOutput, error) {
+func (_m *EC2API) DeleteNetworkInterfacePermissionWithContext(_a0 context.Context, _a1 *ec2.DeleteNetworkInterfacePermissionInput, _a2 ...request.Option) (*ec2.DeleteNetworkInterfacePermissionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6492,7 +7740,7 @@ func (_m *EC2API) DeleteNetworkInterfacePermissionWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteNetworkInterfacePermissionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteNetworkInterfacePermissionInput, ...request.Option) *ec2.DeleteNetworkInterfacePermissionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteNetworkInterfacePermissionInput, ...request.Option) *ec2.DeleteNetworkInterfacePermissionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6501,7 +7749,7 @@ func (_m *EC2API) DeleteNetworkInterfacePermissionWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteNetworkInterfacePermissionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteNetworkInterfacePermissionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6536,7 +7784,7 @@ func (_m *EC2API) DeleteNetworkInterfaceRequest(_a0 *ec2.DeleteNetworkInterfaceI
 }
 
 // DeleteNetworkInterfaceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.DeleteNetworkInterfaceInput, _a2 ...request.Option) (*ec2.DeleteNetworkInterfaceOutput, error) {
+func (_m *EC2API) DeleteNetworkInterfaceWithContext(_a0 context.Context, _a1 *ec2.DeleteNetworkInterfaceInput, _a2 ...request.Option) (*ec2.DeleteNetworkInterfaceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6547,7 +7795,7 @@ func (_m *EC2API) DeleteNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteNetworkInterfaceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteNetworkInterfaceInput, ...request.Option) *ec2.DeleteNetworkInterfaceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteNetworkInterfaceInput, ...request.Option) *ec2.DeleteNetworkInterfaceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6556,7 +7804,7 @@ func (_m *EC2API) DeleteNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteNetworkInterfaceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteNetworkInterfaceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6614,7 +7862,7 @@ func (_m *EC2API) DeletePlacementGroupRequest(_a0 *ec2.DeletePlacementGroupInput
 }
 
 // DeletePlacementGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeletePlacementGroupWithContext(_a0 aws.Context, _a1 *ec2.DeletePlacementGroupInput, _a2 ...request.Option) (*ec2.DeletePlacementGroupOutput, error) {
+func (_m *EC2API) DeletePlacementGroupWithContext(_a0 context.Context, _a1 *ec2.DeletePlacementGroupInput, _a2 ...request.Option) (*ec2.DeletePlacementGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6625,7 +7873,7 @@ func (_m *EC2API) DeletePlacementGroupWithContext(_a0 aws.Context, _a1 *ec2.Dele
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeletePlacementGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeletePlacementGroupInput, ...request.Option) *ec2.DeletePlacementGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeletePlacementGroupInput, ...request.Option) *ec2.DeletePlacementGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6634,7 +7882,7 @@ func (_m *EC2API) DeletePlacementGroupWithContext(_a0 aws.Context, _a1 *ec2.Dele
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeletePlacementGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeletePlacementGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6740,7 +7988,7 @@ func (_m *EC2API) DeleteRouteTableRequest(_a0 *ec2.DeleteRouteTableInput) (*requ
 }
 
 // DeleteRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteRouteTableWithContext(_a0 aws.Context, _a1 *ec2.DeleteRouteTableInput, _a2 ...request.Option) (*ec2.DeleteRouteTableOutput, error) {
+func (_m *EC2API) DeleteRouteTableWithContext(_a0 context.Context, _a1 *ec2.DeleteRouteTableInput, _a2 ...request.Option) (*ec2.DeleteRouteTableOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6751,7 +7999,7 @@ func (_m *EC2API) DeleteRouteTableWithContext(_a0 aws.Context, _a1 *ec2.DeleteRo
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteRouteTableOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteRouteTableInput, ...request.Option) *ec2.DeleteRouteTableOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteRouteTableInput, ...request.Option) *ec2.DeleteRouteTableOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6760,7 +8008,7 @@ func (_m *EC2API) DeleteRouteTableWithContext(_a0 aws.Context, _a1 *ec2.DeleteRo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteRouteTableInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteRouteTableInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6770,7 +8018,7 @@ func (_m *EC2API) DeleteRouteTableWithContext(_a0 aws.Context, _a1 *ec2.DeleteRo
 }
 
 // DeleteRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteRouteWithContext(_a0 aws.Context, _a1 *ec2.DeleteRouteInput, _a2 ...request.Option) (*ec2.DeleteRouteOutput, error) {
+func (_m *EC2API) DeleteRouteWithContext(_a0 context.Context, _a1 *ec2.DeleteRouteInput, _a2 ...request.Option) (*ec2.DeleteRouteOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6781,7 +8029,7 @@ func (_m *EC2API) DeleteRouteWithContext(_a0 aws.Context, _a1 *ec2.DeleteRouteIn
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteRouteOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteRouteInput, ...request.Option) *ec2.DeleteRouteOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteRouteInput, ...request.Option) *ec2.DeleteRouteOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6790,7 +8038,7 @@ func (_m *EC2API) DeleteRouteWithContext(_a0 aws.Context, _a1 *ec2.DeleteRouteIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteRouteInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteRouteInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6848,7 +8096,7 @@ func (_m *EC2API) DeleteSecurityGroupRequest(_a0 *ec2.DeleteSecurityGroupInput) 
 }
 
 // DeleteSecurityGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteSecurityGroupWithContext(_a0 aws.Context, _a1 *ec2.DeleteSecurityGroupInput, _a2 ...request.Option) (*ec2.DeleteSecurityGroupOutput, error) {
+func (_m *EC2API) DeleteSecurityGroupWithContext(_a0 context.Context, _a1 *ec2.DeleteSecurityGroupInput, _a2 ...request.Option) (*ec2.DeleteSecurityGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6859,7 +8107,7 @@ func (_m *EC2API) DeleteSecurityGroupWithContext(_a0 aws.Context, _a1 *ec2.Delet
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteSecurityGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteSecurityGroupInput, ...request.Option) *ec2.DeleteSecurityGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSecurityGroupInput, ...request.Option) *ec2.DeleteSecurityGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6868,7 +8116,7 @@ func (_m *EC2API) DeleteSecurityGroupWithContext(_a0 aws.Context, _a1 *ec2.Delet
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteSecurityGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteSecurityGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6926,7 +8174,7 @@ func (_m *EC2API) DeleteSnapshotRequest(_a0 *ec2.DeleteSnapshotInput) (*request.
 }
 
 // DeleteSnapshotWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteSnapshotWithContext(_a0 aws.Context, _a1 *ec2.DeleteSnapshotInput, _a2 ...request.Option) (*ec2.DeleteSnapshotOutput, error) {
+func (_m *EC2API) DeleteSnapshotWithContext(_a0 context.Context, _a1 *ec2.DeleteSnapshotInput, _a2 ...request.Option) (*ec2.DeleteSnapshotOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6937,7 +8185,7 @@ func (_m *EC2API) DeleteSnapshotWithContext(_a0 aws.Context, _a1 *ec2.DeleteSnap
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteSnapshotOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteSnapshotInput, ...request.Option) *ec2.DeleteSnapshotOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSnapshotInput, ...request.Option) *ec2.DeleteSnapshotOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6946,7 +8194,7 @@ func (_m *EC2API) DeleteSnapshotWithContext(_a0 aws.Context, _a1 *ec2.DeleteSnap
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteSnapshotInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteSnapshotInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7004,7 +8252,7 @@ func (_m *EC2API) DeleteSpotDatafeedSubscriptionRequest(_a0 *ec2.DeleteSpotDataf
 }
 
 // DeleteSpotDatafeedSubscriptionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _a1 *ec2.DeleteSpotDatafeedSubscriptionInput, _a2 ...request.Option) (*ec2.DeleteSpotDatafeedSubscriptionOutput, error) {
+func (_m *EC2API) DeleteSpotDatafeedSubscriptionWithContext(_a0 context.Context, _a1 *ec2.DeleteSpotDatafeedSubscriptionInput, _a2 ...request.Option) (*ec2.DeleteSpotDatafeedSubscriptionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7015,7 +8263,7 @@ func (_m *EC2API) DeleteSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteSpotDatafeedSubscriptionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteSpotDatafeedSubscriptionInput, ...request.Option) *ec2.DeleteSpotDatafeedSubscriptionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSpotDatafeedSubscriptionInput, ...request.Option) *ec2.DeleteSpotDatafeedSubscriptionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7024,7 +8272,7 @@ func (_m *EC2API) DeleteSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteSpotDatafeedSubscriptionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteSpotDatafeedSubscriptionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7082,7 +8330,7 @@ func (_m *EC2API) DeleteSubnetRequest(_a0 *ec2.DeleteSubnetInput) (*request.Requ
 }
 
 // DeleteSubnetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteSubnetWithContext(_a0 aws.Context, _a1 *ec2.DeleteSubnetInput, _a2 ...request.Option) (*ec2.DeleteSubnetOutput, error) {
+func (_m *EC2API) DeleteSubnetWithContext(_a0 context.Context, _a1 *ec2.DeleteSubnetInput, _a2 ...request.Option) (*ec2.DeleteSubnetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7093,7 +8341,7 @@ func (_m *EC2API) DeleteSubnetWithContext(_a0 aws.Context, _a1 *ec2.DeleteSubnet
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteSubnetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteSubnetInput, ...request.Option) *ec2.DeleteSubnetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteSubnetInput, ...request.Option) *ec2.DeleteSubnetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7102,7 +8350,7 @@ func (_m *EC2API) DeleteSubnetWithContext(_a0 aws.Context, _a1 *ec2.DeleteSubnet
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteSubnetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteSubnetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7160,7 +8408,7 @@ func (_m *EC2API) DeleteTagsRequest(_a0 *ec2.DeleteTagsInput) (*request.Request,
 }
 
 // DeleteTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteTagsWithContext(_a0 aws.Context, _a1 *ec2.DeleteTagsInput, _a2 ...request.Option) (*ec2.DeleteTagsOutput, error) {
+func (_m *EC2API) DeleteTagsWithContext(_a0 context.Context, _a1 *ec2.DeleteTagsInput, _a2 ...request.Option) (*ec2.DeleteTagsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7171,7 +8419,7 @@ func (_m *EC2API) DeleteTagsWithContext(_a0 aws.Context, _a1 *ec2.DeleteTagsInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteTagsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteTagsInput, ...request.Option) *ec2.DeleteTagsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTagsInput, ...request.Option) *ec2.DeleteTagsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7180,7 +8428,319 @@ func (_m *EC2API) DeleteTagsWithContext(_a0 aws.Context, _a1 *ec2.DeleteTagsInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteTagsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTagsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGateway provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGateway(_a0 *ec2.DeleteTransitGatewayInput) (*ec2.DeleteTransitGatewayOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeleteTransitGatewayOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayInput) *ec2.DeleteTransitGatewayOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGatewayRequest(_a0 *ec2.DeleteTransitGatewayInput) (*request.Request, *ec2.DeleteTransitGatewayOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteTransitGatewayOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayInput) *ec2.DeleteTransitGatewayOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteTransitGatewayOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRoute provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGatewayRoute(_a0 *ec2.DeleteTransitGatewayRouteInput) (*ec2.DeleteTransitGatewayRouteOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeleteTransitGatewayRouteOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayRouteInput) *ec2.DeleteTransitGatewayRouteOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayRouteInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRouteRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGatewayRouteRequest(_a0 *ec2.DeleteTransitGatewayRouteInput) (*request.Request, *ec2.DeleteTransitGatewayRouteOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayRouteInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteTransitGatewayRouteOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayRouteInput) *ec2.DeleteTransitGatewayRouteOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteTransitGatewayRouteOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRouteTable provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGatewayRouteTable(_a0 *ec2.DeleteTransitGatewayRouteTableInput) (*ec2.DeleteTransitGatewayRouteTableOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeleteTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayRouteTableInput) *ec2.DeleteTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayRouteTableInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRouteTableRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGatewayRouteTableRequest(_a0 *ec2.DeleteTransitGatewayRouteTableInput) (*request.Request, *ec2.DeleteTransitGatewayRouteTableOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayRouteTableInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayRouteTableInput) *ec2.DeleteTransitGatewayRouteTableOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteTransitGatewayRouteTableOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeleteTransitGatewayRouteTableWithContext(_a0 context.Context, _a1 *ec2.DeleteTransitGatewayRouteTableInput, _a2 ...request.Option) (*ec2.DeleteTransitGatewayRouteTableOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayRouteTableInput, ...request.Option) *ec2.DeleteTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayRouteTableInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeleteTransitGatewayRouteWithContext(_a0 context.Context, _a1 *ec2.DeleteTransitGatewayRouteInput, _a2 ...request.Option) (*ec2.DeleteTransitGatewayRouteOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteTransitGatewayRouteOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayRouteInput, ...request.Option) *ec2.DeleteTransitGatewayRouteOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayRouteInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayVpcAttachment provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGatewayVpcAttachment(_a0 *ec2.DeleteTransitGatewayVpcAttachmentInput) (*ec2.DeleteTransitGatewayVpcAttachmentOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeleteTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayVpcAttachmentInput) *ec2.DeleteTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayVpcAttachmentInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayVpcAttachmentRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeleteTransitGatewayVpcAttachmentRequest(_a0 *ec2.DeleteTransitGatewayVpcAttachmentInput) (*request.Request, *ec2.DeleteTransitGatewayVpcAttachmentOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeleteTransitGatewayVpcAttachmentInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeleteTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeleteTransitGatewayVpcAttachmentInput) *ec2.DeleteTransitGatewayVpcAttachmentOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeleteTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayVpcAttachmentWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeleteTransitGatewayVpcAttachmentWithContext(_a0 context.Context, _a1 *ec2.DeleteTransitGatewayVpcAttachmentInput, _a2 ...request.Option) (*ec2.DeleteTransitGatewayVpcAttachmentOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayVpcAttachmentInput, ...request.Option) *ec2.DeleteTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayVpcAttachmentInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteTransitGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeleteTransitGatewayWithContext(_a0 context.Context, _a1 *ec2.DeleteTransitGatewayInput, _a2 ...request.Option) (*ec2.DeleteTransitGatewayOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeleteTransitGatewayOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteTransitGatewayInput, ...request.Option) *ec2.DeleteTransitGatewayOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeleteTransitGatewayOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteTransitGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7238,7 +8798,7 @@ func (_m *EC2API) DeleteVolumeRequest(_a0 *ec2.DeleteVolumeInput) (*request.Requ
 }
 
 // DeleteVolumeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVolumeWithContext(_a0 aws.Context, _a1 *ec2.DeleteVolumeInput, _a2 ...request.Option) (*ec2.DeleteVolumeOutput, error) {
+func (_m *EC2API) DeleteVolumeWithContext(_a0 context.Context, _a1 *ec2.DeleteVolumeInput, _a2 ...request.Option) (*ec2.DeleteVolumeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7249,7 +8809,7 @@ func (_m *EC2API) DeleteVolumeWithContext(_a0 aws.Context, _a1 *ec2.DeleteVolume
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVolumeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVolumeInput, ...request.Option) *ec2.DeleteVolumeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVolumeInput, ...request.Option) *ec2.DeleteVolumeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7258,7 +8818,7 @@ func (_m *EC2API) DeleteVolumeWithContext(_a0 aws.Context, _a1 *ec2.DeleteVolume
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVolumeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVolumeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7339,7 +8899,7 @@ func (_m *EC2API) DeleteVpcEndpointConnectionNotificationsRequest(_a0 *ec2.Delet
 }
 
 // DeleteVpcEndpointConnectionNotificationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpcEndpointConnectionNotificationsWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpcEndpointConnectionNotificationsInput, _a2 ...request.Option) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error) {
+func (_m *EC2API) DeleteVpcEndpointConnectionNotificationsWithContext(_a0 context.Context, _a1 *ec2.DeleteVpcEndpointConnectionNotificationsInput, _a2 ...request.Option) (*ec2.DeleteVpcEndpointConnectionNotificationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7350,7 +8910,7 @@ func (_m *EC2API) DeleteVpcEndpointConnectionNotificationsWithContext(_a0 aws.Co
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpcEndpointConnectionNotificationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpcEndpointConnectionNotificationsInput, ...request.Option) *ec2.DeleteVpcEndpointConnectionNotificationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpcEndpointConnectionNotificationsInput, ...request.Option) *ec2.DeleteVpcEndpointConnectionNotificationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7359,7 +8919,7 @@ func (_m *EC2API) DeleteVpcEndpointConnectionNotificationsWithContext(_a0 aws.Co
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpcEndpointConnectionNotificationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpcEndpointConnectionNotificationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7417,7 +8977,7 @@ func (_m *EC2API) DeleteVpcEndpointServiceConfigurationsRequest(_a0 *ec2.DeleteV
 }
 
 // DeleteVpcEndpointServiceConfigurationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpcEndpointServiceConfigurationsWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpcEndpointServiceConfigurationsInput, _a2 ...request.Option) (*ec2.DeleteVpcEndpointServiceConfigurationsOutput, error) {
+func (_m *EC2API) DeleteVpcEndpointServiceConfigurationsWithContext(_a0 context.Context, _a1 *ec2.DeleteVpcEndpointServiceConfigurationsInput, _a2 ...request.Option) (*ec2.DeleteVpcEndpointServiceConfigurationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7428,7 +8988,7 @@ func (_m *EC2API) DeleteVpcEndpointServiceConfigurationsWithContext(_a0 aws.Cont
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpcEndpointServiceConfigurationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpcEndpointServiceConfigurationsInput, ...request.Option) *ec2.DeleteVpcEndpointServiceConfigurationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpcEndpointServiceConfigurationsInput, ...request.Option) *ec2.DeleteVpcEndpointServiceConfigurationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7437,7 +8997,7 @@ func (_m *EC2API) DeleteVpcEndpointServiceConfigurationsWithContext(_a0 aws.Cont
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpcEndpointServiceConfigurationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpcEndpointServiceConfigurationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7495,7 +9055,7 @@ func (_m *EC2API) DeleteVpcEndpointsRequest(_a0 *ec2.DeleteVpcEndpointsInput) (*
 }
 
 // DeleteVpcEndpointsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpcEndpointsWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpcEndpointsInput, _a2 ...request.Option) (*ec2.DeleteVpcEndpointsOutput, error) {
+func (_m *EC2API) DeleteVpcEndpointsWithContext(_a0 context.Context, _a1 *ec2.DeleteVpcEndpointsInput, _a2 ...request.Option) (*ec2.DeleteVpcEndpointsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7506,7 +9066,7 @@ func (_m *EC2API) DeleteVpcEndpointsWithContext(_a0 aws.Context, _a1 *ec2.Delete
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpcEndpointsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpcEndpointsInput, ...request.Option) *ec2.DeleteVpcEndpointsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpcEndpointsInput, ...request.Option) *ec2.DeleteVpcEndpointsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7515,7 +9075,7 @@ func (_m *EC2API) DeleteVpcEndpointsWithContext(_a0 aws.Context, _a1 *ec2.Delete
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpcEndpointsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpcEndpointsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7573,7 +9133,7 @@ func (_m *EC2API) DeleteVpcPeeringConnectionRequest(_a0 *ec2.DeleteVpcPeeringCon
 }
 
 // DeleteVpcPeeringConnectionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.DeleteVpcPeeringConnectionOutput, error) {
+func (_m *EC2API) DeleteVpcPeeringConnectionWithContext(_a0 context.Context, _a1 *ec2.DeleteVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.DeleteVpcPeeringConnectionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7584,7 +9144,7 @@ func (_m *EC2API) DeleteVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpcPeeringConnectionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpcPeeringConnectionInput, ...request.Option) *ec2.DeleteVpcPeeringConnectionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpcPeeringConnectionInput, ...request.Option) *ec2.DeleteVpcPeeringConnectionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7593,7 +9153,7 @@ func (_m *EC2API) DeleteVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpcPeeringConnectionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpcPeeringConnectionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7628,7 +9188,7 @@ func (_m *EC2API) DeleteVpcRequest(_a0 *ec2.DeleteVpcInput) (*request.Request, *
 }
 
 // DeleteVpcWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpcWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpcInput, _a2 ...request.Option) (*ec2.DeleteVpcOutput, error) {
+func (_m *EC2API) DeleteVpcWithContext(_a0 context.Context, _a1 *ec2.DeleteVpcInput, _a2 ...request.Option) (*ec2.DeleteVpcOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7639,7 +9199,7 @@ func (_m *EC2API) DeleteVpcWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpcInput,
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpcOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpcInput, ...request.Option) *ec2.DeleteVpcOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpcInput, ...request.Option) *ec2.DeleteVpcOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7648,7 +9208,7 @@ func (_m *EC2API) DeleteVpcWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpcInput,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpcInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpcInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7754,7 +9314,7 @@ func (_m *EC2API) DeleteVpnConnectionRouteRequest(_a0 *ec2.DeleteVpnConnectionRo
 }
 
 // DeleteVpnConnectionRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpnConnectionRouteInput, _a2 ...request.Option) (*ec2.DeleteVpnConnectionRouteOutput, error) {
+func (_m *EC2API) DeleteVpnConnectionRouteWithContext(_a0 context.Context, _a1 *ec2.DeleteVpnConnectionRouteInput, _a2 ...request.Option) (*ec2.DeleteVpnConnectionRouteOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7765,7 +9325,7 @@ func (_m *EC2API) DeleteVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpnConnectionRouteOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpnConnectionRouteInput, ...request.Option) *ec2.DeleteVpnConnectionRouteOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpnConnectionRouteInput, ...request.Option) *ec2.DeleteVpnConnectionRouteOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7774,7 +9334,7 @@ func (_m *EC2API) DeleteVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpnConnectionRouteInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpnConnectionRouteInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7784,7 +9344,7 @@ func (_m *EC2API) DeleteVpnConnectionRouteWithContext(_a0 aws.Context, _a1 *ec2.
 }
 
 // DeleteVpnConnectionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpnConnectionWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpnConnectionInput, _a2 ...request.Option) (*ec2.DeleteVpnConnectionOutput, error) {
+func (_m *EC2API) DeleteVpnConnectionWithContext(_a0 context.Context, _a1 *ec2.DeleteVpnConnectionInput, _a2 ...request.Option) (*ec2.DeleteVpnConnectionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7795,7 +9355,7 @@ func (_m *EC2API) DeleteVpnConnectionWithContext(_a0 aws.Context, _a1 *ec2.Delet
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpnConnectionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpnConnectionInput, ...request.Option) *ec2.DeleteVpnConnectionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpnConnectionInput, ...request.Option) *ec2.DeleteVpnConnectionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7804,7 +9364,7 @@ func (_m *EC2API) DeleteVpnConnectionWithContext(_a0 aws.Context, _a1 *ec2.Delet
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpnConnectionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpnConnectionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7862,7 +9422,7 @@ func (_m *EC2API) DeleteVpnGatewayRequest(_a0 *ec2.DeleteVpnGatewayInput) (*requ
 }
 
 // DeleteVpnGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeleteVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteVpnGatewayInput, _a2 ...request.Option) (*ec2.DeleteVpnGatewayOutput, error) {
+func (_m *EC2API) DeleteVpnGatewayWithContext(_a0 context.Context, _a1 *ec2.DeleteVpnGatewayInput, _a2 ...request.Option) (*ec2.DeleteVpnGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7873,7 +9433,7 @@ func (_m *EC2API) DeleteVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteVp
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeleteVpnGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeleteVpnGatewayInput, ...request.Option) *ec2.DeleteVpnGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeleteVpnGatewayInput, ...request.Option) *ec2.DeleteVpnGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7882,7 +9442,85 @@ func (_m *EC2API) DeleteVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.DeleteVp
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeleteVpnGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeleteVpnGatewayInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeprovisionByoipCidr provides a mock function with given fields: _a0
+func (_m *EC2API) DeprovisionByoipCidr(_a0 *ec2.DeprovisionByoipCidrInput) (*ec2.DeprovisionByoipCidrOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeprovisionByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeprovisionByoipCidrInput) *ec2.DeprovisionByoipCidrOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeprovisionByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeprovisionByoipCidrInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeprovisionByoipCidrRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeprovisionByoipCidrRequest(_a0 *ec2.DeprovisionByoipCidrInput) (*request.Request, *ec2.DeprovisionByoipCidrOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeprovisionByoipCidrInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeprovisionByoipCidrOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeprovisionByoipCidrInput) *ec2.DeprovisionByoipCidrOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeprovisionByoipCidrOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeprovisionByoipCidrWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeprovisionByoipCidrWithContext(_a0 context.Context, _a1 *ec2.DeprovisionByoipCidrInput, _a2 ...request.Option) (*ec2.DeprovisionByoipCidrOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeprovisionByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeprovisionByoipCidrInput, ...request.Option) *ec2.DeprovisionByoipCidrOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeprovisionByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeprovisionByoipCidrInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7940,7 +9578,7 @@ func (_m *EC2API) DeregisterImageRequest(_a0 *ec2.DeregisterImageInput) (*reques
 }
 
 // DeregisterImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DeregisterImageWithContext(_a0 aws.Context, _a1 *ec2.DeregisterImageInput, _a2 ...request.Option) (*ec2.DeregisterImageOutput, error) {
+func (_m *EC2API) DeregisterImageWithContext(_a0 context.Context, _a1 *ec2.DeregisterImageInput, _a2 ...request.Option) (*ec2.DeregisterImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7951,7 +9589,7 @@ func (_m *EC2API) DeregisterImageWithContext(_a0 aws.Context, _a1 *ec2.Deregiste
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DeregisterImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DeregisterImageInput, ...request.Option) *ec2.DeregisterImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeregisterImageInput, ...request.Option) *ec2.DeregisterImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7960,7 +9598,7 @@ func (_m *EC2API) DeregisterImageWithContext(_a0 aws.Context, _a1 *ec2.Deregiste
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DeregisterImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeregisterImageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8018,7 +9656,7 @@ func (_m *EC2API) DescribeAccountAttributesRequest(_a0 *ec2.DescribeAccountAttri
 }
 
 // DescribeAccountAttributesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeAccountAttributesWithContext(_a0 aws.Context, _a1 *ec2.DescribeAccountAttributesInput, _a2 ...request.Option) (*ec2.DescribeAccountAttributesOutput, error) {
+func (_m *EC2API) DescribeAccountAttributesWithContext(_a0 context.Context, _a1 *ec2.DescribeAccountAttributesInput, _a2 ...request.Option) (*ec2.DescribeAccountAttributesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8029,7 +9667,7 @@ func (_m *EC2API) DescribeAccountAttributesWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeAccountAttributesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeAccountAttributesInput, ...request.Option) *ec2.DescribeAccountAttributesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeAccountAttributesInput, ...request.Option) *ec2.DescribeAccountAttributesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8038,7 +9676,7 @@ func (_m *EC2API) DescribeAccountAttributesWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeAccountAttributesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeAccountAttributesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8096,7 +9734,7 @@ func (_m *EC2API) DescribeAddressesRequest(_a0 *ec2.DescribeAddressesInput) (*re
 }
 
 // DescribeAddressesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeAddressesWithContext(_a0 aws.Context, _a1 *ec2.DescribeAddressesInput, _a2 ...request.Option) (*ec2.DescribeAddressesOutput, error) {
+func (_m *EC2API) DescribeAddressesWithContext(_a0 context.Context, _a1 *ec2.DescribeAddressesInput, _a2 ...request.Option) (*ec2.DescribeAddressesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8107,7 +9745,7 @@ func (_m *EC2API) DescribeAddressesWithContext(_a0 aws.Context, _a1 *ec2.Describ
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeAddressesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeAddressesInput, ...request.Option) *ec2.DescribeAddressesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeAddressesInput, ...request.Option) *ec2.DescribeAddressesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8116,7 +9754,7 @@ func (_m *EC2API) DescribeAddressesWithContext(_a0 aws.Context, _a1 *ec2.Describ
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeAddressesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeAddressesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8174,7 +9812,7 @@ func (_m *EC2API) DescribeAggregateIdFormatRequest(_a0 *ec2.DescribeAggregateIdF
 }
 
 // DescribeAggregateIdFormatWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeAggregateIdFormatWithContext(_a0 aws.Context, _a1 *ec2.DescribeAggregateIdFormatInput, _a2 ...request.Option) (*ec2.DescribeAggregateIdFormatOutput, error) {
+func (_m *EC2API) DescribeAggregateIdFormatWithContext(_a0 context.Context, _a1 *ec2.DescribeAggregateIdFormatInput, _a2 ...request.Option) (*ec2.DescribeAggregateIdFormatOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8185,7 +9823,7 @@ func (_m *EC2API) DescribeAggregateIdFormatWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeAggregateIdFormatOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeAggregateIdFormatInput, ...request.Option) *ec2.DescribeAggregateIdFormatOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeAggregateIdFormatInput, ...request.Option) *ec2.DescribeAggregateIdFormatOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8194,7 +9832,7 @@ func (_m *EC2API) DescribeAggregateIdFormatWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeAggregateIdFormatInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeAggregateIdFormatInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8252,7 +9890,7 @@ func (_m *EC2API) DescribeAvailabilityZonesRequest(_a0 *ec2.DescribeAvailability
 }
 
 // DescribeAvailabilityZonesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeAvailabilityZonesWithContext(_a0 aws.Context, _a1 *ec2.DescribeAvailabilityZonesInput, _a2 ...request.Option) (*ec2.DescribeAvailabilityZonesOutput, error) {
+func (_m *EC2API) DescribeAvailabilityZonesWithContext(_a0 context.Context, _a1 *ec2.DescribeAvailabilityZonesInput, _a2 ...request.Option) (*ec2.DescribeAvailabilityZonesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8263,7 +9901,7 @@ func (_m *EC2API) DescribeAvailabilityZonesWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeAvailabilityZonesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeAvailabilityZonesInput, ...request.Option) *ec2.DescribeAvailabilityZonesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeAvailabilityZonesInput, ...request.Option) *ec2.DescribeAvailabilityZonesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8272,7 +9910,7 @@ func (_m *EC2API) DescribeAvailabilityZonesWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeAvailabilityZonesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeAvailabilityZonesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8330,7 +9968,7 @@ func (_m *EC2API) DescribeBundleTasksRequest(_a0 *ec2.DescribeBundleTasksInput) 
 }
 
 // DescribeBundleTasksWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeBundleTasksWithContext(_a0 aws.Context, _a1 *ec2.DescribeBundleTasksInput, _a2 ...request.Option) (*ec2.DescribeBundleTasksOutput, error) {
+func (_m *EC2API) DescribeBundleTasksWithContext(_a0 context.Context, _a1 *ec2.DescribeBundleTasksInput, _a2 ...request.Option) (*ec2.DescribeBundleTasksOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8341,7 +9979,7 @@ func (_m *EC2API) DescribeBundleTasksWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeBundleTasksOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeBundleTasksInput, ...request.Option) *ec2.DescribeBundleTasksOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeBundleTasksInput, ...request.Option) *ec2.DescribeBundleTasksOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8350,7 +9988,163 @@ func (_m *EC2API) DescribeBundleTasksWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeBundleTasksInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeBundleTasksInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeByoipCidrs provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeByoipCidrs(_a0 *ec2.DescribeByoipCidrsInput) (*ec2.DescribeByoipCidrsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeByoipCidrsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeByoipCidrsInput) *ec2.DescribeByoipCidrsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeByoipCidrsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeByoipCidrsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeByoipCidrsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeByoipCidrsRequest(_a0 *ec2.DescribeByoipCidrsInput) (*request.Request, *ec2.DescribeByoipCidrsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeByoipCidrsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeByoipCidrsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeByoipCidrsInput) *ec2.DescribeByoipCidrsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeByoipCidrsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeByoipCidrsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeByoipCidrsWithContext(_a0 context.Context, _a1 *ec2.DescribeByoipCidrsInput, _a2 ...request.Option) (*ec2.DescribeByoipCidrsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeByoipCidrsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeByoipCidrsInput, ...request.Option) *ec2.DescribeByoipCidrsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeByoipCidrsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeByoipCidrsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeCapacityReservations provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeCapacityReservations(_a0 *ec2.DescribeCapacityReservationsInput) (*ec2.DescribeCapacityReservationsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeCapacityReservationsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeCapacityReservationsInput) *ec2.DescribeCapacityReservationsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeCapacityReservationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeCapacityReservationsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeCapacityReservationsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeCapacityReservationsRequest(_a0 *ec2.DescribeCapacityReservationsInput) (*request.Request, *ec2.DescribeCapacityReservationsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeCapacityReservationsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeCapacityReservationsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeCapacityReservationsInput) *ec2.DescribeCapacityReservationsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeCapacityReservationsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeCapacityReservationsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeCapacityReservationsWithContext(_a0 context.Context, _a1 *ec2.DescribeCapacityReservationsInput, _a2 ...request.Option) (*ec2.DescribeCapacityReservationsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeCapacityReservationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCapacityReservationsInput, ...request.Option) *ec2.DescribeCapacityReservationsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeCapacityReservationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeCapacityReservationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8408,7 +10202,7 @@ func (_m *EC2API) DescribeClassicLinkInstancesRequest(_a0 *ec2.DescribeClassicLi
 }
 
 // DescribeClassicLinkInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeClassicLinkInstancesWithContext(_a0 aws.Context, _a1 *ec2.DescribeClassicLinkInstancesInput, _a2 ...request.Option) (*ec2.DescribeClassicLinkInstancesOutput, error) {
+func (_m *EC2API) DescribeClassicLinkInstancesWithContext(_a0 context.Context, _a1 *ec2.DescribeClassicLinkInstancesInput, _a2 ...request.Option) (*ec2.DescribeClassicLinkInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8419,7 +10213,7 @@ func (_m *EC2API) DescribeClassicLinkInstancesWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeClassicLinkInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeClassicLinkInstancesInput, ...request.Option) *ec2.DescribeClassicLinkInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeClassicLinkInstancesInput, ...request.Option) *ec2.DescribeClassicLinkInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8428,7 +10222,397 @@ func (_m *EC2API) DescribeClassicLinkInstancesWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeClassicLinkInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeClassicLinkInstancesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnAuthorizationRules provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnAuthorizationRules(_a0 *ec2.DescribeClientVpnAuthorizationRulesInput) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeClientVpnAuthorizationRulesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnAuthorizationRulesInput) *ec2.DescribeClientVpnAuthorizationRulesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnAuthorizationRulesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnAuthorizationRulesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnAuthorizationRulesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnAuthorizationRulesRequest(_a0 *ec2.DescribeClientVpnAuthorizationRulesInput) (*request.Request, *ec2.DescribeClientVpnAuthorizationRulesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnAuthorizationRulesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeClientVpnAuthorizationRulesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnAuthorizationRulesInput) *ec2.DescribeClientVpnAuthorizationRulesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeClientVpnAuthorizationRulesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnAuthorizationRulesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeClientVpnAuthorizationRulesWithContext(_a0 context.Context, _a1 *ec2.DescribeClientVpnAuthorizationRulesInput, _a2 ...request.Option) (*ec2.DescribeClientVpnAuthorizationRulesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeClientVpnAuthorizationRulesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeClientVpnAuthorizationRulesInput, ...request.Option) *ec2.DescribeClientVpnAuthorizationRulesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnAuthorizationRulesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeClientVpnAuthorizationRulesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnConnections provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnConnections(_a0 *ec2.DescribeClientVpnConnectionsInput) (*ec2.DescribeClientVpnConnectionsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeClientVpnConnectionsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnConnectionsInput) *ec2.DescribeClientVpnConnectionsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnConnectionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnConnectionsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnConnectionsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnConnectionsRequest(_a0 *ec2.DescribeClientVpnConnectionsInput) (*request.Request, *ec2.DescribeClientVpnConnectionsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnConnectionsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeClientVpnConnectionsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnConnectionsInput) *ec2.DescribeClientVpnConnectionsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeClientVpnConnectionsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnConnectionsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeClientVpnConnectionsWithContext(_a0 context.Context, _a1 *ec2.DescribeClientVpnConnectionsInput, _a2 ...request.Option) (*ec2.DescribeClientVpnConnectionsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeClientVpnConnectionsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeClientVpnConnectionsInput, ...request.Option) *ec2.DescribeClientVpnConnectionsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnConnectionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeClientVpnConnectionsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnEndpoints provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnEndpoints(_a0 *ec2.DescribeClientVpnEndpointsInput) (*ec2.DescribeClientVpnEndpointsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeClientVpnEndpointsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnEndpointsInput) *ec2.DescribeClientVpnEndpointsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnEndpointsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnEndpointsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnEndpointsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnEndpointsRequest(_a0 *ec2.DescribeClientVpnEndpointsInput) (*request.Request, *ec2.DescribeClientVpnEndpointsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnEndpointsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeClientVpnEndpointsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnEndpointsInput) *ec2.DescribeClientVpnEndpointsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeClientVpnEndpointsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnEndpointsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeClientVpnEndpointsWithContext(_a0 context.Context, _a1 *ec2.DescribeClientVpnEndpointsInput, _a2 ...request.Option) (*ec2.DescribeClientVpnEndpointsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeClientVpnEndpointsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeClientVpnEndpointsInput, ...request.Option) *ec2.DescribeClientVpnEndpointsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnEndpointsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeClientVpnEndpointsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnRoutes provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnRoutes(_a0 *ec2.DescribeClientVpnRoutesInput) (*ec2.DescribeClientVpnRoutesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeClientVpnRoutesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnRoutesInput) *ec2.DescribeClientVpnRoutesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnRoutesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnRoutesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnRoutesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnRoutesRequest(_a0 *ec2.DescribeClientVpnRoutesInput) (*request.Request, *ec2.DescribeClientVpnRoutesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnRoutesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeClientVpnRoutesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnRoutesInput) *ec2.DescribeClientVpnRoutesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeClientVpnRoutesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnRoutesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeClientVpnRoutesWithContext(_a0 context.Context, _a1 *ec2.DescribeClientVpnRoutesInput, _a2 ...request.Option) (*ec2.DescribeClientVpnRoutesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeClientVpnRoutesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeClientVpnRoutesInput, ...request.Option) *ec2.DescribeClientVpnRoutesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnRoutesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeClientVpnRoutesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnTargetNetworks provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnTargetNetworks(_a0 *ec2.DescribeClientVpnTargetNetworksInput) (*ec2.DescribeClientVpnTargetNetworksOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeClientVpnTargetNetworksOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnTargetNetworksInput) *ec2.DescribeClientVpnTargetNetworksOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnTargetNetworksOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnTargetNetworksInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnTargetNetworksRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeClientVpnTargetNetworksRequest(_a0 *ec2.DescribeClientVpnTargetNetworksInput) (*request.Request, *ec2.DescribeClientVpnTargetNetworksOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeClientVpnTargetNetworksInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeClientVpnTargetNetworksOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeClientVpnTargetNetworksInput) *ec2.DescribeClientVpnTargetNetworksOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeClientVpnTargetNetworksOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeClientVpnTargetNetworksWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeClientVpnTargetNetworksWithContext(_a0 context.Context, _a1 *ec2.DescribeClientVpnTargetNetworksInput, _a2 ...request.Option) (*ec2.DescribeClientVpnTargetNetworksOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeClientVpnTargetNetworksOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeClientVpnTargetNetworksInput, ...request.Option) *ec2.DescribeClientVpnTargetNetworksOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeClientVpnTargetNetworksOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeClientVpnTargetNetworksInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8486,7 +10670,7 @@ func (_m *EC2API) DescribeConversionTasksRequest(_a0 *ec2.DescribeConversionTask
 }
 
 // DescribeConversionTasksWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeConversionTasksWithContext(_a0 aws.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.Option) (*ec2.DescribeConversionTasksOutput, error) {
+func (_m *EC2API) DescribeConversionTasksWithContext(_a0 context.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.Option) (*ec2.DescribeConversionTasksOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8497,7 +10681,7 @@ func (_m *EC2API) DescribeConversionTasksWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeConversionTasksOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeConversionTasksInput, ...request.Option) *ec2.DescribeConversionTasksOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeConversionTasksInput, ...request.Option) *ec2.DescribeConversionTasksOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8506,7 +10690,7 @@ func (_m *EC2API) DescribeConversionTasksWithContext(_a0 aws.Context, _a1 *ec2.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeConversionTasksInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeConversionTasksInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8564,7 +10748,7 @@ func (_m *EC2API) DescribeCustomerGatewaysRequest(_a0 *ec2.DescribeCustomerGatew
 }
 
 // DescribeCustomerGatewaysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeCustomerGatewaysWithContext(_a0 aws.Context, _a1 *ec2.DescribeCustomerGatewaysInput, _a2 ...request.Option) (*ec2.DescribeCustomerGatewaysOutput, error) {
+func (_m *EC2API) DescribeCustomerGatewaysWithContext(_a0 context.Context, _a1 *ec2.DescribeCustomerGatewaysInput, _a2 ...request.Option) (*ec2.DescribeCustomerGatewaysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8575,7 +10759,7 @@ func (_m *EC2API) DescribeCustomerGatewaysWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeCustomerGatewaysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeCustomerGatewaysInput, ...request.Option) *ec2.DescribeCustomerGatewaysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCustomerGatewaysInput, ...request.Option) *ec2.DescribeCustomerGatewaysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8584,7 +10768,7 @@ func (_m *EC2API) DescribeCustomerGatewaysWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeCustomerGatewaysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeCustomerGatewaysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8642,7 +10826,7 @@ func (_m *EC2API) DescribeDhcpOptionsRequest(_a0 *ec2.DescribeDhcpOptionsInput) 
 }
 
 // DescribeDhcpOptionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeDhcpOptionsInput, _a2 ...request.Option) (*ec2.DescribeDhcpOptionsOutput, error) {
+func (_m *EC2API) DescribeDhcpOptionsWithContext(_a0 context.Context, _a1 *ec2.DescribeDhcpOptionsInput, _a2 ...request.Option) (*ec2.DescribeDhcpOptionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8653,7 +10837,7 @@ func (_m *EC2API) DescribeDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeDhcpOptionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeDhcpOptionsInput, ...request.Option) *ec2.DescribeDhcpOptionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeDhcpOptionsInput, ...request.Option) *ec2.DescribeDhcpOptionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8662,7 +10846,7 @@ func (_m *EC2API) DescribeDhcpOptionsWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeDhcpOptionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeDhcpOptionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8720,7 +10904,7 @@ func (_m *EC2API) DescribeEgressOnlyInternetGatewaysRequest(_a0 *ec2.DescribeEgr
 }
 
 // DescribeEgressOnlyInternetGatewaysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeEgressOnlyInternetGatewaysWithContext(_a0 aws.Context, _a1 *ec2.DescribeEgressOnlyInternetGatewaysInput, _a2 ...request.Option) (*ec2.DescribeEgressOnlyInternetGatewaysOutput, error) {
+func (_m *EC2API) DescribeEgressOnlyInternetGatewaysWithContext(_a0 context.Context, _a1 *ec2.DescribeEgressOnlyInternetGatewaysInput, _a2 ...request.Option) (*ec2.DescribeEgressOnlyInternetGatewaysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8731,7 +10915,7 @@ func (_m *EC2API) DescribeEgressOnlyInternetGatewaysWithContext(_a0 aws.Context,
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeEgressOnlyInternetGatewaysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeEgressOnlyInternetGatewaysInput, ...request.Option) *ec2.DescribeEgressOnlyInternetGatewaysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeEgressOnlyInternetGatewaysInput, ...request.Option) *ec2.DescribeEgressOnlyInternetGatewaysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8740,7 +10924,7 @@ func (_m *EC2API) DescribeEgressOnlyInternetGatewaysWithContext(_a0 aws.Context,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeEgressOnlyInternetGatewaysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeEgressOnlyInternetGatewaysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8798,7 +10982,7 @@ func (_m *EC2API) DescribeElasticGpusRequest(_a0 *ec2.DescribeElasticGpusInput) 
 }
 
 // DescribeElasticGpusWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeElasticGpusWithContext(_a0 aws.Context, _a1 *ec2.DescribeElasticGpusInput, _a2 ...request.Option) (*ec2.DescribeElasticGpusOutput, error) {
+func (_m *EC2API) DescribeElasticGpusWithContext(_a0 context.Context, _a1 *ec2.DescribeElasticGpusInput, _a2 ...request.Option) (*ec2.DescribeElasticGpusOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8809,7 +10993,7 @@ func (_m *EC2API) DescribeElasticGpusWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeElasticGpusOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeElasticGpusInput, ...request.Option) *ec2.DescribeElasticGpusOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeElasticGpusInput, ...request.Option) *ec2.DescribeElasticGpusOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8818,7 +11002,7 @@ func (_m *EC2API) DescribeElasticGpusWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeElasticGpusInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeElasticGpusInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8876,7 +11060,7 @@ func (_m *EC2API) DescribeExportTasksRequest(_a0 *ec2.DescribeExportTasksInput) 
 }
 
 // DescribeExportTasksWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeExportTasksWithContext(_a0 aws.Context, _a1 *ec2.DescribeExportTasksInput, _a2 ...request.Option) (*ec2.DescribeExportTasksOutput, error) {
+func (_m *EC2API) DescribeExportTasksWithContext(_a0 context.Context, _a1 *ec2.DescribeExportTasksInput, _a2 ...request.Option) (*ec2.DescribeExportTasksOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8887,7 +11071,7 @@ func (_m *EC2API) DescribeExportTasksWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeExportTasksOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeExportTasksInput, ...request.Option) *ec2.DescribeExportTasksOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeExportTasksInput, ...request.Option) *ec2.DescribeExportTasksOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8896,7 +11080,7 @@ func (_m *EC2API) DescribeExportTasksWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeExportTasksInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeExportTasksInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8954,7 +11138,7 @@ func (_m *EC2API) DescribeFleetHistoryRequest(_a0 *ec2.DescribeFleetHistoryInput
 }
 
 // DescribeFleetHistoryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeFleetHistoryWithContext(_a0 aws.Context, _a1 *ec2.DescribeFleetHistoryInput, _a2 ...request.Option) (*ec2.DescribeFleetHistoryOutput, error) {
+func (_m *EC2API) DescribeFleetHistoryWithContext(_a0 context.Context, _a1 *ec2.DescribeFleetHistoryInput, _a2 ...request.Option) (*ec2.DescribeFleetHistoryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8965,7 +11149,7 @@ func (_m *EC2API) DescribeFleetHistoryWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeFleetHistoryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeFleetHistoryInput, ...request.Option) *ec2.DescribeFleetHistoryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFleetHistoryInput, ...request.Option) *ec2.DescribeFleetHistoryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8974,7 +11158,7 @@ func (_m *EC2API) DescribeFleetHistoryWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeFleetHistoryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFleetHistoryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9032,7 +11216,7 @@ func (_m *EC2API) DescribeFleetInstancesRequest(_a0 *ec2.DescribeFleetInstancesI
 }
 
 // DescribeFleetInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeFleetInstancesWithContext(_a0 aws.Context, _a1 *ec2.DescribeFleetInstancesInput, _a2 ...request.Option) (*ec2.DescribeFleetInstancesOutput, error) {
+func (_m *EC2API) DescribeFleetInstancesWithContext(_a0 context.Context, _a1 *ec2.DescribeFleetInstancesInput, _a2 ...request.Option) (*ec2.DescribeFleetInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9043,7 +11227,7 @@ func (_m *EC2API) DescribeFleetInstancesWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeFleetInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeFleetInstancesInput, ...request.Option) *ec2.DescribeFleetInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFleetInstancesInput, ...request.Option) *ec2.DescribeFleetInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9052,7 +11236,7 @@ func (_m *EC2API) DescribeFleetInstancesWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeFleetInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFleetInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9110,7 +11294,7 @@ func (_m *EC2API) DescribeFleetsRequest(_a0 *ec2.DescribeFleetsInput) (*request.
 }
 
 // DescribeFleetsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeFleetsWithContext(_a0 aws.Context, _a1 *ec2.DescribeFleetsInput, _a2 ...request.Option) (*ec2.DescribeFleetsOutput, error) {
+func (_m *EC2API) DescribeFleetsWithContext(_a0 context.Context, _a1 *ec2.DescribeFleetsInput, _a2 ...request.Option) (*ec2.DescribeFleetsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9121,7 +11305,7 @@ func (_m *EC2API) DescribeFleetsWithContext(_a0 aws.Context, _a1 *ec2.DescribeFl
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeFleetsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeFleetsInput, ...request.Option) *ec2.DescribeFleetsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFleetsInput, ...request.Option) *ec2.DescribeFleetsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9130,7 +11314,7 @@ func (_m *EC2API) DescribeFleetsWithContext(_a0 aws.Context, _a1 *ec2.DescribeFl
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeFleetsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFleetsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9188,7 +11372,7 @@ func (_m *EC2API) DescribeFlowLogsRequest(_a0 *ec2.DescribeFlowLogsInput) (*requ
 }
 
 // DescribeFlowLogsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.DescribeFlowLogsInput, _a2 ...request.Option) (*ec2.DescribeFlowLogsOutput, error) {
+func (_m *EC2API) DescribeFlowLogsWithContext(_a0 context.Context, _a1 *ec2.DescribeFlowLogsInput, _a2 ...request.Option) (*ec2.DescribeFlowLogsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9199,7 +11383,7 @@ func (_m *EC2API) DescribeFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.Describe
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeFlowLogsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeFlowLogsInput, ...request.Option) *ec2.DescribeFlowLogsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFlowLogsInput, ...request.Option) *ec2.DescribeFlowLogsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9208,7 +11392,7 @@ func (_m *EC2API) DescribeFlowLogsWithContext(_a0 aws.Context, _a1 *ec2.Describe
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeFlowLogsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFlowLogsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9266,7 +11450,7 @@ func (_m *EC2API) DescribeFpgaImageAttributeRequest(_a0 *ec2.DescribeFpgaImageAt
 }
 
 // DescribeFpgaImageAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.DescribeFpgaImageAttributeInput, _a2 ...request.Option) (*ec2.DescribeFpgaImageAttributeOutput, error) {
+func (_m *EC2API) DescribeFpgaImageAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeFpgaImageAttributeInput, _a2 ...request.Option) (*ec2.DescribeFpgaImageAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9277,7 +11461,7 @@ func (_m *EC2API) DescribeFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeFpgaImageAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeFpgaImageAttributeInput, ...request.Option) *ec2.DescribeFpgaImageAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFpgaImageAttributeInput, ...request.Option) *ec2.DescribeFpgaImageAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9286,7 +11470,7 @@ func (_m *EC2API) DescribeFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeFpgaImageAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFpgaImageAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9344,7 +11528,7 @@ func (_m *EC2API) DescribeFpgaImagesRequest(_a0 *ec2.DescribeFpgaImagesInput) (*
 }
 
 // DescribeFpgaImagesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeFpgaImagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeFpgaImagesInput, _a2 ...request.Option) (*ec2.DescribeFpgaImagesOutput, error) {
+func (_m *EC2API) DescribeFpgaImagesWithContext(_a0 context.Context, _a1 *ec2.DescribeFpgaImagesInput, _a2 ...request.Option) (*ec2.DescribeFpgaImagesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9355,7 +11539,7 @@ func (_m *EC2API) DescribeFpgaImagesWithContext(_a0 aws.Context, _a1 *ec2.Descri
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeFpgaImagesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeFpgaImagesInput, ...request.Option) *ec2.DescribeFpgaImagesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFpgaImagesInput, ...request.Option) *ec2.DescribeFpgaImagesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9364,7 +11548,7 @@ func (_m *EC2API) DescribeFpgaImagesWithContext(_a0 aws.Context, _a1 *ec2.Descri
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeFpgaImagesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFpgaImagesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9422,7 +11606,7 @@ func (_m *EC2API) DescribeHostReservationOfferingsRequest(_a0 *ec2.DescribeHostR
 }
 
 // DescribeHostReservationOfferingsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeHostReservationOfferingsWithContext(_a0 aws.Context, _a1 *ec2.DescribeHostReservationOfferingsInput, _a2 ...request.Option) (*ec2.DescribeHostReservationOfferingsOutput, error) {
+func (_m *EC2API) DescribeHostReservationOfferingsWithContext(_a0 context.Context, _a1 *ec2.DescribeHostReservationOfferingsInput, _a2 ...request.Option) (*ec2.DescribeHostReservationOfferingsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9433,7 +11617,7 @@ func (_m *EC2API) DescribeHostReservationOfferingsWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeHostReservationOfferingsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeHostReservationOfferingsInput, ...request.Option) *ec2.DescribeHostReservationOfferingsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeHostReservationOfferingsInput, ...request.Option) *ec2.DescribeHostReservationOfferingsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9442,7 +11626,7 @@ func (_m *EC2API) DescribeHostReservationOfferingsWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeHostReservationOfferingsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeHostReservationOfferingsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9500,7 +11684,7 @@ func (_m *EC2API) DescribeHostReservationsRequest(_a0 *ec2.DescribeHostReservati
 }
 
 // DescribeHostReservationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeHostReservationsWithContext(_a0 aws.Context, _a1 *ec2.DescribeHostReservationsInput, _a2 ...request.Option) (*ec2.DescribeHostReservationsOutput, error) {
+func (_m *EC2API) DescribeHostReservationsWithContext(_a0 context.Context, _a1 *ec2.DescribeHostReservationsInput, _a2 ...request.Option) (*ec2.DescribeHostReservationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9511,7 +11695,7 @@ func (_m *EC2API) DescribeHostReservationsWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeHostReservationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeHostReservationsInput, ...request.Option) *ec2.DescribeHostReservationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeHostReservationsInput, ...request.Option) *ec2.DescribeHostReservationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9520,7 +11704,7 @@ func (_m *EC2API) DescribeHostReservationsWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeHostReservationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeHostReservationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9578,7 +11762,7 @@ func (_m *EC2API) DescribeHostsRequest(_a0 *ec2.DescribeHostsInput) (*request.Re
 }
 
 // DescribeHostsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeHostsWithContext(_a0 aws.Context, _a1 *ec2.DescribeHostsInput, _a2 ...request.Option) (*ec2.DescribeHostsOutput, error) {
+func (_m *EC2API) DescribeHostsWithContext(_a0 context.Context, _a1 *ec2.DescribeHostsInput, _a2 ...request.Option) (*ec2.DescribeHostsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9589,7 +11773,7 @@ func (_m *EC2API) DescribeHostsWithContext(_a0 aws.Context, _a1 *ec2.DescribeHos
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeHostsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeHostsInput, ...request.Option) *ec2.DescribeHostsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeHostsInput, ...request.Option) *ec2.DescribeHostsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9598,7 +11782,7 @@ func (_m *EC2API) DescribeHostsWithContext(_a0 aws.Context, _a1 *ec2.DescribeHos
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeHostsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeHostsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9656,7 +11840,7 @@ func (_m *EC2API) DescribeIamInstanceProfileAssociationsRequest(_a0 *ec2.Describ
 }
 
 // DescribeIamInstanceProfileAssociationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeIamInstanceProfileAssociationsWithContext(_a0 aws.Context, _a1 *ec2.DescribeIamInstanceProfileAssociationsInput, _a2 ...request.Option) (*ec2.DescribeIamInstanceProfileAssociationsOutput, error) {
+func (_m *EC2API) DescribeIamInstanceProfileAssociationsWithContext(_a0 context.Context, _a1 *ec2.DescribeIamInstanceProfileAssociationsInput, _a2 ...request.Option) (*ec2.DescribeIamInstanceProfileAssociationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9667,7 +11851,7 @@ func (_m *EC2API) DescribeIamInstanceProfileAssociationsWithContext(_a0 aws.Cont
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeIamInstanceProfileAssociationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeIamInstanceProfileAssociationsInput, ...request.Option) *ec2.DescribeIamInstanceProfileAssociationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIamInstanceProfileAssociationsInput, ...request.Option) *ec2.DescribeIamInstanceProfileAssociationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9676,7 +11860,7 @@ func (_m *EC2API) DescribeIamInstanceProfileAssociationsWithContext(_a0 aws.Cont
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeIamInstanceProfileAssociationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeIamInstanceProfileAssociationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9734,7 +11918,7 @@ func (_m *EC2API) DescribeIdFormatRequest(_a0 *ec2.DescribeIdFormatInput) (*requ
 }
 
 // DescribeIdFormatWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeIdFormatWithContext(_a0 aws.Context, _a1 *ec2.DescribeIdFormatInput, _a2 ...request.Option) (*ec2.DescribeIdFormatOutput, error) {
+func (_m *EC2API) DescribeIdFormatWithContext(_a0 context.Context, _a1 *ec2.DescribeIdFormatInput, _a2 ...request.Option) (*ec2.DescribeIdFormatOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9745,7 +11929,7 @@ func (_m *EC2API) DescribeIdFormatWithContext(_a0 aws.Context, _a1 *ec2.Describe
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeIdFormatOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeIdFormatInput, ...request.Option) *ec2.DescribeIdFormatOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIdFormatInput, ...request.Option) *ec2.DescribeIdFormatOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9754,7 +11938,7 @@ func (_m *EC2API) DescribeIdFormatWithContext(_a0 aws.Context, _a1 *ec2.Describe
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeIdFormatInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeIdFormatInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9812,7 +11996,7 @@ func (_m *EC2API) DescribeIdentityIdFormatRequest(_a0 *ec2.DescribeIdentityIdFor
 }
 
 // DescribeIdentityIdFormatWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeIdentityIdFormatWithContext(_a0 aws.Context, _a1 *ec2.DescribeIdentityIdFormatInput, _a2 ...request.Option) (*ec2.DescribeIdentityIdFormatOutput, error) {
+func (_m *EC2API) DescribeIdentityIdFormatWithContext(_a0 context.Context, _a1 *ec2.DescribeIdentityIdFormatInput, _a2 ...request.Option) (*ec2.DescribeIdentityIdFormatOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9823,7 +12007,7 @@ func (_m *EC2API) DescribeIdentityIdFormatWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeIdentityIdFormatOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeIdentityIdFormatInput, ...request.Option) *ec2.DescribeIdentityIdFormatOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIdentityIdFormatInput, ...request.Option) *ec2.DescribeIdentityIdFormatOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9832,7 +12016,7 @@ func (_m *EC2API) DescribeIdentityIdFormatWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeIdentityIdFormatInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeIdentityIdFormatInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9890,7 +12074,7 @@ func (_m *EC2API) DescribeImageAttributeRequest(_a0 *ec2.DescribeImageAttributeI
 }
 
 // DescribeImageAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.DescribeImageAttributeInput, _a2 ...request.Option) (*ec2.DescribeImageAttributeOutput, error) {
+func (_m *EC2API) DescribeImageAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeImageAttributeInput, _a2 ...request.Option) (*ec2.DescribeImageAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9901,7 +12085,7 @@ func (_m *EC2API) DescribeImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeImageAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeImageAttributeInput, ...request.Option) *ec2.DescribeImageAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeImageAttributeInput, ...request.Option) *ec2.DescribeImageAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9910,7 +12094,7 @@ func (_m *EC2API) DescribeImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeImageAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeImageAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9968,7 +12152,7 @@ func (_m *EC2API) DescribeImagesRequest(_a0 *ec2.DescribeImagesInput) (*request.
 }
 
 // DescribeImagesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeImagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeImagesInput, _a2 ...request.Option) (*ec2.DescribeImagesOutput, error) {
+func (_m *EC2API) DescribeImagesWithContext(_a0 context.Context, _a1 *ec2.DescribeImagesInput, _a2 ...request.Option) (*ec2.DescribeImagesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9979,7 +12163,7 @@ func (_m *EC2API) DescribeImagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeIm
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeImagesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeImagesInput, ...request.Option) *ec2.DescribeImagesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeImagesInput, ...request.Option) *ec2.DescribeImagesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9988,7 +12172,7 @@ func (_m *EC2API) DescribeImagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeIm
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeImagesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeImagesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10046,7 +12230,7 @@ func (_m *EC2API) DescribeImportImageTasksRequest(_a0 *ec2.DescribeImportImageTa
 }
 
 // DescribeImportImageTasksWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeImportImageTasksWithContext(_a0 aws.Context, _a1 *ec2.DescribeImportImageTasksInput, _a2 ...request.Option) (*ec2.DescribeImportImageTasksOutput, error) {
+func (_m *EC2API) DescribeImportImageTasksWithContext(_a0 context.Context, _a1 *ec2.DescribeImportImageTasksInput, _a2 ...request.Option) (*ec2.DescribeImportImageTasksOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10057,7 +12241,7 @@ func (_m *EC2API) DescribeImportImageTasksWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeImportImageTasksOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeImportImageTasksInput, ...request.Option) *ec2.DescribeImportImageTasksOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeImportImageTasksInput, ...request.Option) *ec2.DescribeImportImageTasksOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10066,7 +12250,7 @@ func (_m *EC2API) DescribeImportImageTasksWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeImportImageTasksInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeImportImageTasksInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10124,7 +12308,7 @@ func (_m *EC2API) DescribeImportSnapshotTasksRequest(_a0 *ec2.DescribeImportSnap
 }
 
 // DescribeImportSnapshotTasksWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeImportSnapshotTasksWithContext(_a0 aws.Context, _a1 *ec2.DescribeImportSnapshotTasksInput, _a2 ...request.Option) (*ec2.DescribeImportSnapshotTasksOutput, error) {
+func (_m *EC2API) DescribeImportSnapshotTasksWithContext(_a0 context.Context, _a1 *ec2.DescribeImportSnapshotTasksInput, _a2 ...request.Option) (*ec2.DescribeImportSnapshotTasksOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10135,7 +12319,7 @@ func (_m *EC2API) DescribeImportSnapshotTasksWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeImportSnapshotTasksOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeImportSnapshotTasksInput, ...request.Option) *ec2.DescribeImportSnapshotTasksOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeImportSnapshotTasksInput, ...request.Option) *ec2.DescribeImportSnapshotTasksOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10144,7 +12328,7 @@ func (_m *EC2API) DescribeImportSnapshotTasksWithContext(_a0 aws.Context, _a1 *e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeImportSnapshotTasksInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeImportSnapshotTasksInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10202,7 +12386,7 @@ func (_m *EC2API) DescribeInstanceAttributeRequest(_a0 *ec2.DescribeInstanceAttr
 }
 
 // DescribeInstanceAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstanceAttributeInput, _a2 ...request.Option) (*ec2.DescribeInstanceAttributeOutput, error) {
+func (_m *EC2API) DescribeInstanceAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceAttributeInput, _a2 ...request.Option) (*ec2.DescribeInstanceAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10213,7 +12397,7 @@ func (_m *EC2API) DescribeInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeInstanceAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstanceAttributeInput, ...request.Option) *ec2.DescribeInstanceAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceAttributeInput, ...request.Option) *ec2.DescribeInstanceAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10222,7 +12406,7 @@ func (_m *EC2API) DescribeInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeInstanceAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstanceAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10280,7 +12464,7 @@ func (_m *EC2API) DescribeInstanceCreditSpecificationsRequest(_a0 *ec2.DescribeI
 }
 
 // DescribeInstanceCreditSpecificationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeInstanceCreditSpecificationsWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstanceCreditSpecificationsInput, _a2 ...request.Option) (*ec2.DescribeInstanceCreditSpecificationsOutput, error) {
+func (_m *EC2API) DescribeInstanceCreditSpecificationsWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceCreditSpecificationsInput, _a2 ...request.Option) (*ec2.DescribeInstanceCreditSpecificationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10291,7 +12475,7 @@ func (_m *EC2API) DescribeInstanceCreditSpecificationsWithContext(_a0 aws.Contex
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeInstanceCreditSpecificationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstanceCreditSpecificationsInput, ...request.Option) *ec2.DescribeInstanceCreditSpecificationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceCreditSpecificationsInput, ...request.Option) *ec2.DescribeInstanceCreditSpecificationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10300,7 +12484,7 @@ func (_m *EC2API) DescribeInstanceCreditSpecificationsWithContext(_a0 aws.Contex
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeInstanceCreditSpecificationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstanceCreditSpecificationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10347,7 +12531,7 @@ func (_m *EC2API) DescribeInstanceStatusPages(_a0 *ec2.DescribeInstanceStatusInp
 }
 
 // DescribeInstanceStatusPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeInstanceStatusPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 func(*ec2.DescribeInstanceStatusOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeInstanceStatusPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 func(*ec2.DescribeInstanceStatusOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -10358,7 +12542,7 @@ func (_m *EC2API) DescribeInstanceStatusPagesWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstanceStatusInput, func(*ec2.DescribeInstanceStatusOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceStatusInput, func(*ec2.DescribeInstanceStatusOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -10393,7 +12577,7 @@ func (_m *EC2API) DescribeInstanceStatusRequest(_a0 *ec2.DescribeInstanceStatusI
 }
 
 // DescribeInstanceStatusWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeInstanceStatusWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 ...request.Option) (*ec2.DescribeInstanceStatusOutput, error) {
+func (_m *EC2API) DescribeInstanceStatusWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 ...request.Option) (*ec2.DescribeInstanceStatusOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10404,7 +12588,7 @@ func (_m *EC2API) DescribeInstanceStatusWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeInstanceStatusOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstanceStatusInput, ...request.Option) *ec2.DescribeInstanceStatusOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceStatusInput, ...request.Option) *ec2.DescribeInstanceStatusOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10413,7 +12597,7 @@ func (_m *EC2API) DescribeInstanceStatusWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeInstanceStatusInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstanceStatusInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10460,7 +12644,7 @@ func (_m *EC2API) DescribeInstancesPages(_a0 *ec2.DescribeInstancesInput, _a1 fu
 }
 
 // DescribeInstancesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeInstancesPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstancesInput, _a2 func(*ec2.DescribeInstancesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeInstancesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeInstancesInput, _a2 func(*ec2.DescribeInstancesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -10471,7 +12655,7 @@ func (_m *EC2API) DescribeInstancesPagesWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstancesInput, func(*ec2.DescribeInstancesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstancesInput, func(*ec2.DescribeInstancesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -10506,7 +12690,7 @@ func (_m *EC2API) DescribeInstancesRequest(_a0 *ec2.DescribeInstancesInput) (*re
 }
 
 // DescribeInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeInstancesWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.Option) (*ec2.DescribeInstancesOutput, error) {
+func (_m *EC2API) DescribeInstancesWithContext(_a0 context.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.Option) (*ec2.DescribeInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10517,7 +12701,7 @@ func (_m *EC2API) DescribeInstancesWithContext(_a0 aws.Context, _a1 *ec2.Describ
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) *ec2.DescribeInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstancesInput, ...request.Option) *ec2.DescribeInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10526,7 +12710,7 @@ func (_m *EC2API) DescribeInstancesWithContext(_a0 aws.Context, _a1 *ec2.Describ
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10584,7 +12768,7 @@ func (_m *EC2API) DescribeInternetGatewaysRequest(_a0 *ec2.DescribeInternetGatew
 }
 
 // DescribeInternetGatewaysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeInternetGatewaysWithContext(_a0 aws.Context, _a1 *ec2.DescribeInternetGatewaysInput, _a2 ...request.Option) (*ec2.DescribeInternetGatewaysOutput, error) {
+func (_m *EC2API) DescribeInternetGatewaysWithContext(_a0 context.Context, _a1 *ec2.DescribeInternetGatewaysInput, _a2 ...request.Option) (*ec2.DescribeInternetGatewaysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10595,7 +12779,7 @@ func (_m *EC2API) DescribeInternetGatewaysWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeInternetGatewaysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInternetGatewaysInput, ...request.Option) *ec2.DescribeInternetGatewaysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInternetGatewaysInput, ...request.Option) *ec2.DescribeInternetGatewaysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10604,7 +12788,7 @@ func (_m *EC2API) DescribeInternetGatewaysWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeInternetGatewaysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInternetGatewaysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10662,7 +12846,7 @@ func (_m *EC2API) DescribeKeyPairsRequest(_a0 *ec2.DescribeKeyPairsInput) (*requ
 }
 
 // DescribeKeyPairsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeKeyPairsWithContext(_a0 aws.Context, _a1 *ec2.DescribeKeyPairsInput, _a2 ...request.Option) (*ec2.DescribeKeyPairsOutput, error) {
+func (_m *EC2API) DescribeKeyPairsWithContext(_a0 context.Context, _a1 *ec2.DescribeKeyPairsInput, _a2 ...request.Option) (*ec2.DescribeKeyPairsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10673,7 +12857,7 @@ func (_m *EC2API) DescribeKeyPairsWithContext(_a0 aws.Context, _a1 *ec2.Describe
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeKeyPairsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeKeyPairsInput, ...request.Option) *ec2.DescribeKeyPairsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeKeyPairsInput, ...request.Option) *ec2.DescribeKeyPairsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10682,7 +12866,7 @@ func (_m *EC2API) DescribeKeyPairsWithContext(_a0 aws.Context, _a1 *ec2.Describe
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeKeyPairsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeKeyPairsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10740,7 +12924,7 @@ func (_m *EC2API) DescribeLaunchTemplateVersionsRequest(_a0 *ec2.DescribeLaunchT
 }
 
 // DescribeLaunchTemplateVersionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeLaunchTemplateVersionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeLaunchTemplateVersionsInput, _a2 ...request.Option) (*ec2.DescribeLaunchTemplateVersionsOutput, error) {
+func (_m *EC2API) DescribeLaunchTemplateVersionsWithContext(_a0 context.Context, _a1 *ec2.DescribeLaunchTemplateVersionsInput, _a2 ...request.Option) (*ec2.DescribeLaunchTemplateVersionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10751,7 +12935,7 @@ func (_m *EC2API) DescribeLaunchTemplateVersionsWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeLaunchTemplateVersionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeLaunchTemplateVersionsInput, ...request.Option) *ec2.DescribeLaunchTemplateVersionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLaunchTemplateVersionsInput, ...request.Option) *ec2.DescribeLaunchTemplateVersionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10760,7 +12944,7 @@ func (_m *EC2API) DescribeLaunchTemplateVersionsWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeLaunchTemplateVersionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeLaunchTemplateVersionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10818,7 +13002,7 @@ func (_m *EC2API) DescribeLaunchTemplatesRequest(_a0 *ec2.DescribeLaunchTemplate
 }
 
 // DescribeLaunchTemplatesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeLaunchTemplatesWithContext(_a0 aws.Context, _a1 *ec2.DescribeLaunchTemplatesInput, _a2 ...request.Option) (*ec2.DescribeLaunchTemplatesOutput, error) {
+func (_m *EC2API) DescribeLaunchTemplatesWithContext(_a0 context.Context, _a1 *ec2.DescribeLaunchTemplatesInput, _a2 ...request.Option) (*ec2.DescribeLaunchTemplatesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10829,7 +13013,7 @@ func (_m *EC2API) DescribeLaunchTemplatesWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeLaunchTemplatesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeLaunchTemplatesInput, ...request.Option) *ec2.DescribeLaunchTemplatesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLaunchTemplatesInput, ...request.Option) *ec2.DescribeLaunchTemplatesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10838,7 +13022,7 @@ func (_m *EC2API) DescribeLaunchTemplatesWithContext(_a0 aws.Context, _a1 *ec2.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeLaunchTemplatesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeLaunchTemplatesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10896,7 +13080,7 @@ func (_m *EC2API) DescribeMovingAddressesRequest(_a0 *ec2.DescribeMovingAddresse
 }
 
 // DescribeMovingAddressesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeMovingAddressesWithContext(_a0 aws.Context, _a1 *ec2.DescribeMovingAddressesInput, _a2 ...request.Option) (*ec2.DescribeMovingAddressesOutput, error) {
+func (_m *EC2API) DescribeMovingAddressesWithContext(_a0 context.Context, _a1 *ec2.DescribeMovingAddressesInput, _a2 ...request.Option) (*ec2.DescribeMovingAddressesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10907,7 +13091,7 @@ func (_m *EC2API) DescribeMovingAddressesWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeMovingAddressesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeMovingAddressesInput, ...request.Option) *ec2.DescribeMovingAddressesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeMovingAddressesInput, ...request.Option) *ec2.DescribeMovingAddressesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10916,7 +13100,7 @@ func (_m *EC2API) DescribeMovingAddressesWithContext(_a0 aws.Context, _a1 *ec2.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeMovingAddressesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeMovingAddressesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10963,7 +13147,7 @@ func (_m *EC2API) DescribeNatGatewaysPages(_a0 *ec2.DescribeNatGatewaysInput, _a
 }
 
 // DescribeNatGatewaysPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeNatGatewaysPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeNatGatewaysInput, _a2 func(*ec2.DescribeNatGatewaysOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeNatGatewaysPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeNatGatewaysInput, _a2 func(*ec2.DescribeNatGatewaysOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -10974,7 +13158,7 @@ func (_m *EC2API) DescribeNatGatewaysPagesWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNatGatewaysInput, func(*ec2.DescribeNatGatewaysOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNatGatewaysInput, func(*ec2.DescribeNatGatewaysOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -11009,7 +13193,7 @@ func (_m *EC2API) DescribeNatGatewaysRequest(_a0 *ec2.DescribeNatGatewaysInput) 
 }
 
 // DescribeNatGatewaysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeNatGatewaysWithContext(_a0 aws.Context, _a1 *ec2.DescribeNatGatewaysInput, _a2 ...request.Option) (*ec2.DescribeNatGatewaysOutput, error) {
+func (_m *EC2API) DescribeNatGatewaysWithContext(_a0 context.Context, _a1 *ec2.DescribeNatGatewaysInput, _a2 ...request.Option) (*ec2.DescribeNatGatewaysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11020,7 +13204,7 @@ func (_m *EC2API) DescribeNatGatewaysWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeNatGatewaysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNatGatewaysInput, ...request.Option) *ec2.DescribeNatGatewaysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNatGatewaysInput, ...request.Option) *ec2.DescribeNatGatewaysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11029,7 +13213,7 @@ func (_m *EC2API) DescribeNatGatewaysWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeNatGatewaysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeNatGatewaysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11087,7 +13271,7 @@ func (_m *EC2API) DescribeNetworkAclsRequest(_a0 *ec2.DescribeNetworkAclsInput) 
 }
 
 // DescribeNetworkAclsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeNetworkAclsWithContext(_a0 aws.Context, _a1 *ec2.DescribeNetworkAclsInput, _a2 ...request.Option) (*ec2.DescribeNetworkAclsOutput, error) {
+func (_m *EC2API) DescribeNetworkAclsWithContext(_a0 context.Context, _a1 *ec2.DescribeNetworkAclsInput, _a2 ...request.Option) (*ec2.DescribeNetworkAclsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11098,7 +13282,7 @@ func (_m *EC2API) DescribeNetworkAclsWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeNetworkAclsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNetworkAclsInput, ...request.Option) *ec2.DescribeNetworkAclsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkAclsInput, ...request.Option) *ec2.DescribeNetworkAclsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11107,7 +13291,7 @@ func (_m *EC2API) DescribeNetworkAclsWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeNetworkAclsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeNetworkAclsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11165,7 +13349,7 @@ func (_m *EC2API) DescribeNetworkInterfaceAttributeRequest(_a0 *ec2.DescribeNetw
 }
 
 // DescribeNetworkInterfaceAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeNetworkInterfaceAttributeWithContext(_a0 aws.Context, _a1 *ec2.DescribeNetworkInterfaceAttributeInput, _a2 ...request.Option) (*ec2.DescribeNetworkInterfaceAttributeOutput, error) {
+func (_m *EC2API) DescribeNetworkInterfaceAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeNetworkInterfaceAttributeInput, _a2 ...request.Option) (*ec2.DescribeNetworkInterfaceAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11176,7 +13360,7 @@ func (_m *EC2API) DescribeNetworkInterfaceAttributeWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeNetworkInterfaceAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNetworkInterfaceAttributeInput, ...request.Option) *ec2.DescribeNetworkInterfaceAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInterfaceAttributeInput, ...request.Option) *ec2.DescribeNetworkInterfaceAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11185,7 +13369,7 @@ func (_m *EC2API) DescribeNetworkInterfaceAttributeWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeNetworkInterfaceAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeNetworkInterfaceAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11243,7 +13427,7 @@ func (_m *EC2API) DescribeNetworkInterfacePermissionsRequest(_a0 *ec2.DescribeNe
 }
 
 // DescribeNetworkInterfacePermissionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeNetworkInterfacePermissionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeNetworkInterfacePermissionsInput, _a2 ...request.Option) (*ec2.DescribeNetworkInterfacePermissionsOutput, error) {
+func (_m *EC2API) DescribeNetworkInterfacePermissionsWithContext(_a0 context.Context, _a1 *ec2.DescribeNetworkInterfacePermissionsInput, _a2 ...request.Option) (*ec2.DescribeNetworkInterfacePermissionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11254,7 +13438,7 @@ func (_m *EC2API) DescribeNetworkInterfacePermissionsWithContext(_a0 aws.Context
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeNetworkInterfacePermissionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNetworkInterfacePermissionsInput, ...request.Option) *ec2.DescribeNetworkInterfacePermissionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInterfacePermissionsInput, ...request.Option) *ec2.DescribeNetworkInterfacePermissionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11263,7 +13447,7 @@ func (_m *EC2API) DescribeNetworkInterfacePermissionsWithContext(_a0 aws.Context
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeNetworkInterfacePermissionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeNetworkInterfacePermissionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11295,6 +13479,41 @@ func (_m *EC2API) DescribeNetworkInterfaces(_a0 *ec2.DescribeNetworkInterfacesIn
 	return r0, r1
 }
 
+// DescribeNetworkInterfacesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeNetworkInterfacesPages(_a0 *ec2.DescribeNetworkInterfacesInput, _a1 func(*ec2.DescribeNetworkInterfacesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeNetworkInterfacesInput, func(*ec2.DescribeNetworkInterfacesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeNetworkInterfacesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeNetworkInterfacesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeNetworkInterfacesInput, _a2 func(*ec2.DescribeNetworkInterfacesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInterfacesInput, func(*ec2.DescribeNetworkInterfacesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeNetworkInterfacesRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeNetworkInterfacesRequest(_a0 *ec2.DescribeNetworkInterfacesInput) (*request.Request, *ec2.DescribeNetworkInterfacesOutput) {
 	ret := _m.Called(_a0)
@@ -11321,7 +13540,7 @@ func (_m *EC2API) DescribeNetworkInterfacesRequest(_a0 *ec2.DescribeNetworkInter
 }
 
 // DescribeNetworkInterfacesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeNetworkInterfacesWithContext(_a0 aws.Context, _a1 *ec2.DescribeNetworkInterfacesInput, _a2 ...request.Option) (*ec2.DescribeNetworkInterfacesOutput, error) {
+func (_m *EC2API) DescribeNetworkInterfacesWithContext(_a0 context.Context, _a1 *ec2.DescribeNetworkInterfacesInput, _a2 ...request.Option) (*ec2.DescribeNetworkInterfacesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11332,7 +13551,7 @@ func (_m *EC2API) DescribeNetworkInterfacesWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeNetworkInterfacesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNetworkInterfacesInput, ...request.Option) *ec2.DescribeNetworkInterfacesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInterfacesInput, ...request.Option) *ec2.DescribeNetworkInterfacesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11341,7 +13560,7 @@ func (_m *EC2API) DescribeNetworkInterfacesWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeNetworkInterfacesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeNetworkInterfacesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11399,7 +13618,7 @@ func (_m *EC2API) DescribePlacementGroupsRequest(_a0 *ec2.DescribePlacementGroup
 }
 
 // DescribePlacementGroupsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribePlacementGroupsWithContext(_a0 aws.Context, _a1 *ec2.DescribePlacementGroupsInput, _a2 ...request.Option) (*ec2.DescribePlacementGroupsOutput, error) {
+func (_m *EC2API) DescribePlacementGroupsWithContext(_a0 context.Context, _a1 *ec2.DescribePlacementGroupsInput, _a2 ...request.Option) (*ec2.DescribePlacementGroupsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11410,7 +13629,7 @@ func (_m *EC2API) DescribePlacementGroupsWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribePlacementGroupsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribePlacementGroupsInput, ...request.Option) *ec2.DescribePlacementGroupsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribePlacementGroupsInput, ...request.Option) *ec2.DescribePlacementGroupsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11419,7 +13638,7 @@ func (_m *EC2API) DescribePlacementGroupsWithContext(_a0 aws.Context, _a1 *ec2.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribePlacementGroupsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribePlacementGroupsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11477,7 +13696,7 @@ func (_m *EC2API) DescribePrefixListsRequest(_a0 *ec2.DescribePrefixListsInput) 
 }
 
 // DescribePrefixListsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribePrefixListsWithContext(_a0 aws.Context, _a1 *ec2.DescribePrefixListsInput, _a2 ...request.Option) (*ec2.DescribePrefixListsOutput, error) {
+func (_m *EC2API) DescribePrefixListsWithContext(_a0 context.Context, _a1 *ec2.DescribePrefixListsInput, _a2 ...request.Option) (*ec2.DescribePrefixListsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11488,7 +13707,7 @@ func (_m *EC2API) DescribePrefixListsWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribePrefixListsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribePrefixListsInput, ...request.Option) *ec2.DescribePrefixListsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribePrefixListsInput, ...request.Option) *ec2.DescribePrefixListsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11497,7 +13716,7 @@ func (_m *EC2API) DescribePrefixListsWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribePrefixListsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribePrefixListsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11555,7 +13774,7 @@ func (_m *EC2API) DescribePrincipalIdFormatRequest(_a0 *ec2.DescribePrincipalIdF
 }
 
 // DescribePrincipalIdFormatWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribePrincipalIdFormatWithContext(_a0 aws.Context, _a1 *ec2.DescribePrincipalIdFormatInput, _a2 ...request.Option) (*ec2.DescribePrincipalIdFormatOutput, error) {
+func (_m *EC2API) DescribePrincipalIdFormatWithContext(_a0 context.Context, _a1 *ec2.DescribePrincipalIdFormatInput, _a2 ...request.Option) (*ec2.DescribePrincipalIdFormatOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11566,7 +13785,7 @@ func (_m *EC2API) DescribePrincipalIdFormatWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribePrincipalIdFormatOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribePrincipalIdFormatInput, ...request.Option) *ec2.DescribePrincipalIdFormatOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribePrincipalIdFormatInput, ...request.Option) *ec2.DescribePrincipalIdFormatOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11575,7 +13794,85 @@ func (_m *EC2API) DescribePrincipalIdFormatWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribePrincipalIdFormatInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribePrincipalIdFormatInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribePublicIpv4Pools provides a mock function with given fields: _a0
+func (_m *EC2API) DescribePublicIpv4Pools(_a0 *ec2.DescribePublicIpv4PoolsInput) (*ec2.DescribePublicIpv4PoolsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribePublicIpv4PoolsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribePublicIpv4PoolsInput) *ec2.DescribePublicIpv4PoolsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribePublicIpv4PoolsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribePublicIpv4PoolsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribePublicIpv4PoolsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribePublicIpv4PoolsRequest(_a0 *ec2.DescribePublicIpv4PoolsInput) (*request.Request, *ec2.DescribePublicIpv4PoolsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribePublicIpv4PoolsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribePublicIpv4PoolsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribePublicIpv4PoolsInput) *ec2.DescribePublicIpv4PoolsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribePublicIpv4PoolsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribePublicIpv4PoolsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribePublicIpv4PoolsWithContext(_a0 context.Context, _a1 *ec2.DescribePublicIpv4PoolsInput, _a2 ...request.Option) (*ec2.DescribePublicIpv4PoolsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribePublicIpv4PoolsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribePublicIpv4PoolsInput, ...request.Option) *ec2.DescribePublicIpv4PoolsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribePublicIpv4PoolsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribePublicIpv4PoolsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11633,7 +13930,7 @@ func (_m *EC2API) DescribeRegionsRequest(_a0 *ec2.DescribeRegionsInput) (*reques
 }
 
 // DescribeRegionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeRegionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeRegionsInput, _a2 ...request.Option) (*ec2.DescribeRegionsOutput, error) {
+func (_m *EC2API) DescribeRegionsWithContext(_a0 context.Context, _a1 *ec2.DescribeRegionsInput, _a2 ...request.Option) (*ec2.DescribeRegionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11644,7 +13941,7 @@ func (_m *EC2API) DescribeRegionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeR
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeRegionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeRegionsInput, ...request.Option) *ec2.DescribeRegionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeRegionsInput, ...request.Option) *ec2.DescribeRegionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11653,7 +13950,7 @@ func (_m *EC2API) DescribeRegionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeR
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeRegionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeRegionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11734,7 +14031,7 @@ func (_m *EC2API) DescribeReservedInstancesListingsRequest(_a0 *ec2.DescribeRese
 }
 
 // DescribeReservedInstancesListingsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeReservedInstancesListingsWithContext(_a0 aws.Context, _a1 *ec2.DescribeReservedInstancesListingsInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesListingsOutput, error) {
+func (_m *EC2API) DescribeReservedInstancesListingsWithContext(_a0 context.Context, _a1 *ec2.DescribeReservedInstancesListingsInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesListingsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11745,7 +14042,7 @@ func (_m *EC2API) DescribeReservedInstancesListingsWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeReservedInstancesListingsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeReservedInstancesListingsInput, ...request.Option) *ec2.DescribeReservedInstancesListingsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeReservedInstancesListingsInput, ...request.Option) *ec2.DescribeReservedInstancesListingsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11754,7 +14051,7 @@ func (_m *EC2API) DescribeReservedInstancesListingsWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeReservedInstancesListingsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeReservedInstancesListingsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11801,7 +14098,7 @@ func (_m *EC2API) DescribeReservedInstancesModificationsPages(_a0 *ec2.DescribeR
 }
 
 // DescribeReservedInstancesModificationsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeReservedInstancesModificationsPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeReservedInstancesModificationsInput, _a2 func(*ec2.DescribeReservedInstancesModificationsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeReservedInstancesModificationsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeReservedInstancesModificationsInput, _a2 func(*ec2.DescribeReservedInstancesModificationsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -11812,7 +14109,7 @@ func (_m *EC2API) DescribeReservedInstancesModificationsPagesWithContext(_a0 aws
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeReservedInstancesModificationsInput, func(*ec2.DescribeReservedInstancesModificationsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeReservedInstancesModificationsInput, func(*ec2.DescribeReservedInstancesModificationsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -11847,7 +14144,7 @@ func (_m *EC2API) DescribeReservedInstancesModificationsRequest(_a0 *ec2.Describ
 }
 
 // DescribeReservedInstancesModificationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeReservedInstancesModificationsWithContext(_a0 aws.Context, _a1 *ec2.DescribeReservedInstancesModificationsInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesModificationsOutput, error) {
+func (_m *EC2API) DescribeReservedInstancesModificationsWithContext(_a0 context.Context, _a1 *ec2.DescribeReservedInstancesModificationsInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesModificationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11858,7 +14155,7 @@ func (_m *EC2API) DescribeReservedInstancesModificationsWithContext(_a0 aws.Cont
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeReservedInstancesModificationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeReservedInstancesModificationsInput, ...request.Option) *ec2.DescribeReservedInstancesModificationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeReservedInstancesModificationsInput, ...request.Option) *ec2.DescribeReservedInstancesModificationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11867,7 +14164,7 @@ func (_m *EC2API) DescribeReservedInstancesModificationsWithContext(_a0 aws.Cont
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeReservedInstancesModificationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeReservedInstancesModificationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -11914,7 +14211,7 @@ func (_m *EC2API) DescribeReservedInstancesOfferingsPages(_a0 *ec2.DescribeReser
 }
 
 // DescribeReservedInstancesOfferingsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeReservedInstancesOfferingsPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeReservedInstancesOfferingsInput, _a2 func(*ec2.DescribeReservedInstancesOfferingsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeReservedInstancesOfferingsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeReservedInstancesOfferingsInput, _a2 func(*ec2.DescribeReservedInstancesOfferingsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -11925,7 +14222,7 @@ func (_m *EC2API) DescribeReservedInstancesOfferingsPagesWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeReservedInstancesOfferingsInput, func(*ec2.DescribeReservedInstancesOfferingsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeReservedInstancesOfferingsInput, func(*ec2.DescribeReservedInstancesOfferingsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -11960,7 +14257,7 @@ func (_m *EC2API) DescribeReservedInstancesOfferingsRequest(_a0 *ec2.DescribeRes
 }
 
 // DescribeReservedInstancesOfferingsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeReservedInstancesOfferingsWithContext(_a0 aws.Context, _a1 *ec2.DescribeReservedInstancesOfferingsInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesOfferingsOutput, error) {
+func (_m *EC2API) DescribeReservedInstancesOfferingsWithContext(_a0 context.Context, _a1 *ec2.DescribeReservedInstancesOfferingsInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesOfferingsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -11971,7 +14268,7 @@ func (_m *EC2API) DescribeReservedInstancesOfferingsWithContext(_a0 aws.Context,
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeReservedInstancesOfferingsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeReservedInstancesOfferingsInput, ...request.Option) *ec2.DescribeReservedInstancesOfferingsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeReservedInstancesOfferingsInput, ...request.Option) *ec2.DescribeReservedInstancesOfferingsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -11980,7 +14277,7 @@ func (_m *EC2API) DescribeReservedInstancesOfferingsWithContext(_a0 aws.Context,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeReservedInstancesOfferingsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeReservedInstancesOfferingsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12015,7 +14312,7 @@ func (_m *EC2API) DescribeReservedInstancesRequest(_a0 *ec2.DescribeReservedInst
 }
 
 // DescribeReservedInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeReservedInstancesWithContext(_a0 aws.Context, _a1 *ec2.DescribeReservedInstancesInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesOutput, error) {
+func (_m *EC2API) DescribeReservedInstancesWithContext(_a0 context.Context, _a1 *ec2.DescribeReservedInstancesInput, _a2 ...request.Option) (*ec2.DescribeReservedInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12026,7 +14323,7 @@ func (_m *EC2API) DescribeReservedInstancesWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeReservedInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeReservedInstancesInput, ...request.Option) *ec2.DescribeReservedInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeReservedInstancesInput, ...request.Option) *ec2.DescribeReservedInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12035,7 +14332,7 @@ func (_m *EC2API) DescribeReservedInstancesWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeReservedInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeReservedInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12067,6 +14364,41 @@ func (_m *EC2API) DescribeRouteTables(_a0 *ec2.DescribeRouteTablesInput) (*ec2.D
 	return r0, r1
 }
 
+// DescribeRouteTablesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeRouteTablesPages(_a0 *ec2.DescribeRouteTablesInput, _a1 func(*ec2.DescribeRouteTablesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeRouteTablesInput, func(*ec2.DescribeRouteTablesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeRouteTablesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeRouteTablesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeRouteTablesInput, _a2 func(*ec2.DescribeRouteTablesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeRouteTablesInput, func(*ec2.DescribeRouteTablesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeRouteTablesRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeRouteTablesRequest(_a0 *ec2.DescribeRouteTablesInput) (*request.Request, *ec2.DescribeRouteTablesOutput) {
 	ret := _m.Called(_a0)
@@ -12093,7 +14425,7 @@ func (_m *EC2API) DescribeRouteTablesRequest(_a0 *ec2.DescribeRouteTablesInput) 
 }
 
 // DescribeRouteTablesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeRouteTablesWithContext(_a0 aws.Context, _a1 *ec2.DescribeRouteTablesInput, _a2 ...request.Option) (*ec2.DescribeRouteTablesOutput, error) {
+func (_m *EC2API) DescribeRouteTablesWithContext(_a0 context.Context, _a1 *ec2.DescribeRouteTablesInput, _a2 ...request.Option) (*ec2.DescribeRouteTablesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12104,7 +14436,7 @@ func (_m *EC2API) DescribeRouteTablesWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeRouteTablesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeRouteTablesInput, ...request.Option) *ec2.DescribeRouteTablesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeRouteTablesInput, ...request.Option) *ec2.DescribeRouteTablesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12113,7 +14445,7 @@ func (_m *EC2API) DescribeRouteTablesWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeRouteTablesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeRouteTablesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12171,7 +14503,7 @@ func (_m *EC2API) DescribeScheduledInstanceAvailabilityRequest(_a0 *ec2.Describe
 }
 
 // DescribeScheduledInstanceAvailabilityWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeScheduledInstanceAvailabilityWithContext(_a0 aws.Context, _a1 *ec2.DescribeScheduledInstanceAvailabilityInput, _a2 ...request.Option) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error) {
+func (_m *EC2API) DescribeScheduledInstanceAvailabilityWithContext(_a0 context.Context, _a1 *ec2.DescribeScheduledInstanceAvailabilityInput, _a2 ...request.Option) (*ec2.DescribeScheduledInstanceAvailabilityOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12182,7 +14514,7 @@ func (_m *EC2API) DescribeScheduledInstanceAvailabilityWithContext(_a0 aws.Conte
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeScheduledInstanceAvailabilityOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeScheduledInstanceAvailabilityInput, ...request.Option) *ec2.DescribeScheduledInstanceAvailabilityOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeScheduledInstanceAvailabilityInput, ...request.Option) *ec2.DescribeScheduledInstanceAvailabilityOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12191,7 +14523,7 @@ func (_m *EC2API) DescribeScheduledInstanceAvailabilityWithContext(_a0 aws.Conte
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeScheduledInstanceAvailabilityInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeScheduledInstanceAvailabilityInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12249,7 +14581,7 @@ func (_m *EC2API) DescribeScheduledInstancesRequest(_a0 *ec2.DescribeScheduledIn
 }
 
 // DescribeScheduledInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec2.DescribeScheduledInstancesInput, _a2 ...request.Option) (*ec2.DescribeScheduledInstancesOutput, error) {
+func (_m *EC2API) DescribeScheduledInstancesWithContext(_a0 context.Context, _a1 *ec2.DescribeScheduledInstancesInput, _a2 ...request.Option) (*ec2.DescribeScheduledInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12260,7 +14592,7 @@ func (_m *EC2API) DescribeScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeScheduledInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeScheduledInstancesInput, ...request.Option) *ec2.DescribeScheduledInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeScheduledInstancesInput, ...request.Option) *ec2.DescribeScheduledInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12269,7 +14601,7 @@ func (_m *EC2API) DescribeScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeScheduledInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeScheduledInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12327,7 +14659,7 @@ func (_m *EC2API) DescribeSecurityGroupReferencesRequest(_a0 *ec2.DescribeSecuri
 }
 
 // DescribeSecurityGroupReferencesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSecurityGroupReferencesWithContext(_a0 aws.Context, _a1 *ec2.DescribeSecurityGroupReferencesInput, _a2 ...request.Option) (*ec2.DescribeSecurityGroupReferencesOutput, error) {
+func (_m *EC2API) DescribeSecurityGroupReferencesWithContext(_a0 context.Context, _a1 *ec2.DescribeSecurityGroupReferencesInput, _a2 ...request.Option) (*ec2.DescribeSecurityGroupReferencesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12338,7 +14670,7 @@ func (_m *EC2API) DescribeSecurityGroupReferencesWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSecurityGroupReferencesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSecurityGroupReferencesInput, ...request.Option) *ec2.DescribeSecurityGroupReferencesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecurityGroupReferencesInput, ...request.Option) *ec2.DescribeSecurityGroupReferencesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12347,7 +14679,7 @@ func (_m *EC2API) DescribeSecurityGroupReferencesWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSecurityGroupReferencesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSecurityGroupReferencesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12379,6 +14711,41 @@ func (_m *EC2API) DescribeSecurityGroups(_a0 *ec2.DescribeSecurityGroupsInput) (
 	return r0, r1
 }
 
+// DescribeSecurityGroupsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeSecurityGroupsPages(_a0 *ec2.DescribeSecurityGroupsInput, _a1 func(*ec2.DescribeSecurityGroupsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeSecurityGroupsInput, func(*ec2.DescribeSecurityGroupsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeSecurityGroupsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeSecurityGroupsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeSecurityGroupsInput, _a2 func(*ec2.DescribeSecurityGroupsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecurityGroupsInput, func(*ec2.DescribeSecurityGroupsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeSecurityGroupsRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeSecurityGroupsRequest(_a0 *ec2.DescribeSecurityGroupsInput) (*request.Request, *ec2.DescribeSecurityGroupsOutput) {
 	ret := _m.Called(_a0)
@@ -12405,7 +14772,7 @@ func (_m *EC2API) DescribeSecurityGroupsRequest(_a0 *ec2.DescribeSecurityGroupsI
 }
 
 // DescribeSecurityGroupsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSecurityGroupsWithContext(_a0 aws.Context, _a1 *ec2.DescribeSecurityGroupsInput, _a2 ...request.Option) (*ec2.DescribeSecurityGroupsOutput, error) {
+func (_m *EC2API) DescribeSecurityGroupsWithContext(_a0 context.Context, _a1 *ec2.DescribeSecurityGroupsInput, _a2 ...request.Option) (*ec2.DescribeSecurityGroupsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12416,7 +14783,7 @@ func (_m *EC2API) DescribeSecurityGroupsWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSecurityGroupsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSecurityGroupsInput, ...request.Option) *ec2.DescribeSecurityGroupsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecurityGroupsInput, ...request.Option) *ec2.DescribeSecurityGroupsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12425,7 +14792,7 @@ func (_m *EC2API) DescribeSecurityGroupsWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSecurityGroupsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSecurityGroupsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12483,7 +14850,7 @@ func (_m *EC2API) DescribeSnapshotAttributeRequest(_a0 *ec2.DescribeSnapshotAttr
 }
 
 // DescribeSnapshotAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2.DescribeSnapshotAttributeInput, _a2 ...request.Option) (*ec2.DescribeSnapshotAttributeOutput, error) {
+func (_m *EC2API) DescribeSnapshotAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeSnapshotAttributeInput, _a2 ...request.Option) (*ec2.DescribeSnapshotAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12494,7 +14861,7 @@ func (_m *EC2API) DescribeSnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSnapshotAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSnapshotAttributeInput, ...request.Option) *ec2.DescribeSnapshotAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSnapshotAttributeInput, ...request.Option) *ec2.DescribeSnapshotAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12503,7 +14870,7 @@ func (_m *EC2API) DescribeSnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSnapshotAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSnapshotAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12550,7 +14917,7 @@ func (_m *EC2API) DescribeSnapshotsPages(_a0 *ec2.DescribeSnapshotsInput, _a1 fu
 }
 
 // DescribeSnapshotsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeSnapshotsPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeSnapshotsInput, _a2 func(*ec2.DescribeSnapshotsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeSnapshotsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeSnapshotsInput, _a2 func(*ec2.DescribeSnapshotsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -12561,7 +14928,7 @@ func (_m *EC2API) DescribeSnapshotsPagesWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSnapshotsInput, func(*ec2.DescribeSnapshotsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSnapshotsInput, func(*ec2.DescribeSnapshotsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -12596,7 +14963,7 @@ func (_m *EC2API) DescribeSnapshotsRequest(_a0 *ec2.DescribeSnapshotsInput) (*re
 }
 
 // DescribeSnapshotsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSnapshotsWithContext(_a0 aws.Context, _a1 *ec2.DescribeSnapshotsInput, _a2 ...request.Option) (*ec2.DescribeSnapshotsOutput, error) {
+func (_m *EC2API) DescribeSnapshotsWithContext(_a0 context.Context, _a1 *ec2.DescribeSnapshotsInput, _a2 ...request.Option) (*ec2.DescribeSnapshotsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12607,7 +14974,7 @@ func (_m *EC2API) DescribeSnapshotsWithContext(_a0 aws.Context, _a1 *ec2.Describ
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSnapshotsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSnapshotsInput, ...request.Option) *ec2.DescribeSnapshotsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSnapshotsInput, ...request.Option) *ec2.DescribeSnapshotsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12616,7 +14983,7 @@ func (_m *EC2API) DescribeSnapshotsWithContext(_a0 aws.Context, _a1 *ec2.Describ
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSnapshotsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSnapshotsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12674,7 +15041,7 @@ func (_m *EC2API) DescribeSpotDatafeedSubscriptionRequest(_a0 *ec2.DescribeSpotD
 }
 
 // DescribeSpotDatafeedSubscriptionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotDatafeedSubscriptionInput, _a2 ...request.Option) (*ec2.DescribeSpotDatafeedSubscriptionOutput, error) {
+func (_m *EC2API) DescribeSpotDatafeedSubscriptionWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotDatafeedSubscriptionInput, _a2 ...request.Option) (*ec2.DescribeSpotDatafeedSubscriptionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12685,7 +15052,7 @@ func (_m *EC2API) DescribeSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSpotDatafeedSubscriptionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotDatafeedSubscriptionInput, ...request.Option) *ec2.DescribeSpotDatafeedSubscriptionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotDatafeedSubscriptionInput, ...request.Option) *ec2.DescribeSpotDatafeedSubscriptionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12694,7 +15061,7 @@ func (_m *EC2API) DescribeSpotDatafeedSubscriptionWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSpotDatafeedSubscriptionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSpotDatafeedSubscriptionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12752,7 +15119,7 @@ func (_m *EC2API) DescribeSpotFleetInstancesRequest(_a0 *ec2.DescribeSpotFleetIn
 }
 
 // DescribeSpotFleetInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSpotFleetInstancesWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotFleetInstancesInput, _a2 ...request.Option) (*ec2.DescribeSpotFleetInstancesOutput, error) {
+func (_m *EC2API) DescribeSpotFleetInstancesWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotFleetInstancesInput, _a2 ...request.Option) (*ec2.DescribeSpotFleetInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12763,7 +15130,7 @@ func (_m *EC2API) DescribeSpotFleetInstancesWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSpotFleetInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotFleetInstancesInput, ...request.Option) *ec2.DescribeSpotFleetInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotFleetInstancesInput, ...request.Option) *ec2.DescribeSpotFleetInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12772,7 +15139,7 @@ func (_m *EC2API) DescribeSpotFleetInstancesWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSpotFleetInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSpotFleetInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12830,7 +15197,7 @@ func (_m *EC2API) DescribeSpotFleetRequestHistoryRequest(_a0 *ec2.DescribeSpotFl
 }
 
 // DescribeSpotFleetRequestHistoryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSpotFleetRequestHistoryWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotFleetRequestHistoryInput, _a2 ...request.Option) (*ec2.DescribeSpotFleetRequestHistoryOutput, error) {
+func (_m *EC2API) DescribeSpotFleetRequestHistoryWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotFleetRequestHistoryInput, _a2 ...request.Option) (*ec2.DescribeSpotFleetRequestHistoryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12841,7 +15208,7 @@ func (_m *EC2API) DescribeSpotFleetRequestHistoryWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSpotFleetRequestHistoryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotFleetRequestHistoryInput, ...request.Option) *ec2.DescribeSpotFleetRequestHistoryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotFleetRequestHistoryInput, ...request.Option) *ec2.DescribeSpotFleetRequestHistoryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12850,7 +15217,7 @@ func (_m *EC2API) DescribeSpotFleetRequestHistoryWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSpotFleetRequestHistoryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSpotFleetRequestHistoryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -12897,7 +15264,7 @@ func (_m *EC2API) DescribeSpotFleetRequestsPages(_a0 *ec2.DescribeSpotFleetReque
 }
 
 // DescribeSpotFleetRequestsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeSpotFleetRequestsPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotFleetRequestsInput, _a2 func(*ec2.DescribeSpotFleetRequestsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeSpotFleetRequestsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotFleetRequestsInput, _a2 func(*ec2.DescribeSpotFleetRequestsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -12908,7 +15275,7 @@ func (_m *EC2API) DescribeSpotFleetRequestsPagesWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotFleetRequestsInput, func(*ec2.DescribeSpotFleetRequestsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotFleetRequestsInput, func(*ec2.DescribeSpotFleetRequestsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -12943,7 +15310,7 @@ func (_m *EC2API) DescribeSpotFleetRequestsRequest(_a0 *ec2.DescribeSpotFleetReq
 }
 
 // DescribeSpotFleetRequestsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSpotFleetRequestsWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotFleetRequestsInput, _a2 ...request.Option) (*ec2.DescribeSpotFleetRequestsOutput, error) {
+func (_m *EC2API) DescribeSpotFleetRequestsWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotFleetRequestsInput, _a2 ...request.Option) (*ec2.DescribeSpotFleetRequestsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -12954,7 +15321,7 @@ func (_m *EC2API) DescribeSpotFleetRequestsWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSpotFleetRequestsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotFleetRequestsInput, ...request.Option) *ec2.DescribeSpotFleetRequestsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotFleetRequestsInput, ...request.Option) *ec2.DescribeSpotFleetRequestsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -12963,7 +15330,7 @@ func (_m *EC2API) DescribeSpotFleetRequestsWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSpotFleetRequestsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSpotFleetRequestsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13021,7 +15388,7 @@ func (_m *EC2API) DescribeSpotInstanceRequestsRequest(_a0 *ec2.DescribeSpotInsta
 }
 
 // DescribeSpotInstanceRequestsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSpotInstanceRequestsWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotInstanceRequestsInput, _a2 ...request.Option) (*ec2.DescribeSpotInstanceRequestsOutput, error) {
+func (_m *EC2API) DescribeSpotInstanceRequestsWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotInstanceRequestsInput, _a2 ...request.Option) (*ec2.DescribeSpotInstanceRequestsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13032,7 +15399,7 @@ func (_m *EC2API) DescribeSpotInstanceRequestsWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSpotInstanceRequestsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotInstanceRequestsInput, ...request.Option) *ec2.DescribeSpotInstanceRequestsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotInstanceRequestsInput, ...request.Option) *ec2.DescribeSpotInstanceRequestsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13041,7 +15408,7 @@ func (_m *EC2API) DescribeSpotInstanceRequestsWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSpotInstanceRequestsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSpotInstanceRequestsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13088,7 +15455,7 @@ func (_m *EC2API) DescribeSpotPriceHistoryPages(_a0 *ec2.DescribeSpotPriceHistor
 }
 
 // DescribeSpotPriceHistoryPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeSpotPriceHistoryPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotPriceHistoryInput, _a2 func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeSpotPriceHistoryPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotPriceHistoryInput, _a2 func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -13099,7 +15466,7 @@ func (_m *EC2API) DescribeSpotPriceHistoryPagesWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotPriceHistoryInput, func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotPriceHistoryInput, func(*ec2.DescribeSpotPriceHistoryOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -13134,7 +15501,7 @@ func (_m *EC2API) DescribeSpotPriceHistoryRequest(_a0 *ec2.DescribeSpotPriceHist
 }
 
 // DescribeSpotPriceHistoryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSpotPriceHistoryWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotPriceHistoryInput, _a2 ...request.Option) (*ec2.DescribeSpotPriceHistoryOutput, error) {
+func (_m *EC2API) DescribeSpotPriceHistoryWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotPriceHistoryInput, _a2 ...request.Option) (*ec2.DescribeSpotPriceHistoryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13145,7 +15512,7 @@ func (_m *EC2API) DescribeSpotPriceHistoryWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSpotPriceHistoryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotPriceHistoryInput, ...request.Option) *ec2.DescribeSpotPriceHistoryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotPriceHistoryInput, ...request.Option) *ec2.DescribeSpotPriceHistoryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13154,7 +15521,7 @@ func (_m *EC2API) DescribeSpotPriceHistoryWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSpotPriceHistoryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSpotPriceHistoryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13212,7 +15579,7 @@ func (_m *EC2API) DescribeStaleSecurityGroupsRequest(_a0 *ec2.DescribeStaleSecur
 }
 
 // DescribeStaleSecurityGroupsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeStaleSecurityGroupsWithContext(_a0 aws.Context, _a1 *ec2.DescribeStaleSecurityGroupsInput, _a2 ...request.Option) (*ec2.DescribeStaleSecurityGroupsOutput, error) {
+func (_m *EC2API) DescribeStaleSecurityGroupsWithContext(_a0 context.Context, _a1 *ec2.DescribeStaleSecurityGroupsInput, _a2 ...request.Option) (*ec2.DescribeStaleSecurityGroupsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13223,7 +15590,7 @@ func (_m *EC2API) DescribeStaleSecurityGroupsWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeStaleSecurityGroupsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeStaleSecurityGroupsInput, ...request.Option) *ec2.DescribeStaleSecurityGroupsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeStaleSecurityGroupsInput, ...request.Option) *ec2.DescribeStaleSecurityGroupsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13232,7 +15599,7 @@ func (_m *EC2API) DescribeStaleSecurityGroupsWithContext(_a0 aws.Context, _a1 *e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeStaleSecurityGroupsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeStaleSecurityGroupsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13290,7 +15657,7 @@ func (_m *EC2API) DescribeSubnetsRequest(_a0 *ec2.DescribeSubnetsInput) (*reques
 }
 
 // DescribeSubnetsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeSubnetsWithContext(_a0 aws.Context, _a1 *ec2.DescribeSubnetsInput, _a2 ...request.Option) (*ec2.DescribeSubnetsOutput, error) {
+func (_m *EC2API) DescribeSubnetsWithContext(_a0 context.Context, _a1 *ec2.DescribeSubnetsInput, _a2 ...request.Option) (*ec2.DescribeSubnetsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13301,7 +15668,7 @@ func (_m *EC2API) DescribeSubnetsWithContext(_a0 aws.Context, _a1 *ec2.DescribeS
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeSubnetsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSubnetsInput, ...request.Option) *ec2.DescribeSubnetsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSubnetsInput, ...request.Option) *ec2.DescribeSubnetsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13310,7 +15677,7 @@ func (_m *EC2API) DescribeSubnetsWithContext(_a0 aws.Context, _a1 *ec2.DescribeS
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeSubnetsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeSubnetsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13357,7 +15724,7 @@ func (_m *EC2API) DescribeTagsPages(_a0 *ec2.DescribeTagsInput, _a1 func(*ec2.De
 }
 
 // DescribeTagsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeTagsPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeTagsInput, _a2 func(*ec2.DescribeTagsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeTagsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeTagsInput, _a2 func(*ec2.DescribeTagsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -13368,7 +15735,7 @@ func (_m *EC2API) DescribeTagsPagesWithContext(_a0 aws.Context, _a1 *ec2.Describ
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeTagsInput, func(*ec2.DescribeTagsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTagsInput, func(*ec2.DescribeTagsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -13403,7 +15770,7 @@ func (_m *EC2API) DescribeTagsRequest(_a0 *ec2.DescribeTagsInput) (*request.Requ
 }
 
 // DescribeTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeTagsWithContext(_a0 aws.Context, _a1 *ec2.DescribeTagsInput, _a2 ...request.Option) (*ec2.DescribeTagsOutput, error) {
+func (_m *EC2API) DescribeTagsWithContext(_a0 context.Context, _a1 *ec2.DescribeTagsInput, _a2 ...request.Option) (*ec2.DescribeTagsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13414,7 +15781,7 @@ func (_m *EC2API) DescribeTagsWithContext(_a0 aws.Context, _a1 *ec2.DescribeTags
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeTagsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeTagsInput, ...request.Option) *ec2.DescribeTagsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTagsInput, ...request.Option) *ec2.DescribeTagsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13423,7 +15790,319 @@ func (_m *EC2API) DescribeTagsWithContext(_a0 aws.Context, _a1 *ec2.DescribeTags
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeTagsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTagsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayAttachments provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGatewayAttachments(_a0 *ec2.DescribeTransitGatewayAttachmentsInput) (*ec2.DescribeTransitGatewayAttachmentsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeTransitGatewayAttachmentsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayAttachmentsInput) *ec2.DescribeTransitGatewayAttachmentsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayAttachmentsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayAttachmentsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayAttachmentsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGatewayAttachmentsRequest(_a0 *ec2.DescribeTransitGatewayAttachmentsInput) (*request.Request, *ec2.DescribeTransitGatewayAttachmentsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayAttachmentsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeTransitGatewayAttachmentsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayAttachmentsInput) *ec2.DescribeTransitGatewayAttachmentsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeTransitGatewayAttachmentsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayAttachmentsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeTransitGatewayAttachmentsWithContext(_a0 context.Context, _a1 *ec2.DescribeTransitGatewayAttachmentsInput, _a2 ...request.Option) (*ec2.DescribeTransitGatewayAttachmentsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeTransitGatewayAttachmentsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayAttachmentsInput, ...request.Option) *ec2.DescribeTransitGatewayAttachmentsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayAttachmentsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayAttachmentsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayRouteTables provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGatewayRouteTables(_a0 *ec2.DescribeTransitGatewayRouteTablesInput) (*ec2.DescribeTransitGatewayRouteTablesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeTransitGatewayRouteTablesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayRouteTablesInput) *ec2.DescribeTransitGatewayRouteTablesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayRouteTablesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayRouteTablesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayRouteTablesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGatewayRouteTablesRequest(_a0 *ec2.DescribeTransitGatewayRouteTablesInput) (*request.Request, *ec2.DescribeTransitGatewayRouteTablesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayRouteTablesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeTransitGatewayRouteTablesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayRouteTablesInput) *ec2.DescribeTransitGatewayRouteTablesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeTransitGatewayRouteTablesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayRouteTablesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeTransitGatewayRouteTablesWithContext(_a0 context.Context, _a1 *ec2.DescribeTransitGatewayRouteTablesInput, _a2 ...request.Option) (*ec2.DescribeTransitGatewayRouteTablesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeTransitGatewayRouteTablesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayRouteTablesInput, ...request.Option) *ec2.DescribeTransitGatewayRouteTablesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayRouteTablesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayRouteTablesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayVpcAttachments provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGatewayVpcAttachments(_a0 *ec2.DescribeTransitGatewayVpcAttachmentsInput) (*ec2.DescribeTransitGatewayVpcAttachmentsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeTransitGatewayVpcAttachmentsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayVpcAttachmentsInput) *ec2.DescribeTransitGatewayVpcAttachmentsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayVpcAttachmentsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayVpcAttachmentsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayVpcAttachmentsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGatewayVpcAttachmentsRequest(_a0 *ec2.DescribeTransitGatewayVpcAttachmentsInput) (*request.Request, *ec2.DescribeTransitGatewayVpcAttachmentsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayVpcAttachmentsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeTransitGatewayVpcAttachmentsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewayVpcAttachmentsInput) *ec2.DescribeTransitGatewayVpcAttachmentsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeTransitGatewayVpcAttachmentsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewayVpcAttachmentsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeTransitGatewayVpcAttachmentsWithContext(_a0 context.Context, _a1 *ec2.DescribeTransitGatewayVpcAttachmentsInput, _a2 ...request.Option) (*ec2.DescribeTransitGatewayVpcAttachmentsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeTransitGatewayVpcAttachmentsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayVpcAttachmentsInput, ...request.Option) *ec2.DescribeTransitGatewayVpcAttachmentsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewayVpcAttachmentsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewayVpcAttachmentsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGateways provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGateways(_a0 *ec2.DescribeTransitGatewaysInput) (*ec2.DescribeTransitGatewaysOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeTransitGatewaysOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewaysInput) *ec2.DescribeTransitGatewaysOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewaysOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewaysInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewaysRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeTransitGatewaysRequest(_a0 *ec2.DescribeTransitGatewaysInput) (*request.Request, *ec2.DescribeTransitGatewaysOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewaysInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeTransitGatewaysOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeTransitGatewaysInput) *ec2.DescribeTransitGatewaysOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeTransitGatewaysOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeTransitGatewaysWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeTransitGatewaysWithContext(_a0 context.Context, _a1 *ec2.DescribeTransitGatewaysInput, _a2 ...request.Option) (*ec2.DescribeTransitGatewaysOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeTransitGatewaysOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewaysInput, ...request.Option) *ec2.DescribeTransitGatewaysOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeTransitGatewaysOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeTransitGatewaysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13481,7 +16160,7 @@ func (_m *EC2API) DescribeVolumeAttributeRequest(_a0 *ec2.DescribeVolumeAttribut
 }
 
 // DescribeVolumeAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVolumeAttributeWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumeAttributeInput, _a2 ...request.Option) (*ec2.DescribeVolumeAttributeOutput, error) {
+func (_m *EC2API) DescribeVolumeAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumeAttributeInput, _a2 ...request.Option) (*ec2.DescribeVolumeAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13492,7 +16171,7 @@ func (_m *EC2API) DescribeVolumeAttributeWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVolumeAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumeAttributeInput, ...request.Option) *ec2.DescribeVolumeAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumeAttributeInput, ...request.Option) *ec2.DescribeVolumeAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13501,7 +16180,7 @@ func (_m *EC2API) DescribeVolumeAttributeWithContext(_a0 aws.Context, _a1 *ec2.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVolumeAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVolumeAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13548,7 +16227,7 @@ func (_m *EC2API) DescribeVolumeStatusPages(_a0 *ec2.DescribeVolumeStatusInput, 
 }
 
 // DescribeVolumeStatusPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeVolumeStatusPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumeStatusInput, _a2 func(*ec2.DescribeVolumeStatusOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeVolumeStatusPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumeStatusInput, _a2 func(*ec2.DescribeVolumeStatusOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -13559,7 +16238,7 @@ func (_m *EC2API) DescribeVolumeStatusPagesWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumeStatusInput, func(*ec2.DescribeVolumeStatusOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumeStatusInput, func(*ec2.DescribeVolumeStatusOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -13594,7 +16273,7 @@ func (_m *EC2API) DescribeVolumeStatusRequest(_a0 *ec2.DescribeVolumeStatusInput
 }
 
 // DescribeVolumeStatusWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVolumeStatusWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumeStatusInput, _a2 ...request.Option) (*ec2.DescribeVolumeStatusOutput, error) {
+func (_m *EC2API) DescribeVolumeStatusWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumeStatusInput, _a2 ...request.Option) (*ec2.DescribeVolumeStatusOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13605,7 +16284,7 @@ func (_m *EC2API) DescribeVolumeStatusWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVolumeStatusOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumeStatusInput, ...request.Option) *ec2.DescribeVolumeStatusOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumeStatusInput, ...request.Option) *ec2.DescribeVolumeStatusOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13614,7 +16293,7 @@ func (_m *EC2API) DescribeVolumeStatusWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVolumeStatusInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVolumeStatusInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13695,7 +16374,7 @@ func (_m *EC2API) DescribeVolumesModificationsRequest(_a0 *ec2.DescribeVolumesMo
 }
 
 // DescribeVolumesModificationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVolumesModificationsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumesModificationsInput, _a2 ...request.Option) (*ec2.DescribeVolumesModificationsOutput, error) {
+func (_m *EC2API) DescribeVolumesModificationsWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumesModificationsInput, _a2 ...request.Option) (*ec2.DescribeVolumesModificationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13706,7 +16385,7 @@ func (_m *EC2API) DescribeVolumesModificationsWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVolumesModificationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumesModificationsInput, ...request.Option) *ec2.DescribeVolumesModificationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumesModificationsInput, ...request.Option) *ec2.DescribeVolumesModificationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13715,7 +16394,7 @@ func (_m *EC2API) DescribeVolumesModificationsWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVolumesModificationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVolumesModificationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13739,7 +16418,7 @@ func (_m *EC2API) DescribeVolumesPages(_a0 *ec2.DescribeVolumesInput, _a1 func(*
 }
 
 // DescribeVolumesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *EC2API) DescribeVolumesPagesWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumesInput, _a2 func(*ec2.DescribeVolumesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *EC2API) DescribeVolumesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumesInput, _a2 func(*ec2.DescribeVolumesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -13750,7 +16429,7 @@ func (_m *EC2API) DescribeVolumesPagesWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumesInput, func(*ec2.DescribeVolumesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumesInput, func(*ec2.DescribeVolumesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -13785,7 +16464,7 @@ func (_m *EC2API) DescribeVolumesRequest(_a0 *ec2.DescribeVolumesInput) (*reques
 }
 
 // DescribeVolumesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVolumesWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.Option) (*ec2.DescribeVolumesOutput, error) {
+func (_m *EC2API) DescribeVolumesWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.Option) (*ec2.DescribeVolumesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13796,7 +16475,7 @@ func (_m *EC2API) DescribeVolumesWithContext(_a0 aws.Context, _a1 *ec2.DescribeV
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVolumesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumesInput, ...request.Option) *ec2.DescribeVolumesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumesInput, ...request.Option) *ec2.DescribeVolumesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13805,7 +16484,7 @@ func (_m *EC2API) DescribeVolumesWithContext(_a0 aws.Context, _a1 *ec2.DescribeV
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVolumesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVolumesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13863,7 +16542,7 @@ func (_m *EC2API) DescribeVpcAttributeRequest(_a0 *ec2.DescribeVpcAttributeInput
 }
 
 // DescribeVpcAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcAttributeWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcAttributeInput, _a2 ...request.Option) (*ec2.DescribeVpcAttributeOutput, error) {
+func (_m *EC2API) DescribeVpcAttributeWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcAttributeInput, _a2 ...request.Option) (*ec2.DescribeVpcAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13874,7 +16553,7 @@ func (_m *EC2API) DescribeVpcAttributeWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcAttributeInput, ...request.Option) *ec2.DescribeVpcAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcAttributeInput, ...request.Option) *ec2.DescribeVpcAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13883,7 +16562,7 @@ func (_m *EC2API) DescribeVpcAttributeWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -13964,7 +16643,7 @@ func (_m *EC2API) DescribeVpcClassicLinkDnsSupportRequest(_a0 *ec2.DescribeVpcCl
 }
 
 // DescribeVpcClassicLinkDnsSupportWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcClassicLinkDnsSupportInput, _a2 ...request.Option) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error) {
+func (_m *EC2API) DescribeVpcClassicLinkDnsSupportWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcClassicLinkDnsSupportInput, _a2 ...request.Option) (*ec2.DescribeVpcClassicLinkDnsSupportOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -13975,7 +16654,7 @@ func (_m *EC2API) DescribeVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcClassicLinkDnsSupportOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcClassicLinkDnsSupportInput, ...request.Option) *ec2.DescribeVpcClassicLinkDnsSupportOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcClassicLinkDnsSupportInput, ...request.Option) *ec2.DescribeVpcClassicLinkDnsSupportOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -13984,7 +16663,7 @@ func (_m *EC2API) DescribeVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcClassicLinkDnsSupportInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcClassicLinkDnsSupportInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14019,7 +16698,7 @@ func (_m *EC2API) DescribeVpcClassicLinkRequest(_a0 *ec2.DescribeVpcClassicLinkI
 }
 
 // DescribeVpcClassicLinkWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcClassicLinkInput, _a2 ...request.Option) (*ec2.DescribeVpcClassicLinkOutput, error) {
+func (_m *EC2API) DescribeVpcClassicLinkWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcClassicLinkInput, _a2 ...request.Option) (*ec2.DescribeVpcClassicLinkOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14030,7 +16709,7 @@ func (_m *EC2API) DescribeVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcClassicLinkOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcClassicLinkInput, ...request.Option) *ec2.DescribeVpcClassicLinkOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcClassicLinkInput, ...request.Option) *ec2.DescribeVpcClassicLinkOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14039,7 +16718,7 @@ func (_m *EC2API) DescribeVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcClassicLinkInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcClassicLinkInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14097,7 +16776,7 @@ func (_m *EC2API) DescribeVpcEndpointConnectionNotificationsRequest(_a0 *ec2.Des
 }
 
 // DescribeVpcEndpointConnectionNotificationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcEndpointConnectionNotificationsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcEndpointConnectionNotificationsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointConnectionNotificationsOutput, error) {
+func (_m *EC2API) DescribeVpcEndpointConnectionNotificationsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcEndpointConnectionNotificationsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointConnectionNotificationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14108,7 +16787,7 @@ func (_m *EC2API) DescribeVpcEndpointConnectionNotificationsWithContext(_a0 aws.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcEndpointConnectionNotificationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcEndpointConnectionNotificationsInput, ...request.Option) *ec2.DescribeVpcEndpointConnectionNotificationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcEndpointConnectionNotificationsInput, ...request.Option) *ec2.DescribeVpcEndpointConnectionNotificationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14117,7 +16796,7 @@ func (_m *EC2API) DescribeVpcEndpointConnectionNotificationsWithContext(_a0 aws.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcEndpointConnectionNotificationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcEndpointConnectionNotificationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14175,7 +16854,7 @@ func (_m *EC2API) DescribeVpcEndpointConnectionsRequest(_a0 *ec2.DescribeVpcEndp
 }
 
 // DescribeVpcEndpointConnectionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcEndpointConnectionsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointConnectionsOutput, error) {
+func (_m *EC2API) DescribeVpcEndpointConnectionsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcEndpointConnectionsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointConnectionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14186,7 +16865,7 @@ func (_m *EC2API) DescribeVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcEndpointConnectionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcEndpointConnectionsInput, ...request.Option) *ec2.DescribeVpcEndpointConnectionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcEndpointConnectionsInput, ...request.Option) *ec2.DescribeVpcEndpointConnectionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14195,7 +16874,7 @@ func (_m *EC2API) DescribeVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcEndpointConnectionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcEndpointConnectionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14253,7 +16932,7 @@ func (_m *EC2API) DescribeVpcEndpointServiceConfigurationsRequest(_a0 *ec2.Descr
 }
 
 // DescribeVpcEndpointServiceConfigurationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcEndpointServiceConfigurationsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcEndpointServiceConfigurationsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointServiceConfigurationsOutput, error) {
+func (_m *EC2API) DescribeVpcEndpointServiceConfigurationsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcEndpointServiceConfigurationsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointServiceConfigurationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14264,7 +16943,7 @@ func (_m *EC2API) DescribeVpcEndpointServiceConfigurationsWithContext(_a0 aws.Co
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcEndpointServiceConfigurationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcEndpointServiceConfigurationsInput, ...request.Option) *ec2.DescribeVpcEndpointServiceConfigurationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcEndpointServiceConfigurationsInput, ...request.Option) *ec2.DescribeVpcEndpointServiceConfigurationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14273,7 +16952,7 @@ func (_m *EC2API) DescribeVpcEndpointServiceConfigurationsWithContext(_a0 aws.Co
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcEndpointServiceConfigurationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcEndpointServiceConfigurationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14331,7 +17010,7 @@ func (_m *EC2API) DescribeVpcEndpointServicePermissionsRequest(_a0 *ec2.Describe
 }
 
 // DescribeVpcEndpointServicePermissionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcEndpointServicePermissionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcEndpointServicePermissionsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointServicePermissionsOutput, error) {
+func (_m *EC2API) DescribeVpcEndpointServicePermissionsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcEndpointServicePermissionsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointServicePermissionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14342,7 +17021,7 @@ func (_m *EC2API) DescribeVpcEndpointServicePermissionsWithContext(_a0 aws.Conte
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcEndpointServicePermissionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcEndpointServicePermissionsInput, ...request.Option) *ec2.DescribeVpcEndpointServicePermissionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcEndpointServicePermissionsInput, ...request.Option) *ec2.DescribeVpcEndpointServicePermissionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14351,7 +17030,7 @@ func (_m *EC2API) DescribeVpcEndpointServicePermissionsWithContext(_a0 aws.Conte
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcEndpointServicePermissionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcEndpointServicePermissionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14409,7 +17088,7 @@ func (_m *EC2API) DescribeVpcEndpointServicesRequest(_a0 *ec2.DescribeVpcEndpoin
 }
 
 // DescribeVpcEndpointServicesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcEndpointServicesWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcEndpointServicesInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointServicesOutput, error) {
+func (_m *EC2API) DescribeVpcEndpointServicesWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcEndpointServicesInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointServicesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14420,7 +17099,7 @@ func (_m *EC2API) DescribeVpcEndpointServicesWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcEndpointServicesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcEndpointServicesInput, ...request.Option) *ec2.DescribeVpcEndpointServicesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcEndpointServicesInput, ...request.Option) *ec2.DescribeVpcEndpointServicesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14429,7 +17108,7 @@ func (_m *EC2API) DescribeVpcEndpointServicesWithContext(_a0 aws.Context, _a1 *e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcEndpointServicesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcEndpointServicesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14487,7 +17166,7 @@ func (_m *EC2API) DescribeVpcEndpointsRequest(_a0 *ec2.DescribeVpcEndpointsInput
 }
 
 // DescribeVpcEndpointsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcEndpointsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcEndpointsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointsOutput, error) {
+func (_m *EC2API) DescribeVpcEndpointsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcEndpointsInput, _a2 ...request.Option) (*ec2.DescribeVpcEndpointsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14498,7 +17177,7 @@ func (_m *EC2API) DescribeVpcEndpointsWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcEndpointsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcEndpointsInput, ...request.Option) *ec2.DescribeVpcEndpointsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcEndpointsInput, ...request.Option) *ec2.DescribeVpcEndpointsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14507,7 +17186,7 @@ func (_m *EC2API) DescribeVpcEndpointsWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcEndpointsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcEndpointsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14565,7 +17244,7 @@ func (_m *EC2API) DescribeVpcPeeringConnectionsRequest(_a0 *ec2.DescribeVpcPeeri
 }
 
 // DescribeVpcPeeringConnectionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcPeeringConnectionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcPeeringConnectionsInput, _a2 ...request.Option) (*ec2.DescribeVpcPeeringConnectionsOutput, error) {
+func (_m *EC2API) DescribeVpcPeeringConnectionsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcPeeringConnectionsInput, _a2 ...request.Option) (*ec2.DescribeVpcPeeringConnectionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14576,7 +17255,7 @@ func (_m *EC2API) DescribeVpcPeeringConnectionsWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcPeeringConnectionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.Option) *ec2.DescribeVpcPeeringConnectionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.Option) *ec2.DescribeVpcPeeringConnectionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14585,7 +17264,7 @@ func (_m *EC2API) DescribeVpcPeeringConnectionsWithContext(_a0 aws.Context, _a1 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14643,7 +17322,7 @@ func (_m *EC2API) DescribeVpcsRequest(_a0 *ec2.DescribeVpcsInput) (*request.Requ
 }
 
 // DescribeVpcsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpcsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcsInput, _a2 ...request.Option) (*ec2.DescribeVpcsOutput, error) {
+func (_m *EC2API) DescribeVpcsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcsInput, _a2 ...request.Option) (*ec2.DescribeVpcsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14654,7 +17333,7 @@ func (_m *EC2API) DescribeVpcsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcs
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpcsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcsInput, ...request.Option) *ec2.DescribeVpcsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcsInput, ...request.Option) *ec2.DescribeVpcsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14663,7 +17342,7 @@ func (_m *EC2API) DescribeVpcsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcs
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpcsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpcsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14721,7 +17400,7 @@ func (_m *EC2API) DescribeVpnConnectionsRequest(_a0 *ec2.DescribeVpnConnectionsI
 }
 
 // DescribeVpnConnectionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpnConnectionsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpnConnectionsInput, _a2 ...request.Option) (*ec2.DescribeVpnConnectionsOutput, error) {
+func (_m *EC2API) DescribeVpnConnectionsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpnConnectionsInput, _a2 ...request.Option) (*ec2.DescribeVpnConnectionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14732,7 +17411,7 @@ func (_m *EC2API) DescribeVpnConnectionsWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpnConnectionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpnConnectionsInput, ...request.Option) *ec2.DescribeVpnConnectionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpnConnectionsInput, ...request.Option) *ec2.DescribeVpnConnectionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14741,7 +17420,7 @@ func (_m *EC2API) DescribeVpnConnectionsWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpnConnectionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpnConnectionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14799,7 +17478,7 @@ func (_m *EC2API) DescribeVpnGatewaysRequest(_a0 *ec2.DescribeVpnGatewaysInput) 
 }
 
 // DescribeVpnGatewaysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DescribeVpnGatewaysWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpnGatewaysInput, _a2 ...request.Option) (*ec2.DescribeVpnGatewaysOutput, error) {
+func (_m *EC2API) DescribeVpnGatewaysWithContext(_a0 context.Context, _a1 *ec2.DescribeVpnGatewaysInput, _a2 ...request.Option) (*ec2.DescribeVpnGatewaysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14810,7 +17489,7 @@ func (_m *EC2API) DescribeVpnGatewaysWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DescribeVpnGatewaysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpnGatewaysInput, ...request.Option) *ec2.DescribeVpnGatewaysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpnGatewaysInput, ...request.Option) *ec2.DescribeVpnGatewaysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14819,7 +17498,7 @@ func (_m *EC2API) DescribeVpnGatewaysWithContext(_a0 aws.Context, _a1 *ec2.Descr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DescribeVpnGatewaysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeVpnGatewaysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14877,7 +17556,7 @@ func (_m *EC2API) DetachClassicLinkVpcRequest(_a0 *ec2.DetachClassicLinkVpcInput
 }
 
 // DetachClassicLinkVpcWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DetachClassicLinkVpcWithContext(_a0 aws.Context, _a1 *ec2.DetachClassicLinkVpcInput, _a2 ...request.Option) (*ec2.DetachClassicLinkVpcOutput, error) {
+func (_m *EC2API) DetachClassicLinkVpcWithContext(_a0 context.Context, _a1 *ec2.DetachClassicLinkVpcInput, _a2 ...request.Option) (*ec2.DetachClassicLinkVpcOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14888,7 +17567,7 @@ func (_m *EC2API) DetachClassicLinkVpcWithContext(_a0 aws.Context, _a1 *ec2.Deta
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DetachClassicLinkVpcOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DetachClassicLinkVpcInput, ...request.Option) *ec2.DetachClassicLinkVpcOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DetachClassicLinkVpcInput, ...request.Option) *ec2.DetachClassicLinkVpcOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14897,7 +17576,7 @@ func (_m *EC2API) DetachClassicLinkVpcWithContext(_a0 aws.Context, _a1 *ec2.Deta
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DetachClassicLinkVpcInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DetachClassicLinkVpcInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14955,7 +17634,7 @@ func (_m *EC2API) DetachInternetGatewayRequest(_a0 *ec2.DetachInternetGatewayInp
 }
 
 // DetachInternetGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DetachInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.DetachInternetGatewayInput, _a2 ...request.Option) (*ec2.DetachInternetGatewayOutput, error) {
+func (_m *EC2API) DetachInternetGatewayWithContext(_a0 context.Context, _a1 *ec2.DetachInternetGatewayInput, _a2 ...request.Option) (*ec2.DetachInternetGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -14966,7 +17645,7 @@ func (_m *EC2API) DetachInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Det
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DetachInternetGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DetachInternetGatewayInput, ...request.Option) *ec2.DetachInternetGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DetachInternetGatewayInput, ...request.Option) *ec2.DetachInternetGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -14975,7 +17654,7 @@ func (_m *EC2API) DetachInternetGatewayWithContext(_a0 aws.Context, _a1 *ec2.Det
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DetachInternetGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DetachInternetGatewayInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15033,7 +17712,7 @@ func (_m *EC2API) DetachNetworkInterfaceRequest(_a0 *ec2.DetachNetworkInterfaceI
 }
 
 // DetachNetworkInterfaceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DetachNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.DetachNetworkInterfaceInput, _a2 ...request.Option) (*ec2.DetachNetworkInterfaceOutput, error) {
+func (_m *EC2API) DetachNetworkInterfaceWithContext(_a0 context.Context, _a1 *ec2.DetachNetworkInterfaceInput, _a2 ...request.Option) (*ec2.DetachNetworkInterfaceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15044,7 +17723,7 @@ func (_m *EC2API) DetachNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DetachNetworkInterfaceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DetachNetworkInterfaceInput, ...request.Option) *ec2.DetachNetworkInterfaceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DetachNetworkInterfaceInput, ...request.Option) *ec2.DetachNetworkInterfaceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15053,7 +17732,7 @@ func (_m *EC2API) DetachNetworkInterfaceWithContext(_a0 aws.Context, _a1 *ec2.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DetachNetworkInterfaceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DetachNetworkInterfaceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15111,7 +17790,7 @@ func (_m *EC2API) DetachVolumeRequest(_a0 *ec2.DetachVolumeInput) (*request.Requ
 }
 
 // DetachVolumeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DetachVolumeWithContext(_a0 aws.Context, _a1 *ec2.DetachVolumeInput, _a2 ...request.Option) (*ec2.VolumeAttachment, error) {
+func (_m *EC2API) DetachVolumeWithContext(_a0 context.Context, _a1 *ec2.DetachVolumeInput, _a2 ...request.Option) (*ec2.VolumeAttachment, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15122,7 +17801,7 @@ func (_m *EC2API) DetachVolumeWithContext(_a0 aws.Context, _a1 *ec2.DetachVolume
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.VolumeAttachment
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DetachVolumeInput, ...request.Option) *ec2.VolumeAttachment); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DetachVolumeInput, ...request.Option) *ec2.VolumeAttachment); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15131,7 +17810,7 @@ func (_m *EC2API) DetachVolumeWithContext(_a0 aws.Context, _a1 *ec2.DetachVolume
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DetachVolumeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DetachVolumeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15189,7 +17868,7 @@ func (_m *EC2API) DetachVpnGatewayRequest(_a0 *ec2.DetachVpnGatewayInput) (*requ
 }
 
 // DetachVpnGatewayWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DetachVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.DetachVpnGatewayInput, _a2 ...request.Option) (*ec2.DetachVpnGatewayOutput, error) {
+func (_m *EC2API) DetachVpnGatewayWithContext(_a0 context.Context, _a1 *ec2.DetachVpnGatewayInput, _a2 ...request.Option) (*ec2.DetachVpnGatewayOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15200,7 +17879,7 @@ func (_m *EC2API) DetachVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.DetachVp
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DetachVpnGatewayOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DetachVpnGatewayInput, ...request.Option) *ec2.DetachVpnGatewayOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DetachVpnGatewayInput, ...request.Option) *ec2.DetachVpnGatewayOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15209,7 +17888,85 @@ func (_m *EC2API) DetachVpnGatewayWithContext(_a0 aws.Context, _a1 *ec2.DetachVp
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DetachVpnGatewayInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DetachVpnGatewayInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisableTransitGatewayRouteTablePropagation provides a mock function with given fields: _a0
+func (_m *EC2API) DisableTransitGatewayRouteTablePropagation(_a0 *ec2.DisableTransitGatewayRouteTablePropagationInput) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisableTransitGatewayRouteTablePropagationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisableTransitGatewayRouteTablePropagationInput) *ec2.DisableTransitGatewayRouteTablePropagationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableTransitGatewayRouteTablePropagationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisableTransitGatewayRouteTablePropagationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisableTransitGatewayRouteTablePropagationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisableTransitGatewayRouteTablePropagationRequest(_a0 *ec2.DisableTransitGatewayRouteTablePropagationInput) (*request.Request, *ec2.DisableTransitGatewayRouteTablePropagationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisableTransitGatewayRouteTablePropagationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisableTransitGatewayRouteTablePropagationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisableTransitGatewayRouteTablePropagationInput) *ec2.DisableTransitGatewayRouteTablePropagationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisableTransitGatewayRouteTablePropagationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisableTransitGatewayRouteTablePropagationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisableTransitGatewayRouteTablePropagationWithContext(_a0 context.Context, _a1 *ec2.DisableTransitGatewayRouteTablePropagationInput, _a2 ...request.Option) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisableTransitGatewayRouteTablePropagationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableTransitGatewayRouteTablePropagationInput, ...request.Option) *ec2.DisableTransitGatewayRouteTablePropagationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableTransitGatewayRouteTablePropagationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableTransitGatewayRouteTablePropagationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15267,7 +18024,7 @@ func (_m *EC2API) DisableVgwRoutePropagationRequest(_a0 *ec2.DisableVgwRouteProp
 }
 
 // DisableVgwRoutePropagationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisableVgwRoutePropagationWithContext(_a0 aws.Context, _a1 *ec2.DisableVgwRoutePropagationInput, _a2 ...request.Option) (*ec2.DisableVgwRoutePropagationOutput, error) {
+func (_m *EC2API) DisableVgwRoutePropagationWithContext(_a0 context.Context, _a1 *ec2.DisableVgwRoutePropagationInput, _a2 ...request.Option) (*ec2.DisableVgwRoutePropagationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15278,7 +18035,7 @@ func (_m *EC2API) DisableVgwRoutePropagationWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisableVgwRoutePropagationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisableVgwRoutePropagationInput, ...request.Option) *ec2.DisableVgwRoutePropagationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableVgwRoutePropagationInput, ...request.Option) *ec2.DisableVgwRoutePropagationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15287,7 +18044,7 @@ func (_m *EC2API) DisableVgwRoutePropagationWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisableVgwRoutePropagationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableVgwRoutePropagationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15368,7 +18125,7 @@ func (_m *EC2API) DisableVpcClassicLinkDnsSupportRequest(_a0 *ec2.DisableVpcClas
 }
 
 // DisableVpcClassicLinkDnsSupportWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisableVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _a1 *ec2.DisableVpcClassicLinkDnsSupportInput, _a2 ...request.Option) (*ec2.DisableVpcClassicLinkDnsSupportOutput, error) {
+func (_m *EC2API) DisableVpcClassicLinkDnsSupportWithContext(_a0 context.Context, _a1 *ec2.DisableVpcClassicLinkDnsSupportInput, _a2 ...request.Option) (*ec2.DisableVpcClassicLinkDnsSupportOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15379,7 +18136,7 @@ func (_m *EC2API) DisableVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisableVpcClassicLinkDnsSupportOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisableVpcClassicLinkDnsSupportInput, ...request.Option) *ec2.DisableVpcClassicLinkDnsSupportOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableVpcClassicLinkDnsSupportInput, ...request.Option) *ec2.DisableVpcClassicLinkDnsSupportOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15388,7 +18145,7 @@ func (_m *EC2API) DisableVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisableVpcClassicLinkDnsSupportInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableVpcClassicLinkDnsSupportInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15423,7 +18180,7 @@ func (_m *EC2API) DisableVpcClassicLinkRequest(_a0 *ec2.DisableVpcClassicLinkInp
 }
 
 // DisableVpcClassicLinkWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisableVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.DisableVpcClassicLinkInput, _a2 ...request.Option) (*ec2.DisableVpcClassicLinkOutput, error) {
+func (_m *EC2API) DisableVpcClassicLinkWithContext(_a0 context.Context, _a1 *ec2.DisableVpcClassicLinkInput, _a2 ...request.Option) (*ec2.DisableVpcClassicLinkOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15434,7 +18191,7 @@ func (_m *EC2API) DisableVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.Dis
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisableVpcClassicLinkOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisableVpcClassicLinkInput, ...request.Option) *ec2.DisableVpcClassicLinkOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableVpcClassicLinkInput, ...request.Option) *ec2.DisableVpcClassicLinkOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15443,7 +18200,7 @@ func (_m *EC2API) DisableVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.Dis
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisableVpcClassicLinkInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableVpcClassicLinkInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15501,7 +18258,7 @@ func (_m *EC2API) DisassociateAddressRequest(_a0 *ec2.DisassociateAddressInput) 
 }
 
 // DisassociateAddressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisassociateAddressWithContext(_a0 aws.Context, _a1 *ec2.DisassociateAddressInput, _a2 ...request.Option) (*ec2.DisassociateAddressOutput, error) {
+func (_m *EC2API) DisassociateAddressWithContext(_a0 context.Context, _a1 *ec2.DisassociateAddressInput, _a2 ...request.Option) (*ec2.DisassociateAddressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15512,7 +18269,7 @@ func (_m *EC2API) DisassociateAddressWithContext(_a0 aws.Context, _a1 *ec2.Disas
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisassociateAddressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisassociateAddressInput, ...request.Option) *ec2.DisassociateAddressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateAddressInput, ...request.Option) *ec2.DisassociateAddressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15521,7 +18278,85 @@ func (_m *EC2API) DisassociateAddressWithContext(_a0 aws.Context, _a1 *ec2.Disas
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisassociateAddressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateAddressInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateClientVpnTargetNetwork provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateClientVpnTargetNetwork(_a0 *ec2.DisassociateClientVpnTargetNetworkInput) (*ec2.DisassociateClientVpnTargetNetworkOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisassociateClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateClientVpnTargetNetworkInput) *ec2.DisassociateClientVpnTargetNetworkOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateClientVpnTargetNetworkOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateClientVpnTargetNetworkInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateClientVpnTargetNetworkRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateClientVpnTargetNetworkRequest(_a0 *ec2.DisassociateClientVpnTargetNetworkInput) (*request.Request, *ec2.DisassociateClientVpnTargetNetworkOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateClientVpnTargetNetworkInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisassociateClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateClientVpnTargetNetworkInput) *ec2.DisassociateClientVpnTargetNetworkOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisassociateClientVpnTargetNetworkOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisassociateClientVpnTargetNetworkWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisassociateClientVpnTargetNetworkWithContext(_a0 context.Context, _a1 *ec2.DisassociateClientVpnTargetNetworkInput, _a2 ...request.Option) (*ec2.DisassociateClientVpnTargetNetworkOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisassociateClientVpnTargetNetworkOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateClientVpnTargetNetworkInput, ...request.Option) *ec2.DisassociateClientVpnTargetNetworkOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateClientVpnTargetNetworkOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateClientVpnTargetNetworkInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15579,7 +18414,7 @@ func (_m *EC2API) DisassociateIamInstanceProfileRequest(_a0 *ec2.DisassociateIam
 }
 
 // DisassociateIamInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisassociateIamInstanceProfileWithContext(_a0 aws.Context, _a1 *ec2.DisassociateIamInstanceProfileInput, _a2 ...request.Option) (*ec2.DisassociateIamInstanceProfileOutput, error) {
+func (_m *EC2API) DisassociateIamInstanceProfileWithContext(_a0 context.Context, _a1 *ec2.DisassociateIamInstanceProfileInput, _a2 ...request.Option) (*ec2.DisassociateIamInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15590,7 +18425,7 @@ func (_m *EC2API) DisassociateIamInstanceProfileWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisassociateIamInstanceProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisassociateIamInstanceProfileInput, ...request.Option) *ec2.DisassociateIamInstanceProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateIamInstanceProfileInput, ...request.Option) *ec2.DisassociateIamInstanceProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15599,7 +18434,7 @@ func (_m *EC2API) DisassociateIamInstanceProfileWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisassociateIamInstanceProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateIamInstanceProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15657,7 +18492,7 @@ func (_m *EC2API) DisassociateRouteTableRequest(_a0 *ec2.DisassociateRouteTableI
 }
 
 // DisassociateRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisassociateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.DisassociateRouteTableInput, _a2 ...request.Option) (*ec2.DisassociateRouteTableOutput, error) {
+func (_m *EC2API) DisassociateRouteTableWithContext(_a0 context.Context, _a1 *ec2.DisassociateRouteTableInput, _a2 ...request.Option) (*ec2.DisassociateRouteTableOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15668,7 +18503,7 @@ func (_m *EC2API) DisassociateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.Di
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisassociateRouteTableOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisassociateRouteTableInput, ...request.Option) *ec2.DisassociateRouteTableOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateRouteTableInput, ...request.Option) *ec2.DisassociateRouteTableOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15677,7 +18512,7 @@ func (_m *EC2API) DisassociateRouteTableWithContext(_a0 aws.Context, _a1 *ec2.Di
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisassociateRouteTableInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateRouteTableInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15735,7 +18570,7 @@ func (_m *EC2API) DisassociateSubnetCidrBlockRequest(_a0 *ec2.DisassociateSubnet
 }
 
 // DisassociateSubnetCidrBlockWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisassociateSubnetCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.DisassociateSubnetCidrBlockInput, _a2 ...request.Option) (*ec2.DisassociateSubnetCidrBlockOutput, error) {
+func (_m *EC2API) DisassociateSubnetCidrBlockWithContext(_a0 context.Context, _a1 *ec2.DisassociateSubnetCidrBlockInput, _a2 ...request.Option) (*ec2.DisassociateSubnetCidrBlockOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15746,7 +18581,7 @@ func (_m *EC2API) DisassociateSubnetCidrBlockWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisassociateSubnetCidrBlockOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisassociateSubnetCidrBlockInput, ...request.Option) *ec2.DisassociateSubnetCidrBlockOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateSubnetCidrBlockInput, ...request.Option) *ec2.DisassociateSubnetCidrBlockOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15755,7 +18590,85 @@ func (_m *EC2API) DisassociateSubnetCidrBlockWithContext(_a0 aws.Context, _a1 *e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisassociateSubnetCidrBlockInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateSubnetCidrBlockInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateTransitGatewayRouteTable provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateTransitGatewayRouteTable(_a0 *ec2.DisassociateTransitGatewayRouteTableInput) (*ec2.DisassociateTransitGatewayRouteTableOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisassociateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateTransitGatewayRouteTableInput) *ec2.DisassociateTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateTransitGatewayRouteTableInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisassociateTransitGatewayRouteTableRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisassociateTransitGatewayRouteTableRequest(_a0 *ec2.DisassociateTransitGatewayRouteTableInput) (*request.Request, *ec2.DisassociateTransitGatewayRouteTableOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisassociateTransitGatewayRouteTableInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisassociateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisassociateTransitGatewayRouteTableInput) *ec2.DisassociateTransitGatewayRouteTableOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisassociateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisassociateTransitGatewayRouteTableWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisassociateTransitGatewayRouteTableWithContext(_a0 context.Context, _a1 *ec2.DisassociateTransitGatewayRouteTableInput, _a2 ...request.Option) (*ec2.DisassociateTransitGatewayRouteTableOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisassociateTransitGatewayRouteTableOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateTransitGatewayRouteTableInput, ...request.Option) *ec2.DisassociateTransitGatewayRouteTableOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisassociateTransitGatewayRouteTableOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateTransitGatewayRouteTableInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15813,7 +18726,7 @@ func (_m *EC2API) DisassociateVpcCidrBlockRequest(_a0 *ec2.DisassociateVpcCidrBl
 }
 
 // DisassociateVpcCidrBlockWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) DisassociateVpcCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.DisassociateVpcCidrBlockInput, _a2 ...request.Option) (*ec2.DisassociateVpcCidrBlockOutput, error) {
+func (_m *EC2API) DisassociateVpcCidrBlockWithContext(_a0 context.Context, _a1 *ec2.DisassociateVpcCidrBlockInput, _a2 ...request.Option) (*ec2.DisassociateVpcCidrBlockOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15824,7 +18737,7 @@ func (_m *EC2API) DisassociateVpcCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.DisassociateVpcCidrBlockOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DisassociateVpcCidrBlockInput, ...request.Option) *ec2.DisassociateVpcCidrBlockOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisassociateVpcCidrBlockInput, ...request.Option) *ec2.DisassociateVpcCidrBlockOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15833,7 +18746,85 @@ func (_m *EC2API) DisassociateVpcCidrBlockWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.DisassociateVpcCidrBlockInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisassociateVpcCidrBlockInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnableTransitGatewayRouteTablePropagation provides a mock function with given fields: _a0
+func (_m *EC2API) EnableTransitGatewayRouteTablePropagation(_a0 *ec2.EnableTransitGatewayRouteTablePropagationInput) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.EnableTransitGatewayRouteTablePropagationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.EnableTransitGatewayRouteTablePropagationInput) *ec2.EnableTransitGatewayRouteTablePropagationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableTransitGatewayRouteTablePropagationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.EnableTransitGatewayRouteTablePropagationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnableTransitGatewayRouteTablePropagationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) EnableTransitGatewayRouteTablePropagationRequest(_a0 *ec2.EnableTransitGatewayRouteTablePropagationInput) (*request.Request, *ec2.EnableTransitGatewayRouteTablePropagationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.EnableTransitGatewayRouteTablePropagationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.EnableTransitGatewayRouteTablePropagationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.EnableTransitGatewayRouteTablePropagationInput) *ec2.EnableTransitGatewayRouteTablePropagationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.EnableTransitGatewayRouteTablePropagationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// EnableTransitGatewayRouteTablePropagationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) EnableTransitGatewayRouteTablePropagationWithContext(_a0 context.Context, _a1 *ec2.EnableTransitGatewayRouteTablePropagationInput, _a2 ...request.Option) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.EnableTransitGatewayRouteTablePropagationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableTransitGatewayRouteTablePropagationInput, ...request.Option) *ec2.EnableTransitGatewayRouteTablePropagationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableTransitGatewayRouteTablePropagationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableTransitGatewayRouteTablePropagationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15891,7 +18882,7 @@ func (_m *EC2API) EnableVgwRoutePropagationRequest(_a0 *ec2.EnableVgwRoutePropag
 }
 
 // EnableVgwRoutePropagationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) EnableVgwRoutePropagationWithContext(_a0 aws.Context, _a1 *ec2.EnableVgwRoutePropagationInput, _a2 ...request.Option) (*ec2.EnableVgwRoutePropagationOutput, error) {
+func (_m *EC2API) EnableVgwRoutePropagationWithContext(_a0 context.Context, _a1 *ec2.EnableVgwRoutePropagationInput, _a2 ...request.Option) (*ec2.EnableVgwRoutePropagationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15902,7 +18893,7 @@ func (_m *EC2API) EnableVgwRoutePropagationWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.EnableVgwRoutePropagationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.EnableVgwRoutePropagationInput, ...request.Option) *ec2.EnableVgwRoutePropagationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableVgwRoutePropagationInput, ...request.Option) *ec2.EnableVgwRoutePropagationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15911,7 +18902,7 @@ func (_m *EC2API) EnableVgwRoutePropagationWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.EnableVgwRoutePropagationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableVgwRoutePropagationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -15969,7 +18960,7 @@ func (_m *EC2API) EnableVolumeIORequest(_a0 *ec2.EnableVolumeIOInput) (*request.
 }
 
 // EnableVolumeIOWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) EnableVolumeIOWithContext(_a0 aws.Context, _a1 *ec2.EnableVolumeIOInput, _a2 ...request.Option) (*ec2.EnableVolumeIOOutput, error) {
+func (_m *EC2API) EnableVolumeIOWithContext(_a0 context.Context, _a1 *ec2.EnableVolumeIOInput, _a2 ...request.Option) (*ec2.EnableVolumeIOOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -15980,7 +18971,7 @@ func (_m *EC2API) EnableVolumeIOWithContext(_a0 aws.Context, _a1 *ec2.EnableVolu
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.EnableVolumeIOOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.EnableVolumeIOInput, ...request.Option) *ec2.EnableVolumeIOOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableVolumeIOInput, ...request.Option) *ec2.EnableVolumeIOOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -15989,7 +18980,7 @@ func (_m *EC2API) EnableVolumeIOWithContext(_a0 aws.Context, _a1 *ec2.EnableVolu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.EnableVolumeIOInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableVolumeIOInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16070,7 +19061,7 @@ func (_m *EC2API) EnableVpcClassicLinkDnsSupportRequest(_a0 *ec2.EnableVpcClassi
 }
 
 // EnableVpcClassicLinkDnsSupportWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) EnableVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _a1 *ec2.EnableVpcClassicLinkDnsSupportInput, _a2 ...request.Option) (*ec2.EnableVpcClassicLinkDnsSupportOutput, error) {
+func (_m *EC2API) EnableVpcClassicLinkDnsSupportWithContext(_a0 context.Context, _a1 *ec2.EnableVpcClassicLinkDnsSupportInput, _a2 ...request.Option) (*ec2.EnableVpcClassicLinkDnsSupportOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16081,7 +19072,7 @@ func (_m *EC2API) EnableVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.EnableVpcClassicLinkDnsSupportOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.EnableVpcClassicLinkDnsSupportInput, ...request.Option) *ec2.EnableVpcClassicLinkDnsSupportOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableVpcClassicLinkDnsSupportInput, ...request.Option) *ec2.EnableVpcClassicLinkDnsSupportOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16090,7 +19081,7 @@ func (_m *EC2API) EnableVpcClassicLinkDnsSupportWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.EnableVpcClassicLinkDnsSupportInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableVpcClassicLinkDnsSupportInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16125,7 +19116,7 @@ func (_m *EC2API) EnableVpcClassicLinkRequest(_a0 *ec2.EnableVpcClassicLinkInput
 }
 
 // EnableVpcClassicLinkWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) EnableVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.EnableVpcClassicLinkInput, _a2 ...request.Option) (*ec2.EnableVpcClassicLinkOutput, error) {
+func (_m *EC2API) EnableVpcClassicLinkWithContext(_a0 context.Context, _a1 *ec2.EnableVpcClassicLinkInput, _a2 ...request.Option) (*ec2.EnableVpcClassicLinkOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16136,7 +19127,7 @@ func (_m *EC2API) EnableVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.Enab
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.EnableVpcClassicLinkOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.EnableVpcClassicLinkInput, ...request.Option) *ec2.EnableVpcClassicLinkOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableVpcClassicLinkInput, ...request.Option) *ec2.EnableVpcClassicLinkOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16145,7 +19136,241 @@ func (_m *EC2API) EnableVpcClassicLinkWithContext(_a0 aws.Context, _a1 *ec2.Enab
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.EnableVpcClassicLinkInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableVpcClassicLinkInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExportClientVpnClientCertificateRevocationList provides a mock function with given fields: _a0
+func (_m *EC2API) ExportClientVpnClientCertificateRevocationList(_a0 *ec2.ExportClientVpnClientCertificateRevocationListInput) (*ec2.ExportClientVpnClientCertificateRevocationListOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ExportClientVpnClientCertificateRevocationListOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ExportClientVpnClientCertificateRevocationListInput) *ec2.ExportClientVpnClientCertificateRevocationListOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ExportClientVpnClientCertificateRevocationListOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ExportClientVpnClientCertificateRevocationListInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExportClientVpnClientCertificateRevocationListRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ExportClientVpnClientCertificateRevocationListRequest(_a0 *ec2.ExportClientVpnClientCertificateRevocationListInput) (*request.Request, *ec2.ExportClientVpnClientCertificateRevocationListOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ExportClientVpnClientCertificateRevocationListInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ExportClientVpnClientCertificateRevocationListOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ExportClientVpnClientCertificateRevocationListInput) *ec2.ExportClientVpnClientCertificateRevocationListOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ExportClientVpnClientCertificateRevocationListOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ExportClientVpnClientCertificateRevocationListWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ExportClientVpnClientCertificateRevocationListWithContext(_a0 context.Context, _a1 *ec2.ExportClientVpnClientCertificateRevocationListInput, _a2 ...request.Option) (*ec2.ExportClientVpnClientCertificateRevocationListOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ExportClientVpnClientCertificateRevocationListOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ExportClientVpnClientCertificateRevocationListInput, ...request.Option) *ec2.ExportClientVpnClientCertificateRevocationListOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ExportClientVpnClientCertificateRevocationListOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ExportClientVpnClientCertificateRevocationListInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExportClientVpnClientConfiguration provides a mock function with given fields: _a0
+func (_m *EC2API) ExportClientVpnClientConfiguration(_a0 *ec2.ExportClientVpnClientConfigurationInput) (*ec2.ExportClientVpnClientConfigurationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ExportClientVpnClientConfigurationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ExportClientVpnClientConfigurationInput) *ec2.ExportClientVpnClientConfigurationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ExportClientVpnClientConfigurationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ExportClientVpnClientConfigurationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExportClientVpnClientConfigurationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ExportClientVpnClientConfigurationRequest(_a0 *ec2.ExportClientVpnClientConfigurationInput) (*request.Request, *ec2.ExportClientVpnClientConfigurationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ExportClientVpnClientConfigurationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ExportClientVpnClientConfigurationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ExportClientVpnClientConfigurationInput) *ec2.ExportClientVpnClientConfigurationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ExportClientVpnClientConfigurationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ExportClientVpnClientConfigurationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ExportClientVpnClientConfigurationWithContext(_a0 context.Context, _a1 *ec2.ExportClientVpnClientConfigurationInput, _a2 ...request.Option) (*ec2.ExportClientVpnClientConfigurationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ExportClientVpnClientConfigurationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ExportClientVpnClientConfigurationInput, ...request.Option) *ec2.ExportClientVpnClientConfigurationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ExportClientVpnClientConfigurationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ExportClientVpnClientConfigurationInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExportTransitGatewayRoutes provides a mock function with given fields: _a0
+func (_m *EC2API) ExportTransitGatewayRoutes(_a0 *ec2.ExportTransitGatewayRoutesInput) (*ec2.ExportTransitGatewayRoutesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ExportTransitGatewayRoutesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ExportTransitGatewayRoutesInput) *ec2.ExportTransitGatewayRoutesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ExportTransitGatewayRoutesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ExportTransitGatewayRoutesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ExportTransitGatewayRoutesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ExportTransitGatewayRoutesRequest(_a0 *ec2.ExportTransitGatewayRoutesInput) (*request.Request, *ec2.ExportTransitGatewayRoutesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ExportTransitGatewayRoutesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ExportTransitGatewayRoutesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ExportTransitGatewayRoutesInput) *ec2.ExportTransitGatewayRoutesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ExportTransitGatewayRoutesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ExportTransitGatewayRoutesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ExportTransitGatewayRoutesWithContext(_a0 context.Context, _a1 *ec2.ExportTransitGatewayRoutesInput, _a2 ...request.Option) (*ec2.ExportTransitGatewayRoutesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ExportTransitGatewayRoutesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ExportTransitGatewayRoutesInput, ...request.Option) *ec2.ExportTransitGatewayRoutesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ExportTransitGatewayRoutesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ExportTransitGatewayRoutesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16203,7 +19428,7 @@ func (_m *EC2API) GetConsoleOutputRequest(_a0 *ec2.GetConsoleOutputInput) (*requ
 }
 
 // GetConsoleOutputWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) GetConsoleOutputWithContext(_a0 aws.Context, _a1 *ec2.GetConsoleOutputInput, _a2 ...request.Option) (*ec2.GetConsoleOutputOutput, error) {
+func (_m *EC2API) GetConsoleOutputWithContext(_a0 context.Context, _a1 *ec2.GetConsoleOutputInput, _a2 ...request.Option) (*ec2.GetConsoleOutputOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16214,7 +19439,7 @@ func (_m *EC2API) GetConsoleOutputWithContext(_a0 aws.Context, _a1 *ec2.GetConso
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.GetConsoleOutputOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.GetConsoleOutputInput, ...request.Option) *ec2.GetConsoleOutputOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetConsoleOutputInput, ...request.Option) *ec2.GetConsoleOutputOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16223,7 +19448,7 @@ func (_m *EC2API) GetConsoleOutputWithContext(_a0 aws.Context, _a1 *ec2.GetConso
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.GetConsoleOutputInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetConsoleOutputInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16281,7 +19506,7 @@ func (_m *EC2API) GetConsoleScreenshotRequest(_a0 *ec2.GetConsoleScreenshotInput
 }
 
 // GetConsoleScreenshotWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) GetConsoleScreenshotWithContext(_a0 aws.Context, _a1 *ec2.GetConsoleScreenshotInput, _a2 ...request.Option) (*ec2.GetConsoleScreenshotOutput, error) {
+func (_m *EC2API) GetConsoleScreenshotWithContext(_a0 context.Context, _a1 *ec2.GetConsoleScreenshotInput, _a2 ...request.Option) (*ec2.GetConsoleScreenshotOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16292,7 +19517,7 @@ func (_m *EC2API) GetConsoleScreenshotWithContext(_a0 aws.Context, _a1 *ec2.GetC
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.GetConsoleScreenshotOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.GetConsoleScreenshotInput, ...request.Option) *ec2.GetConsoleScreenshotOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetConsoleScreenshotInput, ...request.Option) *ec2.GetConsoleScreenshotOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16301,7 +19526,7 @@ func (_m *EC2API) GetConsoleScreenshotWithContext(_a0 aws.Context, _a1 *ec2.GetC
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.GetConsoleScreenshotInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetConsoleScreenshotInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16359,7 +19584,7 @@ func (_m *EC2API) GetHostReservationPurchasePreviewRequest(_a0 *ec2.GetHostReser
 }
 
 // GetHostReservationPurchasePreviewWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) GetHostReservationPurchasePreviewWithContext(_a0 aws.Context, _a1 *ec2.GetHostReservationPurchasePreviewInput, _a2 ...request.Option) (*ec2.GetHostReservationPurchasePreviewOutput, error) {
+func (_m *EC2API) GetHostReservationPurchasePreviewWithContext(_a0 context.Context, _a1 *ec2.GetHostReservationPurchasePreviewInput, _a2 ...request.Option) (*ec2.GetHostReservationPurchasePreviewOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16370,7 +19595,7 @@ func (_m *EC2API) GetHostReservationPurchasePreviewWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.GetHostReservationPurchasePreviewOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.GetHostReservationPurchasePreviewInput, ...request.Option) *ec2.GetHostReservationPurchasePreviewOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetHostReservationPurchasePreviewInput, ...request.Option) *ec2.GetHostReservationPurchasePreviewOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16379,7 +19604,7 @@ func (_m *EC2API) GetHostReservationPurchasePreviewWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.GetHostReservationPurchasePreviewInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetHostReservationPurchasePreviewInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16437,7 +19662,7 @@ func (_m *EC2API) GetLaunchTemplateDataRequest(_a0 *ec2.GetLaunchTemplateDataInp
 }
 
 // GetLaunchTemplateDataWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) GetLaunchTemplateDataWithContext(_a0 aws.Context, _a1 *ec2.GetLaunchTemplateDataInput, _a2 ...request.Option) (*ec2.GetLaunchTemplateDataOutput, error) {
+func (_m *EC2API) GetLaunchTemplateDataWithContext(_a0 context.Context, _a1 *ec2.GetLaunchTemplateDataInput, _a2 ...request.Option) (*ec2.GetLaunchTemplateDataOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16448,7 +19673,7 @@ func (_m *EC2API) GetLaunchTemplateDataWithContext(_a0 aws.Context, _a1 *ec2.Get
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.GetLaunchTemplateDataOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.GetLaunchTemplateDataInput, ...request.Option) *ec2.GetLaunchTemplateDataOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetLaunchTemplateDataInput, ...request.Option) *ec2.GetLaunchTemplateDataOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16457,7 +19682,7 @@ func (_m *EC2API) GetLaunchTemplateDataWithContext(_a0 aws.Context, _a1 *ec2.Get
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.GetLaunchTemplateDataInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetLaunchTemplateDataInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16515,7 +19740,7 @@ func (_m *EC2API) GetPasswordDataRequest(_a0 *ec2.GetPasswordDataInput) (*reques
 }
 
 // GetPasswordDataWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) GetPasswordDataWithContext(_a0 aws.Context, _a1 *ec2.GetPasswordDataInput, _a2 ...request.Option) (*ec2.GetPasswordDataOutput, error) {
+func (_m *EC2API) GetPasswordDataWithContext(_a0 context.Context, _a1 *ec2.GetPasswordDataInput, _a2 ...request.Option) (*ec2.GetPasswordDataOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16526,7 +19751,7 @@ func (_m *EC2API) GetPasswordDataWithContext(_a0 aws.Context, _a1 *ec2.GetPasswo
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.GetPasswordDataOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.GetPasswordDataInput, ...request.Option) *ec2.GetPasswordDataOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetPasswordDataInput, ...request.Option) *ec2.GetPasswordDataOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16535,7 +19760,7 @@ func (_m *EC2API) GetPasswordDataWithContext(_a0 aws.Context, _a1 *ec2.GetPasswo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.GetPasswordDataInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetPasswordDataInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16593,7 +19818,7 @@ func (_m *EC2API) GetReservedInstancesExchangeQuoteRequest(_a0 *ec2.GetReservedI
 }
 
 // GetReservedInstancesExchangeQuoteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) GetReservedInstancesExchangeQuoteWithContext(_a0 aws.Context, _a1 *ec2.GetReservedInstancesExchangeQuoteInput, _a2 ...request.Option) (*ec2.GetReservedInstancesExchangeQuoteOutput, error) {
+func (_m *EC2API) GetReservedInstancesExchangeQuoteWithContext(_a0 context.Context, _a1 *ec2.GetReservedInstancesExchangeQuoteInput, _a2 ...request.Option) (*ec2.GetReservedInstancesExchangeQuoteOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16604,7 +19829,7 @@ func (_m *EC2API) GetReservedInstancesExchangeQuoteWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.GetReservedInstancesExchangeQuoteOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.GetReservedInstancesExchangeQuoteInput, ...request.Option) *ec2.GetReservedInstancesExchangeQuoteOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetReservedInstancesExchangeQuoteInput, ...request.Option) *ec2.GetReservedInstancesExchangeQuoteOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16613,7 +19838,319 @@ func (_m *EC2API) GetReservedInstancesExchangeQuoteWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.GetReservedInstancesExchangeQuoteInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetReservedInstancesExchangeQuoteInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayAttachmentPropagations provides a mock function with given fields: _a0
+func (_m *EC2API) GetTransitGatewayAttachmentPropagations(_a0 *ec2.GetTransitGatewayAttachmentPropagationsInput) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.GetTransitGatewayAttachmentPropagationsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayAttachmentPropagationsInput) *ec2.GetTransitGatewayAttachmentPropagationsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayAttachmentPropagationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayAttachmentPropagationsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayAttachmentPropagationsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) GetTransitGatewayAttachmentPropagationsRequest(_a0 *ec2.GetTransitGatewayAttachmentPropagationsInput) (*request.Request, *ec2.GetTransitGatewayAttachmentPropagationsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayAttachmentPropagationsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetTransitGatewayAttachmentPropagationsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayAttachmentPropagationsInput) *ec2.GetTransitGatewayAttachmentPropagationsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetTransitGatewayAttachmentPropagationsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayAttachmentPropagationsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) GetTransitGatewayAttachmentPropagationsWithContext(_a0 context.Context, _a1 *ec2.GetTransitGatewayAttachmentPropagationsInput, _a2 ...request.Option) (*ec2.GetTransitGatewayAttachmentPropagationsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetTransitGatewayAttachmentPropagationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayAttachmentPropagationsInput, ...request.Option) *ec2.GetTransitGatewayAttachmentPropagationsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayAttachmentPropagationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayAttachmentPropagationsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayRouteTableAssociations provides a mock function with given fields: _a0
+func (_m *EC2API) GetTransitGatewayRouteTableAssociations(_a0 *ec2.GetTransitGatewayRouteTableAssociationsInput) (*ec2.GetTransitGatewayRouteTableAssociationsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.GetTransitGatewayRouteTableAssociationsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayRouteTableAssociationsInput) *ec2.GetTransitGatewayRouteTableAssociationsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayRouteTableAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayRouteTableAssociationsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayRouteTableAssociationsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) GetTransitGatewayRouteTableAssociationsRequest(_a0 *ec2.GetTransitGatewayRouteTableAssociationsInput) (*request.Request, *ec2.GetTransitGatewayRouteTableAssociationsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayRouteTableAssociationsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetTransitGatewayRouteTableAssociationsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayRouteTableAssociationsInput) *ec2.GetTransitGatewayRouteTableAssociationsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetTransitGatewayRouteTableAssociationsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayRouteTableAssociationsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) GetTransitGatewayRouteTableAssociationsWithContext(_a0 context.Context, _a1 *ec2.GetTransitGatewayRouteTableAssociationsInput, _a2 ...request.Option) (*ec2.GetTransitGatewayRouteTableAssociationsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetTransitGatewayRouteTableAssociationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayRouteTableAssociationsInput, ...request.Option) *ec2.GetTransitGatewayRouteTableAssociationsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayRouteTableAssociationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayRouteTableAssociationsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayRouteTablePropagations provides a mock function with given fields: _a0
+func (_m *EC2API) GetTransitGatewayRouteTablePropagations(_a0 *ec2.GetTransitGatewayRouteTablePropagationsInput) (*ec2.GetTransitGatewayRouteTablePropagationsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.GetTransitGatewayRouteTablePropagationsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayRouteTablePropagationsInput) *ec2.GetTransitGatewayRouteTablePropagationsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayRouteTablePropagationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayRouteTablePropagationsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayRouteTablePropagationsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) GetTransitGatewayRouteTablePropagationsRequest(_a0 *ec2.GetTransitGatewayRouteTablePropagationsInput) (*request.Request, *ec2.GetTransitGatewayRouteTablePropagationsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayRouteTablePropagationsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetTransitGatewayRouteTablePropagationsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetTransitGatewayRouteTablePropagationsInput) *ec2.GetTransitGatewayRouteTablePropagationsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetTransitGatewayRouteTablePropagationsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetTransitGatewayRouteTablePropagationsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) GetTransitGatewayRouteTablePropagationsWithContext(_a0 context.Context, _a1 *ec2.GetTransitGatewayRouteTablePropagationsInput, _a2 ...request.Option) (*ec2.GetTransitGatewayRouteTablePropagationsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetTransitGatewayRouteTablePropagationsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayRouteTablePropagationsInput, ...request.Option) *ec2.GetTransitGatewayRouteTablePropagationsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetTransitGatewayRouteTablePropagationsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetTransitGatewayRouteTablePropagationsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ImportClientVpnClientCertificateRevocationList provides a mock function with given fields: _a0
+func (_m *EC2API) ImportClientVpnClientCertificateRevocationList(_a0 *ec2.ImportClientVpnClientCertificateRevocationListInput) (*ec2.ImportClientVpnClientCertificateRevocationListOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ImportClientVpnClientCertificateRevocationListOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ImportClientVpnClientCertificateRevocationListInput) *ec2.ImportClientVpnClientCertificateRevocationListOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ImportClientVpnClientCertificateRevocationListOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ImportClientVpnClientCertificateRevocationListInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ImportClientVpnClientCertificateRevocationListRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ImportClientVpnClientCertificateRevocationListRequest(_a0 *ec2.ImportClientVpnClientCertificateRevocationListInput) (*request.Request, *ec2.ImportClientVpnClientCertificateRevocationListOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ImportClientVpnClientCertificateRevocationListInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ImportClientVpnClientCertificateRevocationListOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ImportClientVpnClientCertificateRevocationListInput) *ec2.ImportClientVpnClientCertificateRevocationListOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ImportClientVpnClientCertificateRevocationListOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ImportClientVpnClientCertificateRevocationListWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ImportClientVpnClientCertificateRevocationListWithContext(_a0 context.Context, _a1 *ec2.ImportClientVpnClientCertificateRevocationListInput, _a2 ...request.Option) (*ec2.ImportClientVpnClientCertificateRevocationListOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ImportClientVpnClientCertificateRevocationListOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ImportClientVpnClientCertificateRevocationListInput, ...request.Option) *ec2.ImportClientVpnClientCertificateRevocationListOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ImportClientVpnClientCertificateRevocationListOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ImportClientVpnClientCertificateRevocationListInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16671,7 +20208,7 @@ func (_m *EC2API) ImportImageRequest(_a0 *ec2.ImportImageInput) (*request.Reques
 }
 
 // ImportImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ImportImageWithContext(_a0 aws.Context, _a1 *ec2.ImportImageInput, _a2 ...request.Option) (*ec2.ImportImageOutput, error) {
+func (_m *EC2API) ImportImageWithContext(_a0 context.Context, _a1 *ec2.ImportImageInput, _a2 ...request.Option) (*ec2.ImportImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16682,7 +20219,7 @@ func (_m *EC2API) ImportImageWithContext(_a0 aws.Context, _a1 *ec2.ImportImageIn
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ImportImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ImportImageInput, ...request.Option) *ec2.ImportImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ImportImageInput, ...request.Option) *ec2.ImportImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16691,7 +20228,7 @@ func (_m *EC2API) ImportImageWithContext(_a0 aws.Context, _a1 *ec2.ImportImageIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ImportImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ImportImageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16749,7 +20286,7 @@ func (_m *EC2API) ImportInstanceRequest(_a0 *ec2.ImportInstanceInput) (*request.
 }
 
 // ImportInstanceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ImportInstanceWithContext(_a0 aws.Context, _a1 *ec2.ImportInstanceInput, _a2 ...request.Option) (*ec2.ImportInstanceOutput, error) {
+func (_m *EC2API) ImportInstanceWithContext(_a0 context.Context, _a1 *ec2.ImportInstanceInput, _a2 ...request.Option) (*ec2.ImportInstanceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16760,7 +20297,7 @@ func (_m *EC2API) ImportInstanceWithContext(_a0 aws.Context, _a1 *ec2.ImportInst
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ImportInstanceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ImportInstanceInput, ...request.Option) *ec2.ImportInstanceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ImportInstanceInput, ...request.Option) *ec2.ImportInstanceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16769,7 +20306,7 @@ func (_m *EC2API) ImportInstanceWithContext(_a0 aws.Context, _a1 *ec2.ImportInst
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ImportInstanceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ImportInstanceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16827,7 +20364,7 @@ func (_m *EC2API) ImportKeyPairRequest(_a0 *ec2.ImportKeyPairInput) (*request.Re
 }
 
 // ImportKeyPairWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ImportKeyPairWithContext(_a0 aws.Context, _a1 *ec2.ImportKeyPairInput, _a2 ...request.Option) (*ec2.ImportKeyPairOutput, error) {
+func (_m *EC2API) ImportKeyPairWithContext(_a0 context.Context, _a1 *ec2.ImportKeyPairInput, _a2 ...request.Option) (*ec2.ImportKeyPairOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16838,7 +20375,7 @@ func (_m *EC2API) ImportKeyPairWithContext(_a0 aws.Context, _a1 *ec2.ImportKeyPa
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ImportKeyPairOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ImportKeyPairInput, ...request.Option) *ec2.ImportKeyPairOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ImportKeyPairInput, ...request.Option) *ec2.ImportKeyPairOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16847,7 +20384,7 @@ func (_m *EC2API) ImportKeyPairWithContext(_a0 aws.Context, _a1 *ec2.ImportKeyPa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ImportKeyPairInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ImportKeyPairInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16905,7 +20442,7 @@ func (_m *EC2API) ImportSnapshotRequest(_a0 *ec2.ImportSnapshotInput) (*request.
 }
 
 // ImportSnapshotWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ImportSnapshotWithContext(_a0 aws.Context, _a1 *ec2.ImportSnapshotInput, _a2 ...request.Option) (*ec2.ImportSnapshotOutput, error) {
+func (_m *EC2API) ImportSnapshotWithContext(_a0 context.Context, _a1 *ec2.ImportSnapshotInput, _a2 ...request.Option) (*ec2.ImportSnapshotOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16916,7 +20453,7 @@ func (_m *EC2API) ImportSnapshotWithContext(_a0 aws.Context, _a1 *ec2.ImportSnap
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ImportSnapshotOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ImportSnapshotInput, ...request.Option) *ec2.ImportSnapshotOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ImportSnapshotInput, ...request.Option) *ec2.ImportSnapshotOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -16925,7 +20462,7 @@ func (_m *EC2API) ImportSnapshotWithContext(_a0 aws.Context, _a1 *ec2.ImportSnap
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ImportSnapshotInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ImportSnapshotInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16983,7 +20520,7 @@ func (_m *EC2API) ImportVolumeRequest(_a0 *ec2.ImportVolumeInput) (*request.Requ
 }
 
 // ImportVolumeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ImportVolumeWithContext(_a0 aws.Context, _a1 *ec2.ImportVolumeInput, _a2 ...request.Option) (*ec2.ImportVolumeOutput, error) {
+func (_m *EC2API) ImportVolumeWithContext(_a0 context.Context, _a1 *ec2.ImportVolumeInput, _a2 ...request.Option) (*ec2.ImportVolumeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -16994,7 +20531,7 @@ func (_m *EC2API) ImportVolumeWithContext(_a0 aws.Context, _a1 *ec2.ImportVolume
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ImportVolumeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ImportVolumeInput, ...request.Option) *ec2.ImportVolumeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ImportVolumeInput, ...request.Option) *ec2.ImportVolumeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17003,7 +20540,163 @@ func (_m *EC2API) ImportVolumeWithContext(_a0 aws.Context, _a1 *ec2.ImportVolume
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ImportVolumeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ImportVolumeInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyCapacityReservation provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyCapacityReservation(_a0 *ec2.ModifyCapacityReservationInput) (*ec2.ModifyCapacityReservationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyCapacityReservationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyCapacityReservationInput) *ec2.ModifyCapacityReservationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyCapacityReservationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyCapacityReservationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyCapacityReservationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyCapacityReservationRequest(_a0 *ec2.ModifyCapacityReservationInput) (*request.Request, *ec2.ModifyCapacityReservationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyCapacityReservationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyCapacityReservationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyCapacityReservationInput) *ec2.ModifyCapacityReservationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyCapacityReservationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyCapacityReservationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyCapacityReservationWithContext(_a0 context.Context, _a1 *ec2.ModifyCapacityReservationInput, _a2 ...request.Option) (*ec2.ModifyCapacityReservationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyCapacityReservationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyCapacityReservationInput, ...request.Option) *ec2.ModifyCapacityReservationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyCapacityReservationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyCapacityReservationInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyClientVpnEndpoint provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyClientVpnEndpoint(_a0 *ec2.ModifyClientVpnEndpointInput) (*ec2.ModifyClientVpnEndpointOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyClientVpnEndpointOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyClientVpnEndpointInput) *ec2.ModifyClientVpnEndpointOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyClientVpnEndpointOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyClientVpnEndpointInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyClientVpnEndpointRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyClientVpnEndpointRequest(_a0 *ec2.ModifyClientVpnEndpointInput) (*request.Request, *ec2.ModifyClientVpnEndpointOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyClientVpnEndpointInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyClientVpnEndpointOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyClientVpnEndpointInput) *ec2.ModifyClientVpnEndpointOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyClientVpnEndpointOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyClientVpnEndpointWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyClientVpnEndpointWithContext(_a0 context.Context, _a1 *ec2.ModifyClientVpnEndpointInput, _a2 ...request.Option) (*ec2.ModifyClientVpnEndpointOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyClientVpnEndpointOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyClientVpnEndpointInput, ...request.Option) *ec2.ModifyClientVpnEndpointOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyClientVpnEndpointOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyClientVpnEndpointInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17061,7 +20754,7 @@ func (_m *EC2API) ModifyFleetRequest(_a0 *ec2.ModifyFleetInput) (*request.Reques
 }
 
 // ModifyFleetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyFleetWithContext(_a0 aws.Context, _a1 *ec2.ModifyFleetInput, _a2 ...request.Option) (*ec2.ModifyFleetOutput, error) {
+func (_m *EC2API) ModifyFleetWithContext(_a0 context.Context, _a1 *ec2.ModifyFleetInput, _a2 ...request.Option) (*ec2.ModifyFleetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17072,7 +20765,7 @@ func (_m *EC2API) ModifyFleetWithContext(_a0 aws.Context, _a1 *ec2.ModifyFleetIn
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyFleetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyFleetInput, ...request.Option) *ec2.ModifyFleetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyFleetInput, ...request.Option) *ec2.ModifyFleetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17081,7 +20774,7 @@ func (_m *EC2API) ModifyFleetWithContext(_a0 aws.Context, _a1 *ec2.ModifyFleetIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyFleetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyFleetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17139,7 +20832,7 @@ func (_m *EC2API) ModifyFpgaImageAttributeRequest(_a0 *ec2.ModifyFpgaImageAttrib
 }
 
 // ModifyFpgaImageAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifyFpgaImageAttributeInput, _a2 ...request.Option) (*ec2.ModifyFpgaImageAttributeOutput, error) {
+func (_m *EC2API) ModifyFpgaImageAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifyFpgaImageAttributeInput, _a2 ...request.Option) (*ec2.ModifyFpgaImageAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17150,7 +20843,7 @@ func (_m *EC2API) ModifyFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyFpgaImageAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyFpgaImageAttributeInput, ...request.Option) *ec2.ModifyFpgaImageAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyFpgaImageAttributeInput, ...request.Option) *ec2.ModifyFpgaImageAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17159,7 +20852,7 @@ func (_m *EC2API) ModifyFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyFpgaImageAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyFpgaImageAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17217,7 +20910,7 @@ func (_m *EC2API) ModifyHostsRequest(_a0 *ec2.ModifyHostsInput) (*request.Reques
 }
 
 // ModifyHostsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyHostsWithContext(_a0 aws.Context, _a1 *ec2.ModifyHostsInput, _a2 ...request.Option) (*ec2.ModifyHostsOutput, error) {
+func (_m *EC2API) ModifyHostsWithContext(_a0 context.Context, _a1 *ec2.ModifyHostsInput, _a2 ...request.Option) (*ec2.ModifyHostsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17228,7 +20921,7 @@ func (_m *EC2API) ModifyHostsWithContext(_a0 aws.Context, _a1 *ec2.ModifyHostsIn
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyHostsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyHostsInput, ...request.Option) *ec2.ModifyHostsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyHostsInput, ...request.Option) *ec2.ModifyHostsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17237,7 +20930,7 @@ func (_m *EC2API) ModifyHostsWithContext(_a0 aws.Context, _a1 *ec2.ModifyHostsIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyHostsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyHostsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17295,7 +20988,7 @@ func (_m *EC2API) ModifyIdFormatRequest(_a0 *ec2.ModifyIdFormatInput) (*request.
 }
 
 // ModifyIdFormatWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyIdFormatWithContext(_a0 aws.Context, _a1 *ec2.ModifyIdFormatInput, _a2 ...request.Option) (*ec2.ModifyIdFormatOutput, error) {
+func (_m *EC2API) ModifyIdFormatWithContext(_a0 context.Context, _a1 *ec2.ModifyIdFormatInput, _a2 ...request.Option) (*ec2.ModifyIdFormatOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17306,7 +20999,7 @@ func (_m *EC2API) ModifyIdFormatWithContext(_a0 aws.Context, _a1 *ec2.ModifyIdFo
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyIdFormatOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyIdFormatInput, ...request.Option) *ec2.ModifyIdFormatOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyIdFormatInput, ...request.Option) *ec2.ModifyIdFormatOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17315,7 +21008,7 @@ func (_m *EC2API) ModifyIdFormatWithContext(_a0 aws.Context, _a1 *ec2.ModifyIdFo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyIdFormatInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyIdFormatInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17373,7 +21066,7 @@ func (_m *EC2API) ModifyIdentityIdFormatRequest(_a0 *ec2.ModifyIdentityIdFormatI
 }
 
 // ModifyIdentityIdFormatWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyIdentityIdFormatWithContext(_a0 aws.Context, _a1 *ec2.ModifyIdentityIdFormatInput, _a2 ...request.Option) (*ec2.ModifyIdentityIdFormatOutput, error) {
+func (_m *EC2API) ModifyIdentityIdFormatWithContext(_a0 context.Context, _a1 *ec2.ModifyIdentityIdFormatInput, _a2 ...request.Option) (*ec2.ModifyIdentityIdFormatOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17384,7 +21077,7 @@ func (_m *EC2API) ModifyIdentityIdFormatWithContext(_a0 aws.Context, _a1 *ec2.Mo
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyIdentityIdFormatOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyIdentityIdFormatInput, ...request.Option) *ec2.ModifyIdentityIdFormatOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyIdentityIdFormatInput, ...request.Option) *ec2.ModifyIdentityIdFormatOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17393,7 +21086,7 @@ func (_m *EC2API) ModifyIdentityIdFormatWithContext(_a0 aws.Context, _a1 *ec2.Mo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyIdentityIdFormatInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyIdentityIdFormatInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17451,7 +21144,7 @@ func (_m *EC2API) ModifyImageAttributeRequest(_a0 *ec2.ModifyImageAttributeInput
 }
 
 // ModifyImageAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifyImageAttributeInput, _a2 ...request.Option) (*ec2.ModifyImageAttributeOutput, error) {
+func (_m *EC2API) ModifyImageAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifyImageAttributeInput, _a2 ...request.Option) (*ec2.ModifyImageAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17462,7 +21155,7 @@ func (_m *EC2API) ModifyImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.Modi
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyImageAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyImageAttributeInput, ...request.Option) *ec2.ModifyImageAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyImageAttributeInput, ...request.Option) *ec2.ModifyImageAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17471,7 +21164,7 @@ func (_m *EC2API) ModifyImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.Modi
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyImageAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyImageAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17529,7 +21222,7 @@ func (_m *EC2API) ModifyInstanceAttributeRequest(_a0 *ec2.ModifyInstanceAttribut
 }
 
 // ModifyInstanceAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifyInstanceAttributeInput, _a2 ...request.Option) (*ec2.ModifyInstanceAttributeOutput, error) {
+func (_m *EC2API) ModifyInstanceAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifyInstanceAttributeInput, _a2 ...request.Option) (*ec2.ModifyInstanceAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17540,7 +21233,7 @@ func (_m *EC2API) ModifyInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2.M
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyInstanceAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyInstanceAttributeInput, ...request.Option) *ec2.ModifyInstanceAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyInstanceAttributeInput, ...request.Option) *ec2.ModifyInstanceAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17549,7 +21242,85 @@ func (_m *EC2API) ModifyInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2.M
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyInstanceAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstanceAttributeInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceCapacityReservationAttributes provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyInstanceCapacityReservationAttributes(_a0 *ec2.ModifyInstanceCapacityReservationAttributesInput) (*ec2.ModifyInstanceCapacityReservationAttributesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyInstanceCapacityReservationAttributesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyInstanceCapacityReservationAttributesInput) *ec2.ModifyInstanceCapacityReservationAttributesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyInstanceCapacityReservationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyInstanceCapacityReservationAttributesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceCapacityReservationAttributesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyInstanceCapacityReservationAttributesRequest(_a0 *ec2.ModifyInstanceCapacityReservationAttributesInput) (*request.Request, *ec2.ModifyInstanceCapacityReservationAttributesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyInstanceCapacityReservationAttributesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyInstanceCapacityReservationAttributesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyInstanceCapacityReservationAttributesInput) *ec2.ModifyInstanceCapacityReservationAttributesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyInstanceCapacityReservationAttributesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceCapacityReservationAttributesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyInstanceCapacityReservationAttributesWithContext(_a0 context.Context, _a1 *ec2.ModifyInstanceCapacityReservationAttributesInput, _a2 ...request.Option) (*ec2.ModifyInstanceCapacityReservationAttributesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyInstanceCapacityReservationAttributesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyInstanceCapacityReservationAttributesInput, ...request.Option) *ec2.ModifyInstanceCapacityReservationAttributesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyInstanceCapacityReservationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstanceCapacityReservationAttributesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17607,7 +21378,7 @@ func (_m *EC2API) ModifyInstanceCreditSpecificationRequest(_a0 *ec2.ModifyInstan
 }
 
 // ModifyInstanceCreditSpecificationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyInstanceCreditSpecificationWithContext(_a0 aws.Context, _a1 *ec2.ModifyInstanceCreditSpecificationInput, _a2 ...request.Option) (*ec2.ModifyInstanceCreditSpecificationOutput, error) {
+func (_m *EC2API) ModifyInstanceCreditSpecificationWithContext(_a0 context.Context, _a1 *ec2.ModifyInstanceCreditSpecificationInput, _a2 ...request.Option) (*ec2.ModifyInstanceCreditSpecificationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17618,7 +21389,7 @@ func (_m *EC2API) ModifyInstanceCreditSpecificationWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyInstanceCreditSpecificationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyInstanceCreditSpecificationInput, ...request.Option) *ec2.ModifyInstanceCreditSpecificationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyInstanceCreditSpecificationInput, ...request.Option) *ec2.ModifyInstanceCreditSpecificationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17627,7 +21398,7 @@ func (_m *EC2API) ModifyInstanceCreditSpecificationWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyInstanceCreditSpecificationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstanceCreditSpecificationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17685,7 +21456,7 @@ func (_m *EC2API) ModifyInstancePlacementRequest(_a0 *ec2.ModifyInstancePlacemen
 }
 
 // ModifyInstancePlacementWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyInstancePlacementWithContext(_a0 aws.Context, _a1 *ec2.ModifyInstancePlacementInput, _a2 ...request.Option) (*ec2.ModifyInstancePlacementOutput, error) {
+func (_m *EC2API) ModifyInstancePlacementWithContext(_a0 context.Context, _a1 *ec2.ModifyInstancePlacementInput, _a2 ...request.Option) (*ec2.ModifyInstancePlacementOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17696,7 +21467,7 @@ func (_m *EC2API) ModifyInstancePlacementWithContext(_a0 aws.Context, _a1 *ec2.M
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyInstancePlacementOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyInstancePlacementInput, ...request.Option) *ec2.ModifyInstancePlacementOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyInstancePlacementInput, ...request.Option) *ec2.ModifyInstancePlacementOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17705,7 +21476,7 @@ func (_m *EC2API) ModifyInstancePlacementWithContext(_a0 aws.Context, _a1 *ec2.M
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyInstancePlacementInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstancePlacementInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17763,7 +21534,7 @@ func (_m *EC2API) ModifyLaunchTemplateRequest(_a0 *ec2.ModifyLaunchTemplateInput
 }
 
 // ModifyLaunchTemplateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.ModifyLaunchTemplateInput, _a2 ...request.Option) (*ec2.ModifyLaunchTemplateOutput, error) {
+func (_m *EC2API) ModifyLaunchTemplateWithContext(_a0 context.Context, _a1 *ec2.ModifyLaunchTemplateInput, _a2 ...request.Option) (*ec2.ModifyLaunchTemplateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17774,7 +21545,7 @@ func (_m *EC2API) ModifyLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.Modi
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyLaunchTemplateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyLaunchTemplateInput, ...request.Option) *ec2.ModifyLaunchTemplateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyLaunchTemplateInput, ...request.Option) *ec2.ModifyLaunchTemplateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17783,7 +21554,7 @@ func (_m *EC2API) ModifyLaunchTemplateWithContext(_a0 aws.Context, _a1 *ec2.Modi
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyLaunchTemplateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyLaunchTemplateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17841,7 +21612,7 @@ func (_m *EC2API) ModifyNetworkInterfaceAttributeRequest(_a0 *ec2.ModifyNetworkI
 }
 
 // ModifyNetworkInterfaceAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyNetworkInterfaceAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifyNetworkInterfaceAttributeInput, _a2 ...request.Option) (*ec2.ModifyNetworkInterfaceAttributeOutput, error) {
+func (_m *EC2API) ModifyNetworkInterfaceAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifyNetworkInterfaceAttributeInput, _a2 ...request.Option) (*ec2.ModifyNetworkInterfaceAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17852,7 +21623,7 @@ func (_m *EC2API) ModifyNetworkInterfaceAttributeWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyNetworkInterfaceAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyNetworkInterfaceAttributeInput, ...request.Option) *ec2.ModifyNetworkInterfaceAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyNetworkInterfaceAttributeInput, ...request.Option) *ec2.ModifyNetworkInterfaceAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17861,7 +21632,7 @@ func (_m *EC2API) ModifyNetworkInterfaceAttributeWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyNetworkInterfaceAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyNetworkInterfaceAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17919,7 +21690,7 @@ func (_m *EC2API) ModifyReservedInstancesRequest(_a0 *ec2.ModifyReservedInstance
 }
 
 // ModifyReservedInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyReservedInstancesWithContext(_a0 aws.Context, _a1 *ec2.ModifyReservedInstancesInput, _a2 ...request.Option) (*ec2.ModifyReservedInstancesOutput, error) {
+func (_m *EC2API) ModifyReservedInstancesWithContext(_a0 context.Context, _a1 *ec2.ModifyReservedInstancesInput, _a2 ...request.Option) (*ec2.ModifyReservedInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -17930,7 +21701,7 @@ func (_m *EC2API) ModifyReservedInstancesWithContext(_a0 aws.Context, _a1 *ec2.M
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyReservedInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyReservedInstancesInput, ...request.Option) *ec2.ModifyReservedInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyReservedInstancesInput, ...request.Option) *ec2.ModifyReservedInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -17939,7 +21710,7 @@ func (_m *EC2API) ModifyReservedInstancesWithContext(_a0 aws.Context, _a1 *ec2.M
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyReservedInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyReservedInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -17997,7 +21768,7 @@ func (_m *EC2API) ModifySnapshotAttributeRequest(_a0 *ec2.ModifySnapshotAttribut
 }
 
 // ModifySnapshotAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifySnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifySnapshotAttributeInput, _a2 ...request.Option) (*ec2.ModifySnapshotAttributeOutput, error) {
+func (_m *EC2API) ModifySnapshotAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifySnapshotAttributeInput, _a2 ...request.Option) (*ec2.ModifySnapshotAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18008,7 +21779,7 @@ func (_m *EC2API) ModifySnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2.M
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifySnapshotAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifySnapshotAttributeInput, ...request.Option) *ec2.ModifySnapshotAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifySnapshotAttributeInput, ...request.Option) *ec2.ModifySnapshotAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18017,7 +21788,7 @@ func (_m *EC2API) ModifySnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2.M
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifySnapshotAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifySnapshotAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18075,7 +21846,7 @@ func (_m *EC2API) ModifySpotFleetRequestRequest(_a0 *ec2.ModifySpotFleetRequestI
 }
 
 // ModifySpotFleetRequestWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifySpotFleetRequestWithContext(_a0 aws.Context, _a1 *ec2.ModifySpotFleetRequestInput, _a2 ...request.Option) (*ec2.ModifySpotFleetRequestOutput, error) {
+func (_m *EC2API) ModifySpotFleetRequestWithContext(_a0 context.Context, _a1 *ec2.ModifySpotFleetRequestInput, _a2 ...request.Option) (*ec2.ModifySpotFleetRequestOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18086,7 +21857,7 @@ func (_m *EC2API) ModifySpotFleetRequestWithContext(_a0 aws.Context, _a1 *ec2.Mo
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifySpotFleetRequestOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifySpotFleetRequestInput, ...request.Option) *ec2.ModifySpotFleetRequestOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifySpotFleetRequestInput, ...request.Option) *ec2.ModifySpotFleetRequestOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18095,7 +21866,7 @@ func (_m *EC2API) ModifySpotFleetRequestWithContext(_a0 aws.Context, _a1 *ec2.Mo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifySpotFleetRequestInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifySpotFleetRequestInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18153,7 +21924,7 @@ func (_m *EC2API) ModifySubnetAttributeRequest(_a0 *ec2.ModifySubnetAttributeInp
 }
 
 // ModifySubnetAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifySubnetAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifySubnetAttributeInput, _a2 ...request.Option) (*ec2.ModifySubnetAttributeOutput, error) {
+func (_m *EC2API) ModifySubnetAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifySubnetAttributeInput, _a2 ...request.Option) (*ec2.ModifySubnetAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18164,7 +21935,7 @@ func (_m *EC2API) ModifySubnetAttributeWithContext(_a0 aws.Context, _a1 *ec2.Mod
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifySubnetAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifySubnetAttributeInput, ...request.Option) *ec2.ModifySubnetAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifySubnetAttributeInput, ...request.Option) *ec2.ModifySubnetAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18173,7 +21944,85 @@ func (_m *EC2API) ModifySubnetAttributeWithContext(_a0 aws.Context, _a1 *ec2.Mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifySubnetAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifySubnetAttributeInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayVpcAttachment provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyTransitGatewayVpcAttachment(_a0 *ec2.ModifyTransitGatewayVpcAttachmentInput) (*ec2.ModifyTransitGatewayVpcAttachmentOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyTransitGatewayVpcAttachmentInput) *ec2.ModifyTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyTransitGatewayVpcAttachmentInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayVpcAttachmentRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyTransitGatewayVpcAttachmentRequest(_a0 *ec2.ModifyTransitGatewayVpcAttachmentInput) (*request.Request, *ec2.ModifyTransitGatewayVpcAttachmentOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyTransitGatewayVpcAttachmentInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyTransitGatewayVpcAttachmentInput) *ec2.ModifyTransitGatewayVpcAttachmentOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyTransitGatewayVpcAttachmentWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyTransitGatewayVpcAttachmentWithContext(_a0 context.Context, _a1 *ec2.ModifyTransitGatewayVpcAttachmentInput, _a2 ...request.Option) (*ec2.ModifyTransitGatewayVpcAttachmentOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyTransitGatewayVpcAttachmentInput, ...request.Option) *ec2.ModifyTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyTransitGatewayVpcAttachmentInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18254,7 +22103,7 @@ func (_m *EC2API) ModifyVolumeAttributeRequest(_a0 *ec2.ModifyVolumeAttributeInp
 }
 
 // ModifyVolumeAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVolumeAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifyVolumeAttributeInput, _a2 ...request.Option) (*ec2.ModifyVolumeAttributeOutput, error) {
+func (_m *EC2API) ModifyVolumeAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifyVolumeAttributeInput, _a2 ...request.Option) (*ec2.ModifyVolumeAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18265,7 +22114,7 @@ func (_m *EC2API) ModifyVolumeAttributeWithContext(_a0 aws.Context, _a1 *ec2.Mod
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVolumeAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVolumeAttributeInput, ...request.Option) *ec2.ModifyVolumeAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVolumeAttributeInput, ...request.Option) *ec2.ModifyVolumeAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18274,7 +22123,7 @@ func (_m *EC2API) ModifyVolumeAttributeWithContext(_a0 aws.Context, _a1 *ec2.Mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVolumeAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVolumeAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18309,7 +22158,7 @@ func (_m *EC2API) ModifyVolumeRequest(_a0 *ec2.ModifyVolumeInput) (*request.Requ
 }
 
 // ModifyVolumeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVolumeWithContext(_a0 aws.Context, _a1 *ec2.ModifyVolumeInput, _a2 ...request.Option) (*ec2.ModifyVolumeOutput, error) {
+func (_m *EC2API) ModifyVolumeWithContext(_a0 context.Context, _a1 *ec2.ModifyVolumeInput, _a2 ...request.Option) (*ec2.ModifyVolumeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18320,7 +22169,7 @@ func (_m *EC2API) ModifyVolumeWithContext(_a0 aws.Context, _a1 *ec2.ModifyVolume
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVolumeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVolumeInput, ...request.Option) *ec2.ModifyVolumeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVolumeInput, ...request.Option) *ec2.ModifyVolumeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18329,7 +22178,7 @@ func (_m *EC2API) ModifyVolumeWithContext(_a0 aws.Context, _a1 *ec2.ModifyVolume
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVolumeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVolumeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18387,7 +22236,7 @@ func (_m *EC2API) ModifyVpcAttributeRequest(_a0 *ec2.ModifyVpcAttributeInput) (*
 }
 
 // ModifyVpcAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVpcAttributeWithContext(_a0 aws.Context, _a1 *ec2.ModifyVpcAttributeInput, _a2 ...request.Option) (*ec2.ModifyVpcAttributeOutput, error) {
+func (_m *EC2API) ModifyVpcAttributeWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcAttributeInput, _a2 ...request.Option) (*ec2.ModifyVpcAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18398,7 +22247,7 @@ func (_m *EC2API) ModifyVpcAttributeWithContext(_a0 aws.Context, _a1 *ec2.Modify
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVpcAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVpcAttributeInput, ...request.Option) *ec2.ModifyVpcAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcAttributeInput, ...request.Option) *ec2.ModifyVpcAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18407,7 +22256,7 @@ func (_m *EC2API) ModifyVpcAttributeWithContext(_a0 aws.Context, _a1 *ec2.Modify
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVpcAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18488,7 +22337,7 @@ func (_m *EC2API) ModifyVpcEndpointConnectionNotificationRequest(_a0 *ec2.Modify
 }
 
 // ModifyVpcEndpointConnectionNotificationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVpcEndpointConnectionNotificationWithContext(_a0 aws.Context, _a1 *ec2.ModifyVpcEndpointConnectionNotificationInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointConnectionNotificationOutput, error) {
+func (_m *EC2API) ModifyVpcEndpointConnectionNotificationWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcEndpointConnectionNotificationInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointConnectionNotificationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18499,7 +22348,7 @@ func (_m *EC2API) ModifyVpcEndpointConnectionNotificationWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVpcEndpointConnectionNotificationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVpcEndpointConnectionNotificationInput, ...request.Option) *ec2.ModifyVpcEndpointConnectionNotificationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcEndpointConnectionNotificationInput, ...request.Option) *ec2.ModifyVpcEndpointConnectionNotificationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18508,7 +22357,7 @@ func (_m *EC2API) ModifyVpcEndpointConnectionNotificationWithContext(_a0 aws.Con
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVpcEndpointConnectionNotificationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcEndpointConnectionNotificationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18591,7 +22440,7 @@ func (_m *EC2API) ModifyVpcEndpointServiceConfigurationRequest(_a0 *ec2.ModifyVp
 }
 
 // ModifyVpcEndpointServiceConfigurationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVpcEndpointServiceConfigurationWithContext(_a0 aws.Context, _a1 *ec2.ModifyVpcEndpointServiceConfigurationInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointServiceConfigurationOutput, error) {
+func (_m *EC2API) ModifyVpcEndpointServiceConfigurationWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcEndpointServiceConfigurationInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointServiceConfigurationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18602,7 +22451,7 @@ func (_m *EC2API) ModifyVpcEndpointServiceConfigurationWithContext(_a0 aws.Conte
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVpcEndpointServiceConfigurationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVpcEndpointServiceConfigurationInput, ...request.Option) *ec2.ModifyVpcEndpointServiceConfigurationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcEndpointServiceConfigurationInput, ...request.Option) *ec2.ModifyVpcEndpointServiceConfigurationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18611,7 +22460,7 @@ func (_m *EC2API) ModifyVpcEndpointServiceConfigurationWithContext(_a0 aws.Conte
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVpcEndpointServiceConfigurationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcEndpointServiceConfigurationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18669,7 +22518,7 @@ func (_m *EC2API) ModifyVpcEndpointServicePermissionsRequest(_a0 *ec2.ModifyVpcE
 }
 
 // ModifyVpcEndpointServicePermissionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVpcEndpointServicePermissionsWithContext(_a0 aws.Context, _a1 *ec2.ModifyVpcEndpointServicePermissionsInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error) {
+func (_m *EC2API) ModifyVpcEndpointServicePermissionsWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcEndpointServicePermissionsInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointServicePermissionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18680,7 +22529,7 @@ func (_m *EC2API) ModifyVpcEndpointServicePermissionsWithContext(_a0 aws.Context
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVpcEndpointServicePermissionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVpcEndpointServicePermissionsInput, ...request.Option) *ec2.ModifyVpcEndpointServicePermissionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcEndpointServicePermissionsInput, ...request.Option) *ec2.ModifyVpcEndpointServicePermissionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18689,7 +22538,7 @@ func (_m *EC2API) ModifyVpcEndpointServicePermissionsWithContext(_a0 aws.Context
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVpcEndpointServicePermissionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcEndpointServicePermissionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18699,7 +22548,7 @@ func (_m *EC2API) ModifyVpcEndpointServicePermissionsWithContext(_a0 aws.Context
 }
 
 // ModifyVpcEndpointWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVpcEndpointWithContext(_a0 aws.Context, _a1 *ec2.ModifyVpcEndpointInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointOutput, error) {
+func (_m *EC2API) ModifyVpcEndpointWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcEndpointInput, _a2 ...request.Option) (*ec2.ModifyVpcEndpointOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18710,7 +22559,7 @@ func (_m *EC2API) ModifyVpcEndpointWithContext(_a0 aws.Context, _a1 *ec2.ModifyV
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVpcEndpointOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVpcEndpointInput, ...request.Option) *ec2.ModifyVpcEndpointOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcEndpointInput, ...request.Option) *ec2.ModifyVpcEndpointOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18719,7 +22568,7 @@ func (_m *EC2API) ModifyVpcEndpointWithContext(_a0 aws.Context, _a1 *ec2.ModifyV
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVpcEndpointInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcEndpointInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18777,7 +22626,7 @@ func (_m *EC2API) ModifyVpcPeeringConnectionOptionsRequest(_a0 *ec2.ModifyVpcPee
 }
 
 // ModifyVpcPeeringConnectionOptionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVpcPeeringConnectionOptionsWithContext(_a0 aws.Context, _a1 *ec2.ModifyVpcPeeringConnectionOptionsInput, _a2 ...request.Option) (*ec2.ModifyVpcPeeringConnectionOptionsOutput, error) {
+func (_m *EC2API) ModifyVpcPeeringConnectionOptionsWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcPeeringConnectionOptionsInput, _a2 ...request.Option) (*ec2.ModifyVpcPeeringConnectionOptionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18788,7 +22637,7 @@ func (_m *EC2API) ModifyVpcPeeringConnectionOptionsWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVpcPeeringConnectionOptionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVpcPeeringConnectionOptionsInput, ...request.Option) *ec2.ModifyVpcPeeringConnectionOptionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcPeeringConnectionOptionsInput, ...request.Option) *ec2.ModifyVpcPeeringConnectionOptionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18797,7 +22646,7 @@ func (_m *EC2API) ModifyVpcPeeringConnectionOptionsWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVpcPeeringConnectionOptionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcPeeringConnectionOptionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18855,7 +22704,7 @@ func (_m *EC2API) ModifyVpcTenancyRequest(_a0 *ec2.ModifyVpcTenancyInput) (*requ
 }
 
 // ModifyVpcTenancyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ModifyVpcTenancyWithContext(_a0 aws.Context, _a1 *ec2.ModifyVpcTenancyInput, _a2 ...request.Option) (*ec2.ModifyVpcTenancyOutput, error) {
+func (_m *EC2API) ModifyVpcTenancyWithContext(_a0 context.Context, _a1 *ec2.ModifyVpcTenancyInput, _a2 ...request.Option) (*ec2.ModifyVpcTenancyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18866,7 +22715,7 @@ func (_m *EC2API) ModifyVpcTenancyWithContext(_a0 aws.Context, _a1 *ec2.ModifyVp
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ModifyVpcTenancyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ModifyVpcTenancyInput, ...request.Option) *ec2.ModifyVpcTenancyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyVpcTenancyInput, ...request.Option) *ec2.ModifyVpcTenancyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18875,7 +22724,7 @@ func (_m *EC2API) ModifyVpcTenancyWithContext(_a0 aws.Context, _a1 *ec2.ModifyVp
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ModifyVpcTenancyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyVpcTenancyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -18933,7 +22782,7 @@ func (_m *EC2API) MonitorInstancesRequest(_a0 *ec2.MonitorInstancesInput) (*requ
 }
 
 // MonitorInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) MonitorInstancesWithContext(_a0 aws.Context, _a1 *ec2.MonitorInstancesInput, _a2 ...request.Option) (*ec2.MonitorInstancesOutput, error) {
+func (_m *EC2API) MonitorInstancesWithContext(_a0 context.Context, _a1 *ec2.MonitorInstancesInput, _a2 ...request.Option) (*ec2.MonitorInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -18944,7 +22793,7 @@ func (_m *EC2API) MonitorInstancesWithContext(_a0 aws.Context, _a1 *ec2.MonitorI
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.MonitorInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.MonitorInstancesInput, ...request.Option) *ec2.MonitorInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.MonitorInstancesInput, ...request.Option) *ec2.MonitorInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -18953,7 +22802,7 @@ func (_m *EC2API) MonitorInstancesWithContext(_a0 aws.Context, _a1 *ec2.MonitorI
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.MonitorInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.MonitorInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19011,7 +22860,7 @@ func (_m *EC2API) MoveAddressToVpcRequest(_a0 *ec2.MoveAddressToVpcInput) (*requ
 }
 
 // MoveAddressToVpcWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) MoveAddressToVpcWithContext(_a0 aws.Context, _a1 *ec2.MoveAddressToVpcInput, _a2 ...request.Option) (*ec2.MoveAddressToVpcOutput, error) {
+func (_m *EC2API) MoveAddressToVpcWithContext(_a0 context.Context, _a1 *ec2.MoveAddressToVpcInput, _a2 ...request.Option) (*ec2.MoveAddressToVpcOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19022,7 +22871,7 @@ func (_m *EC2API) MoveAddressToVpcWithContext(_a0 aws.Context, _a1 *ec2.MoveAddr
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.MoveAddressToVpcOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.MoveAddressToVpcInput, ...request.Option) *ec2.MoveAddressToVpcOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.MoveAddressToVpcInput, ...request.Option) *ec2.MoveAddressToVpcOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19031,7 +22880,85 @@ func (_m *EC2API) MoveAddressToVpcWithContext(_a0 aws.Context, _a1 *ec2.MoveAddr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.MoveAddressToVpcInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.MoveAddressToVpcInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ProvisionByoipCidr provides a mock function with given fields: _a0
+func (_m *EC2API) ProvisionByoipCidr(_a0 *ec2.ProvisionByoipCidrInput) (*ec2.ProvisionByoipCidrOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ProvisionByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ProvisionByoipCidrInput) *ec2.ProvisionByoipCidrOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ProvisionByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ProvisionByoipCidrInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ProvisionByoipCidrRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ProvisionByoipCidrRequest(_a0 *ec2.ProvisionByoipCidrInput) (*request.Request, *ec2.ProvisionByoipCidrOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ProvisionByoipCidrInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ProvisionByoipCidrOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ProvisionByoipCidrInput) *ec2.ProvisionByoipCidrOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ProvisionByoipCidrOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ProvisionByoipCidrWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ProvisionByoipCidrWithContext(_a0 context.Context, _a1 *ec2.ProvisionByoipCidrInput, _a2 ...request.Option) (*ec2.ProvisionByoipCidrOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ProvisionByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ProvisionByoipCidrInput, ...request.Option) *ec2.ProvisionByoipCidrOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ProvisionByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ProvisionByoipCidrInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19089,7 +23016,7 @@ func (_m *EC2API) PurchaseHostReservationRequest(_a0 *ec2.PurchaseHostReservatio
 }
 
 // PurchaseHostReservationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) PurchaseHostReservationWithContext(_a0 aws.Context, _a1 *ec2.PurchaseHostReservationInput, _a2 ...request.Option) (*ec2.PurchaseHostReservationOutput, error) {
+func (_m *EC2API) PurchaseHostReservationWithContext(_a0 context.Context, _a1 *ec2.PurchaseHostReservationInput, _a2 ...request.Option) (*ec2.PurchaseHostReservationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19100,7 +23027,7 @@ func (_m *EC2API) PurchaseHostReservationWithContext(_a0 aws.Context, _a1 *ec2.P
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.PurchaseHostReservationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.PurchaseHostReservationInput, ...request.Option) *ec2.PurchaseHostReservationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.PurchaseHostReservationInput, ...request.Option) *ec2.PurchaseHostReservationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19109,7 +23036,7 @@ func (_m *EC2API) PurchaseHostReservationWithContext(_a0 aws.Context, _a1 *ec2.P
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.PurchaseHostReservationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.PurchaseHostReservationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19167,7 +23094,7 @@ func (_m *EC2API) PurchaseReservedInstancesOfferingRequest(_a0 *ec2.PurchaseRese
 }
 
 // PurchaseReservedInstancesOfferingWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) PurchaseReservedInstancesOfferingWithContext(_a0 aws.Context, _a1 *ec2.PurchaseReservedInstancesOfferingInput, _a2 ...request.Option) (*ec2.PurchaseReservedInstancesOfferingOutput, error) {
+func (_m *EC2API) PurchaseReservedInstancesOfferingWithContext(_a0 context.Context, _a1 *ec2.PurchaseReservedInstancesOfferingInput, _a2 ...request.Option) (*ec2.PurchaseReservedInstancesOfferingOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19178,7 +23105,7 @@ func (_m *EC2API) PurchaseReservedInstancesOfferingWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.PurchaseReservedInstancesOfferingOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.PurchaseReservedInstancesOfferingInput, ...request.Option) *ec2.PurchaseReservedInstancesOfferingOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.PurchaseReservedInstancesOfferingInput, ...request.Option) *ec2.PurchaseReservedInstancesOfferingOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19187,7 +23114,7 @@ func (_m *EC2API) PurchaseReservedInstancesOfferingWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.PurchaseReservedInstancesOfferingInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.PurchaseReservedInstancesOfferingInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19245,7 +23172,7 @@ func (_m *EC2API) PurchaseScheduledInstancesRequest(_a0 *ec2.PurchaseScheduledIn
 }
 
 // PurchaseScheduledInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) PurchaseScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec2.PurchaseScheduledInstancesInput, _a2 ...request.Option) (*ec2.PurchaseScheduledInstancesOutput, error) {
+func (_m *EC2API) PurchaseScheduledInstancesWithContext(_a0 context.Context, _a1 *ec2.PurchaseScheduledInstancesInput, _a2 ...request.Option) (*ec2.PurchaseScheduledInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19256,7 +23183,7 @@ func (_m *EC2API) PurchaseScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.PurchaseScheduledInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.PurchaseScheduledInstancesInput, ...request.Option) *ec2.PurchaseScheduledInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.PurchaseScheduledInstancesInput, ...request.Option) *ec2.PurchaseScheduledInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19265,7 +23192,7 @@ func (_m *EC2API) PurchaseScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.PurchaseScheduledInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.PurchaseScheduledInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19323,7 +23250,7 @@ func (_m *EC2API) RebootInstancesRequest(_a0 *ec2.RebootInstancesInput) (*reques
 }
 
 // RebootInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RebootInstancesWithContext(_a0 aws.Context, _a1 *ec2.RebootInstancesInput, _a2 ...request.Option) (*ec2.RebootInstancesOutput, error) {
+func (_m *EC2API) RebootInstancesWithContext(_a0 context.Context, _a1 *ec2.RebootInstancesInput, _a2 ...request.Option) (*ec2.RebootInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19334,7 +23261,7 @@ func (_m *EC2API) RebootInstancesWithContext(_a0 aws.Context, _a1 *ec2.RebootIns
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RebootInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RebootInstancesInput, ...request.Option) *ec2.RebootInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RebootInstancesInput, ...request.Option) *ec2.RebootInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19343,7 +23270,7 @@ func (_m *EC2API) RebootInstancesWithContext(_a0 aws.Context, _a1 *ec2.RebootIns
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RebootInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RebootInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19401,7 +23328,7 @@ func (_m *EC2API) RegisterImageRequest(_a0 *ec2.RegisterImageInput) (*request.Re
 }
 
 // RegisterImageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RegisterImageWithContext(_a0 aws.Context, _a1 *ec2.RegisterImageInput, _a2 ...request.Option) (*ec2.RegisterImageOutput, error) {
+func (_m *EC2API) RegisterImageWithContext(_a0 context.Context, _a1 *ec2.RegisterImageInput, _a2 ...request.Option) (*ec2.RegisterImageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19412,7 +23339,7 @@ func (_m *EC2API) RegisterImageWithContext(_a0 aws.Context, _a1 *ec2.RegisterIma
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RegisterImageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RegisterImageInput, ...request.Option) *ec2.RegisterImageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RegisterImageInput, ...request.Option) *ec2.RegisterImageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19421,7 +23348,85 @@ func (_m *EC2API) RegisterImageWithContext(_a0 aws.Context, _a1 *ec2.RegisterIma
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RegisterImageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RegisterImageInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RejectTransitGatewayVpcAttachment provides a mock function with given fields: _a0
+func (_m *EC2API) RejectTransitGatewayVpcAttachment(_a0 *ec2.RejectTransitGatewayVpcAttachmentInput) (*ec2.RejectTransitGatewayVpcAttachmentOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.RejectTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(*ec2.RejectTransitGatewayVpcAttachmentInput) *ec2.RejectTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RejectTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.RejectTransitGatewayVpcAttachmentInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RejectTransitGatewayVpcAttachmentRequest provides a mock function with given fields: _a0
+func (_m *EC2API) RejectTransitGatewayVpcAttachmentRequest(_a0 *ec2.RejectTransitGatewayVpcAttachmentInput) (*request.Request, *ec2.RejectTransitGatewayVpcAttachmentOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.RejectTransitGatewayVpcAttachmentInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.RejectTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(1).(func(*ec2.RejectTransitGatewayVpcAttachmentInput) *ec2.RejectTransitGatewayVpcAttachmentOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.RejectTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RejectTransitGatewayVpcAttachmentWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) RejectTransitGatewayVpcAttachmentWithContext(_a0 context.Context, _a1 *ec2.RejectTransitGatewayVpcAttachmentInput, _a2 ...request.Option) (*ec2.RejectTransitGatewayVpcAttachmentOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.RejectTransitGatewayVpcAttachmentOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RejectTransitGatewayVpcAttachmentInput, ...request.Option) *ec2.RejectTransitGatewayVpcAttachmentOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RejectTransitGatewayVpcAttachmentOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RejectTransitGatewayVpcAttachmentInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19479,7 +23484,7 @@ func (_m *EC2API) RejectVpcEndpointConnectionsRequest(_a0 *ec2.RejectVpcEndpoint
 }
 
 // RejectVpcEndpointConnectionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RejectVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1 *ec2.RejectVpcEndpointConnectionsInput, _a2 ...request.Option) (*ec2.RejectVpcEndpointConnectionsOutput, error) {
+func (_m *EC2API) RejectVpcEndpointConnectionsWithContext(_a0 context.Context, _a1 *ec2.RejectVpcEndpointConnectionsInput, _a2 ...request.Option) (*ec2.RejectVpcEndpointConnectionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19490,7 +23495,7 @@ func (_m *EC2API) RejectVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RejectVpcEndpointConnectionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RejectVpcEndpointConnectionsInput, ...request.Option) *ec2.RejectVpcEndpointConnectionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RejectVpcEndpointConnectionsInput, ...request.Option) *ec2.RejectVpcEndpointConnectionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19499,7 +23504,7 @@ func (_m *EC2API) RejectVpcEndpointConnectionsWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RejectVpcEndpointConnectionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RejectVpcEndpointConnectionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19557,7 +23562,7 @@ func (_m *EC2API) RejectVpcPeeringConnectionRequest(_a0 *ec2.RejectVpcPeeringCon
 }
 
 // RejectVpcPeeringConnectionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RejectVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec2.RejectVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.RejectVpcPeeringConnectionOutput, error) {
+func (_m *EC2API) RejectVpcPeeringConnectionWithContext(_a0 context.Context, _a1 *ec2.RejectVpcPeeringConnectionInput, _a2 ...request.Option) (*ec2.RejectVpcPeeringConnectionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19568,7 +23573,7 @@ func (_m *EC2API) RejectVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RejectVpcPeeringConnectionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RejectVpcPeeringConnectionInput, ...request.Option) *ec2.RejectVpcPeeringConnectionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RejectVpcPeeringConnectionInput, ...request.Option) *ec2.RejectVpcPeeringConnectionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19577,7 +23582,7 @@ func (_m *EC2API) RejectVpcPeeringConnectionWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RejectVpcPeeringConnectionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RejectVpcPeeringConnectionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19635,7 +23640,7 @@ func (_m *EC2API) ReleaseAddressRequest(_a0 *ec2.ReleaseAddressInput) (*request.
 }
 
 // ReleaseAddressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReleaseAddressWithContext(_a0 aws.Context, _a1 *ec2.ReleaseAddressInput, _a2 ...request.Option) (*ec2.ReleaseAddressOutput, error) {
+func (_m *EC2API) ReleaseAddressWithContext(_a0 context.Context, _a1 *ec2.ReleaseAddressInput, _a2 ...request.Option) (*ec2.ReleaseAddressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19646,7 +23651,7 @@ func (_m *EC2API) ReleaseAddressWithContext(_a0 aws.Context, _a1 *ec2.ReleaseAdd
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReleaseAddressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReleaseAddressInput, ...request.Option) *ec2.ReleaseAddressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReleaseAddressInput, ...request.Option) *ec2.ReleaseAddressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19655,7 +23660,7 @@ func (_m *EC2API) ReleaseAddressWithContext(_a0 aws.Context, _a1 *ec2.ReleaseAdd
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReleaseAddressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReleaseAddressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19713,7 +23718,7 @@ func (_m *EC2API) ReleaseHostsRequest(_a0 *ec2.ReleaseHostsInput) (*request.Requ
 }
 
 // ReleaseHostsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReleaseHostsWithContext(_a0 aws.Context, _a1 *ec2.ReleaseHostsInput, _a2 ...request.Option) (*ec2.ReleaseHostsOutput, error) {
+func (_m *EC2API) ReleaseHostsWithContext(_a0 context.Context, _a1 *ec2.ReleaseHostsInput, _a2 ...request.Option) (*ec2.ReleaseHostsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19724,7 +23729,7 @@ func (_m *EC2API) ReleaseHostsWithContext(_a0 aws.Context, _a1 *ec2.ReleaseHosts
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReleaseHostsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReleaseHostsInput, ...request.Option) *ec2.ReleaseHostsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReleaseHostsInput, ...request.Option) *ec2.ReleaseHostsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19733,7 +23738,7 @@ func (_m *EC2API) ReleaseHostsWithContext(_a0 aws.Context, _a1 *ec2.ReleaseHosts
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReleaseHostsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReleaseHostsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19791,7 +23796,7 @@ func (_m *EC2API) ReplaceIamInstanceProfileAssociationRequest(_a0 *ec2.ReplaceIa
 }
 
 // ReplaceIamInstanceProfileAssociationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReplaceIamInstanceProfileAssociationWithContext(_a0 aws.Context, _a1 *ec2.ReplaceIamInstanceProfileAssociationInput, _a2 ...request.Option) (*ec2.ReplaceIamInstanceProfileAssociationOutput, error) {
+func (_m *EC2API) ReplaceIamInstanceProfileAssociationWithContext(_a0 context.Context, _a1 *ec2.ReplaceIamInstanceProfileAssociationInput, _a2 ...request.Option) (*ec2.ReplaceIamInstanceProfileAssociationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19802,7 +23807,7 @@ func (_m *EC2API) ReplaceIamInstanceProfileAssociationWithContext(_a0 aws.Contex
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReplaceIamInstanceProfileAssociationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReplaceIamInstanceProfileAssociationInput, ...request.Option) *ec2.ReplaceIamInstanceProfileAssociationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReplaceIamInstanceProfileAssociationInput, ...request.Option) *ec2.ReplaceIamInstanceProfileAssociationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19811,7 +23816,7 @@ func (_m *EC2API) ReplaceIamInstanceProfileAssociationWithContext(_a0 aws.Contex
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReplaceIamInstanceProfileAssociationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReplaceIamInstanceProfileAssociationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19869,7 +23874,7 @@ func (_m *EC2API) ReplaceNetworkAclAssociationRequest(_a0 *ec2.ReplaceNetworkAcl
 }
 
 // ReplaceNetworkAclAssociationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReplaceNetworkAclAssociationWithContext(_a0 aws.Context, _a1 *ec2.ReplaceNetworkAclAssociationInput, _a2 ...request.Option) (*ec2.ReplaceNetworkAclAssociationOutput, error) {
+func (_m *EC2API) ReplaceNetworkAclAssociationWithContext(_a0 context.Context, _a1 *ec2.ReplaceNetworkAclAssociationInput, _a2 ...request.Option) (*ec2.ReplaceNetworkAclAssociationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19880,7 +23885,7 @@ func (_m *EC2API) ReplaceNetworkAclAssociationWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReplaceNetworkAclAssociationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReplaceNetworkAclAssociationInput, ...request.Option) *ec2.ReplaceNetworkAclAssociationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReplaceNetworkAclAssociationInput, ...request.Option) *ec2.ReplaceNetworkAclAssociationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19889,7 +23894,7 @@ func (_m *EC2API) ReplaceNetworkAclAssociationWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReplaceNetworkAclAssociationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReplaceNetworkAclAssociationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -19947,7 +23952,7 @@ func (_m *EC2API) ReplaceNetworkAclEntryRequest(_a0 *ec2.ReplaceNetworkAclEntryI
 }
 
 // ReplaceNetworkAclEntryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReplaceNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.ReplaceNetworkAclEntryInput, _a2 ...request.Option) (*ec2.ReplaceNetworkAclEntryOutput, error) {
+func (_m *EC2API) ReplaceNetworkAclEntryWithContext(_a0 context.Context, _a1 *ec2.ReplaceNetworkAclEntryInput, _a2 ...request.Option) (*ec2.ReplaceNetworkAclEntryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -19958,7 +23963,7 @@ func (_m *EC2API) ReplaceNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.Re
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReplaceNetworkAclEntryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReplaceNetworkAclEntryInput, ...request.Option) *ec2.ReplaceNetworkAclEntryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReplaceNetworkAclEntryInput, ...request.Option) *ec2.ReplaceNetworkAclEntryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -19967,7 +23972,7 @@ func (_m *EC2API) ReplaceNetworkAclEntryWithContext(_a0 aws.Context, _a1 *ec2.Re
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReplaceNetworkAclEntryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReplaceNetworkAclEntryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20073,7 +24078,7 @@ func (_m *EC2API) ReplaceRouteTableAssociationRequest(_a0 *ec2.ReplaceRouteTable
 }
 
 // ReplaceRouteTableAssociationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReplaceRouteTableAssociationWithContext(_a0 aws.Context, _a1 *ec2.ReplaceRouteTableAssociationInput, _a2 ...request.Option) (*ec2.ReplaceRouteTableAssociationOutput, error) {
+func (_m *EC2API) ReplaceRouteTableAssociationWithContext(_a0 context.Context, _a1 *ec2.ReplaceRouteTableAssociationInput, _a2 ...request.Option) (*ec2.ReplaceRouteTableAssociationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20084,7 +24089,7 @@ func (_m *EC2API) ReplaceRouteTableAssociationWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReplaceRouteTableAssociationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReplaceRouteTableAssociationInput, ...request.Option) *ec2.ReplaceRouteTableAssociationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReplaceRouteTableAssociationInput, ...request.Option) *ec2.ReplaceRouteTableAssociationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20093,7 +24098,7 @@ func (_m *EC2API) ReplaceRouteTableAssociationWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReplaceRouteTableAssociationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReplaceRouteTableAssociationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20103,7 +24108,7 @@ func (_m *EC2API) ReplaceRouteTableAssociationWithContext(_a0 aws.Context, _a1 *
 }
 
 // ReplaceRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReplaceRouteWithContext(_a0 aws.Context, _a1 *ec2.ReplaceRouteInput, _a2 ...request.Option) (*ec2.ReplaceRouteOutput, error) {
+func (_m *EC2API) ReplaceRouteWithContext(_a0 context.Context, _a1 *ec2.ReplaceRouteInput, _a2 ...request.Option) (*ec2.ReplaceRouteOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20114,7 +24119,7 @@ func (_m *EC2API) ReplaceRouteWithContext(_a0 aws.Context, _a1 *ec2.ReplaceRoute
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReplaceRouteOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReplaceRouteInput, ...request.Option) *ec2.ReplaceRouteOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReplaceRouteInput, ...request.Option) *ec2.ReplaceRouteOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20123,7 +24128,85 @@ func (_m *EC2API) ReplaceRouteWithContext(_a0 aws.Context, _a1 *ec2.ReplaceRoute
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReplaceRouteInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReplaceRouteInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReplaceTransitGatewayRoute provides a mock function with given fields: _a0
+func (_m *EC2API) ReplaceTransitGatewayRoute(_a0 *ec2.ReplaceTransitGatewayRouteInput) (*ec2.ReplaceTransitGatewayRouteOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ReplaceTransitGatewayRouteOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ReplaceTransitGatewayRouteInput) *ec2.ReplaceTransitGatewayRouteOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ReplaceTransitGatewayRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ReplaceTransitGatewayRouteInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReplaceTransitGatewayRouteRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ReplaceTransitGatewayRouteRequest(_a0 *ec2.ReplaceTransitGatewayRouteInput) (*request.Request, *ec2.ReplaceTransitGatewayRouteOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ReplaceTransitGatewayRouteInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ReplaceTransitGatewayRouteOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ReplaceTransitGatewayRouteInput) *ec2.ReplaceTransitGatewayRouteOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ReplaceTransitGatewayRouteOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ReplaceTransitGatewayRouteWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ReplaceTransitGatewayRouteWithContext(_a0 context.Context, _a1 *ec2.ReplaceTransitGatewayRouteInput, _a2 ...request.Option) (*ec2.ReplaceTransitGatewayRouteOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ReplaceTransitGatewayRouteOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReplaceTransitGatewayRouteInput, ...request.Option) *ec2.ReplaceTransitGatewayRouteOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ReplaceTransitGatewayRouteOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReplaceTransitGatewayRouteInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20181,7 +24264,7 @@ func (_m *EC2API) ReportInstanceStatusRequest(_a0 *ec2.ReportInstanceStatusInput
 }
 
 // ReportInstanceStatusWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ReportInstanceStatusWithContext(_a0 aws.Context, _a1 *ec2.ReportInstanceStatusInput, _a2 ...request.Option) (*ec2.ReportInstanceStatusOutput, error) {
+func (_m *EC2API) ReportInstanceStatusWithContext(_a0 context.Context, _a1 *ec2.ReportInstanceStatusInput, _a2 ...request.Option) (*ec2.ReportInstanceStatusOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20192,7 +24275,7 @@ func (_m *EC2API) ReportInstanceStatusWithContext(_a0 aws.Context, _a1 *ec2.Repo
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ReportInstanceStatusOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ReportInstanceStatusInput, ...request.Option) *ec2.ReportInstanceStatusOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ReportInstanceStatusInput, ...request.Option) *ec2.ReportInstanceStatusOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20201,7 +24284,7 @@ func (_m *EC2API) ReportInstanceStatusWithContext(_a0 aws.Context, _a1 *ec2.Repo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ReportInstanceStatusInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ReportInstanceStatusInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20259,7 +24342,7 @@ func (_m *EC2API) RequestSpotFleetRequest(_a0 *ec2.RequestSpotFleetInput) (*requ
 }
 
 // RequestSpotFleetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RequestSpotFleetWithContext(_a0 aws.Context, _a1 *ec2.RequestSpotFleetInput, _a2 ...request.Option) (*ec2.RequestSpotFleetOutput, error) {
+func (_m *EC2API) RequestSpotFleetWithContext(_a0 context.Context, _a1 *ec2.RequestSpotFleetInput, _a2 ...request.Option) (*ec2.RequestSpotFleetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20270,7 +24353,7 @@ func (_m *EC2API) RequestSpotFleetWithContext(_a0 aws.Context, _a1 *ec2.RequestS
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RequestSpotFleetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RequestSpotFleetInput, ...request.Option) *ec2.RequestSpotFleetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RequestSpotFleetInput, ...request.Option) *ec2.RequestSpotFleetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20279,7 +24362,7 @@ func (_m *EC2API) RequestSpotFleetWithContext(_a0 aws.Context, _a1 *ec2.RequestS
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RequestSpotFleetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RequestSpotFleetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20337,7 +24420,7 @@ func (_m *EC2API) RequestSpotInstancesRequest(_a0 *ec2.RequestSpotInstancesInput
 }
 
 // RequestSpotInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RequestSpotInstancesWithContext(_a0 aws.Context, _a1 *ec2.RequestSpotInstancesInput, _a2 ...request.Option) (*ec2.RequestSpotInstancesOutput, error) {
+func (_m *EC2API) RequestSpotInstancesWithContext(_a0 context.Context, _a1 *ec2.RequestSpotInstancesInput, _a2 ...request.Option) (*ec2.RequestSpotInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20348,7 +24431,7 @@ func (_m *EC2API) RequestSpotInstancesWithContext(_a0 aws.Context, _a1 *ec2.Requ
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RequestSpotInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RequestSpotInstancesInput, ...request.Option) *ec2.RequestSpotInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RequestSpotInstancesInput, ...request.Option) *ec2.RequestSpotInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20357,7 +24440,7 @@ func (_m *EC2API) RequestSpotInstancesWithContext(_a0 aws.Context, _a1 *ec2.Requ
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RequestSpotInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RequestSpotInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20415,7 +24498,7 @@ func (_m *EC2API) ResetFpgaImageAttributeRequest(_a0 *ec2.ResetFpgaImageAttribut
 }
 
 // ResetFpgaImageAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ResetFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.ResetFpgaImageAttributeInput, _a2 ...request.Option) (*ec2.ResetFpgaImageAttributeOutput, error) {
+func (_m *EC2API) ResetFpgaImageAttributeWithContext(_a0 context.Context, _a1 *ec2.ResetFpgaImageAttributeInput, _a2 ...request.Option) (*ec2.ResetFpgaImageAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20426,7 +24509,7 @@ func (_m *EC2API) ResetFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.R
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ResetFpgaImageAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ResetFpgaImageAttributeInput, ...request.Option) *ec2.ResetFpgaImageAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ResetFpgaImageAttributeInput, ...request.Option) *ec2.ResetFpgaImageAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20435,7 +24518,7 @@ func (_m *EC2API) ResetFpgaImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.R
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ResetFpgaImageAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ResetFpgaImageAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20493,7 +24576,7 @@ func (_m *EC2API) ResetImageAttributeRequest(_a0 *ec2.ResetImageAttributeInput) 
 }
 
 // ResetImageAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ResetImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.ResetImageAttributeInput, _a2 ...request.Option) (*ec2.ResetImageAttributeOutput, error) {
+func (_m *EC2API) ResetImageAttributeWithContext(_a0 context.Context, _a1 *ec2.ResetImageAttributeInput, _a2 ...request.Option) (*ec2.ResetImageAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20504,7 +24587,7 @@ func (_m *EC2API) ResetImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.Reset
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ResetImageAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ResetImageAttributeInput, ...request.Option) *ec2.ResetImageAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ResetImageAttributeInput, ...request.Option) *ec2.ResetImageAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20513,7 +24596,7 @@ func (_m *EC2API) ResetImageAttributeWithContext(_a0 aws.Context, _a1 *ec2.Reset
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ResetImageAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ResetImageAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20571,7 +24654,7 @@ func (_m *EC2API) ResetInstanceAttributeRequest(_a0 *ec2.ResetInstanceAttributeI
 }
 
 // ResetInstanceAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ResetInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2.ResetInstanceAttributeInput, _a2 ...request.Option) (*ec2.ResetInstanceAttributeOutput, error) {
+func (_m *EC2API) ResetInstanceAttributeWithContext(_a0 context.Context, _a1 *ec2.ResetInstanceAttributeInput, _a2 ...request.Option) (*ec2.ResetInstanceAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20582,7 +24665,7 @@ func (_m *EC2API) ResetInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2.Re
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ResetInstanceAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ResetInstanceAttributeInput, ...request.Option) *ec2.ResetInstanceAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ResetInstanceAttributeInput, ...request.Option) *ec2.ResetInstanceAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20591,7 +24674,7 @@ func (_m *EC2API) ResetInstanceAttributeWithContext(_a0 aws.Context, _a1 *ec2.Re
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ResetInstanceAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ResetInstanceAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20649,7 +24732,7 @@ func (_m *EC2API) ResetNetworkInterfaceAttributeRequest(_a0 *ec2.ResetNetworkInt
 }
 
 // ResetNetworkInterfaceAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ResetNetworkInterfaceAttributeWithContext(_a0 aws.Context, _a1 *ec2.ResetNetworkInterfaceAttributeInput, _a2 ...request.Option) (*ec2.ResetNetworkInterfaceAttributeOutput, error) {
+func (_m *EC2API) ResetNetworkInterfaceAttributeWithContext(_a0 context.Context, _a1 *ec2.ResetNetworkInterfaceAttributeInput, _a2 ...request.Option) (*ec2.ResetNetworkInterfaceAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20660,7 +24743,7 @@ func (_m *EC2API) ResetNetworkInterfaceAttributeWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ResetNetworkInterfaceAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ResetNetworkInterfaceAttributeInput, ...request.Option) *ec2.ResetNetworkInterfaceAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ResetNetworkInterfaceAttributeInput, ...request.Option) *ec2.ResetNetworkInterfaceAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20669,7 +24752,7 @@ func (_m *EC2API) ResetNetworkInterfaceAttributeWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ResetNetworkInterfaceAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ResetNetworkInterfaceAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20727,7 +24810,7 @@ func (_m *EC2API) ResetSnapshotAttributeRequest(_a0 *ec2.ResetSnapshotAttributeI
 }
 
 // ResetSnapshotAttributeWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) ResetSnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2.ResetSnapshotAttributeInput, _a2 ...request.Option) (*ec2.ResetSnapshotAttributeOutput, error) {
+func (_m *EC2API) ResetSnapshotAttributeWithContext(_a0 context.Context, _a1 *ec2.ResetSnapshotAttributeInput, _a2 ...request.Option) (*ec2.ResetSnapshotAttributeOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20738,7 +24821,7 @@ func (_m *EC2API) ResetSnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2.Re
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.ResetSnapshotAttributeOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.ResetSnapshotAttributeInput, ...request.Option) *ec2.ResetSnapshotAttributeOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ResetSnapshotAttributeInput, ...request.Option) *ec2.ResetSnapshotAttributeOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20747,7 +24830,7 @@ func (_m *EC2API) ResetSnapshotAttributeWithContext(_a0 aws.Context, _a1 *ec2.Re
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.ResetSnapshotAttributeInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ResetSnapshotAttributeInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20805,7 +24888,7 @@ func (_m *EC2API) RestoreAddressToClassicRequest(_a0 *ec2.RestoreAddressToClassi
 }
 
 // RestoreAddressToClassicWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RestoreAddressToClassicWithContext(_a0 aws.Context, _a1 *ec2.RestoreAddressToClassicInput, _a2 ...request.Option) (*ec2.RestoreAddressToClassicOutput, error) {
+func (_m *EC2API) RestoreAddressToClassicWithContext(_a0 context.Context, _a1 *ec2.RestoreAddressToClassicInput, _a2 ...request.Option) (*ec2.RestoreAddressToClassicOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20816,7 +24899,7 @@ func (_m *EC2API) RestoreAddressToClassicWithContext(_a0 aws.Context, _a1 *ec2.R
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RestoreAddressToClassicOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RestoreAddressToClassicInput, ...request.Option) *ec2.RestoreAddressToClassicOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RestoreAddressToClassicInput, ...request.Option) *ec2.RestoreAddressToClassicOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20825,7 +24908,85 @@ func (_m *EC2API) RestoreAddressToClassicWithContext(_a0 aws.Context, _a1 *ec2.R
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RestoreAddressToClassicInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RestoreAddressToClassicInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RevokeClientVpnIngress provides a mock function with given fields: _a0
+func (_m *EC2API) RevokeClientVpnIngress(_a0 *ec2.RevokeClientVpnIngressInput) (*ec2.RevokeClientVpnIngressOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.RevokeClientVpnIngressOutput
+	if rf, ok := ret.Get(0).(func(*ec2.RevokeClientVpnIngressInput) *ec2.RevokeClientVpnIngressOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RevokeClientVpnIngressOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.RevokeClientVpnIngressInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RevokeClientVpnIngressRequest provides a mock function with given fields: _a0
+func (_m *EC2API) RevokeClientVpnIngressRequest(_a0 *ec2.RevokeClientVpnIngressInput) (*request.Request, *ec2.RevokeClientVpnIngressOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.RevokeClientVpnIngressInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.RevokeClientVpnIngressOutput
+	if rf, ok := ret.Get(1).(func(*ec2.RevokeClientVpnIngressInput) *ec2.RevokeClientVpnIngressOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.RevokeClientVpnIngressOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RevokeClientVpnIngressWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) RevokeClientVpnIngressWithContext(_a0 context.Context, _a1 *ec2.RevokeClientVpnIngressInput, _a2 ...request.Option) (*ec2.RevokeClientVpnIngressOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.RevokeClientVpnIngressOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RevokeClientVpnIngressInput, ...request.Option) *ec2.RevokeClientVpnIngressOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RevokeClientVpnIngressOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RevokeClientVpnIngressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20883,7 +25044,7 @@ func (_m *EC2API) RevokeSecurityGroupEgressRequest(_a0 *ec2.RevokeSecurityGroupE
 }
 
 // RevokeSecurityGroupEgressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RevokeSecurityGroupEgressWithContext(_a0 aws.Context, _a1 *ec2.RevokeSecurityGroupEgressInput, _a2 ...request.Option) (*ec2.RevokeSecurityGroupEgressOutput, error) {
+func (_m *EC2API) RevokeSecurityGroupEgressWithContext(_a0 context.Context, _a1 *ec2.RevokeSecurityGroupEgressInput, _a2 ...request.Option) (*ec2.RevokeSecurityGroupEgressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20894,7 +25055,7 @@ func (_m *EC2API) RevokeSecurityGroupEgressWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RevokeSecurityGroupEgressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RevokeSecurityGroupEgressInput, ...request.Option) *ec2.RevokeSecurityGroupEgressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RevokeSecurityGroupEgressInput, ...request.Option) *ec2.RevokeSecurityGroupEgressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20903,7 +25064,7 @@ func (_m *EC2API) RevokeSecurityGroupEgressWithContext(_a0 aws.Context, _a1 *ec2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RevokeSecurityGroupEgressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RevokeSecurityGroupEgressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20961,7 +25122,7 @@ func (_m *EC2API) RevokeSecurityGroupIngressRequest(_a0 *ec2.RevokeSecurityGroup
 }
 
 // RevokeSecurityGroupIngressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RevokeSecurityGroupIngressWithContext(_a0 aws.Context, _a1 *ec2.RevokeSecurityGroupIngressInput, _a2 ...request.Option) (*ec2.RevokeSecurityGroupIngressOutput, error) {
+func (_m *EC2API) RevokeSecurityGroupIngressWithContext(_a0 context.Context, _a1 *ec2.RevokeSecurityGroupIngressInput, _a2 ...request.Option) (*ec2.RevokeSecurityGroupIngressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -20972,7 +25133,7 @@ func (_m *EC2API) RevokeSecurityGroupIngressWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RevokeSecurityGroupIngressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RevokeSecurityGroupIngressInput, ...request.Option) *ec2.RevokeSecurityGroupIngressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RevokeSecurityGroupIngressInput, ...request.Option) *ec2.RevokeSecurityGroupIngressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -20981,7 +25142,7 @@ func (_m *EC2API) RevokeSecurityGroupIngressWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RevokeSecurityGroupIngressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RevokeSecurityGroupIngressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21039,7 +25200,7 @@ func (_m *EC2API) RunInstancesRequest(_a0 *ec2.RunInstancesInput) (*request.Requ
 }
 
 // RunInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RunInstancesWithContext(_a0 aws.Context, _a1 *ec2.RunInstancesInput, _a2 ...request.Option) (*ec2.Reservation, error) {
+func (_m *EC2API) RunInstancesWithContext(_a0 context.Context, _a1 *ec2.RunInstancesInput, _a2 ...request.Option) (*ec2.Reservation, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21050,7 +25211,7 @@ func (_m *EC2API) RunInstancesWithContext(_a0 aws.Context, _a1 *ec2.RunInstances
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.Reservation
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RunInstancesInput, ...request.Option) *ec2.Reservation); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RunInstancesInput, ...request.Option) *ec2.Reservation); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21059,7 +25220,7 @@ func (_m *EC2API) RunInstancesWithContext(_a0 aws.Context, _a1 *ec2.RunInstances
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RunInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RunInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21117,7 +25278,7 @@ func (_m *EC2API) RunScheduledInstancesRequest(_a0 *ec2.RunScheduledInstancesInp
 }
 
 // RunScheduledInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) RunScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec2.RunScheduledInstancesInput, _a2 ...request.Option) (*ec2.RunScheduledInstancesOutput, error) {
+func (_m *EC2API) RunScheduledInstancesWithContext(_a0 context.Context, _a1 *ec2.RunScheduledInstancesInput, _a2 ...request.Option) (*ec2.RunScheduledInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21128,7 +25289,7 @@ func (_m *EC2API) RunScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec2.Run
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.RunScheduledInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.RunScheduledInstancesInput, ...request.Option) *ec2.RunScheduledInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RunScheduledInstancesInput, ...request.Option) *ec2.RunScheduledInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21137,7 +25298,85 @@ func (_m *EC2API) RunScheduledInstancesWithContext(_a0 aws.Context, _a1 *ec2.Run
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.RunScheduledInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RunScheduledInstancesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchTransitGatewayRoutes provides a mock function with given fields: _a0
+func (_m *EC2API) SearchTransitGatewayRoutes(_a0 *ec2.SearchTransitGatewayRoutesInput) (*ec2.SearchTransitGatewayRoutesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.SearchTransitGatewayRoutesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.SearchTransitGatewayRoutesInput) *ec2.SearchTransitGatewayRoutesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.SearchTransitGatewayRoutesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.SearchTransitGatewayRoutesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchTransitGatewayRoutesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) SearchTransitGatewayRoutesRequest(_a0 *ec2.SearchTransitGatewayRoutesInput) (*request.Request, *ec2.SearchTransitGatewayRoutesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.SearchTransitGatewayRoutesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.SearchTransitGatewayRoutesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.SearchTransitGatewayRoutesInput) *ec2.SearchTransitGatewayRoutesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.SearchTransitGatewayRoutesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchTransitGatewayRoutesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) SearchTransitGatewayRoutesWithContext(_a0 context.Context, _a1 *ec2.SearchTransitGatewayRoutesInput, _a2 ...request.Option) (*ec2.SearchTransitGatewayRoutesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.SearchTransitGatewayRoutesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.SearchTransitGatewayRoutesInput, ...request.Option) *ec2.SearchTransitGatewayRoutesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.SearchTransitGatewayRoutesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.SearchTransitGatewayRoutesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21195,7 +25434,7 @@ func (_m *EC2API) StartInstancesRequest(_a0 *ec2.StartInstancesInput) (*request.
 }
 
 // StartInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) StartInstancesWithContext(_a0 aws.Context, _a1 *ec2.StartInstancesInput, _a2 ...request.Option) (*ec2.StartInstancesOutput, error) {
+func (_m *EC2API) StartInstancesWithContext(_a0 context.Context, _a1 *ec2.StartInstancesInput, _a2 ...request.Option) (*ec2.StartInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21206,7 +25445,7 @@ func (_m *EC2API) StartInstancesWithContext(_a0 aws.Context, _a1 *ec2.StartInsta
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.StartInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.StartInstancesInput, ...request.Option) *ec2.StartInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.StartInstancesInput, ...request.Option) *ec2.StartInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21215,7 +25454,7 @@ func (_m *EC2API) StartInstancesWithContext(_a0 aws.Context, _a1 *ec2.StartInsta
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.StartInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.StartInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21273,7 +25512,7 @@ func (_m *EC2API) StopInstancesRequest(_a0 *ec2.StopInstancesInput) (*request.Re
 }
 
 // StopInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) StopInstancesWithContext(_a0 aws.Context, _a1 *ec2.StopInstancesInput, _a2 ...request.Option) (*ec2.StopInstancesOutput, error) {
+func (_m *EC2API) StopInstancesWithContext(_a0 context.Context, _a1 *ec2.StopInstancesInput, _a2 ...request.Option) (*ec2.StopInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21284,7 +25523,7 @@ func (_m *EC2API) StopInstancesWithContext(_a0 aws.Context, _a1 *ec2.StopInstanc
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.StopInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.StopInstancesInput, ...request.Option) *ec2.StopInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.StopInstancesInput, ...request.Option) *ec2.StopInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21293,7 +25532,85 @@ func (_m *EC2API) StopInstancesWithContext(_a0 aws.Context, _a1 *ec2.StopInstanc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.StopInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.StopInstancesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TerminateClientVpnConnections provides a mock function with given fields: _a0
+func (_m *EC2API) TerminateClientVpnConnections(_a0 *ec2.TerminateClientVpnConnectionsInput) (*ec2.TerminateClientVpnConnectionsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.TerminateClientVpnConnectionsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.TerminateClientVpnConnectionsInput) *ec2.TerminateClientVpnConnectionsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.TerminateClientVpnConnectionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.TerminateClientVpnConnectionsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TerminateClientVpnConnectionsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) TerminateClientVpnConnectionsRequest(_a0 *ec2.TerminateClientVpnConnectionsInput) (*request.Request, *ec2.TerminateClientVpnConnectionsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.TerminateClientVpnConnectionsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.TerminateClientVpnConnectionsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.TerminateClientVpnConnectionsInput) *ec2.TerminateClientVpnConnectionsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.TerminateClientVpnConnectionsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TerminateClientVpnConnectionsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) TerminateClientVpnConnectionsWithContext(_a0 context.Context, _a1 *ec2.TerminateClientVpnConnectionsInput, _a2 ...request.Option) (*ec2.TerminateClientVpnConnectionsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.TerminateClientVpnConnectionsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.TerminateClientVpnConnectionsInput, ...request.Option) *ec2.TerminateClientVpnConnectionsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.TerminateClientVpnConnectionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.TerminateClientVpnConnectionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21351,7 +25668,7 @@ func (_m *EC2API) TerminateInstancesRequest(_a0 *ec2.TerminateInstancesInput) (*
 }
 
 // TerminateInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) TerminateInstancesWithContext(_a0 aws.Context, _a1 *ec2.TerminateInstancesInput, _a2 ...request.Option) (*ec2.TerminateInstancesOutput, error) {
+func (_m *EC2API) TerminateInstancesWithContext(_a0 context.Context, _a1 *ec2.TerminateInstancesInput, _a2 ...request.Option) (*ec2.TerminateInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21362,7 +25679,7 @@ func (_m *EC2API) TerminateInstancesWithContext(_a0 aws.Context, _a1 *ec2.Termin
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.TerminateInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.TerminateInstancesInput, ...request.Option) *ec2.TerminateInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.TerminateInstancesInput, ...request.Option) *ec2.TerminateInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21371,7 +25688,7 @@ func (_m *EC2API) TerminateInstancesWithContext(_a0 aws.Context, _a1 *ec2.Termin
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.TerminateInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.TerminateInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21429,7 +25746,7 @@ func (_m *EC2API) UnassignIpv6AddressesRequest(_a0 *ec2.UnassignIpv6AddressesInp
 }
 
 // UnassignIpv6AddressesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) UnassignIpv6AddressesWithContext(_a0 aws.Context, _a1 *ec2.UnassignIpv6AddressesInput, _a2 ...request.Option) (*ec2.UnassignIpv6AddressesOutput, error) {
+func (_m *EC2API) UnassignIpv6AddressesWithContext(_a0 context.Context, _a1 *ec2.UnassignIpv6AddressesInput, _a2 ...request.Option) (*ec2.UnassignIpv6AddressesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21440,7 +25757,7 @@ func (_m *EC2API) UnassignIpv6AddressesWithContext(_a0 aws.Context, _a1 *ec2.Una
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.UnassignIpv6AddressesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.UnassignIpv6AddressesInput, ...request.Option) *ec2.UnassignIpv6AddressesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.UnassignIpv6AddressesInput, ...request.Option) *ec2.UnassignIpv6AddressesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21449,7 +25766,7 @@ func (_m *EC2API) UnassignIpv6AddressesWithContext(_a0 aws.Context, _a1 *ec2.Una
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.UnassignIpv6AddressesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.UnassignIpv6AddressesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21507,7 +25824,7 @@ func (_m *EC2API) UnassignPrivateIpAddressesRequest(_a0 *ec2.UnassignPrivateIpAd
 }
 
 // UnassignPrivateIpAddressesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) UnassignPrivateIpAddressesWithContext(_a0 aws.Context, _a1 *ec2.UnassignPrivateIpAddressesInput, _a2 ...request.Option) (*ec2.UnassignPrivateIpAddressesOutput, error) {
+func (_m *EC2API) UnassignPrivateIpAddressesWithContext(_a0 context.Context, _a1 *ec2.UnassignPrivateIpAddressesInput, _a2 ...request.Option) (*ec2.UnassignPrivateIpAddressesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21518,7 +25835,7 @@ func (_m *EC2API) UnassignPrivateIpAddressesWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.UnassignPrivateIpAddressesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.UnassignPrivateIpAddressesInput, ...request.Option) *ec2.UnassignPrivateIpAddressesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.UnassignPrivateIpAddressesInput, ...request.Option) *ec2.UnassignPrivateIpAddressesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21527,7 +25844,7 @@ func (_m *EC2API) UnassignPrivateIpAddressesWithContext(_a0 aws.Context, _a1 *ec
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.UnassignPrivateIpAddressesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.UnassignPrivateIpAddressesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21585,7 +25902,7 @@ func (_m *EC2API) UnmonitorInstancesRequest(_a0 *ec2.UnmonitorInstancesInput) (*
 }
 
 // UnmonitorInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) UnmonitorInstancesWithContext(_a0 aws.Context, _a1 *ec2.UnmonitorInstancesInput, _a2 ...request.Option) (*ec2.UnmonitorInstancesOutput, error) {
+func (_m *EC2API) UnmonitorInstancesWithContext(_a0 context.Context, _a1 *ec2.UnmonitorInstancesInput, _a2 ...request.Option) (*ec2.UnmonitorInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21596,7 +25913,7 @@ func (_m *EC2API) UnmonitorInstancesWithContext(_a0 aws.Context, _a1 *ec2.Unmoni
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.UnmonitorInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.UnmonitorInstancesInput, ...request.Option) *ec2.UnmonitorInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.UnmonitorInstancesInput, ...request.Option) *ec2.UnmonitorInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21605,7 +25922,7 @@ func (_m *EC2API) UnmonitorInstancesWithContext(_a0 aws.Context, _a1 *ec2.Unmoni
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.UnmonitorInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.UnmonitorInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21663,7 +25980,7 @@ func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsEgressRequest(_a0 *ec2.Upda
 }
 
 // UpdateSecurityGroupRuleDescriptionsEgressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsEgressWithContext(_a0 aws.Context, _a1 *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput, _a2 ...request.Option) (*ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput, error) {
+func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsEgressWithContext(_a0 context.Context, _a1 *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput, _a2 ...request.Option) (*ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21674,7 +25991,7 @@ func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsEgressWithContext(_a0 aws.C
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput, ...request.Option) *ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput, ...request.Option) *ec2.UpdateSecurityGroupRuleDescriptionsEgressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21683,7 +26000,7 @@ func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsEgressWithContext(_a0 aws.C
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.UpdateSecurityGroupRuleDescriptionsEgressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21741,7 +26058,7 @@ func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsIngressRequest(_a0 *ec2.Upd
 }
 
 // UpdateSecurityGroupRuleDescriptionsIngressWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsIngressWithContext(_a0 aws.Context, _a1 *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput, _a2 ...request.Option) (*ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput, error) {
+func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsIngressWithContext(_a0 context.Context, _a1 *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput, _a2 ...request.Option) (*ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21752,7 +26069,7 @@ func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsIngressWithContext(_a0 aws.
 	ret := _m.Called(_ca...)
 
 	var r0 *ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput, ...request.Option) *ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput, ...request.Option) *ec2.UpdateSecurityGroupRuleDescriptionsIngressOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -21761,7 +26078,7 @@ func (_m *EC2API) UpdateSecurityGroupRuleDescriptionsIngressWithContext(_a0 aws.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.UpdateSecurityGroupRuleDescriptionsIngressInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -21785,7 +26102,7 @@ func (_m *EC2API) WaitUntilBundleTaskComplete(_a0 *ec2.DescribeBundleTasksInput)
 }
 
 // WaitUntilBundleTaskCompleteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilBundleTaskCompleteWithContext(_a0 aws.Context, _a1 *ec2.DescribeBundleTasksInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilBundleTaskCompleteWithContext(_a0 context.Context, _a1 *ec2.DescribeBundleTasksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21796,7 +26113,7 @@ func (_m *EC2API) WaitUntilBundleTaskCompleteWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeBundleTasksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeBundleTasksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -21820,7 +26137,7 @@ func (_m *EC2API) WaitUntilConversionTaskCancelled(_a0 *ec2.DescribeConversionTa
 }
 
 // WaitUntilConversionTaskCancelledWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilConversionTaskCancelledWithContext(_a0 aws.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilConversionTaskCancelledWithContext(_a0 context.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21831,7 +26148,7 @@ func (_m *EC2API) WaitUntilConversionTaskCancelledWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeConversionTasksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeConversionTasksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -21855,7 +26172,7 @@ func (_m *EC2API) WaitUntilConversionTaskCompleted(_a0 *ec2.DescribeConversionTa
 }
 
 // WaitUntilConversionTaskCompletedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilConversionTaskCompletedWithContext(_a0 aws.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilConversionTaskCompletedWithContext(_a0 context.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21866,7 +26183,7 @@ func (_m *EC2API) WaitUntilConversionTaskCompletedWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeConversionTasksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeConversionTasksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -21890,7 +26207,7 @@ func (_m *EC2API) WaitUntilConversionTaskDeleted(_a0 *ec2.DescribeConversionTask
 }
 
 // WaitUntilConversionTaskDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilConversionTaskDeletedWithContext(_a0 aws.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilConversionTaskDeletedWithContext(_a0 context.Context, _a1 *ec2.DescribeConversionTasksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21901,7 +26218,7 @@ func (_m *EC2API) WaitUntilConversionTaskDeletedWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeConversionTasksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeConversionTasksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -21925,7 +26242,7 @@ func (_m *EC2API) WaitUntilCustomerGatewayAvailable(_a0 *ec2.DescribeCustomerGat
 }
 
 // WaitUntilCustomerGatewayAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilCustomerGatewayAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeCustomerGatewaysInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilCustomerGatewayAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeCustomerGatewaysInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21936,7 +26253,7 @@ func (_m *EC2API) WaitUntilCustomerGatewayAvailableWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeCustomerGatewaysInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCustomerGatewaysInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -21960,7 +26277,7 @@ func (_m *EC2API) WaitUntilExportTaskCancelled(_a0 *ec2.DescribeExportTasksInput
 }
 
 // WaitUntilExportTaskCancelledWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilExportTaskCancelledWithContext(_a0 aws.Context, _a1 *ec2.DescribeExportTasksInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilExportTaskCancelledWithContext(_a0 context.Context, _a1 *ec2.DescribeExportTasksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -21971,7 +26288,7 @@ func (_m *EC2API) WaitUntilExportTaskCancelledWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeExportTasksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeExportTasksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -21995,7 +26312,7 @@ func (_m *EC2API) WaitUntilExportTaskCompleted(_a0 *ec2.DescribeExportTasksInput
 }
 
 // WaitUntilExportTaskCompletedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilExportTaskCompletedWithContext(_a0 aws.Context, _a1 *ec2.DescribeExportTasksInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilExportTaskCompletedWithContext(_a0 context.Context, _a1 *ec2.DescribeExportTasksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22006,7 +26323,7 @@ func (_m *EC2API) WaitUntilExportTaskCompletedWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeExportTasksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeExportTasksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22030,7 +26347,7 @@ func (_m *EC2API) WaitUntilImageAvailable(_a0 *ec2.DescribeImagesInput) error {
 }
 
 // WaitUntilImageAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilImageAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeImagesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilImageAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeImagesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22041,7 +26358,7 @@ func (_m *EC2API) WaitUntilImageAvailableWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeImagesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeImagesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22065,7 +26382,7 @@ func (_m *EC2API) WaitUntilImageExists(_a0 *ec2.DescribeImagesInput) error {
 }
 
 // WaitUntilImageExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilImageExistsWithContext(_a0 aws.Context, _a1 *ec2.DescribeImagesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilImageExistsWithContext(_a0 context.Context, _a1 *ec2.DescribeImagesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22076,7 +26393,7 @@ func (_m *EC2API) WaitUntilImageExistsWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeImagesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeImagesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22100,7 +26417,7 @@ func (_m *EC2API) WaitUntilInstanceExists(_a0 *ec2.DescribeInstancesInput) error
 }
 
 // WaitUntilInstanceExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilInstanceExistsWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilInstanceExistsWithContext(_a0 context.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22111,7 +26428,7 @@ func (_m *EC2API) WaitUntilInstanceExistsWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22135,7 +26452,7 @@ func (_m *EC2API) WaitUntilInstanceRunning(_a0 *ec2.DescribeInstancesInput) erro
 }
 
 // WaitUntilInstanceRunningWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilInstanceRunningWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilInstanceRunningWithContext(_a0 context.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22146,7 +26463,7 @@ func (_m *EC2API) WaitUntilInstanceRunningWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22170,7 +26487,7 @@ func (_m *EC2API) WaitUntilInstanceStatusOk(_a0 *ec2.DescribeInstanceStatusInput
 }
 
 // WaitUntilInstanceStatusOkWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilInstanceStatusOkWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilInstanceStatusOkWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22181,7 +26498,7 @@ func (_m *EC2API) WaitUntilInstanceStatusOkWithContext(_a0 aws.Context, _a1 *ec2
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstanceStatusInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceStatusInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22205,7 +26522,7 @@ func (_m *EC2API) WaitUntilInstanceStopped(_a0 *ec2.DescribeInstancesInput) erro
 }
 
 // WaitUntilInstanceStoppedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilInstanceStoppedWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilInstanceStoppedWithContext(_a0 context.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22216,7 +26533,7 @@ func (_m *EC2API) WaitUntilInstanceStoppedWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22240,7 +26557,7 @@ func (_m *EC2API) WaitUntilInstanceTerminated(_a0 *ec2.DescribeInstancesInput) e
 }
 
 // WaitUntilInstanceTerminatedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilInstanceTerminatedWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilInstanceTerminatedWithContext(_a0 context.Context, _a1 *ec2.DescribeInstancesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22251,7 +26568,7 @@ func (_m *EC2API) WaitUntilInstanceTerminatedWithContext(_a0 aws.Context, _a1 *e
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstancesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22275,7 +26592,7 @@ func (_m *EC2API) WaitUntilKeyPairExists(_a0 *ec2.DescribeKeyPairsInput) error {
 }
 
 // WaitUntilKeyPairExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilKeyPairExistsWithContext(_a0 aws.Context, _a1 *ec2.DescribeKeyPairsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilKeyPairExistsWithContext(_a0 context.Context, _a1 *ec2.DescribeKeyPairsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22286,7 +26603,7 @@ func (_m *EC2API) WaitUntilKeyPairExistsWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeKeyPairsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeKeyPairsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22310,7 +26627,7 @@ func (_m *EC2API) WaitUntilNatGatewayAvailable(_a0 *ec2.DescribeNatGatewaysInput
 }
 
 // WaitUntilNatGatewayAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilNatGatewayAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeNatGatewaysInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilNatGatewayAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeNatGatewaysInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22321,7 +26638,7 @@ func (_m *EC2API) WaitUntilNatGatewayAvailableWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNatGatewaysInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNatGatewaysInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22345,7 +26662,7 @@ func (_m *EC2API) WaitUntilNetworkInterfaceAvailable(_a0 *ec2.DescribeNetworkInt
 }
 
 // WaitUntilNetworkInterfaceAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilNetworkInterfaceAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeNetworkInterfacesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilNetworkInterfaceAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeNetworkInterfacesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22356,7 +26673,7 @@ func (_m *EC2API) WaitUntilNetworkInterfaceAvailableWithContext(_a0 aws.Context,
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeNetworkInterfacesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeNetworkInterfacesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22380,7 +26697,7 @@ func (_m *EC2API) WaitUntilPasswordDataAvailable(_a0 *ec2.GetPasswordDataInput) 
 }
 
 // WaitUntilPasswordDataAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilPasswordDataAvailableWithContext(_a0 aws.Context, _a1 *ec2.GetPasswordDataInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilPasswordDataAvailableWithContext(_a0 context.Context, _a1 *ec2.GetPasswordDataInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22391,7 +26708,7 @@ func (_m *EC2API) WaitUntilPasswordDataAvailableWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.GetPasswordDataInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetPasswordDataInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22415,7 +26732,7 @@ func (_m *EC2API) WaitUntilSnapshotCompleted(_a0 *ec2.DescribeSnapshotsInput) er
 }
 
 // WaitUntilSnapshotCompletedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilSnapshotCompletedWithContext(_a0 aws.Context, _a1 *ec2.DescribeSnapshotsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilSnapshotCompletedWithContext(_a0 context.Context, _a1 *ec2.DescribeSnapshotsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22426,7 +26743,7 @@ func (_m *EC2API) WaitUntilSnapshotCompletedWithContext(_a0 aws.Context, _a1 *ec
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSnapshotsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSnapshotsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22450,7 +26767,7 @@ func (_m *EC2API) WaitUntilSpotInstanceRequestFulfilled(_a0 *ec2.DescribeSpotIns
 }
 
 // WaitUntilSpotInstanceRequestFulfilledWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilSpotInstanceRequestFulfilledWithContext(_a0 aws.Context, _a1 *ec2.DescribeSpotInstanceRequestsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilSpotInstanceRequestFulfilledWithContext(_a0 context.Context, _a1 *ec2.DescribeSpotInstanceRequestsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22461,7 +26778,7 @@ func (_m *EC2API) WaitUntilSpotInstanceRequestFulfilledWithContext(_a0 aws.Conte
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSpotInstanceRequestsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSpotInstanceRequestsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22485,7 +26802,7 @@ func (_m *EC2API) WaitUntilSubnetAvailable(_a0 *ec2.DescribeSubnetsInput) error 
 }
 
 // WaitUntilSubnetAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilSubnetAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeSubnetsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilSubnetAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeSubnetsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22496,7 +26813,7 @@ func (_m *EC2API) WaitUntilSubnetAvailableWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeSubnetsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSubnetsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22520,7 +26837,7 @@ func (_m *EC2API) WaitUntilSystemStatusOk(_a0 *ec2.DescribeInstanceStatusInput) 
 }
 
 // WaitUntilSystemStatusOkWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilSystemStatusOkWithContext(_a0 aws.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilSystemStatusOkWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceStatusInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22531,7 +26848,7 @@ func (_m *EC2API) WaitUntilSystemStatusOkWithContext(_a0 aws.Context, _a1 *ec2.D
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeInstanceStatusInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceStatusInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22555,7 +26872,7 @@ func (_m *EC2API) WaitUntilVolumeAvailable(_a0 *ec2.DescribeVolumesInput) error 
 }
 
 // WaitUntilVolumeAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVolumeAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVolumeAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22566,7 +26883,7 @@ func (_m *EC2API) WaitUntilVolumeAvailableWithContext(_a0 aws.Context, _a1 *ec2.
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22590,7 +26907,7 @@ func (_m *EC2API) WaitUntilVolumeDeleted(_a0 *ec2.DescribeVolumesInput) error {
 }
 
 // WaitUntilVolumeDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVolumeDeletedWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVolumeDeletedWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22601,7 +26918,7 @@ func (_m *EC2API) WaitUntilVolumeDeletedWithContext(_a0 aws.Context, _a1 *ec2.De
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22625,7 +26942,7 @@ func (_m *EC2API) WaitUntilVolumeInUse(_a0 *ec2.DescribeVolumesInput) error {
 }
 
 // WaitUntilVolumeInUseWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVolumeInUseWithContext(_a0 aws.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVolumeInUseWithContext(_a0 context.Context, _a1 *ec2.DescribeVolumesInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22636,7 +26953,7 @@ func (_m *EC2API) WaitUntilVolumeInUseWithContext(_a0 aws.Context, _a1 *ec2.Desc
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVolumesInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVolumesInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22660,7 +26977,7 @@ func (_m *EC2API) WaitUntilVpcAvailable(_a0 *ec2.DescribeVpcsInput) error {
 }
 
 // WaitUntilVpcAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVpcAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVpcAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22671,7 +26988,7 @@ func (_m *EC2API) WaitUntilVpcAvailableWithContext(_a0 aws.Context, _a1 *ec2.Des
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22695,7 +27012,7 @@ func (_m *EC2API) WaitUntilVpcExists(_a0 *ec2.DescribeVpcsInput) error {
 }
 
 // WaitUntilVpcExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVpcExistsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVpcExistsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22706,7 +27023,7 @@ func (_m *EC2API) WaitUntilVpcExistsWithContext(_a0 aws.Context, _a1 *ec2.Descri
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22730,7 +27047,7 @@ func (_m *EC2API) WaitUntilVpcPeeringConnectionDeleted(_a0 *ec2.DescribeVpcPeeri
 }
 
 // WaitUntilVpcPeeringConnectionDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVpcPeeringConnectionDeletedWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcPeeringConnectionsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVpcPeeringConnectionDeletedWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcPeeringConnectionsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22741,7 +27058,7 @@ func (_m *EC2API) WaitUntilVpcPeeringConnectionDeletedWithContext(_a0 aws.Contex
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22765,7 +27082,7 @@ func (_m *EC2API) WaitUntilVpcPeeringConnectionExists(_a0 *ec2.DescribeVpcPeerin
 }
 
 // WaitUntilVpcPeeringConnectionExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVpcPeeringConnectionExistsWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpcPeeringConnectionsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVpcPeeringConnectionExistsWithContext(_a0 context.Context, _a1 *ec2.DescribeVpcPeeringConnectionsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22776,7 +27093,7 @@ func (_m *EC2API) WaitUntilVpcPeeringConnectionExistsWithContext(_a0 aws.Context
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpcPeeringConnectionsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22800,7 +27117,7 @@ func (_m *EC2API) WaitUntilVpnConnectionAvailable(_a0 *ec2.DescribeVpnConnection
 }
 
 // WaitUntilVpnConnectionAvailableWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVpnConnectionAvailableWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpnConnectionsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVpnConnectionAvailableWithContext(_a0 context.Context, _a1 *ec2.DescribeVpnConnectionsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22811,7 +27128,7 @@ func (_m *EC2API) WaitUntilVpnConnectionAvailableWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpnConnectionsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpnConnectionsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -22835,7 +27152,7 @@ func (_m *EC2API) WaitUntilVpnConnectionDeleted(_a0 *ec2.DescribeVpnConnectionsI
 }
 
 // WaitUntilVpnConnectionDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *EC2API) WaitUntilVpnConnectionDeletedWithContext(_a0 aws.Context, _a1 *ec2.DescribeVpnConnectionsInput, _a2 ...request.WaiterOption) error {
+func (_m *EC2API) WaitUntilVpnConnectionDeletedWithContext(_a0 context.Context, _a1 *ec2.DescribeVpnConnectionsInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -22846,11 +27163,89 @@ func (_m *EC2API) WaitUntilVpnConnectionDeletedWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *ec2.DescribeVpnConnectionsInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeVpnConnectionsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
 	}
 
 	return r0
+}
+
+// WithdrawByoipCidr provides a mock function with given fields: _a0
+func (_m *EC2API) WithdrawByoipCidr(_a0 *ec2.WithdrawByoipCidrInput) (*ec2.WithdrawByoipCidrOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.WithdrawByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(*ec2.WithdrawByoipCidrInput) *ec2.WithdrawByoipCidrOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.WithdrawByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.WithdrawByoipCidrInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// WithdrawByoipCidrRequest provides a mock function with given fields: _a0
+func (_m *EC2API) WithdrawByoipCidrRequest(_a0 *ec2.WithdrawByoipCidrInput) (*request.Request, *ec2.WithdrawByoipCidrOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.WithdrawByoipCidrInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.WithdrawByoipCidrOutput
+	if rf, ok := ret.Get(1).(func(*ec2.WithdrawByoipCidrInput) *ec2.WithdrawByoipCidrOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.WithdrawByoipCidrOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// WithdrawByoipCidrWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) WithdrawByoipCidrWithContext(_a0 context.Context, _a1 *ec2.WithdrawByoipCidrInput, _a2 ...request.Option) (*ec2.WithdrawByoipCidrOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.WithdrawByoipCidrOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.WithdrawByoipCidrInput, ...request.Option) *ec2.WithdrawByoipCidrOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.WithdrawByoipCidrOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.WithdrawByoipCidrInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

@@ -2,9 +2,9 @@
 
 package mocks
 
-import aws "github.com/aws/aws-sdk-go/aws"
 import cloudformation "github.com/aws/aws-sdk-go/service/cloudformation"
 
+import context "context"
 import mock "github.com/stretchr/testify/mock"
 import request "github.com/aws/aws-sdk-go/aws/request"
 
@@ -62,7 +62,7 @@ func (_m *CloudFormationAPI) CancelUpdateStackRequest(_a0 *cloudformation.Cancel
 }
 
 // CancelUpdateStackWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) CancelUpdateStackWithContext(_a0 aws.Context, _a1 *cloudformation.CancelUpdateStackInput, _a2 ...request.Option) (*cloudformation.CancelUpdateStackOutput, error) {
+func (_m *CloudFormationAPI) CancelUpdateStackWithContext(_a0 context.Context, _a1 *cloudformation.CancelUpdateStackInput, _a2 ...request.Option) (*cloudformation.CancelUpdateStackOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -73,7 +73,7 @@ func (_m *CloudFormationAPI) CancelUpdateStackWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.CancelUpdateStackOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.CancelUpdateStackInput, ...request.Option) *cloudformation.CancelUpdateStackOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.CancelUpdateStackInput, ...request.Option) *cloudformation.CancelUpdateStackOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -82,7 +82,7 @@ func (_m *CloudFormationAPI) CancelUpdateStackWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.CancelUpdateStackInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.CancelUpdateStackInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -140,7 +140,7 @@ func (_m *CloudFormationAPI) ContinueUpdateRollbackRequest(_a0 *cloudformation.C
 }
 
 // ContinueUpdateRollbackWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ContinueUpdateRollbackWithContext(_a0 aws.Context, _a1 *cloudformation.ContinueUpdateRollbackInput, _a2 ...request.Option) (*cloudformation.ContinueUpdateRollbackOutput, error) {
+func (_m *CloudFormationAPI) ContinueUpdateRollbackWithContext(_a0 context.Context, _a1 *cloudformation.ContinueUpdateRollbackInput, _a2 ...request.Option) (*cloudformation.ContinueUpdateRollbackOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -151,7 +151,7 @@ func (_m *CloudFormationAPI) ContinueUpdateRollbackWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ContinueUpdateRollbackOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ContinueUpdateRollbackInput, ...request.Option) *cloudformation.ContinueUpdateRollbackOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ContinueUpdateRollbackInput, ...request.Option) *cloudformation.ContinueUpdateRollbackOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -160,7 +160,7 @@ func (_m *CloudFormationAPI) ContinueUpdateRollbackWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ContinueUpdateRollbackInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ContinueUpdateRollbackInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -218,7 +218,7 @@ func (_m *CloudFormationAPI) CreateChangeSetRequest(_a0 *cloudformation.CreateCh
 }
 
 // CreateChangeSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) CreateChangeSetWithContext(_a0 aws.Context, _a1 *cloudformation.CreateChangeSetInput, _a2 ...request.Option) (*cloudformation.CreateChangeSetOutput, error) {
+func (_m *CloudFormationAPI) CreateChangeSetWithContext(_a0 context.Context, _a1 *cloudformation.CreateChangeSetInput, _a2 ...request.Option) (*cloudformation.CreateChangeSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -229,7 +229,7 @@ func (_m *CloudFormationAPI) CreateChangeSetWithContext(_a0 aws.Context, _a1 *cl
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.CreateChangeSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.CreateChangeSetInput, ...request.Option) *cloudformation.CreateChangeSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.CreateChangeSetInput, ...request.Option) *cloudformation.CreateChangeSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -238,7 +238,7 @@ func (_m *CloudFormationAPI) CreateChangeSetWithContext(_a0 aws.Context, _a1 *cl
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.CreateChangeSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.CreateChangeSetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -319,7 +319,7 @@ func (_m *CloudFormationAPI) CreateStackInstancesRequest(_a0 *cloudformation.Cre
 }
 
 // CreateStackInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) CreateStackInstancesWithContext(_a0 aws.Context, _a1 *cloudformation.CreateStackInstancesInput, _a2 ...request.Option) (*cloudformation.CreateStackInstancesOutput, error) {
+func (_m *CloudFormationAPI) CreateStackInstancesWithContext(_a0 context.Context, _a1 *cloudformation.CreateStackInstancesInput, _a2 ...request.Option) (*cloudformation.CreateStackInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -330,7 +330,7 @@ func (_m *CloudFormationAPI) CreateStackInstancesWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.CreateStackInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.CreateStackInstancesInput, ...request.Option) *cloudformation.CreateStackInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.CreateStackInstancesInput, ...request.Option) *cloudformation.CreateStackInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -339,7 +339,7 @@ func (_m *CloudFormationAPI) CreateStackInstancesWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.CreateStackInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.CreateStackInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -422,7 +422,7 @@ func (_m *CloudFormationAPI) CreateStackSetRequest(_a0 *cloudformation.CreateSta
 }
 
 // CreateStackSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) CreateStackSetWithContext(_a0 aws.Context, _a1 *cloudformation.CreateStackSetInput, _a2 ...request.Option) (*cloudformation.CreateStackSetOutput, error) {
+func (_m *CloudFormationAPI) CreateStackSetWithContext(_a0 context.Context, _a1 *cloudformation.CreateStackSetInput, _a2 ...request.Option) (*cloudformation.CreateStackSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -433,7 +433,7 @@ func (_m *CloudFormationAPI) CreateStackSetWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.CreateStackSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.CreateStackSetInput, ...request.Option) *cloudformation.CreateStackSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.CreateStackSetInput, ...request.Option) *cloudformation.CreateStackSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -442,7 +442,7 @@ func (_m *CloudFormationAPI) CreateStackSetWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.CreateStackSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.CreateStackSetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -452,7 +452,7 @@ func (_m *CloudFormationAPI) CreateStackSetWithContext(_a0 aws.Context, _a1 *clo
 }
 
 // CreateStackWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) CreateStackWithContext(_a0 aws.Context, _a1 *cloudformation.CreateStackInput, _a2 ...request.Option) (*cloudformation.CreateStackOutput, error) {
+func (_m *CloudFormationAPI) CreateStackWithContext(_a0 context.Context, _a1 *cloudformation.CreateStackInput, _a2 ...request.Option) (*cloudformation.CreateStackOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -463,7 +463,7 @@ func (_m *CloudFormationAPI) CreateStackWithContext(_a0 aws.Context, _a1 *cloudf
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.CreateStackOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.CreateStackInput, ...request.Option) *cloudformation.CreateStackOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.CreateStackInput, ...request.Option) *cloudformation.CreateStackOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -472,7 +472,7 @@ func (_m *CloudFormationAPI) CreateStackWithContext(_a0 aws.Context, _a1 *cloudf
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.CreateStackInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.CreateStackInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -530,7 +530,7 @@ func (_m *CloudFormationAPI) DeleteChangeSetRequest(_a0 *cloudformation.DeleteCh
 }
 
 // DeleteChangeSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DeleteChangeSetWithContext(_a0 aws.Context, _a1 *cloudformation.DeleteChangeSetInput, _a2 ...request.Option) (*cloudformation.DeleteChangeSetOutput, error) {
+func (_m *CloudFormationAPI) DeleteChangeSetWithContext(_a0 context.Context, _a1 *cloudformation.DeleteChangeSetInput, _a2 ...request.Option) (*cloudformation.DeleteChangeSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -541,7 +541,7 @@ func (_m *CloudFormationAPI) DeleteChangeSetWithContext(_a0 aws.Context, _a1 *cl
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DeleteChangeSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DeleteChangeSetInput, ...request.Option) *cloudformation.DeleteChangeSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DeleteChangeSetInput, ...request.Option) *cloudformation.DeleteChangeSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -550,7 +550,7 @@ func (_m *CloudFormationAPI) DeleteChangeSetWithContext(_a0 aws.Context, _a1 *cl
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DeleteChangeSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DeleteChangeSetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -631,7 +631,7 @@ func (_m *CloudFormationAPI) DeleteStackInstancesRequest(_a0 *cloudformation.Del
 }
 
 // DeleteStackInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DeleteStackInstancesWithContext(_a0 aws.Context, _a1 *cloudformation.DeleteStackInstancesInput, _a2 ...request.Option) (*cloudformation.DeleteStackInstancesOutput, error) {
+func (_m *CloudFormationAPI) DeleteStackInstancesWithContext(_a0 context.Context, _a1 *cloudformation.DeleteStackInstancesInput, _a2 ...request.Option) (*cloudformation.DeleteStackInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -642,7 +642,7 @@ func (_m *CloudFormationAPI) DeleteStackInstancesWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DeleteStackInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DeleteStackInstancesInput, ...request.Option) *cloudformation.DeleteStackInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DeleteStackInstancesInput, ...request.Option) *cloudformation.DeleteStackInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -651,7 +651,7 @@ func (_m *CloudFormationAPI) DeleteStackInstancesWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DeleteStackInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DeleteStackInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -734,7 +734,7 @@ func (_m *CloudFormationAPI) DeleteStackSetRequest(_a0 *cloudformation.DeleteSta
 }
 
 // DeleteStackSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DeleteStackSetWithContext(_a0 aws.Context, _a1 *cloudformation.DeleteStackSetInput, _a2 ...request.Option) (*cloudformation.DeleteStackSetOutput, error) {
+func (_m *CloudFormationAPI) DeleteStackSetWithContext(_a0 context.Context, _a1 *cloudformation.DeleteStackSetInput, _a2 ...request.Option) (*cloudformation.DeleteStackSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -745,7 +745,7 @@ func (_m *CloudFormationAPI) DeleteStackSetWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DeleteStackSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DeleteStackSetInput, ...request.Option) *cloudformation.DeleteStackSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DeleteStackSetInput, ...request.Option) *cloudformation.DeleteStackSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -754,7 +754,7 @@ func (_m *CloudFormationAPI) DeleteStackSetWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DeleteStackSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DeleteStackSetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -764,7 +764,7 @@ func (_m *CloudFormationAPI) DeleteStackSetWithContext(_a0 aws.Context, _a1 *clo
 }
 
 // DeleteStackWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DeleteStackWithContext(_a0 aws.Context, _a1 *cloudformation.DeleteStackInput, _a2 ...request.Option) (*cloudformation.DeleteStackOutput, error) {
+func (_m *CloudFormationAPI) DeleteStackWithContext(_a0 context.Context, _a1 *cloudformation.DeleteStackInput, _a2 ...request.Option) (*cloudformation.DeleteStackOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -775,7 +775,7 @@ func (_m *CloudFormationAPI) DeleteStackWithContext(_a0 aws.Context, _a1 *cloudf
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DeleteStackOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DeleteStackInput, ...request.Option) *cloudformation.DeleteStackOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DeleteStackInput, ...request.Option) *cloudformation.DeleteStackOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -784,7 +784,7 @@ func (_m *CloudFormationAPI) DeleteStackWithContext(_a0 aws.Context, _a1 *cloudf
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DeleteStackInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DeleteStackInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -842,7 +842,7 @@ func (_m *CloudFormationAPI) DescribeAccountLimitsRequest(_a0 *cloudformation.De
 }
 
 // DescribeAccountLimitsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeAccountLimitsWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeAccountLimitsInput, _a2 ...request.Option) (*cloudformation.DescribeAccountLimitsOutput, error) {
+func (_m *CloudFormationAPI) DescribeAccountLimitsWithContext(_a0 context.Context, _a1 *cloudformation.DescribeAccountLimitsInput, _a2 ...request.Option) (*cloudformation.DescribeAccountLimitsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -853,7 +853,7 @@ func (_m *CloudFormationAPI) DescribeAccountLimitsWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeAccountLimitsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeAccountLimitsInput, ...request.Option) *cloudformation.DescribeAccountLimitsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeAccountLimitsInput, ...request.Option) *cloudformation.DescribeAccountLimitsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -862,7 +862,7 @@ func (_m *CloudFormationAPI) DescribeAccountLimitsWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeAccountLimitsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeAccountLimitsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -920,7 +920,7 @@ func (_m *CloudFormationAPI) DescribeChangeSetRequest(_a0 *cloudformation.Descri
 }
 
 // DescribeChangeSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeChangeSetWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeChangeSetInput, _a2 ...request.Option) (*cloudformation.DescribeChangeSetOutput, error) {
+func (_m *CloudFormationAPI) DescribeChangeSetWithContext(_a0 context.Context, _a1 *cloudformation.DescribeChangeSetInput, _a2 ...request.Option) (*cloudformation.DescribeChangeSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -931,7 +931,7 @@ func (_m *CloudFormationAPI) DescribeChangeSetWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeChangeSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeChangeSetInput, ...request.Option) *cloudformation.DescribeChangeSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeChangeSetInput, ...request.Option) *cloudformation.DescribeChangeSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -940,7 +940,85 @@ func (_m *CloudFormationAPI) DescribeChangeSetWithContext(_a0 aws.Context, _a1 *
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeChangeSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeChangeSetInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeStackDriftDetectionStatus provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DescribeStackDriftDetectionStatus(_a0 *cloudformation.DescribeStackDriftDetectionStatusInput) (*cloudformation.DescribeStackDriftDetectionStatusOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudformation.DescribeStackDriftDetectionStatusOutput
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeStackDriftDetectionStatusInput) *cloudformation.DescribeStackDriftDetectionStatusOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DescribeStackDriftDetectionStatusOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudformation.DescribeStackDriftDetectionStatusInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeStackDriftDetectionStatusRequest provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DescribeStackDriftDetectionStatusRequest(_a0 *cloudformation.DescribeStackDriftDetectionStatusInput) (*request.Request, *cloudformation.DescribeStackDriftDetectionStatusOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeStackDriftDetectionStatusInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudformation.DescribeStackDriftDetectionStatusOutput
+	if rf, ok := ret.Get(1).(func(*cloudformation.DescribeStackDriftDetectionStatusInput) *cloudformation.DescribeStackDriftDetectionStatusOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudformation.DescribeStackDriftDetectionStatusOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeStackDriftDetectionStatusWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudFormationAPI) DescribeStackDriftDetectionStatusWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackDriftDetectionStatusInput, _a2 ...request.Option) (*cloudformation.DescribeStackDriftDetectionStatusOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.DescribeStackDriftDetectionStatusOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackDriftDetectionStatusInput, ...request.Option) *cloudformation.DescribeStackDriftDetectionStatusOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DescribeStackDriftDetectionStatusOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackDriftDetectionStatusInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -987,7 +1065,7 @@ func (_m *CloudFormationAPI) DescribeStackEventsPages(_a0 *cloudformation.Descri
 }
 
 // DescribeStackEventsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *CloudFormationAPI) DescribeStackEventsPagesWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStackEventsInput, _a2 func(*cloudformation.DescribeStackEventsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *CloudFormationAPI) DescribeStackEventsPagesWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackEventsInput, _a2 func(*cloudformation.DescribeStackEventsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -998,7 +1076,7 @@ func (_m *CloudFormationAPI) DescribeStackEventsPagesWithContext(_a0 aws.Context
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStackEventsInput, func(*cloudformation.DescribeStackEventsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackEventsInput, func(*cloudformation.DescribeStackEventsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -1033,7 +1111,7 @@ func (_m *CloudFormationAPI) DescribeStackEventsRequest(_a0 *cloudformation.Desc
 }
 
 // DescribeStackEventsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeStackEventsWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStackEventsInput, _a2 ...request.Option) (*cloudformation.DescribeStackEventsOutput, error) {
+func (_m *CloudFormationAPI) DescribeStackEventsWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackEventsInput, _a2 ...request.Option) (*cloudformation.DescribeStackEventsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1044,7 +1122,7 @@ func (_m *CloudFormationAPI) DescribeStackEventsWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeStackEventsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStackEventsInput, ...request.Option) *cloudformation.DescribeStackEventsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackEventsInput, ...request.Option) *cloudformation.DescribeStackEventsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1053,7 +1131,7 @@ func (_m *CloudFormationAPI) DescribeStackEventsWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeStackEventsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackEventsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1111,7 +1189,7 @@ func (_m *CloudFormationAPI) DescribeStackInstanceRequest(_a0 *cloudformation.De
 }
 
 // DescribeStackInstanceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeStackInstanceWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStackInstanceInput, _a2 ...request.Option) (*cloudformation.DescribeStackInstanceOutput, error) {
+func (_m *CloudFormationAPI) DescribeStackInstanceWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackInstanceInput, _a2 ...request.Option) (*cloudformation.DescribeStackInstanceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1122,7 +1200,7 @@ func (_m *CloudFormationAPI) DescribeStackInstanceWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeStackInstanceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStackInstanceInput, ...request.Option) *cloudformation.DescribeStackInstanceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackInstanceInput, ...request.Option) *cloudformation.DescribeStackInstanceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1131,7 +1209,7 @@ func (_m *CloudFormationAPI) DescribeStackInstanceWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeStackInstanceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackInstanceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1156,6 +1234,119 @@ func (_m *CloudFormationAPI) DescribeStackResource(_a0 *cloudformation.DescribeS
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*cloudformation.DescribeStackResourceInput) error); ok {
 		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeStackResourceDrifts provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DescribeStackResourceDrifts(_a0 *cloudformation.DescribeStackResourceDriftsInput) (*cloudformation.DescribeStackResourceDriftsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudformation.DescribeStackResourceDriftsOutput
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeStackResourceDriftsInput) *cloudformation.DescribeStackResourceDriftsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DescribeStackResourceDriftsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudformation.DescribeStackResourceDriftsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeStackResourceDriftsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudFormationAPI) DescribeStackResourceDriftsPages(_a0 *cloudformation.DescribeStackResourceDriftsInput, _a1 func(*cloudformation.DescribeStackResourceDriftsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeStackResourceDriftsInput, func(*cloudformation.DescribeStackResourceDriftsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeStackResourceDriftsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudFormationAPI) DescribeStackResourceDriftsPagesWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackResourceDriftsInput, _a2 func(*cloudformation.DescribeStackResourceDriftsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackResourceDriftsInput, func(*cloudformation.DescribeStackResourceDriftsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeStackResourceDriftsRequest provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DescribeStackResourceDriftsRequest(_a0 *cloudformation.DescribeStackResourceDriftsInput) (*request.Request, *cloudformation.DescribeStackResourceDriftsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudformation.DescribeStackResourceDriftsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudformation.DescribeStackResourceDriftsOutput
+	if rf, ok := ret.Get(1).(func(*cloudformation.DescribeStackResourceDriftsInput) *cloudformation.DescribeStackResourceDriftsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudformation.DescribeStackResourceDriftsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeStackResourceDriftsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudFormationAPI) DescribeStackResourceDriftsWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackResourceDriftsInput, _a2 ...request.Option) (*cloudformation.DescribeStackResourceDriftsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.DescribeStackResourceDriftsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackResourceDriftsInput, ...request.Option) *cloudformation.DescribeStackResourceDriftsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DescribeStackResourceDriftsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackResourceDriftsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1189,7 +1380,7 @@ func (_m *CloudFormationAPI) DescribeStackResourceRequest(_a0 *cloudformation.De
 }
 
 // DescribeStackResourceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeStackResourceWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStackResourceInput, _a2 ...request.Option) (*cloudformation.DescribeStackResourceOutput, error) {
+func (_m *CloudFormationAPI) DescribeStackResourceWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackResourceInput, _a2 ...request.Option) (*cloudformation.DescribeStackResourceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1200,7 +1391,7 @@ func (_m *CloudFormationAPI) DescribeStackResourceWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeStackResourceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStackResourceInput, ...request.Option) *cloudformation.DescribeStackResourceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackResourceInput, ...request.Option) *cloudformation.DescribeStackResourceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1209,7 +1400,7 @@ func (_m *CloudFormationAPI) DescribeStackResourceWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeStackResourceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackResourceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1267,7 +1458,7 @@ func (_m *CloudFormationAPI) DescribeStackResourcesRequest(_a0 *cloudformation.D
 }
 
 // DescribeStackResourcesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeStackResourcesWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStackResourcesInput, _a2 ...request.Option) (*cloudformation.DescribeStackResourcesOutput, error) {
+func (_m *CloudFormationAPI) DescribeStackResourcesWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackResourcesInput, _a2 ...request.Option) (*cloudformation.DescribeStackResourcesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1278,7 +1469,7 @@ func (_m *CloudFormationAPI) DescribeStackResourcesWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeStackResourcesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStackResourcesInput, ...request.Option) *cloudformation.DescribeStackResourcesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackResourcesInput, ...request.Option) *cloudformation.DescribeStackResourcesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1287,7 +1478,7 @@ func (_m *CloudFormationAPI) DescribeStackResourcesWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeStackResourcesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackResourcesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1368,7 +1559,7 @@ func (_m *CloudFormationAPI) DescribeStackSetOperationRequest(_a0 *cloudformatio
 }
 
 // DescribeStackSetOperationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeStackSetOperationWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStackSetOperationInput, _a2 ...request.Option) (*cloudformation.DescribeStackSetOperationOutput, error) {
+func (_m *CloudFormationAPI) DescribeStackSetOperationWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackSetOperationInput, _a2 ...request.Option) (*cloudformation.DescribeStackSetOperationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1379,7 +1570,7 @@ func (_m *CloudFormationAPI) DescribeStackSetOperationWithContext(_a0 aws.Contex
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeStackSetOperationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStackSetOperationInput, ...request.Option) *cloudformation.DescribeStackSetOperationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackSetOperationInput, ...request.Option) *cloudformation.DescribeStackSetOperationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1388,7 +1579,7 @@ func (_m *CloudFormationAPI) DescribeStackSetOperationWithContext(_a0 aws.Contex
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeStackSetOperationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackSetOperationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1423,7 +1614,7 @@ func (_m *CloudFormationAPI) DescribeStackSetRequest(_a0 *cloudformation.Describ
 }
 
 // DescribeStackSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeStackSetWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStackSetInput, _a2 ...request.Option) (*cloudformation.DescribeStackSetOutput, error) {
+func (_m *CloudFormationAPI) DescribeStackSetWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStackSetInput, _a2 ...request.Option) (*cloudformation.DescribeStackSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1434,7 +1625,7 @@ func (_m *CloudFormationAPI) DescribeStackSetWithContext(_a0 aws.Context, _a1 *c
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeStackSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStackSetInput, ...request.Option) *cloudformation.DescribeStackSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStackSetInput, ...request.Option) *cloudformation.DescribeStackSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1443,7 +1634,7 @@ func (_m *CloudFormationAPI) DescribeStackSetWithContext(_a0 aws.Context, _a1 *c
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeStackSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStackSetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1490,7 +1681,7 @@ func (_m *CloudFormationAPI) DescribeStacksPages(_a0 *cloudformation.DescribeSta
 }
 
 // DescribeStacksPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *CloudFormationAPI) DescribeStacksPagesWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStacksInput, _a2 func(*cloudformation.DescribeStacksOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *CloudFormationAPI) DescribeStacksPagesWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 func(*cloudformation.DescribeStacksOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -1501,7 +1692,7 @@ func (_m *CloudFormationAPI) DescribeStacksPagesWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStacksInput, func(*cloudformation.DescribeStacksOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, func(*cloudformation.DescribeStacksOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -1536,7 +1727,7 @@ func (_m *CloudFormationAPI) DescribeStacksRequest(_a0 *cloudformation.DescribeS
 }
 
 // DescribeStacksWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) DescribeStacksWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.Option) (*cloudformation.DescribeStacksOutput, error) {
+func (_m *CloudFormationAPI) DescribeStacksWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.Option) (*cloudformation.DescribeStacksOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1547,7 +1738,7 @@ func (_m *CloudFormationAPI) DescribeStacksWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.DescribeStacksOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStacksInput, ...request.Option) *cloudformation.DescribeStacksOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.Option) *cloudformation.DescribeStacksOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1556,7 +1747,163 @@ func (_m *CloudFormationAPI) DescribeStacksWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.DescribeStacksInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DetectStackDrift provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DetectStackDrift(_a0 *cloudformation.DetectStackDriftInput) (*cloudformation.DetectStackDriftOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudformation.DetectStackDriftOutput
+	if rf, ok := ret.Get(0).(func(*cloudformation.DetectStackDriftInput) *cloudformation.DetectStackDriftOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DetectStackDriftOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudformation.DetectStackDriftInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DetectStackDriftRequest provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DetectStackDriftRequest(_a0 *cloudformation.DetectStackDriftInput) (*request.Request, *cloudformation.DetectStackDriftOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudformation.DetectStackDriftInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudformation.DetectStackDriftOutput
+	if rf, ok := ret.Get(1).(func(*cloudformation.DetectStackDriftInput) *cloudformation.DetectStackDriftOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudformation.DetectStackDriftOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DetectStackDriftWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudFormationAPI) DetectStackDriftWithContext(_a0 context.Context, _a1 *cloudformation.DetectStackDriftInput, _a2 ...request.Option) (*cloudformation.DetectStackDriftOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.DetectStackDriftOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DetectStackDriftInput, ...request.Option) *cloudformation.DetectStackDriftOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DetectStackDriftOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DetectStackDriftInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DetectStackResourceDrift provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DetectStackResourceDrift(_a0 *cloudformation.DetectStackResourceDriftInput) (*cloudformation.DetectStackResourceDriftOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudformation.DetectStackResourceDriftOutput
+	if rf, ok := ret.Get(0).(func(*cloudformation.DetectStackResourceDriftInput) *cloudformation.DetectStackResourceDriftOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DetectStackResourceDriftOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudformation.DetectStackResourceDriftInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DetectStackResourceDriftRequest provides a mock function with given fields: _a0
+func (_m *CloudFormationAPI) DetectStackResourceDriftRequest(_a0 *cloudformation.DetectStackResourceDriftInput) (*request.Request, *cloudformation.DetectStackResourceDriftOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudformation.DetectStackResourceDriftInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudformation.DetectStackResourceDriftOutput
+	if rf, ok := ret.Get(1).(func(*cloudformation.DetectStackResourceDriftInput) *cloudformation.DetectStackResourceDriftOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudformation.DetectStackResourceDriftOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DetectStackResourceDriftWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudFormationAPI) DetectStackResourceDriftWithContext(_a0 context.Context, _a1 *cloudformation.DetectStackResourceDriftInput, _a2 ...request.Option) (*cloudformation.DetectStackResourceDriftOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudformation.DetectStackResourceDriftOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DetectStackResourceDriftInput, ...request.Option) *cloudformation.DetectStackResourceDriftOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudformation.DetectStackResourceDriftOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.DetectStackResourceDriftInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1614,7 +1961,7 @@ func (_m *CloudFormationAPI) EstimateTemplateCostRequest(_a0 *cloudformation.Est
 }
 
 // EstimateTemplateCostWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) EstimateTemplateCostWithContext(_a0 aws.Context, _a1 *cloudformation.EstimateTemplateCostInput, _a2 ...request.Option) (*cloudformation.EstimateTemplateCostOutput, error) {
+func (_m *CloudFormationAPI) EstimateTemplateCostWithContext(_a0 context.Context, _a1 *cloudformation.EstimateTemplateCostInput, _a2 ...request.Option) (*cloudformation.EstimateTemplateCostOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1625,7 +1972,7 @@ func (_m *CloudFormationAPI) EstimateTemplateCostWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.EstimateTemplateCostOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.EstimateTemplateCostInput, ...request.Option) *cloudformation.EstimateTemplateCostOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.EstimateTemplateCostInput, ...request.Option) *cloudformation.EstimateTemplateCostOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1634,7 +1981,7 @@ func (_m *CloudFormationAPI) EstimateTemplateCostWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.EstimateTemplateCostInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.EstimateTemplateCostInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1692,7 +2039,7 @@ func (_m *CloudFormationAPI) ExecuteChangeSetRequest(_a0 *cloudformation.Execute
 }
 
 // ExecuteChangeSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ExecuteChangeSetWithContext(_a0 aws.Context, _a1 *cloudformation.ExecuteChangeSetInput, _a2 ...request.Option) (*cloudformation.ExecuteChangeSetOutput, error) {
+func (_m *CloudFormationAPI) ExecuteChangeSetWithContext(_a0 context.Context, _a1 *cloudformation.ExecuteChangeSetInput, _a2 ...request.Option) (*cloudformation.ExecuteChangeSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1703,7 +2050,7 @@ func (_m *CloudFormationAPI) ExecuteChangeSetWithContext(_a0 aws.Context, _a1 *c
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ExecuteChangeSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ExecuteChangeSetInput, ...request.Option) *cloudformation.ExecuteChangeSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ExecuteChangeSetInput, ...request.Option) *cloudformation.ExecuteChangeSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1712,7 +2059,7 @@ func (_m *CloudFormationAPI) ExecuteChangeSetWithContext(_a0 aws.Context, _a1 *c
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ExecuteChangeSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ExecuteChangeSetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1770,7 +2117,7 @@ func (_m *CloudFormationAPI) GetStackPolicyRequest(_a0 *cloudformation.GetStackP
 }
 
 // GetStackPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) GetStackPolicyWithContext(_a0 aws.Context, _a1 *cloudformation.GetStackPolicyInput, _a2 ...request.Option) (*cloudformation.GetStackPolicyOutput, error) {
+func (_m *CloudFormationAPI) GetStackPolicyWithContext(_a0 context.Context, _a1 *cloudformation.GetStackPolicyInput, _a2 ...request.Option) (*cloudformation.GetStackPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1781,7 +2128,7 @@ func (_m *CloudFormationAPI) GetStackPolicyWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.GetStackPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.GetStackPolicyInput, ...request.Option) *cloudformation.GetStackPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.GetStackPolicyInput, ...request.Option) *cloudformation.GetStackPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1790,7 +2137,7 @@ func (_m *CloudFormationAPI) GetStackPolicyWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.GetStackPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.GetStackPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1896,7 +2243,7 @@ func (_m *CloudFormationAPI) GetTemplateSummaryRequest(_a0 *cloudformation.GetTe
 }
 
 // GetTemplateSummaryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) GetTemplateSummaryWithContext(_a0 aws.Context, _a1 *cloudformation.GetTemplateSummaryInput, _a2 ...request.Option) (*cloudformation.GetTemplateSummaryOutput, error) {
+func (_m *CloudFormationAPI) GetTemplateSummaryWithContext(_a0 context.Context, _a1 *cloudformation.GetTemplateSummaryInput, _a2 ...request.Option) (*cloudformation.GetTemplateSummaryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1907,7 +2254,7 @@ func (_m *CloudFormationAPI) GetTemplateSummaryWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.GetTemplateSummaryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.GetTemplateSummaryInput, ...request.Option) *cloudformation.GetTemplateSummaryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.GetTemplateSummaryInput, ...request.Option) *cloudformation.GetTemplateSummaryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1916,7 +2263,7 @@ func (_m *CloudFormationAPI) GetTemplateSummaryWithContext(_a0 aws.Context, _a1 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.GetTemplateSummaryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.GetTemplateSummaryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1926,7 +2273,7 @@ func (_m *CloudFormationAPI) GetTemplateSummaryWithContext(_a0 aws.Context, _a1 
 }
 
 // GetTemplateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) GetTemplateWithContext(_a0 aws.Context, _a1 *cloudformation.GetTemplateInput, _a2 ...request.Option) (*cloudformation.GetTemplateOutput, error) {
+func (_m *CloudFormationAPI) GetTemplateWithContext(_a0 context.Context, _a1 *cloudformation.GetTemplateInput, _a2 ...request.Option) (*cloudformation.GetTemplateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1937,7 +2284,7 @@ func (_m *CloudFormationAPI) GetTemplateWithContext(_a0 aws.Context, _a1 *cloudf
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.GetTemplateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.GetTemplateInput, ...request.Option) *cloudformation.GetTemplateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.GetTemplateInput, ...request.Option) *cloudformation.GetTemplateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1946,7 +2293,7 @@ func (_m *CloudFormationAPI) GetTemplateWithContext(_a0 aws.Context, _a1 *cloudf
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.GetTemplateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.GetTemplateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2004,7 +2351,7 @@ func (_m *CloudFormationAPI) ListChangeSetsRequest(_a0 *cloudformation.ListChang
 }
 
 // ListChangeSetsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListChangeSetsWithContext(_a0 aws.Context, _a1 *cloudformation.ListChangeSetsInput, _a2 ...request.Option) (*cloudformation.ListChangeSetsOutput, error) {
+func (_m *CloudFormationAPI) ListChangeSetsWithContext(_a0 context.Context, _a1 *cloudformation.ListChangeSetsInput, _a2 ...request.Option) (*cloudformation.ListChangeSetsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2015,7 +2362,7 @@ func (_m *CloudFormationAPI) ListChangeSetsWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListChangeSetsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListChangeSetsInput, ...request.Option) *cloudformation.ListChangeSetsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListChangeSetsInput, ...request.Option) *cloudformation.ListChangeSetsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2024,7 +2371,7 @@ func (_m *CloudFormationAPI) ListChangeSetsWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListChangeSetsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListChangeSetsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2071,7 +2418,7 @@ func (_m *CloudFormationAPI) ListExportsPages(_a0 *cloudformation.ListExportsInp
 }
 
 // ListExportsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *CloudFormationAPI) ListExportsPagesWithContext(_a0 aws.Context, _a1 *cloudformation.ListExportsInput, _a2 func(*cloudformation.ListExportsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *CloudFormationAPI) ListExportsPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListExportsInput, _a2 func(*cloudformation.ListExportsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -2082,7 +2429,7 @@ func (_m *CloudFormationAPI) ListExportsPagesWithContext(_a0 aws.Context, _a1 *c
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListExportsInput, func(*cloudformation.ListExportsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListExportsInput, func(*cloudformation.ListExportsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -2117,7 +2464,7 @@ func (_m *CloudFormationAPI) ListExportsRequest(_a0 *cloudformation.ListExportsI
 }
 
 // ListExportsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListExportsWithContext(_a0 aws.Context, _a1 *cloudformation.ListExportsInput, _a2 ...request.Option) (*cloudformation.ListExportsOutput, error) {
+func (_m *CloudFormationAPI) ListExportsWithContext(_a0 context.Context, _a1 *cloudformation.ListExportsInput, _a2 ...request.Option) (*cloudformation.ListExportsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2128,7 +2475,7 @@ func (_m *CloudFormationAPI) ListExportsWithContext(_a0 aws.Context, _a1 *cloudf
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListExportsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListExportsInput, ...request.Option) *cloudformation.ListExportsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListExportsInput, ...request.Option) *cloudformation.ListExportsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2137,7 +2484,7 @@ func (_m *CloudFormationAPI) ListExportsWithContext(_a0 aws.Context, _a1 *cloudf
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListExportsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListExportsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2184,7 +2531,7 @@ func (_m *CloudFormationAPI) ListImportsPages(_a0 *cloudformation.ListImportsInp
 }
 
 // ListImportsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *CloudFormationAPI) ListImportsPagesWithContext(_a0 aws.Context, _a1 *cloudformation.ListImportsInput, _a2 func(*cloudformation.ListImportsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *CloudFormationAPI) ListImportsPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListImportsInput, _a2 func(*cloudformation.ListImportsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -2195,7 +2542,7 @@ func (_m *CloudFormationAPI) ListImportsPagesWithContext(_a0 aws.Context, _a1 *c
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListImportsInput, func(*cloudformation.ListImportsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListImportsInput, func(*cloudformation.ListImportsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -2230,7 +2577,7 @@ func (_m *CloudFormationAPI) ListImportsRequest(_a0 *cloudformation.ListImportsI
 }
 
 // ListImportsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListImportsWithContext(_a0 aws.Context, _a1 *cloudformation.ListImportsInput, _a2 ...request.Option) (*cloudformation.ListImportsOutput, error) {
+func (_m *CloudFormationAPI) ListImportsWithContext(_a0 context.Context, _a1 *cloudformation.ListImportsInput, _a2 ...request.Option) (*cloudformation.ListImportsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2241,7 +2588,7 @@ func (_m *CloudFormationAPI) ListImportsWithContext(_a0 aws.Context, _a1 *cloudf
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListImportsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListImportsInput, ...request.Option) *cloudformation.ListImportsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListImportsInput, ...request.Option) *cloudformation.ListImportsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2250,7 +2597,7 @@ func (_m *CloudFormationAPI) ListImportsWithContext(_a0 aws.Context, _a1 *cloudf
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListImportsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListImportsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2308,7 +2655,7 @@ func (_m *CloudFormationAPI) ListStackInstancesRequest(_a0 *cloudformation.ListS
 }
 
 // ListStackInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListStackInstancesWithContext(_a0 aws.Context, _a1 *cloudformation.ListStackInstancesInput, _a2 ...request.Option) (*cloudformation.ListStackInstancesOutput, error) {
+func (_m *CloudFormationAPI) ListStackInstancesWithContext(_a0 context.Context, _a1 *cloudformation.ListStackInstancesInput, _a2 ...request.Option) (*cloudformation.ListStackInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2319,7 +2666,7 @@ func (_m *CloudFormationAPI) ListStackInstancesWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListStackInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStackInstancesInput, ...request.Option) *cloudformation.ListStackInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackInstancesInput, ...request.Option) *cloudformation.ListStackInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2328,7 +2675,7 @@ func (_m *CloudFormationAPI) ListStackInstancesWithContext(_a0 aws.Context, _a1 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListStackInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListStackInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2375,7 +2722,7 @@ func (_m *CloudFormationAPI) ListStackResourcesPages(_a0 *cloudformation.ListSta
 }
 
 // ListStackResourcesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *CloudFormationAPI) ListStackResourcesPagesWithContext(_a0 aws.Context, _a1 *cloudformation.ListStackResourcesInput, _a2 func(*cloudformation.ListStackResourcesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *CloudFormationAPI) ListStackResourcesPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListStackResourcesInput, _a2 func(*cloudformation.ListStackResourcesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -2386,7 +2733,7 @@ func (_m *CloudFormationAPI) ListStackResourcesPagesWithContext(_a0 aws.Context,
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStackResourcesInput, func(*cloudformation.ListStackResourcesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackResourcesInput, func(*cloudformation.ListStackResourcesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -2421,7 +2768,7 @@ func (_m *CloudFormationAPI) ListStackResourcesRequest(_a0 *cloudformation.ListS
 }
 
 // ListStackResourcesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListStackResourcesWithContext(_a0 aws.Context, _a1 *cloudformation.ListStackResourcesInput, _a2 ...request.Option) (*cloudformation.ListStackResourcesOutput, error) {
+func (_m *CloudFormationAPI) ListStackResourcesWithContext(_a0 context.Context, _a1 *cloudformation.ListStackResourcesInput, _a2 ...request.Option) (*cloudformation.ListStackResourcesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2432,7 +2779,7 @@ func (_m *CloudFormationAPI) ListStackResourcesWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListStackResourcesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStackResourcesInput, ...request.Option) *cloudformation.ListStackResourcesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackResourcesInput, ...request.Option) *cloudformation.ListStackResourcesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2441,7 +2788,7 @@ func (_m *CloudFormationAPI) ListStackResourcesWithContext(_a0 aws.Context, _a1 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListStackResourcesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListStackResourcesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2499,7 +2846,7 @@ func (_m *CloudFormationAPI) ListStackSetOperationResultsRequest(_a0 *cloudforma
 }
 
 // ListStackSetOperationResultsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListStackSetOperationResultsWithContext(_a0 aws.Context, _a1 *cloudformation.ListStackSetOperationResultsInput, _a2 ...request.Option) (*cloudformation.ListStackSetOperationResultsOutput, error) {
+func (_m *CloudFormationAPI) ListStackSetOperationResultsWithContext(_a0 context.Context, _a1 *cloudformation.ListStackSetOperationResultsInput, _a2 ...request.Option) (*cloudformation.ListStackSetOperationResultsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2510,7 +2857,7 @@ func (_m *CloudFormationAPI) ListStackSetOperationResultsWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListStackSetOperationResultsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStackSetOperationResultsInput, ...request.Option) *cloudformation.ListStackSetOperationResultsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetOperationResultsInput, ...request.Option) *cloudformation.ListStackSetOperationResultsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2519,7 +2866,7 @@ func (_m *CloudFormationAPI) ListStackSetOperationResultsWithContext(_a0 aws.Con
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListStackSetOperationResultsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListStackSetOperationResultsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2577,7 +2924,7 @@ func (_m *CloudFormationAPI) ListStackSetOperationsRequest(_a0 *cloudformation.L
 }
 
 // ListStackSetOperationsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListStackSetOperationsWithContext(_a0 aws.Context, _a1 *cloudformation.ListStackSetOperationsInput, _a2 ...request.Option) (*cloudformation.ListStackSetOperationsOutput, error) {
+func (_m *CloudFormationAPI) ListStackSetOperationsWithContext(_a0 context.Context, _a1 *cloudformation.ListStackSetOperationsInput, _a2 ...request.Option) (*cloudformation.ListStackSetOperationsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2588,7 +2935,7 @@ func (_m *CloudFormationAPI) ListStackSetOperationsWithContext(_a0 aws.Context, 
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListStackSetOperationsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStackSetOperationsInput, ...request.Option) *cloudformation.ListStackSetOperationsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetOperationsInput, ...request.Option) *cloudformation.ListStackSetOperationsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2597,7 +2944,7 @@ func (_m *CloudFormationAPI) ListStackSetOperationsWithContext(_a0 aws.Context, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListStackSetOperationsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListStackSetOperationsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2655,7 +3002,7 @@ func (_m *CloudFormationAPI) ListStackSetsRequest(_a0 *cloudformation.ListStackS
 }
 
 // ListStackSetsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListStackSetsWithContext(_a0 aws.Context, _a1 *cloudformation.ListStackSetsInput, _a2 ...request.Option) (*cloudformation.ListStackSetsOutput, error) {
+func (_m *CloudFormationAPI) ListStackSetsWithContext(_a0 context.Context, _a1 *cloudformation.ListStackSetsInput, _a2 ...request.Option) (*cloudformation.ListStackSetsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2666,7 +3013,7 @@ func (_m *CloudFormationAPI) ListStackSetsWithContext(_a0 aws.Context, _a1 *clou
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListStackSetsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStackSetsInput, ...request.Option) *cloudformation.ListStackSetsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStackSetsInput, ...request.Option) *cloudformation.ListStackSetsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2675,7 +3022,7 @@ func (_m *CloudFormationAPI) ListStackSetsWithContext(_a0 aws.Context, _a1 *clou
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListStackSetsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListStackSetsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2722,7 +3069,7 @@ func (_m *CloudFormationAPI) ListStacksPages(_a0 *cloudformation.ListStacksInput
 }
 
 // ListStacksPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *CloudFormationAPI) ListStacksPagesWithContext(_a0 aws.Context, _a1 *cloudformation.ListStacksInput, _a2 func(*cloudformation.ListStacksOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *CloudFormationAPI) ListStacksPagesWithContext(_a0 context.Context, _a1 *cloudformation.ListStacksInput, _a2 func(*cloudformation.ListStacksOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -2733,7 +3080,7 @@ func (_m *CloudFormationAPI) ListStacksPagesWithContext(_a0 aws.Context, _a1 *cl
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStacksInput, func(*cloudformation.ListStacksOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStacksInput, func(*cloudformation.ListStacksOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -2768,7 +3115,7 @@ func (_m *CloudFormationAPI) ListStacksRequest(_a0 *cloudformation.ListStacksInp
 }
 
 // ListStacksWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ListStacksWithContext(_a0 aws.Context, _a1 *cloudformation.ListStacksInput, _a2 ...request.Option) (*cloudformation.ListStacksOutput, error) {
+func (_m *CloudFormationAPI) ListStacksWithContext(_a0 context.Context, _a1 *cloudformation.ListStacksInput, _a2 ...request.Option) (*cloudformation.ListStacksOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2779,7 +3126,7 @@ func (_m *CloudFormationAPI) ListStacksWithContext(_a0 aws.Context, _a1 *cloudfo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ListStacksOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ListStacksInput, ...request.Option) *cloudformation.ListStacksOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ListStacksInput, ...request.Option) *cloudformation.ListStacksOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2788,7 +3135,7 @@ func (_m *CloudFormationAPI) ListStacksWithContext(_a0 aws.Context, _a1 *cloudfo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ListStacksInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ListStacksInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2846,7 +3193,7 @@ func (_m *CloudFormationAPI) SetStackPolicyRequest(_a0 *cloudformation.SetStackP
 }
 
 // SetStackPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) SetStackPolicyWithContext(_a0 aws.Context, _a1 *cloudformation.SetStackPolicyInput, _a2 ...request.Option) (*cloudformation.SetStackPolicyOutput, error) {
+func (_m *CloudFormationAPI) SetStackPolicyWithContext(_a0 context.Context, _a1 *cloudformation.SetStackPolicyInput, _a2 ...request.Option) (*cloudformation.SetStackPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2857,7 +3204,7 @@ func (_m *CloudFormationAPI) SetStackPolicyWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.SetStackPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.SetStackPolicyInput, ...request.Option) *cloudformation.SetStackPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.SetStackPolicyInput, ...request.Option) *cloudformation.SetStackPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2866,7 +3213,7 @@ func (_m *CloudFormationAPI) SetStackPolicyWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.SetStackPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.SetStackPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2924,7 +3271,7 @@ func (_m *CloudFormationAPI) SignalResourceRequest(_a0 *cloudformation.SignalRes
 }
 
 // SignalResourceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) SignalResourceWithContext(_a0 aws.Context, _a1 *cloudformation.SignalResourceInput, _a2 ...request.Option) (*cloudformation.SignalResourceOutput, error) {
+func (_m *CloudFormationAPI) SignalResourceWithContext(_a0 context.Context, _a1 *cloudformation.SignalResourceInput, _a2 ...request.Option) (*cloudformation.SignalResourceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2935,7 +3282,7 @@ func (_m *CloudFormationAPI) SignalResourceWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.SignalResourceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.SignalResourceInput, ...request.Option) *cloudformation.SignalResourceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.SignalResourceInput, ...request.Option) *cloudformation.SignalResourceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2944,7 +3291,7 @@ func (_m *CloudFormationAPI) SignalResourceWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.SignalResourceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.SignalResourceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3002,7 +3349,7 @@ func (_m *CloudFormationAPI) StopStackSetOperationRequest(_a0 *cloudformation.St
 }
 
 // StopStackSetOperationWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) StopStackSetOperationWithContext(_a0 aws.Context, _a1 *cloudformation.StopStackSetOperationInput, _a2 ...request.Option) (*cloudformation.StopStackSetOperationOutput, error) {
+func (_m *CloudFormationAPI) StopStackSetOperationWithContext(_a0 context.Context, _a1 *cloudformation.StopStackSetOperationInput, _a2 ...request.Option) (*cloudformation.StopStackSetOperationOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3013,7 +3360,7 @@ func (_m *CloudFormationAPI) StopStackSetOperationWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.StopStackSetOperationOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.StopStackSetOperationInput, ...request.Option) *cloudformation.StopStackSetOperationOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.StopStackSetOperationInput, ...request.Option) *cloudformation.StopStackSetOperationOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3022,7 +3369,7 @@ func (_m *CloudFormationAPI) StopStackSetOperationWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.StopStackSetOperationInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.StopStackSetOperationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3103,7 +3450,7 @@ func (_m *CloudFormationAPI) UpdateStackInstancesRequest(_a0 *cloudformation.Upd
 }
 
 // UpdateStackInstancesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) UpdateStackInstancesWithContext(_a0 aws.Context, _a1 *cloudformation.UpdateStackInstancesInput, _a2 ...request.Option) (*cloudformation.UpdateStackInstancesOutput, error) {
+func (_m *CloudFormationAPI) UpdateStackInstancesWithContext(_a0 context.Context, _a1 *cloudformation.UpdateStackInstancesInput, _a2 ...request.Option) (*cloudformation.UpdateStackInstancesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3114,7 +3461,7 @@ func (_m *CloudFormationAPI) UpdateStackInstancesWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.UpdateStackInstancesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.UpdateStackInstancesInput, ...request.Option) *cloudformation.UpdateStackInstancesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.UpdateStackInstancesInput, ...request.Option) *cloudformation.UpdateStackInstancesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3123,7 +3470,7 @@ func (_m *CloudFormationAPI) UpdateStackInstancesWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.UpdateStackInstancesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.UpdateStackInstancesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3206,7 +3553,7 @@ func (_m *CloudFormationAPI) UpdateStackSetRequest(_a0 *cloudformation.UpdateSta
 }
 
 // UpdateStackSetWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) UpdateStackSetWithContext(_a0 aws.Context, _a1 *cloudformation.UpdateStackSetInput, _a2 ...request.Option) (*cloudformation.UpdateStackSetOutput, error) {
+func (_m *CloudFormationAPI) UpdateStackSetWithContext(_a0 context.Context, _a1 *cloudformation.UpdateStackSetInput, _a2 ...request.Option) (*cloudformation.UpdateStackSetOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3217,7 +3564,7 @@ func (_m *CloudFormationAPI) UpdateStackSetWithContext(_a0 aws.Context, _a1 *clo
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.UpdateStackSetOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.UpdateStackSetInput, ...request.Option) *cloudformation.UpdateStackSetOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.UpdateStackSetInput, ...request.Option) *cloudformation.UpdateStackSetOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3226,7 +3573,7 @@ func (_m *CloudFormationAPI) UpdateStackSetWithContext(_a0 aws.Context, _a1 *clo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.UpdateStackSetInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.UpdateStackSetInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3236,7 +3583,7 @@ func (_m *CloudFormationAPI) UpdateStackSetWithContext(_a0 aws.Context, _a1 *clo
 }
 
 // UpdateStackWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) UpdateStackWithContext(_a0 aws.Context, _a1 *cloudformation.UpdateStackInput, _a2 ...request.Option) (*cloudformation.UpdateStackOutput, error) {
+func (_m *CloudFormationAPI) UpdateStackWithContext(_a0 context.Context, _a1 *cloudformation.UpdateStackInput, _a2 ...request.Option) (*cloudformation.UpdateStackOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3247,7 +3594,7 @@ func (_m *CloudFormationAPI) UpdateStackWithContext(_a0 aws.Context, _a1 *cloudf
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.UpdateStackOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.UpdateStackInput, ...request.Option) *cloudformation.UpdateStackOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.UpdateStackInput, ...request.Option) *cloudformation.UpdateStackOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3256,7 +3603,7 @@ func (_m *CloudFormationAPI) UpdateStackWithContext(_a0 aws.Context, _a1 *cloudf
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.UpdateStackInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.UpdateStackInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3314,7 +3661,7 @@ func (_m *CloudFormationAPI) UpdateTerminationProtectionRequest(_a0 *cloudformat
 }
 
 // UpdateTerminationProtectionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) UpdateTerminationProtectionWithContext(_a0 aws.Context, _a1 *cloudformation.UpdateTerminationProtectionInput, _a2 ...request.Option) (*cloudformation.UpdateTerminationProtectionOutput, error) {
+func (_m *CloudFormationAPI) UpdateTerminationProtectionWithContext(_a0 context.Context, _a1 *cloudformation.UpdateTerminationProtectionInput, _a2 ...request.Option) (*cloudformation.UpdateTerminationProtectionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3325,7 +3672,7 @@ func (_m *CloudFormationAPI) UpdateTerminationProtectionWithContext(_a0 aws.Cont
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.UpdateTerminationProtectionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.UpdateTerminationProtectionInput, ...request.Option) *cloudformation.UpdateTerminationProtectionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.UpdateTerminationProtectionInput, ...request.Option) *cloudformation.UpdateTerminationProtectionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3334,7 +3681,7 @@ func (_m *CloudFormationAPI) UpdateTerminationProtectionWithContext(_a0 aws.Cont
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.UpdateTerminationProtectionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.UpdateTerminationProtectionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3392,7 +3739,7 @@ func (_m *CloudFormationAPI) ValidateTemplateRequest(_a0 *cloudformation.Validat
 }
 
 // ValidateTemplateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) ValidateTemplateWithContext(_a0 aws.Context, _a1 *cloudformation.ValidateTemplateInput, _a2 ...request.Option) (*cloudformation.ValidateTemplateOutput, error) {
+func (_m *CloudFormationAPI) ValidateTemplateWithContext(_a0 context.Context, _a1 *cloudformation.ValidateTemplateInput, _a2 ...request.Option) (*cloudformation.ValidateTemplateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3403,7 +3750,7 @@ func (_m *CloudFormationAPI) ValidateTemplateWithContext(_a0 aws.Context, _a1 *c
 	ret := _m.Called(_ca...)
 
 	var r0 *cloudformation.ValidateTemplateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.ValidateTemplateInput, ...request.Option) *cloudformation.ValidateTemplateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.ValidateTemplateInput, ...request.Option) *cloudformation.ValidateTemplateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3412,7 +3759,7 @@ func (_m *CloudFormationAPI) ValidateTemplateWithContext(_a0 aws.Context, _a1 *c
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *cloudformation.ValidateTemplateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudformation.ValidateTemplateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3436,7 +3783,7 @@ func (_m *CloudFormationAPI) WaitUntilChangeSetCreateComplete(_a0 *cloudformatio
 }
 
 // WaitUntilChangeSetCreateCompleteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) WaitUntilChangeSetCreateCompleteWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeChangeSetInput, _a2 ...request.WaiterOption) error {
+func (_m *CloudFormationAPI) WaitUntilChangeSetCreateCompleteWithContext(_a0 context.Context, _a1 *cloudformation.DescribeChangeSetInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3447,7 +3794,7 @@ func (_m *CloudFormationAPI) WaitUntilChangeSetCreateCompleteWithContext(_a0 aws
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeChangeSetInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeChangeSetInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -3471,7 +3818,7 @@ func (_m *CloudFormationAPI) WaitUntilStackCreateComplete(_a0 *cloudformation.De
 }
 
 // WaitUntilStackCreateCompleteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) WaitUntilStackCreateCompleteWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
+func (_m *CloudFormationAPI) WaitUntilStackCreateCompleteWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3482,7 +3829,7 @@ func (_m *CloudFormationAPI) WaitUntilStackCreateCompleteWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -3506,7 +3853,7 @@ func (_m *CloudFormationAPI) WaitUntilStackDeleteComplete(_a0 *cloudformation.De
 }
 
 // WaitUntilStackDeleteCompleteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) WaitUntilStackDeleteCompleteWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
+func (_m *CloudFormationAPI) WaitUntilStackDeleteCompleteWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3517,7 +3864,7 @@ func (_m *CloudFormationAPI) WaitUntilStackDeleteCompleteWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -3541,7 +3888,7 @@ func (_m *CloudFormationAPI) WaitUntilStackExists(_a0 *cloudformation.DescribeSt
 }
 
 // WaitUntilStackExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) WaitUntilStackExistsWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
+func (_m *CloudFormationAPI) WaitUntilStackExistsWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3552,7 +3899,7 @@ func (_m *CloudFormationAPI) WaitUntilStackExistsWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -3576,7 +3923,7 @@ func (_m *CloudFormationAPI) WaitUntilStackUpdateComplete(_a0 *cloudformation.De
 }
 
 // WaitUntilStackUpdateCompleteWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *CloudFormationAPI) WaitUntilStackUpdateCompleteWithContext(_a0 aws.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
+func (_m *CloudFormationAPI) WaitUntilStackUpdateCompleteWithContext(_a0 context.Context, _a1 *cloudformation.DescribeStacksInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3587,7 +3934,7 @@ func (_m *CloudFormationAPI) WaitUntilStackUpdateCompleteWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudformation.DescribeStacksInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
