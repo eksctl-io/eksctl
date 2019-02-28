@@ -5,7 +5,7 @@ required = [
 
 [[override]]
   name = "github.com/aws/aws-sdk-go"
-  version = "v1.14.0"
+  version = "v1.17.7"
 
 [[constraint]]
   name = "github.com/kubicorn/kubicorn"

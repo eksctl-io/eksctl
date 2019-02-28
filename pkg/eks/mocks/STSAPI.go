@@ -2,7 +2,7 @@
 
 package mocks
 
-import aws "github.com/aws/aws-sdk-go/aws"
+import context "context"
 import mock "github.com/stretchr/testify/mock"
 import request "github.com/aws/aws-sdk-go/aws/request"
 import sts "github.com/aws/aws-sdk-go/service/sts"
@@ -61,7 +61,7 @@ func (_m *STSAPI) AssumeRoleRequest(_a0 *sts.AssumeRoleInput) (*request.Request,
 }
 
 // AssumeRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *STSAPI) AssumeRoleWithContext(_a0 aws.Context, _a1 *sts.AssumeRoleInput, _a2 ...request.Option) (*sts.AssumeRoleOutput, error) {
+func (_m *STSAPI) AssumeRoleWithContext(_a0 context.Context, _a1 *sts.AssumeRoleInput, _a2 ...request.Option) (*sts.AssumeRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -72,7 +72,7 @@ func (_m *STSAPI) AssumeRoleWithContext(_a0 aws.Context, _a1 *sts.AssumeRoleInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *sts.AssumeRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *sts.AssumeRoleInput, ...request.Option) *sts.AssumeRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sts.AssumeRoleInput, ...request.Option) *sts.AssumeRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -81,7 +81,7 @@ func (_m *STSAPI) AssumeRoleWithContext(_a0 aws.Context, _a1 *sts.AssumeRoleInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *sts.AssumeRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sts.AssumeRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -139,7 +139,7 @@ func (_m *STSAPI) AssumeRoleWithSAMLRequest(_a0 *sts.AssumeRoleWithSAMLInput) (*
 }
 
 // AssumeRoleWithSAMLWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *STSAPI) AssumeRoleWithSAMLWithContext(_a0 aws.Context, _a1 *sts.AssumeRoleWithSAMLInput, _a2 ...request.Option) (*sts.AssumeRoleWithSAMLOutput, error) {
+func (_m *STSAPI) AssumeRoleWithSAMLWithContext(_a0 context.Context, _a1 *sts.AssumeRoleWithSAMLInput, _a2 ...request.Option) (*sts.AssumeRoleWithSAMLOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -150,7 +150,7 @@ func (_m *STSAPI) AssumeRoleWithSAMLWithContext(_a0 aws.Context, _a1 *sts.Assume
 	ret := _m.Called(_ca...)
 
 	var r0 *sts.AssumeRoleWithSAMLOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *sts.AssumeRoleWithSAMLInput, ...request.Option) *sts.AssumeRoleWithSAMLOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sts.AssumeRoleWithSAMLInput, ...request.Option) *sts.AssumeRoleWithSAMLOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -159,7 +159,7 @@ func (_m *STSAPI) AssumeRoleWithSAMLWithContext(_a0 aws.Context, _a1 *sts.Assume
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *sts.AssumeRoleWithSAMLInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sts.AssumeRoleWithSAMLInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -217,7 +217,7 @@ func (_m *STSAPI) AssumeRoleWithWebIdentityRequest(_a0 *sts.AssumeRoleWithWebIde
 }
 
 // AssumeRoleWithWebIdentityWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *STSAPI) AssumeRoleWithWebIdentityWithContext(_a0 aws.Context, _a1 *sts.AssumeRoleWithWebIdentityInput, _a2 ...request.Option) (*sts.AssumeRoleWithWebIdentityOutput, error) {
+func (_m *STSAPI) AssumeRoleWithWebIdentityWithContext(_a0 context.Context, _a1 *sts.AssumeRoleWithWebIdentityInput, _a2 ...request.Option) (*sts.AssumeRoleWithWebIdentityOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -228,7 +228,7 @@ func (_m *STSAPI) AssumeRoleWithWebIdentityWithContext(_a0 aws.Context, _a1 *sts
 	ret := _m.Called(_ca...)
 
 	var r0 *sts.AssumeRoleWithWebIdentityOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *sts.AssumeRoleWithWebIdentityInput, ...request.Option) *sts.AssumeRoleWithWebIdentityOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sts.AssumeRoleWithWebIdentityInput, ...request.Option) *sts.AssumeRoleWithWebIdentityOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -237,7 +237,7 @@ func (_m *STSAPI) AssumeRoleWithWebIdentityWithContext(_a0 aws.Context, _a1 *sts
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *sts.AssumeRoleWithWebIdentityInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sts.AssumeRoleWithWebIdentityInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -295,7 +295,7 @@ func (_m *STSAPI) DecodeAuthorizationMessageRequest(_a0 *sts.DecodeAuthorization
 }
 
 // DecodeAuthorizationMessageWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *STSAPI) DecodeAuthorizationMessageWithContext(_a0 aws.Context, _a1 *sts.DecodeAuthorizationMessageInput, _a2 ...request.Option) (*sts.DecodeAuthorizationMessageOutput, error) {
+func (_m *STSAPI) DecodeAuthorizationMessageWithContext(_a0 context.Context, _a1 *sts.DecodeAuthorizationMessageInput, _a2 ...request.Option) (*sts.DecodeAuthorizationMessageOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -306,7 +306,7 @@ func (_m *STSAPI) DecodeAuthorizationMessageWithContext(_a0 aws.Context, _a1 *st
 	ret := _m.Called(_ca...)
 
 	var r0 *sts.DecodeAuthorizationMessageOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *sts.DecodeAuthorizationMessageInput, ...request.Option) *sts.DecodeAuthorizationMessageOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sts.DecodeAuthorizationMessageInput, ...request.Option) *sts.DecodeAuthorizationMessageOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -315,7 +315,7 @@ func (_m *STSAPI) DecodeAuthorizationMessageWithContext(_a0 aws.Context, _a1 *st
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *sts.DecodeAuthorizationMessageInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sts.DecodeAuthorizationMessageInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -373,7 +373,7 @@ func (_m *STSAPI) GetCallerIdentityRequest(_a0 *sts.GetCallerIdentityInput) (*re
 }
 
 // GetCallerIdentityWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *STSAPI) GetCallerIdentityWithContext(_a0 aws.Context, _a1 *sts.GetCallerIdentityInput, _a2 ...request.Option) (*sts.GetCallerIdentityOutput, error) {
+func (_m *STSAPI) GetCallerIdentityWithContext(_a0 context.Context, _a1 *sts.GetCallerIdentityInput, _a2 ...request.Option) (*sts.GetCallerIdentityOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -384,7 +384,7 @@ func (_m *STSAPI) GetCallerIdentityWithContext(_a0 aws.Context, _a1 *sts.GetCall
 	ret := _m.Called(_ca...)
 
 	var r0 *sts.GetCallerIdentityOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *sts.GetCallerIdentityInput, ...request.Option) *sts.GetCallerIdentityOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sts.GetCallerIdentityInput, ...request.Option) *sts.GetCallerIdentityOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -393,7 +393,7 @@ func (_m *STSAPI) GetCallerIdentityWithContext(_a0 aws.Context, _a1 *sts.GetCall
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *sts.GetCallerIdentityInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sts.GetCallerIdentityInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -451,7 +451,7 @@ func (_m *STSAPI) GetFederationTokenRequest(_a0 *sts.GetFederationTokenInput) (*
 }
 
 // GetFederationTokenWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *STSAPI) GetFederationTokenWithContext(_a0 aws.Context, _a1 *sts.GetFederationTokenInput, _a2 ...request.Option) (*sts.GetFederationTokenOutput, error) {
+func (_m *STSAPI) GetFederationTokenWithContext(_a0 context.Context, _a1 *sts.GetFederationTokenInput, _a2 ...request.Option) (*sts.GetFederationTokenOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -462,7 +462,7 @@ func (_m *STSAPI) GetFederationTokenWithContext(_a0 aws.Context, _a1 *sts.GetFed
 	ret := _m.Called(_ca...)
 
 	var r0 *sts.GetFederationTokenOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *sts.GetFederationTokenInput, ...request.Option) *sts.GetFederationTokenOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sts.GetFederationTokenInput, ...request.Option) *sts.GetFederationTokenOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -471,7 +471,7 @@ func (_m *STSAPI) GetFederationTokenWithContext(_a0 aws.Context, _a1 *sts.GetFed
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *sts.GetFederationTokenInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sts.GetFederationTokenInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -529,7 +529,7 @@ func (_m *STSAPI) GetSessionTokenRequest(_a0 *sts.GetSessionTokenInput) (*reques
 }
 
 // GetSessionTokenWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *STSAPI) GetSessionTokenWithContext(_a0 aws.Context, _a1 *sts.GetSessionTokenInput, _a2 ...request.Option) (*sts.GetSessionTokenOutput, error) {
+func (_m *STSAPI) GetSessionTokenWithContext(_a0 context.Context, _a1 *sts.GetSessionTokenInput, _a2 ...request.Option) (*sts.GetSessionTokenOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -540,7 +540,7 @@ func (_m *STSAPI) GetSessionTokenWithContext(_a0 aws.Context, _a1 *sts.GetSessio
 	ret := _m.Called(_ca...)
 
 	var r0 *sts.GetSessionTokenOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *sts.GetSessionTokenInput, ...request.Option) *sts.GetSessionTokenOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *sts.GetSessionTokenInput, ...request.Option) *sts.GetSessionTokenOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -549,7 +549,7 @@ func (_m *STSAPI) GetSessionTokenWithContext(_a0 aws.Context, _a1 *sts.GetSessio
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *sts.GetSessionTokenInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *sts.GetSessionTokenInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

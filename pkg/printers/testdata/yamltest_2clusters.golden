@@ -4,6 +4,7 @@
   CreatedAt: "0001-01-01T00:00:00Z"
   Endpoint: null
   Name: test-cluster-1
+  PlatformVersion: null
   ResourcesVpcConfig:
     SecurityGroupIds: null
     SubnetIds:
@@ -19,6 +20,7 @@
   CreatedAt: "0001-01-01T00:00:00Z"
   Endpoint: null
   Name: test-cluster-2
+  PlatformVersion: null
   ResourcesVpcConfig:
     SecurityGroupIds: null
     SubnetIds:

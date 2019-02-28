@@ -2,7 +2,7 @@
 
 package mocks
 
-import aws "github.com/aws/aws-sdk-go/aws"
+import context "context"
 import iam "github.com/aws/aws-sdk-go/service/iam"
 
 import mock "github.com/stretchr/testify/mock"
@@ -62,7 +62,7 @@ func (_m *IAMAPI) AddClientIDToOpenIDConnectProviderRequest(_a0 *iam.AddClientID
 }
 
 // AddClientIDToOpenIDConnectProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) AddClientIDToOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *iam.AddClientIDToOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.AddClientIDToOpenIDConnectProviderOutput, error) {
+func (_m *IAMAPI) AddClientIDToOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *iam.AddClientIDToOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.AddClientIDToOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -73,7 +73,7 @@ func (_m *IAMAPI) AddClientIDToOpenIDConnectProviderWithContext(_a0 aws.Context,
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.AddClientIDToOpenIDConnectProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.AddClientIDToOpenIDConnectProviderInput, ...request.Option) *iam.AddClientIDToOpenIDConnectProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.AddClientIDToOpenIDConnectProviderInput, ...request.Option) *iam.AddClientIDToOpenIDConnectProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -82,7 +82,7 @@ func (_m *IAMAPI) AddClientIDToOpenIDConnectProviderWithContext(_a0 aws.Context,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.AddClientIDToOpenIDConnectProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.AddClientIDToOpenIDConnectProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -140,7 +140,7 @@ func (_m *IAMAPI) AddRoleToInstanceProfileRequest(_a0 *iam.AddRoleToInstanceProf
 }
 
 // AddRoleToInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) AddRoleToInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.AddRoleToInstanceProfileInput, _a2 ...request.Option) (*iam.AddRoleToInstanceProfileOutput, error) {
+func (_m *IAMAPI) AddRoleToInstanceProfileWithContext(_a0 context.Context, _a1 *iam.AddRoleToInstanceProfileInput, _a2 ...request.Option) (*iam.AddRoleToInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -151,7 +151,7 @@ func (_m *IAMAPI) AddRoleToInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.AddRoleToInstanceProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.AddRoleToInstanceProfileInput, ...request.Option) *iam.AddRoleToInstanceProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.AddRoleToInstanceProfileInput, ...request.Option) *iam.AddRoleToInstanceProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -160,7 +160,7 @@ func (_m *IAMAPI) AddRoleToInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.AddRoleToInstanceProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.AddRoleToInstanceProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -218,7 +218,7 @@ func (_m *IAMAPI) AddUserToGroupRequest(_a0 *iam.AddUserToGroupInput) (*request.
 }
 
 // AddUserToGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) AddUserToGroupWithContext(_a0 aws.Context, _a1 *iam.AddUserToGroupInput, _a2 ...request.Option) (*iam.AddUserToGroupOutput, error) {
+func (_m *IAMAPI) AddUserToGroupWithContext(_a0 context.Context, _a1 *iam.AddUserToGroupInput, _a2 ...request.Option) (*iam.AddUserToGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -229,7 +229,7 @@ func (_m *IAMAPI) AddUserToGroupWithContext(_a0 aws.Context, _a1 *iam.AddUserToG
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.AddUserToGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.AddUserToGroupInput, ...request.Option) *iam.AddUserToGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.AddUserToGroupInput, ...request.Option) *iam.AddUserToGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -238,7 +238,7 @@ func (_m *IAMAPI) AddUserToGroupWithContext(_a0 aws.Context, _a1 *iam.AddUserToG
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.AddUserToGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.AddUserToGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -296,7 +296,7 @@ func (_m *IAMAPI) AttachGroupPolicyRequest(_a0 *iam.AttachGroupPolicyInput) (*re
 }
 
 // AttachGroupPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) AttachGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.AttachGroupPolicyInput, _a2 ...request.Option) (*iam.AttachGroupPolicyOutput, error) {
+func (_m *IAMAPI) AttachGroupPolicyWithContext(_a0 context.Context, _a1 *iam.AttachGroupPolicyInput, _a2 ...request.Option) (*iam.AttachGroupPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -307,7 +307,7 @@ func (_m *IAMAPI) AttachGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.AttachG
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.AttachGroupPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.AttachGroupPolicyInput, ...request.Option) *iam.AttachGroupPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.AttachGroupPolicyInput, ...request.Option) *iam.AttachGroupPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -316,7 +316,7 @@ func (_m *IAMAPI) AttachGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.AttachG
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.AttachGroupPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.AttachGroupPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -374,7 +374,7 @@ func (_m *IAMAPI) AttachRolePolicyRequest(_a0 *iam.AttachRolePolicyInput) (*requ
 }
 
 // AttachRolePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) AttachRolePolicyWithContext(_a0 aws.Context, _a1 *iam.AttachRolePolicyInput, _a2 ...request.Option) (*iam.AttachRolePolicyOutput, error) {
+func (_m *IAMAPI) AttachRolePolicyWithContext(_a0 context.Context, _a1 *iam.AttachRolePolicyInput, _a2 ...request.Option) (*iam.AttachRolePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -385,7 +385,7 @@ func (_m *IAMAPI) AttachRolePolicyWithContext(_a0 aws.Context, _a1 *iam.AttachRo
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.AttachRolePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.AttachRolePolicyInput, ...request.Option) *iam.AttachRolePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.AttachRolePolicyInput, ...request.Option) *iam.AttachRolePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -394,7 +394,7 @@ func (_m *IAMAPI) AttachRolePolicyWithContext(_a0 aws.Context, _a1 *iam.AttachRo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.AttachRolePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.AttachRolePolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -452,7 +452,7 @@ func (_m *IAMAPI) AttachUserPolicyRequest(_a0 *iam.AttachUserPolicyInput) (*requ
 }
 
 // AttachUserPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) AttachUserPolicyWithContext(_a0 aws.Context, _a1 *iam.AttachUserPolicyInput, _a2 ...request.Option) (*iam.AttachUserPolicyOutput, error) {
+func (_m *IAMAPI) AttachUserPolicyWithContext(_a0 context.Context, _a1 *iam.AttachUserPolicyInput, _a2 ...request.Option) (*iam.AttachUserPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -463,7 +463,7 @@ func (_m *IAMAPI) AttachUserPolicyWithContext(_a0 aws.Context, _a1 *iam.AttachUs
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.AttachUserPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.AttachUserPolicyInput, ...request.Option) *iam.AttachUserPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.AttachUserPolicyInput, ...request.Option) *iam.AttachUserPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -472,7 +472,7 @@ func (_m *IAMAPI) AttachUserPolicyWithContext(_a0 aws.Context, _a1 *iam.AttachUs
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.AttachUserPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.AttachUserPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -530,7 +530,7 @@ func (_m *IAMAPI) ChangePasswordRequest(_a0 *iam.ChangePasswordInput) (*request.
 }
 
 // ChangePasswordWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ChangePasswordWithContext(_a0 aws.Context, _a1 *iam.ChangePasswordInput, _a2 ...request.Option) (*iam.ChangePasswordOutput, error) {
+func (_m *IAMAPI) ChangePasswordWithContext(_a0 context.Context, _a1 *iam.ChangePasswordInput, _a2 ...request.Option) (*iam.ChangePasswordOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -541,7 +541,7 @@ func (_m *IAMAPI) ChangePasswordWithContext(_a0 aws.Context, _a1 *iam.ChangePass
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ChangePasswordOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ChangePasswordInput, ...request.Option) *iam.ChangePasswordOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ChangePasswordInput, ...request.Option) *iam.ChangePasswordOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -550,7 +550,7 @@ func (_m *IAMAPI) ChangePasswordWithContext(_a0 aws.Context, _a1 *iam.ChangePass
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ChangePasswordInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ChangePasswordInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -608,7 +608,7 @@ func (_m *IAMAPI) CreateAccessKeyRequest(_a0 *iam.CreateAccessKeyInput) (*reques
 }
 
 // CreateAccessKeyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateAccessKeyWithContext(_a0 aws.Context, _a1 *iam.CreateAccessKeyInput, _a2 ...request.Option) (*iam.CreateAccessKeyOutput, error) {
+func (_m *IAMAPI) CreateAccessKeyWithContext(_a0 context.Context, _a1 *iam.CreateAccessKeyInput, _a2 ...request.Option) (*iam.CreateAccessKeyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -619,7 +619,7 @@ func (_m *IAMAPI) CreateAccessKeyWithContext(_a0 aws.Context, _a1 *iam.CreateAcc
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateAccessKeyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateAccessKeyInput, ...request.Option) *iam.CreateAccessKeyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateAccessKeyInput, ...request.Option) *iam.CreateAccessKeyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -628,7 +628,7 @@ func (_m *IAMAPI) CreateAccessKeyWithContext(_a0 aws.Context, _a1 *iam.CreateAcc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateAccessKeyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateAccessKeyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -686,7 +686,7 @@ func (_m *IAMAPI) CreateAccountAliasRequest(_a0 *iam.CreateAccountAliasInput) (*
 }
 
 // CreateAccountAliasWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateAccountAliasWithContext(_a0 aws.Context, _a1 *iam.CreateAccountAliasInput, _a2 ...request.Option) (*iam.CreateAccountAliasOutput, error) {
+func (_m *IAMAPI) CreateAccountAliasWithContext(_a0 context.Context, _a1 *iam.CreateAccountAliasInput, _a2 ...request.Option) (*iam.CreateAccountAliasOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -697,7 +697,7 @@ func (_m *IAMAPI) CreateAccountAliasWithContext(_a0 aws.Context, _a1 *iam.Create
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateAccountAliasOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateAccountAliasInput, ...request.Option) *iam.CreateAccountAliasOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateAccountAliasInput, ...request.Option) *iam.CreateAccountAliasOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -706,7 +706,7 @@ func (_m *IAMAPI) CreateAccountAliasWithContext(_a0 aws.Context, _a1 *iam.Create
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateAccountAliasInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateAccountAliasInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -764,7 +764,7 @@ func (_m *IAMAPI) CreateGroupRequest(_a0 *iam.CreateGroupInput) (*request.Reques
 }
 
 // CreateGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateGroupWithContext(_a0 aws.Context, _a1 *iam.CreateGroupInput, _a2 ...request.Option) (*iam.CreateGroupOutput, error) {
+func (_m *IAMAPI) CreateGroupWithContext(_a0 context.Context, _a1 *iam.CreateGroupInput, _a2 ...request.Option) (*iam.CreateGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -775,7 +775,7 @@ func (_m *IAMAPI) CreateGroupWithContext(_a0 aws.Context, _a1 *iam.CreateGroupIn
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateGroupInput, ...request.Option) *iam.CreateGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateGroupInput, ...request.Option) *iam.CreateGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -784,7 +784,7 @@ func (_m *IAMAPI) CreateGroupWithContext(_a0 aws.Context, _a1 *iam.CreateGroupIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -842,7 +842,7 @@ func (_m *IAMAPI) CreateInstanceProfileRequest(_a0 *iam.CreateInstanceProfileInp
 }
 
 // CreateInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.CreateInstanceProfileInput, _a2 ...request.Option) (*iam.CreateInstanceProfileOutput, error) {
+func (_m *IAMAPI) CreateInstanceProfileWithContext(_a0 context.Context, _a1 *iam.CreateInstanceProfileInput, _a2 ...request.Option) (*iam.CreateInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -853,7 +853,7 @@ func (_m *IAMAPI) CreateInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.Cre
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateInstanceProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateInstanceProfileInput, ...request.Option) *iam.CreateInstanceProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateInstanceProfileInput, ...request.Option) *iam.CreateInstanceProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -862,7 +862,7 @@ func (_m *IAMAPI) CreateInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.Cre
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateInstanceProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateInstanceProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -920,7 +920,7 @@ func (_m *IAMAPI) CreateLoginProfileRequest(_a0 *iam.CreateLoginProfileInput) (*
 }
 
 // CreateLoginProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateLoginProfileWithContext(_a0 aws.Context, _a1 *iam.CreateLoginProfileInput, _a2 ...request.Option) (*iam.CreateLoginProfileOutput, error) {
+func (_m *IAMAPI) CreateLoginProfileWithContext(_a0 context.Context, _a1 *iam.CreateLoginProfileInput, _a2 ...request.Option) (*iam.CreateLoginProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -931,7 +931,7 @@ func (_m *IAMAPI) CreateLoginProfileWithContext(_a0 aws.Context, _a1 *iam.Create
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateLoginProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateLoginProfileInput, ...request.Option) *iam.CreateLoginProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateLoginProfileInput, ...request.Option) *iam.CreateLoginProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -940,7 +940,7 @@ func (_m *IAMAPI) CreateLoginProfileWithContext(_a0 aws.Context, _a1 *iam.Create
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateLoginProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateLoginProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -998,7 +998,7 @@ func (_m *IAMAPI) CreateOpenIDConnectProviderRequest(_a0 *iam.CreateOpenIDConnec
 }
 
 // CreateOpenIDConnectProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *iam.CreateOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.CreateOpenIDConnectProviderOutput, error) {
+func (_m *IAMAPI) CreateOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *iam.CreateOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.CreateOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1009,7 +1009,7 @@ func (_m *IAMAPI) CreateOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *i
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateOpenIDConnectProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateOpenIDConnectProviderInput, ...request.Option) *iam.CreateOpenIDConnectProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateOpenIDConnectProviderInput, ...request.Option) *iam.CreateOpenIDConnectProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1018,7 +1018,7 @@ func (_m *IAMAPI) CreateOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *i
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateOpenIDConnectProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateOpenIDConnectProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1124,7 +1124,7 @@ func (_m *IAMAPI) CreatePolicyVersionRequest(_a0 *iam.CreatePolicyVersionInput) 
 }
 
 // CreatePolicyVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreatePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.CreatePolicyVersionInput, _a2 ...request.Option) (*iam.CreatePolicyVersionOutput, error) {
+func (_m *IAMAPI) CreatePolicyVersionWithContext(_a0 context.Context, _a1 *iam.CreatePolicyVersionInput, _a2 ...request.Option) (*iam.CreatePolicyVersionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1135,7 +1135,7 @@ func (_m *IAMAPI) CreatePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.Creat
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreatePolicyVersionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreatePolicyVersionInput, ...request.Option) *iam.CreatePolicyVersionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreatePolicyVersionInput, ...request.Option) *iam.CreatePolicyVersionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1144,7 +1144,7 @@ func (_m *IAMAPI) CreatePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.Creat
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreatePolicyVersionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreatePolicyVersionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1154,7 +1154,7 @@ func (_m *IAMAPI) CreatePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.Creat
 }
 
 // CreatePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreatePolicyWithContext(_a0 aws.Context, _a1 *iam.CreatePolicyInput, _a2 ...request.Option) (*iam.CreatePolicyOutput, error) {
+func (_m *IAMAPI) CreatePolicyWithContext(_a0 context.Context, _a1 *iam.CreatePolicyInput, _a2 ...request.Option) (*iam.CreatePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1165,7 +1165,7 @@ func (_m *IAMAPI) CreatePolicyWithContext(_a0 aws.Context, _a1 *iam.CreatePolicy
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreatePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreatePolicyInput, ...request.Option) *iam.CreatePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreatePolicyInput, ...request.Option) *iam.CreatePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1174,7 +1174,7 @@ func (_m *IAMAPI) CreatePolicyWithContext(_a0 aws.Context, _a1 *iam.CreatePolicy
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreatePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreatePolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1232,7 +1232,7 @@ func (_m *IAMAPI) CreateRoleRequest(_a0 *iam.CreateRoleInput) (*request.Request,
 }
 
 // CreateRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateRoleWithContext(_a0 aws.Context, _a1 *iam.CreateRoleInput, _a2 ...request.Option) (*iam.CreateRoleOutput, error) {
+func (_m *IAMAPI) CreateRoleWithContext(_a0 context.Context, _a1 *iam.CreateRoleInput, _a2 ...request.Option) (*iam.CreateRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1243,7 +1243,7 @@ func (_m *IAMAPI) CreateRoleWithContext(_a0 aws.Context, _a1 *iam.CreateRoleInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateRoleInput, ...request.Option) *iam.CreateRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateRoleInput, ...request.Option) *iam.CreateRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1252,7 +1252,7 @@ func (_m *IAMAPI) CreateRoleWithContext(_a0 aws.Context, _a1 *iam.CreateRoleInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1310,7 +1310,7 @@ func (_m *IAMAPI) CreateSAMLProviderRequest(_a0 *iam.CreateSAMLProviderInput) (*
 }
 
 // CreateSAMLProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.CreateSAMLProviderInput, _a2 ...request.Option) (*iam.CreateSAMLProviderOutput, error) {
+func (_m *IAMAPI) CreateSAMLProviderWithContext(_a0 context.Context, _a1 *iam.CreateSAMLProviderInput, _a2 ...request.Option) (*iam.CreateSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1321,7 +1321,7 @@ func (_m *IAMAPI) CreateSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.Create
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateSAMLProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateSAMLProviderInput, ...request.Option) *iam.CreateSAMLProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateSAMLProviderInput, ...request.Option) *iam.CreateSAMLProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1330,7 +1330,7 @@ func (_m *IAMAPI) CreateSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.Create
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateSAMLProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateSAMLProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1388,7 +1388,7 @@ func (_m *IAMAPI) CreateServiceLinkedRoleRequest(_a0 *iam.CreateServiceLinkedRol
 }
 
 // CreateServiceLinkedRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateServiceLinkedRoleWithContext(_a0 aws.Context, _a1 *iam.CreateServiceLinkedRoleInput, _a2 ...request.Option) (*iam.CreateServiceLinkedRoleOutput, error) {
+func (_m *IAMAPI) CreateServiceLinkedRoleWithContext(_a0 context.Context, _a1 *iam.CreateServiceLinkedRoleInput, _a2 ...request.Option) (*iam.CreateServiceLinkedRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1399,7 +1399,7 @@ func (_m *IAMAPI) CreateServiceLinkedRoleWithContext(_a0 aws.Context, _a1 *iam.C
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateServiceLinkedRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateServiceLinkedRoleInput, ...request.Option) *iam.CreateServiceLinkedRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateServiceLinkedRoleInput, ...request.Option) *iam.CreateServiceLinkedRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1408,7 +1408,7 @@ func (_m *IAMAPI) CreateServiceLinkedRoleWithContext(_a0 aws.Context, _a1 *iam.C
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateServiceLinkedRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateServiceLinkedRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1466,7 +1466,7 @@ func (_m *IAMAPI) CreateServiceSpecificCredentialRequest(_a0 *iam.CreateServiceS
 }
 
 // CreateServiceSpecificCredentialWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateServiceSpecificCredentialWithContext(_a0 aws.Context, _a1 *iam.CreateServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.CreateServiceSpecificCredentialOutput, error) {
+func (_m *IAMAPI) CreateServiceSpecificCredentialWithContext(_a0 context.Context, _a1 *iam.CreateServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.CreateServiceSpecificCredentialOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1477,7 +1477,7 @@ func (_m *IAMAPI) CreateServiceSpecificCredentialWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateServiceSpecificCredentialOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateServiceSpecificCredentialInput, ...request.Option) *iam.CreateServiceSpecificCredentialOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateServiceSpecificCredentialInput, ...request.Option) *iam.CreateServiceSpecificCredentialOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1486,7 +1486,7 @@ func (_m *IAMAPI) CreateServiceSpecificCredentialWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateServiceSpecificCredentialInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateServiceSpecificCredentialInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1544,7 +1544,7 @@ func (_m *IAMAPI) CreateUserRequest(_a0 *iam.CreateUserInput) (*request.Request,
 }
 
 // CreateUserWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateUserWithContext(_a0 aws.Context, _a1 *iam.CreateUserInput, _a2 ...request.Option) (*iam.CreateUserOutput, error) {
+func (_m *IAMAPI) CreateUserWithContext(_a0 context.Context, _a1 *iam.CreateUserInput, _a2 ...request.Option) (*iam.CreateUserOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1555,7 +1555,7 @@ func (_m *IAMAPI) CreateUserWithContext(_a0 aws.Context, _a1 *iam.CreateUserInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateUserOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateUserInput, ...request.Option) *iam.CreateUserOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateUserInput, ...request.Option) *iam.CreateUserOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1564,7 +1564,7 @@ func (_m *IAMAPI) CreateUserWithContext(_a0 aws.Context, _a1 *iam.CreateUserInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateUserInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateUserInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1622,7 +1622,7 @@ func (_m *IAMAPI) CreateVirtualMFADeviceRequest(_a0 *iam.CreateVirtualMFADeviceI
 }
 
 // CreateVirtualMFADeviceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) CreateVirtualMFADeviceWithContext(_a0 aws.Context, _a1 *iam.CreateVirtualMFADeviceInput, _a2 ...request.Option) (*iam.CreateVirtualMFADeviceOutput, error) {
+func (_m *IAMAPI) CreateVirtualMFADeviceWithContext(_a0 context.Context, _a1 *iam.CreateVirtualMFADeviceInput, _a2 ...request.Option) (*iam.CreateVirtualMFADeviceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1633,7 +1633,7 @@ func (_m *IAMAPI) CreateVirtualMFADeviceWithContext(_a0 aws.Context, _a1 *iam.Cr
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.CreateVirtualMFADeviceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.CreateVirtualMFADeviceInput, ...request.Option) *iam.CreateVirtualMFADeviceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.CreateVirtualMFADeviceInput, ...request.Option) *iam.CreateVirtualMFADeviceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1642,7 +1642,7 @@ func (_m *IAMAPI) CreateVirtualMFADeviceWithContext(_a0 aws.Context, _a1 *iam.Cr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.CreateVirtualMFADeviceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.CreateVirtualMFADeviceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1700,7 +1700,7 @@ func (_m *IAMAPI) DeactivateMFADeviceRequest(_a0 *iam.DeactivateMFADeviceInput) 
 }
 
 // DeactivateMFADeviceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeactivateMFADeviceWithContext(_a0 aws.Context, _a1 *iam.DeactivateMFADeviceInput, _a2 ...request.Option) (*iam.DeactivateMFADeviceOutput, error) {
+func (_m *IAMAPI) DeactivateMFADeviceWithContext(_a0 context.Context, _a1 *iam.DeactivateMFADeviceInput, _a2 ...request.Option) (*iam.DeactivateMFADeviceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1711,7 +1711,7 @@ func (_m *IAMAPI) DeactivateMFADeviceWithContext(_a0 aws.Context, _a1 *iam.Deact
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeactivateMFADeviceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeactivateMFADeviceInput, ...request.Option) *iam.DeactivateMFADeviceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeactivateMFADeviceInput, ...request.Option) *iam.DeactivateMFADeviceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1720,7 +1720,7 @@ func (_m *IAMAPI) DeactivateMFADeviceWithContext(_a0 aws.Context, _a1 *iam.Deact
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeactivateMFADeviceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeactivateMFADeviceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1778,7 +1778,7 @@ func (_m *IAMAPI) DeleteAccessKeyRequest(_a0 *iam.DeleteAccessKeyInput) (*reques
 }
 
 // DeleteAccessKeyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteAccessKeyWithContext(_a0 aws.Context, _a1 *iam.DeleteAccessKeyInput, _a2 ...request.Option) (*iam.DeleteAccessKeyOutput, error) {
+func (_m *IAMAPI) DeleteAccessKeyWithContext(_a0 context.Context, _a1 *iam.DeleteAccessKeyInput, _a2 ...request.Option) (*iam.DeleteAccessKeyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1789,7 +1789,7 @@ func (_m *IAMAPI) DeleteAccessKeyWithContext(_a0 aws.Context, _a1 *iam.DeleteAcc
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteAccessKeyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteAccessKeyInput, ...request.Option) *iam.DeleteAccessKeyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteAccessKeyInput, ...request.Option) *iam.DeleteAccessKeyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1798,7 +1798,7 @@ func (_m *IAMAPI) DeleteAccessKeyWithContext(_a0 aws.Context, _a1 *iam.DeleteAcc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteAccessKeyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteAccessKeyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1856,7 +1856,7 @@ func (_m *IAMAPI) DeleteAccountAliasRequest(_a0 *iam.DeleteAccountAliasInput) (*
 }
 
 // DeleteAccountAliasWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteAccountAliasWithContext(_a0 aws.Context, _a1 *iam.DeleteAccountAliasInput, _a2 ...request.Option) (*iam.DeleteAccountAliasOutput, error) {
+func (_m *IAMAPI) DeleteAccountAliasWithContext(_a0 context.Context, _a1 *iam.DeleteAccountAliasInput, _a2 ...request.Option) (*iam.DeleteAccountAliasOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1867,7 +1867,7 @@ func (_m *IAMAPI) DeleteAccountAliasWithContext(_a0 aws.Context, _a1 *iam.Delete
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteAccountAliasOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteAccountAliasInput, ...request.Option) *iam.DeleteAccountAliasOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteAccountAliasInput, ...request.Option) *iam.DeleteAccountAliasOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1876,7 +1876,7 @@ func (_m *IAMAPI) DeleteAccountAliasWithContext(_a0 aws.Context, _a1 *iam.Delete
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteAccountAliasInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteAccountAliasInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -1934,7 +1934,7 @@ func (_m *IAMAPI) DeleteAccountPasswordPolicyRequest(_a0 *iam.DeleteAccountPassw
 }
 
 // DeleteAccountPasswordPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteAccountPasswordPolicyInput, _a2 ...request.Option) (*iam.DeleteAccountPasswordPolicyOutput, error) {
+func (_m *IAMAPI) DeleteAccountPasswordPolicyWithContext(_a0 context.Context, _a1 *iam.DeleteAccountPasswordPolicyInput, _a2 ...request.Option) (*iam.DeleteAccountPasswordPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -1945,7 +1945,7 @@ func (_m *IAMAPI) DeleteAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *i
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteAccountPasswordPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteAccountPasswordPolicyInput, ...request.Option) *iam.DeleteAccountPasswordPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteAccountPasswordPolicyInput, ...request.Option) *iam.DeleteAccountPasswordPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -1954,7 +1954,7 @@ func (_m *IAMAPI) DeleteAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *i
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteAccountPasswordPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteAccountPasswordPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2035,7 +2035,7 @@ func (_m *IAMAPI) DeleteGroupPolicyRequest(_a0 *iam.DeleteGroupPolicyInput) (*re
 }
 
 // DeleteGroupPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteGroupPolicyInput, _a2 ...request.Option) (*iam.DeleteGroupPolicyOutput, error) {
+func (_m *IAMAPI) DeleteGroupPolicyWithContext(_a0 context.Context, _a1 *iam.DeleteGroupPolicyInput, _a2 ...request.Option) (*iam.DeleteGroupPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2046,7 +2046,7 @@ func (_m *IAMAPI) DeleteGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteG
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteGroupPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteGroupPolicyInput, ...request.Option) *iam.DeleteGroupPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteGroupPolicyInput, ...request.Option) *iam.DeleteGroupPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2055,7 +2055,7 @@ func (_m *IAMAPI) DeleteGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteG
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteGroupPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteGroupPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2090,7 +2090,7 @@ func (_m *IAMAPI) DeleteGroupRequest(_a0 *iam.DeleteGroupInput) (*request.Reques
 }
 
 // DeleteGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteGroupWithContext(_a0 aws.Context, _a1 *iam.DeleteGroupInput, _a2 ...request.Option) (*iam.DeleteGroupOutput, error) {
+func (_m *IAMAPI) DeleteGroupWithContext(_a0 context.Context, _a1 *iam.DeleteGroupInput, _a2 ...request.Option) (*iam.DeleteGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2101,7 +2101,7 @@ func (_m *IAMAPI) DeleteGroupWithContext(_a0 aws.Context, _a1 *iam.DeleteGroupIn
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteGroupInput, ...request.Option) *iam.DeleteGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteGroupInput, ...request.Option) *iam.DeleteGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2110,7 +2110,7 @@ func (_m *IAMAPI) DeleteGroupWithContext(_a0 aws.Context, _a1 *iam.DeleteGroupIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2168,7 +2168,7 @@ func (_m *IAMAPI) DeleteInstanceProfileRequest(_a0 *iam.DeleteInstanceProfileInp
 }
 
 // DeleteInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.DeleteInstanceProfileInput, _a2 ...request.Option) (*iam.DeleteInstanceProfileOutput, error) {
+func (_m *IAMAPI) DeleteInstanceProfileWithContext(_a0 context.Context, _a1 *iam.DeleteInstanceProfileInput, _a2 ...request.Option) (*iam.DeleteInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2179,7 +2179,7 @@ func (_m *IAMAPI) DeleteInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.Del
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteInstanceProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteInstanceProfileInput, ...request.Option) *iam.DeleteInstanceProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteInstanceProfileInput, ...request.Option) *iam.DeleteInstanceProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2188,7 +2188,7 @@ func (_m *IAMAPI) DeleteInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.Del
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteInstanceProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteInstanceProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2246,7 +2246,7 @@ func (_m *IAMAPI) DeleteLoginProfileRequest(_a0 *iam.DeleteLoginProfileInput) (*
 }
 
 // DeleteLoginProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteLoginProfileWithContext(_a0 aws.Context, _a1 *iam.DeleteLoginProfileInput, _a2 ...request.Option) (*iam.DeleteLoginProfileOutput, error) {
+func (_m *IAMAPI) DeleteLoginProfileWithContext(_a0 context.Context, _a1 *iam.DeleteLoginProfileInput, _a2 ...request.Option) (*iam.DeleteLoginProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2257,7 +2257,7 @@ func (_m *IAMAPI) DeleteLoginProfileWithContext(_a0 aws.Context, _a1 *iam.Delete
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteLoginProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteLoginProfileInput, ...request.Option) *iam.DeleteLoginProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteLoginProfileInput, ...request.Option) *iam.DeleteLoginProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2266,7 +2266,7 @@ func (_m *IAMAPI) DeleteLoginProfileWithContext(_a0 aws.Context, _a1 *iam.Delete
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteLoginProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteLoginProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2324,7 +2324,7 @@ func (_m *IAMAPI) DeleteOpenIDConnectProviderRequest(_a0 *iam.DeleteOpenIDConnec
 }
 
 // DeleteOpenIDConnectProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *iam.DeleteOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.DeleteOpenIDConnectProviderOutput, error) {
+func (_m *IAMAPI) DeleteOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *iam.DeleteOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.DeleteOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2335,7 +2335,7 @@ func (_m *IAMAPI) DeleteOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *i
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteOpenIDConnectProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteOpenIDConnectProviderInput, ...request.Option) *iam.DeleteOpenIDConnectProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteOpenIDConnectProviderInput, ...request.Option) *iam.DeleteOpenIDConnectProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2344,7 +2344,7 @@ func (_m *IAMAPI) DeleteOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *i
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteOpenIDConnectProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteOpenIDConnectProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2450,7 +2450,7 @@ func (_m *IAMAPI) DeletePolicyVersionRequest(_a0 *iam.DeletePolicyVersionInput) 
 }
 
 // DeletePolicyVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeletePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.DeletePolicyVersionInput, _a2 ...request.Option) (*iam.DeletePolicyVersionOutput, error) {
+func (_m *IAMAPI) DeletePolicyVersionWithContext(_a0 context.Context, _a1 *iam.DeletePolicyVersionInput, _a2 ...request.Option) (*iam.DeletePolicyVersionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2461,7 +2461,7 @@ func (_m *IAMAPI) DeletePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.Delet
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeletePolicyVersionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeletePolicyVersionInput, ...request.Option) *iam.DeletePolicyVersionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeletePolicyVersionInput, ...request.Option) *iam.DeletePolicyVersionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2470,7 +2470,7 @@ func (_m *IAMAPI) DeletePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.Delet
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeletePolicyVersionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeletePolicyVersionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2480,7 +2480,7 @@ func (_m *IAMAPI) DeletePolicyVersionWithContext(_a0 aws.Context, _a1 *iam.Delet
 }
 
 // DeletePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeletePolicyWithContext(_a0 aws.Context, _a1 *iam.DeletePolicyInput, _a2 ...request.Option) (*iam.DeletePolicyOutput, error) {
+func (_m *IAMAPI) DeletePolicyWithContext(_a0 context.Context, _a1 *iam.DeletePolicyInput, _a2 ...request.Option) (*iam.DeletePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2491,7 +2491,7 @@ func (_m *IAMAPI) DeletePolicyWithContext(_a0 aws.Context, _a1 *iam.DeletePolicy
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeletePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeletePolicyInput, ...request.Option) *iam.DeletePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeletePolicyInput, ...request.Option) *iam.DeletePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2500,7 +2500,7 @@ func (_m *IAMAPI) DeletePolicyWithContext(_a0 aws.Context, _a1 *iam.DeletePolicy
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeletePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeletePolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2525,6 +2525,84 @@ func (_m *IAMAPI) DeleteRole(_a0 *iam.DeleteRoleInput) (*iam.DeleteRoleOutput, e
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*iam.DeleteRoleInput) error); ok {
 		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteRolePermissionsBoundary provides a mock function with given fields: _a0
+func (_m *IAMAPI) DeleteRolePermissionsBoundary(_a0 *iam.DeleteRolePermissionsBoundaryInput) (*iam.DeleteRolePermissionsBoundaryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.DeleteRolePermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(*iam.DeleteRolePermissionsBoundaryInput) *iam.DeleteRolePermissionsBoundaryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DeleteRolePermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.DeleteRolePermissionsBoundaryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteRolePermissionsBoundaryRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) DeleteRolePermissionsBoundaryRequest(_a0 *iam.DeleteRolePermissionsBoundaryInput) (*request.Request, *iam.DeleteRolePermissionsBoundaryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.DeleteRolePermissionsBoundaryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.DeleteRolePermissionsBoundaryOutput
+	if rf, ok := ret.Get(1).(func(*iam.DeleteRolePermissionsBoundaryInput) *iam.DeleteRolePermissionsBoundaryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.DeleteRolePermissionsBoundaryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteRolePermissionsBoundaryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) DeleteRolePermissionsBoundaryWithContext(_a0 context.Context, _a1 *iam.DeleteRolePermissionsBoundaryInput, _a2 ...request.Option) (*iam.DeleteRolePermissionsBoundaryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.DeleteRolePermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteRolePermissionsBoundaryInput, ...request.Option) *iam.DeleteRolePermissionsBoundaryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DeleteRolePermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteRolePermissionsBoundaryInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2581,7 +2659,7 @@ func (_m *IAMAPI) DeleteRolePolicyRequest(_a0 *iam.DeleteRolePolicyInput) (*requ
 }
 
 // DeleteRolePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteRolePolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteRolePolicyInput, _a2 ...request.Option) (*iam.DeleteRolePolicyOutput, error) {
+func (_m *IAMAPI) DeleteRolePolicyWithContext(_a0 context.Context, _a1 *iam.DeleteRolePolicyInput, _a2 ...request.Option) (*iam.DeleteRolePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2592,7 +2670,7 @@ func (_m *IAMAPI) DeleteRolePolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteRo
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteRolePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteRolePolicyInput, ...request.Option) *iam.DeleteRolePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteRolePolicyInput, ...request.Option) *iam.DeleteRolePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2601,7 +2679,7 @@ func (_m *IAMAPI) DeleteRolePolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteRo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteRolePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteRolePolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2636,7 +2714,7 @@ func (_m *IAMAPI) DeleteRoleRequest(_a0 *iam.DeleteRoleInput) (*request.Request,
 }
 
 // DeleteRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteRoleWithContext(_a0 aws.Context, _a1 *iam.DeleteRoleInput, _a2 ...request.Option) (*iam.DeleteRoleOutput, error) {
+func (_m *IAMAPI) DeleteRoleWithContext(_a0 context.Context, _a1 *iam.DeleteRoleInput, _a2 ...request.Option) (*iam.DeleteRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2647,7 +2725,7 @@ func (_m *IAMAPI) DeleteRoleWithContext(_a0 aws.Context, _a1 *iam.DeleteRoleInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteRoleInput, ...request.Option) *iam.DeleteRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteRoleInput, ...request.Option) *iam.DeleteRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2656,7 +2734,7 @@ func (_m *IAMAPI) DeleteRoleWithContext(_a0 aws.Context, _a1 *iam.DeleteRoleInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2714,7 +2792,7 @@ func (_m *IAMAPI) DeleteSAMLProviderRequest(_a0 *iam.DeleteSAMLProviderInput) (*
 }
 
 // DeleteSAMLProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.DeleteSAMLProviderInput, _a2 ...request.Option) (*iam.DeleteSAMLProviderOutput, error) {
+func (_m *IAMAPI) DeleteSAMLProviderWithContext(_a0 context.Context, _a1 *iam.DeleteSAMLProviderInput, _a2 ...request.Option) (*iam.DeleteSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2725,7 +2803,7 @@ func (_m *IAMAPI) DeleteSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.Delete
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteSAMLProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteSAMLProviderInput, ...request.Option) *iam.DeleteSAMLProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteSAMLProviderInput, ...request.Option) *iam.DeleteSAMLProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2734,7 +2812,7 @@ func (_m *IAMAPI) DeleteSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.Delete
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteSAMLProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteSAMLProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2792,7 +2870,7 @@ func (_m *IAMAPI) DeleteSSHPublicKeyRequest(_a0 *iam.DeleteSSHPublicKeyInput) (*
 }
 
 // DeleteSSHPublicKeyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.DeleteSSHPublicKeyInput, _a2 ...request.Option) (*iam.DeleteSSHPublicKeyOutput, error) {
+func (_m *IAMAPI) DeleteSSHPublicKeyWithContext(_a0 context.Context, _a1 *iam.DeleteSSHPublicKeyInput, _a2 ...request.Option) (*iam.DeleteSSHPublicKeyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2803,7 +2881,7 @@ func (_m *IAMAPI) DeleteSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.Delete
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteSSHPublicKeyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteSSHPublicKeyInput, ...request.Option) *iam.DeleteSSHPublicKeyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteSSHPublicKeyInput, ...request.Option) *iam.DeleteSSHPublicKeyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2812,7 +2890,7 @@ func (_m *IAMAPI) DeleteSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.Delete
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteSSHPublicKeyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteSSHPublicKeyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2870,7 +2948,7 @@ func (_m *IAMAPI) DeleteServerCertificateRequest(_a0 *iam.DeleteServerCertificat
 }
 
 // DeleteServerCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteServerCertificateWithContext(_a0 aws.Context, _a1 *iam.DeleteServerCertificateInput, _a2 ...request.Option) (*iam.DeleteServerCertificateOutput, error) {
+func (_m *IAMAPI) DeleteServerCertificateWithContext(_a0 context.Context, _a1 *iam.DeleteServerCertificateInput, _a2 ...request.Option) (*iam.DeleteServerCertificateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2881,7 +2959,7 @@ func (_m *IAMAPI) DeleteServerCertificateWithContext(_a0 aws.Context, _a1 *iam.D
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteServerCertificateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteServerCertificateInput, ...request.Option) *iam.DeleteServerCertificateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteServerCertificateInput, ...request.Option) *iam.DeleteServerCertificateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2890,7 +2968,7 @@ func (_m *IAMAPI) DeleteServerCertificateWithContext(_a0 aws.Context, _a1 *iam.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteServerCertificateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteServerCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -2948,7 +3026,7 @@ func (_m *IAMAPI) DeleteServiceLinkedRoleRequest(_a0 *iam.DeleteServiceLinkedRol
 }
 
 // DeleteServiceLinkedRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteServiceLinkedRoleWithContext(_a0 aws.Context, _a1 *iam.DeleteServiceLinkedRoleInput, _a2 ...request.Option) (*iam.DeleteServiceLinkedRoleOutput, error) {
+func (_m *IAMAPI) DeleteServiceLinkedRoleWithContext(_a0 context.Context, _a1 *iam.DeleteServiceLinkedRoleInput, _a2 ...request.Option) (*iam.DeleteServiceLinkedRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -2959,7 +3037,7 @@ func (_m *IAMAPI) DeleteServiceLinkedRoleWithContext(_a0 aws.Context, _a1 *iam.D
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteServiceLinkedRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteServiceLinkedRoleInput, ...request.Option) *iam.DeleteServiceLinkedRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteServiceLinkedRoleInput, ...request.Option) *iam.DeleteServiceLinkedRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -2968,7 +3046,7 @@ func (_m *IAMAPI) DeleteServiceLinkedRoleWithContext(_a0 aws.Context, _a1 *iam.D
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteServiceLinkedRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteServiceLinkedRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3026,7 +3104,7 @@ func (_m *IAMAPI) DeleteServiceSpecificCredentialRequest(_a0 *iam.DeleteServiceS
 }
 
 // DeleteServiceSpecificCredentialWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteServiceSpecificCredentialWithContext(_a0 aws.Context, _a1 *iam.DeleteServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.DeleteServiceSpecificCredentialOutput, error) {
+func (_m *IAMAPI) DeleteServiceSpecificCredentialWithContext(_a0 context.Context, _a1 *iam.DeleteServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.DeleteServiceSpecificCredentialOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3037,7 +3115,7 @@ func (_m *IAMAPI) DeleteServiceSpecificCredentialWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteServiceSpecificCredentialOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteServiceSpecificCredentialInput, ...request.Option) *iam.DeleteServiceSpecificCredentialOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteServiceSpecificCredentialInput, ...request.Option) *iam.DeleteServiceSpecificCredentialOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3046,7 +3124,7 @@ func (_m *IAMAPI) DeleteServiceSpecificCredentialWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteServiceSpecificCredentialInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteServiceSpecificCredentialInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3104,7 +3182,7 @@ func (_m *IAMAPI) DeleteSigningCertificateRequest(_a0 *iam.DeleteSigningCertific
 }
 
 // DeleteSigningCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.DeleteSigningCertificateInput, _a2 ...request.Option) (*iam.DeleteSigningCertificateOutput, error) {
+func (_m *IAMAPI) DeleteSigningCertificateWithContext(_a0 context.Context, _a1 *iam.DeleteSigningCertificateInput, _a2 ...request.Option) (*iam.DeleteSigningCertificateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3115,7 +3193,7 @@ func (_m *IAMAPI) DeleteSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteSigningCertificateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteSigningCertificateInput, ...request.Option) *iam.DeleteSigningCertificateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteSigningCertificateInput, ...request.Option) *iam.DeleteSigningCertificateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3124,7 +3202,7 @@ func (_m *IAMAPI) DeleteSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteSigningCertificateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteSigningCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3149,6 +3227,84 @@ func (_m *IAMAPI) DeleteUser(_a0 *iam.DeleteUserInput) (*iam.DeleteUserOutput, e
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*iam.DeleteUserInput) error); ok {
 		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteUserPermissionsBoundary provides a mock function with given fields: _a0
+func (_m *IAMAPI) DeleteUserPermissionsBoundary(_a0 *iam.DeleteUserPermissionsBoundaryInput) (*iam.DeleteUserPermissionsBoundaryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.DeleteUserPermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(*iam.DeleteUserPermissionsBoundaryInput) *iam.DeleteUserPermissionsBoundaryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DeleteUserPermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.DeleteUserPermissionsBoundaryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteUserPermissionsBoundaryRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) DeleteUserPermissionsBoundaryRequest(_a0 *iam.DeleteUserPermissionsBoundaryInput) (*request.Request, *iam.DeleteUserPermissionsBoundaryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.DeleteUserPermissionsBoundaryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.DeleteUserPermissionsBoundaryOutput
+	if rf, ok := ret.Get(1).(func(*iam.DeleteUserPermissionsBoundaryInput) *iam.DeleteUserPermissionsBoundaryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.DeleteUserPermissionsBoundaryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteUserPermissionsBoundaryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) DeleteUserPermissionsBoundaryWithContext(_a0 context.Context, _a1 *iam.DeleteUserPermissionsBoundaryInput, _a2 ...request.Option) (*iam.DeleteUserPermissionsBoundaryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.DeleteUserPermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteUserPermissionsBoundaryInput, ...request.Option) *iam.DeleteUserPermissionsBoundaryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.DeleteUserPermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteUserPermissionsBoundaryInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3205,7 +3361,7 @@ func (_m *IAMAPI) DeleteUserPolicyRequest(_a0 *iam.DeleteUserPolicyInput) (*requ
 }
 
 // DeleteUserPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteUserPolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteUserPolicyInput, _a2 ...request.Option) (*iam.DeleteUserPolicyOutput, error) {
+func (_m *IAMAPI) DeleteUserPolicyWithContext(_a0 context.Context, _a1 *iam.DeleteUserPolicyInput, _a2 ...request.Option) (*iam.DeleteUserPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3216,7 +3372,7 @@ func (_m *IAMAPI) DeleteUserPolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteUs
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteUserPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteUserPolicyInput, ...request.Option) *iam.DeleteUserPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteUserPolicyInput, ...request.Option) *iam.DeleteUserPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3225,7 +3381,7 @@ func (_m *IAMAPI) DeleteUserPolicyWithContext(_a0 aws.Context, _a1 *iam.DeleteUs
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteUserPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteUserPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3260,7 +3416,7 @@ func (_m *IAMAPI) DeleteUserRequest(_a0 *iam.DeleteUserInput) (*request.Request,
 }
 
 // DeleteUserWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteUserWithContext(_a0 aws.Context, _a1 *iam.DeleteUserInput, _a2 ...request.Option) (*iam.DeleteUserOutput, error) {
+func (_m *IAMAPI) DeleteUserWithContext(_a0 context.Context, _a1 *iam.DeleteUserInput, _a2 ...request.Option) (*iam.DeleteUserOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3271,7 +3427,7 @@ func (_m *IAMAPI) DeleteUserWithContext(_a0 aws.Context, _a1 *iam.DeleteUserInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteUserOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteUserInput, ...request.Option) *iam.DeleteUserOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteUserInput, ...request.Option) *iam.DeleteUserOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3280,7 +3436,7 @@ func (_m *IAMAPI) DeleteUserWithContext(_a0 aws.Context, _a1 *iam.DeleteUserInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteUserInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteUserInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3338,7 +3494,7 @@ func (_m *IAMAPI) DeleteVirtualMFADeviceRequest(_a0 *iam.DeleteVirtualMFADeviceI
 }
 
 // DeleteVirtualMFADeviceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DeleteVirtualMFADeviceWithContext(_a0 aws.Context, _a1 *iam.DeleteVirtualMFADeviceInput, _a2 ...request.Option) (*iam.DeleteVirtualMFADeviceOutput, error) {
+func (_m *IAMAPI) DeleteVirtualMFADeviceWithContext(_a0 context.Context, _a1 *iam.DeleteVirtualMFADeviceInput, _a2 ...request.Option) (*iam.DeleteVirtualMFADeviceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3349,7 +3505,7 @@ func (_m *IAMAPI) DeleteVirtualMFADeviceWithContext(_a0 aws.Context, _a1 *iam.De
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DeleteVirtualMFADeviceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DeleteVirtualMFADeviceInput, ...request.Option) *iam.DeleteVirtualMFADeviceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DeleteVirtualMFADeviceInput, ...request.Option) *iam.DeleteVirtualMFADeviceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3358,7 +3514,7 @@ func (_m *IAMAPI) DeleteVirtualMFADeviceWithContext(_a0 aws.Context, _a1 *iam.De
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DeleteVirtualMFADeviceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DeleteVirtualMFADeviceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3416,7 +3572,7 @@ func (_m *IAMAPI) DetachGroupPolicyRequest(_a0 *iam.DetachGroupPolicyInput) (*re
 }
 
 // DetachGroupPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DetachGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.DetachGroupPolicyInput, _a2 ...request.Option) (*iam.DetachGroupPolicyOutput, error) {
+func (_m *IAMAPI) DetachGroupPolicyWithContext(_a0 context.Context, _a1 *iam.DetachGroupPolicyInput, _a2 ...request.Option) (*iam.DetachGroupPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3427,7 +3583,7 @@ func (_m *IAMAPI) DetachGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.DetachG
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DetachGroupPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DetachGroupPolicyInput, ...request.Option) *iam.DetachGroupPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DetachGroupPolicyInput, ...request.Option) *iam.DetachGroupPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3436,7 +3592,7 @@ func (_m *IAMAPI) DetachGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.DetachG
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DetachGroupPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DetachGroupPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3494,7 +3650,7 @@ func (_m *IAMAPI) DetachRolePolicyRequest(_a0 *iam.DetachRolePolicyInput) (*requ
 }
 
 // DetachRolePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DetachRolePolicyWithContext(_a0 aws.Context, _a1 *iam.DetachRolePolicyInput, _a2 ...request.Option) (*iam.DetachRolePolicyOutput, error) {
+func (_m *IAMAPI) DetachRolePolicyWithContext(_a0 context.Context, _a1 *iam.DetachRolePolicyInput, _a2 ...request.Option) (*iam.DetachRolePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3505,7 +3661,7 @@ func (_m *IAMAPI) DetachRolePolicyWithContext(_a0 aws.Context, _a1 *iam.DetachRo
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DetachRolePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DetachRolePolicyInput, ...request.Option) *iam.DetachRolePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DetachRolePolicyInput, ...request.Option) *iam.DetachRolePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3514,7 +3670,7 @@ func (_m *IAMAPI) DetachRolePolicyWithContext(_a0 aws.Context, _a1 *iam.DetachRo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DetachRolePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DetachRolePolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3572,7 +3728,7 @@ func (_m *IAMAPI) DetachUserPolicyRequest(_a0 *iam.DetachUserPolicyInput) (*requ
 }
 
 // DetachUserPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) DetachUserPolicyWithContext(_a0 aws.Context, _a1 *iam.DetachUserPolicyInput, _a2 ...request.Option) (*iam.DetachUserPolicyOutput, error) {
+func (_m *IAMAPI) DetachUserPolicyWithContext(_a0 context.Context, _a1 *iam.DetachUserPolicyInput, _a2 ...request.Option) (*iam.DetachUserPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3583,7 +3739,7 @@ func (_m *IAMAPI) DetachUserPolicyWithContext(_a0 aws.Context, _a1 *iam.DetachUs
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.DetachUserPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.DetachUserPolicyInput, ...request.Option) *iam.DetachUserPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.DetachUserPolicyInput, ...request.Option) *iam.DetachUserPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3592,7 +3748,7 @@ func (_m *IAMAPI) DetachUserPolicyWithContext(_a0 aws.Context, _a1 *iam.DetachUs
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.DetachUserPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.DetachUserPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3650,7 +3806,7 @@ func (_m *IAMAPI) EnableMFADeviceRequest(_a0 *iam.EnableMFADeviceInput) (*reques
 }
 
 // EnableMFADeviceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) EnableMFADeviceWithContext(_a0 aws.Context, _a1 *iam.EnableMFADeviceInput, _a2 ...request.Option) (*iam.EnableMFADeviceOutput, error) {
+func (_m *IAMAPI) EnableMFADeviceWithContext(_a0 context.Context, _a1 *iam.EnableMFADeviceInput, _a2 ...request.Option) (*iam.EnableMFADeviceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3661,7 +3817,7 @@ func (_m *IAMAPI) EnableMFADeviceWithContext(_a0 aws.Context, _a1 *iam.EnableMFA
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.EnableMFADeviceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.EnableMFADeviceInput, ...request.Option) *iam.EnableMFADeviceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.EnableMFADeviceInput, ...request.Option) *iam.EnableMFADeviceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3670,7 +3826,7 @@ func (_m *IAMAPI) EnableMFADeviceWithContext(_a0 aws.Context, _a1 *iam.EnableMFA
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.EnableMFADeviceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.EnableMFADeviceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3728,7 +3884,7 @@ func (_m *IAMAPI) GenerateCredentialReportRequest(_a0 *iam.GenerateCredentialRep
 }
 
 // GenerateCredentialReportWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GenerateCredentialReportWithContext(_a0 aws.Context, _a1 *iam.GenerateCredentialReportInput, _a2 ...request.Option) (*iam.GenerateCredentialReportOutput, error) {
+func (_m *IAMAPI) GenerateCredentialReportWithContext(_a0 context.Context, _a1 *iam.GenerateCredentialReportInput, _a2 ...request.Option) (*iam.GenerateCredentialReportOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3739,7 +3895,7 @@ func (_m *IAMAPI) GenerateCredentialReportWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GenerateCredentialReportOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GenerateCredentialReportInput, ...request.Option) *iam.GenerateCredentialReportOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GenerateCredentialReportInput, ...request.Option) *iam.GenerateCredentialReportOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3748,7 +3904,85 @@ func (_m *IAMAPI) GenerateCredentialReportWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GenerateCredentialReportInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GenerateCredentialReportInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GenerateServiceLastAccessedDetails provides a mock function with given fields: _a0
+func (_m *IAMAPI) GenerateServiceLastAccessedDetails(_a0 *iam.GenerateServiceLastAccessedDetailsInput) (*iam.GenerateServiceLastAccessedDetailsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.GenerateServiceLastAccessedDetailsOutput
+	if rf, ok := ret.Get(0).(func(*iam.GenerateServiceLastAccessedDetailsInput) *iam.GenerateServiceLastAccessedDetailsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GenerateServiceLastAccessedDetailsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.GenerateServiceLastAccessedDetailsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GenerateServiceLastAccessedDetailsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) GenerateServiceLastAccessedDetailsRequest(_a0 *iam.GenerateServiceLastAccessedDetailsInput) (*request.Request, *iam.GenerateServiceLastAccessedDetailsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.GenerateServiceLastAccessedDetailsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.GenerateServiceLastAccessedDetailsOutput
+	if rf, ok := ret.Get(1).(func(*iam.GenerateServiceLastAccessedDetailsInput) *iam.GenerateServiceLastAccessedDetailsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.GenerateServiceLastAccessedDetailsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GenerateServiceLastAccessedDetailsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) GenerateServiceLastAccessedDetailsWithContext(_a0 context.Context, _a1 *iam.GenerateServiceLastAccessedDetailsInput, _a2 ...request.Option) (*iam.GenerateServiceLastAccessedDetailsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.GenerateServiceLastAccessedDetailsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GenerateServiceLastAccessedDetailsInput, ...request.Option) *iam.GenerateServiceLastAccessedDetailsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GenerateServiceLastAccessedDetailsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GenerateServiceLastAccessedDetailsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3806,7 +4040,7 @@ func (_m *IAMAPI) GetAccessKeyLastUsedRequest(_a0 *iam.GetAccessKeyLastUsedInput
 }
 
 // GetAccessKeyLastUsedWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetAccessKeyLastUsedWithContext(_a0 aws.Context, _a1 *iam.GetAccessKeyLastUsedInput, _a2 ...request.Option) (*iam.GetAccessKeyLastUsedOutput, error) {
+func (_m *IAMAPI) GetAccessKeyLastUsedWithContext(_a0 context.Context, _a1 *iam.GetAccessKeyLastUsedInput, _a2 ...request.Option) (*iam.GetAccessKeyLastUsedOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3817,7 +4051,7 @@ func (_m *IAMAPI) GetAccessKeyLastUsedWithContext(_a0 aws.Context, _a1 *iam.GetA
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetAccessKeyLastUsedOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetAccessKeyLastUsedInput, ...request.Option) *iam.GetAccessKeyLastUsedOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetAccessKeyLastUsedInput, ...request.Option) *iam.GetAccessKeyLastUsedOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3826,7 +4060,7 @@ func (_m *IAMAPI) GetAccessKeyLastUsedWithContext(_a0 aws.Context, _a1 *iam.GetA
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetAccessKeyLastUsedInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetAccessKeyLastUsedInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3873,7 +4107,7 @@ func (_m *IAMAPI) GetAccountAuthorizationDetailsPages(_a0 *iam.GetAccountAuthori
 }
 
 // GetAccountAuthorizationDetailsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) GetAccountAuthorizationDetailsPagesWithContext(_a0 aws.Context, _a1 *iam.GetAccountAuthorizationDetailsInput, _a2 func(*iam.GetAccountAuthorizationDetailsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) GetAccountAuthorizationDetailsPagesWithContext(_a0 context.Context, _a1 *iam.GetAccountAuthorizationDetailsInput, _a2 func(*iam.GetAccountAuthorizationDetailsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -3884,7 +4118,7 @@ func (_m *IAMAPI) GetAccountAuthorizationDetailsPagesWithContext(_a0 aws.Context
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetAccountAuthorizationDetailsInput, func(*iam.GetAccountAuthorizationDetailsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetAccountAuthorizationDetailsInput, func(*iam.GetAccountAuthorizationDetailsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -3919,7 +4153,7 @@ func (_m *IAMAPI) GetAccountAuthorizationDetailsRequest(_a0 *iam.GetAccountAutho
 }
 
 // GetAccountAuthorizationDetailsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetAccountAuthorizationDetailsWithContext(_a0 aws.Context, _a1 *iam.GetAccountAuthorizationDetailsInput, _a2 ...request.Option) (*iam.GetAccountAuthorizationDetailsOutput, error) {
+func (_m *IAMAPI) GetAccountAuthorizationDetailsWithContext(_a0 context.Context, _a1 *iam.GetAccountAuthorizationDetailsInput, _a2 ...request.Option) (*iam.GetAccountAuthorizationDetailsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -3930,7 +4164,7 @@ func (_m *IAMAPI) GetAccountAuthorizationDetailsWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetAccountAuthorizationDetailsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetAccountAuthorizationDetailsInput, ...request.Option) *iam.GetAccountAuthorizationDetailsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetAccountAuthorizationDetailsInput, ...request.Option) *iam.GetAccountAuthorizationDetailsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -3939,7 +4173,7 @@ func (_m *IAMAPI) GetAccountAuthorizationDetailsWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetAccountAuthorizationDetailsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetAccountAuthorizationDetailsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -3997,7 +4231,7 @@ func (_m *IAMAPI) GetAccountPasswordPolicyRequest(_a0 *iam.GetAccountPasswordPol
 }
 
 // GetAccountPasswordPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *iam.GetAccountPasswordPolicyInput, _a2 ...request.Option) (*iam.GetAccountPasswordPolicyOutput, error) {
+func (_m *IAMAPI) GetAccountPasswordPolicyWithContext(_a0 context.Context, _a1 *iam.GetAccountPasswordPolicyInput, _a2 ...request.Option) (*iam.GetAccountPasswordPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4008,7 +4242,7 @@ func (_m *IAMAPI) GetAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetAccountPasswordPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetAccountPasswordPolicyInput, ...request.Option) *iam.GetAccountPasswordPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetAccountPasswordPolicyInput, ...request.Option) *iam.GetAccountPasswordPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4017,7 +4251,7 @@ func (_m *IAMAPI) GetAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetAccountPasswordPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetAccountPasswordPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4075,7 +4309,7 @@ func (_m *IAMAPI) GetAccountSummaryRequest(_a0 *iam.GetAccountSummaryInput) (*re
 }
 
 // GetAccountSummaryWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetAccountSummaryWithContext(_a0 aws.Context, _a1 *iam.GetAccountSummaryInput, _a2 ...request.Option) (*iam.GetAccountSummaryOutput, error) {
+func (_m *IAMAPI) GetAccountSummaryWithContext(_a0 context.Context, _a1 *iam.GetAccountSummaryInput, _a2 ...request.Option) (*iam.GetAccountSummaryOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4086,7 +4320,7 @@ func (_m *IAMAPI) GetAccountSummaryWithContext(_a0 aws.Context, _a1 *iam.GetAcco
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetAccountSummaryOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetAccountSummaryInput, ...request.Option) *iam.GetAccountSummaryOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetAccountSummaryInput, ...request.Option) *iam.GetAccountSummaryOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4095,7 +4329,7 @@ func (_m *IAMAPI) GetAccountSummaryWithContext(_a0 aws.Context, _a1 *iam.GetAcco
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetAccountSummaryInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetAccountSummaryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4153,7 +4387,7 @@ func (_m *IAMAPI) GetContextKeysForCustomPolicyRequest(_a0 *iam.GetContextKeysFo
 }
 
 // GetContextKeysForCustomPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetContextKeysForCustomPolicyWithContext(_a0 aws.Context, _a1 *iam.GetContextKeysForCustomPolicyInput, _a2 ...request.Option) (*iam.GetContextKeysForPolicyResponse, error) {
+func (_m *IAMAPI) GetContextKeysForCustomPolicyWithContext(_a0 context.Context, _a1 *iam.GetContextKeysForCustomPolicyInput, _a2 ...request.Option) (*iam.GetContextKeysForPolicyResponse, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4164,7 +4398,7 @@ func (_m *IAMAPI) GetContextKeysForCustomPolicyWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetContextKeysForPolicyResponse
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetContextKeysForCustomPolicyInput, ...request.Option) *iam.GetContextKeysForPolicyResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetContextKeysForCustomPolicyInput, ...request.Option) *iam.GetContextKeysForPolicyResponse); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4173,7 +4407,7 @@ func (_m *IAMAPI) GetContextKeysForCustomPolicyWithContext(_a0 aws.Context, _a1 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetContextKeysForCustomPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetContextKeysForCustomPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4231,7 +4465,7 @@ func (_m *IAMAPI) GetContextKeysForPrincipalPolicyRequest(_a0 *iam.GetContextKey
 }
 
 // GetContextKeysForPrincipalPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetContextKeysForPrincipalPolicyWithContext(_a0 aws.Context, _a1 *iam.GetContextKeysForPrincipalPolicyInput, _a2 ...request.Option) (*iam.GetContextKeysForPolicyResponse, error) {
+func (_m *IAMAPI) GetContextKeysForPrincipalPolicyWithContext(_a0 context.Context, _a1 *iam.GetContextKeysForPrincipalPolicyInput, _a2 ...request.Option) (*iam.GetContextKeysForPolicyResponse, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4242,7 +4476,7 @@ func (_m *IAMAPI) GetContextKeysForPrincipalPolicyWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetContextKeysForPolicyResponse
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetContextKeysForPrincipalPolicyInput, ...request.Option) *iam.GetContextKeysForPolicyResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetContextKeysForPrincipalPolicyInput, ...request.Option) *iam.GetContextKeysForPolicyResponse); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4251,7 +4485,7 @@ func (_m *IAMAPI) GetContextKeysForPrincipalPolicyWithContext(_a0 aws.Context, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetContextKeysForPrincipalPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetContextKeysForPrincipalPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4309,7 +4543,7 @@ func (_m *IAMAPI) GetCredentialReportRequest(_a0 *iam.GetCredentialReportInput) 
 }
 
 // GetCredentialReportWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetCredentialReportWithContext(_a0 aws.Context, _a1 *iam.GetCredentialReportInput, _a2 ...request.Option) (*iam.GetCredentialReportOutput, error) {
+func (_m *IAMAPI) GetCredentialReportWithContext(_a0 context.Context, _a1 *iam.GetCredentialReportInput, _a2 ...request.Option) (*iam.GetCredentialReportOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4320,7 +4554,7 @@ func (_m *IAMAPI) GetCredentialReportWithContext(_a0 aws.Context, _a1 *iam.GetCr
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetCredentialReportOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetCredentialReportInput, ...request.Option) *iam.GetCredentialReportOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetCredentialReportInput, ...request.Option) *iam.GetCredentialReportOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4329,7 +4563,7 @@ func (_m *IAMAPI) GetCredentialReportWithContext(_a0 aws.Context, _a1 *iam.GetCr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetCredentialReportInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetCredentialReportInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4376,7 +4610,7 @@ func (_m *IAMAPI) GetGroupPages(_a0 *iam.GetGroupInput, _a1 func(*iam.GetGroupOu
 }
 
 // GetGroupPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) GetGroupPagesWithContext(_a0 aws.Context, _a1 *iam.GetGroupInput, _a2 func(*iam.GetGroupOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) GetGroupPagesWithContext(_a0 context.Context, _a1 *iam.GetGroupInput, _a2 func(*iam.GetGroupOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -4387,7 +4621,7 @@ func (_m *IAMAPI) GetGroupPagesWithContext(_a0 aws.Context, _a1 *iam.GetGroupInp
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetGroupInput, func(*iam.GetGroupOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetGroupInput, func(*iam.GetGroupOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -4445,7 +4679,7 @@ func (_m *IAMAPI) GetGroupPolicyRequest(_a0 *iam.GetGroupPolicyInput) (*request.
 }
 
 // GetGroupPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.GetGroupPolicyInput, _a2 ...request.Option) (*iam.GetGroupPolicyOutput, error) {
+func (_m *IAMAPI) GetGroupPolicyWithContext(_a0 context.Context, _a1 *iam.GetGroupPolicyInput, _a2 ...request.Option) (*iam.GetGroupPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4456,7 +4690,7 @@ func (_m *IAMAPI) GetGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.GetGroupPo
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetGroupPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetGroupPolicyInput, ...request.Option) *iam.GetGroupPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetGroupPolicyInput, ...request.Option) *iam.GetGroupPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4465,7 +4699,7 @@ func (_m *IAMAPI) GetGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.GetGroupPo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetGroupPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetGroupPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4500,7 +4734,7 @@ func (_m *IAMAPI) GetGroupRequest(_a0 *iam.GetGroupInput) (*request.Request, *ia
 }
 
 // GetGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetGroupWithContext(_a0 aws.Context, _a1 *iam.GetGroupInput, _a2 ...request.Option) (*iam.GetGroupOutput, error) {
+func (_m *IAMAPI) GetGroupWithContext(_a0 context.Context, _a1 *iam.GetGroupInput, _a2 ...request.Option) (*iam.GetGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4511,7 +4745,7 @@ func (_m *IAMAPI) GetGroupWithContext(_a0 aws.Context, _a1 *iam.GetGroupInput, _
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetGroupInput, ...request.Option) *iam.GetGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetGroupInput, ...request.Option) *iam.GetGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4520,7 +4754,7 @@ func (_m *IAMAPI) GetGroupWithContext(_a0 aws.Context, _a1 *iam.GetGroupInput, _
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4578,7 +4812,7 @@ func (_m *IAMAPI) GetInstanceProfileRequest(_a0 *iam.GetInstanceProfileInput) (*
 }
 
 // GetInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.GetInstanceProfileInput, _a2 ...request.Option) (*iam.GetInstanceProfileOutput, error) {
+func (_m *IAMAPI) GetInstanceProfileWithContext(_a0 context.Context, _a1 *iam.GetInstanceProfileInput, _a2 ...request.Option) (*iam.GetInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4589,7 +4823,7 @@ func (_m *IAMAPI) GetInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.GetIns
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetInstanceProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetInstanceProfileInput, ...request.Option) *iam.GetInstanceProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetInstanceProfileInput, ...request.Option) *iam.GetInstanceProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4598,7 +4832,7 @@ func (_m *IAMAPI) GetInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.GetIns
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetInstanceProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetInstanceProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4656,7 +4890,7 @@ func (_m *IAMAPI) GetLoginProfileRequest(_a0 *iam.GetLoginProfileInput) (*reques
 }
 
 // GetLoginProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetLoginProfileWithContext(_a0 aws.Context, _a1 *iam.GetLoginProfileInput, _a2 ...request.Option) (*iam.GetLoginProfileOutput, error) {
+func (_m *IAMAPI) GetLoginProfileWithContext(_a0 context.Context, _a1 *iam.GetLoginProfileInput, _a2 ...request.Option) (*iam.GetLoginProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4667,7 +4901,7 @@ func (_m *IAMAPI) GetLoginProfileWithContext(_a0 aws.Context, _a1 *iam.GetLoginP
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetLoginProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetLoginProfileInput, ...request.Option) *iam.GetLoginProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetLoginProfileInput, ...request.Option) *iam.GetLoginProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4676,7 +4910,7 @@ func (_m *IAMAPI) GetLoginProfileWithContext(_a0 aws.Context, _a1 *iam.GetLoginP
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetLoginProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetLoginProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4734,7 +4968,7 @@ func (_m *IAMAPI) GetOpenIDConnectProviderRequest(_a0 *iam.GetOpenIDConnectProvi
 }
 
 // GetOpenIDConnectProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *iam.GetOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.GetOpenIDConnectProviderOutput, error) {
+func (_m *IAMAPI) GetOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *iam.GetOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.GetOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4745,7 +4979,7 @@ func (_m *IAMAPI) GetOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetOpenIDConnectProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetOpenIDConnectProviderInput, ...request.Option) *iam.GetOpenIDConnectProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetOpenIDConnectProviderInput, ...request.Option) *iam.GetOpenIDConnectProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4754,7 +4988,7 @@ func (_m *IAMAPI) GetOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetOpenIDConnectProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetOpenIDConnectProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4860,7 +5094,7 @@ func (_m *IAMAPI) GetPolicyVersionRequest(_a0 *iam.GetPolicyVersionInput) (*requ
 }
 
 // GetPolicyVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetPolicyVersionWithContext(_a0 aws.Context, _a1 *iam.GetPolicyVersionInput, _a2 ...request.Option) (*iam.GetPolicyVersionOutput, error) {
+func (_m *IAMAPI) GetPolicyVersionWithContext(_a0 context.Context, _a1 *iam.GetPolicyVersionInput, _a2 ...request.Option) (*iam.GetPolicyVersionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4871,7 +5105,7 @@ func (_m *IAMAPI) GetPolicyVersionWithContext(_a0 aws.Context, _a1 *iam.GetPolic
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetPolicyVersionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetPolicyVersionInput, ...request.Option) *iam.GetPolicyVersionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetPolicyVersionInput, ...request.Option) *iam.GetPolicyVersionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4880,7 +5114,7 @@ func (_m *IAMAPI) GetPolicyVersionWithContext(_a0 aws.Context, _a1 *iam.GetPolic
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetPolicyVersionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetPolicyVersionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4890,7 +5124,7 @@ func (_m *IAMAPI) GetPolicyVersionWithContext(_a0 aws.Context, _a1 *iam.GetPolic
 }
 
 // GetPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetPolicyWithContext(_a0 aws.Context, _a1 *iam.GetPolicyInput, _a2 ...request.Option) (*iam.GetPolicyOutput, error) {
+func (_m *IAMAPI) GetPolicyWithContext(_a0 context.Context, _a1 *iam.GetPolicyInput, _a2 ...request.Option) (*iam.GetPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -4901,7 +5135,7 @@ func (_m *IAMAPI) GetPolicyWithContext(_a0 aws.Context, _a1 *iam.GetPolicyInput,
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetPolicyInput, ...request.Option) *iam.GetPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetPolicyInput, ...request.Option) *iam.GetPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -4910,7 +5144,7 @@ func (_m *IAMAPI) GetPolicyWithContext(_a0 aws.Context, _a1 *iam.GetPolicyInput,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -4991,7 +5225,7 @@ func (_m *IAMAPI) GetRolePolicyRequest(_a0 *iam.GetRolePolicyInput) (*request.Re
 }
 
 // GetRolePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetRolePolicyWithContext(_a0 aws.Context, _a1 *iam.GetRolePolicyInput, _a2 ...request.Option) (*iam.GetRolePolicyOutput, error) {
+func (_m *IAMAPI) GetRolePolicyWithContext(_a0 context.Context, _a1 *iam.GetRolePolicyInput, _a2 ...request.Option) (*iam.GetRolePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5002,7 +5236,7 @@ func (_m *IAMAPI) GetRolePolicyWithContext(_a0 aws.Context, _a1 *iam.GetRolePoli
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetRolePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetRolePolicyInput, ...request.Option) *iam.GetRolePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetRolePolicyInput, ...request.Option) *iam.GetRolePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5011,7 +5245,7 @@ func (_m *IAMAPI) GetRolePolicyWithContext(_a0 aws.Context, _a1 *iam.GetRolePoli
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetRolePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetRolePolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5046,7 +5280,7 @@ func (_m *IAMAPI) GetRoleRequest(_a0 *iam.GetRoleInput) (*request.Request, *iam.
 }
 
 // GetRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetRoleWithContext(_a0 aws.Context, _a1 *iam.GetRoleInput, _a2 ...request.Option) (*iam.GetRoleOutput, error) {
+func (_m *IAMAPI) GetRoleWithContext(_a0 context.Context, _a1 *iam.GetRoleInput, _a2 ...request.Option) (*iam.GetRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5057,7 +5291,7 @@ func (_m *IAMAPI) GetRoleWithContext(_a0 aws.Context, _a1 *iam.GetRoleInput, _a2
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetRoleInput, ...request.Option) *iam.GetRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetRoleInput, ...request.Option) *iam.GetRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5066,7 +5300,7 @@ func (_m *IAMAPI) GetRoleWithContext(_a0 aws.Context, _a1 *iam.GetRoleInput, _a2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5124,7 +5358,7 @@ func (_m *IAMAPI) GetSAMLProviderRequest(_a0 *iam.GetSAMLProviderInput) (*reques
 }
 
 // GetSAMLProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.GetSAMLProviderInput, _a2 ...request.Option) (*iam.GetSAMLProviderOutput, error) {
+func (_m *IAMAPI) GetSAMLProviderWithContext(_a0 context.Context, _a1 *iam.GetSAMLProviderInput, _a2 ...request.Option) (*iam.GetSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5135,7 +5369,7 @@ func (_m *IAMAPI) GetSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.GetSAMLPr
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetSAMLProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetSAMLProviderInput, ...request.Option) *iam.GetSAMLProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetSAMLProviderInput, ...request.Option) *iam.GetSAMLProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5144,7 +5378,7 @@ func (_m *IAMAPI) GetSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.GetSAMLPr
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetSAMLProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetSAMLProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5202,7 +5436,7 @@ func (_m *IAMAPI) GetSSHPublicKeyRequest(_a0 *iam.GetSSHPublicKeyInput) (*reques
 }
 
 // GetSSHPublicKeyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.GetSSHPublicKeyInput, _a2 ...request.Option) (*iam.GetSSHPublicKeyOutput, error) {
+func (_m *IAMAPI) GetSSHPublicKeyWithContext(_a0 context.Context, _a1 *iam.GetSSHPublicKeyInput, _a2 ...request.Option) (*iam.GetSSHPublicKeyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5213,7 +5447,7 @@ func (_m *IAMAPI) GetSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.GetSSHPub
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetSSHPublicKeyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetSSHPublicKeyInput, ...request.Option) *iam.GetSSHPublicKeyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetSSHPublicKeyInput, ...request.Option) *iam.GetSSHPublicKeyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5222,7 +5456,7 @@ func (_m *IAMAPI) GetSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.GetSSHPub
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetSSHPublicKeyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetSSHPublicKeyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5280,7 +5514,7 @@ func (_m *IAMAPI) GetServerCertificateRequest(_a0 *iam.GetServerCertificateInput
 }
 
 // GetServerCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetServerCertificateWithContext(_a0 aws.Context, _a1 *iam.GetServerCertificateInput, _a2 ...request.Option) (*iam.GetServerCertificateOutput, error) {
+func (_m *IAMAPI) GetServerCertificateWithContext(_a0 context.Context, _a1 *iam.GetServerCertificateInput, _a2 ...request.Option) (*iam.GetServerCertificateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5291,7 +5525,7 @@ func (_m *IAMAPI) GetServerCertificateWithContext(_a0 aws.Context, _a1 *iam.GetS
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetServerCertificateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetServerCertificateInput, ...request.Option) *iam.GetServerCertificateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetServerCertificateInput, ...request.Option) *iam.GetServerCertificateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5300,7 +5534,163 @@ func (_m *IAMAPI) GetServerCertificateWithContext(_a0 aws.Context, _a1 *iam.GetS
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetServerCertificateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetServerCertificateInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetServiceLastAccessedDetails provides a mock function with given fields: _a0
+func (_m *IAMAPI) GetServiceLastAccessedDetails(_a0 *iam.GetServiceLastAccessedDetailsInput) (*iam.GetServiceLastAccessedDetailsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.GetServiceLastAccessedDetailsOutput
+	if rf, ok := ret.Get(0).(func(*iam.GetServiceLastAccessedDetailsInput) *iam.GetServiceLastAccessedDetailsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GetServiceLastAccessedDetailsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.GetServiceLastAccessedDetailsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetServiceLastAccessedDetailsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) GetServiceLastAccessedDetailsRequest(_a0 *iam.GetServiceLastAccessedDetailsInput) (*request.Request, *iam.GetServiceLastAccessedDetailsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.GetServiceLastAccessedDetailsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.GetServiceLastAccessedDetailsOutput
+	if rf, ok := ret.Get(1).(func(*iam.GetServiceLastAccessedDetailsInput) *iam.GetServiceLastAccessedDetailsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.GetServiceLastAccessedDetailsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetServiceLastAccessedDetailsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) GetServiceLastAccessedDetailsWithContext(_a0 context.Context, _a1 *iam.GetServiceLastAccessedDetailsInput, _a2 ...request.Option) (*iam.GetServiceLastAccessedDetailsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.GetServiceLastAccessedDetailsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetServiceLastAccessedDetailsInput, ...request.Option) *iam.GetServiceLastAccessedDetailsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GetServiceLastAccessedDetailsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetServiceLastAccessedDetailsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetServiceLastAccessedDetailsWithEntities provides a mock function with given fields: _a0
+func (_m *IAMAPI) GetServiceLastAccessedDetailsWithEntities(_a0 *iam.GetServiceLastAccessedDetailsWithEntitiesInput) (*iam.GetServiceLastAccessedDetailsWithEntitiesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.GetServiceLastAccessedDetailsWithEntitiesOutput
+	if rf, ok := ret.Get(0).(func(*iam.GetServiceLastAccessedDetailsWithEntitiesInput) *iam.GetServiceLastAccessedDetailsWithEntitiesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GetServiceLastAccessedDetailsWithEntitiesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.GetServiceLastAccessedDetailsWithEntitiesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetServiceLastAccessedDetailsWithEntitiesRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) GetServiceLastAccessedDetailsWithEntitiesRequest(_a0 *iam.GetServiceLastAccessedDetailsWithEntitiesInput) (*request.Request, *iam.GetServiceLastAccessedDetailsWithEntitiesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.GetServiceLastAccessedDetailsWithEntitiesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.GetServiceLastAccessedDetailsWithEntitiesOutput
+	if rf, ok := ret.Get(1).(func(*iam.GetServiceLastAccessedDetailsWithEntitiesInput) *iam.GetServiceLastAccessedDetailsWithEntitiesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.GetServiceLastAccessedDetailsWithEntitiesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetServiceLastAccessedDetailsWithEntitiesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) GetServiceLastAccessedDetailsWithEntitiesWithContext(_a0 context.Context, _a1 *iam.GetServiceLastAccessedDetailsWithEntitiesInput, _a2 ...request.Option) (*iam.GetServiceLastAccessedDetailsWithEntitiesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.GetServiceLastAccessedDetailsWithEntitiesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetServiceLastAccessedDetailsWithEntitiesInput, ...request.Option) *iam.GetServiceLastAccessedDetailsWithEntitiesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GetServiceLastAccessedDetailsWithEntitiesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetServiceLastAccessedDetailsWithEntitiesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5358,7 +5748,7 @@ func (_m *IAMAPI) GetServiceLinkedRoleDeletionStatusRequest(_a0 *iam.GetServiceL
 }
 
 // GetServiceLinkedRoleDeletionStatusWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetServiceLinkedRoleDeletionStatusWithContext(_a0 aws.Context, _a1 *iam.GetServiceLinkedRoleDeletionStatusInput, _a2 ...request.Option) (*iam.GetServiceLinkedRoleDeletionStatusOutput, error) {
+func (_m *IAMAPI) GetServiceLinkedRoleDeletionStatusWithContext(_a0 context.Context, _a1 *iam.GetServiceLinkedRoleDeletionStatusInput, _a2 ...request.Option) (*iam.GetServiceLinkedRoleDeletionStatusOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5369,7 +5759,7 @@ func (_m *IAMAPI) GetServiceLinkedRoleDeletionStatusWithContext(_a0 aws.Context,
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetServiceLinkedRoleDeletionStatusOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetServiceLinkedRoleDeletionStatusInput, ...request.Option) *iam.GetServiceLinkedRoleDeletionStatusOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetServiceLinkedRoleDeletionStatusInput, ...request.Option) *iam.GetServiceLinkedRoleDeletionStatusOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5378,7 +5768,7 @@ func (_m *IAMAPI) GetServiceLinkedRoleDeletionStatusWithContext(_a0 aws.Context,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetServiceLinkedRoleDeletionStatusInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetServiceLinkedRoleDeletionStatusInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5459,7 +5849,7 @@ func (_m *IAMAPI) GetUserPolicyRequest(_a0 *iam.GetUserPolicyInput) (*request.Re
 }
 
 // GetUserPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetUserPolicyWithContext(_a0 aws.Context, _a1 *iam.GetUserPolicyInput, _a2 ...request.Option) (*iam.GetUserPolicyOutput, error) {
+func (_m *IAMAPI) GetUserPolicyWithContext(_a0 context.Context, _a1 *iam.GetUserPolicyInput, _a2 ...request.Option) (*iam.GetUserPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5470,7 +5860,7 @@ func (_m *IAMAPI) GetUserPolicyWithContext(_a0 aws.Context, _a1 *iam.GetUserPoli
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetUserPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetUserPolicyInput, ...request.Option) *iam.GetUserPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetUserPolicyInput, ...request.Option) *iam.GetUserPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5479,7 +5869,7 @@ func (_m *IAMAPI) GetUserPolicyWithContext(_a0 aws.Context, _a1 *iam.GetUserPoli
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetUserPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetUserPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5514,7 +5904,7 @@ func (_m *IAMAPI) GetUserRequest(_a0 *iam.GetUserInput) (*request.Request, *iam.
 }
 
 // GetUserWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) GetUserWithContext(_a0 aws.Context, _a1 *iam.GetUserInput, _a2 ...request.Option) (*iam.GetUserOutput, error) {
+func (_m *IAMAPI) GetUserWithContext(_a0 context.Context, _a1 *iam.GetUserInput, _a2 ...request.Option) (*iam.GetUserOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5525,7 +5915,7 @@ func (_m *IAMAPI) GetUserWithContext(_a0 aws.Context, _a1 *iam.GetUserInput, _a2
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.GetUserOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetUserInput, ...request.Option) *iam.GetUserOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetUserInput, ...request.Option) *iam.GetUserOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5534,7 +5924,7 @@ func (_m *IAMAPI) GetUserWithContext(_a0 aws.Context, _a1 *iam.GetUserInput, _a2
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.GetUserInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetUserInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5581,7 +5971,7 @@ func (_m *IAMAPI) ListAccessKeysPages(_a0 *iam.ListAccessKeysInput, _a1 func(*ia
 }
 
 // ListAccessKeysPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListAccessKeysPagesWithContext(_a0 aws.Context, _a1 *iam.ListAccessKeysInput, _a2 func(*iam.ListAccessKeysOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListAccessKeysPagesWithContext(_a0 context.Context, _a1 *iam.ListAccessKeysInput, _a2 func(*iam.ListAccessKeysOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -5592,7 +5982,7 @@ func (_m *IAMAPI) ListAccessKeysPagesWithContext(_a0 aws.Context, _a1 *iam.ListA
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAccessKeysInput, func(*iam.ListAccessKeysOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAccessKeysInput, func(*iam.ListAccessKeysOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -5627,7 +6017,7 @@ func (_m *IAMAPI) ListAccessKeysRequest(_a0 *iam.ListAccessKeysInput) (*request.
 }
 
 // ListAccessKeysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListAccessKeysWithContext(_a0 aws.Context, _a1 *iam.ListAccessKeysInput, _a2 ...request.Option) (*iam.ListAccessKeysOutput, error) {
+func (_m *IAMAPI) ListAccessKeysWithContext(_a0 context.Context, _a1 *iam.ListAccessKeysInput, _a2 ...request.Option) (*iam.ListAccessKeysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5638,7 +6028,7 @@ func (_m *IAMAPI) ListAccessKeysWithContext(_a0 aws.Context, _a1 *iam.ListAccess
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListAccessKeysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAccessKeysInput, ...request.Option) *iam.ListAccessKeysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAccessKeysInput, ...request.Option) *iam.ListAccessKeysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5647,7 +6037,7 @@ func (_m *IAMAPI) ListAccessKeysWithContext(_a0 aws.Context, _a1 *iam.ListAccess
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListAccessKeysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListAccessKeysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5694,7 +6084,7 @@ func (_m *IAMAPI) ListAccountAliasesPages(_a0 *iam.ListAccountAliasesInput, _a1 
 }
 
 // ListAccountAliasesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListAccountAliasesPagesWithContext(_a0 aws.Context, _a1 *iam.ListAccountAliasesInput, _a2 func(*iam.ListAccountAliasesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListAccountAliasesPagesWithContext(_a0 context.Context, _a1 *iam.ListAccountAliasesInput, _a2 func(*iam.ListAccountAliasesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -5705,7 +6095,7 @@ func (_m *IAMAPI) ListAccountAliasesPagesWithContext(_a0 aws.Context, _a1 *iam.L
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAccountAliasesInput, func(*iam.ListAccountAliasesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAccountAliasesInput, func(*iam.ListAccountAliasesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -5740,7 +6130,7 @@ func (_m *IAMAPI) ListAccountAliasesRequest(_a0 *iam.ListAccountAliasesInput) (*
 }
 
 // ListAccountAliasesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListAccountAliasesWithContext(_a0 aws.Context, _a1 *iam.ListAccountAliasesInput, _a2 ...request.Option) (*iam.ListAccountAliasesOutput, error) {
+func (_m *IAMAPI) ListAccountAliasesWithContext(_a0 context.Context, _a1 *iam.ListAccountAliasesInput, _a2 ...request.Option) (*iam.ListAccountAliasesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5751,7 +6141,7 @@ func (_m *IAMAPI) ListAccountAliasesWithContext(_a0 aws.Context, _a1 *iam.ListAc
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListAccountAliasesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAccountAliasesInput, ...request.Option) *iam.ListAccountAliasesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAccountAliasesInput, ...request.Option) *iam.ListAccountAliasesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5760,7 +6150,7 @@ func (_m *IAMAPI) ListAccountAliasesWithContext(_a0 aws.Context, _a1 *iam.ListAc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListAccountAliasesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListAccountAliasesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5807,7 +6197,7 @@ func (_m *IAMAPI) ListAttachedGroupPoliciesPages(_a0 *iam.ListAttachedGroupPolic
 }
 
 // ListAttachedGroupPoliciesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListAttachedGroupPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListAttachedGroupPoliciesInput, _a2 func(*iam.ListAttachedGroupPoliciesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListAttachedGroupPoliciesPagesWithContext(_a0 context.Context, _a1 *iam.ListAttachedGroupPoliciesInput, _a2 func(*iam.ListAttachedGroupPoliciesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -5818,7 +6208,7 @@ func (_m *IAMAPI) ListAttachedGroupPoliciesPagesWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAttachedGroupPoliciesInput, func(*iam.ListAttachedGroupPoliciesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAttachedGroupPoliciesInput, func(*iam.ListAttachedGroupPoliciesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -5853,7 +6243,7 @@ func (_m *IAMAPI) ListAttachedGroupPoliciesRequest(_a0 *iam.ListAttachedGroupPol
 }
 
 // ListAttachedGroupPoliciesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListAttachedGroupPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListAttachedGroupPoliciesInput, _a2 ...request.Option) (*iam.ListAttachedGroupPoliciesOutput, error) {
+func (_m *IAMAPI) ListAttachedGroupPoliciesWithContext(_a0 context.Context, _a1 *iam.ListAttachedGroupPoliciesInput, _a2 ...request.Option) (*iam.ListAttachedGroupPoliciesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5864,7 +6254,7 @@ func (_m *IAMAPI) ListAttachedGroupPoliciesWithContext(_a0 aws.Context, _a1 *iam
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListAttachedGroupPoliciesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAttachedGroupPoliciesInput, ...request.Option) *iam.ListAttachedGroupPoliciesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAttachedGroupPoliciesInput, ...request.Option) *iam.ListAttachedGroupPoliciesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5873,7 +6263,7 @@ func (_m *IAMAPI) ListAttachedGroupPoliciesWithContext(_a0 aws.Context, _a1 *iam
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListAttachedGroupPoliciesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListAttachedGroupPoliciesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -5920,7 +6310,7 @@ func (_m *IAMAPI) ListAttachedRolePoliciesPages(_a0 *iam.ListAttachedRolePolicie
 }
 
 // ListAttachedRolePoliciesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListAttachedRolePoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListAttachedRolePoliciesInput, _a2 func(*iam.ListAttachedRolePoliciesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListAttachedRolePoliciesPagesWithContext(_a0 context.Context, _a1 *iam.ListAttachedRolePoliciesInput, _a2 func(*iam.ListAttachedRolePoliciesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -5931,7 +6321,7 @@ func (_m *IAMAPI) ListAttachedRolePoliciesPagesWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAttachedRolePoliciesInput, func(*iam.ListAttachedRolePoliciesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAttachedRolePoliciesInput, func(*iam.ListAttachedRolePoliciesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -5966,7 +6356,7 @@ func (_m *IAMAPI) ListAttachedRolePoliciesRequest(_a0 *iam.ListAttachedRolePolic
 }
 
 // ListAttachedRolePoliciesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListAttachedRolePoliciesWithContext(_a0 aws.Context, _a1 *iam.ListAttachedRolePoliciesInput, _a2 ...request.Option) (*iam.ListAttachedRolePoliciesOutput, error) {
+func (_m *IAMAPI) ListAttachedRolePoliciesWithContext(_a0 context.Context, _a1 *iam.ListAttachedRolePoliciesInput, _a2 ...request.Option) (*iam.ListAttachedRolePoliciesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -5977,7 +6367,7 @@ func (_m *IAMAPI) ListAttachedRolePoliciesWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListAttachedRolePoliciesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAttachedRolePoliciesInput, ...request.Option) *iam.ListAttachedRolePoliciesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAttachedRolePoliciesInput, ...request.Option) *iam.ListAttachedRolePoliciesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -5986,7 +6376,7 @@ func (_m *IAMAPI) ListAttachedRolePoliciesWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListAttachedRolePoliciesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListAttachedRolePoliciesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6033,7 +6423,7 @@ func (_m *IAMAPI) ListAttachedUserPoliciesPages(_a0 *iam.ListAttachedUserPolicie
 }
 
 // ListAttachedUserPoliciesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListAttachedUserPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListAttachedUserPoliciesInput, _a2 func(*iam.ListAttachedUserPoliciesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListAttachedUserPoliciesPagesWithContext(_a0 context.Context, _a1 *iam.ListAttachedUserPoliciesInput, _a2 func(*iam.ListAttachedUserPoliciesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6044,7 +6434,7 @@ func (_m *IAMAPI) ListAttachedUserPoliciesPagesWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAttachedUserPoliciesInput, func(*iam.ListAttachedUserPoliciesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAttachedUserPoliciesInput, func(*iam.ListAttachedUserPoliciesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6079,7 +6469,7 @@ func (_m *IAMAPI) ListAttachedUserPoliciesRequest(_a0 *iam.ListAttachedUserPolic
 }
 
 // ListAttachedUserPoliciesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListAttachedUserPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListAttachedUserPoliciesInput, _a2 ...request.Option) (*iam.ListAttachedUserPoliciesOutput, error) {
+func (_m *IAMAPI) ListAttachedUserPoliciesWithContext(_a0 context.Context, _a1 *iam.ListAttachedUserPoliciesInput, _a2 ...request.Option) (*iam.ListAttachedUserPoliciesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6090,7 +6480,7 @@ func (_m *IAMAPI) ListAttachedUserPoliciesWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListAttachedUserPoliciesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListAttachedUserPoliciesInput, ...request.Option) *iam.ListAttachedUserPoliciesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListAttachedUserPoliciesInput, ...request.Option) *iam.ListAttachedUserPoliciesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6099,7 +6489,7 @@ func (_m *IAMAPI) ListAttachedUserPoliciesWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListAttachedUserPoliciesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListAttachedUserPoliciesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6146,7 +6536,7 @@ func (_m *IAMAPI) ListEntitiesForPolicyPages(_a0 *iam.ListEntitiesForPolicyInput
 }
 
 // ListEntitiesForPolicyPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListEntitiesForPolicyPagesWithContext(_a0 aws.Context, _a1 *iam.ListEntitiesForPolicyInput, _a2 func(*iam.ListEntitiesForPolicyOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListEntitiesForPolicyPagesWithContext(_a0 context.Context, _a1 *iam.ListEntitiesForPolicyInput, _a2 func(*iam.ListEntitiesForPolicyOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6157,7 +6547,7 @@ func (_m *IAMAPI) ListEntitiesForPolicyPagesWithContext(_a0 aws.Context, _a1 *ia
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListEntitiesForPolicyInput, func(*iam.ListEntitiesForPolicyOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListEntitiesForPolicyInput, func(*iam.ListEntitiesForPolicyOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6192,7 +6582,7 @@ func (_m *IAMAPI) ListEntitiesForPolicyRequest(_a0 *iam.ListEntitiesForPolicyInp
 }
 
 // ListEntitiesForPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListEntitiesForPolicyWithContext(_a0 aws.Context, _a1 *iam.ListEntitiesForPolicyInput, _a2 ...request.Option) (*iam.ListEntitiesForPolicyOutput, error) {
+func (_m *IAMAPI) ListEntitiesForPolicyWithContext(_a0 context.Context, _a1 *iam.ListEntitiesForPolicyInput, _a2 ...request.Option) (*iam.ListEntitiesForPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6203,7 +6593,7 @@ func (_m *IAMAPI) ListEntitiesForPolicyWithContext(_a0 aws.Context, _a1 *iam.Lis
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListEntitiesForPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListEntitiesForPolicyInput, ...request.Option) *iam.ListEntitiesForPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListEntitiesForPolicyInput, ...request.Option) *iam.ListEntitiesForPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6212,7 +6602,7 @@ func (_m *IAMAPI) ListEntitiesForPolicyWithContext(_a0 aws.Context, _a1 *iam.Lis
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListEntitiesForPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListEntitiesForPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6259,7 +6649,7 @@ func (_m *IAMAPI) ListGroupPoliciesPages(_a0 *iam.ListGroupPoliciesInput, _a1 fu
 }
 
 // ListGroupPoliciesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListGroupPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListGroupPoliciesInput, _a2 func(*iam.ListGroupPoliciesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListGroupPoliciesPagesWithContext(_a0 context.Context, _a1 *iam.ListGroupPoliciesInput, _a2 func(*iam.ListGroupPoliciesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6270,7 +6660,7 @@ func (_m *IAMAPI) ListGroupPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.Li
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListGroupPoliciesInput, func(*iam.ListGroupPoliciesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListGroupPoliciesInput, func(*iam.ListGroupPoliciesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6305,7 +6695,7 @@ func (_m *IAMAPI) ListGroupPoliciesRequest(_a0 *iam.ListGroupPoliciesInput) (*re
 }
 
 // ListGroupPoliciesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListGroupPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListGroupPoliciesInput, _a2 ...request.Option) (*iam.ListGroupPoliciesOutput, error) {
+func (_m *IAMAPI) ListGroupPoliciesWithContext(_a0 context.Context, _a1 *iam.ListGroupPoliciesInput, _a2 ...request.Option) (*iam.ListGroupPoliciesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6316,7 +6706,7 @@ func (_m *IAMAPI) ListGroupPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListGro
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListGroupPoliciesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListGroupPoliciesInput, ...request.Option) *iam.ListGroupPoliciesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListGroupPoliciesInput, ...request.Option) *iam.ListGroupPoliciesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6325,7 +6715,7 @@ func (_m *IAMAPI) ListGroupPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListGro
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListGroupPoliciesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListGroupPoliciesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6395,7 +6785,7 @@ func (_m *IAMAPI) ListGroupsForUserPages(_a0 *iam.ListGroupsForUserInput, _a1 fu
 }
 
 // ListGroupsForUserPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListGroupsForUserPagesWithContext(_a0 aws.Context, _a1 *iam.ListGroupsForUserInput, _a2 func(*iam.ListGroupsForUserOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListGroupsForUserPagesWithContext(_a0 context.Context, _a1 *iam.ListGroupsForUserInput, _a2 func(*iam.ListGroupsForUserOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6406,7 +6796,7 @@ func (_m *IAMAPI) ListGroupsForUserPagesWithContext(_a0 aws.Context, _a1 *iam.Li
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListGroupsForUserInput, func(*iam.ListGroupsForUserOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListGroupsForUserInput, func(*iam.ListGroupsForUserOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6441,7 +6831,7 @@ func (_m *IAMAPI) ListGroupsForUserRequest(_a0 *iam.ListGroupsForUserInput) (*re
 }
 
 // ListGroupsForUserWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListGroupsForUserWithContext(_a0 aws.Context, _a1 *iam.ListGroupsForUserInput, _a2 ...request.Option) (*iam.ListGroupsForUserOutput, error) {
+func (_m *IAMAPI) ListGroupsForUserWithContext(_a0 context.Context, _a1 *iam.ListGroupsForUserInput, _a2 ...request.Option) (*iam.ListGroupsForUserOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6452,7 +6842,7 @@ func (_m *IAMAPI) ListGroupsForUserWithContext(_a0 aws.Context, _a1 *iam.ListGro
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListGroupsForUserOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListGroupsForUserInput, ...request.Option) *iam.ListGroupsForUserOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListGroupsForUserInput, ...request.Option) *iam.ListGroupsForUserOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6461,7 +6851,7 @@ func (_m *IAMAPI) ListGroupsForUserWithContext(_a0 aws.Context, _a1 *iam.ListGro
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListGroupsForUserInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListGroupsForUserInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6485,7 +6875,7 @@ func (_m *IAMAPI) ListGroupsPages(_a0 *iam.ListGroupsInput, _a1 func(*iam.ListGr
 }
 
 // ListGroupsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListGroupsPagesWithContext(_a0 aws.Context, _a1 *iam.ListGroupsInput, _a2 func(*iam.ListGroupsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListGroupsPagesWithContext(_a0 context.Context, _a1 *iam.ListGroupsInput, _a2 func(*iam.ListGroupsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6496,7 +6886,7 @@ func (_m *IAMAPI) ListGroupsPagesWithContext(_a0 aws.Context, _a1 *iam.ListGroup
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListGroupsInput, func(*iam.ListGroupsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListGroupsInput, func(*iam.ListGroupsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6531,7 +6921,7 @@ func (_m *IAMAPI) ListGroupsRequest(_a0 *iam.ListGroupsInput) (*request.Request,
 }
 
 // ListGroupsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListGroupsWithContext(_a0 aws.Context, _a1 *iam.ListGroupsInput, _a2 ...request.Option) (*iam.ListGroupsOutput, error) {
+func (_m *IAMAPI) ListGroupsWithContext(_a0 context.Context, _a1 *iam.ListGroupsInput, _a2 ...request.Option) (*iam.ListGroupsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6542,7 +6932,7 @@ func (_m *IAMAPI) ListGroupsWithContext(_a0 aws.Context, _a1 *iam.ListGroupsInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListGroupsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListGroupsInput, ...request.Option) *iam.ListGroupsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListGroupsInput, ...request.Option) *iam.ListGroupsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6551,7 +6941,7 @@ func (_m *IAMAPI) ListGroupsWithContext(_a0 aws.Context, _a1 *iam.ListGroupsInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListGroupsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListGroupsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6621,7 +7011,7 @@ func (_m *IAMAPI) ListInstanceProfilesForRolePages(_a0 *iam.ListInstanceProfiles
 }
 
 // ListInstanceProfilesForRolePagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListInstanceProfilesForRolePagesWithContext(_a0 aws.Context, _a1 *iam.ListInstanceProfilesForRoleInput, _a2 func(*iam.ListInstanceProfilesForRoleOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListInstanceProfilesForRolePagesWithContext(_a0 context.Context, _a1 *iam.ListInstanceProfilesForRoleInput, _a2 func(*iam.ListInstanceProfilesForRoleOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6632,7 +7022,7 @@ func (_m *IAMAPI) ListInstanceProfilesForRolePagesWithContext(_a0 aws.Context, _
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListInstanceProfilesForRoleInput, func(*iam.ListInstanceProfilesForRoleOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListInstanceProfilesForRoleInput, func(*iam.ListInstanceProfilesForRoleOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6667,7 +7057,7 @@ func (_m *IAMAPI) ListInstanceProfilesForRoleRequest(_a0 *iam.ListInstanceProfil
 }
 
 // ListInstanceProfilesForRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListInstanceProfilesForRoleWithContext(_a0 aws.Context, _a1 *iam.ListInstanceProfilesForRoleInput, _a2 ...request.Option) (*iam.ListInstanceProfilesForRoleOutput, error) {
+func (_m *IAMAPI) ListInstanceProfilesForRoleWithContext(_a0 context.Context, _a1 *iam.ListInstanceProfilesForRoleInput, _a2 ...request.Option) (*iam.ListInstanceProfilesForRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6678,7 +7068,7 @@ func (_m *IAMAPI) ListInstanceProfilesForRoleWithContext(_a0 aws.Context, _a1 *i
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListInstanceProfilesForRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListInstanceProfilesForRoleInput, ...request.Option) *iam.ListInstanceProfilesForRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListInstanceProfilesForRoleInput, ...request.Option) *iam.ListInstanceProfilesForRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6687,7 +7077,7 @@ func (_m *IAMAPI) ListInstanceProfilesForRoleWithContext(_a0 aws.Context, _a1 *i
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListInstanceProfilesForRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListInstanceProfilesForRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6711,7 +7101,7 @@ func (_m *IAMAPI) ListInstanceProfilesPages(_a0 *iam.ListInstanceProfilesInput, 
 }
 
 // ListInstanceProfilesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListInstanceProfilesPagesWithContext(_a0 aws.Context, _a1 *iam.ListInstanceProfilesInput, _a2 func(*iam.ListInstanceProfilesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListInstanceProfilesPagesWithContext(_a0 context.Context, _a1 *iam.ListInstanceProfilesInput, _a2 func(*iam.ListInstanceProfilesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6722,7 +7112,7 @@ func (_m *IAMAPI) ListInstanceProfilesPagesWithContext(_a0 aws.Context, _a1 *iam
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListInstanceProfilesInput, func(*iam.ListInstanceProfilesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListInstanceProfilesInput, func(*iam.ListInstanceProfilesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6757,7 +7147,7 @@ func (_m *IAMAPI) ListInstanceProfilesRequest(_a0 *iam.ListInstanceProfilesInput
 }
 
 // ListInstanceProfilesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListInstanceProfilesWithContext(_a0 aws.Context, _a1 *iam.ListInstanceProfilesInput, _a2 ...request.Option) (*iam.ListInstanceProfilesOutput, error) {
+func (_m *IAMAPI) ListInstanceProfilesWithContext(_a0 context.Context, _a1 *iam.ListInstanceProfilesInput, _a2 ...request.Option) (*iam.ListInstanceProfilesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6768,7 +7158,7 @@ func (_m *IAMAPI) ListInstanceProfilesWithContext(_a0 aws.Context, _a1 *iam.List
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListInstanceProfilesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListInstanceProfilesInput, ...request.Option) *iam.ListInstanceProfilesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListInstanceProfilesInput, ...request.Option) *iam.ListInstanceProfilesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6777,7 +7167,7 @@ func (_m *IAMAPI) ListInstanceProfilesWithContext(_a0 aws.Context, _a1 *iam.List
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListInstanceProfilesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListInstanceProfilesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6824,7 +7214,7 @@ func (_m *IAMAPI) ListMFADevicesPages(_a0 *iam.ListMFADevicesInput, _a1 func(*ia
 }
 
 // ListMFADevicesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListMFADevicesPagesWithContext(_a0 aws.Context, _a1 *iam.ListMFADevicesInput, _a2 func(*iam.ListMFADevicesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListMFADevicesPagesWithContext(_a0 context.Context, _a1 *iam.ListMFADevicesInput, _a2 func(*iam.ListMFADevicesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -6835,7 +7225,7 @@ func (_m *IAMAPI) ListMFADevicesPagesWithContext(_a0 aws.Context, _a1 *iam.ListM
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListMFADevicesInput, func(*iam.ListMFADevicesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListMFADevicesInput, func(*iam.ListMFADevicesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -6870,7 +7260,7 @@ func (_m *IAMAPI) ListMFADevicesRequest(_a0 *iam.ListMFADevicesInput) (*request.
 }
 
 // ListMFADevicesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListMFADevicesWithContext(_a0 aws.Context, _a1 *iam.ListMFADevicesInput, _a2 ...request.Option) (*iam.ListMFADevicesOutput, error) {
+func (_m *IAMAPI) ListMFADevicesWithContext(_a0 context.Context, _a1 *iam.ListMFADevicesInput, _a2 ...request.Option) (*iam.ListMFADevicesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6881,7 +7271,7 @@ func (_m *IAMAPI) ListMFADevicesWithContext(_a0 aws.Context, _a1 *iam.ListMFADev
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListMFADevicesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListMFADevicesInput, ...request.Option) *iam.ListMFADevicesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListMFADevicesInput, ...request.Option) *iam.ListMFADevicesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6890,7 +7280,7 @@ func (_m *IAMAPI) ListMFADevicesWithContext(_a0 aws.Context, _a1 *iam.ListMFADev
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListMFADevicesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListMFADevicesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -6948,7 +7338,7 @@ func (_m *IAMAPI) ListOpenIDConnectProvidersRequest(_a0 *iam.ListOpenIDConnectPr
 }
 
 // ListOpenIDConnectProvidersWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListOpenIDConnectProvidersWithContext(_a0 aws.Context, _a1 *iam.ListOpenIDConnectProvidersInput, _a2 ...request.Option) (*iam.ListOpenIDConnectProvidersOutput, error) {
+func (_m *IAMAPI) ListOpenIDConnectProvidersWithContext(_a0 context.Context, _a1 *iam.ListOpenIDConnectProvidersInput, _a2 ...request.Option) (*iam.ListOpenIDConnectProvidersOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -6959,7 +7349,7 @@ func (_m *IAMAPI) ListOpenIDConnectProvidersWithContext(_a0 aws.Context, _a1 *ia
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListOpenIDConnectProvidersOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListOpenIDConnectProvidersInput, ...request.Option) *iam.ListOpenIDConnectProvidersOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListOpenIDConnectProvidersInput, ...request.Option) *iam.ListOpenIDConnectProvidersOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -6968,7 +7358,7 @@ func (_m *IAMAPI) ListOpenIDConnectProvidersWithContext(_a0 aws.Context, _a1 *ia
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListOpenIDConnectProvidersInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListOpenIDConnectProvidersInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7000,6 +7390,84 @@ func (_m *IAMAPI) ListPolicies(_a0 *iam.ListPoliciesInput) (*iam.ListPoliciesOut
 	return r0, r1
 }
 
+// ListPoliciesGrantingServiceAccess provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListPoliciesGrantingServiceAccess(_a0 *iam.ListPoliciesGrantingServiceAccessInput) (*iam.ListPoliciesGrantingServiceAccessOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListPoliciesGrantingServiceAccessOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListPoliciesGrantingServiceAccessInput) *iam.ListPoliciesGrantingServiceAccessOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListPoliciesGrantingServiceAccessOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListPoliciesGrantingServiceAccessInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListPoliciesGrantingServiceAccessRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListPoliciesGrantingServiceAccessRequest(_a0 *iam.ListPoliciesGrantingServiceAccessInput) (*request.Request, *iam.ListPoliciesGrantingServiceAccessOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListPoliciesGrantingServiceAccessInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListPoliciesGrantingServiceAccessOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListPoliciesGrantingServiceAccessInput) *iam.ListPoliciesGrantingServiceAccessOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListPoliciesGrantingServiceAccessOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListPoliciesGrantingServiceAccessWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListPoliciesGrantingServiceAccessWithContext(_a0 context.Context, _a1 *iam.ListPoliciesGrantingServiceAccessInput, _a2 ...request.Option) (*iam.ListPoliciesGrantingServiceAccessOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListPoliciesGrantingServiceAccessOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListPoliciesGrantingServiceAccessInput, ...request.Option) *iam.ListPoliciesGrantingServiceAccessOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListPoliciesGrantingServiceAccessOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListPoliciesGrantingServiceAccessInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListPoliciesPages provides a mock function with given fields: _a0, _a1
 func (_m *IAMAPI) ListPoliciesPages(_a0 *iam.ListPoliciesInput, _a1 func(*iam.ListPoliciesOutput, bool) bool) error {
 	ret := _m.Called(_a0, _a1)
@@ -7015,7 +7483,7 @@ func (_m *IAMAPI) ListPoliciesPages(_a0 *iam.ListPoliciesInput, _a1 func(*iam.Li
 }
 
 // ListPoliciesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListPoliciesInput, _a2 func(*iam.ListPoliciesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListPoliciesPagesWithContext(_a0 context.Context, _a1 *iam.ListPoliciesInput, _a2 func(*iam.ListPoliciesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7026,7 +7494,7 @@ func (_m *IAMAPI) ListPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListPol
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListPoliciesInput, func(*iam.ListPoliciesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListPoliciesInput, func(*iam.ListPoliciesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -7061,7 +7529,7 @@ func (_m *IAMAPI) ListPoliciesRequest(_a0 *iam.ListPoliciesInput) (*request.Requ
 }
 
 // ListPoliciesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListPoliciesInput, _a2 ...request.Option) (*iam.ListPoliciesOutput, error) {
+func (_m *IAMAPI) ListPoliciesWithContext(_a0 context.Context, _a1 *iam.ListPoliciesInput, _a2 ...request.Option) (*iam.ListPoliciesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7072,7 +7540,7 @@ func (_m *IAMAPI) ListPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListPolicies
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListPoliciesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListPoliciesInput, ...request.Option) *iam.ListPoliciesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListPoliciesInput, ...request.Option) *iam.ListPoliciesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7081,7 +7549,7 @@ func (_m *IAMAPI) ListPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListPolicies
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListPoliciesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListPoliciesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7128,7 +7596,7 @@ func (_m *IAMAPI) ListPolicyVersionsPages(_a0 *iam.ListPolicyVersionsInput, _a1 
 }
 
 // ListPolicyVersionsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListPolicyVersionsPagesWithContext(_a0 aws.Context, _a1 *iam.ListPolicyVersionsInput, _a2 func(*iam.ListPolicyVersionsOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListPolicyVersionsPagesWithContext(_a0 context.Context, _a1 *iam.ListPolicyVersionsInput, _a2 func(*iam.ListPolicyVersionsOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7139,7 +7607,7 @@ func (_m *IAMAPI) ListPolicyVersionsPagesWithContext(_a0 aws.Context, _a1 *iam.L
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListPolicyVersionsInput, func(*iam.ListPolicyVersionsOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListPolicyVersionsInput, func(*iam.ListPolicyVersionsOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -7174,7 +7642,7 @@ func (_m *IAMAPI) ListPolicyVersionsRequest(_a0 *iam.ListPolicyVersionsInput) (*
 }
 
 // ListPolicyVersionsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListPolicyVersionsWithContext(_a0 aws.Context, _a1 *iam.ListPolicyVersionsInput, _a2 ...request.Option) (*iam.ListPolicyVersionsOutput, error) {
+func (_m *IAMAPI) ListPolicyVersionsWithContext(_a0 context.Context, _a1 *iam.ListPolicyVersionsInput, _a2 ...request.Option) (*iam.ListPolicyVersionsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7185,7 +7653,7 @@ func (_m *IAMAPI) ListPolicyVersionsWithContext(_a0 aws.Context, _a1 *iam.ListPo
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListPolicyVersionsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListPolicyVersionsInput, ...request.Option) *iam.ListPolicyVersionsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListPolicyVersionsInput, ...request.Option) *iam.ListPolicyVersionsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7194,7 +7662,7 @@ func (_m *IAMAPI) ListPolicyVersionsWithContext(_a0 aws.Context, _a1 *iam.ListPo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListPolicyVersionsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListPolicyVersionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7241,7 +7709,7 @@ func (_m *IAMAPI) ListRolePoliciesPages(_a0 *iam.ListRolePoliciesInput, _a1 func
 }
 
 // ListRolePoliciesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListRolePoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListRolePoliciesInput, _a2 func(*iam.ListRolePoliciesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListRolePoliciesPagesWithContext(_a0 context.Context, _a1 *iam.ListRolePoliciesInput, _a2 func(*iam.ListRolePoliciesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7252,7 +7720,7 @@ func (_m *IAMAPI) ListRolePoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.Lis
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListRolePoliciesInput, func(*iam.ListRolePoliciesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListRolePoliciesInput, func(*iam.ListRolePoliciesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -7287,7 +7755,7 @@ func (_m *IAMAPI) ListRolePoliciesRequest(_a0 *iam.ListRolePoliciesInput) (*requ
 }
 
 // ListRolePoliciesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListRolePoliciesWithContext(_a0 aws.Context, _a1 *iam.ListRolePoliciesInput, _a2 ...request.Option) (*iam.ListRolePoliciesOutput, error) {
+func (_m *IAMAPI) ListRolePoliciesWithContext(_a0 context.Context, _a1 *iam.ListRolePoliciesInput, _a2 ...request.Option) (*iam.ListRolePoliciesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7298,7 +7766,7 @@ func (_m *IAMAPI) ListRolePoliciesWithContext(_a0 aws.Context, _a1 *iam.ListRole
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListRolePoliciesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListRolePoliciesInput, ...request.Option) *iam.ListRolePoliciesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListRolePoliciesInput, ...request.Option) *iam.ListRolePoliciesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7307,7 +7775,85 @@ func (_m *IAMAPI) ListRolePoliciesWithContext(_a0 aws.Context, _a1 *iam.ListRole
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListRolePoliciesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListRolePoliciesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListRoleTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListRoleTags(_a0 *iam.ListRoleTagsInput) (*iam.ListRoleTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListRoleTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListRoleTagsInput) *iam.ListRoleTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListRoleTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListRoleTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListRoleTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListRoleTagsRequest(_a0 *iam.ListRoleTagsInput) (*request.Request, *iam.ListRoleTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListRoleTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListRoleTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListRoleTagsInput) *iam.ListRoleTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListRoleTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListRoleTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListRoleTagsWithContext(_a0 context.Context, _a1 *iam.ListRoleTagsInput, _a2 ...request.Option) (*iam.ListRoleTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListRoleTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListRoleTagsInput, ...request.Option) *iam.ListRoleTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListRoleTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListRoleTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7354,7 +7900,7 @@ func (_m *IAMAPI) ListRolesPages(_a0 *iam.ListRolesInput, _a1 func(*iam.ListRole
 }
 
 // ListRolesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListRolesPagesWithContext(_a0 aws.Context, _a1 *iam.ListRolesInput, _a2 func(*iam.ListRolesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListRolesPagesWithContext(_a0 context.Context, _a1 *iam.ListRolesInput, _a2 func(*iam.ListRolesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7365,7 +7911,7 @@ func (_m *IAMAPI) ListRolesPagesWithContext(_a0 aws.Context, _a1 *iam.ListRolesI
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListRolesInput, func(*iam.ListRolesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListRolesInput, func(*iam.ListRolesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -7400,7 +7946,7 @@ func (_m *IAMAPI) ListRolesRequest(_a0 *iam.ListRolesInput) (*request.Request, *
 }
 
 // ListRolesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListRolesWithContext(_a0 aws.Context, _a1 *iam.ListRolesInput, _a2 ...request.Option) (*iam.ListRolesOutput, error) {
+func (_m *IAMAPI) ListRolesWithContext(_a0 context.Context, _a1 *iam.ListRolesInput, _a2 ...request.Option) (*iam.ListRolesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7411,7 +7957,7 @@ func (_m *IAMAPI) ListRolesWithContext(_a0 aws.Context, _a1 *iam.ListRolesInput,
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListRolesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListRolesInput, ...request.Option) *iam.ListRolesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListRolesInput, ...request.Option) *iam.ListRolesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7420,7 +7966,7 @@ func (_m *IAMAPI) ListRolesWithContext(_a0 aws.Context, _a1 *iam.ListRolesInput,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListRolesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListRolesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7478,7 +8024,7 @@ func (_m *IAMAPI) ListSAMLProvidersRequest(_a0 *iam.ListSAMLProvidersInput) (*re
 }
 
 // ListSAMLProvidersWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListSAMLProvidersWithContext(_a0 aws.Context, _a1 *iam.ListSAMLProvidersInput, _a2 ...request.Option) (*iam.ListSAMLProvidersOutput, error) {
+func (_m *IAMAPI) ListSAMLProvidersWithContext(_a0 context.Context, _a1 *iam.ListSAMLProvidersInput, _a2 ...request.Option) (*iam.ListSAMLProvidersOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7489,7 +8035,7 @@ func (_m *IAMAPI) ListSAMLProvidersWithContext(_a0 aws.Context, _a1 *iam.ListSAM
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListSAMLProvidersOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListSAMLProvidersInput, ...request.Option) *iam.ListSAMLProvidersOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListSAMLProvidersInput, ...request.Option) *iam.ListSAMLProvidersOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7498,7 +8044,7 @@ func (_m *IAMAPI) ListSAMLProvidersWithContext(_a0 aws.Context, _a1 *iam.ListSAM
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListSAMLProvidersInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListSAMLProvidersInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7545,7 +8091,7 @@ func (_m *IAMAPI) ListSSHPublicKeysPages(_a0 *iam.ListSSHPublicKeysInput, _a1 fu
 }
 
 // ListSSHPublicKeysPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListSSHPublicKeysPagesWithContext(_a0 aws.Context, _a1 *iam.ListSSHPublicKeysInput, _a2 func(*iam.ListSSHPublicKeysOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListSSHPublicKeysPagesWithContext(_a0 context.Context, _a1 *iam.ListSSHPublicKeysInput, _a2 func(*iam.ListSSHPublicKeysOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7556,7 +8102,7 @@ func (_m *IAMAPI) ListSSHPublicKeysPagesWithContext(_a0 aws.Context, _a1 *iam.Li
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListSSHPublicKeysInput, func(*iam.ListSSHPublicKeysOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListSSHPublicKeysInput, func(*iam.ListSSHPublicKeysOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -7591,7 +8137,7 @@ func (_m *IAMAPI) ListSSHPublicKeysRequest(_a0 *iam.ListSSHPublicKeysInput) (*re
 }
 
 // ListSSHPublicKeysWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListSSHPublicKeysWithContext(_a0 aws.Context, _a1 *iam.ListSSHPublicKeysInput, _a2 ...request.Option) (*iam.ListSSHPublicKeysOutput, error) {
+func (_m *IAMAPI) ListSSHPublicKeysWithContext(_a0 context.Context, _a1 *iam.ListSSHPublicKeysInput, _a2 ...request.Option) (*iam.ListSSHPublicKeysOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7602,7 +8148,7 @@ func (_m *IAMAPI) ListSSHPublicKeysWithContext(_a0 aws.Context, _a1 *iam.ListSSH
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListSSHPublicKeysOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListSSHPublicKeysInput, ...request.Option) *iam.ListSSHPublicKeysOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListSSHPublicKeysInput, ...request.Option) *iam.ListSSHPublicKeysOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7611,7 +8157,7 @@ func (_m *IAMAPI) ListSSHPublicKeysWithContext(_a0 aws.Context, _a1 *iam.ListSSH
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListSSHPublicKeysInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListSSHPublicKeysInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7658,7 +8204,7 @@ func (_m *IAMAPI) ListServerCertificatesPages(_a0 *iam.ListServerCertificatesInp
 }
 
 // ListServerCertificatesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListServerCertificatesPagesWithContext(_a0 aws.Context, _a1 *iam.ListServerCertificatesInput, _a2 func(*iam.ListServerCertificatesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListServerCertificatesPagesWithContext(_a0 context.Context, _a1 *iam.ListServerCertificatesInput, _a2 func(*iam.ListServerCertificatesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7669,7 +8215,7 @@ func (_m *IAMAPI) ListServerCertificatesPagesWithContext(_a0 aws.Context, _a1 *i
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListServerCertificatesInput, func(*iam.ListServerCertificatesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListServerCertificatesInput, func(*iam.ListServerCertificatesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -7704,7 +8250,7 @@ func (_m *IAMAPI) ListServerCertificatesRequest(_a0 *iam.ListServerCertificatesI
 }
 
 // ListServerCertificatesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListServerCertificatesWithContext(_a0 aws.Context, _a1 *iam.ListServerCertificatesInput, _a2 ...request.Option) (*iam.ListServerCertificatesOutput, error) {
+func (_m *IAMAPI) ListServerCertificatesWithContext(_a0 context.Context, _a1 *iam.ListServerCertificatesInput, _a2 ...request.Option) (*iam.ListServerCertificatesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7715,7 +8261,7 @@ func (_m *IAMAPI) ListServerCertificatesWithContext(_a0 aws.Context, _a1 *iam.Li
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListServerCertificatesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListServerCertificatesInput, ...request.Option) *iam.ListServerCertificatesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListServerCertificatesInput, ...request.Option) *iam.ListServerCertificatesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7724,7 +8270,7 @@ func (_m *IAMAPI) ListServerCertificatesWithContext(_a0 aws.Context, _a1 *iam.Li
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListServerCertificatesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListServerCertificatesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7782,7 +8328,7 @@ func (_m *IAMAPI) ListServiceSpecificCredentialsRequest(_a0 *iam.ListServiceSpec
 }
 
 // ListServiceSpecificCredentialsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListServiceSpecificCredentialsWithContext(_a0 aws.Context, _a1 *iam.ListServiceSpecificCredentialsInput, _a2 ...request.Option) (*iam.ListServiceSpecificCredentialsOutput, error) {
+func (_m *IAMAPI) ListServiceSpecificCredentialsWithContext(_a0 context.Context, _a1 *iam.ListServiceSpecificCredentialsInput, _a2 ...request.Option) (*iam.ListServiceSpecificCredentialsOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7793,7 +8339,7 @@ func (_m *IAMAPI) ListServiceSpecificCredentialsWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListServiceSpecificCredentialsOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListServiceSpecificCredentialsInput, ...request.Option) *iam.ListServiceSpecificCredentialsOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListServiceSpecificCredentialsInput, ...request.Option) *iam.ListServiceSpecificCredentialsOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7802,7 +8348,7 @@ func (_m *IAMAPI) ListServiceSpecificCredentialsWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListServiceSpecificCredentialsInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListServiceSpecificCredentialsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7849,7 +8395,7 @@ func (_m *IAMAPI) ListSigningCertificatesPages(_a0 *iam.ListSigningCertificatesI
 }
 
 // ListSigningCertificatesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListSigningCertificatesPagesWithContext(_a0 aws.Context, _a1 *iam.ListSigningCertificatesInput, _a2 func(*iam.ListSigningCertificatesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListSigningCertificatesPagesWithContext(_a0 context.Context, _a1 *iam.ListSigningCertificatesInput, _a2 func(*iam.ListSigningCertificatesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7860,7 +8406,7 @@ func (_m *IAMAPI) ListSigningCertificatesPagesWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListSigningCertificatesInput, func(*iam.ListSigningCertificatesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListSigningCertificatesInput, func(*iam.ListSigningCertificatesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -7895,7 +8441,7 @@ func (_m *IAMAPI) ListSigningCertificatesRequest(_a0 *iam.ListSigningCertificate
 }
 
 // ListSigningCertificatesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListSigningCertificatesWithContext(_a0 aws.Context, _a1 *iam.ListSigningCertificatesInput, _a2 ...request.Option) (*iam.ListSigningCertificatesOutput, error) {
+func (_m *IAMAPI) ListSigningCertificatesWithContext(_a0 context.Context, _a1 *iam.ListSigningCertificatesInput, _a2 ...request.Option) (*iam.ListSigningCertificatesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -7906,7 +8452,7 @@ func (_m *IAMAPI) ListSigningCertificatesWithContext(_a0 aws.Context, _a1 *iam.L
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListSigningCertificatesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListSigningCertificatesInput, ...request.Option) *iam.ListSigningCertificatesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListSigningCertificatesInput, ...request.Option) *iam.ListSigningCertificatesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -7915,7 +8461,7 @@ func (_m *IAMAPI) ListSigningCertificatesWithContext(_a0 aws.Context, _a1 *iam.L
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListSigningCertificatesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListSigningCertificatesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -7962,7 +8508,7 @@ func (_m *IAMAPI) ListUserPoliciesPages(_a0 *iam.ListUserPoliciesInput, _a1 func
 }
 
 // ListUserPoliciesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListUserPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.ListUserPoliciesInput, _a2 func(*iam.ListUserPoliciesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListUserPoliciesPagesWithContext(_a0 context.Context, _a1 *iam.ListUserPoliciesInput, _a2 func(*iam.ListUserPoliciesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -7973,7 +8519,7 @@ func (_m *IAMAPI) ListUserPoliciesPagesWithContext(_a0 aws.Context, _a1 *iam.Lis
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListUserPoliciesInput, func(*iam.ListUserPoliciesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListUserPoliciesInput, func(*iam.ListUserPoliciesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -8008,7 +8554,7 @@ func (_m *IAMAPI) ListUserPoliciesRequest(_a0 *iam.ListUserPoliciesInput) (*requ
 }
 
 // ListUserPoliciesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListUserPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListUserPoliciesInput, _a2 ...request.Option) (*iam.ListUserPoliciesOutput, error) {
+func (_m *IAMAPI) ListUserPoliciesWithContext(_a0 context.Context, _a1 *iam.ListUserPoliciesInput, _a2 ...request.Option) (*iam.ListUserPoliciesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8019,7 +8565,7 @@ func (_m *IAMAPI) ListUserPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListUser
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListUserPoliciesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListUserPoliciesInput, ...request.Option) *iam.ListUserPoliciesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListUserPoliciesInput, ...request.Option) *iam.ListUserPoliciesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8028,7 +8574,85 @@ func (_m *IAMAPI) ListUserPoliciesWithContext(_a0 aws.Context, _a1 *iam.ListUser
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListUserPoliciesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListUserPoliciesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListUserTags provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListUserTags(_a0 *iam.ListUserTagsInput) (*iam.ListUserTagsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.ListUserTagsOutput
+	if rf, ok := ret.Get(0).(func(*iam.ListUserTagsInput) *iam.ListUserTagsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListUserTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.ListUserTagsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListUserTagsRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) ListUserTagsRequest(_a0 *iam.ListUserTagsInput) (*request.Request, *iam.ListUserTagsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.ListUserTagsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.ListUserTagsOutput
+	if rf, ok := ret.Get(1).(func(*iam.ListUserTagsInput) *iam.ListUserTagsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.ListUserTagsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListUserTagsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) ListUserTagsWithContext(_a0 context.Context, _a1 *iam.ListUserTagsInput, _a2 ...request.Option) (*iam.ListUserTagsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.ListUserTagsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListUserTagsInput, ...request.Option) *iam.ListUserTagsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.ListUserTagsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListUserTagsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8075,7 +8699,7 @@ func (_m *IAMAPI) ListUsersPages(_a0 *iam.ListUsersInput, _a1 func(*iam.ListUser
 }
 
 // ListUsersPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListUsersPagesWithContext(_a0 aws.Context, _a1 *iam.ListUsersInput, _a2 func(*iam.ListUsersOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListUsersPagesWithContext(_a0 context.Context, _a1 *iam.ListUsersInput, _a2 func(*iam.ListUsersOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -8086,7 +8710,7 @@ func (_m *IAMAPI) ListUsersPagesWithContext(_a0 aws.Context, _a1 *iam.ListUsersI
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListUsersInput, func(*iam.ListUsersOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListUsersInput, func(*iam.ListUsersOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -8121,7 +8745,7 @@ func (_m *IAMAPI) ListUsersRequest(_a0 *iam.ListUsersInput) (*request.Request, *
 }
 
 // ListUsersWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListUsersWithContext(_a0 aws.Context, _a1 *iam.ListUsersInput, _a2 ...request.Option) (*iam.ListUsersOutput, error) {
+func (_m *IAMAPI) ListUsersWithContext(_a0 context.Context, _a1 *iam.ListUsersInput, _a2 ...request.Option) (*iam.ListUsersOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8132,7 +8756,7 @@ func (_m *IAMAPI) ListUsersWithContext(_a0 aws.Context, _a1 *iam.ListUsersInput,
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListUsersOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListUsersInput, ...request.Option) *iam.ListUsersOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListUsersInput, ...request.Option) *iam.ListUsersOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8141,7 +8765,7 @@ func (_m *IAMAPI) ListUsersWithContext(_a0 aws.Context, _a1 *iam.ListUsersInput,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListUsersInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListUsersInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8188,7 +8812,7 @@ func (_m *IAMAPI) ListVirtualMFADevicesPages(_a0 *iam.ListVirtualMFADevicesInput
 }
 
 // ListVirtualMFADevicesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) ListVirtualMFADevicesPagesWithContext(_a0 aws.Context, _a1 *iam.ListVirtualMFADevicesInput, _a2 func(*iam.ListVirtualMFADevicesOutput, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) ListVirtualMFADevicesPagesWithContext(_a0 context.Context, _a1 *iam.ListVirtualMFADevicesInput, _a2 func(*iam.ListVirtualMFADevicesOutput, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -8199,7 +8823,7 @@ func (_m *IAMAPI) ListVirtualMFADevicesPagesWithContext(_a0 aws.Context, _a1 *ia
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListVirtualMFADevicesInput, func(*iam.ListVirtualMFADevicesOutput, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListVirtualMFADevicesInput, func(*iam.ListVirtualMFADevicesOutput, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -8234,7 +8858,7 @@ func (_m *IAMAPI) ListVirtualMFADevicesRequest(_a0 *iam.ListVirtualMFADevicesInp
 }
 
 // ListVirtualMFADevicesWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ListVirtualMFADevicesWithContext(_a0 aws.Context, _a1 *iam.ListVirtualMFADevicesInput, _a2 ...request.Option) (*iam.ListVirtualMFADevicesOutput, error) {
+func (_m *IAMAPI) ListVirtualMFADevicesWithContext(_a0 context.Context, _a1 *iam.ListVirtualMFADevicesInput, _a2 ...request.Option) (*iam.ListVirtualMFADevicesOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8245,7 +8869,7 @@ func (_m *IAMAPI) ListVirtualMFADevicesWithContext(_a0 aws.Context, _a1 *iam.Lis
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ListVirtualMFADevicesOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ListVirtualMFADevicesInput, ...request.Option) *iam.ListVirtualMFADevicesOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ListVirtualMFADevicesInput, ...request.Option) *iam.ListVirtualMFADevicesOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8254,7 +8878,7 @@ func (_m *IAMAPI) ListVirtualMFADevicesWithContext(_a0 aws.Context, _a1 *iam.Lis
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ListVirtualMFADevicesInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ListVirtualMFADevicesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8312,7 +8936,7 @@ func (_m *IAMAPI) PutGroupPolicyRequest(_a0 *iam.PutGroupPolicyInput) (*request.
 }
 
 // PutGroupPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) PutGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.PutGroupPolicyInput, _a2 ...request.Option) (*iam.PutGroupPolicyOutput, error) {
+func (_m *IAMAPI) PutGroupPolicyWithContext(_a0 context.Context, _a1 *iam.PutGroupPolicyInput, _a2 ...request.Option) (*iam.PutGroupPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8323,7 +8947,7 @@ func (_m *IAMAPI) PutGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.PutGroupPo
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.PutGroupPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.PutGroupPolicyInput, ...request.Option) *iam.PutGroupPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.PutGroupPolicyInput, ...request.Option) *iam.PutGroupPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8332,7 +8956,85 @@ func (_m *IAMAPI) PutGroupPolicyWithContext(_a0 aws.Context, _a1 *iam.PutGroupPo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.PutGroupPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.PutGroupPolicyInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutRolePermissionsBoundary provides a mock function with given fields: _a0
+func (_m *IAMAPI) PutRolePermissionsBoundary(_a0 *iam.PutRolePermissionsBoundaryInput) (*iam.PutRolePermissionsBoundaryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.PutRolePermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(*iam.PutRolePermissionsBoundaryInput) *iam.PutRolePermissionsBoundaryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.PutRolePermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.PutRolePermissionsBoundaryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutRolePermissionsBoundaryRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) PutRolePermissionsBoundaryRequest(_a0 *iam.PutRolePermissionsBoundaryInput) (*request.Request, *iam.PutRolePermissionsBoundaryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.PutRolePermissionsBoundaryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.PutRolePermissionsBoundaryOutput
+	if rf, ok := ret.Get(1).(func(*iam.PutRolePermissionsBoundaryInput) *iam.PutRolePermissionsBoundaryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.PutRolePermissionsBoundaryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// PutRolePermissionsBoundaryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) PutRolePermissionsBoundaryWithContext(_a0 context.Context, _a1 *iam.PutRolePermissionsBoundaryInput, _a2 ...request.Option) (*iam.PutRolePermissionsBoundaryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.PutRolePermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.PutRolePermissionsBoundaryInput, ...request.Option) *iam.PutRolePermissionsBoundaryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.PutRolePermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.PutRolePermissionsBoundaryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8390,7 +9092,7 @@ func (_m *IAMAPI) PutRolePolicyRequest(_a0 *iam.PutRolePolicyInput) (*request.Re
 }
 
 // PutRolePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) PutRolePolicyWithContext(_a0 aws.Context, _a1 *iam.PutRolePolicyInput, _a2 ...request.Option) (*iam.PutRolePolicyOutput, error) {
+func (_m *IAMAPI) PutRolePolicyWithContext(_a0 context.Context, _a1 *iam.PutRolePolicyInput, _a2 ...request.Option) (*iam.PutRolePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8401,7 +9103,7 @@ func (_m *IAMAPI) PutRolePolicyWithContext(_a0 aws.Context, _a1 *iam.PutRolePoli
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.PutRolePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.PutRolePolicyInput, ...request.Option) *iam.PutRolePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.PutRolePolicyInput, ...request.Option) *iam.PutRolePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8410,7 +9112,85 @@ func (_m *IAMAPI) PutRolePolicyWithContext(_a0 aws.Context, _a1 *iam.PutRolePoli
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.PutRolePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.PutRolePolicyInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutUserPermissionsBoundary provides a mock function with given fields: _a0
+func (_m *IAMAPI) PutUserPermissionsBoundary(_a0 *iam.PutUserPermissionsBoundaryInput) (*iam.PutUserPermissionsBoundaryOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.PutUserPermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(*iam.PutUserPermissionsBoundaryInput) *iam.PutUserPermissionsBoundaryOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.PutUserPermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.PutUserPermissionsBoundaryInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutUserPermissionsBoundaryRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) PutUserPermissionsBoundaryRequest(_a0 *iam.PutUserPermissionsBoundaryInput) (*request.Request, *iam.PutUserPermissionsBoundaryOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.PutUserPermissionsBoundaryInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.PutUserPermissionsBoundaryOutput
+	if rf, ok := ret.Get(1).(func(*iam.PutUserPermissionsBoundaryInput) *iam.PutUserPermissionsBoundaryOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.PutUserPermissionsBoundaryOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// PutUserPermissionsBoundaryWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) PutUserPermissionsBoundaryWithContext(_a0 context.Context, _a1 *iam.PutUserPermissionsBoundaryInput, _a2 ...request.Option) (*iam.PutUserPermissionsBoundaryOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.PutUserPermissionsBoundaryOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.PutUserPermissionsBoundaryInput, ...request.Option) *iam.PutUserPermissionsBoundaryOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.PutUserPermissionsBoundaryOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.PutUserPermissionsBoundaryInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8468,7 +9248,7 @@ func (_m *IAMAPI) PutUserPolicyRequest(_a0 *iam.PutUserPolicyInput) (*request.Re
 }
 
 // PutUserPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) PutUserPolicyWithContext(_a0 aws.Context, _a1 *iam.PutUserPolicyInput, _a2 ...request.Option) (*iam.PutUserPolicyOutput, error) {
+func (_m *IAMAPI) PutUserPolicyWithContext(_a0 context.Context, _a1 *iam.PutUserPolicyInput, _a2 ...request.Option) (*iam.PutUserPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8479,7 +9259,7 @@ func (_m *IAMAPI) PutUserPolicyWithContext(_a0 aws.Context, _a1 *iam.PutUserPoli
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.PutUserPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.PutUserPolicyInput, ...request.Option) *iam.PutUserPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.PutUserPolicyInput, ...request.Option) *iam.PutUserPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8488,7 +9268,7 @@ func (_m *IAMAPI) PutUserPolicyWithContext(_a0 aws.Context, _a1 *iam.PutUserPoli
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.PutUserPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.PutUserPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8546,7 +9326,7 @@ func (_m *IAMAPI) RemoveClientIDFromOpenIDConnectProviderRequest(_a0 *iam.Remove
 }
 
 // RemoveClientIDFromOpenIDConnectProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) RemoveClientIDFromOpenIDConnectProviderWithContext(_a0 aws.Context, _a1 *iam.RemoveClientIDFromOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.RemoveClientIDFromOpenIDConnectProviderOutput, error) {
+func (_m *IAMAPI) RemoveClientIDFromOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *iam.RemoveClientIDFromOpenIDConnectProviderInput, _a2 ...request.Option) (*iam.RemoveClientIDFromOpenIDConnectProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8557,7 +9337,7 @@ func (_m *IAMAPI) RemoveClientIDFromOpenIDConnectProviderWithContext(_a0 aws.Con
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.RemoveClientIDFromOpenIDConnectProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.RemoveClientIDFromOpenIDConnectProviderInput, ...request.Option) *iam.RemoveClientIDFromOpenIDConnectProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.RemoveClientIDFromOpenIDConnectProviderInput, ...request.Option) *iam.RemoveClientIDFromOpenIDConnectProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8566,7 +9346,7 @@ func (_m *IAMAPI) RemoveClientIDFromOpenIDConnectProviderWithContext(_a0 aws.Con
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.RemoveClientIDFromOpenIDConnectProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.RemoveClientIDFromOpenIDConnectProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8624,7 +9404,7 @@ func (_m *IAMAPI) RemoveRoleFromInstanceProfileRequest(_a0 *iam.RemoveRoleFromIn
 }
 
 // RemoveRoleFromInstanceProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) RemoveRoleFromInstanceProfileWithContext(_a0 aws.Context, _a1 *iam.RemoveRoleFromInstanceProfileInput, _a2 ...request.Option) (*iam.RemoveRoleFromInstanceProfileOutput, error) {
+func (_m *IAMAPI) RemoveRoleFromInstanceProfileWithContext(_a0 context.Context, _a1 *iam.RemoveRoleFromInstanceProfileInput, _a2 ...request.Option) (*iam.RemoveRoleFromInstanceProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8635,7 +9415,7 @@ func (_m *IAMAPI) RemoveRoleFromInstanceProfileWithContext(_a0 aws.Context, _a1 
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.RemoveRoleFromInstanceProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.RemoveRoleFromInstanceProfileInput, ...request.Option) *iam.RemoveRoleFromInstanceProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.RemoveRoleFromInstanceProfileInput, ...request.Option) *iam.RemoveRoleFromInstanceProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8644,7 +9424,7 @@ func (_m *IAMAPI) RemoveRoleFromInstanceProfileWithContext(_a0 aws.Context, _a1 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.RemoveRoleFromInstanceProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.RemoveRoleFromInstanceProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8702,7 +9482,7 @@ func (_m *IAMAPI) RemoveUserFromGroupRequest(_a0 *iam.RemoveUserFromGroupInput) 
 }
 
 // RemoveUserFromGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) RemoveUserFromGroupWithContext(_a0 aws.Context, _a1 *iam.RemoveUserFromGroupInput, _a2 ...request.Option) (*iam.RemoveUserFromGroupOutput, error) {
+func (_m *IAMAPI) RemoveUserFromGroupWithContext(_a0 context.Context, _a1 *iam.RemoveUserFromGroupInput, _a2 ...request.Option) (*iam.RemoveUserFromGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8713,7 +9493,7 @@ func (_m *IAMAPI) RemoveUserFromGroupWithContext(_a0 aws.Context, _a1 *iam.Remov
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.RemoveUserFromGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.RemoveUserFromGroupInput, ...request.Option) *iam.RemoveUserFromGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.RemoveUserFromGroupInput, ...request.Option) *iam.RemoveUserFromGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8722,7 +9502,7 @@ func (_m *IAMAPI) RemoveUserFromGroupWithContext(_a0 aws.Context, _a1 *iam.Remov
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.RemoveUserFromGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.RemoveUserFromGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8780,7 +9560,7 @@ func (_m *IAMAPI) ResetServiceSpecificCredentialRequest(_a0 *iam.ResetServiceSpe
 }
 
 // ResetServiceSpecificCredentialWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ResetServiceSpecificCredentialWithContext(_a0 aws.Context, _a1 *iam.ResetServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.ResetServiceSpecificCredentialOutput, error) {
+func (_m *IAMAPI) ResetServiceSpecificCredentialWithContext(_a0 context.Context, _a1 *iam.ResetServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.ResetServiceSpecificCredentialOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8791,7 +9571,7 @@ func (_m *IAMAPI) ResetServiceSpecificCredentialWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ResetServiceSpecificCredentialOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ResetServiceSpecificCredentialInput, ...request.Option) *iam.ResetServiceSpecificCredentialOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ResetServiceSpecificCredentialInput, ...request.Option) *iam.ResetServiceSpecificCredentialOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8800,7 +9580,7 @@ func (_m *IAMAPI) ResetServiceSpecificCredentialWithContext(_a0 aws.Context, _a1
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ResetServiceSpecificCredentialInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ResetServiceSpecificCredentialInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8858,7 +9638,7 @@ func (_m *IAMAPI) ResyncMFADeviceRequest(_a0 *iam.ResyncMFADeviceInput) (*reques
 }
 
 // ResyncMFADeviceWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) ResyncMFADeviceWithContext(_a0 aws.Context, _a1 *iam.ResyncMFADeviceInput, _a2 ...request.Option) (*iam.ResyncMFADeviceOutput, error) {
+func (_m *IAMAPI) ResyncMFADeviceWithContext(_a0 context.Context, _a1 *iam.ResyncMFADeviceInput, _a2 ...request.Option) (*iam.ResyncMFADeviceOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8869,7 +9649,7 @@ func (_m *IAMAPI) ResyncMFADeviceWithContext(_a0 aws.Context, _a1 *iam.ResyncMFA
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.ResyncMFADeviceOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.ResyncMFADeviceInput, ...request.Option) *iam.ResyncMFADeviceOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.ResyncMFADeviceInput, ...request.Option) *iam.ResyncMFADeviceOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8878,7 +9658,7 @@ func (_m *IAMAPI) ResyncMFADeviceWithContext(_a0 aws.Context, _a1 *iam.ResyncMFA
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.ResyncMFADeviceInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.ResyncMFADeviceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -8936,7 +9716,7 @@ func (_m *IAMAPI) SetDefaultPolicyVersionRequest(_a0 *iam.SetDefaultPolicyVersio
 }
 
 // SetDefaultPolicyVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) SetDefaultPolicyVersionWithContext(_a0 aws.Context, _a1 *iam.SetDefaultPolicyVersionInput, _a2 ...request.Option) (*iam.SetDefaultPolicyVersionOutput, error) {
+func (_m *IAMAPI) SetDefaultPolicyVersionWithContext(_a0 context.Context, _a1 *iam.SetDefaultPolicyVersionInput, _a2 ...request.Option) (*iam.SetDefaultPolicyVersionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -8947,7 +9727,7 @@ func (_m *IAMAPI) SetDefaultPolicyVersionWithContext(_a0 aws.Context, _a1 *iam.S
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.SetDefaultPolicyVersionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.SetDefaultPolicyVersionInput, ...request.Option) *iam.SetDefaultPolicyVersionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.SetDefaultPolicyVersionInput, ...request.Option) *iam.SetDefaultPolicyVersionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -8956,7 +9736,7 @@ func (_m *IAMAPI) SetDefaultPolicyVersionWithContext(_a0 aws.Context, _a1 *iam.S
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.SetDefaultPolicyVersionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.SetDefaultPolicyVersionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9003,7 +9783,7 @@ func (_m *IAMAPI) SimulateCustomPolicyPages(_a0 *iam.SimulateCustomPolicyInput, 
 }
 
 // SimulateCustomPolicyPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) SimulateCustomPolicyPagesWithContext(_a0 aws.Context, _a1 *iam.SimulateCustomPolicyInput, _a2 func(*iam.SimulatePolicyResponse, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) SimulateCustomPolicyPagesWithContext(_a0 context.Context, _a1 *iam.SimulateCustomPolicyInput, _a2 func(*iam.SimulatePolicyResponse, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -9014,7 +9794,7 @@ func (_m *IAMAPI) SimulateCustomPolicyPagesWithContext(_a0 aws.Context, _a1 *iam
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.SimulateCustomPolicyInput, func(*iam.SimulatePolicyResponse, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.SimulateCustomPolicyInput, func(*iam.SimulatePolicyResponse, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -9049,7 +9829,7 @@ func (_m *IAMAPI) SimulateCustomPolicyRequest(_a0 *iam.SimulateCustomPolicyInput
 }
 
 // SimulateCustomPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) SimulateCustomPolicyWithContext(_a0 aws.Context, _a1 *iam.SimulateCustomPolicyInput, _a2 ...request.Option) (*iam.SimulatePolicyResponse, error) {
+func (_m *IAMAPI) SimulateCustomPolicyWithContext(_a0 context.Context, _a1 *iam.SimulateCustomPolicyInput, _a2 ...request.Option) (*iam.SimulatePolicyResponse, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9060,7 +9840,7 @@ func (_m *IAMAPI) SimulateCustomPolicyWithContext(_a0 aws.Context, _a1 *iam.Simu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.SimulatePolicyResponse
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.SimulateCustomPolicyInput, ...request.Option) *iam.SimulatePolicyResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.SimulateCustomPolicyInput, ...request.Option) *iam.SimulatePolicyResponse); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9069,7 +9849,7 @@ func (_m *IAMAPI) SimulateCustomPolicyWithContext(_a0 aws.Context, _a1 *iam.Simu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.SimulateCustomPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.SimulateCustomPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9116,7 +9896,7 @@ func (_m *IAMAPI) SimulatePrincipalPolicyPages(_a0 *iam.SimulatePrincipalPolicyI
 }
 
 // SimulatePrincipalPolicyPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
-func (_m *IAMAPI) SimulatePrincipalPolicyPagesWithContext(_a0 aws.Context, _a1 *iam.SimulatePrincipalPolicyInput, _a2 func(*iam.SimulatePolicyResponse, bool) bool, _a3 ...request.Option) error {
+func (_m *IAMAPI) SimulatePrincipalPolicyPagesWithContext(_a0 context.Context, _a1 *iam.SimulatePrincipalPolicyInput, _a2 func(*iam.SimulatePolicyResponse, bool) bool, _a3 ...request.Option) error {
 	_va := make([]interface{}, len(_a3))
 	for _i := range _a3 {
 		_va[_i] = _a3[_i]
@@ -9127,7 +9907,7 @@ func (_m *IAMAPI) SimulatePrincipalPolicyPagesWithContext(_a0 aws.Context, _a1 *
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.SimulatePrincipalPolicyInput, func(*iam.SimulatePolicyResponse, bool) bool, ...request.Option) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.SimulatePrincipalPolicyInput, func(*iam.SimulatePolicyResponse, bool) bool, ...request.Option) error); ok {
 		r0 = rf(_a0, _a1, _a2, _a3...)
 	} else {
 		r0 = ret.Error(0)
@@ -9162,7 +9942,7 @@ func (_m *IAMAPI) SimulatePrincipalPolicyRequest(_a0 *iam.SimulatePrincipalPolic
 }
 
 // SimulatePrincipalPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) SimulatePrincipalPolicyWithContext(_a0 aws.Context, _a1 *iam.SimulatePrincipalPolicyInput, _a2 ...request.Option) (*iam.SimulatePolicyResponse, error) {
+func (_m *IAMAPI) SimulatePrincipalPolicyWithContext(_a0 context.Context, _a1 *iam.SimulatePrincipalPolicyInput, _a2 ...request.Option) (*iam.SimulatePolicyResponse, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9173,7 +9953,7 @@ func (_m *IAMAPI) SimulatePrincipalPolicyWithContext(_a0 aws.Context, _a1 *iam.S
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.SimulatePolicyResponse
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.SimulatePrincipalPolicyInput, ...request.Option) *iam.SimulatePolicyResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.SimulatePrincipalPolicyInput, ...request.Option) *iam.SimulatePolicyResponse); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9182,7 +9962,319 @@ func (_m *IAMAPI) SimulatePrincipalPolicyWithContext(_a0 aws.Context, _a1 *iam.S
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.SimulatePrincipalPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.SimulatePrincipalPolicyInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagRole provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagRole(_a0 *iam.TagRoleInput) (*iam.TagRoleOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagRoleOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagRoleInput) *iam.TagRoleOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagRoleInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagRoleRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagRoleRequest(_a0 *iam.TagRoleInput) (*request.Request, *iam.TagRoleOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagRoleInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagRoleOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagRoleInput) *iam.TagRoleOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagRoleOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagRoleWithContext(_a0 context.Context, _a1 *iam.TagRoleInput, _a2 ...request.Option) (*iam.TagRoleOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagRoleOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagRoleInput, ...request.Option) *iam.TagRoleOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagRoleInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagUser provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagUser(_a0 *iam.TagUserInput) (*iam.TagUserOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.TagUserOutput
+	if rf, ok := ret.Get(0).(func(*iam.TagUserInput) *iam.TagUserOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagUserOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.TagUserInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagUserRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) TagUserRequest(_a0 *iam.TagUserInput) (*request.Request, *iam.TagUserOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.TagUserInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.TagUserOutput
+	if rf, ok := ret.Get(1).(func(*iam.TagUserInput) *iam.TagUserOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.TagUserOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagUserWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) TagUserWithContext(_a0 context.Context, _a1 *iam.TagUserInput, _a2 ...request.Option) (*iam.TagUserOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.TagUserOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.TagUserInput, ...request.Option) *iam.TagUserOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.TagUserOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.TagUserInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagRole provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagRole(_a0 *iam.UntagRoleInput) (*iam.UntagRoleOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagRoleOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagRoleInput) *iam.UntagRoleOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagRoleInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagRoleRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagRoleRequest(_a0 *iam.UntagRoleInput) (*request.Request, *iam.UntagRoleOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagRoleInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagRoleOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagRoleInput) *iam.UntagRoleOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagRoleOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagRoleWithContext(_a0 context.Context, _a1 *iam.UntagRoleInput, _a2 ...request.Option) (*iam.UntagRoleOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagRoleOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagRoleInput, ...request.Option) *iam.UntagRoleOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagRoleOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagRoleInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagUser provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagUser(_a0 *iam.UntagUserInput) (*iam.UntagUserOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.UntagUserOutput
+	if rf, ok := ret.Get(0).(func(*iam.UntagUserInput) *iam.UntagUserOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagUserOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.UntagUserInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagUserRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) UntagUserRequest(_a0 *iam.UntagUserInput) (*request.Request, *iam.UntagUserOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.UntagUserInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.UntagUserOutput
+	if rf, ok := ret.Get(1).(func(*iam.UntagUserInput) *iam.UntagUserOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.UntagUserOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagUserWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) UntagUserWithContext(_a0 context.Context, _a1 *iam.UntagUserInput, _a2 ...request.Option) (*iam.UntagUserOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.UntagUserOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UntagUserInput, ...request.Option) *iam.UntagUserOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.UntagUserOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UntagUserInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9240,7 +10332,7 @@ func (_m *IAMAPI) UpdateAccessKeyRequest(_a0 *iam.UpdateAccessKeyInput) (*reques
 }
 
 // UpdateAccessKeyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateAccessKeyWithContext(_a0 aws.Context, _a1 *iam.UpdateAccessKeyInput, _a2 ...request.Option) (*iam.UpdateAccessKeyOutput, error) {
+func (_m *IAMAPI) UpdateAccessKeyWithContext(_a0 context.Context, _a1 *iam.UpdateAccessKeyInput, _a2 ...request.Option) (*iam.UpdateAccessKeyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9251,7 +10343,7 @@ func (_m *IAMAPI) UpdateAccessKeyWithContext(_a0 aws.Context, _a1 *iam.UpdateAcc
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateAccessKeyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateAccessKeyInput, ...request.Option) *iam.UpdateAccessKeyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateAccessKeyInput, ...request.Option) *iam.UpdateAccessKeyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9260,7 +10352,7 @@ func (_m *IAMAPI) UpdateAccessKeyWithContext(_a0 aws.Context, _a1 *iam.UpdateAcc
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateAccessKeyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateAccessKeyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9318,7 +10410,7 @@ func (_m *IAMAPI) UpdateAccountPasswordPolicyRequest(_a0 *iam.UpdateAccountPassw
 }
 
 // UpdateAccountPasswordPolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *iam.UpdateAccountPasswordPolicyInput, _a2 ...request.Option) (*iam.UpdateAccountPasswordPolicyOutput, error) {
+func (_m *IAMAPI) UpdateAccountPasswordPolicyWithContext(_a0 context.Context, _a1 *iam.UpdateAccountPasswordPolicyInput, _a2 ...request.Option) (*iam.UpdateAccountPasswordPolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9329,7 +10421,7 @@ func (_m *IAMAPI) UpdateAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *i
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateAccountPasswordPolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateAccountPasswordPolicyInput, ...request.Option) *iam.UpdateAccountPasswordPolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateAccountPasswordPolicyInput, ...request.Option) *iam.UpdateAccountPasswordPolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9338,7 +10430,7 @@ func (_m *IAMAPI) UpdateAccountPasswordPolicyWithContext(_a0 aws.Context, _a1 *i
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateAccountPasswordPolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateAccountPasswordPolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9396,7 +10488,7 @@ func (_m *IAMAPI) UpdateAssumeRolePolicyRequest(_a0 *iam.UpdateAssumeRolePolicyI
 }
 
 // UpdateAssumeRolePolicyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateAssumeRolePolicyWithContext(_a0 aws.Context, _a1 *iam.UpdateAssumeRolePolicyInput, _a2 ...request.Option) (*iam.UpdateAssumeRolePolicyOutput, error) {
+func (_m *IAMAPI) UpdateAssumeRolePolicyWithContext(_a0 context.Context, _a1 *iam.UpdateAssumeRolePolicyInput, _a2 ...request.Option) (*iam.UpdateAssumeRolePolicyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9407,7 +10499,7 @@ func (_m *IAMAPI) UpdateAssumeRolePolicyWithContext(_a0 aws.Context, _a1 *iam.Up
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateAssumeRolePolicyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateAssumeRolePolicyInput, ...request.Option) *iam.UpdateAssumeRolePolicyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateAssumeRolePolicyInput, ...request.Option) *iam.UpdateAssumeRolePolicyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9416,7 +10508,7 @@ func (_m *IAMAPI) UpdateAssumeRolePolicyWithContext(_a0 aws.Context, _a1 *iam.Up
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateAssumeRolePolicyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateAssumeRolePolicyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9474,7 +10566,7 @@ func (_m *IAMAPI) UpdateGroupRequest(_a0 *iam.UpdateGroupInput) (*request.Reques
 }
 
 // UpdateGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateGroupWithContext(_a0 aws.Context, _a1 *iam.UpdateGroupInput, _a2 ...request.Option) (*iam.UpdateGroupOutput, error) {
+func (_m *IAMAPI) UpdateGroupWithContext(_a0 context.Context, _a1 *iam.UpdateGroupInput, _a2 ...request.Option) (*iam.UpdateGroupOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9485,7 +10577,7 @@ func (_m *IAMAPI) UpdateGroupWithContext(_a0 aws.Context, _a1 *iam.UpdateGroupIn
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateGroupOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateGroupInput, ...request.Option) *iam.UpdateGroupOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateGroupInput, ...request.Option) *iam.UpdateGroupOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9494,7 +10586,7 @@ func (_m *IAMAPI) UpdateGroupWithContext(_a0 aws.Context, _a1 *iam.UpdateGroupIn
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateGroupInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9552,7 +10644,7 @@ func (_m *IAMAPI) UpdateLoginProfileRequest(_a0 *iam.UpdateLoginProfileInput) (*
 }
 
 // UpdateLoginProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateLoginProfileWithContext(_a0 aws.Context, _a1 *iam.UpdateLoginProfileInput, _a2 ...request.Option) (*iam.UpdateLoginProfileOutput, error) {
+func (_m *IAMAPI) UpdateLoginProfileWithContext(_a0 context.Context, _a1 *iam.UpdateLoginProfileInput, _a2 ...request.Option) (*iam.UpdateLoginProfileOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9563,7 +10655,7 @@ func (_m *IAMAPI) UpdateLoginProfileWithContext(_a0 aws.Context, _a1 *iam.Update
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateLoginProfileOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateLoginProfileInput, ...request.Option) *iam.UpdateLoginProfileOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateLoginProfileInput, ...request.Option) *iam.UpdateLoginProfileOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9572,7 +10664,7 @@ func (_m *IAMAPI) UpdateLoginProfileWithContext(_a0 aws.Context, _a1 *iam.Update
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateLoginProfileInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateLoginProfileInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9630,7 +10722,7 @@ func (_m *IAMAPI) UpdateOpenIDConnectProviderThumbprintRequest(_a0 *iam.UpdateOp
 }
 
 // UpdateOpenIDConnectProviderThumbprintWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateOpenIDConnectProviderThumbprintWithContext(_a0 aws.Context, _a1 *iam.UpdateOpenIDConnectProviderThumbprintInput, _a2 ...request.Option) (*iam.UpdateOpenIDConnectProviderThumbprintOutput, error) {
+func (_m *IAMAPI) UpdateOpenIDConnectProviderThumbprintWithContext(_a0 context.Context, _a1 *iam.UpdateOpenIDConnectProviderThumbprintInput, _a2 ...request.Option) (*iam.UpdateOpenIDConnectProviderThumbprintOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9641,7 +10733,7 @@ func (_m *IAMAPI) UpdateOpenIDConnectProviderThumbprintWithContext(_a0 aws.Conte
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateOpenIDConnectProviderThumbprintOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateOpenIDConnectProviderThumbprintInput, ...request.Option) *iam.UpdateOpenIDConnectProviderThumbprintOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateOpenIDConnectProviderThumbprintInput, ...request.Option) *iam.UpdateOpenIDConnectProviderThumbprintOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9650,7 +10742,7 @@ func (_m *IAMAPI) UpdateOpenIDConnectProviderThumbprintWithContext(_a0 aws.Conte
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateOpenIDConnectProviderThumbprintInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateOpenIDConnectProviderThumbprintInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9731,7 +10823,7 @@ func (_m *IAMAPI) UpdateRoleDescriptionRequest(_a0 *iam.UpdateRoleDescriptionInp
 }
 
 // UpdateRoleDescriptionWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateRoleDescriptionWithContext(_a0 aws.Context, _a1 *iam.UpdateRoleDescriptionInput, _a2 ...request.Option) (*iam.UpdateRoleDescriptionOutput, error) {
+func (_m *IAMAPI) UpdateRoleDescriptionWithContext(_a0 context.Context, _a1 *iam.UpdateRoleDescriptionInput, _a2 ...request.Option) (*iam.UpdateRoleDescriptionOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9742,7 +10834,7 @@ func (_m *IAMAPI) UpdateRoleDescriptionWithContext(_a0 aws.Context, _a1 *iam.Upd
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateRoleDescriptionOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateRoleDescriptionInput, ...request.Option) *iam.UpdateRoleDescriptionOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateRoleDescriptionInput, ...request.Option) *iam.UpdateRoleDescriptionOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9751,7 +10843,7 @@ func (_m *IAMAPI) UpdateRoleDescriptionWithContext(_a0 aws.Context, _a1 *iam.Upd
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateRoleDescriptionInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateRoleDescriptionInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9786,7 +10878,7 @@ func (_m *IAMAPI) UpdateRoleRequest(_a0 *iam.UpdateRoleInput) (*request.Request,
 }
 
 // UpdateRoleWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateRoleWithContext(_a0 aws.Context, _a1 *iam.UpdateRoleInput, _a2 ...request.Option) (*iam.UpdateRoleOutput, error) {
+func (_m *IAMAPI) UpdateRoleWithContext(_a0 context.Context, _a1 *iam.UpdateRoleInput, _a2 ...request.Option) (*iam.UpdateRoleOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9797,7 +10889,7 @@ func (_m *IAMAPI) UpdateRoleWithContext(_a0 aws.Context, _a1 *iam.UpdateRoleInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateRoleOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateRoleInput, ...request.Option) *iam.UpdateRoleOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateRoleInput, ...request.Option) *iam.UpdateRoleOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9806,7 +10898,7 @@ func (_m *IAMAPI) UpdateRoleWithContext(_a0 aws.Context, _a1 *iam.UpdateRoleInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateRoleInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateRoleInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9864,7 +10956,7 @@ func (_m *IAMAPI) UpdateSAMLProviderRequest(_a0 *iam.UpdateSAMLProviderInput) (*
 }
 
 // UpdateSAMLProviderWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.UpdateSAMLProviderInput, _a2 ...request.Option) (*iam.UpdateSAMLProviderOutput, error) {
+func (_m *IAMAPI) UpdateSAMLProviderWithContext(_a0 context.Context, _a1 *iam.UpdateSAMLProviderInput, _a2 ...request.Option) (*iam.UpdateSAMLProviderOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9875,7 +10967,7 @@ func (_m *IAMAPI) UpdateSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.Update
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateSAMLProviderOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateSAMLProviderInput, ...request.Option) *iam.UpdateSAMLProviderOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateSAMLProviderInput, ...request.Option) *iam.UpdateSAMLProviderOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9884,7 +10976,7 @@ func (_m *IAMAPI) UpdateSAMLProviderWithContext(_a0 aws.Context, _a1 *iam.Update
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateSAMLProviderInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateSAMLProviderInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9942,7 +11034,7 @@ func (_m *IAMAPI) UpdateSSHPublicKeyRequest(_a0 *iam.UpdateSSHPublicKeyInput) (*
 }
 
 // UpdateSSHPublicKeyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.UpdateSSHPublicKeyInput, _a2 ...request.Option) (*iam.UpdateSSHPublicKeyOutput, error) {
+func (_m *IAMAPI) UpdateSSHPublicKeyWithContext(_a0 context.Context, _a1 *iam.UpdateSSHPublicKeyInput, _a2 ...request.Option) (*iam.UpdateSSHPublicKeyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -9953,7 +11045,7 @@ func (_m *IAMAPI) UpdateSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.Update
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateSSHPublicKeyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateSSHPublicKeyInput, ...request.Option) *iam.UpdateSSHPublicKeyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateSSHPublicKeyInput, ...request.Option) *iam.UpdateSSHPublicKeyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -9962,7 +11054,7 @@ func (_m *IAMAPI) UpdateSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.Update
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateSSHPublicKeyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateSSHPublicKeyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10020,7 +11112,7 @@ func (_m *IAMAPI) UpdateServerCertificateRequest(_a0 *iam.UpdateServerCertificat
 }
 
 // UpdateServerCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateServerCertificateWithContext(_a0 aws.Context, _a1 *iam.UpdateServerCertificateInput, _a2 ...request.Option) (*iam.UpdateServerCertificateOutput, error) {
+func (_m *IAMAPI) UpdateServerCertificateWithContext(_a0 context.Context, _a1 *iam.UpdateServerCertificateInput, _a2 ...request.Option) (*iam.UpdateServerCertificateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10031,7 +11123,7 @@ func (_m *IAMAPI) UpdateServerCertificateWithContext(_a0 aws.Context, _a1 *iam.U
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateServerCertificateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateServerCertificateInput, ...request.Option) *iam.UpdateServerCertificateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateServerCertificateInput, ...request.Option) *iam.UpdateServerCertificateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10040,7 +11132,7 @@ func (_m *IAMAPI) UpdateServerCertificateWithContext(_a0 aws.Context, _a1 *iam.U
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateServerCertificateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateServerCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10098,7 +11190,7 @@ func (_m *IAMAPI) UpdateServiceSpecificCredentialRequest(_a0 *iam.UpdateServiceS
 }
 
 // UpdateServiceSpecificCredentialWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateServiceSpecificCredentialWithContext(_a0 aws.Context, _a1 *iam.UpdateServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.UpdateServiceSpecificCredentialOutput, error) {
+func (_m *IAMAPI) UpdateServiceSpecificCredentialWithContext(_a0 context.Context, _a1 *iam.UpdateServiceSpecificCredentialInput, _a2 ...request.Option) (*iam.UpdateServiceSpecificCredentialOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10109,7 +11201,7 @@ func (_m *IAMAPI) UpdateServiceSpecificCredentialWithContext(_a0 aws.Context, _a
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateServiceSpecificCredentialOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateServiceSpecificCredentialInput, ...request.Option) *iam.UpdateServiceSpecificCredentialOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateServiceSpecificCredentialInput, ...request.Option) *iam.UpdateServiceSpecificCredentialOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10118,7 +11210,7 @@ func (_m *IAMAPI) UpdateServiceSpecificCredentialWithContext(_a0 aws.Context, _a
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateServiceSpecificCredentialInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateServiceSpecificCredentialInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10176,7 +11268,7 @@ func (_m *IAMAPI) UpdateSigningCertificateRequest(_a0 *iam.UpdateSigningCertific
 }
 
 // UpdateSigningCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.UpdateSigningCertificateInput, _a2 ...request.Option) (*iam.UpdateSigningCertificateOutput, error) {
+func (_m *IAMAPI) UpdateSigningCertificateWithContext(_a0 context.Context, _a1 *iam.UpdateSigningCertificateInput, _a2 ...request.Option) (*iam.UpdateSigningCertificateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10187,7 +11279,7 @@ func (_m *IAMAPI) UpdateSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateSigningCertificateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateSigningCertificateInput, ...request.Option) *iam.UpdateSigningCertificateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateSigningCertificateInput, ...request.Option) *iam.UpdateSigningCertificateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10196,7 +11288,7 @@ func (_m *IAMAPI) UpdateSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateSigningCertificateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateSigningCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10254,7 +11346,7 @@ func (_m *IAMAPI) UpdateUserRequest(_a0 *iam.UpdateUserInput) (*request.Request,
 }
 
 // UpdateUserWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UpdateUserWithContext(_a0 aws.Context, _a1 *iam.UpdateUserInput, _a2 ...request.Option) (*iam.UpdateUserOutput, error) {
+func (_m *IAMAPI) UpdateUserWithContext(_a0 context.Context, _a1 *iam.UpdateUserInput, _a2 ...request.Option) (*iam.UpdateUserOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10265,7 +11357,7 @@ func (_m *IAMAPI) UpdateUserWithContext(_a0 aws.Context, _a1 *iam.UpdateUserInpu
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UpdateUserOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UpdateUserInput, ...request.Option) *iam.UpdateUserOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UpdateUserInput, ...request.Option) *iam.UpdateUserOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10274,7 +11366,7 @@ func (_m *IAMAPI) UpdateUserWithContext(_a0 aws.Context, _a1 *iam.UpdateUserInpu
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UpdateUserInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UpdateUserInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10332,7 +11424,7 @@ func (_m *IAMAPI) UploadSSHPublicKeyRequest(_a0 *iam.UploadSSHPublicKeyInput) (*
 }
 
 // UploadSSHPublicKeyWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UploadSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.UploadSSHPublicKeyInput, _a2 ...request.Option) (*iam.UploadSSHPublicKeyOutput, error) {
+func (_m *IAMAPI) UploadSSHPublicKeyWithContext(_a0 context.Context, _a1 *iam.UploadSSHPublicKeyInput, _a2 ...request.Option) (*iam.UploadSSHPublicKeyOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10343,7 +11435,7 @@ func (_m *IAMAPI) UploadSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.Upload
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UploadSSHPublicKeyOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UploadSSHPublicKeyInput, ...request.Option) *iam.UploadSSHPublicKeyOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UploadSSHPublicKeyInput, ...request.Option) *iam.UploadSSHPublicKeyOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10352,7 +11444,7 @@ func (_m *IAMAPI) UploadSSHPublicKeyWithContext(_a0 aws.Context, _a1 *iam.Upload
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UploadSSHPublicKeyInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UploadSSHPublicKeyInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10410,7 +11502,7 @@ func (_m *IAMAPI) UploadServerCertificateRequest(_a0 *iam.UploadServerCertificat
 }
 
 // UploadServerCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UploadServerCertificateWithContext(_a0 aws.Context, _a1 *iam.UploadServerCertificateInput, _a2 ...request.Option) (*iam.UploadServerCertificateOutput, error) {
+func (_m *IAMAPI) UploadServerCertificateWithContext(_a0 context.Context, _a1 *iam.UploadServerCertificateInput, _a2 ...request.Option) (*iam.UploadServerCertificateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10421,7 +11513,7 @@ func (_m *IAMAPI) UploadServerCertificateWithContext(_a0 aws.Context, _a1 *iam.U
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UploadServerCertificateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UploadServerCertificateInput, ...request.Option) *iam.UploadServerCertificateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UploadServerCertificateInput, ...request.Option) *iam.UploadServerCertificateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10430,7 +11522,7 @@ func (_m *IAMAPI) UploadServerCertificateWithContext(_a0 aws.Context, _a1 *iam.U
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UploadServerCertificateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UploadServerCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10488,7 +11580,7 @@ func (_m *IAMAPI) UploadSigningCertificateRequest(_a0 *iam.UploadSigningCertific
 }
 
 // UploadSigningCertificateWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) UploadSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.UploadSigningCertificateInput, _a2 ...request.Option) (*iam.UploadSigningCertificateOutput, error) {
+func (_m *IAMAPI) UploadSigningCertificateWithContext(_a0 context.Context, _a1 *iam.UploadSigningCertificateInput, _a2 ...request.Option) (*iam.UploadSigningCertificateOutput, error) {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10499,7 +11591,7 @@ func (_m *IAMAPI) UploadSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.
 	ret := _m.Called(_ca...)
 
 	var r0 *iam.UploadSigningCertificateOutput
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.UploadSigningCertificateInput, ...request.Option) *iam.UploadSigningCertificateOutput); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.UploadSigningCertificateInput, ...request.Option) *iam.UploadSigningCertificateOutput); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		if ret.Get(0) != nil {
@@ -10508,7 +11600,7 @@ func (_m *IAMAPI) UploadSigningCertificateWithContext(_a0 aws.Context, _a1 *iam.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(aws.Context, *iam.UploadSigningCertificateInput, ...request.Option) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.UploadSigningCertificateInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -10532,7 +11624,7 @@ func (_m *IAMAPI) WaitUntilInstanceProfileExists(_a0 *iam.GetInstanceProfileInpu
 }
 
 // WaitUntilInstanceProfileExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) WaitUntilInstanceProfileExistsWithContext(_a0 aws.Context, _a1 *iam.GetInstanceProfileInput, _a2 ...request.WaiterOption) error {
+func (_m *IAMAPI) WaitUntilInstanceProfileExistsWithContext(_a0 context.Context, _a1 *iam.GetInstanceProfileInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10543,7 +11635,7 @@ func (_m *IAMAPI) WaitUntilInstanceProfileExistsWithContext(_a0 aws.Context, _a1
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetInstanceProfileInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetInstanceProfileInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
@@ -10567,7 +11659,7 @@ func (_m *IAMAPI) WaitUntilUserExists(_a0 *iam.GetUserInput) error {
 }
 
 // WaitUntilUserExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
-func (_m *IAMAPI) WaitUntilUserExistsWithContext(_a0 aws.Context, _a1 *iam.GetUserInput, _a2 ...request.WaiterOption) error {
+func (_m *IAMAPI) WaitUntilUserExistsWithContext(_a0 context.Context, _a1 *iam.GetUserInput, _a2 ...request.WaiterOption) error {
 	_va := make([]interface{}, len(_a2))
 	for _i := range _a2 {
 		_va[_i] = _a2[_i]
@@ -10578,7 +11670,7 @@ func (_m *IAMAPI) WaitUntilUserExistsWithContext(_a0 aws.Context, _a1 *iam.GetUs
 	ret := _m.Called(_ca...)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(aws.Context, *iam.GetUserInput, ...request.WaiterOption) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetUserInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)

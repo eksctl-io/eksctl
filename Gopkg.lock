@@ -10,7 +10,7 @@
   version = "v0.30.0"
 
 [[projects]]
-  digest = "1:cd3a168ac30e198d79d79f433ff3d809c586164bb14b27db64f63ce6306c9bb2"
+  digest = "1:c47cc319198242faea01df071bb75c04ea3bf6da0f86795dece991a1dca745a2"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -23,6 +23,7 @@
     "aws/credentials",
     "aws/credentials/ec2rolecreds",
     "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
     "aws/credentials/stscreds",
     "aws/csm",
     "aws/defaults",
@@ -31,8 +32,11 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
+    "internal/s3err",
     "internal/sdkio",
     "internal/sdkrand",
+    "internal/sdkuri",
     "internal/shareddefaults",
     "private/protocol",
     "private/protocol/ec2query",
@@ -71,8 +75,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "60a85d13d02126d8d15ea3f21fd57ac3a2774f37"
-  version = "v1.14.0"
+  revision = "f63ecde3e92bac72832e9b860480b29792e6a924"
+  version = "v1.17.7"
 
 [[projects]]
   branch = "pin-eksctl"
@@ -425,11 +429,11 @@
   version = "v1.0"
 
 [[projects]]
-  digest = "1:ac6d01547ec4f7f673311b4663909269bfb8249952de3279799289467837c3cc"
+  digest = "1:1f2aebae7e7c856562355ec0198d8ca2fa222fb05e5b1b66632a1fce39631885"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "0b12d6b5"
+  revision = "c2b33e84"
 
 [[projects]]
   digest = "1:8e36686e8b139f8fe240c1d5cf3a145bc675c22ff8e707857cdd3ae17b00d728"
