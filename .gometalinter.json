@@ -8,7 +8,8 @@
     ],
     "Exclude": [
         "^pkg\/nodebootstrap\/assets.go",
-        "^pkg\/testutils\/ginkgo.go"
+        "^pkg\/testutils\/ginkgo.go",
+        "^pkg\/drain"
     ],
     "Deadline": "5m"
 }
