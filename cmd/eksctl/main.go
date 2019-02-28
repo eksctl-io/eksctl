@@ -6,10 +6,12 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"
 	"github.com/weaveworks/eksctl/pkg/ctl/create"
 	"github.com/weaveworks/eksctl/pkg/ctl/delete"
+	"github.com/weaveworks/eksctl/pkg/ctl/drain"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
 	"github.com/weaveworks/eksctl/pkg/ctl/utils"
@@ -74,6 +76,7 @@ func addCommands(g *cmdutils.Grouping) {
 	rootCmd.AddCommand(delete.Command(g))
 	rootCmd.AddCommand(get.Command(g))
 	rootCmd.AddCommand(scale.Command(g))
+	rootCmd.AddCommand(drain.Command(g))
 	rootCmd.AddCommand(utils.Command(g))
 	rootCmd.AddCommand(completion.Command(rootCmd))
 }
