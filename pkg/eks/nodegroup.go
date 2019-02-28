@@ -79,7 +79,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.N
 		}
 	}
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waitiing for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), *ng.MinSize, ng.Name)
+		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), *ng.MinSize, ng.Name)
 	}
 
 	if _, err = getNodes(clientSet, ng); err != nil {
