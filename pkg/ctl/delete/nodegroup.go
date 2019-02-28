@@ -12,11 +12,13 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/drain"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 var (
-	updateAuthConfigMap bool
+	updateAuthConfigMap  bool
+	deleteNodeGroupDrain bool
 )
 
 func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -44,6 +46,7 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete (required)")
 		cmdutils.AddWaitFlag(&wait, fs)
 		fs.BoolVar(&updateAuthConfigMap, "update-auth-config-map", true, "Remove nodegroup IAM role from aws-auth config map")
+		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, true)
@@ -93,6 +96,12 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 		// remove node group from config map
 		if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
 			logger.Warning(err.Error())
+		}
+	}
+
+	if deleteNodeGroupDrain {
+		if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), false); err != nil {
+			return err
 		}
 	}
 
