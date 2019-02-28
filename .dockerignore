@@ -4,3 +4,5 @@ build
 DCO
 LICENSE*
 skaffold.yaml
+eksctl
+eksctl-integration-test
