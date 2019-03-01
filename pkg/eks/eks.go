@@ -11,6 +11,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/aws/aws-sdk-go/aws/request"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -18,6 +19,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -259,6 +261,51 @@ func (c *ClusterProvider) WaitForControlPlane(id *api.ClusterMeta, clientSet *ku
 			return fmt.Errorf("timed out waiting for control plane %q after %s", id.Name, c.Provider.WaitTimeout())
 		}
 	}
+}
+
+// UpdateClusterVersion calls eks.UpdateClusterVersion and updates to cfg.Metadata.Version,
+// it will return update ID along with an error (if it occurrs)
+func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (string, error) {
+	input := &awseks.UpdateClusterVersionInput{
+		Name:    &cfg.Metadata.Name,
+		Version: &cfg.Metadata.Version,
+	}
+	output, err := c.Provider.EKS().UpdateClusterVersion(input)
+	if err != nil {
+		return "", err
+	}
+	return *output.Update.Id, nil
+}
+
+// UpdateClusterVersionBlocking calls UpdateClusterVersion and blocks until update
+// operation is successful
+func (c *ClusterProvider) UpdateClusterVersionBlocking(cfg *api.ClusterConfig) error {
+	id, err := c.UpdateClusterVersion(cfg)
+	if err != nil {
+		return err
+	}
+
+	newRequest := func() *request.Request {
+		input := &awseks.DescribeUpdateInput{
+			Name:     &cfg.Metadata.Name,
+			UpdateId: &id,
+		}
+		req, _ := c.Provider.EKS().DescribeUpdateRequest(input)
+		return req
+	}
+
+	msg := fmt.Sprintf("waiting for control plane %q version update", cfg.Metadata.Name)
+
+	acceptors := waiters.MakeAcceptors(
+		"Update.Status",
+		awseks.UpdateStatusSuccessful,
+		[]string{
+			awseks.UpdateStatusCancelled,
+			awseks.UpdateStatusFailed,
+		},
+	)
+
+	return waiters.Wait(cfg.Metadata.Name, msg, acceptors, newRequest, c.Provider.WaitTimeout(), nil)
 }
 
 func addSummaryTableColumns(printer *printers.TablePrinter) {
