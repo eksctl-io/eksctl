@@ -82,7 +82,8 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := stackManager.AppendNewClusterStackResource(updateClusterDryRun); err != nil {
+	updateRequired, err := stackManager.AppendNewClusterStackResource(updateClusterDryRun)
+	if err != nil {
 		return err
 	}
 
@@ -90,8 +91,9 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
-	if updateClusterDryRun {
+	if updateClusterDryRun && updateRequired {
 		logger.Warning("no changes were applied, run again with '--dry-run=false' to apply the changes")
 	}
+
 	return nil
 }

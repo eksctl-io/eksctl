@@ -63,7 +63,7 @@ func (c *StackCollection) WaitDeleteCluster(force bool) error {
 
 // AppendNewClusterStackResource will update cluster
 // stack with new resources in append-only way
-func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
+func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) (bool, error) {
 	name := c.makeClusterStackName()
 
 	// NOTE: currently we can only append new resources to the stack,
@@ -74,7 +74,7 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
 
 	currentTemplate, err := c.GetStackTemplate(name)
 	if err != nil {
-		return errors.Wrapf(err, "error getting stack template %s", name)
+		return false, errors.Wrapf(err, "error getting stack template %s", name)
 	}
 
 	addResources := []string{}
@@ -83,25 +83,25 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
 	currentResources := gjson.Get(currentTemplate, resourcesRootPath)
 	currentOutputs := gjson.Get(currentTemplate, outputsRootPath)
 	if !currentResources.IsObject() || !currentOutputs.IsObject() {
-		return fmt.Errorf("unexpected template format of the current stack ")
+		return false, fmt.Errorf("unexpected template format of the current stack ")
 	}
 
 	logger.Info("creating cluster stack %q", name)
 	newStack := builder.NewClusterResourceSet(c.provider, c.spec)
 	if err := newStack.AddAllResources(); err != nil {
-		return err
+		return false, err
 	}
 
 	newTemplate, err := newStack.RenderJSON()
 	if err != nil {
-		return errors.Wrapf(err, "rendering template for %q stack", name)
+		return false, errors.Wrapf(err, "rendering template for %q stack", name)
 	}
 	logger.Debug("newTemplate = %s", newTemplate)
 
 	newResources := gjson.Get(string(newTemplate), resourcesRootPath)
 	newOutputs := gjson.Get(string(newTemplate), outputsRootPath)
 	if !newResources.IsObject() || !newOutputs.IsObject() {
-		return fmt.Errorf("unexpected template format of the new version of the stack ")
+		return false, fmt.Errorf("unexpected template format of the new version of the stack ")
 	}
 
 	logger.Debug("currentTemplate = %s", currentTemplate)
@@ -121,18 +121,18 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
 		return iterFunc(&addResources, resourcesRootPath, currentResources, k, v)
 	})
 	if iterErr != nil {
-		return errors.Wrap(iterErr, "adding resources to current stack template")
+		return false, errors.Wrap(iterErr, "adding resources to current stack template")
 	}
 	newOutputs.ForEach(func(k, v gjson.Result) bool {
 		return iterFunc(&addOutputs, outputsRootPath, currentOutputs, k, v)
 	})
 	if iterErr != nil {
-		return errors.Wrap(iterErr, "adding outputs to current stack template")
+		return false, errors.Wrap(iterErr, "adding outputs to current stack template")
 	}
 
 	if len(addResources) == 0 && len(addOutputs) == 0 {
 		logger.Success("all resources in cluster stack %q are up-to-date", name)
-		return nil
+		return false, nil
 	}
 
 	logger.Debug("currentTemplate = %s", currentTemplate)
@@ -140,9 +140,9 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) error {
 	describeUpdate := fmt.Sprintf("updating stack to add new resources %v and ouputs %v", addResources, addOutputs)
 	if dryRun {
 		logger.Info("(dry-run) %s", describeUpdate)
-		return nil
+		return false, nil
 	}
-	return c.UpdateStack(name, "update-cluster", describeUpdate, []byte(currentTemplate), nil)
+	return true, c.UpdateStack(name, "update-cluster", describeUpdate, []byte(currentTemplate), nil)
 }
 
 func getClusterName(s *Stack) string {
