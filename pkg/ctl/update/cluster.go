@@ -48,18 +48,6 @@ func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 }
 
 func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
-	ctl := eks.New(p, cfg)
-
-	printer := printers.NewJSONPrinter()
-
-	if err := api.Register(); err != nil {
-		return err
-	}
-
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
 	if cfg.Metadata.Name != "" && nameArg != "" {
 		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, nameArg)
 	}
@@ -70,6 +58,18 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	if cfg.Metadata.Name == "" {
 		return fmt.Errorf("--name must be set")
+	}
+
+	ctl := eks.New(p, cfg)
+
+	printer := printers.NewJSONPrinter()
+
+	if err := api.Register(); err != nil {
+		return err
+	}
+
+	if err := ctl.CheckAuth(); err != nil {
+		return err
 	}
 
 	if err := ctl.GetClusterVPC(cfg); err != nil {
