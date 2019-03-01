@@ -74,3 +74,20 @@ When upgrading from 1.10 to 1.11, following add-ons should be upgraded:
 
 - `kube-system:deployment/kube-dns` has to be replaced with `kube-system:deployment/coredns`, the manifest lives in [S3 bucket](https://amazon-eks.s3-us-west-2.amazonaws.com)
 - `kube-system:daemonset/aws-node` the manifest lives [in GitHub](https://github.com/aws/amazon-vpc-cni-k8s/tree/master/config)
+
+## Downgrades
+
+At the time of writing of this proposal version downgrades were not supported by EKS.
+It's trusted that upgrades will work as expected with EKS SLA.
+
+More specifically, an `eks.UpdateClusterVersion` call for cluster running 1.11 trying
+to go back to 1.10 results the following error:
+```
+An error occurred (InvalidParameterException) when calling the UpdateClusterVersion operation: unsupported Kubernetes version update from the current version, 1.11, to 1.10
+```
+
+## General Config Changes
+
+Eventually `eksctl update cluster` will evolve enough to support any meaningful changes
+to configuration, albeit within what is supported by EKS. At present it's only capable
+of appending new resources, such as shared SG.
