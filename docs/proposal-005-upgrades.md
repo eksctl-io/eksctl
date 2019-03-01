@@ -5,23 +5,72 @@
 > experience, those changes should be suggested via a PR to this proposal document.
 > Any other changes to the text of the proposal or technical corrections are also very welcome.
 
-Cluster upgrades are inherintly a multi-step process, and can be fairly complex.
-
 With `eksctl` users should be able to easily upgrade from one version of Kubernetes to another.
-There maybe additional manual steps with some versions, however most parts should be automated.
 
-When upgrading a cluster, one needs to call `eks.UpdateClusterVersion`. After that they need
-to replace nodegroups one by one.
+Cluster upgrades are inherently a multi-step process, and can be fairly complex. It's important
+that user can drive upgrades at their own pace, if they must.
+
+There is a standard set of steps a user needs to take, most of which can be automated as a single
+command also. However, there maybe additional manual steps with some versions, however most parts
+should be automated.
+
+When upgrading a cluster, one needs to call `eks.UpdateClusterVersion`. In some cases other changes
+to cluster stack maybe required. After that they need to replace nodegroups one by one. 
 
 ## Initial phase
 
 - provide command that checks cluster stack for upgradability
-  - let's user update cluster stack to cater for any additional reources
+  - let's user update cluster stack to cater for any additional resources
   - allows to call `eks.UpdateClusterVersion` out-of-band and wait for completion
-- provide instruction on how to iterate and replace nodegoups
-- provide instruction on how to 
+- provide instruction on how to iterate and replace nodegroups
+- provide instruction on how to ...
 
-## Final phase
+## Second phase (more automation)
 
 - use CloudFormation instead of calling `eks.UpdateClusterVersion` directly
 - provide automated command
+
+## CLI Design
+
+For initial phase:
+
+Update cluster version and append new resources to the cluster stack (if needed):
+```
+eksclt update cluster --name=<clusterName>
+```
+
+For each `<currentNodeGroup>`, create `<replacementNodeGroup>`:
+```
+eksctl create ng --cluster=<clusterName> --name=<replacementNodeGroup>
+eksctl delete ng --cluster=<clusterName> --name=<currentNodeGroup>
+```
+
+Alternatively, one can use `cluster.yaml` config file.
+They will need to update `metadata.version` field set in the config file, then run:
+```
+eksclt update cluster --config-file=cluster.yaml
+```
+> NOTE: to begin with this will only update cluster version and append any resources
+> to the stacks as needed
+
+And having added definition for new nodegroup(s), they can:
+```
+eksctl create ng --config-file=cluster.yaml --only=<replacementNodeGroup>
+eksctl delete ng --cluster=<clusterName> --name=<currentNodeGroup>
+```
+
+In the future a flag should be added to `eksctl update cluster` that allows users to
+control what gets updated exactly, e.g. `--only=version,vpc,iam`.
+
+For second phase `eksctl update cluster` should update everything with (or without) the
+config file, including add-ons (although that may be more convent to move into another
+command - TBD).
+
+## Default Add-ons
+
+When upgrading from 1.10 to 1.11, following add-ons should be upgraded:
+
+- `kube-system:daemonset/kube-proxy` - only image tag has to change, it matches Kubernetes version
+
+- `kube-system:deployment/kube-dns` has to be replaced with `kube-system:deployment/coredns`, the manifest lives in [S3 bucket](https://amazon-eks.s3-us-west-2.amazonaws.com)
+- `kube-system:daemonset/aws-node` the manifest lives [in GitHub](https://github.com/aws/amazon-vpc-cni-k8s/tree/master/config)
