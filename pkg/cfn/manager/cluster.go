@@ -22,7 +22,7 @@ func (c *StackCollection) makeClusterStackName() string {
 // CreateCluster creates the cluster
 func (c *StackCollection) CreateCluster(errs chan error, _ interface{}) error {
 	name := c.makeClusterStackName()
-	logger.Info("creating cluster stack %q", name)
+	logger.Info("building cluster stack %q", name)
 	stack := builder.NewClusterResourceSet(c.provider, c.spec)
 	if err := stack.AddAllResources(); err != nil {
 		return err
@@ -86,7 +86,7 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) (bool, erro
 		return false, fmt.Errorf("unexpected template format of the current stack ")
 	}
 
-	logger.Info("creating cluster stack %q", name)
+	logger.Info("re-building cluster stack %q", name)
 	newStack := builder.NewClusterResourceSet(c.provider, c.spec)
 	if err := newStack.AddAllResources(); err != nil {
 		return false, err
