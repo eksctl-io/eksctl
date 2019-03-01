@@ -33,7 +33,7 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 	if err != nil {
 		logger.Debug("err = %s", err.Error())
 		return fmt.Errorf(
-			"shared node security group missing, to fix this run 'eksctl utils update-cluster-stack --name=%s --region=%s'",
+			"shared node security group missing, to fix this run 'eksctl update cluster --name=%s --region=%s'",
 			cfg.Metadata.Name,
 			cfg.Metadata.Region,
 		)
