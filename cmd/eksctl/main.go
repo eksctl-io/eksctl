@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/drain"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
+	"github.com/weaveworks/eksctl/pkg/ctl/update"
 	"github.com/weaveworks/eksctl/pkg/ctl/utils"
 )
 
@@ -75,6 +76,7 @@ func addCommands(g *cmdutils.Grouping) {
 	rootCmd.AddCommand(create.Command(g))
 	rootCmd.AddCommand(delete.Command(g))
 	rootCmd.AddCommand(get.Command(g))
+	rootCmd.AddCommand(update.Command(g))
 	rootCmd.AddCommand(scale.Command(g))
 	rootCmd.AddCommand(drain.Command(g))
 	rootCmd.AddCommand(utils.Command(g))
