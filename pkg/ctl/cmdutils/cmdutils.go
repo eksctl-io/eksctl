@@ -58,8 +58,8 @@ func AddVersionFlag(fs *pflag.FlagSet, meta *api.ClusterMeta, extraUsageInfo str
 }
 
 // AddWaitFlag adds common --wait flag
-func AddWaitFlag(wait *bool, fs *pflag.FlagSet) {
-	fs.BoolVarP(wait, "wait", "w", false, "Wait for deletion of all resources before exiting")
+func AddWaitFlag(wait *bool, fs *pflag.FlagSet, description string) {
+	fs.BoolVarP(wait, "wait", "w", *wait, fmt.Sprintf("wait for %s before exiting", description))
 }
 
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written
