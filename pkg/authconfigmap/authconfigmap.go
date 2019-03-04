@@ -20,7 +20,7 @@ type mapRolesData []map[string]interface{}
 
 const (
 	objectName      = "aws-auth"
-	objectNamespace = "kube-system"
+	objectNamespace = metav1.NamespaceSystem
 )
 
 // ObjectMeta constructs metadata for the configmap
