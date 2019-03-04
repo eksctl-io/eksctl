@@ -22,13 +22,14 @@ to cluster stack maybe required. After that they need to replace nodegroups one 
 - provide command that checks cluster stack for upgradability
   - let's user update cluster stack to cater for any additional resources
   - allows to call `eks.UpdateClusterVersion` out-of-band and wait for completion
-- provide instruction on how to iterate and replace nodegroups
-- provide instruction on how to ...
+- provide instruction on how to iteratively replace nodegroups
+- provide helper commands for upgrading add-ons
 
 ## Second phase (more automation)
 
 - use CloudFormation instead of calling `eks.UpdateClusterVersion` directly
-- provide automated command
+- provide automated command that replaces all nodegroups by copying configuration,
+  or at least one command for each nodegroup
 
 ## CLI Design
 
@@ -38,6 +39,15 @@ Update cluster version and append new resources to the cluster stack (if needed)
 ```
 eksclt update cluster --name=<clusterName>
 ```
+
+As this can have significant implications and some checks are appropriate before
+we try updating, `--dry-run` should be enabled by default.
+
+As control plane version can be incremented only one at a time, it would be a good
+idea to have `--version` flag. The default should be `--version=next`. It should
+possible to jump many versions with `--version=<v>`, and go for latest right away
+with `--version=latest`. User will have to make sure that this doesn't take them
+too far ahead, so their nodegroup(s) don't drift too far behind.
 
 For each `<currentNodeGroup>`, create `<replacementNodeGroup>`:
 ```
@@ -74,6 +84,9 @@ When upgrading from 1.10 to 1.11, following add-ons should be upgraded:
 
 - `kube-system:deployment/kube-dns` has to be replaced with `kube-system:deployment/coredns`, the manifest lives in [S3 bucket](https://amazon-eks.s3-us-west-2.amazonaws.com)
 - `kube-system:daemonset/aws-node` the manifest lives [in GitHub](https://github.com/aws/amazon-vpc-cni-k8s/tree/master/config)
+
+
+It should be possible to provide simple command under utils for each of these.
 
 ## Downgrades
 
