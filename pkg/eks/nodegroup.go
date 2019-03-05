@@ -12,7 +12,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/watch"
-	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
 )
 
 func isNodeReady(node *corev1.Node) bool {
@@ -24,7 +24,7 @@ func isNodeReady(node *corev1.Node) bool {
 	return false
 }
 
-func getNodes(clientSet clientset.Interface, ng *api.NodeGroup) (int, error) {
+func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 	nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 	if err != nil {
 		return 0, err
@@ -42,7 +42,7 @@ func getNodes(clientSet clientset.Interface, ng *api.NodeGroup) (int, error) {
 }
 
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet clientset.Interface, ng *api.NodeGroup) error {
+func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	if ng.MinSize == nil || *ng.MinSize == 0 {
 		return nil
 	}
