@@ -76,7 +76,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	logger.Info("deleting EKS cluster %q", meta.Name)
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 

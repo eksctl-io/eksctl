@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"strings"
 
 	"github.com/kris-nova/logger"
 
@@ -52,13 +53,13 @@ func (j *JSONPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.W
 
 // LogObj will print the passed object formatted as JSON to
 // the logger.
-func (j *JSONPrinter) LogObj(log logger.Logger, prefixFmt string, obj interface{}) error {
+func (j *JSONPrinter) LogObj(log logger.Logger, msgFmt string, obj interface{}) error {
 	b := &bytes.Buffer{}
 	if err := j.PrintObj(obj, b); err != nil {
 		return err
 	}
 
-	log(prefixFmt+"%s", b.String())
+	log(msgFmt, strings.ReplaceAll(b.String(), "%", "%%"))
 
 	return nil
 }
