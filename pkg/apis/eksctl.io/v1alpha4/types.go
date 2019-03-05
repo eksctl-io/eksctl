@@ -103,7 +103,7 @@ const (
 
 var (
 	// DefaultWaitTimeout defines the default wait timeout
-	DefaultWaitTimeout = 20 * time.Minute
+	DefaultWaitTimeout = 25 * time.Minute
 )
 
 // NewBoolTrue return pointer to true value
