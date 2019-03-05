@@ -3,14 +3,15 @@ package eks
 import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	corev1 "k8s.io/api/core/v1"
 	storage "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
 )
 
 // AddDefaultStorageClass adds the default EBS gp2 storage class to the cluster
-func (c *ClusterProvider) AddDefaultStorageClass(clientSet clientset.Interface) error {
+func (c *ClusterProvider) AddDefaultStorageClass(clientSet kubernetes.Interface) error {
 
 	rp := corev1.PersistentVolumeReclaimRetain
 

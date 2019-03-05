@@ -6,19 +6,22 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/kris-nova/logger"
+
 	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
-	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
-	"github.com/weaveworks/eksctl/pkg/utils"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/kops/pkg/pki"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 func (c *ClusterProvider) getKeyPairName(clusterName string, ng *api.NodeGroup, fingerprint *string) string {
@@ -192,13 +195,13 @@ func (c *ClientConfig) useEmbeddedToken(spec *api.ClusterConfig, sts *sts.STS) e
 }
 
 // NewClientSet creates a new API client
-func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
+func (c *ClientConfig) NewClientSet() (*kubernetes.Clientset, error) {
 	clientConfig, err := clientcmd.NewDefaultClientConfig(*c.Client, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create API client configuration from client config")
 	}
 
-	client, err := clientset.NewForConfig(clientConfig)
+	client, err := kubernetes.NewForConfig(clientConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create API client")
 	}
@@ -206,7 +209,7 @@ func (c *ClientConfig) NewClientSet() (*clientset.Clientset, error) {
 }
 
 // NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
-func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*clientset.Clientset, error) {
+func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
 	clientConfig, err := c.NewClientConfig(spec, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")

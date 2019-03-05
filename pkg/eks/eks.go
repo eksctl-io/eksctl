@@ -101,6 +101,7 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 }
 
 // ControlPlaneReleaseVersion returns full release version (Kubernetes API)
+// NOTE: kubernetes.Interface cannot be used here, as it is missing ServerVersion
 func (c *ClusterProvider) ControlPlaneReleaseVersion(clientSet *kubernetes.Clientset) (string, error) {
 	v, err := clientSet.ServerVersion()
 	if err != nil {
