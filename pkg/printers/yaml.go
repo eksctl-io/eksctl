@@ -3,6 +3,7 @@ package printers
 import (
 	"bytes"
 	"io"
+	"strings"
 
 	"github.com/kris-nova/logger"
 
@@ -26,7 +27,10 @@ func NewYAMLPrinter() OutputPrinter {
 // the supplied writer.
 func (y *YAMLPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 	if obj, ok := obj.(runtime.Object); ok {
-		return y.runtimePrinter.PrintObj(obj, writer)
+		if err := y.runtimePrinter.PrintObj(obj, writer); err == nil {
+			// if an error occurred, we may still be able to serialise using yaml package directly
+			return nil
+		}
 	}
 
 	b, err := yaml.Marshal(obj)
@@ -48,13 +52,13 @@ func (y *YAMLPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.W
 
 // LogObj will print the passed object formatted as YAML to
 // the logger.
-func (y *YAMLPrinter) LogObj(log logger.Logger, prefixFmt string, obj interface{}) error {
+func (y *YAMLPrinter) LogObj(log logger.Logger, msgFmt string, obj interface{}) error {
 	b := &bytes.Buffer{}
 	if err := y.PrintObj(obj, b); err != nil {
 		return err
 	}
 
-	log(prefixFmt+"%s", b.String())
+	log(msgFmt, strings.ReplaceAll(b.String(), "%", "%%"))
 
 	return nil
 }

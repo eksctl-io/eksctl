@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"strings"
 
 	"github.com/kris-nova/logger"
 
@@ -27,7 +28,10 @@ func NewJSONPrinter() OutputPrinter {
 // the supplied writer.
 func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 	if obj, ok := obj.(runtime.Object); ok {
-		return j.runtimePrinter.PrintObj(obj, writer)
+		if err := j.runtimePrinter.PrintObj(obj, writer); err == nil {
+			// if an error occurred, we may still be able to serialise using json package directly
+			return nil
+		}
 	}
 
 	b, err := json.MarshalIndent(obj, "", "    ")
@@ -49,13 +53,13 @@ func (j *JSONPrinter) PrintObjWithKind(kind string, obj interface{}, writer io.W
 
 // LogObj will print the passed object formatted as JSON to
 // the logger.
-func (j *JSONPrinter) LogObj(log logger.Logger, prefixFmt string, obj interface{}) error {
+func (j *JSONPrinter) LogObj(log logger.Logger, msgFmt string, obj interface{}) error {
 	b := &bytes.Buffer{}
 	if err := j.PrintObj(obj, b); err != nil {
 		return err
 	}
 
-	log(prefixFmt+"%s", b.String())
+	log(msgFmt, strings.ReplaceAll(b.String(), "%", "%%"))
 
 	return nil
 }

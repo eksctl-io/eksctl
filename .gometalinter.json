@@ -7,6 +7,7 @@
         "misspell"
     ],
     "Exclude": [
+        "\/src\/(crypto|internal|net|os|runtime|syscall)\/",
         "^pkg\/nodebootstrap\/assets.go",
         "^pkg\/testutils\/ginkgo.go",
         "^pkg\/drain"

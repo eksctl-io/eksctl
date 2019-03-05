@@ -457,7 +457,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	// we should also make a call to resolve the AMI and write the result, similaraly
 	// the body of the SSH key can be read
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
@@ -565,7 +565,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 	logger.Success("%s is ready", meta.LogString())
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
