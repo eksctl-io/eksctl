@@ -8,19 +8,19 @@
 With `eksctl` users should be able to easily upgrade from one version of Kubernetes to another.
 
 Cluster upgrades are inherently a multi-step process, and can be fairly complex. It's important
-that user can drive upgrades at their own pace, if they must.
+that users can drive upgrades at their own pace, if they must.
 
 There is a standard set of steps a user needs to take, most of which can be automated as a single
-command also. However, there maybe additional manual steps with some versions, however most parts
+command also. However, there may be additional manual steps with some versions, however most parts
 should be automated.
 
 When upgrading a cluster, one needs to call `eks.UpdateClusterVersion`. In some cases other changes
-to cluster stack maybe required. After that they need to replace nodegroups one by one. 
+to cluster stack may be required. After that they need to replace nodegroups one by one. 
 
 ## Initial phase
 
 - provide command that checks cluster stack for upgradability
-  - let's user update cluster stack to cater for any additional resources
+  - lets user update cluster stack to cater for any additional resources
   - allows to call `eks.UpdateClusterVersion` out-of-band and wait for completion
 - provide instruction on how to iteratively replace nodegroups
 - provide helper commands for upgrading add-ons
@@ -37,16 +37,16 @@ For initial phase:
 
 Update cluster version and append new resources to the cluster stack (if needed):
 ```
-eksclt update cluster --name=<clusterName>
+eksctl update cluster --name=<clusterName>
 ```
 
 As this can have significant implications and some checks are appropriate before
 we try updating, `--dry-run` should be enabled by default.
 
 As control plane version can be incremented only one at a time, it would be a good
-idea to have `--version` flag. The default should be `--version=next`. It should
+idea to have `--version` flag. The default should be `--version=next`. It should be
 possible to jump many versions with `--version=<v>`, and go for latest right away
-with `--version=latest`. User will have to make sure that this doesn't take them
+with `--version=latest`. Users will have to make sure that this doesn't take them
 too far ahead, so their nodegroup(s) don't drift too far behind.
 
 For each `<currentNodeGroup>`, create `<replacementNodeGroup>`:
@@ -54,11 +54,13 @@ For each `<currentNodeGroup>`, create `<replacementNodeGroup>`:
 eksctl create ng --cluster=<clusterName> --name=<replacementNodeGroup>
 eksctl delete ng --cluster=<clusterName> --name=<currentNodeGroup>
 ```
+In this case new nodegroup will inherit cluster version automatically (`--version=auto`),
+however it's also possible to override that behavior.
 
 Alternatively, one can use `cluster.yaml` config file.
 They will need to update `metadata.version` field set in the config file, then run:
 ```
-eksclt update cluster --config-file=cluster.yaml
+eksctl update cluster --config-file=cluster.yaml
 ```
 > NOTE: to begin with this will only update cluster version and append any resources
 > to the stacks as needed
@@ -73,7 +75,7 @@ In the future a flag should be added to `eksctl update cluster` that allows user
 control what gets updated exactly, e.g. `--only=version,vpc,iam`.
 
 For second phase `eksctl update cluster` should update everything with (or without) the
-config file, including add-ons (although that may be more convent to move into another
+config file, including add-ons (although that may be more convenient to move into another
 command - TBD).
 
 ## Default Add-ons
@@ -94,7 +96,7 @@ At the time of writing of this proposal version downgrades were not supported by
 It's trusted that upgrades will work as expected with EKS SLA.
 
 More specifically, an `eks.UpdateClusterVersion` call for cluster running 1.11 trying
-to go back to 1.10 results the following error:
+to go back to 1.10 results in the following error:
 ```
 An error occurred (InvalidParameterException) when calling the UpdateClusterVersion operation: unsupported Kubernetes version update from the current version, 1.11, to 1.10
 ```
