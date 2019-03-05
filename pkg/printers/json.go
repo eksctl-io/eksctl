@@ -27,7 +27,10 @@ func NewJSONPrinter() OutputPrinter {
 // the supplied writer.
 func (j *JSONPrinter) PrintObj(obj interface{}, writer io.Writer) error {
 	if obj, ok := obj.(runtime.Object); ok {
-		return j.runtimePrinter.PrintObj(obj, writer)
+		if err := j.runtimePrinter.PrintObj(obj, writer); err == nil {
+			// if an error occurred, we may still be able to serialise using json package directly
+			return nil
+		}
 	}
 
 	b, err := json.MarshalIndent(obj, "", "    ")
