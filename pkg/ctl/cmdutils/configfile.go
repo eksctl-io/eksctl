@@ -4,10 +4,16 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
+
+// AddConfigFileFlag adds common --config-file flag
+func AddConfigFileFlag(path *string, fs *pflag.FlagSet) {
+	fs.StringVarP(path, "config-file", "f", "", "load configuration from a file")
+}
 
 // LoadMetadata handles loading of clusterConfigFile vs using flags for all commands that require only
 // metadata fileds, e.g. `eksctl delete cluster` or `eksctl utils update-kube-proxy` and other similar
