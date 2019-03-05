@@ -86,7 +86,7 @@ func AddRole(cm *corev1.ConfigMap, arn string) error {
 }
 
 // AddNodeGroup creates or adds a nodegroup IAM role in the auth config map for the given nodegroup
-func AddNodeGroup(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+func AddNodeGroup(clientSet clientset.Interface, ng *api.NodeGroup) error {
 	cm := &corev1.ConfigMap{}
 	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
 	create := false
@@ -167,7 +167,7 @@ func RemoveRole(cm *corev1.ConfigMap, ngInstanceRoleARN string) error {
 }
 
 // RemoveNodeGroup removes a nodegroup from the config map and does a client update
-func RemoveNodeGroup(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+func RemoveNodeGroup(clientSet clientset.Interface, ng *api.NodeGroup) error {
 	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
 
 	cm, err := client.Get(objectName, metav1.GetOptions{})

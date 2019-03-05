@@ -10,7 +10,7 @@ import (
 )
 
 // AddDefaultStorageClass adds the default EBS gp2 storage class to the cluster
-func (c *ClusterProvider) AddDefaultStorageClass(clientSet *clientset.Clientset) error {
+func (c *ClusterProvider) AddDefaultStorageClass(clientSet clientset.Interface) error {
 
 	rp := corev1.PersistentVolumeReclaimRetain
 

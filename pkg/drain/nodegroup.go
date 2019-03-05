@@ -38,7 +38,7 @@ func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
 }
 
 // NodeGroup drains a nodegroup
-func NodeGroup(clientSet *kubernetes.Clientset, ng *api.NodeGroup, waitTimeout time.Duration, undo bool) error {
+func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout time.Duration, undo bool) error {
 	drainer := &Helper{
 		Client: clientSet,
 
