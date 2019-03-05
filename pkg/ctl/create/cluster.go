@@ -68,7 +68,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
-		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
+		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
