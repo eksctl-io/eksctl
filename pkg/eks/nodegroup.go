@@ -24,7 +24,7 @@ func isNodeReady(node *corev1.Node) bool {
 	return false
 }
 
-func getNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) (int, error) {
+func getNodes(clientSet clientset.Interface, ng *api.NodeGroup) (int, error) {
 	nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 	if err != nil {
 		return 0, err
@@ -42,7 +42,7 @@ func getNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) (int, error) {
 }
 
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet *clientset.Clientset, ng *api.NodeGroup) error {
+func (c *ClusterProvider) WaitForNodes(clientSet clientset.Interface, ng *api.NodeGroup) error {
 	if ng.MinSize == nil || *ng.MinSize == 0 {
 		return nil
 	}
