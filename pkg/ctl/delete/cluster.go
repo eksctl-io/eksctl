@@ -53,59 +53,23 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 }
 
 func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	meta := cfg.Metadata
-
 	printer := printers.NewJSONPrinter()
 
 	if err := api.Register(); err != nil {
 		return err
 	}
 
-	if clusterConfigFile != "" {
-		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
-			return err
-		}
-		meta = cfg.Metadata
-
-		incompatibleFlags := []string{
-			"name",
-			"region",
-		}
-
-		for _, f := range incompatibleFlags {
-			if cmd.Flag(f).Changed {
-				return fmt.Errorf("cannot use --%s when --config-file/-f is set", f)
-			}
-		}
-
-		if nameArg != "" {
-			return fmt.Errorf("cannot use name argument %q when --config-file/-f is set", nameArg)
-		}
-
-		if meta.Name == "" {
-			return fmt.Errorf("metadata.name must be set")
-		}
-
-		if meta.Region == "" {
-			return fmt.Errorf("metadata.region must be set")
-		}
-
-		p.Region = meta.Region
-	} else {
-		if meta.Name != "" && nameArg != "" {
-			return cmdutils.ErrNameFlagAndArg(meta.Name, nameArg)
-		}
-
-		if nameArg != "" {
-			meta.Name = nameArg
-		}
-
-		if meta.Name == "" {
-			return fmt.Errorf("--name must be set")
-		}
+	if err := cmdutils.LoadMetadata(p, cfg, clusterConfigFile, nameArg, cmd); err != nil {
+		return err
 	}
 
 	ctl := eks.New(p, cfg)
+	meta := cfg.Metadata
+
+	if !ctl.IsSupportedRegion() {
+		return cmdutils.ErrUnsupportedRegion(p)
+	}
+	logger.Info("using region %s", meta.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
