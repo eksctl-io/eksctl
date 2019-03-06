@@ -75,7 +75,6 @@ const (
 
 	// owner: @apelisse
 	// alpha: v1.12
-	// beta: v1.13
 	//
 	// Allow requests to be processed but not stored, so that
 	// validation, merging, mutation can be tested without
@@ -97,5 +96,5 @@ var defaultKubernetesFeatureGates = map[utilfeature.Feature]utilfeature.FeatureS
 	APIResponseCompression:  {Default: false, PreRelease: utilfeature.Alpha},
 	Initializers:            {Default: false, PreRelease: utilfeature.Alpha},
 	APIListChunking:         {Default: true, PreRelease: utilfeature.Beta},
-	DryRun:                  {Default: true, PreRelease: utilfeature.Beta},
+	DryRun:                  {Default: false, PreRelease: utilfeature.Alpha},
 }

@@ -31,6 +31,7 @@ type NetworkingSpec struct {
 	Romana     *RomanaNetworkingSpec     `json:"romana,omitempty"`
 	AmazonVPC  *AmazonVPCNetworkingSpec  `json:"amazonvpc,omitempty"`
 	Cilium     *CiliumNetworkingSpec     `json:"cilium,omitempty"`
+	LyftVPC    *LyftVPCNetworkingSpec    `json:"lyftvpc,omitempty"`
 }
 
 // ClassicNetworkingSpec is the specification of classic networking mode, integrated into kubernetes
@@ -87,6 +88,8 @@ type CalicoNetworkingSpec struct {
 	PrometheusGoMetricsEnabled bool `json:"prometheusGoMetricsEnabled,omitempty"`
 	// PrometheusProcessMetricsEnabled enables Prometheus process metrics collection
 	PrometheusProcessMetricsEnabled bool `json:"prometheusProcessMetricsEnabled,omitempty"`
+	// MajorVersion is the version of Calico to use
+	MajorVersion string `json:"majorVersion,omitempty"`
 }
 
 // CanalNetworkingSpec declares that we want Canal networking
@@ -99,6 +102,9 @@ type CanalNetworkingSpec struct {
 	// for traffic between pod to host after calico rules have been processed.
 	// Default: ACCEPT (other options: DROP, RETURN)
 	DefaultEndpointToHostAction string `json:"defaultEndpointToHostAction,omitempty"`
+	// DisableFlannelForwardRules configures Flannel to NOT add the
+	// default ACCEPT traffic rules to the iptables FORWARD chain
+	DisableFlannelForwardRules bool `json:"disableFlannelForwardRules,omitempty"`
 	// LogSeveritySys the severity to set for logs which are sent to syslog
 	// Default: INFO (other options: DEBUG, WARNING, ERROR, CRITICAL, NONE)
 	LogSeveritySys string `json:"logSeveritySys,omitempty"`
@@ -185,4 +191,9 @@ type CiliumNetworkingSpec struct {
 	StateDir                 string            `json:"stateDir,omitempty"`
 	TracePayloadLen          int               `json:"tracePayloadlen,omitempty"`
 	Tunnel                   string            `json:"tunnel,omitempty"`
+}
+
+// LyftIpVlanNetworkingSpec declares that we want to use the cni-ipvlan-vpc-k8s CNI networking
+type LyftVPCNetworkingSpec struct {
+	SubnetTags map[string]string `json:"subnetTags,omitempty"`
 }

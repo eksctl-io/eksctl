@@ -41,7 +41,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/golang/glog"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kops/dnsprovider/pkg/dnsprovider"
 	dnsproviderroute53 "k8s.io/kops/dnsprovider/pkg/dnsprovider/providers/aws/route53"
@@ -491,31 +491,42 @@ func FindAutoscalingGroups(c AWSCloud, tags map[string]string) ([]*autoscaling.G
 	}
 
 	if len(asgNames) != 0 {
-		request := &autoscaling.DescribeAutoScalingGroupsInput{
-			AutoScalingGroupNames: asgNames,
-		}
-		err := c.Autoscaling().DescribeAutoScalingGroupsPages(request, func(p *autoscaling.DescribeAutoScalingGroupsOutput, lastPage bool) bool {
-			for _, asg := range p.AutoScalingGroups {
-				if !matchesAsgTags(tags, asg.Tags) {
-					// We used an inexact filter above
-					continue
-				}
-				// Check for "Delete in progress" (the only use of .Status)
-				if asg.Status != nil {
-					glog.Warningf("Skipping ASG %v (which matches tags): %v", *asg.AutoScalingGroupARN, *asg.Status)
-					continue
-				}
-				asgs = append(asgs, asg)
+		for i := 0; i < len(asgNames); i += 50 {
+			batch := asgNames[i:minInt(i+50, len(asgNames))]
+			request := &autoscaling.DescribeAutoScalingGroupsInput{
+				AutoScalingGroupNames: batch,
 			}
-			return true
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error listing autoscaling groups: %v", err)
+			err := c.Autoscaling().DescribeAutoScalingGroupsPages(request, func(p *autoscaling.DescribeAutoScalingGroupsOutput, lastPage bool) bool {
+				for _, asg := range p.AutoScalingGroups {
+					if !matchesAsgTags(tags, asg.Tags) {
+						// We used an inexact filter above
+						continue
+					}
+					// Check for "Delete in progress" (the only use of .Status)
+					if asg.Status != nil {
+						glog.Warningf("Skipping ASG %v (which matches tags): %v", *asg.AutoScalingGroupARN, *asg.Status)
+						continue
+					}
+					asgs = append(asgs, asg)
+				}
+				return true
+			})
+			if err != nil {
+				return nil, fmt.Errorf("error listing autoscaling groups: %v", err)
+			}
 		}
 
 	}
 
 	return asgs, nil
+}
+
+// Returns the minimum of two ints
+func minInt(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // matchesAsgTags is used to filter an asg by tags
@@ -537,8 +548,61 @@ func matchesAsgTags(tags map[string]string, actual []*autoscaling.TagDescription
 	return true
 }
 
+// findAutoscalingGroupLaunchConfiguration is responsible for finding the launch - which could be a launchconfiguration, a template or a mixed instance policy template
+func findAutoscalingGroupLaunchConfiguration(g *autoscaling.Group) (string, error) {
+	name := aws.StringValue(g.LaunchConfigurationName)
+	if name != "" {
+		return name, nil
+	}
+
+	// @check the launch template then
+	if g.LaunchTemplate != nil {
+		name = aws.StringValue(g.LaunchTemplate.LaunchTemplateName)
+		if name != "" {
+			return name, nil
+		}
+	}
+
+	// @check: ok, lets check the mixed instance policy
+	if g.MixedInstancesPolicy != nil {
+		if g.MixedInstancesPolicy.LaunchTemplate != nil {
+			if g.MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification != nil {
+				// honestly!!
+				name = aws.StringValue(g.MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification.LaunchTemplateName)
+				if name != "" {
+					return name, nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("error finding launch template or configuration for autoscaling group: %s", aws.StringValue(g.AutoScalingGroupName))
+}
+
+// findInstanceLaunchConfiguration is responsible for discoverying the launch configuration for an instance
+func findInstanceLaunchConfiguration(i *autoscaling.Instance) (string, error) {
+	name := aws.StringValue(i.LaunchConfigurationName)
+	if name != "" {
+		return name, nil
+	}
+
+	// else we need to check the launch template
+	if i.LaunchTemplate != nil {
+		name = aws.StringValue(i.LaunchTemplate.LaunchTemplateName)
+		if name != "" {
+			return name, nil
+		}
+	}
+
+	return "", fmt.Errorf("error finding the launch configuration or template for instance: %s", aws.StringValue(i.InstanceId))
+
+}
+
 func awsBuildCloudInstanceGroup(c AWSCloud, ig *kops.InstanceGroup, g *autoscaling.Group, nodeMap map[string]*v1.Node) (*cloudinstances.CloudInstanceGroup, error) {
-	newLaunchConfigName := aws.StringValue(g.LaunchConfigurationName)
+	newConfigName, err := findAutoscalingGroupLaunchConfiguration(g)
+	if err != nil {
+		return nil, err
+	}
 
 	cg := &cloudinstances.CloudInstanceGroup{
 		HumanName:     aws.StringValue(g.AutoScalingGroupName),
@@ -549,13 +613,16 @@ func awsBuildCloudInstanceGroup(c AWSCloud, ig *kops.InstanceGroup, g *autoscali
 	}
 
 	for _, i := range g.Instances {
-		instanceId := aws.StringValue(i.InstanceId)
-		if instanceId == "" {
-			glog.Warningf("ignoring instance with no instance id: %s", i)
+		id := aws.StringValue(i.InstanceId)
+		if id == "" {
+			glog.Warningf("ignoring instance with no instance id: %s in autoscaling group: %s", id, cg.HumanName)
 			continue
 		}
-		err := cg.NewCloudInstanceGroupMember(instanceId, newLaunchConfigName, aws.StringValue(i.LaunchConfigurationName), nodeMap)
+		currentConfigName, err := findInstanceLaunchConfiguration(i)
 		if err != nil {
+			return nil, err
+		}
+		if err := cg.NewCloudInstanceGroupMember(id, newConfigName, currentConfigName, nodeMap); err != nil {
 			return nil, fmt.Errorf("error creating cloud instance group member: %v", err)
 		}
 	}

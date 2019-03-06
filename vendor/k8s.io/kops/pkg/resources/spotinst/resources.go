@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/pkg/cloudinstances"
 	"k8s.io/kops/pkg/resources"
@@ -106,7 +106,7 @@ func GetCloudGroups(svc Service, cluster *kops.Cluster, instancegroups []*kops.I
 
 		if instancegroup == nil {
 			if warnUnmatched {
-				glog.Warningf("Found group with no corresponding instance group %q", group.Name())
+				glog.V(2).Infof("Found group with no corresponding instance group %q", group.Name())
 			}
 			continue
 		}

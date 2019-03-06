@@ -14,29 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package authenticator
+package util
 
-// Audiences is a container for the Audiences of a token.
-type Audiences []string
+import (
+	"time"
+)
 
-// Has checks if Audiences contains a specific audiences.
-func (a Audiences) Has(taud string) bool {
-	for _, aud := range a {
-		if aud == taud {
-			return true
-		}
-	}
-	return false
+// Clock provides an interface for getting the current time
+type Clock interface {
+	Now() time.Time
 }
 
-// Intersect intersects Audiences with a target Audiences and returns all
-// elements in both.
-func (a Audiences) Intersect(tauds Audiences) Audiences {
-	selected := Audiences{}
-	for _, taud := range tauds {
-		if a.Has(taud) {
-			selected = append(selected, taud)
-		}
-	}
-	return selected
+// RealClock implements a clock using time
+type RealClock struct{}
+
+// Now returns the current time with time.Now
+func (RealClock) Now() time.Time {
+	return time.Now()
 }
