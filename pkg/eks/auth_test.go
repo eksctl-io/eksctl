@@ -41,7 +41,7 @@ var _ = Describe("eks auth helpers", func() {
 				}
 
 				It("should create config with authenticator", func() {
-					clientConfig, err := ctl.NewClientConfig(cfg, false)
+					clientConfig, err := ctl.NewClient(cfg, false)
 
 					Expect(err).To(Not(HaveOccurred()))
 
@@ -50,7 +50,7 @@ var _ = Describe("eks auth helpers", func() {
 					cluster := strings.Split(ctx, "@")[1]
 					Expect(ctx).To(Equal("iam-root-account@auth-test-cluster.eu-west-3.eksctl.io"))
 
-					k := clientConfig.Client
+					k := clientConfig.Config
 
 					Expect(k.CurrentContext).To(Equal(ctx))
 
@@ -88,7 +88,7 @@ var _ = Describe("eks auth helpers", func() {
 				})
 
 				It("should create clientset", func() {
-					clientConfig, err := ctl.NewClientConfig(cfg, false)
+					clientConfig, err := ctl.NewClient(cfg, false)
 
 					Expect(err).To(Not(HaveOccurred()))
 					Expect(clientConfig).To(Not(BeNil()))

@@ -490,13 +490,13 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		var kubeconfigContextName string
 
 		if writeKubeconfig {
-			clientConfig, err := ctl.NewClientConfig(cfg, false)
+			client, err := ctl.NewClient(cfg, false)
 			if err != nil {
 				return err
 			}
-			kubeconfigContextName = clientConfig.ContextName
+			kubeconfigContextName = client.ContextName
 
-			kubeconfigPath, err = kubeconfig.Write(kubeconfigPath, *clientConfig.Client, setContext)
+			kubeconfigPath, err = kubeconfig.Write(kubeconfigPath, *client.Config, setContext)
 			if err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}
