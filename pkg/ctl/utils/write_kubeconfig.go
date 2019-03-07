@@ -83,12 +83,12 @@ func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg
 		return err
 	}
 
-	config, err := ctl.NewClientConfig(cfg, false)
+	client, err := ctl.NewClient(cfg, false)
 	if err != nil {
 		return err
 	}
 
-	filename, err := kubeconfig.Write(writeKubeconfigOutputPath, *config.Client, writeKubeconfigSetContext)
+	filename, err := kubeconfig.Write(writeKubeconfigOutputPath, *client.Config, writeKubeconfigSetContext)
 	if err != nil {
 		return errors.Wrap(err, "writing kubeconfig")
 	}
