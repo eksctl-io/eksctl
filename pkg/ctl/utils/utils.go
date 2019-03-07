@@ -6,6 +6,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+var (
+	clusterConfigFile = ""
+)
+
 // Command will create the `utils` commands
 func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
@@ -22,6 +26,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd.AddCommand(writeKubeconfigCmd(g))
 	cmd.AddCommand(describeStacksCmd(g))
 	cmd.AddCommand(updateClusterStackCmd(g))
+	cmd.AddCommand(updateKubeProxyCmd(g))
 
 	return cmd
 }
