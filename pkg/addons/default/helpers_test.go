@@ -11,8 +11,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// TODO: test UpdateAWSNode
-
 var _ = Describe("default addons", func() {
 	Describe("can load a set of resources and create a fake client", func() {
 		It("can create the fake client and verify objects get loaded client", func() {
