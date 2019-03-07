@@ -41,6 +41,7 @@ test: generate ## Run unit test (and re-generate code under test)
 	@$(MAKE) lint
 	@git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
 	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
+	@git diff --exit-code ./pkg/addons/default > /dev/null || (git --no-pager diff ./pkg/addons/default; exit 1)
 	@$(MAKE) unit-test
 	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
 	@$(MAKE) build-integration-test
@@ -99,7 +100,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 .PHONY: generate
 generate: ## Generate code
 	@chmod g-w  ./pkg/nodebootstrap/assets/*
-	@go generate ./pkg/nodebootstrap ./pkg/eks/mocks
+	@go generate ./pkg/nodebootstrap ./pkg/eks/mocks ./pkg/addons/default
 
 .PHONY: generate-ami
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
