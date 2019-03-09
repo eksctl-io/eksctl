@@ -21,13 +21,20 @@ func init() {
 }
 
 // LoadAsset return embedded manifest as a runtime.Object
-// TODO: we certainly need tests for this
 func LoadAsset(name, ext string) (*metav1.List, error) {
 	data, err := Asset(name + "." + ext)
 	if err != nil {
 		return nil, errors.Wrapf(err, "decoding embedded manifest for %q", name)
 	}
+	list, err := NewList(data)
+	if err != nil {
+		return nil, errors.Wrapf(err, "loading individual resources from manifest for %q", name)
+	}
+	return list, nil
+}
 
+// NewList parses data into a list of Kubernetes resources
+func NewList(data []byte) (*metav1.List, error) {
 	list := metav1.List{}
 	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewBuffer(data), 4096)
 
@@ -38,7 +45,7 @@ func LoadAsset(name, ext string) (*metav1.List, error) {
 			if err == io.EOF {
 				return &list, nil
 			}
-			return nil, errors.Wrapf(err, "loading individual resources from manifest for %q", name)
+			return nil, err
 		}
 		// obj.Object, err = runtime.Decode(scheme.Codecs.UniversalDeserializer(), obj.Raw)
 		// if err != nil {
