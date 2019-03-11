@@ -1,7 +1,8 @@
 // Package authconfigmap allows manipulation of the EKS configmap,
-// which maps IAM roles to Kubernetes groups.
-// See https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
-// for more information.
+// which maps IAM entities to Kubernetes groups.
+// See for more information:
+// - https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+// - https://github.com/kubernetes-sigs/aws-iam-authenticator/blob/master/README.md#full-configuration-format
 package authconfigmap
 
 import (
@@ -39,13 +40,13 @@ const (
 // with the cluster, required for the instance role ARNs of node groups.
 var DefaultNodeGroups = []string{"system:bootstrappers", "system:nodes"}
 
-// AuthConfigMap allows modifying the auth configmap.
+// AuthConfigMap allows modifying the auth ConfigMap.
 type AuthConfigMap struct {
 	cm *corev1.ConfigMap
 }
 
 // New creates an AuthConfigMap instance that manipulates
-// a config map. If it is nil, one is created.
+// a ConfigMap. If it is nil, one is created.
 func New(cm *corev1.ConfigMap) *AuthConfigMap {
 	a := &AuthConfigMap{cm: cm}
 	if a.cm == nil {
@@ -58,7 +59,7 @@ func New(cm *corev1.ConfigMap) *AuthConfigMap {
 }
 
 // AddAccount appends an IAM account to the `mapAccounts` entry
-// in the configmap. It also deduplicates.
+// in the Configmap. It also deduplicates.
 func (a *AuthConfigMap) AddAccount(account string) error {
 	accounts, err := a.accounts()
 	if err != nil {
@@ -74,6 +75,7 @@ func (a *AuthConfigMap) AddAccount(account string) error {
 	}
 	// List order matters in yamls, maintain deterministic output
 	sort.Strings(accounts)
+	logger.Info("adding account %q to auth ConfigMap", account)
 	return a.setAccounts(accounts)
 }
 
@@ -94,9 +96,9 @@ func (a *AuthConfigMap) RemoveAccount(account string) error {
 		newaccounts = append(newaccounts, acc)
 	}
 	if !found {
-		return fmt.Errorf("account %q not found in config map", account)
+		return fmt.Errorf("account %q not found in auth ConfigMap", account)
 	}
-	logger.Info("removing account %s from config map", account)
+	logger.Info("removing account %q from auth ConfigMap", account)
 	return a.setAccounts(newaccounts)
 }
 
@@ -117,7 +119,9 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 	return nil
 }
 
-// AddRole appends a role with given groups.
+// AddRole maps an IAM role to a k8s group dynamically. It modifies the
+// a role with given groups. If you are calling
+// this as part of node creation you should use DefaultNodeGroups.
 func (a *AuthConfigMap) AddRole(arn string, groups []string) error {
 	roles, err := a.roles()
 	if err != nil {
@@ -128,6 +132,7 @@ func (a *AuthConfigMap) AddRole(arn string, groups []string) error {
 		"username": "system:node:{{EC2PrivateDNSName}}",
 		"groups":   groups,
 	})
+	logger.Info("adding role %q to auth ConfigMap", arn)
 	return a.setRoles(roles)
 }
 
@@ -144,13 +149,13 @@ func (a *AuthConfigMap) RemoveRole(arn string) error {
 
 	for i, role := range roles {
 		if role["rolearn"] == arn {
-			logger.Info("removing role %s from config map", arn)
+			logger.Info("removing role %q from auth ConfigMap", arn)
 			roles = append(roles[:i], roles[i+1:]...)
 			return a.setRoles(roles)
 		}
 	}
 
-	return fmt.Errorf("instance role ARN %q not found in config map", arn)
+	return fmt.Errorf("instance role ARN %q not found in auth ConfigMap", arn)
 }
 
 func (a *AuthConfigMap) roles() (mapRoles, error) {
@@ -170,8 +175,8 @@ func (a *AuthConfigMap) setRoles(r mapRoles) error {
 	return nil
 }
 
-// Save persists the configmap to the cluster. It determines
-// whether to create or update by looking at the configmap's UID.
+// Save persists the ConfigMap to the cluster. It determines
+// whether to create or update by looking at the ConfigMap's UID.
 func (a *AuthConfigMap) Save(client v1.ConfigMapInterface) (err error) {
 	if a.cm.UID == "" {
 		a.cm, err = client.Create(a.cm)
@@ -182,7 +187,7 @@ func (a *AuthConfigMap) Save(client v1.ConfigMapInterface) (err error) {
 	return err
 }
 
-// ObjectMeta constructs metadata for the configmap
+// ObjectMeta constructs metadata for the ConfigMap.
 func ObjectMeta() metav1.ObjectMeta {
 	return metav1.ObjectMeta{
 		Name:      objectName,
@@ -190,7 +195,8 @@ func ObjectMeta() metav1.ObjectMeta {
 	}
 }
 
-// AddNodeGroup creates or adds a nodegroup IAM role in the auth config map for the given nodegroup
+// AddNodeGroup creates or adds a nodegroup IAM role in the auth
+// ConfigMap for the given nodegroup.
 func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
 
@@ -208,11 +214,12 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	if err := acm.Save(client); err != nil {
 		return errors.Wrap(err, "saving auth ConfigMap")
 	}
-	logger.Debug("saved auth ConfigMap for %s", ng.Name)
+	logger.Debug("saved auth ConfigMap for %q", ng.Name)
 	return nil
 }
 
-// RemoveNodeGroup removes a nodegroup from the config map and does a client update
+// RemoveNodeGroup removes a nodegroup from the ConfigMap and
+// does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
 
