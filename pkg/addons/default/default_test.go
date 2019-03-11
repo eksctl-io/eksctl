@@ -14,7 +14,6 @@ import (
 )
 
 // TODO: make ClientResource work
-// TODO: test UpdateKubeProxy
 // TODO: test UpdateAWSNode
 
 func clientSetWithSample(manifest string) *fake.Clientset {
