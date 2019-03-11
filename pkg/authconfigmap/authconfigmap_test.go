@@ -14,9 +14,11 @@ import (
 )
 
 const (
-	roleA  = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX"
-	roleB  = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-ABCDEFGH"
-	groupB = "foo"
+	roleA    = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX"
+	roleB    = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-ABCDEFGH"
+	groupB   = "foo"
+	accountA = "123"
+	accountB = "789"
 )
 
 var (
@@ -30,6 +32,17 @@ func makeExpectedRole(arn string, groups []string) string {
   groups:
   - %s
 `, arn, strings.Join(groups, "\n  - "))
+}
+
+func makeExpectedAccounts(accounts ...string) string {
+	var y string
+	for _, a := range accounts {
+		// Having them quoted is important for the yaml parser to
+		// recognize them as strings over numbers
+		y += fmt.Sprintf("\n- %q", a)
+	}
+
+	return y
 }
 
 // mockClient implements v1.ConfigMapInterface
@@ -152,6 +165,70 @@ var _ = Describe("AuthConfigMap{}", func() {
 		})
 		It("should fail if role not found", func() {
 			err := acm.RemoveRole(roleA)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+	Describe("AddAccount()", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{},
+		}
+		cm.UID = "123456"
+		acm := New(cm)
+
+		addAndSave := func(account string) *corev1.ConfigMap {
+			err := acm.AddAccount(account)
+			Expect(err).NotTo(HaveOccurred())
+
+			client := &mockClient{}
+			err = acm.Save(client)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+			Expect(client.updated).NotTo(BeNil())
+
+			return client.updated
+		}
+
+		It("should add an account", func() {
+			cm := addAndSave(accountA)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA)))
+		})
+		It("should deduplicate when adding", func() {
+			cm := addAndSave(accountA)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA)))
+		})
+		It("should add another account", func() {
+			cm := addAndSave(accountB)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA) + makeExpectedAccounts(accountB)))
+		})
+	})
+	Describe("RemoveAccount()", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{"mapAccounts": makeExpectedAccounts(accountA) + makeExpectedAccounts(accountB)},
+		}
+		cm.UID = "123456"
+		acm := New(cm)
+
+		removeAndSave := func(account string) *corev1.ConfigMap {
+			err := acm.RemoveAccount(account)
+			Expect(err).NotTo(HaveOccurred())
+
+			client := &mockClient{}
+			err = acm.Save(client)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+			Expect(client.updated).NotTo(BeNil())
+
+			return client.updated
+		}
+
+		It("should remove an account", func() {
+			cm := removeAndSave(accountA)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountB)))
+		})
+		It("should fail if account not found", func() {
+			err := acm.RemoveAccount(accountA)
 			Expect(err).To(HaveOccurred())
 		})
 	})

@@ -6,6 +6,7 @@ package authconfigmap
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -25,6 +26,9 @@ type mapRoles []mapRole
 const (
 	objectName      = "aws-auth"
 	objectNamespace = metav1.NamespaceSystem
+
+	rolesData    = "mapRoles"
+	accountsData = "mapAccounts"
 
 	// GroupMasters is the admin group which is also automatically
 	// granted to the IAM role that creates the cluster.
@@ -53,9 +57,69 @@ func New(cm *corev1.ConfigMap) *AuthConfigMap {
 	return a
 }
 
+// AddAccount appends an IAM account to the `mapAccounts` entry
+// in the configmap. It also deduplicates.
+func (a *AuthConfigMap) AddAccount(account string) error {
+	accounts, err := a.accounts()
+	if err != nil {
+		return err
+	}
+	distinct := map[string]struct{}{account: {}}
+	for _, acc := range accounts {
+		distinct[acc] = struct{}{}
+	}
+	accounts = accounts[:0]
+	for acc := range distinct {
+		accounts = append(accounts, acc)
+	}
+	// List order matters in yamls, maintain deterministic output
+	sort.Strings(accounts)
+	return a.setAccounts(accounts)
+}
+
+// RemoveAccount removes the given IAM account entry in mapAccounts.
+func (a *AuthConfigMap) RemoveAccount(account string) error {
+	accounts, err := a.accounts()
+	if err != nil {
+		return err
+	}
+
+	var newaccounts []string
+	found := false
+	for _, acc := range accounts {
+		if acc == account {
+			found = true
+			continue
+		}
+		newaccounts = append(newaccounts, acc)
+	}
+	if !found {
+		return fmt.Errorf("account %q not found in config map", account)
+	}
+	logger.Info("removing account %s from config map", account)
+	return a.setAccounts(newaccounts)
+}
+
+func (a *AuthConfigMap) accounts() ([]string, error) {
+	var accounts []string
+	if err := yaml.Unmarshal([]byte(a.cm.Data[accountsData]), &accounts); err != nil {
+		return nil, errors.Wrap(err, "unmarshalling mapAccounts")
+	}
+	return accounts, nil
+}
+
+func (a *AuthConfigMap) setAccounts(accounts []string) error {
+	bs, err := yaml.Marshal(accounts)
+	if err != nil {
+		return errors.Wrap(err, "marshalling mapAccounts")
+	}
+	a.cm.Data[accountsData] = string(bs)
+	return nil
+}
+
 // AddRole appends a role with given groups.
 func (a *AuthConfigMap) AddRole(arn string, groups []string) error {
-	roles, err := a.get()
+	roles, err := a.roles()
 	if err != nil {
 		return err
 	}
@@ -64,23 +128,45 @@ func (a *AuthConfigMap) AddRole(arn string, groups []string) error {
 		"username": "system:node:{{EC2PrivateDNSName}}",
 		"groups":   groups,
 	})
-	return a.set(roles)
+	return a.setRoles(roles)
 }
 
-func (a *AuthConfigMap) get() (mapRoles, error) {
+// RemoveRole removes exactly one entry, even if there are duplicates.
+// If it cannot find the role it returns an error.
+func (a *AuthConfigMap) RemoveRole(arn string) error {
+	if arn == "" {
+		return errors.New("nodegroup instance role ARN is not set")
+	}
+	roles, err := a.roles()
+	if err != nil {
+		return err
+	}
+
+	for i, role := range roles {
+		if role["rolearn"] == arn {
+			logger.Info("removing role %s from config map", arn)
+			roles = append(roles[:i], roles[i+1:]...)
+			return a.setRoles(roles)
+		}
+	}
+
+	return fmt.Errorf("instance role ARN %q not found in config map", arn)
+}
+
+func (a *AuthConfigMap) roles() (mapRoles, error) {
 	var roles mapRoles
-	if err := yaml.Unmarshal([]byte(a.cm.Data["mapRoles"]), &roles); err != nil {
+	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
 		return nil, errors.Wrap(err, "unmarshalling mapRoles")
 	}
 	return roles, nil
 }
 
-func (a *AuthConfigMap) set(r mapRoles) error {
+func (a *AuthConfigMap) setRoles(r mapRoles) error {
 	bs, err := yaml.Marshal(r)
 	if err != nil {
 		return errors.Wrap(err, "marshalling mapRoles")
 	}
-	a.cm.Data["mapRoles"] = string(bs)
+	a.cm.Data[rolesData] = string(bs)
 	return nil
 }
 
@@ -94,28 +180,6 @@ func (a *AuthConfigMap) Save(client v1.ConfigMapInterface) (err error) {
 
 	a.cm, err = client.Update(a.cm)
 	return err
-}
-
-// RemoveRole removes exactly one entry, even if there are duplicates.
-// If it cannot find the role it returns an error.
-func (a *AuthConfigMap) RemoveRole(arn string) error {
-	if arn == "" {
-		return errors.New("nodegroup instance role ARN is not set")
-	}
-	roles, err := a.get()
-	if err != nil {
-		return err
-	}
-
-	for i, role := range roles {
-		if role["rolearn"] == arn {
-			logger.Info("removing %s from config map", arn)
-			roles = append(roles[:i], roles[i+1:]...)
-			return a.set(roles)
-		}
-	}
-
-	return fmt.Errorf("instance role ARN %q not found in config map", arn)
 }
 
 // ObjectMeta constructs metadata for the configmap
