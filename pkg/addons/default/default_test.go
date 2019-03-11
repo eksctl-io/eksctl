@@ -13,38 +13,36 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
+// TODO: make ClientResource work
+// TODO: test UpdateKubeProxy
+// TODO: test UpdateAWSNode
+
+func clientSetWithSample(manifest string) *fake.Clientset {
+	var (
+		sampleAddons []runtime.Object
+	)
+
+	sampleAddonsData, err := ioutil.ReadFile(manifest)
+	Expect(err).ToNot(HaveOccurred())
+	sampleAddonsList, err := NewList(sampleAddonsData)
+	Expect(err).ToNot(HaveOccurred())
+	Expect(sampleAddonsList).ToNot(BeNil())
+
+	for _, item := range sampleAddonsList.Items {
+		kind := item.Object.GetObjectKind().GroupVersionKind().Kind
+		if kind == "CustomResourceDefinition" {
+			continue // fake client doesn't support CRDs, save it from a panic
+		}
+		sampleAddons = append(sampleAddons, item.Object)
+	}
+
+	return fake.NewSimpleClientset(sampleAddons...)
+}
+
 var _ = Describe("default addons", func() {
 	Describe("can load a resources and create fake client", func() {
-
-		var (
-			sampleAddons []runtime.Object
-			clientSet    *fake.Clientset
-		)
-
-		// TODO: make ClientResource work
-		// TODO: test UpdateKubeProxy
-		// TODO: test UpdateAWSNode
-
-		It("can load sample addons", func() {
-			sampleAddonsData, err := ioutil.ReadFile("testdata/sample-1.10.json")
-			Expect(err).To(Not(HaveOccurred()))
-			sampleAddonsList, err := NewList(sampleAddonsData)
-			Expect(err).To(Not(HaveOccurred()))
-			Expect(sampleAddonsList).To(Not(BeNil()))
-			Expect(sampleAddonsList.Items).To(HaveLen(7))
-
-			for _, item := range sampleAddonsList.Items {
-				kind := item.Object.GetObjectKind().GroupVersionKind().Kind
-				if kind == "CustomResourceDefinition" {
-					continue // fake client doesn't support CRDs, save it from a panic
-				}
-				sampleAddons = append(sampleAddons, item.Object)
-			}
-		})
-
 		It("can create the fake client and verify objects get loaded client", func() {
-			Expect(sampleAddons).To(HaveLen(6))
-			clientSet = fake.NewSimpleClientset(sampleAddons...)
+			clientSet := clientSetWithSample("testdata/sample-1.10.json")
 
 			nsl, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
 			Expect(err).To(Not(HaveOccurred()))
