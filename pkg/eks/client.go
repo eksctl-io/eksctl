@@ -1,18 +1,10 @@
 package eks
 
 import (
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/cli-runtime/pkg/genericclioptions/resource"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
@@ -21,6 +13,7 @@ import (
 	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
@@ -31,13 +24,6 @@ type Client struct {
 	ContextName string
 
 	rawConfig *restclient.Config
-}
-
-// RawClient stores information about the client config
-type RawClient struct {
-	mapper    meta.RESTMapper
-	config    *restclient.Config
-	ClientSet kubernetes.Interface
 }
 
 // NewClient creates a new client config, if withEmbeddedToken is true
@@ -121,63 +107,11 @@ func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig)
 }
 
 // NewRawClient creates a new raw REST client in one go with an embedded STS token
-func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*RawClient, error) {
+func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
 	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
 	if err != nil {
 		return nil, err
 	}
-	rawClient := &RawClient{
-		config:    client.rawConfig,
-		ClientSet: clientSet,
-	}
-	return rawClient.new()
-}
 
-func (c *RawClient) new() (*RawClient, error) {
-	apiGroupResources, err := restmapper.GetAPIGroupResources(c.ClientSet.Discovery())
-	if err != nil {
-		return nil, errors.Wrap(err, "getting list of API resources for raw REST client")
-	}
-
-	for i, r := range apiGroupResources {
-		logger.Debug("apiGroupResources[%d] = %#v", i, *r)
-	}
-
-	c.mapper = restmapper.NewDiscoveryRESTMapper(apiGroupResources)
-
-	if c.config.APIPath == "" {
-		c.config.APIPath = "/api"
-	}
-	if c.config.NegotiatedSerializer == nil {
-		c.config.NegotiatedSerializer = &serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
-	}
-	if err := restclient.SetKubernetesDefaults(c.config); err != nil {
-		return nil, errors.Wrap(err, "applying defaults for REST client")
-	}
-	return c, nil
-}
-
-// NewFor construct a resource type-specific client for a give gvk
-// (it's based on k8s.io/kubernetes/pkg/kubectl/cmd/util/factory_client_access.go)
-func (c *RawClient) NewFor(gvk schema.GroupVersionKind) (*resource.Helper, error) {
-	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.GroupVersion().Version, "")
-	if err != nil {
-		return nil, errors.Wrapf(err, "constructing REST client mapping for %s", gvk.String())
-	}
-
-	switch gvk.Group {
-	case corev1.GroupName:
-		c.config.APIPath = "/api"
-	default:
-		c.config.APIPath = "/apis"
-	}
-	gv := gvk.GroupVersion()
-	c.config.GroupVersion = &gv
-
-	client, err := restclient.RESTClientFor(c.config)
-	if err != nil {
-		return nil, errors.Wrapf(err, "constructing REST client for %s", gvk.String())
-	}
-
-	return resource.NewHelper(client, mapping), nil
+	return kubewrapper.NewRawClient(clientSet, client.rawConfig)
 }

@@ -10,6 +10,7 @@
         "\/src\/(crypto|internal|net|os|runtime|syscall)\/",
         "^pkg\/nodebootstrap\/assets.go",
         "^pkg\/testutils\/ginkgo.go",
+        "^pkg\/testutils\/client.go",
         "^pkg\/drain"
     ],
     "Deadline": "5m"
