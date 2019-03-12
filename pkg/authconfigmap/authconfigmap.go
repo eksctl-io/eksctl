@@ -37,11 +37,15 @@ const (
 	// GroupMasters is the admin group which is also automatically
 	// granted to the IAM role that creates the cluster.
 	GroupMasters = "system:masters"
+
+	// RoleNodeGroupUsername is the default username for a nodegroup
+	// role mapping.
+	RoleNodeGroupUsername  = "system:node:{{EC2PrivateDNSName}}"
 )
 
-// DefaultNodeGroups are the groups to allow roles to interact
+// RoleNodeGroupGroups are the groups to allow roles to interact
 // with the cluster, required for the instance role ARNs of node groups.
-var DefaultNodeGroups = []string{"system:bootstrappers", "system:nodes"}
+var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
 
 // AuthConfigMap allows modifying the auth ConfigMap.
 type AuthConfigMap struct {
@@ -118,14 +122,14 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 // AddRole maps an IAM role to a k8s group dynamically. It modifies the
 // a role with given groups. If you are calling
 // this as part of node creation you should use DefaultNodeGroups.
-func (a *AuthConfigMap) AddRole(arn string, groups []string) error {
+func (a *AuthConfigMap) AddRole(arn string, username string, groups []string) error {
 	roles, err := a.roles()
 	if err != nil {
 		return err
 	}
 	roles = append(roles, mapRole{
 		"rolearn":  arn,
-		"username": "system:node:{{EC2PrivateDNSName}}",
+		"username": username,
 		"groups":   groups,
 	})
 	logger.Info("adding role %q to auth ConfigMap", arn)
@@ -204,7 +208,7 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	}
 
 	acm := New(cm)
-	if err := acm.AddRole(ng.IAM.InstanceRoleARN, DefaultNodeGroups); err != nil {
+	if err := acm.AddRole(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
 		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
 	}
 	if err := acm.Save(client); err != nil {

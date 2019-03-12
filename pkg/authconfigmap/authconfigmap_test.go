@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	expectedA = makeExpectedRole(roleA, DefaultNodeGroups)
+	expectedA = makeExpectedRole(roleA, RoleNodeGroupGroups)
 	expectedB = makeExpectedRole(roleB, []string{groupB})
 )
 
@@ -106,7 +106,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 		acm := New(cm)
 
 		addAndSave := func(arn string, groups []string) *corev1.ConfigMap {
-			err := acm.AddRole(arn, groups)
+			err := acm.AddRole(arn, RoleNodeGroupUsername, groups)
 			Expect(err).NotTo(HaveOccurred())
 
 			client := &mockClient{}
@@ -119,7 +119,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 		}
 
 		It("should add a role", func() {
-			cm := addAndSave(roleA, DefaultNodeGroups)
+			cm := addAndSave(roleA, RoleNodeGroupGroups)
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA))
 		})
 		It("should append a second role", func() {
@@ -127,7 +127,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA + expectedB))
 		})
 		It("should append a duplicate role", func() {
-			cm := addAndSave(roleA, DefaultNodeGroups)
+			cm := addAndSave(roleA, RoleNodeGroupGroups)
 			expected := expectedA + expectedB + expectedA
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expected))
 		})
