@@ -26,6 +26,29 @@ var (
 	expectedB = makeExpectedRole(roleB, []string{groupB})
 )
 
+// mockClient implements v1.ConfigMapInterface
+type mockClient struct {
+	v1.ConfigMapInterface
+	created *corev1.ConfigMap
+	updated *corev1.ConfigMap
+}
+
+func (c *mockClient) Create(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
+	cm.ObjectMeta.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
+	c.created = cm
+	return cm, nil
+}
+
+func (c *mockClient) Update(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
+	c.updated = cm
+	return cm, nil
+}
+
+func (c *mockClient) reset() {
+	c.updated = nil
+	c.created = nil
+}
+
 func makeExpectedRole(arn string, groups []string) string {
 	return fmt.Sprintf(`- rolearn: %s
   username: system:node:{{EC2PrivateDNSName}}
@@ -45,30 +68,13 @@ func makeExpectedAccounts(accounts ...string) string {
 	return y
 }
 
-// mockClient implements v1.ConfigMapInterface
-type mockClient struct {
-	v1.ConfigMapInterface
-	created *corev1.ConfigMap
-	updated *corev1.ConfigMap
-}
-
-func (c *mockClient) Create(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
-	cm.ObjectMeta.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
-	c.created = cm
-	return cm, nil
-}
-
-func (c *mockClient) Update(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
-	c.updated = cm
-	return cm, nil
-}
 
 var _ = Describe("AuthConfigMap{}", func() {
 	Describe("New()", func() {
 		It("should create an empty configmap", func() {
-			acm := New(nil)
 			client := &mockClient{}
-			err := acm.Save(client)
+			acm := New(client, nil)
+			err := acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated).To(BeNil())
 
@@ -86,9 +92,9 @@ var _ = Describe("AuthConfigMap{}", func() {
 			}
 			cm.ObjectMeta.UID = "123456"
 
-			acm := New(cm)
 			client := &mockClient{}
-			err := acm.Save(client)
+			acm := New(client, cm)
+			err := acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.created).To(BeNil())
 
@@ -103,14 +109,15 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Data:       map[string]string{},
 		}
 		cm.UID = "123456"
-		acm := New(cm)
+		client := &mockClient{}
+		acm := New(client, cm)
 
 		addAndSave := func(arn string, groups []string) *corev1.ConfigMap {
+			client.reset()
 			err := acm.AddRole(arn, RoleNodeGroupUsername, groups)
 			Expect(err).NotTo(HaveOccurred())
 
-			client := &mockClient{}
-			err = acm.Save(client)
+			err = acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.created).To(BeNil())
 			Expect(client.updated).NotTo(BeNil())
@@ -138,14 +145,15 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Data:       map[string]string{"mapRoles": expectedA + expectedA + expectedB},
 		}
 		cm.UID = "123456"
-		acm := New(cm)
+		client := &mockClient{}
+		acm := New(client, cm)
 
 		removeAndSave := func(arn string) *corev1.ConfigMap {
+			client.reset()
 			err := acm.RemoveRole(arn)
 			Expect(err).NotTo(HaveOccurred())
 
-			client := &mockClient{}
-			err = acm.Save(client)
+			err = acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 
 			return client.updated
@@ -174,14 +182,15 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Data:       map[string]string{},
 		}
 		cm.UID = "123456"
-		acm := New(cm)
+		client := &mockClient{}
+		acm := New(client, cm)
 
 		addAndSave := func(account string) *corev1.ConfigMap {
+			client.reset()
 			err := acm.AddAccount(account)
 			Expect(err).NotTo(HaveOccurred())
 
-			client := &mockClient{}
-			err = acm.Save(client)
+			err = acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.created).To(BeNil())
 			Expect(client.updated).NotTo(BeNil())
@@ -208,14 +217,15 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Data:       map[string]string{"mapAccounts": makeExpectedAccounts(accountA) + makeExpectedAccounts(accountB)},
 		}
 		cm.UID = "123456"
-		acm := New(cm)
+		client := &mockClient{}
+		acm := New(client, cm)
 
 		removeAndSave := func(account string) *corev1.ConfigMap {
+			client.reset()
 			err := acm.RemoveAccount(account)
 			Expect(err).NotTo(HaveOccurred())
 
-			client := &mockClient{}
-			err = acm.Save(client)
+			err = acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.created).To(BeNil())
 			Expect(client.updated).NotTo(BeNil())

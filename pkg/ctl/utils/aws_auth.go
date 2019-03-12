@@ -2,15 +2,12 @@ package utils
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	kerr "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -77,15 +74,11 @@ func doAWSAuth(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) er
 	}
 
 	clientSet, err := ctl.NewStdClientSet(cfg)
-	client := clientSet.CoreV1().ConfigMaps(authconfigmap.ObjectNamespace)
-
-	obj, err := client.Get(authconfigmap.ObjectName, metav1.GetOptions{})
-	// It is fine for the configmap not to exist. Any other error is fatal.
-	if err != nil && !kerr.IsNotFound(err) {
-		return errors.Wrapf(err, "getting auth ConfigMap")
+	if err != nil {
+		return err
 	}
+	acm, err := authconfigmap.NewFromClientSet(clientSet)
 
-	logger.Debug("aws-auth = %s", awsutil.Prettify(obj))
 
 	if len(awsAuthAddAdminRoles) == 0 && len(awsAuthRemoveRoles) == 0 &&
 		len(awsAuthAddAccounts) == 0 && len(awsAuthRemoveAccounts) == 0 {
@@ -93,10 +86,9 @@ func doAWSAuth(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) er
 		return nil
 	}
 
-	acm := authconfigmap.New(obj)
 	// Roles.
 	for _, r := range awsAuthAddAdminRoles {
-		if err := acm.AddRole(r, []string{authconfigmap.GroupMasters}); err != nil {
+		if err := acm.AddRole(r, authconfigmap.RoleNodeGroupUsername, []string{authconfigmap.GroupMasters}); err != nil {
 			return errors.Wrap(err, "adding role to auth ConfigMap")
 		}
 	}
@@ -118,7 +110,7 @@ func doAWSAuth(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) er
 		}
 	}
 
-	if err := acm.Save(client); err != nil {
+	if err := acm.Save(); err != nil {
 		return errors.Wrap(err, "updating auth ConfigMap")
 	}
 	logger.Success("saved auth ConfigMap")

@@ -9,6 +9,7 @@ package authconfigmap
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -40,7 +41,7 @@ const (
 
 	// RoleNodeGroupUsername is the default username for a nodegroup
 	// role mapping.
-	RoleNodeGroupUsername  = "system:node:{{EC2PrivateDNSName}}"
+	RoleNodeGroupUsername = "system:node:{{EC2PrivateDNSName}}"
 )
 
 // RoleNodeGroupGroups are the groups to allow roles to interact
@@ -49,20 +50,34 @@ var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
 
 // AuthConfigMap allows modifying the auth ConfigMap.
 type AuthConfigMap struct {
-	cm *corev1.ConfigMap
+	client v1.ConfigMapInterface
+	cm     *corev1.ConfigMap
 }
 
 // New creates an AuthConfigMap instance that manipulates
 // a ConfigMap. If it is nil, one is created.
-func New(cm *corev1.ConfigMap) *AuthConfigMap {
-	a := &AuthConfigMap{cm: cm}
-	if a.cm == nil {
-		a.cm = &corev1.ConfigMap{
+func New(client v1.ConfigMapInterface, cm *corev1.ConfigMap) *AuthConfigMap {
+	if cm == nil {
+		cm = &corev1.ConfigMap{
 			ObjectMeta: ObjectMeta(),
 			Data:       map[string]string{},
 		}
 	}
-	return a
+	return &AuthConfigMap{client: client, cm: cm}
+}
+
+// NewFromClientSet fetches the auth ConfigMap.
+func NewFromClientSet(clientSet kubernetes.Interface) (*AuthConfigMap, error) {
+	client := clientSet.CoreV1().ConfigMaps(ObjectNamespace)
+
+	// check if object exists
+	cm, err := client.Get(ObjectName, metav1.GetOptions{})
+	// It is fine for the configmap not to exist. Any other error is fatal.
+	if err != nil && !kerr.IsNotFound(err) {
+		return nil, errors.Wrapf(err, "getting auth ConfigMap")
+	}
+	logger.Debug("aws-auth = %s", awsutil.Prettify(cm))
+	return New(client, cm), nil
 }
 
 // AddAccount appends an IAM account to the `mapAccounts` entry
@@ -177,13 +192,13 @@ func (a *AuthConfigMap) setRoles(r mapRoles) error {
 
 // Save persists the ConfigMap to the cluster. It determines
 // whether to create or update by looking at the ConfigMap's UID.
-func (a *AuthConfigMap) Save(client v1.ConfigMapInterface) (err error) {
+func (a *AuthConfigMap) Save() (err error) {
 	if a.cm.UID == "" {
-		a.cm, err = client.Create(a.cm)
+		a.cm, err = a.client.Create(a.cm)
 		return err
 	}
 
-	a.cm, err = client.Update(a.cm)
+	a.cm, err = a.client.Update(a.cm)
 	return err
 }
 
@@ -198,20 +213,14 @@ func ObjectMeta() metav1.ObjectMeta {
 // AddNodeGroup creates or adds a nodegroup IAM role in the auth
 // ConfigMap for the given nodegroup.
 func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	client := clientSet.CoreV1().ConfigMaps(ObjectNamespace)
-
-	// check if object exists
-	cm, err := client.Get(ObjectName, metav1.GetOptions{})
-	if err != nil && !kerr.IsNotFound(err) {
-		// something must have gone terribly wrong
-		return errors.Wrapf(err, "getting auth ConfigMap")
+	acm, err := NewFromClientSet(clientSet)
+	if err != nil {
+		return err
 	}
-
-	acm := New(cm)
 	if err := acm.AddRole(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
 		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
 	}
-	if err := acm.Save(client); err != nil {
+	if err := acm.Save(); err != nil {
 		return errors.Wrap(err, "saving auth ConfigMap")
 	}
 	logger.Debug("saved auth ConfigMap for %q", ng.Name)
@@ -221,18 +230,14 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	client := clientSet.CoreV1().ConfigMaps(ObjectNamespace)
-
-	cm, err := client.Get(ObjectName, metav1.GetOptions{})
+	acm, err := NewFromClientSet(clientSet)
 	if err != nil {
-		return errors.Wrapf(err, "getting auth ConfigMap")
+		return err
 	}
-
-	acm := New(cm)
 	if err := acm.RemoveRole(ng.IAM.InstanceRoleARN); err != nil {
 		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
 	}
-	if err := acm.Save(client); err != nil {
+	if err := acm.Save(); err != nil {
 		return errors.Wrap(err, "updating auth ConfigMap after removing role")
 	}
 	logger.Debug("updated auth ConfigMap for %s", ng.Name)
