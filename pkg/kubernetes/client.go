@@ -3,17 +3,20 @@ package kubernetes
 import (
 	"fmt"
 
+	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions/resource"
-	"k8s.io/client-go/kubernetes"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	restclient "k8s.io/client-go/rest"
@@ -24,7 +27,7 @@ import (
 type RawClient struct {
 	mapper    meta.RESTMapper
 	config    *restclient.Config
-	ClientSet kubernetes.Interface
+	ClientSet kubeclient.Interface
 }
 
 // RawResource holds info about a resource along with a type-specific raw client instance
@@ -180,8 +183,12 @@ func (r *RawResource) CreateOrReplace() (string, error) {
 
 	2019-03-08T10:24:27Z [▶]  patch["kube-system:DaemonSet.extensions/aws-node"] = {"apiVersion":"extensions/v1beta1","kind":"DaemonSet","metadata":{"creationTimestamp":null,"generation":null,"resourceVersion":null,"selfLink":null,"uid":null},"spec":{"revisionHistoryLimit":null,"template":{"spec":{"$setElementOrder/containers":[{"name":"aws-node"}],"$setElementOrder/volumes":[{"name":"cni-bin-dir"},{"name":"cni-net-dir"},{"name":"log-dir"},{"name":"dockersock"}],"containers":[{"$setElementOrder/env":[{"name":"AWS_VPC_K8S_CNI_LOGLEVEL"},{"name":"MY_NODE_NAME"},{"name":"WATCH_NAMESPACE"}],"$setElementOrder/ports":[{"containerPort":61678}],"env":[{"name":"MY_NODE_NAME","valueFrom":{"fieldRef":{"apiVersion":null}}},{"name":"WATCH_NAMESPACE","valueFrom":{"fieldRef":{"apiVersion":null}}}],"name":"aws-node","ports":[{"containerPort":61678,"hostPort":null,"protocol":null}],"terminationMessagePath":null,"terminationMessagePolicy":null}],"dnsPolicy":null,"restartPolicy":null,"schedulerName":null,"securityContext":null,"serviceAccount":null,"terminationGracePeriodSeconds":null,"volumes":[{"$retainKeys":["hostPath","name"],"hostPath":{"type":null},"name":"cni-bin-dir"},{"$retainKeys":["hostPath","name"],"hostPath":{"type":null},"name":"cni-net-dir"},{"$retainKeys":["hostPath","name"],"hostPath":{"type":null},"name":"log-dir"},{"$retainKeys":["hostPath","name"],"hostPath":{"type":null},"name":"dockersock"}]}},"templateGeneration":null,"updateStrategy":{"rollingUpdate":null}},"status":{"currentNumberScheduled":0,"desiredNumberScheduled":0,"numberAvailable":null,"numberReady":0,"observedGeneration":null,"updatedNumberScheduled":null}}
 	2019-03-08T10:24:27Z [✖]  DaemonSet.apps "aws-node" is invalid: [spec.template.spec.volumes[0].hostPath.path: Required value, spec.template.spec.volumes[1].hostPath.path: Required value, spec.template.spec.volumes[2].hostPath.path: Required value, spec.template.spec.volumes[3].hostPath.path: Required value, spec.template.spec.containers[0].image: Required value, spec.template.spec.containers[0].env[0].valueFrom.fieldRef.fieldPath: Required value, spec.template.spec.containers[0].env[1].valueFrom.fieldRef.fieldPath: Required value]
+*/
 
-func (r *ResourceClient) CreatePatchOrReplace() error {
+// CreatePatchOrReplace attempts patching the resource before replacing it
+// TODO: it needs more testing and the issue sith strategicpatch has to be
+// undertood before we decide wheather to use it or not
+func (r *RawResource) CreatePatchOrReplace() error {
 	msg := func(verb string) { logger.Info("%s %q", verb, r) }
 
 	create := false
@@ -207,7 +214,7 @@ func (r *ResourceClient) CreatePatchOrReplace() error {
 		return err
 	}
 
-	convertedObj, err := scheme.Scheme.ConvertToVersion(r.Info.Object.DeepCopyObject(), r.gvk.GroupVersion())
+	convertedObj, err := scheme.Scheme.ConvertToVersion(r.Info.Object.DeepCopyObject(), r.GVK.GroupVersion())
 	if err != nil {
 		return errors.Wrapf(err, "converting object")
 	}
@@ -227,7 +234,9 @@ func (r *ResourceClient) CreatePatchOrReplace() error {
 	// if err != nil {
 	// 	return err
 	// }
-	patch, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, convertedObj)
+	// patch, err := strategicpatch.CreateTwoWayMergePatch(oldData, newData, convertedObj)
+
+	patch, err := jsonpatch.CreateMergePatch(oldData, newData)
 	if err != nil {
 		logger.Warning("could create patch for %q: %v", r, err)
 		_, err := r.Helper.Replace(r.Info.Namespace, r.Info.Name, false, r.Info.Object)
@@ -247,4 +256,3 @@ func (r *ResourceClient) CreatePatchOrReplace() error {
 	msg("patched")
 	return nil
 }
-*/
