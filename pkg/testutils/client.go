@@ -15,8 +15,10 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/cli-runtime/pkg/genericclioptions/resource"
+	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/kubernetes/scheme"
+
 	restfake "k8s.io/client-go/rest/fake"
 )
 
@@ -176,4 +178,34 @@ func NewFakeRawResource(item runtime.Object, missing bool, ct *CollectionTracker
 	}
 
 	return rc, rt
+}
+
+type FakeRawClient struct {
+	Collection                 *CollectionTracker
+	AssumeObjectsMissing       bool
+	ClientSetUseUpdatedObjects bool
+}
+
+func NewFakeRawClient() *FakeRawClient {
+	return &FakeRawClient{
+		Collection: NewCollectionTracker(),
+	}
+}
+
+func (c *FakeRawClient) ClientSet() kubeclient.Interface {
+	if c.ClientSetUseUpdatedObjects {
+		return fake.NewSimpleClientset(c.Collection.UpdatedItems()...)
+	}
+	return fake.NewSimpleClientset(c.Collection.CreatedItems()...)
+}
+
+func (c *FakeRawClient) NewRawResource(item runtime.RawExtension) (*kubernetes.RawResource, error) {
+	r, _ := NewFakeRawResource(item.Object, c.AssumeObjectsMissing, c.Collection)
+	return r, nil
+}
+
+func (c *FakeRawClient) ClearUpdated() {
+	for k := range c.Collection.updated {
+		delete(c.Collection.updated, k)
+	}
 }
