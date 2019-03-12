@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/pkg/addons/default"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -29,7 +30,7 @@ var _ = Describe("default addons - kube-proxy", func() {
 		}
 
 		BeforeEach(func() {
-			clientSet = clientSetWithSample("testdata/sample-1.10.json")
+			clientSet, _ = testutils.NewFakeClientSetWithSamples("testdata/sample-1.10.json")
 		})
 
 		It("can load sample addons into a clientset", func() {
