@@ -66,6 +66,9 @@ const (
 	// Version1_11 represents Kubernetes version 1.11.x
 	Version1_11 = "1.11"
 
+	// Version1_12 represents Kubernetes version 1.12.x
+	Version1_12 = "1.12"
+
 	// LatestVersion represents latest Kubernetes version supported by EKS
 	LatestVersion = Version1_11
 
@@ -158,6 +161,7 @@ func SupportedVersions() []string {
 	return []string{
 		Version1_10,
 		Version1_11,
+		Version1_12,
 	}
 }
 
