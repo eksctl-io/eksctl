@@ -1,5 +1,6 @@
-// Package authconfigmap allows manipulation of the EKS configmap,
+// Package authconfigmap allows manipulation of the EKS auth ConfigMap (aws-auth),
 // which maps IAM entities to Kubernetes groups.
+//
 // See for more information:
 // - https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
 // - https://github.com/kubernetes-sigs/aws-iam-authenticator/blob/master/README.md#full-configuration-format
@@ -7,16 +8,16 @@ package authconfigmap
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/typed/core/v1"
+	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 )
@@ -26,7 +27,7 @@ type mapRoles []mapRole
 
 const (
 	// ObjectName is the Kubernetes resource name of the auth ConfigMap
-	ObjectName      = "aws-auth"
+	ObjectName = "aws-auth"
 	// ObjectNamespace is the namespace the object can be found
 	ObjectNamespace = metav1.NamespaceSystem
 
@@ -67,16 +68,9 @@ func (a *AuthConfigMap) AddAccount(account string) error {
 	if err != nil {
 		return err
 	}
-	distinct := map[string]struct{}{account: {}}
-	for _, acc := range accounts {
-		distinct[acc] = struct{}{}
-	}
-	accounts = accounts[:0]
-	for acc := range distinct {
-		accounts = append(accounts, acc)
-	}
-	// List order matters in yamls, maintain deterministic output
-	sort.Strings(accounts)
+	// Distinct and sorted account numbers
+	accounts = append(accounts, account)
+	accounts = sets.NewString(accounts...).List()
 	logger.Info("adding account %q to auth ConfigMap", account)
 	return a.setAccounts(accounts)
 }
