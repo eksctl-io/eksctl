@@ -25,8 +25,10 @@ type mapRole map[string]interface{}
 type mapRoles []mapRole
 
 const (
-	objectName      = "aws-auth"
-	objectNamespace = metav1.NamespaceSystem
+	// ObjectName is the Kubernetes resource name of the auth ConfigMap
+	ObjectName      = "aws-auth"
+	// ObjectNamespace is the namespace the object can be found
+	ObjectNamespace = metav1.NamespaceSystem
 
 	rolesData    = "mapRoles"
 	accountsData = "mapAccounts"
@@ -190,18 +192,18 @@ func (a *AuthConfigMap) Save(client v1.ConfigMapInterface) (err error) {
 // ObjectMeta constructs metadata for the ConfigMap.
 func ObjectMeta() metav1.ObjectMeta {
 	return metav1.ObjectMeta{
-		Name:      objectName,
-		Namespace: objectNamespace,
+		Name:      ObjectName,
+		Namespace: ObjectNamespace,
 	}
 }
 
 // AddNodeGroup creates or adds a nodegroup IAM role in the auth
 // ConfigMap for the given nodegroup.
 func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
+	client := clientSet.CoreV1().ConfigMaps(ObjectNamespace)
 
 	// check if object exists
-	cm, err := client.Get(objectName, metav1.GetOptions{})
+	cm, err := client.Get(ObjectName, metav1.GetOptions{})
 	if err != nil && !kerr.IsNotFound(err) {
 		// something must have gone terribly wrong
 		return errors.Wrapf(err, "getting auth ConfigMap")
@@ -221,9 +223,9 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	client := clientSet.CoreV1().ConfigMaps(objectNamespace)
+	client := clientSet.CoreV1().ConfigMaps(ObjectNamespace)
 
-	cm, err := client.Get(objectName, metav1.GetOptions{})
+	cm, err := client.Get(ObjectName, metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "getting auth ConfigMap")
 	}

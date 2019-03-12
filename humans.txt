@@ -35,6 +35,7 @@ Silvio Gutierrez        @silviogutierrez
 Yandy Ramirez           @IPyandy
 Jerry Jackson           @jrryjcksn
 Dann Church             @D3nn
+Roli Schilter           @rndstr
 
 /* Thanks */
 
