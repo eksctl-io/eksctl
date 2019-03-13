@@ -34,7 +34,7 @@ var _ = Describe("default addons - 1.10/kube-proxy", func() {
 		})
 
 		It("can load sample addons into a clientset", func() {
-			check("v1.10.11")
+			check("v1.10.3")
 		})
 
 		It("can update kube-proxy based on control plane version", func() {
@@ -46,7 +46,7 @@ var _ = Describe("default addons - 1.10/kube-proxy", func() {
 		It("can dry-run update kube-proxy based on control plane version", func() {
 			err := UpdateKubeProxyImageTag(clientSet, "1.12.1", true)
 			Expect(err).ToNot(HaveOccurred())
-			check("v1.10.11")
+			check("v1.10.3")
 		})
 	})
 })
