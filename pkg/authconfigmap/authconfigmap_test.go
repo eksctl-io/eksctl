@@ -68,7 +68,6 @@ func makeExpectedAccounts(accounts ...string) string {
 	return y
 }
 
-
 var _ = Describe("AuthConfigMap{}", func() {
 	Describe("New()", func() {
 		It("should create an empty configmap", func() {
@@ -80,37 +79,56 @@ var _ = Describe("AuthConfigMap{}", func() {
 
 			// Created!
 			cm := client.created
-			om := ObjectMeta()
-			om.UID = cm.UID
-			Expect(cm.ObjectMeta).To(Equal(om))
+			expected := ObjectMeta()
+			expected.UID = cm.UID
+			Expect(cm.ObjectMeta).To(Equal(expected))
+			Expect(cm.Data["mapRoles"]).To(Equal(""))
+		})
+		It("should load an empty configmap", func() {
+			empty := &corev1.ConfigMap{
+				ObjectMeta: ObjectMeta(),
+				Data:       nil,
+			}
+
+			client := &mockClient{}
+			acm := New(client, empty)
+			err := acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated).To(BeNil())
+
+			// Created!
+			cm := client.created
+			expected := ObjectMeta()
+			expected.UID = cm.UID
+			Expect(cm.ObjectMeta).To(Equal(expected))
 			Expect(cm.Data["mapRoles"]).To(Equal(""))
 		})
 		It("should load an existing configmap", func() {
-			cm := &corev1.ConfigMap{
+			existing := &corev1.ConfigMap{
 				ObjectMeta: ObjectMeta(),
 				Data:       map[string]string{},
 			}
-			cm.ObjectMeta.UID = "123456"
+			existing.ObjectMeta.UID = "123456"
 
 			client := &mockClient{}
-			acm := New(client, cm)
+			acm := New(client, existing)
 			err := acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.created).To(BeNil())
 
 			// Updated!
-			cm = client.updated
+			cm := client.updated
 			Expect(cm.ObjectMeta.UID).To(Equal(types.UID("123456")))
 		})
 	})
 	Describe("AddRole()", func() {
-		cm := &corev1.ConfigMap{
+		existing := &corev1.ConfigMap{
 			ObjectMeta: ObjectMeta(),
 			Data:       map[string]string{},
 		}
-		cm.UID = "123456"
+		existing.UID = "123456"
 		client := &mockClient{}
-		acm := New(client, cm)
+		acm := New(client, existing)
 
 		addAndSave := func(arn string, groups []string) *corev1.ConfigMap {
 			client.reset()
@@ -140,13 +158,13 @@ var _ = Describe("AuthConfigMap{}", func() {
 		})
 	})
 	Describe("RemoveRole()", func() {
-		cm := &corev1.ConfigMap{
+		existing := &corev1.ConfigMap{
 			ObjectMeta: ObjectMeta(),
 			Data:       map[string]string{"mapRoles": expectedA + expectedA + expectedB},
 		}
-		cm.UID = "123456"
+		existing.UID = "123456"
 		client := &mockClient{}
-		acm := New(client, cm)
+		acm := New(client, existing)
 
 		removeAndSave := func(arn string) *corev1.ConfigMap {
 			client.reset()
@@ -177,13 +195,13 @@ var _ = Describe("AuthConfigMap{}", func() {
 		})
 	})
 	Describe("AddAccount()", func() {
-		cm := &corev1.ConfigMap{
+		existing := &corev1.ConfigMap{
 			ObjectMeta: ObjectMeta(),
 			Data:       map[string]string{},
 		}
-		cm.UID = "123456"
+		existing.UID = "123456"
 		client := &mockClient{}
-		acm := New(client, cm)
+		acm := New(client, existing)
 
 		addAndSave := func(account string) *corev1.ConfigMap {
 			client.reset()
@@ -212,13 +230,13 @@ var _ = Describe("AuthConfigMap{}", func() {
 		})
 	})
 	Describe("RemoveAccount()", func() {
-		cm := &corev1.ConfigMap{
+		existing := &corev1.ConfigMap{
 			ObjectMeta: ObjectMeta(),
 			Data:       map[string]string{"mapAccounts": makeExpectedAccounts(accountA) + makeExpectedAccounts(accountB)},
 		}
-		cm.UID = "123456"
+		existing.UID = "123456"
 		client := &mockClient{}
-		acm := New(client, cm)
+		acm := New(client, existing)
 
 		removeAndSave := func(account string) *corev1.ConfigMap {
 			client.reset()
