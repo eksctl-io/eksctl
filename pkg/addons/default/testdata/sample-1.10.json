@@ -220,7 +220,7 @@
       "kind": "DaemonSet",
       "metadata": {
         "annotations": {
-          "deprecated.daemonset.template.generation": "2"
+          "deprecated.daemonset.template.generation": "1"
         },
         "labels": {
           "eks.amazonaws.com/component": "kube-proxy",
@@ -278,9 +278,9 @@
                 "command": [
                   "/bin/sh",
                   "-c",
-                  "kube-proxy --resource-container=\"\" --oom-score-adj=-998 --master=https://221bcb731757306f3b09d396e6f0e620.yl4.eu-west-2.eks.amazonaws.com --kubeconfig=/var/lib/kube-proxy/kubeconfig --proxy-mode=iptables --v=2 1>>/var/log/kube-proxy.log 2>&1"
+                  "kube-proxy --resource-container=\"\" --oom-score-adj=-998 --master=https://0c817583ad2b5ec5b6a2094fc6b8dff8.yl4.eu-west-2.eks.amazonaws.com --kubeconfig=/var/lib/kube-proxy/kubeconfig --proxy-mode=iptables --v=2 1>>/var/log/kube-proxy.log 2>&1"
                 ],
-                "image": "602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-proxy:v1.10.11",
+                "image": "602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-proxy:v1.10.3",
                 "imagePullPolicy": "IfNotPresent",
                 "name": "kube-proxy",
                 "resources": {
