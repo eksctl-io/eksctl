@@ -18,6 +18,7 @@ import (
 var (
 	updateClusterDryRun = true
 	updateClusterWait   = true
+	clusterConfigFile   string
 )
 
 func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -29,8 +30,8 @@ func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Update cluster",
-		Run: func(_ *cobra.Command, args []string) {
-			if err := doUpdateClusterCmd(p, cfg, cmdutils.GetNameArg(args)); err != nil {
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := doUpdateClusterCmd(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -42,6 +43,8 @@ func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name (required)")
 		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
 		fs.BoolVar(&updateClusterDryRun, "dry-run", updateClusterDryRun, "do not apply any change, only show what resources would be added")
 		cmdutils.AddWaitFlag(&updateClusterWait, fs, "all update operations to complete")
@@ -53,31 +56,24 @@ func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
-	if cfg.Metadata.Name != "" && nameArg != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, nameArg)
+func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
+	if err := api.Register(); err != nil {
+		return err
 	}
 
-	if nameArg != "" {
-		cfg.Metadata.Name = nameArg
-	}
-
-	if cfg.Metadata.Name == "" {
-		return fmt.Errorf("--name must be set")
+	if err := cmdutils.LoadMetadata(p, cfg, clusterConfigFile, nameArg, cmd); err != nil {
+		return err
 	}
 
 	ctl := eks.New(p, cfg)
+	meta := cfg.Metadata
+
+	printer := printers.NewJSONPrinter()
 
 	if !ctl.IsSupportedRegion() {
 		return cmdutils.ErrUnsupportedRegion(p)
 	}
-	logger.Info("using region %s", cfg.Metadata.Region)
-
-	printer := printers.NewJSONPrinter()
-
-	if err := api.Register(); err != nil {
-		return err
-	}
+	logger.Info("using region %s", meta.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -85,6 +81,10 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	if err := ctl.GetCredentials(cfg); err != nil {
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	}
+
+	if clusterConfigFile != "" {
+		logger.Warning("NOTE: config file is only used for finding cluster name and region, deep cluster configuration changes are not yet implemented")
 	}
 
 	currentVersion := ctl.ControlPlaneVersion()
