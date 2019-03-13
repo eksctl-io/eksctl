@@ -24,13 +24,13 @@ const (
 
 // UpdateAWSNode will update the `aws-node` add-on
 func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string) error {
-	_, err := rawClient.ClientSet().Apps().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
+	_, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)
 			return nil
 		}
-		return errors.Wrapf(err, "getting %s", AWSNode)
+		return errors.Wrapf(err, "getting %q", AWSNode)
 	}
 
 	// if DaemonSets is present, go through our list of assets

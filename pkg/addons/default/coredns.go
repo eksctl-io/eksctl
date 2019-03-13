@@ -33,10 +33,7 @@ const (
 
 // InstallCoreDNS will install the `coredns` add-on in place of `kube-dns`
 func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, waitTimeout *time.Duration) error {
-	coreClient := rawClient.ClientSet().CoreV1()
-	deploymentsClient := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem)
-
-	kubeDNSSevice, err := coreClient.Services(metav1.NamespaceSystem).Get(KubeDNS, metav1.GetOptions{})
+	kubeDNSSevice, err := rawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(KubeDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q service was not found", KubeDNS)
@@ -45,7 +42,7 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 		return errors.Wrapf(err, "getting %q service", KubeDNS)
 	}
 
-	kubeDNSDeployment, err := deploymentsClient.Get(KubeDNS, metav1.GetOptions{})
+	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(KubeDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q deployment was not found", KubeDNS)
@@ -57,7 +54,7 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 	if v, ok := kubeDNSDeployment.Spec.Selector.MatchLabels[componentLabel]; !ok || v != KubeDNS {
 		logger.Debug("adding %q label to %q", componentLabel, KubeDNS)
 		kubeDNSDeployment.Spec.Selector.MatchLabels[componentLabel] = KubeDNS
-		if _, err := deploymentsClient.Update(kubeDNSDeployment); err != nil {
+		if _, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Update(kubeDNSDeployment); err != nil {
 			return errors.Wrapf(err, "patching %q", KubeDNS)
 		}
 	}
@@ -106,12 +103,12 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 		timer := time.After(*waitTimeout)
 		timeout := false
 		readyPods := sets.NewString()
-		watcher, err := coreClient.Pods(metav1.NamespaceSystem).Watch(listPodsOptions)
+		watcher, err := rawClient.ClientSet().CoreV1().Pods(metav1.NamespaceSystem).Watch(listPodsOptions)
 		if err != nil {
 			return errors.Wrapf(err, "creating %q pod watcher", CoreDNS)
 		}
 
-		podList, err := coreClient.Pods(metav1.NamespaceSystem).List(listPodsOptions)
+		podList, err := rawClient.ClientSet().CoreV1().Pods(metav1.NamespaceSystem).List(listPodsOptions)
 		if err != nil {
 			return errors.Wrapf(err, "listing %q pods", CoreDNS)
 		}
@@ -147,7 +144,7 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 		}
 	}
 
-	if err := deploymentsClient.Delete(KubeDNS, &metav1.DeleteOptions{}); err != nil {
+	if err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Delete(KubeDNS, &metav1.DeleteOptions{}); err != nil {
 		return errors.Wrapf(err, "deleting %q", KubeDNS)
 	}
 

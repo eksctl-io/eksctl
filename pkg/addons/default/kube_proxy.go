@@ -23,13 +23,13 @@ const (
 func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion string, dryRun bool) error {
 	printer := printers.NewJSONPrinter()
 
-	d, err := clientSet.Apps().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
+	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", KubeProxy)
 			return nil
 		}
-		return errors.Wrapf(err, "getting %s", KubeProxy)
+		return errors.Wrapf(err, "getting %q", KubeProxy)
 	}
 	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
 		return fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
@@ -65,7 +65,7 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 	if err := printer.LogObj(logger.Debug, KubeProxy+" [updated] = \\\n%s\n", d); err != nil {
 		return err
 	}
-	if _, err := clientSet.Apps().DaemonSets(metav1.NamespaceSystem).Update(d); err != nil {
+	if _, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Update(d); err != nil {
 		return err
 	}
 

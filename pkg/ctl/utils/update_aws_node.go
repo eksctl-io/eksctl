@@ -74,5 +74,5 @@ func doUpdateAWSNode(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	return defaultaddons.UpdateAWSNode(rawClient, p.Region)
+	return defaultaddons.UpdateAWSNode(rawClient, meta.Region)
 }
