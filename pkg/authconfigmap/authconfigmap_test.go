@@ -85,10 +85,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Expect(cm.Data["mapRoles"]).To(Equal(""))
 		})
 		It("should load an empty configmap", func() {
-			empty := &corev1.ConfigMap{
-				ObjectMeta: ObjectMeta(),
-				Data:       nil,
-			}
+			empty := &corev1.ConfigMap{}
 
 			client := &mockClient{}
 			acm := New(client, empty)
