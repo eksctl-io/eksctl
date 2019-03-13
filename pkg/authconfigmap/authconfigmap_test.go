@@ -1,95 +1,245 @@
 package authconfigmap_test
 
 import (
+	"fmt"
 	"strings"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/typed/core/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	. "github.com/weaveworks/eksctl/pkg/authconfigmap"
 )
 
-var _ = Describe("Auth ConfigMap", func() {
-	Describe("create new ConfigMap", func() {
+const (
+	roleA    = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX"
+	roleB    = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-ABCDEFGH"
+	groupB   = "foo"
+	accountA = "123"
+	accountB = "789"
+)
 
-		cm, err := NewForRole("arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX")
+var (
+	expectedA = makeExpectedRole(roleA, RoleNodeGroupGroups)
+	expectedB = makeExpectedRole(roleB, []string{groupB})
+)
 
-		expected := []string{
-			`- username: 'system:node:{{EC2PrivateDNSName}}'`,
-			`  groups: [ 'system:bootstrappers', 'system:nodes' ]`,
-			`  rolearn: 'arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX'`,
+// mockClient implements v1.ConfigMapInterface
+type mockClient struct {
+	v1.ConfigMapInterface
+	created *corev1.ConfigMap
+	updated *corev1.ConfigMap
+}
+
+func (c *mockClient) Create(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
+	cm.ObjectMeta.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
+	c.created = cm
+	return cm, nil
+}
+
+func (c *mockClient) Update(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
+	c.updated = cm
+	return cm, nil
+}
+
+func (c *mockClient) reset() {
+	c.updated = nil
+	c.created = nil
+}
+
+func makeExpectedRole(arn string, groups []string) string {
+	return fmt.Sprintf(`- rolearn: %s
+  username: system:node:{{EC2PrivateDNSName}}
+  groups:
+  - %s
+`, arn, strings.Join(groups, "\n  - "))
+}
+
+func makeExpectedAccounts(accounts ...string) string {
+	var y string
+	for _, a := range accounts {
+		// Having them quoted is important for the yaml parser to
+		// recognize them as strings over numbers
+		y += fmt.Sprintf("\n- %q", a)
+	}
+
+	return y
+}
+
+
+var _ = Describe("AuthConfigMap{}", func() {
+	Describe("New()", func() {
+		It("should create an empty configmap", func() {
+			client := &mockClient{}
+			acm := New(client, nil)
+			err := acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated).To(BeNil())
+
+			// Created!
+			cm := client.created
+			om := ObjectMeta()
+			om.UID = cm.UID
+			Expect(cm.ObjectMeta).To(Equal(om))
+			Expect(cm.Data["mapRoles"]).To(Equal(""))
+		})
+		It("should load an existing configmap", func() {
+			cm := &corev1.ConfigMap{
+				ObjectMeta: ObjectMeta(),
+				Data:       map[string]string{},
+			}
+			cm.ObjectMeta.UID = "123456"
+
+			client := &mockClient{}
+			acm := New(client, cm)
+			err := acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+
+			// Updated!
+			cm = client.updated
+			Expect(cm.ObjectMeta.UID).To(Equal(types.UID("123456")))
+		})
+	})
+	Describe("AddRole()", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{},
+		}
+		cm.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, cm)
+
+		addAndSave := func(arn string, groups []string) *corev1.ConfigMap {
+			client.reset()
+			err := acm.AddRole(arn, RoleNodeGroupUsername, groups)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+			Expect(client.updated).NotTo(BeNil())
+
+			return client.updated
 		}
 
-		It("should create correct configuration for a new nodegroup", func() {
-			Expect(err).To(Not(HaveOccurred()))
-			Expect(cm).To(Not(BeNil()))
-
-			Expect(cm.ObjectMeta).To(Equal(ObjectMeta()))
-
-			Expect(cm.Data).To(HaveKey("mapRoles"))
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(strings.Join(expected, "\n")))
+		It("should add a role", func() {
+			cm := addAndSave(roleA, RoleNodeGroupGroups)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA))
 		})
-		It("should add a new node group ARN to the configmap", func() {
-			err = AddRole(cm, "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng2-p-NodeInstanceRole-1L35GCVYSTW4E")
-
-			Expect(err).To(Not(HaveOccurred()))
-			Expect(cm).To(Not(BeNil()))
-
-			expected = append(expected,
-				`- username: 'system:node:{{EC2PrivateDNSName}}'`,
-				`  groups: [ 'system:bootstrappers', 'system:nodes' ]`,
-				`  rolearn: 'arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng2-p-NodeInstanceRole-1L35GCVYSTW4E'`,
-			)
-
-			Expect(cm.ObjectMeta).To(Equal(ObjectMeta()))
-
-			Expect(cm.Data).To(HaveKey("mapRoles"))
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(strings.Join(expected, "\n")))
+		It("should append a second role", func() {
+			cm := addAndSave(roleB, []string{groupB})
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA + expectedB))
 		})
-
-		It("should remove arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng2-p-NodeInstanceRole-1L35GCVYSTW4E from ConfigMap", func() {
-			err = RemoveRole(cm, "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng2-p-NodeInstanceRole-1L35GCVYSTW4E")
-
-			Expect(err).To(Not(HaveOccurred()))
-			Expect(cm).To(Not(BeNil()))
-
-			expected = []string{
-				`- username: 'system:node:{{EC2PrivateDNSName}}'`,
-				`  groups: [ 'system:bootstrappers', 'system:nodes' ]`,
-				`  rolearn: 'arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX'`,
-			}
-
-			Expect(cm.ObjectMeta).To(Equal(ObjectMeta()))
-
-			Expect(cm.Data).To(HaveKey("mapRoles"))
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(strings.Join(expected, "\n")))
+		It("should append a duplicate role", func() {
+			cm := addAndSave(roleA, RoleNodeGroupGroups)
+			expected := expectedA + expectedB + expectedA
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expected))
 		})
+	})
+	Describe("RemoveRole()", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{"mapRoles": expectedA + expectedA + expectedB},
+		}
+		cm.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, cm)
 
-		It("should fail if an role ARN is is not in the config map", func() {
-			err = RemoveRole(cm, "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-ABCDEFGH'")
+		removeAndSave := func(arn string) *corev1.ConfigMap {
+			client.reset()
+			err := acm.RemoveRole(arn)
+			Expect(err).NotTo(HaveOccurred())
 
-			Expect(err).To(HaveOccurred())
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(strings.Join(expected, "\n")))
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+
+			return client.updated
+		}
+
+		It("should remove role", func() {
+			cm := removeAndSave(roleB)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA + expectedA))
 		})
-
-		It("should remove arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX and make mapRoles be []", func() {
-			err = RemoveRole(cm, "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX")
-
-			Expect(err).To(Not(HaveOccurred()))
-			Expect(cm).To(Not(BeNil()))
-
-			Expect(cm.ObjectMeta).To(Equal(ObjectMeta()))
-
-			Expect(cm.Data).To(HaveKey("mapRoles"))
+		It("should remove one role for duplicates", func() {
+			cm := removeAndSave(roleA)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA))
+		})
+		It("should remove last role", func() {
+			cm := removeAndSave(roleA)
 			Expect(cm.Data["mapRoles"]).To(MatchYAML("[]"))
 		})
-
-		It("should fail if you try removing a role when the mapRole is empty", func() {
-			err = RemoveRole(cm, "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-ABCDEFGH'")
-
+		It("should fail if role not found", func() {
+			err := acm.RemoveRole(roleA)
 			Expect(err).To(HaveOccurred())
-			Expect(cm.Data).To(HaveKey("mapRoles"))
-			Expect(cm.Data["mapRoles"]).To(MatchYAML("[]"))
+		})
+	})
+	Describe("AddAccount()", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{},
+		}
+		cm.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, cm)
+
+		addAndSave := func(account string) *corev1.ConfigMap {
+			client.reset()
+			err := acm.AddAccount(account)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+			Expect(client.updated).NotTo(BeNil())
+
+			return client.updated
+		}
+
+		It("should add an account", func() {
+			cm := addAndSave(accountA)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA)))
+		})
+		It("should deduplicate when adding", func() {
+			cm := addAndSave(accountA)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA)))
+		})
+		It("should add another account", func() {
+			cm := addAndSave(accountB)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountA) + makeExpectedAccounts(accountB)))
+		})
+	})
+	Describe("RemoveAccount()", func() {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{"mapAccounts": makeExpectedAccounts(accountA) + makeExpectedAccounts(accountB)},
+		}
+		cm.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, cm)
+
+		removeAndSave := func(account string) *corev1.ConfigMap {
+			client.reset()
+			err := acm.RemoveAccount(account)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+			Expect(client.updated).NotTo(BeNil())
+
+			return client.updated
+		}
+
+		It("should remove an account", func() {
+			cm := removeAndSave(accountA)
+			Expect(cm.Data["mapAccounts"]).To(MatchYAML(makeExpectedAccounts(accountB)))
+		})
+		It("should fail if account not found", func() {
+			err := acm.RemoveAccount(accountA)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })
