@@ -44,7 +44,8 @@ subjects:
   namespace: kube-system
 ---
 kind: DaemonSet
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
+# kubernetes versions before 1.9.0 should use extensions/v1beta1
 metadata:
   name: aws-node
   namespace: kube-system

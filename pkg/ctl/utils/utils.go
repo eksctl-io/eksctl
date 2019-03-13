@@ -27,6 +27,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd.AddCommand(describeStacksCmd(g))
 	cmd.AddCommand(updateClusterStackCmd(g))
 	cmd.AddCommand(updateKubeProxyCmd(g))
+	cmd.AddCommand(updateAWSNodeCmd(g))
 
 	return cmd
 }
