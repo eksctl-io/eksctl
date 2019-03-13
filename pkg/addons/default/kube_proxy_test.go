@@ -11,8 +11,8 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-var _ = Describe("default addons - 1.10/kube-proxy", func() {
-	Describe("can load a resources and create fake client", func() {
+var _ = Describe("default addons - kube-proxy", func() {
+	Describe("can update kube-proxy", func() {
 		var (
 			clientSet *fake.Clientset
 		)
@@ -33,17 +33,17 @@ var _ = Describe("default addons - 1.10/kube-proxy", func() {
 			clientSet, _ = testutils.NewFakeClientSetWithSamples("testdata/sample-1.10.json")
 		})
 
-		It("can load sample addons into a clientset", func() {
+		It("can load 1.10 sample", func() {
 			check("v1.10.3")
 		})
 
-		It("can update kube-proxy based on control plane version", func() {
+		It("can update based on control plane version", func() {
 			err := UpdateKubeProxyImageTag(clientSet, "1.11.0", false)
 			Expect(err).ToNot(HaveOccurred())
 			check("v1.11.0")
 		})
 
-		It("can dry-run update kube-proxy based on control plane version", func() {
+		It("can dry-run update based on control plane version", func() {
 			err := UpdateKubeProxyImageTag(clientSet, "1.12.1", true)
 			Expect(err).ToNot(HaveOccurred())
 			check("v1.10.3")
