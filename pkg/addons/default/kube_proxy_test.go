@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-var _ = Describe("default addons - kube-proxy", func() {
+var _ = Describe("default addons - 1.10/kube-proxy", func() {
 	Describe("can load a resources and create fake client", func() {
 		var (
 			clientSet *fake.Clientset

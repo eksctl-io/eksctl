@@ -27,7 +27,13 @@ import (
 type RawClient struct {
 	mapper    meta.RESTMapper
 	config    *restclient.Config
-	ClientSet kubeclient.Interface
+	clientSet kubeclient.Interface
+}
+
+// RawClientInterface defines high level abstraction for RawClient for testing
+type RawClientInterface interface {
+	ClientSet() kubeclient.Interface
+	NewRawResource(runtime.RawExtension) (*RawResource, error)
 }
 
 // RawResource holds info about a resource along with a type-specific raw client instance
@@ -41,14 +47,14 @@ type RawResource struct {
 func NewRawClient(clientSet kubeclient.Interface, config *restclient.Config) (*RawClient, error) {
 	c := &RawClient{
 		config:    config,
-		ClientSet: clientSet,
+		clientSet: clientSet,
 	}
 
 	return c.new()
 }
 
 func (c *RawClient) new() (*RawClient, error) {
-	apiGroupResources, err := restmapper.GetAPIGroupResources(c.ClientSet.Discovery())
+	apiGroupResources, err := restmapper.GetAPIGroupResources(c.ClientSet().Discovery())
 	if err != nil {
 		return nil, errors.Wrap(err, "getting list of API resources for raw REST client")
 	}
@@ -67,6 +73,9 @@ func (c *RawClient) new() (*RawClient, error) {
 	}
 	return c, nil
 }
+
+// ClientSet returns the underlying ClientSet
+func (c *RawClient) ClientSet() kubeclient.Interface { return c.clientSet }
 
 // NewHelperFor construct a raw client helper instance for a give gvk
 // (it's based on k8s.io/kubernetes/pkg/kubectl/cmd/util/factory_client_access.go)
@@ -93,8 +102,8 @@ func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper,
 	return resource.NewHelper(client, mapping), nil
 }
 
-// NewRawResource construcst a type-specific instance or rawClient for rawObj
-func NewRawResource(rawClient *RawClient, rawObj runtime.RawExtension) (*RawResource, error) {
+// NewRawResource constructs a type-specific instance or RawClient for rawObj
+func (c *RawClient) NewRawResource(rawObj runtime.RawExtension) (*RawResource, error) {
 	gvk := rawObj.Object.GetObjectKind().GroupVersionKind()
 
 	obj, ok := rawObj.Object.(metav1.Object)
@@ -108,7 +117,7 @@ func NewRawResource(rawClient *RawClient, rawObj runtime.RawExtension) (*RawReso
 		Object:    rawObj.Object,
 	}
 
-	helper, err := rawClient.NewHelperFor(gvk)
+	helper, err := c.NewHelperFor(gvk)
 	if err != nil {
 		return nil, err
 	}
