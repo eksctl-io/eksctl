@@ -63,6 +63,9 @@ func New(client v1.ConfigMapInterface, cm *corev1.ConfigMap) *AuthConfigMap {
 			Data:       map[string]string{},
 		}
 	}
+	if cm.Data == nil {
+		cm.Data = map[string]string{}
+	}
 	return &AuthConfigMap{client: client, cm: cm}
 }
 
@@ -70,7 +73,6 @@ func New(client v1.ConfigMapInterface, cm *corev1.ConfigMap) *AuthConfigMap {
 func NewFromClientSet(clientSet kubernetes.Interface) (*AuthConfigMap, error) {
 	client := clientSet.CoreV1().ConfigMaps(ObjectNamespace)
 
-	// check if object exists
 	cm, err := client.Get(ObjectName, metav1.GetOptions{})
 	// It is fine for the configmap not to exist. Any other error is fatal.
 	if err != nil && !kerr.IsNotFound(err) {
