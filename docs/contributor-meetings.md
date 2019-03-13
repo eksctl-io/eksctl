@@ -55,3 +55,26 @@ Topics:
 - `eksctl utils describe-stacks`
   - additon of `--trail`
   - call for help on improving output [#585](https://github.com/weaveworks/eksctl/issues/585)
+
+### 06/03/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+
+Topics:
+- upgrades - [#608](https://github.com/weaveworks/eksctl/issues/608)
+
+### 13/03/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+
+Topics:
+- upgrades - [#608](https://github.com/weaveworks/eksctl/issues/608)
+   - `k8s.io/client-go` & co
+   - `RawClient` and `RawResource` - [#624](https://github.com/weaveworks/eksctl/pull/624)
+- update on challenges with going to production from @mumoshu
+   - node-local DNS and chaching
+   - gitops with helmfile - need better way to manage `aws-auth`
