@@ -54,22 +54,36 @@ var mapper = testrestmapper.TestOnlyStaticRESTMapper(scheme.Scheme)
 type CollectionTracker struct {
 	created map[string]runtime.Object
 	updated map[string]runtime.Object
+	objects map[string]runtime.Object
 }
 
 func NewCollectionTracker() *CollectionTracker {
 	return &CollectionTracker{
 		created: make(map[string]runtime.Object),
 		updated: make(map[string]runtime.Object),
+		objects: make(map[string]runtime.Object),
 	}
 }
 
 type requestTracker struct {
 	requests   *[]*http.Request
 	missing    *bool
+	unionised  *bool
 	collection *CollectionTracker
 }
 
+func objectReqKey(req *http.Request, item runtime.Object) string {
+	return fmt.Sprintf("%s [%s] (%s)",
+		req.Method, req.URL.Path, item.(metav1.Object).GetName())
+}
+
 func objectKey(req *http.Request, item runtime.Object) string {
+	switch req.Method {
+	case http.MethodPost:
+		return fmt.Sprintf("%s/%s", req.URL.Path, item.(metav1.Object).GetName())
+	case http.MethodGet, http.MethodPut, http.MethodDelete:
+		return fmt.Sprintf("%s", req.URL.Path)
+	}
 	return fmt.Sprintf("%s [%s] (%s)",
 		req.Method, req.URL.Path, item.(metav1.Object).GetName())
 }
@@ -83,19 +97,34 @@ func (t *requestTracker) Methods() (m []string) {
 	return
 }
 
-func (t *requestTracker) IsMissing() bool { return *t.missing }
+func (t *requestTracker) IsMissing(req *http.Request, item runtime.Object) bool {
+	if *t.unionised && t.collection != nil {
+		k := objectKey(req, item)
+		_, ok := t.collection.objects[k]
+		return !ok
+	}
+	return *t.missing
+}
 
-func (t *requestTracker) Create(req *http.Request, item runtime.Object) {
+func (t *requestTracker) Create(req *http.Request, item runtime.Object) bool {
 	*t.missing = false
 	if t.collection != nil {
-		t.collection.created[objectKey(req, item)] = item
+		t.collection.created[objectReqKey(req, item)] = item
+		if *t.unionised {
+			k := objectKey(req, item)
+			if _, ok := t.collection.objects[k]; ok {
+				return false
+			}
+			t.collection.objects[k] = item
+		}
 	}
+	return true
 }
 
 func (c *CollectionTracker) Created() map[string]runtime.Object { return c.created }
 
 func (c *CollectionTracker) CreatedItems() (items []runtime.Object) {
-	for _, item := range c.created {
+	for _, item := range c.Created() {
 		items = append(items, item)
 	}
 	return
@@ -103,20 +132,47 @@ func (c *CollectionTracker) CreatedItems() (items []runtime.Object) {
 
 func (t *requestTracker) Update(req *http.Request, item runtime.Object) {
 	if t.collection != nil {
-		t.collection.updated[objectKey(req, item)] = item
+		t.collection.updated[objectReqKey(req, item)] = item
+		if *t.unionised {
+			k := objectKey(req, item)
+			t.collection.objects[k] = item
+		}
 	}
 }
 
 func (c *CollectionTracker) Updated() map[string]runtime.Object { return c.updated }
 
 func (c *CollectionTracker) UpdatedItems() (items []runtime.Object) {
-	for _, item := range c.updated {
+	for _, item := range c.Updated() {
 		items = append(items, item)
 	}
 	return
 }
 
-func NewFakeRawResource(item runtime.Object, missing bool, ct *CollectionTracker) (*kubernetes.RawResource, requestTracker) {
+func (t *requestTracker) Delete(req *http.Request, item runtime.Object) bool {
+	if t.collection != nil {
+		if *t.unionised {
+			k := objectKey(req, item)
+			if _, ok := t.collection.objects[k]; ok {
+				delete(t.collection.objects, k)
+				return true
+			}
+			return false
+		}
+	}
+	return true
+}
+
+func (c *CollectionTracker) AllTracked() map[string]runtime.Object { return c.objects }
+
+func (c *CollectionTracker) AllTrackedItmes() (items []runtime.Object) {
+	for _, item := range c.AllTracked() {
+		items = append(items, item)
+	}
+	return
+}
+
+func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *CollectionTracker) (*kubernetes.RawResource, requestTracker) {
 	obj, ok := item.(metav1.Object)
 	Expect(ok).To(BeTrue())
 
@@ -134,13 +190,23 @@ func NewFakeRawResource(item runtime.Object, missing bool, ct *CollectionTracker
 	rt := requestTracker{
 		requests:   &[]*http.Request{},
 		missing:    &missing,
+		unionised:  &unionised,
 		collection: ct,
 	}
 
-	notFound := http.Response{StatusCode: 404, Body: ioutil.NopCloser(bytes.NewReader([]byte{}))}
+	emptyBody := ioutil.NopCloser(bytes.NewReader([]byte{}))
+	notFound := http.Response{StatusCode: http.StatusNotFound, Body: emptyBody}
+	conflict := http.Response{StatusCode: http.StatusConflict, Body: emptyBody}
 
 	echo := func(req *http.Request) (*http.Response, error) {
-		return &http.Response{StatusCode: 200, Body: req.Body}, nil
+		return &http.Response{StatusCode: http.StatusOK, Body: req.Body}, nil
+	}
+
+	asResult := func(req *http.Request) (*http.Response, error) {
+		data, err := runtime.Encode(unstructured.UnstructuredJSONScheme, item)
+		Expect(err).To(Not(HaveOccurred()))
+		res := &http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(bytes.NewReader(data))}
+		return res, nil
 	}
 
 	client := &restfake.RESTClient{
@@ -150,19 +216,23 @@ func NewFakeRawResource(item runtime.Object, missing bool, ct *CollectionTracker
 			rt.Append(req)
 			switch req.Method {
 			case http.MethodGet:
-				if rt.IsMissing() {
+				if rt.IsMissing(req, item) {
 					return &notFound, nil
 				}
-				data, err := runtime.Encode(unstructured.UnstructuredJSONScheme, item)
-				Expect(err).To(Not(HaveOccurred()))
-				res := &http.Response{StatusCode: 200, Body: ioutil.NopCloser(bytes.NewReader(data))}
-				return res, nil
+				return asResult(req)
 			case http.MethodPost:
-				rt.Create(req, item)
+				if !rt.Create(req, item) {
+					return &conflict, nil
+				}
 				return echo(req)
 			case http.MethodPut:
 				rt.Update(req, item)
 				return echo(req)
+			case http.MethodDelete:
+				if !rt.Delete(req, item) {
+					return &notFound, nil
+				}
+				return asResult(req)
 			default:
 				return nil, fmt.Errorf("unexpected request: %s %s", req.Method, req.URL.Path)
 			}
@@ -184,6 +254,7 @@ type FakeRawClient struct {
 	Collection                 *CollectionTracker
 	AssumeObjectsMissing       bool
 	ClientSetUseUpdatedObjects bool
+	UseUnionTracker            bool
 }
 
 func NewFakeRawClient() *FakeRawClient {
@@ -193,6 +264,12 @@ func NewFakeRawClient() *FakeRawClient {
 }
 
 func (c *FakeRawClient) ClientSet() kubeclient.Interface {
+	if c.UseUnionTracker {
+		// TODO: try to use clientSet.Fake.Actions, clientSet.Fake.PrependReactor
+		// or any of the other hooks to connect this clientset instance with
+		// udnerlying CollectionTracker, so that we get proper end-to-end behaviour
+		return fake.NewSimpleClientset(c.Collection.AllTrackedItmes()...)
+	}
 	if c.ClientSetUseUpdatedObjects {
 		return fake.NewSimpleClientset(c.Collection.UpdatedItems()...)
 	}
@@ -200,7 +277,7 @@ func (c *FakeRawClient) ClientSet() kubeclient.Interface {
 }
 
 func (c *FakeRawClient) NewRawResource(item runtime.RawExtension) (*kubernetes.RawResource, error) {
-	r, _ := NewFakeRawResource(item.Object, c.AssumeObjectsMissing, c.Collection)
+	r, _ := NewFakeRawResource(item.Object, c.AssumeObjectsMissing, c.UseUnionTracker, c.Collection)
 	return r, nil
 }
 

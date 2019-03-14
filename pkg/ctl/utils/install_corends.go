@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -14,15 +15,15 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func updateAWSNodeCmd(g *cmdutils.Grouping) *cobra.Command {
+func installCoreDNSCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 
 	cmd := &cobra.Command{
-		Use:   "update-aws-node",
-		Short: "Update aws-node add-on to latest released version",
+		Use:   "install-coredns",
+		Short: "Installs latest version of CoreDNS add-on into clusters, replacing kube-dns",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := doUpdateAWSNode(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
+			if err := doInstallCoreDNS(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
@@ -44,7 +45,7 @@ func updateAWSNodeCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func doUpdateAWSNode(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
+func doInstallCoreDNS(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	if err := api.Register(); err != nil {
 		return err
 	}
@@ -69,10 +70,19 @@ func doUpdateAWSNode(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return errors.Wrapf(err, "getting credentials for cluster %q", meta.Name)
 	}
 
+	switch ctl.ControlPlaneVersion() {
+	case "":
+		return fmt.Errorf("unable to get control plane version")
+	case api.Version1_10:
+		return fmt.Errorf("%q is not supported on 1.10 cluster, run 'eksctl update cluster' first", defaultaddons.CoreDNS)
+	}
+
 	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}
 
-	return defaultaddons.UpdateAWSNode(rawClient, meta.Region)
+	waitTimeout := ctl.Provider.WaitTimeout()
+
+	return defaultaddons.InstallCoreDNS(rawClient, meta.Region, &waitTimeout)
 }
