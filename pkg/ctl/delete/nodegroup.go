@@ -45,7 +45,7 @@ func deleteNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete (required)")
 		cmdutils.AddWaitFlag(&wait, fs, "deletion of all resources")
-		fs.BoolVar(&updateAuthConfigMap, "update-auth-config-map", true, "Remove nodegroup IAM role from aws-auth config map")
+		cmdutils.AddUpdateAuthConfigMap(&updateAuthConfigMap, fs, "Remove nodegroup IAM role from aws-auth configmap")
 		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
 	})
 

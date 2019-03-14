@@ -20,7 +20,8 @@ import (
 )
 
 var (
-	nodeGroupFilter = ""
+	updateAuthConfigMap bool
+	nodeGroupFilter     = ""
 )
 
 func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -53,6 +54,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
 		fs.StringVarP(&nodeGroupFilter, "only", "", "",
 			"select a subset of nodegroups via comma-separted list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
+		cmdutils.AddUpdateAuthConfigMap(&updateAuthConfigMap, fs, "Remove nodegroup IAM role from aws-auth configmap")
 	})
 
 	group.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
@@ -308,14 +310,16 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		}
 
 		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
-			// authorise nodes to join
-			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
-				return err
-			}
+			if updateAuthConfigMap {
+				// authorise nodes to join
+				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
+					return err
+				}
 
-			// wait for nodes to join
-			if err = ctl.WaitForNodes(clientSet, ng); err != nil {
-				return err
+				// wait for nodes to join
+				if err = ctl.WaitForNodes(clientSet, ng); err != nil {
+					return err
+				}
 			}
 
 			// if GPU instance type, give instructions
