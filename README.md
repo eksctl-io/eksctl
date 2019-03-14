@@ -249,8 +249,9 @@ To delete a nodegroup, run:
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
+> NOTE: this will drain all pods from that nodegroup before the instances are deleted.
 
-All node are cordoned and all pods are evicted from a nodegroup on deletion,
+All nodes are cordoned and all pods are evicted from a nodegroup on deletion,
 but if you need to drain a nodegroup without deleting it, run:
 ```
 eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName>
@@ -261,11 +262,146 @@ To uncordon a nodegroup, run:
 eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName> --undo
 ```
 
+### Cluster Upgrades
+
+An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
+
+1. update control plane version with `eksctl update cluster`
+2. replace each of the nodegroups by creating a new one and deleting the old one
+3. update default add-ons:
+  - `kube-proxy`
+  - `aws-node`
+  - `kube-dns` or `coredns`
+
+Please make sure to read this section in full before you proceed.
+
+> NOTE: Kubernetes supports version drift of up-to 2 minor versions during upgrade process.
+
+### Updating control plane version
+
+Control plane version updates must be done for one minor version at a time.
+
+To update control plane to the next available version run:
+```
+eksctl update cluster --cluster=<clusterName>
+```
+
+This command will not apply any changes right away, you will need to re-run it with
+`--dry-run=false` to apply the changes.
+
+#### Updating nodegroups
+
+You should update nodegroups only after you ran `eksctl update cluster`.
+
+If you have a simple cluster with just an initial nodegroup (i.e. created with
+`eksctl create cluster`), the process is very simple.
+
+Get the name of old nodegroup:
+```
+eksctl get nodegroups --cluster=<clusterName>
+```
+> NOTE: you should see only one nodegroup here, if you see more - read the next section
+
+Create new nodegroup:
+```
+eksctl create nodegroup --cluster=<clusterName>
+```
+
+Delete old nodegroup:
+```
+eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
+```
+> NOTE: this will drain all pods from that nodegroup before the instances are deleted.
+
+##### Updating multiple nodegroups
+
+If you have multiple nodegroups, it's your responsibility to track how each one was configured.
+You can do this by using config files, but if you haven't used it already, you will need to inspect
+your cluster to find out how each nodegroup was configured.
+
+In general terms, you are looking to:
+- review nodegroups you have and which ones can be deleted or must be replaced for the new version
+- note down configuration of each nodegroup, consider using config file to ease upgrades next time
+
+To create a new nodegroup:
+```
+eksctl create nodegroup --cluster=<clusterName>
+```
+
+To delete old nodegroup:
+```
+eksctl create nodegroup --cluster=<clusterName>
+```
+
+##### Updating multiple nodegroups with config file
+
+If you are using config file, you will need to do the following.
+
+Get the list of old nodegroups:
+```
+old_nodegroups="$(eksctl get ng --cluster=<clusterName> --output=json | jq -r '.[].Name')"
+```
+
+Edit config file to add new nodegroups.
+
+If you have removed the definition of old nodegroups from the config file, then you can run:
+```
+eksctl create nodegroup --config-file=<path>
+```
+
+Alternatively, you can keep the old definitions in the config file and pass `--only` with a list of the new nodegroup
+names that you want to add (you can use glob expressions, or list specific names - see ['Managing
+nodegroup'](#managing-nodegroups) for details):
+```
+eksctl create nodegroup --config-file=<path> --only=<list>
+```
+
+Once you have new nodegroups in place, you can delete old ones:
+```
+for ng in $old_nodegroups ; do eksctl delete nodegroup --cluster=<clusterName> --name=$ng ; done
+```
+> NOTE: all pods will be drained.
+
+#### Updating default add-ons
+
+There are 3 default add-ons that get included in each EKS cluster, the process for updating each of them is different, hence
+there are 3 distinct commands that you will need to run.
+
+> NOTE: all of the following commands accept `--config-file`.
+
+To update `kube-proxy`, run:
+```
+eksctl utils update-kube-proxy
+```
+
+To update `aws-node`, run:
+```
+eksctl utils update-aws-node
+```
+
+If you have upgraded from 1.10 to 1.11, you will need to replace `kube-dns` with `coredns`.
+To do that, run:
+```
+eksctl utils install-coredns
+```
+
+Once upgraded, be sure to run `kubectl get pods -n kube-system` and check if all addon pods are in ready state, you should see
+something like this:
+```
+NAME                       READY   STATUS    RESTARTS   AGE
+aws-node-g5ghn             1/1     Running   0          2m
+aws-node-zfc9s             1/1     Running   0          2m
+coredns-7bcbfc4774-g6gg8   1/1     Running   0          1m
+coredns-7bcbfc4774-hftng   1/1     Running   0          1m
+kube-proxy-djkp7           1/1     Running   0          3m
+kube-proxy-mpdsp           1/1     Running   0          3m
+```
+
 ### Enable Autoscaling
 
 You can create a cluster (or nodegroup in an existing cluster) with IAM role that will allow use of [cluster autoscaler][]:
 
-```bashs
+```
 eksctl create cluster --asg-access
 ```
 
@@ -276,7 +412,7 @@ and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery shoul
 
 ### VPC Networking
 
-By default, `eksctl create cluster` instatiates a dedicated VPC, in order to avoid interference with any existing resources for a
+By default, `eksctl create cluster` will build a dedicated VPC, in order to avoid interference with any existing resources for a
 variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC.
 Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
 Initial nodegroup is create in public subnets, with SSH access disabled unless `--allow-ssh` is specified. However, this implies
@@ -468,16 +604,16 @@ The `--node-ami` can take the AMI image id for an image to explicitly use. It al
 
 | Keyword | Description |
 | ------------ | -------------- |
-| static       | Indicates that the AMI images ids embedded into eksctl should be used. This relates to the static resolvers. |
+| static       | Indicates that the AMI images ids embedded into `eksctl` should be used. This relates to the static resolvers. |
 | auto        | Indicates that the AMI to use for the nodes should be found by querying AWS. This relates to the auto resolver. |
 
-If, for example, AWS release a new version of the EKS node AMIs and a new version of eksctl hasn't been released you can use the latest AMI by doing the following:
+If, for example, AWS release a new version of the EKS node AMIs and a new version of `eksctl` hasn't been released you can use the latest AMI by doing the following:
 
 ```
 eksctl create cluster --node-ami=auto
 ```
 
-With the 0.1.9 release we have introduced the `--node-ami-family` flag for use when creating the cluster. This makes it possible to choose between different offically supported EKS AMI families.
+With the 0.1.9 release we have introduced the `--node-ami-family` flag for use when creating the cluster. This makes it possible to choose between different officially supported EKS AMI families.
 
 The `--node-ami-family` can take following keywords:
 
@@ -554,7 +690,7 @@ And `eksctld` will be a controller inside of one cluster that can manage multipl
 
 ## Contributions
 
-Code contributions are very welcome. If you are interested in helping make eksctl great then see our [contributing guide](CONTRIBUTING.md).
+Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
 
 ## Get in touch
 
