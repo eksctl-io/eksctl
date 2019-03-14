@@ -81,7 +81,7 @@ var StaticImages = map[string]map[string]map[int]map[string]string{
 				"eu-west-1":      "ami-098fb7e9b507904e7",
 				"eu-west-2":      "ami-0d69ab00cb41d6eda",
 				"eu-west-3":      "ami-018ebb030cf6ae00b",
-				"us-east-1":      "ami-0eeeef929db40543c",
+				"us-east-1":      "ami-0535079027b14e972",
 				"us-east-2":      "ami-0484545fe7d3da96f",
 				"us-west-2":      "ami-0c28139856aaf9c3b",
 			},
