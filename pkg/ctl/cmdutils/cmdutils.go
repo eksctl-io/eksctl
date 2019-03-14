@@ -62,6 +62,11 @@ func AddWaitFlag(wait *bool, fs *pflag.FlagSet, description string) {
 	fs.BoolVarP(wait, "wait", "w", *wait, fmt.Sprintf("wait for %s before exiting", description))
 }
 
+// AddUpdateAuthConfigMap adds common --update-auth-configmap flag
+func AddUpdateAuthConfigMap(updateAuthConfigMap *bool, fs *pflag.FlagSet, description string) {
+	fs.BoolVar(updateAuthConfigMap, "update-auth-configmap", true, description)
+}
+
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written
 func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath *string, setContext, autoPath *bool, exampleName string) {
 	fs.StringVar(outputPath, "kubeconfig", kubeconfig.DefaultPath, "path to write kubeconfig (incompatible with --auto-kubeconfig)")
