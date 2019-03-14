@@ -283,7 +283,7 @@ Control plane version updates must be done for one minor version at a time.
 
 To update control plane to the next available version run:
 ```
-eksctl update cluster --cluster=<clusterName>
+eksctl update cluster --name=<clusterName>
 ```
 
 This command will not apply any changes right away, you will need to re-run it with
