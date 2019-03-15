@@ -17,9 +17,12 @@ contribution. No action from you is required, but it's a good idea to see the
 
 # Chat
 
-The project uses Slack. If you get stuck or just have a question then you are encouraged to join the [Weave Community](https://weaveworks.github.io/community-slack/) Slack workspace and use the [#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
+The project uses Slack. If you get stuck or just have a question then you are encouraged to join the 
+[Weave Community](https://weaveworks.github.io/community-slack/) Slack workspace and use the 
+[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
 
-Regular contributor meetings are held on Slack, see [`docs/contributor-meetings.md`](docs/contributor-meetings.md) for latest information.
+Regular contributor meetings are held on Slack, see [`docs/contributor-meetings.md`](docs/contributor-meetings.md) for 
+the latest information.
 
 ## Getting Started
 
@@ -30,37 +33,90 @@ Regular contributor meetings are held on Slack, see [`docs/contributor-meetings.
 
 ## Contribution workflow
 
-This is a rough outline of how to prepare a contribution:
 
-- Find an [issue](https://github.com/weaveworks/eksctl/issues) to work on. If you are a new contributor
-take a look at issues marked with [good first issue](https://github.com/weaveworks/eksctl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
-- Create a topic branch from where you want to base your work (usually branched from master).
-- Make commits of logical units.
-- Make sure your commit messages are in the proper format (see below).
-- Push your changes to a topic branch in your fork of the repository.
-- If you changed code:
-   - add automated tests to cover your changes. See the [az](https://github.com/weaveworks/eksctl/tree/master/pkg/az) package for a good example of tests.
-- Submit a pull request to the original repository.
+#### 1. Set up your Go environment
 
-If your PR is a work in progress then make sure you prefix the title with `WIP: `. This lets everyone know that this is still being worked on. Once its ready
-remove the `WIP: ` title prefix and where possible squash your commits.
+This project is written in Go. To be able to contribute you will need a working Go installation. You can check the 
+[official installation guide](https://golang.org/doc/install). Make sure your `GOPATH` and `GOBIN` 
+[environment variables](https://github.com/golang/go/wiki/SettingGOPATH) are set correctly.
 
-## How to build and run the project
+Here are some quick start steps you can follow:
 
+Select a folder path for your go projects, for example `~/eksctl`
 ```bash
-make build
-./eksctl get clusters
+mkdir ~/eksctl
+cd ~/eksctl
+export GOPATH="$(pwd)"
+export GOBIN="${GOPATH}/bin"
 ```
 
-## How to run the test suite
+> NOTE: Windows users should install Docker for Windows and run `make eksctl-image` to build their code.
 
-You can run the unit tests by simply doing
+> TODO: Improve Windows instructions, ensure `go build` works.
+
+#### 2. Fork and clone the repo
+
+Clone the repo using go:
 
 ```bash
+go get -d github.com/weaveworks/eksctl/...
+```
+
+Make a fork of this repository and add it as a remote:
+
+```bash
+cd src/github.com/weaveworks/eksctl
+git remote add fork git@github.com:<username>/eksctl.git
+```
+
+#### 3. Run the tests and build eksctl
+
+Make sure you can run the tests and build the binary. For this project you need go version 1.12 or higher.
+
+```bash 
+make install-build-deps
 make test
+make build
 ```
 
-There are integration tests for *eksctl* being developed and more details of how to run them will be included here. You can follow the progress [here](https://github.com/weaveworks/eksctl/issues/151).
+
+There are integration tests for *eksctl* being developed and more details of how to run them will be included here. You 
+can follow the progress [here](https://github.com/weaveworks/eksctl/issues/151).
+
+#### 4. Write your feature
+
+- Find an [issue](https://github.com/weaveworks/eksctl/issues) to work on or create your own. If you are a new 
+contributor take a look at issues marked with 
+[good first issue](https://github.com/weaveworks/eksctl/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+
+- Then create a topic branch from where you want to base your work (usually branched from master):
+
+    ```bash
+    git checkout -b <feature-name>
+    ```
+
+- Write your feature. Make commits of logical units and make sure your commit messages are in the 
+[proper format](#format-of-the-commit-message).
+
+- Add automated tests to cover your changes. See the [az](https://github.com/weaveworks/eksctl/tree/master/pkg/az) 
+package for a good example of tests.
+
+- If needed, update the documentation, either in the [README](README.md) or in the [docs](docs/) folder.
+
+- Make sure the tests are running successfully.
+
+#### 5. Submit a pull request
+
+Push your changes to your fork and submit a pull request to the original repository. If your PR is a work in progress 
+then make sure you prefix the title with `WIP: `. This lets everyone know that this is still being worked on. Once its 
+ready remove the `WIP: ` title prefix and where possible squash your commits.
+
+```bash
+git push fork <feature-name>
+```
+
+Our CircleCI integration will run the automated tests and give you feedback in the review section. We will review your 
+changes and give you feedback as soon as possible.
 
 # Acceptance policy
 
@@ -74,7 +130,8 @@ These things will make a PR more likely to be accepted:
 
 In general, we will merge a PR once a maintainer has reviewed and approved it.
 Trivial changes (e.g., corrections to spelling) may get waved through.
-For substantial changes, more people may become involved, and you might get asked to resubmit the PR or divide the changes into more than one PR.
+For substantial changes, more people may become involved, and you might get asked to resubmit the PR or divide the 
+changes into more than one PR.
 
 ### Format of the Commit Message
 
