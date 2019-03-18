@@ -19,17 +19,22 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
 	}
 
+	kubeletConfigData, err := makeKubeletConfigYAML(spec, ng)
+	if err != nil {
+		return nil, err
+	}
+
 	files := configFiles{
 		kubeletDropInUnitDir: {
 			"10-eksclt.al2.conf": {isAsset: true},
 		},
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(makeKubeletParamsCommon(spec, ng), "\n")},
+			"kubelet.env":  {content: strings.Join(makeCommonKubeletEnvParams(spec, ng), "\n")},
+			"kubelet.yaml": {content: string(kubeletConfigData)},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"kubelet-config.json": {isAsset: true},
-			"ca.crt":              {content: string(spec.Status.CertificateAuthorityData)},
-			"kubeconfig.yaml":     {content: string(clientConfigData)},
+			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
+			"kubeconfig.yaml": {content: string(clientConfigData)},
 		},
 	}
 

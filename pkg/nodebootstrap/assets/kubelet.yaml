@@ -1,0 +1,27 @@
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+
+address: 0.0.0.0
+clusterDomain: cluster.local
+
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 2m0s
+    enabled: true
+  x509:
+    clientCAFile: /etc/eksctl/ca.crt
+
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 5m0s
+    cacheUnauthorizedTTL: 30s
+
+serverTLSBootstrap: true
+
+cgroupDriver: cgroupfs
+
+featureGates:
+  RotateKubeletServerCertificate: true

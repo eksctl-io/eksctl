@@ -6,7 +6,11 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 	"k8s.io/client-go/tools/clientcmd"
+	kubeletapi "k8s.io/kubelet/config/v1beta1"
+
+	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
@@ -96,20 +100,48 @@ func clusterDNS(spec *api.ClusterConfig, ng *api.NodeGroup) string {
 	return "10.100.0.10"
 }
 
-func makeKubeletParamsCommon(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
+func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
+	data, err := Asset("kubelet.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	// use a map here, as using struct will require us to add defaulting etc,
+	// and we only need to add a few top-level fields
+	obj := map[string]interface{}{}
+	if err := yaml.Unmarshal(data, &obj); err != nil {
+		return nil, err
+	}
+
 	if ng.MaxPodsPerNode == 0 {
 		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
 	}
+	obj["maxPods"] = int32(ng.MaxPodsPerNode)
 
+	obj["clusterDNS"] = []string{
+		clusterDNS(spec, ng),
+	}
+
+	data, err = yaml.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	// validate if data can be decoded as KubeletConfiguration
+	if err := yaml.Unmarshal(data, &kubeletapi.KubeletConfiguration{}); err != nil {
+		return nil, errors.Wrap(err, "validating generated KubeletConfiguration object")
+	}
+
+	return data, nil
+}
+
+func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
 	labels := []string{}
 	for k, v := range ng.Labels {
 		labels = append(labels, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	// TODO: use componentconfig or kubelet config file – https://github.com/weaveworks/eksctl/issues/156
 	return []string{
-		fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode),
-		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
 		fmt.Sprintf("NODE_LABELS=%s", strings.Join(labels, ",")),
 	}
 }
