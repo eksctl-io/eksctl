@@ -652,7 +652,7 @@ autoload -U compinit
 compinit
 ```
 
-To make the above persistent, run the first two lines, and put the
+To make the above persistent, run the first two lines, and put the above in `~/.zshrc`.
 
 
 ## Project Roadmap
