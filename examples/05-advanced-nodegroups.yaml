@@ -36,8 +36,8 @@ nodeGroups:
       nodegroup-type: very-special-science-workloads
     privateNetworking: true
     availabilityZones: ["eu-west-2a"] # use single AZ to optimise data transfer between isntances
-    preBootsrapCommand:
-      # disable hyperthreding
+    preBootstrapCommand:
+      # disable hyperthreading
       - "for n in $(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | cut -s -d, -f2- | tr ',' '\n' | sort -un); do echo 0 > /sys/devices/system/cpu/cpu${n}/online; done"
 
 # cluster AZs must be set explicitly for single AZ nodegroup example to work
