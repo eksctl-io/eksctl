@@ -161,12 +161,12 @@ JEKYLL := docker run --tty --rm \
 
 ##@ Site
 
-.PHONY: server-pages
+.PHONY: serve-pages
 serve-pages: ## Serve the site locally
 	@-docker rm -f eksctl-jekyll
 	@$(JEKYLL) jekyll serve -d /_site --watch --force_polling -H 0.0.0.0 -P 4000
 
-.PHONY: build-page
+.PHONY: build-pages
 build-pages: ## Generate the site using jekyll
 	@-docker rm -f eksctl-jekyll
 	@$(JEKYLL) jekyll build --verbose
