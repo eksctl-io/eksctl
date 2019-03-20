@@ -1519,7 +1519,15 @@
   revision = "e494cc58111187acad93e64529228a2fc0153e39"
 
 [[projects]]
-  digest = "1:91f09bf6d819f8f6486fd2528407df57f76c22b07e066ba22cf5f1ccb179c830"
+  branch = "master"
+  digest = "1:c315e859e0da8b226202d60b2df6c48b17568468503ba080b4e3a30ad99887b4"
+  name = "k8s.io/kubelet"
+  packages = ["config/v1beta1"]
+  pruneopts = "NUT"
+  revision = "3556bcde967069b8b8bcd57be2cddcae0d8dc072"
+
+[[projects]]
+  digest = "1:5821febadfed053963bf05d82d363c0f2f3715857433cc37ff17c85a395e749c"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/api/legacyscheme",
@@ -1533,6 +1541,7 @@
     "pkg/apis/core/pods",
     "pkg/apis/core/v1",
     "pkg/apis/core/v1/helper",
+    "pkg/apis/core/v1/helper/qos",
     "pkg/apis/core/validation",
     "pkg/apis/extensions",
     "pkg/apis/networking",
@@ -1547,6 +1556,9 @@
     "pkg/features",
     "pkg/fieldpath",
     "pkg/kubelet/apis",
+    "pkg/kubelet/apis/config",
+    "pkg/kubelet/apis/config/v1beta1",
+    "pkg/kubelet/qos",
     "pkg/kubelet/types",
     "pkg/master/ports",
     "pkg/scheduler/algorithm",
@@ -1601,6 +1613,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/awsutil",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/request",
@@ -1645,7 +1658,6 @@
     "github.com/vektra/mockery",
     "github.com/vektra/mockery/cmd/mockery",
     "github.com/weaveworks/launcher/pkg/kubectl",
-    "gopkg.in/yaml.v2",
     "k8s.io/api/apps/v1",
     "k8s.io/api/core/v1",
     "k8s.io/api/extensions/v1beta1",
@@ -1674,6 +1686,7 @@
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/fake",
     "k8s.io/client-go/kubernetes/scheme",
+    "k8s.io/client-go/kubernetes/typed/core/v1",
     "k8s.io/client-go/rest",
     "k8s.io/client-go/rest/fake",
     "k8s.io/client-go/restmapper",
@@ -1685,6 +1698,7 @@
     "k8s.io/kops/upup/pkg/fi/cloudup/awsup",
     "k8s.io/kops/upup/pkg/fi/utils",
     "k8s.io/kops/util/pkg/tables",
+    "k8s.io/kubernetes/pkg/kubelet/apis/config/v1beta1",
     "sigs.k8s.io/yaml",
   ]
   solver-name = "gps-cdcl"
