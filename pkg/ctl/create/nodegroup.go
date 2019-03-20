@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	updateAuthConfigMap bool
-	nodeGroupFilter     = ""
+	updateAuthConfigMap     bool
+	nodeGroupFilter         = ""
+	nodeGroupIgnoreExisting bool
 )
 
 func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -54,6 +55,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
 		fs.StringVarP(&nodeGroupFilter, "only", "", "",
 			"select a subset of nodegroups via comma-separted list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
+		fs.BoolVar(&nodeGroupIgnoreExisting, "ignore-existing", false, "ignore all existing nodegroups")
 		cmdutils.AddUpdateAuthConfigMap(&updateAuthConfigMap, fs, "Remove nodegroup IAM role from aws-auth configmap")
 	})
 
@@ -290,7 +292,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	{
 		logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-		errs := stackManager.CreateAllNodeGroups()
+		errs := stackManager.CreateAllNodeGroups(nodeGroupIgnoreExisting)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
