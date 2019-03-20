@@ -3,9 +3,7 @@ package create
 import (
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/gobwas/glob"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -73,70 +71,6 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.AddTo(cmd)
 
 	return cmd
-}
-
-func filterNodeGroups(cfg *api.ClusterConfig) error {
-	if nodeGroupFilter == "" {
-		// no filter supplied
-		return nil
-	}
-	globstrs := strings.Split(nodeGroupFilter, ",")
-	globs := make([]glob.Glob, len(globstrs))
-	for idx, g := range globstrs {
-		globs[idx] = glob.MustCompile(g)
-	}
-	nodegroups := cfg.NodeGroups
-	filtered := make([]*api.NodeGroup, 0)
-	for _, ng := range nodegroups {
-		for _, g := range globs {
-			if g.Match(ng.Name) {
-				filtered = append(filtered, ng)
-				break
-			}
-		}
-	}
-	if len(filtered) == 0 {
-		return fmt.Errorf("No nodegroups match filter specification: %s", nodeGroupFilter)
-	}
-	cfg.NodeGroups = filtered
-	return nil
-}
-
-func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
-	switch meta.Version {
-	case "auto":
-		break
-	case "":
-		meta.Version = "auto"
-	case "latest":
-		meta.Version = api.LatestVersion
-		logger.Info("will use version latest version (%s) for new nodegroup(s)", meta.Version)
-	default:
-		validVersion := false
-		for _, v := range api.SupportedVersions() {
-			if meta.Version == v {
-				validVersion = true
-			}
-		}
-		if !validVersion {
-			return fmt.Errorf("invalid version %s, supported values: auto, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
-		}
-	}
-
-	if v := ctl.ControlPlaneVersion(); v == "" {
-		return fmt.Errorf("unable to get control plane version")
-	} else if meta.Version == "auto" {
-		meta.Version = v
-		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
-	} else if meta.Version != v {
-		hint := "--version=auto"
-		if clusterConfigFile != "" {
-			hint = "metadata.version: auto"
-		}
-		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)
-	}
-
-	return nil
 }
 
 func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
