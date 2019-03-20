@@ -78,3 +78,14 @@ Topics:
 - update on challenges with going to production from @mumoshu
    - node-local DNS and chaching
    - gitops with helmfile - need better way to manage `aws-auth`
+
+### 20/03/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+
+Topics:
+- release updates - 0.1.24
+- plan towards v1alpha5
+- more discussion around storing config objects [#642](https://github.com/weaveworks/eksctl/issues/642)
