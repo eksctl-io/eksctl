@@ -212,7 +212,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	if v := n.spec.IAM.WithAddonPolicies.AppMesh; v != nil && *v {
 		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",
 			[]string{
-				"appemsh:*",
+				"appmesh:*",
 			},
 		)
 	}
