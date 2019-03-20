@@ -209,6 +209,14 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
+	if v := n.spec.IAM.WithAddonPolicies.AppMesh; v != nil && *v {
+		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",
+			[]string{
+				"appemsh:*",
+			},
+		)
+	}
+
 	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
 		n.spec.IAM.InstanceProfileARN = v
 		return nil

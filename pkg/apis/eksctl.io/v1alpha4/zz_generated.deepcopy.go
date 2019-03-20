@@ -309,6 +309,16 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(NodeGroupIAM)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.PreBootstrapCommands != nil {
+		in, out := &in.PreBootstrapCommands, &out.PreBootstrapCommands
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.OverrideBootstrapCommand != nil {
+		in, out := &in.OverrideBootstrapCommand, &out.OverrideBootstrapCommand
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
@@ -359,6 +369,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 	}
 	if in.ExternalDNS != nil {
 		in, out := &in.ExternalDNS, &out.ExternalDNS
+		*out = new(bool)
+		**out = **in
+	}
+	if in.AppMesh != nil {
+		in, out := &in.AppMesh, &out.AppMesh
 		*out = new(bool)
 		**out = **in
 	}

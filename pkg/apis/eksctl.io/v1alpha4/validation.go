@@ -25,6 +25,9 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 		if v := ng.IAM.WithAddonPolicies.ImageBuilder; v != nil && *v {
 			return fmt.Errorf("%s.imageBuilder cannot be set at the same time", p)
 		}
+		if v := ng.IAM.WithAddonPolicies.AppMesh; v != nil && *v {
+			return fmt.Errorf("%s.AppMesh cannot be set at the same time", p)
+		}
 	}
 	return nil
 }
