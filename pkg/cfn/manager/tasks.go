@@ -67,38 +67,27 @@ func (c *StackCollection) CreateClusterWithNodeGroups() []error {
 		return errs
 	}
 
-	return c.CreateAllNodeGroups(false)
+	return c.CreateAllNodeGroups(nil)
 }
 
 // CreateAllNodeGroups runs all tasks required to create the node groups;
 // any errors will be returned as a slice as soon as one of the tasks
 // or group of tasks is completed
-func (c *StackCollection) CreateAllNodeGroups(ignoreExisting bool) []error {
+func (c *StackCollection) CreateAllNodeGroups(onlySubset sets.String) []error {
 	errs := []error{}
 	appendErr := func(err error) {
 		errs = append(errs, err)
 	}
 
-	existing := sets.NewString()
-
-	if ignoreExisting {
-		existingStacks, err := c.DescribeNodeGroupStacks()
-		if err != nil {
-			return []error{err}
-		}
-		for _, s := range existingStacks {
-			existing.Insert(getNodeGroupName(s))
-		}
-	}
 	createAllNodeGroups := []Task{}
 	for i := range c.spec.NodeGroups {
 		ng := c.spec.NodeGroups[i]
+		if onlySubset != nil && !onlySubset.Has(ng.Name) {
+			continue
+		}
 		t := Task{
 			Call: c.CreateNodeGroup,
 			Data: ng,
-		}
-		if existing.Has(ng.Name) {
-			continue
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)
 	}

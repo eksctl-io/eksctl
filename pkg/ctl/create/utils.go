@@ -6,53 +6,117 @@ import (
 
 	"github.com/gobwas/glob"
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func filterNodeGroups(cfg *api.ClusterConfig) error {
-	if nodeGroupFilter == "" {
-		// no filter supplied
+// NodeGroupFilter holds filter configuration
+type NodeGroupFilter struct {
+	IgnoreAllExisting bool
+
+	existing sets.String
+	only     []glob.Glob
+	onlySpec string
+}
+
+// NewNodeGroupFilter create new NodeGroupFilter instance
+func NewNodeGroupFilter() *NodeGroupFilter {
+	return &NodeGroupFilter{
+		IgnoreAllExisting: true,
+
+		existing: sets.NewString(),
+	}
+}
+
+// ApplyOnlyFilter parses given globs for exclusive filtering
+func (f *NodeGroupFilter) ApplyOnlyFilter(globExprs []string, cfg *api.ClusterConfig) error {
+	for _, expr := range globExprs {
+		compiledExpr, err := glob.Compile(expr)
+		if err != nil {
+			return errors.Wrapf(err, "parsing glob filter %q", expr)
+		}
+		f.only = append(f.only, compiledExpr)
+	}
+	f.onlySpec = strings.Join(globExprs, ",")
+	return f.onlyFilterMatchesAnything(cfg)
+}
+
+func (f *NodeGroupFilter) onlyFilterMatchesAnything(cfg *api.ClusterConfig) error {
+	if len(f.only) == 0 {
 		return nil
 	}
-	globstrs := strings.Split(nodeGroupFilter, ",")
-	globs := make([]glob.Glob, len(globstrs))
-	for idx, g := range globstrs {
-		globs[idx] = glob.MustCompile(g)
-	}
-	nodegroups := cfg.NodeGroups
-	filtered := make([]*api.NodeGroup, 0)
-	for _, ng := range nodegroups {
-		for _, g := range globs {
-			if g.Match(ng.Name) {
-				filtered = append(filtered, ng)
-				break
+	for i := range cfg.NodeGroups {
+		for _, g := range f.only {
+			if g.Match(cfg.NodeGroups[i].Name) {
+				return nil
 			}
 		}
 	}
-	if len(filtered) == 0 {
-		return fmt.Errorf("No nodegroups match filter specification: %s", nodeGroupFilter)
+	return fmt.Errorf("no nodegroups match filter specification: %q", f.onlySpec)
+}
+
+// ApplyExistingFilter uses stackManager to list existing nodegroup stacks and configures
+// the filter accordingly
+func (f *NodeGroupFilter) ApplyExistingFilter(stackManager *manager.StackCollection) error {
+	if !f.IgnoreAllExisting {
+		return nil
 	}
-	cfg.NodeGroups = filtered
+
+	existing, err := stackManager.ListNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+
+	f.existing.Insert(existing...)
+
 	return nil
 }
 
-// When passing the --without-nodegroup option, don't create nodegroups
-func skipNodeGroupsIfRequested(cfg *api.ClusterConfig) {
-	if withoutNodeGroup {
-		cfg.NodeGroups = nil
-		logger.Warning("cluster will be created without an initial nodegroup")
+// Match checks given nodegroup against the filter
+func (f *NodeGroupFilter) Match(ng *api.NodeGroup) bool {
+	if f.IgnoreAllExisting && f.existing.Has(ng.Name) {
+		return false
 	}
+
+	for _, g := range f.only {
+		if g.Match(ng.Name) {
+			return true // return first match
+		}
+	}
+
+	// if no globs were given, match everything,
+	// if false - we haven't matched anything so far
+	return len(f.only) == 0
 }
 
-// checkEachNodeGroup iterates over each nodegroup and calls check function
-// (this is need to avoid common goroutine-for-loop pitfall)
-func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
+// MatchAll checks all nodegroups against the filter and returns all of
+// matching names as set
+func (f *NodeGroupFilter) MatchAll(cfg *api.ClusterConfig) sets.String {
+	names := sets.NewString()
 	for i := range cfg.NodeGroups {
-		if err := check(i, cfg.NodeGroups[i]); err != nil {
-			return err
+		ng := cfg.NodeGroups[i]
+		if f.Match(ng) {
+			names.Insert(ng.Name)
+		}
+	}
+	return names
+}
+
+// CheckEachNodeGroup iterates over each nodegroup and calls check function
+// (this is needed to avoid common goroutine-for-loop pitfall)
+func CheckEachNodeGroup(f *NodeGroupFilter, cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
+	for i := range cfg.NodeGroups {
+		ng := cfg.NodeGroups[i]
+		if f.Match(ng) {
+			if err := check(i, ng); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -112,6 +176,14 @@ func newNodeGroupChecker(i int, ng *api.NodeGroup) error {
 	}
 
 	return nil
+}
+
+// When passing the --without-nodegroup option, don't create nodegroups
+func skipNodeGroupsIfRequested(cfg *api.ClusterConfig) {
+	if withoutNodeGroup {
+		cfg.NodeGroups = nil
+		logger.Warning("cluster will be created without an initial nodegroup")
+	}
 }
 
 func checkSubnetsGiven(cfg *api.ClusterConfig) bool {

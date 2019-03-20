@@ -111,6 +111,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
+	ngFilter := NewNodeGroupFilter()
+
 	if clusterConfigFile != "" {
 		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
 			return err
@@ -174,7 +176,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		skipNodeGroupsIfRequested(cfg)
 
-		if err := checkEachNodeGroup(cfg, newNodeGroupChecker); err != nil {
+		if err := CheckEachNodeGroup(ngFilter, cfg, newNodeGroupChecker); err != nil {
 			return err
 		}
 	} else {
@@ -192,7 +194,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		skipNodeGroupsIfRequested(cfg)
 
-		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
+		err := CheckEachNodeGroup(ngFilter, cfg, func(i int, ng *api.NodeGroup) error {
 			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
 				return fmt.Errorf("--ssh-public-key must be non-empty string")
 			}
@@ -303,7 +305,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return err
 			}
 
-			if err := checkEachNodeGroup(cfg, canUseForPrivateNodeGroups); err != nil {
+			if err := CheckEachNodeGroup(ngFilter, cfg, canUseForPrivateNodeGroups); err != nil {
 				return err
 			}
 
@@ -330,7 +332,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		if err := checkEachNodeGroup(cfg, canUseForPrivateNodeGroups); err != nil {
+		if err := CheckEachNodeGroup(ngFilter, cfg, canUseForPrivateNodeGroups); err != nil {
 			return err
 		}
 
@@ -343,7 +345,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	err := checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+	err := CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -431,7 +433,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+		err = CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err
