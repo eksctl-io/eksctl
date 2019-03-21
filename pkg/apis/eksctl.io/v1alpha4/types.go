@@ -311,6 +311,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				ImageBuilder: NewBoolFalse(),
 				AutoScaler:   NewBoolFalse(),
 				ExternalDNS:  NewBoolFalse(),
+				AppMesh:      NewBoolFalse(),
 			},
 		},
 	}
@@ -417,5 +418,7 @@ type (
 		AutoScaler *bool `json:"autoScaler"`
 		// +optional
 		ExternalDNS *bool `json:"externalDNS"`
+		// +optional
+		AppMesh *bool `json:"appMesh"`
 	}
 )

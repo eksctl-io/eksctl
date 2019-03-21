@@ -416,13 +416,28 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:492fa9204d108cfc0ec54c16a7e6fb46b5c260b9c1aa4cb1ed8ca09c1624270c"
+  digest = "1:b65937f91c09401b70c67c4910c92d0f2c6180d3a569b34451f240e2e284b2fd"
   name = "k8s.io/code-generator"
   packages = [
+    "cmd/client-gen",
+    "cmd/client-gen/args",
+    "cmd/client-gen/generators",
+    "cmd/client-gen/generators/fake",
+    "cmd/client-gen/generators/scheme",
+    "cmd/client-gen/generators/util",
+    "cmd/client-gen/path",
+    "cmd/client-gen/types",
     "cmd/deepcopy-gen",
     "cmd/deepcopy-gen/args",
     "cmd/defaulter-gen",
     "cmd/defaulter-gen/args",
+    "cmd/informer-gen",
+    "cmd/informer-gen/args",
+    "cmd/informer-gen/generators",
+    "cmd/lister-gen",
+    "cmd/lister-gen/args",
+    "cmd/lister-gen/generators",
+    "pkg/namer",
     "pkg/util",
   ]
   pruneopts = "NUT"
@@ -463,8 +478,11 @@
     "github.com/vektra/mockery/cmd/mockery",
     "github.com/weaveworks/github-release",
     "golang.org/x/tools/cmd/stringer",
+    "k8s.io/code-generator/cmd/client-gen",
     "k8s.io/code-generator/cmd/deepcopy-gen",
     "k8s.io/code-generator/cmd/defaulter-gen",
+    "k8s.io/code-generator/cmd/informer-gen",
+    "k8s.io/code-generator/cmd/lister-gen",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
