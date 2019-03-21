@@ -520,6 +520,46 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	Context("NodeGroupAppMeshExternalDNS", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.AppMesh = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolTrue()
+
+		build(cfg, "eksctl-test-megaapps-cluster", ng)
+
+		roundtript()
+
+		It("should have correct policies", func() {
+			Expect(obj.Resources).ToNot(BeEmpty())
+
+			Expect(obj.Resources["PolicyExternalDNSChangeSet"]).ToNot(BeNil())
+			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ChangeResourceRecordSets",
+			}))
+
+			Expect(obj.Resources["PolicyExternalDNSHostedZones"]).ToNot(BeNil())
+			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
+			}))
+
+			Expect(obj.Resources["PolicyAppMesh"]).ToNot(BeNil())
+			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"appmesh:*",
+			}))
+		})
+	})
+
 	Context("NodeGroup{PrivateNetworking=true AllowSSH=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
