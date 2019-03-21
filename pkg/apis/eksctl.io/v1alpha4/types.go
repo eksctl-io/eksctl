@@ -420,5 +420,7 @@ type (
 		ExternalDNS *bool `json:"externalDNS"`
 		// +optional
 		AppMesh *bool `json:"appMesh"`
+		// +optional
+		EBSCSI *bool `json:"ebsCSI"`
 	}
 )
