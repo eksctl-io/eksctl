@@ -160,6 +160,10 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 				return fmt.Errorf("--ssh-public-key must be non-empty string")
 			}
 
+			if cmd.Flag("ssh-public-key").Changed {
+				ng.AllowSSH = true
+			}
+
 			// generate nodegroup name or use either flag or argument
 			if utils.NodeGroupName(ng.Name, nameArg) == "" {
 				return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
