@@ -99,8 +99,7 @@ func (f *NodeGroupFilter) Match(ng *api.NodeGroup) bool {
 // matching names as set
 func (f *NodeGroupFilter) MatchAll(cfg *api.ClusterConfig) sets.String {
 	names := sets.NewString()
-	for i := range cfg.NodeGroups {
-		ng := cfg.NodeGroups[i]
+	for _, ng := range cfg.NodeGroups {
 		if f.Match(ng) {
 			names.Insert(ng.Name)
 		}
@@ -111,8 +110,7 @@ func (f *NodeGroupFilter) MatchAll(cfg *api.ClusterConfig) sets.String {
 // CheckEachNodeGroup iterates over each nodegroup and calls check function
 // (this is needed to avoid common goroutine-for-loop pitfall)
 func CheckEachNodeGroup(f *NodeGroupFilter, cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
-	for i := range cfg.NodeGroups {
-		ng := cfg.NodeGroups[i]
+	for i, ng := range cfg.NodeGroups {
 		if f.Match(ng) {
 			if err := check(i, ng); err != nil {
 				return err
@@ -122,7 +120,8 @@ func CheckEachNodeGroup(f *NodeGroupFilter, cfg *api.ClusterConfig, check func(i
 	return nil
 }
 
-func newNodeGroupChecker(i int, ng *api.NodeGroup) error {
+// NewNodeGroupChecker validates a new nodegroup and applies defaults
+func NewNodeGroupChecker(i int, ng *api.NodeGroup) error {
 	if err := api.ValidateNodeGroup(i, ng); err != nil {
 		return err
 	}

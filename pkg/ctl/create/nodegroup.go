@@ -135,7 +135,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			return err
 		}
 
-		if err := CheckEachNodeGroup(ngFilter, cfg, newNodeGroupChecker); err != nil {
+		if err := CheckEachNodeGroup(ngFilter, cfg, NewNodeGroupChecker); err != nil {
 			return err
 		}
 	} else {
