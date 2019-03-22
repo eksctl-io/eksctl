@@ -43,7 +43,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group := g.New(cmd)
 
-	exampleNodeGroupName := utils.NodeGroupName("", "")
+	exampleNodeGroupName := NodeGroupName("", "")
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
@@ -135,7 +135,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			return err
 		}
 
-		if err := CheckEachNodeGroup(ngFilter, cfg, NewNodeGroupChecker); err != nil {
+		if err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, NewNodeGroupChecker); err != nil {
 			return err
 		}
 	} else {
@@ -153,26 +153,10 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			if cmd.Flag(f).Changed {
 				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
 			}
+			return nil
 		}
 
-		err := CheckEachNodeGroup(ngFilter, cfg, func(i int, ng *api.NodeGroup) error {
-			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
-				return fmt.Errorf("--ssh-public-key must be non-empty string")
-			}
-
-			if cmd.Flag("ssh-public-key").Changed {
-				ng.AllowSSH = true
-			}
-
-			// generate nodegroup name or use either flag or argument
-			if utils.NodeGroupName(ng.Name, nameArg) == "" {
-				return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
-			}
-			ng.Name = utils.NodeGroupName(ng.Name, nameArg)
-
-			return nil
-		})
-		if err != nil {
+		if err := configureNodeGroups(ngFilter, cfg.NodeGroups, cmd); err != nil {
 			return err
 		}
 
@@ -207,7 +191,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return err
 	}
 
-	err := CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
+	err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -267,7 +251,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			return err
 		}
 
-		err = CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
+		err = checkEachNodeGroup(ngFilter, cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 			if updateAuthConfigMap {
 				// authorise nodes to join
 				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {

@@ -59,7 +59,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group := g.New(cmd)
 
 	exampleClusterName := utils.ClusterName("", "")
-	exampleNodeGroupName := utils.NodeGroupName("", "")
+	exampleNodeGroupName := NodeGroupName("", "")
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
@@ -176,7 +176,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		skipNodeGroupsIfRequested(cfg)
 
-		if err := CheckEachNodeGroup(ngFilter, cfg, NewNodeGroupChecker); err != nil {
+		if err := setNodeGroupDefaults(ngFilter, cfg.NodeGroups); err != nil {
 			return err
 		}
 	} else {
@@ -194,21 +194,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		skipNodeGroupsIfRequested(cfg)
 
-		err := CheckEachNodeGroup(ngFilter, cfg, func(i int, ng *api.NodeGroup) error {
-			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
-				return fmt.Errorf("--ssh-public-key must be non-empty string")
-			}
-
-			if cmd.Flag("ssh-public-key").Changed {
-				ng.AllowSSH = true
-			}
-
-			// generate nodegroup name or use flag
-			ng.Name = utils.NodeGroupName(ng.Name, "")
-
-			return nil
-		})
-		if err != nil {
+		if err := configureNodeGroups(ngFilter, cfg.NodeGroups, cmd); err != nil {
 			return err
 		}
 	}
@@ -309,7 +295,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return err
 			}
 
-			if err := CheckEachNodeGroup(ngFilter, cfg, canUseForPrivateNodeGroups); err != nil {
+			if err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
 				return err
 			}
 
@@ -336,7 +322,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		if err := CheckEachNodeGroup(ngFilter, cfg, canUseForPrivateNodeGroups); err != nil {
+		if err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
 			return err
 		}
 
@@ -349,7 +335,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	err := CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
+	err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -438,7 +424,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		err = CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
+		err = checkEachNodeGroup(ngFilter, cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err

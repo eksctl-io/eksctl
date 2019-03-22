@@ -123,19 +123,6 @@ func (f *NodeGroupFilter) LogInfo(cfg *api.ClusterConfig) {
 	}
 }
 
-// CheckEachNodeGroup iterates over each nodegroup and calls check function
-// (this is needed to avoid common goroutine-for-loop pitfall)
-func CheckEachNodeGroup(f *NodeGroupFilter, cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
-	for i, ng := range cfg.NodeGroups {
-		if f.Match(ng) {
-			if err := check(i, ng); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // NewNodeGroupChecker validates a new nodegroup and applies defaults
 func NewNodeGroupChecker(i int, ng *api.NodeGroup) error {
 	if err := api.ValidateNodeGroup(i, ng); err != nil {
