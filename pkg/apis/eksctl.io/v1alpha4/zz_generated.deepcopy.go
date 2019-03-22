@@ -377,6 +377,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
+	if in.EBSCSI != nil {
+		in, out := &in.EBSCSI, &out.EBSCSI
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

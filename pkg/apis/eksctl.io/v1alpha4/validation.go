@@ -28,6 +28,9 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 		if v := ng.IAM.WithAddonPolicies.AppMesh; v != nil && *v {
 			return fmt.Errorf("%s.AppMesh cannot be set at the same time", p)
 		}
+		if v := ng.IAM.WithAddonPolicies.EBSCSI; v != nil && *v {
+			return fmt.Errorf("%s.ebsCSI cannot be set at the same time", p)
+		}
 	}
 	return nil
 }
