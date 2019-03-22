@@ -312,6 +312,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				AutoScaler:   NewBoolFalse(),
 				ExternalDNS:  NewBoolFalse(),
 				AppMesh:      NewBoolFalse(),
+				EBSCSI:       NewBoolFalse(),
 			},
 		},
 	}

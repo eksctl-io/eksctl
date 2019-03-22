@@ -342,6 +342,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							AutoScaler:   api.NewBoolFalse(),
 							ExternalDNS:  api.NewBoolFalse(),
 							AppMesh:      api.NewBoolFalse(),
+							EBSCSI:       api.NewBoolFalse(),
 						},
 					},
 				},
