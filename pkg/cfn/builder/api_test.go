@@ -520,11 +520,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroupAppMeshExternalDNS", func() {
+	Context("NodeGroupAppMeshExternalDNSEBSCSI", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.IAM.WithAddonPolicies.AppMesh = api.NewBoolTrue()
 		ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.EBSCSI = api.NewBoolTrue()
 
 		build(cfg, "eksctl-test-megaapps-cluster", ng)
 
@@ -556,6 +557,25 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"appmesh:*",
+			}))
+
+			Expect(obj.Resources["PolicyEBSCSI"]).ToNot(BeNil())
+			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"ec2:AttachVolume",
+				"ec2:CreateSnapshot",
+				"ec2:CreateTags",
+				"ec2:CreateVolume",
+				"ec2:DeleteSnapshot",
+				"ec2:DeleteTags",
+				"ec2:DeleteVolume",
+				"ec2:DescribeInstances",
+				"ec2:DescribeSnapshots",
+				"ec2:DescribeTags",
+				"ec2:DescribeVolumes",
+				"ec2:DetachVolume",
 			}))
 		})
 	})
