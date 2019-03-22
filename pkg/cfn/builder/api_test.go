@@ -59,6 +59,7 @@ type Template struct {
 					Resource interface{}
 				}
 			}
+			BlockDeviceMappings      []interface{}
 			VPCZoneIdentifier        interface{}
 			AssociatePublicIpAddress bool
 			CidrIp                   string
@@ -473,7 +474,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should have correct policies", func() {
 			Expect(obj.Resources).ToNot(BeEmpty())
-			Expect(obj.Resources["PolicyAutoScaling"]).ToNot(BeNil())
+			Expect(obj.Resources).To(HaveKey("PolicyAutoScaling"))
 			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
@@ -520,12 +521,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroupAppMeshExternalDNSEBSCSI", func() {
+	Context("NodeGroupAppMeshExternalDNS", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.IAM.WithAddonPolicies.AppMesh = api.NewBoolTrue()
 		ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolTrue()
-		ng.IAM.WithAddonPolicies.EBSCSI = api.NewBoolTrue()
 
 		build(cfg, "eksctl-test-megaapps-cluster", ng)
 
@@ -534,7 +534,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct policies", func() {
 			Expect(obj.Resources).ToNot(BeEmpty())
 
-			Expect(obj.Resources["PolicyExternalDNSChangeSet"]).ToNot(BeNil())
+			Expect(obj.Resources).To(HaveKey("PolicyExternalDNSChangeSet"))
 			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
@@ -542,7 +542,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"route53:ChangeResourceRecordSets",
 			}))
 
-			Expect(obj.Resources["PolicyExternalDNSHostedZones"]).ToNot(BeNil())
+			Expect(obj.Resources).To(HaveKey("PolicyExternalDNSHostedZones"))
 			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
@@ -551,7 +551,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"route53:ListResourceRecordSets",
 			}))
 
-			Expect(obj.Resources["PolicyAppMesh"]).ToNot(BeNil())
+			Expect(obj.Resources).To(HaveKey("PolicyAppMesh"))
 			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
@@ -559,7 +559,29 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"appmesh:*",
 			}))
 
-			Expect(obj.Resources["PolicyEBSCSI"]).ToNot(BeNil())
+			Expect(obj.Resources).ToNot(HaveKey("PolicyEBSCSI"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyAutoScaling"))
+		})
+
+	})
+
+	Context("NodeGroupEBSCSI", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.VolumeSize = 0
+		ng.IAM.WithAddonPolicies.EBSCSI = api.NewBoolTrue()
+
+		build(cfg, "eksctl-test-ebscsi-cluster", ng)
+
+		roundtript()
+
+		It("should have correct policies", func() {
+			Expect(obj.Resources).ToNot(BeEmpty())
+
+			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
+			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(0))
+
+			Expect(obj.Resources).To(HaveKey("PolicyEBSCSI"))
 			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
@@ -577,6 +599,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"ec2:DescribeVolumes",
 				"ec2:DetachVolume",
 			}))
+
+			Expect(obj.Resources).ToNot(HaveKey("PolicyAutoScaling"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyAppMesh"))
 		})
 	})
 
@@ -614,6 +641,17 @@ var _ = Describe("CloudFormation template builder API", func() {
 				},
 			}
 			Expect(x).To(Equal(refSubnets))
+
+			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
+
+			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(1))
+
+			rootVolume := obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings[0].(map[string]interface{})
+
+			Expect(rootVolume).To(HaveKeyWithValue("DeviceName", "/dev/xvda"))
+			Expect(rootVolume).To(HaveKey("Ebs"))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeType", "io1"))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeSize", 2.0))
 
 			Expect(obj.Resources["NodeLaunchConfig"].Properties.AssociatePublicIpAddress).To(BeFalse())
 
