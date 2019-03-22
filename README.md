@@ -342,18 +342,12 @@ Get the list of old nodegroups:
 old_nodegroups="$(eksctl get ng --cluster=<clusterName> --output=json | jq -r '.[].Name')"
 ```
 
-Edit config file to add new nodegroups.
+Edit config file to add new nodegroups. You can remove old nodegroups from the config file now
+or do it later.
 
-If you have removed the definition of old nodegroups from the config file, then you can run:
+To create all of new nodegroups defined in the config file, run:
 ```
 eksctl create nodegroup --config-file=<path>
-```
-
-Alternatively, you can keep the old definitions in the config file and pass `--only` with a list of the new nodegroup
-names that you want to add (you can use glob expressions, or list specific names - see ['Managing
-nodegroup'](#managing-nodegroups) for details):
-```
-eksctl create nodegroup --config-file=<path> --only=<list>
 ```
 
 Once you have new nodegroups in place, you can delete old ones:
