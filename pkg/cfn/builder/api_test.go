@@ -342,7 +342,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							AutoScaler:   api.NewBoolFalse(),
 							ExternalDNS:  api.NewBoolFalse(),
 							AppMesh:      api.NewBoolFalse(),
-							EBSCSI:       api.NewBoolFalse(),
+							EBS:          api.NewBoolFalse(),
 						},
 					},
 				},
@@ -560,19 +560,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"appmesh:*",
 			}))
 
-			Expect(obj.Resources).ToNot(HaveKey("PolicyEBSCSI"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyEBS"))
 			Expect(obj.Resources).ToNot(HaveKey("PolicyAutoScaling"))
 		})
 
 	})
 
-	Context("NodeGroupEBSCSI", func() {
+	Context("NodeGroupEBS", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.VolumeSize = 0
-		ng.IAM.WithAddonPolicies.EBSCSI = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.EBS = api.NewBoolTrue()
 
-		build(cfg, "eksctl-test-ebscsi-cluster", ng)
+		build(cfg, "eksctl-test-ebs-cluster", ng)
 
 		roundtript()
 
@@ -582,11 +582,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
 			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(0))
 
-			Expect(obj.Resources).To(HaveKey("PolicyEBSCSI"))
-			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(obj.Resources["PolicyEBSCSI"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+			Expect(obj.Resources).To(HaveKey("PolicyEBS"))
+			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"ec2:AttachVolume",
 				"ec2:CreateSnapshot",
 				"ec2:CreateTags",

@@ -217,8 +217,8 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if v := n.spec.IAM.WithAddonPolicies.EBSCSI; v != nil && *v {
-		n.rs.attachAllowPolicy("PolicyEBSCSI", refIR, "*",
+	if v := n.spec.IAM.WithAddonPolicies.EBS; v != nil && *v {
+		n.rs.attachAllowPolicy("PolicyEBS", refIR, "*",
 			[]string{
 				"ec2:AttachVolume",
 				"ec2:CreateSnapshot",

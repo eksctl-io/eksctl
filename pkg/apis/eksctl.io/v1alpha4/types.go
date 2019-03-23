@@ -312,7 +312,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				AutoScaler:   NewBoolFalse(),
 				ExternalDNS:  NewBoolFalse(),
 				AppMesh:      NewBoolFalse(),
-				EBSCSI:       NewBoolFalse(),
+				EBS:          NewBoolFalse(),
 			},
 		},
 	}
@@ -422,6 +422,6 @@ type (
 		// +optional
 		AppMesh *bool `json:"appMesh"`
 		// +optional
-		EBSCSI *bool `json:"ebsCSI"`
+		EBS *bool `json:"ebs"`
 	}
 )
