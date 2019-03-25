@@ -62,12 +62,12 @@ func (c *StackCollection) RunSingleTask(t Task) []error {
 // the stacks (a cluster and one or more nodegroups); any errors
 // will be returned as a slice as soon as one of the tasks or group
 // of tasks is completed
-func (c *StackCollection) CreateClusterWithNodeGroups() []error {
+func (c *StackCollection) CreateClusterWithNodeGroups(onlySubset sets.String) []error {
 	if errs := c.RunSingleTask(Task{c.CreateCluster, nil}); len(errs) > 0 {
 		return errs
 	}
 
-	return c.CreateAllNodeGroups(nil)
+	return c.CreateAllNodeGroups(onlySubset)
 }
 
 // CreateAllNodeGroups runs all tasks required to create the node groups;
