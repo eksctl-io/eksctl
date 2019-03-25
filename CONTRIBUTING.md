@@ -24,7 +24,7 @@ The project uses Slack. If you get stuck or just have a question then you are en
 Regular contributor meetings are held on Slack, see [`docs/contributor-meetings.md`](docs/contributor-meetings.md) for 
 the latest information.
 
-## Getting Started
+# Getting Started
 
 - Fork the repository on GitHub
 - Read the [README](README.md) for getting started as a user and learn how/where to ask for help
@@ -66,7 +66,7 @@ Make a fork of this repository and add it as a remote:
 
 ```bash
 cd src/github.com/weaveworks/eksctl
-git remote add fork git@github.com:<username>/eksctl.git
+git remote add <username> git@github.com:<username>/eksctl.git
 ```
 
 #### 3. Run the tests and build eksctl
@@ -112,7 +112,7 @@ then make sure you prefix the title with `WIP: `. This lets everyone know that t
 ready remove the `WIP: ` title prefix and where possible squash your commits.
 
 ```bash
-git push fork <feature-name>
+git push <username> <feature-name>
 ```
 
 Our CircleCI integration will run the automated tests and give you feedback in the review section. We will review your 
