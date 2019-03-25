@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -103,89 +102,6 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-// When passing the --without-nodegroup option, don't create nodegroups
-func skipNodeGroupsIfRequested(cfg *api.ClusterConfig) {
-	if withoutNodeGroup {
-		cfg.NodeGroups = nil
-		logger.Warning("cluster will be created without an initial nodegroup")
-	}
-}
-
-// checkEachNodeGroup iterates over each nodegroup and calls check function
-// (this is need to avoid common goroutine-for-loop pitfall)
-func checkEachNodeGroup(cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {
-	for i := range cfg.NodeGroups {
-		if err := check(i, cfg.NodeGroups[i]); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func newNodeGroupChecker(i int, ng *api.NodeGroup) error {
-	if err := api.ValidateNodeGroup(i, ng); err != nil {
-		return err
-	}
-
-	// apply defaults
-	if ng.InstanceType == "" {
-		ng.InstanceType = api.DefaultNodeType
-	}
-	if ng.AMIFamily == "" {
-		ng.AMIFamily = ami.ImageFamilyAmazonLinux2
-	}
-	if ng.AMI == "" {
-		ng.AMI = ami.ResolverStatic
-	}
-
-	if ng.SecurityGroups == nil {
-		ng.SecurityGroups = &api.NodeGroupSGs{
-			AttachIDs: []string{},
-		}
-	}
-	if ng.SecurityGroups.WithLocal == nil {
-		ng.SecurityGroups.WithLocal = api.NewBoolTrue()
-	}
-	if ng.SecurityGroups.WithShared == nil {
-		ng.SecurityGroups.WithShared = api.NewBoolTrue()
-	}
-
-	if ng.AllowSSH {
-		if ng.SSHPublicKeyPath == "" {
-			ng.SSHPublicKeyPath = defaultSSHPublicKey
-		}
-	}
-
-	if ng.VolumeSize > 0 {
-		if ng.VolumeType == "" {
-			ng.VolumeType = api.DefaultNodeVolumeType
-		}
-	}
-
-	if ng.IAM == nil {
-		ng.IAM = &api.NodeGroupIAM{}
-	}
-	if ng.IAM.WithAddonPolicies.ImageBuilder == nil {
-		ng.IAM.WithAddonPolicies.ImageBuilder = api.NewBoolFalse()
-	}
-	if ng.IAM.WithAddonPolicies.AutoScaler == nil {
-		ng.IAM.WithAddonPolicies.AutoScaler = api.NewBoolFalse()
-	}
-	if ng.IAM.WithAddonPolicies.ExternalDNS == nil {
-		ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolFalse()
-	}
-
-	return nil
-}
-
-func checkSubnetsGiven(cfg *api.ClusterConfig) bool {
-	return cfg.VPC.Subnets != nil && len(cfg.VPC.Subnets.Private)+len(cfg.VPC.Subnets.Public) != 0
-}
-
-func checkSubnetsGivenAsFlags() bool {
-	return len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
-}
-
 func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	meta := cfg.Metadata
 
@@ -194,6 +110,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	if err := api.Register(); err != nil {
 		return err
 	}
+
+	ngFilter := NewNodeGroupFilter()
 
 	if clusterConfigFile != "" {
 		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
@@ -258,7 +176,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		skipNodeGroupsIfRequested(cfg)
 
-		if err := checkEachNodeGroup(cfg, newNodeGroupChecker); err != nil {
+		if err := CheckEachNodeGroup(ngFilter, cfg, NewNodeGroupChecker); err != nil {
 			return err
 		}
 	} else {
@@ -276,7 +194,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 		skipNodeGroupsIfRequested(cfg)
 
-		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
+		err := CheckEachNodeGroup(ngFilter, cfg, func(i int, ng *api.NodeGroup) error {
 			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
 				return fmt.Errorf("--ssh-public-key must be non-empty string")
 			}
@@ -387,7 +305,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return err
 			}
 
-			if err := checkEachNodeGroup(cfg, canUseForPrivateNodeGroups); err != nil {
+			if err := CheckEachNodeGroup(ngFilter, cfg, canUseForPrivateNodeGroups); err != nil {
 				return err
 			}
 
@@ -414,7 +332,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		if err := checkEachNodeGroup(cfg, canUseForPrivateNodeGroups); err != nil {
+		if err := CheckEachNodeGroup(ngFilter, cfg, canUseForPrivateNodeGroups); err != nil {
 			return err
 		}
 
@@ -427,7 +345,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	err := checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+	err := CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -462,15 +380,16 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	{ // core action
+		ngSubset := ngFilter.MatchAll(cfg)
 		stackManager := ctl.NewStackManager(cfg)
-		if len(cfg.NodeGroups) == 1 {
+		if ngCount := ngSubset.Len(); ngCount == 1 && clusterConfigFile == "" {
 			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		} else {
-			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(cfg.NodeGroups))
-
+			ngFilter.LogInfo(cfg)
+			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", ngCount)
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
-		errs := stackManager.CreateClusterWithNodeGroups()
+		errs := stackManager.CreateClusterWithNodeGroups(ngSubset)
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
@@ -515,7 +434,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+		err = CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err

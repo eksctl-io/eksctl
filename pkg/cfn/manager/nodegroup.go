@@ -81,6 +81,20 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	return nodeGroupStacks, nil
 }
 
+// ListNodeGroupStacks calls DescribeNodeGroupStacks and returns only nodegroup names
+func (c *StackCollection) ListNodeGroupStacks() ([]string, error) {
+	stacks, err := c.DescribeNodeGroupStacks()
+	if err != nil {
+		return nil, err
+	}
+
+	names := []string{}
+	for _, s := range stacks {
+		names = append(names, getNodeGroupName(s))
+	}
+	return names, nil
+}
+
 // DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
 // then returns it in a map by nodegroup name
 func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]StackInfo, error) {

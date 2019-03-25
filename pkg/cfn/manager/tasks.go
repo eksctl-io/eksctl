@@ -3,6 +3,8 @@ package manager
 import (
 	"sync"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
@@ -60,18 +62,18 @@ func (c *StackCollection) RunSingleTask(t Task) []error {
 // the stacks (a cluster and one or more nodegroups); any errors
 // will be returned as a slice as soon as one of the tasks or group
 // of tasks is completed
-func (c *StackCollection) CreateClusterWithNodeGroups() []error {
+func (c *StackCollection) CreateClusterWithNodeGroups(onlySubset sets.String) []error {
 	if errs := c.RunSingleTask(Task{c.CreateCluster, nil}); len(errs) > 0 {
 		return errs
 	}
 
-	return c.CreateAllNodeGroups()
+	return c.CreateAllNodeGroups(onlySubset)
 }
 
 // CreateAllNodeGroups runs all tasks required to create the node groups;
 // any errors will be returned as a slice as soon as one of the tasks
 // or group of tasks is completed
-func (c *StackCollection) CreateAllNodeGroups() []error {
+func (c *StackCollection) CreateAllNodeGroups(onlySubset sets.String) []error {
 	errs := []error{}
 	appendErr := func(err error) {
 		errs = append(errs, err)
@@ -79,9 +81,13 @@ func (c *StackCollection) CreateAllNodeGroups() []error {
 
 	createAllNodeGroups := []Task{}
 	for i := range c.spec.NodeGroups {
+		ng := c.spec.NodeGroups[i]
+		if onlySubset != nil && !onlySubset.Has(ng.Name) {
+			continue
+		}
 		t := Task{
 			Call: c.CreateNodeGroup,
-			Data: c.spec.NodeGroups[i],
+			Data: ng,
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)
 	}

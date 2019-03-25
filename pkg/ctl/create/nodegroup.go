@@ -3,9 +3,7 @@ package create
 import (
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/gobwas/glob"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -20,8 +18,8 @@ import (
 )
 
 var (
-	updateAuthConfigMap bool
-	nodeGroupFilter     = ""
+	updateAuthConfigMap  bool
+	nodeGroupOnlyFilters []string
 )
 
 func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -52,8 +50,10 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
 		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
-		fs.StringVarP(&nodeGroupFilter, "only", "", "",
+
+		fs.StringSliceVar(&nodeGroupOnlyFilters, "only", nil,
 			"select a subset of nodegroups via comma-separted list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
+
 		cmdutils.AddUpdateAuthConfigMap(&updateAuthConfigMap, fs, "Remove nodegroup IAM role from aws-auth configmap")
 	})
 
@@ -73,70 +73,6 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
-func filterNodeGroups(cfg *api.ClusterConfig) error {
-	if nodeGroupFilter == "" {
-		// no filter supplied
-		return nil
-	}
-	globstrs := strings.Split(nodeGroupFilter, ",")
-	globs := make([]glob.Glob, len(globstrs))
-	for idx, g := range globstrs {
-		globs[idx] = glob.MustCompile(g)
-	}
-	nodegroups := cfg.NodeGroups
-	filtered := make([]*api.NodeGroup, 0)
-	for _, ng := range nodegroups {
-		for _, g := range globs {
-			if g.Match(ng.Name) {
-				filtered = append(filtered, ng)
-				break
-			}
-		}
-	}
-	if len(filtered) == 0 {
-		return fmt.Errorf("No nodegroups match filter specification: %s", nodeGroupFilter)
-	}
-	cfg.NodeGroups = filtered
-	return nil
-}
-
-func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
-	switch meta.Version {
-	case "auto":
-		break
-	case "":
-		meta.Version = "auto"
-	case "latest":
-		meta.Version = api.LatestVersion
-		logger.Info("will use version latest version (%s) for new nodegroup(s)", meta.Version)
-	default:
-		validVersion := false
-		for _, v := range api.SupportedVersions() {
-			if meta.Version == v {
-				validVersion = true
-			}
-		}
-		if !validVersion {
-			return fmt.Errorf("invalid version %s, supported values: auto, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
-		}
-	}
-
-	if v := ctl.ControlPlaneVersion(); v == "" {
-		return fmt.Errorf("unable to get control plane version")
-	} else if meta.Version == "auto" {
-		meta.Version = v
-		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
-	} else if meta.Version != v {
-		hint := "--version=auto"
-		if clusterConfigFile != "" {
-			hint = "metadata.version: auto"
-		}
-		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)
-	}
-
-	return nil
-}
-
 func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	meta := cfg.Metadata
 
@@ -145,6 +81,8 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 	if err := api.Register(); err != nil {
 		return err
 	}
+
+	ngFilter := NewNodeGroupFilter()
 
 	if clusterConfigFile != "" {
 		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
@@ -161,11 +99,6 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		}
 
 		p.Region = meta.Region
-
-		// Limit nodegroups to set specified on command line via globs
-		if err := filterNodeGroups(cfg); err != nil {
-			return err
-		}
 
 		incompatibleFlags := []string{
 			"name",
@@ -198,7 +131,11 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			}
 		}
 
-		if err := checkEachNodeGroup(cfg, newNodeGroupChecker); err != nil {
+		if err := ngFilter.ApplyOnlyFilter(nodeGroupOnlyFilters, cfg); err != nil {
+			return err
+		}
+
+		if err := CheckEachNodeGroup(ngFilter, cfg, NewNodeGroupChecker); err != nil {
 			return err
 		}
 	} else {
@@ -208,11 +145,17 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			return errors.New("--cluster must be set")
 		}
 
-		if nodeGroupFilter != "" {
-			return errors.New("cannot use --only unless a config file is specified via --config-file/-f")
+		incompatibleFlags := []string{
+			"only",
 		}
 
-		err := checkEachNodeGroup(cfg, func(i int, ng *api.NodeGroup) error {
+		for _, f := range incompatibleFlags {
+			if cmd.Flag(f).Changed {
+				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
+			}
+		}
+
+		err := CheckEachNodeGroup(ngFilter, cfg, func(i int, ng *api.NodeGroup) error {
 			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
 				return fmt.Errorf("--ssh-public-key must be non-empty string")
 			}
@@ -254,7 +197,13 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
-	err := checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+	stackManager := ctl.NewStackManager(cfg)
+
+	if err := ngFilter.ApplyExistingFilter(stackManager); err != nil {
+		return err
+	}
+
+	err := CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -282,15 +231,20 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return err
 	}
 
-	stackManager := ctl.NewStackManager(cfg)
-
 	if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
 		return errors.Wrap(err, "cluster compatibility check failed")
 	}
 
+	ngSubset := ngFilter.MatchAll(cfg)
+	ngCount := ngSubset.Len()
+
 	{
-		logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-		errs := stackManager.CreateAllNodeGroups()
+		ngFilter.LogInfo(cfg)
+		if ngCount > 0 {
+			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
+		}
+
+		errs := stackManager.CreateAllNodeGroups(ngSubset)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
@@ -309,7 +263,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			return err
 		}
 
-		err = checkEachNodeGroup(cfg, func(_ int, ng *api.NodeGroup) error {
+		err = CheckEachNodeGroup(ngFilter, cfg, func(_ int, ng *api.NodeGroup) error {
 			if updateAuthConfigMap {
 				// authorise nodes to join
 				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -333,7 +287,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		if err != nil {
 			return err
 		}
-		logger.Success("created nodegroups in cluster %q", cfg.Metadata.Name)
+		logger.Success("created %d nodegroup(s) in cluster %q", ngCount, cfg.Metadata.Name)
 	}
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
