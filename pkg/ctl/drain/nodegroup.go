@@ -40,7 +40,7 @@ func drainNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name (required)")
+		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, p)
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete (required)")
 		fs.BoolVar(&drainNodeGroupUndo, "undo", false, "Uncordone the nodegroup")
