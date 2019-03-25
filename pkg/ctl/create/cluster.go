@@ -380,15 +380,16 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	{ // core action
+		ngSubset := ngFilter.MatchAll(cfg)
 		stackManager := ctl.NewStackManager(cfg)
-		if len(cfg.NodeGroups) == 1 {
+		if ngCount := ngSubset.Len(); ngCount == 1 && clusterConfigFile == "" {
 			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		} else {
-			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(cfg.NodeGroups))
-
+			ngFilter.LogInfo(cfg)
+			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", ngCount)
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
-		errs := stackManager.CreateClusterWithNodeGroups()
+		errs := stackManager.CreateClusterWithNodeGroups(ngSubset)
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))

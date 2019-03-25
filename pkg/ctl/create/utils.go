@@ -107,6 +107,22 @@ func (f *NodeGroupFilter) MatchAll(cfg *api.ClusterConfig) sets.String {
 	return names
 }
 
+// LogInfo prints out a user-friendly message about how filter was applied
+func (f *NodeGroupFilter) LogInfo(cfg *api.ClusterConfig) {
+	count := f.MatchAll(cfg).Len()
+	filteredOutCount := len(cfg.NodeGroups) - count
+	if filteredOutCount > 0 {
+		reasons := []string{}
+		if f.onlySpec != "" {
+			reasons = append(reasons, fmt.Sprintf("--only=%q was given", f.onlySpec))
+		}
+		if existingCount := f.existing.Len(); existingCount > 0 {
+			reasons = append(reasons, fmt.Sprintf("%d nodegroup(s) (%s) already exist", existingCount, strings.Join(f.existing.List(), ", ")))
+		}
+		logger.Info("%d nodegroup(s) were filtered out: %s", filteredOutCount, strings.Join(reasons, ", "))
+	}
+}
+
 // CheckEachNodeGroup iterates over each nodegroup and calls check function
 // (this is needed to avoid common goroutine-for-loop pitfall)
 func CheckEachNodeGroup(f *NodeGroupFilter, cfg *api.ClusterConfig, check func(i int, ng *api.NodeGroup) error) error {

@@ -235,9 +235,16 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return errors.Wrap(err, "cluster compatibility check failed")
 	}
 
+	ngSubset := ngFilter.MatchAll(cfg)
+	ngCount := ngSubset.Len()
+
 	{
-		logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-		errs := stackManager.CreateAllNodeGroups(ngFilter.MatchAll(cfg))
+		ngFilter.LogInfo(cfg)
+		if ngCount > 0 {
+			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
+		}
+
+		errs := stackManager.CreateAllNodeGroups(ngSubset)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
@@ -280,7 +287,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		if err != nil {
 			return err
 		}
-		logger.Success("created nodegroups in cluster %q", cfg.Metadata.Name)
+		logger.Success("created %d nodegroup(s) in cluster %q", ngCount, cfg.Metadata.Name)
 	}
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
