@@ -46,10 +46,6 @@ func installCoreDNSCmd(g *cmdutils.Grouping) *cobra.Command {
 }
 
 func doInstallCoreDNS(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	if err := api.Register(); err != nil {
-		return err
-	}
-
 	if err := cmdutils.LoadMetadata(p, cfg, clusterConfigFile, nameArg, cmd); err != nil {
 		return err
 	}

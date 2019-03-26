@@ -89,3 +89,13 @@ func ErrUnsupportedRegion(p *api.ProviderConfig) error {
 func ErrNameFlagAndArg(nameFlag, nameArg string) error {
 	return fmt.Errorf("--name=%s and argument %s %s", nameFlag, nameArg, IncompatibleFlags)
 }
+
+// ErrMustBeSet is a common error message
+func ErrMustBeSet(pathOrFlag string) error {
+	return fmt.Errorf("%s must be set", pathOrFlag)
+}
+
+// ErrCannotUseWithConfigFile is a common error message
+func ErrCannotUseWithConfigFile(what string) error {
+	return fmt.Errorf("cannot use %s when --config-file/-f is set", what)
+}
