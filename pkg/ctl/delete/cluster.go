@@ -55,10 +55,6 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	printer := printers.NewJSONPrinter()
 
-	if err := api.Register(); err != nil {
-		return err
-	}
-
 	if err := cmdutils.LoadMetadata(p, cfg, clusterConfigFile, nameArg, cmd); err != nil {
 		return err
 	}
