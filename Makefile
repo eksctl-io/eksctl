@@ -6,6 +6,8 @@ version_pkg := github.com/weaveworks/eksctl/pkg/version
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
+GO_BUILD_TAGS ?= netgo
+
 .DEFAULT_GOAL := help
 
 ##@ Dependencies
@@ -18,7 +20,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: build
 build: ## Build eksctl
-	@CGO_ENABLED=0 go build -tags "netgo" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	CGO_ENABLED=0 go build -tags "$(GO_BUILD_TAGS)" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
@@ -122,7 +124,10 @@ eksctl-build-image: ## Create the the eksctl build docker image
 	@-docker pull $(EKSCTL_BUILD_IMAGE)
 	@docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) ./build
 
-EKSCTL_IMAGE_BUILD_ARGS := --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE)
+EKSCTL_IMAGE_BUILD_ARGS := \
+  --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) \
+  --build-arg=GO_BUILD_TAGS=$(GO_BUILD_TAGS)
+
 ifneq ($(COVERALLS_TOKEN),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
 endif

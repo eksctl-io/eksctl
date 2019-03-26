@@ -25,13 +25,14 @@ ARG COVERALLS_TOKEN
 ENV COVERALLS_TOKEN $COVERALLS_TOKEN
 
 ARG TEST_TARGET
+ARG GO_BUILD_TAGS
 
 ENV JUNIT_REPORT_DIR $GOPATH/src/github.com/weaveworks/eksctl/test-results/ginkgo
 RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 WORKDIR $EKSCTL
 RUN make $TEST_TARGET
-RUN make build \
+RUN make build GO_BUILD_TAGS="${GO_BUILD_TAGS}" \
     && cp ./eksctl /out/usr/local/bin/eksctl
 RUN make build-integration-test \
     && mkdir -p /out/usr/local/share/eksctl \

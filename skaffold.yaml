@@ -5,7 +5,7 @@ profiles:
 
   - name: local
     build:
-      local: 
+      local:
         push: false
         useBuildkit: true
       tagPolicy:
@@ -23,7 +23,7 @@ profiles:
 
   - name: push-any-commit
     build:
-      local: 
+      local:
         push: true
         useBuildkit: true
       artifacts:
@@ -36,9 +36,25 @@ profiles:
             EKSCTL_BUILD_IMAGE: weaveworks/eksctl-build:local
             TEST_TARGET: test
 
+  - name: push-release
+    build:
+      local:
+        push: true
+        useBuildkit: true
+      artifacts:
+      - image: weaveworks/eksctl-build
+        context: ./build
+      - image: weaveworks/eksctl
+        context: ./
+        docker:
+          buildArgs:
+            EKSCTL_BUILD_IMAGE: weaveworks/eksctl-build:local
+            TEST_TARGET: test
+            GO_BUILD_TAGS: netgo release
+
   - name: local-from-cache
     build:
-      local: 
+      local:
         push: false
         useBuildkit: true
       tagPolicy:
@@ -59,7 +75,7 @@ profiles:
 
   - name: push-cache
     build:
-      local: 
+      local:
         push: true
         useBuildkit: true
       tagPolicy:
