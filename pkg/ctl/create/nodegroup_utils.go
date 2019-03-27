@@ -2,12 +2,14 @@ package create
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/utils"
-	"math/rand"
-	"time"
 )
 
 const (
@@ -33,8 +35,8 @@ func NodeGroupName(a, b string) string {
 	})
 }
 
-func configureNodeGroups(ngFilter *NodeGroupFilter, nodeGroups []*api.NodeGroup, cmd *cobra.Command) error {
-	return checkEachNodeGroup(ngFilter, nodeGroups, func(i int, ng *api.NodeGroup) error {
+func configureNodeGroups(ngFilter *cmdutils.NodeGroupFilter, nodeGroups []*api.NodeGroup, cmd *cobra.Command) error {
+	return ngFilter.CheckEachNodeGroup(nodeGroups, func(i int, ng *api.NodeGroup) error {
 		if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
 			return fmt.Errorf("--ssh-public-key must be non-empty string")
 		}
@@ -50,8 +52,8 @@ func configureNodeGroups(ngFilter *NodeGroupFilter, nodeGroups []*api.NodeGroup,
 	})
 }
 
-func setNodeGroupDefaults(ngFilter *NodeGroupFilter, nodeGroups []*api.NodeGroup) error {
-	return checkEachNodeGroup(ngFilter, nodeGroups, func(i int, ng *api.NodeGroup) error {
+func setNodeGroupDefaults(ngFilter *cmdutils.NodeGroupFilter, nodeGroups []*api.NodeGroup) error {
+	return ngFilter.CheckEachNodeGroup(nodeGroups, func(i int, ng *api.NodeGroup) error {
 
 		if err := api.ValidateNodeGroup(i, ng); err != nil {
 			return err
@@ -110,17 +112,4 @@ func setNodeGroupDefaults(ngFilter *NodeGroupFilter, nodeGroups []*api.NodeGroup
 
 		return nil
 	})
-}
-
-// CheckEachNodeGroup iterates over each nodegroup and calls check function
-// (this is needed to avoid common goroutine-for-loop pitfall)
-func checkEachNodeGroup(ngFilter *NodeGroupFilter, nodeGroups []*api.NodeGroup, check func(i int, ng *api.NodeGroup) error) error {
-	for i, ng := range nodeGroups {
-		if ngFilter.Match(ng) {
-			if err := check(i, ng); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
