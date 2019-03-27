@@ -212,7 +212,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
 
-	return c.UpdateStack(name, "scale-nodegroup", descriptionBuffer.String(), []byte(template), nil)
+	return c.UpdateStack(name, c.MakeChangeSetName("scale-nodegroup"), descriptionBuffer.String(), []byte(template), nil)
 }
 
 // GetNodeGroupSummaries returns a list of summaries for the nodegroups of a cluster

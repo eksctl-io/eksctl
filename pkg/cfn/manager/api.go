@@ -3,7 +3,6 @@ package manager
 import (
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -122,23 +121,19 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 		return err
 	}
 
-	if err := c.DoWaitUntilStackIsCreated(i); err != nil {
-		return err
-	}
+	go c.waitUntilStackIsCreated(i, stack, errs)
 
 	return nil
 }
 
 // UpdateStack will update a cloudformation stack by creating and executing a ChangeSet.
-func (c *StackCollection) UpdateStack(stackName string, action string, description string, template []byte, parameters map[string]string) error {
+func (c *StackCollection) UpdateStack(stackName string, changeSetName string, description string, template []byte, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
-	changeSetName, err := c.doCreateChangeSetRequest(i, action, description, template, parameters, true)
-	if err != nil {
+	if err := c.doCreateChangeSetRequest(i, changeSetName, description, template, parameters, true); err != nil {
 		return err
 	}
-	err = c.doWaitUntilChangeSetIsCreated(i, &changeSetName)
-	if err != nil {
+	if err := c.doWaitUntilChangeSetIsCreated(i, &changeSetName); err != nil {
 		return err
 	}
 	changeSet, err := c.DescribeStackChangeSet(i, &changeSetName)
@@ -344,11 +339,8 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 	return events, nil
 }
 
-func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, description string, templateBody []byte,
-	parameters map[string]string, withIAM bool) (string, error) {
-
-	changeSetName := fmt.Sprintf("eksctl-%s-%d", action, time.Now().Unix())
-
+func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName string, description string, templateBody []byte,
+	parameters map[string]string, withIAM bool) error {
 	input := &cloudformation.CreateChangeSetInput{
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
@@ -378,10 +370,10 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, desc
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.provider.CloudFormation().CreateChangeSet(input)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
+		return errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
 	}
 	logger.Debug("changeSet = %#v", s)
-	return changeSetName, nil
+	return nil
 }
 
 func (c *StackCollection) doExecuteChangeSet(stackName string, changeSetName string) error {
