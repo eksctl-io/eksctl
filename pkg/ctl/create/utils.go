@@ -6,75 +6,9 @@ import (
 
 	"github.com/kris-nova/logger"
 
-	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
-
-// NewNodeGroupChecker validates a new nodegroup and applies defaults
-func NewNodeGroupChecker(i int, ng *api.NodeGroup) error {
-	if err := api.ValidateNodeGroup(i, ng); err != nil {
-		return err
-	}
-
-	// apply defaults
-	if ng.InstanceType == "" {
-		ng.InstanceType = api.DefaultNodeType
-	}
-	if ng.AMIFamily == "" {
-		ng.AMIFamily = ami.ImageFamilyAmazonLinux2
-	}
-	if ng.AMI == "" {
-		ng.AMI = ami.ResolverStatic
-	}
-
-	if ng.SecurityGroups == nil {
-		ng.SecurityGroups = &api.NodeGroupSGs{
-			AttachIDs: []string{},
-		}
-	}
-	if ng.SecurityGroups.WithLocal == nil {
-		ng.SecurityGroups.WithLocal = api.NewBoolTrue()
-	}
-	if ng.SecurityGroups.WithShared == nil {
-		ng.SecurityGroups.WithShared = api.NewBoolTrue()
-	}
-
-	if ng.AllowSSH {
-		if ng.SSHPublicKeyPath == "" {
-			ng.SSHPublicKeyPath = defaultSSHPublicKey
-		}
-	}
-
-	if ng.VolumeSize > 0 {
-		if ng.VolumeType == "" {
-			ng.VolumeType = api.DefaultNodeVolumeType
-		}
-	}
-
-	if ng.IAM == nil {
-		ng.IAM = &api.NodeGroupIAM{}
-	}
-	if ng.IAM.WithAddonPolicies.ImageBuilder == nil {
-		ng.IAM.WithAddonPolicies.ImageBuilder = api.NewBoolFalse()
-	}
-	if ng.IAM.WithAddonPolicies.AutoScaler == nil {
-		ng.IAM.WithAddonPolicies.AutoScaler = api.NewBoolFalse()
-	}
-	if ng.IAM.WithAddonPolicies.ExternalDNS == nil {
-		ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolFalse()
-	}
-
-	return nil
-}
-
-// When passing the --without-nodegroup option, don't create nodegroups
-func skipNodeGroupsIfRequested(cfg *api.ClusterConfig) {
-	if withoutNodeGroup {
-		cfg.NodeGroups = nil
-		logger.Warning("cluster will be created without an initial nodegroup")
-	}
-}
 
 func checkSubnetsGiven(cfg *api.ClusterConfig) bool {
 	return cfg.VPC.Subnets != nil && len(cfg.VPC.Subnets.Private)+len(cfg.VPC.Subnets.Public) != 0

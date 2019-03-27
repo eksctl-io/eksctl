@@ -26,7 +26,7 @@ var _ = Describe("create nodegroup utils", func() {
 			printer := printers.NewJSONPrinter()
 			names := []string{}
 
-			filter.CheckEachNodeGroup(cfg.NodeGroups, NewNodeGroupChecker)
+			filter.CheckEachNodeGroup(cfg.NodeGroups, SetNodeGroupDefaults)
 
 			filter.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))

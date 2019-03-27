@@ -43,7 +43,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group := g.New(cmd)
 
-	exampleNodeGroupName := NodeGroupName("", "")
+	exampleNodeGroupName := utils.NodeGroupName("", "")
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
@@ -76,60 +76,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	cfgLoader := cmdutils.NewClusterConfigLoader(p, cfg, clusterConfigFile, cmd)
-
-	cfgLoader.FlagsIncompatibleWithConfigFile.Insert(
-		"cluster",
-		"nodes",
-		"nodes-min",
-		"nodes-max",
-		"node-type",
-		"node-volume-size",
-		"node-volume-type",
-		"max-pods-per-node",
-		"node-ami",
-		"node-ami-family",
-		"ssh-access",
-		"ssh-public-key",
-		"node-private-networking",
-		"node-security-groups",
-		"node-labels",
-		"node-zones",
-		"asg-access",
-		"external-dns-access",
-		"full-ecr-access",
-	)
-
-	cfgLoader.ValidateWithConfigFile = func() error {
-		if err := ngFilter.ApplyOnlyFilter(nodeGroupOnlyFilters, cfg); err != nil {
-			return err
-		}
-
-		return ngFilter.CheckEachNodeGroup(cfg.NodeGroups, NewNodeGroupChecker)
-	}
-
-	cfgLoader.FlagsIncompatibleWithoutConfigFile.Insert("only")
-
-	cfgLoader.ValidateWithoutConfigFile = func() error {
-		if cfg.Metadata.Name == "" {
-			return errors.New("--cluster must be set")
-		}
-
-		incompatibleFlags := []string{
-			"only",
-		}
-
-		for _, f := range incompatibleFlags {
-			if cmd.Flag(f).Changed {
-				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
-			}
-			return nil
-		}
-
-		return configureNodeGroups(ngFilter, cfg.NodeGroups, cmd)
-	}
-
-	if err := cfgLoader.Load(); err != nil {
+	if err := cmdutils.NewCreateNodeGroupLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter, nodeGroupOnlyFilters, SetNodeGroupDefaults).Load(); err != nil {
 		return err
 	}
 
