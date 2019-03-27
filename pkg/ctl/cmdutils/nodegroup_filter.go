@@ -49,9 +49,9 @@ func (f *NodeGroupFilter) onlyFilterMatchesAnything(cfg *api.ClusterConfig) erro
 	if len(f.only) == 0 {
 		return nil
 	}
-	for i := range cfg.NodeGroups {
-		for _, g := range f.only {
-			if g.Match(cfg.NodeGroups[i].Name) {
+	for _, ng := range cfg.NodeGroups {
+		for _, compiledExpr := range f.only {
+			if compiledExpr.Match(ng.Name) {
 				return nil
 			}
 		}
@@ -82,8 +82,8 @@ func (f *NodeGroupFilter) Match(ng *api.NodeGroup) bool {
 		return false
 	}
 
-	for _, g := range f.only {
-		if g.Match(ng.Name) {
+	for _, compiledExpr := range f.only {
+		if compiledExpr.Match(ng.Name) {
 			return true // return first match
 		}
 	}

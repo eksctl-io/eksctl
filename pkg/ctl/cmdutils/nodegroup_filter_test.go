@@ -11,70 +11,16 @@ import (
 
 var _ = Describe("nodegroup filter", func() {
 
-	newClusterConfig := func() *api.ClusterConfig {
-		cfg := api.NewClusterConfig()
-
-		cfg.Metadata.Name = "test-3x3-ngs"
-		cfg.Metadata.Region = "eu-central-1"
-
-		return cfg
-	}
-	addGroupA := func(cfg *api.ClusterConfig) {
-		var ng *api.NodeGroup
-
-		ng = cfg.NewNodeGroup()
-		ng.Name = "test-ng1a"
-		ng.VolumeSize = 768
-		ng.VolumeType = "io1"
-		ng.IAM.AttachPolicyARNs = []string{"foo"}
-		ng.Labels = map[string]string{"group": "a", "seq": "1"}
-
-		ng = cfg.NewNodeGroup()
-		ng.Name = "test-ng2a"
-		ng.IAM.AttachPolicyARNs = []string{"bar"}
-		ng.Labels = map[string]string{"group": "a", "seq": "2"}
-
-		ng = cfg.NewNodeGroup()
-		ng.Name = "test-ng3a"
-		ng.ClusterDNS = "1.2.3.4"
-		ng.InstanceType = "m3.large"
-		ng.AllowSSH = true
-		ng.Labels = map[string]string{"group": "a", "seq": "3"}
-	}
-
-	addGroupB := func(cfg *api.ClusterConfig) {
-		var ng *api.NodeGroup
-
-		ng = cfg.NewNodeGroup()
-		ng.Name = "test-ng1b"
-		ng.AllowSSH = true
-		ng.Labels = map[string]string{"group": "b", "seq": "1"}
-
-		ng = cfg.NewNodeGroup()
-		ng.Name = "test-ng2b"
-		ng.ClusterDNS = "4.2.8.14"
-		ng.InstanceType = "m5.xlarge"
-		ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
-		ng.SecurityGroups.WithLocal = api.NewBoolFalse()
-		ng.Labels = map[string]string{"group": "b", "seq": "1"}
-
-		ng = cfg.NewNodeGroup()
-		ng.Name = "test-ng3b"
-		ng.VolumeSize = 192
-		ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
-		ng.SecurityGroups.WithLocal = api.NewBoolFalse()
-		ng.Labels = map[string]string{"group": "b", "seq": "1"}
-	}
-
 	Context("CheckEachNodeGroup", func() {
 
 		It("should iterate over unique nodegroups", func() {
 			cfg := newClusterConfig()
 			addGroupA(cfg)
-			f := NewNodeGroupFilter()
 
+			filter := NewNodeGroupFilter()
 			names := []string{}
-			f.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+
+			filter.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -85,7 +31,8 @@ var _ = Describe("nodegroup filter", func() {
 			cfg.NodeGroups[0].Name = "ng-x0"
 			cfg.NodeGroups[1].Name = "ng-x1"
 			cfg.NodeGroups[2].Name = "ng-x2"
-			f.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+
+			filter.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -97,10 +44,11 @@ var _ = Describe("nodegroup filter", func() {
 			cfg := newClusterConfig()
 			addGroupA(cfg)
 			addGroupB(cfg)
-			f := NewNodeGroupFilter()
 
+			filter := NewNodeGroupFilter()
 			names := []string{}
-			f.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+
+			filter.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -109,13 +57,13 @@ var _ = Describe("nodegroup filter", func() {
 
 			names = []string{}
 
-			err := f.ApplyOnlyFilter([]string{"t?xyz?", "ab*z123?"}, cfg)
+			err := filter.ApplyOnlyFilter([]string{"t?xyz?", "ab*z123?"}, cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(`no nodegroups match filter specification: "t?xyz?,ab*z123?"`))
 
-			err = f.ApplyOnlyFilter([]string{"test-ng1?", "te*-ng3?"}, cfg)
+			err = filter.ApplyOnlyFilter([]string{"test-ng1?", "te*-ng3?"}, cfg)
 			Expect(err).ToNot(HaveOccurred())
-			f.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			filter.CheckEachNodeGroup(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -124,3 +72,59 @@ var _ = Describe("nodegroup filter", func() {
 		})
 	})
 })
+
+func newClusterConfig() *api.ClusterConfig {
+	cfg := api.NewClusterConfig()
+
+	cfg.Metadata.Name = "test-3x3-ngs"
+	cfg.Metadata.Region = "eu-central-1"
+
+	return cfg
+}
+
+func addGroupA(cfg *api.ClusterConfig) {
+	var ng *api.NodeGroup
+
+	ng = cfg.NewNodeGroup()
+	ng.Name = "test-ng1a"
+	ng.VolumeSize = 768
+	ng.VolumeType = "io1"
+	ng.IAM.AttachPolicyARNs = []string{"foo"}
+	ng.Labels = map[string]string{"group": "a", "seq": "1"}
+
+	ng = cfg.NewNodeGroup()
+	ng.Name = "test-ng2a"
+	ng.IAM.AttachPolicyARNs = []string{"bar"}
+	ng.Labels = map[string]string{"group": "a", "seq": "2"}
+
+	ng = cfg.NewNodeGroup()
+	ng.Name = "test-ng3a"
+	ng.ClusterDNS = "1.2.3.4"
+	ng.InstanceType = "m3.large"
+	ng.AllowSSH = true
+	ng.Labels = map[string]string{"group": "a", "seq": "3"}
+}
+
+func addGroupB(cfg *api.ClusterConfig) {
+	var ng *api.NodeGroup
+
+	ng = cfg.NewNodeGroup()
+	ng.Name = "test-ng1b"
+	ng.AllowSSH = true
+	ng.Labels = map[string]string{"group": "b", "seq": "1"}
+
+	ng = cfg.NewNodeGroup()
+	ng.Name = "test-ng2b"
+	ng.ClusterDNS = "4.2.8.14"
+	ng.InstanceType = "m5.xlarge"
+	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
+	ng.SecurityGroups.WithLocal = api.NewBoolFalse()
+	ng.Labels = map[string]string{"group": "b", "seq": "1"}
+
+	ng = cfg.NewNodeGroup()
+	ng.Name = "test-ng3b"
+	ng.VolumeSize = 192
+	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
+	ng.SecurityGroups.WithLocal = api.NewBoolFalse()
+	ng.Labels = map[string]string{"group": "b", "seq": "1"}
+}
