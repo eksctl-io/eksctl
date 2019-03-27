@@ -1,4 +1,4 @@
-package create_test
+package create
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
-	. "github.com/weaveworks/eksctl/pkg/ctl/create"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -274,7 +273,7 @@ var _ = Describe("create utils", func() {
 			f := NewNodeGroupFilter()
 
 			names := []string{}
-			CheckEachNodeGroup(f, cfg, func(i int, nodeGroup *api.NodeGroup) error {
+			checkEachNodeGroup(f, cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -285,7 +284,7 @@ var _ = Describe("create utils", func() {
 			cfg.NodeGroups[0].Name = "ng-x0"
 			cfg.NodeGroups[1].Name = "ng-x1"
 			cfg.NodeGroups[2].Name = "ng-x2"
-			CheckEachNodeGroup(f, cfg, func(i int, nodeGroup *api.NodeGroup) error {
+			checkEachNodeGroup(f, cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -300,7 +299,7 @@ var _ = Describe("create utils", func() {
 			f := NewNodeGroupFilter()
 
 			names := []string{}
-			CheckEachNodeGroup(f, cfg, func(i int, nodeGroup *api.NodeGroup) error {
+			checkEachNodeGroup(f, cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -315,7 +314,7 @@ var _ = Describe("create utils", func() {
 
 			err = f.ApplyOnlyFilter([]string{"test-ng1?", "te*-ng3?"}, cfg)
 			Expect(err).ToNot(HaveOccurred())
-			CheckEachNodeGroup(f, cfg, func(i int, nodeGroup *api.NodeGroup) error {
+			checkEachNodeGroup(f, cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
@@ -332,9 +331,9 @@ var _ = Describe("create utils", func() {
 			printer := printers.NewJSONPrinter()
 
 			names := []string{}
-			CheckEachNodeGroup(f, cfg, NewNodeGroupChecker)
+			checkEachNodeGroup(f, cfg.NodeGroups, NewNodeGroupChecker)
 
-			CheckEachNodeGroup(f, cfg, func(i int, nodeGroup *api.NodeGroup) error {
+			checkEachNodeGroup(f, cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
