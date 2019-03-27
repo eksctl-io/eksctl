@@ -49,7 +49,7 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
-		fs.StringVarP(&clusterConfigFile, "config-file", "f", "", "load configuration from a file")
+		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
 
 		fs.StringSliceVar(&nodeGroupOnlyFilters, "only", nil,
 			"select a subset of nodegroups via comma-separted list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
@@ -74,73 +74,43 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 }
 
 func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	meta := cfg.Metadata
-
-	printer := printers.NewJSONPrinter()
-
-	if err := api.Register(); err != nil {
-		return err
-	}
-
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	if clusterConfigFile != "" {
-		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
-			return err
-		}
-		meta = cfg.Metadata
+	cfgLoader := cmdutils.NewClusterConfigLoader(p, cfg, clusterConfigFile, cmd)
 
-		if meta.Name == "" {
-			return fmt.Errorf("metadata.name must be set")
-		}
+	cfgLoader.FlagsIncompatibleWithConfigFile.Insert(
+		"cluster",
+		"nodes",
+		"nodes-min",
+		"nodes-max",
+		"node-type",
+		"node-volume-size",
+		"node-volume-type",
+		"max-pods-per-node",
+		"node-ami",
+		"node-ami-family",
+		"ssh-access",
+		"ssh-public-key",
+		"node-private-networking",
+		"node-security-groups",
+		"node-labels",
+		"node-zones",
+		"asg-access",
+		"external-dns-access",
+		"full-ecr-access",
+	)
 
-		if meta.Region == "" {
-			return fmt.Errorf("metadata.region must be set")
-		}
-
-		p.Region = meta.Region
-
-		incompatibleFlags := []string{
-			"name",
-			"cluster",
-			"version",
-			"region",
-			"nodes",
-			"nodes-min",
-			"nodes-max",
-			"node-type",
-			"node-volume-size",
-			"node-volume-type",
-			"max-pods-per-node",
-			"node-ami",
-			"node-ami-family",
-			"ssh-access",
-			"ssh-public-key",
-			"node-private-networking",
-			"node-security-groups",
-			"node-labels",
-			"node-zones",
-			"asg-access",
-			"external-dns-access",
-			"full-ecr-access",
-		}
-
-		for _, f := range incompatibleFlags {
-			if cmd.Flag(f).Changed {
-				return fmt.Errorf("cannot use --%s when --config-file/-f is set", f)
-			}
-		}
-
+	cfgLoader.ValidateWithConfigFile = func() error {
 		if err := ngFilter.ApplyOnlyFilter(nodeGroupOnlyFilters, cfg); err != nil {
 			return err
 		}
 
-		if err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, NewNodeGroupChecker); err != nil {
-			return err
-		}
-	} else {
-		// validation and defaulting specific to when --config-file is unused
+		return ngFilter.CheckEachNodeGroup(cfg.NodeGroups, NewNodeGroupChecker)
+	}
 
+	cfgLoader.FlagsIncompatibleWithoutConfigFile.Insert("only")
+
+	cfgLoader.ValidateWithoutConfigFile = func() error {
 		if cfg.Metadata.Name == "" {
 			return errors.New("--cluster must be set")
 		}
@@ -156,12 +126,15 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			return nil
 		}
 
-		if err := configureNodeGroups(ngFilter, cfg.NodeGroups, cmd); err != nil {
-			return err
-		}
-
+		return configureNodeGroups(ngFilter, cfg.NodeGroups, cmd)
 	}
 
+	if err := cfgLoader.Load(); err != nil {
+		return err
+	}
+
+	meta := cfg.Metadata
+	printer := printers.NewJSONPrinter()
 	ctl := eks.New(p, cfg)
 
 	if !ctl.IsSupportedRegion() {
