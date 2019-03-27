@@ -48,13 +48,13 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.provider.WaitTimeout(), troubleshoot)
 }
 
-func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *string, acceptors []request.WaiterAcceptor) error {
-	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q", *changesetName, *i.StackName)
+func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName string, acceptors []request.WaiterAcceptor) error {
+	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q", changesetName, *i.StackName)
 
 	newRequest := func() *request.Request {
 		input := &cfn.DescribeChangeSetInput{
 			StackName:     i.StackName,
-			ChangeSetName: changesetName,
+			ChangeSetName: &changesetName,
 		}
 		req, _ := c.provider.CloudFormation().DescribeChangeSetRequest(input)
 		return req
@@ -222,7 +222,7 @@ func (c *StackCollection) doWaitUntilStackIsUpdated(i *Stack) error {
 	)
 }
 
-func (c *StackCollection) doWaitUntilChangeSetIsCreated(i *Stack, changesetName *string) error {
+func (c *StackCollection) doWaitUntilChangeSetIsCreated(i *Stack, changesetName string) error {
 	return c.waitWithAcceptorsChangeSet(i, changesetName,
 		waiters.MakeAcceptors(
 			changesetStatus,

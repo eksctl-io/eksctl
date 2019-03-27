@@ -133,10 +133,10 @@ func (c *StackCollection) UpdateStack(stackName string, changeSetName string, de
 	if err := c.doCreateChangeSetRequest(i, changeSetName, description, template, parameters, true); err != nil {
 		return err
 	}
-	if err := c.doWaitUntilChangeSetIsCreated(i, &changeSetName); err != nil {
+	if err := c.doWaitUntilChangeSetIsCreated(i, changeSetName); err != nil {
 		return err
 	}
-	changeSet, err := c.DescribeStackChangeSet(i, &changeSetName)
+	changeSet, err := c.DescribeStackChangeSet(i, changeSetName)
 	if err != nil {
 		return err
 	}
@@ -391,17 +391,17 @@ func (c *StackCollection) doExecuteChangeSet(stackName string, changeSetName str
 }
 
 // DescribeStackChangeSet gets a cloudformation changeset.
-func (c *StackCollection) DescribeStackChangeSet(i *Stack, changeSetName *string) (*ChangeSet, error) {
+func (c *StackCollection) DescribeStackChangeSet(i *Stack, changeSetName string) (*ChangeSet, error) {
 	input := &cloudformation.DescribeChangeSetInput{
 		StackName:     i.StackName,
-		ChangeSetName: changeSetName,
+		ChangeSetName: &changeSetName,
 	}
 	if i.StackId != nil {
 		input.StackName = i.StackId
 	}
 	resp, err := c.provider.CloudFormation().DescribeChangeSet(input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation ChangeSet %s for stack %s", *changeSetName, *i.StackName)
+		return nil, errors.Wrapf(err, "describing CloudFormation ChangeSet %s for stack %s", changeSetName, *i.StackName)
 	}
 	return resp, nil
 }
