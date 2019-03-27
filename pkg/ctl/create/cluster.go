@@ -111,7 +111,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	ngFilter := NewNodeGroupFilter()
+	ngFilter := cmdutils.NewNodeGroupFilter()
 
 	if clusterConfigFile != "" {
 		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
@@ -295,7 +295,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return err
 			}
 
-			if err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
+			if err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
 				return err
 			}
 
@@ -322,7 +322,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		if err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
+		if err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
 			return err
 		}
 
@@ -335,7 +335,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	err := checkEachNodeGroup(ngFilter, cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+	err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -424,7 +424,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		err = checkEachNodeGroup(ngFilter, cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+		err = ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err
