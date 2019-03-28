@@ -45,7 +45,7 @@ func updateKubeProxyCmd(g *cmdutils.Grouping) *cobra.Command {
 }
 
 func doUpdateKubeProxy(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	if err := cmdutils.LoadMetadata(p, cfg, clusterConfigFile, nameArg, cmd); err != nil {
+	if err := cmdutils.NewMetadataLoader(p, cfg, clusterConfigFile, nameArg, cmd).Load(); err != nil {
 		return err
 	}
 

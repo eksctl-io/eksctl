@@ -67,7 +67,7 @@ func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg 
 	}
 
 	if cfg.Metadata.Name == "" {
-		return fmt.Errorf("--name must be set")
+		return cmdutils.ErrMustBeSet("--name")
 	}
 
 	stackManager := ctl.NewStackManager(cfg)

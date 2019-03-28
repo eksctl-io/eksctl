@@ -135,6 +135,11 @@ func doImportSubnet(subnets map[string]Network, az, subnetID, cidr string) error
 	return nil
 }
 
+// HasAnySubnets checks if any subnets were set
+func (c *ClusterConfig) HasAnySubnets() bool {
+	return c.VPC.Subnets != nil && len(c.VPC.Subnets.Private)+len(c.VPC.Subnets.Public) != 0
+}
+
 // HasSufficientPrivateSubnets validates if there is a sufficient
 // number of private subnets available to create a cluster
 func (c *ClusterConfig) HasSufficientPrivateSubnets() bool {

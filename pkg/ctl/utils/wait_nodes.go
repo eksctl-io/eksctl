@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -54,7 +53,7 @@ func doWaitNodes(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGrou
 	ctl := eks.New(p, cfg)
 
 	if waitNodesKubeconfigPath == "" {
-		return fmt.Errorf("--kubeconfig must be set")
+		return cmdutils.ErrMustBeSet("--kubeconfig")
 	}
 
 	clientConfig, err := clientcmd.BuildConfigFromFlags("", waitNodesKubeconfigPath)

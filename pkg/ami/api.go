@@ -4,27 +4,27 @@ import (
 	"sort"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/pkg/errors"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 )
 
 const (
-	// DefaultImageFamily defines the default image family for the worker nodes
-	DefaultImageFamily = ImageFamilyAmazonLinux2
-
 	// ImageFamilyAmazonLinux2 represents Amazon Linux 2 family
-	ImageFamilyAmazonLinux2 = "AmazonLinux2" // Owner 602401143452
+	ImageFamilyAmazonLinux2 = api.NodeImageFamilyAmazonLinux2 // Owner 602401143452
 
 	// ImageFamilyUbuntu1804 represents Ubuntu 18.04 family
-	ImageFamilyUbuntu1804 = "Ubuntu1804" // Owner 099720109477
+	ImageFamilyUbuntu1804 = api.NodeImageFamilyUbuntu1804 // Owner 099720109477
 
 	// ResolverStatic is used to indicate that the static (i.e. compiled into eksctl) AMIs should be used
-	ResolverStatic = "static"
+	ResolverStatic = api.NodeImageResolverStatic
 	// ResolverAuto is used to indicate that the latest EKS AMIs should be used for the nodes. This implies
 	// that automatic resolution of AMI will occur.
-	ResolverAuto = "auto"
+	ResolverAuto = api.NodeImageResolverAuto
 )
 
 // Variations of iamge classes

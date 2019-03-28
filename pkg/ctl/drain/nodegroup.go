@@ -1,7 +1,6 @@
 package drain
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -65,7 +64,7 @@ func doDrainNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 	}
 
 	if cfg.Metadata.Name == "" {
-		return errors.New("--cluster must be set")
+		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
 	if ng.Name != "" && nameArg != "" {
@@ -77,7 +76,7 @@ func doDrainNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 	}
 
 	if ng.Name == "" {
-		return fmt.Errorf("--name must be set")
+		return cmdutils.ErrMustBeSet("--name")
 	}
 
 	if err := ctl.GetCredentials(cfg); err != nil {

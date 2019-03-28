@@ -28,17 +28,17 @@ var _ = Describe("cmdutils configfile", func() {
 		It("should handle name argument", func() {
 			cfg := api.NewClusterConfig()
 
-			err := LoadMetadata(nil, cfg, "", "foo-1", nil)
+			err := NewMetadataLoader(nil, cfg, "", "foo-1", nil).Load()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(cfg.Metadata.Name).To(Equal("foo-1"))
 
-			err = LoadMetadata(nil, cfg, "", "foo-2", nil)
+			err = NewMetadataLoader(nil, cfg, "", "foo-2", nil).Load()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--name=foo-1 and argument foo-2 cannot be used at the same time"))
 
 			cmd := newCmd()
 
-			err = LoadMetadata(nil, cfg, examplesDir+"01-simple-cluster.yaml", "foo-3", cmd)
+			err = NewMetadataLoader(nil, cfg, examplesDir+"01-simple-cluster.yaml", "foo-3", cmd).Load()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(ErrCannotUseWithConfigFile(`name argument "foo-3"`).Error()))
 
@@ -48,7 +48,7 @@ var _ = Describe("cmdutils configfile", func() {
 			cmd.Flag("name").Changed = true
 
 			Expect(cmd.Flag("name").Changed).To(BeTrue())
-			err = LoadMetadata(nil, cfg, examplesDir+"01-simple-cluster.yaml", "foo-3", cmd)
+			err = NewMetadataLoader(nil, cfg, examplesDir+"01-simple-cluster.yaml", "foo-3", cmd).Load()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(ErrCannotUseWithConfigFile("--name").Error()))
 		})
@@ -62,7 +62,7 @@ var _ = Describe("cmdutils configfile", func() {
 				cfg := api.NewClusterConfig()
 
 				p := &api.ProviderConfig{}
-				err := LoadMetadata(p, cfg, example, "", newCmd())
+				err := NewMetadataLoader(p, cfg, example, "", newCmd()).Load()
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
