@@ -1,42 +1,6 @@
 {
   "apiVersion": "v1",
   "items": [{
-      "apiVersion": "v1",
-      "kind": "Service",
-      "metadata": {
-        "annotations": {},
-        "labels": {
-          "eks.amazonaws.com/component": "kube-dns",
-          "k8s-app": "kube-dns",
-          "kubernetes.io/cluster-service": "true",
-          "kubernetes.io/name": "KubeDNS"
-        },
-        "name": "kube-dns",
-        "namespace": "kube-system"
-      },
-      "spec": {
-        "clusterIP": "10.100.0.10",
-        "ports": [{
-            "name": "dns",
-            "port": 53,
-            "protocol": "UDP",
-            "targetPort": 53
-          },
-          {
-            "name": "dns-tcp",
-            "port": 53,
-            "protocol": "TCP",
-            "targetPort": 53
-          }
-        ],
-        "selector": {
-          "k8s-app": "kube-dns"
-        },
-        "sessionAffinity": "None",
-        "type": "ClusterIP"
-      }
-    },
-    {
       "apiVersion": "apps/v1",
       "kind": "DaemonSet",
       "metadata": {
@@ -339,256 +303,6 @@
       }
     },
     {
-      "apiVersion": "apps/v1",
-      "kind": "Deployment",
-      "metadata": {
-        "annotations": {
-          "deployment.kubernetes.io/revision": "1"
-        },
-        "labels": {
-          "eks.amazonaws.com/component": "kube-dns",
-          "k8s-app": "kube-dns"
-        },
-        "name": "kube-dns",
-        "namespace": "kube-system"
-      },
-      "spec": {
-        "progressDeadlineSeconds": 600,
-        "replicas": 1,
-        "revisionHistoryLimit": 10,
-        "selector": {
-          "matchLabels": {
-            "eks.amazonaws.com/component": "kube-dns",
-            "k8s-app": "kube-dns"
-          }
-        },
-        "strategy": {
-          "rollingUpdate": {
-            "maxSurge": "10%",
-            "maxUnavailable": 0
-          },
-          "type": "RollingUpdate"
-        },
-        "template": {
-          "metadata": {
-            "annotations": {
-              "scheduler.alpha.kubernetes.io/critical-pod": ""
-            },
-            "creationTimestamp": null,
-            "labels": {
-              "eks.amazonaws.com/component": "kube-dns",
-              "k8s-app": "kube-dns"
-            }
-          },
-          "spec": {
-            "affinity": {
-              "nodeAffinity": {
-                "requiredDuringSchedulingIgnoredDuringExecution": {
-                  "nodeSelectorTerms": [{
-                    "matchExpressions": [{
-                        "key": "beta.kubernetes.io/os",
-                        "operator": "In",
-                        "values": [
-                          "linux"
-                        ]
-                      },
-                      {
-                        "key": "beta.kubernetes.io/arch",
-                        "operator": "In",
-                        "values": [
-                          "amd64"
-                        ]
-                      }
-                    ]
-                  }]
-                }
-              }
-            },
-            "containers": [{
-                "args": [
-                  "--domain=cluster.local.",
-                  "--dns-port=10053",
-                  "--config-dir=/kube-dns-config",
-                  "--v=2"
-                ],
-                "env": [{
-                  "name": "PROMETHEUS_PORT",
-                  "value": "10055"
-                }],
-                "image": "602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-dns/kube-dns:1.14.10",
-                "imagePullPolicy": "IfNotPresent",
-                "livenessProbe": {
-                  "failureThreshold": 5,
-                  "httpGet": {
-                    "path": "/healthcheck/kubedns",
-                    "port": 10054,
-                    "scheme": "HTTP"
-                  },
-                  "initialDelaySeconds": 60,
-                  "periodSeconds": 10,
-                  "successThreshold": 1,
-                  "timeoutSeconds": 5
-                },
-                "name": "kubedns",
-                "ports": [{
-                    "containerPort": 10053,
-                    "name": "dns-local",
-                    "protocol": "UDP"
-                  },
-                  {
-                    "containerPort": 10053,
-                    "name": "dns-tcp-local",
-                    "protocol": "TCP"
-                  },
-                  {
-                    "containerPort": 10055,
-                    "name": "metrics",
-                    "protocol": "TCP"
-                  }
-                ],
-                "readinessProbe": {
-                  "failureThreshold": 3,
-                  "httpGet": {
-                    "path": "/readiness",
-                    "port": 8081,
-                    "scheme": "HTTP"
-                  },
-                  "initialDelaySeconds": 3,
-                  "periodSeconds": 10,
-                  "successThreshold": 1,
-                  "timeoutSeconds": 5
-                },
-                "resources": {
-                  "limits": {
-                    "memory": "170Mi"
-                  },
-                  "requests": {
-                    "cpu": "100m",
-                    "memory": "70Mi"
-                  }
-                },
-                "terminationMessagePath": "/dev/termination-log",
-                "terminationMessagePolicy": "File",
-                "volumeMounts": [{
-                  "mountPath": "/kube-dns-config",
-                  "name": "kube-dns-config"
-                }]
-              },
-              {
-                "args": [
-                  "-v=2",
-                  "-logtostderr",
-                  "-configDir=/etc/k8s/dns/dnsmasq-nanny",
-                  "-restartDnsmasq=true",
-                  "--",
-                  "-k",
-                  "--cache-size=1000",
-                  "--no-negcache",
-                  "--log-facility=-",
-                  "--server=/cluster.local/127.0.0.1#10053",
-                  "--server=/in-addr.arpa/127.0.0.1#10053",
-                  "--server=/ip6.arpa/127.0.0.1#10053"
-                ],
-                "image": "602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-dns/dnsmasq-nanny:1.14.10",
-                "imagePullPolicy": "IfNotPresent",
-                "livenessProbe": {
-                  "failureThreshold": 5,
-                  "httpGet": {
-                    "path": "/healthcheck/dnsmasq",
-                    "port": 10054,
-                    "scheme": "HTTP"
-                  },
-                  "initialDelaySeconds": 60,
-                  "periodSeconds": 10,
-                  "successThreshold": 1,
-                  "timeoutSeconds": 5
-                },
-                "name": "dnsmasq",
-                "ports": [{
-                    "containerPort": 53,
-                    "name": "dns",
-                    "protocol": "UDP"
-                  },
-                  {
-                    "containerPort": 53,
-                    "name": "dns-tcp",
-                    "protocol": "TCP"
-                  }
-                ],
-                "resources": {
-                  "requests": {
-                    "cpu": "150m",
-                    "memory": "20Mi"
-                  }
-                },
-                "terminationMessagePath": "/dev/termination-log",
-                "terminationMessagePolicy": "File",
-                "volumeMounts": [{
-                  "mountPath": "/etc/k8s/dns/dnsmasq-nanny",
-                  "name": "kube-dns-config"
-                }]
-              },
-              {
-                "args": [
-                  "--v=2",
-                  "--logtostderr",
-                  "--probe=kubedns,127.0.0.1:10053,kubernetes.default.svc.cluster.local,5,SRV",
-                  "--probe=dnsmasq,127.0.0.1:53,kubernetes.default.svc.cluster.local,5,SRV"
-                ],
-                "image": "602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-dns/sidecar:1.14.10",
-                "imagePullPolicy": "IfNotPresent",
-                "livenessProbe": {
-                  "failureThreshold": 5,
-                  "httpGet": {
-                    "path": "/metrics",
-                    "port": 10054,
-                    "scheme": "HTTP"
-                  },
-                  "initialDelaySeconds": 60,
-                  "periodSeconds": 10,
-                  "successThreshold": 1,
-                  "timeoutSeconds": 5
-                },
-                "name": "sidecar",
-                "ports": [{
-                  "containerPort": 10054,
-                  "name": "metrics",
-                  "protocol": "TCP"
-                }],
-                "resources": {
-                  "requests": {
-                    "cpu": "10m",
-                    "memory": "20Mi"
-                  }
-                },
-                "terminationMessagePath": "/dev/termination-log",
-                "terminationMessagePolicy": "File"
-              }
-            ],
-            "dnsPolicy": "Default",
-            "restartPolicy": "Always",
-            "schedulerName": "default-scheduler",
-            "securityContext": {},
-            "serviceAccount": "kube-dns",
-            "serviceAccountName": "kube-dns",
-            "terminationGracePeriodSeconds": 30,
-            "tolerations": [{
-              "key": "CriticalAddonsOnly",
-              "operator": "Exists"
-            }],
-            "volumes": [{
-              "configMap": {
-                "defaultMode": 420,
-                "name": "kube-dns",
-                "optional": true
-              },
-              "name": "kube-dns-config"
-            }]
-          }
-        }
-      }
-    },
-    {
       "apiVersion": "apiextensions.k8s.io/v1beta1",
       "kind": "CustomResourceDefinition",
       "metadata": {
@@ -672,6 +386,166 @@
         "name": "aws-node",
         "namespace": "kube-system"
       }]
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "annotations": {
+          "deployment.kubernetes.io/revision": "1"
+        },
+        "labels": {
+          "eks.amazonaws.com/component": "coredns",
+          "k8s-app": "kube-dns",
+          "kubernetes.io/name": "CoreDNS"
+        },
+        "name": "coredns",
+        "namespace": "kube-system"
+      },
+      "spec": {
+        "replicas": 2,
+        "selector": {
+          "matchLabels": {
+            "eks.amazonaws.com/component": "coredns",
+            "k8s-app": "kube-dns"
+          }
+        },
+        "strategy": {
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 1
+          },
+          "type": "RollingUpdate"
+        },
+        "template": {
+          "metadata": {
+            "creationTimestamp": null,
+            "labels": {
+              "eks.amazonaws.com/component": "coredns",
+              "k8s-app": "kube-dns"
+            }
+          },
+          "spec": {
+            "affinity": {
+              "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "nodeSelectorTerms": [{
+                    "matchExpressions": [{
+                        "key": "beta.kubernetes.io/os",
+                        "operator": "In",
+                        "values": [
+                          "linux"
+                        ]
+                      },
+                      {
+                        "key": "beta.kubernetes.io/arch",
+                        "operator": "In",
+                        "values": [
+                          "amd64"
+                        ]
+                      }
+                    ]
+                  }]
+                }
+              }
+            },
+            "containers": [{
+              "args": [
+                "-conf",
+                "/etc/coredns/Corefile"
+              ],
+              "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns:v1.1.3",
+              "imagePullPolicy": "IfNotPresent",
+              "livenessProbe": {
+                "failureThreshold": 5,
+                "httpGet": {
+                  "path": "/health",
+                  "port": 8080,
+                  "scheme": "HTTP"
+                },
+                "initialDelaySeconds": 60,
+                "periodSeconds": 10,
+                "successThreshold": 1,
+                "timeoutSeconds": 5
+              },
+              "name": "coredns",
+              "ports": [{
+                  "containerPort": 53,
+                  "name": "dns",
+                  "protocol": "UDP"
+                },
+                {
+                  "containerPort": 53,
+                  "name": "dns-tcp",
+                  "protocol": "TCP"
+                },
+                {
+                  "containerPort": 9153,
+                  "name": "metrics",
+                  "protocol": "TCP"
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "memory": "170Mi"
+                },
+                "requests": {
+                  "cpu": "100m",
+                  "memory": "70Mi"
+                }
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "capabilities": {
+                  "add": [
+                    "NET_BIND_SERVICE"
+                  ],
+                  "drop": [
+                    "all"
+                  ]
+                },
+                "procMount": "Default",
+                "readOnlyRootFilesystem": true
+              },
+              "terminationMessagePath": "/dev/termination-log",
+              "terminationMessagePolicy": "File",
+              "volumeMounts": [{
+                "mountPath": "/etc/coredns",
+                "name": "config-volume",
+                "readOnly": true
+              }]
+            }],
+            "dnsPolicy": "Default",
+            "priorityClassName": "system-node-critical",
+            "restartPolicy": "Always",
+            "schedulerName": "default-scheduler",
+            "securityContext": {},
+            "serviceAccount": "coredns",
+            "serviceAccountName": "coredns",
+            "terminationGracePeriodSeconds": 30,
+            "tolerations": [{
+                "effect": "NoSchedule",
+                "key": "node-role.kubernetes.io/master"
+              },
+              {
+                "key": "CriticalAddonsOnly",
+                "operator": "Exists"
+              }
+            ],
+            "volumes": [{
+              "configMap": {
+                "defaultMode": 420,
+                "items": [{
+                  "key": "Corefile",
+                  "path": "Corefile"
+                }],
+                "name": "coredns"
+              },
+              "name": "config-volume"
+            }]
+          }
+        }
+      }
     }
   ],
   "kind": "List"
