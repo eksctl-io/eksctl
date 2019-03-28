@@ -327,6 +327,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				ExternalDNS:  NewBoolFalse(),
 				AppMesh:      NewBoolFalse(),
 				EBS:          NewBoolFalse(),
+				ALBIngress:   NewBoolFalse(),
 			},
 		},
 	}
@@ -437,5 +438,7 @@ type (
 		AppMesh *bool `json:"appMesh"`
 		// +optional
 		EBS *bool `json:"ebs"`
+		// +optional
+		ALBIngress *bool `json:"albIngress"`
 	}
 )
