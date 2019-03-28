@@ -86,6 +86,20 @@ const (
 	// NodeVolumeTypeST1 is Cold HDD
 	NodeVolumeTypeST1 = "st1"
 
+	// DefaultNodeImageFamily defines the default image family for the worker nodes
+	DefaultNodeImageFamily = NodeImageFamilyAmazonLinux2
+	// NodeImageFamilyAmazonLinux2 represents Amazon Linux 2 family
+	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
+	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
+	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
+	// NodeImageResolverStatic represents static AMI resolver (see ami package)
+	NodeImageResolverStatic = "static"
+	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
+	NodeImageResolverAuto = "auto"
+
+	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
+	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
+
 	// ClusterNameTag defines the tag of the clsuter name
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 

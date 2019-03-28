@@ -16,6 +16,7 @@ import (
 
 // NodeGroupFilter holds filter configuration
 type NodeGroupFilter struct {
+	SkipAll           bool
 	IgnoreAllExisting bool
 
 	existing sets.String
@@ -27,8 +28,8 @@ type NodeGroupFilter struct {
 func NewNodeGroupFilter() *NodeGroupFilter {
 	return &NodeGroupFilter{
 		IgnoreAllExisting: true,
-
-		existing: sets.NewString(),
+		SkipAll:           false,
+		existing:          sets.NewString(),
 	}
 }
 
@@ -62,7 +63,7 @@ func (f *NodeGroupFilter) onlyFilterMatchesAnything(cfg *api.ClusterConfig) erro
 // ApplyExistingFilter uses stackManager to list existing nodegroup stacks and configures
 // the filter accordingly
 func (f *NodeGroupFilter) ApplyExistingFilter(stackManager *manager.StackCollection) error {
-	if !f.IgnoreAllExisting {
+	if !f.IgnoreAllExisting || f.SkipAll {
 		return nil
 	}
 
@@ -78,6 +79,9 @@ func (f *NodeGroupFilter) ApplyExistingFilter(stackManager *manager.StackCollect
 
 // Match checks given nodegroup against the filter
 func (f *NodeGroupFilter) Match(ng *api.NodeGroup) bool {
+	if f.SkipAll {
+		return false
+	}
 	if f.IgnoreAllExisting && f.existing.Has(ng.Name) {
 		return false
 	}
@@ -97,6 +101,9 @@ func (f *NodeGroupFilter) Match(ng *api.NodeGroup) bool {
 // matching names as set
 func (f *NodeGroupFilter) MatchAll(cfg *api.ClusterConfig) sets.String {
 	names := sets.NewString()
+	if f.SkipAll {
+		return names
+	}
 	for _, ng := range cfg.NodeGroups {
 		if f.Match(ng) {
 			names.Insert(ng.Name)
@@ -111,6 +118,9 @@ func (f *NodeGroupFilter) LogInfo(cfg *api.ClusterConfig) {
 	filteredOutCount := len(cfg.NodeGroups) - count
 	if filteredOutCount > 0 {
 		reasons := []string{}
+		if f.SkipAll {
+			reasons = append(reasons, fmt.Sprintf("--without-nodegroup was set"))
+		}
 		if f.onlySpec != "" {
 			reasons = append(reasons, fmt.Sprintf("--only=%q was given", f.onlySpec))
 		}
@@ -131,4 +141,18 @@ func (f *NodeGroupFilter) CheckEachNodeGroup(nodeGroups []*api.NodeGroup, check 
 		}
 	}
 	return nil
+}
+
+// ValidateNodeGroupsAndSetDefaults is calls api.ValidateNodeGroup & api.SetNodeGroupDefaults for
+// all nodegroups that match the filter
+func (f *NodeGroupFilter) ValidateNodeGroupsAndSetDefaults(nodeGroups []*api.NodeGroup) error {
+	return f.CheckEachNodeGroup(nodeGroups, func(i int, ng *api.NodeGroup) error {
+		if err := api.ValidateNodeGroup(i, ng); err != nil {
+			return err
+		}
+		if err := api.SetNodeGroupDefaults(i, ng); err != nil {
+			return err
+		}
+		return nil
+	})
 }
