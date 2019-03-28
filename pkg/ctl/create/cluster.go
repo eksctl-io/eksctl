@@ -58,8 +58,8 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 
 	group := g.New(cmd)
 
-	exampleClusterName := utils.ClusterName("", "")
-	exampleNodeGroupName := NodeGroupName("", "")
+	exampleClusterName := cmdutils.ClusterName("", "")
+	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
@@ -103,102 +103,19 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 }
 
 func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	meta := cfg.Metadata
+	ngFilter := cmdutils.NewNodeGroupFilter()
+	ngFilter.SkipAll = withoutNodeGroup
 
-	printer := printers.NewJSONPrinter()
-
-	if err := api.Register(); err != nil {
+	if err := cmdutils.NewCreateClusterLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter).Load(); err != nil {
 		return err
 	}
 
-	ngFilter := cmdutils.NewNodeGroupFilter()
-
-	if clusterConfigFile != "" {
-		if err := eks.LoadConfigFromFile(clusterConfigFile, cfg); err != nil {
-			return err
-		}
-		meta = cfg.Metadata
-
-		incompatibleFlags := []string{
-			"name",
-			"tags",
-			"zones",
-			"version",
-			"region",
-			"nodes",
-			"nodes-min",
-			"nodes-max",
-			"node-type",
-			"node-volume-size",
-			"node-volume-type",
-			"max-pods-per-node",
-			"node-ami",
-			"node-ami-family",
-			"ssh-access",
-			"ssh-public-key",
-			"node-private-networking",
-			"node-security-groups",
-			"node-labels",
-			"node-zones",
-			"asg-access",
-			"external-dns-access",
-			"full-ecr-access",
-			"storage-class",
-			"vpc-private-subnets",
-			"vpc-public-subnets",
-			"vpc-cidr",
-			"vpc-from-kops-cluster",
-		}
-
-		for _, f := range incompatibleFlags {
-			if cmd.Flag(f).Changed {
-				return fmt.Errorf("cannot use --%s when --config-file/-f is set", f)
-			}
-		}
-
-		if meta.Name == "" {
-			return fmt.Errorf("metadata.name must be set")
-		}
-
-		if meta.Region == "" {
-			return fmt.Errorf("metadata.region must be set")
-		}
-
-		p.Region = meta.Region
-
-		if cfg.VPC == nil {
-			cfg.VPC = api.NewClusterVPC()
-		}
-
-		if checkSubnetsGiven(cfg) && len(cfg.AvailabilityZones) != 0 {
-			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
-		}
-
-		skipNodeGroupsIfRequested(cfg)
-
-		if err := setNodeGroupDefaults(ngFilter, cfg.NodeGroups); err != nil {
-			return err
-		}
-	} else {
-		// validation and defaulting specific to when --config-file is unused
-
-		// generate cluster name or use either flag or argument
-		if utils.ClusterName(meta.Name, nameArg) == "" {
-			return cmdutils.ErrNameFlagAndArg(meta.Name, nameArg)
-		}
-		meta.Name = utils.ClusterName(meta.Name, nameArg)
-
-		if cfg.Status != nil {
-			return fmt.Errorf("status fields are read-only")
-		}
-
-		skipNodeGroupsIfRequested(cfg)
-
-		if err := configureNodeGroups(ngFilter, cfg.NodeGroups, cmd); err != nil {
-			return err
-		}
+	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
+		return err
 	}
 
+	meta := cfg.Metadata
+	printer := printers.NewJSONPrinter()
 	ctl := eks.New(p, cfg)
 
 	if !ctl.IsSupportedRegion() {
@@ -244,7 +161,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			}
 		}
 	}
-	subnetsGiven := checkSubnetsGiven(cfg) // this will be false when neither flags nor config has any subnets
+	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 
 	createOrImportVPC := func() error {
 
