@@ -119,3 +119,147 @@ func NewMetadataLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, cl
 
 	return l
 }
+
+// NewCreateClusterLoader will laod config or use flags for 'eksctl create cluster'
+func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
+
+	l.nameArg = nameArg
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"tags",
+		"zones",
+		"nodes",
+		"nodes-min",
+		"nodes-max",
+		"node-type",
+		"node-volume-size",
+		"node-volume-type",
+		"max-pods-per-node",
+		"node-ami",
+		"node-ami-family",
+		"ssh-access",
+		"ssh-public-key",
+		"node-private-networking",
+		"node-security-groups",
+		"node-labels",
+		"node-zones",
+		"asg-access",
+		"external-dns-access",
+		"full-ecr-access",
+		"storage-class",
+		"vpc-private-subnets",
+		"vpc-public-subnets",
+		"vpc-cidr",
+		"vpc-from-kops-cluster",
+	)
+
+	l.validateWithConfigFile = func() error {
+		if l.spec.VPC == nil {
+			l.spec.VPC = api.NewClusterVPC()
+		}
+
+		if l.spec.HasAnySubnets() && len(l.spec.AvailabilityZones) != 0 {
+			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
+		}
+
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		meta := l.spec.Metadata
+
+		// generate cluster name or use either flag or argument
+		if ClusterName(meta.Name, l.nameArg) == "" {
+			return ErrNameFlagAndArg(meta.Name, l.nameArg)
+		}
+		meta.Name = ClusterName(meta.Name, l.nameArg)
+
+		if l.spec.Status != nil {
+			return fmt.Errorf("status fields are read-only")
+		}
+
+		return ngFilter.CheckEachNodeGroup(l.spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
+			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
+				return fmt.Errorf("--ssh-public-key must be non-empty string")
+			}
+
+			if cmd.Flag("ssh-public-key").Changed {
+				ng.AllowSSH = true
+			}
+
+			// generate nodegroup name or use flag
+			ng.Name = NodeGroupName(ng.Name, "")
+
+			return nil
+		})
+	}
+
+	return l
+}
+
+// NewCreateNodeGroupLoader will laod config or use flags for 'eksctl create nodegroup'
+func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter, nodeGroupOnlyFilters []string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
+
+	l.nameArg = nameArg
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"cluster",
+		"nodes",
+		"nodes-min",
+		"nodes-max",
+		"node-type",
+		"node-volume-size",
+		"node-volume-type",
+		"max-pods-per-node",
+		"node-ami",
+		"node-ami-family",
+		"ssh-access",
+		"ssh-public-key",
+		"node-private-networking",
+		"node-security-groups",
+		"node-labels",
+		"node-zones",
+		"asg-access",
+		"external-dns-access",
+		"full-ecr-access",
+	)
+
+	l.validateWithConfigFile = func() error {
+		if err := ngFilter.ApplyOnlyFilter(nodeGroupOnlyFilters, spec); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	l.flagsIncompatibleWithoutConfigFile.Insert(
+		"only",
+	)
+
+	l.validateWithoutConfigFile = func() error {
+		if spec.Metadata.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+
+		return ngFilter.CheckEachNodeGroup(spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
+			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
+				return fmt.Errorf("--ssh-public-key must be non-empty string")
+			}
+
+			if cmd.Flag("ssh-public-key").Changed {
+				ng.AllowSSH = true
+			}
+
+			// generate nodegroup name or use either flag or argument
+			if NodeGroupName(ng.Name, l.nameArg) == "" {
+				return ErrNameFlagAndArg(ng.Name, l.nameArg)
+			}
+			ng.Name = NodeGroupName(ng.Name, l.nameArg)
+
+			return nil
+		})
+	}
+
+	return l
+}
