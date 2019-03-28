@@ -37,6 +37,7 @@ Jerry Jackson           @jrryjcksn
 Dann Church             @D3nn
 Roli Schilter           @rndstr
 Mitchel Humpherys       @mgalgs
+Fred Cox                @mcfedr
 
 /* Thanks */
 

@@ -382,6 +382,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
+	if in.ALBIngress != nil {
+		in, out := &in.ALBIngress, &out.ALBIngress
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

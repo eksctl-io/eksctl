@@ -51,6 +51,9 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	if ng.IAM.WithAddonPolicies.ExternalDNS == nil {
 		ng.IAM.WithAddonPolicies.ExternalDNS = NewBoolFalse()
 	}
+	if ng.IAM.WithAddonPolicies.ALBIngress == nil {
+		ng.IAM.WithAddonPolicies.ALBIngress = NewBoolFalse()
+	}
 
 	return nil
 }

@@ -214,7 +214,8 @@ const expected = `
 			  	"autoScaler": false,
 			  	"externalDNS": false,
 			  	"appMesh": false,
-			  	"ebs": false
+			  	"ebs": false,
+			  	"albIngress": false
 			    }
 			  }
 		  },
@@ -244,7 +245,8 @@ const expected = `
 			  	"autoScaler": false,
 			  	"externalDNS": false,
 			  	"appMesh": false,
-			  	"ebs": false
+			  	"ebs": false,
+			  	"albIngress": false
 			    }
 			  }
 		  },
@@ -272,7 +274,8 @@ const expected = `
 			  	"autoScaler": false,
 			  	"externalDNS": false,
 			  	"appMesh": false,
-			  	"ebs": false
+			  	"ebs": false,
+			  	"albIngress": false
 			    }
 			  },
 			  "clusterDNS": "1.2.3.4"
@@ -301,7 +304,8 @@ const expected = `
 			  	"autoScaler": false,
 			  	"externalDNS": false,
 			  	"appMesh": false,
-			  	"ebs": false
+			  	"ebs": false,
+			  	"albIngress": false
 			    }
 			  }
 		  },
@@ -332,7 +336,8 @@ const expected = `
 			  	"autoScaler": false,
 			  	"externalDNS": false,
 			  	"appMesh": false,
-			  	"ebs": false
+			  	"ebs": false,
+			  	"albIngress": false
 			    }
 			  },
 			  "clusterDNS": "4.2.8.14"
@@ -364,7 +369,8 @@ const expected = `
 			  	"autoScaler": false,
 			  	"externalDNS": false,
 			  	"appMesh": false,
-			  	"ebs": false
+			  	"ebs": false,
+			  	"albIngress": false
 			    }
 			  }
 		  }
