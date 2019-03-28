@@ -21,10 +21,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-const (
-	defaultSSHPublicKey = "~/.ssh/id_rsa.pub"
-)
-
 var (
 	writeKubeconfig    bool
 	kubeconfigPath     string
