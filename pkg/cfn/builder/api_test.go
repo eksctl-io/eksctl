@@ -759,10 +759,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{PrivateNetworking=true Allow=true}", func() {
+	Context("NodeGroup{PrivateNetworking=true SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.SSH.Allow = true
+		keyName := ""
+		ng.SSH.PublicKeyName = &keyName
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = true
 		ng.AMIFamily = "AmazonLinux2"
@@ -819,6 +821,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.SSH.Allow = true
+		keyName := ""
+		ng.SSH.PublicKeyName = &keyName
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
 		ng.AMIFamily = "AmazonLinux2"

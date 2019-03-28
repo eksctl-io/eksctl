@@ -25,12 +25,12 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	}
 
 	// Enable SSH when a key is provided
-	if ng.SSH.PublicKeyPath != "" && ng.SSH.PublicKeyPath != DefaultNodeSSHPublicKeyPath {
+	if ng.SSH.PublicKeyPath != nil {
 		ng.SSH.Allow = true
 	}
 
-	if ng.SSH.Allow && ng.SSH.PublicKeyPath == "" {
-		ng.SSH.PublicKeyPath = DefaultNodeSSHPublicKeyPath
+	if ng.SSH.Allow && ng.SSH.PublicKeyPath == nil {
+		ng.SSH.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
 	}
 
 	if ng.VolumeSize > 0 {

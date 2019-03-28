@@ -180,7 +180,7 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 		}
 
 		return ngFilter.CheckEachNodeGroup(l.spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			if ng.SSH.Allow && ng.SSH.PublicKeyPath == "" {
+			if ng.SSH.Allow && ng.SSH.PublicKeyPath == nil {
 				return fmt.Errorf("--ssh-public-key must be non-empty string")
 			}
 
@@ -243,7 +243,7 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 		}
 
 		return ngFilter.CheckEachNodeGroup(spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			if ng.SSH.Allow && ng.SSH.PublicKeyPath == "" {
+			if ng.SSH.Allow && ng.SSH.PublicKeyPath == nil {
 				return fmt.Errorf("--ssh-public-key must be non-empty string")
 			}
 

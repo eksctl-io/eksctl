@@ -100,9 +100,6 @@ const (
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
 
-	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
-	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
-
 	// ClusterNameTag defines the tag of the clsuter name
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
@@ -121,6 +118,9 @@ const (
 var (
 	// DefaultWaitTimeout defines the default wait timeout
 	DefaultWaitTimeout = 25 * time.Minute
+
+	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
+	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
 )
 
 // NewBoolTrue return pointer to true value
@@ -452,10 +452,10 @@ type (
 		// +optional
 		Allow bool `json:"allow"`
 		// +optional
-		PublicKeyPath string `json:"publicKeyPath,omitempty"`
+		PublicKeyPath *string `json:"publicKeyPath,omitempty"`
 		// +optional
 		PublicKey []byte `json:"publicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
 		// +optional
-		PublicKeyName string `json:"publicKeyName,omitempty"`
+		PublicKeyName *string `json:"publicKeyName,omitempty"`
 	}
 )

@@ -27,6 +27,7 @@ var _ = Describe("Kubeconfig", func() {
 			contextName: {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 		CurrentContext: contextName,
 	}
+	var exampleSSHKeyPath = "~/.ssh/id_rsa.pub"
 
 	BeforeEach(func() {
 		configFile, _ = ioutil.TempFile("", "")
@@ -146,9 +147,9 @@ var _ = Describe("Kubeconfig", func() {
 					PrivateNetworking: false,
 					SSH: eksctlapi.SSHConfig{
 						Allow:         false,
-						PublicKeyPath: "~/.ssh/id_rsa.pub",
+						PublicKeyPath: &exampleSSHKeyPath,
 						PublicKey:     []uint8(nil),
-						PublicKeyName: "",
+						PublicKeyName: nil,
 					},
 					DesiredCapacity: nil,
 					MinSize:         nil,

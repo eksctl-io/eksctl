@@ -45,13 +45,13 @@ func (c *ClusterProvider) getKeyPair(name string) (*ec2.KeyPairInfo, error) {
 }
 
 func (c *ClusterProvider) tryExistingSSHPublicKeyFromPath(ng *api.NodeGroup) error {
-	logger.Info("SSH public key file %q does not exist; will assume existing EC2 key pair", ng.SSH.PublicKeyPath)
-	existing, err := c.getKeyPair(ng.SSH.PublicKeyPath)
+	logger.Info("SSH public key file %q does not exist; will assume existing EC2 key pair", *ng.SSH.PublicKeyPath)
+	existing, err := c.getKeyPair(*ng.SSH.PublicKeyPath)
 	if err != nil {
 		return err
 	}
-	ng.SSH.PublicKeyName = *existing.KeyName
-	logger.Info("found EC2 key pair %q", ng.SSH.PublicKeyName)
+	ng.SSH.PublicKeyName = existing.KeyName
+	logger.Info("found EC2 key pair %q", *ng.SSH.PublicKeyName)
 	return nil
 }
 
@@ -60,15 +60,16 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded(clusterName string, ng *api
 	if err != nil {
 		return err
 	}
-	ng.SSH.PublicKeyName = c.getKeyPairName(clusterName, ng, &fingerprint)
-	existing, err := c.getKeyPair(ng.SSH.PublicKeyName)
+	keyName := c.getKeyPairName(clusterName, ng, &fingerprint)
+	ng.SSH.PublicKeyName = &keyName
+	existing, err := c.getKeyPair(*ng.SSH.PublicKeyName)
 	if err != nil {
 		if strings.HasPrefix(err.Error(), "cannot find EC2 key pair") {
 			input := &ec2.ImportKeyPairInput{
-				KeyName:           &ng.SSH.PublicKeyName,
+				KeyName:           ng.SSH.PublicKeyName,
 				PublicKeyMaterial: ng.SSH.PublicKey,
 			}
-			logger.Info("importing SSH public key %q as %q", ng.SSH.PublicKeyPath, ng.SSH.PublicKeyName)
+			logger.Info("importing SSH public key %q as %q", *ng.SSH.PublicKeyPath, *ng.SSH.PublicKeyName)
 			if _, err = c.Provider.EC2().ImportKeyPair(input); err != nil {
 				return errors.Wrap(err, "importing SSH public key")
 			}
@@ -77,9 +78,9 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded(clusterName string, ng *api
 		return errors.Wrap(err, "checking existing key pair")
 	}
 	if *existing.KeyFingerprint != fingerprint {
-		return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", ng.SSH.PublicKeyName, fingerprint, *existing.KeyFingerprint)
+		return fmt.Errorf("SSH public key %s already exists, but fingerprints don't match (exected: %q, got: %q)", *ng.SSH.PublicKeyName, fingerprint, *existing.KeyFingerprint)
 	}
-	logger.Debug("SSH public key %s already exists", ng.SSH.PublicKeyName)
+	logger.Debug("SSH public key %s already exists", *ng.SSH.PublicKeyName)
 	return nil
 }
 
@@ -89,14 +90,15 @@ func (c *ClusterProvider) LoadSSHPublicKey(clusterName string, ng *api.NodeGroup
 		// TODO: https://github.com/weaveworks/eksctl/issues/144
 		return nil
 	}
-	ng.SSH.PublicKeyPath = utils.ExpandPath(ng.SSH.PublicKeyPath)
-	sshPublicKey, err := ioutil.ReadFile(ng.SSH.PublicKeyPath)
+	keyPath := utils.ExpandPath(*ng.SSH.PublicKeyPath)
+	ng.SSH.PublicKeyPath = &keyPath
+	sshPublicKey, err := ioutil.ReadFile(*ng.SSH.PublicKeyPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// if file not found – try to use existing EC2 key pair
 			return c.tryExistingSSHPublicKeyFromPath(ng)
 		}
-		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", ng.SSH.PublicKeyPath))
+		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", *ng.SSH.PublicKeyPath))
 	}
 	// on successful read – import it
 	ng.SSH.PublicKey = sshPublicKey

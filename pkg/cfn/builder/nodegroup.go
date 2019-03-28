@@ -114,8 +114,8 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		InstanceType:       gfn.NewString(n.spec.InstanceType),
 		UserData:           n.userData,
 	}
-	if n.spec.SSH.Allow {
-		lc.KeyName = gfn.NewString(n.spec.SSH.PublicKeyName)
+	if n.spec.SSH.Allow && n.spec.SSH.PublicKeyName != nil {
+		lc.KeyName = gfn.NewString(*n.spec.SSH.PublicKeyName)
 	}
 	if n.spec.PrivateNetworking {
 		lc.AssociatePublicIpAddress = gfn.False()
