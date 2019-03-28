@@ -1,7 +1,6 @@
 package delete
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -68,7 +67,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	}
 
 	if cfg.Metadata.Name == "" {
-		return errors.New("--cluster must be set")
+		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
 	if ng.Name != "" && nameArg != "" {
@@ -80,7 +79,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	}
 
 	if ng.Name == "" {
-		return fmt.Errorf("--name must be set")
+		return cmdutils.ErrMustBeSet("--name")
 	}
 
 	if err := ctl.GetCredentials(cfg); err != nil {

@@ -58,7 +58,7 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 	}
 
 	if cfg.Metadata.Name == "" {
-		return errors.New("--cluster must be set")
+		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
 	if ng.Name != "" && nameArg != "" {
