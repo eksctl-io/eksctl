@@ -383,15 +383,7 @@ type NodeGroup struct {
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
 
-	// TODO move to separate struct
-	// +optional
-	AllowSSH bool `json:"allowSSH"`
-	// +optional
-	SSHPublicKeyPath string `json:"sshPublicKeyPath,omitempty"`
-	// +optional
-	SSHPublicKey []byte `json:"SSHPublicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
-	// +optional
-	SSHPublicKeyName string `json:"sshPublicKeyName,omitempty"`
+	SSH SSHConfig `json:"ssh"`
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
@@ -453,5 +445,17 @@ type (
 		EFS *bool `json:"efs"`
 		// +optional
 		ALBIngress *bool `json:"albIngress"`
+	}
+
+	// SSHConfig holds all the ssh access configuration to a NodeGroup
+	SSHConfig struct {
+		// +optional
+		Allow bool `json:"allow"`
+		// +optional
+		PublicKeyPath string `json:"publicKeyPath,omitempty"`
+		// +optional
+		PublicKey []byte `json:"publicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
+		// +optional
+		PublicKeyName string `json:"publicKeyName,omitempty"`
 	}
 )

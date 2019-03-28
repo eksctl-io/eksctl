@@ -251,7 +251,7 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		FromPort:              sgPortHTTPS,
 		ToPort:                sgPortHTTPS,
 	})
-	if n.spec.AllowSSH {
+	if n.spec.SSH.Allow {
 		if n.spec.PrivateNetworking {
 			n.newResource("SSHIPv4", &gfn.AWSEC2SecurityGroupIngress{
 				GroupId:     refNodeGroupLocalSG,

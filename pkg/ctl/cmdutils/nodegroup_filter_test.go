@@ -146,7 +146,7 @@ func addGroupA(cfg *api.ClusterConfig) {
 	ng.Name = "test-ng3a"
 	ng.ClusterDNS = "1.2.3.4"
 	ng.InstanceType = "m3.large"
-	ng.AllowSSH = true
+	ng.SSH.Allow = true
 	ng.Labels = map[string]string{"group": "a", "seq": "3"}
 }
 
@@ -155,7 +155,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1b"
-	ng.AllowSSH = true
+	ng.SSH.Allow = true
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
 
 	ng = cfg.NewNodeGroup()
@@ -204,7 +204,9 @@ const expected = `
 			    "group": "a",
 			    "seq": "1"
 			  },
-			  "allowSSH": false,
+			  "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "attachPolicyARNs": [
 			  	"foo"
@@ -237,7 +239,9 @@ const expected = `
 			    "group": "a",
 			    "seq": "2"
 			  },
-			  "allowSSH": false,
+			  "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "attachPolicyARNs": [
 			  	"bar"
@@ -270,8 +274,10 @@ const expected = `
 			    "group": "a",
 			    "seq": "3"
 			  },
-			  "allowSSH": true,
-			  "sshPublicKeyPath": "~/.ssh/id_rsa.pub",
+              "ssh": {
+			    "allow": true,
+			    "publicKeyPath": "~/.ssh/id_rsa.pub"
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
@@ -302,8 +308,10 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-			  "allowSSH": true,
-			  "sshPublicKeyPath": "~/.ssh/id_rsa.pub",
+			  "ssh": {
+			    "allow": true,
+			    "publicKeyPath": "~/.ssh/id_rsa.pub"
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
@@ -337,7 +345,9 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-			  "allowSSH": false,
+			  "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
@@ -372,7 +382,9 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-			  "allowSSH": false,
+              "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
