@@ -17,6 +17,8 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/printers"
+	k8s "k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -24,6 +26,9 @@ const (
 	CoreDNS = "coredns"
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
+
+	// CoreDNSVersion Current latest coredns version supported
+	CoreDNSVersion = "v1.2.2"
 
 	componentLabel = "eks.amazonaws.com/component"
 
@@ -149,6 +154,58 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 	}
 
 	logger.Info("deleted %q", KubeDNS)
+
+	logger.Info("%q is now up-to-date", CoreDNS)
+	return nil
+}
+
+// UpdateCoreDNSImageTag updates image tag for kube-system:deployment/coredns based to match the latest release
+func UpdateCoreDNSImageTag(clientSet k8s.Interface, dryRun bool) error {
+	printer := printers.NewJSONPrinter()
+
+	d, err := clientSet.AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
+	if err != nil {
+		if apierrs.IsNotFound(err) {
+			logger.Warning("%q was not found", CoreDNS)
+			return nil
+		}
+		return errors.Wrapf(err, "getting %q", CoreDNS)
+	}
+	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
+		return fmt.Errorf("%s has %d containers, expected at least 1", CoreDNS, numContainers)
+	}
+
+	if err := printer.LogObj(logger.Debug, CoreDNS+" [current] = \\\n%s\n", d); err != nil {
+		return err
+	}
+
+	image := &d.Spec.Template.Spec.Containers[0].Image
+	imageParts := strings.Split(*image, ":")
+
+	if len(imageParts) != 2 {
+		return fmt.Errorf("unexpected image format %q for %q", *image, CoreDNS)
+	}
+
+	if imageParts[1] == CoreDNSVersion {
+		logger.Debug("imageParts = %v, desiredTag = %s", imageParts, CoreDNSVersion)
+		logger.Info("%q is already up-to-date", CoreDNS)
+		return nil
+	}
+
+	if dryRun {
+		logger.Critical("%q is not up-to-date", CoreDNS)
+		return nil
+	}
+
+	imageParts[1] = CoreDNSVersion
+	*image = strings.Join(imageParts, ":")
+
+	if err := printer.LogObj(logger.Debug, CoreDNS+" [updated] = \\\n%s\n", d); err != nil {
+		return err
+	}
+	if _, err := clientSet.AppsV1().Deployments(metav1.NamespaceSystem).Update(d); err != nil {
+		return err
+	}
 
 	logger.Info("%q is now up-to-date", CoreDNS)
 	return nil

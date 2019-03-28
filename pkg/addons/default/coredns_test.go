@@ -10,10 +10,11 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 var _ = Describe("default addons - coredns", func() {
-	Describe("can update coredns add-on", func() {
+	Describe("can update from kubedns to coredns add-on", func() {
 		var (
 			rawClient *testutils.FakeRawClient
 			ct        *testutils.CollectionTracker
@@ -103,5 +104,43 @@ var _ = Describe("default addons - coredns", func() {
 			)
 		})
 
+	})
+
+	Describe("can update coredns", func() {
+		var (
+			clientSet *fake.Clientset
+		)
+
+		check := func(imageTag string) {
+			coreDNS, err := clientSet.AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(coreDNS).ToNot(BeNil())
+			Expect(coreDNS.Spec.Template.Spec.Containers).To(HaveLen(1))
+
+			Expect(coreDNS.Spec.Template.Spec.Containers[0].Image).To(
+				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns:" + imageTag),
+			)
+		}
+
+		BeforeEach(func() {
+			clientSet, _ = testutils.NewFakeClientSetWithSamples("testdata/sample-1.11.json")
+		})
+
+		It("can load 1.11 sample", func() {
+			check("v1.1.3")
+		})
+
+		It("can update based to latest version", func() {
+			err := UpdateCoreDNSImageTag(clientSet, false)
+			Expect(err).ToNot(HaveOccurred())
+			check("v1.2.2")
+		})
+
+		It("can dry-run update to latest version", func() {
+			err := UpdateCoreDNSImageTag(clientSet, true)
+			Expect(err).ToNot(HaveOccurred())
+			check("v1.1.3")
+		})
 	})
 })
