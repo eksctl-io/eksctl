@@ -2,38 +2,12 @@ package create
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
-
-const (
-	randNodeGroupNameLength     = 8
-	randNodeGroupNameComponents = "abcdef0123456789"
-)
-
-var r = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-// NodeGroupName generates a name string when a and b are empty strings.
-// If either a or b are non-empty, it returns whichever is non-empty.
-// If neither a nor b are empty, it returns empty name, to indicate
-// ambiguous usage.
-// It uses a different naming scheme from ClusterName, so that users can
-// easily distinguish a cluster name from nodegroup name.
-func NodeGroupName(a, b string) string {
-	return utils.UseNameOrGenerate(a, b, func() string {
-		name := make([]byte, randNodeGroupNameLength)
-		for i := 0; i < randNodeGroupNameLength; i++ {
-			name[i] = randNodeGroupNameComponents[r.Intn(len(randNodeGroupNameComponents))]
-		}
-		return fmt.Sprintf("ng-%s", string(name))
-	})
-}
 
 func configureNodeGroups(ngFilter *cmdutils.NodeGroupFilter, nodeGroups []*api.NodeGroup, cmd *cobra.Command) error {
 	return ngFilter.CheckEachNodeGroup(nodeGroups, func(i int, ng *api.NodeGroup) error {

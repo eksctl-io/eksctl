@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
@@ -60,7 +60,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", kubeconfigPath)
 
 			if clusterName == "" {
-				clusterName = utils.ClusterName("", "")
+				clusterName = cmdutils.ClusterName("", "")
 			}
 
 			eksctl("create", "cluster",
