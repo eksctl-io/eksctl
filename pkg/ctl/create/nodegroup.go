@@ -75,7 +75,6 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 
 func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
-	ngFilter.SkipAll = withoutNodeGroup
 
 	if err := cmdutils.NewCreateNodeGroupLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter, nodeGroupOnlyFilters).Load(); err != nil {
 		return err
