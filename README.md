@@ -330,12 +330,12 @@ In general terms, you are looking to:
 
 To create a new nodegroup:
 ```
-eksctl create nodegroup --cluster=<clusterName>
+eksctl create nodegroup --cluster=<clusterName> --name=<newNodeGroupName>
 ```
 
 To delete old nodegroup:
 ```
-eksctl create nodegroup --cluster=<clusterName>
+eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 ```
 
 ##### Updating multiple nodegroups with config file
