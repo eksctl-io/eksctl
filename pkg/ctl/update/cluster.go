@@ -92,8 +92,8 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		cfg.Metadata.Version = api.Version1_11
 	case api.Version1_11:
 		cfg.Metadata.Version = api.Version1_12
-	case api.LatestVersion:
-		cfg.Metadata.Version = api.LatestVersion
+	case api.Version1_12:
+		cfg.Metadata.Version = api.Version1_12
 	default:
 		// version of control is not known to us, maybe we are just too old...
 		return fmt.Errorf("control plane version version %q is known to this version of eksctl, try to upgrade eksctl first", currentVersion)
