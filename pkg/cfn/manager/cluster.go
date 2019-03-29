@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -14,6 +15,11 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
+
+// MakeChangeSetName builds a consistent name for a changeset.
+func (c *StackCollection) MakeChangeSetName(action string) string {
+	return fmt.Sprintf("eksctl-%s-%d", action, time.Now().Unix())
+}
 
 func (c *StackCollection) makeClusterStackName() string {
 	return "eksctl-" + c.spec.Metadata.Name + "-cluster"
@@ -142,7 +148,7 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) (bool, erro
 		logger.Info("(dry-run) %s", describeUpdate)
 		return false, nil
 	}
-	return true, c.UpdateStack(name, "update-cluster", describeUpdate, []byte(currentTemplate), nil)
+	return true, c.UpdateStack(name, c.MakeChangeSetName("update-cluster"), describeUpdate, []byte(currentTemplate), nil)
 }
 
 func getClusterName(s *Stack) string {

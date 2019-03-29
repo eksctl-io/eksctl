@@ -36,7 +36,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 	}
 
 	troubleshoot := func(desiredStatus string) {
-		s, err := c.describeStack(i)
+		s, err := c.DescribeStack(i)
 		if err != nil {
 			logger.Debug("describeErr=%v", err)
 		} else {
@@ -48,24 +48,24 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.provider.WaitTimeout(), troubleshoot)
 }
 
-func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName *string, acceptors []request.WaiterAcceptor) error {
-	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q", *changesetName, *i.StackName)
+func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName string, acceptors []request.WaiterAcceptor) error {
+	msg := fmt.Sprintf("waiting for CloudFormation changeset %q for stack %q", changesetName, *i.StackName)
 
 	newRequest := func() *request.Request {
 		input := &cfn.DescribeChangeSetInput{
 			StackName:     i.StackName,
-			ChangeSetName: changesetName,
+			ChangeSetName: &changesetName,
 		}
 		req, _ := c.provider.CloudFormation().DescribeChangeSetRequest(input)
 		return req
 	}
 
 	troubleshoot := func(desiredStatus string) {
-		s, err := c.describeStackChangeSet(i, changesetName)
+		s, err := c.DescribeStackChangeSet(i, changesetName)
 		if err != nil {
 			logger.Debug("describeChangeSetErr=%v", err)
 		} else {
-			logger.Critical("unexpected status %q while %s, reason %s", *s.Status, msg, *s.StatusReason)
+			logger.Critical("unexpected status %q while %s, reason: %s", *s.Status, msg, *s.StatusReason)
 		}
 	}
 
@@ -109,7 +109,9 @@ func (c *StackCollection) troubleshootStackFailureCause(i *Stack, desiredStatus 
 	}
 }
 
-func (c *StackCollection) doWaitUntilStackIsCreated(i *Stack) error {
+// DoWaitUntilStackIsCreated blocks until the given stack's
+// creation has completed.
+func (c *StackCollection) DoWaitUntilStackIsCreated(i *Stack) error {
 	return c.waitWithAcceptors(i,
 		waiters.MakeAcceptors(
 			stackStatus,
@@ -135,11 +137,11 @@ func (c *StackCollection) doWaitUntilStackIsCreated(i *Stack) error {
 func (c *StackCollection) waitUntilStackIsCreated(i *Stack, stack builder.ResourceSet, errs chan error) {
 	defer close(errs)
 
-	if err := c.doWaitUntilStackIsCreated(i); err != nil {
+	if err := c.DoWaitUntilStackIsCreated(i); err != nil {
 		errs <- err
 		return
 	}
-	s, err := c.describeStack(i)
+	s, err := c.DescribeStack(i)
 	if err != nil {
 		errs <- err
 		return
@@ -220,7 +222,7 @@ func (c *StackCollection) doWaitUntilStackIsUpdated(i *Stack) error {
 	)
 }
 
-func (c *StackCollection) doWaitUntilChangeSetIsCreated(i *Stack, changesetName *string) error {
+func (c *StackCollection) doWaitUntilChangeSetIsCreated(i *Stack, changesetName string) error {
 	return c.waitWithAcceptorsChangeSet(i, changesetName,
 		waiters.MakeAcceptors(
 			changesetStatus,

@@ -3,7 +3,6 @@ package manager
 import (
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -63,7 +62,8 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	}
 }
 
-func (c *StackCollection) doCreateStackRequest(i *Stack, templateBody []byte, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
+// DoCreateStackRequest requests the creation of a cloudformation stack.
+func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
@@ -117,7 +117,7 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
 	}
 
-	if err := c.doCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM(), stack.WithNamedIAM()); err != nil {
+	if err := c.DoCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM(), stack.WithNamedIAM()); err != nil {
 		return err
 	}
 
@@ -127,18 +127,16 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 }
 
 // UpdateStack will update a cloudformation stack by creating and executing a ChangeSet.
-func (c *StackCollection) UpdateStack(stackName string, action string, description string, template []byte, parameters map[string]string) error {
+func (c *StackCollection) UpdateStack(stackName string, changeSetName string, description string, template []byte, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
-	changeSetName, err := c.doCreateChangeSetRequest(i, action, description, template, parameters, true)
-	if err != nil {
+	if err := c.doCreateChangeSetRequest(i, changeSetName, description, template, parameters, true); err != nil {
 		return err
 	}
-	err = c.doWaitUntilChangeSetIsCreated(i, &changeSetName)
-	if err != nil {
+	if err := c.doWaitUntilChangeSetIsCreated(i, changeSetName); err != nil {
 		return err
 	}
-	changeSet, err := c.describeStackChangeSet(i, &changeSetName)
+	changeSet, err := c.DescribeStackChangeSet(i, changeSetName)
 	if err != nil {
 		return err
 	}
@@ -150,7 +148,8 @@ func (c *StackCollection) UpdateStack(stackName string, action string, descripti
 	return c.doWaitUntilStackIsUpdated(i)
 }
 
-func (c *StackCollection) describeStack(i *Stack) (*Stack, error) {
+// DescribeStack describes a cloudformation stack.
+func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
 	}
@@ -184,7 +183,7 @@ func (c *StackCollection) ListStacks(nameRegex string, statusFilters ...string) 
 	pager := func(p *cloudformation.ListStacksOutput, _ bool) bool {
 		for _, s := range p.StackSummaries {
 			if re.MatchString(*s.StackName) {
-				stack, subErr = c.describeStack(&Stack{StackName: s.StackName, StackId: s.StackId})
+				stack, subErr = c.DescribeStack(&Stack{StackName: s.StackName, StackId: s.StackId})
 				if subErr != nil {
 					return false
 				}
@@ -210,7 +209,7 @@ func (c *StackCollection) ListReadyStacks(nameRegex string) ([]*Stack, error) {
 // DeleteStack kills a stack by name without waiting for DELETED status
 func (c *StackCollection) DeleteStack(name string, force bool) (*Stack, error) {
 	i := &Stack{StackName: &name}
-	s, err := c.describeStack(i)
+	s, err := c.DescribeStack(i)
 	if err != nil {
 		err = errors.Wrapf(err, "not able to get stack %q for deletion", name)
 		stacks, newErr := c.ListStacks(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
@@ -340,11 +339,8 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 	return events, nil
 }
 
-func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, description string, templateBody []byte,
-	parameters map[string]string, withIAM bool) (string, error) {
-
-	changeSetName := fmt.Sprintf("eksctl-%s-%d", action, time.Now().Unix())
-
+func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName string, description string, templateBody []byte,
+	parameters map[string]string, withIAM bool) error {
 	input := &cloudformation.CreateChangeSetInput{
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
@@ -374,10 +370,10 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, action string, desc
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.provider.CloudFormation().CreateChangeSet(input)
 	if err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
+		return errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
 	}
 	logger.Debug("changeSet = %#v", s)
-	return changeSetName, nil
+	return nil
 }
 
 func (c *StackCollection) doExecuteChangeSet(stackName string, changeSetName string) error {
@@ -394,17 +390,18 @@ func (c *StackCollection) doExecuteChangeSet(stackName string, changeSetName str
 	return nil
 }
 
-func (c *StackCollection) describeStackChangeSet(i *Stack, changeSetName *string) (*ChangeSet, error) {
+// DescribeStackChangeSet gets a cloudformation changeset.
+func (c *StackCollection) DescribeStackChangeSet(i *Stack, changeSetName string) (*ChangeSet, error) {
 	input := &cloudformation.DescribeChangeSetInput{
 		StackName:     i.StackName,
-		ChangeSetName: changeSetName,
+		ChangeSetName: &changeSetName,
 	}
 	if i.StackId != nil {
 		input.StackName = i.StackId
 	}
 	resp, err := c.provider.CloudFormation().DescribeChangeSet(input)
 	if err != nil {
-		return nil, errors.Wrapf(err, "describing CloudFormation ChangeSet %s for stack %s", *changeSetName, *i.StackName)
+		return nil, errors.Wrapf(err, "describing CloudFormation ChangeSet %s for stack %s", changeSetName, *i.StackName)
 	}
 	return resp, nil
 }
