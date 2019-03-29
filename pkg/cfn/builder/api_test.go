@@ -817,7 +817,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{PrivateNetworking=false Allow=true}", func() {
+	Context("NodeGroup{PrivateNetworking=false SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.SSH.Allow = true
@@ -866,7 +866,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{PrivateNetworking=false Allow=false}", func() {
+	Context("NodeGroup{PrivateNetworking=false SSH.Allow=false}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		cfg.VPC = &api.ClusterVPC{
