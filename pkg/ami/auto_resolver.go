@@ -28,6 +28,15 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 			ImageClassGeneral: "ubuntu-eks/1.11.5/*",
 		},
 	},
+	"1.12": {
+		ImageFamilyAmazonLinux2: {
+			ImageClassGeneral: "amazon-eks-node-1.12-v*",
+			ImageClassGPU:     "amazon-eks-gpu-node-1.12-*",
+		},
+		ImageFamilyUbuntu1804: {
+			ImageClassGeneral: "ubuntu-eks/1.12.6/*",
+		},
+	},
 }
 
 // AutoResolver resolves the AMi to the defaults for the region
