@@ -44,6 +44,7 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddWaitFlag(&wait, fs, "deletion of all resources")
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddCommonFlagsForDeleteCmd(fs, &output)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, true)
@@ -53,7 +54,10 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 }
 
 func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	printer := printers.NewJSONPrinter()
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
+	}
 
 	if err := cmdutils.NewMetadataLoader(p, cfg, clusterConfigFile, nameArg, cmd).Load(); err != nil {
 		return err
@@ -72,7 +76,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	logger.Info("deleting EKS cluster %q", meta.Name)
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 

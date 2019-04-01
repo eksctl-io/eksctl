@@ -8,6 +8,7 @@ import (
 
 var (
 	wait = false
+	output string
 )
 
 // Command will create the `delete` commands
