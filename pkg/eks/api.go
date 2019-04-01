@@ -207,12 +207,6 @@ func (c *ClusterProvider) CheckAuth() error {
 		c.Status.iamRoleARN = *output.Arn
 		logger.Debug("role ARN for the current session is %q", c.Status.iamRoleARN)
 	}
-	{
-		input := &cloudformation.ListStacksInput{}
-		if _, err := c.Provider.CloudFormation().ListStacks(input); err != nil {
-			return errors.Wrap(err, "checking AWS CloudFormation access – cannot list stacks")
-		}
-	}
 	return nil
 }
 
