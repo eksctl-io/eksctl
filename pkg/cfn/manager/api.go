@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 const (
@@ -110,11 +111,15 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, ta
 // any errors will be written to errs channel, when nil is written,
 // assume completion, do not expect more then one error value on the
 // channel, it's closed immediately after it is written to
-func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, errs chan error) error {
+func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, tags, parameters map[string]string, printer printers.OutputPrinter, errs chan error) error {
 	i := &Stack{StackName: &name}
 	templateBody, err := stack.RenderJSON()
 	if err != nil {
 		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
+	}
+
+	if err := printer.LogObj(logger.Debug, "stack = \\\n%s\n", stack.Template()); err != nil {
+		return err
 	}
 
 	if err := c.DoCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM(), stack.WithNamedIAM()); err != nil {

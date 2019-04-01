@@ -26,7 +26,10 @@ func (c *StackCollection) makeClusterStackName() string {
 }
 
 // CreateCluster creates the cluster
-func (c *StackCollection) CreateCluster(errs chan error, _ interface{}) error {
+func (c *StackCollection) CreateCluster(errs chan error, dataWithPrinter interface{}) error {
+	dwp := dataWithPrinter.(DataWithPrinter)
+	printer := dwp.Printer
+
 	name := c.makeClusterStackName()
 	logger.Info("building cluster stack %q", name)
 	stack := builder.NewClusterResourceSet(c.provider, c.spec)
@@ -35,7 +38,7 @@ func (c *StackCollection) CreateCluster(errs chan error, _ interface{}) error {
 	}
 
 	// Unlike with `CreateNodeGroup`, all tags are already set for the cluster stack
-	return c.CreateStack(name, stack, nil, nil, errs)
+	return c.CreateStack(name, stack, nil, nil, printer, errs)
 }
 
 // DescribeClusterStack calls DescribeStacks and filters out cluster stack

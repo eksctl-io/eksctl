@@ -8,6 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 type taskFunc func(chan error, interface{}) error
@@ -15,6 +16,12 @@ type taskFunc func(chan error, interface{}) error
 // Task has a function with an opaque payload
 type Task struct {
 	Call taskFunc
+	Data interface{}
+}
+
+// DataWithPrinter is a wrapper for a Task payload with a Printer
+type DataWithPrinter struct {
+	Printer printers.OutputPrinter
 	Data interface{}
 }
 
@@ -62,18 +69,24 @@ func (c *StackCollection) RunSingleTask(t Task) []error {
 // the stacks (a cluster and one or more nodegroups); any errors
 // will be returned as a slice as soon as one of the tasks or group
 // of tasks is completed
-func (c *StackCollection) CreateClusterWithNodeGroups(onlySubset sets.String) []error {
-	if errs := c.RunSingleTask(Task{c.CreateCluster, nil}); len(errs) > 0 {
+func (c *StackCollection) CreateClusterWithNodeGroups(onlySubset sets.String, printer printers.OutputPrinter) []error {
+	task := Task{
+		Call: c.CreateCluster,
+		Data: DataWithPrinter{
+			Printer: printer,
+		},
+	}
+	if errs := c.RunSingleTask(task); len(errs) > 0 {
 		return errs
 	}
 
-	return c.CreateAllNodeGroups(onlySubset)
+	return c.CreateAllNodeGroups(onlySubset, printer)
 }
 
 // CreateAllNodeGroups runs all tasks required to create the node groups;
 // any errors will be returned as a slice as soon as one of the tasks
 // or group of tasks is completed
-func (c *StackCollection) CreateAllNodeGroups(onlySubset sets.String) []error {
+func (c *StackCollection) CreateAllNodeGroups(onlySubset sets.String, printer printers.OutputPrinter) []error {
 	errs := []error{}
 	appendErr := func(err error) {
 		errs = append(errs, err)
@@ -87,7 +100,10 @@ func (c *StackCollection) CreateAllNodeGroups(onlySubset sets.String) []error {
 		}
 		t := Task{
 			Call: c.CreateNodeGroup,
-			Data: ng,
+			Data: DataWithPrinter{
+				Printer: printer,
+				Data:    ng,
+			},
 		}
 		createAllNodeGroups = append(createAllNodeGroups, t)
 	}

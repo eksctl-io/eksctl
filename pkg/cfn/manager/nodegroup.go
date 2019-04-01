@@ -44,8 +44,11 @@ func (c *StackCollection) MakeNodeGroupStackName(name string) string {
 }
 
 // CreateNodeGroup creates the nodegroup
-func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) error {
-	ng := data.(*api.NodeGroup)
+func (c *StackCollection) CreateNodeGroup(errs chan error, dataWithPrinter interface{}) error {
+	dwp := dataWithPrinter.(DataWithPrinter)
+	ng := dwp.Data.(*api.NodeGroup)
+	printer := dwp.Printer
+
 	name := c.MakeNodeGroupStackName(ng.Name)
 	logger.Info("creating nodegroup stack %q", name)
 	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng)
@@ -58,7 +61,7 @@ func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) err
 	}
 	ng.Tags[api.NodeGroupNameTag] = ng.Name
 
-	return c.CreateStack(name, stack, ng.Tags, nil, errs)
+	return c.CreateStack(name, stack, ng.Tags, nil, printer, errs)
 }
 
 // DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups

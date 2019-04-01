@@ -64,6 +64,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddCommonFlagsForCreateCmd(fs, &output)
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -111,7 +112,10 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	meta := cfg.Metadata
-	printer := printers.NewJSONPrinter()
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
+	}
 	ctl := eks.New(p, cfg)
 
 	if !ctl.IsSupportedRegion() {
@@ -248,7 +252,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+	err = ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -278,7 +282,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	// we should also make a call to resolve the AMI and write the result, similaraly
 	// the body of the SSH key can be read
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
@@ -292,7 +296,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", ngCount)
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
-		errs := stackManager.CreateClusterWithNodeGroups(ngSubset)
+		errs := stackManager.CreateClusterWithNodeGroups(ngSubset, printer)
 		// read any errors (it only gets non-nil errors)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
@@ -387,7 +391,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 	logger.Success("%s is ready", meta.LogString())
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 

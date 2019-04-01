@@ -52,9 +52,10 @@ func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
 
 		fs.StringSliceVar(&nodeGroupOnlyFilters, "only", nil,
-			"select a subset of nodegroups via comma-separted list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
+			"select a subset of nodegroups via comma-separated list of globs, e.g.: 'ng-*,nodegroup?,N*group'")
 
 		cmdutils.AddUpdateAuthConfigMap(&updateAuthConfigMap, fs, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddCommonFlagsForCreateCmd(fs, &output)
 	})
 
 	group.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
@@ -85,7 +86,10 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 	}
 
 	meta := cfg.Metadata
-	printer := printers.NewJSONPrinter()
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
+	}
 	ctl := eks.New(p, cfg)
 
 	if !ctl.IsSupportedRegion() {
@@ -115,7 +119,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return err
 	}
 
-	err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+	err = ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -139,7 +143,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return err
 	}
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
@@ -156,7 +160,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
 		}
 
-		errs := stackManager.CreateAllNodeGroups(ngSubset)
+		errs := stackManager.CreateAllNodeGroups(ngSubset, printer)
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)

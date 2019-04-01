@@ -74,10 +74,15 @@ func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath *string, setConte
 	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
 }
 
-// AddCommonFlagsForGetCmd adds common flafs for get commands
+// AddCommonFlagsForGetCmd adds common flags for get commands
 func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *string) {
 	fs.IntVar(chunkSize, "chunk-size", 100, "return large lists in chunks rather than all at once, pass 0 to disable")
 	fs.StringVarP(outputMode, "output", "o", "table", "specifies the output format (valid option: table, json, yaml)")
+}
+
+// AddCommonFlagsForCreateCmd adds common flags for create commands
+func AddCommonFlagsForCreateCmd(fs *pflag.FlagSet, outputMode *string) {
+	fs.StringVarP(outputMode, "output", "o", "json", "specifies the output format (valid option: table, json, yaml)")
 }
 
 // ErrUnsupportedRegion is a common error message

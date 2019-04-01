@@ -30,6 +30,7 @@ type ResourceSet interface {
 	WithNamedIAM() bool
 	RenderJSON() ([]byte, error)
 	GetAllOutputs(cfn.Stack) error
+	Template() gfn.Template
 }
 
 type resourceSet struct {
@@ -99,4 +100,9 @@ func (r *resourceSet) newResource(name string, resource interface{}) *gfn.Value 
 // renderJSON renders template as JSON
 func (r *resourceSet) renderJSON() ([]byte, error) {
 	return r.template.JSON()
+}
+
+// Template returns a cloudformation stack template
+func (r *resourceSet) Template() gfn.Template {
+	return *r.template
 }
