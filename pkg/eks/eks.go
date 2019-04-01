@@ -226,7 +226,7 @@ func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.Outp
 
 		if logger.Level >= 4 {
 			spec := &api.ClusterConfig{Metadata: &api.ClusterMeta{Name: clusterName}}
-			stacks, err := c.NewStackManager(spec).ListReadyStacks(fmt.Sprintf("^(eksclt|EKS)-%s-.*$", clusterName))
+			stacks, err := c.NewStackManager(spec).ListStacks(fmt.Sprintf("^(eksclt|EKS)-%s-.*$", clusterName))
 			if err != nil {
 				return errors.Wrapf(err, "listing CloudFormation stack for %q", clusterName)
 			}
