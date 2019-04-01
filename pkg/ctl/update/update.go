@@ -6,6 +6,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+var output string
+
 // Command will create the `create` commands
 func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{

@@ -85,6 +85,11 @@ func AddCommonFlagsForCreateCmd(fs *pflag.FlagSet, outputMode *string) {
 	fs.StringVarP(outputMode, "output", "o", "json", "specifies the output format (valid option: table, json, yaml)")
 }
 
+// AddCommonFlagsForUpdateCmd adds common flags for update commands
+func AddCommonFlagsForUpdateCmd(fs *pflag.FlagSet, outputMode *string) {
+	fs.StringVarP(outputMode, "output", "o", "json", "specifies the output format (valid option: table, json, yaml)")
+}
+
 // ErrUnsupportedRegion is a common error message
 func ErrUnsupportedRegion(p *api.ProviderConfig) error {
 	return fmt.Errorf("--region=%s is not supported - use one of: %s", p.Region, strings.Join(api.SupportedRegions(), ", "))

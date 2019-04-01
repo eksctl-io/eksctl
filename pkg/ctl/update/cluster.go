@@ -48,6 +48,7 @@ func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
 		fs.BoolVar(&updateClusterDryRun, "dry-run", updateClusterDryRun, "do not apply any change, only show what resources would be added")
 		cmdutils.AddWaitFlag(&updateClusterWait, fs, "all update operations to complete")
+		cmdutils.AddCommonFlagsForUpdateCmd(fs, &output)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, false)
@@ -64,7 +65,10 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 	ctl := eks.New(p, cfg)
 	meta := cfg.Metadata
 
-	printer := printers.NewJSONPrinter()
+	printer, err := printers.NewPrinter(output)
+	if err != nil {
+		return err
+	}
 
 	if !ctl.IsSupportedRegion() {
 		return cmdutils.ErrUnsupportedRegion(p)
@@ -104,13 +108,13 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+	if err := printer.LogObj(logger.Debug, "cfg = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(updateClusterDryRun)
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(updateClusterDryRun, printer)
 	if err != nil {
 		return err
 	}

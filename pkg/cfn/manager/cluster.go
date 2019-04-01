@@ -14,6 +14,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 // MakeChangeSetName builds a consistent name for a changeset.
@@ -72,13 +73,13 @@ func (c *StackCollection) WaitDeleteCluster(force bool) error {
 
 // AppendNewClusterStackResource will update cluster
 // stack with new resources in append-only way
-func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) (bool, error) {
+func (c *StackCollection) AppendNewClusterStackResource(dryRun bool, printer printers.OutputPrinter) (bool, error) {
 	name := c.makeClusterStackName()
 
 	// NOTE: currently we can only append new resources to the stack,
 	// as there are a few limitations:
 	// - it must work with VPC that are imported as well as VPC that
-	//   is mamaged as part of the stack;
+	//   is managed as part of the stack;
 	// - CloudFormation cannot yet upgrade EKS control plane itself;
 
 	currentTemplate, err := c.GetStackTemplate(name)
@@ -101,11 +102,14 @@ func (c *StackCollection) AppendNewClusterStackResource(dryRun bool) (bool, erro
 		return false, err
 	}
 
+	if err := printer.LogObj(logger.Debug, "newStack = \\\n%s\n", newStack.Template()); err != nil {
+		return false, err
+	}
+
 	newTemplate, err := newStack.RenderJSON()
 	if err != nil {
 		return false, errors.Wrapf(err, "rendering template for %q stack", name)
 	}
-	logger.Debug("newTemplate = %s", newTemplate)
 
 	newResources := gjson.Get(string(newTemplate), resourcesRootPath)
 	newOutputs := gjson.Get(string(newTemplate), outputsRootPath)
