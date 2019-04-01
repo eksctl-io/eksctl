@@ -305,6 +305,7 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, 
 	}
 
 	config = config.WithCredentialsChainVerboseErrors(true)
+	config = request.WithRetryer(config, newLoggingRetryer())
 	if logger.Level >= api.AWSDebugLevel {
 		config = config.WithLogLevel(aws.LogDebug |
 			aws.LogDebugWithHTTPBody |
