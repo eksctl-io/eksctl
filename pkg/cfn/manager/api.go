@@ -33,7 +33,7 @@ type StackInfo struct {
 	Template  *string
 }
 
-// ChangeSet represents a Cloudformation changeSet
+// ChangeSet represents a CloudFormation ChangeSet
 type ChangeSet = cloudformation.DescribeChangeSetOutput
 
 // StackCollection stores the CloudFormation stack information
@@ -62,7 +62,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	}
 }
 
-// DoCreateStackRequest requests the creation of a cloudformation stack.
+// DoCreateStackRequest requests the creation of a CloudFormation stack
 func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
@@ -121,12 +121,14 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 		return err
 	}
 
+	logger.Info("deploying stack %q", name)
+
 	go c.waitUntilStackIsCreated(i, stack, errs)
 
 	return nil
 }
 
-// UpdateStack will update a cloudformation stack by creating and executing a ChangeSet.
+// UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
 func (c *StackCollection) UpdateStack(stackName string, changeSetName string, description string, template []byte, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
@@ -226,8 +228,8 @@ func defaultStackStatusFilter() []*string {
 	)
 }
 
-// DeleteStack kills a stack by name without waiting for DELETED status
-func (c *StackCollection) DeleteStack(name string, force bool) (*Stack, error) {
+// DeleteStackByName sends a request to delete the stack
+func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
 	i := &Stack{StackName: &name}
 	s, err := c.DescribeStack(i)
 	if err != nil {
@@ -243,38 +245,15 @@ func (c *StackCollection) DeleteStack(name string, force bool) (*Stack, error) {
 		}
 		return nil, err
 	}
-	if *s.StackStatus == cloudformation.StackStatusDeleteFailed && !force {
-		return nil, fmt.Errorf("stack %q previously couldn't be deleted", name)
-	}
 	i.StackId = s.StackId
-	for _, tag := range s.Tags {
-		if *tag.Key == api.ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
-			input := &cloudformation.DeleteStackInput{
-				StackName: i.StackId,
-			}
-
-			if cfnRole := c.provider.CloudFormationRoleARN(); cfnRole != "" {
-				input = input.SetRoleARN(cfnRole)
-			}
-
-			if _, err := c.provider.CloudFormation().DeleteStack(input); err != nil {
-				return nil, errors.Wrapf(err, "not able to delete stack %q", name)
-			}
-			logger.Info("will delete stack %q", name)
-			return i, nil
-		}
-	}
-
-	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q tag", *s.StackName,
-		fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
+	return c.DeleteStackBySpec(i)
 }
 
-// WaitDeleteStack kills a stack by name and waits for DELETED status;
-// any errors will be written to errs channel, when nil is written,
-// assume completion, do not expect more then one error value on the
-// channel, it's closed immediately after it is written to
-func (c *StackCollection) WaitDeleteStack(name string, force bool, errs chan error) error {
-	i, err := c.DeleteStack(name, force)
+// WaitDeleteStackByName sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
+// any errors will be written to errs channel, assume completion when nil is written, do not expect
+// more then one error value on the channel, it's closed immediately after it is written to
+func (c *StackCollection) WaitDeleteStackByName(name string, errs chan error) error {
+	i, err := c.DeleteStackByName(name)
 	if err != nil {
 		return err
 	}
@@ -286,16 +265,44 @@ func (c *StackCollection) WaitDeleteStack(name string, force bool, errs chan err
 	return nil
 }
 
-// BlockingWaitDeleteStack kills a stack by name and waits for DELETED status
-func (c *StackCollection) BlockingWaitDeleteStack(name string, force bool) error {
-	i, err := c.DeleteStack(name, force)
+// DeleteStackBySpec sends a request to delete the stack
+func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
+	for _, tag := range s.Tags {
+		if *tag.Key == api.ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
+			input := &cloudformation.DeleteStackInput{
+				StackName: s.StackId,
+			}
+
+			if cfnRole := c.provider.CloudFormationRoleARN(); cfnRole != "" {
+				input = input.SetRoleARN(cfnRole)
+			}
+
+			if _, err := c.provider.CloudFormation().DeleteStack(input); err != nil {
+				return nil, errors.Wrapf(err, "not able to delete stack %q", s.StackName)
+			}
+			logger.Info("will delete stack %q", *s.StackName)
+			return s, nil
+		}
+	}
+
+	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q tag", *s.StackName,
+		fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
+}
+
+// WaitDeleteStackBySpec sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
+// any errors will be written to errs channel, assume completion when nil is written, do not expect
+// more then one error value on the channel, it's closed immediately after it is written to
+func (c *StackCollection) WaitDeleteStackBySpec(s *Stack, errs chan error) error {
+	i, err := c.DeleteStackBySpec(s)
 	if err != nil {
 		return err
 	}
 
 	logger.Info("waiting for stack %q to get deleted", *i.StackName)
 
-	return c.doWaitUntilStackIsDeleted(i)
+	go c.waitUntilStackIsDeleted(i, errs)
+
+	return nil
 }
 
 func fmtStacksRegexForCluster(name string) string {
@@ -315,7 +322,7 @@ func (c *StackCollection) DescribeStacks() ([]*Stack, error) {
 	return stacks, nil
 }
 
-// DescribeStackEvents describes the occurred stack events
+// DescribeStackEvents describes the events that have occurred on the stack
 func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.StackEvent, error) {
 	input := &cloudformation.DescribeStackEventsInput{
 		StackName: i.StackName,
@@ -410,7 +417,7 @@ func (c *StackCollection) doExecuteChangeSet(stackName string, changeSetName str
 	return nil
 }
 
-// DescribeStackChangeSet gets a cloudformation changeset.
+// DescribeStackChangeSet describes a ChangeSet by name
 func (c *StackCollection) DescribeStackChangeSet(i *Stack, changeSetName string) (*ChangeSet, error) {
 	input := &cloudformation.DescribeChangeSetInput{
 		StackName:     i.StackName,

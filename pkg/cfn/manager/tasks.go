@@ -1,158 +1,208 @@
 package manager
 
 import (
+	"fmt"
+	"strings"
 	"sync"
-
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 )
 
-type taskFunc func(chan error, interface{}) error
-
-// Task has a function with an opaque payload
-type Task struct {
-	Call taskFunc
-	Data interface{}
+// Task is a common interface for the stack manager tasks
+type Task interface {
+	Do(chan error) error
+	Describe() string
 }
 
-// Run a set of tests in parallel and wait for them to complete;
-// passError should take any errors and do what it needs to in
-// a given context, e.g. during serial CLI-driven execution one
-// can keep errors in a slice, while in a daemon channel maybe
-// more suitable
-func Run(passError func(error), tasks ...Task) {
+// TaskTree wraps a set of tasks
+type TaskTree struct {
+	tasks    []Task
+	Parallel bool
+	DryRun   bool
+	Sub      bool
+}
+
+// Append new tasks to the set
+func (t *TaskTree) Append(task ...Task) {
+	t.tasks = append(t.tasks, task...)
+}
+
+// Len returns number of tasks in the set
+func (t *TaskTree) Len() int {
+	if t == nil {
+		return 0
+	}
+	return len(t.tasks)
+}
+
+// Describe the set
+func (t *TaskTree) Describe() string {
+	descriptions := []string{}
+	for _, task := range t.tasks {
+		descriptions = append(descriptions, task.Describe())
+	}
+	mode := "sequential"
+	if t.Parallel {
+		mode = "parallel"
+	}
+	count := len(descriptions)
+	var msg string
+	noun := "task"
+	if t.Sub {
+		noun = "sub-task"
+	}
+	switch count {
+	case 0:
+		msg = "no tasks"
+	case 1:
+		msg = fmt.Sprintf("1 %s: { %s }", noun, descriptions[0])
+		if t.Sub {
+			msg = descriptions[0] // simple description for single sub-task
+		}
+	default:
+		noun += "s"
+		msg = fmt.Sprintf("%d %s %s: { %s }", count, mode, noun, strings.Join(descriptions, ", "))
+	}
+	if t.DryRun {
+		return "(dry-run) " + msg
+	}
+	return msg
+}
+
+// Do will run through the set in the backround, it may return an error immediately,
+// or eventually write to the errs channel; it will close the channel once all tasks
+// are completed
+func (t *TaskTree) Do(errs chan error) error {
+	if t.Len() == 0 || t.DryRun {
+		logger.Debug("no actual tasks")
+		close(errs)
+		return nil
+	}
+
+	sendErr := func(err error) {
+		errs <- err
+	}
+
+	if t.Parallel {
+		go doParallelTasks(sendErr, t.tasks)
+	} else {
+		go doSequentialTasks(sendErr, t.tasks)
+	}
+	return nil
+}
+
+// DoAllSync will run through the set in the foregounds and return all the errors
+// in a slice
+func (t *TaskTree) DoAllSync() []error {
+	if t.Len() == 0 || t.DryRun {
+		logger.Debug("no actual tasks")
+		return nil
+	}
+
+	errs := []error{}
+	appendErr := func(err error) {
+		errs = append(errs, err)
+	}
+
+	if t.Parallel {
+		doParallelTasks(appendErr, t.tasks)
+	} else {
+		doSequentialTasks(appendErr, t.tasks)
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
+
+type taskWithoutParams struct {
+	info string
+	call func(chan error) error
+}
+
+func (t *taskWithoutParams) Describe() string { return t.info }
+func (t *taskWithoutParams) Do(errs chan error) error {
+	return t.call(errs)
+}
+
+type taskWithNameParam struct {
+	info string
+	name string
+	call func(chan error, string) error
+}
+
+func (t *taskWithNameParam) Describe() string { return t.info }
+func (t *taskWithNameParam) Do(errs chan error) error {
+	return t.call(errs, t.name)
+}
+
+type taskWithNodeGroupSpec struct {
+	info      string
+	nodeGroup *api.NodeGroup
+	call      func(chan error, *api.NodeGroup) error
+}
+
+func (t *taskWithNodeGroupSpec) Describe() string { return t.info }
+func (t *taskWithNodeGroupSpec) Do(errs chan error) error {
+	return t.call(errs, t.nodeGroup)
+}
+
+type taskWithStackSpec struct {
+	info  string
+	stack *Stack
+	call  func(*Stack, chan error) error
+}
+
+func (t *taskWithStackSpec) Describe() string { return t.info }
+func (t *taskWithStackSpec) Do(errs chan error) error {
+	return t.call(t.stack, errs)
+}
+
+type asyncTaskWithStackSpec struct {
+	info  string
+	stack *Stack
+	call  func(*Stack) (*Stack, error)
+}
+
+func (t *asyncTaskWithStackSpec) Describe() string { return t.info + " [async]" }
+func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
+	_, err := t.call(t.stack)
+	close(errs)
+	return err
+}
+
+func doSingleTask(passError func(error), task Task) {
+	desc := task.Describe()
+	logger.Debug("started task: %s", desc)
+	errs := make(chan error)
+	if err := task.Do(errs); err != nil {
+		passError(err)
+		return
+	}
+	if err := <-errs; err != nil {
+		passError(err)
+		return
+	}
+	logger.Debug("completed task: %s", desc)
+}
+
+func doParallelTasks(passError func(error), tasks []Task) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(tasks))
 	for t := range tasks {
 		go func(t int) {
 			defer wg.Done()
-			logger.Debug("task %d started", t)
-			errs := make(chan error)
-			if err := tasks[t].Call(errs, tasks[t].Data); err != nil {
-				passError(err)
-				return
-			}
-			if err := <-errs; err != nil {
-				passError(err)
-				return
-			}
-			logger.Debug("task %d returned without errors", t)
+			doSingleTask(passError, tasks[t])
 		}(t)
 	}
-	logger.Debug("waiting for %d tasks to complete", len(tasks))
+	logger.Debug("waiting for %d parallel tasks to complete", len(tasks))
 	wg.Wait()
 }
 
-// RunSingleTask runs a task with a proper error handling
-func (c *StackCollection) RunSingleTask(t Task) []error {
-	errs := []error{}
-	appendErr := func(err error) {
-		errs = append(errs, err)
+func doSequentialTasks(passError func(error), tasks []Task) {
+	for t := range tasks {
+		doSingleTask(passError, tasks[t])
 	}
-	if Run(appendErr, t); len(errs) > 0 {
-		return errs
-	}
-	return nil
-}
-
-// CreateClusterWithNodeGroups runs all tasks required to create
-// the stacks (a cluster and one or more nodegroups); any errors
-// will be returned as a slice as soon as one of the tasks or group
-// of tasks is completed
-func (c *StackCollection) CreateClusterWithNodeGroups(onlySubset sets.String) []error {
-	if errs := c.RunSingleTask(Task{c.CreateCluster, nil}); len(errs) > 0 {
-		return errs
-	}
-
-	return c.CreateAllNodeGroups(onlySubset)
-}
-
-// CreateAllNodeGroups runs all tasks required to create the node groups;
-// any errors will be returned as a slice as soon as one of the tasks
-// or group of tasks is completed
-func (c *StackCollection) CreateAllNodeGroups(onlySubset sets.String) []error {
-	errs := []error{}
-	appendErr := func(err error) {
-		errs = append(errs, err)
-	}
-
-	createAllNodeGroups := []Task{}
-	for i := range c.spec.NodeGroups {
-		ng := c.spec.NodeGroups[i]
-		if onlySubset != nil && !onlySubset.Has(ng.Name) {
-			continue
-		}
-		t := Task{
-			Call: c.CreateNodeGroup,
-			Data: ng,
-		}
-		createAllNodeGroups = append(createAllNodeGroups, t)
-	}
-	if Run(appendErr, createAllNodeGroups...); len(errs) > 0 {
-		return errs
-	}
-
-	return nil
-}
-
-// CreateOneNodeGroup runs a task to create a single node groups;
-// any errors will be returned as a slice as soon as the tasks is
-// completed
-func (c *StackCollection) CreateOneNodeGroup(ng *api.NodeGroup) []error {
-	return c.RunSingleTask(Task{
-		Call: c.CreateNodeGroup,
-		Data: ng,
-	})
-}
-
-// DeleteAllNodeGroups deletes all nodegroups without waiting
-func (c *StackCollection) DeleteAllNodeGroups(call taskFunc) []error {
-	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
-	if err != nil {
-		return []error{err}
-	}
-
-	errs := []error{}
-	for _, s := range nodeGroupStacks {
-		if err := c.DeleteNodeGroup(getNodeGroupName(s)); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	return errs
-}
-
-// WaitDeleteAllNodeGroups runs all tasks required to delete all the nodegroup
-// stacks and wait for all nodegroups to be deleted; any errors will be returned
-// as a slice as soon as the group of tasks is completed
-func (c *StackCollection) WaitDeleteAllNodeGroups(force bool) []error {
-	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
-	if err != nil {
-		return []error{err}
-	}
-
-	errs := []error{}
-	appendErr := func(err error) {
-		errs = append(errs, err)
-	}
-
-	deleteAllNodeGroups := []Task{}
-	for i := range nodeGroupStacks {
-		t := Task{
-			Call: c.WaitDeleteNodeGroup,
-			Data: getNodeGroupName(nodeGroupStacks[i]),
-		}
-		if force {
-			t.Call = c.WaitForceDeleteNodeGroup
-		}
-		deleteAllNodeGroups = append(deleteAllNodeGroups, t)
-	}
-	if Run(appendErr, deleteAllNodeGroups...); len(errs) > 0 {
-		return errs
-	}
-
-	return nil
 }

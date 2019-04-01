@@ -292,9 +292,9 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", ngCount)
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
-		errs := stackManager.CreateClusterWithNodeGroups(ngSubset)
-		// read any errors (it only gets non-nil errors)
-		if len(errs) > 0 {
+		tasks := stackManager.CreateTasksForClusterWithNodeGroups(ngSubset)
+		logger.Info(tasks.Describe())
+		if errs := tasks.DoAllSync(); len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {

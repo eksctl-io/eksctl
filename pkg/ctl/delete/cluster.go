@@ -3,9 +3,10 @@ package delete
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 
 	"github.com/kris-nova/logger"
@@ -15,7 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 var (
@@ -52,6 +52,30 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	return cmd
 }
 
+func handleErrors(errs []error, subject string) error {
+	logger.Info("%d error(s) occurred while deleting %s", len(errs), subject)
+	for _, err := range errs {
+		logger.Critical("%s\n", err.Error())
+	}
+	return fmt.Errorf("failed to delete %s", subject)
+}
+
+func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error) {
+	tasks, err := stackManager.DeleteTasksForDeprecatedStacks()
+	if err != nil {
+		return true, err
+	}
+	if count := tasks.Len(); count > 0 {
+		logger.Info(tasks.Describe())
+		if errs := tasks.DoAllSync(); len(errs) > 0 {
+			return true, handleErrors(errs, "deprecated stacks")
+		}
+		logger.Success("deleted all %s deperecated stacks", count)
+		return true, nil
+	}
+	return false, nil
+}
+
 func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	printer := printers.NewJSONPrinter()
 
@@ -76,36 +100,21 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	var deletedResources []string
-
-	handleIfError := func(err error, name string) bool {
-		if err != nil {
-			logger.Debug("continue despite error: %v", err)
-			return true
-		}
-		logger.Debug("deleted %q", name)
-		deletedResources = append(deletedResources, name)
-		return false
-	}
-
-	// We can remove all 'DeprecatedDelete*' calls in 0.2.0
-
 	stackManager := ctl.NewStackManager(cfg)
 
-	{
-		tryDeleteAllNodeGroups := func(force bool) error {
-			errs := stackManager.WaitDeleteAllNodeGroups(force)
-			if len(errs) > 0 {
-				logger.Info("%d error(s) occurred while deleting nodegroup(s)", len(errs))
-				for _, err := range errs {
-					logger.Critical("%s\n", err.Error())
-				}
-				return fmt.Errorf("failed to delete nodegroup(s)")
-			}
-			return nil
+	ctl.MaybeDeletePublicSSHKey(meta.Name)
+
+	kubeconfig.MaybeDeleteConfig(meta)
+
+	if hasDeprectatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprectatedStacks {
+		if err != nil {
+			return err
 		}
-		if err := tryDeleteAllNodeGroups(false); err != nil {
-			logger.Info("will retry deleting nodegroup")
+		return nil
+	}
+
+	{
+		tasks, err := stackManager.DeleteTasksForClusterWithNodeGroups(wait, func(_ chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.GetClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
@@ -113,38 +122,24 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			if err := vpc.CleanupNetworkInterfaces(ctl.Provider, cfg); err != nil {
 				return err
 			}
-			if err := tryDeleteAllNodeGroups(true); err != nil {
-				return err
-			}
+			return nil
+		})
+
+		if err != nil {
+			return err
 		}
-		logger.Debug("all nodegroups were deleted")
-	}
 
-	var clusterErr bool
-	if wait {
-		clusterErr = handleIfError(stackManager.WaitDeleteCluster(true), "cluster")
-	} else {
-		clusterErr = handleIfError(stackManager.DeleteCluster(true), "cluster")
-	}
-
-	if clusterErr {
-		if handleIfError(ctl.DeprecatedDeleteControlPlane(meta), "control plane") {
-			handleIfError(stackManager.DeprecatedDeleteStackControlPlane(wait), "stack control plane (deprecated)")
+		if tasks.Len() == 0 {
+			logger.Warning("no cluster resources were found for %q", meta.Name)
+			return nil
 		}
-	}
 
-	handleIfError(stackManager.DeprecatedDeleteStackServiceRole(wait), "service group (deprecated)")
-	handleIfError(stackManager.DeprecatedDeleteStackVPC(wait), "stack VPC (deprecated)")
-	handleIfError(stackManager.DeprecatedDeleteStackDefaultNodeGroup(wait), "default nodegroup (deprecated)")
+		logger.Info(tasks.Describe())
+		if errs := tasks.DoAllSync(); len(errs) > 0 {
+			return handleErrors(errs, "cluster with nodegroup(s)")
+		}
 
-	ctl.MaybeDeletePublicSSHKey(meta.Name)
-
-	kubeconfig.MaybeDeleteConfig(meta)
-
-	if len(deletedResources) == 0 {
-		logger.Warning("no EKS cluster resources were found for %q", meta.Name)
-	} else {
-		logger.Success("the following EKS cluster resource(s) for %q will be deleted: %s. If in doubt, check CloudFormation console", meta.Name, strings.Join(deletedResources, ", "))
+		logger.Success("all cluster resources were deleted")
 	}
 
 	return nil

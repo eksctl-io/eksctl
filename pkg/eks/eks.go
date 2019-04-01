@@ -48,23 +48,6 @@ func (c *ClusterProvider) DescribeControlPlaneMustBeActive(cl *api.ClusterMeta) 
 	return cluster, nil
 }
 
-// DeprecatedDeleteControlPlane deletes the control plane
-func (c *ClusterProvider) DeprecatedDeleteControlPlane(cl *api.ClusterMeta) error {
-	cluster, err := c.DescribeControlPlane(cl)
-	if err != nil {
-		return errors.Wrap(err, "not able to get control plane for deletion")
-	}
-
-	input := &awseks.DeleteClusterInput{
-		Name: cluster.Name,
-	}
-
-	if _, err := c.Provider.EKS().DeleteCluster(input); err != nil {
-		return errors.Wrap(err, "unable to delete cluster control plane")
-	}
-	return nil
-}
-
 // GetCredentials retrieves cluster endpoint and the certificate authority data
 func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
 	// Check the cluster exists and is active

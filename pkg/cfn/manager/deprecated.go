@@ -1,57 +1,98 @@
 package manager
 
-// DeprecatedDeleteStackVPC deletes the VPC stack
-func (c *StackCollection) DeprecatedDeleteStackVPC(wait bool) error {
-	var err error
-	stackName := "EKS-" + c.spec.Metadata.Name + "-VPC"
+import (
+	"fmt"
+	"strings"
 
-	if wait {
-		err = c.BlockingWaitDeleteStack(stackName, true)
-	} else {
-		_, err = c.DeleteStack(stackName, true)
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/utils/waiters"
+)
+
+func deprecatedStackSuffices() []string {
+	return []string{
+		"DefaultNodeGroup",
+		"ControlPlane",
+		"ServiceRole",
+		"VPC",
 	}
-
-	return err
+}
+func fmtDeprecatedStacksRegexForCluster(name string) string {
+	const ourStackRegexFmt = "^EKS-%s-(%s)$"
+	return fmt.Sprintf(ourStackRegexFmt, name, strings.Join(deprecatedStackSuffices(), "|"))
 }
 
-// DeprecatedDeleteStackServiceRole deletes the service role stack
-func (c *StackCollection) DeprecatedDeleteStackServiceRole(wait bool) error {
-	var err error
-	stackName := "EKS-" + c.spec.Metadata.Name + "-ServiceRole"
-
-	if wait {
-		err = c.BlockingWaitDeleteStack(stackName, true)
-	} else {
-		_, err = c.DeleteStack(stackName, true)
+// DeleteTasksForDeprecatedStacks all deprecated stacks
+func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*TaskTree, error) {
+	stacks, err := c.ListStacks(fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
+	if err != nil {
+		return nil, errors.Wrapf(err, "describing deprecated CloudFormation stacks for %q", c.spec.Metadata.Name)
+	}
+	if len(stacks) == 0 {
+		return nil, nil
 	}
 
-	return err
-}
+	deleteControlPlaneTask := &taskWithoutParams{
+		info: fmt.Sprintf("delete control plane %q", c.spec.Metadata.Name),
+		call: func(errs chan error) error {
+			_, err := c.provider.EKS().DescribeCluster(&eks.DescribeClusterInput{
+				Name: &c.spec.Metadata.Name,
+			})
+			if err != nil {
+				return err
+			}
 
-// DeprecatedDeleteStackDefaultNodeGroup deletes the default node group stack
-func (c *StackCollection) DeprecatedDeleteStackDefaultNodeGroup(wait bool) error {
-	var err error
-	stackName := "EKS-" + c.spec.Metadata.Name + "-DefaultNodeGroup"
+			_, err = c.provider.EKS().DeleteCluster(&eks.DeleteClusterInput{
+				Name: &c.spec.Metadata.Name,
+			})
+			if err != nil {
+				return err
+			}
 
-	if wait {
-		err = c.BlockingWaitDeleteStack(stackName, true)
-	} else {
-		_, err = c.DeleteStack(stackName, true)
+			newRequest := func() *request.Request {
+				input := &eks.DescribeClusterInput{
+					Name: &c.spec.Metadata.Name,
+				}
+				req, _ := c.provider.EKS().DescribeClusterRequest(input)
+				return req
+			}
+
+			msg := fmt.Sprintf("waiting for control plane %q to be deleted", c.spec.Metadata.Name)
+
+			acceptors := waiters.MakeAcceptors(
+				"Cluster.Status",
+				eks.ClusterStatusDeleting,
+				[]string{
+					eks.ClusterStatusFailed,
+				},
+			)
+
+			return waiters.Wait(c.spec.Metadata.Name, msg, acceptors, newRequest, c.provider.WaitTimeout(), nil)
+		},
 	}
 
-	return err
-}
-
-// DeprecatedDeleteStackControlPlane deletes the control plane stack
-func (c *StackCollection) DeprecatedDeleteStackControlPlane(wait bool) error {
-	var err error
-	stackName := "EKS-" + c.spec.Metadata.Name + "-ControlPlane"
-
-	if wait {
-		err = c.BlockingWaitDeleteStack(stackName, true)
-	} else {
-		_, err = c.DeleteStack(stackName, true)
+	cpStackFound := false
+	for _, s := range stacks {
+		if strings.HasSuffix(*s.StackName, "-ControlPlane") {
+			cpStackFound = true
+		}
 	}
+	tasks := &TaskTree{}
 
-	return err
+	for _, suffix := range deprecatedStackSuffices() {
+		for _, s := range stacks {
+			if strings.HasSuffix(*s.StackName, "-"+suffix) {
+				if suffix == "-ControlPlane" && !cpStackFound {
+					tasks.Append(deleteControlPlaneTask)
+				} else {
+					tasks.Append(&taskWithStackSpec{
+						stack: s,
+						call:  c.WaitDeleteStackBySpec,
+					})
+				}
+			}
+		}
+	}
+	return tasks, nil
 }

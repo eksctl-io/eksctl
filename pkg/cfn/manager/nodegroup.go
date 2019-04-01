@@ -38,16 +38,15 @@ type NodeGroupSummary struct {
 	CreationTime    *time.Time
 }
 
-// MakeNodeGroupStackName generates the name of the node group identified by its ID, isolated by the cluster this StackCollection operates on
-func (c *StackCollection) MakeNodeGroupStackName(name string) string {
+// makeNodeGroupStackName generates the name of the node group identified by its ID, isolated by the cluster this StackCollection operates on
+func (c *StackCollection) makeNodeGroupStackName(name string) string {
 	return fmt.Sprintf("eksctl-%s-nodegroup-%s", c.spec.Metadata.Name, name)
 }
 
-// CreateNodeGroup creates the nodegroup
-func (c *StackCollection) CreateNodeGroup(errs chan error, data interface{}) error {
-	ng := data.(*api.NodeGroup)
-	name := c.MakeNodeGroupStackName(ng.Name)
-	logger.Info("creating nodegroup stack %q", name)
+// createNodeGroupTask creates the nodegroup
+func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup) error {
+	name := c.makeNodeGroupStackName(ng.Name)
+	logger.Info("buildings nodegroup stack %q", name)
 	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
@@ -127,38 +126,11 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 	return allResources, nil
 }
 
-// DeleteNodeGroup deletes a nodegroup stack
-func (c *StackCollection) DeleteNodeGroup(name string) error {
-	name = c.MakeNodeGroupStackName(name)
-	_, err := c.DeleteStack(name, false)
-	return err
-}
-
-// WaitDeleteNodeGroup waits until the nodegroup is deleted,
-// it calls WaitDeleteStack without force
-func (c *StackCollection) WaitDeleteNodeGroup(errs chan error, data interface{}) error {
-	name := c.MakeNodeGroupStackName(data.(string))
-	return c.WaitDeleteStack(name, false, errs)
-}
-
-// WaitForceDeleteNodeGroup waits until the nodegroup is deleted,
-// it calls WaitDeleteStack with force
-func (c *StackCollection) WaitForceDeleteNodeGroup(errs chan error, data interface{}) error {
-	name := c.MakeNodeGroupStackName(data.(string))
-	return c.WaitDeleteStack(name, true, errs)
-}
-
-// BlockingWaitDeleteNodeGroup waits until the nodegroup is deleted
-func (c *StackCollection) BlockingWaitDeleteNodeGroup(name string, force bool) error {
-	name = c.MakeNodeGroupStackName(name)
-	return c.BlockingWaitDeleteStack(name, force)
-}
-
 // ScaleNodeGroup will scale an existing nodegroup
 func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	clusterName := c.makeClusterStackName()
 	c.spec.Status = &api.ClusterStatus{StackName: clusterName}
-	name := c.MakeNodeGroupStackName(ng.Name)
+	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
 	// Get current stack
