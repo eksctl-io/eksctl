@@ -93,7 +93,7 @@ To create the same kind of basic cluster, but with a different name, run:
 eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
-EKS supports two versions `1.10` and `1.11` (default), with `eksctl` you can deploy either version by passing `--version`.
+EKS supports versions `1.10`, `1.11` (default) and `1.12`, with `eksctl` you can deploy either version by passing `--version`.
 
 ```
 eksctl create cluster --version=1.10
@@ -382,6 +382,11 @@ If you have upgraded from 1.10 to 1.11, you will need to replace `kube-dns` with
 To do that, run:
 ```
 eksctl utils install-coredns
+```
+
+If you have upgraded from 1.11 to 1.12, run:
+```
+eksctl utils update-coredns
 ```
 
 Once upgraded, be sure to run `kubectl get pods -n kube-system` and check if all addon pods are in ready state, you should see
