@@ -215,6 +215,7 @@ const expected = `
 			  	"externalDNS": false,
 			  	"appMesh": false,
 			  	"ebs": false,
+			  	"fsx": false,
 			  	"albIngress": false
 			    }
 			  }
@@ -246,6 +247,7 @@ const expected = `
 			  	"externalDNS": false,
 			  	"appMesh": false,
 			  	"ebs": false,
+			  	"fsx": false,
 			  	"albIngress": false
 			    }
 			  }
@@ -275,6 +277,7 @@ const expected = `
 			  	"externalDNS": false,
 			  	"appMesh": false,
 			  	"ebs": false,
+			  	"fsx": false,
 			  	"albIngress": false
 			    }
 			  },
@@ -305,6 +308,7 @@ const expected = `
 			  	"externalDNS": false,
 			  	"appMesh": false,
 			  	"ebs": false,
+			  	"fsx": false,
 			  	"albIngress": false
 			    }
 			  }
@@ -337,6 +341,7 @@ const expected = `
 			  	"externalDNS": false,
 			  	"appMesh": false,
 			  	"ebs": false,
+			  	"fsx": false,
 			  	"albIngress": false
 			    }
 			  },
@@ -370,6 +375,7 @@ const expected = `
 			  	"externalDNS": false,
 			  	"appMesh": false,
 			  	"ebs": false,
+			  	"fsx": false,
 			  	"albIngress": false
 			    }
 			  }

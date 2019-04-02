@@ -235,6 +235,19 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			},
 		)
 	}
+	
+	if v := n.spec.IAM.WithAddonPolicies.FSX; v != nil && *v {
+		n.rs.attachAllowPolicy("PolicyFSX", refIR, "*",
+			[]string{
+				"fsx:*",
+			},
+		)
+		n.rs.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
+			[]string{
+				"iam:CreateServiceLinkedRole",
+			},
+		)
+	}
 
 	if v := n.spec.IAM.WithAddonPolicies.ALBIngress; v != nil && *v {
 		n.rs.attachAllowPolicy("PolicyALBIngress", refIR, "*",
