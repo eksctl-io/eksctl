@@ -174,7 +174,9 @@ func (c *StackCollection) ListStacks(nameRegex string, statusFilters ...string) 
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot list stacks")
 	}
-	input := &cloudformation.ListStacksInput{}
+	input := &cloudformation.ListStacksInput{
+		StackStatusFilter: defaultStackStatusFilter(),
+	}
 	if len(statusFilters) > 0 {
 		input.StackStatusFilter = aws.StringSlice(statusFilters)
 	}
@@ -201,9 +203,27 @@ func (c *StackCollection) ListStacks(nameRegex string, statusFilters ...string) 
 	return stacks, nil
 }
 
-// ListReadyStacks gets all of CloudFormation stacks with READY status
-func (c *StackCollection) ListReadyStacks(nameRegex string) ([]*Stack, error) {
-	return c.ListStacks(nameRegex, cloudformation.StackStatusCreateComplete)
+func defaultStackStatusFilter() []*string {
+	return aws.StringSlice(
+		[]string{
+			cloudformation.StackStatusCreateInProgress,
+			cloudformation.StackStatusCreateFailed,
+			cloudformation.StackStatusCreateComplete,
+			cloudformation.StackStatusRollbackInProgress,
+			cloudformation.StackStatusRollbackFailed,
+			cloudformation.StackStatusRollbackComplete,
+			cloudformation.StackStatusDeleteInProgress,
+			cloudformation.StackStatusDeleteFailed,
+			cloudformation.StackStatusUpdateInProgress,
+			cloudformation.StackStatusUpdateCompleteCleanupInProgress,
+			cloudformation.StackStatusUpdateComplete,
+			cloudformation.StackStatusUpdateRollbackInProgress,
+			cloudformation.StackStatusUpdateRollbackFailed,
+			cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress,
+			cloudformation.StackStatusUpdateRollbackComplete,
+			cloudformation.StackStatusReviewInProgress,
+		},
+	)
 }
 
 // DeleteStack kills a stack by name without waiting for DELETED status

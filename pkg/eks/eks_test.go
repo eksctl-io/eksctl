@@ -68,22 +68,43 @@ var _ = Describe("Eks", func() {
 					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
 				})
 
-				It("should not call AWS CFN ListStackPages", func() {
+				It("should not call AWS CFN ListStacksPages", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
 				})
 			})
 
 			Context("and debug log level", func() {
-				var (
-					expectedStatusFilter string
-				)
+
 				BeforeEach(func() {
-					expectedStatusFilter = "CREATE_COMPLETE"
+					expectedStatusFilter := []string{
+						"CREATE_IN_PROGRESS",
+						"CREATE_FAILED",
+						"CREATE_COMPLETE",
+						"ROLLBACK_IN_PROGRESS",
+						"ROLLBACK_FAILED",
+						"ROLLBACK_COMPLETE",
+						"DELETE_IN_PROGRESS",
+						"DELETE_FAILED",
+						"UPDATE_IN_PROGRESS",
+						"UPDATE_COMPLETE_CLEANUP_IN_PROGRESS",
+						"UPDATE_COMPLETE",
+						"UPDATE_ROLLBACK_IN_PROGRESS",
+						"UPDATE_ROLLBACK_FAILED",
+						"UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS",
+						"UPDATE_ROLLBACK_COMPLETE",
+						"REVIEW_IN_PROGRESS",
+					}
 
 					logger.Level = 4
 
 					p.MockCloudFormation().On("ListStacksPages", mock.MatchedBy(func(input *cfn.ListStacksInput) bool {
-						return *input.StackStatusFilter[0] == expectedStatusFilter
+						matches := 0
+						for i := range input.StackStatusFilter {
+							if *input.StackStatusFilter[i] == expectedStatusFilter[i] {
+								matches++
+							}
+						}
+						return matches == len(expectedStatusFilter)
 					}), mock.Anything).Return(nil)
 				})
 
@@ -99,7 +120,7 @@ var _ = Describe("Eks", func() {
 					Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
 				})
 
-				It("should have called AWS CFN ListStackPages", func() {
+				It("should have called AWS CFN ListStacksPages", func() {
 					Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 1)).To(BeTrue())
 				})
 			})
@@ -151,7 +172,7 @@ var _ = Describe("Eks", func() {
 				Expect(p.MockEKS().AssertNumberOfCalls(GinkgoT(), "DescribeCluster", 1)).To(BeTrue())
 			})
 
-			It("should not call AWS CFN ListStackPages", func() {
+			It("should not call AWS CFN ListStacksPages", func() {
 				Expect(p.MockCloudFormation().AssertNumberOfCalls(GinkgoT(), "ListStacksPages", 0)).To(BeTrue())
 			})
 
