@@ -235,7 +235,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			},
 		)
 	}
-	
+
 	if v := n.spec.IAM.WithAddonPolicies.FSX; v != nil && *v {
 		n.rs.attachAllowPolicy("PolicyFSX", refIR, "*",
 			[]string{
@@ -245,6 +245,26 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.rs.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
 			[]string{
 				"iam:CreateServiceLinkedRole",
+        "iam:AttachRolePolicy",
+        "iam:PutRolePolicy",
+			},
+		)
+	}
+
+		if v := n.spec.IAM.WithAddonPolicies.EFS; v != nil && *v {
+		n.rs.attachAllowPolicy("PolicyEFS", refIR, "arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/*",
+			[]string{
+				"elasticfilesystem:*",
+			},
+		)
+		n.rs.attachAllowPolicy("PolicyEFSEC2", refIR, "*",
+			[]string{
+				"ec2:DescribeSubnets",
+        "ec2:CreateNetworkInterface",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DeleteNetworkInterface",
+        "ec2:ModifyNetworkInterfaceAttribute",
+        "ec2:DescribeNetworkInterfaceAttribute",
 			},
 		)
 	}

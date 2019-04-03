@@ -332,6 +332,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				AppMesh:      NewBoolFalse(),
 				EBS:          NewBoolFalse(),
 				FSX:          NewBoolFalse(),
+				EFS:          NewBoolFalse(),
 				ALBIngress:   NewBoolFalse(),
 			},
 		},
@@ -445,6 +446,8 @@ type (
 		EBS *bool `json:"ebs"`
 		// +optional
 		FSX *bool `json:"fsx"`
+		// +optional
+		EFS *bool `json:"efs"`
 		// +optional
 		ALBIngress *bool `json:"albIngress"`
 	}

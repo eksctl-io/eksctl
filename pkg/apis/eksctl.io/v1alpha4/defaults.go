@@ -54,6 +54,15 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	if ng.IAM.WithAddonPolicies.ALBIngress == nil {
 		ng.IAM.WithAddonPolicies.ALBIngress = NewBoolFalse()
 	}
+	if ng.IAM.WithAddonPolicies.EBS == nil {
+		ng.IAM.WithAddonPolicies.EBS = NewBoolFalse()
+	}
+	if ng.IAM.WithAddonPolicies.FSX == nil {
+		ng.IAM.WithAddonPolicies.FSX = NewBoolFalse()
+	}
+	if ng.IAM.WithAddonPolicies.EFS == nil {
+		ng.IAM.WithAddonPolicies.EFS = NewBoolFalse()
+	}
 
 	return nil
 }
