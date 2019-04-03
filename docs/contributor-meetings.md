@@ -89,3 +89,30 @@ Topics:
 - release updates - 0.1.24
 - plan towards v1alpha5
 - more discussion around storing config objects [#642](https://github.com/weaveworks/eksctl/issues/642)
+
+### 27/03/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+- @martina-if
+
+Topics:
+- update on latest features that made it to the release
+- v1alpha5
+- nodegroup deletion [#664](https://github.com/weaveworks/eksctl/issues/664)
+
+## 03/04/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+- @pawelprazak
+
+Topics:
+- cloudformation template export functionality
+  - make it explicitly about importing stacks
+  - will help with refactoring
+  - not a replacement for `eksctl apply`
+- update about on-going efforts (#673, #695 etc)
+- more discussion of storing config in cluster, and Cluster API
