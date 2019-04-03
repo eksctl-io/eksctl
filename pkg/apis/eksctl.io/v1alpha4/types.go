@@ -336,7 +336,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				ALBIngress:   NewBoolFalse(),
 			},
 		},
-		SSH: &SSHConfig{
+		SSH: &NodeGroupSSH{
 			Allow:         NewBoolFalse(),
 			PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
 		},
@@ -387,7 +387,7 @@ type NodeGroup struct {
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
 
-	SSH *SSHConfig `json:"ssh"`
+	SSH *NodeGroupSSH `json:"ssh"`
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
@@ -451,8 +451,8 @@ type (
 		ALBIngress *bool `json:"albIngress"`
 	}
 
-	// SSHConfig holds all the ssh access configuration to a NodeGroup
-	SSHConfig struct {
+	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
+	NodeGroupSSH struct {
 		// +optional
 		Allow *bool `json:"allow"`
 		// +optional

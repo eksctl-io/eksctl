@@ -349,7 +349,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							ALBIngress:   api.NewBoolFalse(),
 						},
 					},
-					SSH: &api.SSHConfig{
+					SSH: &api.NodeGroupSSH{
 						Allow:         api.NewBoolFalse(),
 						PublicKeyPath: &defaultSSHKeyPath,
 					},

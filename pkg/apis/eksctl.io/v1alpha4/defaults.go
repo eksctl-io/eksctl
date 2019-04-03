@@ -25,7 +25,7 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	}
 
 	if ng.SSH == nil {
-		ng.SSH = &SSHConfig{
+		ng.SSH = &NodeGroupSSH{
 			Allow: NewBoolFalse(),
 		}
 	}
