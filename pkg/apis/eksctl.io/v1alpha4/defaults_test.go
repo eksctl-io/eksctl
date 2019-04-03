@@ -14,21 +14,21 @@ var _ = Describe("Default settings", func() {
 
 		It("Providing an SSH key enables SSH", func() {
 			testNodeGroup := NodeGroup{
-				SSH: SSHConfig{
-					Allow:         false,
+				SSH: &SSHConfig{
+					Allow:         NewBoolFalse(),
 					PublicKeyPath: &testKeyPath,
 				},
 			}
 
 			SetNodeGroupDefaults(0, &testNodeGroup)
 
-			Expect(testNodeGroup.SSH.Allow).To(BeTrue())
+			Expect(*testNodeGroup.SSH.Allow).To(BeTrue())
 		})
 
 		It("Enabling SSH without a key uses default key", func() {
 			testNodeGroup := NodeGroup{
-				SSH: SSHConfig{
-					Allow: true,
+				SSH: &SSHConfig{
+					Allow: NewBoolTrue(),
 				},
 			}
 

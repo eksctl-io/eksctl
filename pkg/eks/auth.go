@@ -86,8 +86,7 @@ func (c *ClusterProvider) importSSHPublicKeyIfNeeded(clusterName string, ng *api
 
 // LoadSSHPublicKey loads the given SSH public key
 func (c *ClusterProvider) LoadSSHPublicKey(clusterName string, ng *api.NodeGroup) error {
-	if !ng.SSH.Allow {
-		// TODO: https://github.com/weaveworks/eksctl/issues/144
+	if !*ng.SSH.Allow {
 		return nil
 	}
 	keyPath := utils.ExpandPath(*ng.SSH.PublicKeyPath)
