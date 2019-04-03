@@ -343,6 +343,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							ExternalDNS:  api.NewBoolFalse(),
 							AppMesh:      api.NewBoolFalse(),
 							EBS:          api.NewBoolFalse(),
+							FSX:          api.NewBoolFalse(),
 							ALBIngress:   api.NewBoolFalse(),
 						},
 					},
@@ -686,6 +687,37 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"ec2:DescribeTags",
 				"ec2:DescribeVolumes",
 				"ec2:DetachVolume",
+			}))
+
+			Expect(obj.Resources).ToNot(HaveKey("PolicyAutoScaling"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyAppMesh"))
+		})
+	})
+
+	Context("NodeGroupFSX", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.VolumeSize = 0
+		ng.IAM.WithAddonPolicies.FSX = api.NewBoolTrue()
+
+		build(cfg, "eksctl-test-fsx-cluster", ng)
+
+		roundtript()
+
+		It("should have correct policies", func() {
+			Expect(obj.Resources).ToNot(BeEmpty())
+
+			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
+			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(0))
+
+			Expect(obj.Resources).To(HaveKey("PolicyFSX"))
+			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"fsx:*",
 			}))
 
 			Expect(obj.Resources).ToNot(HaveKey("PolicyAutoScaling"))
