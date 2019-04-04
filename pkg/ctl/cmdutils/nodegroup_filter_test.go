@@ -216,6 +216,7 @@ const expected = `
 			  	"appMesh": false,
 			  	"ebs": false,
 			  	"fsx": false,
+			  	"efs": false,
 			  	"albIngress": false
 			    }
 			  }
@@ -248,6 +249,7 @@ const expected = `
 			  	"appMesh": false,
 			  	"ebs": false,
 			  	"fsx": false,
+			  	"efs": false,
 			  	"albIngress": false
 			    }
 			  }
@@ -278,6 +280,7 @@ const expected = `
 			  	"appMesh": false,
 			  	"ebs": false,
 			  	"fsx": false,
+			  	"efs": false,
 			  	"albIngress": false
 			    }
 			  },
@@ -309,6 +312,7 @@ const expected = `
 			  	"appMesh": false,
 			  	"ebs": false,
 			  	"fsx": false,
+			  	"efs": false,
 			  	"albIngress": false
 			    }
 			  }
@@ -342,6 +346,7 @@ const expected = `
 			  	"appMesh": false,
 			  	"ebs": false,
 			  	"fsx": false,
+			  	"efs": false,
 			  	"albIngress": false
 			    }
 			  },
@@ -376,6 +381,7 @@ const expected = `
 			  	"appMesh": false,
 			  	"ebs": false,
 			  	"fsx": false,
+			  	"efs": false,
 			  	"albIngress": false
 			    }
 			  }

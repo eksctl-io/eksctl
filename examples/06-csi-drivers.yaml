@@ -14,3 +14,4 @@ nodeGroups:
       withAddonPolicies:
         ebs: true
         fsx: true
+        efs: true

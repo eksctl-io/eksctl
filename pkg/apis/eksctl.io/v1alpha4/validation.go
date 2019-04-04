@@ -34,6 +34,9 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 		if v := ng.IAM.WithAddonPolicies.FSX; v != nil && *v {
 			return fmt.Errorf("%s.fsx cannot be set at the same time", p)
 		}
+		if v := ng.IAM.WithAddonPolicies.EFS; v != nil && *v {
+			return fmt.Errorf("%s.efs cannot be set at the same time", p)
+		}
 		if v := ng.IAM.WithAddonPolicies.ALBIngress; v != nil && *v {
 			return fmt.Errorf("%s.albIngress cannot be set at the same time", p)
 		}

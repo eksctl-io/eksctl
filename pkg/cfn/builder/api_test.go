@@ -344,6 +344,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							AppMesh:      api.NewBoolFalse(),
 							EBS:          api.NewBoolFalse(),
 							FSX:          api.NewBoolFalse(),
+							EFS:          api.NewBoolFalse(),
 							ALBIngress:   api.NewBoolFalse(),
 						},
 					},
@@ -718,6 +719,37 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"fsx:*",
+			}))
+
+			Expect(obj.Resources).ToNot(HaveKey("PolicyAutoScaling"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
+			Expect(obj.Resources).ToNot(HaveKey("PolicyAppMesh"))
+		})
+	})
+	
+	Context("NodeGroupEFS", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.VolumeSize = 0
+		ng.IAM.WithAddonPolicies.EFS = api.NewBoolTrue()
+
+		build(cfg, "eksctl-test-efs-cluster", ng)
+
+		roundtript()
+
+		It("should have correct policies", func() {
+			Expect(obj.Resources).ToNot(BeEmpty())
+
+			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
+			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(0))
+
+			Expect(obj.Resources).To(HaveKey("PolicyEFS"))
+			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/*"))
+			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"elasticfilesystem:*",
 			}))
 
 			Expect(obj.Resources).ToNot(HaveKey("PolicyAutoScaling"))
