@@ -24,7 +24,7 @@ nodeGroups:
     labels:
       nodegroup-type: backend-cluster-addons
     privateNetworking: true
-    preBootsrapCommand:
+    preBootstrapCommand:
       # allow docker registries to be deployed as cluster service 
       - 'echo {\"insecure-registries\": [\"172.20.0.0/16\",\"10.100.0.0/16\"]} > /etc/docker/daemon.json'
       - "systemctl restart docker"
