@@ -2,6 +2,7 @@ package create
 
 import (
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/ssh"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -46,6 +47,46 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 			hint = "metadata.version: auto"
 		}
 		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)
+	}
+
+	return nil
+}
+
+// loadSSHKey loads the ssh public key specified in the NodeGroup. The key should be specified
+// in only one way: by name (for a key existing in EC2), by path (for a key in a local file)
+// or by its contents (in the config-file).
+func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvider) error {
+	sshConfig := ng.SSH
+	if sshConfig.Allow == nil || *sshConfig.Allow == false {
+		return nil
+	}
+
+	switch {
+
+	// Load Key by content
+	case sshConfig.PublicKey != nil:
+		ssh.LoadSSHKeyByContent(sshConfig.PublicKey, clusterName, provider, ng)
+
+	// Use key by name in EC2
+	case sshConfig.PublicKeyName != nil && *sshConfig.PublicKeyName != "":
+		if err := ssh.CheckKeyExistsInEc2(*sshConfig.PublicKeyName, provider); err != nil {
+			return err
+		}
+		logger.Info("using EC2 key pair %q", *sshConfig.PublicKeyName)
+
+	// Local ssh key file
+	case ssh.FileExists(*sshConfig.PublicKeyPath):
+		ssh.LoadSSHKeyFromFile(*sshConfig.PublicKeyPath, clusterName, provider, ng)
+
+	// A keyPath, when specified as a flag, can mean a local key or a key name in EC2
+	default:
+		err := ssh.CheckKeyExistsInEc2(*sshConfig.PublicKeyPath, provider)
+		if err != nil {
+			ng.SSH.PublicKeyName = sshConfig.PublicKeyPath
+			ng.SSH.PublicKeyPath = nil
+			return err
+		}
+		logger.Info("using EC2 key pair %q", *ng.SSH.PublicKeyName)
 	}
 
 	return nil
