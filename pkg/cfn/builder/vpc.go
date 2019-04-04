@@ -126,6 +126,7 @@ func (c *ClusterResourceSet) addOutputsForVPC() {
 
 var (
 	sgProtoTCP           = gfn.NewString("tcp")
+	sgProtoAny           = gfn.NewString("-1")
 	sgSourceAnywhereIPv4 = gfn.NewString("0.0.0.0/0")
 	sgSourceAnywhereIPv6 = gfn.NewString("::/0")
 
@@ -159,7 +160,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 			GroupId:               refClusterSharedNodeSG,
 			SourceSecurityGroupId: refClusterSharedNodeSG,
 			Description:           gfn.NewString("Allow nodes to communicate with each other (all ports)"),
-			IpProtocol:            gfn.NewString("-1"),
+			IpProtocol:            sgProtoAny,
 			FromPort:              sgPortZero,
 			ToPort:                sgMaxNodePort,
 		})
@@ -214,34 +215,18 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	n.newResource("IngressInterCluster", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refNodeGroupLocalSG,
 		SourceSecurityGroupId: refControlPlaneSG,
-		Description:           gfn.NewString("Allow " + desc + " to communicate with control plane (kubelet and workload TCP ports)"),
-		IpProtocol:            sgProtoTCP,
-		FromPort:              sgMinNodePort,
+		Description:           gfn.NewString("Allow " + desc + " to communicate with control plane"),
+		IpProtocol:            sgProtoAny,
+		FromPort:              sgPortZero,
 		ToPort:                sgMaxNodePort,
 	})
 	n.newResource("EgressInterCluster", &gfn.AWSEC2SecurityGroupEgress{
 		GroupId:                    refControlPlaneSG,
 		DestinationSecurityGroupId: refNodeGroupLocalSG,
-		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (kubelet and workload TCP ports)"),
-		IpProtocol:                 sgProtoTCP,
-		FromPort:                   sgMinNodePort,
+		Description:                gfn.NewString("Allow control plane to communicate with " + desc),
+		IpProtocol:                 sgProtoAny,
+		FromPort:                   sgPortZero,
 		ToPort:                     sgMaxNodePort,
-	})
-	n.newResource("IngressInterClusterAPI", &gfn.AWSEC2SecurityGroupIngress{
-		GroupId:               refNodeGroupLocalSG,
-		SourceSecurityGroupId: refControlPlaneSG,
-		Description:           gfn.NewString("Allow " + desc + " to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)"),
-		IpProtocol:            sgProtoTCP,
-		FromPort:              sgPortHTTPS,
-		ToPort:                sgPortHTTPS,
-	})
-	n.newResource("EgressInterClusterAPI", &gfn.AWSEC2SecurityGroupEgress{
-		GroupId:                    refControlPlaneSG,
-		DestinationSecurityGroupId: refNodeGroupLocalSG,
-		Description:                gfn.NewString("Allow control plane to communicate with " + desc + " (workloads using HTTPS port, commonly used with extension API servers)"),
-		IpProtocol:                 sgProtoTCP,
-		FromPort:                   sgPortHTTPS,
-		ToPort:                     sgPortHTTPS,
 	})
 	n.newResource("IngressInterClusterCP", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refControlPlaneSG,
