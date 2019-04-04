@@ -2,6 +2,7 @@ package delete
 
 import (
 	"fmt"
+	ssh "github.com/weaveworks/eksctl/pkg/ssh"
 	"os"
 
 	"github.com/pkg/errors"
@@ -98,7 +99,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	ctl.MaybeDeletePublicSSHKey(meta.Name)
+	ssh.DeletePublicSSHKeys(meta.Name, ctl.Provider)
 
 	kubeconfig.MaybeDeleteConfig(meta)
 

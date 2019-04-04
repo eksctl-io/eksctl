@@ -2,6 +2,7 @@ package eks
 
 import (
 	"github.com/pkg/errors"
+	"strings"
 
 	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -38,6 +39,14 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig, withEmbeddedToken b
 	}
 
 	return config.new(spec, withEmbeddedToken, c.Provider.STS(), c.Provider.Profile())
+}
+
+func (c *ClusterProvider) getUsername() string {
+	usernameParts := strings.Split(c.Status.iamRoleARN, "/")
+	if len(usernameParts) > 1 {
+		return usernameParts[len(usernameParts)-1]
+	}
+	return "iam-root-account"
 }
 
 func (c *Client) new(spec *api.ClusterConfig, withEmbeddedToken bool, stsClient stsiface.STSAPI, profile string) (*Client, error) {

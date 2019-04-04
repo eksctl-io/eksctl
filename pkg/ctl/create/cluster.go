@@ -261,7 +261,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		// fingerprint, so if unique keys provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		if err := ctl.LoadSSHPublicKey(meta.Name, ng); err != nil {
+		if err := loadSSHKey(ng, meta.Name, ctl.Provider); err != nil {
 			return err
 		}
 		return nil
