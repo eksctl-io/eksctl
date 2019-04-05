@@ -105,12 +105,14 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	}
 	// Create a new session and save credentials for possible
 	// later re-use if overriding sessions due to custom URL
-	s := c.newSession(spec, "", nil)
+	s := c.newSession(spec)
 
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
-	provider.sts = sts.New(s)
+	// STS retrier has to be disabled, as it's not very helpful
+	// (see https://github.com/weaveworks/eksctl/issues/705)
+	provider.sts = sts.New(s, request.WithRetryer(s.Config.Copy(), nil))
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 
@@ -121,28 +123,28 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	// override sessions if any custom endpoints specified
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDFORMATION_ENDPOINT"); ok {
 		logger.Debug("Setting CloudFormation endpoint to %s", endpoint)
-		provider.cfn = cloudformation.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+		provider.cfn = cloudformation.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EKS_ENDPOINT"); ok {
 		logger.Debug("Setting EKS endpoint to %s", endpoint)
-		provider.eks = awseks.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+		provider.eks = awseks.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
-		provider.ec2 = ec2.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
-		provider.sts = sts.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+		provider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_IAM_ENDPOINT"); ok {
 		logger.Debug("Setting IAM endpoint to %s", endpoint)
-		provider.iam = iam.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+		provider.iam = iam.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 	if endpoint, ok := os.LookupEnv("AWS_CLOUDTRAIL_ENDPOINT"); ok {
 		logger.Debug("Setting CloudTrail endpoint to %s", endpoint)
-		provider.cloudtrail = cloudtrail.New(c.newSession(spec, endpoint, c.Status.sessionCreds))
+		provider.cloudtrail = cloudtrail.New(s, s.Config.Copy().WithEndpoint(endpoint))
 	}
 
 	if clusterSpec != nil {
@@ -208,15 +210,17 @@ func (c *ClusterProvider) GetCredentialsEnv() ([]string, error) {
 
 // CheckAuth checks the AWS authentication
 func (c *ClusterProvider) CheckAuth() error {
-	{
-		input := &sts.GetCallerIdentityInput{}
-		output, err := c.Provider.STS().GetCallerIdentity(input)
-		if err != nil {
-			return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
-		}
-		c.Status.iamRoleARN = *output.Arn
-		logger.Debug("role ARN for the current session is %q", c.Status.iamRoleARN)
+
+	input := &sts.GetCallerIdentityInput{}
+	output, err := c.Provider.STS().GetCallerIdentity(input)
+	if err != nil {
+		return errors.Wrap(err, "checking AWS STS access – cannot get role ARN for current session")
 	}
+	if output == nil || output.Arn == nil {
+		return fmt.Errorf("unexpected response from AWS STS")
+	}
+	c.Status.iamRoleARN = *output.Arn
+	logger.Debug("role ARN for the current session is %q", c.Status.iamRoleARN)
 	return nil
 }
 
@@ -298,7 +302,7 @@ func (c *ClusterProvider) SetAvailabilityZones(spec *api.ClusterConfig, given []
 	return nil
 }
 
-func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, credentials *credentials.Credentials) *session.Session {
+func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session {
 	// we might want to use bits from kops, although right now it seems like too many thing we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
@@ -331,14 +335,6 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, 
 
 	stscreds.DefaultDuration = 30 * time.Minute
 
-	if len(endpoint) > 0 {
-		opts.Config.Endpoint = &endpoint
-	}
-
-	if credentials != nil {
-		opts.Config.Credentials = credentials
-	}
-
 	s := session.Must(session.NewSessionWithOptions(opts))
 
 	s.Handlers.Build.PushFrontNamed(request.NamedHandler{
@@ -355,7 +351,7 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig, endpoint string, 
 			// if session config doesn't have region set, make recursive call forcing default region
 			logger.Debug("no region specified in flags or config, setting to %s", api.DefaultRegion)
 			spec.Region = api.DefaultRegion
-			return c.newSession(spec, endpoint, credentials)
+			return c.newSession(spec)
 		}
 	}
 
