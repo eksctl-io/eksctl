@@ -110,7 +110,9 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
-	provider.sts = sts.New(s)
+	// STS retrier has to be disabled, as it's not very helpful
+	// (see https://github.com/weaveworks/eksctl/issues/705)
+	provider.sts = sts.New(s, request.WithRetryer(s.Config.Copy(), nil))
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 
