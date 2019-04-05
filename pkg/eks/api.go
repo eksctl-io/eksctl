@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -110,9 +111,15 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
-	// STS retrier has to be disabled, as it's not very helpful
-	// (see https://github.com/weaveworks/eksctl/issues/705)
-	provider.sts = sts.New(s, request.WithRetryer(s.Config.Copy(), nil))
+	provider.sts = sts.New(s,
+		// STS retrier has to be disabled, as it's not very helpful
+		// (see https://github.com/weaveworks/eksctl/issues/705)
+		request.WithRetryer(s.Config.Copy(),
+			&client.DefaultRetryer{
+				NumMaxRetries: 1,
+			},
+		),
+	)
 	provider.iam = iam.New(s)
 	provider.cloudtrail = cloudtrail.New(s)
 
