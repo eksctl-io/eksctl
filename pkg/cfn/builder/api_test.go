@@ -997,6 +997,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
+				"NODE_TAINTS=",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1066,6 +1067,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
+				"NODE_TAINTS=",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1102,6 +1104,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.Labels = map[string]string{
 			"os": "al2",
 		}
+		ng.Taints = map[string]string{
+			"key1": "value1:NoSchedule",
+		}
 
 		ng.OverrideBootstrapCommand = &overrideBootstrapCommand
 
@@ -1131,6 +1136,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=al2",
+				"NODE_TAINTS=key1=value1:NoSchedule",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1197,6 +1203,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=al2",
+				"NODE_TAINTS=",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1270,6 +1277,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
+				"NODE_TAINTS=",
 				"MAX_PODS=29",
 				"CLUSTER_DNS=172.20.0.10",
 			}))
@@ -1329,6 +1337,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
+				"NODE_TAINTS=",
 				"MAX_PODS=29",
 				"CLUSTER_DNS=172.20.0.10",
 			}))
@@ -1363,6 +1372,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		ng.Labels = map[string]string{
 			"os": "ubuntu",
+		}
+		ng.Taints = map[string]string{
+			"key1": "value1:NoSchedule",
 		}
 
 		ng.ClusterDNS = "169.254.20.10"
@@ -1399,6 +1411,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=ubuntu",
+				"NODE_TAINTS=key1=value1:NoSchedule",
 				"MAX_PODS=29",
 				"CLUSTER_DNS=169.254.20.10",
 			}))
@@ -1470,6 +1483,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeletEnv.Permissions).To(Equal("0644"))
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=ubuntu",
+				"NODE_TAINTS=",
 				"MAX_PODS=29",
 				"CLUSTER_DNS=169.254.20.10",
 			}))

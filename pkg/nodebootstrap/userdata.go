@@ -136,13 +136,17 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 }
 
 func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
-	labels := []string{}
-	for k, v := range ng.Labels {
-		labels = append(labels, fmt.Sprintf("%s=%s", k, v))
+	kvs := func(kv map[string]string) string {
+		var params []string
+		for k, v := range kv {
+			params = append(params, fmt.Sprintf("%s=%s", k, v))
+		}
+		return strings.Join(params, ",")
 	}
 
 	return []string{
-		fmt.Sprintf("NODE_LABELS=%s", strings.Join(labels, ",")),
+		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
+		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),
 	}
 }
 

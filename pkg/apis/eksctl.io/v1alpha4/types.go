@@ -380,6 +380,9 @@ type NodeGroup struct {
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 
+	// +optional
+	Taints map[string]string `json:"taints,omitempty"`
+
 	// TODO move to separate struct
 	// +optional
 	AllowSSH bool `json:"allowSSH"`

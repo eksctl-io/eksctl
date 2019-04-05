@@ -36,6 +36,7 @@ systemctl reset-failed
     "network-plugin=cni"
     "cgroup-driver=cgroupfs"
     "register-node=true"
+    "register-with-taints=${NODE_TAINTS}"
     "kubeconfig=/etc/eksctl/kubeconfig.yaml"
     "feature-gates=RotateKubeletServerCertificate=true"
     "anonymous-auth=false"
