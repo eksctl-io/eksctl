@@ -54,7 +54,8 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 
 // loadSSHKey loads the ssh public key specified in the NodeGroup. The key should be specified
 // in only one way: by name (for a key existing in EC2), by path (for a key in a local file)
-// or by its contents (in the config-file).
+// or by its contents (in the config-file). It also assumes that if ssh is enabled (SSH.Allow
+// == true) then one key was specified
 func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvider) error {
 	sshConfig := ng.SSH
 	if sshConfig.Allow == nil || *sshConfig.Allow == false {
@@ -65,7 +66,7 @@ func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvi
 
 	// Load Key by content
 	case sshConfig.PublicKey != nil:
-		ssh.LoadSSHKeyByContent(sshConfig.PublicKey, clusterName, provider, ng)
+		return ssh.LoadSSHKeyByContent(sshConfig.PublicKey, clusterName, ng.Name, provider)
 
 	// Use key by name in EC2
 	case sshConfig.PublicKeyName != nil && *sshConfig.PublicKeyName != "":
@@ -76,7 +77,7 @@ func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvi
 
 	// Local ssh key file
 	case ssh.FileExists(*sshConfig.PublicKeyPath):
-		ssh.LoadSSHKeyFromFile(*sshConfig.PublicKeyPath, clusterName, provider, ng)
+		return ssh.LoadSSHKeyFromFile(*sshConfig.PublicKeyPath, clusterName, ng.Name, provider)
 
 	// A keyPath, when specified as a flag, can mean a local key or a key name in EC2
 	default:

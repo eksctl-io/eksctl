@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -19,7 +20,7 @@ import (
 )
 
 // LoadSSHKeyFromFile loads and imports a public SSH key from a file provided a path to that file
-func LoadSSHKeyFromFile(filePath, clusterName string, provider api.ClusterProvider, ng *api.NodeGroup) error {
+func LoadSSHKeyFromFile(filePath, clusterName, ngName string, provider api.ClusterProvider) error {
 	if err := checkFileExists(filePath); err != nil {
 		return errors.Wrap(err, fmt.Sprintf("SSH public key file %q not found", filePath))
 	}
@@ -34,12 +35,13 @@ func LoadSSHKeyFromFile(filePath, clusterName string, provider api.ClusterProvid
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %s", key))
 	}
-	keyName := getSSHKeyName(clusterName, ng.Name, fingerprint)
+	keyName := getSSHKeyName(clusterName, ngName, fingerprint)
 
-	logger.Info("using SSH public key %q as %q", expandedPath, keyName)
-	ng.SSH.PublicKeyPath = &expandedPath
-	ng.SSH.PublicKeyName = &keyName
-	ng.SSH.PublicKey = key
+	//ng.SSH.PublicKeyPath = &expandedPath
+	//ng.SSH.PublicKeyName = &keyName
+	//ng.SSH.PublicKey = key
+
+	fmt.Printf("%q", key)
 
 	// Import SSH key in EC2
 	if err := importSSHPublicKey(keyName, fingerprint, key, provider); err != nil {
@@ -48,20 +50,17 @@ func LoadSSHKeyFromFile(filePath, clusterName string, provider api.ClusterProvid
 	return nil
 }
 
-// TODO
-// logger.Info("found EC2 key pair %q", *ng.SSH.PublicKeyName)
-
 // LoadSSHKeyByContent loads and imports an SSH public key into EC2 if it doesn't exist
-func LoadSSHKeyByContent(key []byte, clusterName string, provider api.ClusterProvider, ng *api.NodeGroup) error {
+func LoadSSHKeyByContent(key []byte, clusterName, ngName string, provider api.ClusterProvider) error {
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(key))
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %s", key))
 	}
-	keyName := getSSHKeyName(clusterName, ng.Name, fingerprint)
+	keyName := getSSHKeyName(clusterName, ngName, fingerprint)
 
 	logger.Info("using SSH public key %q ", string(key))
-	ng.SSH.PublicKeyName = &keyName
-	ng.SSH.PublicKey = key
+	//ng.SSH.PublicKeyName = &keyName
+	//ng.SSH.PublicKey = key
 
 	// Import SSH key in EC2
 	if err := importSSHPublicKey(keyName, fingerprint, key, provider); err != nil {
@@ -81,13 +80,14 @@ func DeletePublicSSHKeys(clusterName string, provider api.ClusterProvider) {
 	prefix := getSSHKeyName(clusterName, "", "")
 	logger.Debug("existing = %#v", existing)
 	for _, e := range existing.KeyPairs {
-		if strings.HasPrefix(*e.KeyName, prefix) {
-			nameParts := strings.Split(*e.KeyName, "-")
-			logger.Debug("existing key %q matches prefix", *e.KeyName)
-			if nameParts[len(nameParts)-1] == *e.KeyFingerprint {
-				logger.Debug("existing key %q matches fingerprint", *e.KeyName)
-				matching = append(matching, e.KeyName)
-			}
+		if !strings.HasPrefix(*e.KeyName, prefix) {
+			continue
+		}
+		nameParts := strings.Split(*e.KeyName, "-")
+		logger.Debug("existing key %q matches prefix", *e.KeyName)
+		if nameParts[len(nameParts)-1] == *e.KeyFingerprint {
+			logger.Debug("existing key %q matches fingerprint", *e.KeyName)
+			matching = append(matching, e.KeyName)
 		}
 	}
 	for i := range matching {
@@ -169,9 +169,13 @@ func findSSHKeyInEc2(name string, provider api.ClusterProvider) (*ec2.KeyPairInf
 		KeyNames: aws.StringSlice([]string{name}),
 	}
 	output, err := provider.EC2().DescribeKeyPairs(input)
+
 	if err != nil {
-		// TODO check kind of error, only return nil, nil when it doesn't exist
-		return nil, nil
+		awsError := err.(awserr.Error)
+		if awsError.Code() == "InvalidKeyPair.NotFound" {
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, fmt.Sprintf("searching for SSH public key %q in EC2", name))
 	}
 
 	if len(output.KeyPairs) != 1 {
