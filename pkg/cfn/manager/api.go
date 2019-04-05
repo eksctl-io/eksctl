@@ -278,7 +278,7 @@ func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
 			}
 
 			if _, err := c.provider.CloudFormation().DeleteStack(input); err != nil {
-				return nil, errors.Wrapf(err, "not able to delete stack %q", s.StackName)
+				return nil, errors.Wrapf(err, "not able to delete stack %q", *s.StackName)
 			}
 			logger.Info("will delete stack %q", *s.StackName)
 			return s, nil

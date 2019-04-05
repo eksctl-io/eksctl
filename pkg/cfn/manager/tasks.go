@@ -74,22 +74,28 @@ func (t *TaskTree) Describe() string {
 // Do will run through the set in the backround, it may return an error immediately,
 // or eventually write to the errs channel; it will close the channel once all tasks
 // are completed
-func (t *TaskTree) Do(errs chan error) error {
+func (t *TaskTree) Do(allErrs chan error) error {
 	if t.Len() == 0 || t.DryRun {
 		logger.Debug("no actual tasks")
-		close(errs)
+		close(allErrs)
 		return nil
 	}
 
-	sendErr := func(err error) {
-		errs <- err
-	}
+	errs := make(chan error)
 
 	if t.Parallel {
-		go doParallelTasks(sendErr, t.tasks)
+		go doParallelTasks(errs, t.tasks)
 	} else {
-		go doSequentialTasks(sendErr, t.tasks)
+		go doSequentialTasks(errs, t.tasks)
 	}
+
+	go func() {
+		defer close(allErrs)
+		for err := range errs {
+			allErrs <- err
+		}
+	}()
+
 	return nil
 }
 
@@ -101,20 +107,19 @@ func (t *TaskTree) DoAllSync() []error {
 		return nil
 	}
 
-	errs := []error{}
-	appendErr := func(err error) {
-		errs = append(errs, err)
-	}
+	errs := make(chan error)
 
 	if t.Parallel {
-		doParallelTasks(appendErr, t.tasks)
+		go doParallelTasks(errs, t.tasks)
 	} else {
-		doSequentialTasks(appendErr, t.tasks)
+		go doSequentialTasks(errs, t.tasks)
 	}
-	if len(errs) > 0 {
-		return errs
+
+	allErrs := []error{}
+	for err := range errs {
+		allErrs = append(allErrs, err)
 	}
-	return nil
+	return allErrs
 }
 
 type taskWithoutParams struct {
@@ -173,36 +178,38 @@ func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
 	return err
 }
 
-func doSingleTask(passError func(error), task Task) {
+func doSingleTask(allErrs chan error, task Task) {
 	desc := task.Describe()
 	logger.Debug("started task: %s", desc)
 	errs := make(chan error)
 	if err := task.Do(errs); err != nil {
-		passError(err)
+		allErrs <- err
 		return
 	}
 	if err := <-errs; err != nil {
-		passError(err)
+		allErrs <- err
 		return
 	}
 	logger.Debug("completed task: %s", desc)
 }
 
-func doParallelTasks(passError func(error), tasks []Task) {
+func doParallelTasks(allErrs chan error, tasks []Task) {
 	wg := &sync.WaitGroup{}
 	wg.Add(len(tasks))
 	for t := range tasks {
 		go func(t int) {
 			defer wg.Done()
-			doSingleTask(passError, tasks[t])
+			doSingleTask(allErrs, tasks[t])
 		}(t)
 	}
 	logger.Debug("waiting for %d parallel tasks to complete", len(tasks))
 	wg.Wait()
+	close(allErrs)
 }
 
-func doSequentialTasks(passError func(error), tasks []Task) {
+func doSequentialTasks(allErrs chan error, tasks []Task) {
 	for t := range tasks {
-		doSingleTask(passError, tasks[t])
+		doSingleTask(allErrs, tasks[t])
 	}
+	close(allErrs)
 }
