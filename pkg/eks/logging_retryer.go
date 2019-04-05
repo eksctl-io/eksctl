@@ -63,7 +63,7 @@ func (l LoggingRetryer) RetryRules(r *request.Request) time.Duration {
 		errorDescription = fmt.Sprintf("%d %s", r.HTTPResponse.StatusCode, r.HTTPResponse.Status)
 	}
 
-	logger.Debug("retryable error (%s) from %s - will retry after delay of %v", errorDescription, methodDescription, duration)
+	logger.Warning("retryable error (%s) from %s - will retry after delay of %v", errorDescription, methodDescription, duration)
 
 	return duration
 }
