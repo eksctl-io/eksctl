@@ -17,7 +17,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
-var _ = Describe("Eks", func() {
+var _ = Describe("EKS API wrapper", func() {
 	var (
 		c      *ClusterProvider
 		p      *mockprovider.MockProvider
