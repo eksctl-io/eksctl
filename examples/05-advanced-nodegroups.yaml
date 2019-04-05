@@ -34,6 +34,8 @@ nodeGroups:
     desiredCapacity: 4
     labels:
       nodegroup-type: very-special-science-workloads
+    taints:
+      special: "true:NoSchedule"
     privateNetworking: true
     availabilityZones: ["eu-west-2a"] # use single AZ to optimise data transfer between isntances
     preBootstrapCommand:
