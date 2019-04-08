@@ -57,15 +57,18 @@ func NewCollectorSet(set map[string]Collector) *CollectorSet {
 	return &CollectorSet{set}
 }
 
+func get(stack cfn.Stack, key string) *string {
+	for _, x := range stack.Outputs {
+		if *x.OutputKey == key {
+			return x.OutputValue
+		}
+	}
+	return nil
+}
+
 func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
 	for key, collector := range c.set {
-		var value *string
-		for _, x := range stack.Outputs {
-			if *x.OutputKey == key {
-				value = x.OutputValue
-				break
-			}
-		}
+		value := get(stack, key)
 		if value == nil {
 			if must {
 				err := fmt.Errorf("no output %q", key)
@@ -81,6 +84,11 @@ func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
 		}
 	}
 	return nil
+}
+
+// Exists check if the stack has give output key
+func Exists(stack cfn.Stack, key string) bool {
+	return get(stack, key) != nil
 }
 
 // Collect the outputs of a stack using required and optional CollectorSets
