@@ -8,17 +8,17 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// DeleteTasksForClusterWithNodeGroups defines tasks required to delete all the nodegroup
+// NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete all the nodegroup
 // stacks and the cluster
-func (c *StackCollection) DeleteTasksForClusterWithNodeGroups(wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
-	nodeGroupTasks, err := c.DeleteTasksForNodeGroups(nil, true, cleanup)
+	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(nil, true, cleanup)
 	if err != nil {
 		return nil, err
 	}
 	if nodeGroupTasks.Len() > 0 {
-		nodeGroupTasks.Sub = true
+		nodeGroupTasks.IsSubTask = true
 		tasks.Append(nodeGroupTasks)
 	}
 
@@ -32,7 +32,7 @@ func (c *StackCollection) DeleteTasksForClusterWithNodeGroups(wait bool, cleanup
 		tasks.Append(&taskWithStackSpec{
 			info:  info,
 			stack: clusterStack,
-			call:  c.WaitDeleteStackBySpec,
+			call:  c.DeleteStackBySpecSync,
 		})
 	} else {
 		tasks.Append(&asyncTaskWithStackSpec{
@@ -45,10 +45,10 @@ func (c *StackCollection) DeleteTasksForClusterWithNodeGroups(wait bool, cleanup
 	return tasks, nil
 }
 
-// DeleteTasksForNodeGroups defines tasks required to delete all of the nodegroups if
+// NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups if
 // onlySubset is nil, otherwise just the tasks for nodegroups that are in onlySubset
 // will be defined
-func (c *StackCollection) DeleteTasksForNodeGroups(onlySubset sets.String, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteNodeGroups(onlySubset sets.String, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (c *StackCollection) DeleteTasksForNodeGroups(onlySubset sets.String, wait 
 			tasks.Append(&taskWithStackSpec{
 				info:  info,
 				stack: s,
-				call:  c.WaitDeleteStackBySpec,
+				call:  c.DeleteStackBySpecSync,
 			})
 		} else {
 			tasks.Append(&asyncTaskWithStackSpec{

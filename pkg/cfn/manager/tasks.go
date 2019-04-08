@@ -18,10 +18,10 @@ type Task interface {
 
 // TaskTree wraps a set of tasks
 type TaskTree struct {
-	tasks    []Task
-	Parallel bool
-	DryRun   bool
-	Sub      bool
+	tasks     []Task
+	Parallel  bool
+	DryRun    bool
+	IsSubTask bool
 }
 
 // Append new tasks to the set
@@ -50,7 +50,7 @@ func (t *TaskTree) Describe() string {
 	count := len(descriptions)
 	var msg string
 	noun := "task"
-	if t.Sub {
+	if t.IsSubTask {
 		noun = "sub-task"
 	}
 	switch count {
@@ -58,7 +58,7 @@ func (t *TaskTree) Describe() string {
 		msg = "no tasks"
 	case 1:
 		msg = fmt.Sprintf("1 %s: { %s }", noun, descriptions[0])
-		if t.Sub {
+		if t.IsSubTask {
 			msg = descriptions[0] // simple description for single sub-task
 		}
 	default:

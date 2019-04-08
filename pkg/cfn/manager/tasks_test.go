@@ -56,15 +56,15 @@ var _ = Describe("StackCollection Tasks", func() {
 					tasks := &TaskTree{Parallel: false}
 					tasks.Append(&TaskTree{Parallel: false})
 					Expect(tasks.Describe()).To(Equal("1 task: { no tasks }"))
-					tasks.Sub = true
+					tasks.IsSubTask = true
 					tasks.DryRun = true
-					tasks.Append(&TaskTree{Parallel: false, Sub: true})
+					tasks.Append(&TaskTree{Parallel: false, IsSubTask: true})
 					Expect(tasks.Describe()).To(Equal("(dry-run) 2 sequential sub-tasks: { no tasks, no tasks }"))
 				}
 
 				{
 					tasks := &TaskTree{Parallel: false}
-					subTask1 := &TaskTree{Parallel: false, Sub: true}
+					subTask1 := &TaskTree{Parallel: false, IsSubTask: true}
 					subTask1.Append(&taskWithoutParams{
 						info: "t1.1",
 					})
@@ -72,11 +72,11 @@ var _ = Describe("StackCollection Tasks", func() {
 
 					Expect(tasks.Describe()).To(Equal("1 task: { t1.1 }"))
 
-					subTask2 := &TaskTree{Parallel: false, Sub: true}
+					subTask2 := &TaskTree{Parallel: false, IsSubTask: true}
 					subTask2.Append(&taskWithoutParams{
 						info: "t2.1",
 					})
-					subTask3 := &TaskTree{Parallel: true, Sub: true}
+					subTask3 := &TaskTree{Parallel: true, IsSubTask: true}
 					subTask3.Append(&taskWithoutParams{
 						info: "t3.1",
 					})
@@ -110,7 +110,7 @@ var _ = Describe("StackCollection Tasks", func() {
 					}
 
 					tasks := &TaskTree{Parallel: false}
-					subTask1 := &TaskTree{Parallel: false, Sub: true}
+					subTask1 := &TaskTree{Parallel: false, IsSubTask: true}
 					subTask1.Append(&taskWithoutParams{
 						info: "t1.1",
 						call: func(errs chan error) error {
@@ -126,7 +126,7 @@ var _ = Describe("StackCollection Tasks", func() {
 					})
 					tasks.Append(subTask1)
 
-					subTask2 := &TaskTree{Parallel: false, Sub: true}
+					subTask2 := &TaskTree{Parallel: false, IsSubTask: true}
 					subTask2.Append(&taskWithoutParams{
 						info: "t2.1",
 						call: func(errs chan error) error {
@@ -142,7 +142,7 @@ var _ = Describe("StackCollection Tasks", func() {
 					})
 					tasks.Append(subTask2)
 
-					subTask3 := &TaskTree{Parallel: true, Sub: true}
+					subTask3 := &TaskTree{Parallel: true, IsSubTask: true}
 					subTask3.Append(&taskWithoutParams{
 						info: "t3.1",
 						call: func(errs chan error) error {
@@ -402,31 +402,31 @@ var _ = Describe("StackCollection Tasks", func() {
 
 			It("should have nice description", func() {
 				{
-					tasks := stackManager.CreateTasksForNodeGroups(nil)
+					tasks := stackManager.NewTasksToCreateNodeGroups(nil)
 					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.CreateTasksForNodeGroups(sets.NewString("bar"))
+					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString("bar"))
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.CreateTasksForNodeGroups(sets.NewString("foo"))
+					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString("foo"))
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.CreateTasksForNodeGroups(sets.NewString())
+					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString())
 					Expect(tasks.Describe()).To(Equal(`no tasks`))
 				}
 				{
-					tasks := stackManager.CreateTasksForClusterWithNodeGroups(nil)
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil)
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "bar", create nodegroup "foo" } }`))
 				}
 				{
-					tasks := stackManager.CreateTasksForClusterWithNodeGroups(sets.NewString("bar"))
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(sets.NewString("bar"))
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.CreateTasksForClusterWithNodeGroups(sets.NewString())
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(sets.NewString())
 					Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
 				}
 			})

@@ -6,9 +6,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// CreateTasksForClusterWithNodeGroups defines all tasks required to create a cluster along
+// NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
-func (c *StackCollection) CreateTasksForClusterWithNodeGroups(onlyNodeGroupSubset sets.String) *TaskTree {
+func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(onlyNodeGroupSubset sets.String) *TaskTree {
 	tasks := &TaskTree{Parallel: false}
 
 	tasks.Append(
@@ -18,19 +18,19 @@ func (c *StackCollection) CreateTasksForClusterWithNodeGroups(onlyNodeGroupSubse
 		},
 	)
 
-	nodeGroupTasks := c.CreateTasksForNodeGroups(onlyNodeGroupSubset)
+	nodeGroupTasks := c.NewTasksToCreateNodeGroups(onlyNodeGroupSubset)
 	if nodeGroupTasks.Len() > 0 {
-		nodeGroupTasks.Sub = true
+		nodeGroupTasks.IsSubTask = true
 		tasks.Append(nodeGroupTasks)
 	}
 
 	return tasks
 }
 
-// CreateTasksForNodeGroups defines tasks required to create all of the nodegroups if
+// NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups if
 // onlySubset is nil, otherwise just the tasks for nodegroups that are in onlySubset
 // will be defined
-func (c *StackCollection) CreateTasksForNodeGroups(onlySubset sets.String) *TaskTree {
+func (c *StackCollection) NewTasksToCreateNodeGroups(onlySubset sets.String) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
 	for i := range c.spec.NodeGroups {

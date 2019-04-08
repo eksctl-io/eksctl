@@ -249,10 +249,10 @@ func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
 	return c.DeleteStackBySpec(i)
 }
 
-// WaitDeleteStackByName sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
+// DeleteStackByNameSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
 // any errors will be written to errs channel, assume completion when nil is written, do not expect
 // more then one error value on the channel, it's closed immediately after it is written to
-func (c *StackCollection) WaitDeleteStackByName(name string, errs chan error) error {
+func (c *StackCollection) DeleteStackByNameSync(name string, errs chan error) error {
 	i, err := c.DeleteStackByName(name)
 	if err != nil {
 		return err
@@ -289,10 +289,10 @@ func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
 		fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
 }
 
-// WaitDeleteStackBySpec sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
+// DeleteStackBySpecSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
 // any errors will be written to errs channel, assume completion when nil is written, do not expect
 // more then one error value on the channel, it's closed immediately after it is written to
-func (c *StackCollection) WaitDeleteStackBySpec(s *Stack, errs chan error) error {
+func (c *StackCollection) DeleteStackBySpecSync(s *Stack, errs chan error) error {
 	i, err := c.DeleteStackBySpec(s)
 	if err != nil {
 		return err

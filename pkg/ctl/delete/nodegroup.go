@@ -116,7 +116,7 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	logger.Info("deleting nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
 
 	{
-		tasks, err := stackManager.DeleteTasksForNodeGroups(sets.NewString(ng.Name), wait, nil)
+		tasks, err := stackManager.NewTasksToDeleteNodeGroups(sets.NewString(ng.Name), wait, nil)
 		if err != nil {
 			return err
 		}

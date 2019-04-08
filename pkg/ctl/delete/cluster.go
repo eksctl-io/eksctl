@@ -114,7 +114,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	{
-		tasks, err := stackManager.DeleteTasksForClusterWithNodeGroups(wait, func(_ chan error, _ string) error {
+		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(wait, func(_ chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.GetClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)

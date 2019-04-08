@@ -156,7 +156,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
 		}
 
-		tasks := stackManager.CreateTasksForNodeGroups(ngSubset)
+		tasks := stackManager.NewTasksToCreateNodeGroups(ngSubset)
 		logger.Info(tasks.Describe())
 		errs := tasks.DoAllSync()
 		if len(errs) > 0 {

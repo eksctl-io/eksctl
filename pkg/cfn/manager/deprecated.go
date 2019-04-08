@@ -88,7 +88,7 @@ func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*TaskTree, error) {
 				} else {
 					tasks.Append(&taskWithStackSpec{
 						stack: s,
-						call:  c.WaitDeleteStackBySpec,
+						call:  c.DeleteStackBySpecSync,
 					})
 				}
 			}
