@@ -118,6 +118,9 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 		outputs.ClusterSubnetsPublic: func(v string) error {
 			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
 		},
+		outputs.ClusterSubnetsPublicLegacy: func(v string) error {
+			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+		},
 	}
 
 	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)

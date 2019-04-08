@@ -17,6 +17,8 @@ const (
 	ClusterSubnetsPrivate = string("Subnets" + api.SubnetTopologyPrivate)
 	ClusterSubnetsPublic  = string("Subnets" + api.SubnetTopologyPublic)
 
+	ClusterSubnetsPublicLegacy = "Subnets"
+
 	ClusterCertificateAuthorityData = "CertificateAuthorityData"
 	ClusterEndpoint                 = "Endpoint"
 	ClusterARN                      = "ARN"
