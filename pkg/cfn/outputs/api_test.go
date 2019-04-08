@@ -40,6 +40,9 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 					return nil
 				},
 			}
+
+			Expect(Exists(stack, ClusterVPC)).To(BeFalse())
+
 			err := Collect(stack, requiredCollectors, nil)
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).To(Equal("no output \"" + ClusterVPC + "\""))
@@ -63,6 +66,8 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 					},
 				}
 
+				Expect(Exists(stack, ClusterVPC)).To(BeTrue())
+
 				err := Collect(stack, requiredCollectors, nil)
 				Expect(err).Should(HaveOccurred())
 				Expect(err.Error()).To(Equal("no output \"" + ClusterSecurityGroup + "\" in stack \"foo\""))
@@ -81,6 +86,10 @@ var _ = Describe("CloudFormation stack outputs API", func() {
 						return nil
 					},
 				}
+
+				Expect(Exists(stack, ClusterVPC)).To(BeTrue())
+				Expect(Exists(stack, ClusterSecurityGroup)).To(BeTrue())
+				Expect(Exists(stack, ClusterSubnetsPublicLegacy)).To(BeFalse())
 
 				err := Collect(stack, requiredCollectors, nil)
 				Expect(err).ShouldNot(HaveOccurred())
