@@ -30,6 +30,10 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 		}
 	}
 
+	if ng.SSH.Allow == nil {
+		ng.SSH.Allow = NewBoolFalse()
+	}
+
 	// Enable SSH when a key is provided
 	if ng.SSH.PublicKeyPath != nil {
 		ng.SSH.Allow = NewBoolTrue()
