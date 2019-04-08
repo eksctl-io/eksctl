@@ -12,6 +12,8 @@ nodeGroups:
     instanceType: m5.xlarge
     minSize: 2
     maxSize: 8
+    volumeSize: 100
+    volumeType: gp2
     labels:
       nodegroup-type: frontend-workloads
     iam:
