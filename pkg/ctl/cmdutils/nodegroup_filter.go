@@ -16,54 +16,84 @@ import (
 
 // NodeGroupFilter holds filter configuration
 type NodeGroupFilter struct {
-	SkipAll           bool
-	IgnoreAllExisting bool
+	ExcludeAll bool // highest priority
 
-	existing sets.String
-	only     []glob.Glob
-	onlySpec string
+	// include filters take precedence
+	includeNames    sets.String
+	includeGlobs    []glob.Glob
+	rawIncludeGlobs []string
+
+	excludeNames    sets.String
+	excludeGlobs    []glob.Glob
+	rawExcludeGlobs []string
 }
 
 // NewNodeGroupFilter create new NodeGroupFilter instance
 func NewNodeGroupFilter() *NodeGroupFilter {
 	return &NodeGroupFilter{
-		IgnoreAllExisting: true,
-		SkipAll:           false,
-		existing:          sets.NewString(),
+		ExcludeAll:   false,
+		includeNames: sets.NewString(),
+		excludeNames: sets.NewString(),
 	}
 }
 
-// ApplyOnlyFilter parses given globs for exclusive filtering
-func (f *NodeGroupFilter) ApplyOnlyFilter(globExprs []string, cfg *api.ClusterConfig) error {
+// AppendGlobs appends globs for inclusion and exclusion rules
+func (f *NodeGroupFilter) AppendGlobs(includeGlobExprs, excludeGlobExprs []string, nodeGroups []*api.NodeGroup) error {
+	if err := f.AppendIncludeGlobs(nodeGroups, includeGlobExprs...); err != nil {
+		return err
+	}
+	return f.AppendExcludeGlobs(excludeGlobExprs...)
+}
+
+// AppendIncludeGlobs sets globs for inclusion rules
+func (f *NodeGroupFilter) AppendIncludeGlobs(nodeGroups []*api.NodeGroup, globExprs ...string) error {
 	for _, expr := range globExprs {
 		compiledExpr, err := glob.Compile(expr)
 		if err != nil {
 			return errors.Wrapf(err, "parsing glob filter %q", expr)
 		}
-		f.only = append(f.only, compiledExpr)
+		f.includeGlobs = append(f.includeGlobs, compiledExpr)
+		f.rawIncludeGlobs = append(f.rawIncludeGlobs, expr)
 	}
-	f.onlySpec = strings.Join(globExprs, ",")
-	return f.onlyFilterMatchesAnything(cfg)
+	return f.includeGlobsMatchAnything(nodeGroups)
 }
 
-func (f *NodeGroupFilter) onlyFilterMatchesAnything(cfg *api.ClusterConfig) error {
-	if len(f.only) == 0 {
+func (f *NodeGroupFilter) includeGlobsMatchAnything(nodeGroups []*api.NodeGroup) error {
+	if len(f.includeGlobs) == 0 {
 		return nil
 	}
-	for _, ng := range cfg.NodeGroups {
-		for _, compiledExpr := range f.only {
-			if compiledExpr.Match(ng.Name) {
-				return nil
-			}
+	for _, ng := range nodeGroups {
+		if f.matchGlobs(ng.Name, f.includeGlobs) {
+			return nil
 		}
 	}
-	return fmt.Errorf("no nodegroups match filter specification: %q", f.onlySpec)
+	return fmt.Errorf("no nodegroups match include glob filter specification: %q", strings.Join(f.rawIncludeGlobs, ","))
 }
 
-// ApplyExistingFilter uses stackManager to list existing nodegroup stacks and configures
+// AppendIncludeNames appends explicit names to the include filter
+func (f *NodeGroupFilter) AppendIncludeNames(names ...string) { f.includeNames.Insert(names...) }
+
+// AppendExcludeGlobs sets globs for exclusion rules
+func (f *NodeGroupFilter) AppendExcludeGlobs(globExprs ...string) error {
+	for _, expr := range globExprs {
+		compiledExpr, err := glob.Compile(expr)
+		if err != nil {
+			return errors.Wrapf(err, "parsing glob filter %q", expr)
+		}
+		f.excludeGlobs = append(f.excludeGlobs, compiledExpr)
+		f.rawExcludeGlobs = append(f.rawExcludeGlobs, expr)
+
+	}
+	return nil // exclude filter doesn't have to match anything, so we don't validate it
+}
+
+// AppendExcludeNames appends explicit names to the exclude filter
+func (f *NodeGroupFilter) AppendExcludeNames(names ...string) { f.excludeNames.Insert(names...) }
+
+// SetExcludeExistingFilter uses stackManager to list existing nodegroup stacks and configures
 // the filter accordingly
-func (f *NodeGroupFilter) ApplyExistingFilter(stackManager *manager.StackCollection) error {
-	if !f.IgnoreAllExisting || f.SkipAll {
+func (f *NodeGroupFilter) SetExcludeExistingFilter(stackManager *manager.StackCollection) error {
+	if f.ExcludeAll {
 		return nil
 	}
 
@@ -72,70 +102,145 @@ func (f *NodeGroupFilter) ApplyExistingFilter(stackManager *manager.StackCollect
 		return err
 	}
 
-	f.existing.Insert(existing...)
+	f.excludeNames.Insert(existing...)
 
+	for _, name := range existing {
+		isAlsoIncluded := f.includeNames.Has(name)
+		if f.matchGlobs(name, f.includeGlobs) {
+			isAlsoIncluded = true
+		}
+		if isAlsoIncluded {
+			return fmt.Errorf("existing nodegroup %q should be excluded, but matches include filter: %s", name, f.describeIncludeRules())
+		}
+	}
 	return nil
 }
 
-// Match checks given nodegroup against the filter
-func (f *NodeGroupFilter) Match(ng *api.NodeGroup) bool {
-	if f.SkipAll {
-		return false
-	}
-	if f.IgnoreAllExisting && f.existing.Has(ng.Name) {
-		return false
-	}
-
-	for _, compiledExpr := range f.only {
-		if compiledExpr.Match(ng.Name) {
-			return true // return first match
+func (*NodeGroupFilter) matchGlobs(name string, exprs []glob.Glob) bool {
+	for _, compiledExpr := range exprs {
+		if compiledExpr.Match(name) {
+			return true
 		}
 	}
-
-	// if no globs were given, match everything,
-	// if false - we haven't matched anything so far
-	return len(f.only) == 0
+	return false
 }
 
-// MatchAll checks all nodegroups against the filter and returns all of
-// matching names as set
-func (f *NodeGroupFilter) MatchAll(cfg *api.ClusterConfig) sets.String {
-	names := sets.NewString()
-	if f.SkipAll {
-		return names
+func (f *NodeGroupFilter) hasIncludeRules() bool {
+	return f.includeNames.Len()+len(f.includeGlobs) != 0
+}
+
+func (f *NodeGroupFilter) describeIncludeRules() string {
+	rules := append(f.includeNames.List(), f.rawIncludeGlobs...)
+	return fmt.Sprintf("%s", strings.Join(rules, ","))
+}
+
+func (f *NodeGroupFilter) hasExcludeRules() bool {
+	return f.excludeNames.Len()+len(f.excludeGlobs) != 0
+}
+
+func (f *NodeGroupFilter) describeExcludeRules() string {
+	rules := append(f.excludeNames.List(), f.rawExcludeGlobs...)
+	return fmt.Sprintf("%s", strings.Join(rules, ","))
+}
+
+// Match given nodegroup against the filter and returns
+// true or false if it has to be included or excluded
+func (f *NodeGroupFilter) Match(name string) bool {
+	if f.ExcludeAll {
+		return false // force exclude
 	}
-	for _, ng := range cfg.NodeGroups {
-		if f.Match(ng) {
-			names.Insert(ng.Name)
+
+	hasIncludeRules := f.hasIncludeRules()
+	hasExcludeRules := f.hasExcludeRules()
+
+	if !hasIncludeRules && !hasExcludeRules {
+		return true // empty rules - include
+	}
+
+	mustInclude := false // use this override when rules overlap
+
+	if hasIncludeRules {
+		mustInclude = f.includeNames.Has(name)
+		if f.matchGlobs(name, f.includeGlobs) {
+			mustInclude = true
+		}
+		if !hasExcludeRules {
+			// empty exclusion rules - explicit inclusion mode
+			return mustInclude
 		}
 	}
-	return names
+
+	if hasExcludeRules {
+		exclude := f.excludeNames.Has(name)
+		if f.matchGlobs(name, f.excludeGlobs) {
+			exclude = true
+		}
+		if exclude && !mustInclude {
+			// exclude, unless overridden by an inclusion rule
+			return false
+		}
+	}
+
+	return true // biased to include
+}
+
+// MatchAll nodegroups against the filter and return two sets of names - included and excluded
+func (f *NodeGroupFilter) MatchAll(nodeGroups []*api.NodeGroup) (sets.String, sets.String) {
+	included, excluded := sets.NewString(), sets.NewString()
+	if f.ExcludeAll {
+		for _, ng := range nodeGroups {
+			excluded.Insert(ng.Name)
+		}
+		return included, excluded
+	}
+	for _, ng := range nodeGroups {
+		if f.Match(ng.Name) {
+			included.Insert(ng.Name)
+		} else {
+			excluded.Insert(ng.Name)
+		}
+	}
+	return included, excluded
 }
 
 // LogInfo prints out a user-friendly message about how filter was applied
-func (f *NodeGroupFilter) LogInfo(cfg *api.ClusterConfig) {
-	count := f.MatchAll(cfg).Len()
-	filteredOutCount := len(cfg.NodeGroups) - count
-	if filteredOutCount > 0 {
-		reasons := []string{}
-		if f.SkipAll {
-			reasons = append(reasons, fmt.Sprintf("--without-nodegroup was set"))
+func (f *NodeGroupFilter) LogInfo(nodeGroups []*api.NodeGroup) {
+	logMsg := func(ngSubset sets.String, status string) {
+		count := ngSubset.Len()
+		list := strings.Join(ngSubset.List(), ", ")
+		subject := "nodegroups (%s) were"
+		if count == 1 {
+			subject = "nodegroup (%s) was"
 		}
-		if f.onlySpec != "" {
-			reasons = append(reasons, fmt.Sprintf("--only=%q was given", f.onlySpec))
+		logger.Info("%d "+subject+" %s", count, list, status)
+	}
+
+	included, excluded := f.MatchAll(nodeGroups)
+	if f.hasIncludeRules() {
+		logger.Info("include rules: %s", f.describeIncludeRules())
+		if included.Len() == 0 {
+			logger.Info("no nogroups were included by the filter")
 		}
-		if existingCount := f.existing.Len(); existingCount > 0 {
-			reasons = append(reasons, fmt.Sprintf("%d nodegroup(s) (%s) already exist", existingCount, strings.Join(f.existing.List(), ", ")))
+	}
+	if included.Len() > 0 {
+		logMsg(included, "included")
+	}
+	if f.hasExcludeRules() {
+		logger.Info("include rules: %s", f.describeExcludeRules())
+		if excluded.Len() == 0 {
+			logger.Info("no nogroups were excluded by the filter")
 		}
-		logger.Info("%d nodegroup(s) were filtered out: %s", filteredOutCount, strings.Join(reasons, ", "))
+	}
+	if excluded.Len() > 0 {
+		logMsg(excluded, "excluded")
 	}
 }
 
-// CheckEachNodeGroup iterates over each nodegroup and calls check function if it matches the filter
-func (f *NodeGroupFilter) CheckEachNodeGroup(nodeGroups []*api.NodeGroup, check func(i int, ng *api.NodeGroup) error) error {
+// ForEach iterates over each nodegroup that is included by the filter and calls iterFn
+func (f *NodeGroupFilter) ForEach(nodeGroups []*api.NodeGroup, iterFn func(i int, ng *api.NodeGroup) error) error {
 	for i, ng := range nodeGroups {
-		if f.Match(ng) {
-			if err := check(i, ng); err != nil {
+		if f.Match(ng.Name) {
+			if err := iterFn(i, ng); err != nil {
 				return err
 			}
 		}
@@ -146,7 +251,7 @@ func (f *NodeGroupFilter) CheckEachNodeGroup(nodeGroups []*api.NodeGroup, check 
 // ValidateNodeGroupsAndSetDefaults is calls api.ValidateNodeGroup & api.SetNodeGroupDefaults for
 // all nodegroups that match the filter
 func (f *NodeGroupFilter) ValidateNodeGroupsAndSetDefaults(nodeGroups []*api.NodeGroup) error {
-	return f.CheckEachNodeGroup(nodeGroups, func(i int, ng *api.NodeGroup) error {
+	return f.ForEach(nodeGroups, func(i int, ng *api.NodeGroup) error {
 		if err := api.ValidateNodeGroup(i, ng); err != nil {
 			return err
 		}

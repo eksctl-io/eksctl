@@ -63,3 +63,15 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMesh, "appmesh-access", false, "enable full access to AppMesh")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ALBIngress, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
 }
+
+// AddNodeGroupFilterFlags add common `--include` and `--exclude` flags for filtering nodegroups
+func AddNodeGroupFilterFlags(includeGlobs, excludeGlobs *[]string, fs *pflag.FlagSet) {
+	fs.StringSliceVar(includeGlobs, "only", nil, "")
+	fs.MarkDeprecated("only", "use --include")
+
+	fs.StringSliceVar(includeGlobs, "include", nil,
+		"nodegroups to include (list of globs), e.g.: 'ng-team-?,prod-*'")
+
+	fs.StringSliceVar(excludeGlobs, "exclude", nil,
+		"nodegroups to exclude (list of globs), e.g.: 'ng-team-?,prod-*'")
+}
