@@ -12,12 +12,14 @@ import (
 )
 
 var _ = Describe("ssh public key", func() {
-	var clusterName = "sshtestcluster"
-	var ngName = "ng1"
-	var key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDcSoNjWaJaw+MYBz43lgm12ZGdP+zRs9o0sXAGbiQua6e3JSkAiH4p9YZHmWxCTjckbiEdXN5qcs5OC5KUxYBvnEgor7jEydcKe1ZJXqsm/8CrtnJMTNcO9QVFnXfjvpkNjgNYj+8w9PcFRr0JDgDhRb52JvPWoqywv/Om9s1hpUov0gxDIl6CLLHSk0lmXZEhtVMMJmo0Tu/NlHqdky2DxFgHyNjBcMNpiBd8bs3dA5xf36dY+qgcXBV23i1SCgbqn9xcw1Q0IrHuQ4/QB+PJ5haxUx0bnOTahxSZ+tlEz9EiLwlM8VtKo3ND/giBvGaXuIK2iGDL0kSCRjueM5/3 user@example\n"
-	var keyName = "eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
-	fingerprint := "f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
-	var mockProvider *mockprovider.MockProvider
+	var (
+		clusterName  = "sshtestcluster"
+		ngName       = "ng1"
+		key          = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDcSoNjWaJaw+MYBz43lgm12ZGdP+zRs9o0sXAGbiQua6e3JSkAiH4p9YZHmWxCTjckbiEdXN5qcs5OC5KUxYBvnEgor7jEydcKe1ZJXqsm/8CrtnJMTNcO9QVFnXfjvpkNjgNYj+8w9PcFRr0JDgDhRb52JvPWoqywv/Om9s1hpUov0gxDIl6CLLHSk0lmXZEhtVMMJmo0Tu/NlHqdky2DxFgHyNjBcMNpiBd8bs3dA5xf36dY+qgcXBV23i1SCgbqn9xcw1Q0IrHuQ4/QB+PJ5haxUx0bnOTahxSZ+tlEz9EiLwlM8VtKo3ND/giBvGaXuIK2iGDL0kSCRjueM5/3 user@example\n"
+		keyName      = "eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
+		fingerprint  = "f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"
+		mockProvider *mockprovider.MockProvider
+	)
 
 	BeforeEach(func() {
 		mockProvider = mockprovider.NewMockProvider()
@@ -72,7 +74,7 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, make(map[string]string))
 			mockImportKeyPair(mockProvider, keyName, fingerprint, key)
 
-			err := LoadSSHKeyByContent([]byte(key), clusterName, ngName, *mockProvider)
+			err := LoadSSHKeyByContent(&key, clusterName, ngName, *mockProvider)
 
 			Expect(err).ToNot(HaveOccurred())
 			mockProvider.MockEC2().AssertCalled(GinkgoT(),
@@ -87,7 +89,7 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, map[string]string{keyName: fingerprint})
 			mockImportKeyPairError(mockProvider, errors.New("the key shouldn't be imported in this test"))
 
-			err := LoadSSHKeyByContent([]byte(key), clusterName, ngName, *mockProvider)
+			err := LoadSSHKeyByContent(&key, clusterName, ngName, *mockProvider)
 
 			Expect(err).ToNot(HaveOccurred())
 			mockProvider.MockEC2().AssertNotCalled(GinkgoT(), "ImportKeyPair", mock.Anything)
@@ -98,7 +100,7 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, map[string]string{keyName: differentFingerprint})
 			mockImportKeyPairError(mockProvider, errors.New("the key shouldn't be imported in this test"))
 
-			err := LoadSSHKeyByContent([]byte(key), clusterName, ngName, *mockProvider)
+			err := LoadSSHKeyByContent(&key, clusterName, ngName, *mockProvider)
 
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("but fingerprints don't match"))

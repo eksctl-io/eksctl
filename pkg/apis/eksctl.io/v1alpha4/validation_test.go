@@ -26,7 +26,7 @@ var _ = Describe("ConfigFile ssh flags validation", func() {
 		SSHConfig := &NodeGroupSSH{
 			Allow:         NewBoolTrue(),
 			PublicKeyPath: &testKeyPath,
-			PublicKey:     []byte(testKey),
+			PublicKey:     &testKey,
 		}
 
 		checkItDetectsError(SSHConfig)
@@ -36,7 +36,7 @@ var _ = Describe("ConfigFile ssh flags validation", func() {
 		SSHConfig := &NodeGroupSSH{
 			Allow:         NewBoolTrue(),
 			PublicKeyName: &testKeyName,
-			PublicKey:     []byte(testKey),
+			PublicKey:     &testKey,
 		}
 
 		checkItDetectsError(SSHConfig)
