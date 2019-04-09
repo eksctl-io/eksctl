@@ -148,7 +148,7 @@ var _ = Describe("Kubeconfig", func() {
 					SSH: &eksctlapi.NodeGroupSSH{
 						Allow:         eksctlapi.Disabled(),
 						PublicKeyPath: &exampleSSHKeyPath,
-						PublicKey:     []uint8(nil),
+						PublicKey:     nil,
 						PublicKeyName: nil,
 					},
 					DesiredCapacity: nil,

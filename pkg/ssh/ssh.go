@@ -26,41 +26,37 @@ func LoadSSHKeyFromFile(filePath, clusterName, ngName string, provider api.Clust
 	}
 
 	expandedPath := utils.ExpandPath(filePath)
-	key, err := readFileContents(expandedPath)
+	fileContent, err := readFileContents(expandedPath)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
 	}
 
-	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(key))
+	key := string(fileContent)
+
+	fingerprint, err := pki.ComputeAWSKeyFingerprint(key)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %s", key))
+		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", filePath))
 	}
 	keyName := getSSHKeyName(clusterName, ngName, fingerprint)
 
-	//ng.SSH.PublicKeyPath = &expandedPath
-	//ng.SSH.PublicKeyName = &keyName
-	//ng.SSH.PublicKey = key
-
-	fmt.Printf("%q", key)
+	logger.Info("using SSH public key %q as %q ", expandedPath, keyName)
 
 	// Import SSH key in EC2
-	if err := importSSHPublicKey(keyName, fingerprint, key, provider); err != nil {
+	if err := importSSHPublicKey(keyName, fingerprint, &key, provider); err != nil {
 		return err
 	}
 	return nil
 }
 
 // LoadSSHKeyByContent loads and imports an SSH public key into EC2 if it doesn't exist
-func LoadSSHKeyByContent(key []byte, clusterName, ngName string, provider api.ClusterProvider) error {
-	fingerprint, err := pki.ComputeAWSKeyFingerprint(string(key))
+func LoadSSHKeyByContent(key *string, clusterName, ngName string, provider api.ClusterProvider) error {
+	fingerprint, err := pki.ComputeAWSKeyFingerprint(*key)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %s", key))
+		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", *key))
 	}
 	keyName := getSSHKeyName(clusterName, ngName, fingerprint)
 
-	logger.Info("using SSH public key %q ", string(key))
-	//ng.SSH.PublicKeyName = &keyName
-	//ng.SSH.PublicKey = key
+	logger.Info("using SSH public key %q ", *key)
 
 	// Import SSH key in EC2
 	if err := importSSHPublicKey(keyName, fingerprint, key, provider); err != nil {
@@ -124,7 +120,7 @@ func FileExists(filePath string) bool {
 	return true
 }
 
-func importSSHPublicKey(keyName, fingerprint string, keyContent []byte, provider api.ClusterProvider) error {
+func importSSHPublicKey(keyName, fingerprint string, keyContent *string, provider api.ClusterProvider) error {
 	if existing, err := findSSHKeyInEc2(keyName, provider); err != nil {
 		return err
 	} else if existing != nil {
@@ -139,9 +135,9 @@ func importSSHPublicKey(keyName, fingerprint string, keyContent []byte, provider
 	// Import it
 	input := &ec2.ImportKeyPairInput{
 		KeyName:           &keyName,
-		PublicKeyMaterial: keyContent,
+		PublicKeyMaterial: []byte(*keyContent),
 	}
-	logger.Info("importing SSH public key %q", keyName)
+	logger.Debug("importing SSH public key %q", keyName)
 
 	if _, err := provider.EC2().ImportKeyPair(input); err != nil {
 		return errors.Wrap(err, "importing SSH public key")

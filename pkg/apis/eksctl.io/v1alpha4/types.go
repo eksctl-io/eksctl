@@ -474,7 +474,7 @@ type (
 		// +optional
 		PublicKeyPath *string `json:"publicKeyPath,omitempty"`
 		// +optional
-		PublicKey []byte `json:"publicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
+		PublicKey *string `json:"publicKey,omitempty"`
 		// +optional
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
 	}
