@@ -16,7 +16,11 @@ type StaticDefaultResolver struct {
 func (r *StaticDefaultResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using StaticDefaultResolver for region %s, version %s, instanceType %s and imageFamily %s", region, version, instanceType, imageFamily)
 
-	regionalAMIs := StaticImages[version][imageFamily][ImageClassGeneral]
+	regionalAMIs, ok := StaticImages[version][imageFamily][ImageClassGeneral]
+	if !ok {
+		logger.Critical("image family %s doesn't have default image class", imageFamily)
+		return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
+	}
 	return regionalAMIs[region], nil
 }
 
