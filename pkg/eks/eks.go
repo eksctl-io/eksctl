@@ -180,7 +180,7 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 			})
 		}
 
-		if nextToken != nil && *nextToken != "" {
+		if api.IsSetAndNonEmptyString(nextToken) {
 			token = *nextToken
 		} else {
 			break
@@ -311,7 +311,7 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("SUBNETS", func(c *awseks.Cluster) string {
 		subnets := sets.NewString()
 		for _, subnetid := range c.ResourcesVpcConfig.SubnetIds {
-			if *subnetid != "" {
+			if api.IsSetAndNonEmptyString(subnetid) {
 				subnets.Insert(*subnetid)
 			}
 		}
@@ -320,7 +320,7 @@ func addSummaryTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("SECURITYGROUPS", func(c *awseks.Cluster) string {
 		groups := sets.NewString()
 		for _, sg := range c.ResourcesVpcConfig.SecurityGroupIds {
-			if *sg != "" {
+			if api.IsSetAndNonEmptyString(sg) {
 				groups.Insert(*sg)
 			}
 		}

@@ -123,19 +123,28 @@ var (
 	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
 )
 
-// NewBoolTrue return pointer to true value
+// Enabled return pointer to true value
 // for use in defaulters of *bool fields
-func NewBoolTrue() *bool {
+func Enabled() *bool {
 	v := true
 	return &v
 }
 
-// NewBoolFalse return pointer to false value
+// Disabled return pointer to false value
 // for use in defaulters of *bool fields
-func NewBoolFalse() *bool {
+func Disabled() *bool {
 	v := false
 	return &v
 }
+
+// IsEnabled will only return true if v is not nil and true
+func IsEnabled(v *bool) bool { return v != nil && *v }
+
+// IsDisabled will only return true if v is not nil and false
+func IsDisabled(v *bool) bool { return v != nil && !*v }
+
+// IsSetAndNonEmptyString will only return true if s is not nil and not empty
+func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
@@ -317,8 +326,8 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 		PrivateNetworking: false,
 		SecurityGroups: &NodeGroupSGs{
 			AttachIDs:  []string{},
-			WithLocal:  NewBoolTrue(),
-			WithShared: NewBoolTrue(),
+			WithLocal:  Enabled(),
+			WithShared: Enabled(),
 		},
 		DesiredCapacity: nil,
 		InstanceType:    DefaultNodeType,
@@ -326,18 +335,18 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 		VolumeType:      DefaultNodeVolumeType,
 		IAM: &NodeGroupIAM{
 			WithAddonPolicies: NodeGroupIAMAddonPolicies{
-				ImageBuilder: NewBoolFalse(),
-				AutoScaler:   NewBoolFalse(),
-				ExternalDNS:  NewBoolFalse(),
-				AppMesh:      NewBoolFalse(),
-				EBS:          NewBoolFalse(),
-				FSX:          NewBoolFalse(),
-				EFS:          NewBoolFalse(),
-				ALBIngress:   NewBoolFalse(),
+				ImageBuilder: Disabled(),
+				AutoScaler:   Disabled(),
+				ExternalDNS:  Disabled(),
+				AppMesh:      Disabled(),
+				EBS:          Disabled(),
+				FSX:          Disabled(),
+				EFS:          Disabled(),
+				ALBIngress:   Disabled(),
 			},
 		},
 		SSH: &NodeGroupSSH{
-			Allow:         NewBoolFalse(),
+			Allow:         Disabled(),
 			PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
 		},
 	}

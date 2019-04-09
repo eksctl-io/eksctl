@@ -146,7 +146,7 @@ var _ = Describe("Kubeconfig", func() {
 					AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
 					PrivateNetworking: false,
 					SSH: &eksctlapi.NodeGroupSSH{
-						Allow:         eksctlapi.NewBoolFalse(),
+						Allow:         eksctlapi.Disabled(),
 						PublicKeyPath: &exampleSSHKeyPath,
 						PublicKey:     []uint8(nil),
 						PublicKeyName: nil,

@@ -185,12 +185,12 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		n.securityGroups = append(n.securityGroups, gfn.NewString(id))
 	}
 
-	if v := n.spec.SecurityGroups.WithShared; v != nil && *v {
+	if api.IsEnabled(n.spec.SecurityGroups.WithShared) {
 		refClusterSharedNodeSG := makeImportValue(n.clusterStackName, outputs.ClusterSharedNodeSecurityGroup)
 		n.securityGroups = append(n.securityGroups, refClusterSharedNodeSG)
 	}
 
-	if v := n.spec.SecurityGroups.WithLocal; v != nil && !*v {
+	if api.IsDisabled(n.spec.SecurityGroups.WithLocal) {
 		return
 	}
 

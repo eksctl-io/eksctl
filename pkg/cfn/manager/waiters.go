@@ -8,6 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
@@ -28,7 +29,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 		input := &cfn.DescribeStacksInput{
 			StackName: i.StackName,
 		}
-		if i.StackId != nil && *i.StackId != "" {
+		if api.IsSetAndNonEmptyString(i.StackId) {
 			input.StackName = i.StackId
 		}
 		req, _ := c.provider.CloudFormation().DescribeStacksRequest(input)

@@ -330,8 +330,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 					Name:              "ng-abcd1234",
 					PrivateNetworking: false,
 					SecurityGroups: &api.NodeGroupSGs{
-						WithLocal:  api.NewBoolTrue(),
-						WithShared: api.NewBoolTrue(),
+						WithLocal:  api.Enabled(),
+						WithShared: api.Enabled(),
 						AttachIDs:  []string{},
 					},
 					DesiredCapacity: nil,
@@ -339,18 +339,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeType:      api.NodeVolumeTypeIO1,
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-							ImageBuilder: api.NewBoolFalse(),
-							AutoScaler:   api.NewBoolFalse(),
-							ExternalDNS:  api.NewBoolFalse(),
-							AppMesh:      api.NewBoolFalse(),
-							EBS:          api.NewBoolFalse(),
-							FSX:          api.NewBoolFalse(),
-							EFS:          api.NewBoolFalse(),
-							ALBIngress:   api.NewBoolFalse(),
+							ImageBuilder: api.Disabled(),
+							AutoScaler:   api.Disabled(),
+							ExternalDNS:  api.Disabled(),
+							AppMesh:      api.Disabled(),
+							EBS:          api.Disabled(),
+							FSX:          api.Disabled(),
+							EFS:          api.Disabled(),
+							ALBIngress:   api.Disabled(),
 						},
 					},
 					SSH: &api.NodeGroupSSH{
-						Allow:         api.NewBoolFalse(),
+						Allow:         api.Disabled(),
 						PublicKeyPath: &defaultSSHKeyPath,
 					},
 				},
@@ -475,7 +475,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.IAM.WithAddonPolicies.AutoScaler = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.AutoScaler = api.Enabled()
 
 		build(cfg, "eksctl-test-123-cluster", ng)
 
@@ -533,8 +533,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupAppMeshExternalDNS", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.IAM.WithAddonPolicies.AppMesh = api.NewBoolTrue()
-		ng.IAM.WithAddonPolicies.ExternalDNS = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.AppMesh = api.Enabled()
+		ng.IAM.WithAddonPolicies.ExternalDNS = api.Enabled()
 
 		build(cfg, "eksctl-test-megaapps-cluster", ng)
 
@@ -577,7 +577,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupALBIngress", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.IAM.WithAddonPolicies.ALBIngress = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.ALBIngress = api.Enabled()
 
 		build(cfg, "eksctl-test-megaapps-cluster", ng)
 
@@ -664,7 +664,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.VolumeSize = 0
-		ng.IAM.WithAddonPolicies.EBS = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.EBS = api.Enabled()
 
 		build(cfg, "eksctl-test-ebs-cluster", ng)
 
@@ -706,7 +706,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.VolumeSize = 0
-		ng.IAM.WithAddonPolicies.FSX = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.FSX = api.Enabled()
 
 		build(cfg, "eksctl-test-fsx-cluster", ng)
 
@@ -732,12 +732,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources).ToNot(HaveKey("PolicyAppMesh"))
 		})
 	})
-	
+
 	Context("NodeGroupEFS", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.VolumeSize = 0
-		ng.IAM.WithAddonPolicies.EFS = api.NewBoolTrue()
+		ng.IAM.WithAddonPolicies.EFS = api.Enabled()
 
 		build(cfg, "eksctl-test-efs-cluster", ng)
 
@@ -767,7 +767,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroup{PrivateNetworking=true SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.SSH.Allow = api.NewBoolTrue()
+		ng.SSH.Allow = api.Enabled()
 		keyName := ""
 		ng.SSH.PublicKeyName = &keyName
 		ng.InstanceType = "t2.medium"
@@ -825,7 +825,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroup{PrivateNetworking=false SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.SSH.Allow = api.NewBoolTrue()
+		ng.SSH.Allow = api.Enabled()
 		keyName := ""
 		ng.SSH.PublicKeyName = &keyName
 		ng.InstanceType = "t2.medium"
@@ -906,7 +906,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		ng.AvailabilityZones = []string{testAZs[1]}
-		ng.SSH.Allow = api.NewBoolFalse()
+		ng.SSH.Allow = api.Disabled()
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
 		ng.AMIFamily = "AmazonLinux2"

@@ -44,7 +44,7 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.rs.template.Description = fmt.Sprintf(
 		"%s (AMI family: %s, SSH access: %v, private networking: %v) %s",
 		nodeGroupTemplateDescription,
-		n.spec.AMIFamily, *n.spec.SSH.Allow, n.spec.PrivateNetworking,
+		n.spec.AMIFamily, api.IsEnabled(n.spec.SSH.Allow), n.spec.PrivateNetworking,
 		templateDescriptionSuffix)
 
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
@@ -114,7 +114,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		InstanceType:       gfn.NewString(n.spec.InstanceType),
 		UserData:           n.userData,
 	}
-	if *n.spec.SSH.Allow && *n.spec.SSH.PublicKeyName != "" {
+	if api.IsEnabled(n.spec.SSH.Allow) && api.IsSetAndNonEmptyString(n.spec.SSH.PublicKeyName) {
 		lc.KeyName = gfn.NewString(*n.spec.SSH.PublicKeyName)
 	}
 	if n.spec.PrivateNetworking {
@@ -175,7 +175,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			"PropagateAtLaunch": "true",
 		},
 	}
-	if v := n.spec.IAM.WithAddonPolicies.AutoScaler; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
 		tags = append(tags,
 			map[string]interface{}{
 				"Key":               "k8s.io/cluster-autoscaler/enabled",

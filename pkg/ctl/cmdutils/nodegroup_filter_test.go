@@ -148,7 +148,7 @@ func addGroupA(cfg *api.ClusterConfig) {
 	ng.Name = "test-ng3a"
 	ng.ClusterDNS = "1.2.3.4"
 	ng.InstanceType = "m3.large"
-	ng.SSH.Allow = api.NewBoolTrue()
+	ng.SSH.Allow = api.Enabled()
 	ng.SSH.PublicKeyPath = nil
 	ng.Labels = map[string]string{"group": "a", "seq": "3"}
 }
@@ -158,7 +158,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1b"
-	ng.SSH.Allow = api.NewBoolTrue()
+	ng.SSH.Allow = api.Enabled()
 	ng.SSH.PublicKeyPath = nil
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
 
@@ -167,7 +167,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 	ng.ClusterDNS = "4.2.8.14"
 	ng.InstanceType = "m5.xlarge"
 	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
-	ng.SecurityGroups.WithLocal = api.NewBoolFalse()
+	ng.SecurityGroups.WithLocal = api.Disabled()
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
 	ng.SSH = nil
 
@@ -175,7 +175,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 	ng.Name = "test-ng3b"
 	ng.VolumeSize = 192
 	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
-	ng.SecurityGroups.WithLocal = api.NewBoolFalse()
+	ng.SecurityGroups.WithLocal = api.Disabled()
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
 	ng.SSH = nil
 }
