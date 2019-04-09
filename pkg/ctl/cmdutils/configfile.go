@@ -185,6 +185,8 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
 				}
 				ng.SSH.Allow = api.NewBoolTrue()
+			} else {
+				ng.SSH.PublicKeyPath = nil
 			}
 
 			// generate nodegroup name or use flag
@@ -248,6 +250,8 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
 				}
 				ng.SSH.Allow = api.NewBoolTrue()
+			} else {
+				ng.SSH.PublicKeyPath = nil
 			}
 
 			// generate nodegroup name or use either flag or argument
