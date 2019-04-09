@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	gfn "github.com/awslabs/goformation/cloudformation"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	"k8s.io/client-go/tools/clientcmd"
@@ -174,13 +176,48 @@ func makeMaxPodsMapping() string {
 }
 
 // NewUserData creates new user data for a given node image family
-func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
+func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (*gfn.Value, error) {
+	if ng.OverrideUserData != nil {
+		return NewOverrideUserData(*ng.OverrideUserData), nil
+	}
+
+	var userData string
+	var err error
 	switch ng.AMIFamily {
 	case ami.ImageFamilyAmazonLinux2:
-		return NewUserDataForAmazonLinux2(spec, ng)
+		userData, err = NewUserDataForAmazonLinux2(spec, ng)
 	case ami.ImageFamilyUbuntu1804:
-		return NewUserDataForUbuntu1804(spec, ng)
+		userData, err = NewUserDataForUbuntu1804(spec, ng)
 	default:
-		return "", nil
+		err = errors.Errorf("unsupported AMI family '%s'", ng.AMIFamily)
+		logger.Critical("can't get user data", err)
 	}
+
+	return gfn.NewString(userData), err
+}
+
+// NewOverrideUserData creates new user data from NodeGroup.OverrideUserData
+func NewOverrideUserData(userData string) *gfn.Value {
+	return gfn.MakeIntrinsic(
+		gfn.FnBase64,
+		gfn.MakeFnSub(
+			gfn.NewString(userData),
+		),
+	)
+}
+
+// DefaultOverrideUserData provides canned default override user data
+func DefaultOverrideUserData(ng *api.NodeGroup) *string {
+	var bytes []byte
+	switch ng.AMIFamily {
+	case ami.ImageFamilyAmazonLinux2:
+		bytes = MustAsset("simple.al2.userdata")
+	default:
+		err := errors.Errorf("unsupported AMI family '%s'", ng.AMIFamily)
+		logger.Critical("can't get default user data override", err)
+		panic(err)
+	}
+
+	str := string(bytes)
+	return &str
 }

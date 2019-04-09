@@ -4,6 +4,7 @@
 // assets/bootstrap.al2.sh
 // assets/bootstrap.ubuntu.sh
 // assets/kubelet.yaml
+// assets/simple.al2.userdata
 // DO NOT EDIT!
 
 package nodebootstrap
@@ -151,6 +152,26 @@ func kubeletYaml() (*asset, error) {
 	return a, nil
 }
 
+var _simpleAl2Userdata = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8d\x31\x8f\x83\x30\x0c\x46\xf7\xfc\x0a\x9f\x2e\x6b\x2e\x3b\xcb\x89\xbb\xa1\x1b\x43\x19\xba\x74\x09\xc1\x85\x08\x88\x51\xec\xa8\x48\x88\xff\x5e\x95\x8a\xa1\xf5\xf6\xe4\xa7\xf7\x7d\x7f\xd9\x26\x44\xdb\x38\xee\x15\xa3\x80\x21\x58\x24\x39\x8f\xca\xa2\x78\x8b\x03\xdb\x86\x48\x58\x92\x9b\x7f\xb8\x07\xbd\xfe\x8f\x99\x05\x53\xe5\x26\xdc\x40\xaf\x7f\xc7\xb7\x4c\x5d\x9e\x30\x0a\x6f\xca\xd2\x2c\xd6\xdd\x79\x4f\xfb\x5b\x34\x1c\xba\xe8\x46\x30\x06\x97\x20\xc6\x53\x8b\xa0\x7f\xe1\xaa\xe0\x38\x63\x58\x9c\x1f\x00\xf4\x5a\x5e\xea\xa2\xa8\x9f\xf4\x9a\x78\xb3\x12\x32\xe5\xe4\x11\x2a\x6a\xf1\x94\x28\xcf\xf0\x29\x74\x81\xe2\x91\x39\xef\xb4\xa9\x47\x00\x00\x00\xff\xff\xb6\x4a\x50\x7a\xe6\x00\x00\x00")
+
+func simpleAl2UserdataBytes() ([]byte, error) {
+	return bindataRead(
+		_simpleAl2Userdata,
+		"simple.al2.userdata",
+	)
+}
+
+func simpleAl2Userdata() (*asset, error) {
+	bytes, err := simpleAl2UserdataBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "simple.al2.userdata", size: 230, mode: os.FileMode(420), modTime: time.Unix(1, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -207,6 +228,7 @@ var _bindata = map[string]func() (*asset, error){
 	"bootstrap.al2.sh": bootstrapAl2Sh,
 	"bootstrap.ubuntu.sh": bootstrapUbuntuSh,
 	"kubelet.yaml": kubeletYaml,
+	"simple.al2.userdata": simpleAl2Userdata,
 }
 
 // AssetDir returns the file names below a certain
@@ -253,6 +275,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"bootstrap.al2.sh": &bintree{bootstrapAl2Sh, map[string]*bintree{}},
 	"bootstrap.ubuntu.sh": &bintree{bootstrapUbuntuSh, map[string]*bintree{}},
 	"kubelet.yaml": &bintree{kubeletYaml, map[string]*bintree{}},
+	"simple.al2.userdata": &bintree{simpleAl2Userdata, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
