@@ -317,6 +317,9 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": true
 			  },
+              "desiredCapacity": 2,
+              "minSize": 2,
+              "maxSize": 2,
 			  "volumeSize": 768,
 			  "volumeType": "io1",
 			  "labels": {
@@ -352,6 +355,9 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": true
 			  },
+              "desiredCapacity": 2,
+              "minSize": 2,
+              "maxSize": 2,
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
 			  "labels": {
@@ -387,6 +393,9 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": true
 			  },
+              "desiredCapacity": 2,
+              "minSize": 2,
+              "maxSize": 2,
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
 			  "labels": {
@@ -395,7 +404,8 @@ const expected = `
 			  },
               "ssh": {
 			    "allow": true,
-			    "publicKeyPath": "~/.ssh/id_rsa.pub"
+			    "publicKeyPath": "~/.ssh/id_rsa.pub",
+                "publicKeyName": ""
               },
 			  "iam": {
 			    "withAddonPolicies": {
@@ -421,6 +431,9 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": true
 			  },
+              "desiredCapacity": 2,
+              "minSize": 2,
+              "maxSize": 2,
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
 			  "labels": {
@@ -429,7 +442,8 @@ const expected = `
 			  },
 			  "ssh": {
 			    "allow": true,
-			    "publicKeyPath": "~/.ssh/id_rsa.pub"
+			    "publicKeyPath": "~/.ssh/id_rsa.pub",
+                "publicKeyName": ""
               },
 			  "iam": {
 			    "withAddonPolicies": {
@@ -458,6 +472,9 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": false
 			  },
+              "desiredCapacity": 2,
+              "minSize": 2,
+              "maxSize": 2,
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
 			  "labels": {
@@ -495,6 +512,9 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": false
 			  },
+              "desiredCapacity": 2,
+              "minSize": 2,
+              "maxSize": 2,
 			  "volumeSize": 192,
 			  "volumeType": "gp2",
 			  "labels": {

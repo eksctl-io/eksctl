@@ -324,7 +324,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:               "",
+					AMI:               "static",
 					AMIFamily:         "AmazonLinux2",
 					InstanceType:      "t2.medium",
 					Name:              "ng-abcd1234",
@@ -334,7 +334,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 						WithShared: api.Enabled(),
 						AttachIDs:  []string{},
 					},
-					DesiredCapacity: nil,
+					DesiredCapacity: api.NewInt(2),
+					MinSize:         api.NewInt(2),
+					MaxSize:         api.NewInt(2),
 					VolumeSize:      2,
 					VolumeType:      api.NodeVolumeTypeIO1,
 					IAM: &api.NodeGroupIAM{
@@ -352,6 +354,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					SSH: &api.NodeGroupSSH{
 						Allow:         api.Disabled(),
 						PublicKeyPath: &defaultSSHKeyPath,
+						PublicKeyName: new(string),
 					},
 				},
 			},
