@@ -147,9 +147,9 @@ func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
 		return nil
 	}
 	numSSHFlagsEnabled := countEnabledFlags(
-		SSH.PublicKeyPath != nil,
-		SSH.PublicKey != nil,
-		SSH.PublicKeyName != nil)
+		SSH.PublicKeyPath,
+		SSH.PublicKey,
+		SSH.PublicKeyName)
 
 	if numSSHFlagsEnabled > 1 {
 		return errors.New("only one ssh public key can be specified per node-group")
@@ -157,10 +157,10 @@ func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
 	return nil
 }
 
-func countEnabledFlags(flags ...bool) int {
+func countEnabledFlags(flags ...*string) int {
 	count := 0
 	for _, flag := range flags {
-		if flag {
+		if flag != nil && *flag != "" {
 			count++
 		}
 	}
