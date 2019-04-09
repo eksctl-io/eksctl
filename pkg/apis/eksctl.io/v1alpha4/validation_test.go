@@ -44,6 +44,6 @@ var _ = Describe("ConfigFile ssh flags validation", func() {
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {
-	err := validateNGSSHFlags(SSHConfig)
+	err := validateNodeGroupSSH(SSHConfig)
 	Expect(err).To(HaveOccurred())
 }
