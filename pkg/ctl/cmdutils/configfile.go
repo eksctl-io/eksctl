@@ -180,7 +180,8 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 		}
 
 		return ngFilter.ForEach(l.spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			if cmd.Flag("ssh-public-key").Changed {
+			sshPublicKey := cmd.Flag("ssh-public-key")
+			if sshPublicKey != nil && sshPublicKey.Changed {
 				if *ng.SSH.PublicKeyPath == "" {
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
 				}
@@ -246,8 +247,8 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 		}
 
 		return ngFilter.ForEach(spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
-
-			if cmd.Flag("ssh-public-key").Changed {
+			sshPublicKey := cmd.Flag("ssh-public-key")
+			if sshPublicKey != nil && sshPublicKey.Changed {
 				if *ng.SSH.PublicKeyPath == "" {
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
 				}
