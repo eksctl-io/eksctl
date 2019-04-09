@@ -395,7 +395,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:               "",
+					AMI:               "static",
 					AMIFamily:         "AmazonLinux2",
 					InstanceType:      "t2.medium",
 					Name:              "ng-abcd1234",
@@ -411,6 +411,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeName:      aws.String("/dev/xvda"),
 					VolumeEncrypted: api.Disabled(),
 					VolumeKmsKeyID:  aws.String(""),
+					MinSize:         api.NewInt(2),
+					MaxSize:         api.NewInt(2),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
 							ImageBuilder: api.Disabled(),

@@ -176,6 +176,12 @@ func IsDisabled(v *bool) bool { return v != nil && !*v }
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
 func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 
+// NewInt return pointer to an int value
+// for use in defaulters of *int fields
+func NewInt(i int) *int {
+	return &i
+}
+
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{
@@ -366,8 +372,12 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 			WithLocal:  Enabled(),
 			WithShared: Enabled(),
 		},
-		DesiredCapacity: nil,
+		DesiredCapacity: NewInt(DefaultNodeCount),
+		MinSize:         NewInt(DefaultNodeCount),
+		MaxSize:         NewInt(DefaultNodeCount),
 		InstanceType:    DefaultNodeType,
+		AMI:             DefaultResolver,
+		AMIFamily:       DefaultNodeImageFamily,
 		VolumeSize:      &DefaultNodeVolumeSize,
 		VolumeType:      &DefaultNodeVolumeType,
 		IAM: &NodeGroupIAM{
