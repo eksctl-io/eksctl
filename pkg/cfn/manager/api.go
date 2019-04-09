@@ -155,7 +155,7 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 	input := &cloudformation.DescribeStacksInput{
 		StackName: i.StackName,
 	}
-	if i.StackId != nil && *i.StackId != "" {
+	if api.IsSetAndNonEmptyString(i.StackId) {
 		input.StackName = i.StackId
 	}
 	resp, err := c.provider.CloudFormation().DescribeStacks(input)
@@ -327,7 +327,7 @@ func (c *StackCollection) DescribeStackEvents(i *Stack) ([]*cloudformation.Stack
 	input := &cloudformation.DescribeStackEventsInput{
 		StackName: i.StackName,
 	}
-	if i.StackId != nil && *i.StackId != "" {
+	if api.IsSetAndNonEmptyString(i.StackId) {
 		input.StackName = i.StackId
 	}
 
@@ -423,7 +423,7 @@ func (c *StackCollection) DescribeStackChangeSet(i *Stack, changeSetName string)
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 	}
-	if i.StackId != nil {
+	if api.IsSetAndNonEmptyString(i.StackId) {
 		input.StackName = i.StackId
 	}
 	resp, err := c.provider.CloudFormation().DescribeChangeSet(input)

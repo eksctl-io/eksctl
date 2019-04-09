@@ -351,7 +351,7 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 	})
 
 	if spec.Region == "" {
-		if *s.Config.Region != "" {
+		if api.IsSetAndNonEmptyString(s.Config.Region) {
 			// set cluster config region, based on session config
 			spec.Region = *s.Config.Region
 		} else {

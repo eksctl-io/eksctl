@@ -16,28 +16,28 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 		if len(ng.IAM.AttachPolicyARNs) != 0 {
 			return fmt.Errorf("%s.attachPolicyARNs cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.AutoScaler; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.AutoScaler) {
 			return fmt.Errorf("%s.withAddonPolicies.autoScaler cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.ExternalDNS; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.ExternalDNS) {
 			return fmt.Errorf("%s.withAddonPolicies.externalDNS cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.ImageBuilder; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.ImageBuilder) {
 			return fmt.Errorf("%s.imageBuilder cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.AppMesh; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.AppMesh) {
 			return fmt.Errorf("%s.AppMesh cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.EBS; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.EBS) {
 			return fmt.Errorf("%s.ebs cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.FSX; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.FSX) {
 			return fmt.Errorf("%s.fsx cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.EFS; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.EFS) {
 			return fmt.Errorf("%s.efs cannot be set at the same time", p)
 		}
-		if v := ng.IAM.WithAddonPolicies.ALBIngress; v != nil && *v {
+		if IsEnabled(ng.IAM.WithAddonPolicies.ALBIngress) {
 			return fmt.Errorf("%s.albIngress cannot be set at the same time", p)
 		}
 	}

@@ -159,7 +159,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	if len(n.spec.IAM.AttachPolicyARNs) == 0 {
 		n.spec.IAM.AttachPolicyARNs = iamDefaultNodePolicyARNs
 	}
-	if v := n.spec.IAM.WithAddonPolicies.ImageBuilder; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ImageBuilder) {
 		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
 	} else {
 		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
@@ -182,7 +182,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		Roles: makeSlice(refIR),
 	})
 
-	if v := n.spec.IAM.WithAddonPolicies.AutoScaler; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
 		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
 			[]string{
 				"autoscaling:DescribeAutoScalingGroups",
@@ -195,7 +195,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if v := n.spec.IAM.WithAddonPolicies.ExternalDNS; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ExternalDNS) {
 		n.rs.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
 			[]string{
 				"route53:ChangeResourceRecordSets",
@@ -209,7 +209,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if v := n.spec.IAM.WithAddonPolicies.AppMesh; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AppMesh) {
 		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",
 			[]string{
 				"appmesh:*",
@@ -217,7 +217,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if v := n.spec.IAM.WithAddonPolicies.EBS; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.EBS) {
 		n.rs.attachAllowPolicy("PolicyEBS", refIR, "*",
 			[]string{
 				"ec2:AttachVolume",
@@ -236,7 +236,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if v := n.spec.IAM.WithAddonPolicies.FSX; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.FSX) {
 		n.rs.attachAllowPolicy("PolicyFSX", refIR, "*",
 			[]string{
 				"fsx:*",
@@ -245,13 +245,13 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.rs.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
 			[]string{
 				"iam:CreateServiceLinkedRole",
-        "iam:AttachRolePolicy",
-        "iam:PutRolePolicy",
+				"iam:AttachRolePolicy",
+				"iam:PutRolePolicy",
 			},
 		)
 	}
 
-		if v := n.spec.IAM.WithAddonPolicies.EFS; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.EFS) {
 		n.rs.attachAllowPolicy("PolicyEFS", refIR, "arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/*",
 			[]string{
 				"elasticfilesystem:*",
@@ -260,16 +260,16 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.rs.attachAllowPolicy("PolicyEFSEC2", refIR, "*",
 			[]string{
 				"ec2:DescribeSubnets",
-        "ec2:CreateNetworkInterface",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:DeleteNetworkInterface",
-        "ec2:ModifyNetworkInterfaceAttribute",
-        "ec2:DescribeNetworkInterfaceAttribute",
+				"ec2:CreateNetworkInterface",
+				"ec2:DescribeNetworkInterfaces",
+				"ec2:DeleteNetworkInterface",
+				"ec2:ModifyNetworkInterfaceAttribute",
+				"ec2:DescribeNetworkInterfaceAttribute",
 			},
 		)
 	}
 
-	if v := n.spec.IAM.WithAddonPolicies.ALBIngress; v != nil && *v {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ALBIngress) {
 		n.rs.attachAllowPolicy("PolicyALBIngress", refIR, "*",
 			[]string{
 				"acm:DescribeCertificate",
