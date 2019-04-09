@@ -366,6 +366,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 		},
 		SSH: &NodeGroupSSH{
 			Allow:         Disabled(),
+			PublicKeyName: new(string),
 			PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
 		},
 	}
@@ -424,6 +425,8 @@ type NodeGroup struct {
 	PreBootstrapCommands []string `json:"preBootstrapCommand,omitempty"`
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
+	// +optional
+	OverrideUserData *string `json:"overrideUserData,omitempty"`
 
 	// +optional
 	ClusterDNS string `json:"clusterDNS,omitempty"`

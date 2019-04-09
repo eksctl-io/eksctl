@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	clusterConfigFile = ""
-
-	plan = true
+	clusterConfigFile string
+	output            string
+	plan              = true
 )
 
 // Command will create the `utils` commands
@@ -32,6 +32,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd.AddCommand(updateAWSNodeCmd(g))
 	cmd.AddCommand(updateCoreDNSCmd(g))
 	cmd.AddCommand(installCoreDNSCmd(g))
+	cmd.AddCommand(exportCmd(g))
 
 	return cmd
 }

@@ -40,7 +40,7 @@ func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConf
 }
 
 // AddAllResources adds all the information about the node group to the resource set
-func (n *NodeGroupResourceSet) AddAllResources() error {
+func (n *NodeGroupResourceSet) AddAllResources() (err error) {
 	n.rs.template.Description = fmt.Sprintf(
 		"%s (AMI family: %s, SSH access: %v, private networking: %v) %s",
 		nodeGroupTemplateDescription,
@@ -53,11 +53,10 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 
 	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
 
-	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
+	n.userData, err = nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
 		return err
 	}
-	n.userData = gfn.NewString(userData)
 
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
 	if n.spec.MinSize == nil {
