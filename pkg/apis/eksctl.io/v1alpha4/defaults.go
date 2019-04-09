@@ -24,13 +24,23 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 		ng.SecurityGroups.WithShared = NewBoolTrue()
 	}
 
-	// Enable SSH when a key is provided
-	if ng.SSHPublicKeyPath != "" && ng.SSHPublicKeyPath != DefaultNodeSSHPublicKeyPath {
-		ng.AllowSSH = true
+	if ng.SSH == nil {
+		ng.SSH = &NodeGroupSSH{
+			Allow: NewBoolFalse(),
+		}
 	}
 
-	if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
-		ng.SSHPublicKeyPath = DefaultNodeSSHPublicKeyPath
+	if ng.SSH.Allow == nil {
+		ng.SSH.Allow = NewBoolFalse()
+	}
+
+	// Enable SSH when a key is provided
+	if ng.SSH.PublicKeyPath != nil {
+		ng.SSH.Allow = NewBoolTrue()
+	}
+
+	if *ng.SSH.Allow && ng.SSH.PublicKeyPath == nil {
+		ng.SSH.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
 	}
 
 	if ng.VolumeSize > 0 {

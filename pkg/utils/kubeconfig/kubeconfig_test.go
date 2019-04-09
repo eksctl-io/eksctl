@@ -27,6 +27,7 @@ var _ = Describe("Kubeconfig", func() {
 			contextName: {AuthInfo: "test-user", Cluster: "test-cluster", Namespace: "test-ns"}},
 		CurrentContext: contextName,
 	}
+	var exampleSSHKeyPath = "~/.ssh/id_rsa.pub"
 
 	BeforeEach(func() {
 		configFile, _ = ioutil.TempFile("", "")
@@ -144,14 +145,16 @@ var _ = Describe("Kubeconfig", func() {
 					InstanceType:      "m5.large",
 					AvailabilityZones: []string{"us-west-2b", "us-west-2a", "us-west-2c"},
 					PrivateNetworking: false,
-					AllowSSH:          false,
-					SSHPublicKeyPath:  "~/.ssh/id_rsa.pub",
-					SSHPublicKey:      []uint8(nil),
-					SSHPublicKeyName:  "",
-					DesiredCapacity:   nil,
-					MinSize:           nil,
-					MaxSize:           nil,
-					MaxPodsPerNode:    0,
+					SSH: &eksctlapi.NodeGroupSSH{
+						Allow:         eksctlapi.NewBoolFalse(),
+						PublicKeyPath: &exampleSSHKeyPath,
+						PublicKey:     []uint8(nil),
+						PublicKeyName: nil,
+					},
+					DesiredCapacity: nil,
+					MinSize:         nil,
+					MaxSize:         nil,
+					MaxPodsPerNode:  0,
 					IAM: &eksctlapi.NodeGroupIAM{
 						AttachPolicyARNs: []string(nil),
 						InstanceRoleARN:  "",

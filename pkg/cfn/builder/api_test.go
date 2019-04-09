@@ -304,6 +304,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	}
 
 	Describe("GetAllOutputsFromClusterStack", func() {
+		defaultSSHKeyPath := "~/.ssh/id_rsa.pub"
 		expected := &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{
@@ -347,6 +348,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 							EFS:          api.NewBoolFalse(),
 							ALBIngress:   api.NewBoolFalse(),
 						},
+					},
+					SSH: &api.NodeGroupSSH{
+						Allow:         api.NewBoolFalse(),
+						PublicKeyPath: &defaultSSHKeyPath,
 					},
 				},
 			},
@@ -759,10 +764,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{PrivateNetworking=true AllowSSH=true}", func() {
+	Context("NodeGroup{PrivateNetworking=true SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.AllowSSH = true
+		ng.SSH.Allow = api.NewBoolTrue()
+		keyName := ""
+		ng.SSH.PublicKeyName = &keyName
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = true
 		ng.AMIFamily = "AmazonLinux2"
@@ -815,10 +822,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{PrivateNetworking=false AllowSSH=true}", func() {
+	Context("NodeGroup{PrivateNetworking=false SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.AllowSSH = true
+		ng.SSH.Allow = api.NewBoolTrue()
+		keyName := ""
+		ng.SSH.PublicKeyName = &keyName
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
 		ng.AMIFamily = "AmazonLinux2"
@@ -862,7 +871,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{PrivateNetworking=false AllowSSH=false}", func() {
+	Context("NodeGroup{PrivateNetworking=false SSH.Allow=false}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		cfg.VPC = &api.ClusterVPC{
@@ -897,7 +906,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		ng.AvailabilityZones = []string{testAZs[1]}
-		ng.AllowSSH = false
+		ng.SSH.Allow = api.NewBoolFalse()
 		ng.InstanceType = "t2.medium"
 		ng.PrivateNetworking = false
 		ng.AMIFamily = "AmazonLinux2"

@@ -180,12 +180,11 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 		}
 
 		return ngFilter.CheckEachNodeGroup(l.spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
-				return fmt.Errorf("--ssh-public-key must be non-empty string")
-			}
-
 			if cmd.Flag("ssh-public-key").Changed {
-				ng.AllowSSH = true
+				if *ng.SSH.PublicKeyPath == "" {
+					return fmt.Errorf("--ssh-public-key must be non-empty string")
+				}
+				ng.SSH.Allow = api.NewBoolTrue()
 			}
 
 			// generate nodegroup name or use flag
@@ -243,12 +242,12 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 		}
 
 		return ngFilter.CheckEachNodeGroup(spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			if ng.AllowSSH && ng.SSHPublicKeyPath == "" {
-				return fmt.Errorf("--ssh-public-key must be non-empty string")
-			}
 
 			if cmd.Flag("ssh-public-key").Changed {
-				ng.AllowSSH = true
+				if *ng.SSH.PublicKeyPath == "" {
+					return fmt.Errorf("--ssh-public-key must be non-empty string")
+				}
+				ng.SSH.Allow = api.NewBoolTrue()
 			}
 
 			// generate nodegroup name or use either flag or argument

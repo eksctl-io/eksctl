@@ -100,9 +100,6 @@ const (
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
 
-	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
-	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
-
 	// ClusterNameTag defines the tag of the clsuter name
 	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
@@ -121,6 +118,9 @@ const (
 var (
 	// DefaultWaitTimeout defines the default wait timeout
 	DefaultWaitTimeout = 25 * time.Minute
+
+	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
+	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
 )
 
 // NewBoolTrue return pointer to true value
@@ -336,6 +336,10 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				ALBIngress:   NewBoolFalse(),
 			},
 		},
+		SSH: &NodeGroupSSH{
+			Allow:         NewBoolFalse(),
+			PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
+		},
 	}
 
 	c.NodeGroups = append(c.NodeGroups, ng)
@@ -383,15 +387,7 @@ type NodeGroup struct {
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
 
-	// TODO move to separate struct
-	// +optional
-	AllowSSH bool `json:"allowSSH"`
-	// +optional
-	SSHPublicKeyPath string `json:"sshPublicKeyPath,omitempty"`
-	// +optional
-	SSHPublicKey []byte `json:"SSHPublicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
-	// +optional
-	SSHPublicKeyName string `json:"sshPublicKeyName,omitempty"`
+	SSH *NodeGroupSSH `json:"ssh"`
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
@@ -453,5 +449,17 @@ type (
 		EFS *bool `json:"efs"`
 		// +optional
 		ALBIngress *bool `json:"albIngress"`
+	}
+
+	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
+	NodeGroupSSH struct {
+		// +optional
+		Allow *bool `json:"allow"`
+		// +optional
+		PublicKeyPath *string `json:"publicKeyPath,omitempty"`
+		// +optional
+		PublicKey []byte `json:"publicKey,omitempty"` // TODO: right now it's kind of read-only, but one may wish to use key body in a config file so we will need recognise that
+		// +optional
+		PublicKeyName *string `json:"publicKeyName,omitempty"`
 	}
 )

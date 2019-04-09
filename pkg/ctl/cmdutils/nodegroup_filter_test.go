@@ -136,17 +136,20 @@ func addGroupA(cfg *api.ClusterConfig) {
 	ng.VolumeType = "io1"
 	ng.IAM.AttachPolicyARNs = []string{"foo"}
 	ng.Labels = map[string]string{"group": "a", "seq": "1"}
+	ng.SSH = nil
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng2a"
 	ng.IAM.AttachPolicyARNs = []string{"bar"}
 	ng.Labels = map[string]string{"group": "a", "seq": "2"}
+	ng.SSH = nil
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng3a"
 	ng.ClusterDNS = "1.2.3.4"
 	ng.InstanceType = "m3.large"
-	ng.AllowSSH = true
+	ng.SSH.Allow = api.NewBoolTrue()
+	ng.SSH.PublicKeyPath = nil
 	ng.Labels = map[string]string{"group": "a", "seq": "3"}
 }
 
@@ -155,7 +158,8 @@ func addGroupB(cfg *api.ClusterConfig) {
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1b"
-	ng.AllowSSH = true
+	ng.SSH.Allow = api.NewBoolTrue()
+	ng.SSH.PublicKeyPath = nil
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
 
 	ng = cfg.NewNodeGroup()
@@ -165,6 +169,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
 	ng.SecurityGroups.WithLocal = api.NewBoolFalse()
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
+	ng.SSH = nil
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng3b"
@@ -172,6 +177,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
 	ng.SecurityGroups.WithLocal = api.NewBoolFalse()
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
+	ng.SSH = nil
 }
 
 const expected = `
@@ -204,7 +210,9 @@ const expected = `
 			    "group": "a",
 			    "seq": "1"
 			  },
-			  "allowSSH": false,
+			  "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "attachPolicyARNs": [
 			  	"foo"
@@ -237,7 +245,9 @@ const expected = `
 			    "group": "a",
 			    "seq": "2"
 			  },
-			  "allowSSH": false,
+			  "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "attachPolicyARNs": [
 			  	"bar"
@@ -270,8 +280,10 @@ const expected = `
 			    "group": "a",
 			    "seq": "3"
 			  },
-			  "allowSSH": true,
-			  "sshPublicKeyPath": "~/.ssh/id_rsa.pub",
+              "ssh": {
+			    "allow": true,
+			    "publicKeyPath": "~/.ssh/id_rsa.pub"
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
@@ -302,8 +314,10 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-			  "allowSSH": true,
-			  "sshPublicKeyPath": "~/.ssh/id_rsa.pub",
+			  "ssh": {
+			    "allow": true,
+			    "publicKeyPath": "~/.ssh/id_rsa.pub"
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
@@ -337,7 +351,9 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-			  "allowSSH": false,
+			  "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
@@ -372,7 +388,9 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-			  "allowSSH": false,
+              "ssh": {
+			    "allow": false
+              },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
