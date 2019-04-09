@@ -95,6 +95,8 @@ const (
 	// NodeVolumeTypeST1 is Cold HDD
 	NodeVolumeTypeST1 = "st1"
 
+	// DefaultResolver defines the default AMI resolver to use
+	DefaultResolver = NodeImageResolverStatic
 	// DefaultNodeImageFamily defines the default image family for the worker nodes
 	DefaultNodeImageFamily = NodeImageFamilyAmazonLinux2
 	// NodeImageFamilyAmazonLinux2 represents Amazon Linux 2 family
