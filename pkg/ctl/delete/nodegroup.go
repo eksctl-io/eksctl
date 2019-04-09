@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -115,21 +116,15 @@ func doDeleteNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.No
 	logger.Info("deleting nodegroup %q in cluster %q", ng.Name, cfg.Metadata.Name)
 
 	{
-		var (
-			err  error
-			verb string
-		)
-		if wait {
-			err = stackManager.BlockingWaitDeleteNodeGroup(ng.Name, false)
-			verb = "was"
-		} else {
-			err = stackManager.DeleteNodeGroup(ng.Name)
-			verb = "will be"
-		}
+		tasks, err := stackManager.NewTasksToDeleteNodeGroups(sets.NewString(ng.Name), wait, nil)
 		if err != nil {
-			return errors.Wrapf(err, "failed to delete nodegroup %q", ng.Name)
+			return err
 		}
-		logger.Success("nodegroup %q %s deleted", ng.Name, verb)
+		logger.Info(tasks.Describe())
+		if errs := tasks.DoAllSync(); len(errs) > 0 {
+			return handleErrors(errs, "nodegroup(s)")
+		}
+		logger.Success("all nodes in nodegroup %q will be deleted", ng.Name)
 	}
 
 	return nil

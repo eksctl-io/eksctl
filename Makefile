@@ -52,6 +52,10 @@ test: generate ## Run unit test (and re-generate code under test)
 unit-test: ## Run unit test only
 	@CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
+.PHONY: unit-test-race
+unit-test-race: ## Run unit test with race detection
+	@CGO_ENABLED=1 go test -race -covermode=atomic -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+
 .PHONY: build-integration-test
 build-integration-test: ## Build integration test binary
 	@go test -tags integration ./integration/... -c -o ./eksctl-integration-test

@@ -59,23 +59,30 @@ Example output:
 ```
 $ eksctl create cluster
 [ℹ]  using region us-west-2
-[ℹ]  setting availability zones to [us-west-2c us-west-2a us-west-2b]
-[ℹ]  subnets for us-west-2c - public:192.168.0.0/19 private:192.168.96.0/19
-[ℹ]  subnets for us-west-2a - public:192.168.32.0/19 private:192.168.128.0/19
+[ℹ]  setting availability zones to [us-west-2a us-west-2c us-west-2b]
+[ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
+[ℹ]  subnets for us-west-2c - public:192.168.32.0/19 private:192.168.128.0/19
 [ℹ]  subnets for us-west-2b - public:192.168.64.0/19 private:192.168.160.0/19
-[ℹ]  using "ami-0ce0ec06e682ee10e" for nodes
+[ℹ]  nodegroup "ng-98b3b83a" will use "ami-05ecac759c81e0b0c" [AmazonLinux2/1.11]
 [ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
 [ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --name=floral-unicorn-1540567338'
-[ℹ]  creating cluster stack "eksctl-floral-unicorn-1540567338-cluster"
-[ℹ]  creating nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-39d54824"
+[ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create nodegroup "ng-98b3b83a" }
+[ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
+[ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"
+[ℹ]  buildings nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
+[ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
+[ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
+[ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
 [✔]  all EKS cluster resource for "floral-unicorn-1540567338" had been created
 [✔]  saved kubeconfig as "~/.kube/config"
-[ℹ]  nodegroup "ng-39d54824" has 0 nodes
-[ℹ]  waiting for at least 2 nodes to become ready
-[ℹ]  nodegroup "ng-39d54824" has 2 nodes
-[ℹ]  node "ip-192-168-71-20.us-west-2.compute.internal" is ready
-[ℹ]  node "ip-192-168-25-215.us-west-2.compute.internal" is ready
+[ℹ]  adding role "arn:aws:iam::376248598259:role/eksctl-ridiculous-sculpture-15547-NodeInstanceRole-1F3IHNVD03Z74" to auth ConfigMap
+[ℹ]  nodegroup "ng-98b3b83a" has 1 node(s)
+[ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is not ready
+[ℹ]  waiting for at least 2 node(s) to become ready in "ng-98b3b83a"
+[ℹ]  nodegroup "ng-98b3b83a" has 2 node(s)
+[ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is ready
+[ℹ]  node "ip-192-168-8-135.us-west-2.compute.internal" is ready
 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
 [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
 $

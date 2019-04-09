@@ -1,104 +1,436 @@
 package manager
 
 import (
-	"errors"
+	"fmt"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 var _ = Describe("StackCollection Tasks", func() {
 	var (
-		cc *api.ClusterConfig
-		sc *StackCollection
+		p   *mockprovider.MockProvider
+		cfg *api.ClusterConfig
 
-		p *mockprovider.MockProvider
-
-		call func(chan error, interface{}) error
+		stackManager *StackCollection
 	)
 
 	testAZs := []string{"us-west-2b", "us-west-2a", "us-west-2c"}
 
 	newClusterConfig := func(clusterName string) *api.ClusterConfig {
 		cfg := api.NewClusterConfig()
-		ng := cfg.NewNodeGroup()
+		*cfg.VPC.CIDR = api.DefaultCIDR()
+
+		ng1 := cfg.NewNodeGroup()
+		ng2 := cfg.NewNodeGroup()
 
 		cfg.Metadata.Region = "us-west-2"
 		cfg.Metadata.Name = clusterName
 		cfg.AvailabilityZones = testAZs
-		ng.InstanceType = "t2.medium"
-		ng.AMIFamily = "AmazonLinux2"
 
-		*cfg.VPC.CIDR = api.DefaultCIDR()
+		ng1.Name = "bar"
+		ng1.InstanceType = "t2.medium"
+		ng1.AMIFamily = "AmazonLinux2"
+		ng2.Labels = map[string]string{"bar": "bar"}
+
+		ng2.Name = "foo"
+		ng2.InstanceType = "t2.medium"
+		ng2.AMIFamily = "AmazonLinux2"
+		ng2.Labels = map[string]string{"foo": "foo"}
 
 		return cfg
 	}
 
-	Describe("RunTask", func() {
-		Context("With a cluster name", func() {
-			var (
-				clusterName string
-				errs        []error
+	Describe("TaskTree", func() {
 
-				sucecssfulData []string
-			)
+		Context("With various sets of nested dummy tasks", func() {
 
-			BeforeEach(func() {
-				clusterName = "test-cluster"
+			It("should have nice description", func() {
+				{
+					tasks := &TaskTree{Parallel: false}
+					tasks.Append(&TaskTree{Parallel: false})
+					Expect(tasks.Describe()).To(Equal("1 task: { no tasks }"))
+					tasks.IsSubTask = true
+					tasks.DryRun = true
+					tasks.Append(&TaskTree{Parallel: false, IsSubTask: true})
+					Expect(tasks.Describe()).To(Equal("(dry-run) 2 sequential sub-tasks: { no tasks, no tasks }"))
+				}
 
-				p = mockprovider.NewMockProvider()
+				{
+					tasks := &TaskTree{Parallel: false}
+					subTask1 := &TaskTree{Parallel: false, IsSubTask: true}
+					subTask1.Append(&taskWithoutParams{
+						info: "t1.1",
+					})
+					tasks.Append(subTask1)
 
-				cc = newClusterConfig(clusterName)
+					Expect(tasks.Describe()).To(Equal("1 task: { t1.1 }"))
 
-				sc = NewStackCollection(p, cc)
+					subTask2 := &TaskTree{Parallel: false, IsSubTask: true}
+					subTask2.Append(&taskWithoutParams{
+						info: "t2.1",
+					})
+					subTask3 := &TaskTree{Parallel: true, IsSubTask: true}
+					subTask3.Append(&taskWithoutParams{
+						info: "t3.1",
+					})
+					subTask3.Append(&taskWithoutParams{
+						info: "t3.2",
+					})
+					tasks.Append(subTask2)
+					subTask1.Append(subTask3)
 
-				sucecssfulData = []string{}
-
-				call = func(errs chan error, data interface{}) error {
-					s := data.(string)
-					if s == "fail" {
-						return errors.New("call failed")
-					}
-
-					go func() {
-						defer close(errs)
-
-						sucecssfulData = append(sucecssfulData, s)
-
-						errs <- nil
-					}()
-
-					return nil
+					Expect(tasks.Describe()).To(Equal("2 sequential tasks: { 2 sequential sub-tasks: { t1.1, 2 parallel sub-tasks: { t3.1, t3.2 } }, t2.1 }"))
 				}
 			})
 
-			Context("With an unsuccessful call", func() {
-				JustBeforeEach(func() {
-					errs = sc.RunSingleTask(Task{call, "fail"})
-				})
+			It("should execute orderly", func() {
+				{
+					var status struct {
+						messages  []string
+						mutex     sync.Mutex
+						startTime time.Time
+					}
 
-				It("should error", func() {
-					Expect(errs).To(HaveLen(1))
-					Expect(errs[0]).To(HaveOccurred())
-				})
-			})
+					status.messages = []string{}
 
-			Context("With a successful call", func() {
-				JustBeforeEach(func() {
-					errs = sc.RunSingleTask(Task{call, "ok"})
-				})
+					updateStatus := func(msg string) {
+						status.mutex.Lock()
+						ts := time.Since(status.startTime).Round(50 * time.Millisecond).String()
+						status.messages = append(status.messages,
+							fmt.Sprintf("%s: %s", ts, msg),
+						)
+						status.mutex.Unlock()
+					}
 
-				It("should not error", func() {
-					Expect(errs).To(HaveLen(0))
-				})
+					tasks := &TaskTree{Parallel: false}
+					subTask1 := &TaskTree{Parallel: false, IsSubTask: true}
+					subTask1.Append(&taskWithoutParams{
+						info: "t1.1",
+						call: func(errs chan error) error {
+							updateStatus("started t1.1")
+							go func() {
+								time.Sleep(100 * time.Millisecond)
+								updateStatus("finished t1.1")
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					tasks.Append(subTask1)
 
-				It("should have made a side-effect with the successful data", func() {
-					Expect(sucecssfulData).To(Equal([]string{"ok"}))
-				})
+					subTask2 := &TaskTree{Parallel: false, IsSubTask: true}
+					subTask2.Append(&taskWithoutParams{
+						info: "t2.1",
+						call: func(errs chan error) error {
+							updateStatus("started t2.1")
+							go func() {
+								time.Sleep(150 * time.Millisecond)
+								updateStatus("finished t2.1")
+								errs <- fmt.Errorf("t2.1 always fails")
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					tasks.Append(subTask2)
+
+					subTask3 := &TaskTree{Parallel: true, IsSubTask: true}
+					subTask3.Append(&taskWithoutParams{
+						info: "t3.1",
+						call: func(errs chan error) error {
+							updateStatus("started t3.1")
+							go func() {
+								time.Sleep(200 * time.Millisecond)
+								updateStatus("finished t3.1")
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					subTask3.Append(&taskWithoutParams{
+						info: "t3.2",
+						call: func(errs chan error) error {
+							updateStatus("started t3.2")
+							go func() {
+								time.Sleep(350 * time.Millisecond)
+								updateStatus("finished t3.2")
+								errs <- fmt.Errorf("t3.2 always fails")
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					subTask1.Append(subTask3)
+
+					Expect(tasks.Describe()).To(Equal("2 sequential tasks: { 2 sequential sub-tasks: { t1.1, 2 parallel sub-tasks: { t3.1, t3.2 } }, t2.1 }"))
+
+					status.startTime = time.Now()
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(2))
+					Expect(errs[0].Error()).To(Equal("t3.2 always fails"))
+					Expect(errs[1].Error()).To(Equal("t2.1 always fails"))
+
+					Expect(status.messages).To(HaveLen(8))
+
+					Expect(status.messages[0]).To(
+						Equal("0s: started t1.1"),
+					)
+					Expect(status.messages[1]).To(
+						Equal("100ms: finished t1.1"),
+					)
+					// t3.1 and t3.2 run in parallel, so may start approximately at the same time
+					Expect(status.messages[2]).To(
+						HavePrefix("100ms: started t3."),
+					)
+					Expect(status.messages[3]).To(
+						HavePrefix("100ms: started t3."),
+					)
+					Expect(status.messages[4]).To(Equal(
+						"300ms: finished t3.1",
+					))
+					Expect(status.messages[5]).To(Equal(
+						"450ms: finished t3.2",
+					))
+					Expect(status.messages[6]).To(Equal(
+						"450ms: started t2.1",
+					))
+					Expect(status.messages[7]).To(Equal(
+						"600ms: finished t2.1",
+					))
+				}
+
+				{
+					tasks := &TaskTree{Parallel: false}
+					Expect(tasks.DoAllSync()).To(HaveLen(0))
+				}
+
+				{
+					tasks := &TaskTree{Parallel: false}
+					tasks.Append(&TaskTree{Parallel: false})
+					tasks.Append(&TaskTree{Parallel: true})
+					Expect(tasks.DoAllSync()).To(HaveLen(0))
+				}
+
+				{
+					tasks := &TaskTree{Parallel: true}
+
+					counter := int32(0)
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.0",
+						call: func(errs chan error) error {
+							close(errs)
+							atomic.AddInt32(&counter, 1)
+							return fmt.Errorf("t1.0 does not even bother and always returns an immediate error")
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.1",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(10 * time.Millisecond)
+								errs <- nil
+								close(errs)
+								atomic.AddInt32(&counter, 1)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.2",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(100 * time.Millisecond)
+								errs <- fmt.Errorf("t1.2 always fails")
+								close(errs)
+								atomic.AddInt32(&counter, 1)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.3",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(50 * time.Microsecond)
+								errs <- fmt.Errorf("t1.3 always fails")
+								close(errs)
+								atomic.AddInt32(&counter, 1)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.4",
+						call: func(errs chan error) error {
+							time.Sleep(150 * time.Millisecond)
+							close(errs)
+							atomic.AddInt32(&counter, 1)
+							return fmt.Errorf("t1.4 does busy work and always returns an immediate error")
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.5",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(15 * time.Millisecond)
+								errs <- nil
+								close(errs)
+								atomic.AddInt32(&counter, 1)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.6",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(15 * time.Millisecond)
+								errs <- nil
+								close(errs)
+								atomic.AddInt32(&counter, 1)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.7",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(215 * time.Millisecond)
+								errs <- nil
+								close(errs)
+								atomic.AddInt32(&counter, 1)
+							}()
+							return nil
+						},
+					})
+
+					tasks.DryRun = true
+
+					Expect(tasks.DoAllSync()).To(HaveLen(0))
+
+					tasks.DryRun = false
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(4))
+					Expect(errs[0].Error()).To(Equal("t1.0 does not even bother and always returns an immediate error"))
+					Expect(errs[1].Error()).To(Equal("t1.3 always fails"))
+					Expect(errs[2].Error()).To(Equal("t1.2 always fails"))
+					Expect(errs[3].Error()).To(Equal("t1.4 does busy work and always returns an immediate error"))
+
+					Expect(atomic.LoadInt32(&counter)).To(Equal(int32(8)))
+				}
+
+				{
+					tasks := &TaskTree{Parallel: false}
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.1",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(100 * time.Millisecond)
+								errs <- fmt.Errorf("t1.1 always fails")
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.3",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(150 * time.Millisecond)
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.3",
+						call: func(errs chan error) error {
+							go func() {
+								errs <- fmt.Errorf("t1.3 always fails")
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.DryRun = true
+
+					Expect(tasks.DoAllSync()).To(HaveLen(0))
+
+					tasks.DryRun = false
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(2))
+					Expect(errs[0].Error()).To(Equal("t1.1 always fails"))
+					Expect(errs[1].Error()).To(Equal("t1.3 always fails"))
+				}
+
 			})
 		})
+
+		Context("With real tasks", func() {
+
+			BeforeEach(func() {
+
+				p = mockprovider.NewMockProvider()
+
+				cfg = newClusterConfig("test-cluster")
+
+				stackManager = NewStackCollection(p, cfg)
+			})
+
+			It("should have nice description", func() {
+				{
+					tasks := stackManager.NewTasksToCreateNodeGroups(nil)
+					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString("bar"))
+					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString("foo"))
+					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString())
+					Expect(tasks.Describe()).To(Equal(`no tasks`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil)
+					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "bar", create nodegroup "foo" } }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(sets.NewString("bar"))
+					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(sets.NewString())
+					Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
+				}
+			})
+		})
+
 	})
 })

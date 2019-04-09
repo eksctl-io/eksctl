@@ -156,7 +156,9 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
 		}
 
-		errs := stackManager.CreateAllNodeGroups(ngSubset)
+		tasks := stackManager.NewTasksToCreateNodeGroups(ngSubset)
+		logger.Info(tasks.Describe())
+		errs := tasks.DoAllSync()
 		if len(errs) > 0 {
 			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroup", cfg.Metadata.Region, cfg.Metadata.Name)
