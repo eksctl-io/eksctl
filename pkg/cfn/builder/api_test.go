@@ -309,7 +309,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Metadata: &api.ClusterMeta{
 				Region:  "us-west-2",
 				Name:    clusterName,
-				Version: "1.11",
+				Version: "1.12",
 			},
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
