@@ -101,11 +101,13 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 	logger.Info("checking security group configuration for all nodegroups")
 	incompatibleNodeGroups := []string{}
 	for ng, info := range infoByNodeGroup {
-		if isNodeGroupCompatible(ng, info) {
-			logger.Debug("nodegroup %q is compatible", ng)
-		} else {
-			logger.Debug("nodegroup %q is incompatible", ng)
-			incompatibleNodeGroups = append(incompatibleNodeGroups, ng)
+		if stackManager.StackStatusIsNotTransitional(info.Stack) {
+			if isNodeGroupCompatible(ng, info) {
+				logger.Debug("nodegroup %q is compatible", ng)
+			} else {
+				logger.Debug("nodegroup %q is incompatible", ng)
+				incompatibleNodeGroups = append(incompatibleNodeGroups, ng)
+			}
 		}
 	}
 
