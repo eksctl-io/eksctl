@@ -14,7 +14,7 @@ var _ = Describe("ConfigFile ssh flags validation", func() {
 
 	It("fails when a key path and a key name are specified", func() {
 		SSHConfig := &NodeGroupSSH{
-			Allow:         NewBoolTrue(),
+			Allow:         Enabled(),
 			PublicKeyPath: &testKeyPath,
 			PublicKeyName: &testKeyName,
 		}
@@ -24,7 +24,7 @@ var _ = Describe("ConfigFile ssh flags validation", func() {
 
 	It("fails when a key path and a key are specified", func() {
 		SSHConfig := &NodeGroupSSH{
-			Allow:         NewBoolTrue(),
+			Allow:         Enabled(),
 			PublicKeyPath: &testKeyPath,
 			PublicKey:     &testKey,
 		}
@@ -34,12 +34,17 @@ var _ = Describe("ConfigFile ssh flags validation", func() {
 
 	It("fails when a key name and a key are specified", func() {
 		SSHConfig := &NodeGroupSSH{
-			Allow:         NewBoolTrue(),
+			Allow:         Enabled(),
 			PublicKeyName: &testKeyName,
 			PublicKey:     &testKey,
 		}
 
 		checkItDetectsError(SSHConfig)
+	})
+
+	It("It doesn't panic when SSH is not enabled", func() {
+		err := validateNodeGroupSSH(nil)
+		Expect(err).ToNot(HaveOccurred())
 	})
 })
 
