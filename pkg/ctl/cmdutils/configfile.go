@@ -179,7 +179,7 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		return ngFilter.CheckEachNodeGroup(l.spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
+		return ngFilter.ForEach(l.spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
 			if cmd.Flag("ssh-public-key").Changed {
 				if *ng.SSH.PublicKeyPath == "" {
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
@@ -200,7 +200,7 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 }
 
 // NewCreateNodeGroupLoader will laod config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter, nodeGroupOnlyFilters []string) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter, include, exclude []string) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
 
 	l.nameArg = nameArg
@@ -228,7 +228,7 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 	)
 
 	l.validateWithConfigFile = func() error {
-		if err := ngFilter.ApplyOnlyFilter(nodeGroupOnlyFilters, spec); err != nil {
+		if err := ngFilter.AppendGlobs(include, exclude, spec.NodeGroups); err != nil {
 			return err
 		}
 		return nil
@@ -236,6 +236,8 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 
 	l.flagsIncompatibleWithoutConfigFile.Insert(
 		"only",
+		"include",
+		"exclude",
 	)
 
 	l.validateWithoutConfigFile = func() error {
@@ -243,7 +245,7 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 			return ErrMustBeSet("--cluster")
 		}
 
-		return ngFilter.CheckEachNodeGroup(spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
+		return ngFilter.ForEach(spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
 
 			if cmd.Flag("ssh-public-key").Changed {
 				if *ng.SSH.PublicKeyPath == "" {

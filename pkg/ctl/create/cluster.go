@@ -100,7 +100,7 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 
 func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
-	ngFilter.SkipAll = withoutNodeGroup
+	ngFilter.ExcludeAll = withoutNodeGroup
 
 	if err := cmdutils.NewCreateClusterLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter).Load(); err != nil {
 		return err
@@ -208,7 +208,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return err
 			}
 
-			if err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
+			if err := ngFilter.ForEach(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
 				return err
 			}
 
@@ -235,7 +235,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		if err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
+		if err := ngFilter.ForEach(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
 			return err
 		}
 
@@ -248,7 +248,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+	err := ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -283,12 +283,12 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	{ // core action
-		ngSubset := ngFilter.MatchAll(cfg)
+		ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
 		stackManager := ctl.NewStackManager(cfg)
 		if ngCount := ngSubset.Len(); ngCount == 1 && clusterConfigFile == "" {
 			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		} else {
-			ngFilter.LogInfo(cfg)
+			ngFilter.LogInfo(cfg.NodeGroups)
 			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", ngCount)
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
@@ -337,7 +337,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return err
 		}
 
-		err = ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+		err = ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err

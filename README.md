@@ -221,10 +221,10 @@ eksctl create nodegroup --config-file=<path>
 ```
 
 If there are multiple nodegroups specified in the file, you can select
-a subset via `--only=<glob,glob,...>`:
+a subset via `--include=<glob,glob,...>` and `--exclude=<glob,glob,...>`:
 
 ```
-eksctl create nodegroup --config-file=<path> --only='ng-*,nodegroup?,N*group'
+eksctl create nodegroup --config-file=<path> --include='ng-prod-*-??' --exclude='ng-test-1-ml-a,ng-test-2-?'
 ```
 
 To list the details about a nodegroup or all of the nodegroups, use:
