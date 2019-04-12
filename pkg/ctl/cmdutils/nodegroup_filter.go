@@ -116,6 +116,50 @@ func (f *NodeGroupFilter) SetExcludeExistingFilter(stackManager *manager.StackCo
 	return nil
 }
 
+// SetIncludeOrExcludeMissingFilter uses stackManager to list existing nodegroup stacks and configures
+// the filter to either explictily exluce or include nodegroups that are missing from given nodeGroups
+func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager.StackCollection, includeOnlyMissing bool, nodeGroups *[]*api.NodeGroup) error {
+	stacks, err := stackManager.DescribeNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+
+	remote := sets.NewString()
+	local := sets.NewString()
+
+	for _, s := range stacks {
+		if name := stackManager.GetNodeGroupName(s); name != "" {
+			remote.Insert(name)
+		}
+	}
+
+	for _, localNodeGroup := range *nodeGroups {
+		local.Insert(localNodeGroup.Name)
+		if !remote.Has(localNodeGroup.Name) {
+			logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup.Name)
+			f.AppendExcludeNames(localNodeGroup.Name)
+		} else if includeOnlyMissing {
+			f.AppendExcludeNames(localNodeGroup.Name)
+		}
+	}
+
+	for remoteNodeGroupName := range remote {
+		if !local.Has(remoteNodeGroupName) {
+			logger.Info("nodegroup %q present in the cluster, but missing from the given config", remoteNodeGroupName)
+			if includeOnlyMissing {
+				// append it to the config object, so that `ngFilter.ForEach` knows about it
+				*nodeGroups = append(*nodeGroups, &api.NodeGroup{Name: remoteNodeGroupName})
+				// make sure it passes it through the filter, so that one can use `--only-missing` along with `--exclude`
+				if f.Match(remoteNodeGroupName) {
+					f.AppendIncludeNames(remoteNodeGroupName)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (*NodeGroupFilter) matchGlobs(name string, exprs []glob.Glob) bool {
 	for _, compiledExpr := range exprs {
 		if compiledExpr.Match(name) {
@@ -226,7 +270,7 @@ func (f *NodeGroupFilter) LogInfo(nodeGroups []*api.NodeGroup) {
 		logMsg(included, "included")
 	}
 	if f.hasExcludeRules() {
-		logger.Info("include rules: %s", f.describeExcludeRules())
+		logger.Info("exclude rules: %s", f.describeExcludeRules())
 		if excluded.Len() == 0 {
 			logger.Info("no nogroups were excluded by the filter")
 		}

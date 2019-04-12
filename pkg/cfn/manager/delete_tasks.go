@@ -57,7 +57,7 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(onlySubset sets.String, wai
 	tasks := &TaskTree{Parallel: true}
 
 	for _, s := range nodeGroupStacks {
-		name := getNodeGroupName(s)
+		name := c.GetNodeGroupName(s)
 		if onlySubset != nil && !onlySubset.Has(name) {
 			continue
 		}

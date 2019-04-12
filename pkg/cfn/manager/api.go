@@ -219,10 +219,35 @@ func nonTransitionalReadyStackStatuses() []string {
 	return []string{
 		cloudformation.StackStatusCreateComplete,
 		cloudformation.StackStatusUpdateComplete,
-		cloudformation.StackStatusUpdateCompleteCleanupInProgress,
 		cloudformation.StackStatusRollbackComplete,
-		cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress,
 		cloudformation.StackStatusUpdateRollbackComplete,
+	}
+}
+
+// StackStatusIsNotReady will return true when stack statate is non-ready
+func (*StackCollection) StackStatusIsNotReady(s *Stack) bool {
+	for _, state := range nonReadyStackStatuses() {
+		if *s.StackStatus == state {
+			return true
+		}
+	}
+	return false
+}
+
+func nonReadyStackStatuses() []string {
+	return []string{
+		cloudformation.StackStatusCreateInProgress,
+		cloudformation.StackStatusCreateFailed,
+		cloudformation.StackStatusRollbackInProgress,
+		cloudformation.StackStatusRollbackFailed,
+		cloudformation.StackStatusDeleteInProgress,
+		cloudformation.StackStatusDeleteFailed,
+		cloudformation.StackStatusUpdateInProgress,
+		cloudformation.StackStatusUpdateCompleteCleanupInProgress,
+		cloudformation.StackStatusUpdateRollbackInProgress,
+		cloudformation.StackStatusUpdateRollbackFailed,
+		cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress,
+		cloudformation.StackStatusReviewInProgress,
 	}
 }
 
