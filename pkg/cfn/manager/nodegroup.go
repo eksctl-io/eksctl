@@ -245,6 +245,9 @@ func getNodeGroupName(s *Stack) string {
 		if *tag.Key == api.NodeGroupNameTag {
 			return *tag.Value
 		}
+		if *tag.Key == api.OldNodeGroupNameTag {
+			return *tag.Value
+		}
 		if *tag.Key == api.OldNodeGroupIDTag {
 			return *tag.Value
 		}

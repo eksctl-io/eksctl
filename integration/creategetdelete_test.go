@@ -66,7 +66,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			eksctl("create", "cluster",
 				"--verbose", "4",
 				"--name", clusterName,
-				"--tags", "eksctl.cluster.k8s.io/v1alpha1/description=eksctl integration test",
+				"--tags", "alpha.eksctl.io/description=eksctl integration test",
 				"--nodegroup-name", initNG,
 				"--node-labels", "ng-name="+initNG,
 				"--node-type", "t2.medium",
