@@ -19,7 +19,7 @@ func AddCommonCreateNodeGroupFlags(cmd *cobra.Command, fs *pflag.FlagSet, p *api
 	minSize := fs.IntP("nodes-min", "m", api.DefaultNodeCount, "minimum nodes in ASG")
 	maxSize := fs.IntP("nodes-max", "M", api.DefaultNodeCount, "maximum nodes in ASG")
 
-	cmd.PreRun = func(cmd *cobra.Command, args []string) {
+	AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
 		if f := cmd.Flag("nodes"); f.Changed {
 			ng.DesiredCapacity = desiredCapacity
 		}
@@ -29,7 +29,7 @@ func AddCommonCreateNodeGroupFlags(cmd *cobra.Command, fs *pflag.FlagSet, p *api
 		if f := cmd.Flag("nodes-max"); f.Changed {
 			ng.MaxSize = maxSize
 		}
-	}
+	})
 
 	fs.IntVar(&ng.VolumeSize, "node-volume-size", ng.VolumeSize, "node volume size in GB")
 	fs.StringVar(&ng.VolumeType, "node-volume-type", ng.VolumeType, fmt.Sprintf("node volume type (valid options: %s)", strings.Join(api.SupportedNodeVolumeTypes(), ", ")))

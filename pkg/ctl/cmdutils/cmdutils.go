@@ -15,6 +15,18 @@ import (
 // IncompatibleFlags is a common substring of an error message
 const IncompatibleFlags = "cannot be used at the same time"
 
+// AddPreRun chains cmd.PreRun handlers, as cobra only allows one, so we don't
+// accidentially override one we registered earlier
+func AddPreRun(cmd *cobra.Command, newFn func(cmd *cobra.Command, args []string)) {
+	currentFn := cmd.PreRun
+	cmd.PreRun = func(cmd *cobra.Command, args []string) {
+		if currentFn != nil {
+			currentFn(cmd, args)
+		}
+		newFn(cmd, args)
+	}
+}
+
 // LogIntendedAction calls logger.Info with appropriate prefix
 func LogIntendedAction(plan bool, msgFmt string, args ...interface{}) {
 	prefix := "will "
@@ -43,11 +55,11 @@ func LogPlanModeWarning(plan bool) {
 // AddApproveFlag adds common `--approve` flag
 func AddApproveFlag(plan *bool, cmd *cobra.Command, fs *pflag.FlagSet) {
 	approve := fs.Bool("approve", !*plan, "Apply the changes")
-	cmd.PreRun = func(cmd *cobra.Command, args []string) {
+	AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
 		if cmd.Flag("approve").Changed {
 			*plan = !*approve
 		}
-	}
+	})
 }
 
 // GetNameArg tests to ensure there is only 1 name argument

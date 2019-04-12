@@ -36,11 +36,11 @@ func waitNodesCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&waitNodesKubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
 		minSize := fs.IntP("nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
-		cmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cmdutils.AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
 			if f := cmd.Flag("nodes-min"); f.Changed {
 				ng.MinSize = minSize
 			}
-		}
+		})
 		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 	})
 

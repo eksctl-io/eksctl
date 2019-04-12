@@ -36,11 +36,11 @@ func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
 
 		desiredCapacity := fs.IntP("nodes", "N", -1, "total number of nodes (scale to this number)")
-		cmd.PreRun = func(cmd *cobra.Command, args []string) {
+		cmdutils.AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
 			if f := cmd.Flag("nodes"); f.Changed {
 				ng.DesiredCapacity = desiredCapacity
 			}
-		}
+		})
 
 		cmdutils.AddRegionFlag(fs, p)
 	})
