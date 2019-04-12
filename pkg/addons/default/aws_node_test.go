@@ -29,7 +29,7 @@ var _ = Describe("default addons - aws-node", func() {
 			for _, item := range sampleAddons {
 				rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: item})
 				Expect(err).ToNot(HaveOccurred())
-				_, err = rc.CreateOrReplace()
+				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 			}
 
@@ -58,7 +58,7 @@ var _ = Describe("default addons - aws-node", func() {
 		It("can update 1.10 sample to latest", func() {
 			rawClient.AssumeObjectsMissing = false
 
-			err := UpdateAWSNode(rawClient, "eu-west-2")
+			_, err := UpdateAWSNode(rawClient, "eu-west-2", false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(4))
 			Expect(rawClient.Collection.CreatedItems()).To(HaveLen(6))
@@ -78,7 +78,7 @@ var _ = Describe("default addons - aws-node", func() {
 		It("can update 1.10 sample for different region", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
-			err := UpdateAWSNode(rawClient, "us-east-1")
+			_, err := UpdateAWSNode(rawClient, "us-east-1", false)
 			Expect(err).ToNot(HaveOccurred())
 
 			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects

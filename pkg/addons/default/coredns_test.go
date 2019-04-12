@@ -30,7 +30,7 @@ var _ = Describe("default addons - coredns", func() {
 			for _, item := range sampleAddons {
 				rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: item})
 				Expect(err).ToNot(HaveOccurred())
-				_, err = rc.CreateOrReplace()
+				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 			}
 
@@ -63,7 +63,7 @@ var _ = Describe("default addons - coredns", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			// test client doesn't support watching, and we would have to create some pods, so we set nil timeout
-			err = InstallCoreDNS(rawClient, "eu-west-1", nil)
+			_, err = InstallCoreDNS(rawClient, "eu-west-1", nil, false)
 			Expect(err).ToNot(HaveOccurred())
 
 			updateReqs := []string{
@@ -132,13 +132,13 @@ var _ = Describe("default addons - coredns", func() {
 		})
 
 		It("can update based to latest version", func() {
-			err := UpdateCoreDNSImageTag(clientSet, false)
+			_, err := UpdateCoreDNSImageTag(clientSet, false)
 			Expect(err).ToNot(HaveOccurred())
 			check("v1.2.2")
 		})
 
 		It("can dry-run update to latest version", func() {
-			err := UpdateCoreDNSImageTag(clientSet, true)
+			_, err := UpdateCoreDNSImageTag(clientSet, true)
 			Expect(err).ToNot(HaveOccurred())
 			check("v1.1.3")
 		})

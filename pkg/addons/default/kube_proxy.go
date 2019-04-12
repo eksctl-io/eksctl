@@ -20,30 +20,30 @@ const (
 )
 
 // UpdateKubeProxyImageTag updates image tag for kube-system:damoneset/kube-proxy based to match controlPlaneVersion
-func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion string, dryRun bool) error {
+func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion string, plan bool) (bool, error) {
 	printer := printers.NewJSONPrinter()
 
 	d, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", KubeProxy)
-			return nil
+			return false, nil
 		}
-		return errors.Wrapf(err, "getting %q", KubeProxy)
+		return false, errors.Wrapf(err, "getting %q", KubeProxy)
 	}
 	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
-		return fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
+		return false, fmt.Errorf("%s has %d containers, expected at least 1", KubeProxy, numContainers)
 	}
 
 	if err := printer.LogObj(logger.Debug, KubeProxy+" [current] = \\\n%s\n", d); err != nil {
-		return err
+		return false, err
 	}
 
 	image := &d.Spec.Template.Spec.Containers[0].Image
 	imageParts := strings.Split(*image, ":")
 
 	if len(imageParts) != 2 {
-		return fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
+		return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
 	}
 
 	desiredTag := "v" + controlPlaneVersion
@@ -51,24 +51,24 @@ func UpdateKubeProxyImageTag(clientSet kubernetes.Interface, controlPlaneVersion
 	if imageParts[1] == desiredTag {
 		logger.Debug("imageParts = %v, desiredTag = %s", imageParts, desiredTag)
 		logger.Info("%q is already up-to-date", KubeProxy)
-		return nil
+		return false, nil
 	}
 
-	if dryRun {
-		logger.Critical("%q is not up-to-date", KubeProxy)
-		return nil
+	if plan {
+		logger.Critical("(plan) %q is not up-to-date", KubeProxy)
+		return true, nil
 	}
 
 	imageParts[1] = desiredTag
 	*image = strings.Join(imageParts, ":")
 
 	if err := printer.LogObj(logger.Debug, KubeProxy+" [updated] = \\\n%s\n", d); err != nil {
-		return err
+		return false, err
 	}
 	if _, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Update(d); err != nil {
-		return err
+		return false, err
 	}
 
 	logger.Info("%q is now up-to-date", KubeProxy)
-	return nil
+	return false, nil
 }

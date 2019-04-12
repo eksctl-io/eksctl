@@ -20,7 +20,7 @@ type Task interface {
 type TaskTree struct {
 	tasks     []Task
 	Parallel  bool
-	DryRun    bool
+	PlanMode  bool
 	IsSubTask bool
 }
 
@@ -65,8 +65,8 @@ func (t *TaskTree) Describe() string {
 		noun += "s"
 		msg = fmt.Sprintf("%d %s %s: { %s }", count, mode, noun, strings.Join(descriptions, ", "))
 	}
-	if t.DryRun {
-		return "(dry-run) " + msg
+	if t.PlanMode {
+		return "(plan) " + msg
 	}
 	return msg
 }
@@ -75,7 +75,7 @@ func (t *TaskTree) Describe() string {
 // or eventually write to the errs channel; it will close the channel once all tasks
 // are completed
 func (t *TaskTree) Do(allErrs chan error) error {
-	if t.Len() == 0 || t.DryRun {
+	if t.Len() == 0 || t.PlanMode {
 		logger.Debug("no actual tasks")
 		close(allErrs)
 		return nil
@@ -102,7 +102,7 @@ func (t *TaskTree) Do(allErrs chan error) error {
 // DoAllSync will run through the set in the foregounds and return all the errors
 // in a slice
 func (t *TaskTree) DoAllSync() []error {
-	if t.Len() == 0 || t.DryRun {
+	if t.Len() == 0 || t.PlanMode {
 		logger.Debug("no actual tasks")
 		return nil
 	}

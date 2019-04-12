@@ -57,9 +57,9 @@ var _ = Describe("StackCollection Tasks", func() {
 					tasks.Append(&TaskTree{Parallel: false})
 					Expect(tasks.Describe()).To(Equal("1 task: { no tasks }"))
 					tasks.IsSubTask = true
-					tasks.DryRun = true
+					tasks.PlanMode = true
 					tasks.Append(&TaskTree{Parallel: false, IsSubTask: true})
-					Expect(tasks.Describe()).To(Equal("(dry-run) 2 sequential sub-tasks: { no tasks, no tasks }"))
+					Expect(tasks.Describe()).To(Equal("(plan) 2 sequential sub-tasks: { no tasks, no tasks }"))
 				}
 
 				{
@@ -322,11 +322,11 @@ var _ = Describe("StackCollection Tasks", func() {
 						},
 					})
 
-					tasks.DryRun = true
+					tasks.PlanMode = true
 
 					Expect(tasks.DoAllSync()).To(HaveLen(0))
 
-					tasks.DryRun = false
+					tasks.PlanMode = false
 					errs := tasks.DoAllSync()
 					Expect(errs).To(HaveLen(4))
 					Expect(errs[0].Error()).To(Equal("t1.0 does not even bother and always returns an immediate error"))
@@ -375,11 +375,11 @@ var _ = Describe("StackCollection Tasks", func() {
 						},
 					})
 
-					tasks.DryRun = true
+					tasks.PlanMode = true
 
 					Expect(tasks.DoAllSync()).To(HaveLen(0))
 
-					tasks.DryRun = false
+					tasks.PlanMode = false
 					errs := tasks.DoAllSync()
 					Expect(errs).To(HaveLen(2))
 					Expect(errs[0].Error()).To(Equal("t1.1 always fails"))

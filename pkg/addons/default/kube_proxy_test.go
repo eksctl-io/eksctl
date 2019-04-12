@@ -38,13 +38,13 @@ var _ = Describe("default addons - kube-proxy", func() {
 		})
 
 		It("can update based on control plane version", func() {
-			err := UpdateKubeProxyImageTag(clientSet, "1.11.0", false)
+			_, err := UpdateKubeProxyImageTag(clientSet, "1.11.0", false)
 			Expect(err).ToNot(HaveOccurred())
 			check("v1.11.0")
 		})
 
 		It("can dry-run update based on control plane version", func() {
-			err := UpdateKubeProxyImageTag(clientSet, "1.12.1", true)
+			_, err := UpdateKubeProxyImageTag(clientSet, "1.12.1", true)
 			Expect(err).ToNot(HaveOccurred())
 			check("v1.10.3")
 		})

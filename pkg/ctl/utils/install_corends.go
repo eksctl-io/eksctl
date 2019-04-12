@@ -36,6 +36,7 @@ func installCoreDNSCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddApproveFlag(&plan, cmd, fs)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, false)
@@ -80,5 +81,12 @@ func doInstallCoreDNS(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg str
 
 	waitTimeout := ctl.Provider.WaitTimeout()
 
-	return defaultaddons.InstallCoreDNS(rawClient, meta.Region, &waitTimeout)
+	updateRequired, err := defaultaddons.InstallCoreDNS(rawClient, meta.Region, &waitTimeout, plan)
+	if err != nil {
+		return err
+	}
+
+	cmdutils.LogPlanModeWarning(plan && updateRequired)
+
+	return nil
 }

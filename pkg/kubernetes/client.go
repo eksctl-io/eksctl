@@ -146,12 +146,15 @@ func (r *RawResource) String() string {
 }
 
 // LogAction returns an info message that can be used to log a particular actions
-func (r *RawResource) LogAction(verb string) string {
+func (r *RawResource) LogAction(plan bool, verb string) string {
+	if plan {
+		return fmt.Sprintf("(plan) would have %s %q", verb, r)
+	}
 	return fmt.Sprintf("%s %q", verb, r)
 }
 
 // CreateOrReplace will check if the given resource exists, and create or update it as needed
-func (r *RawResource) CreateOrReplace() (string, error) {
+func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 	create := false
 	if _, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false); err != nil {
 		if !apierrs.IsNotFound(err) {
@@ -161,12 +164,11 @@ func (r *RawResource) CreateOrReplace() (string, error) {
 	}
 
 	if create {
-		_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object, &metav1.CreateOptions{})
+		_, err := r.Helper.Create(r.Info.Namespace, !plan, r.Info.Object, &metav1.CreateOptions{})
 		if err != nil {
 			return "", err
 		}
-
-		return r.LogAction("created"), nil
+		return r.LogAction(plan, "created"), nil
 	}
 
 	convertedObj, err := scheme.Scheme.ConvertToVersion(r.Info.Object, r.GVK.GroupVersion())
@@ -175,11 +177,11 @@ func (r *RawResource) CreateOrReplace() (string, error) {
 	}
 	scheme.Scheme.Default(convertedObj)
 
-	if _, err := r.Helper.Replace(r.Info.Namespace, r.Info.Name, true, r.Info.Object); err != nil {
+	if _, err := r.Helper.Replace(r.Info.Namespace, r.Info.Name, !plan, r.Info.Object); err != nil {
 		return "", err
 	}
 
-	return r.LogAction("replaced"), nil
+	return r.LogAction(plan, "replaced"), nil
 }
 
 /*
