@@ -100,15 +100,22 @@ const (
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
 
-	// ClusterNameTag defines the tag of the clsuter name
-	ClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
+	// ClusterNameTag defines the tag of the cluster name
+	ClusterNameTag = "alpha.eksctl.io/cluster-name"
+
+	// OldClusterNameTag defines the tag of the cluster name
+	OldClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
 	// NodeGroupNameTag defines the tag of the node group name
-	NodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
+	NodeGroupNameTag = "alpha.eksctl.io/nodegroup-name"
+
+	// OldNodeGroupNameTag defines the tag of the node group name
+	OldNodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
+
 	// OldNodeGroupIDTag defines the old version of tag of the node group name
 	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 
-	// ClusterNameLabel defines the tag of the clsuter name
+	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
 
 	// NodeGroupNameLabel defines the label of the node group name

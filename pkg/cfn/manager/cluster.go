@@ -155,7 +155,7 @@ func getClusterName(s *Stack) string {
 
 func getClusterNameTag(s *Stack) string {
 	for _, tag := range s.Tags {
-		if *tag.Key == api.ClusterNameTag {
+		if *tag.Key == api.ClusterNameTag || *tag.Key == api.OldClusterNameTag {
 			return *tag.Value
 		}
 	}

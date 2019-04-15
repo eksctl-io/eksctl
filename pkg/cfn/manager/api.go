@@ -291,7 +291,7 @@ func (c *StackCollection) DeleteStackByNameSync(name string, errs chan error) er
 // DeleteStackBySpec sends a request to delete the stack
 func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
 	for _, tag := range s.Tags {
-		if *tag.Key == api.ClusterNameTag && *tag.Value == c.spec.Metadata.Name {
+		if matchesClusterName(*tag.Key, *tag.Value, c.spec.Metadata.Name) {
 			input := &cloudformation.DeleteStackInput{
 				StackName: s.StackId,
 			}
@@ -308,8 +308,20 @@ func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q tag", *s.StackName,
+	return nil, fmt.Errorf("cannot delete stack %q as it doesn't bare our %q, %q tags", *s.StackName,
+		fmt.Sprintf("%s:%s", api.OldClusterNameTag, c.spec.Metadata.Name),
 		fmt.Sprintf("%s:%s", api.ClusterNameTag, c.spec.Metadata.Name))
+}
+
+func matchesClusterName(key, value, name string) bool {
+	if key == api.ClusterNameTag && value == name {
+		return true
+	}
+
+	if key == api.OldClusterNameTag && value == name {
+		return true
+	}
+	return false
 }
 
 // DeleteStackBySpecSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
