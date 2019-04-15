@@ -39,6 +39,12 @@ var ImageClasses = []string{
 	"ImageClassGPU",
 }
 
+// ImageFamilyToAccountID is a map of image families to account Ids
+var ImageFamilyToAccountID = map[string]string {
+	ImageFamilyAmazonLinux2: "602401143452",
+	ImageFamilyUbuntu1804: "099720109477",
+}
+
 // IsAvailable checks if a given AMI ID is available in AWS EC2
 func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 	input := &ec2.DescribeImagesInput{
@@ -60,8 +66,9 @@ func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
 // It will only look for images with a status of available and it will pick the
 // image with the newest creation date.
-func FindImage(api ec2iface.EC2API, namePattern string) (string, error) {
+func FindImage(api ec2iface.EC2API, namePattern string, imageFamily string) (string, error) {
 	input := &ec2.DescribeImagesInput{
+		Owners: []*string{aws.String(ImageFamilyToAccountID[imageFamily])},
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("name"),

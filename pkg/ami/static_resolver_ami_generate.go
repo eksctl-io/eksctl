@@ -39,7 +39,7 @@ func main() {
 				for _, region := range api.SupportedRegions() {
 					p := ami.ImageSearchPatterns[version][family][class]
 					log.Printf("looking up images matching %q in %q", p, region)
-					image, err := ami.FindImage(client[region], p)
+					image, err := ami.FindImage(client[region], p, family)
 					if err != nil {
 						log.Fatal(err)
 					}

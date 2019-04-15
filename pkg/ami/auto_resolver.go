@@ -60,7 +60,7 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 		}
 	}
 
-	id, err := FindImage(r.api, p)
+	id, err := FindImage(r.api, p, imageFamily)
 	if err != nil {
 		return "", errors.Wrap(err, "error getting AMI")
 	}
