@@ -62,7 +62,7 @@ const (
 	// RegionAPSouth1 represents the Asia-Pacific South Region Mumbai
 	RegionAPSouth1 = "ap-south-1"
 
-	// DefaultRegion defines the default region, where to deploy the EKS cluster
+	// DefaultRegion defines the default region, where to deploy the EKS cluster, see also DefaultAvailabilityZones
 	DefaultRegion = RegionUSWest2
 
 	// Version1_11 represents Kubernetes version 1.11.x
