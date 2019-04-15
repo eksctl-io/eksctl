@@ -17,6 +17,11 @@ type AWSEC2SpotFleet_SpotPlacement struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata-launchspecifications-placement.html#cfn-ec2-spotfleet-spotplacement-groupname
 	GroupName *Value `json:"GroupName,omitempty"`
+
+	// Tenancy AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata-launchspecifications-placement.html#cfn-ec2-spotfleet-spotplacement-tenancy
+	Tenancy *Value `json:"Tenancy,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

@@ -11,7 +11,7 @@ import (
 type AWSBatchJobDefinition struct {
 
 	// ContainerProperties AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobdefinition.html#cfn-batch-jobdefinition-containerproperties
 	ContainerProperties *AWSBatchJobDefinition_ContainerProperties `json:"ContainerProperties,omitempty"`
 
@@ -19,6 +19,11 @@ type AWSBatchJobDefinition struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobdefinition.html#cfn-batch-jobdefinition-jobdefinitionname
 	JobDefinitionName *Value `json:"JobDefinitionName,omitempty"`
+
+	// NodeProperties AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-batch-jobdefinition.html#cfn-batch-jobdefinition-nodeproperties
+	NodeProperties *AWSBatchJobDefinition_NodeProperties `json:"NodeProperties,omitempty"`
 
 	// Parameters AWS CloudFormation Property
 	// Required: false

@@ -35,6 +35,11 @@ type AWSCloudWatchAlarm struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-comparisonoperator
 	ComparisonOperator *Value `json:"ComparisonOperator,omitempty"`
 
+	// DatapointsToAlarm AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarm-datapointstoalarm
+	DatapointsToAlarm *Value `json:"DatapointsToAlarm,omitempty"`
+
 	// Dimensions AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-dimension
@@ -61,12 +66,17 @@ type AWSCloudWatchAlarm struct {
 	InsufficientDataActions []*Value `json:"InsufficientDataActions,omitempty"`
 
 	// MetricName AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-metricname
 	MetricName *Value `json:"MetricName,omitempty"`
 
+	// Metrics AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarm-metrics
+	Metrics []AWSCloudWatchAlarm_MetricDataQuery `json:"Metrics,omitempty"`
+
 	// Namespace AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-namespace
 	Namespace *Value `json:"Namespace,omitempty"`
 
@@ -76,7 +86,7 @@ type AWSCloudWatchAlarm struct {
 	OKActions []*Value `json:"OKActions,omitempty"`
 
 	// Period AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cw-alarm.html#cfn-cloudwatch-alarms-period
 	Period *Value `json:"Period,omitempty"`
 

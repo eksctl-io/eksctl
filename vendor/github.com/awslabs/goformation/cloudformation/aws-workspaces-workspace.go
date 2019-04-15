@@ -25,6 +25,11 @@ type AWSWorkSpacesWorkspace struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-rootvolumeencryptionenabled
 	RootVolumeEncryptionEnabled *Value `json:"RootVolumeEncryptionEnabled,omitempty"`
 
+	// Tags AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-tags
+	Tags []Tag `json:"Tags,omitempty"`
+
 	// UserName AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-username
@@ -39,6 +44,11 @@ type AWSWorkSpacesWorkspace struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-volumeencryptionkey
 	VolumeEncryptionKey *Value `json:"VolumeEncryptionKey,omitempty"`
+
+	// WorkspaceProperties AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-workspaces-workspace.html#cfn-workspaces-workspace-workspaceproperties
+	WorkspaceProperties *AWSWorkSpacesWorkspace_WorkspaceProperties `json:"WorkspaceProperties,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

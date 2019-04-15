@@ -45,6 +45,11 @@ type AWSAppSyncDataSource struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-datasource.html#cfn-appsync-datasource-name
 	Name *Value `json:"Name,omitempty"`
 
+	// RelationalDatabaseConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-datasource.html#cfn-appsync-datasource-relationaldatabaseconfig
+	RelationalDatabaseConfig *AWSAppSyncDataSource_RelationalDatabaseConfig `json:"RelationalDatabaseConfig,omitempty"`
+
 	// ServiceRoleArn AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-datasource.html#cfn-appsync-datasource-servicerolearn

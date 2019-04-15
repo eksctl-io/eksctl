@@ -50,6 +50,11 @@ type AWSEC2Instance struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2-instance-elasticgpuspecifications
 	ElasticGpuSpecifications []AWSEC2Instance_ElasticGpuSpecification `json:"ElasticGpuSpecifications,omitempty"`
 
+	// ElasticInferenceAccelerators AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2-instance-elasticinferenceaccelerators
+	ElasticInferenceAccelerators []AWSEC2Instance_ElasticInferenceAccelerator `json:"ElasticInferenceAccelerators,omitempty"`
+
 	// HostId AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2-instance-hostid
@@ -99,6 +104,11 @@ type AWSEC2Instance struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2-instance-launchtemplate
 	LaunchTemplate *AWSEC2Instance_LaunchTemplateSpecification `json:"LaunchTemplate,omitempty"`
+
+	// LicenseSpecifications AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2-instance-licensespecifications
+	LicenseSpecifications []AWSEC2Instance_LicenseSpecification `json:"LicenseSpecifications,omitempty"`
 
 	// Monitoring AWS CloudFormation Property
 	// Required: false

@@ -13,7 +13,7 @@ type AWSServiceDiscoveryInstance struct {
 	// InstanceAttributes AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-servicediscovery-instance.html#cfn-servicediscovery-instance-instanceattributes
-	InstanceAttributes interface{} `json:"InstanceAttributes,omitempty"`
+	InstanceAttributes *Value `json:"InstanceAttributes,omitempty"`
 
 	// InstanceId AWS CloudFormation Property
 	// Required: false

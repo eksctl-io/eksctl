@@ -11,9 +11,14 @@ import (
 type AWSCodePipelinePipeline struct {
 
 	// ArtifactStore AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-pipeline.html#cfn-codepipeline-pipeline-artifactstore
 	ArtifactStore *AWSCodePipelinePipeline_ArtifactStore `json:"ArtifactStore,omitempty"`
+
+	// ArtifactStores AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codepipeline-pipeline.html#cfn-codepipeline-pipeline-artifactstores
+	ArtifactStores []AWSCodePipelinePipeline_ArtifactStoreMap `json:"ArtifactStores,omitempty"`
 
 	// DisableInboundStageTransitions AWS CloudFormation Property
 	// Required: false

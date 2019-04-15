@@ -38,6 +38,11 @@ type AWSBatchComputeEnvironment_ComputeResources struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-computeenvironment-computeresources.html#cfn-batch-computeenvironment-computeresources-instancetypes
 	InstanceTypes []*Value `json:"InstanceTypes,omitempty"`
 
+	// LaunchTemplate AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-computeenvironment-computeresources.html#cfn-batch-computeenvironment-computeresources-launchtemplate
+	LaunchTemplate *AWSBatchComputeEnvironment_LaunchTemplateSpecification `json:"LaunchTemplate,omitempty"`
+
 	// MaxvCpus AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-computeenvironment-computeresources.html#cfn-batch-computeenvironment-computeresources-maxvcpus
@@ -47,6 +52,11 @@ type AWSBatchComputeEnvironment_ComputeResources struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-computeenvironment-computeresources.html#cfn-batch-computeenvironment-computeresources-minvcpus
 	MinvCpus *Value `json:"MinvCpus,omitempty"`
+
+	// PlacementGroup AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-batch-computeenvironment-computeresources.html#cfn-batch-computeenvironment-computeresources-placementgroup
+	PlacementGroup *Value `json:"PlacementGroup,omitempty"`
 
 	// SecurityGroupIds AWS CloudFormation Property
 	// Required: true

@@ -17,6 +17,11 @@ type AWSApiGatewayUsagePlan_ApiStage struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apigateway-usageplan-apistage.html#cfn-apigateway-usageplan-apistage-stage
 	Stage *Value `json:"Stage,omitempty"`
+
+	// Throttle AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-apigateway-usageplan-apistage.html#cfn-apigateway-usageplan-apistage-throttle
+	Throttle map[string]AWSApiGatewayUsagePlan_ThrottleSettings `json:"Throttle,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

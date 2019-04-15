@@ -25,6 +25,11 @@ type AWSDMSEndpoint struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-endpoint.html#cfn-dms-endpoint-dynamodbsettings
 	DynamoDbSettings *AWSDMSEndpoint_DynamoDbSettings `json:"DynamoDbSettings,omitempty"`
 
+	// ElasticsearchSettings AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-endpoint.html#cfn-dms-endpoint-elasticsearchsettings
+	ElasticsearchSettings *AWSDMSEndpoint_ElasticsearchSettings `json:"ElasticsearchSettings,omitempty"`
+
 	// EndpointIdentifier AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-endpoint.html#cfn-dms-endpoint-endpointidentifier
@@ -44,6 +49,11 @@ type AWSDMSEndpoint struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-endpoint.html#cfn-dms-endpoint-extraconnectionattributes
 	ExtraConnectionAttributes *Value `json:"ExtraConnectionAttributes,omitempty"`
+
+	// KinesisSettings AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dms-endpoint.html#cfn-dms-endpoint-kinesissettings
+	KinesisSettings *AWSDMSEndpoint_KinesisSettings `json:"KinesisSettings,omitempty"`
 
 	// KmsKeyId AWS CloudFormation Property
 	// Required: false

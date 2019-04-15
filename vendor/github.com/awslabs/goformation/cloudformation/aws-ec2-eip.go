@@ -19,6 +19,11 @@ type AWSEC2EIP struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip.html#cfn-ec2-eip-instanceid
 	InstanceId *Value `json:"InstanceId,omitempty"`
+
+	// PublicIpv4Pool AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-eip.html#cfn-ec2-eip-publicipv4pool
+	PublicIpv4Pool *Value `json:"PublicIpv4Pool,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

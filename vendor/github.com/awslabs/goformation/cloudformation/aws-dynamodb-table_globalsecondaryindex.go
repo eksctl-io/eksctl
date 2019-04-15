@@ -24,7 +24,7 @@ type AWSDynamoDBTable_GlobalSecondaryIndex struct {
 	Projection *AWSDynamoDBTable_Projection `json:"Projection,omitempty"`
 
 	// ProvisionedThroughput AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-dynamodb-gsi.html#cfn-dynamodb-gsi-provisionedthroughput
 	ProvisionedThroughput *AWSDynamoDBTable_ProvisionedThroughput `json:"ProvisionedThroughput,omitempty"`
 }
