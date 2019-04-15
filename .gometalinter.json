@@ -11,7 +11,8 @@
         "^pkg\/nodebootstrap\/assets.go",
         "^pkg\/testutils\/ginkgo.go",
         "^pkg\/testutils\/client.go",
-        "^pkg\/drain"
+        "^pkg\/drain",
+        "^vendor\/github.com\/awslabs\/goformation"
     ],
     "Deadline": "5m"
 }
