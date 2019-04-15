@@ -14,6 +14,11 @@ type AWSGuardDutyDetector struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-detector.html#cfn-guardduty-detector-enable
 	Enable *Value `json:"Enable,omitempty"`
+
+	// FindingPublishingFrequency AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-guardduty-detector.html#cfn-guardduty-detector-findingpublishingfrequency
+	FindingPublishingFrequency *Value `json:"FindingPublishingFrequency,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

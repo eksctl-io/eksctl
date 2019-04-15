@@ -16,7 +16,7 @@ type AWSAppSyncResolver struct {
 	ApiId *Value `json:"ApiId,omitempty"`
 
 	// DataSourceName AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-resolver.html#cfn-appsync-resolver-datasourcename
 	DataSourceName *Value `json:"DataSourceName,omitempty"`
 
@@ -24,6 +24,16 @@ type AWSAppSyncResolver struct {
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-resolver.html#cfn-appsync-resolver-fieldname
 	FieldName *Value `json:"FieldName,omitempty"`
+
+	// Kind AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-resolver.html#cfn-appsync-resolver-kind
+	Kind *Value `json:"Kind,omitempty"`
+
+	// PipelineConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-appsync-resolver.html#cfn-appsync-resolver-pipelineconfig
+	PipelineConfig *AWSAppSyncResolver_PipelineConfig `json:"PipelineConfig,omitempty"`
 
 	// RequestMappingTemplate AWS CloudFormation Property
 	// Required: false

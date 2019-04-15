@@ -65,6 +65,11 @@ type AWSS3Bucket struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-notification
 	NotificationConfiguration *AWSS3Bucket_NotificationConfiguration `json:"NotificationConfiguration,omitempty"`
 
+	// PublicAccessBlockConfiguration AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-publicaccessblockconfiguration
+	PublicAccessBlockConfiguration *AWSS3Bucket_PublicAccessBlockConfiguration `json:"PublicAccessBlockConfiguration,omitempty"`
+
 	// ReplicationConfiguration AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-replicationconfiguration

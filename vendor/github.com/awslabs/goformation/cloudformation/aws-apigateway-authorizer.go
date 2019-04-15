@@ -56,7 +56,7 @@ type AWSApiGatewayAuthorizer struct {
 	RestApiId *Value `json:"RestApiId,omitempty"`
 
 	// Type AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-authorizer.html#cfn-apigateway-authorizer-type
 	Type *Value `json:"Type,omitempty"`
 }

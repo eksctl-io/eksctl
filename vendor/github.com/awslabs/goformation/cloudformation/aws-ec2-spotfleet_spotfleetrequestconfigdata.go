@@ -23,6 +23,11 @@ type AWSEC2SpotFleet_SpotFleetRequestConfigData struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata.html#cfn-ec2-spotfleet-spotfleetrequestconfigdata-iamfleetrole
 	IamFleetRole *Value `json:"IamFleetRole,omitempty"`
 
+	// InstanceInterruptionBehavior AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata.html#cfn-ec2-spotfleet-spotfleetrequestconfigdata-instanceinterruptionbehavior
+	InstanceInterruptionBehavior *Value `json:"InstanceInterruptionBehavior,omitempty"`
+
 	// LaunchSpecifications AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata.html#cfn-ec2-spotfleet-spotfleetrequestconfigdata-launchspecifications
@@ -32,6 +37,11 @@ type AWSEC2SpotFleet_SpotFleetRequestConfigData struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata.html#cfn-ec2-spotfleet-spotfleetrequestconfigdata-launchtemplateconfigs
 	LaunchTemplateConfigs []AWSEC2SpotFleet_LaunchTemplateConfig `json:"LaunchTemplateConfigs,omitempty"`
+
+	// LoadBalancersConfig AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-spotfleet-spotfleetrequestconfigdata.html#cfn-ec2-spotfleet-spotfleetrequestconfigdata-loadbalancersconfig
+	LoadBalancersConfig *AWSEC2SpotFleet_LoadBalancersConfig `json:"LoadBalancersConfig,omitempty"`
 
 	// ReplaceUnhealthyInstances AWS CloudFormation Property
 	// Required: false

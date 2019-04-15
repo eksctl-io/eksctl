@@ -10,6 +10,11 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-model.html
 type AWSSageMakerModel struct {
 
+	// Containers AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-model.html#cfn-sagemaker-model-containers
+	Containers []AWSSageMakerModel_ContainerDefinition `json:"Containers,omitempty"`
+
 	// ExecutionRoleArn AWS CloudFormation Property
 	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-model.html#cfn-sagemaker-model-executionrolearn
@@ -21,7 +26,7 @@ type AWSSageMakerModel struct {
 	ModelName *Value `json:"ModelName,omitempty"`
 
 	// PrimaryContainer AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sagemaker-model.html#cfn-sagemaker-model-primarycontainer
 	PrimaryContainer *AWSSageMakerModel_ContainerDefinition `json:"PrimaryContainer,omitempty"`
 

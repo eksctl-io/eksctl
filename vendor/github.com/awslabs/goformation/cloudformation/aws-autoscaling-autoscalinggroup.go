@@ -80,6 +80,11 @@ type AWSAutoScalingAutoScalingGroup struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-group.html#cfn-as-group-minsize
 	MinSize *Value `json:"MinSize,omitempty"`
 
+	// MixedInstancesPolicy AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-group.html#cfn-as-group-mixedinstancespolicy
+	MixedInstancesPolicy *AWSAutoScalingAutoScalingGroup_MixedInstancesPolicy `json:"MixedInstancesPolicy,omitempty"`
+
 	// NotificationConfigurations AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-group.html#cfn-as-group-notificationconfigurations

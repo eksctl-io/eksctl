@@ -26,7 +26,7 @@ type AWSSNSSubscription struct {
 	FilterPolicy interface{} `json:"FilterPolicy,omitempty"`
 
 	// Protocol AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#cfn-sns-protocol
 	Protocol *Value `json:"Protocol,omitempty"`
 
@@ -41,7 +41,7 @@ type AWSSNSSubscription struct {
 	Region *Value `json:"Region,omitempty"`
 
 	// TopicArn AWS CloudFormation Property
-	// Required: false
+	// Required: true
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-sns-subscription.html#topicarn
 	TopicArn *Value `json:"TopicArn,omitempty"`
 }

@@ -16,12 +16,12 @@ type AWSCloudFormationWaitCondition struct {
 	Count *Value `json:"Count,omitempty"`
 
 	// Handle AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waitcondition.html#cfn-waitcondition-handle
 	Handle *Value `json:"Handle,omitempty"`
 
 	// Timeout AWS CloudFormation Property
-	// Required: true
+	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-waitcondition.html#cfn-waitcondition-timeout
 	Timeout *Value `json:"Timeout,omitempty"`
 }

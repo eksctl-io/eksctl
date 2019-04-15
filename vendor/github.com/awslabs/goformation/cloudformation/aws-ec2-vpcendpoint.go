@@ -10,15 +10,15 @@ import (
 // See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html
 type AWSEC2VPCEndpoint struct {
 
-	// IsPrivateDnsEnabled AWS CloudFormation Property
-	// Required: false
-	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-isprivatednsenabled
-	IsPrivateDnsEnabled *Value `json:"IsPrivateDnsEnabled,omitempty"`
-
 	// PolicyDocument AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-policydocument
 	PolicyDocument interface{} `json:"PolicyDocument,omitempty"`
+
+	// PrivateDnsEnabled AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-privatednsenabled
+	PrivateDnsEnabled *Value `json:"PrivateDnsEnabled,omitempty"`
 
 	// RouteTableIds AWS CloudFormation Property
 	// Required: false
@@ -40,10 +40,10 @@ type AWSEC2VPCEndpoint struct {
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-subnetids
 	SubnetIds []*Value `json:"SubnetIds,omitempty"`
 
-	// VPCEndpointType AWS CloudFormation Property
+	// VpcEndpointType AWS CloudFormation Property
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#cfn-ec2-vpcendpoint-vpcendpointtype
-	VPCEndpointType *Value `json:"VPCEndpointType,omitempty"`
+	VpcEndpointType *Value `json:"VpcEndpointType,omitempty"`
 
 	// VpcId AWS CloudFormation Property
 	// Required: true

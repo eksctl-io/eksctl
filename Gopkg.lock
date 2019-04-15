@@ -79,12 +79,11 @@
   version = "v1.17.7"
 
 [[projects]]
-  branch = "pin-eksctl"
-  digest = "1:a595f351264ed99f44de65a966344648cdcb42e2737e2405c6025550cc9cf965"
+  digest = "1:bd2a7ee52256f8c61e35da3081fffb193cd338c3811aaf9a0a6133a67473d80c"
   name = "github.com/awslabs/goformation"
   packages = ["cloudformation"]
   pruneopts = "NUT"
-  revision = "b18da3344b2d2b152f5be0fea449ac89358a9d7b"
+  revision = "089cb75cdd400501d0988843e12a9158f1ac14db"
   source = "https://github.com/errordeveloper/goformation"
 
 [[projects]]
@@ -1527,7 +1526,7 @@
   revision = "3556bcde967069b8b8bcd57be2cddcae0d8dc072"
 
 [[projects]]
-  digest = "1:5821febadfed053963bf05d82d363c0f2f3715857433cc37ff17c85a395e749c"
+  digest = "0:"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/api/legacyscheme",
@@ -1541,7 +1540,6 @@
     "pkg/apis/core/pods",
     "pkg/apis/core/v1",
     "pkg/apis/core/v1/helper",
-    "pkg/apis/core/v1/helper/qos",
     "pkg/apis/core/validation",
     "pkg/apis/extensions",
     "pkg/apis/networking",
@@ -1556,9 +1554,6 @@
     "pkg/features",
     "pkg/fieldpath",
     "pkg/kubelet/apis",
-    "pkg/kubelet/apis/config",
-    "pkg/kubelet/apis/config/v1beta1",
-    "pkg/kubelet/qos",
     "pkg/kubelet/types",
     "pkg/master/ports",
     "pkg/scheduler/algorithm",
@@ -1614,6 +1609,7 @@
   input-imports = [
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awsutil",
+    "github.com/aws/aws-sdk-go/aws/client",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/request",
@@ -1698,7 +1694,7 @@
     "k8s.io/kops/upup/pkg/fi/cloudup/awsup",
     "k8s.io/kops/upup/pkg/fi/utils",
     "k8s.io/kops/util/pkg/tables",
-    "k8s.io/kubernetes/pkg/kubelet/apis/config/v1beta1",
+    "k8s.io/kubelet/config/v1beta1",
     "sigs.k8s.io/yaml",
   ]
   solver-name = "gps-cdcl"

@@ -52,6 +52,11 @@ type AWSEventsRule_Target struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-target.html#cfn-events-rule-target-runcommandparameters
 	RunCommandParameters *AWSEventsRule_RunCommandParameters `json:"RunCommandParameters,omitempty"`
+
+	// SqsParameters AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-events-rule-target.html#cfn-events-rule-target-sqsparameters
+	SqsParameters *AWSEventsRule_SqsParameters `json:"SqsParameters,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type

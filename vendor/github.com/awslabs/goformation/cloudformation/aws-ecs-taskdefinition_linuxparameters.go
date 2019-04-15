@@ -22,6 +22,16 @@ type AWSECSTaskDefinition_LinuxParameters struct {
 	// Required: false
 	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-linuxparameters.html#cfn-ecs-taskdefinition-linuxparameters-initprocessenabled
 	InitProcessEnabled *Value `json:"InitProcessEnabled,omitempty"`
+
+	// SharedMemorySize AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-linuxparameters.html#cfn-ecs-taskdefinition-linuxparameters-sharedmemorysize
+	SharedMemorySize *Value `json:"SharedMemorySize,omitempty"`
+
+	// Tmpfs AWS CloudFormation Property
+	// Required: false
+	// See: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-linuxparameters.html#cfn-ecs-taskdefinition-linuxparameters-tmpfs
+	Tmpfs []AWSECSTaskDefinition_Tmpfs `json:"Tmpfs,omitempty"`
 }
 
 // AWSCloudFormationType returns the AWS CloudFormation resource type
