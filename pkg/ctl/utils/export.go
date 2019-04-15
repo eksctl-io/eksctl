@@ -70,7 +70,7 @@ func exportCmd(g *cmdutils.Grouping) *cobra.Command {
 
 func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
-	ngFilter.SkipAll = withoutNodeGroup
+	ngFilter.ExcludeAll = withoutNodeGroup
 
 	if err := cmdutils.NewCreateClusterLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter).Load(); err != nil {
 		return err
@@ -150,7 +150,7 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 			return err
 		}
 
-		if err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
+		if err := ngFilter.ForEach(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
 			return err
 		}
 
@@ -164,7 +164,7 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 	}
 
 	// Finalize node groups configuration
-	err := ngFilter.CheckEachNodeGroup(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+	err := ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// default override user data
 		if ng.OverrideUserData == nil {
 			logger.Info("setting default user data override")
@@ -191,9 +191,9 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 	logger.Info("exporting %s", meta.LogString())
 
 	// core action
-	ngSubset := ngFilter.MatchAll(cfg)
+	ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
 	stackManager := ctl.NewStackManager(cfg)
-	ngFilter.LogInfo(cfg)
+	ngFilter.LogInfo(cfg.NodeGroups)
 
 	templates, errs := stackManager.ExportClusterWithNodeGroups(ngSubset)
 	if len(errs) > 0 {
