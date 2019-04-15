@@ -12,29 +12,28 @@ import (
 // ExportClusterWithNodeGroups prepares all templates for export
 func (c *StackCollection) ExportClusterWithNodeGroups(onlySubset sets.String) (map[string]gfn.Template, []error) {
 	name := c.makeClusterStackName()
-	logger.Debug("preparing cluster stack %q", name)
+	logger.Info("exporting cluster stack %q", name)
 
 	stack := builder.NewClusterResourceSet(c.provider, c.spec)
 
 	templates := map[string]gfn.Template{}
 	templates[name] = stack.Template()
 
-	errs := []error{}
+	var errs []error
 	if err := stack.AddAllResources(); err != nil {
 		errs = append(errs, err)
 	}
 
-	for i := range c.spec.NodeGroups {
-		ng := c.spec.NodeGroups[i]
+	for _, ng := range c.spec.NodeGroups {
 		if onlySubset != nil && !onlySubset.Has(ng.Name) {
 			continue
 		}
 		name := c.makeNodeGroupStackName(ng.Name)
 		logger.Info("exporting nodegroup stack %q", name)
 
-		stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng)
-		templates[name] = stack.Template()
-		if err := stack.AddAllResources(); err != nil {
+		s := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng)
+		templates[name] = s.Template()
+		if err := s.AddAllResources(); err != nil {
 			errs = append(errs, err)
 		}
 		if ng.Tags == nil {

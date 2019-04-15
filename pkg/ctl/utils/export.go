@@ -132,11 +132,7 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 		if !cfg.HasAnySubnets() {
 			// default: create dedicated VPC
 			if len(cfg.AvailabilityZones) == 0 {
-				cfg.AvailabilityZones = []string{
-					cfg.Metadata.Region + "a",
-					cfg.Metadata.Region + "b",
-					cfg.Metadata.Region + "c",
-				}
+				cfg.AvailabilityZones = api.DefaultAvailabilityZones
 			}
 
 			if err := vpc.SetSubnets(cfg); err != nil {
