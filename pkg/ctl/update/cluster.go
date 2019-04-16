@@ -15,13 +15,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-var (
-	plan = true
-	wait = true
-
-	clusterConfigFile string
-)
-
 func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()

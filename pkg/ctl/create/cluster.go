@@ -28,8 +28,6 @@ var (
 	setContext         bool
 	availabilityZones  []string
 
-	clusterConfigFile = ""
-
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
 	addonsStorageClass    bool
