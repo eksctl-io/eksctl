@@ -6,6 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/iam"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
@@ -95,16 +96,21 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.N
 	return nil
 }
 
-// GetNodeGroupIAM retrieves the IAM configuration of the node group
-func (c *ClusterProvider) GetNodeGroupIAM(spec *api.ClusterConfig, ng *api.NodeGroup) error {
-	stacks, err := c.NewStackManager(spec).DescribeNodeGroupStacksAndResources()
+// GetNodeGroupIAM retrieves the IAM configuration of the given nodegroup
+func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection, spec *api.ClusterConfig, ng *api.NodeGroup) error {
+	stacks, err := stackManager.DescribeNodeGroupStacks()
 	if err != nil {
 		return err
 	}
 
-	stack, ok := stacks[ng.Name]
-	if !ok {
-		return fmt.Errorf("stack not found for node group %s", ng.Name)
+	for _, s := range stacks {
+		if stackManager.GetNodeGroupName(s) == ng.Name {
+			if !stackManager.StackStatusIsNotTransitional(s) {
+				return fmt.Errorf("nodegroup %q is in transitional state (%q)", ng.Name, *s.StackStatus)
+			}
+			return iam.UseFromNodeGroup(c.Provider, s, ng)
+		}
 	}
-	return iam.UseFromNodeGroup(c.Provider, stack.Stack, ng)
+
+	return fmt.Errorf("stack not found for nodegroup %q", ng.Name)
 }

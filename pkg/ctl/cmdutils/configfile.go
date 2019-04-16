@@ -57,7 +57,7 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	if l.path == "" {
 		for f := range l.flagsIncompatibleWithoutConfigFile {
-			if l.cmd.Flag(f).Changed {
+			if flag := l.cmd.Flag(f); flag != nil && flag.Changed {
 				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
 			}
 		}
@@ -264,6 +264,55 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 
 			return nil
 		})
+	}
+
+	return l
+}
+
+// NewDeleteNodeGroupLoader will laod config or use flags for 'eksctl delete nodegroup'
+func NewDeleteNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, ng *api.NodeGroup, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter, include, exclude []string, plan *bool) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
+
+	l.nameArg = nameArg
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"cluster",
+	)
+
+	l.validateWithConfigFile = func() error {
+		return ngFilter.AppendGlobs(include, exclude, spec.NodeGroups)
+	}
+
+	l.flagsIncompatibleWithoutConfigFile.Insert(
+		"only",
+		"include",
+		"exclude",
+		"only-missing",
+		"approve",
+	)
+
+	l.validateWithoutConfigFile = func() error {
+		if l.spec.Metadata.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+
+		if ng.Name != "" && nameArg != "" {
+			return ErrNameFlagAndArg(ng.Name, nameArg)
+		}
+
+		if nameArg != "" {
+			ng.Name = nameArg
+		}
+
+		if ng.Name == "" {
+			return ErrMustBeSet("--name")
+		}
+
+		ngFilter.AppendIncludeNames(ng.Name)
+
+		*plan = false
+
+		return nil
 	}
 
 	return l

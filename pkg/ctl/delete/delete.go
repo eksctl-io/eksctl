@@ -8,6 +8,7 @@ import (
 
 var (
 	wait = false
+	plan = true
 )
 
 // Command will create the `delete` commands

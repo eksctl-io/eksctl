@@ -72,7 +72,7 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 		if *s.StackStatus == cfn.StackStatusDeleteComplete {
 			continue
 		}
-		if getNodeGroupName(s) != "" {
+		if c.GetNodeGroupName(s) != "" {
 			nodeGroupStacks = append(nodeGroupStacks, s)
 		}
 	}
@@ -89,7 +89,7 @@ func (c *StackCollection) ListNodeGroupStacks() ([]string, error) {
 
 	names := []string{}
 	for _, s := range stacks {
-		names = append(names, getNodeGroupName(s))
+		names = append(names, c.GetNodeGroupName(s))
 	}
 	return names, nil
 }
@@ -116,7 +116,7 @@ func (c *StackCollection) DescribeNodeGroupStacksAndResources() (map[string]Stac
 		if err != nil {
 			return nil, errors.Wrapf(err, "getting all resources for %q stack", *s.StackName)
 		}
-		allResources[getNodeGroupName(s)] = StackInfo{
+		allResources[c.GetNodeGroupName(s)] = StackInfo{
 			Resources: resources.StackResources,
 			Template:  &template,
 			Stack:     s,
@@ -218,7 +218,7 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 	}
 
 	cluster := getClusterNameTag(stack)
-	name := getNodeGroupName(stack)
+	name := c.GetNodeGroupName(stack)
 	maxSize := gjson.Get(template, maxSizePath)
 	minSize := gjson.Get(template, minSizePath)
 	desired := gjson.Get(template, desiredCapacityPath)
@@ -240,7 +240,8 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 	return summary, nil
 }
 
-func getNodeGroupName(s *Stack) string {
+// GetNodeGroupName will return nodegroup name based on tags
+func (*StackCollection) GetNodeGroupName(s *Stack) string {
 	for _, tag := range s.Tags {
 		if *tag.Key == api.NodeGroupNameTag {
 			return *tag.Value
