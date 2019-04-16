@@ -35,6 +35,7 @@ func updateAWSNodeCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddApproveFlag(&plan, cmd, fs)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, false)
@@ -70,5 +71,12 @@ func doUpdateAWSNode(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	return defaultaddons.UpdateAWSNode(rawClient, meta.Region)
+	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, plan)
+	if err != nil {
+		return err
+	}
+
+	cmdutils.LogPlanModeWarning(plan && updateRequired)
+
+	return nil
 }

@@ -8,6 +8,8 @@ import (
 
 var (
 	clusterConfigFile = ""
+
+	plan = true
 )
 
 // Command will create the `utils` commands

@@ -16,9 +16,10 @@ import (
 )
 
 var (
-	updateClusterDryRun = true
-	updateClusterWait   = true
-	clusterConfigFile   string
+	plan = true
+	wait = true
+
+	clusterConfigFile string
 )
 
 func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -46,8 +47,11 @@ func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
 
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
-		fs.BoolVar(&updateClusterDryRun, "dry-run", updateClusterDryRun, "do not apply any change, only show what resources would be added")
-		cmdutils.AddWaitFlag(&updateClusterWait, fs, "all update operations to complete")
+		cmdutils.AddApproveFlag(&plan, cmd, fs)
+		fs.BoolVar(&plan, "dry-run", plan, "")
+		fs.MarkDeprecated("dry-run", "see --aprove")
+
+		cmdutils.AddWaitFlag(&wait, fs, "all update operations to complete")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, false)
@@ -110,7 +114,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(updateClusterDryRun)
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(plan)
 	if err != nil {
 		return err
 	}
@@ -120,15 +124,10 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 	}
 
 	if versionUpdateRequired {
-		msg := func(verb string) {
-			logger.Info("cluster %q control plane %s upgraded from current version %q to %q", cfg.Metadata.Name, verb, currentVersion, cfg.Metadata.Version)
-		}
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		if updateClusterDryRun {
-			msg("can be")
-		} else {
-			msg("will be")
-			if updateClusterWait {
+		cmdutils.LogIntendedAction(plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+		if !plan {
+			if wait {
 				if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
 					return err
 				}
@@ -144,9 +143,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		}
 	}
 
-	if updateClusterDryRun && (stackUpdateRequired || versionUpdateRequired) {
-		logger.Warning("no changes were applied, run again with '--dry-run=false' to apply the changes")
-	}
+	cmdutils.LogPlanModeWarning(plan && (stackUpdateRequired || versionUpdateRequired))
 
 	return nil
 }

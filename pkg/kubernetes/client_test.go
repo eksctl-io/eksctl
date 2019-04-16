@@ -20,7 +20,7 @@ var _ = Describe("kubernets client wrappers", func() {
 
 			for _, item := range sampleAddons {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
-				_, err := rc.CreateOrReplace()
+				_, err := rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(track).ToNot(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "PUT"}))
@@ -38,7 +38,7 @@ var _ = Describe("kubernets client wrappers", func() {
 
 			for _, item := range sampleAddons {
 				rc, track := testutils.NewFakeRawResource(item, true, false, ct)
-				_, err := rc.CreateOrReplace()
+				_, err := rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(track).ToNot(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "POST"}))
@@ -56,7 +56,7 @@ var _ = Describe("kubernets client wrappers", func() {
 
 			for _, item := range sampleAddons {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
-				_, err := rc.CreateOrReplace()
+				_, err := rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(track).ToNot(BeNil())
 				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "PUT"}))
@@ -78,7 +78,7 @@ var _ = Describe("kubernets client wrappers", func() {
 			for _, item := range sampleAddons {
 				rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: item})
 				Expect(err).ToNot(HaveOccurred())
-				_, err = rc.CreateOrReplace()
+				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 			}
 
@@ -137,7 +137,7 @@ var _ = Describe("kubernets client wrappers", func() {
 			for _, item := range []runtime.Object{saTest1, saTest2a, saTest2b} {
 				rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: item})
 				Expect(err).ToNot(HaveOccurred())
-				_, err = rc.CreateOrReplace()
+				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 			}
 

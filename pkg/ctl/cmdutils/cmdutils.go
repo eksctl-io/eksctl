@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -13,6 +14,53 @@ import (
 
 // IncompatibleFlags is a common substring of an error message
 const IncompatibleFlags = "cannot be used at the same time"
+
+// AddPreRun chains cmd.PreRun handlers, as cobra only allows one, so we don't
+// accidentially override one we registered earlier
+func AddPreRun(cmd *cobra.Command, newFn func(cmd *cobra.Command, args []string)) {
+	currentFn := cmd.PreRun
+	cmd.PreRun = func(cmd *cobra.Command, args []string) {
+		if currentFn != nil {
+			currentFn(cmd, args)
+		}
+		newFn(cmd, args)
+	}
+}
+
+// LogIntendedAction calls logger.Info with appropriate prefix
+func LogIntendedAction(plan bool, msgFmt string, args ...interface{}) {
+	prefix := "will "
+	if plan {
+		prefix = "(plan) would "
+	}
+	logger.Info(prefix+msgFmt, args...)
+}
+
+// LogCompletedAction calls logger.Success with appropriate prefix
+func LogCompletedAction(plan bool, msgFmt string, args ...interface{}) {
+	prefix := ""
+	if plan {
+		prefix = "(plan) would have "
+	}
+	logger.Success(prefix+msgFmt, args...)
+}
+
+// LogPlanModeWarning will log a message to inform user that they are in plan-mode
+func LogPlanModeWarning(plan bool) {
+	if plan {
+		logger.Warning("no changes were applied, run again with '--approve' to apply the changes")
+	}
+}
+
+// AddApproveFlag adds common `--approve` flag
+func AddApproveFlag(plan *bool, cmd *cobra.Command, fs *pflag.FlagSet) {
+	approve := fs.Bool("approve", !*plan, "Apply the changes")
+	AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
+		if cmd.Flag("approve").Changed {
+			*plan = !*approve
+		}
+	})
+}
 
 // GetNameArg tests to ensure there is only 1 name argument
 func GetNameArg(args []string) string {
