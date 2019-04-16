@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: podinfod
-        image: quay.io/stefanprodan/podinfo:1.0.1
+        image: stefanprodan/podinfo:1.5.1@sha256:702633d438950f3675d0763a4ca6cfcf21a4d065cd7f470446c67607b1a26750
         command:
         - ./podinfo
         - --port=8080
