@@ -349,9 +349,13 @@ eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 
 If you are using config file, you will need to do the following.
 
-Edit config file to add new nodegroups, and remove old nodegroups.
-If you just want to update nodegroups and keep the same configuration,
-you can just change nodegroup names, e.g. append `-v2` to the name.
+Get the list of old nodegroups:
+```
+old_nodegroups="$(eksctl get ng --cluster=<clusterName> --output=json | jq -r '.[].Name')"
+```
+
+Edit config file to add new nodegroups. You can remove old nodegroups from the config file now
+or do it later.
 
 To create all of new nodegroups defined in the config file, run:
 ```
@@ -360,10 +364,9 @@ eksctl create nodegroup --config-file=<path>
 
 Once you have new nodegroups in place, you can delete old ones:
 ```
-eksctl delete nodegroup --config-file=<path> --only-missing
+for ng in $old_nodegroups ; do eksctl delete nodegroup --cluster=<clusterName> --name=$ng ; done
 ```
-> NOTE: first run is in plan mode, if you are happy with the proposed
-> changes, re-run with `--approve`.
+> NOTE: all pods will be drained.
 
 #### Updating default add-ons
 
@@ -371,9 +374,6 @@ There are 3 default add-ons that get included in each EKS cluster, the process f
 there are 3 distinct commands that you will need to run.
 
 > NOTE: all of the following commands accept `--config-file`.
-
-> NOTE: by default each of these commands runs in plan mode,
-> if you are happy with the proposed changes, re-run with `--approve`.
 
 To update `kube-proxy`, run:
 ```
