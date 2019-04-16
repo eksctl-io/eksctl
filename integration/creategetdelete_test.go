@@ -191,7 +191,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						var js interface{}
 						test.PodProxyGetJSON(&pod, "", "/version", &js)
 
-						Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.0.1"))
+						Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.5.1"))
 					}
 				})
 
