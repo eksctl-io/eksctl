@@ -116,3 +116,15 @@ Topics:
   - not a replacement for `eksctl apply`
 - update about on-going efforts (#673, #695 etc)
 - more discussion of storing config in cluster, and Cluster API
+
+## 03/04/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+- @pawelprazak
+
+Topics:
+- update on v1alpha5 progress
+- @errordeveloper will be absent from next week's meeting 
+- progress on other ongoing work (#714, #741)
