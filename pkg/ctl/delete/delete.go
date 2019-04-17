@@ -9,6 +9,8 @@ import (
 var (
 	wait = false
 	plan = true
+
+	clusterConfigFile = ""
 )
 
 // Command will create the `delete` commands

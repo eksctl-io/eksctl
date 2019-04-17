@@ -18,10 +18,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-var (
-	clusterConfigFile = ""
-)
-
 func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()

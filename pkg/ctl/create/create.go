@@ -6,6 +6,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
+var (
+	clusterConfigFile = ""
+)
+
 // Command will create the `create` commands
 func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
