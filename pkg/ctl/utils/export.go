@@ -87,6 +87,8 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 		if err := ctl.CheckAuth(); err != nil {
 			return err
 		}
+	} else {
+		logger.Info("offline mode: skipping STS access check")
 	}
 
 	if !ctl.IsSupportedRegion() {
@@ -130,7 +132,6 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 		}
 
 		if !cfg.HasAnySubnets() {
-			// default: create dedicated VPC
 			if len(cfg.AvailabilityZones) == 0 {
 				cfg.AvailabilityZones = api.DefaultAvailabilityZones
 			}
@@ -141,8 +142,12 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 			return nil
 		}
 
-		if err := vpc.ImportAllSubnets(ctl.Provider, cfg); err != nil {
-			return err
+		if !offline {
+			if err := vpc.ImportAllSubnets(ctl.Provider, cfg); err != nil {
+				return err
+			}
+		} else {
+			logger.Info("offline mode: skip importing subnets")
 		}
 
 		if err := cfg.HasSufficientSubnets(); err != nil {
@@ -176,7 +181,10 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 			if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 				return err
 			}
+		} else {
+			logger.Info("offline mode: skipping AMI resolution")
 		}
+
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 
 		if err := ctl.SetNodeLabels(ng, meta); err != nil {
