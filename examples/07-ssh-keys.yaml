@@ -1,10 +1,10 @@
-# A simple example of ClusterConfig object:
+# An example of ClusterConfig showing different ways of setting nodegroup SSH keys:
 ---
 apiVersion: eksctl.io/v1alpha4
 kind: ClusterConfig
 
 metadata:
-  name: test-cluster
+  name: cluster-7
   region: eu-north-1
 
 nodeGroups:

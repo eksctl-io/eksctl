@@ -66,22 +66,22 @@ func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvi
 
 	// Load Key by content
 	case sshConfig.PublicKey != nil:
-		return ssh.LoadSSHKeyByContent(sshConfig.PublicKey, clusterName, ng.Name, provider)
+		return ssh.LoadKeyByContent(sshConfig.PublicKey, clusterName, ng.Name, provider)
 
 	// Use key by name in EC2
 	case sshConfig.PublicKeyName != nil && *sshConfig.PublicKeyName != "":
-		if err := ssh.CheckKeyExistsInEc2(*sshConfig.PublicKeyName, provider); err != nil {
+		if err := ssh.CheckKeyExistsInEC2(*sshConfig.PublicKeyName, provider); err != nil {
 			return err
 		}
 		logger.Info("using EC2 key pair %q", *sshConfig.PublicKeyName)
 
 	// Local ssh key file
 	case ssh.FileExists(*sshConfig.PublicKeyPath):
-		return ssh.LoadSSHKeyFromFile(*sshConfig.PublicKeyPath, clusterName, ng.Name, provider)
+		return ssh.LoadKeyFromFile(*sshConfig.PublicKeyPath, clusterName, ng.Name, provider)
 
 	// A keyPath, when specified as a flag, can mean a local key or a key name in EC2
 	default:
-		err := ssh.CheckKeyExistsInEc2(*sshConfig.PublicKeyPath, provider)
+		err := ssh.CheckKeyExistsInEC2(*sshConfig.PublicKeyPath, provider)
 		if err != nil {
 			ng.SSH.PublicKeyName = sshConfig.PublicKeyPath
 			ng.SSH.PublicKeyPath = nil

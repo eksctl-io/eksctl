@@ -1,8 +1,7 @@
 package manager
 
 import (
-	"errors"
-
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
@@ -109,7 +108,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					TemplateBody: aws.String("TEMPLATE_BODY"),
 				}, nil)
 
-				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, errors.New("GetTemplate failed"))
+				p.MockCloudFormation().On("GetTemplate", mock.Anything).Return(nil, fmt.Errorf("GetTemplate failed"))
 
 				p.MockCloudFormation().On("ListStacksPages", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 					consume := args[1].(func(p *cfn.ListStacksOutput, last bool) (shouldContinue bool))
@@ -144,7 +143,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 					},
 				}, nil)
 
-				p.MockCloudFormation().On("DescribeStacks", mock.Anything).Return(nil, errors.New("DescribeStacks failed"))
+				p.MockCloudFormation().On("DescribeStacks", mock.Anything).Return(nil, fmt.Errorf("DescribeStacks failed"))
 			})
 
 			Context("With no matching stacks", func() {
