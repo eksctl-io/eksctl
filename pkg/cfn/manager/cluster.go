@@ -140,6 +140,24 @@ func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error)
 	return true, c.UpdateStack(name, c.MakeChangeSetName("update-cluster"), describeUpdate, []byte(currentTemplate), nil)
 }
 
+// TODO call this from UpdateClusterVersionBlocking ?
+// EnsureTagsAreLatestVersion updates the cluster name tags if needed
+func (c *StackCollection) EnsureTagsAreLatestVersion(s *Stack) {
+	tags := make([]*cfn.Tag, len(s.Tags)-1)
+	for _, tag := range s.Tags {
+		// Rename old tag to new name
+		if *tag.Key == api.OldClusterNameTag {
+			tags = append(tags, newTag(api.ClusterNameTag, *tag.Value))
+		} else {
+			tags = append(tags, tag)
+		}
+	}
+	input := cfn.UpdateStackSetInput{
+		Tags: tags,
+	}
+	c.provider.CloudFormation().UpdateStackSetRequest(&input)
+}
+
 func getClusterName(s *Stack) string {
 	if strings.HasSuffix(*s.StackName, "-cluster") {
 		if v := getClusterNameTag(s); v != "" {
