@@ -30,7 +30,7 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 		}
 	}
 
-	numSSHFlagsEnabled := countEnabledFlags(
+	numSSHFlagsEnabled := countEnabledFields(
 		ng.SSH.PublicKeyName,
 		ng.SSH.PublicKeyPath,
 		ng.SSH.PublicKey)

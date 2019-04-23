@@ -99,7 +99,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	ssh.DeletePublicSSHKeys(meta.Name, ctl.Provider)
+	ssh.DeleteKeys(meta.Name, ctl.Provider)
 
 	kubeconfig.MaybeDeleteConfig(meta)
 

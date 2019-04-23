@@ -1,7 +1,6 @@
 package v1alpha4
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -137,7 +136,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if err := validateNodeGroupSSH(ng.SSH); err != nil {
-		return errors.New("only one ssh public key can be specified per node-group")
+		return fmt.Errorf("only one ssh public key can be specified per node-group")
 	}
 	return nil
 }
@@ -146,20 +145,20 @@ func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
 	if SSH == nil {
 		return nil
 	}
-	numSSHFlagsEnabled := countEnabledFlags(
+	numSSHFlagsEnabled := countEnabledFields(
 		SSH.PublicKeyPath,
 		SSH.PublicKey,
 		SSH.PublicKeyName)
 
 	if numSSHFlagsEnabled > 1 {
-		return errors.New("only one ssh public key can be specified per node-group")
+		return fmt.Errorf("only one ssh public key can be specified per node-group")
 	}
 	return nil
 }
 
-func countEnabledFlags(flags ...*string) int {
+func countEnabledFields(fields ...*string) int {
 	count := 0
-	for _, flag := range flags {
+	for _, flag := range fields {
 		if flag != nil && *flag != "" {
 			count++
 		}
