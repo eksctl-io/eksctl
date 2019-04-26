@@ -4,6 +4,11 @@ package nodebootstrap
 
 // Source: https://raw.github.com/awslabs/amazon-eks-ami/master/files/eni-max-pods.txt
 var maxPodsPerNodeType = map[string]int{
+	"a1.2xlarge":    58,
+	"a1.4xlarge":    234,
+	"a1.large":      29,
+	"a1.medium":     8,
+	"a1.xlarge":     58,
 	"c1.medium":     12,
 	"c1.xlarge":     58,
 	"c3.2xlarge":    58,
