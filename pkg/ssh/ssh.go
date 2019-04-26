@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -19,23 +18,24 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-// LoadKeyFromFile loads and imports a public SSH key from a file provided a path to that file
-func LoadKeyFromFile(filePath, clusterName, ngName string, provider api.ClusterProvider) error {
-	if err := checkFileExists(filePath); err != nil {
-		return errors.Wrap(err, fmt.Sprintf("SSH public key file %q not found", filePath))
+// LoadKeyFromFile loads and imports a public SSH key from a file provided a path to that file.
+// returns the name of the key
+func LoadKeyFromFile(filePath, clusterName, ngName string, provider api.ClusterProvider) (string, error) {
+	if err := utils.CheckFileExists(filePath); err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("SSH public key file %q not found", filePath))
 	}
 
 	expandedPath := utils.ExpandPath(filePath)
 	fileContent, err := readFileContents(expandedPath)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
+		return "", errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
 	}
 
 	key := string(fileContent)
 
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(key)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", filePath))
+		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", filePath))
 	}
 	keyName := getKeyName(clusterName, ngName, fingerprint)
 
@@ -43,16 +43,16 @@ func LoadKeyFromFile(filePath, clusterName, ngName string, provider api.ClusterP
 
 	// Import SSH key in EC2
 	if err := importKey(keyName, fingerprint, &key, provider); err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return keyName, nil
 }
 
 // LoadKeyByContent loads and imports an SSH public key into EC2 if it doesn't exist
-func LoadKeyByContent(key *string, clusterName, ngName string, provider api.ClusterProvider) error {
+func LoadKeyByContent(key *string, clusterName, ngName string, provider api.ClusterProvider) (string, error) {
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(*key)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", *key))
+		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", *key))
 	}
 	keyName := getKeyName(clusterName, ngName, fingerprint)
 
@@ -60,9 +60,9 @@ func LoadKeyByContent(key *string, clusterName, ngName string, provider api.Clus
 
 	// Import SSH key in EC2
 	if err := importKey(keyName, fingerprint, key, provider); err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return keyName, nil
 }
 
 // DeleteKeys will delete the public SSH key, if it exists
@@ -109,15 +109,6 @@ func CheckKeyExistsInEC2(sshKeyName string, provider api.ClusterProvider) error 
 	}
 
 	return nil
-}
-
-// FileExists returns true if there is a local file with that path
-func FileExists(filePath string) bool {
-	extendedPath := utils.ExpandPath(filePath)
-	if _, err := os.Stat(extendedPath); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }
 
 func importKey(keyName, fingerprint string, keyContent *string, provider api.ClusterProvider) error {
@@ -179,14 +170,6 @@ func findKeyInEc2(name string, provider api.ClusterProvider) (*ec2.KeyPairInfo, 
 		return nil, fmt.Errorf("unexpected number of key pairs found (expected: 1, got: %d)", len(output.KeyPairs))
 	}
 	return output.KeyPairs[0], nil
-}
-
-func checkFileExists(filePath string) error {
-	extendedPath := utils.ExpandPath(filePath)
-	if _, err := os.Stat(extendedPath); os.IsNotExist(err) {
-		return err
-	}
-	return nil
 }
 
 func readFileContents(filePath string) ([]byte, error) {

@@ -38,7 +38,7 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	if numSSHFlagsEnabled > 0 {
 		ng.SSH.Allow = Enabled()
 	} else {
-		if ng.SSH.Allow != nil && *ng.SSH.Allow {
+		if IsEnabled(ng.SSH.Allow) {
 			ng.SSH.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
 		} else {
 			ng.SSH.Allow = Disabled()
