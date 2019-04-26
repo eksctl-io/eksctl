@@ -2,6 +2,7 @@ package kubeconfig
 
 import (
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"os"
 	"path"
 	"strings"
@@ -172,17 +173,14 @@ func isValidConfig(p, name string) error {
 func MaybeDeleteConfig(cl *api.ClusterMeta) {
 	p := AutoPath(cl.Name)
 
-	if _, err := os.Stat(p); err == nil {
-		if err = isValidConfig(p, cl.Name); err != nil {
+	if file.Exists(p) {
+		if err := isValidConfig(p, cl.Name); err != nil {
 			logger.Debug(err.Error())
 			return
 		}
-		if err = os.Remove(p); err != nil {
+		if err := os.Remove(p); err != nil {
 			logger.Debug("ignoring error while removing auto-generated config file %q: %s", p, err.Error())
 		}
-		return
-	} else if !os.IsNotExist(err) {
-		logger.Debug("error checking if auto-generated kubeconfig file exists %q: %s", p, err.Error())
 		return
 	}
 

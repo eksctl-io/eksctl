@@ -135,5 +135,33 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
+	if err := validateNodeGroupSSH(ng.SSH); err != nil {
+		return fmt.Errorf("only one ssh public key can be specified per node-group")
+	}
 	return nil
+}
+
+func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
+	if SSH == nil {
+		return nil
+	}
+	numSSHFlagsEnabled := countEnabledFields(
+		SSH.PublicKeyPath,
+		SSH.PublicKey,
+		SSH.PublicKeyName)
+
+	if numSSHFlagsEnabled > 1 {
+		return fmt.Errorf("only one ssh public key can be specified per node-group")
+	}
+	return nil
+}
+
+func countEnabledFields(fields ...*string) int {
+	count := 0
+	for _, flag := range fields {
+		if flag != nil && *flag != "" {
+			count++
+		}
+	}
+	return count
 }

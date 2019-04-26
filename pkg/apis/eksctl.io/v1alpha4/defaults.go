@@ -30,17 +30,19 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 		}
 	}
 
-	if ng.SSH.Allow == nil {
-		ng.SSH.Allow = Disabled()
-	}
+	numSSHFlagsEnabled := countEnabledFields(
+		ng.SSH.PublicKeyName,
+		ng.SSH.PublicKeyPath,
+		ng.SSH.PublicKey)
 
-	// Enable SSH when a key is provided
-	if ng.SSH.PublicKeyPath != nil {
+	if numSSHFlagsEnabled > 0 {
 		ng.SSH.Allow = Enabled()
-	}
-
-	if *ng.SSH.Allow && ng.SSH.PublicKeyPath == nil {
-		ng.SSH.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
+	} else {
+		if IsEnabled(ng.SSH.Allow) {
+			ng.SSH.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
+		} else {
+			ng.SSH.Allow = Disabled()
+		}
 	}
 
 	if ng.VolumeSize > 0 {
