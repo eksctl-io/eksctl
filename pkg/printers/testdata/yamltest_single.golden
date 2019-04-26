@@ -3,9 +3,12 @@
   ClientRequestToken: null
   CreatedAt: "0001-01-01T00:00:00Z"
   Endpoint: null
+  Logging: null
   Name: test-cluster
   PlatformVersion: null
   ResourcesVpcConfig:
+    EndpointPrivateAccess: null
+    EndpointPublicAccess: null
     SecurityGroupIds: null
     SubnetIds:
     - sub1

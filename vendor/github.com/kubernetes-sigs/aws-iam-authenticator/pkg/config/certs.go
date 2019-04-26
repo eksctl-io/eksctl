@@ -138,9 +138,9 @@ func (c *Config) selfSignCertificate() ([]byte, []byte, error) {
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		IsCA:        true,
-		DNSNames:    []string{c.Hostname},
-		IPAddresses: []net.IP{net.ParseIP(c.Address)},
+		IsCA:                  true,
+		DNSNames:              []string{c.Hostname},
+		IPAddresses:           []net.IP{net.ParseIP(c.Address)},
 	}
 
 	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)

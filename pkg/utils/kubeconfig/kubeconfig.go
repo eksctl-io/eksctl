@@ -9,7 +9,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -18,12 +17,19 @@ import (
 var DefaultPath = clientcmd.RecommendedHomeFile
 
 const (
-	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
-	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
-
 	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
 	AWSIAMAuthenticator = "aws-iam-authenticator"
+	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
+	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 )
+
+// AuthenticatorCommands returns all of authenticator commands
+func AuthenticatorCommands() []string {
+	return []string{
+		AWSIAMAuthenticator,
+		HeptioAuthenticatorAWS,
+	}
+}
 
 // New creates Kubernetes client configuration for a given username
 // if certificateAuthorityPath is no empty, it is used instead of
@@ -166,12 +172,7 @@ func isValidConfig(p, name string) error {
 func MaybeDeleteConfig(cl *api.ClusterMeta) {
 	p := AutoPath(cl.Name)
 
-	autoConfExists, err := utils.FileExists(p)
-	if err != nil {
-		logger.Debug("error checking if auto-generated kubeconfig file exists %q: %s", p, err.Error())
-		return
-	}
-	if autoConfExists {
+	if _, err := os.Stat(p); err == nil {
 		if err = isValidConfig(p, cl.Name); err != nil {
 			logger.Debug(err.Error())
 			return
@@ -179,6 +180,9 @@ func MaybeDeleteConfig(cl *api.ClusterMeta) {
 		if err = os.Remove(p); err != nil {
 			logger.Debug("ignoring error while removing auto-generated config file %q: %s", p, err.Error())
 		}
+		return
+	} else if !os.IsNotExist(err) {
+		logger.Debug("error checking if auto-generated kubeconfig file exists %q: %s", p, err.Error())
 		return
 	}
 

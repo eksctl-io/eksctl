@@ -481,6 +481,84 @@ func (_m *EKSAPI) ListUpdatesWithContext(_a0 context.Context, _a1 *eks.ListUpdat
 	return r0, r1
 }
 
+// UpdateClusterConfig provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateClusterConfig(_a0 *eks.UpdateClusterConfigInput) (*eks.UpdateClusterConfigOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.UpdateClusterConfigOutput
+	if rf, ok := ret.Get(0).(func(*eks.UpdateClusterConfigInput) *eks.UpdateClusterConfigOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateClusterConfigOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.UpdateClusterConfigInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateClusterConfigRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateClusterConfigRequest(_a0 *eks.UpdateClusterConfigInput) (*request.Request, *eks.UpdateClusterConfigOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.UpdateClusterConfigInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.UpdateClusterConfigOutput
+	if rf, ok := ret.Get(1).(func(*eks.UpdateClusterConfigInput) *eks.UpdateClusterConfigOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.UpdateClusterConfigOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateClusterConfigWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) UpdateClusterConfigWithContext(_a0 context.Context, _a1 *eks.UpdateClusterConfigInput, _a2 ...request.Option) (*eks.UpdateClusterConfigOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.UpdateClusterConfigOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateClusterConfigInput, ...request.Option) *eks.UpdateClusterConfigOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateClusterConfigOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateClusterConfigInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateClusterVersion provides a mock function with given fields: _a0
 func (_m *EKSAPI) UpdateClusterVersion(_a0 *eks.UpdateClusterVersionInput) (*eks.UpdateClusterVersionOutput, error) {
 	ret := _m.Called(_a0)
