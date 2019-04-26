@@ -7,7 +7,8 @@ import (
 
 // Exists checks to see if a file exists.
 func Exists(path string) bool {
-	_, err := os.Stat(path)
+	extendedPath := ExpandPath(path)
+	_, err := os.Stat(extendedPath)
 
 	return err == nil
 }
