@@ -3,6 +3,7 @@ package create
 import (
 	"fmt"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -66,7 +67,11 @@ func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvi
 
 	// Load Key by content
 	case sshConfig.PublicKey != nil:
-		return ssh.LoadKeyByContent(sshConfig.PublicKey, clusterName, ng.Name, provider)
+		keyName, err := ssh.LoadKeyByContent(sshConfig.PublicKey, clusterName, ng.Name, provider)
+		if err != nil {
+			return err
+		}
+		sshConfig.PublicKeyName = &keyName
 
 	// Use key by name in EC2
 	case sshConfig.PublicKeyName != nil && *sshConfig.PublicKeyName != "":
@@ -76,8 +81,12 @@ func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvi
 		logger.Info("using EC2 key pair %q", *sshConfig.PublicKeyName)
 
 	// Local ssh key file
-	case ssh.FileExists(*sshConfig.PublicKeyPath):
-		return ssh.LoadKeyFromFile(*sshConfig.PublicKeyPath, clusterName, ng.Name, provider)
+	case utils.CheckFileExists(*sshConfig.PublicKeyPath) != nil:
+		keyName, err := ssh.LoadKeyFromFile(*sshConfig.PublicKeyPath, clusterName, ng.Name, provider)
+		if err != nil {
+			return err
+		}
+		sshConfig.PublicKeyName = &keyName
 
 	// A keyPath, when specified as a flag, can mean a local key or a key name in EC2
 	default:

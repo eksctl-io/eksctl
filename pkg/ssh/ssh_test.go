@@ -31,9 +31,10 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, make(map[string]string))
 			mockImportKeyPair(mockProvider, keyName, fingerprint, key)
 
-			err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, *mockProvider)
+			keyName, err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, *mockProvider)
 
 			Expect(err).ToNot(HaveOccurred())
+			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockProvider.MockEC2().AssertCalled(GinkgoT(),
 				"ImportKeyPair",
 				&ec2.ImportKeyPairInput{
@@ -46,9 +47,10 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, map[string]string{keyName: fingerprint})
 			mockImportKeyPairError(mockProvider, errors.New("the key shouldn't be imported in this test"))
 
-			err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, *mockProvider)
+			keyName, err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, *mockProvider)
 
 			Expect(err).ToNot(HaveOccurred())
+			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockProvider.MockEC2().AssertNotCalled(GinkgoT(), "ImportKeyPair", mock.Anything)
 		})
 
@@ -57,14 +59,15 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, map[string]string{keyName: differentFingerprint})
 			mockImportKeyPairError(mockProvider, errors.New("the key shouldn't be imported in this test"))
 
-			err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, *mockProvider)
+			_, err := LoadKeyFromFile("assets/id_rsa_tests1.pub", clusterName, ngName, *mockProvider)
 
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("but fingerprints don't match"))
 		})
 
 		It("should return error if the file does not exist", func() {
-			err := LoadKeyFromFile("assets/file_not_existing.pub", clusterName, ngName, *mockProvider)
+			_, err := LoadKeyFromFile("assets/file_not_existing.pub", clusterName, ngName, *mockProvider)
+
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -74,9 +77,10 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, make(map[string]string))
 			mockImportKeyPair(mockProvider, keyName, fingerprint, key)
 
-			err := LoadKeyByContent(&key, clusterName, ngName, *mockProvider)
+			keyName, err := LoadKeyByContent(&key, clusterName, ngName, *mockProvider)
 
 			Expect(err).ToNot(HaveOccurred())
+			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockProvider.MockEC2().AssertCalled(GinkgoT(),
 				"ImportKeyPair",
 				&ec2.ImportKeyPairInput{
@@ -89,9 +93,10 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, map[string]string{keyName: fingerprint})
 			mockImportKeyPairError(mockProvider, errors.New("the key shouldn't be imported in this test"))
 
-			err := LoadKeyByContent(&key, clusterName, ngName, *mockProvider)
+			keyName, err := LoadKeyByContent(&key, clusterName, ngName, *mockProvider)
 
 			Expect(err).ToNot(HaveOccurred())
+			Expect(keyName).To(Equal("eksctl-sshtestcluster-nodegroup-ng1-f5:d9:01:88:1e:fb:40:fb:e1:ca:69:fe:2e:31:03:6c"))
 			mockProvider.MockEC2().AssertNotCalled(GinkgoT(), "ImportKeyPair", mock.Anything)
 		})
 
@@ -100,7 +105,7 @@ var _ = Describe("ssh public key", func() {
 			mockDescribeKeyPairs(mockProvider, map[string]string{keyName: differentFingerprint})
 			mockImportKeyPairError(mockProvider, errors.New("the key shouldn't be imported in this test"))
 
-			err := LoadKeyByContent(&key, clusterName, ngName, *mockProvider)
+			_, err := LoadKeyByContent(&key, clusterName, ngName, *mockProvider)
 
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("but fingerprints don't match"))
