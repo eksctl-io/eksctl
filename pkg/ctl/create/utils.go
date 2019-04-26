@@ -3,7 +3,7 @@ package create
 import (
 	"fmt"
 	"github.com/weaveworks/eksctl/pkg/ssh"
-	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -81,7 +81,7 @@ func loadSSHKey(ng *api.NodeGroup, clusterName string, provider api.ClusterProvi
 		logger.Info("using EC2 key pair %q", *sshConfig.PublicKeyName)
 
 	// Local ssh key file
-	case utils.CheckFileExists(*sshConfig.PublicKeyPath) != nil:
+	case file.Exists(*sshConfig.PublicKeyPath):
 		keyName, err := ssh.LoadKeyFromFile(*sshConfig.PublicKeyPath, clusterName, ng.Name, provider)
 		if err != nil {
 			return err

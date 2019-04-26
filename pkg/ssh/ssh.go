@@ -3,6 +3,7 @@ package ssh
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"io/ioutil"
 	"strings"
 
@@ -15,17 +16,16 @@ import (
 	"k8s.io/kops/pkg/pki"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 // LoadKeyFromFile loads and imports a public SSH key from a file provided a path to that file.
 // returns the name of the key
 func LoadKeyFromFile(filePath, clusterName, ngName string, provider api.ClusterProvider) (string, error) {
-	if err := utils.CheckFileExists(filePath); err != nil {
-		return "", errors.Wrap(err, fmt.Sprintf("SSH public key file %q not found", filePath))
+	if !file.Exists(filePath) {
+		return "", fmt.Errorf("SSH public key file %q not found", filePath)
 	}
 
-	expandedPath := utils.ExpandPath(filePath)
+	expandedPath := file.ExpandPath(filePath)
 	fileContent, err := readFileContents(expandedPath)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("reading SSH public key file %q", filePath))
