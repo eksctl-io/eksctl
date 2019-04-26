@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+
 	goVersion "github.com/christopherhein/go-version"
 	"github.com/spf13/cobra"
 )
 
 var (
 	shortened  = false
-	version    = ""
+	version    = "unversioned"
 	commit     = ""
 	date       = ""
 	versionCmd = &cobra.Command{

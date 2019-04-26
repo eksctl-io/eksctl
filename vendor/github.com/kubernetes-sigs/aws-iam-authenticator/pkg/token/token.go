@@ -20,10 +20,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -65,10 +67,27 @@ type Identity struct {
 }
 
 const (
-	v1Prefix         = "k8s-aws-v1."
-	maxTokenLenBytes = 1024 * 4
-	clusterIDHeader  = "x-k8s-aws-id"
+	// The sts GetCallerIdentity request is valid for 15 minutes regardless of this parameters value after it has been
+	// signed, but we set this unused parameter to 60 for legacy reasons (we check for a value between 0 and 60 on the
+	// server side in 0.3.0 or earlier).  IT IS IGNORED.  If we can get STS to support x-amz-expires, then we should
+	// set this parameter to the actual expiration, and make it configurable.
+	requestPresignParam = 60
+	// The actual token expiration (presigned STS urls are valid for 15 minutes after timestamp in x-amz-date).
+	presignedURLExpiration = 15 * time.Minute
+	v1Prefix               = "k8s-aws-v1."
+	maxTokenLenBytes       = 1024 * 4
+	clusterIDHeader        = "x-k8s-aws-id"
+	// Format of the X-Amz-Date header used for expiration
+	// https://golang.org/pkg/time/#pkg-constants
+	dateHeaderFormat = "20060102T150405Z"
+	hostRegexp       = `^sts(\.[a-z1-9\-]+)?\.amazonaws\.com(\.cn)?$`
 )
+
+// Token is generated and used by Kubernetes client-go to authenticate with a Kubernetes cluster.
+type Token struct {
+	Token      string
+	Expiration time.Time
+}
 
 // FormatError is returned when there is a problem with token that is
 // an encoded sts request.  This can include the url, data, action or anything
@@ -125,31 +144,33 @@ type getCallerIdentityWrapper struct {
 // Generator provides new tokens for the heptio authenticator.
 type Generator interface {
 	// Get a token using credentials in the default credentials chain.
-	Get(string) (string, error)
+	Get(string) (Token, error)
 	// GetWithRole creates a token by assuming the provided role, using the credentials in the default chain.
-	GetWithRole(clusterID, roleARN string) (string, error)
+	GetWithRole(clusterID, roleARN string) (Token, error)
 	// GetWithRoleForSession creates a token by assuming the provided role, using the provided session.
-	GetWithRoleForSession(clusterID string, roleARN string, sess *session.Session) (string, error)
+	GetWithRoleForSession(clusterID string, roleARN string, sess *session.Session) (Token, error)
 	// GetWithSTS returns a token valid for clusterID using the given STS client.
-	GetWithSTS(clusterID string, stsAPI *sts.STS) (string, error)
+	GetWithSTS(clusterID string, stsAPI *sts.STS) (Token, error)
 	// FormatJSON returns the client auth formatted json for the ExecCredential auth
-	FormatJSON(string) string
+	FormatJSON(Token) string
 }
 
 type generator struct {
 	forwardSessionName bool
+	cache              bool
 }
 
 // NewGenerator creates a Generator and returns it.
-func NewGenerator(forwardSessionName bool) (Generator, error) {
+func NewGenerator(forwardSessionName bool, cache bool) (Generator, error) {
 	return generator{
 		forwardSessionName: forwardSessionName,
+		cache:              cache,
 	}, nil
 }
 
 // Get uses the directly available AWS credentials to return a token valid for
 // clusterID. It follows the default AWS credential handling behavior.
-func (g generator) Get(clusterID string) (string, error) {
+func (g generator) Get(clusterID string) (Token, error) {
 	return g.GetWithRole(clusterID, "")
 }
 
@@ -162,7 +183,7 @@ func StdinStderrTokenProvider() (string, error) {
 
 // GetWithRole assumes the given AWS IAM role and returns a token valid for
 // clusterID. If roleARN is empty, behaves like Get (does not assume a role).
-func (g generator) GetWithRole(clusterID string, roleARN string) (string, error) {
+func (g generator) GetWithRole(clusterID string, roleARN string) (Token, error) {
 	// create a session with the "base" credentials available
 	// (from environment variable, profile files, EC2 metadata, etc)
 	sess, err := session.NewSessionWithOptions(session.Options{
@@ -170,15 +191,30 @@ func (g generator) GetWithRole(clusterID string, roleARN string) (string, error)
 		SharedConfigState:       session.SharedConfigEnable,
 	})
 	if err != nil {
-		return "", fmt.Errorf("could not create session: %v", err)
+		return Token{}, fmt.Errorf("could not create session: %v", err)
+	}
+	if g.cache {
+		// figure out what profile we're using
+		var profile string
+		if v := os.Getenv("AWS_PROFILE"); len(v) > 0 {
+			profile = v
+		} else {
+			profile = session.DefaultSharedConfigProfile
+		}
+		// create a cacheing Provider wrapper around the Credentials
+		if cacheProvider, err := NewFileCacheProvider(clusterID, profile, roleARN, sess.Config.Credentials); err == nil {
+			sess.Config.Credentials = credentials.NewCredentials(&cacheProvider)
+		} else {
+			_, _ = fmt.Fprintf(os.Stderr, "unable to use cache: %v\n", err)
+		}
 	}
 
 	return g.GetWithRoleForSession(clusterID, roleARN, sess)
 }
 
-// GetWithRole assumes the given AWS IAM role for the given session and behaves
+// GetWithRoleForSession assumes the given AWS IAM role for the given session and behaves
 // like GetWithRole.
-func (g generator) GetWithRoleForSession(clusterID string, roleARN string, sess *session.Session) (string, error) {
+func (g generator) GetWithRoleForSession(clusterID string, roleARN string, sess *session.Session) (Token, error) {
 	// use an STS client based on the direct credentials
 	stsAPI := sts.New(sess)
 
@@ -192,7 +228,7 @@ func (g generator) GetWithRoleForSession(clusterID string, roleARN string, sess 
 			// capabilities
 			resp, err := stsAPI.GetCallerIdentity(&sts.GetCallerIdentityInput{})
 			if err != nil {
-				return "", err
+				return Token{}, err
 			}
 
 			userIDParts := strings.Split(*resp.UserId, ":")
@@ -214,30 +250,39 @@ func (g generator) GetWithRoleForSession(clusterID string, roleARN string, sess 
 }
 
 // GetWithSTS returns a token valid for clusterID using the given STS client.
-func (g generator) GetWithSTS(clusterID string, stsAPI *sts.STS) (string, error) {
+func (g generator) GetWithSTS(clusterID string, stsAPI *sts.STS) (Token, error) {
 	// generate an sts:GetCallerIdentity request and add our custom cluster ID header
 	request, _ := stsAPI.GetCallerIdentityRequest(&sts.GetCallerIdentityInput{})
 	request.HTTPRequest.Header.Add(clusterIDHeader, clusterID)
 
-	// sign the request
-	presignedURLString, err := request.Presign(60 * time.Second)
+	// Sign the request.  The expires parameter (sets the x-amz-expires header) is
+	// currently ignored by STS, and the token expires 15 minutes after the x-amz-date
+	// timestamp regardless.  We set it to 60 seconds for backwards compatibility (the
+	// parameter is a required argument to Presign(), and authenticators 0.3.0 and older are expecting a value between
+	// 0 and 60 on the server side).
+	// https://github.com/aws/aws-sdk-go/issues/2167
+	presignedURLString, err := request.Presign(requestPresignParam)
 	if err != nil {
-		return "", err
+		return Token{}, err
 	}
 
+	// Set token expiration to 1 minute before the presigned URL expires for some cushion
+	tokenExpiration := time.Now().Local().Add(presignedURLExpiration - 1*time.Minute)
 	// TODO: this may need to be a constant-time base64 encoding
-	return v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(presignedURLString)), nil
+	return Token{v1Prefix + base64.RawURLEncoding.EncodeToString([]byte(presignedURLString)), tokenExpiration}, nil
 }
 
 // FormatJSON formats the json to support ExecCredential authentication
-func (g generator) FormatJSON(token string) string {
+func (g generator) FormatJSON(token Token) string {
+	expirationTimestamp := metav1.NewTime(token.Expiration)
 	execInput := &clientauthv1alpha1.ExecCredential{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "client.authentication.k8s.io/v1alpha1",
 			Kind:       "ExecCredential",
 		},
 		Status: &clientauthv1alpha1.ExecCredentialStatus{
-			Token: token,
+			ExpirationTimestamp: &expirationTimestamp,
+			Token:               token.Token,
 		},
 	}
 	enc, _ := json.Marshal(execInput)
@@ -260,6 +305,15 @@ func NewVerifier(clusterID string) Verifier {
 		client:    http.DefaultClient,
 		clusterID: clusterID,
 	}
+}
+
+// verify a sts host, doc: http://docs.amazonaws.cn/en_us/general/latest/gr/rande.html#sts_region
+func (v tokenVerifier) verifyHost(host string) error {
+	if match, _ := regexp.MatchString(hostRegexp, host); !match {
+		return FormatError{fmt.Sprintf("unexpected hostname %q in pre-signed URL", host)}
+	}
+
+	return nil
 }
 
 // Verify a token is valid for the specified clusterID. On success, returns an
@@ -289,8 +343,8 @@ func (v tokenVerifier) Verify(token string) (*Identity, error) {
 		return nil, FormatError{fmt.Sprintf("unexpected scheme %q in pre-signed URL", parsedURL.Scheme)}
 	}
 
-	if parsedURL.Host != "sts.amazonaws.com" {
-		return nil, FormatError{"unexpected hostname in pre-signed URL"}
+	if err = v.verifyHost(parsedURL.Host); err != nil {
+		return nil, err
 	}
 
 	if parsedURL.Path != "/" {
@@ -317,9 +371,27 @@ func (v tokenVerifier) Verify(token string) (*Identity, error) {
 		return nil, FormatError{fmt.Sprintf("client did not sign the %s header in the pre-signed URL", clusterIDHeader)}
 	}
 
+	// We validate x-amz-expires is between 0 and 15 minutes (900 seconds) although currently pre-signed STS URLs, and
+	// therefore tokens, expire exactly 15 minutes after the x-amz-date header, regardless of x-amz-expires.
 	expires, err := strconv.Atoi(queryParamsLower.Get("x-amz-expires"))
-	if err != nil || expires < 0 || expires > 60 {
-		return nil, FormatError{"invalid X-Amz-Expires parameter in pre-signed URL"}
+	if err != nil || expires < 0 || expires > 900 {
+		return nil, FormatError{fmt.Sprintf("invalid X-Amz-Expires parameter in pre-signed URL: %d", expires)}
+	}
+
+	date := queryParamsLower.Get("x-amz-date")
+	if date == "" {
+		return nil, FormatError{"X-Amz-Date parameter must be present in pre-signed URL"}
+	}
+
+	dateParam, err := time.Parse(dateHeaderFormat, date)
+	if err != nil {
+		return nil, FormatError{fmt.Sprintf("error parsing X-Amz-Date parameter %s into format %s: %s", date, dateHeaderFormat, err.Error())}
+	}
+
+	now := time.Now()
+	expiration := dateParam.Add(presignedURLExpiration)
+	if now.After(expiration) {
+		return nil, FormatError{fmt.Sprintf("X-Amz-Date parameter is expired (%.f minute expiration) %s", presignedURLExpiration.Minutes(), dateParam)}
 	}
 
 	req, err := http.NewRequest("GET", parsedURL.String(), nil)

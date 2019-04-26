@@ -10,7 +10,7 @@
   version = "v0.30.0"
 
 [[projects]]
-  digest = "1:c47cc319198242faea01df071bb75c04ea3bf6da0f86795dece991a1dca745a2"
+  digest = "1:d7c53b653a1c76e8320a2737dcca44da9205ea0287945ee68162fdb4f17c8a47"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -75,8 +75,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "NUT"
-  revision = "f63ecde3e92bac72832e9b860480b29792e6a924"
-  version = "v1.17.7"
+  revision = "2024b98be3d7bca1d26036f16ef34b0275ebb562"
+  version = "v1.19.18"
 
 [[projects]]
   digest = "1:bd2a7ee52256f8c61e35da3081fffb193cd338c3811aaf9a0a6133a67473d80c"
@@ -283,6 +283,14 @@
   version = "v0.2.3"
 
 [[projects]]
+  digest = "1:2dcc32af5bf38c37286c96f0077efa98007f67946b690fce98a3e07b9659bdf1"
+  name = "github.com/gofrs/flock"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "392e7fae8f1b0bdbd67dad7237d23f618feb6dbb"
+  version = "v0.7.1"
+
+[[projects]]
   digest = "1:1b3dd24f14a5280710fc7a3aa2480b6e4d20fdfc905841de9a3aa2aa2f1d4ee9"
   name = "github.com/gogo/protobuf"
   packages = [
@@ -483,8 +491,7 @@
   revision = "14d43f83481a37e992f5899de8581727b9ba7702"
 
 [[projects]]
-  branch = "master"
-  digest = "1:a8f06a97a4e9dd2018cb9cb43cfe0b8180f22f7f83245a5c86afbdcb19aad9f3"
+  digest = "1:c75530930b9f22045887819d4edca57164461d3bbcdf7254bd3ec5cbde2e99fd"
   name = "github.com/kubernetes-sigs/aws-iam-authenticator"
   packages = [
     "cmd/aws-iam-authenticator",
@@ -494,7 +501,8 @@
     "pkg/token",
   ]
   pruneopts = "NUT"
-  revision = "77720bd482cd6db4fcf9816301f16a2c844c50f0"
+  revision = "c141eda34ad1b6b4d71056810951801348f8c367"
+  version = "v0.4.0"
 
 [[projects]]
   branch = "master"
@@ -1128,12 +1136,12 @@
   version = "v0.1.2"
 
 [[projects]]
-  digest = "1:7c95b35057a0ff2e19f707173cc1a947fa43a6eb5c4d300d196ece0334046082"
+  digest = "1:18108594151654e9e696b27b181b953f9a90b16bf14d253dd1b397b025a1487f"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [[projects]]
   digest = "1:4485f6050feae6844efd79bce3f5b35e5ed4a21dd79ef6a2dbbee263531cea09"
