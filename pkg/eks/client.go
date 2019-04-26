@@ -59,7 +59,7 @@ func (c *Client) new(spec *api.ClusterConfig, withEmbeddedToken bool, stsClient 
 }
 
 func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.STSAPI) error {
-	gen, err := token.NewGenerator(true)
+	gen, err := token.NewGenerator(true, false)
 	if err != nil {
 		return errors.Wrap(err, "could not get token generator")
 	}
@@ -69,7 +69,7 @@ func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.ST
 		return errors.Wrap(err, "could not get token")
 	}
 
-	c.Config.AuthInfos[c.ContextName].Token = tok
+	c.Config.AuthInfos[c.ContextName].Token = tok.Token
 	return nil
 }
 
