@@ -9,7 +9,10 @@ import (
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/launcher/pkg/kubectl"
+
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -91,20 +94,10 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 	return nil
 }
 
-const (
-	authenticatorCommand       = "aws-iam-authenticator"
-	legacyAuthenticatorCommand = "heptio-authenticator-aws"
-)
-
-var authenticatorCommands = []string{
-	authenticatorCommand,
-	legacyAuthenticatorCommand,
-}
-
 // checkAuthenticator checks if either of authenticator commands is in the path,
 // it returns an error when neither are found
 func checkAuthenticator() error {
-	for _, cmd := range authenticatorCommands {
+	for _, cmd := range kubeconfig.AuthenticatorCommands() {
 		path, err := exec.LookPath(cmd)
 		if err == nil {
 			// command was found
@@ -118,12 +111,11 @@ func checkAuthenticator() error {
 // DetectAuthenticator finds the authenticator command, it defaults to legacy
 // command when neither are found
 func DetectAuthenticator() string {
-	for _, bin := range authenticatorCommands {
+	for _, bin := range kubeconfig.AuthenticatorCommands() {
 		_, err := exec.LookPath(bin)
 		if err == nil {
 			return bin
 		}
 	}
-	// TODO: https://github.com/weaveworks/eksctl/issues/169
-	return legacyAuthenticatorCommand
+	return kubeconfig.AWSIAMAuthenticator
 }
