@@ -59,6 +59,7 @@ type Template struct {
 					Resource interface{}
 				}
 			}
+			TargetGroupARNs          []string
 			BlockDeviceMappings      []interface{}
 			VPCZoneIdentifier        interface{}
 			AssociatePublicIpAddress bool
@@ -475,6 +476,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
+		ng.TargetGroupARNs = []string{"tg-arn-1", "tg-arn-2"}
+
 		ng.IAM.WithAddonPolicies.AutoScaler = api.Enabled()
 
 		build(cfg, "eksctl-test-123-cluster", ng)
@@ -527,6 +530,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.Properties).ToNot(BeNil())
 			Expect(ng.Properties.Tags).ToNot(BeNil())
 			Expect(ng.Properties.Tags).To(Equal(expectedTags))
+		})
+
+		It("should have target groups ARNs set", func() {
+			Expect(obj.Resources).To(HaveKey("NodeGroup"))
+			ng := obj.Resources["NodeGroup"]
+			Expect(ng).ToNot(BeNil())
+			Expect(ng.Properties).ToNot(BeNil())
+
+			Expect(ng.Properties.TargetGroupARNs).To(Equal([]string{"tg-arn-1", "tg-arn-2"}))
 		})
 	})
 
