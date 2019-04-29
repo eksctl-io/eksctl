@@ -39,6 +39,12 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 	},
 }
 
+// ImageFamilyToAccountID is a map of image families to account Ids
+var ImageFamilyToAccountID = map[string]string{
+	ImageFamilyAmazonLinux2: "602401143452",
+	ImageFamilyUbuntu1804:   "099720109477",
+}
+
 // AutoResolver resolves the AMi to the defaults for the region
 // by querying AWS EC2 API for the AMI to use
 type AutoResolver struct {
@@ -50,17 +56,23 @@ type AutoResolver struct {
 func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using AutoResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
-	p := ImageSearchPatterns[version][imageFamily][ImageClassGeneral]
+	namePattern := ImageSearchPatterns[version][imageFamily][ImageClassGeneral]
 	if utils.IsGPUInstanceType(instanceType) {
 		var ok bool
-		p, ok = ImageSearchPatterns[version][imageFamily][ImageClassGPU]
+		namePattern, ok = ImageSearchPatterns[version][imageFamily][ImageClassGPU]
 		if !ok {
 			logger.Critical("image family %s doesn't support GPU image class", imageFamily)
 			return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 		}
 	}
 
-	id, err := FindImage(r.api, p, imageFamily)
+	ownerAccount, knownOwner := ImageFamilyToAccountID[imageFamily]
+	if !knownOwner {
+		logger.Critical("unable to determine the account owner for image family %s", imageFamily)
+		return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
+	}
+
+	id, err := FindImage(r.api, ownerAccount, namePattern)
 	if err != nil {
 		return "", errors.Wrap(err, "error getting AMI")
 	}
