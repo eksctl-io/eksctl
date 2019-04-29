@@ -48,8 +48,6 @@ func AddCommonCreateNodeGroupFlags(cmd *cobra.Command, fs *pflag.FlagSet, p *api
 
 	fs.StringToStringVar(&ng.Labels, "node-labels", nil, `Extra labels to add when registering the nodes in the nodegroup, e.g. "partition=backend,nodeclass=hugememory"`)
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
-
-	fs.StringSliceVar(&ng.TargetGroupARNs, "node-target-groups", []string{}, "Attach target groups to the nodegroup")
 }
 
 // AddCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
