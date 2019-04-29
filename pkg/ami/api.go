@@ -42,7 +42,7 @@ var ImageClasses = []string{
 // IsAvailable checks if a given AMI ID is available in AWS EC2
 func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 	input := &ec2.DescribeImagesInput{
-		ImageIds: []*string{aws.String(id)},
+		ImageIds: []*string{&id},
 	}
 
 	output, err := api.DescribeImages(input)
@@ -60,12 +60,13 @@ func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
 // It will only look for images with a status of available and it will pick the
 // image with the newest creation date.
-func FindImage(api ec2iface.EC2API, namePattern string) (string, error) {
+func FindImage(api ec2iface.EC2API, ownerAccount, namePattern string) (string, error) {
 	input := &ec2.DescribeImagesInput{
+		Owners: []*string{&ownerAccount},
 		Filters: []*ec2.Filter{
 			{
 				Name:   aws.String("name"),
-				Values: []*string{aws.String(namePattern)},
+				Values: []*string{&namePattern},
 			},
 			{
 				Name:   aws.String("virtualization-type"),

@@ -203,6 +203,9 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	if n.spec.MaxSize != nil {
 		ngProps["MaxSize"] = fmt.Sprintf("%d", *n.spec.MaxSize)
 	}
+	if n.spec.TargetGroupARNs != nil {
+		ngProps["TargetGroupARNs"] = n.spec.TargetGroupARNs
+	}
 	n.newResource("NodeGroup", &awsCloudFormationResource{
 		Type:       "AWS::AutoScaling::AutoScalingGroup",
 		Properties: ngProps,

@@ -403,6 +403,9 @@ type NodeGroup struct {
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
 
+	// +optional
+	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
+
 	SSH *NodeGroupSSH `json:"ssh"`
 
 	// +optional

@@ -239,7 +239,7 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
 		id, err := ami.Resolve(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)
 		if err != nil {
-			return errors.Wrap(err, "Unable to determine AMI to use")
+			return errors.Wrap(err, "unable to determine AMI to use")
 		}
 		if id == "" {
 			return ami.NewErrFailedResolution(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)

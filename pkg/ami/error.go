@@ -26,7 +26,7 @@ func NewErrFailedResolution(region, version, instanceType, imageFamily string) *
 
 // Error return the error message
 func (e *ErrFailedResolution) Error() string {
-	return fmt.Sprintf("Unable to determine AMI for region %s, version %s, instance type %s and image family %s", e.region, e.version, e.instanceType, e.imageFamily)
+	return fmt.Sprintf("unable to determine AMI for region %s, version %s, instance type %s and image family %s", e.region, e.version, e.instanceType, e.imageFamily)
 }
 
 // ErrNotFound is an error type that represents
@@ -45,5 +45,5 @@ func NewErrNotFound(ami string) *ErrNotFound {
 
 // Error return the error message
 func (e *ErrNotFound) Error() string {
-	return fmt.Sprintf("Unable to find AMI %s", e.ami)
+	return fmt.Sprintf("unable to find AMI %s", e.ami)
 }
