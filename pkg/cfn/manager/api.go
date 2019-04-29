@@ -51,6 +51,7 @@ func newTag(key, value string) *cloudformation.Tag {
 func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *StackCollection {
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
+		newTag(api.OldClusterNameTag, spec.Metadata.Name),
 	}
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))

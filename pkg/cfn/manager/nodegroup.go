@@ -56,6 +56,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 		ng.Tags = make(map[string]string)
 	}
 	ng.Tags[api.NodeGroupNameTag] = ng.Name
+	ng.Tags[api.OldNodeGroupNameTag] = ng.Name
 
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
