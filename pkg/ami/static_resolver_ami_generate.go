@@ -37,13 +37,14 @@ func main() {
 			for class := range ami.ImageSearchPatterns[version][family] {
 				classImages := Dict{}
 				for _, region := range api.SupportedRegions() {
-					p := ami.ImageSearchPatterns[version][family][class]
-					log.Printf("looking up images matching %q in %q", p, region)
-					image, err := ami.FindImage(client[region], p, family)
+					namePattern := ami.ImageSearchPatterns[version][family][class]
+					ownerAccount := ami.ImageFamilyToAccountID[family]
+					log.Printf("looking up images matching %q in %q", namePattern, region)
+					id, err := ami.FindImage(client[region], ownerAccount, namePattern)
 					if err != nil {
 						log.Fatal(err)
 					}
-					classImages[Lit(region)] = Lit(image)
+					classImages[Lit(region)] = Lit(id)
 				}
 				familyImages[Id(ami.ImageClasses[class])] = Values(classImages)
 			}
