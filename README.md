@@ -70,7 +70,7 @@ $ eksctl create cluster
 [ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create nodegroup "ng-98b3b83a" }
 [ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"
-[ℹ]  buildings nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
+[ℹ]  building nodegroup stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"
 [ℹ]  --nodes-min=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  --nodes-max=2 was set automatically for nodegroup ng-98b3b83a
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-nodegroup-ng-98b3b83a"

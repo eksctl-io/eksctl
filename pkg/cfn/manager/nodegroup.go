@@ -46,7 +46,7 @@ func (c *StackCollection) makeNodeGroupStackName(name string) string {
 // createNodeGroupTask creates the nodegroup
 func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup) error {
 	name := c.makeNodeGroupStackName(ng.Name)
-	logger.Info("buildings nodegroup stack %q", name)
+	logger.Info("building nodegroup stack %q", name)
 	stack := builder.NewNodeGroupResourceSet(c.provider, c.spec, c.makeClusterStackName(), ng)
 	if err := stack.AddAllResources(); err != nil {
 		return err
