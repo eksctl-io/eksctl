@@ -117,7 +117,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 			})
 
-			It("should make it 4 nodes total", func() {
+			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total", func() {
 				test, err := newKubeTest()
 				Expect(err).ShouldNot(HaveOccurred())
 				defer test.Close()
@@ -143,7 +143,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 			})
 
-			It("should make it 8 nodes total", func() {
+			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 8 nodes total", func() {
 				test, err := newKubeTest()
 				Expect(err).ShouldNot(HaveOccurred())
 				defer test.Close()
@@ -230,7 +230,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 				})
 
-				It("should make it 4 nodes total", func() {
+				It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total", func() {
 					test, err := newKubeTest()
 					Expect(err).ShouldNot(HaveOccurred())
 					defer test.Close()
@@ -258,7 +258,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 			})
 
-			It("should make it 1 nodes total", func() {
+			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 1 nodes total", func() {
 				test, err := newKubeTest()
 				Expect(err).ShouldNot(HaveOccurred())
 				defer test.Close()
@@ -289,7 +289,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 			awsSession := aws.NewSession(region)
 
-			It("should have deleted the EKS cluster", func() {
+			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the EKS cluster", func() {
 				if !doDelete {
 					Skip("will not delete cluster " + clusterName)
 				}
@@ -297,7 +297,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.12"))
 			})
 
-			It("should have deleted the required cloudformation stacks", func() {
+			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the required cloudformation stacks", func() {
 				if !doDelete {
 					Skip("will not delete cluster " + clusterName)
 				}
