@@ -53,7 +53,7 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 			return s, nil
 		}
 	}
-	return nil, nil
+	return nil, c.errStackNotFound()
 }
 
 // AppendNewClusterStackResource will update cluster
