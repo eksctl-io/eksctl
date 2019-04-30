@@ -564,7 +564,7 @@ You can create a cluster using a config file instead of flags.
 
 First, create `cluster.yaml` file:
 ```YAML
-apiVersion: eksctl.io/v1alpha4
+apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
@@ -593,7 +593,7 @@ This will create a cluster as described.
 
 If you needed to use an existing VPC, you can use a config file like this:
 ```YAML
-apiVersion: eksctl.io/v1alpha4
+apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:

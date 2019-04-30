@@ -1,6 +1,6 @@
 # An example of ClusterConfig object with access to CSI drivers:
 ---
-apiVersion: eksctl.io/v1alpha4
+apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:

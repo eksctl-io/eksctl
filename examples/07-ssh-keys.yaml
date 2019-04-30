@@ -1,6 +1,6 @@
 # An example of ClusterConfig showing different ways of setting nodegroup SSH keys:
 ---
-apiVersion: eksctl.io/v1alpha4
+apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:

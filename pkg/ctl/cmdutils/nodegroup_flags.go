@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // AddCommonCreateNodeGroupFlags adds common flags for creating a node group

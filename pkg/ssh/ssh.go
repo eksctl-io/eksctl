@@ -15,7 +15,7 @@ import (
 
 	"k8s.io/kops/pkg/pki"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // LoadKeyFromFile loads and imports a public SSH key from a file provided a path to that file.
