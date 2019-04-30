@@ -19,8 +19,8 @@ v="${1}"
 RELEASE_NOTES_FILE="docs/release_notes/${v}.md"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
-  echo "Release notes ${RELEASE_NOTES_FILE} not found. Exiting..."
-  return
+  echo "Must have release notes ${RELEASE_NOTES_FILE}"
+  exit 3
 fi
 
 export RELEASE_GIT_TAG="${v}"
