@@ -14,14 +14,14 @@ if [ ! "$(git rev-parse --abbrev-ref @)" = master ] ; then
   exit 2
 fi
 
-RELEASE_NOTES_FILE="docs/release_notes/${CIRCLE_TAG}.md"
+v="${1}"
+
+RELEASE_NOTES_FILE="docs/release_notes/${v}.md"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
   echo "Release notes ${RELEASE_NOTES_FILE} not found. Exiting..."
   return
 fi
-
-v="${1}"
 
 export RELEASE_GIT_TAG="${v}"
 
