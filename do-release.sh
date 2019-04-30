@@ -22,7 +22,7 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
   fi
 
   export RELEASE_DESCRIPTION="${CIRCLE_TAG}"
-  goreleaser release --skip-validate --rm-dist --config=./.goreleaser.yml
+  goreleaser release --skip-validate --rm-dist --config=./.goreleaser.yml  --release-notes="${RELEASE_NOTES_FILE}"
 
 else
   echo "Not a tag release, skip publish"
