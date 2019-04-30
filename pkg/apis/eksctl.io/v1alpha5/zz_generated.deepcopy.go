@@ -306,6 +306,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 			(*out)[key] = val
 		}
 	}
+	if in.TargetGroupARNs != nil {
+		in, out := &in.TargetGroupARNs, &out.TargetGroupARNs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.SSH != nil {
 		in, out := &in.SSH, &out.SSH
 		*out = new(NodeGroupSSH)
