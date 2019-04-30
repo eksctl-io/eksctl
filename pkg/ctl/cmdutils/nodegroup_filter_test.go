@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/printers"
 
 	. "github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -296,7 +296,7 @@ func addGroupB(cfg *api.ClusterConfig) {
 const expected = `
   {
 		"kind": "ClusterConfig",
-		"apiVersion": "eksctl.io/v1alpha4",
+		"apiVersion": "eksctl.io/v1alpha5",
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",

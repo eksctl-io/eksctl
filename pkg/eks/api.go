@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/az"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/version"

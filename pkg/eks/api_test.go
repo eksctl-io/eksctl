@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
 	. "github.com/weaveworks/eksctl/pkg/eks"
 )
@@ -38,7 +38,7 @@ var _ = Describe("eksctl API", func() {
 		It("should error when version is a float, not a string", func() {
 			err := LoadConfigFromFile("testdata/bad-type-1.yaml", cfg)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-type-1.yaml": v1alpha4.ClusterConfig.Metadata: v1alpha4.ClusterMeta.Version: ReadString: expects " or n, but found 1`))
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-type-1.yaml": v1alpha5.ClusterConfig.Metadata: v1alpha5.ClusterMeta.Version: ReadString: expects " or n, but found 1`))
 		})
 
 		It("should reject unknown field in a YAML config", func() {

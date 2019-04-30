@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 )
 
