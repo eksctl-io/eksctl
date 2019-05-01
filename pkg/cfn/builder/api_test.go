@@ -11,10 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/stretchr/testify/mock"
+
+	gfn "github.com/awslabs/goformation/cloudformation"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
@@ -25,8 +28,6 @@ import (
 )
 
 const (
-	typicalNodeResources = 10
-
 	clusterName = "ferocious-mushroom-1532594698"
 	endpoint    = "https://DE37D8AFB23F7275D2361AD6B2599143.yl4.us-west-2.eks.amazonaws.com"
 	caCert      = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNE1EWXdOekExTlRBMU5Wb1hEVEk0TURZd05EQTFOVEExTlZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWJoCnpvZElYR0drckNSZE1jUmVEN0YvMnB1NFZweTdvd3FEVDgrdk9zeGs2bXFMNWxQd3ZicFhmYkE3R0xzMDVHa0wKaDdqL0ZjcU91cnMwUFZSK3N5REtuQXltdDFORWxGNllGQktSV1dUQ1hNd2lwN1pweW9XMXdoYTlJYUlPUGxCTQpPTEVlckRabFVrVDFVV0dWeVdsMmxPeFgxa2JhV2gvakptWWdkeW5jMXhZZ3kxa2JybmVMSkkwLzVUVTRCajJxClB1emtrYW5Xd3lKbGdXQzhBSXlpWW82WFh2UVZmRzYrM3RISE5XM1F1b3ZoRng2MTFOYnl6RUI3QTdtZGNiNmgKR0ZpWjdOeThHZnFzdjJJSmI2Nk9FVzBSdW9oY1k3UDZPdnZmYnlKREhaU2hqTStRWFkxQXN5b3g4Ri9UelhHSgpQUWpoWUZWWEVhZU1wQmJqNmNFQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCa2hKRVd4MHk1LzlMSklWdXJ1c1hZbjN6Z2EKRkZ6V0JsQU44WTlqUHB3S2t0Vy9JNFYyUGg3bWY2Z3ZwZ3Jhc2t1Slk1aHZPcDdBQmcxSTFhaHUxNUFpMUI0ZApuMllRaDlOaHdXM2pKMmhuRXk0VElpb0gza2JFdHRnUVB2bWhUQzNEYUJreEpkbmZJSEJCV1RFTTU1czRwRmxUClpzQVJ3aDc1Q3hYbjdScVU0akpKcWNPaTRjeU5qeFVpRDBqR1FaTmNiZWEyMkRCeTJXaEEzUWZnbGNScGtDVGUKRDVPS3NOWlF4MW9MZFAwci9TSmtPT1NPeUdnbVJURTIrODQxN21PRW02Z3RPMCszdWJkbXQ0aENsWEtFTTZYdwpuQWNlK0JxVUNYblVIN2ZNS3p2TDE5UExvMm5KbFU1TnlCbU1nL1pNVHVlUy80eFZmKy94WnpsQ0Q1WT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
@@ -46,30 +47,45 @@ type Tag struct {
 	PropagateAtLaunch string
 }
 
-type Template struct {
-	Description string
-	Resources   map[string]struct {
-		Properties struct {
-			Tags           []Tag
-			UserData       string
-			PolicyDocument struct {
-				Statement []struct {
-					Action   []string
-					Effect   string
-					Resource interface{}
-				}
-			}
-			TargetGroupARNs          []string
-			BlockDeviceMappings      []interface{}
-			VPCZoneIdentifier        interface{}
-			AssociatePublicIpAddress bool
-			CidrIp                   string
-			CidrIpv6                 string
-			IpProtocol               string
-			FromPort                 int
-			ToPort                   int
+type Properties struct {
+	Tags []Tag
+
+	Path, RoleName           string
+	Roles, ManagedPolicyArns []interface{}
+	AssumeRolePolicyDocument interface{}
+
+	PolicyDocument struct {
+		Statement []struct {
+			Action   []string
+			Effect   string
+			Resource interface{}
 		}
 	}
+
+	LaunchTemplateData LaunchTemplateData
+
+	VPCZoneIdentifier interface{}
+
+	TargetGroupARNs                   []string
+	DesiredCapacity, MinSize, MaxSize string
+
+	CidrIp, CidrIpv6, IpProtocol string
+	FromPort, ToPort             int
+}
+
+type LaunchTemplateData struct {
+	IamInstanceProfile              struct{ Arn interface{} }
+	UserData, InstanceType, ImageId string
+	BlockDeviceMappings             []interface{}
+	NetworkInterfaces               []struct {
+		DeviceIndex              int
+		AssociatePublicIpAddress bool
+	}
+}
+
+type Template struct {
+	Description string
+	Resources   map[string]struct{ Properties Properties }
 }
 
 func kubeconfigBody(authenticator string) string {
@@ -412,7 +428,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			t := ngrs.Template()
-			Expect(len(t.Resources) >= typicalNodeResources).To(BeTrue())
 			Expect(t.Resources).Should(HaveKey("NodeGroup"))
 
 			templateBody, err := t.JSON()
@@ -431,6 +446,16 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	}
 
+	extractCloudConfig := func() {
+		It("should extract valid cloud-config using our implementation", func() {
+			userData := getLaunchTemplateData(obj).UserData
+			Expect(userData).ToNot(BeEmpty())
+			cc, err = cloudconfig.DecodeCloudConfig(userData)
+			Expect(err).ShouldNot(HaveOccurred())
+
+		})
+	}
+
 	Context("AutoNameTag", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
@@ -440,7 +465,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("SG should have correct tags", func() {
 			Expect(obj.Resources).ToNot(BeNil())
-			Expect(obj.Resources).To(HaveLen(typicalNodeResources))
+			Expect(obj.Resources).To(HaveLen(10))
 			Expect(obj.Resources["SG"].Properties.Tags).To(HaveLen(2))
 			Expect(obj.Resources["SG"].Properties.Tags[0].Key).To(Equal("kubernetes.io/cluster/" + clusterName))
 			Expect(obj.Resources["SG"].Properties.Tags[0].Value).To(Equal("owned"))
@@ -462,14 +487,180 @@ var _ = Describe("CloudFormation template builder API", func() {
 		roundtript()
 
 		It("should have correct tags", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-			Expect(obj.Resources["NodeGroup"].Properties.Tags).To(HaveLen(2))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].Key).To(Equal("Name"))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].Value).To(Equal(clusterName + "-ng-abcd1234-Node"))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[0].PropagateAtLaunch).To(Equal("true"))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Key).To(Equal("kubernetes.io/cluster/" + clusterName))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].Value).To(Equal("owned"))
-			Expect(obj.Resources["NodeGroup"].Properties.Tags[1].PropagateAtLaunch).To(Equal("true"))
+			expectedTags := []Tag{
+				{
+					Key:               "Name",
+					Value:             clusterName + "-ng-abcd1234-Node",
+					PropagateAtLaunch: "true",
+				},
+				{
+					Key:               "kubernetes.io/cluster/" + clusterName,
+					Value:             "owned",
+					PropagateAtLaunch: "true",
+				},
+			}
+
+			ngProps := getNodeGroupProperties(obj)
+
+			Expect(ngProps.Tags).ToNot(BeNil())
+			Expect(ngProps.Tags).To(Equal(expectedTags))
+		})
+	})
+
+	Context("NodeGroup DesiredCapacity=nil MaxSize=nil MinSize=nil", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = nil
+		ng.MaxSize = nil
+		ng.MinSize = nil
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test1-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).DesiredCapacity).To(BeEmpty())
+			Expect(getNodeGroupProperties(obj).MaxSize).To(Equal("2"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("2"))
+
+		})
+	})
+
+	Context("NodeGroup DesiredCapacity=10 MaxSize=nil MinSize=nil", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = nil
+		ng.MaxSize = nil
+		ng.MinSize = nil
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test2-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).DesiredCapacity).To(BeEmpty())
+			Expect(getNodeGroupProperties(obj).MaxSize).To(Equal("2"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("2"))
+
+		})
+	})
+
+	Context("NodeGroup DesiredCapacity=nil MaxSize=30 MinSize=nil", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = nil
+		ng.MaxSize = new(int)
+		*ng.MaxSize = 30
+		ng.MinSize = nil
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test3-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).DesiredCapacity).To(BeEmpty())
+			Expect(getNodeGroupProperties(obj).MaxSize).To(Equal("30"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("2"))
+		})
+	})
+
+	Context("NodeGroup DesiredCapacity=nil MaxSize=nil MinSize=90", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = nil
+		ng.MaxSize = nil
+		ng.MinSize = new(int)
+		*ng.MinSize = 90
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test4-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).DesiredCapacity).To(BeEmpty())
+			Expect(getNodeGroupProperties(obj).MaxSize).To(Equal("90"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("90"))
+		})
+	})
+
+	Context("NodeGroup DesiredCapacity=nil MaxSize=91 MinSize=61", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = nil
+		ng.MaxSize = new(int)
+		*ng.MaxSize = 91
+		ng.MinSize = new(int)
+		*ng.MinSize = 61
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test5-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).DesiredCapacity).To(BeEmpty())
+			Expect(getNodeGroupProperties(obj).MaxSize).To(Equal("91"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("61"))
+		})
+	})
+
+	Context("NodeGroup DesiredCapacity=32 MaxSize=92 MinSize=nil", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = new(int)
+		*ng.DesiredCapacity = 32
+		ng.MaxSize = new(int)
+		*ng.MaxSize = 92
+		ng.MinSize = nil
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test6-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).DesiredCapacity).To(Equal("32"))
+			Expect(getNodeGroupProperties(obj).MaxSize).To(Equal("92"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("32"))
+		})
+	})
+
+	Context("NodeGroup DesiredCapacity=33 MaxSize=nil MinSize=31", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = new(int)
+		*ng.DesiredCapacity = 33
+		ng.MaxSize = nil
+		ng.MinSize = new(int)
+		*ng.MinSize = 31
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test8-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).DesiredCapacity).To(Equal("33"))
+			Expect(getNodeGroupProperties(obj).MaxSize).To(Equal("33"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("31"))
 		})
 	})
 
@@ -478,19 +669,71 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		ng.TargetGroupARNs = []string{"tg-arn-1", "tg-arn-2"}
 
+		ng.MinSize = new(int)
+		*ng.MinSize = 10
+		ng.InstanceType = "m5.2xlarge"
+
+		ng.IAM.InstanceRoleName = "a-named-role"
 		ng.IAM.WithAddonPolicies.AutoScaler = api.Enabled()
 
 		build(cfg, "eksctl-test-123-cluster", ng)
 
 		roundtript()
 
+		It("should have correct instance type and min size", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getNodeGroupProperties(obj).MinSize).To(Equal("10"))
+		})
+
+		It("should have correct instance role and profile", func() {
+			Expect(obj.Resources).To(HaveKey("NodeInstanceRole"))
+
+			role := obj.Resources["NodeInstanceRole"].Properties
+
+			Expect(role.Path).To(Equal("/"))
+			Expect(role.RoleName).To(Equal("a-named-role"))
+			Expect(role.ManagedPolicyArns).To(HaveLen(3))
+			Expect(role.ManagedPolicyArns[0]).To(Equal("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"))
+			Expect(role.ManagedPolicyArns[1]).To(Equal("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
+			Expect(role.ManagedPolicyArns[2]).To(Equal("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
+
+			expectedARPD := `{
+				"Version": "2012-10-17",
+				"Statement": [{
+								"Action": ["sts:AssumeRole"],
+								"Effect": "Allow",
+								"Principal": {
+										"Service": ["ec2.amazonaws.com"]
+								}
+				}]
+			}`
+			actualARPD, _ := json.Marshal(role.AssumeRolePolicyDocument)
+			Expect(actualARPD).To(MatchJSON([]byte(expectedARPD)))
+
+			Expect(obj.Resources).To(HaveKey("NodeInstanceProfile"))
+
+			profile := obj.Resources["NodeInstanceProfile"].Properties
+
+			Expect(profile.Path).To(Equal("/"))
+			Expect(profile.Roles).To(HaveLen(1))
+			isRefTo(profile.Roles[0], "NodeInstanceRole")
+
+			isFnGetAttOf(getLaunchTemplateData(obj).IamInstanceProfile.Arn, "NodeInstanceProfile.Arn")
+		})
+
 		It("should have correct policies", func() {
 			Expect(obj.Resources).ToNot(BeEmpty())
 			Expect(obj.Resources).To(HaveKey("PolicyAutoScaling"))
-			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(obj.Resources["PolicyAutoScaling"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy := obj.Resources["PolicyAutoScaling"].Properties
+
+			Expect(policy.Roles).To(HaveLen(1))
+			isRefTo(policy.Roles[0], "NodeInstanceRole")
+
+			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"autoscaling:DescribeAutoScalingGroups",
 				"autoscaling:DescribeAutoScalingInstances",
 				"autoscaling:DescribeLaunchConfigurations",
@@ -524,12 +767,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 				},
 			}
 
+			ngProps := getNodeGroupProperties(obj)
+
+			Expect(ngProps.Tags).ToNot(BeNil())
+			Expect(ngProps.Tags).To(Equal(expectedTags))
+		})
+
+		It("should have target groups ARNs set", func() {
 			Expect(obj.Resources).To(HaveKey("NodeGroup"))
 			ng := obj.Resources["NodeGroup"]
 			Expect(ng).ToNot(BeNil())
 			Expect(ng.Properties).ToNot(BeNil())
-			Expect(ng.Properties.Tags).ToNot(BeNil())
-			Expect(ng.Properties.Tags).To(Equal(expectedTags))
+
+			Expect(ng.Properties.TargetGroupARNs).To(Equal([]string{"tg-arn-1", "tg-arn-2"}))
 		})
 
 		It("should have target groups ARNs set", func() {
@@ -556,27 +806,45 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources).ToNot(BeEmpty())
 
 			Expect(obj.Resources).To(HaveKey("PolicyExternalDNSChangeSet"))
-			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
-			Expect(obj.Resources["PolicyExternalDNSChangeSet"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy1 := obj.Resources["PolicyExternalDNSChangeSet"].Properties
+
+			Expect(policy1.Roles).To(HaveLen(1))
+			isRefTo(policy1.Roles[0], "NodeInstanceRole")
+
+			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ChangeResourceRecordSets",
 			}))
 
 			Expect(obj.Resources).To(HaveKey("PolicyExternalDNSHostedZones"))
-			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(obj.Resources["PolicyExternalDNSHostedZones"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy2 := obj.Resources["PolicyExternalDNSHostedZones"].Properties
+
+			Expect(policy2.Roles).To(HaveLen(1))
+			isRefTo(policy2.Roles[0], "NodeInstanceRole")
+
+			Expect(policy2.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 			}))
 
 			Expect(obj.Resources).To(HaveKey("PolicyAppMesh"))
-			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(obj.Resources["PolicyAppMesh"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy3 := obj.Resources["PolicyAppMesh"].Properties
+
+			Expect(policy3.Roles).To(HaveLen(1))
+			isRefTo(policy3.Roles[0], "NodeInstanceRole")
+
+			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"appmesh:*",
 			}))
 
@@ -599,10 +867,16 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources).ToNot(BeEmpty())
 
 			Expect(obj.Resources).To(HaveKey("PolicyALBIngress"))
-			Expect(obj.Resources["PolicyALBIngress"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyALBIngress"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyALBIngress"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(obj.Resources["PolicyALBIngress"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy := obj.Resources["PolicyALBIngress"].Properties
+
+			Expect(policy.Roles).To(HaveLen(1))
+			isRefTo(policy.Roles[0], "NodeInstanceRole")
+
+			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"acm:DescribeCertificate",
 				"acm:ListCertificates",
 				"acm:GetCertificate",
@@ -683,16 +957,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 		roundtript()
 
 		It("should have correct policies", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
-			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(0))
+			Expect(getLaunchTemplateData(obj).BlockDeviceMappings).To(HaveLen(0))
 
 			Expect(obj.Resources).To(HaveKey("PolicyEBS"))
-			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(obj.Resources["PolicyEBS"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy := obj.Resources["PolicyEBS"].Properties
+
+			Expect(policy.Roles).To(HaveLen(1))
+			isRefTo(policy.Roles[0], "NodeInstanceRole")
+
+			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"ec2:AttachVolume",
 				"ec2:CreateSnapshot",
 				"ec2:CreateTags",
@@ -725,16 +1002,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 		roundtript()
 
 		It("should have correct policies", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
-			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(0))
+			Expect(getLaunchTemplateData(obj).BlockDeviceMappings).To(HaveLen(0))
 
 			Expect(obj.Resources).To(HaveKey("PolicyFSX"))
-			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(obj.Resources["PolicyFSX"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy := obj.Resources["PolicyFSX"].Properties
+
+			Expect(policy.Roles).To(HaveLen(1))
+			isRefTo(policy.Roles[0], "NodeInstanceRole")
+
+			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"fsx:*",
 			}))
 
@@ -756,16 +1036,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 		roundtript()
 
 		It("should have correct policies", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
-			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(0))
+			Expect(getLaunchTemplateData(obj).BlockDeviceMappings).To(HaveLen(0))
 
 			Expect(obj.Resources).To(HaveKey("PolicyEFS"))
-			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement).To(HaveLen(1))
-			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/*"))
-			Expect(obj.Resources["PolicyEFS"].Properties.PolicyDocument.Statement[0].Action).To(Equal([]string{
+
+			policy := obj.Resources["PolicyEFS"].Properties
+
+			Expect(policy.Roles).To(HaveLen(1))
+			isRefTo(policy.Roles[0], "NodeInstanceRole")
+
+			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/*"))
+			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"elasticfilesystem:*",
 			}))
 
@@ -773,6 +1056,65 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
 			Expect(obj.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
 			Expect(obj.Resources).ToNot(HaveKey("PolicyAppMesh"))
+		})
+	})
+
+	Context("NodeGroup with cutom role and profile", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.InstanceRoleARN = "arn:role"
+		ng.IAM.InstanceProfileARN = "arn:profile"
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance role and profile", func() {
+			Expect(obj.Resources).ToNot(HaveKey("NodeInstanceRole"))
+			Expect(obj.Resources).ToNot(HaveKey("NodeInstanceProfile"))
+
+			Expect(getLaunchTemplateData(obj).IamInstanceProfile.Arn).To(Equal("arn:profile"))
+		})
+	})
+
+	Context("NodeGroup with cutom role", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.InstanceRoleARN = "arn:role"
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance role and profile", func() {
+			Expect(obj.Resources).ToNot(HaveKey("NodeInstanceRole"))
+
+			Expect(obj.Resources).To(HaveKey("NodeInstanceProfile"))
+
+			profile := obj.Resources["NodeInstanceProfile"].Properties
+
+			Expect(profile.Path).To(Equal("/"))
+			Expect(profile.Roles).To(HaveLen(1))
+			Expect(profile.Roles[0]).To(Equal("arn:role"))
+
+			isFnGetAttOf(getLaunchTemplateData(obj).IamInstanceProfile.Arn, "NodeInstanceProfile.Arn")
+		})
+	})
+
+	Context("NodeGroup with cutom profile", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.InstanceProfileARN = "arn:profile"
+
+		build(cfg, "eksctl-test-123-cluster", ng)
+
+		roundtript()
+
+		It("should have correct instance role and profile", func() {
+			Expect(obj.Resources).ToNot(HaveKey("NodeInstanceRole"))
+			Expect(obj.Resources).ToNot(HaveKey("NodeInstanceProfile"))
+
+			Expect(getLaunchTemplateData(obj).IamInstanceProfile.Arn).To(Equal("arn:profile"))
 		})
 	})
 
@@ -799,8 +1141,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct resources and attributes", func() {
 			Expect(obj.Resources).ToNot(BeEmpty())
 
-			Expect(obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier).ToNot(BeNil())
-			x, ok := obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier.(map[string]interface{})
+			Expect(obj.Resources).To(HaveKey("NodeGroup"))
+			ng := obj.Resources["NodeGroup"].Properties
+			Expect(ng.VPCZoneIdentifier).ToNot(BeNil())
+			x, ok := ng.VPCZoneIdentifier.(map[string]interface{})
 			Expect(ok).To(BeTrue())
 			Expect(x).To(HaveLen(1))
 			refSubnets := map[string]interface{}{
@@ -813,18 +1157,24 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}
 			Expect(x).To(Equal(refSubnets))
 
-			Expect(obj.Resources).To(HaveKey("NodeLaunchConfig"))
+			ltd := getLaunchTemplateData(obj)
 
-			Expect(obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings).To(HaveLen(1))
+			isFnGetAttOf(ltd.IamInstanceProfile.Arn, "NodeInstanceProfile.Arn")
 
-			rootVolume := obj.Resources["NodeLaunchConfig"].Properties.BlockDeviceMappings[0].(map[string]interface{})
+			Expect(ltd.BlockDeviceMappings).To(HaveLen(1))
+
+			rootVolume := ltd.BlockDeviceMappings[0].(map[string]interface{})
 
 			Expect(rootVolume).To(HaveKeyWithValue("DeviceName", "/dev/xvda"))
 			Expect(rootVolume).To(HaveKey("Ebs"))
 			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeType", "io1"))
 			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeSize", 2.0))
 
-			Expect(obj.Resources["NodeLaunchConfig"].Properties.AssociatePublicIpAddress).To(BeFalse())
+			Expect(ltd.InstanceType).To(Equal("t2.medium"))
+
+			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
+			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeFalse())
 
 			Expect(obj.Resources["SSHIPv4"].Properties.CidrIp).To(Equal("192.168.0.0/16"))
 			Expect(obj.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
@@ -840,7 +1190,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.SSH.Allow = api.Enabled()
 		keyName := ""
 		ng.SSH.PublicKeyName = &keyName
-		ng.InstanceType = "t2.medium"
+		ng.InstanceType = "t2.large"
 		ng.PrivateNetworking = false
 		ng.AMIFamily = "AmazonLinux2"
 
@@ -856,6 +1206,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should have correct resources and attributes", func() {
 			Expect(obj.Resources).ToNot(BeEmpty())
+			Expect(obj.Resources).To(HaveKey("NodeGroup"))
 
 			Expect(obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier).ToNot(BeNil())
 			x, ok := obj.Resources["NodeGroup"].Properties.VPCZoneIdentifier.(map[string]interface{})
@@ -871,7 +1222,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}
 			Expect(x).To(Equal(refSubnets))
 
-			Expect(obj.Resources["NodeLaunchConfig"].Properties.AssociatePublicIpAddress).To(BeTrue())
+			ltd := getLaunchTemplateData(obj)
+
+			Expect(ltd.InstanceType).To(Equal("t2.large"))
+
+			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
+			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeTrue())
 
 			Expect(obj.Resources["SSHIPv4"].Properties.CidrIp).To(Equal("0.0.0.0/0"))
 			Expect(obj.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
@@ -948,7 +1305,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}
 			Expect(x).To((Equal(refSubnets)))
 
-			Expect(obj.Resources["NodeLaunchConfig"].Properties.AssociatePublicIpAddress).To(BeTrue())
+			ltd := getLaunchTemplateData(obj)
+
+			Expect(ltd.InstanceType).To(Equal("t2.medium"))
+
+			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
+			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeTrue())
 
 			Expect(obj.Resources).ToNot(HaveKey("SSHIPv4"))
 
@@ -998,19 +1361,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
+		extractCloudConfig()
 
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
+		It("should have correct instance type", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.large"))
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1057,7 +1414,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("UserData - AmazonLinux2 (custom pre-bootstrap)", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.InstanceType = "m5.large"
+		ng.InstanceType = "m5.xlarge"
 
 		ng.PreBootstrapCommands = []string{
 			"touch /tmp/test",
@@ -1068,19 +1425,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
+		extractCloudConfig()
 
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
+		It("should have correct instance type", func() {
+			Expect(getLaunchTemplateData(obj).InstanceType).To(Equal("m5.xlarge"))
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1137,19 +1488,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+		extractCloudConfig()
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1204,19 +1545,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should parse JSON without errors and extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+		extractCloudConfig()
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1272,15 +1603,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+		extractCloudConfig()
 
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: Ubuntu1804"))
@@ -1289,8 +1612,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1332,15 +1653,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+		extractCloudConfig()
 
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: Ubuntu1804"))
@@ -1349,8 +1662,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1406,15 +1717,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+		extractCloudConfig()
 
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: Ubuntu1804"))
@@ -1423,8 +1726,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1478,15 +1779,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtript()
 
-		It("should extract valid cloud-config using our implementation", func() {
-			Expect(obj.Resources).ToNot(BeEmpty())
-
-			userData := obj.Resources["NodeLaunchConfig"].Properties.UserData
-			Expect(userData).ToNot(BeEmpty())
-
-			cc, err = cloudconfig.DecodeCloudConfig(userData)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+		extractCloudConfig()
 
 		It("should have correct description", func() {
 			Expect(obj.Description).To(ContainSubstring("AMI family: Ubuntu1804"))
@@ -1495,8 +1788,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 
 		It("should have packages, scripts and commands in cloud-config", func() {
-			Expect(cc).ToNot(BeNil())
-
 			Expect(cc.Packages).Should(BeEmpty())
 
 			kubeletEnv := getFile(cc, "/etc/eksctl/kubelet.env")
@@ -1539,3 +1830,33 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 })
+
+func getNodeGroupProperties(obj *Template) Properties {
+	Expect(obj.Resources).To(HaveKey("NodeGroup"))
+	ng := obj.Resources["NodeGroup"]
+	Expect(ng).ToNot(BeNil())
+	Expect(ng.Properties).ToNot(BeNil())
+	return ng.Properties
+}
+
+func isRefTo(obj interface{}, value string) {
+	Expect(obj).ToNot(BeEmpty())
+	o, ok := obj.(map[string]interface{})
+	Expect(ok).To(BeTrue())
+	Expect(o).To(HaveKey(gfn.Ref))
+	Expect(o[gfn.Ref]).To(Equal(value))
+}
+
+func isFnGetAttOf(obj interface{}, value string) {
+	Expect(obj).ToNot(BeEmpty())
+	o, ok := obj.(map[string]interface{})
+	Expect(ok).To(BeTrue())
+	Expect(o).To(HaveKey(gfn.FnGetAtt))
+	Expect(o[gfn.FnGetAtt]).To(Equal(value))
+}
+
+func getLaunchTemplateData(obj *Template) LaunchTemplateData {
+	Expect(obj.Resources).ToNot(BeEmpty())
+	Expect(obj.Resources).To(HaveKey("NodeGroupLaunchTemplate"))
+	return obj.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData
+}
