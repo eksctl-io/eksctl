@@ -21,8 +21,8 @@ const (
 	desiredCapacityPath = resourcesRootPath + ".NodeGroup.Properties.DesiredCapacity"
 	maxSizePath         = resourcesRootPath + ".NodeGroup.Properties.MaxSize"
 	minSizePath         = resourcesRootPath + ".NodeGroup.Properties.MinSize"
-	instanceTypePath    = resourcesRootPath + ".NodeLaunchConfig.Properties.InstanceType"
-	imageIDPath         = resourcesRootPath + ".NodeLaunchConfig.Properties.ImageId"
+	instanceTypePath    = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType"
+	imageIDPath         = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.ImageId"
 )
 
 // NodeGroupSummary represents a summary of a nodegroup stack
