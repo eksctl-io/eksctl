@@ -652,7 +652,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		ng.InstanceType = "m5.2xlarge"
 
-		build(cfg, "eksctl-test8-cluster", ng)
+		build(cfg, "eksctl-test7-cluster", ng)
 
 		roundtript()
 
