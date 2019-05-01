@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"fmt"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
@@ -48,6 +49,17 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		EnableDnsSupport:   gfn.True(),
 		EnableDnsHostnames: gfn.True(),
 	})
+
+	for i, extraCIDR := range c.spec.VPC.ExtraCIDRs {
+		c.newResource(fmt.Sprintf("ExtraCIDR%d", i), &awsCloudFormationResource{
+			Type: "AWS::EC2::VPCCidrBlock",
+			Properties: map[string]interface{}{
+				"CidrBlock": extraCIDR.String(),
+				"VpcId":     c.vpc,
+			},
+			DependsOn: []string{"VPC"},
+		})
+	}
 
 	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 

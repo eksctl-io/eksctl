@@ -31,10 +31,16 @@ func SetSubnets(spec *api.ClusterConfig) error {
 		cidr := api.DefaultCIDR()
 		vpc.CIDR = &cidr
 	}
-	prefix, _ := spec.VPC.CIDR.Mask.Size()
-	if (prefix < 16) || (prefix > 24) {
-		return fmt.Errorf("VPC CIDR prefix must be betwee /16 and /24")
+
+	cidrs := append(spec.VPC.ExtraCIDRs, vpc.CIDR)
+	for _, cidr := range cidrs {
+		prefix, _ := cidr.Mask.Size()
+		if (prefix < 16) || (prefix > 24) {
+			return fmt.Errorf("VPC CIDR (%v) prefix must be between /16 and /24", cidr)
+		}
 	}
+	logger.Info("adding VPC CIDR block(s) %v", cidrs)
+
 	zoneCIDRs, err := subnet.SplitInto8(&spec.VPC.CIDR.IPNet)
 	if err != nil {
 		return err
@@ -73,11 +79,11 @@ func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.
 	return output.Subnets, nil
 }
 
-func describe(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
+func describe(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []*string{aws.String(vpcID)},
 	}
-	output, err := povider.EC2().DescribeVpcs(input)
+	output, err := provider.EC2().DescribeVpcs(input)
 	if err != nil {
 		return nil, err
 	}
