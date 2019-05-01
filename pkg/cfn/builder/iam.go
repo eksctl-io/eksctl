@@ -119,7 +119,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 
 		// if instance profile is given, as well as the role, we simply use both and export the role
 		// (which is needed in order to authorise the nodegroup)
-		n.instanceProfile = gfn.NewString(n.spec.IAM.InstanceProfileARN)
+		n.instanceProfileARN = gfn.NewString(n.spec.IAM.InstanceProfileARN)
 		if n.spec.IAM.InstanceRoleARN != "" {
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true)
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
@@ -137,10 +137,11 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 
 	if n.spec.IAM.InstanceRoleARN != "" {
 		// if role is set, but profile isn't - create profile
-		n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+		n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
 		})
+		n.instanceProfileARN = gfn.MakeFnGetAttString("NodeInstanceProfile.Arn")
 		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
 			n.spec.IAM.InstanceProfileARN = v
 			return nil
@@ -177,10 +178,11 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 
 	refIR := n.newResource("NodeInstanceRole", &role)
 
-	n.instanceProfile = n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+	n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),
 		Roles: makeSlice(refIR),
 	})
+	n.instanceProfileARN = gfn.MakeFnGetAttString("NodeInstanceProfile.Arn")
 
 	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
 		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",

@@ -15,16 +15,16 @@ import (
 
 // NodeGroupResourceSet stores the resource information of the node group
 type NodeGroupResourceSet struct {
-	rs               *resourceSet
-	clusterSpec      *api.ClusterConfig
-	spec             *api.NodeGroup
-	provider         api.ClusterProvider
-	clusterStackName string
-	nodeGroupName    string
-	instanceProfile  *gfn.Value
-	securityGroups   []*gfn.Value
-	vpc              *gfn.Value
-	userData         *gfn.Value
+	rs                 *resourceSet
+	clusterSpec        *api.ClusterConfig
+	spec               *api.NodeGroup
+	provider           api.ClusterProvider
+	clusterStackName   string
+	nodeGroupName      string
+	instanceProfileARN *gfn.Value
+	securityGroups     []*gfn.Value
+	vpc                *gfn.Value
+	userData           *gfn.Value
 }
 
 // NewNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
@@ -107,33 +107,40 @@ func (n *NodeGroupResourceSet) newResource(name string, resource interface{}) *g
 }
 
 func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
-	lc := &gfn.AWSAutoScalingLaunchConfiguration{
-		IamInstanceProfile: n.instanceProfile,
-		SecurityGroups:     n.securityGroups,
-		ImageId:            gfn.NewString(n.spec.AMI),
-		InstanceType:       gfn.NewString(n.spec.InstanceType),
-		UserData:           n.userData,
+	launchTemplateName := gfn.MakeFnSubString(fmt.Sprintf("${%s}", gfn.StackName))
+	launchTemplateData := &gfn.AWSEC2LaunchTemplate_LaunchTemplateData{
+		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
+			Arn: n.instanceProfileARN,
+		},
+		ImageId:      gfn.NewString(n.spec.AMI),
+		InstanceType: gfn.NewString(n.spec.InstanceType),
+		UserData:     n.userData,
+		NetworkInterfaces: []gfn.AWSEC2LaunchTemplate_NetworkInterface{{
+			AssociatePublicIpAddress: gfn.NewBoolean(!n.spec.PrivateNetworking),
+			DeviceIndex:              gfn.NewInteger(0),
+			Groups:                   n.securityGroups,
+		}},
 	}
+
 	if api.IsEnabled(n.spec.SSH.Allow) && api.IsSetAndNonEmptyString(n.spec.SSH.PublicKeyName) {
-		lc.KeyName = gfn.NewString(*n.spec.SSH.PublicKeyName)
+		launchTemplateData.KeyName = gfn.NewString(*n.spec.SSH.PublicKeyName)
 	}
-	if n.spec.PrivateNetworking {
-		lc.AssociatePublicIpAddress = gfn.False()
-	} else {
-		lc.AssociatePublicIpAddress = gfn.True()
-	}
+
 	if n.spec.VolumeSize > 0 {
-		lc.BlockDeviceMappings = []gfn.AWSAutoScalingLaunchConfiguration_BlockDeviceMapping{
-			{
-				DeviceName: gfn.NewString("/dev/xvda"),
-				Ebs: &gfn.AWSAutoScalingLaunchConfiguration_BlockDevice{
-					VolumeSize: gfn.NewInteger(n.spec.VolumeSize),
-					VolumeType: gfn.NewString(n.spec.VolumeType),
-				},
+		launchTemplateData.BlockDeviceMappings = []gfn.AWSEC2LaunchTemplate_BlockDeviceMapping{{
+			DeviceName: gfn.NewString("/dev/xvda"),
+			Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
+				VolumeSize: gfn.NewInteger(n.spec.VolumeSize),
+				VolumeType: gfn.NewString(n.spec.VolumeType),
 			},
-		}
+		}}
 	}
-	refLC := n.newResource("NodeLaunchConfig", lc)
+
+	n.newResource("NodeGroupLaunchTemplate", &gfn.AWSEC2LaunchTemplate{
+		LaunchTemplateName: launchTemplateName,
+		LaunchTemplateData: launchTemplateData,
+	})
+
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 	var vpcZoneIdentifier interface{}
@@ -190,9 +197,12 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		)
 	}
 	ngProps := map[string]interface{}{
-		"LaunchConfigurationName": refLC,
-		"VPCZoneIdentifier":       vpcZoneIdentifier,
-		"Tags":                    tags,
+		"LaunchTemplate": map[string]interface{}{
+			"LaunchTemplateName": launchTemplateName,
+			"Version":            gfn.MakeFnGetAttString("NodeGroupLaunchTemplate.LatestVersionNumber"),
+		},
+		"VPCZoneIdentifier": vpcZoneIdentifier,
+		"Tags":              tags,
 	}
 	if n.spec.DesiredCapacity != nil {
 		ngProps["DesiredCapacity"] = fmt.Sprintf("%d", *n.spec.DesiredCapacity)
@@ -203,7 +213,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	if n.spec.MaxSize != nil {
 		ngProps["MaxSize"] = fmt.Sprintf("%d", *n.spec.MaxSize)
 	}
-	if n.spec.TargetGroupARNs != nil {
+	if len(n.spec.TargetGroupARNs) > 0 {
 		ngProps["TargetGroupARNs"] = n.spec.TargetGroupARNs
 	}
 	n.newResource("NodeGroup", &awsCloudFormationResource{
