@@ -130,6 +130,7 @@ func testVPC() *api.ClusterVPC {
 		},
 		SecurityGroup:           "sg-0b44c48bcba5b7362",
 		SharedNodeSecurityGroup: "sg-shared",
+		AutoAllocatedIPv6:       api.Disabled(),
 		Subnets: &api.ClusterSubnets{
 			Public: map[string]api.Network{
 				"us-west-2b": {
