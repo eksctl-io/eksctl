@@ -98,7 +98,7 @@ required = [
 [[constraint]]
    name = "github.com/awslabs/goformation"
    source = "https://github.com/errordeveloper/goformation"
-   revision = "089cb75cdd400501d0988843e12a9158f1ac14db" # branch pin-eksctl
+   revision = "a31eae35e59643d624f58ee1328c6207dfa3d017" # branch pin-eksctl
 
 [[constraint]]
   name = "github.com/dave/jennifer"
