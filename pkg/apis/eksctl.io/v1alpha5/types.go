@@ -398,7 +398,7 @@ type NodeGroup struct {
 	// +optional
 	VolumeType string `json:"volumeType"`
 	// +optional
-	DeviceName string `json:"deviceName"`
+	DeviceName string `json:"deviceName,omitempty"`
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 

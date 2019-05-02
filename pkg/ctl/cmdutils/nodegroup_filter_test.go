@@ -319,6 +319,7 @@ const expected = `
 			  },
 			  "volumeSize": 768,
 			  "volumeType": "io1",
+			  "deviceName": "/dev/xvda",
 			  "labels": {
 			    "group": "a",
 			    "seq": "1"
@@ -354,6 +355,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "deviceName": "/dev/xvda",
 			  "labels": {
 			    "group": "a",
 			    "seq": "2"
@@ -389,6 +391,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "deviceName": "/dev/xvda",
 			  "labels": {
 			    "group": "a",
 			    "seq": "3"
@@ -423,6 +426,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "deviceName": "/dev/xvda",
 			  "labels": {
 			    "group": "b",
 			    "seq": "1"
@@ -460,6 +464,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "deviceName": "/dev/xvda",
 			  "labels": {
 			    "group": "b",
 			    "seq": "1"
@@ -497,6 +502,7 @@ const expected = `
 			  },
 			  "volumeSize": 192,
 			  "volumeType": "gp2",
+			  "deviceName": "/dev/xvda",
 			  "labels": {
 			    "group": "b",
 			    "seq": "1"
