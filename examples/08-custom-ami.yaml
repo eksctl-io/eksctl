@@ -1,0 +1,17 @@
+# An example of ClusterConfig showing how to use a custom ami that is not Amazon Linux or Ubuntu that has had its volume size increased.
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-8
+  region: eu-west-1
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 1
+    ami: ami-0259e19aeg5cdf121
+    volumeSize: 100
+    volumeType: gp2
+    deviceName: /dev/sda1 # Override the root volume device name, default is /dev/xvda

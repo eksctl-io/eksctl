@@ -49,6 +49,9 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 		if ng.VolumeType == "" {
 			ng.VolumeType = DefaultNodeVolumeType
 		}
+		if ng.DeviceName == "" {
+			ng.DeviceName = DefaultNodeVolumeDevice
+		}
 	}
 
 	if ng.IAM == nil {

@@ -128,7 +128,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 
 	if n.spec.VolumeSize > 0 {
 		launchTemplateData.BlockDeviceMappings = []gfn.AWSEC2LaunchTemplate_BlockDeviceMapping{{
-			DeviceName: gfn.NewString("/dev/xvda"),
+			DeviceName: gfn.NewString(n.spec.DeviceName),
 			Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
 				VolumeSize: gfn.NewInteger(n.spec.VolumeSize),
 				VolumeType: gfn.NewString(n.spec.VolumeType),

@@ -88,6 +88,8 @@ const (
 	NodeVolumeTypeSC1 = "sc1"
 	// NodeVolumeTypeST1 is Cold HDD
 	NodeVolumeTypeST1 = "st1"
+	// DefaultNodeVolumeDevice defines the default root volume device name to use
+	DefaultNodeVolumeDevice = "/dev/xvda"
 
 	// DefaultNodeImageFamily defines the default image family for the worker nodes
 	DefaultNodeImageFamily = NodeImageFamilyAmazonLinux2
@@ -340,6 +342,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 		InstanceType:    DefaultNodeType,
 		VolumeSize:      0,
 		VolumeType:      DefaultNodeVolumeType,
+		DeviceName:      DefaultNodeVolumeDevice,
 		IAM: &NodeGroupIAM{
 			WithAddonPolicies: NodeGroupIAMAddonPolicies{
 				ImageBuilder: Disabled(),
@@ -394,6 +397,8 @@ type NodeGroup struct {
 	VolumeSize int `json:"volumeSize"`
 	// +optional
 	VolumeType string `json:"volumeType"`
+	// +optional
+	DeviceName string `json:"deviceName"`
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
