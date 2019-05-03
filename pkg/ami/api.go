@@ -57,6 +57,20 @@ func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
 	return *output.Images[0].State == "available", nil
 }
 
+// LookupRootDeviceName gets the root block device mapping
+func LookupRootDeviceName(api ec2iface.EC2API, id string) (string, error) {
+	input := &ec2.DescribeImagesInput{
+		ImageIds: []*string{&id},
+	}
+
+	output, err := api.DescribeImages(input)
+	if err != nil {
+		return "", errors.Wrapf(err, "unable to determine root device name for %q", id)
+	}
+
+	return *output.Images[0].RootDeviceName, nil
+}
+
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
 // It will only look for images with a status of available and it will pick the
 // image with the newest creation date.

@@ -260,6 +260,20 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 	return nil
 }
 
+// GetRootDevice looks up the root device for the ami
+func (c *ClusterProvider) GetRootDevice(ng *api.NodeGroup) (error) {
+
+	// Get Root Device Name
+	rootDevice, err := ami.LookupRootDeviceName(c.Provider.EC2(), ng.AMI)
+	if err != nil {
+		return errors.Wrapf(err, "%s root device name is not available", ng.AMI)
+	}
+
+	ng.RootDevice = rootDevice
+
+	return nil
+}
+
 // SetNodeLabels initialises and validate node labels based on cluster and nodegroup names
 func (c *ClusterProvider) SetNodeLabels(ng *api.NodeGroup, meta *api.ClusterMeta) error {
 	if ng.Labels == nil {

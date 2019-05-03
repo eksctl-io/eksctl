@@ -121,6 +121,12 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 
+		// Lookup AMI root device name
+		if err := ctl.GetRootDevice(ng); err != nil {
+			return err
+		}
+		logger.Info("%q has root device %q [%s/%s]", ng.AMI, ng.RootDevice, cfg.Metadata.Version)
+
 		if err := ctl.SetNodeLabels(ng, meta); err != nil {
 			return err
 		}

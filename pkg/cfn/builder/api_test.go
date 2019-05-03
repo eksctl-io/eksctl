@@ -248,6 +248,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.AMIFamily = "AmazonLinux2"
 		ng.VolumeSize = 2
 		ng.VolumeType = api.NodeVolumeTypeIO1
+		ng.RootDevice = "/dev/xvda"
 
 		if withFullVPC {
 			cfg.VPC = testVPC()
@@ -354,6 +355,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					DesiredCapacity: nil,
 					VolumeSize:      2,
 					VolumeType:      api.NodeVolumeTypeIO1,
+					RootDevice:      "/dev/xvda",
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
 							ImageBuilder: api.Disabled(),
