@@ -257,19 +257,13 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 		return ami.NewErrNotFound(ng.AMI)
 	}
 
-	return nil
-}
-
-// GetRootDevice looks up the root device for the ami
-func (c *ClusterProvider) GetRootDevice(ng *api.NodeGroup) (error) {
-
 	// Get Root Device Name
 	rootDevice, err := ami.LookupRootDeviceName(c.Provider.EC2(), ng.AMI)
 	if err != nil {
-		return errors.Wrapf(err, "%s root device name is not available", ng.AMI)
+		return errors.Wrapf(err, "%s failed root device name lookup", ng.AMI)
 	}
 
-	ng.RootDevice = rootDevice
+	ng.VolumeName = rootDevice
 
 	return nil
 }

@@ -68,6 +68,10 @@ func LookupRootDeviceName(api ec2iface.EC2API, id string) (string, error) {
 		return "", errors.Wrapf(err, "unable to determine root device name for %q", id)
 	}
 
+	if len(output.Images) < 1 {
+		return "", errors.Wrapf(err, "unable to find %q", id)
+	}
+
 	return *output.Images[0].RootDeviceName, nil
 }
 
