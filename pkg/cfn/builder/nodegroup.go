@@ -108,19 +108,7 @@ func (n *NodeGroupResourceSet) newResource(name string, resource interface{}) *g
 
 func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	launchTemplateName := gfn.MakeFnSubString(fmt.Sprintf("${%s}", gfn.StackName))
-	launchTemplateData := &gfn.AWSEC2LaunchTemplate_LaunchTemplateData{
-		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
-			Arn: n.instanceProfileARN,
-		},
-		ImageId:      gfn.NewString(n.spec.AMI),
-		InstanceType: gfn.NewString(n.spec.InstanceType),
-		UserData:     n.userData,
-		NetworkInterfaces: []gfn.AWSEC2LaunchTemplate_NetworkInterface{{
-			AssociatePublicIpAddress: gfn.NewBoolean(!n.spec.PrivateNetworking),
-			DeviceIndex:              gfn.NewInteger(0),
-			Groups:                   n.securityGroups,
-		}},
-	}
+	launchTemplateData := launchTemplateData(n)
 
 	if api.IsEnabled(n.spec.SSH.Allow) && api.IsSetAndNonEmptyString(n.spec.SSH.PublicKeyName) {
 		launchTemplateData.KeyName = gfn.NewString(*n.spec.SSH.PublicKeyName)
@@ -196,36 +184,9 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			},
 		)
 	}
-	ngProps := map[string]interface{}{
-		"LaunchTemplate": map[string]interface{}{
-			"LaunchTemplateName": launchTemplateName,
-			"Version":            gfn.MakeFnGetAttString("NodeGroupLaunchTemplate.LatestVersionNumber"),
-		},
-		"VPCZoneIdentifier": vpcZoneIdentifier,
-		"Tags":              tags,
-	}
-	if n.spec.DesiredCapacity != nil {
-		ngProps["DesiredCapacity"] = fmt.Sprintf("%d", *n.spec.DesiredCapacity)
-	}
-	if n.spec.MinSize != nil {
-		ngProps["MinSize"] = fmt.Sprintf("%d", *n.spec.MinSize)
-	}
-	if n.spec.MaxSize != nil {
-		ngProps["MaxSize"] = fmt.Sprintf("%d", *n.spec.MaxSize)
-	}
-	if len(n.spec.TargetGroupARNs) > 0 {
-		ngProps["TargetGroupARNs"] = n.spec.TargetGroupARNs
-	}
-	n.newResource("NodeGroup", &awsCloudFormationResource{
-		Type:       "AWS::AutoScaling::AutoScalingGroup",
-		Properties: ngProps,
-		UpdatePolicy: map[string]map[string]string{
-			"AutoScalingRollingUpdate": {
-				"MinInstancesInService": "1",
-				"MaxBatchSize":          "1",
-			},
-		},
-	})
+
+	asg := asgResource(launchTemplateName, &vpcZoneIdentifier, tags, n.spec)
+	n.newResource("NodeGroup", asg)
 
 	return nil
 }
@@ -233,4 +194,82 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 // GetAllOutputs collects all outputs of the node group
 func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return n.rs.GetAllOutputs(stack)
+}
+
+func launchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_LaunchTemplateData {
+	launchTemplateData := &gfn.AWSEC2LaunchTemplate_LaunchTemplateData{
+		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
+			Arn: n.instanceProfileARN,
+		},
+		ImageId:      gfn.NewString(n.spec.AMI),
+		InstanceType: gfn.NewString(n.spec.InstanceType),
+		UserData:     n.userData,
+		NetworkInterfaces: []gfn.AWSEC2LaunchTemplate_NetworkInterface{{
+			AssociatePublicIpAddress: gfn.NewBoolean(!n.spec.PrivateNetworking),
+			DeviceIndex:              gfn.NewInteger(0),
+			Groups:                   n.securityGroups,
+		}},
+	}
+
+	if hasSpotInstances(n.spec) {
+		launchTemplateData.InstanceMarketOptions = &gfn.AWSEC2LaunchTemplate_InstanceMarketOptions{
+			MarketType: gfn.NewString("spot"),
+			SpotOptions: &gfn.AWSEC2LaunchTemplate_SpotOptions{
+				SpotInstanceType: gfn.NewString("one-time"),
+				MaxPrice:         gfn.NewString(fmt.Sprintf("%f", *n.spec.SpotInstances.MaxPrice)),
+			},
+		}
+	}
+	return launchTemplateData
+}
+
+func asgResource(launchTemplateName *gfn.Value, vpcZoneIdentifier *interface{}, tags []map[string]interface{}, ng *api.NodeGroup) *awsCloudFormationResource {
+	ngProps := map[string]interface{}{
+		"LaunchTemplate": map[string]interface{}{
+			"LaunchTemplateName": launchTemplateName,
+			"Version":            gfn.MakeFnGetAttString("NodeGroupLaunchTemplate.LatestVersionNumber"),
+		},
+		"VPCZoneIdentifier": *vpcZoneIdentifier,
+		"Tags":              tags,
+	}
+	if ng.DesiredCapacity != nil {
+		ngProps["DesiredCapacity"] = fmt.Sprintf("%d", *ng.DesiredCapacity)
+	}
+	if ng.MinSize != nil {
+		ngProps["MinSize"] = minInstances(ng)
+	}
+	if ng.MaxSize != nil {
+		ngProps["MaxSize"] = fmt.Sprintf("%d", *ng.MaxSize)
+	}
+	if len(ng.TargetGroupARNs) > 0 {
+		ngProps["TargetGroupARNs"] = ng.TargetGroupARNs
+	}
+
+	return &awsCloudFormationResource{
+		Type:       "AWS::AutoScaling::AutoScalingGroup",
+		Properties: ngProps,
+		UpdatePolicy: map[string]map[string]string{
+			"AutoScalingRollingUpdate": {
+				"MinInstancesInService": minInstancesInService(ng),
+				"MaxBatchSize":          "1",
+			},
+		},
+	}
+}
+
+func minInstances(ng *api.NodeGroup) string {
+	if hasSpotInstances(ng) {
+		return "0"
+	}
+	return fmt.Sprintf("%d", *ng.MinSize)
+}
+
+func minInstancesInService(ng *api.NodeGroup) string {
+	if hasSpotInstances(ng) {
+		return "0"
+	}
+	return "1"
+}
+func hasSpotInstances(ng *api.NodeGroup) bool {
+	return ng.SpotInstances != nil && ng.SpotInstances.MaxPrice != nil
 }
