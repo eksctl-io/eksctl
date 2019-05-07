@@ -380,6 +380,8 @@ type NodeGroup struct {
 	AMIFamily string `json:"amiFamily,omitempty"`
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
+	//+optional
+	InstancesDistribution *NodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 	// +optional
@@ -494,5 +496,19 @@ type (
 		PublicKey *string `json:"publicKey,omitempty"`
 		// +optional
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
+	}
+
+	// NodeGroupInstancesDistribution holds the configuration for spot instances
+	NodeGroupInstancesDistribution struct {
+		//+required
+		InstanceTypes []string `json:"instanceTypes,omitEmpty"`
+		// +optional
+		MaxPrice *float64 `json:"maxPrice,omitempty"`
+		//+optional
+		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitEmpty"`
+		//+optional
+		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitEmpty"`
+		//+optional
+		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
 	}
 )

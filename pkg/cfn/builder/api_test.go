@@ -89,6 +89,23 @@ type Properties struct {
 		SecurityGroupIds []interface{}
 		SubnetIds        []interface{}
 	}
+	MixedInstancesPolicy *struct {
+		LaunchTemplate struct {
+			LaunchTemplateSpecification struct {
+				LaunchTemplateName map[string]string
+				Version            map[string]string
+				Overrides          []struct {
+					InstanceType string
+				}
+			}
+		}
+		InstancesDistribution struct {
+			OnDemandBaseCapacity                string
+			OnDemandPercentageAboveBaseCapacity string
+			SpotMaxPrice                        string
+			SpotInstancePools                   string
+		}
+	}
 }
 
 type LaunchTemplateData struct {
@@ -98,6 +115,13 @@ type LaunchTemplateData struct {
 	NetworkInterfaces               []struct {
 		DeviceIndex              int
 		AssociatePublicIpAddress bool
+	}
+	InstanceMarketOptions *struct {
+		MarketType  string
+		SpotOptions struct {
+			SpotInstanceType string
+			MaxPrice         string
+		}
 	}
 }
 
@@ -1132,7 +1156,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup with cutom role and profile", func() {
+	Context("NodeGroup with custom role and profile", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.IAM.InstanceRoleARN = "arn:role"
@@ -2159,6 +2183,54 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}
 		})
 
+	})
+
+	Context("Nodegroup with Mixed instances", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		maxSpotPrice := 0.045
+		baseCap := 40
+		percentageOnDemand := 20
+		pools := 3
+		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+			MaxPrice:                            &maxSpotPrice,
+			InstanceTypes:                       []string{"m5.large", "m5a.xlarge"},
+			OnDemandBaseCapacity:                &baseCap,
+			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
+			SpotInstancePools:                   &pools,
+		}
+
+		zero := 0
+		ng.MinSize = &zero
+		ng.MaxSize = &zero
+
+		build(cfg, "eksctl-test-spot-cluster", ng)
+
+		roundtrip()
+
+		It("should have mixed instances with correct max price", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeGroupLaunchTemplate"))
+
+			launchTemplateData := getLaunchTemplateData(ngTemplate)
+			Expect(launchTemplateData.InstanceMarketOptions).To(BeNil())
+
+			nodeGroupProperties := getNodeGroupProperties(ngTemplate)
+			Expect(nodeGroupProperties.MinSize).To(Equal("0"))
+			Expect(nodeGroupProperties.MaxSize).To(Equal("0"))
+			Expect(nodeGroupProperties.DesiredCapacity).To(Equal(""))
+
+			Expect(nodeGroupProperties.MixedInstancesPolicy).To(Not(BeNil()))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification.LaunchTemplateName["Fn::Sub"]).To(Equal("${AWS::StackName}"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.LaunchTemplate.LaunchTemplateSpecification.Version["Fn::GetAtt"]).To(Equal("NodeGroupLaunchTemplate.LatestVersionNumber"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.LaunchTemplate).To(Not(BeNil()))
+
+			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution).To(Not(BeNil()))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.OnDemandBaseCapacity).To(Equal("40"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.OnDemandPercentageAboveBaseCapacity).To(Equal("20"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotInstancePools).To(Equal("3"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotMaxPrice).To(Equal("0.045000"))
+
+		})
 	})
 })
 

@@ -155,7 +155,7 @@ func (c *ClusterConfig) HasSufficientPublicSubnets() bool {
 }
 
 var errInsufficientSubnets = fmt.Errorf(
-	"inssuficient number of subnets, at least %dx public and/or %dx private subnets are required",
+	"insufficient number of subnets, at least %dx public and/or %dx private subnets are required",
 	MinRequiredSubnets, MinRequiredSubnets)
 
 // HasSufficientSubnets validates if there is a sufficient number
