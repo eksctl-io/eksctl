@@ -66,17 +66,17 @@ func doUpdateKubeProxy(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg st
 		return errors.Wrapf(err, "getting credentials for cluster %q", meta.Name)
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}
 
-	cprv, err := ctl.ControlPlaneReleaseVersion(clientSet)
+	kubernetesVersion, err := rawClient.ServerVersion()
 	if err != nil {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateKubeProxyImageTag(clientSet, cprv, plan)
+	updateRequired, err := defaultaddons.UpdateKubeProxyImageTag(rawClient.ClientSet(), kubernetesVersion, plan)
 	if err != nil {
 		return err
 	}

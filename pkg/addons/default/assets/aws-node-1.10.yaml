@@ -64,7 +64,6 @@ spec:
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
     spec:
-      priorityClassName: system-node-critical
       serviceAccountName: aws-node
       hostNetwork: true
       tolerations:
@@ -122,10 +121,8 @@ metadata:
 spec:
   scope: Cluster
   group: crd.k8s.amazonaws.com
-  versions:
-    - name: v1alpha1
-      served: true
-      storage: true
+  # 1.10 uses "version", all newer use "versions"
+  version: v1alpha1
   names:
     plural: eniconfigs
     singular: eniconfig

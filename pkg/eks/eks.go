@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -81,24 +80,6 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 		return ""
 	}
 	return *c.Status.cachedClusterInfo.Version
-}
-
-// ControlPlaneReleaseVersion returns full release version (Kubernetes API)
-// NOTE: kubernetes.Interface cannot be used here, as it is missing ServerVersion
-func (c *ClusterProvider) ControlPlaneReleaseVersion(clientSet *kubernetes.Clientset) (string, error) {
-	v, err := clientSet.ServerVersion()
-	if err != nil {
-		return "", errors.Wrapf(err, "getting Kubernetes API version")
-	}
-
-	sv, err := semver.ParseTolerant(v.GitVersion)
-	if err != nil {
-		return "", errors.Wrapf(err, "parsing Kubernetes API version")
-	}
-
-	sv.Pre = nil // clear extra info
-
-	return sv.String(), nil
 }
 
 // GetClusterVPC retrieves the VPC configuration

@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"fmt"
 
+	"github.com/blang/semver"
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -17,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions/resource"
+	"k8s.io/client-go/discovery"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	restclient "k8s.io/client-go/rest"
@@ -72,6 +74,27 @@ func (c *RawClient) new() (*RawClient, error) {
 		return nil, errors.Wrap(err, "applying defaults for REST client")
 	}
 	return c, nil
+}
+
+func getServerVersion(discoveryClient discovery.DiscoveryInterface) (string, error) {
+	v, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return "", errors.Wrapf(err, "getting Kubernetes API version")
+	}
+
+	sv, err := semver.ParseTolerant(v.GitVersion)
+	if err != nil {
+		return "", errors.Wrapf(err, "parsing Kubernetes API version")
+	}
+
+	sv.Pre = nil // clear extra info
+
+	return sv.String(), nil
+}
+
+// ServerVersion will use discovery API to fetch version of Kubernetes control plane
+func (c *RawClient) ServerVersion() (string, error) {
+	return getServerVersion(c.ClientSet().Discovery())
 }
 
 // ClientSet returns the underlying ClientSet
