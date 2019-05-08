@@ -13,6 +13,8 @@ type (
 		// +optional
 		Network `json:",inline"` // global CIDR and VPC ID
 		// +optional
+		PodCIDRs []*ipnet.IPNet `json:"podCIDRs,omitempty"`
+		// +optional
 		SecurityGroup string `json:"securityGroup,omitempty"` // cluster SG
 		// subnets are either public or private for use with separate nodegroups
 		// these are keyed by AZ for convenience
@@ -20,6 +22,8 @@ type (
 		Subnets *ClusterSubnets `json:"subnets,omitempty"`
 		// for additional CIDR associations, e.g. to use with separate CIDR for
 		// private subnets or any ad-hoc subnets
+		// +optional
+		PodSubnets map[string]*CustomSubnets `json:"podSubnets,omitempty"`
 		// +optional
 		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
 		// for pre-defined shared node SG
@@ -38,6 +42,12 @@ type (
 		ID string `json:"id,omitempty"`
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+	}
+
+	// PodSubnets holds the pod VPC CIDR and subnets
+	CustomSubnets struct {
+		CIDR    *ipnet.IPNet    `json:"cidr,omitempty"`
+		Subnets *ClusterSubnets `json:"subnets,omitempty"`
 	}
 )
 

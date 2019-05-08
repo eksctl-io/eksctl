@@ -7,7 +7,9 @@ package ipnet
 // TODO: this is not ideal, we should move this out or do something else about it.
 
 import (
+	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"net"
 	"reflect"
 
@@ -113,4 +115,30 @@ func MustParseCIDR(s string) *IPNet {
 		panic(err)
 	}
 	return cidr
+}
+
+// SplitIntoN splits the parent IPNet into n subnets
+func SplitIntoN(parent *net.IPNet, n int) ([]*net.IPNet, error) {
+	networkLength, _ := parent.Mask.Size()
+	networkLength += 3
+
+	var subnets []*net.IPNet
+	for i := 0; i < n; i++ {
+		ip4 := parent.IP.To4()
+		if ip4 != nil {
+			n := binary.BigEndian.Uint32(ip4)
+			n += uint32(i) << uint(32-networkLength)
+			subnetIP := make(net.IP, len(ip4))
+			binary.BigEndian.PutUint32(subnetIP, n)
+
+			subnets = append(subnets, &net.IPNet{
+				IP:   subnetIP,
+				Mask: net.CIDRMask(networkLength, 32),
+			})
+		} else {
+			return nil, fmt.Errorf("Unexpected IP address type: %s", parent)
+		}
+	}
+
+	return subnets, nil
 }

@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"fmt"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
@@ -10,9 +11,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
+func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network, kind string) {
 	for az, subnet := range subnets {
-		alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
+		alias := string(kind) + string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 		subnet := &gfn.AWSEC2Subnet{
 			AvailabilityZone: gfn.NewString(az),
 			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
@@ -49,6 +50,17 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		EnableDnsHostnames: gfn.True(),
 	})
 
+	for i, podCIDR := range c.spec.VPC.PodCIDRs {
+		c.newResource(fmt.Sprintf("PodCIDR%d", i), &awsCloudFormationResource{
+			Type: "AWS::EC2::VPCCidrBlock",
+			Properties: map[string]interface{}{
+				"CidrBlock": podCIDR.String(),
+				"VpcId":     c.vpc,
+			},
+			DependsOn: []string{"VPC"},
+		})
+	}
+
 	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 
 	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
@@ -67,7 +79,7 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		GatewayId:            refIG,
 	})
 
-	c.addSubnets(refPublicRT, api.SubnetTopologyPublic, c.spec.VPC.Subnets.Public)
+	c.addSubnets(refPublicRT, api.SubnetTopologyPublic, c.spec.VPC.Subnets.Public, "")
 
 	c.newResource("NATIP", &gfn.AWSEC2EIP{
 		Domain: gfn.NewString("vpc"),
@@ -89,7 +101,12 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		NatGatewayId:         refNG,
 	})
 
-	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private)
+	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private, "")
+
+	// TODO add specific name for pod subnets
+	for i := range c.spec.VPC.PodCIDRs {
+		c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.PodSubnets[fmt.Sprintf("eksctlGroup%d", i)].Subnets.Private, "Pod")
+	}
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {

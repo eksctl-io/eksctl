@@ -23,6 +23,7 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	var err error
 
 	vpc := spec.VPC
+	vpc.PodSubnets = make(map[string]*api.CustomSubnets)
 	vpc.Subnets = &api.ClusterSubnets{
 		Private: map[string]api.Network{},
 		Public:  map[string]api.Network{},
@@ -31,10 +32,16 @@ func SetSubnets(spec *api.ClusterConfig) error {
 		cidr := api.DefaultCIDR()
 		vpc.CIDR = &cidr
 	}
-	prefix, _ := spec.VPC.CIDR.Mask.Size()
-	if (prefix < 16) || (prefix > 24) {
-		return fmt.Errorf("VPC CIDR prefix must be betwee /16 and /24")
+
+	cidrs := append(spec.VPC.PodCIDRs, vpc.CIDR)
+	for _, cidr := range cidrs {
+		prefix, _ := cidr.Mask.Size()
+		if (prefix < 16) || (prefix > 28) {
+			return fmt.Errorf("VPC CIDR (%v) prefix must be between /16 and /28", cidr)
+		}
 	}
+
+	// Create subnets for VPC CIDR
 	zoneCIDRs, err := subnet.SplitInto8(&spec.VPC.CIDR.IPNet)
 	if err != nil {
 		return err
@@ -59,6 +66,34 @@ func SetSubnets(spec *api.ClusterConfig) error {
 		logger.Info("subnets for %s - public:%s private:%s", zone, public.String(), private.String())
 	}
 
+	// Create subnets for pod CIDRs
+	for c, podCIDR := range spec.VPC.PodCIDRs {
+		logger.Info("pod CIDR %s", podCIDR.String()) // TODO delete
+		zoneCIDRs, err := ipnet.SplitIntoN(&podCIDR.IPNet, 4)
+		if err != nil {
+			return err
+		}
+
+		if zonesTotal > len(zoneCIDRs) {
+			return fmt.Errorf("insufficient number of subnets (have %d, but need %d) for %d availability zones", len(zoneCIDRs), 2*zonesTotal, zonesTotal)
+		}
+
+		for i, zone := range spec.AvailabilityZones {
+			private := zoneCIDRs[i]
+			podSubnets := &api.CustomSubnets{
+				Subnets: &api.ClusterSubnets{
+					Private: map[string]api.Network{
+						zone: api.Network{
+							CIDR: &ipnet.IPNet{IPNet: *private},
+						},
+					},
+				},
+			}
+			vpc.PodSubnets[fmt.Sprintf("eksctlGroup%d", c)] = podSubnets
+			logger.Info("pod subnets for %s - private:%s", zone, private.String())
+		}
+	}
+
 	return nil
 }
 
@@ -73,11 +108,11 @@ func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.
 	return output.Subnets, nil
 }
 
-func describe(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
+func describe(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []*string{aws.String(vpcID)},
 	}
-	output, err := povider.EC2().DescribeVpcs(input)
+	output, err := provider.EC2().DescribeVpcs(input)
 	if err != nil {
 		return nil, err
 	}
