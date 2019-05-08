@@ -124,6 +124,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return nil
 	}
 
+	if ng.VolumeSize == nil && IsSetAndNonEmptyString(ng.VolumeType) {
+		return fmt.Errorf("VolumeType can not be set without VolumeSize")
+	}
+
 	if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
 		return err
 	}
