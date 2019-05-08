@@ -71,7 +71,12 @@ func doUpdateAWSNode(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, plan)
+	kubernetesVersion, err := rawClient.ServerVersion()
+	if err != nil {
+		return err
+	}
+
+	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, kubernetesVersion, plan)
 	if err != nil {
 		return err
 	}

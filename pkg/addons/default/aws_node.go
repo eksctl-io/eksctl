@@ -23,7 +23,7 @@ const (
 )
 
 // UpdateAWSNode will update the `aws-node` add-on
-func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan bool) (bool, error) {
+func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, controlPlaneVersion string, plan bool) (bool, error) {
 	_, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
@@ -34,7 +34,11 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 	}
 
 	// if DaemonSets is present, go through our list of assets
-	list, err := LoadAsset(AWSNode, "yaml")
+	assetName := AWSNode
+	if strings.HasPrefix(controlPlaneVersion, "1.10.") {
+		assetName += "-1.10"
+	}
+	list, err := LoadAsset(assetName, "yaml")
 	if err != nil {
 		return false, err
 	}
