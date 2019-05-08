@@ -40,39 +40,21 @@ var ImageClasses = []string{
 }
 
 // IsAvailable checks if a given AMI ID is available in AWS EC2
-func IsAvailable(api ec2iface.EC2API, id string) (bool, error) {
+func IsAvailable(api ec2iface.EC2API, id string) (bool, string, string, error) {
 	input := &ec2.DescribeImagesInput{
 		ImageIds: []*string{&id},
 	}
 
 	output, err := api.DescribeImages(input)
 	if err != nil {
-		return false, errors.Wrapf(err, "unable to find %q", id)
+		return false, "", "", errors.Wrapf(err, "unable to find %q", id)
 	}
 
 	if len(output.Images) < 1 {
-		return false, nil
+		return false, "", "", nil
 	}
 
-	return *output.Images[0].State == "available", nil
-}
-
-// LookupRootDeviceName gets the root block device mapping
-func LookupRootDeviceName(api ec2iface.EC2API, id string) (string, error) {
-	input := &ec2.DescribeImagesInput{
-		ImageIds: []*string{&id},
-	}
-
-	output, err := api.DescribeImages(input)
-	if err != nil {
-		return "", errors.Wrapf(err, "unable to determine root device name for %q", id)
-	}
-
-	if len(output.Images) < 1 {
-		return "", errors.Wrapf(err, "unable to find %q", id)
-	}
-
-	return *output.Images[0].RootDeviceName, nil
+	return *output.Images[0].State == "available", *output.Images[0].RootDeviceName, *output.Images[0].RootDeviceType, nil
 }
 
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.

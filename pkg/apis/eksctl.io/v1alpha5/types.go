@@ -78,8 +78,6 @@ const (
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
 
-	// DefaultNodeVolumeType defines the default root volume type to use
-	DefaultNodeVolumeType = NodeVolumeTypeGP2
 	// NodeVolumeTypeGP2 is General Purpose SSD
 	NodeVolumeTypeGP2 = "gp2"
 	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
@@ -128,6 +126,13 @@ var (
 
 	// DefaultNodeSSHPublicKeyPath is the default path to SSH public key
 	DefaultNodeSSHPublicKeyPath = "~/.ssh/id_rsa.pub"
+
+	// DefaultNodeVolumeType defines the default root volume type to use
+	DefaultNodeVolumeType = NodeVolumeTypeGP2
+
+	// DefaultNodeVolumeSize defines the default root volume size
+	DefaultNodeVolumeSize = 0
+
 )
 
 // Enabled return pointer to true value
@@ -338,8 +343,8 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 		},
 		DesiredCapacity: nil,
 		InstanceType:    DefaultNodeType,
-		VolumeSize:      0,
-		VolumeType:      DefaultNodeVolumeType,
+		VolumeSize:      &DefaultNodeVolumeSize,
+		VolumeType:      &DefaultNodeVolumeType,
 		IAM: &NodeGroupIAM{
 			WithAddonPolicies: NodeGroupIAMAddonPolicies{
 				ImageBuilder: Disabled(),
@@ -391,9 +396,9 @@ type NodeGroup struct {
 	MaxSize *int `json:"maxSize,omitempty"`
 
 	// +optional
-	VolumeSize int `json:"volumeSize"`
+	VolumeSize *int `json:"volumeSize"`
 	// +optional
-	VolumeType string `json:"volumeType"`
+	VolumeType *string `json:"volumeType"`
 	// +optional
 	VolumeName string `json:"volumeName,omitempty"`
 	// +optional

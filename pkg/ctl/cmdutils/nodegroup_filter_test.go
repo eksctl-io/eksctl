@@ -243,10 +243,13 @@ func newClusterConfig() *api.ClusterConfig {
 func addGroupA(cfg *api.ClusterConfig) {
 	var ng *api.NodeGroup
 
+	ng1aVolSize := 768
+	ng1aVolType := api.NodeVolumeTypeIO1
+
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1a"
-	ng.VolumeSize = 768
-	ng.VolumeType = "io1"
+	ng.VolumeSize = &ng1aVolSize
+	ng.VolumeType = &ng1aVolType
 	ng.IAM.AttachPolicyARNs = []string{"foo"}
 	ng.Labels = map[string]string{"group": "a", "seq": "1"}
 	ng.SSH = nil
@@ -284,9 +287,11 @@ func addGroupB(cfg *api.ClusterConfig) {
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
 	ng.SSH = nil
 
+	ng3bVolSize := 192
+
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng3b"
-	ng.VolumeSize = 192
+	ng.VolumeSize = &ng3bVolSize
 	ng.SecurityGroups.AttachIDs = []string{"sg-1", "sg-2"}
 	ng.SecurityGroups.WithLocal = api.Disabled()
 	ng.Labels = map[string]string{"group": "b", "seq": "1"}
