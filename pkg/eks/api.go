@@ -258,7 +258,7 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 	}
 
 	if devType == "instance-store" {
-		return fmt.Errorf("%q is an instance-store ami and EBS block device mappings not supported for instance-store AMIs", ng.AMI)
+		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings not supported for instance-store AMIs", ng.AMI)
 	}
 
 	if devType == "ebs" {
