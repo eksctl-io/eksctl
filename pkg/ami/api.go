@@ -50,6 +50,7 @@ func IsAvailable(api ec2iface.EC2API, id string) (bool, string, string, error) {
 		return false, "", "", errors.Wrapf(err, "unable to find %q", id)
 	}
 
+	// This will never return more than one as we are looking up a single ami id
 	if len(output.Images) < 1 {
 		return false, "", "", nil
 	}
