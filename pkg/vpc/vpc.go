@@ -78,19 +78,19 @@ func SetSubnets(spec *api.ClusterConfig) error {
 			return fmt.Errorf("insufficient number of subnets (have %d, but need %d) for %d availability zones", len(zoneCIDRs), 2*zonesTotal, zonesTotal)
 		}
 
+		podSubnets := &api.CustomSubnets{
+			Subnets: &api.ClusterSubnets{
+				Private: make(map[string]api.Network),
+			},
+		}
+		vpc.PodSubnets[fmt.Sprintf("eksctlGroup%d", c)] = podSubnets
+
 		for i, zone := range spec.AvailabilityZones {
 			private := zoneCIDRs[i]
-			podSubnets := &api.CustomSubnets{
-				Subnets: &api.ClusterSubnets{
-					Private: map[string]api.Network{
-						zone: api.Network{
-							CIDR: &ipnet.IPNet{IPNet: *private},
-						},
-					},
-				},
+			vpc.PodSubnets[fmt.Sprintf("eksctlGroup%d", c)].Subnets.Private[zone] = api.Network{
+				CIDR: &ipnet.IPNet{IPNet: *private},
 			}
-			vpc.PodSubnets[fmt.Sprintf("eksctlGroup%d", c)] = podSubnets
-			logger.Info("pod subnets for %s - private:%s", zone, private.String())
+			logger.Info("pod subnet for %s - private:%s", zone, private.String())
 		}
 	}
 

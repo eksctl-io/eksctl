@@ -32,10 +32,21 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 			}}
 		}
 		refSubnet := c.newResource("Subnet"+alias, subnet)
-		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
-			SubnetId:     refSubnet,
-			RouteTableId: refRT,
-		})
+		if alias == "" {
+			c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
+				SubnetId:     refSubnet,
+				RouteTableId: refRT,
+			})
+		} else {
+			c.newResource("RouteTableAssociation"+alias, &awsCloudFormationResource{
+				Type: "AWS::EC2::SubnetRouteTableAssociation",
+				Properties: map[string]interface{}{
+					"SubnetId":     refSubnet,
+					"RouteTableId": refRT,
+				},
+				DependsOn: []string{alias},
+			})
+		}
 		c.subnets[topology] = append(c.subnets[topology], refSubnet)
 	}
 }
@@ -105,7 +116,8 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 
 	// TODO add specific name for pod subnets
 	for i := range c.spec.VPC.PodCIDRs {
-		c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.PodSubnets[fmt.Sprintf("eksctlGroup%d", i)].Subnets.Private, "Pod")
+
+		c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.PodSubnets[fmt.Sprintf("eksctlGroup%d", i)].Subnets.Private, fmt.Sprintf("PodCIDR%d", i))
 	}
 }
 
