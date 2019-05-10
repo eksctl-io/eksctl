@@ -1,17 +1,17 @@
 # Design Proposal #001: Add-ons
 
-## What's an add-ons?
+## What's an add-on?
 
-An add-on extends functionality of a Kubernetes cluster, it may consist of a workload and/or configuration within the give cluster or the cloud provider. The workload, if present, would may classify as an operator or a controller, however that is not necessary.
+An add-on extends functionality of a Kubernetes cluster, it may consist of a workload and/or configuration within the given cluster or the cloud provider. The workload, if present, may classify as an operator or a controller, however that is not necessary.
 
-The difference between add-ons and anything a user decided to run themselves, is that from user's point of view, add-on is something they don't need to maintain directly. A cluster provider or bootstrap tool (i.e. eksctl), is expected to ensure ease of use, by providing minimum viable (that configuration to ensure end-to-end integration and compatibility), as well as catering for reconfiguration and upgrades.
+The difference between add-ons and anything a user decided to run themselves, is that from a user's point of view, an add-on is something they don't need to maintain directly. A cluster provider or bootstrap tool (i.e. eksctl), is expected to ensure ease of use, by providing a minimum viable solution (that configuration to ensure end-to-end integration and compatibility), as well as catering for reconfiguration and upgrades.
 
 ## Design Requirements and Goals
 
-Add-on must expose all of the following attributes:
+An add-on must expose all of the following attributes:
 
 - name (fixed) *[TBD]*
-- version tag or revision (has default value that user can override)
+- version tag or revision (has default value that the user can override)
 - source URL (has default value that user can override)
 - set of customisations (no default value, user defined)
 
@@ -23,7 +23,7 @@ Internally, an add-on may consist of any and/or all of the following elements:
 - dependencies (supported Kubernetes versions and corresponding cloud providers, list of references to other add-ons)
 - incompatibilities (supported Kubernetes versions and corresponding cloud providers, list of reference to other add-ons)
 
-In other words, it's ought to be possible to define an add-on that only includes:
+In other words, it ought to be possible to define an add-on that only includes:
 
 - dependencies on other add-ons
 - cloud provider resource definitions
@@ -35,13 +35,13 @@ The implementation must also ensure:
 - fully deterministic behaviour for a given version of eksctl, thereby it should have
     - strict versioning of built-in add-ons by default
     - any externally-sourced config has to be pinned down or vendored *[TBD]*
-    - there should be an option to use latest version or alternative source URL
-- user should be able:
+    - there should be an option to use the latest version or alternative source URL
+- that a user is able to:
     - remove any add-on (including it's dependencies) at any time
     - customise an add-on in an arbitrary fashion
     - upgrade an add-on
-    - install add-on at any time
-- an add-on may consists exclusively of
+    - install an add-on at any time
+- an add-on may consist exclusively of
     - a reference to any Helm chart (or a copy of one)
     - a reference to a Ksonnet application definition
 
@@ -89,7 +89,7 @@ a whole.
 
 ### kubernetes-sigs/cluster-api
 
-In Cluster API project, the notion of add-on is very simple – it's anything that can be used with `kubectl apply`,
+In the Cluster API project, the notion of add-on is very simple – it's anything that can be used with `kubectl apply`,
 i.e. one or more manifest bundled in a file or a directory. Add-ons are applied once API server is up, there isn't
 anything else to it. Definition of cluster readiness.
 
@@ -97,7 +97,7 @@ anything else to it. Definition of cluster readiness.
 
 ***This needs to be reviewed, it was written from memory***
 
-Add-ons in kubeadm are much more tightly coupled then elsewhere, and the only add-ons are the DNS component (orignally
+Add-ons in kubeadm are much more tightly coupled than elsewhere, and the only add-ons are the DNS component (orignally
 it was kube-dns, and more recently CoreDNS was adopted; both choices are still offered), and kube-proxy.
 The implementation varies between add-on, one is defined in terms of `k8s.io/api` structs directly, and the other is
 defined as an in-line string that is used with `text/template`. Originally, both add-ons used structs, but that has
@@ -246,11 +246,11 @@ TBD: it may be possible to chain different tools, e.g. render a Helm chart (via 
 
 A way to define parameters in a portable way will be required for optimal user (and/or add-on author) experience.
 
-At add-on management layer, there following key aspects of parameters:
+At the add-on management layer, the following key aspects of parameters are:
 
 - parameters are a map of strings to a value of a primitive type
 - initial set of primitive types - `bool`, `number` and `string`
-- non-primive types (`object` and `array`) are initially out of scope (yet could probably be handled at underlying provider level)
+- non-primive types (`object` and `array`) are initially out of scope (yet could probably be handled at the underlying provider level)
 - a parameter may be either optional with a default value or non-optional without a default value
 
 #### How would this map to different providers?
@@ -259,7 +259,7 @@ Helm values are essentially `map[string]interface{}`, which implies there is no 
 
 Ksonnet – TBD
 
-With kustomize, there are no params, but they can be introduced with auto-generate ConfigMap and `vars` stanza. So potentially is should be doable, given underlying add-on base layer was written with parameters in mind, otherwise kustomizations would be required as another layer where params are referenced.
+With kustomize, there are no params, but they can be introduced with auto-generate ConfigMap and `vars` stanza. So potentially it should be doable, given the underlying add-on base layer was written with parameters in mind, otherwise kustomizations would be required as another layer where params are referenced.
 
 #### Alternatives
 
