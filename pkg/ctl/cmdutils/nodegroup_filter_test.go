@@ -318,6 +318,7 @@ const expected = `
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
+			  "autoScalerEnabled": false,
 			  "securityGroups": {
 			    "withShared": true,
 			    "withLocal": true
@@ -353,6 +354,7 @@ const expected = `
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
+			  "autoScalerEnabled": false,
 			  "securityGroups": {
 			    "withShared": true,
 			    "withLocal": true
@@ -388,6 +390,7 @@ const expected = `
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m3.large",
 			  "privateNetworking": false,
+			  "autoScalerEnabled": false,
 			  "securityGroups": {
 			    "withShared": true,
 			    "withLocal": true
@@ -422,6 +425,7 @@ const expected = `
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
+			  "autoScalerEnabled": false,
 			  "securityGroups": {
 			    "withShared": true,
 			    "withLocal": true
@@ -455,6 +459,7 @@ const expected = `
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.xlarge",
 			  "privateNetworking": false,
+			  "autoScalerEnabled": false,
 			  "securityGroups": {
 			    "attachIDs": [
 			  	"sg-1",
@@ -492,6 +497,7 @@ const expected = `
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
+			  "autoScalerEnabled": false,
 			  "securityGroups": {
 			    "attachIDs": [
 			  	"sg-1",

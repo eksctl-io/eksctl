@@ -335,6 +335,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 
 	ng := &NodeGroup{
 		PrivateNetworking: false,
+		AutoScalerEnabled: Disabled(),
 		SecurityGroups: &NodeGroupSGs{
 			AttachIDs:  []string{},
 			WithLocal:  Enabled(),
@@ -383,6 +384,9 @@ type NodeGroup struct {
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
+
+	// +optional
+	AutoScalerEnabled *bool `json:"autoScalerEnabled,omitempty"`
 
 	// +optional
 	SecurityGroups *NodeGroupSGs `json:"securityGroups,omitempty"`

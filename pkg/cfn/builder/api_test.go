@@ -252,6 +252,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		*ng.VolumeType = api.NodeVolumeTypeIO1
 		ng.VolumeName = new(string)
 		*ng.VolumeName = "/dev/xvda"
+		ng.AutoScalerEnabled = api.Disabled()
 
 		if withFullVPC {
 			cfg.VPC = testVPC()
@@ -349,6 +350,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					InstanceType:      "t2.medium",
 					Name:              "ng-abcd1234",
 					PrivateNetworking: false,
+					AutoScalerEnabled: api.Disabled(),
 					SecurityGroups: &api.NodeGroupSGs{
 						WithLocal:  api.Enabled(),
 						WithShared: api.Enabled(),
@@ -679,6 +681,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		ng.IAM.InstanceRoleName = "a-named-role"
 		ng.IAM.WithAddonPolicies.AutoScaler = api.Enabled()
+
+		ng.AutoScalerEnabled = api.Enabled()
 
 		build(cfg, "eksctl-test-123-cluster", ng)
 

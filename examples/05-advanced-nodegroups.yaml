@@ -12,13 +12,14 @@ nodeGroups:
     instanceType: m5.xlarge
     minSize: 2
     maxSize: 8
+    autoScalerEnabled: true # This configures the nodegroup so that it can be managed by the cluster autoscaler
     volumeSize: 100
     volumeType: gp2
     labels:
       nodegroup-type: frontend-workloads
     iam:
       withAddonPolicies:
-        autoScaler: true
+        autoScaler: true # This sets the required IAM permissions for the cluster autoscaler to run
 
   - name: ng2-private-a
     instanceType: m5.large

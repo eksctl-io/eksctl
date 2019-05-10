@@ -182,7 +182,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			"PropagateAtLaunch": "true",
 		},
 	}
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
+	if api.IsEnabled(n.spec.AutoScalerEnabled) {
 		tags = append(tags,
 			map[string]interface{}{
 				"Key":               "k8s.io/cluster-autoscaler/enabled",
