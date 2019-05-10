@@ -10,8 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"fmt"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 const (
@@ -41,12 +42,12 @@ var ImageClasses = []string{
 }
 
 // Use checks if a given AMI ID is available in AWS EC2 as well as checking and populating RootDevice information
-func Use(api ec2iface.EC2API, ng *api.NodeGroup) error {
+func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 	input := &ec2.DescribeImagesInput{
 		ImageIds: []*string{&ng.AMI},
 	}
 
-	output, err := api.DescribeImages(input)
+	output, err := ec2api.DescribeImages(input)
 	if err != nil {
 		return errors.Wrapf(err, "unable to find image %q", ng.AMI)
 	}
@@ -61,8 +62,8 @@ func Use(api ec2iface.EC2API, ng *api.NodeGroup) error {
 		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings not supported for instance-store AMIs", ng.AMI)
 	}
 
-	if *output.Images[0].RootDeviceType == "ebs" {
-		ng.VolumeName = *output.Images[0].RootDeviceName
+	if *output.Images[0].RootDeviceType == "ebs" && !api.IsSetAndNonEmptyString(ng.VolumeName) {
+		ng.VolumeName = output.Images[0].RootDeviceName
 	}
 
 	return nil
@@ -71,7 +72,7 @@ func Use(api ec2iface.EC2API, ng *api.NodeGroup) error {
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
 // It will only look for images with a status of available and it will pick the
 // image with the newest creation date.
-func FindImage(api ec2iface.EC2API, ownerAccount, namePattern string) (string, error) {
+func FindImage(ec2api ec2iface.EC2API, ownerAccount, namePattern string) (string, error) {
 	input := &ec2.DescribeImagesInput{
 		Owners: []*string{&ownerAccount},
 		Filters: []*ec2.Filter{
@@ -98,7 +99,7 @@ func FindImage(api ec2iface.EC2API, ownerAccount, namePattern string) (string, e
 		},
 	}
 
-	output, err := api.DescribeImages(input)
+	output, err := ec2api.DescribeImages(input)
 	if err != nil {
 		return "", errors.Wrapf(err, "error querying AWS for images")
 	}

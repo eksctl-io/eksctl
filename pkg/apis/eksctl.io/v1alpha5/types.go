@@ -132,7 +132,6 @@ var (
 
 	// DefaultNodeVolumeSize defines the default root volume size
 	DefaultNodeVolumeSize = 0
-
 )
 
 // Enabled return pointer to true value
@@ -400,7 +399,7 @@ type NodeGroup struct {
 	// +optional
 	VolumeType *string `json:"volumeType"`
 	// +optional
-	VolumeName string `json:"volumeName,omitempty"`
+	VolumeName *string `json:"volumeName,omitempty"`
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 

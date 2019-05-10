@@ -126,11 +126,11 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		launchTemplateData.KeyName = gfn.NewString(*n.spec.SSH.PublicKeyName)
 	}
 
-	if *n.spec.VolumeSize > 0 {
+	if volumeSize := n.spec.VolumeSize; volumeSize != nil && *volumeSize > 0 {
 		launchTemplateData.BlockDeviceMappings = []gfn.AWSEC2LaunchTemplate_BlockDeviceMapping{{
-			DeviceName: gfn.NewString(n.spec.VolumeName),
+			DeviceName: gfn.NewString(*n.spec.VolumeName),
 			Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
-				VolumeSize: gfn.NewInteger(*n.spec.VolumeSize),
+				VolumeSize: gfn.NewInteger(*volumeSize),
 				VolumeType: gfn.NewString(*n.spec.VolumeType),
 			},
 		}}

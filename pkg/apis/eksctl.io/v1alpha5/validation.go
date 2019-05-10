@@ -120,28 +120,32 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return fmt.Errorf("%s.name must be set", path)
 	}
 
-	if ng.IAM == nil {
-		return nil
+	if ng.VolumeSize == nil {
+		if IsSetAndNonEmptyString(ng.VolumeType) {
+			return fmt.Errorf("%s.volumeType can not be set without %s.volumeSize", path, path)
+		}
+		if IsSetAndNonEmptyString(ng.VolumeName) {
+			return fmt.Errorf("%s.volumeName can not be set without %s.volumeSize", path, path)
+		}
 	}
 
-	if ng.VolumeSize == nil && IsSetAndNonEmptyString(ng.VolumeType) {
-		return fmt.Errorf("VolumeType can not be set without VolumeSize")
+	if ng.IAM != nil {
+		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
+			return err
+		}
+		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
+			return err
+		}
+
+		if err := ValidateNodeGroupLabels(ng); err != nil {
+			return err
+		}
+
+		if err := validateNodeGroupSSH(ng.SSH); err != nil {
+			return fmt.Errorf("only one ssh public key can be specified per node-group")
+		}
 	}
 
-	if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
-		return err
-	}
-	if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
-		return err
-	}
-
-	if err := ValidateNodeGroupLabels(ng); err != nil {
-		return err
-	}
-
-	if err := validateNodeGroupSSH(ng.SSH); err != nil {
-		return fmt.Errorf("only one ssh public key can be specified per node-group")
-	}
 	return nil
 }
 

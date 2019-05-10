@@ -242,16 +242,16 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Endpoint:                 endpoint,
 		}
 
-		volType := api.NodeVolumeTypeIO1
-		volSize := 2
-
 		cfg.AvailabilityZones = testAZs
 		ng.Name = "ng-abcd1234"
 		ng.InstanceType = "t2.medium"
 		ng.AMIFamily = "AmazonLinux2"
-		ng.VolumeSize = &volSize
-		ng.VolumeType = &volType
-		ng.VolumeName = "/dev/xvda"
+		ng.VolumeSize = new(int)
+		*ng.VolumeSize = 2
+		ng.VolumeType = new(string)
+		*ng.VolumeType = api.NodeVolumeTypeIO1
+		ng.VolumeName = new(string)
+		*ng.VolumeName = "/dev/xvda"
 
 		if withFullVPC {
 			cfg.VPC = testVPC()
@@ -325,8 +325,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 	}
 
 	Describe("GetAllOutputsFromClusterStack", func() {
-		volSize := 2
-		volType := api.NodeVolumeTypeIO1
 		expected := &api.ClusterConfig{
 			TypeMeta: api.ClusterConfigTypeMeta(),
 			Metadata: &api.ClusterMeta{
@@ -357,9 +355,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 						AttachIDs:  []string{},
 					},
 					DesiredCapacity: nil,
-					VolumeSize:      &volSize,
-					VolumeType:      &volType,
-					VolumeName:      "/dev/xvda",
+					VolumeSize:      aws.Int(2),
+					VolumeType:      aws.String(api.NodeVolumeTypeIO1),
+					VolumeName:      aws.String("/dev/xvda"),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
 							ImageBuilder: api.Disabled(),
@@ -955,7 +953,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupEBS", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		*ng.VolumeSize = 0
+		ng.VolumeSize = nil
 		ng.IAM.WithAddonPolicies.EBS = api.Enabled()
 
 		build(cfg, "eksctl-test-ebs-cluster", ng)
@@ -1000,7 +998,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupFSX", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		*ng.VolumeSize = 0
+		ng.VolumeSize = nil
 		ng.IAM.WithAddonPolicies.FSX = api.Enabled()
 
 		build(cfg, "eksctl-test-fsx-cluster", ng)
@@ -1034,7 +1032,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupEFS", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		*ng.VolumeSize = 0
+		ng.VolumeSize = nil
 		ng.IAM.WithAddonPolicies.EFS = api.Enabled()
 
 		build(cfg, "eksctl-test-efs-cluster", ng)
