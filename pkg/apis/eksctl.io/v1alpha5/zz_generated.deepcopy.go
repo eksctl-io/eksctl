@@ -224,6 +224,11 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 			}
 		}
 	}
+	if in.AutoAllocateIPv6 != nil {
+		in, out := &in.AutoAllocateIPv6, &out.AutoAllocateIPv6
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

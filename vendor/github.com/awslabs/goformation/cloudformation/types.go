@@ -227,7 +227,14 @@ func MakeFnJoin(sep string, args []*Value) *Value {
 func MakeFnSub(arg *Value) *Value       { return MakeIntrinsic(FnSub, arg) }
 func MakeFnSubString(arg string) *Value { return MakeFnSub(NewString(arg)) }
 
-// TODO MakeFnSelect
+func MakeFnSelect(i int, arg *Value) *Value {
+	return MakeIntrinsic(FnSelect,
+		[]interface{}{
+			i,
+			arg,
+		},
+	)
+}
 
 func MakeFnSplit(sep string, arg *Value) *Value {
 	return MakeIntrinsic(FnSplit,
@@ -240,6 +247,16 @@ func MakeFnSplit(sep string, arg *Value) *Value {
 
 func MakeFnSplitString(sep string, arg string) *Value {
 	return MakeFnSplit(sep, NewString(arg))
+}
+
+func MakeFnCIDR(arg *Value, n, len int) *Value {
+	return MakeIntrinsic(FnCIDR,
+		[]interface{}{
+			arg,
+			n,
+			len,
+		},
+	)
 }
 
 func (v Intrinsic) MarshalJSON() ([]byte, error) { return json.Marshal(&v.Value) }

@@ -309,7 +309,8 @@ const expected = `
 		},
 		"iam": {},
 		"vpc": {
-		  "cidr": "192.168.0.0/16"
+			"cidr": "192.168.0.0/16",
+			"autoAllocateIPv6": false
 		},
 		"nodeGroups": [
 		  {
@@ -330,20 +331,20 @@ const expected = `
 			  },
 			  "ssh": {
 			    "allow": false
-              },
+        },
 			  "iam": {
 			    "attachPolicyARNs": [
 			  	"foo"
 			    ],
 			    "withAddonPolicies": {
-			  	"imageBuilder": false,
-			  	"autoScaler": false,
-			  	"externalDNS": false,
-			  	"appMesh": false,
-			  	"ebs": false,
-			  	"fsx": false,
-			  	"efs": false,
-			  	"albIngress": false
+			  		"imageBuilder": false,
+			  		"autoScaler": false,
+			  		"externalDNS": false,
+			  		"appMesh": false,
+			  		"ebs": false,
+			  		"fsx": false,
+			  		"efs": false,
+			  		"albIngress": false
 			    }
 			  }
 		  },
@@ -365,20 +366,20 @@ const expected = `
 			  },
 			  "ssh": {
 			    "allow": false
-              },
+        },
 			  "iam": {
 			    "attachPolicyARNs": [
 			  	"bar"
 			    ],
 			    "withAddonPolicies": {
-			  	"imageBuilder": false,
-			  	"autoScaler": false,
-			  	"externalDNS": false,
-			  	"appMesh": false,
-			  	"ebs": false,
-			  	"fsx": false,
-			  	"efs": false,
-			  	"albIngress": false
+			  		"imageBuilder": false,
+			  		"autoScaler": false,
+			  		"externalDNS": false,
+			  		"appMesh": false,
+			  		"ebs": false,
+			  		"fsx": false,
+			  		"efs": false,
+			  		"albIngress": false
 			    }
 			  }
 		  },
@@ -398,10 +399,10 @@ const expected = `
 			    "group": "a",
 			    "seq": "3"
 			  },
-              "ssh": {
+        "ssh": {
 			    "allow": true,
 			    "publicKeyPath": "~/.ssh/id_rsa.pub"
-              },
+        },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	"imageBuilder": false,
@@ -412,7 +413,7 @@ const expected = `
 			  	"fsx": false,
 			  	"efs": false,
 			  	"albIngress": false
-			    }
+			  }
 			  },
 			  "clusterDNS": "1.2.3.4"
 		  },
@@ -438,14 +439,14 @@ const expected = `
               },
 			  "iam": {
 			    "withAddonPolicies": {
-			  	"imageBuilder": false,
-			  	"autoScaler": false,
-			  	"externalDNS": false,
-			  	"appMesh": false,
-			  	"ebs": false,
-			  	"fsx": false,
-			  	"efs": false,
-			  	"albIngress": false
+			  	  "imageBuilder": false,
+			  	  "autoScaler": false,
+			  	  "externalDNS": false,
+			  	  "appMesh": false,
+			  	  "ebs": false,
+			  	  "fsx": false,
+			  	  "efs": false,
+			  	  "albIngress": false
 			    }
 			  }
 		  },
@@ -457,8 +458,8 @@ const expected = `
 			  "privateNetworking": false,
 			  "securityGroups": {
 			    "attachIDs": [
-			  	"sg-1",
-			  	"sg-2"
+			  	  "sg-1",
+			  	  "sg-2"
 			    ],
 			    "withShared": true,
 			    "withLocal": false
@@ -474,14 +475,14 @@ const expected = `
               },
 			  "iam": {
 			    "withAddonPolicies": {
-			  	"imageBuilder": false,
-			  	"autoScaler": false,
-			  	"externalDNS": false,
-			  	"appMesh": false,
-			  	"ebs": false,
-			  	"fsx": false,
-			  	"efs": false,
-			  	"albIngress": false
+			  	  "imageBuilder": false,
+			  	  "autoScaler": false,
+			  	  "externalDNS": false,
+			  	  "appMesh": false,
+			  	  "ebs": false,
+			  	  "fsx": false,
+			  	  "efs": false,
+			  	  "albIngress": false
 			    }
 			  },
 			  "clusterDNS": "4.2.8.14"
@@ -494,8 +495,8 @@ const expected = `
 			  "privateNetworking": false,
 			  "securityGroups": {
 			    "attachIDs": [
-			  	"sg-1",
-			  	"sg-2"
+			  	  "sg-1",
+			  	  "sg-2"
 			    ],
 			    "withShared": true,
 			    "withLocal": false
@@ -506,19 +507,19 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-              "ssh": {
+        "ssh": {
 			    "allow": false
-              },
+        },
 			  "iam": {
 			    "withAddonPolicies": {
-			  	"imageBuilder": false,
-			  	"autoScaler": false,
-			  	"externalDNS": false,
-			  	"appMesh": false,
-			  	"ebs": false,
-			  	"fsx": false,
-			  	"efs": false,
-			  	"albIngress": false
+			  	  "imageBuilder": false,
+			  	  "autoScaler": false,
+			  	  "externalDNS": false,
+			  	  "appMesh": false,
+			  	  "ebs": false,
+			  	  "fsx": false,
+			  	  "efs": false,
+			  	  "albIngress": false
 			    }
 			  }
 		  }

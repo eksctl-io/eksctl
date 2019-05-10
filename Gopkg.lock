@@ -79,11 +79,11 @@
   version = "v1.19.18"
 
 [[projects]]
-  digest = "1:bd2a7ee52256f8c61e35da3081fffb193cd338c3811aaf9a0a6133a67473d80c"
+  digest = "1:1b8f41aa0dd8095801acc70ce071784eae97b8e91bd5769d404b86a20f1762dd"
   name = "github.com/awslabs/goformation"
   packages = ["cloudformation"]
   pruneopts = "NUT"
-  revision = "089cb75cdd400501d0988843e12a9158f1ac14db"
+  revision = "a31eae35e59643d624f58ee1328c6207dfa3d017"
   source = "https://github.com/errordeveloper/goformation"
 
 [[projects]]
@@ -1534,7 +1534,7 @@
   revision = "3556bcde967069b8b8bcd57be2cddcae0d8dc072"
 
 [[projects]]
-  digest = "0:"
+  digest = "1:91f09bf6d819f8f6486fd2528407df57f76c22b07e066ba22cf5f1ccb179c830"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/api/legacyscheme",
@@ -1616,6 +1616,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/awserr",
     "github.com/aws/aws-sdk-go/aws/awsutil",
     "github.com/aws/aws-sdk-go/aws/client",
     "github.com/aws/aws-sdk-go/aws/credentials",
@@ -1687,6 +1688,7 @@
     "k8s.io/apimachinery/pkg/watch",
     "k8s.io/cli-runtime/pkg/genericclioptions/printers",
     "k8s.io/cli-runtime/pkg/genericclioptions/resource",
+    "k8s.io/client-go/discovery",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/fake",
     "k8s.io/client-go/kubernetes/scheme",

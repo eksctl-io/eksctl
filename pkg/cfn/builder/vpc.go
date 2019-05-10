@@ -11,6 +11,17 @@ import (
 )
 
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
+	var subnetIndexForIPv6 int
+	if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
+		// this is same kind of indexing we have in vpc.SetSubnets
+		switch topology {
+		case api.SubnetTopologyPrivate:
+			subnetIndexForIPv6 = len(c.spec.AvailabilityZones)
+		case api.SubnetTopologyPublic:
+			subnetIndexForIPv6 = 0
+		}
+	}
+
 	for az, subnet := range subnets {
 		alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 		subnet := &gfn.AWSEC2Subnet{
@@ -18,6 +29,7 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
 			VpcId:            c.vpc,
 		}
+
 		switch topology {
 		case api.SubnetTopologyPrivate:
 			subnet.Tags = []gfn.Tag{{
@@ -35,6 +47,26 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 			SubnetId:     refSubnet,
 			RouteTableId: refRT,
 		})
+
+		if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
+			// get 8 of /64 subnets from the auto-allocated IPv6 block,
+			// and pick one block based on subnetIndexForIPv6 counter;
+			// NOTE: this is done inside of CloudFormation using Fn::Cidr,
+			// we don't slice it here, just construct the JSON expression
+			// that does slicing at runtime.
+			refAutoAllocateCIDRv6 := gfn.MakeFnSelect(
+				0, gfn.MakeFnGetAttString("VPC.Ipv6CidrBlocks"),
+			)
+			refSubnetSlices := gfn.MakeFnCIDR(
+				refAutoAllocateCIDRv6, 8, 64,
+			)
+			c.newResource(alias+"CIDRv6", &gfn.AWSEC2SubnetCidrBlock{
+				SubnetId:      refSubnet,
+				Ipv6CidrBlock: gfn.MakeFnSelect(subnetIndexForIPv6, refSubnetSlices),
+			})
+			subnetIndexForIPv6++
+		}
+
 		c.subnets[topology] = append(c.subnets[topology], refSubnet)
 	}
 }
@@ -48,6 +80,13 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		EnableDnsSupport:   gfn.True(),
 		EnableDnsHostnames: gfn.True(),
 	})
+
+	if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
+		c.newResource("AutoAllocatedCIDRv6", &gfn.AWSEC2VPCCidrBlock{
+			VpcId:                       c.vpc,
+			AmazonProvidedIpv6CidrBlock: gfn.True(),
+		})
+	}
 
 	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 
