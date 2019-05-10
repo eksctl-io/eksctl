@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/wintoncode/eksctl/pkg/ami"
 	"fmt"
 )
 
@@ -54,7 +53,7 @@ func Use(api ec2iface.EC2API, ng *api.NodeGroup) error {
 
 	// This will never return more than one as we are looking up a single ami id
 	if len(output.Images) < 1 {
-		return ami.NewErrNotFound(ng.AMI)
+		return NewErrNotFound(ng.AMI)
 	}
 
 	// Instance-store AMIs cannot have their root volume size managed
