@@ -14,6 +14,7 @@ var _ = Describe("Default settings", func() {
 
 		It("Providing an SSH key enables SSH", func() {
 			testNodeGroup := NodeGroup{
+				VolumeSize: &DefaultNodeVolumeSize,
 				SSH: &NodeGroupSSH{
 					Allow:         Disabled(),
 					PublicKeyPath: &testKeyPath,
@@ -27,6 +28,7 @@ var _ = Describe("Default settings", func() {
 
 		It("Enabling SSH without a key uses default key", func() {
 			testNodeGroup := NodeGroup{
+				VolumeSize: &DefaultNodeVolumeSize,
 				SSH: &NodeGroupSSH{
 					Allow: Enabled(),
 				},

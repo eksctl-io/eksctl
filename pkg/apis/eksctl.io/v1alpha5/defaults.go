@@ -45,10 +45,8 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 		}
 	}
 
-	if ng.VolumeSize > 0 {
-		if ng.VolumeType == "" {
-			ng.VolumeType = DefaultNodeVolumeType
-		}
+	if !IsSetAndNonEmptyString(ng.VolumeType) {
+		ng.VolumeType = &DefaultNodeVolumeType
 	}
 
 	if ng.IAM == nil {
