@@ -247,25 +247,9 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 		ng.AMI = id
 	}
 
-	// Check the AMI is available
-	available, devName, devType, err := ami.IsAvailable(c.Provider.EC2(), ng.AMI)
-	if err != nil {
-		return errors.Wrapf(err, "%s is not available", ng.AMI)
-	}
+	// Check the AMI is available and populate RootDevice information
+	return ami.Use(c.Provider.EC2(), ng)
 
-	if !available {
-		return ami.NewErrNotFound(ng.AMI)
-	}
-
-	if devType == "instance-store" {
-		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings not supported for instance-store AMIs", ng.AMI)
-	}
-
-	if devType == "ebs" {
-		ng.VolumeName = devName
-	}
-
-	return nil
 }
 
 // SetNodeLabels initialises and validate node labels based on cluster and nodegroup names
