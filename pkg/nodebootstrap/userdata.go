@@ -113,11 +113,6 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 		return nil, err
 	}
 
-	if ng.MaxPodsPerNode == 0 {
-		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
-	}
-	obj["maxPods"] = int32(ng.MaxPodsPerNode)
-
 	obj["clusterDNS"] = []string{
 		clusterDNS(spec, ng),
 	}
@@ -144,10 +139,15 @@ func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []st
 		return strings.Join(params, ",")
 	}
 
-	return []string{
+	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
 		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),
 	}
+
+	if ng.MaxPodsPerNode != 0 {
+		variables = append(variables, fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode))
+	}
+	return variables
 }
 
 func makeMetadata(spec *api.ClusterConfig) []string {
