@@ -128,3 +128,17 @@ Topics:
 - update on v1alpha5 progress
 - @errordeveloper will be absent from next week's meeting 
 - progress on other ongoing work (#714, #741)
+
+## 15/04/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+- @martina-if
+
+Topics:
+- recent meeting cancellations
+- no meeting for next two weeks due to KubeCon and vocations
+- 0.1.32 release from previous week
+- next feature release - spot instances
+- config file documentation must be our priority
