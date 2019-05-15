@@ -117,7 +117,18 @@ Topics:
 - update about on-going efforts (#673, #695 etc)
 - more discussion of storing config in cluster, and Cluster API
 
-## 03/04/2019
+## 10/04/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+
+Topics:
+- 0.1.28 & 0.1.29 releases are out
+- @martina's progress on refactoring the SSH config for next release
+- progress on task manager refactoring, handling of creation and deletion
+
+## 17/04/2019
 
 Attendees:
 - @errordeveloper
@@ -129,7 +140,20 @@ Topics:
 - @errordeveloper will be absent from next week's meeting 
 - progress on other ongoing work (#714, #741)
 
-## 15/04/2019
+## 01/04/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+- @martina
+- @pawelprazak
+
+Topics:
+- 0.1.31 release is out
+- next key feature: spot instances
+- @pawelprazak's PR #718
+
+## 15/05/2019
 
 Attendees:
 - @errordeveloper
