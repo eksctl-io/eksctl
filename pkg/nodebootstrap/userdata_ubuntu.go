@@ -20,22 +20,23 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
 	}
 
-	if ng.MaxPodsPerNode == 0 {
-		ng.MaxPodsPerNode = maxPodsPerNodeType[ng.InstanceType]
-	}
-
 	kubeletEnvParams := append(makeCommonKubeletEnvParams(spec, ng),
-		fmt.Sprintf("MAX_PODS=%d", ng.MaxPodsPerNode),
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
 	)
+
+	maxPodsData, err := max_pods_mapTxtBytes()
+	if err != nil {
+		return nil, err
+	}
 
 	files := configFiles{
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
 			"kubelet.env":  {content: strings.Join(kubeletEnvParams, "\n")},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
-			"kubeconfig.yaml": {content: string(clientConfigData)},
+			"ca.crt":           {content: string(spec.Status.CertificateAuthorityData)},
+			"kubeconfig.yaml":  {content: string(clientConfigData)},
+			"max_pods_map.txt": {content: string(maxPodsData)},
 		},
 	}
 
