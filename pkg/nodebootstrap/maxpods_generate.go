@@ -17,14 +17,15 @@ import (
 
 const maxPodsPerNodeTypeSourceText = "https://raw.github.com/awslabs/amazon-eks-ami/master/files/eni-max-pods.txt"
 
+// This file is used to generate a mapping between instance types and the maximum amount
+// of pods that they support. This is a limitation imposed by the ENIs.
 func main() {
-	maxPodsMap := generateMap()
+	maxPodsMap, keys := generateMap()
 	renderGoMap(maxPodsMap)
-	renderTextMap(maxPodsMap)
+	renderTextMap(maxPodsMap, keys)
 }
 
-func generateMap() map[string]int {
-	dict := make(map[string]int)
+func generateMap() (map[string]int, []string) {
 
 	resp, err := http.Get(maxPodsPerNodeTypeSourceText)
 	if err != nil {
@@ -36,6 +37,8 @@ func generateMap() map[string]int {
 		log.Fatal(err.Error())
 	}
 
+	dict := make(map[string]int)
+	var keys []string
 	for _, line := range strings.Split(string(body), "\n") {
 		if strings.HasPrefix(line, "#") {
 			continue
@@ -50,11 +53,13 @@ func generateMap() map[string]int {
 			log.Fatal(err.Error())
 		}
 		dict[instanceType] = maxPods
+		keys = append(keys, instanceType)
 	}
 
-	return dict
+	return dict, keys
 }
 
+// renderGoMap exports the map as a go map in a go file called nodebootstrap.go
 func renderGoMap(maxPodsMap map[string]int) {
 	f := NewFile("nodebootstrap")
 
@@ -75,14 +80,17 @@ func renderGoMap(maxPodsMap map[string]int) {
 	}
 }
 
-func renderTextMap(maxPodsMap map[string]int) {
+// renderTextMap exports the map to a txt file of <key><space><value>\n
+// preserving the original order of the keys specified by "keys"
+func renderTextMap(maxPodsMap map[string]int, keys []string) {
 	f, err := os.Create("assets/max_pods_map.txt")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer f.Close()
 
-	for k, v := range maxPodsMap {
+	for _, k := range keys {
+		v := maxPodsMap[k]
 		f.WriteString(fmt.Sprintf("%s %d\n", k, v))
 	}
 	f.Sync()
