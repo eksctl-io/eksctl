@@ -1,6 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea for eksctl
+title: ''
+labels: kind/feature
+assignees: ''
 
 ---
 

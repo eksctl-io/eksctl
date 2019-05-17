@@ -1,6 +1,9 @@
 ---
 name: Bug report
 about: Create a bug report to help us improve eksctl
+title: ''
+labels: kind/bug
+assignees: ''
 
 ---
 
@@ -23,7 +26,6 @@ $ eksctl version
 $ uname -a
 $ kubectl version
 ```
-Also include your version of `heptio-authenticator-aws`
 
 **Logs**
 Include the output of the command line when running eksctl. If possible, eksctl should be run with debug logs. For example:

@@ -1,6 +1,9 @@
 ---
 name: Request for help
 about: Do you need help with eksctl?
+title: ''
+labels: kind/help
+assignees: ''
 
 ---
 
