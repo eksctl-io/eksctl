@@ -13,15 +13,15 @@ vpc:
   subnets:
     # must provide 'private' and/or 'public' subnets by availibility zone as shown
     private:
-      us-west-2a:
+      eu-north-1a:
         id: "subnet-0b2512f8c6ae9bf30"
         cidr: "192.168.128.0/19" # (optional, must match CIDR used by the given subnet)
 
-      us-west-2b:
+      eu-north-1b:
         id: "subnet-08cb9a2ed60394ce3"
         cidr: "192.168.64.0/19"  # (optional, must match CIDR used by the given subnet)
 
-      us-west-2c:
+      eu-north-1c:
         id: "subnet-00f71956cdec8f1dc"
         cidr: "192.168.0.0/19"   # (optional, must match CIDR used by the given subnet)
 
