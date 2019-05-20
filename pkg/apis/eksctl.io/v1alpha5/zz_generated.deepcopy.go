@@ -414,6 +414,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
+	if in.XRay != nil {
+		in, out := &in.XRay, &out.XRay
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

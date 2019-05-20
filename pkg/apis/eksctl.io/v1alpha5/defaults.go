@@ -64,6 +64,9 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	if ng.IAM.WithAddonPolicies.ALBIngress == nil {
 		ng.IAM.WithAddonPolicies.ALBIngress = Disabled()
 	}
+	if ng.IAM.WithAddonPolicies.XRay == nil {
+		ng.IAM.WithAddonPolicies.XRay = Disabled()
+	}
 	if ng.IAM.WithAddonPolicies.EBS == nil {
 		ng.IAM.WithAddonPolicies.EBS = Disabled()
 	}

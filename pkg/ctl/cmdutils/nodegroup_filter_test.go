@@ -344,7 +344,8 @@ const expected = `
 			  		"ebs": false,
 			  		"fsx": false,
 			  		"efs": false,
-			  		"albIngress": false
+					"albIngress": false,
+					"xRay": false  
 			    }
 			  }
 		  },
@@ -379,7 +380,8 @@ const expected = `
 			  		"ebs": false,
 			  		"fsx": false,
 			  		"efs": false,
-			  		"albIngress": false
+					"albIngress": false,
+					"xRay": false  
 			    }
 			  }
 		  },
@@ -412,7 +414,8 @@ const expected = `
 			  	"ebs": false,
 			  	"fsx": false,
 			  	"efs": false,
-			  	"albIngress": false
+				"albIngress": false,
+				"xRay": false  
 			  }
 			  },
 			  "clusterDNS": "1.2.3.4"
@@ -446,7 +449,8 @@ const expected = `
 			  	  "ebs": false,
 			  	  "fsx": false,
 			  	  "efs": false,
-			  	  "albIngress": false
+				  "albIngress": false,
+				  "xRay": false	
 			    }
 			  }
 		  },
@@ -482,7 +486,8 @@ const expected = `
 			  	  "ebs": false,
 			  	  "fsx": false,
 			  	  "efs": false,
-			  	  "albIngress": false
+				  "albIngress": false,
+				  "xRay": false	
 			    }
 			  },
 			  "clusterDNS": "4.2.8.14"
@@ -519,7 +524,8 @@ const expected = `
 			  	  "ebs": false,
 			  	  "fsx": false,
 			  	  "efs": false,
-			  	  "albIngress": false
+				  "albIngress": false,
+				  "xRay": false	
 			    }
 			  }
 		  }
