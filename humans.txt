@@ -41,6 +41,7 @@ Fred Cox                @mcfedr
 Adam Johnson            @adamjohnson01
 Paul Maddox             @paulmaddox
 Patrick Spek            @tyil
+Paul Maddox             @paulmaddox
 
 /* Thanks */
 
