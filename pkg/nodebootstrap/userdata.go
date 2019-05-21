@@ -158,6 +158,14 @@ func makeMetadata(spec *api.ClusterConfig) []string {
 	}
 }
 
+func makeMaxPodsMapping() string {
+	var text strings.Builder
+	for k, v := range maxPodsPerNodeType {
+		text.WriteString(fmt.Sprintf("%s %d\n", k, v))
+	}
+	return text.String()
+}
+
 // NewUserData creates new user data for a given node image family
 func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	switch ng.AMIFamily {

@@ -24,11 +24,6 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
 	)
 
-	maxPodsData, err := max_pods_mapTxtBytes()
-	if err != nil {
-		return nil, err
-	}
-
 	files := configFiles{
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
@@ -36,7 +31,7 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":           {content: string(spec.Status.CertificateAuthorityData)},
 			"kubeconfig.yaml":  {content: string(clientConfigData)},
-			"max_pods_map.txt": {content: string(maxPodsData)},
+			"max_pods_map.txt": {content: makeMaxPodsMapping()},
 		},
 	}
 

@@ -24,11 +24,6 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		return nil, err
 	}
 
-	maxPodsData, err := max_pods_mapTxtBytes()
-	if err != nil {
-		return nil, err
-	}
-
 	files := configFiles{
 		kubeletDropInUnitDir: {
 			"10-eksclt.al2.conf": {isAsset: true},
@@ -40,7 +35,7 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":           {content: string(spec.Status.CertificateAuthorityData)},
 			"kubeconfig.yaml":  {content: string(clientConfigData)},
-			"max_pods_map.txt": {content: string(maxPodsData)},
+			"max_pods_map.txt": {content: makeMaxPodsMapping()},
 		},
 	}
 

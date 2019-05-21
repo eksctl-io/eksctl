@@ -1449,7 +1449,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
-				"MAX_PODS=55",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1515,6 +1514,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"MAX_PODS=55",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
