@@ -165,7 +165,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 
 		removeAndSave := func(arn string) *corev1.ConfigMap {
 			client.reset()
-			err := acm.RemoveRole(arn)
+			err := acm.RemoveRole(arn, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
@@ -187,8 +187,19 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Expect(cm.Data["mapRoles"]).To(MatchYAML("[]"))
 		})
 		It("should fail if role not found", func() {
-			err := acm.RemoveRole(roleA)
+			err := acm.RemoveRole(roleA, false)
 			Expect(err).To(HaveOccurred())
+		})
+		It("should remove all if specified", func() {
+			err := acm.AddRole(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			Expect(err).NotTo(HaveOccurred())
+			err = acm.AddRole(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapRoles"]).To(Not(MatchYAML("[]")))
+
+			err = acm.RemoveRole(roleA, true)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapRoles"]).To(MatchYAML("[]"))
 		})
 	})
 	Describe("AddAccount()", func() {

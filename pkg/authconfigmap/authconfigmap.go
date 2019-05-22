@@ -21,10 +21,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/iam"
 )
-
-type mapRole map[string]interface{}
-type mapRoles []mapRole
 
 const (
 	// ObjectName is the Kubernetes resource name of the auth ConfigMap
@@ -47,6 +45,27 @@ const (
 // RoleNodeGroupGroups are the groups to allow roles to interact
 // with the cluster, required for the instance role ARNs of node groups.
 var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
+
+// MapRole represents an IAM identity with role.
+type MapRole struct {
+	iam.Identity `json:",inline"`
+	RoleARN      string `json:"rolearn"`
+}
+
+// MapRoles is a list of IAM identities with roles.
+type MapRoles []MapRole
+
+// Get returns all matching role mappings. Note that at this moment
+// aws-iam-authenticator only considers the last one!
+func (rs MapRoles) Get(arn string) MapRoles {
+	var m MapRoles
+	for _, r := range rs {
+		if r.RoleARN == arn {
+			m = append(m, r)
+		}
+	}
+	return m
+}
 
 // AuthConfigMap allows modifying the auth ConfigMap.
 type AuthConfigMap struct {
@@ -141,50 +160,60 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 // a role with given groups. If you are calling
 // this as part of node creation you should use DefaultNodeGroups.
 func (a *AuthConfigMap) AddRole(arn string, username string, groups []string) error {
-	roles, err := a.roles()
+	roles, err := a.Roles()
 	if err != nil {
 		return err
 	}
-	roles = append(roles, mapRole{
-		"rolearn":  arn,
-		"username": username,
-		"groups":   groups,
+	roles = append(roles, MapRole{
+		RoleARN: arn,
+		Identity: iam.Identity{
+			Username: username,
+			Groups:   groups,
+		},
 	})
 	logger.Info("adding role %q to auth ConfigMap", arn)
 	return a.setRoles(roles)
 }
 
-// RemoveRole removes exactly one entry, even if there are duplicates.
-// If it cannot find the role it returns an error.
-func (a *AuthConfigMap) RemoveRole(arn string) error {
-	if arn == "" {
-		return errors.New("nodegroup instance role ARN is not set")
-	}
-	roles, err := a.roles()
+// RemoveRole removes a role. If `all` is false it will only
+// remove the first it encounters and return an error if it cannot
+// find it.
+// If `all` is true it will remove all of them and not return an
+// error if it cannot be found.
+func (a *AuthConfigMap) RemoveRole(arn string, all bool) error {
+	roles, err := a.Roles()
 	if err != nil {
 		return err
 	}
 
+	newroles := MapRoles{}
 	for i, role := range roles {
-		if role["rolearn"] == arn {
-			logger.Info("removing role %q from auth ConfigMap", arn)
-			roles = append(roles[:i], roles[i+1:]...)
-			return a.setRoles(roles)
+		if role.RoleARN == arn {
+			logger.Info("removing role %q from auth ConfigMap (username = %q, groups = %q)", arn, role.Username, role.Groups)
+			if !all {
+				roles = append(roles[:i], roles[i+1:]...)
+				return a.setRoles(roles)
+			}
+		} else if all {
+			newroles = append(newroles, role)
 		}
 	}
-
-	return fmt.Errorf("instance role ARN %q not found in auth ConfigMap", arn)
+	if !all {
+		return fmt.Errorf("instance role ARN %q not found in auth ConfigMap", arn)
+	}
+	return a.setRoles(newroles)
 }
 
-func (a *AuthConfigMap) roles() (mapRoles, error) {
-	var roles mapRoles
+// Roles returns a list of roles that are currently in the (cached) configmap.
+func (a *AuthConfigMap) Roles() (MapRoles, error) {
+	var roles MapRoles
 	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
 		return nil, errors.Wrap(err, "unmarshalling mapRoles")
 	}
 	return roles, nil
 }
 
-func (a *AuthConfigMap) setRoles(r mapRoles) error {
+func (a *AuthConfigMap) setRoles(r MapRoles) error {
 	bs, err := yaml.Marshal(r)
 	if err != nil {
 		return errors.Wrap(err, "marshalling mapRoles")
@@ -233,11 +262,15 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
+	arn := ng.IAM.InstanceRoleARN
+	if arn == "" {
+		return errors.New("nodegroup instance role ARN is not set")
+	}
 	acm, err := NewFromClientSet(clientSet)
 	if err != nil {
 		return err
 	}
-	if err := acm.RemoveRole(ng.IAM.InstanceRoleARN); err != nil {
+	if err := acm.RemoveRole(arn, false); err != nil {
 		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {
