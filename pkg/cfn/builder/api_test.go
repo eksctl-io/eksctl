@@ -756,6 +756,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"autoscaling:DescribeTags",
 				"autoscaling:SetDesiredCapacity",
 				"autoscaling:TerminateInstanceInAutoScalingGroup",
+				"ec2:DescribeLaunchTemplateVersions",
 			}))
 		})
 
