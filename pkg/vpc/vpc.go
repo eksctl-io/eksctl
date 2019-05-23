@@ -33,7 +33,7 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	}
 	prefix, _ := spec.VPC.CIDR.Mask.Size()
 	if (prefix < 16) || (prefix > 24) {
-		return fmt.Errorf("VPC CIDR prefix must be betwee /16 and /24")
+		return fmt.Errorf("VPC CIDR prefix must be between /16 and /24")
 	}
 	zoneCIDRs, err := subnet.SplitInto8(&spec.VPC.CIDR.IPNet)
 	if err != nil {

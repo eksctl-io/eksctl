@@ -39,6 +39,7 @@ Roli Schilter           @rndstr
 Mitchel Humpherys       @mgalgs
 Fred Cox                @mcfedr
 Adam Johnson            @adamjohnson01
+Patrick Spek            @tyil
 
 /* Thanks */
 
