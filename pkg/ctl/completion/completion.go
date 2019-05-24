@@ -20,6 +20,10 @@ To configure your bash shell to load completions for each session add to your ba
 
 # ~/.bashrc or ~/.profile
 . <(eksctl completion bash)
+
+If you are stuck on Bash 3 (macOS) use
+
+source /dev/stdin <<<"$(eksctl completion bash)"
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return rootCmd.GenBashCompletion(os.Stdout)
