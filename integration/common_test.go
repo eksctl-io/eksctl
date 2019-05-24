@@ -15,11 +15,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-type tInterface interface {
-	GinkgoTInterface
-	Helper()
-}
-
 type tHelper struct{ GinkgoTInterface }
 
 func (t *tHelper) Helper()      { return }
