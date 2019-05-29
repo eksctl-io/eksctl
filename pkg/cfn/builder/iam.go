@@ -193,6 +193,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 				"autoscaling:DescribeTags",
 				"autoscaling:SetDesiredCapacity",
 				"autoscaling:TerminateInstanceInAutoScalingGroup",
+				"ec2:DescribeLaunchTemplateVersions",
 			},
 		)
 	}
