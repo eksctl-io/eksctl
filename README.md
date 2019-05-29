@@ -692,6 +692,11 @@ To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.pr
 . <(eksctl completion bash)
 ```
 
+If you are stuck on Bash 3 (macOS) use
+```
+source /dev/stdin <<<"$(eksctl completion bash)"
+```
+
 Or for zsh, run:
 ```
 mkdir -p ~/.zsh/completion/
