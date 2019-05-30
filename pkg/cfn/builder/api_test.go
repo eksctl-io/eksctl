@@ -1097,7 +1097,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/*"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"elasticfilesystem:*",
 			}))
