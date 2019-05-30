@@ -255,7 +255,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.EFS) {
-		n.rs.attachAllowPolicy("PolicyEFS", refIR, "arn:aws:elasticfilesystem:us-west-2:123456789012:file-system/*",
+		n.rs.attachAllowPolicy("PolicyEFS", refIR, "*",
 			[]string{
 				"elasticfilesystem:*",
 			},
@@ -344,7 +344,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.XRay) {
-		n.rs.attachAllowPolicy("PolicyXRay", refIR, "*", 
+		n.rs.attachAllowPolicy("PolicyXRay", refIR, "*",
 			[]string{
 				"xray:PutTraceSegments",
 				"xray:PutTelemetryRecords",
