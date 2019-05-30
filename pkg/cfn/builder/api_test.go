@@ -389,6 +389,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							FSX:          api.Disabled(),
 							EFS:          api.Disabled(),
 							ALBIngress:   api.Disabled(),
+							XRay:         api.Disabled(),
 						},
 					},
 					SSH: &api.NodeGroupSSH{
@@ -957,6 +958,39 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"tag:GetResources",
 				"tag:TagResources",
 				"waf:GetWebACL",
+			}))
+		})
+
+	})
+
+	Context("NodeGroupXRay", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.XRay = api.Enabled()
+
+		build(cfg, "eksctl-test-megaapps-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct policies", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyXRay"))
+
+			policy := ngTemplate.Resources["PolicyXRay"].Properties
+
+			Expect(policy.Roles).To(HaveLen(1))
+			isRefTo(policy.Roles[0], "NodeInstanceRole")
+
+			Expect(policy.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"xray:PutTraceSegments",
+				"xray:PutTelemetryRecords",
+				"xray:GetSamplingRules",
+				"xray:GetSamplingTargets",
+				"xray:GetSamplingStatisticSummaries",
 			}))
 		})
 

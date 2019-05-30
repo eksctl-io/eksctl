@@ -57,6 +57,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	ng.IAM.WithAddonPolicies.ImageBuilder = new(bool)
 	ng.IAM.WithAddonPolicies.AppMesh = new(bool)
 	ng.IAM.WithAddonPolicies.ALBIngress = new(bool)
+	ng.IAM.WithAddonPolicies.XRay = new(bool)
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AutoScaler, "asg-access", false, "enable IAM policy for cluster-autoscaler")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ExternalDNS, "external-dns-access", false, "enable IAM policy for external-dns")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "full-ecr-access", false, "enable full access to ECR")

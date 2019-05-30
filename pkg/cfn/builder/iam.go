@@ -343,6 +343,18 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.XRay) {
+		n.rs.attachAllowPolicy("PolicyXRay", refIR, "*", 
+			[]string{
+				"xray:PutTraceSegments",
+				"xray:PutTelemetryRecords",
+				"xray:GetSamplingRules",
+				"xray:GetSamplingTargets",
+				"xray:GetSamplingStatisticSummaries",
+			},
+		)
+	}
+
 	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
 		n.spec.IAM.InstanceProfileARN = v
 		return nil

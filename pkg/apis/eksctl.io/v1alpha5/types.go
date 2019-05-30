@@ -355,6 +355,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				FSX:          Disabled(),
 				EFS:          Disabled(),
 				ALBIngress:   Disabled(),
+				XRay: 		  Disabled(),
 			},
 		},
 		SSH: &NodeGroupSSH{
@@ -476,6 +477,8 @@ type (
 		EFS *bool `json:"efs"`
 		// +optional
 		ALBIngress *bool `json:"albIngress"`
+		// +optional
+		XRay *bool `json:"xRay"`
 	}
 
 	// NodeGroupSSH holds all the ssh access configuration to a NodeGroup
