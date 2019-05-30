@@ -389,7 +389,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							FSX:          api.Disabled(),
 							EFS:          api.Disabled(),
 							ALBIngress:   api.Disabled(),
-							XRay: 			  api.Disabled(),
+							XRay:         api.Disabled(),
 						},
 					},
 					SSH: &api.NodeGroupSSH{

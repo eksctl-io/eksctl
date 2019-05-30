@@ -63,7 +63,6 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "full-ecr-access", false, "enable full access to ECR")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMesh, "appmesh-access", false, "enable full access to AppMesh")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ALBIngress, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
-	fs.BoolVar(ng.IAM.WithAddonPolicies.XRay, "xray-access", false, "enable full access to AWS X-Ray")
 }
 
 // AddNodeGroupFilterFlags add common `--include` and `--exclude` flags for filtering nodegroups
