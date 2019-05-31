@@ -34,7 +34,7 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 			ImageClassGPU:     "amazon-eks-gpu-node-1.12-*",
 		},
 		ImageFamilyUbuntu1804: {
-			ImageClassGeneral: "ubuntu-eks/1.12.6/*",
+			ImageClassGeneral: "ubuntu-eks/k8s_1.12/images/*",
 		},
 	},
 }
