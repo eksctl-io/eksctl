@@ -390,6 +390,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							EFS:          api.Disabled(),
 							ALBIngress:   api.Disabled(),
 							XRay:         api.Disabled(),
+							CloudWatch:   api.Disabled(),
 						},
 					},
 					SSH: &api.NodeGroupSSH{
@@ -994,6 +995,28 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}))
 		})
 
+	})
+
+	Context("NodeGroupCloudWatch", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.CloudWatch = api.Enabled()
+
+		build(cfg, "eksctl-test-cwenabled-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct managed profile", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceRole"))
+
+			role := ngTemplate.Resources["NodeInstanceRole"].Properties
+
+			Expect(role.ManagedPolicyArns).To(HaveLen(4))
+			Expect(role.ManagedPolicyArns[0]).To(Equal("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"))
+			Expect(role.ManagedPolicyArns[1]).To(Equal("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
+			Expect(role.ManagedPolicyArns[2]).To(Equal("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
+			Expect(role.ManagedPolicyArns[3]).To(Equal("arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"))
+		})
 	})
 
 	Context("NodeGroupEBS", func() {

@@ -67,6 +67,9 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	if ng.IAM.WithAddonPolicies.XRay == nil {
 		ng.IAM.WithAddonPolicies.XRay = Disabled()
 	}
+	if ng.IAM.WithAddonPolicies.CloudWatch == nil {
+		ng.IAM.WithAddonPolicies.CloudWatch = Disabled()
+	}
 	if ng.IAM.WithAddonPolicies.EBS == nil {
 		ng.IAM.WithAddonPolicies.EBS = Disabled()
 	}

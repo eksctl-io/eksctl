@@ -43,6 +43,9 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 		if IsEnabled(ng.IAM.WithAddonPolicies.XRay) {
 			return fmt.Errorf("%s.xRay cannot be set at the same time", p)
 		}
+		if IsEnabled(ng.IAM.WithAddonPolicies.CloudWatch) {
+			return fmt.Errorf("%s.cloudWatch cannot be set at the same time", p)
+		}
 	}
 	return nil
 }

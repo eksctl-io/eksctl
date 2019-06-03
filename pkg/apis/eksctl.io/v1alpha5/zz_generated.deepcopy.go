@@ -419,6 +419,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
+	if in.CloudWatch != nil {
+		in, out := &in.CloudWatch, &out.CloudWatch
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
