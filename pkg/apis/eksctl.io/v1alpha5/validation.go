@@ -152,6 +152,48 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
+	if err := validateInstancesDistribution(ng); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateInstancesDistribution(ng *NodeGroup) error {
+	if ng.InstancesDistribution == nil {
+		return nil
+	}
+
+	if ng.InstanceType != "" && ng.InstanceType != "mixed" {
+		return fmt.Errorf("instanceType should be \"mixed\" or unset when using the mixed instances feature")
+	}
+
+	distribution := ng.InstancesDistribution
+	if distribution.InstanceTypes == nil || len(distribution.InstanceTypes) == 0 {
+		return fmt.Errorf("at least two instance types have to be specified for mixed nodegroups")
+	}
+
+	allInstanceTypes := make(map[string]bool)
+	for _, instanceType := range distribution.InstanceTypes {
+		allInstanceTypes[instanceType] = true
+	}
+
+	if len(allInstanceTypes) < 2 || len(allInstanceTypes) > 20 {
+		return fmt.Errorf("mixed nodegroups should have between 2 and 20 different instance types")
+	}
+
+	if distribution.OnDemandBaseCapacity != nil && *distribution.OnDemandBaseCapacity < 0 {
+		return fmt.Errorf("onDemandBaseCapacity should be 0 or more")
+	}
+
+	if distribution.OnDemandPercentageAboveBaseCapacity != nil && (*distribution.OnDemandPercentageAboveBaseCapacity < 0 || *distribution.OnDemandPercentageAboveBaseCapacity > 100) {
+		return fmt.Errorf("percentageAboveBase should be between 0 and 100")
+	}
+
+	if distribution.SpotInstancePools != nil && (*distribution.SpotInstancePools < 1 || *distribution.SpotInstancePools > 20) {
+		return fmt.Errorf("spotInstancePools should be between 1 and 20")
+	}
+
 	return nil
 }
 
