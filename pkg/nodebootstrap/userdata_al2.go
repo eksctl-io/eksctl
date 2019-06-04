@@ -35,6 +35,7 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
+			"max_pods.map":    {content: makeMaxPodsMapping()},
 		},
 	}
 
