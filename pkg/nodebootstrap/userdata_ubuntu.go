@@ -29,9 +29,9 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
 			"kubelet.env":  {content: strings.Join(kubeletEnvParams, "\n")},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":           {content: string(spec.Status.CertificateAuthorityData)},
-			"kubeconfig.yaml":  {content: string(clientConfigData)},
-			"max_pods_map.txt": {content: makeMaxPodsMapping()},
+			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
+			"kubeconfig.yaml": {content: string(clientConfigData)},
+			"max_pods.map":    {content: makeMaxPodsMapping()},
 		},
 	}
 
