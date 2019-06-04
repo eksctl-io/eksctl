@@ -23,7 +23,7 @@ cat > /etc/eksctl/kubelet.local.env <<EOF
 NODE_IP=${NODE_IP}
 INSTANCE_ID=${INSTANCE_ID}
 INSTANCE_TYPE=${INSTANCE_TYPE}
-MAX_PODS=${MAX_PODS:-$(get_max_pods "${INSTANCE_TYPE}"")}
+MAX_PODS=${MAX_PODS:-$(get_max_pods "${INSTANCE_TYPE}")}
 EOF
 
 snap alias kubelet-eks.kubelet kubelet
