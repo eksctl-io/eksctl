@@ -115,7 +115,7 @@ var _ = Describe("ConfigFile ssh flags validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("It fails when the percentageAboveBase is not between 0 and 100", func() {
+		It("It fails when the onDemandPercentageAboveBaseCapacity is not between 0 and 100", func() {
 			ng.InstancesDistribution.OnDemandPercentageAboveBaseCapacity = newInt(-1)
 
 			err := validateInstancesDistribution(ng)
