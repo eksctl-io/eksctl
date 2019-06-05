@@ -8,13 +8,16 @@ EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 GO_BUILD_TAGS ?= netgo
 
+GOBIN ?= $(shell echo `go env GOPATH`/bin)
+
 .DEFAULT_GOAL := help
 
 ##@ Dependencies
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	@cd build && dep ensure && ./install.sh
+	@go get -u github.com/golang/dep/cmd/dep
+	@cd build && dep ensure && ./install.sh "$(GOBIN)"
 
 ##@ Build
 
@@ -36,7 +39,7 @@ endif
 LINTER ?= gometalinter ./pkg/... ./cmd/... ./integration/...
 .PHONY: lint
 lint: ## Run linter over the codebase
-	@$(GOPATH)/bin/$(LINTER)
+	@"$(GOBIN)/$(LINTER)"
 
 .PHONY: test
 test: generate ## Run unit test (and re-generate code under test)
@@ -45,7 +48,7 @@ test: generate ## Run unit test (and re-generate code under test)
 	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
 	@git diff --exit-code ./pkg/addons/default > /dev/null || (git --no-pager diff ./pkg/addons/default; exit 1)
 	@$(MAKE) unit-test
-	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
+	@test -z $(COVERALLS_TOKEN) || "$(GOBIN)/goveralls" -coverprofile=coverage.out -service=circle-ci
 	@$(MAKE) build-integration-test
 
 .PHONY: unit-test

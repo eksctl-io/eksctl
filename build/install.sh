@@ -1,5 +1,7 @@
 #!/bin/sh -eu
 
+BIN="$1"
+
 go install ./vendor/github.com/jteeuwen/go-bindata/go-bindata
 go install ./vendor/github.com/weaveworks/github-release
 go install ./vendor/golang.org/x/tools/cmd/stringer
@@ -18,7 +20,7 @@ install_gometalinter() {
   fi
   basename="gometalinter-${version}-${suffix}"
   url="${prefix}/v${version}/${basename}.tar.gz"
-  cd "${GOPATH}/bin/"
+  cd "${BIN}"
   curl --silent --location "${url}" | tar xz
   (cd "./${basename}/" ; mv ./* ../)
   rmdir "./${basename}"
@@ -29,7 +31,7 @@ install_golangci_lint() {
   version="${1}"
   curl --silent --fail --location \
     "https://install.goreleaser.com/github.com/golangci/golangci-lint.sh" \
-    | sh -s -- -b $GOPATH/bin "${version}"
+    | sh -s -- -b "${BIN}" "${version}"
   unset version
 }
 
