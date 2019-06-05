@@ -28,6 +28,7 @@ export RELEASE_GIT_TAG="${v}"
 go generate ./pkg/version
 
 git add ./pkg/version/release.go
+git add ${RELEASE_NOTES_FILE}
 
 m="Tag ${v} release"
 
