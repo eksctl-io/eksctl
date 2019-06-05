@@ -15,11 +15,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-type tInterface interface {
-	GinkgoTInterface
-	Helper()
-}
-
 type tHelper struct{ GinkgoTInterface }
 
 func (t *tHelper) Helper()      { return }
@@ -61,8 +56,18 @@ func eksctl(args ...string) *gexec.Session {
 	default:
 		t *= 30
 	}
-
 	session.Wait(t)
+	return session
+}
+
+func eksctlSuccess(args ...string) *gexec.Session {
+	session := eksctl(args...)
 	Expect(session.ExitCode()).To(Equal(0))
+	return session
+}
+
+func eksctlFail(args ...string) *gexec.Session {
+	session := eksctl(args...)
+	Expect(session.ExitCode()).To(Not(Equal(0)))
 	return session
 }

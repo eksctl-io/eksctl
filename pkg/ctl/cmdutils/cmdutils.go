@@ -135,7 +135,13 @@ func ErrUnsupportedRegion(p *api.ProviderConfig) error {
 
 // ErrNameFlagAndArg is a common error message
 func ErrNameFlagAndArg(nameFlag, nameArg string) error {
-	return fmt.Errorf("--name=%s and argument %s %s", nameFlag, nameArg, IncompatibleFlags)
+	return ErrFlagAndArg("--name", nameFlag, nameArg)
+}
+
+// ErrFlagAndArg may be used to err for options that can be given
+// as flags /and/ arg but only one is allowed to be used.
+func ErrFlagAndArg(kind, flag, arg string) error {
+	return fmt.Errorf("%s=%s and argument %s %s", kind, flag, arg, IncompatibleFlags)
 }
 
 // ErrMustBeSet is a common error message

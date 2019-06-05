@@ -3,6 +3,7 @@ package delete
 import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
@@ -27,6 +28,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 
 	cmd.AddCommand(deleteClusterCmd(g))
 	cmd.AddCommand(deleteNodeGroupCmd(g))
+	cmd.AddCommand(deleteIAMIdentityMappingCmd(g))
 
 	return cmd
 }

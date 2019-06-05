@@ -25,6 +25,7 @@ func Command(g *cmdutils.Grouping) *cobra.Command {
 
 	cmd.AddCommand(getClusterCmd(g))
 	cmd.AddCommand(getNodegroupCmd(g))
+	cmd.AddCommand(getIAMIdentityMappingCmd(g))
 
 	return cmd
 }

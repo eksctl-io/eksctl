@@ -10,16 +10,17 @@ import (
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/clientcmd"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/yaml"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
 )
@@ -63,7 +64,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				clusterName = cmdutils.ClusterName("", "")
 			}
 
-			eksctl("create", "cluster",
+			eksctlSuccess("create", "cluster",
 				"--verbose", "4",
 				"--name", clusterName,
 				"--tags", "alpha.eksctl.io/description=eksctl integration test",
@@ -101,14 +102,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and listing clusters", func() {
 			It("should return the previously created cluster", func() {
-				cmdSession := eksctl("get", "clusters", "--region", region)
+				cmdSession := eksctlSuccess("get", "clusters", "--region", region)
 				Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
 			})
 		})
 
 		Context("and scale the initial nodegroup", func() {
 			It("should not return an error", func() {
-				eksctl("scale", "nodegroup",
+				eksctlSuccess("scale", "nodegroup",
 					"--verbose", "4",
 					"--cluster", clusterName,
 					"--region", region,
@@ -134,7 +135,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and add the second nodegroup", func() {
 			It("should not return an error", func() {
-				eksctl("create", "nodegroup",
+				eksctlSuccess("create", "nodegroup",
 					"--cluster", clusterName,
 					"--region", region,
 					"--nodes", "4",
@@ -220,9 +221,127 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 			})
 
+			Context("and manipulating iam identity mappings", func() {
+				var (
+					role, exp0, exp1 string
+					role0, role1     authconfigmap.MapRole
+				)
+
+				BeforeEach(func() {
+					role = "arn:aws:iam::123456:role/eksctl-testing-XYZ"
+
+					role0 = authconfigmap.MapRole{
+						RoleARN: role,
+						Identity: iam.Identity{
+							Username: "admin",
+							Groups:   []string{"system:masters", "system:nodes"},
+						},
+					}
+					role1 = authconfigmap.MapRole{
+						RoleARN: role,
+						Identity: iam.Identity{
+							Groups: []string{"system:something"},
+						},
+					}
+
+					bs, err := yaml.Marshal([]authconfigmap.MapRole{role0})
+					Expect(err).ShouldNot(HaveOccurred())
+					exp0 = string(bs)
+
+					bs, err = yaml.Marshal([]authconfigmap.MapRole{role1})
+					Expect(err).ShouldNot(HaveOccurred())
+					exp1 = string(bs)
+				})
+
+				It("fails getting unknown mapping", func() {
+					eksctlFail("get", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", "idontexist",
+						"-o", "yaml",
+					)
+				})
+				It("creates mapping", func() {
+					eksctlSuccess("create", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role0.RoleARN,
+						"--username", role0.Username,
+						"--group", role0.Groups[0],
+						"--group", role0.Groups[1],
+					)
+
+					get := eksctlSuccess("get", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role0.RoleARN,
+						"-o", "yaml",
+					)
+					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0))
+				})
+				It("creates a duplicate mapping", func() {
+					eksctlSuccess("create", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role0.RoleARN,
+						"--username", role0.Username,
+						"--group", role0.Groups[0],
+						"--group", role0.Groups[1],
+					)
+
+					get := eksctlSuccess("get", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role0.RoleARN,
+						"-o", "yaml",
+					)
+					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0 + exp0))
+				})
+				It("creates a duplicate mapping with different identity", func() {
+					eksctlSuccess("create", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role1.RoleARN,
+						"--group", role1.Groups[0],
+					)
+
+					get := eksctlSuccess("get", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role1.RoleARN,
+						"-o", "yaml",
+					)
+					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0 + exp0 + exp1))
+				})
+				It("deletes a single mapping fifo", func() {
+					eksctlSuccess("delete", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role,
+					)
+
+					get := eksctlSuccess("get", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role,
+						"-o", "yaml",
+					)
+					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0 + exp1))
+				})
+				It("fails when deleting unknown mapping", func() {
+					eksctlFail("delete", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", "idontexist",
+					)
+				})
+				It("deletes duplicate mappings with --all", func() {
+					eksctlSuccess("delete", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role,
+						"--all",
+					)
+					eksctlFail("get", "iamidentitymapping",
+						"--cluster", clusterName,
+						"--role", role,
+						"-o", "yaml",
+					)
+				})
+			})
+
 			Context("and delete the second nodegroup", func() {
 				It("should not return an error", func() {
-					eksctl("delete", "nodegroup",
+					eksctlSuccess("delete", "nodegroup",
 						"--verbose", "4",
 						"--cluster", clusterName,
 						"--region", region,
@@ -249,7 +368,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and scale the initial nodegroup back to 1 node", func() {
 			It("should not return an error", func() {
-				eksctl("scale", "nodegroup",
+				eksctlSuccess("scale", "nodegroup",
 					"--verbose", "4",
 					"--cluster", clusterName,
 					"--region", region,
@@ -279,7 +398,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Skip("will not delete cluster " + clusterName)
 				}
 
-				eksctl("delete", "cluster",
+				eksctlSuccess("delete", "cluster",
 					"--verbose", "4",
 					"--name", clusterName,
 					"--region", region,
