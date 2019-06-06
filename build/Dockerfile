@@ -14,7 +14,7 @@ ENV EKSCTL_BUILD $GOPATH/src/github.com/weaveworks/eksctl/build
 COPY . $EKSCTL_BUILD
 
 WORKDIR $EKSCTL_BUILD
-RUN cd $EKSCTL_BUILD && ./install.sh
+RUN ./install.sh
 
 WORKDIR $EKSCTL_BUILD/vendor/github.com/goreleaser/goreleaser
 RUN go build -tags netgo && go install -tags netgo

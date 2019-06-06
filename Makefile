@@ -35,10 +35,9 @@ ifneq ($(INTEGRATION_TEST_FOCUS),)
 INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v -ginkgo.focus "$(INTEGRATION_TEST_FOCUS)"
 endif
 
-LINTER ?= gometalinter ./pkg/... ./cmd/... ./integration/...
 .PHONY: lint
 lint: ## Run linter over the codebase
-	@"$(GOBIN)/$(LINTER)"
+	@"$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
 
 .PHONY: test
 test: generate ## Run unit test (and re-generate code under test)
@@ -148,7 +147,7 @@ endif
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image
-	@docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) ./
+	@docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
 	./get-testresults.sh
 
 ##@ Release

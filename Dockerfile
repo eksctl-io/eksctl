@@ -18,7 +18,6 @@ RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd
     && chmod +x /out/usr/local/bin/kubectl
 
 ENV EKSCTL $GOPATH/src/github.com/weaveworks/eksctl
-RUN mkdir -p "$(dirname ${EKSCTL})"
 COPY . $EKSCTL
 
 ARG COVERALLS_TOKEN
