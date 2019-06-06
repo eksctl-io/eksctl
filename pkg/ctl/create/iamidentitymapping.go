@@ -42,7 +42,6 @@ func createIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(group, p, false)
