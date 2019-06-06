@@ -17,37 +17,41 @@ import (
 )
 
 func getIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
-	var roleFlag string
-	cmd := &cobra.Command{
+	cp := cmdutils.NewCommonParams(cfg)
+
+	var role string
+
+	cp.Command = &cobra.Command{
 		Use:   "iamidentitymapping",
 		Short: "Get IAM identity mapping(s)",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doGetIAMIdentityMapping(p, cfg, roleFlag); err != nil {
+		Run: func(_ *cobra.Command, _ []string) {
+			if err := doGetIAMIdentityMapping(cp, role); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
-	group := g.New(cmd)
+
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&roleFlag, "role", "", "ARN of the IAM role")
+		fs.StringVar(&role, "role", "", "ARN of the IAM role")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, false)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doGetIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, roleFlag string) error {
-	ctl := eks.New(p, cfg)
+func doGetIAMIdentityMapping(cp *cmdutils.CommonParams, role string) error {
+	cfg := cp.ClusterConfig
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -72,11 +76,11 @@ func doGetIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, role
 	if err != nil {
 		return err
 	}
-	if roleFlag != "" {
-		roles = roles.Get(roleFlag)
+	if role != "" {
+		roles = roles.Get(role)
 		// If a filter was given, we error if none was found
 		if len(roles) == 0 {
-			return fmt.Errorf("no iamidentitymapping with role %q found", roleFlag)
+			return fmt.Errorf("no iamidentitymapping with role %q found", role)
 		}
 	}
 

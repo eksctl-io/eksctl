@@ -14,44 +14,50 @@ import (
 )
 
 func deleteIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
-	var roleFlag string
-	var all bool
-	cmd := &cobra.Command{
+	cp := cmdutils.NewCommonParams(cfg)
+
+	var (
+		role string
+		all  bool
+	)
+
+	cp.Command = &cobra.Command{
 		Use:   "iamidentitymapping",
 		Short: "Delete a IAM identity mapping",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doDeleteIAMIdentityMapping(p, cfg, roleFlag, all); err != nil {
+		Run: func(_ *cobra.Command, _ []string) {
+			if err := doDeleteIAMIdentityMapping(cp, role, all); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
-	group := g.New(cmd)
+
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&roleFlag, "role", "", "ARN of the IAM role to delete")
+		fs.StringVar(&role, "role", "", "ARN of the IAM role to delete")
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, false)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doDeleteIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, roleFlag string, all bool) error {
-	ctl := eks.New(p, cfg)
+func doDeleteIAMIdentityMapping(cp *cmdutils.CommonParams, role string, all bool) error {
+	cfg := cp.ClusterConfig
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if roleFlag == "" {
+	if role == "" {
 		return cmdutils.ErrMustBeSet("--role")
 	}
 	if cfg.Metadata.Name == "" {
@@ -70,7 +76,7 @@ func doDeleteIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, r
 		return err
 	}
 
-	if err := acm.RemoveRole(roleFlag, all); err != nil {
+	if err := acm.RemoveRole(role, all); err != nil {
 		return err
 	}
 	if err := acm.Save(); err != nil {
@@ -82,9 +88,9 @@ func doDeleteIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, r
 	if err != nil {
 		return err
 	}
-	filtered := roles.Get(roleFlag)
+	filtered := roles.Get(role)
 	if len(filtered) > 0 {
-		logger.Warning("there are %d mappings left with same role %q (use --all to delete them at once)", len(filtered), roleFlag)
+		logger.Warning("there are %d mappings left with same role %q (use --all to delete them at once)", len(filtered), role)
 	}
 	return nil
 }

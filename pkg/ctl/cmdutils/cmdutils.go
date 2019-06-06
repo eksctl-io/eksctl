@@ -53,11 +53,11 @@ func LogPlanModeWarning(plan bool) {
 }
 
 // AddApproveFlag adds common `--approve` flag
-func AddApproveFlag(plan *bool, cmd *cobra.Command, fs *pflag.FlagSet) {
-	approve := fs.Bool("approve", !*plan, "Apply the changes")
-	AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
+func AddApproveFlag(fs *pflag.FlagSet, cp *CommonParams) {
+	approve := fs.Bool("approve", !cp.Plan, "Apply the changes")
+	AddPreRun(cp.Command, func(cmd *cobra.Command, args []string) {
 		if cmd.Flag("approve").Changed {
-			*plan = !*approve
+			cp.Plan = !*approve
 		}
 	})
 }
@@ -111,12 +111,12 @@ func AddVersionFlag(fs *pflag.FlagSet, meta *api.ClusterMeta, extraUsageInfo str
 }
 
 // AddWaitFlag adds common --wait flag
-func AddWaitFlag(wait *bool, fs *pflag.FlagSet, description string) {
+func AddWaitFlag(fs *pflag.FlagSet, wait *bool, description string) {
 	fs.BoolVarP(wait, "wait", "w", *wait, fmt.Sprintf("wait for %s before exiting", description))
 }
 
 // AddUpdateAuthConfigMap adds common --update-auth-configmap flag
-func AddUpdateAuthConfigMap(updateAuthConfigMap *bool, fs *pflag.FlagSet, description string) {
+func AddUpdateAuthConfigMap(fs *pflag.FlagSet, updateAuthConfigMap *bool, description string) {
 	fs.BoolVar(updateAuthConfigMap, "update-auth-configmap", true, description)
 }
 
@@ -134,8 +134,8 @@ func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *stri
 }
 
 // ErrUnsupportedRegion is a common error message
-func ErrUnsupportedRegion(p *api.ProviderConfig) error {
-	return fmt.Errorf("--region=%s is not supported - use one of: %s", p.Region, strings.Join(api.SupportedRegions(), ", "))
+func ErrUnsupportedRegion(provider *api.ProviderConfig) error {
+	return fmt.Errorf("--region=%s is not supported - use one of: %s", provider.Region, strings.Join(api.SupportedRegions(), ", "))
 }
 
 // ErrNameFlagAndArg is a common error message

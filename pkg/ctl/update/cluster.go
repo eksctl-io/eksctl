@@ -16,55 +16,55 @@ import (
 )
 
 func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	// cfg.Metadata.Version = "next"
-
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:   "cluster",
 		Short: "Update cluster",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doUpdateClusterCmd(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
+		Run: func(_ *cobra.Command, args []string) {
+			cp.NameArg = cmdutils.GetNameArg(args)
+			if err := doUpdateClusterCmd(cp); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cp.ClusterConfigFile)
 
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
-		cmdutils.AddApproveFlag(&plan, cmd, fs)
-		fs.BoolVar(&plan, "dry-run", plan, "")
+		cmdutils.AddApproveFlag(fs, cp)
+		fs.BoolVar(&cp.Plan, "dry-run", cp.Plan, "")
 		fs.MarkDeprecated("dry-run", "see --aprove")
 
-		cmdutils.AddWaitFlag(&wait, fs, "all update operations to complete")
+		cmdutils.AddWaitFlag(fs, &cp.Wait, "all update operations to complete")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, false)
 
-	group.AddTo(cmd)
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	if err := cmdutils.NewMetadataLoader(p, cfg, clusterConfigFile, nameArg, cmd).Load(); err != nil {
+func doUpdateClusterCmd(cp *cmdutils.CommonParams) error {
+	if err := cmdutils.NewMetadataLoader(cp).Load(); err != nil {
 		return err
 	}
 
-	ctl := eks.New(p, cfg)
-	meta := cfg.Metadata
+	cfg := cp.ClusterConfig
+	meta := cp.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(cp.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -76,7 +76,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
-	if clusterConfigFile != "" {
+	if cp.ClusterConfigFile != "" {
 		logger.Warning("NOTE: config file is only used for finding cluster name and region, deep cluster configuration changes are not yet implemented")
 	}
 
@@ -107,7 +107,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(plan)
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cp.Plan)
 	if err != nil {
 		return err
 	}
@@ -118,9 +118,9 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	if versionUpdateRequired {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		cmdutils.LogIntendedAction(plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
-		if !plan {
-			if wait {
+		cmdutils.LogIntendedAction(cp.Plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+		if !cp.Plan {
+			if cp.Wait {
 				if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
 					return err
 				}
@@ -136,7 +136,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		}
 	}
 
-	cmdutils.LogPlanModeWarning(plan && (stackUpdateRequired || versionUpdateRequired))
+	cmdutils.LogPlanModeWarning(cp.Plan && (stackUpdateRequired || versionUpdateRequired))
 
 	return nil
 }

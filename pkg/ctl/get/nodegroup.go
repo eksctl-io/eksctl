@@ -18,40 +18,41 @@ import (
 )
 
 func getNodegroupCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Get nodegroup(s)",
 		Aliases: []string{"ng", "nodegroups"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doGetNodegroups(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
+			cp.NameArg = cmdutils.GetNameArg(args)
+			if err := doGetNodegroups(cp, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup")
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, false)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
-	ctl := eks.New(p, cfg)
+func doGetNodegroups(cp *cmdutils.CommonParams, ng *api.NodeGroup) error {
+	cfg := cp.ClusterConfig
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -61,12 +62,12 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
-	if ng.Name != "" && nameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	if ng.Name != "" && cp.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, cp.NameArg)
 	}
 
-	if nameArg != "" {
-		ng.Name = nameArg
+	if cp.NameArg != "" {
+		ng.Name = cp.NameArg
 	}
 
 	manager := ctl.NewStackManager(cfg)

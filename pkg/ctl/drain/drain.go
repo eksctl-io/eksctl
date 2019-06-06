@@ -6,12 +6,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-var (
-	plan = true
-
-	clusterConfigFile = ""
-)
-
 // Command will create the `drain` commands
 func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{

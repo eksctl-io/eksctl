@@ -25,50 +25,52 @@ var (
 )
 
 func drainNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Cordon and drain a nodegroup",
 		Aliases: []string{"ng"},
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doDrainNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args), cmd); err != nil {
+		Run: func(_ *cobra.Command, args []string) {
+			cp.NameArg = cmdutils.GetNameArg(args)
+			if err := doDrainNodeGroup(cp, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete")
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
-		cmdutils.AddApproveFlag(&plan, cmd, fs)
-		cmdutils.AddNodeGroupFilterFlags(&includeNodeGroups, &excludeNodeGroups, fs)
+		cmdutils.AddConfigFileFlag(fs, &cp.ClusterConfigFile)
+		cmdutils.AddApproveFlag(fs, cp)
+		cmdutils.AddNodeGroupFilterFlags(fs, &includeNodeGroups, &excludeNodeGroups)
 		fs.BoolVar(&drainOnlyMissingNodeGroups, "only-missing", false, "Only drain nodegroups that are not defined in the given config file")
 		fs.BoolVar(&drainNodeGroupUndo, "undo", false, "Uncordone the nodegroup")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, true)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doDrainNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string, cmd *cobra.Command) error {
+func doDrainNodeGroup(cp *cmdutils.CommonParams, ng *api.NodeGroup) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	if err := cmdutils.NewDeleteNodeGroupLoader(p, cfg, ng, clusterConfigFile, nameArg, cmd, ngFilter, includeNodeGroups, excludeNodeGroups, &plan).Load(); err != nil {
+	if err := cmdutils.NewDeleteNodeGroupLoader(cp, ng, ngFilter, includeNodeGroups, excludeNodeGroups).Load(); err != nil {
 		return err
 	}
 
-	ctl := eks.New(p, cfg)
+	cfg := cp.ClusterConfig
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -85,8 +87,8 @@ func doDrainNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if clusterConfigFile != "" {
-		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), clusterConfigFile)
+	if cp.ClusterConfigFile != "" {
+		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cp.ClusterConfigFile)
 		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, drainOnlyMissingNodeGroups, &cfg.NodeGroups); err != nil {
 			return err
 		}
@@ -100,12 +102,12 @@ func doDrainNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 	if drainNodeGroupUndo {
 		verb = "uncordon"
 	}
-	cmdutils.LogIntendedAction(plan, "%s %d nodegroups in cluster %q", verb, ngCount, cfg.Metadata.Name)
+	cmdutils.LogIntendedAction(cp.Plan, "%s %d nodegroups in cluster %q", verb, ngCount, cfg.Metadata.Name)
 
-	cmdutils.LogPlanModeWarning(plan && ngCount > 0)
+	cmdutils.LogPlanModeWarning(cp.Plan && ngCount > 0)
 
 	return ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
-		if plan {
+		if cp.Plan {
 			return nil
 		}
 		if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), drainNodeGroupUndo); err != nil {

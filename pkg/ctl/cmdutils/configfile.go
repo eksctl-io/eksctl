@@ -3,7 +3,6 @@ package cmdutils
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -12,7 +11,7 @@ import (
 )
 
 // AddConfigFileFlag adds common --config-file flag
-func AddConfigFileFlag(path *string, fs *pflag.FlagSet) {
+func AddConfigFileFlag(fs *pflag.FlagSet, path *string) {
 	fs.StringVarP(path, "config-file", "f", "", "load configuration from a file")
 }
 
@@ -22,25 +21,18 @@ type ClusterConfigLoader interface {
 }
 
 type commonClusterConfigLoader struct {
-	provider *api.ProviderConfig
-	path     string
-	cmd      *cobra.Command
-	spec     *api.ClusterConfig
-	nameArg  string
+	*CommonParams
 
 	flagsIncompatibleWithConfigFile, flagsIncompatibleWithoutConfigFile sets.String
 
 	validateWithConfigFile, validateWithoutConfigFile func() error
 }
 
-func newCommonClusterConfigLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile string, cmd *cobra.Command) *commonClusterConfigLoader {
+func newCommonClusterConfigLoader(cp *CommonParams) *commonClusterConfigLoader {
 	nilValidatorFunc := func() error { return nil }
 
 	return &commonClusterConfigLoader{
-		provider: provider,
-		path:     clusterConfigFile,
-		cmd:      cmd,
-		spec:     spec,
+		CommonParams: cp,
 
 		validateWithConfigFile:             nilValidatorFunc,
 		flagsIncompatibleWithConfigFile:    sets.NewString("name", "region", "version"),
@@ -55,28 +47,28 @@ func (l *commonClusterConfigLoader) Load() error {
 		return err
 	}
 
-	if l.path == "" {
+	if l.ClusterConfigFile == "" {
 		for f := range l.flagsIncompatibleWithoutConfigFile {
-			if flag := l.cmd.Flag(f); flag != nil && flag.Changed {
+			if flag := l.Command.Flag(f); flag != nil && flag.Changed {
 				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
 			}
 		}
 		return l.validateWithoutConfigFile()
 	}
 
-	if err := eks.LoadConfigFromFile(l.path, l.spec); err != nil {
+	if err := eks.LoadConfigFromFile(l.ClusterConfigFile, l.ClusterConfig); err != nil {
 		return err
 	}
-	meta := l.spec.Metadata
+	meta := l.ClusterConfig.Metadata
 
 	for f := range l.flagsIncompatibleWithConfigFile {
-		if flag := l.cmd.Flag(f); flag != nil && flag.Changed {
+		if flag := l.Command.Flag(f); flag != nil && flag.Changed {
 			return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f))
 		}
 	}
 
-	if l.nameArg != "" {
-		return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.nameArg))
+	if l.NameArg != "" {
+		return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg))
 	}
 
 	if meta.Name == "" {
@@ -86,7 +78,7 @@ func (l *commonClusterConfigLoader) Load() error {
 	if meta.Region == "" {
 		return ErrMustBeSet("metadata.region")
 	}
-	l.provider.Region = meta.Region
+	l.ProviderConfig.Region = meta.Region
 
 	return l.validateWithConfigFile()
 }
@@ -94,20 +86,18 @@ func (l *commonClusterConfigLoader) Load() error {
 // NewMetadataLoader handles loading of clusterConfigFile vs using flags for all commands that require only
 // metadata fileds, e.g. `eksctl delete cluster` or `eksctl utils update-kube-proxy` and other similar
 // commands that do simple operations against existing clusters
-func NewMetadataLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile, nameArg string, cmd *cobra.Command) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
-
-	l.nameArg = nameArg
+func NewMetadataLoader(cp *CommonParams) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cp)
 
 	l.validateWithoutConfigFile = func() error {
-		meta := l.spec.Metadata
+		meta := l.ClusterConfig.Metadata
 
-		if meta.Name != "" && l.nameArg != "" {
-			return ErrNameFlagAndArg(meta.Name, l.nameArg)
+		if meta.Name != "" && l.NameArg != "" {
+			return ErrNameFlagAndArg(meta.Name, l.NameArg)
 		}
 
-		if l.nameArg != "" {
-			meta.Name = l.nameArg
+		if l.NameArg != "" {
+			meta.Name = l.NameArg
 		}
 
 		if meta.Name == "" {
@@ -121,10 +111,8 @@ func NewMetadataLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, cl
 }
 
 // NewCreateClusterLoader will laod config or use flags for 'eksctl create cluster'
-func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
-
-	l.nameArg = nameArg
+func NewCreateClusterLoader(cp *CommonParams, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cp)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",
@@ -155,11 +143,11 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 	)
 
 	l.validateWithConfigFile = func() error {
-		if l.spec.VPC == nil {
-			l.spec.VPC = api.NewClusterVPC()
+		if l.ClusterConfig.VPC == nil {
+			l.ClusterConfig.VPC = api.NewClusterVPC()
 		}
 
-		if l.spec.HasAnySubnets() && len(l.spec.AvailabilityZones) != 0 {
+		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
 			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
@@ -167,20 +155,20 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 	}
 
 	l.validateWithoutConfigFile = func() error {
-		meta := l.spec.Metadata
+		meta := l.ClusterConfig.Metadata
 
 		// generate cluster name or use either flag or argument
-		if ClusterName(meta.Name, l.nameArg) == "" {
-			return ErrNameFlagAndArg(meta.Name, l.nameArg)
+		if ClusterName(meta.Name, l.NameArg) == "" {
+			return ErrNameFlagAndArg(meta.Name, l.NameArg)
 		}
-		meta.Name = ClusterName(meta.Name, l.nameArg)
+		meta.Name = ClusterName(meta.Name, l.NameArg)
 
-		if l.spec.Status != nil {
+		if l.ClusterConfig.Status != nil {
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		return ngFilter.ForEach(l.spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			if cmd.Flag("ssh-public-key").Changed {
+		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
+			if l.Command.Flag("ssh-public-key").Changed {
 				if *ng.SSH.PublicKeyPath == "" {
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
 				}
@@ -200,10 +188,8 @@ func NewCreateClusterLoader(provider *api.ProviderConfig, spec *api.ClusterConfi
 }
 
 // NewCreateNodeGroupLoader will laod config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter, include, exclude []string) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
-
-	l.nameArg = nameArg
+func NewCreateNodeGroupLoader(cp *CommonParams, ngFilter *NodeGroupFilter, include, exclude []string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cp)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"cluster",
@@ -228,7 +214,7 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 	)
 
 	l.validateWithConfigFile = func() error {
-		if err := ngFilter.AppendGlobs(include, exclude, spec.NodeGroups); err != nil {
+		if err := ngFilter.AppendGlobs(include, exclude, l.ClusterConfig.NodeGroups); err != nil {
 			return err
 		}
 		return nil
@@ -241,13 +227,13 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 	)
 
 	l.validateWithoutConfigFile = func() error {
-		if spec.Metadata.Name == "" {
+		if l.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet("--cluster")
 		}
 
-		return ngFilter.ForEach(spec.NodeGroups, func(i int, ng *api.NodeGroup) error {
+		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
 
-			if cmd.Flag("ssh-public-key").Changed {
+			if l.Command.Flag("ssh-public-key").Changed {
 				if *ng.SSH.PublicKeyPath == "" {
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
 				}
@@ -257,10 +243,10 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 			}
 
 			// generate nodegroup name or use either flag or argument
-			if NodeGroupName(ng.Name, l.nameArg) == "" {
-				return ErrNameFlagAndArg(ng.Name, l.nameArg)
+			if NodeGroupName(ng.Name, l.NameArg) == "" {
+				return ErrNameFlagAndArg(ng.Name, l.NameArg)
 			}
-			ng.Name = NodeGroupName(ng.Name, l.nameArg)
+			ng.Name = NodeGroupName(ng.Name, l.NameArg)
 
 			return nil
 		})
@@ -270,17 +256,15 @@ func NewCreateNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 }
 
 // NewDeleteNodeGroupLoader will laod config or use flags for 'eksctl delete nodegroup'
-func NewDeleteNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterConfig, ng *api.NodeGroup, clusterConfigFile, nameArg string, cmd *cobra.Command, ngFilter *NodeGroupFilter, include, exclude []string, plan *bool) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(provider, spec, clusterConfigFile, cmd)
-
-	l.nameArg = nameArg
+func NewDeleteNodeGroupLoader(cp *CommonParams, ng *api.NodeGroup, ngFilter *NodeGroupFilter, include, exclude []string) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cp)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"cluster",
 	)
 
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(include, exclude, spec.NodeGroups)
+		return ngFilter.AppendGlobs(include, exclude, l.ClusterConfig.NodeGroups)
 	}
 
 	l.flagsIncompatibleWithoutConfigFile.Insert(
@@ -292,16 +276,16 @@ func NewDeleteNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 	)
 
 	l.validateWithoutConfigFile = func() error {
-		if l.spec.Metadata.Name == "" {
+		if l.ClusterConfig.Metadata.Name == "" {
 			return ErrMustBeSet("--cluster")
 		}
 
-		if ng.Name != "" && nameArg != "" {
-			return ErrNameFlagAndArg(ng.Name, nameArg)
+		if ng.Name != "" && l.NameArg != "" {
+			return ErrNameFlagAndArg(ng.Name, l.NameArg)
 		}
 
-		if nameArg != "" {
-			ng.Name = nameArg
+		if l.NameArg != "" {
+			ng.Name = l.NameArg
 		}
 
 		if ng.Name == "" {
@@ -310,7 +294,7 @@ func NewDeleteNodeGroupLoader(provider *api.ProviderConfig, spec *api.ClusterCon
 
 		ngFilter.AppendIncludeNames(ng.Name)
 
-		*plan = false
+		l.Plan = false
 
 		return nil
 	}

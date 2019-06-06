@@ -7,13 +7,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-var (
-	wait = false
-	plan = true
-
-	clusterConfigFile = ""
-)
-
 // Command will create the `delete` commands
 func Command(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{

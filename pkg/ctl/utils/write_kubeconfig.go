@@ -22,50 +22,53 @@ var (
 )
 
 func writeKubeconfigCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:   "write-kubeconfig",
 		Short: "Write kubeconfig file for a given cluster",
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doWriteKubeconfigCmd(p, cfg, cmdutils.GetNameArg(args)); err != nil {
+			cp.NameArg = cmdutils.GetNameArg(args)
+			if err := doWriteKubeconfigCmd(cp); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 	})
 
 	group.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &writeKubeconfigOutputPath, &writeKubeconfigSetContext, &writeKubeconfigAutoPath, "<name>")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, false)
 
-	group.AddTo(cmd)
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
-	ctl := eks.New(p, cfg)
+func doWriteKubeconfigCmd(cp *cmdutils.CommonParams) error {
+	cfg := cp.ClusterConfig
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && nameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, nameArg)
+	if cfg.Metadata.Name != "" && cp.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, cp.NameArg)
 	}
 
-	if nameArg != "" {
-		cfg.Metadata.Name = nameArg
+	if cp.NameArg != "" {
+		cfg.Metadata.Name = cp.NameArg
 	}
 
 	if cfg.Metadata.Name == "" {

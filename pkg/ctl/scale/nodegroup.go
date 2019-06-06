@@ -13,47 +13,49 @@ import (
 )
 
 func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Scale a nodegroup",
 		Aliases: []string{"ng"},
 		Run: func(_ *cobra.Command, args []string) {
-			if err := doScaleNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
+			cp.NameArg = cmdutils.GetNameArg(args)
+			if err := doScaleNodeGroup(cp, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
 
 		desiredCapacity := fs.IntP("nodes", "N", -1, "total number of nodes (scale to this number)")
-		cmdutils.AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
+		cmdutils.AddPreRun(cp.Command, func(cmd *cobra.Command, args []string) {
 			if f := cmd.Flag("nodes"); f.Changed {
 				ng.DesiredCapacity = desiredCapacity
 			}
 		})
 
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, true)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
-	ctl := eks.New(p, cfg)
+func doScaleNodeGroup(cp *cmdutils.CommonParams, ng *api.NodeGroup) error {
+	cfg := cp.ClusterConfig
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -63,12 +65,12 @@ func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
-	if ng.Name != "" && nameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	if ng.Name != "" && cp.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, cp.NameArg)
 	}
 
-	if nameArg != "" {
-		ng.Name = nameArg
+	if cp.NameArg != "" {
+		ng.Name = cp.NameArg
 	}
 
 	if ng.Name == "" {

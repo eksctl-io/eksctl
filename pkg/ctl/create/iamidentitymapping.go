@@ -15,10 +15,12 @@ import (
 )
 
 func createIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
+	cp := cmdutils.NewCommonParams(cfg)
+
 	id := &authconfigmap.MapRole{}
-	cmd := &cobra.Command{
+
+	cp.Command = &cobra.Command{
 		Use:   "iamidentitymapping",
 		Short: "Create an IAM identity mapping",
 		Long: dedent.Dedent(`Creates a mapping from IAM role to Kubernetes user and groups.
@@ -27,32 +29,34 @@ func createIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
 			role. If you create a duplicate entry it will shadow all the previous
 			username and groups mapping.
 		`),
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateIAMIdentityMapping(p, cfg, id); err != nil {
+		Run: func(_ *cobra.Command, _ []string) {
+			if err := doCreateIAMIdentityMapping(cp, id); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
-	group := g.New(cmd)
+
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&id.RoleARN, "role", "", "ARN of the IAM role to create")
 		fs.StringVar(&id.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, false)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doCreateIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, id *authconfigmap.MapRole) error {
-	ctl := eks.New(p, cfg)
+func doCreateIAMIdentityMapping(cp *cmdutils.CommonParams, id *authconfigmap.MapRole) error {
+	cfg := cp.ClusterConfig
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

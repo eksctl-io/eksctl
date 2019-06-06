@@ -25,70 +25,71 @@ var (
 )
 
 func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	cp := cmdutils.NewCommonParams(cfg)
 
 	cfg.Metadata.Version = "auto"
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:     "nodegroup",
 		Short:   "Create a nodegroup",
 		Aliases: []string{"ng"},
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateNodeGroups(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
+		Run: func(_ *cobra.Command, _ []string) {
+			if err := doCreateNodeGroups(cp); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
-		cmdutils.AddNodeGroupFilterFlags(&includeNodeGroups, &excludeNodeGroups, fs)
-		cmdutils.AddUpdateAuthConfigMap(&updateAuthConfigMap, fs, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddConfigFileFlag(fs, &cp.ClusterConfigFile)
+		cmdutils.AddNodeGroupFilterFlags(fs, &includeNodeGroups, &excludeNodeGroups)
+		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
 	})
 
 	group.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		cmdutils.AddCommonCreateNodeGroupFlags(cmd, fs, p, cfg, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, cp, ng)
 	})
 
 	group.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, true)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
+func doCreateNodeGroups(cp *cmdutils.CommonParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	if err := cmdutils.NewCreateNodeGroupLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter, includeNodeGroups, excludeNodeGroups).Load(); err != nil {
+	if err := cmdutils.NewCreateNodeGroupLoader(cp, ngFilter, includeNodeGroups, excludeNodeGroups).Load(); err != nil {
 		return err
 	}
+
+	cfg := cp.ClusterConfig
+	meta := cp.ClusterConfig.Metadata
 
 	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
 		return err
 	}
 
-	meta := cfg.Metadata
 	printer := printers.NewJSONPrinter()
-	ctl := eks.New(p, cfg)
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(cp.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 

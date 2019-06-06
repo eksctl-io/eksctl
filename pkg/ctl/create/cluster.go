@@ -35,22 +35,23 @@ var (
 )
 
 func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:   "cluster",
 		Short: "Create a cluster",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateCluster(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
+		Run: func(_ *cobra.Command, args []string) {
+			cp.NameArg = cmdutils.GetNameArg(args)
+			if err := doCreateCluster(cp); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	exampleClusterName := cmdutils.ClusterName("", "")
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
@@ -58,16 +59,16 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
 		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddConfigFileFlag(fs, &cp.ClusterConfigFile)
 	})
 
 	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVar(&ng.Name, "nodegroup-name", "", fmt.Sprintf("name of the nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
 		fs.BoolVar(&withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
-		cmdutils.AddCommonCreateNodeGroupFlags(cmd, fs, p, cfg, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, cp, ng)
 	})
 
 	group.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
@@ -84,23 +85,25 @@ func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, true)
 
 	group.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &kubeconfigPath, &setContext, &autoKubeconfigPath, exampleClusterName)
 		fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	})
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
+func doCreateCluster(cp *cmdutils.CommonParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 	ngFilter.ExcludeAll = withoutNodeGroup
 
-	if err := cmdutils.NewCreateClusterLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter).Load(); err != nil {
+	cfg := cp.ClusterConfig
+	meta := cp.ClusterConfig.Metadata
+
+	if err := cmdutils.NewCreateClusterLoader(cp, ngFilter).Load(); err != nil {
 		return err
 	}
 
@@ -108,12 +111,11 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	meta := cfg.Metadata
 	printer := printers.NewJSONPrinter()
-	ctl := eks.New(p, cfg)
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(cp.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -189,7 +191,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			if len(availabilityZones) != 0 {
 				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
 			}
-			if cmd.Flag("vpc-cidr").Changed {
+			if cp.Command.Flag("vpc-cidr").Changed {
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 			}
 
@@ -197,7 +199,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
 
-			kw, err := kops.NewWrapper(p.Region, kopsClusterNameForVPC)
+			kw, err := kops.NewWrapper(cp.ProviderConfig.Region, kopsClusterNameForVPC)
 			if err != nil {
 				return err
 			}
@@ -220,7 +222,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		if len(availabilityZones) != 0 {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
 		}
-		if cmd.Flag("vpc-cidr").Changed {
+		if cp.Command.Flag("vpc-cidr").Changed {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 		}
 

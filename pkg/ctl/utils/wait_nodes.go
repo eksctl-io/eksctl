@@ -16,41 +16,42 @@ import (
 var waitNodesKubeconfigPath string
 
 func waitNodesCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:   "wait-nodes",
 		Short: "Wait for nodes",
 		Run: func(_ *cobra.Command, _ []string) {
-			if err := doWaitNodes(p, cfg, ng); err != nil {
+			if err := doWaitNodes(cp, ng); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&waitNodesKubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
 		minSize := fs.IntP("nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
-		cmdutils.AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
+		cmdutils.AddPreRun(cp.Command, func(cmd *cobra.Command, args []string) {
 			if f := cmd.Flag("nodes-min"); f.Changed {
 				ng.MinSize = minSize
 			}
 		})
-		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
+		fs.DurationVar(&cp.ProviderConfig.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 	})
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doWaitNodes(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) error {
-	ctl := eks.New(p, cfg)
+func doWaitNodes(cp *cmdutils.CommonParams, ng *api.NodeGroup) error {
+	cfg := cp.ClusterConfig
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if waitNodesKubeconfigPath == "" {
 		return cmdutils.ErrMustBeSet("--kubeconfig")
@@ -61,12 +62,12 @@ func doWaitNodes(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGrou
 		return err
 	}
 
-	clientset, err := kubernetes.NewForConfig(clientConfig)
+	clientSet, err := kubernetes.NewForConfig(clientConfig)
 	if err != nil {
 		return err
 	}
 
-	if err := ctl.WaitForNodes(clientset, ng); err != nil {
+	if err := ctl.WaitForNodes(clientSet, ng); err != nil {
 		return err
 	}
 

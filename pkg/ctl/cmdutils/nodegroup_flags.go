@@ -12,14 +12,14 @@ import (
 )
 
 // AddCommonCreateNodeGroupFlags adds common flags for creating a node group
-func AddCommonCreateNodeGroupFlags(cmd *cobra.Command, fs *pflag.FlagSet, p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) {
+func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cp *CommonParams, ng *api.NodeGroup) {
 	fs.StringVarP(&ng.InstanceType, "node-type", "t", api.DefaultNodeType, "node instance type")
 
 	desiredCapacity := fs.IntP("nodes", "N", api.DefaultNodeCount, "total number of nodes (for a static ASG)")
 	minSize := fs.IntP("nodes-min", "m", api.DefaultNodeCount, "minimum nodes in ASG")
 	maxSize := fs.IntP("nodes-max", "M", api.DefaultNodeCount, "maximum nodes in ASG")
 
-	AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
+	AddPreRun(cp.Command, func(cmd *cobra.Command, args []string) {
 		if f := cmd.Flag("nodes"); f.Changed {
 			ng.DesiredCapacity = desiredCapacity
 		}
@@ -67,7 +67,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 }
 
 // AddNodeGroupFilterFlags add common `--include` and `--exclude` flags for filtering nodegroups
-func AddNodeGroupFilterFlags(includeGlobs, excludeGlobs *[]string, fs *pflag.FlagSet) {
+func AddNodeGroupFilterFlags(fs *pflag.FlagSet, includeGlobs, excludeGlobs *[]string) {
 	fs.StringSliceVar(includeGlobs, "only", nil, "")
 	fs.MarkDeprecated("only", "use --include")
 

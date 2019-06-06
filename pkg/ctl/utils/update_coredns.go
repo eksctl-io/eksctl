@@ -15,46 +15,48 @@ import (
 )
 
 func updateCoreDNSCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
 	cfg := api.NewClusterConfig()
+	cp := cmdutils.NewCommonParams(cfg)
 
-	cmd := &cobra.Command{
+	cp.Command = &cobra.Command{
 		Use:   "update-coredns",
 		Short: "Update coredns add-on to ensure image the standard Amazon EKS version",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doUpdateCoreDNS(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
+		Run: func(_ *cobra.Command, args []string) {
+			cp.NameArg = cmdutils.GetNameArg(args)
+			if err := doUpdateCoreDNS(cp); err != nil {
 				logger.Critical("%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
 
-	group := g.New(cmd)
+	group := g.New(cp.Command)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
-		cmdutils.AddApproveFlag(&plan, cmd, fs)
+		cmdutils.AddRegionFlag(fs, cp.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cp.ClusterConfigFile)
+		cmdutils.AddApproveFlag(fs, cp)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	cmdutils.AddCommonFlagsForAWS(group, cp.ProviderConfig, false)
 
-	group.AddTo(cmd)
-
-	return cmd
+	group.AddTo(cp.Command)
+	return cp.Command
 }
 
-func doUpdateCoreDNS(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	if err := cmdutils.NewMetadataLoader(p, cfg, clusterConfigFile, nameArg, cmd).Load(); err != nil {
+func doUpdateCoreDNS(cp *cmdutils.CommonParams) error {
+	if err := cmdutils.NewMetadataLoader(cp).Load(); err != nil {
 		return err
 	}
 
-	ctl := eks.New(p, cfg)
-	meta := cfg.Metadata
+	cfg := cp.ClusterConfig
+	meta := cp.ClusterConfig.Metadata
+
+	ctl := eks.New(cp.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(cp.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -71,12 +73,12 @@ func doUpdateCoreDNS(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateCoreDNSImageTag(clientSet, plan)
+	updateRequired, err := defaultaddons.UpdateCoreDNSImageTag(clientSet, cp.Plan)
 	if err != nil {
 		return err
 	}
 
-	cmdutils.LogPlanModeWarning(plan && updateRequired)
+	cmdutils.LogPlanModeWarning(cp.Plan && updateRequired)
 
 	return nil
 }

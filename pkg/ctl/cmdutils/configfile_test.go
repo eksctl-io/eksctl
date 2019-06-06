@@ -61,13 +61,18 @@ var _ = Describe("cmdutils configfile", func() {
 			for _, example := range examples {
 				cfg := api.NewClusterConfig()
 
-				p := &api.ProviderConfig{}
-				err := NewMetadataLoader(p, cfg, example, "", newCmd()).Load()
+				cp := &CommonParams{
+					Command:       newCmd(),
+					NameArg:       example,
+					ClusterConfig: cfg,
+				}
+
+				err := NewMetadataLoader(cp).Load()
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).ToNot(BeEmpty())
-				Expect(cfg.Metadata.Region).To(Equal(p.Region))
+				Expect(cfg.Metadata.Region).To(Equal(cp.ProviderConfig.Region))
 				Expect(cfg.Metadata.Version).To(BeEmpty())
 			}
 		})
