@@ -2,8 +2,9 @@ package delete
 
 import (
 	"fmt"
-	ssh "github.com/weaveworks/eksctl/pkg/ssh"
 	"os"
+
+	ssh "github.com/weaveworks/eksctl/pkg/ssh"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -37,7 +38,7 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddWaitFlag(&wait, fs, "deletion of all resources")
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)

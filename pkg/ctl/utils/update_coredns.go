@@ -32,7 +32,7 @@ func updateCoreDNSCmd(g *cmdutils.Grouping) *cobra.Command {
 	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
 		cmdutils.AddApproveFlag(&plan, cmd, fs)

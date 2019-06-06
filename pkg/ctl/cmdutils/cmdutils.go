@@ -91,6 +91,11 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRo
 	})
 }
 
+// AddNameFlag adds common --name flag for cluster
+func AddNameFlag(fs *pflag.FlagSet, meta *api.ClusterMeta) {
+	fs.StringVarP(&meta.Name, "name", "n", "", "EKS cluster name")
+}
+
 // AddRegionFlag adds common --region flag
 func AddRegionFlag(fs *pflag.FlagSet, p *api.ProviderConfig) {
 	fs.StringVarP(&p.Region, "region", "r", "", "AWS region")
