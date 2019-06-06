@@ -512,3 +512,8 @@ type (
 		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
 	}
 )
+
+// HasMixedInstances checks if a nodegroup has mixed instances option declared
+func HasMixedInstances(ng *NodeGroup) bool {
+	return ng.InstancesDistribution != nil && ng.InstancesDistribution.InstanceTypes != nil && len(ng.InstancesDistribution.InstanceTypes) != 0
+}

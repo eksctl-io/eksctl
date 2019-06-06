@@ -2,6 +2,7 @@ package eks
 
 import (
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"io/ioutil"
 	"os"
 	"time"
@@ -237,12 +238,13 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
 	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
-		id, err := ami.Resolve(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)
+		instanceType := selectInstanceType(ng)
+		id, err := ami.Resolve(c.Provider.Region(), version, instanceType, ng.AMIFamily)
 		if err != nil {
 			return errors.Wrap(err, "unable to determine AMI to use")
 		}
 		if id == "" {
-			return ami.NewErrFailedResolution(c.Provider.Region(), version, ng.InstanceType, ng.AMIFamily)
+			return ami.NewErrFailedResolution(c.Provider.Region(), version, instanceType, ng.AMIFamily)
 		}
 		ng.AMI = id
 	}
@@ -250,6 +252,21 @@ func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
 	// Check the AMI is available and populate RootDevice information
 	return ami.Use(c.Provider.EC2(), ng)
 
+}
+
+// selectInstanceType determines which instanceType is relevant for selecting an AMI
+// If the nodegroup has mixed instances it will prefer a GPU instance type over a general class one
+// This is to make sure that the AMI that is selected later is valid for all the types
+func selectInstanceType(ng *api.NodeGroup) string {
+	if api.HasMixedInstances(ng) {
+		for _, instanceType := range ng.InstancesDistribution.InstanceTypes {
+			if utils.IsGPUInstanceType(instanceType) {
+				return instanceType
+			}
+		}
+		return ng.InstancesDistribution.InstanceTypes[0]
+	}
+	return ng.InstanceType
 }
 
 // SetNodeLabels initialises and validate node labels based on cluster and nodegroup names

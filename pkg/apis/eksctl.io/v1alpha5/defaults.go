@@ -3,7 +3,11 @@ package v1alpha5
 // SetNodeGroupDefaults will set defaults for a given nodegroup
 func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	if ng.InstanceType == "" {
-		ng.InstanceType = DefaultNodeType
+		if HasMixedInstances(ng) {
+			ng.InstanceType = "mixed"
+		} else {
+			ng.InstanceType = DefaultNodeType
+		}
 	}
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily

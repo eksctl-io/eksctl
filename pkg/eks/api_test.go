@@ -1,8 +1,13 @@
 package eks_test
 
 import (
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
+	"github.com/weaveworks/eksctl/pkg/ami"
+	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
@@ -71,4 +76,98 @@ var _ = Describe("eksctl API", func() {
 			Expect(err.Error()).To(Equal(`reading config file "../../examples/nothing.xml": open ../../examples/nothing.xml: no such file or directory`))
 		})
 	})
+
+	Context("AMI selection", func() {
+		var (
+			cfg *api.ClusterConfig
+			ctl *ClusterProvider
+			ng  *api.NodeGroup
+			p   *mockprovider.MockProvider
+		)
+		BeforeEach(func() {
+			ami.DefaultResolvers = []ami.Resolver{&ami.StaticGPUResolver{}, &ami.StaticDefaultResolver{}}
+
+			cfg = &api.ClusterConfig{}
+			ng = cfg.NewNodeGroup()
+			ng.AMIFamily = api.DefaultNodeImageFamily
+
+			p = mockprovider.NewMockProvider()
+
+			ctl = &ClusterProvider{
+				Provider: p,
+				Status:   &ProviderStatus{},
+			}
+
+			mockDescribeImages(p, "something", "abc123")
+		})
+
+		It("should retrieve the AMI from EC2 when AMI is auto", func() {
+			ng.AMI = "auto"
+			ng.InstanceType = "p2.xlarge"
+
+			err := ctl.EnsureAMI("1.12", ng)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ng.AMI).To(Equal("abc123"))
+		})
+		It("should pick a valid AMI for GPU  instances when AMI is static", func() {
+			ng.AMI = "static"
+			ng.InstanceType = "p2.xlarge"
+
+			err := ctl.EnsureAMI("1.12", ng)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ng.AMI).To(Equal("ami-0bebf2322fd52a42e"))
+		})
+		It("should pick a valid AMI for normal instances when AMI is static", func() {
+			ng.AMI = "static"
+			ng.InstanceType = "m5.xlarge"
+
+			err := ctl.EnsureAMI("1.12", ng)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ng.AMI).To(Equal("ami-0923e4b35a30a5f53"))
+		})
+		It("should pick a valid AMI for mixed normal instances", func() {
+			ng.AMI = "static"
+			ng.InstanceType = "mixed"
+			ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large"},
+			}
+
+			err := ctl.EnsureAMI("1.12", ng)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ng.AMI).To(Equal("ami-0923e4b35a30a5f53"))
+		})
+		It("should pick a GPU AMI for mixed instances with GPU instance types", func() {
+			ng.AMI = "static"
+			ng.InstanceType = "mixed"
+			ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
+				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large", "p3.2xlarge"},
+			}
+
+			err := ctl.EnsureAMI("1.12", ng)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(ng.AMI).To(Equal("ami-0bebf2322fd52a42e"))
+		})
+	})
 })
+
+func mockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiId string) {
+	p.MockEC2().On("DescribeImages",
+		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
+			return true
+		})).
+		Return(&ec2.DescribeImagesOutput{
+			Images: []*ec2.Image{
+				&ec2.Image{
+					ImageId:        aws.String(amiId),
+					State:          aws.String("available"),
+					OwnerId:        aws.String("123"),
+					RootDeviceType: aws.String("ebs"),
+				},
+			},
+		}, nil)
+}
