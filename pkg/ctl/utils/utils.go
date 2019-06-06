@@ -1,37 +1,22 @@
 package utils
 
 import (
-	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-var (
-	clusterConfigFile = ""
-
-	plan = true
-)
-
 // Command will create the `utils` commands
-func Command(g *cmdutils.Grouping) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "utils",
-		Short: "Various utils",
-		Run: func(c *cobra.Command, _ []string) {
-			if err := c.Help(); err != nil {
-				logger.Debug("ignoring error %q", err.Error())
-			}
-		},
-	}
+func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
+	verbCmd := cmdutils.NewVerbCmd("utils", "Various utils", "")
 
-	cmd.AddCommand(waitNodesCmd(g))
-	cmd.AddCommand(writeKubeconfigCmd(g))
-	cmd.AddCommand(describeStacksCmd(g))
-	cmd.AddCommand(updateClusterStackCmd(g))
-	cmd.AddCommand(updateKubeProxyCmd(g))
-	cmd.AddCommand(updateAWSNodeCmd(g))
-	cmd.AddCommand(updateCoreDNSCmd(g))
-	cmd.AddCommand(installCoreDNSCmd(g))
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, waitNodesCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, writeKubeconfigCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, describeStacksCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterStackCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateKubeProxyCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateAWSNodeCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateCoreDNSCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, installCoreDNSCmd)
 
-	return cmd
+	return verbCmd
 }

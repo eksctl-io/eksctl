@@ -1,9 +1,6 @@
 package utils
 
 import (
-	"os"
-
-	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -13,60 +10,51 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-var waitNodesKubeconfigPath string
-
-func waitNodesCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func waitNodesCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:   "wait-nodes",
-		Short: "Wait for nodes",
-		Run: func(_ *cobra.Command, _ []string) {
-			if err := doWaitNodes(p, cfg, ng); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	var kubeconfigPath string
 
-	group := g.New(cmd)
+	rc.SetDescription("wait-nodes", "Wait for nodes", "")
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&waitNodesKubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
+	rc.SetRunFunc(func() error {
+		return doWaitNodes(rc, ng, kubeconfigPath)
+	})
+
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&kubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
 		minSize := fs.IntP("nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
-		cmdutils.AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
+		cmdutils.AddPreRun(rc.Command, func(cmd *cobra.Command, args []string) {
 			if f := cmd.Flag("nodes-min"); f.Changed {
 				ng.MinSize = minSize
 			}
 		})
-		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
+		fs.DurationVar(&rc.ProviderConfig.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 	})
-
-	group.AddTo(cmd)
-
-	return cmd
 }
 
-func doWaitNodes(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup) error {
-	ctl := eks.New(p, cfg)
+func doWaitNodes(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, kubeconfigPath string) error {
+	cfg := rc.ClusterConfig
 
-	if waitNodesKubeconfigPath == "" {
+	ctl := eks.New(rc.ProviderConfig, cfg)
+
+	if kubeconfigPath == "" {
 		return cmdutils.ErrMustBeSet("--kubeconfig")
 	}
 
-	clientConfig, err := clientcmd.BuildConfigFromFlags("", waitNodesKubeconfigPath)
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	if err != nil {
 		return err
 	}
 
-	clientset, err := kubernetes.NewForConfig(clientConfig)
+	clientSet, err := kubernetes.NewForConfig(clientConfig)
 	if err != nil {
 		return err
 	}
 
-	if err := ctl.WaitForNodes(clientset, ng); err != nil {
+	if err := ctl.WaitForNodes(clientSet, ng); err != nil {
 		return err
 	}
 

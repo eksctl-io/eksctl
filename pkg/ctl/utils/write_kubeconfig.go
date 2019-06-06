@@ -2,11 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -15,68 +13,59 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-var (
-	writeKubeconfigOutputPath string
-	writeKubeconfigSetContext bool
-	writeKubeconfigAutoPath   bool
-)
-
-func writeKubeconfigCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:   "write-kubeconfig",
-		Short: "Write kubeconfig file for a given cluster",
-		Run: func(_ *cobra.Command, args []string) {
-			if err := doWriteKubeconfigCmd(p, cfg, cmdutils.GetNameArg(args)); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	var (
+		outputPath           string
+		setContext, autoPath bool
+	)
 
-	group := g.New(cmd)
+	rc.SetDescription("write-kubeconfig", "Write kubeconfig file for a given cluster", "")
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+	rc.SetRunFuncWithNameArg(func() error {
+		return doWriteKubeconfigCmd(rc, outputPath, setContext, autoPath)
+	})
+
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 	})
 
-	group.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForKubeconfig(fs, &writeKubeconfigOutputPath, &writeKubeconfigSetContext, &writeKubeconfigAutoPath, "<name>")
+	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
+		cmdutils.AddCommonFlagsForKubeconfig(fs, &outputPath, &setContext, &autoPath, "<name>")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
-
-	group.AddTo(cmd)
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
-	ctl := eks.New(p, cfg)
+func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath string, setContext, autoPath bool) error {
+	cfg := rc.ClusterConfig
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && nameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, nameArg)
+	if cfg.Metadata.Name != "" && rc.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, rc.NameArg)
 	}
 
-	if nameArg != "" {
-		cfg.Metadata.Name = nameArg
+	if rc.NameArg != "" {
+		cfg.Metadata.Name = rc.NameArg
 	}
 
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")
 	}
 
-	if writeKubeconfigAutoPath {
-		if writeKubeconfigOutputPath != kubeconfig.DefaultPath {
+	if autoPath {
+		if outputPath != kubeconfig.DefaultPath {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
-		writeKubeconfigOutputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
+		outputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
 	}
 
 	if err := ctl.GetCredentials(cfg); err != nil {
@@ -88,7 +77,7 @@ func doWriteKubeconfigCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg
 		return err
 	}
 
-	filename, err := kubeconfig.Write(writeKubeconfigOutputPath, *client.Config, writeKubeconfigSetContext)
+	filename, err := kubeconfig.Write(outputPath, *client.Config, setContext)
 	if err != nil {
 		return errors.Wrap(err, "writing kubeconfig")
 	}

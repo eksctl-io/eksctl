@@ -2,21 +2,22 @@ package create
 
 import (
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/ssh"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"strings"
 
 	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
-func checkSubnetsGivenAsFlags() bool {
-	return len(*subnets[api.SubnetTopologyPrivate])+len(*subnets[api.SubnetTopologyPublic]) != 0
+func checkSubnetsGivenAsFlags(params *createClusterCmdParams) bool {
+	return len(*params.subnets[api.SubnetTopologyPrivate])+len(*params.subnets[api.SubnetTopologyPublic]) != 0
 }
 
-func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
+func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	switch meta.Version {
 	case "auto":
 		break
@@ -44,7 +45,7 @@ func checkVersion(ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
 	} else if meta.Version != v {
 		hint := "--version=auto"
-		if clusterConfigFile != "" {
+		if rc.ClusterConfigFile != "" {
 			hint = "metadata.version: auto"
 		}
 		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)

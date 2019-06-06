@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Grouping holds a superset of all flagsets for all commands
-type Grouping struct {
+// FlagGrouping holds a superset of all flagsets for all commands
+type FlagGrouping struct {
 	groups map[*cobra.Command]*NamedFlagSetGroup
 }
 
@@ -25,14 +25,14 @@ type NamedFlagSetGroup struct {
 }
 
 // NewGrouping creates an instance of Grouping
-func NewGrouping() *Grouping {
-	return &Grouping{
+func NewGrouping() *FlagGrouping {
+	return &FlagGrouping{
 		make(map[*cobra.Command]*NamedFlagSetGroup),
 	}
 }
 
 // New creates a new group of flagsets for use with a subcommand
-func (g *Grouping) New(cmd *cobra.Command) *NamedFlagSetGroup {
+func (g *FlagGrouping) New(cmd *cobra.Command) *NamedFlagSetGroup {
 	n := &NamedFlagSetGroup{}
 	g.groups[cmd] = n
 	return n
@@ -63,7 +63,7 @@ func (n *NamedFlagSetGroup) AddTo(cmd *cobra.Command) {
 }
 
 // Usage is for use with (*cobra.Command).SetUsageFunc
-func (g *Grouping) Usage(cmd *cobra.Command) error {
+func (g *FlagGrouping) Usage(cmd *cobra.Command) error {
 	if cmd == nil {
 		return fmt.Errorf("nil command")
 	}
