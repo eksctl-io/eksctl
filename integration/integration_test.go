@@ -27,7 +27,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&eksctlPath, "eksctl.path", "../eksctl", "Path to eksctl")
+	flag.StringVar(&eksctlPath, "eksctl.path", "./eksctl", "Path to eksctl")
 
 	// Flags to help with the development of the integration tests
 	flag.StringVar(&clusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
