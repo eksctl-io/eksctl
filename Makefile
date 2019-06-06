@@ -148,7 +148,7 @@ endif
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image
 	@docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
-	@[ -z "${CI}" ] || ./get-testresults.sh # only get test results in Continious Integration
+	@[ -z "${CI}" ] || ./get-testresults.sh # only get test results in Continuous Integration
 
 ##@ Release
 
