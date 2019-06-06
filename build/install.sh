@@ -1,6 +1,12 @@
 #!/bin/sh -eu
 
-BIN="$1"
+if [ -z "${GOBIN+x}" ]; then
+ GOBIN="$(go env GOPATH)/bin"
+fi
+
+curl --silent --location "https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64" --output "${GOBIN}/dep"
+chmod +x "${GOBIN}/dep"
+dep ensure
 
 go install ./vendor/github.com/jteeuwen/go-bindata/go-bindata
 go install ./vendor/github.com/weaveworks/github-release
@@ -20,7 +26,7 @@ install_gometalinter() {
   fi
   basename="gometalinter-${version}-${suffix}"
   url="${prefix}/v${version}/${basename}.tar.gz"
-  cd "${BIN}"
+  cd "${GOBIN}"
   curl --silent --location "${url}" | tar xz
   (cd "./${basename}/" ; mv ./* ../)
   rmdir "./${basename}"
@@ -31,7 +37,7 @@ install_golangci_lint() {
   version="${1}"
   curl --silent --fail --location \
     "https://install.goreleaser.com/github.com/golangci/golangci-lint.sh" \
-    | sh -s -- -b "${BIN}" "${version}"
+    | sh -s -- -b "${GOBIN}" "${version}"
   unset version
 }
 

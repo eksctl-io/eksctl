@@ -16,8 +16,7 @@ GOBIN ?= $(shell echo `go env GOPATH`/bin)
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	@go get -u github.com/golang/dep/cmd/dep
-	@cd build && dep ensure && ./install.sh "$(GOBIN)"
+	@cd build && ./install.sh
 
 ##@ Build
 
