@@ -2,7 +2,6 @@ package builder
 
 import (
 	"fmt"
-
 	"github.com/kris-nova/logger"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -201,14 +200,16 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:      gfn.NewString(n.spec.AMI),
-		InstanceType: gfn.NewString(n.spec.InstanceType),
-		UserData:     n.userData,
+		ImageId:  gfn.NewString(n.spec.AMI),
+		UserData: n.userData,
 		NetworkInterfaces: []gfn.AWSEC2LaunchTemplate_NetworkInterface{{
 			AssociatePublicIpAddress: gfn.NewBoolean(!n.spec.PrivateNetworking),
 			DeviceIndex:              gfn.NewInteger(0),
 			Groups:                   n.securityGroups,
 		}},
+	}
+	if !api.HasMixedInstances(n.spec) {
+		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)
 	}
 
 	return launchTemplateData
@@ -231,7 +232,7 @@ func nodeGroupResource(launchTemplateName *gfn.Value, vpcZoneIdentifier *interfa
 	if len(ng.TargetGroupARNs) > 0 {
 		ngProps["TargetGroupARNs"] = ng.TargetGroupARNs
 	}
-	if hasMixedInstances(ng) {
+	if api.HasMixedInstances(ng) {
 		ngProps["MixedInstancesPolicy"] = *mixedInstancesPolicy(launchTemplateName, ng)
 	} else {
 		ngProps["LaunchTemplate"] = map[string]interface{}{
@@ -291,8 +292,4 @@ func mixedInstancesPolicy(launchTemplateName *gfn.Value, ng *api.NodeGroup) *map
 	policy["InstancesDistribution"] = instancesDistribution
 
 	return &policy
-}
-
-func hasMixedInstances(ng *api.NodeGroup) bool {
-	return ng.InstancesDistribution != nil && ng.InstancesDistribution.InstanceTypes != nil && len(ng.InstancesDistribution.InstanceTypes) != 0
 }

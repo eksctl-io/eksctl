@@ -2192,6 +2192,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		baseCap := 40
 		percentageOnDemand := 20
 		pools := 3
+		ng.InstanceType = "mixed"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
 			InstanceTypes:                       []string{"m5.large", "m5a.xlarge"},
@@ -2212,6 +2213,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).To(HaveKey("NodeGroupLaunchTemplate"))
 
 			launchTemplateData := getLaunchTemplateData(ngTemplate)
+			Expect(launchTemplateData.InstanceType).To(Equal(""))
 			Expect(launchTemplateData.InstanceMarketOptions).To(BeNil())
 
 			nodeGroupProperties := getNodeGroupProperties(ngTemplate)
