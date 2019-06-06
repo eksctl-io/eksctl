@@ -516,6 +516,14 @@
   revision = "06f6bce92acc2c6cd184ac4043a920558ff9165c"
 
 [[projects]]
+  digest = "1:e766965d4b64dc919bd32b236e09f0582cc8aef2e4b133da6388cf751cb28346"
+  name = "github.com/lithammer/dedent"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "8478954c3bc893cf36c5ee7c822266b993a3b3ee"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:d244f8666a838fe6ad70ec8fe77f50ebc29fdc3331a2729ba5886bef8435d10d"
   name = "github.com/magiconair/properties"
   packages = ["."]
@@ -1647,6 +1655,7 @@
     "github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator",
     "github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token",
     "github.com/kubicorn/kubicorn/pkg/namer",
+    "github.com/lithammer/dedent",
     "github.com/onsi/ginkgo",
     "github.com/onsi/ginkgo/config",
     "github.com/onsi/ginkgo/extensions/table",
