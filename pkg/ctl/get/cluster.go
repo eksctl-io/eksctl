@@ -33,7 +33,7 @@ func getClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)

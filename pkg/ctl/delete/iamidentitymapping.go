@@ -33,7 +33,7 @@ func deleteIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&roleFlag, "role", "", "ARN of the IAM role to delete")
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, p)
 	})
 

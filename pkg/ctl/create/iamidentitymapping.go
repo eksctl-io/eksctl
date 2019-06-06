@@ -40,7 +40,7 @@ func createIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
 		fs.StringVar(&id.RoleARN, "role", "", "ARN of the IAM role to create")
 		fs.StringVar(&id.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, p)
 	})
 

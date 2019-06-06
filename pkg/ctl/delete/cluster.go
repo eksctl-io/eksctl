@@ -2,21 +2,21 @@ package delete
 
 import (
 	"fmt"
-	ssh "github.com/weaveworks/eksctl/pkg/ssh"
 	"os"
 
-	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
-	"github.com/weaveworks/eksctl/pkg/vpc"
-
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
@@ -37,7 +37,7 @@ func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
 	group := g.New(cmd)
 
 	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, p)
 		cmdutils.AddWaitFlag(&wait, fs, "deletion of all resources")
 		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
