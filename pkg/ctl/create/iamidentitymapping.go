@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/kris-nova/logger"
+	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -20,12 +21,12 @@ func createIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "iamidentitymapping",
 		Short: "Create an IAM identity mapping",
-		Long: `Creates a mapping from IAM role to Kubernetes user and groups.
+		Long: dedent.Dedent(`Creates a mapping from IAM role to Kubernetes user and groups.
 
-Note aws-iam-authenticator only considers the last entry for any given
-role. If you create a duplicate entry it will shadow all the previous
-username and groups mapping.
-`,
+			Note aws-iam-authenticator only considers the last entry for any given
+			role. If you create a duplicate entry it will shadow all the previous
+			username and groups mapping.
+		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := doCreateIAMIdentityMapping(p, cfg, id); err != nil {
 				logger.Critical("%s\n", err.Error())
