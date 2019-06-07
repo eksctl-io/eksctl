@@ -1,0 +1,11 @@
+{{ define "main" }}
+<article class="markdown">
+  {{- .Content -}}
+    {{ println "list.html" }}
+    {{ .Site | jsonify }}
+</article>
+{{ end }}
+
+{{ define "toc" }}
+  {{ partial "docs/toc" . }}
+{{ end }}
