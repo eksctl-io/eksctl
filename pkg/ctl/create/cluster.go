@@ -347,7 +347,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			}
 
 			// if GPU instance type, give instructions
-			if utils.IsGPUInstanceType(ng.InstanceType) {
+			if utils.IsGPUInstanceType(ng.InstanceType) || (ng.InstancesDistribution != nil && utils.HasGPUInstanceType(ng.InstancesDistribution.InstanceTypes)) {
 				logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
 				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 			}
