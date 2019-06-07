@@ -313,7 +313,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 
 					get := eksctlSuccess("get", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role,
 						"-o", "yaml",
 					)
