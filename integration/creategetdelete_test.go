@@ -255,14 +255,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				It("fails getting unknown mapping", func() {
 					eksctlFail("get", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", "idontexist",
 						"-o", "yaml",
 					)
 				})
 				It("creates mapping", func() {
 					eksctlSuccess("create", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role0.RoleARN,
 						"--username", role0.Username,
 						"--group", role0.Groups[0],
@@ -270,7 +270,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 
 					get := eksctlSuccess("get", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role0.RoleARN,
 						"-o", "yaml",
 					)
@@ -278,7 +278,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 				It("creates a duplicate mapping", func() {
 					eksctlSuccess("create", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role0.RoleARN,
 						"--username", role0.Username,
 						"--group", role0.Groups[0],
@@ -286,7 +286,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 
 					get := eksctlSuccess("get", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role0.RoleARN,
 						"-o", "yaml",
 					)
@@ -294,13 +294,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 				It("creates a duplicate mapping with different identity", func() {
 					eksctlSuccess("create", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role1.RoleARN,
 						"--group", role1.Groups[0],
 					)
 
 					get := eksctlSuccess("get", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role1.RoleARN,
 						"-o", "yaml",
 					)
@@ -308,7 +308,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 				It("deletes a single mapping fifo", func() {
 					eksctlSuccess("delete", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role,
 					)
 
@@ -321,18 +321,18 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 				It("fails when deleting unknown mapping", func() {
 					eksctlFail("delete", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", "idontexist",
 					)
 				})
 				It("deletes duplicate mappings with --all", func() {
 					eksctlSuccess("delete", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role,
 						"--all",
 					)
 					eksctlFail("get", "iamidentitymapping",
-						"--cluster", clusterName,
+						"--name", clusterName,
 						"--role", role,
 						"-o", "yaml",
 					)
