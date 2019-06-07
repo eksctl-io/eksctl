@@ -1,34 +1,9 @@
 ---
-title: "IAM"
-weight: 90
+title: "Manage IAM users and roles"
+weight: 100
 ---
 
-## IAM Add-on Policies
-
-Example of all supported add-on policies:
-
-```yaml
-nodeGroups:
-  - name: ng-1
-    instanceType: m5.xlarge
-    desiredCapacity: 1
-    iam:
-      withAddonPolicies:
-        imageBuilder: true        
-        autoScaler: true        
-        externalDNS: true        
-        appMesh: true        
-        ebs: true        
-        fsx: true        
-        efs: true        
-        albIngress: true        
-        xRay: true        
-        cloudWatch: true        
-```
-
-[comment]: <> (TODO: One section per addon and brief explanation of what it is )
-
-## Managing IAM Users and Roles
+# Managing IAM Users and Roles
 
 EKS clusters use IAM users and roles to control access to the cluster. The rules are implemented in a config map 
 called `aws-auth`. `eksctl` provides commands to read and edit this config map.
