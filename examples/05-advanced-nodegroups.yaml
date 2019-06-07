@@ -14,6 +14,8 @@ nodeGroups:
     maxSize: 8
     volumeSize: 100
     volumeType: gp2
+    ami: ami-05ecac759c81e0b0c
+    amiFamily: AmazonLinux2
     labels:
       nodegroup-type: frontend-workloads
     iam:
