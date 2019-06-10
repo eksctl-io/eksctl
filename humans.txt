@@ -42,6 +42,7 @@ Adam Johnson            @adamjohnson01
 Paul Maddox             @paulmaddox
 Patrick Spek            @tyil
 Martina Iglesias        @martina-if
+Alfonso Acosta          @2opremio
 
 /* Thanks */
 

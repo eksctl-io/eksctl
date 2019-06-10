@@ -8,13 +8,15 @@ EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 GO_BUILD_TAGS ?= netgo
 
+GOBIN ?= $(shell echo `go env GOPATH`/bin)
+
 .DEFAULT_GOAL := help
 
 ##@ Dependencies
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	@cd build && dep ensure && ./install.sh
+	@cd build && ./install.sh
 
 ##@ Build
 
@@ -33,10 +35,9 @@ ifneq ($(INTEGRATION_TEST_FOCUS),)
 INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v -ginkgo.focus "$(INTEGRATION_TEST_FOCUS)"
 endif
 
-LINTER ?= gometalinter ./pkg/... ./cmd/... ./integration/...
 .PHONY: lint
 lint: ## Run linter over the codebase
-	@$(GOPATH)/bin/$(LINTER)
+	@"$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
 
 .PHONY: test
 test: generate ## Run unit test (and re-generate code under test)
@@ -45,7 +46,7 @@ test: generate ## Run unit test (and re-generate code under test)
 	@git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
 	@git diff --exit-code ./pkg/addons/default > /dev/null || (git --no-pager diff ./pkg/addons/default; exit 1)
 	@$(MAKE) unit-test
-	@test -z $(COVERALLS_TOKEN) || $(GOPATH)/bin/goveralls -coverprofile=coverage.out -service=circle-ci
+	@test -z $(COVERALLS_TOKEN) || "$(GOBIN)/goveralls" -coverprofile=coverage.out -service=circle-ci
 	@$(MAKE) build-integration-test
 
 .PHONY: unit-test
@@ -146,8 +147,8 @@ endif
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image
-	@docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) ./
-	./get-testresults.sh
+	@docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
+	@[ -z "${CI}" ] || ./get-testresults.sh # only get test results in Continuous Integration
 
 ##@ Release
 

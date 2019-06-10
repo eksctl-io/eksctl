@@ -6,10 +6,7 @@ jobs:
     steps:
       - checkout
       - run: mkdir -p ./test-results/ginkgo
-      - run:
-            command: make eksctl-image
-            environment:
-                TEST_OUTPUT: "true"
+      - run: make eksctl-image
       - store_test_results:
           path: ./test-results
       - store_artifacts:
