@@ -362,11 +362,11 @@ func (c *ClusterResourceSet) singleNAT() {
 	sortedAZs := c.spec.AvailabilityZones
 	firstUpperAZ := strings.ToUpper(strings.Join(strings.Split(sortedAZs[0], "-"), ""))
 
-	c.newResource(fmt.Sprintf("%v", "NATIP"), &gfn.AWSEC2EIP{
+	c.newResource("NATIP", &gfn.AWSEC2EIP{
 		Domain: gfn.NewString("vpc"),
 	})
-	refNG := c.newResource(fmt.Sprintf("%v", "NATGateway"), &gfn.AWSEC2NatGateway{
-		AllocationId: gfn.MakeFnGetAttString(fmt.Sprintf("%v", "NATIP.AllocationId")),
+	refNG := c.newResource("NATGateway", &gfn.AWSEC2NatGateway{
+		AllocationId: gfn.MakeFnGetAttString("NATIP.AllocationId"),
 		SubnetId:     gfn.MakeRef(fmt.Sprintf("%v%v", "SubnetPublic", firstUpperAZ)),
 	})
 
