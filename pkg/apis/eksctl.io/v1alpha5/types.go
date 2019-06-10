@@ -127,6 +127,15 @@ const (
 
 	// NodeGroupNameLabel defines the label of the node group name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
+
+	// NATHighlyAvailable defines the highly available NAT configuration option
+	NATHighlyAvailable = "highly-available"
+
+	// NATSingle defines the single NAT configuration option
+	NATSingle = "single"
+
+	// NATDisable defines the disabled NAT configuration option
+	NATDisable = "disable"
 )
 
 var (

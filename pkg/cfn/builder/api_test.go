@@ -170,6 +170,9 @@ func testVPC() *api.ClusterVPC {
 				},
 			},
 		},
+		NAT: &api.VpcNAT{
+			Gateway: api.NATSingle,
+		},
 		SecurityGroup:           "sg-0b44c48bcba5b7362",
 		SharedNodeSecurityGroup: "sg-shared",
 		AutoAllocateIPv6:        api.Disabled(),
@@ -431,6 +434,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg := newSimpleClusterConfig()
 
 		setSubnets(cfg)
+		api.SetVpcDefaults(cfg.VPC)
 
 		sampleOutputs := map[string]string{
 			"SecurityGroup":            "sg-0b44c48bcba5b7362",
@@ -2128,6 +2132,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("VPC with default CIDR", func() {
 		cfg, ng := newClusterConfigAndNodegroup(false)
 
+		api.SetVpcDefaults(cfg.VPC)
+
 		cfg.Metadata.Name = "test-OwnVPC"
 
 		setSubnets(cfg)
@@ -2211,6 +2217,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg.VPC.CIDR, _ = ipnet.ParseCIDR("10.2.0.0/16")
 
 		cfg.VPC.AutoAllocateIPv6 = api.Enabled()
+
+		api.SetVpcDefaults(cfg.VPC)
 
 		setSubnets(cfg)
 
@@ -2309,7 +2317,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(false)
 
 		cfg.Metadata.Name = "test-HA-NAT-VPC"
-		cfg.VPC.NATGateway = "highly-available"
+
+		cfg.VPC.NAT = &api.VpcNAT{
+			Gateway: api.NATHighlyAvailable,
+		}
 
 		setSubnets(cfg)
 
@@ -2351,7 +2362,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(false)
 
 		cfg.Metadata.Name = "test-single-NAT-VPC"
-		cfg.VPC.NATGateway = "single"
+
+		cfg.VPC.NAT = &api.VpcNAT{
+			Gateway: api.NATSingle,
+		}
 
 		setSubnets(cfg)
 
@@ -2393,7 +2407,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		cfg, ng := newClusterConfigAndNodegroup(false)
 
 		cfg.Metadata.Name = "test-single-NAT-VPC"
-		cfg.VPC.NATGateway = "disabled"
+
+		cfg.VPC.NAT = &api.VpcNAT{
+			Gateway: api.NATDisable,
+		}
 
 		setSubnets(cfg)
 

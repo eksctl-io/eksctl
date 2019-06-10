@@ -12,12 +12,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-const (
-	HighlyAvailableNAT = "highly-available"
-	SingleNAT          = "single"
-	DisableNAT         = "disable"
-)
-
 var internetCIDR = gfn.NewString("0.0.0.0/0")
 
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
@@ -87,11 +81,11 @@ func (c *ClusterResourceSet) addNATGateways() {
 
 	switch c.spec.VPC.NAT.Gateway {
 
-	case HighlyAvailableNAT:
+	case api.NATHighlyAvailable:
 		c.haNAT()
-	case SingleNAT:
+	case api.NATSingle:
 		c.singleNAT()
-	case DisableNAT:
+	case api.NATDisable:
 		c.noNAT()
 	default:
 		logger.Critical("%s is not a valid NAT gateway mode", c.spec.VPC.NAT.Gateway)

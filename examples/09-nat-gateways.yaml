@@ -8,7 +8,8 @@ metadata:
   region: eu-west-1
 
 vpc:
-  natGateway: single # valid options are disabled/single/highly-available
+  nat:
+    gateway: single # valid options are disabled/single/highly-available
 
 nodeGroups:
   - name: ng-1
