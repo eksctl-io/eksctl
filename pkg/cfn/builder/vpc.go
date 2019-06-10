@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"fmt"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
@@ -37,7 +36,7 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 		switch topology {
 		case api.SubnetTopologyPrivate:
 			// Choose the appropriate route table for private subnets
-			refRT = gfn.MakeRef(fmt.Sprintf("%v%v", "PrivateRouteTable", strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))))
+			refRT = gfn.MakeRef("PrivateRouteTable" + strings.ToUpper(strings.Join(strings.Split(az, "-"), "")))
 			subnet.Tags = []gfn.Tag{{
 				Key:   gfn.NewString("kubernetes.io/role/internal-elb"),
 				Value: gfn.NewString("1"),
@@ -75,22 +74,6 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 
 		c.subnets[topology] = append(c.subnets[topology], refSubnet)
 	}
-}
-
-func (c *ClusterResourceSet) addNATGateways() {
-
-	switch c.spec.VPC.NAT.Gateway {
-
-	case api.NATHighlyAvailable:
-		c.haNAT()
-	case api.NATSingle:
-		c.singleNAT()
-	case api.NATDisable:
-		c.noNAT()
-	default:
-		logger.Critical("%s is not a valid NAT gateway mode", c.spec.VPC.NAT.Gateway)
-	}
-
 }
 
 //nolint:interfacer
@@ -132,6 +115,22 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 	c.addNATGateways()
 
 	c.addSubnets(nil, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private)
+}
+
+func (c *ClusterResourceSet) addNATGateways() {
+
+	switch c.spec.VPC.NAT.Gateway {
+
+	case api.NATHighlyAvailable:
+		c.haNAT()
+	case api.NATSingle:
+		c.singleNAT()
+	case api.NATDisable:
+		c.noNAT()
+	default:
+		logger.Critical("%s is not a valid NAT gateway mode", c.spec.VPC.NAT.Gateway)
+	}
+
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {
@@ -330,28 +329,28 @@ func (c *ClusterResourceSet) haNAT() {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 
 		// Allocate an EIP
-		c.newResource(fmt.Sprintf("%v%v", "NATIP", alphanumericUpperAZ), &gfn.AWSEC2EIP{
+		c.newResource("NATIP"+alphanumericUpperAZ, &gfn.AWSEC2EIP{
 			Domain: gfn.NewString("vpc"),
 		})
 		// Allocate a NAT gateway in the public subnet
-		refNG := c.newResource(fmt.Sprintf("%v%v", "NATGateway", alphanumericUpperAZ), &gfn.AWSEC2NatGateway{
-			AllocationId: gfn.MakeFnGetAttString(fmt.Sprintf("%v%v%v", "NATIP", alphanumericUpperAZ, ".AllocationId")),
-			SubnetId:     gfn.MakeRef(fmt.Sprintf("%v%v", "SubnetPublic", alphanumericUpperAZ)),
+		refNG := c.newResource("NATGateway"+alphanumericUpperAZ, &gfn.AWSEC2NatGateway{
+			AllocationId: gfn.MakeFnGetAttString("NATIP" + alphanumericUpperAZ + ".AllocationId"),
+			SubnetId:     gfn.MakeRef("SubnetPublic" + alphanumericUpperAZ),
 		})
 
 		// Allocate a routing table for the private subnet
-		refRT := c.newResource(fmt.Sprintf("%v%v", "PrivateRouteTable", alphanumericUpperAZ), &gfn.AWSEC2RouteTable{
+		refRT := c.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
 			VpcId: c.vpc,
 		})
 		// Create a route that sends Internet traffic through the NAT gateway
-		c.newResource(fmt.Sprintf("%v%v", "NATPrivateSubnetRoute", alphanumericUpperAZ), &gfn.AWSEC2Route{
+		c.newResource("NATPrivateSubnetRoute"+alphanumericUpperAZ, &gfn.AWSEC2Route{
 			RouteTableId:         refRT,
 			DestinationCidrBlock: internetCIDR,
 			NatGatewayId:         refNG,
 		})
 		// Associate the routing table with the subnet
 		c.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
-			SubnetId:     gfn.MakeRef(fmt.Sprintf("%v%v", "SubnetPrivate", alphanumericUpperAZ)),
+			SubnetId:     gfn.MakeRef("SubnetPrivate" + alphanumericUpperAZ),
 			RouteTableId: refRT,
 		})
 	}
@@ -368,22 +367,22 @@ func (c *ClusterResourceSet) singleNAT() {
 	})
 	refNG := c.newResource("NATGateway", &gfn.AWSEC2NatGateway{
 		AllocationId: gfn.MakeFnGetAttString("NATIP.AllocationId"),
-		SubnetId:     gfn.MakeRef(fmt.Sprintf("%v%v", "SubnetPublic", firstUpperAZ)),
+		SubnetId:     gfn.MakeRef("SubnetPublic" + firstUpperAZ),
 	})
 
 	for _, az := range c.spec.AvailabilityZones {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 
-		refRT := c.newResource(fmt.Sprintf("%v%v", "PrivateRouteTable", alphanumericUpperAZ), &gfn.AWSEC2RouteTable{
+		refRT := c.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
 			VpcId: c.vpc,
 		})
-		c.newResource(fmt.Sprintf("%v%v", "NATPrivateSubnetRoute", alphanumericUpperAZ), &gfn.AWSEC2Route{
+		c.newResource("NATPrivateSubnetRoute"+alphanumericUpperAZ, &gfn.AWSEC2Route{
 			RouteTableId:         refRT,
 			DestinationCidrBlock: internetCIDR,
 			NatGatewayId:         refNG,
 		})
 		c.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
-			SubnetId:     gfn.MakeRef(fmt.Sprintf("%v%v", "SubnetPrivate", alphanumericUpperAZ)),
+			SubnetId:     gfn.MakeRef("SubnetPrivate" + alphanumericUpperAZ),
 			RouteTableId: refRT,
 		})
 	}
@@ -394,11 +393,11 @@ func (c *ClusterResourceSet) noNAT() {
 	for _, az := range c.spec.AvailabilityZones {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 
-		refRT := c.newResource(fmt.Sprintf("%v%v", "PrivateRouteTable", alphanumericUpperAZ), &gfn.AWSEC2RouteTable{
+		refRT := c.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
 			VpcId: c.vpc,
 		})
 		c.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
-			SubnetId:     gfn.MakeRef(fmt.Sprintf("%v%v", "SubnetPrivate", alphanumericUpperAZ)),
+			SubnetId:     gfn.MakeRef("SubnetPrivate" + alphanumericUpperAZ),
 			RouteTableId: refRT,
 		})
 	}
