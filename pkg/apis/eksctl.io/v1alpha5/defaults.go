@@ -89,3 +89,12 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 
 	return nil
 }
+
+// SetVpcDefaults will set defaults for a given Vpc
+func SetVpcDefaults(vpc *ClusterVPC) {
+	if vpc.NAT == nil {
+		vpc.NAT = &VpcNAT{
+			Gateway: NATSingle,
+		}
+	}
+}

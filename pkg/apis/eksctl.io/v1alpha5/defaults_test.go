@@ -39,4 +39,17 @@ var _ = Describe("Default settings", func() {
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo("~/.ssh/id_rsa.pub"))
 		})
 	})
+
+	Context("Vpc NAT settings", func() {
+
+		It("Vpc NAT defaults to single NAT gateway mode", func() {
+			testVpc := &ClusterVPC{}
+			SetVpcDefaults(testVpc)
+
+			Expect(testVpc.NAT.Gateway).To(BeIdenticalTo(NATSingle))
+
+		})
+
+	})
+
 })
