@@ -1,10 +1,7 @@
 package delete
 
 import (
-	"os"
-
 	"github.com/kris-nova/logger"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -13,45 +10,41 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func deleteIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func deleteIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
-	var roleFlag string
-	var all bool
-	cmd := &cobra.Command{
-		Use:   "iamidentitymapping",
-		Short: "Delete a IAM identity mapping",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doDeleteIAMIdentityMapping(p, cfg, roleFlag, all); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
-	group := g.New(cmd)
+	rc.ClusterConfig = cfg
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&roleFlag, "role", "", "ARN of the IAM role to delete")
-		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
+	var (
+		role string
+		all  bool
+	)
+
+	rc.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
+
+	rc.SetRunFunc(func() error {
+		return doDeleteIAMIdentityMapping(rc, role, all)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&role, "role", "", "ARN of the IAM role to delete")
+		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+	})
 
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doDeleteIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, roleFlag string, all bool) error {
-	ctl := eks.New(p, cfg)
+func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool) error {
+	cfg := rc.ClusterConfig
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if roleFlag == "" {
+	if role == "" {
 		return cmdutils.ErrMustBeSet("--role")
 	}
 	if cfg.Metadata.Name == "" {
@@ -70,7 +63,7 @@ func doDeleteIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, r
 		return err
 	}
 
-	if err := acm.RemoveRole(roleFlag, all); err != nil {
+	if err := acm.RemoveRole(role, all); err != nil {
 		return err
 	}
 	if err := acm.Save(); err != nil {
@@ -82,9 +75,9 @@ func doDeleteIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, r
 	if err != nil {
 		return err
 	}
-	filtered := roles.Get(roleFlag)
+	filtered := roles.Get(role)
 	if len(filtered) > 0 {
-		logger.Warning("there are %d mappings left with same role %q (use --all to delete them at once)", len(filtered), roleFlag)
+		logger.Warning("there are %d mappings left with same role %q (use --all to delete them at once)", len(filtered), role)
 	}
 	return nil
 }

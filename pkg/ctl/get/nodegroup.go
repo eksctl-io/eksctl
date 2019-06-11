@@ -5,9 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -17,41 +15,32 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-func getNodegroupCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func getNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:     "nodegroup",
-		Short:   "Get nodegroup(s)",
-		Aliases: []string{"ng", "nodegroups"},
-		Run: func(_ *cobra.Command, args []string) {
-			if err := doGetNodegroups(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	params := &getCmdParams{}
 
-	group := g.New(cmd)
+	rc.SetDescription("nodegroup", "Get nodegroup(s)", "", "ng", "nodegroups")
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
-		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup")
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)
+	rc.SetRunFuncWithNameArg(func() error {
+		return doGetNodeGroup(rc, ng, params)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
+		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup")
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
+	})
 
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
-	ctl := eks.New(p, cfg)
+func doGetNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, params *getCmdParams) error {
+	cfg := rc.ClusterConfig
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -61,12 +50,12 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
-	if ng.Name != "" && nameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	if ng.Name != "" && rc.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, rc.NameArg)
 	}
 
-	if nameArg != "" {
-		ng.Name = nameArg
+	if rc.NameArg != "" {
+		ng.Name = rc.NameArg
 	}
 
 	manager := ctl.NewStackManager(cfg)
@@ -75,12 +64,12 @@ func doGetNodegroups(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Node
 		return errors.Wrap(err, "getting nodegroup stack summaries")
 	}
 
-	printer, err := printers.NewPrinter(output)
+	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
 	}
 
-	if output == "table" {
+	if params.output == "table" {
 		addSummaryTableColumns(printer.(*printers.TablePrinter))
 	}
 

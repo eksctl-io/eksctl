@@ -2,11 +2,9 @@ package delete
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -19,34 +17,24 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-func deleteClusterCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func deleteClusterCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:   "cluster",
-		Short: "Delete a cluster",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doDeleteCluster(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	rc.SetDescription("cluster", "Delete a cluster", "")
 
-	group := g.New(cmd)
-
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddWaitFlag(&wait, fs, "deletion of all resources")
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+	rc.SetRunFuncWithNameArg(func() error {
+		return doDeleteCluster(rc)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddWaitFlag(fs, &rc.Wait, "deletion of all resources")
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+	})
 
-	group.AddTo(cmd)
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 }
 
 func handleErrors(errs []error, subject string) error {
@@ -73,18 +61,19 @@ func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error)
 	return false, nil
 }
 
-func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	printer := printers.NewJSONPrinter()
-
-	if err := cmdutils.NewMetadataLoader(p, cfg, clusterConfigFile, nameArg, cmd).Load(); err != nil {
+func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
 
-	ctl := eks.New(p, cfg)
-	meta := cfg.Metadata
+	cfg := rc.ClusterConfig
+	meta := rc.ClusterConfig.Metadata
+
+	printer := printers.NewJSONPrinter()
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -111,7 +100,7 @@ func doDeleteCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	}
 
 	{
-		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(wait, func(errs chan error, _ string) error {
+		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(rc.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.GetClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)

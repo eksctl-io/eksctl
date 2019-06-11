@@ -2,9 +2,7 @@ package scale
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -12,48 +10,38 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func scaleNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func scaleNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:     "nodegroup",
-		Short:   "Scale a nodegroup",
-		Aliases: []string{"ng"},
-		Run: func(_ *cobra.Command, args []string) {
-			if err := doScaleNodeGroup(p, cfg, ng, cmdutils.GetNameArg(args)); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	rc.SetDescription("nodegroup", "Scale a nodegroup", "", "ng")
 
-	group := g.New(cmd)
+	rc.SetRunFuncWithNameArg(func() error {
+		return doScaleNodeGroup(rc, ng)
+	})
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
 
 		desiredCapacity := fs.IntP("nodes", "N", -1, "total number of nodes (scale to this number)")
-		cmdutils.AddPreRun(cmd, func(cmd *cobra.Command, args []string) {
+		cmdutils.AddPreRun(rc.Command, func(cmd *cobra.Command, args []string) {
 			if f := cmd.Flag("nodes"); f.Changed {
 				ng.DesiredCapacity = desiredCapacity
 			}
 		})
 
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
-
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 }
 
-func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.NodeGroup, nameArg string) error {
-	ctl := eks.New(p, cfg)
+func doScaleNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup) error {
+	cfg := rc.ClusterConfig
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -63,12 +51,12 @@ func doScaleNodeGroup(p *api.ProviderConfig, cfg *api.ClusterConfig, ng *api.Nod
 		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
-	if ng.Name != "" && nameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(ng.Name, nameArg)
+	if ng.Name != "" && rc.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, rc.NameArg)
 	}
 
-	if nameArg != "" {
-		ng.Name = nameArg
+	if rc.NameArg != "" {
+		ng.Name = rc.NameArg
 	}
 
 	if ng.Name == "" {
