@@ -36,12 +36,17 @@ func createIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
 func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapRole) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+		return err
+	}
+
 	cfg := rc.ClusterConfig
 
 	ctl := eks.New(rc.ProviderConfig, cfg)
