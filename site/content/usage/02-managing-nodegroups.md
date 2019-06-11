@@ -69,6 +69,12 @@ To list the details about a nodegroup or all of the nodegroups, use:
 eksctl get nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
+## Nodegroup immutability
+
+By design, nodegroups are immutable. This means that if you need to change something (other than scaling) like the 
+AMI or the instance type of a nodegroup, you would need to create a new nodegroup with the desired changes, move the 
+load and delete the old one. Check [Deleting and draining](#deleting-and-draining).
+
 ## Scaling
 
 A nodegroup can be scaled by using the `eksctl scale nodegroup` command:
@@ -95,11 +101,14 @@ You can also enable SSH, ASG access and other feature for each particular nodegr
 eksctl create nodegroup --cluster=cluster-1 --node-labels="autoscaling=enabled,purpose=ci-worker" --asg-access --full-ecr-access --ssh-access
 ```
 
-## Nodegroup immutability
+## Update labels
 
-By design, nodegroups are immutable. This means that if you need to change something (other than scaling) like the 
-AMI or the instance type of a nodegroup, you would need to create a new nodegroup with the desired changes, move the 
-load and delete the old one.
+There are no specific commands in `eksctl`to update the labels of a nodegroup but that can easily be achieved using 
+`kubectl`:
+
+```bash
+kubectl label nodes -l alpha.eksctl.io/nodegroup-name=ng-1 new-label=foo
+```
 
 ## Deleting and draining
 
