@@ -130,11 +130,8 @@ var _ = Describe("StackCollection Tasks", func() {
 					subTask2.Append(&taskWithoutParams{
 						info: "t2.1",
 						call: func(errs chan error) error {
-							updateStatus("started t2.1")
 							go func() {
-								time.Sleep(150 * time.Millisecond)
-								updateStatus("finished t2.1")
-								errs <- fmt.Errorf("t2.1 always fails")
+								errs <- fmt.Errorf("never happens")
 								close(errs)
 							}()
 							return nil
@@ -175,9 +172,118 @@ var _ = Describe("StackCollection Tasks", func() {
 
 					status.startTime = time.Now()
 					errs := tasks.DoAllSync()
-					Expect(errs).To(HaveLen(2))
+					Expect(errs).To(HaveLen(1))
 					Expect(errs[0].Error()).To(Equal("t3.2 always fails"))
-					Expect(errs[1].Error()).To(Equal("t2.1 always fails"))
+
+					Expect(status.messages).To(HaveLen(6))
+
+					Expect(status.messages[0]).To(
+						Equal("0s: started t1.1"),
+					)
+					Expect(status.messages[1]).To(
+						Equal("100ms: finished t1.1"),
+					)
+					// t3.1 and t3.2 run in parallel, so may start approximately at the same time
+					Expect(status.messages[2]).To(
+						HavePrefix("100ms: started t3."),
+					)
+					Expect(status.messages[3]).To(
+						HavePrefix("100ms: started t3."),
+					)
+					Expect(status.messages[4]).To(Equal(
+						"300ms: finished t3.1",
+					))
+					Expect(status.messages[5]).To(Equal(
+						"450ms: finished t3.2",
+					))
+				}
+
+				{
+					var status struct {
+						messages  []string
+						mutex     sync.Mutex
+						startTime time.Time
+					}
+
+					status.messages = []string{}
+
+					updateStatus := func(msg string) {
+						status.mutex.Lock()
+						ts := time.Since(status.startTime).Round(50 * time.Millisecond).String()
+						status.messages = append(status.messages,
+							fmt.Sprintf("%s: %s", ts, msg),
+						)
+						status.mutex.Unlock()
+					}
+
+					tasks := &TaskTree{Parallel: false}
+					subTask1 := &TaskTree{Parallel: false, IsSubTask: true}
+					subTask1.Append(&taskWithoutParams{
+						info: "t1.1",
+						call: func(errs chan error) error {
+							updateStatus("started t1.1")
+							go func() {
+								time.Sleep(100 * time.Millisecond)
+								updateStatus("finished t1.1")
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					tasks.Append(subTask1)
+
+					subTask2 := &TaskTree{Parallel: false, IsSubTask: true}
+					subTask2.Append(&taskWithoutParams{
+						info: "t2.1",
+						call: func(errs chan error) error {
+							updateStatus("started t2.1")
+							go func() {
+								time.Sleep(150 * time.Millisecond)
+								updateStatus("finished t2.1")
+								errs <- fmt.Errorf("t2.1 always fails")
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					tasks.Append(subTask2)
+
+					subTask3 := &TaskTree{Parallel: true, IsSubTask: true}
+					subTask3.Append(&taskWithoutParams{
+						info: "t3.1",
+						call: func(errs chan error) error {
+							updateStatus("started t3.1")
+							go func() {
+								time.Sleep(200 * time.Millisecond)
+								updateStatus("finished t3.1")
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					subTask3.Append(&taskWithoutParams{
+						info: "t3.2",
+						call: func(errs chan error) error {
+							updateStatus("started t3.2")
+							go func() {
+								time.Sleep(350 * time.Millisecond)
+								updateStatus("finished t3.2")
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+					subTask1.Append(subTask3)
+
+					Expect(tasks.Describe()).To(Equal("2 sequential tasks: { 2 sequential sub-tasks: { t1.1, 2 parallel sub-tasks: { t3.1, t3.2 } }, t2.1 }"))
+
+					status.startTime = time.Now()
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(1))
+					Expect(errs[0].Error()).To(Equal("t2.1 always fails"))
 
 					Expect(status.messages).To(HaveLen(8))
 
@@ -340,6 +446,41 @@ var _ = Describe("StackCollection Tasks", func() {
 				{
 					tasks := &TaskTree{Parallel: false}
 
+					counter := int32(0)
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1",
+						call: func(errs chan error) error {
+							close(errs)
+							atomic.AddInt32(&counter, 1)
+							return fmt.Errorf("t1.0 does not even bother and always returns an immediate error")
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t2",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(10 * time.Millisecond)
+								errs <- nil
+								close(errs)
+								atomic.AddInt32(&counter, 1)
+							}()
+							return nil
+						},
+					})
+
+					tasks.PlanMode = false
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(1))
+					Expect(errs[0].Error()).To(Equal("t1.0 does not even bother and always returns an immediate error"))
+
+					Expect(atomic.LoadInt32(&counter)).To(Equal(int32(1)))
+				}
+
+				{
+					tasks := &TaskTree{Parallel: true}
+
 					tasks.Append(&taskWithoutParams{
 						info: "t1.1",
 						call: func(errs chan error) error {
@@ -382,10 +523,105 @@ var _ = Describe("StackCollection Tasks", func() {
 					tasks.PlanMode = false
 					errs := tasks.DoAllSync()
 					Expect(errs).To(HaveLen(2))
-					Expect(errs[0].Error()).To(Equal("t1.1 always fails"))
-					Expect(errs[1].Error()).To(Equal("t1.3 always fails"))
+					Expect(errs[0].Error()).To(Equal("t1.3 always fails"))
+					Expect(errs[1].Error()).To(Equal("t1.1 always fails"))
 				}
 
+				{
+					tasks := &TaskTree{Parallel: false}
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.1",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(100 * time.Millisecond)
+								errs <- fmt.Errorf("t1.1 always fails")
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.3",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(150 * time.Millisecond)
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.3",
+						call: func(errs chan error) error {
+							go func() {
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.PlanMode = true
+
+					Expect(tasks.DoAllSync()).To(HaveLen(0))
+
+					tasks.PlanMode = false
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(1))
+					Expect(errs[0].Error()).To(Equal("t1.1 always fails"))
+				}
+
+				{
+					tasks := &TaskTree{Parallel: false}
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.1",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(100 * time.Millisecond)
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.3",
+						call: func(errs chan error) error {
+							go func() {
+								time.Sleep(150 * time.Millisecond)
+								errs <- nil
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.Append(&taskWithoutParams{
+						info: "t1.3",
+						call: func(errs chan error) error {
+							go func() {
+								errs <- fmt.Errorf("t1.3 always fails")
+								close(errs)
+							}()
+							return nil
+						},
+					})
+
+					tasks.PlanMode = true
+
+					Expect(tasks.DoAllSync()).To(HaveLen(0))
+
+					tasks.PlanMode = false
+					errs := tasks.DoAllSync()
+					Expect(errs).To(HaveLen(1))
+					Expect(errs[0].Error()).To(Equal("t1.3 always fails"))
+				}
 			})
 		})
 
