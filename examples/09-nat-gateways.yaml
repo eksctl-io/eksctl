@@ -9,7 +9,7 @@ metadata:
 
 vpc:
   nat:
-    gateway: single # valid options are disabled/single/highly-available
+    gateway: single # valid options are disable/single/highly-available
 
 nodeGroups:
   - name: ng-1
