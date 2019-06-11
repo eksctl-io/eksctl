@@ -17,7 +17,7 @@ func updateKubeProxyCmd(rc *cmdutils.ResourceCmd) {
 
 	rc.SetDescription("update-kube-proxy", "Update kube-proxy add-on to ensure image matches Kubernetes control plane version", "")
 
-	rc.SetRunFunc(func() error {
+	rc.SetRunFuncWithNameArg(func() error {
 		return doUpdateKubeProxy(rc)
 	})
 

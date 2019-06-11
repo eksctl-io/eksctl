@@ -20,7 +20,7 @@ func describeStacksCmd(rc *cmdutils.ResourceCmd) {
 
 	rc.SetDescription("describe-stacks", "Describe CloudFormation stack for a given cluster", "")
 
-	rc.SetRunFunc(func() error {
+	rc.SetRunFuncWithNameArg(func() error {
 		return doDescribeStacksCmd(rc, all, events, trail)
 	})
 

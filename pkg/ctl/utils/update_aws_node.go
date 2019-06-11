@@ -17,7 +17,7 @@ func updateAWSNodeCmd(rc *cmdutils.ResourceCmd) {
 
 	rc.SetDescription("update-aws-node", "Update aws-node add-on to latest released version", "")
 
-	rc.SetRunFunc(func() error {
+	rc.SetRunFuncWithNameArg(func() error {
 		return doUpdateAWSNode(rc)
 	})
 
