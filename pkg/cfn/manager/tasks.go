@@ -178,19 +178,20 @@ func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
 	return err
 }
 
-func doSingleTask(allErrs chan error, task Task) {
+func doSingleTask(allErrs chan error, task Task) bool {
 	desc := task.Describe()
 	logger.Debug("started task: %s", desc)
 	errs := make(chan error)
 	if err := task.Do(errs); err != nil {
 		allErrs <- err
-		return
+		return false
 	}
 	if err := <-errs; err != nil {
 		allErrs <- err
-		return
+		return false
 	}
 	logger.Debug("completed task: %s", desc)
+	return true
 }
 
 func doParallelTasks(allErrs chan error, tasks []Task) {
@@ -199,7 +200,9 @@ func doParallelTasks(allErrs chan error, tasks []Task) {
 	for t := range tasks {
 		go func(t int) {
 			defer wg.Done()
-			doSingleTask(allErrs, tasks[t])
+			if ok := doSingleTask(allErrs, tasks[t]); !ok {
+				logger.Debug("failed task: %s (will continue until other parallel tasks are completed)", tasks[t].Describe())
+			}
 		}(t)
 	}
 	logger.Debug("waiting for %d parallel tasks to complete", len(tasks))
@@ -209,7 +212,10 @@ func doParallelTasks(allErrs chan error, tasks []Task) {
 
 func doSequentialTasks(allErrs chan error, tasks []Task) {
 	for t := range tasks {
-		doSingleTask(allErrs, tasks[t])
+		if ok := doSingleTask(allErrs, tasks[t]); !ok {
+			logger.Debug("failed task: %s (will not run other sequential tasks)", tasks[t].Describe())
+			break
+		}
 	}
 	close(allErrs)
 }
