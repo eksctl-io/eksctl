@@ -33,12 +33,17 @@ func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
 func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, role string) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+		return err
+	}
+
 	cfg := rc.ClusterConfig
 
 	ctl := eks.New(rc.ProviderConfig, cfg)
