@@ -50,8 +50,6 @@ export GOPATH="$(pwd)"
 export GOBIN="${GOPATH}/bin"
 ```
 
-You also need the Go dependency management tool [dep](https://github.com/golang/dep) installed.  You can follow their installation instructions [here](https://github.com/golang/dep#installation)
-
 > NOTE: Windows users should install Docker for Windows and run `make eksctl-image` to build their code.
 
 > TODO: Improve Windows instructions, ensure `go build` works.
