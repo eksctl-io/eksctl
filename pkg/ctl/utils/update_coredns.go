@@ -17,7 +17,7 @@ func updateCoreDNSCmd(rc *cmdutils.ResourceCmd) {
 
 	rc.SetDescription("update-coredns", "Update coredns add-on to ensure image the standard Amazon EKS version", "")
 
-	rc.SetRunFunc(func() error {
+	rc.SetRunFuncWithNameArg(func() error {
 		return doUpdateCoreDNS(rc)
 	})
 

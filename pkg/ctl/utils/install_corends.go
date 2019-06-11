@@ -19,7 +19,7 @@ func installCoreDNSCmd(rc *cmdutils.ResourceCmd) {
 
 	rc.SetDescription("install-coredns", "Installs latest version of CoreDNS add-on, replacing kube-dns", "")
 
-	rc.SetRunFunc(func() error {
+	rc.SetRunFuncWithNameArg(func() error {
 		return doInstallCoreDNS(rc)
 	})
 
