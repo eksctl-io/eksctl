@@ -44,7 +44,7 @@ var _ = Describe("Default settings", func() {
 
 		It("Vpc NAT defaults to single NAT gateway mode", func() {
 			testVpc := &ClusterVPC{}
-			SetVpcDefaults(testVpc)
+			testVpc.NAT = DefaultNAT()
 
 			Expect(testVpc.NAT.Gateway).To(BeIdenticalTo(NATSingle))
 
