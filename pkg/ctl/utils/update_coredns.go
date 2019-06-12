@@ -54,12 +54,17 @@ func doUpdateCoreDNS(rc *cmdutils.ResourceCmd) error {
 		return errors.Wrapf(err, "getting credentials for cluster %q", meta.Name)
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	rawClient, err := ctl.NewRawClient(cfg)
 	if err != nil {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateCoreDNSImageTag(clientSet, rc.Plan)
+	kubernetesVersion, err := rawClient.ServerVersion()
+	if err != nil {
+		return err
+	}
+
+	updateRequired, err := defaultaddons.UpdateCoreDNS(rawClient, meta.Region, kubernetesVersion, rc.Plan)
 	if err != nil {
 		return err
 	}

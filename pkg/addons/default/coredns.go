@@ -8,8 +8,8 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -17,8 +17,6 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/eksctl/pkg/printers"
-	k8s "k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -27,9 +25,6 @@ const (
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
 
-	// CoreDNSVersion Current latest coredns version supported
-	CoreDNSVersion = "v1.2.2"
-
 	componentLabel = "eks.amazonaws.com/component"
 
 	coreDNSImagePrefix = "602401143452.dkr.ecr."
@@ -37,7 +32,7 @@ const (
 )
 
 // InstallCoreDNS will install the `coredns` add-on in place of `kube-dns`
-func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, waitTimeout *time.Duration, plan bool) (bool, error) {
+func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, waitTimeout *time.Duration, plan bool) (bool, error) {
 	kubeDNSSevice, err := rawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(KubeDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
@@ -67,7 +62,7 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 	}
 
 	// if kube-dns is present, go ahead and try to replace it with coredns
-	list, err := LoadAsset(CoreDNS, "yaml")
+	list, err := loadAssetCoreDNS(controlPlaneVersion)
 	if err != nil {
 		return false, err
 	}
@@ -81,7 +76,7 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 		}
 		switch resource.GVK.Kind {
 		case "Deployment":
-			coreDNSDeployemnt := resource.Info.Object.(*extensionsv1beta1.Deployment)
+			coreDNSDeployemnt := resource.Info.Object.(*appsv1.Deployment)
 			listPodsOptions.LabelSelector = labels.FormatLabels(coreDNSDeployemnt.Spec.Selector.MatchLabels)
 			replicas = int(*coreDNSDeployemnt.Spec.Replicas)
 			image := &coreDNSDeployemnt.Spec.Template.Spec.Containers[0].Image
@@ -167,11 +162,18 @@ func InstallCoreDNS(rawClient kubernetes.RawClientInterface, region string, wait
 	return false, nil
 }
 
-// UpdateCoreDNSImageTag updates image tag for kube-system:deployment/coredns based to match the latest release
-func UpdateCoreDNSImageTag(clientSet k8s.Interface, plan bool) (bool, error) {
-	printer := printers.NewJSONPrinter()
+// UpdateCoreDNS will update the `coredns` add-on
+func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, plan bool) (bool, error) {
+	kubeDNSSevice, err := rawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(KubeDNS, metav1.GetOptions{})
+	if err != nil {
+		if apierrs.IsNotFound(err) {
+			logger.Warning("%q service was not found", KubeDNS)
+			return false, nil
+		}
+		return false, errors.Wrapf(err, "getting %q service", KubeDNS)
+	}
 
-	d, err := clientSet.AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
+	_, err = rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", CoreDNS)
@@ -179,25 +181,41 @@ func UpdateCoreDNSImageTag(clientSet k8s.Interface, plan bool) (bool, error) {
 		}
 		return false, errors.Wrapf(err, "getting %q", CoreDNS)
 	}
-	if numContainers := len(d.Spec.Template.Spec.Containers); !(numContainers >= 1) {
-		return false, fmt.Errorf("%s has %d containers, expected at least 1", CoreDNS, numContainers)
-	}
 
-	if err := printer.LogObj(logger.Debug, CoreDNS+" [current] = \\\n%s\n", d); err != nil {
+	// if Deployment is present, go through our list of assets
+	list, err := loadAssetCoreDNS(controlPlaneVersion)
+	if err != nil {
 		return false, err
 	}
 
-	image := &d.Spec.Template.Spec.Containers[0].Image
-	imageParts := strings.Split(*image, ":")
+	for _, rawObj := range list.Items {
+		resource, err := rawClient.NewRawResource(rawObj)
+		if err != nil {
+			return false, err
+		}
+		switch resource.GVK.Kind {
+		case "Deployment":
+			image := &resource.Info.Object.(*appsv1.Deployment).Spec.Template.Spec.Containers[0].Image
+			imageParts := strings.Split(*image, ":")
 
-	if len(imageParts) != 2 {
-		return false, fmt.Errorf("unexpected image format %q for %q", *image, CoreDNS)
-	}
+			if len(imageParts) != 2 {
+				return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
+			}
 
-	if imageParts[1] == CoreDNSVersion {
-		logger.Debug("imageParts = %v, desiredTag = %s", imageParts, CoreDNSVersion)
-		logger.Info("%q is already up-to-date", CoreDNS)
-		return false, nil
+			if strings.HasPrefix(imageParts[0], coreDNSImagePrefix) &&
+				strings.HasSuffix(imageParts[0], coreDNSImageSuffix) {
+				*image = coreDNSImagePrefix + region + coreDNSImageSuffix + ":" + imageParts[1]
+			}
+		case "Service":
+			resource.Info.Object.(*corev1.Service).SetResourceVersion(kubeDNSSevice.GetResourceVersion())
+			resource.Info.Object.(*corev1.Service).Spec.ClusterIP = kubeDNSSevice.Spec.ClusterIP
+		}
+
+		status, err := resource.CreateOrReplace(plan)
+		if err != nil {
+			return false, err
+		}
+		logger.Info(status)
 	}
 
 	if plan {
@@ -205,16 +223,20 @@ func UpdateCoreDNSImageTag(clientSet k8s.Interface, plan bool) (bool, error) {
 		return true, nil
 	}
 
-	imageParts[1] = CoreDNSVersion
-	*image = strings.Join(imageParts, ":")
-
-	if err := printer.LogObj(logger.Debug, CoreDNS+" [updated] = \\\n%s\n", d); err != nil {
-		return false, err
-	}
-	if _, err := clientSet.AppsV1().Deployments(metav1.NamespaceSystem).Update(d); err != nil {
-		return false, err
-	}
-
 	logger.Info("%q is now up-to-date", CoreDNS)
 	return false, nil
+}
+
+func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
+	assetName := CoreDNS
+	if strings.HasPrefix(controlPlaneVersion, "1.10.") {
+		return nil, fmt.Errorf("CoreDNS is not supported on Kubernetes 1.10")
+	}
+	if strings.HasPrefix(controlPlaneVersion, "1.11.") {
+		assetName += "-1.11"
+	}
+	if strings.HasPrefix(controlPlaneVersion, "1.12.") {
+		assetName += "-1.12"
+	}
+	return LoadAsset(assetName, "json")
 }

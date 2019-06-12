@@ -69,9 +69,14 @@ func doInstallCoreDNS(rc *cmdutils.ResourceCmd) error {
 		return err
 	}
 
+	kubernetesVersion, err := rawClient.ServerVersion()
+	if err != nil {
+		return err
+	}
+
 	waitTimeout := ctl.Provider.WaitTimeout()
 
-	updateRequired, err := defaultaddons.InstallCoreDNS(rawClient, meta.Region, &waitTimeout, rc.Plan)
+	updateRequired, err := defaultaddons.InstallCoreDNS(rawClient, meta.Region, kubernetesVersion, &waitTimeout, rc.Plan)
 	if err != nil {
 		return err
 	}
