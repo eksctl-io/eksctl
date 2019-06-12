@@ -29,10 +29,12 @@ func updateClusterCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
+
 		cmdutils.AddApproveFlag(fs, rc)
 		fs.BoolVar(&rc.Plan, "dry-run", rc.Plan, "")
 		fs.MarkDeprecated("dry-run", "see --aprove")
 
+		rc.Wait = true
 		cmdutils.AddWaitFlag(fs, &rc.Wait, "all update operations to complete")
 	})
 
