@@ -75,7 +75,7 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
 		}
 		fs.StringVar(&params.kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
-		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", "single", "VPC NAT mode, e.g. \"highly-available\",\"single\",\"disable\")")
+		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", "single", "VPC NAT mode, e.g. \"HighlyAvailable\",\"Single\",\"Disable\")")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)

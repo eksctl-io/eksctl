@@ -129,13 +129,13 @@ const (
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
 	// ClusterHighlyAvailableNAT defines the highly available NAT configuration option
-	ClusterHighlyAvailableNAT = "highly-available"
+	ClusterHighlyAvailableNAT = "HighlyAvailable"
 
 	// ClusterSingleNAT defines the single NAT configuration option
-	ClusterSingleNAT = "single"
+	ClusterSingleNAT = "Single"
 
 	// ClusterDisableNAT defines the disabled NAT configuration option
-	ClusterDisableNAT = "disable"
+	ClusterDisableNAT = "Disable"
 )
 
 var (
