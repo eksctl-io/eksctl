@@ -312,7 +312,7 @@ const expected = `
 			"cidr": "192.168.0.0/16",
 			"autoAllocateIPv6": false,
 			"nat": {
-				"gateway": "single"
+				"gateway": "Single"
 			  }
 		},
 		"nodeGroups": [

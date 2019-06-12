@@ -160,7 +160,7 @@ users:
 }
 
 func testVPC() *api.ClusterVPC {
-	single := "single"
+	single := api.ClusterSingleNAT
 	return &api.ClusterVPC{
 		Network: api.Network{
 			ID: vpcID,
@@ -2314,7 +2314,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg.Metadata.Name = "test-HA-NAT-VPC"
 
-		highly := "highly-available"
+		highly := api.ClusterHighlyAvailableNAT
 		cfg.VPC.NAT = &api.ClusterNAT{
 			Gateway: &highly,
 		}
@@ -2360,7 +2360,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg.Metadata.Name = "test-single-NAT-VPC"
 
-		single := "single"
+		single := api.ClusterSingleNAT
 		cfg.VPC.NAT = &api.ClusterNAT{
 			Gateway: &single,
 		}
@@ -2406,7 +2406,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg.Metadata.Name = "test-single-NAT-VPC"
 
-		disable := "disable"
+		disable := api.ClusterDisableNAT
 		cfg.VPC.NAT = &api.ClusterNAT{
 			Gateway: &disable,
 		}
