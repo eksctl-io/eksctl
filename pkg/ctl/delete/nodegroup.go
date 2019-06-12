@@ -35,6 +35,8 @@ func deleteNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		fs.BoolVar(&onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
 		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
 		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
+
+		rc.Wait = false
 		cmdutils.AddWaitFlag(fs, &rc.Wait, "deletion of all resources")
 	})
 
