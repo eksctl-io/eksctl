@@ -9,10 +9,10 @@ metadata:
 
 vpc:
   nat:
-    gateway: highly-available # valid options are disable/single/highly-available
+    gateway: HighlyAvailable # other options: Disable, Single (default)
 
 nodeGroups:
   - name: ng-1
     instanceType: m5.xlarge
     desiredCapacity: 2
-    privateNetworking: true # if only 'private' subnets are given, this must be enabled
+    privateNetworking: true # if only 'Private' subnets are given, this must be enabled
