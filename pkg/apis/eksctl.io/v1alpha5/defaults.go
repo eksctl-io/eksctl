@@ -90,9 +90,10 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	return nil
 }
 
-// DefaultNAT will set the default value for Vpc NAT mode
-func DefaultNAT() *VpcNAT {
-	return &VpcNAT{
-		Gateway: NATSingle,
+// DefaultClusterNAT will set the default value for Cluster NAT mode
+func DefaultClusterNAT() *ClusterNAT {
+	single := ClusterSingleNAT
+	return &ClusterNAT{
+		Gateway: &single,
 	}
 }

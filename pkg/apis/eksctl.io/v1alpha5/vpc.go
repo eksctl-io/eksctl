@@ -27,7 +27,7 @@ type (
 		// +optional
 		AutoAllocateIPv6 *bool `json:"autoAllocateIPv6,omitempty"`
 		// +optional
-		NAT *VpcNAT `json:"nat,omitempty"`
+		NAT *ClusterNAT `json:"nat,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {
@@ -43,9 +43,9 @@ type (
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
 	}
-	// VpcNAT holds NAT gateway configuration options
-	VpcNAT struct {
-		Gateway string `json:"gateway,omitempty"`
+	// ClusterNAT holds NAT gateway configuration options
+	ClusterNAT struct {
+		Gateway *string `json:"gateway,omitempty"`
 	}
 )
 

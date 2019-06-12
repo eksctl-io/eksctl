@@ -1,10 +1,10 @@
 package builder
 
 import (
+	"errors"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
-	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -117,20 +117,20 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 	c.addSubnets(nil, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private)
 }
 
-func (c *ClusterResourceSet) addNATGateways() {
+func (c *ClusterResourceSet) addNATGateways() error {
 
-	switch c.spec.VPC.NAT.Gateway {
+	switch *c.spec.VPC.NAT.Gateway {
 
-	case api.NATHighlyAvailable:
+	case api.ClusterHighlyAvailableNAT:
 		c.haNAT()
-	case api.NATSingle:
+	case api.ClusterSingleNAT:
 		c.singleNAT()
-	case api.NATDisable:
+	case api.ClusterDisableNAT:
 		c.noNAT()
 	default:
-		logger.Critical("%s is not a valid NAT gateway mode", c.spec.VPC.NAT.Gateway)
+		return errors.New(*c.spec.VPC.NAT.Gateway + "is not a valid NAT gateway mode")
 	}
-
+	return nil
 }
 
 func (c *ClusterResourceSet) importResourcesForVPC() {

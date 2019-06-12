@@ -128,14 +128,14 @@ const (
 	// NodeGroupNameLabel defines the label of the node group name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
-	// NATHighlyAvailable defines the highly available NAT configuration option
-	NATHighlyAvailable = "highly-available"
+	// ClusterHighlyAvailableNAT defines the highly available NAT configuration option
+	ClusterHighlyAvailableNAT = "highly-available"
 
-	// NATSingle defines the single NAT configuration option
-	NATSingle = "single"
+	// ClusterSingleNAT defines the single NAT configuration option
+	ClusterSingleNAT = "single"
 
-	// NATDisable defines the disabled NAT configuration option
-	NATDisable = "disable"
+	// ClusterDisableNAT defines the disabled NAT configuration option
+	ClusterDisableNAT = "disable"
 )
 
 var (
@@ -332,7 +332,7 @@ func NewClusterConfig() *ClusterConfig {
 // NewClusterVPC creates new VPC config for a cluster
 func NewClusterVPC() *ClusterVPC {
 	cidr := DefaultCIDR()
-	nat := DefaultNAT()
+	nat := DefaultClusterNAT()
 
 	return &ClusterVPC{
 		Network: Network{
