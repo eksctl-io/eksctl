@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
-func versionCmd(_ *cmdutils.Grouping) *cobra.Command {
+func versionCmd(_ *cmdutils.FlagGrouping) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Output the version of eksctl",

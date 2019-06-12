@@ -2,11 +2,9 @@ package update
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -15,56 +13,46 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-func updateClusterCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func updateClusterCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
+	rc.ClusterConfig = cfg
 
-	// cfg.Metadata.Version = "next"
+	rc.SetDescription("cluster", "Update cluster", "")
 
-	cmd := &cobra.Command{
-		Use:   "cluster",
-		Short: "Update cluster",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doUpdateClusterCmd(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
-
-	group := g.New(cmd)
-
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
-
-		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
-		cmdutils.AddApproveFlag(&plan, cmd, fs)
-		fs.BoolVar(&plan, "dry-run", plan, "")
-		fs.MarkDeprecated("dry-run", "see --aprove")
-
-		cmdutils.AddWaitFlag(&wait, fs, "all update operations to complete")
+	rc.SetRunFuncWithNameArg(func() error {
+		return doUpdateClusterCmd(rc)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 
-	group.AddTo(cmd)
-	return cmd
+		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
+		cmdutils.AddApproveFlag(fs, rc)
+		fs.BoolVar(&rc.Plan, "dry-run", rc.Plan, "")
+		fs.MarkDeprecated("dry-run", "see --aprove")
+
+		cmdutils.AddWaitFlag(fs, &rc.Wait, "all update operations to complete")
+	})
+
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+
 }
 
-func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	if err := cmdutils.NewMetadataLoader(p, cfg, clusterConfigFile, nameArg, cmd).Load(); err != nil {
+func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
 
-	ctl := eks.New(p, cfg)
-	meta := cfg.Metadata
+	cfg := rc.ClusterConfig
+	meta := rc.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -76,7 +64,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
-	if clusterConfigFile != "" {
+	if rc.ClusterConfigFile != "" {
 		logger.Warning("NOTE: config file is only used for finding cluster name and region, deep cluster configuration changes are not yet implemented")
 	}
 
@@ -107,7 +95,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(plan)
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(rc.Plan)
 	if err != nil {
 		return err
 	}
@@ -118,9 +106,9 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 
 	if versionUpdateRequired {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		cmdutils.LogIntendedAction(plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
-		if !plan {
-			if wait {
+		cmdutils.LogIntendedAction(rc.Plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+		if !rc.Plan {
+			if rc.Wait {
 				if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
 					return err
 				}
@@ -136,7 +124,7 @@ func doUpdateClusterCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		}
 	}
 
-	cmdutils.LogPlanModeWarning(plan && (stackUpdateRequired || versionUpdateRequired))
+	cmdutils.LogPlanModeWarning(rc.Plan && (stackUpdateRequired || versionUpdateRequired))
 
 	return nil
 }

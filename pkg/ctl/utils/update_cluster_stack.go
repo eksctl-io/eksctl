@@ -9,13 +9,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-func updateClusterStackCmd(_ *cmdutils.Grouping) *cobra.Command {
-	return &cobra.Command{
-		Use:   "update-cluster-stack",
-		Short: "DEPRECATED: Use 'eksctl update cluster' instead",
-		Run: func(cmd *cobra.Command, _ []string) {
-			logger.Critical(cmd.Short)
-			os.Exit(1)
-		},
+func updateClusterStackCmd(rc *cmdutils.ResourceCmd) {
+	rc.SetDescription("update-cluster-stack", "DEPRECATED: Use 'eksctl update cluster' instead", "")
+
+	rc.Command.Run = func(cmd *cobra.Command, _ []string) {
+		logger.Critical(cmd.Short)
+		os.Exit(1)
 	}
 }

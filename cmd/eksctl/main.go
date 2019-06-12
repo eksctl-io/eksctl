@@ -32,9 +32,9 @@ func init() {
 
 	var colorValue string
 
-	g := cmdutils.NewGrouping()
+	flagGrouping := cmdutils.NewGrouping()
 
-	addCommands(g)
+	addCommands(flagGrouping)
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "help for this command")
 	rootCmd.PersistentFlags().StringVarP(&colorValue, "color", "C", "true", "toggle colorized logs (true,false,fabulous)")
@@ -61,7 +61,7 @@ func init() {
 		}
 	})
 
-	rootCmd.SetUsageFunc(g.Usage)
+	rootCmd.SetUsageFunc(flagGrouping.Usage)
 }
 
 func main() {
@@ -71,14 +71,14 @@ func main() {
 	}
 }
 
-func addCommands(g *cmdutils.Grouping) {
-	rootCmd.AddCommand(versionCmd(g))
-	rootCmd.AddCommand(create.Command(g))
-	rootCmd.AddCommand(delete.Command(g))
-	rootCmd.AddCommand(get.Command(g))
-	rootCmd.AddCommand(update.Command(g))
-	rootCmd.AddCommand(scale.Command(g))
-	rootCmd.AddCommand(drain.Command(g))
-	rootCmd.AddCommand(utils.Command(g))
+func addCommands(flagGrouping *cmdutils.FlagGrouping) {
+	rootCmd.AddCommand(versionCmd(flagGrouping))
+	rootCmd.AddCommand(create.Command(flagGrouping))
+	rootCmd.AddCommand(delete.Command(flagGrouping))
+	rootCmd.AddCommand(get.Command(flagGrouping))
+	rootCmd.AddCommand(update.Command(flagGrouping))
+	rootCmd.AddCommand(scale.Command(flagGrouping))
+	rootCmd.AddCommand(drain.Command(flagGrouping))
+	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
 }

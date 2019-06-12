@@ -4,7 +4,14 @@ if [ -z "${GOBIN+x}" ]; then
  GOBIN="$(go env GOPATH)/bin"
 fi
 
-curl --silent --location "https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64" --output "${GOBIN}/dep"
+if [ "$(uname)" = "Darwin" ] ; then
+  ARCH="darwin-amd64"
+else
+  ARCH="linux-amd64"
+fi
+
+
+curl --silent --location "https://github.com/golang/dep/releases/download/v0.5.0/dep-${ARCH}" --output "${GOBIN}/dep"
 chmod +x "${GOBIN}/dep"
 dep ensure
 
@@ -19,12 +26,7 @@ go install ./vendor/github.com/vektra/mockery/cmd/mockery
 install_gometalinter() {
   version="${1}"
   prefix="https://github.com/alecthomas/gometalinter/releases/download"
-  if [ "$(uname)" = "Darwin" ] ; then
-    suffix="darwin-amd64"
-  else
-    suffix="linux-amd64"
-  fi
-  basename="gometalinter-${version}-${suffix}"
+  basename="gometalinter-${version}-${ARCH}"
   url="${prefix}/v${version}/${basename}.tar.gz"
   cd "${GOBIN}"
   curl --silent --location "${url}" | tar xz

@@ -93,7 +93,7 @@ func (c *StackCollection) troubleshootStackFailureCause(i *Stack, desiredStatus 
 			case cfn.ResourceStatusDeleteInProgress:
 				logger.Warning(msg)
 			default:
-				logger.Info(msg)
+				logger.Debug(msg) // only output this when verbose logging is enabled
 			}
 		case cfn.StackStatusDeleteComplete:
 			switch *e.ResourceStatus {

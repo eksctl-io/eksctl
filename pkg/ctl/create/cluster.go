@@ -2,12 +2,10 @@ package create
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -21,7 +19,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-var (
+type createClusterCmdParams struct {
 	writeKubeconfig    bool
 	kubeconfigPath     string
 	autoKubeconfigPath bool
@@ -32,75 +30,69 @@ var (
 	subnets               map[api.SubnetTopology]*[]string
 	addonsStorageClass    bool
 	withoutNodeGroup      bool
-)
+}
 
-func createClusterCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func createClusterCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:   "cluster",
-		Short: "Create a cluster",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateCluster(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	params := &createClusterCmdParams{}
 
-	group := g.New(cmd)
+	rc.SetDescription("cluster", "Create a cluster", "")
+
+	rc.SetRunFuncWithNameArg(func() error {
+		return doCreateCluster(rc, params)
+	})
 
 	exampleClusterName := cmdutils.ClusterName("", "")
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
-		cmdutils.AddRegionFlag(fs, p)
-		fs.StringSliceVar(&availabilityZones, "zones", nil, "(auto-select if unspecified)")
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		fs.StringSliceVar(&params.availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
-	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVar(&ng.Name, "nodegroup-name", "", fmt.Sprintf("name of the nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		fs.BoolVar(&withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
-		cmdutils.AddCommonCreateNodeGroupFlags(cmd, fs, p, cfg, ng)
+		fs.BoolVar(&params.withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, rc, ng)
 	})
 
-	group.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
-		fs.BoolVar(&addonsStorageClass, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
+		fs.BoolVar(&params.addonsStorageClass, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
 	})
 
-	group.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
 		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", cfg.VPC.CIDR.IPNet, "global CIDR to use for VPC")
-		subnets = map[api.SubnetTopology]*[]string{
+		params.subnets = map[api.SubnetTopology]*[]string{
 			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
 			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
 		}
-		fs.StringVar(&kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
+		fs.StringVar(&params.kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 
-	group.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForKubeconfig(fs, &kubeconfigPath, &setContext, &autoKubeconfigPath, exampleClusterName)
-		fs.BoolVar(&writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
+	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
+		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.kubeconfigPath, &params.setContext, &params.autoKubeconfigPath, exampleClusterName)
+		fs.BoolVar(&params.writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	})
-
-	group.AddTo(cmd)
-
-	return cmd
 }
 
-func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
+func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
-	ngFilter.ExcludeAll = withoutNodeGroup
+	ngFilter.ExcludeAll = params.withoutNodeGroup
 
-	if err := cmdutils.NewCreateClusterLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter).Load(); err != nil {
+	cfg := resc.ClusterConfig
+	meta := resc.ClusterConfig.Metadata
+
+	if err := cmdutils.NewCreateClusterLoader(resc, ngFilter).Load(); err != nil {
 		return err
 	}
 
@@ -108,12 +100,11 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	meta := cfg.Metadata
 	printer := printers.NewJSONPrinter()
-	ctl := eks.New(p, cfg)
+	ctl := eks.New(resc.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(resc.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -136,21 +127,21 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	if autoKubeconfigPath {
-		if kubeconfigPath != kubeconfig.DefaultPath {
+	if params.autoKubeconfigPath {
+		if params.kubeconfigPath != kubeconfig.DefaultPath {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
-		kubeconfigPath = kubeconfig.AutoPath(meta.Name)
+		params.kubeconfigPath = kubeconfig.AutoPath(meta.Name)
 	}
 
-	if checkSubnetsGivenAsFlags() {
+	if checkSubnetsGivenAsFlags(params) {
 		// undo defaulting and reset it, as it's not set via config file;
 		// default value here causes errors as vpc.ImportVPC doesn't
 		// treat remote state as authority over local state
 		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
-		for topology := range subnets {
-			if err := vpc.ImportSubnetsFromList(ctl.Provider, cfg, topology, *subnets[topology]); err != nil {
+		for topology := range params.subnets {
+			if err := vpc.ImportSubnetsFromList(ctl.Provider, cfg, topology, *params.subnets[topology]); err != nil {
 				return err
 			}
 		}
@@ -173,9 +164,9 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return nil
 		}
 
-		if !subnetsGiven && kopsClusterNameForVPC == "" {
+		if !subnetsGiven && params.kopsClusterNameForVPC == "" {
 			// default: create dedicated VPC
-			if err := ctl.SetAvailabilityZones(cfg, availabilityZones); err != nil {
+			if err := ctl.SetAvailabilityZones(cfg, params.availabilityZones); err != nil {
 				return err
 			}
 			if err := vpc.SetSubnets(cfg); err != nil {
@@ -184,12 +175,12 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			return nil
 		}
 
-		if kopsClusterNameForVPC != "" {
+		if params.kopsClusterNameForVPC != "" {
 			// import VPC from a given kops cluster
-			if len(availabilityZones) != 0 {
+			if len(params.availabilityZones) != 0 {
 				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
 			}
-			if cmd.Flag("vpc-cidr").Changed {
+			if resc.Command.Flag("vpc-cidr").Changed {
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 			}
 
@@ -197,7 +188,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
 
-			kw, err := kops.NewWrapper(p.Region, kopsClusterNameForVPC)
+			kw, err := kops.NewWrapper(resc.ProviderConfig.Region, params.kopsClusterNameForVPC)
 			if err != nil {
 				return err
 			}
@@ -210,17 +201,17 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 				return err
 			}
 
-			logger.Success("using %s from kops cluster %q", subnetInfo(), kopsClusterNameForVPC)
+			logger.Success("using %s from kops cluster %q", subnetInfo(), params.kopsClusterNameForVPC)
 			logger.Warning(customNetworkingNotice)
 			return nil
 		}
 
 		// use subnets as specified by --vpc-{private,public}-subnets flags
 
-		if len(availabilityZones) != 0 {
+		if len(params.availabilityZones) != 0 {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
 		}
-		if cmd.Flag("vpc-cidr").Changed {
+		if resc.Command.Flag("vpc-cidr").Changed {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 		}
 
@@ -283,7 +274,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	{ // core action
 		ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
 		stackManager := ctl.NewStackManager(cfg)
-		if ngCount := ngSubset.Len(); ngCount == 1 && clusterConfigFile == "" {
+		if ngCount := ngSubset.Len(); ngCount == 1 && resc.ClusterConfigFile == "" {
 			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		} else {
 			ngFilter.LogInfo(cfg.NodeGroups)
@@ -309,20 +300,20 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 	{ // post-creation action
 		var kubeconfigContextName string
 
-		if writeKubeconfig {
+		if params.writeKubeconfig {
 			client, err := ctl.NewClient(cfg, false)
 			if err != nil {
 				return err
 			}
 			kubeconfigContextName = client.ContextName
 
-			kubeconfigPath, err = kubeconfig.Write(kubeconfigPath, *client.Config, setContext)
+			params.kubeconfigPath, err = kubeconfig.Write(params.kubeconfigPath, *client.Config, params.setContext)
 			if err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}
-			logger.Success("saved kubeconfig as %q", kubeconfigPath)
+			logger.Success("saved kubeconfig as %q", params.kubeconfigPath)
 		} else {
-			kubeconfigPath = ""
+			params.kubeconfigPath = ""
 		}
 
 		// create Kubernetes client
@@ -363,7 +354,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 			// --storage-class flag is only for backwards compatibility,
 			// we always create the storage class when --config-file is
 			// used, as this is 1.10-only
-			if addonsStorageClass || clusterConfigFile != "" {
+			if params.addonsStorageClass || resc.ClusterConfigFile != "" {
 				if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 					return err
 				}
@@ -377,7 +368,7 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		if err != nil {
 			return err
 		}
-		if err := utils.CheckAllCommands(kubeconfigPath, setContext, kubeconfigContextName, env); err != nil {
+		if err := utils.CheckAllCommands(params.kubeconfigPath, params.setContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}

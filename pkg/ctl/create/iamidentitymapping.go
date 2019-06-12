@@ -1,11 +1,8 @@
 package create
 
 import (
-	"os"
-
 	"github.com/kris-nova/logger"
 	"github.com/lithammer/dedent"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -14,45 +11,45 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func createIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func createIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
+	rc.ClusterConfig = cfg
+
 	id := &authconfigmap.MapRole{}
-	cmd := &cobra.Command{
-		Use:   "iamidentitymapping",
-		Short: "Create an IAM identity mapping",
-		Long: dedent.Dedent(`Creates a mapping from IAM role to Kubernetes user and groups.
+
+	rc.SetDescription("iamidentitymapping", "Create an IAM identity mapping",
+		dedent.Dedent(`Creates a mapping from IAM role to Kubernetes user and groups.
 
 			Note aws-iam-authenticator only considers the last entry for any given
 			role. If you create a duplicate entry it will shadow all the previous
 			username and groups mapping.
 		`),
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateIAMIdentityMapping(p, cfg, id); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
-	group := g.New(cmd)
+	)
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+	rc.SetRunFunc(func() error {
+		return doCreateIAMIdentityMapping(rc, id)
+	})
+
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&id.RoleARN, "role", "", "ARN of the IAM role to create")
 		fs.StringVar(&id.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
-
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, id *authconfigmap.MapRole) error {
-	ctl := eks.New(p, cfg)
+func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapRole) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+		return err
+	}
+
+	cfg := rc.ClusterConfig
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

@@ -1,30 +1,16 @@
 package drain
 
 import (
-	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-var (
-	plan = true
-
-	clusterConfigFile = ""
-)
-
 // Command will create the `drain` commands
-func Command(g *cmdutils.Grouping) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "drain",
-		Short: "drain resources(s)",
-		Run: func(c *cobra.Command, _ []string) {
-			if err := c.Help(); err != nil {
-				logger.Debug("ignoring error %q", err.Error())
-			}
-		},
-	}
+func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
+	verbCmd := cmdutils.NewVerbCmd("drain", "Drain resource(s)", "")
 
-	cmd.AddCommand(drainNodeGroupCmd(g))
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, drainNodeGroupCmd)
 
-	return cmd
+	return verbCmd
 }

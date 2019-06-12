@@ -2,11 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -14,56 +12,44 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-var (
-	describeStacksAll    bool
-	describeStacksEvents bool
-	describeStacksTrail  bool
-)
-
-func describeStacksCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func describeStacksCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:   "describe-stacks",
-		Short: "Describe CloudFormation stack for a given cluster",
-		Run: func(_ *cobra.Command, args []string) {
-			if err := doDescribeStacksCmd(p, cfg, cmdutils.GetNameArg(args)); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	var all, events, trail bool
 
-	group := g.New(cmd)
+	rc.SetDescription("describe-stacks", "Describe CloudFormation stack for a given cluster", "")
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
-		fs.BoolVar(&describeStacksAll, "all", false, "include deleted stacks")
-		fs.BoolVar(&describeStacksEvents, "events", false, "include stack events")
-		fs.BoolVar(&describeStacksTrail, "trail", false, "lookup CloudTrail events for the cluster")
+	rc.SetRunFuncWithNameArg(func() error {
+		return doDescribeStacksCmd(rc, all, events, trail)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		fs.BoolVar(&all, "all", false, "include deleted stacks")
+		fs.BoolVar(&events, "events", false, "include stack events")
+		fs.BoolVar(&trail, "trail", false, "lookup CloudTrail events for the cluster")
+	})
 
-	group.AddTo(cmd)
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
-	ctl := eks.New(p, cfg)
+func doDescribeStacksCmd(rc *cmdutils.ResourceCmd, all, events, trail bool) error {
+	cfg := rc.ClusterConfig
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && nameArg != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, nameArg)
+	if cfg.Metadata.Name != "" && rc.NameArg != "" {
+		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, rc.NameArg)
 	}
 
-	if nameArg != "" {
-		cfg.Metadata.Name = nameArg
+	if rc.NameArg != "" {
+		cfg.Metadata.Name = rc.NameArg
 	}
 
 	if cfg.Metadata.Name == "" {
@@ -82,11 +68,11 @@ func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg 
 	}
 
 	for _, s := range stacks {
-		if !describeStacksAll && *s.StackStatus == cloudformation.StackStatusDeleteComplete {
+		if !all && *s.StackStatus == cloudformation.StackStatusDeleteComplete {
 			continue
 		}
 		logger.Info("stack/%s = %#v", *s.StackName, s)
-		if describeStacksEvents {
+		if events {
 			events, err := stackManager.DescribeStackEvents(s)
 			if err != nil {
 				logger.Critical(err.Error())
@@ -95,7 +81,7 @@ func doDescribeStacksCmd(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg 
 				logger.Info("CloudFormation.events/%s[%d] = %#v", *s.StackName, i, e)
 			}
 		}
-		if describeStacksTrail {
+		if trail {
 			events, err := stackManager.LookupCloudTrailEvents(s)
 			if err != nil {
 				logger.Critical(err.Error())

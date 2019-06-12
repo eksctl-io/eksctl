@@ -1,11 +1,8 @@
 package utils
 
 import (
-	"os"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -14,47 +11,38 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func updateAWSNodeCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func updateAWSNodeCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:   "update-aws-node",
-		Short: "Update aws-node add-on to latest released version",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doUpdateAWSNode(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	rc.SetDescription("update-aws-node", "Update aws-node add-on to latest released version", "")
 
-	group := g.New(cmd)
-
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
-		cmdutils.AddApproveFlag(&plan, cmd, fs)
+	rc.SetRunFuncWithNameArg(func() error {
+		return doUpdateAWSNode(rc)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddApproveFlag(fs, rc)
+	})
 
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doUpdateAWSNode(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
-	if err := cmdutils.NewMetadataLoader(p, cfg, clusterConfigFile, nameArg, cmd).Load(); err != nil {
+func doUpdateAWSNode(rc *cmdutils.ResourceCmd) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
 
-	ctl := eks.New(p, cfg)
-	meta := cfg.Metadata
+	cfg := rc.ClusterConfig
+	meta := rc.ClusterConfig.Metadata
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -76,12 +64,12 @@ func doUpdateAWSNode(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, kubernetesVersion, plan)
+	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, kubernetesVersion, rc.Plan)
 	if err != nil {
 		return err
 	}
 
-	cmdutils.LogPlanModeWarning(plan && updateRequired)
+	cmdutils.LogPlanModeWarning(rc.Plan && updateRequired)
 
 	return nil
 }

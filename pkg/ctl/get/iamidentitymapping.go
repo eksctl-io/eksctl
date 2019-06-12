@@ -5,8 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kris-nova/logger"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -16,38 +14,39 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-func getIAMIdentityMappingCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
-	var roleFlag string
-	cmd := &cobra.Command{
-		Use:   "iamidentitymapping",
-		Short: "Get IAM identity mapping(s)",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doGetIAMIdentityMapping(p, cfg, roleFlag); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
-	group := g.New(cmd)
+	rc.ClusterConfig = cfg
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&roleFlag, "role", "", "ARN of the IAM role")
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)
+	var role string
+
+	params := &getCmdParams{}
+
+	rc.SetDescription("iamidentitymapping", "Get IAM identity mapping(s)", "")
+
+	rc.SetRunFunc(func() error {
+		return doGetIAMIdentityMapping(rc, params, role)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&role, "role", "", "ARN of the IAM role")
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+	})
 
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doGetIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, roleFlag string) error {
-	ctl := eks.New(p, cfg)
+func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, role string) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+		return err
+	}
+
+	cfg := rc.ClusterConfig
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -72,19 +71,19 @@ func doGetIAMIdentityMapping(p *api.ProviderConfig, cfg *api.ClusterConfig, role
 	if err != nil {
 		return err
 	}
-	if roleFlag != "" {
-		roles = roles.Get(roleFlag)
+	if role != "" {
+		roles = roles.Get(role)
 		// If a filter was given, we error if none was found
 		if len(roles) == 0 {
-			return fmt.Errorf("no iamidentitymapping with role %q found", roleFlag)
+			return fmt.Errorf("no iamidentitymapping with role %q found", role)
 		}
 	}
 
-	printer, err := printers.NewPrinter(output)
+	printer, err := printers.NewPrinter(params.output)
 	if err != nil {
 		return err
 	}
-	if output == "table" {
+	if params.output == "table" {
 		addIAMIdentityMappingTableColumns(printer.(*printers.TablePrinter))
 	}
 

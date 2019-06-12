@@ -2,68 +2,58 @@ package get
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/kris-nova/logger"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-var listAllRegions bool
-
-func getClusterCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func getClusterCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:     "cluster",
-		Short:   "Get cluster(s)",
-		Aliases: []string{"clusters"},
-		Run: func(_ *cobra.Command, args []string) {
-			if err := doGetCluster(p, cfg, cmdutils.GetNameArg(args)); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	var listAllRegions bool
 
-	group := g.New(cmd)
+	params := &getCmdParams{}
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddCommonFlagsForGetCmd(fs, &chunkSize, &output)
+	rc.SetDescription("cluster", "Get cluster(s)", "", "clusters")
+
+	rc.SetRunFuncWithNameArg(func() error {
+		return doGetCluster(rc, params, listAllRegions)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, false)
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
+	})
 
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doGetCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string) error {
+func doGetCluster(rc *cmdutils.ResourceCmd, params *getCmdParams, listAllRegions bool) error {
+	cfg := rc.ClusterConfig
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the fist place
-	ctl := eks.New(p, cfg)
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
 
 	if regionGiven && listAllRegions {
 		logger.Warning("--region=%s is ignored, as --all-regions is given", cfg.Metadata.Region)
 	}
 
-	if cfg.Metadata.Name != "" && nameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, nameArg)
+	if cfg.Metadata.Name != "" && rc.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, rc.NameArg)
 	}
 
-	if nameArg != "" {
-		cfg.Metadata.Name = nameArg
+	if rc.NameArg != "" {
+		cfg.Metadata.Name = rc.NameArg
 	}
 
 	if cfg.Metadata.Name != "" && listAllRegions {
@@ -74,5 +64,5 @@ func doGetCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string)
 		return err
 	}
 
-	return ctl.ListClusters(cfg.Metadata.Name, chunkSize, output, listAllRegions)
+	return ctl.ListClusters(cfg.Metadata.Name, params.chunkSize, params.output, listAllRegions)
 }

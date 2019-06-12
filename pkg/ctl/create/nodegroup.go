@@ -2,11 +2,9 @@ package create
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -17,78 +15,63 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-var (
-	updateAuthConfigMap bool
-
-	includeNodeGroups []string
-	excludeNodeGroups []string
-)
-
-func createNodeGroupCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func createNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	rc.ClusterConfig = cfg
+
+	var updateAuthConfigMap bool
 
 	cfg.Metadata.Version = "auto"
 
-	cmd := &cobra.Command{
-		Use:     "nodegroup",
-		Short:   "Create a nodegroup",
-		Aliases: []string{"ng"},
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doCreateNodeGroups(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	rc.SetDescription("nodegroup", "Create a nodegroup", "", "ng")
 
-	group := g.New(cmd)
+	rc.SetRunFuncWithNameArg(func() error {
+		return doCreateNodeGroups(rc, updateAuthConfigMap)
+	})
 
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
-		cmdutils.AddRegionFlag(fs, p)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
-		cmdutils.AddNodeGroupFilterFlags(&includeNodeGroups, &excludeNodeGroups, fs)
-		cmdutils.AddUpdateAuthConfigMap(&updateAuthConfigMap, fs, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddNodeGroupFilterFlags(fs, &rc.IncludeNodeGroups, &rc.ExcludeNodeGroups)
+		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
 	})
 
-	group.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		cmdutils.AddCommonCreateNodeGroupFlags(cmd, fs, p, cfg, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, rc, ng)
 	})
 
-	group.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
-
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 }
 
-func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
+func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	if err := cmdutils.NewCreateNodeGroupLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter, includeNodeGroups, excludeNodeGroups).Load(); err != nil {
+	if err := cmdutils.NewCreateNodeGroupLoader(rc, ngFilter).Load(); err != nil {
 		return err
 	}
+
+	cfg := rc.ClusterConfig
+	meta := rc.ClusterConfig.Metadata
 
 	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
 		return err
 	}
 
-	meta := cfg.Metadata
 	printer := printers.NewJSONPrinter()
-	ctl := eks.New(p, cfg)
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -100,7 +83,7 @@ func doCreateNodeGroups(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg s
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
-	if err := checkVersion(ctl, cfg.Metadata); err != nil {
+	if err := checkVersion(rc, ctl, cfg.Metadata); err != nil {
 		return err
 	}
 
