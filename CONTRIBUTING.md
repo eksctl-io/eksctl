@@ -228,6 +228,60 @@ This allows the message to be easier to read on GitHub as well as in various git
 7. Ensure the release was successfully [published in Github](https://github.com/weaveworks/eksctl/releases).
 8. Download the binary just released, verify its checksum, and perform any relevant manual testing.
 
+### Releasing snaps of eksctl
+
+Snaps are software packages which run on a variety of Linux flavours.
+
+*Note:* This is still somewhat [TBD](https://github.com/weaveworks/eksctl/issues/215).
+
+Setting up the environment to build snaps on e.g. Ubuntu:
+
+```sh
+sudo apt install snapd
+sudo snap install snapcraft --classic
+sudo snap install multipass --classic
+```
+
+Building the snap can be done by running this command in the top-level directory:
+
+```sh
+snapcraft
+```
+
+*Note:* By default the `grade` of the snap is automatically set to `devel` and thus cannot be released to the e.g. `stable` channel of the snap. If you want to release a stable version, you want to check out the tag first, so e.g. `git checkout 0.12.0` and then run `snapcraft`.
+
+Testing the resulting package can be done via:
+
+```sh
+sudo snap install eksctl_<version>_amd64.snap --dangerous
+```
+
+The `--dangerous` flag is required as it's a locally built snap and doesn't come from the store.
+
+Publishing the snap can be done by following these steps.
+
+Login to the Snap Store:
+
+```sh
+snapcraft login
+```
+
+Or
+
+```sh
+snapcraft login --with <login-file>
+```
+
+Where `<login-file>` was generated via `snapcraft export-login`.
+
+Then publish via:
+
+```sh
+snapcraft push eksctl_<version>_amd64.snap --release [stable,beta,candidate,edge]
+```
+
+TODO: Further automate these steps in CircleCI, etc.
+
 ### Notes on Integration Tests
 
 It's recommended to run containerised tests with `make integration-test-container TEST_V=1 AWS_PROFILE="<AWS profile name>"`. The tests require:
