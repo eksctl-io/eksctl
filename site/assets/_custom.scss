@@ -1,2 +1,8 @@
-/* To be overridden by theme user */
-// @import "variables";
+img[src$="#floatright"] {
+  float: right;
+}
+
+#code {
+  text-align: center;
+  line-height: 200px;
+}

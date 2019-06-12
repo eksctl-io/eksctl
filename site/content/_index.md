@@ -7,28 +7,56 @@ type: docs
 
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 
-`eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, and uses CloudFormation.
+`eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, uses CloudFormation, and is maintained by [Weaveworks](https://www.weave.works/). Create a basic cluster in minutes with just one command :
 
-You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
+![eksctl gopher](introduction/images/eksctl-gopher.png#floatright)
 
-![Gophers: E, K, S, C, T, & L](introduction/images/eksctl.png)
-
-*Need help? Join [Weave Community Slack][slackjoin].*
-
-
-To create a basic cluster, run:
-
-```
-eksctl create cluster
-```
+ <h2 id="code">**`eksctl create cluster`**</h2>
 
 A cluster will be created with default parameters
-- exciting auto-generated name, e.g. "fabulous-mushroom-1527688624"
-- 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
-- use official AWS EKS AMI
-- `us-west-2` region
-- dedicated VPC (check your quotas)
-- using static AMI resolver
+
+> ∙ exciting auto-generated name, e.g. "fabulous-mushroom-1527688624"
+
+> ∙ 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
+
+> ∙ use official AWS EKS AMI
+
+> ∙ `us-west-2` region
+
+> ∙ dedicated VPC (check your quotas)
+
+> ∙ using static AMI resolver
+
+Customize your cluster by using a config file. Just run
+
+```
+eksctl create cluster -f cluster.yaml
+```
+
+to apply a `cluster.yaml` file:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: basic-cluster
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 10
+    ssh:
+      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+  - name: ng-2
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    ssh:
+      publicKeyPath: ~/.ssh/ec2_id_rsa.pub
+```
+
+_Need help? Join [Weave Community Slack][slackjoin]._
 
 Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
 able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.
@@ -36,6 +64,7 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
 Example output:
+
 ```
 $ eksctl create cluster
 [ℹ]  using region us-west-2
@@ -68,7 +97,8 @@ $ eksctl create cluster
 $
 ```
 
+![Gophers: E, K, S, C, T, & L](introduction/images/eksctl.png)
 
-> ***Logo Credits***
+> **_Logo Credits_**
 >
-> *Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/).*
+> _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/)._
