@@ -53,7 +53,7 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, rol
 	}
 
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--cluster")
+		return cmdutils.ErrMustBeSet("--name")
 	}
 
 	if err := ctl.GetCredentials(cfg); err != nil {

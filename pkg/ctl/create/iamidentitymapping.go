@@ -58,7 +58,7 @@ func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapR
 		return cmdutils.ErrMustBeSet("--role")
 	}
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--cluster")
+		return cmdutils.ErrMustBeSet("--name")
 	}
 	if err := id.Valid(); err != nil {
 		return err

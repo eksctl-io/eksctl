@@ -53,7 +53,7 @@ func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool)
 		return cmdutils.ErrMustBeSet("--role")
 	}
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--cluster")
+		return cmdutils.ErrMustBeSet("--name")
 	}
 
 	if err := ctl.GetCredentials(cfg); err != nil {
