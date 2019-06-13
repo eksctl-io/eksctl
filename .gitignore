@@ -45,6 +45,9 @@ build/vendor/github.com/jteeuwen/go-bindata/testdata/symlinkParent/symlinkTarget
 # Jekyll
 _site
 
+# Hugo site
+site/resources/_gen/
+
 # Do not add temporary files here
 # use ~/.config/git/ignore instead
 
