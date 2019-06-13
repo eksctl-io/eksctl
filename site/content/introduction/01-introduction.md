@@ -11,7 +11,7 @@ weight: 10
 
 You can create a cluster in minutes with just one command – **`eksctl create cluster`**!
 
-![Gophers: E, K, S, C, T, & L](images/eksctl.png)
+![Gophers: E, K, S, C, T, & L](../images/eksctl.png)
 
 *Need help? Join [Weave Community Slack][slackjoin].*
 
