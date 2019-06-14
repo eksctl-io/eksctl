@@ -447,6 +447,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"ClusterStackName":         "",
 			"SharedNodeSecurityGroup":  "sg-shared",
 			"ServiceRoleARN":           arn,
+			"FeatureNATMode":           "Single",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -1439,10 +1440,14 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	Context("NodeGroup{PrivateNetworking=false SSH.Allow=false}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
+		disable := api.ClusterDisableNAT
 
 		cfg.VPC = &api.ClusterVPC{
 			Network: api.Network{
 				ID: vpcID,
+			},
+			NAT: &api.ClusterNAT{
+				Gateway: &disable,
 			},
 			SecurityGroup: "sg-0b44c48bcba5b7362",
 			Subnets: &api.ClusterSubnets{

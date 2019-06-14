@@ -153,6 +153,7 @@ func (c *ClusterResourceSet) addOutputsForVPC() {
 		c.spec.VPC.ID = v
 		return nil
 	})
+	c.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, c.spec.VPC.NAT.Gateway, false)
 	if refs, ok := c.subnets[api.SubnetTopologyPrivate]; ok {
 		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPrivate, refs, true, func(v string) error {
 			return vpc.ImportSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
