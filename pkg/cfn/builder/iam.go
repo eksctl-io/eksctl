@@ -213,6 +213,12 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			[]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
+				"route53:ListHostedZonesByName",
+			},
+		)
+		n.rs.attachAllowPolicy("PolicyExternalDNSGetChange", refIR, "arn:aws:route53:::change/*",
+			[]string{
+				"route53:GetChange",
 			},
 		)
 	}
