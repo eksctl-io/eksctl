@@ -22,6 +22,9 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 		if IsEnabled(ng.IAM.WithAddonPolicies.ExternalDNS) {
 			return fmt.Errorf("%s.withAddonPolicies.externalDNS cannot be set at the same time", p)
 		}
+		if IsEnabled(ng.IAM.WithAddonPolicies.CertManager) {
+			return fmt.Errorf("%s.withAddonPolicies.certManager cannot be set at the same time", p)
+		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.ImageBuilder) {
 			return fmt.Errorf("%s.imageBuilder cannot be set at the same time", p)
 		}

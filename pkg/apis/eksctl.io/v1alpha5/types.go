@@ -350,6 +350,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				ImageBuilder: Disabled(),
 				AutoScaler:   Disabled(),
 				ExternalDNS:  Disabled(),
+				CertManager:  Disabled(),
 				AppMesh:      Disabled(),
 				EBS:          Disabled(),
 				FSX:          Disabled(),
@@ -470,6 +471,8 @@ type (
 		AutoScaler *bool `json:"autoScaler"`
 		// +optional
 		ExternalDNS *bool `json:"externalDNS"`
+		// +optional
+		CertManager *bool `json:"certManager"`
 		// +optional
 		AppMesh *bool `json:"appMesh"`
 		// +optional

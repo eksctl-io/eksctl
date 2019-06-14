@@ -14,25 +14,26 @@ nodeGroups:
     desiredCapacity: 1
     iam:
       withAddonPolicies:
-        imageBuilder: true        
-        autoScaler: true        
-        externalDNS: true        
-        appMesh: true        
-        ebs: true        
-        fsx: true        
-        efs: true        
-        albIngress: true        
-        xRay: true        
-        cloudWatch: true        
+        imageBuilder: true
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        appMesh: true
+        ebs: true
+        fsx: true
+        efs: true
+        albIngress: true
+        xRay: true
+        cloudWatch: true
 ```
 ### Image Builder Policy
 
-The `imageBuilder` policy allows for full ECR (Elastic Container Registry) access. This is useful for building, for 
+The `imageBuilder` policy allows for full ECR (Elastic Container Registry) access. This is useful for building, for
 example, a CI server that needs to push images to ECR.
 
 ### EBS Policy
 
-The `ebs` policy enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver. 
+The `ebs` policy enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver.
 
 [comment]: <> (TODO: One section per addon and brief explanation of what it is )
 
@@ -71,7 +72,7 @@ nodeGroups:
         autoScaler: true
         imageBuilder: true
 ```
-*Important*: if a nodegroup includes the `attachPolicyARNs` it must also include the default node policies, like in 
+*Important*: if a nodegroup includes the `attachPolicyARNs` it must also include the default node policies, like in
 this example (`AmazonEKSWorkerNodePolicy` and `AmazonEKS_CNI_Policy`).
 
 [comment]: <> (TODO find better example and explain more)
