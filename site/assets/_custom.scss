@@ -1,8 +1,43 @@
-img[src$="#floatright"] {
-  float: right;
+img[src$="#bgright"] {
+  position: absolute;
+  right: 0px;
+  top: 160px;
+  z-index: -1;
 }
 
 #code {
   text-align: center;
   line-height: 200px;
+}
+
+@media (max-width: 770px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 220px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 420px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 280px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 320px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 340px;
+    z-index: -1;
+  }
+  #code {
+    text-align: center;
+    font-size: 20px;
+    line-height: 200px;
+  }
 }
