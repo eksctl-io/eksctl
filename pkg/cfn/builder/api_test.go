@@ -160,7 +160,7 @@ users:
 }
 
 func testVPC() *api.ClusterVPC {
-	single := api.ClusterSingleNAT
+	disable := api.ClusterDisableNAT
 	return &api.ClusterVPC{
 		Network: api.Network{
 			ID: vpcID,
@@ -172,7 +172,7 @@ func testVPC() *api.ClusterVPC {
 			},
 		},
 		NAT: &api.ClusterNAT{
-			Gateway: &single,
+			Gateway: &disable,
 		},
 		SecurityGroup:           "sg-0b44c48bcba5b7362",
 		SharedNodeSecurityGroup: "sg-shared",
