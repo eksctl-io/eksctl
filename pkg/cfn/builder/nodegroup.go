@@ -119,6 +119,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
 				VolumeSize: gfn.NewInteger(*volumeSize),
 				VolumeType: gfn.NewString(*n.spec.VolumeType),
+				Encrypted: gfn.NewBoolean(*n.spec.VolumeEncrypted),
 			},
 		}}
 	}
