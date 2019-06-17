@@ -23,7 +23,7 @@ const (
 )
 
 // UpdateAWSNode will update the `aws-node` add-on
-func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, controlPlaneVersion string, plan bool) (bool, error) {
+func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, plan bool) (bool, error) {
 	_, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
