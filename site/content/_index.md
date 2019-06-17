@@ -9,7 +9,7 @@ type: docs
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, uses CloudFormation, and is maintained by [Weaveworks](https://www.weave.works/). Create a basic cluster in minutes with just one command :
 
-![eksctl gopher](introduction/images/eksctl-gopher.png#floatright)
+![eksctl gopher](introduction/images/eksctl-gopher.png#bgright)
 
  <h2 id="code">**`eksctl create cluster`**</h2>
 
