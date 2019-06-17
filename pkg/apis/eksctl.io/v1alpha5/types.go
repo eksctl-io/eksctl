@@ -407,7 +407,6 @@ type NodeGroup struct {
 	VolumeName *string `json:"volumeName,omitempty"`
 	// +optional
 	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
-	//
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 

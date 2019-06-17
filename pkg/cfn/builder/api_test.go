@@ -297,7 +297,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		*ng.VolumeType = api.NodeVolumeTypeIO1
 		ng.VolumeName = new(string)
 		*ng.VolumeName = "/dev/xvda"
-		ng.VolumeEncrypted = new(bool)
+		ng.VolumeEncrypted = api.Disabled()
 		*ng.VolumeEncrypted = false
 
 		if withFullVPC {
@@ -405,7 +405,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeSize:      aws.Int(2),
 					VolumeType:      aws.String(api.NodeVolumeTypeIO1),
 					VolumeName:      aws.String("/dev/xvda"),
-					VolumeEncrypted: aws.Bool(false),
+					VolumeEncrypted: api.Disabled(),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
 							ImageBuilder: api.Disabled(),
