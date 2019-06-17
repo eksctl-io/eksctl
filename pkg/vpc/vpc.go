@@ -165,6 +165,14 @@ func Import(provider api.ClusterProvider, spec *api.ClusterConfig, id string) er
 // there is a mismatch of local vs remote states
 func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topology api.SubnetTopology, subnets []*ec2.Subnet) error {
 	if spec.VPC.ID != "" {
+		// ensure managed NAT is disabled
+		// if we are importing an existing VPC/subnets, the expectation is that the user has
+		// already setup NAT, routing, etc. for these subnets
+		disable := api.ClusterDisableNAT
+		spec.VPC.NAT = &api.ClusterNAT{
+			Gateway: &disable,
+		}
+
 		// ensure VPC gets imported and validated firt, if it's already set
 		if err := Import(provider, spec, spec.VPC.ID); err != nil {
 			return err
