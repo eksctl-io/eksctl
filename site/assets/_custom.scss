@@ -10,11 +10,47 @@ img[src$="#bgright"] {
   line-height: 200px;
 }
 
-@media (max-width: 770px) {
+@media (max-width: 1060px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 210px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 780px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 250px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 700px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 290px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 659px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
     top: 220px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 500px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 280px;
     z-index: -1;
   }
 }
