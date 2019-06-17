@@ -62,8 +62,13 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings not supported for instance-store AMIs", ng.AMI)
 	}
 
-	if *output.Images[0].RootDeviceType == "ebs" && !api.IsSetAndNonEmptyString(ng.VolumeName) {
-		ng.VolumeName = output.Images[0].RootDeviceName
+	if *output.Images[0].RootDeviceType == "ebs" {
+		if !api.IsSetAndNonEmptyString(ng.VolumeName) {
+			ng.VolumeName = output.Images[0].RootDeviceName
+		}
+		if ng.VolumeEncrypted == nil {
+			ng.VolumeEncrypted = output.Images[0].BlockDeviceMappings[0].Ebs.Encrypted
+		}
 	}
 
 	return nil
