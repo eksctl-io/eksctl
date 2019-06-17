@@ -43,6 +43,7 @@ Paul Maddox             @paulmaddox
 Patrick Spek            @tyil
 Martina Iglesias        @martina-if
 Alfonso Acosta          @2opremio
+Yannig Perré            @Yannig
 
 /* Thanks */
 

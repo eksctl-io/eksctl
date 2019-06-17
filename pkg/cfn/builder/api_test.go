@@ -408,6 +408,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 							ImageBuilder: api.Disabled(),
 							AutoScaler:   api.Disabled(),
 							ExternalDNS:  api.Disabled(),
+							CertManager:  api.Disabled(),
 							AppMesh:      api.Disabled(),
 							EBS:          api.Disabled(),
 							FSX:          api.Disabled(),
@@ -892,6 +893,65 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAutoScaling"))
+		})
+
+	})
+
+	Context("NodeGroupAppCertManager", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.CertManager = api.Enabled()
+
+		build(cfg, "eksctl-test-cert-manager-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct policies", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerChangeSet"))
+
+			policy1 := ngTemplate.Resources["PolicyCertManagerChangeSet"].Properties
+
+			Expect(policy1.Roles).To(HaveLen(1))
+			isRefTo(policy1.Roles[0], "NodeInstanceRole")
+
+			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ChangeResourceRecordSets",
+			}))
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerHostedZones"))
+
+			policy2 := ngTemplate.Resources["PolicyCertManagerHostedZones"].Properties
+
+			Expect(policy2.Roles).To(HaveLen(1))
+			isRefTo(policy2.Roles[0], "NodeInstanceRole")
+
+			Expect(policy2.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
+				"route53:ListHostedZonesByName",
+			}))
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerGetChange"))
+
+			policy3 := ngTemplate.Resources["PolicyCertManagerGetChange"].Properties
+
+			Expect(policy3.Roles).To(HaveLen(1))
+			isRefTo(policy3.Roles[0], "NodeInstanceRole")
+
+			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::change/*"))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:GetChange",
+			}))
 		})
 
 	})

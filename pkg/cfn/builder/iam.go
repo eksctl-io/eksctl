@@ -203,7 +203,25 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ExternalDNS) {
+	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.CertManager) {
+		n.rs.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
+			[]string{
+				"route53:ChangeResourceRecordSets",
+			},
+		)
+		n.rs.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*",
+			[]string{
+				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
+				"route53:ListHostedZonesByName",
+			},
+		)
+		n.rs.attachAllowPolicy("PolicyCertManagerGetChange", refIR, "arn:aws:route53:::change/*",
+			[]string{
+				"route53:GetChange",
+			},
+		)
+	} else if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ExternalDNS) {
 		n.rs.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
 			[]string{
 				"route53:ChangeResourceRecordSets",
@@ -216,6 +234,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			},
 		)
 	}
+
 
 	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AppMesh) {
 		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",

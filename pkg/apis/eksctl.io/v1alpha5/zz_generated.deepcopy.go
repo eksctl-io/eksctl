@@ -409,6 +409,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
+	if in.CertManager != nil {
+		in, out := &in.CertManager, &out.CertManager
+		*out = new(bool)
+		**out = **in
+	}
 	if in.AppMesh != nil {
 		in, out := &in.AppMesh, &out.AppMesh
 		*out = new(bool)
