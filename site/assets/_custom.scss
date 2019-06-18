@@ -1,3 +1,14 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat&display=swap");
+@import url("https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap");
+
+body {
+  font-family: "Montserrat", sans-serif;
+}
+
+code {
+  font-family: "Roboto Mono", monospace;
+}
+
 img[src$="#bgright"] {
   position: absolute;
   right: 0px;
