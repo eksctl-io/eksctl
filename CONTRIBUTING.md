@@ -172,3 +172,31 @@ The first line is the subject and should be no longer than 70 characters, the
 second line is always blank, and other lines should be wrapped at 80 characters.
 This allows the message to be easier to read on GitHub as well as in various git tools.
 
+# Release Process
+
+1. Checkout master branch
+2. Ensure integration tests pass (see below)
+3. Determine next release tag (e.g. `0.1.35`)
+4. Create release notes file for the given tag – `docs/release_notes/<tag>.md` (e.g. `docs/release_notes/0.1.35.md`)
+5. Run `./tag-release.sh <tag>` (e.g. `./tag-release.sh 0.1.35`)
+
+## Notes on Integration Tests
+
+It's recommened to run containerised tests with `make integration-test-container TEST_V=1`. The tests require access to an AWS account. If you there is an issue with access, you will see all tests failing (albeit the error message may be slightly unclear).
+
+At present we ignore flaky tests, so if you see output like show below, you don't need to worry about this for the purpose of the release. However, you might consider reviewing the issues in question after you made the release.
+
+```
+Summarizing 2 Failures:
+
+[Fail] (Integration) Create, Get, Scale & Delete when creating a cluster with 1 node and add the second nodegroup and delete the second nodegroup [It] {FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total 
+/go/src/github.com/weaveworks/eksctl/integration/creategetdelete_test.go:376
+
+[Fail] (Integration) Create, Get, Scale & Delete when creating a cluster with 1 node and scale the initial nodegroup back to 1 node [It] {FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 1 nodes total 
+/go/src/github.com/weaveworks/eksctl/integration/creategetdelete_test.go:403
+
+Ran 26 of 26 Specs in 2556.238 seconds
+FAIL! -- 24 Passed | 2 Failed | 0 Pending | 0 Skipped
+--- FAIL: TestSuite (2556.25s)
+```
+
