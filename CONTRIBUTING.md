@@ -172,3 +172,45 @@ The first line is the subject and should be no longer than 70 characters, the
 second line is always blank, and other lines should be wrapped at 80 characters.
 This allows the message to be easier to read on GitHub as well as in various git tools.
 
+# Release Process
+
+1. Checkout master branch
+2. Ensure integration tests pass (see below)
+3. Determine next release tag (e.g. `0.1.35`)
+4. Create release notes file for the given tag – `docs/release_notes/<tag>.md` (e.g. `docs/release_notes/0.1.35.md`)
+5. Run `./tag-release.sh <tag>` (e.g. `./tag-release.sh 0.1.35`)
+
+## Notes on Integration Tests
+
+It's recommened to run containerised tests with `make integration-test-container TEST_V=1`. The tests require access to an AWS account. If there is an issue with access (e.g. expired MFA token), you will see all tests failing (albeit the error message may be slightly unclear).
+
+At present we ignore flaky tests, so if you see output like show below, you don't need to worry about this for the purpose of the release. However, you might consider reviewing the issues in question after you made the release.
+
+```
+Summarizing 2 Failures:
+
+[Fail] (Integration) Create, Get, Scale & Delete when creating a cluster with 1 node and add the second nodegroup and delete the second nodegroup [It] {FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total 
+/go/src/github.com/weaveworks/eksctl/integration/creategetdelete_test.go:376
+
+[Fail] (Integration) Create, Get, Scale & Delete when creating a cluster with 1 node and scale the initial nodegroup back to 1 node [It] {FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 1 nodes total 
+/go/src/github.com/weaveworks/eksctl/integration/creategetdelete_test.go:403
+
+Ran 26 of 26 Specs in 2556.238 seconds
+FAIL! -- 24 Passed | 2 Failed | 0 Pending | 0 Skipped
+--- FAIL: TestSuite (2556.25s)
+```
+
+## Notes on Automation
+
+When you run `./tag-release.sh <tag>` it will push a commit to master and a tag, which will trigger [release workflow](https://github.com/weaveworks/eksctl/blob/38364943776230bcc9ad57a9f8a423c7ec3fb7fe/.circleci/config.yml#L28-L42) in Circle CI. This runs `make eksctl-image` followed by `make release`. Most of the logic is defined in [`do-release.sh`](https://github.com/weaveworks/eksctl/blob/master/do-release.sh).
+
+You want to keep an eye on Circle CI for the progress of the release ([0.1.35 example logs](https://circleci.com/workflow-run/3553542c-88ad-4a77-bd42-441da4c87fa1)). It normally takes 15-20 minutes.
+
+## Notes on Artefacts
+
+We use `latest_release` floating tag, in order to enable static URLs for release artefacts, i.e. `latest_release` gets shifted on every release.
+
+That means you will see two entries on [the release page](https://github.com/weaveworks/eksctl/releases):
+
+- [**eksctl 0.1.35 (permalink)**](https://github.com/weaveworks/eksctl/releases/tag/0.1.35)
+- [**eksctl 0.1.35**](https://github.com/weaveworks/eksctl/releases/tag/latest_release)
