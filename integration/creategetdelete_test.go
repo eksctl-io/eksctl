@@ -73,6 +73,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--region", region,
+				"--version", version,
 				"--kubeconfig", kubeconfigPath,
 			)
 		})
@@ -425,7 +426,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Skip("will not delete cluster " + clusterName)
 				}
 
-				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.12"))
+				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, version))
 			})
 
 			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the required cloudformation stacks", func() {

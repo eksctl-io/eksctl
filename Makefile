@@ -35,6 +35,14 @@ ifneq ($(INTEGRATION_TEST_FOCUS),)
 INTEGRATION_TEST_ARGS ?= -test.v -ginkgo.v -ginkgo.focus "$(INTEGRATION_TEST_FOCUS)"
 endif
 
+ifneq ($(INTEGRATION_TEST_REGION),)
+INTEGRATION_TEST_ARGS += -eksctl.region=$(INTEGRATION_TEST_REGION)
+endif
+
+ifneq ($(INTEGRATION_TEST_VERSION),)
+INTEGRATION_TEST_ARGS += -eksctl.version=$(INTEGRATION_TEST_VERSION)
+endif
+
 .PHONY: lint
 lint: ## Run linter over the codebase
 	@"$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
