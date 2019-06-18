@@ -69,8 +69,14 @@ const (
 	// Version1_12 represents Kubernetes version 1.12.x
 	Version1_12 = "1.12"
 
+	// Version1_13 represents Kubernetes version 1.13.x
+	Version1_13 = "1.13"
+
+	// DefaultVersion represents default Kubernetes version supported by EKS
+	DefaultVersion = Version1_12
+
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_12
+	LatestVersion = Version1_13
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -301,7 +307,7 @@ func NewClusterConfig() *ClusterConfig {
 	cfg := &ClusterConfig{
 		TypeMeta: ClusterConfigTypeMeta(),
 		Metadata: &ClusterMeta{
-			Version: LatestVersion,
+			Version: DefaultVersion,
 		},
 		VPC: NewClusterVPC(),
 	}

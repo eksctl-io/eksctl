@@ -80,7 +80,9 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 	case api.Version1_11:
 		cfg.Metadata.Version = api.Version1_12
 	case api.Version1_12:
-		cfg.Metadata.Version = api.Version1_12
+		cfg.Metadata.Version = api.Version1_13
+	case api.Version1_13:
+		cfg.Metadata.Version = api.Version1_13
 	default:
 		// version of control is not known to us, maybe we are just too old...
 		return fmt.Errorf("control plane version version %q is known to this version of eksctl, try to upgrade eksctl first", currentVersion)
