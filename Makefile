@@ -141,6 +141,10 @@ generate-kubernetes-types-test: generate-kubernetes-types ## Test if generated K
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
 	go generate ./pkg/ami
 
+.PHONY: generate-schema
+generate-schema: ## Generate the schema file in the documentation site.
+	@go run ./cmd/schema/generate.go
+
 .PHONY: ami-check
 ami-check: generate-ami ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
 	git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
