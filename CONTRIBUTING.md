@@ -200,3 +200,17 @@ FAIL! -- 24 Passed | 2 Failed | 0 Pending | 0 Skipped
 --- FAIL: TestSuite (2556.25s)
 ```
 
+## Notes on Automation
+
+When you run `./tag-release.sh <tag>` it will push a commit to master and a tag, which will trigger [release workflow](https://github.com/weaveworks/eksctl/blob/38364943776230bcc9ad57a9f8a423c7ec3fb7fe/.circleci/config.yml#L28-L42) in Circle CI. This runs `make eksctl-image` followed by `make release`. Most of the logic is defined in [`do-release.sh`](https://github.com/weaveworks/eksctl/blob/master/do-release.sh).
+
+You want to keep an eye on Circle CI for the progress of the release ([0.1.35 example logs](https://circleci.com/workflow-run/3553542c-88ad-4a77-bd42-441da4c87fa1)). It normally takes 15-20 minutes.
+
+## Notes on Artefacts
+
+We use `latest_release` floating tag, in order to enable static URLs for release artefacts, i.e. `latest_release` gets shifted on every release.
+
+That means you will see two entries on [the release page](https://github.com/weaveworks/eksctl/releases):
+
+- [**eksctl 0.1.35 (permalink)**](https://github.com/weaveworks/eksctl/releases/tag/0.1.35)
+- [**eksctl 0.1.35**](https://github.com/weaveworks/eksctl/releases/tag/latest_release)
