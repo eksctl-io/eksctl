@@ -16,3 +16,5 @@ The features that are currently implemented are:
 - GPU Support
 - Spot instances
 - IAM Management and Add-on Policies
+
+![Gophers: E, K, S, C, T, & L](../images/eksctl.png)

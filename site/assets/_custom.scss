@@ -5,6 +5,13 @@ img[src$="#bgright"] {
   z-index: -1;
 }
 
+img[src$="#bgright2"] {
+  position: absolute;
+  right: 0px;
+  top: 160px;
+  z-index: -1;
+}
+
 #code {
   text-align: center;
   line-height: 200px;
@@ -15,6 +22,10 @@ img[src$="#bgright"] {
     position: absolute;
     right: 0px;
     top: 210px;
+    z-index: -1;
+  }
+  img[src$="#bgright2"] {
+    display: none;
     z-index: -1;
   }
 }
