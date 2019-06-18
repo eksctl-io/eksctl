@@ -41,7 +41,6 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(ct.CreatedItems()).To(HaveLen(6))
 
 			Expect(ct.CreatedItems()).To(HaveLen(6))
-
 		})
 
 		It("has newly created objects", func() {
@@ -79,7 +78,7 @@ var _ = Describe("default addons - aws-node", func() {
 		It("can update 1.10 sample for different region", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
-			_, err := UpdateAWSNode(rawClient, "us-east-1", api.LatestVersion, false)
+			_, err := UpdateAWSNode(rawClient, "us-east-1", api.DefaultVersion, false)
 			Expect(err).ToNot(HaveOccurred())
 
 			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
@@ -107,6 +106,5 @@ var _ = Describe("default addons - aws-node", func() {
 				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.4.1"),
 			)
 		})
-
 	})
 })

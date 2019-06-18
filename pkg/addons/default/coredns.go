@@ -238,5 +238,8 @@ func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
 	if strings.HasPrefix(controlPlaneVersion, "1.12.") {
 		assetName += "-1.12"
 	}
+	if strings.HasPrefix(controlPlaneVersion, "1.13.") {
+		assetName += "-1.13"
+	}
 	return LoadAsset(assetName, "json")
 }
