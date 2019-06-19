@@ -300,7 +300,7 @@ eksctl update cluster --name=<clusterName>
 ```
 
 This command will not apply any changes right away, you will need to re-run it with
-`--dry-run=false` to apply the changes.
+`--approve` to apply the changes.
 
 #### Updating nodegroups
 
