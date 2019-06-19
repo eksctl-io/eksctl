@@ -21,11 +21,14 @@ const (
 	// RegionUSWest2 represents the US West Region Oregon
 	RegionUSWest2 = "us-west-2"
 
-	// RegionUSEast1 represents the US East Region North Virgina
+	// RegionUSEast1 represents the US East Region North Virginia
 	RegionUSEast1 = "us-east-1"
 
 	// RegionUSEast2 represents the US East Region Ohio
 	RegionUSEast2 = "us-east-2"
+
+	// RegionCACentral1 represents the Canada Central Region
+	RegionCACentral1 = "ca-central-1"
 
 	// RegionEUWest1 represents the EU West Region Ireland
 	RegionEUWest1 = "eu-west-1"
@@ -169,6 +172,7 @@ func SupportedRegions() []string {
 		RegionUSWest2,
 		RegionUSEast1,
 		RegionUSEast2,
+		RegionCACentral1,
 		RegionEUWest1,
 		RegionEUWest2,
 		RegionEUWest3,
