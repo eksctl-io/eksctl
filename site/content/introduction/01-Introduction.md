@@ -71,7 +71,8 @@ $eksctl create cluster
 [ℹ]  node "ip-192-168-64-220.us-west-2.compute.internal" is ready
 [ℹ]  node "ip-192-168-8-135.us-west-2.compute.internal" is ready
 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
-[✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready$
+[✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
+$
 
 ```
 
