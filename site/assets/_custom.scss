@@ -9,17 +9,18 @@ code {
   font-family: "Roboto Mono", monospace;
 }
 
+img[src$="#inline"] {
+  height: 30px;
+}
+
+img[src$="#inline-svg"] {
+  height: 20px;
+}
+
 img[src$="#bgright"] {
   position: absolute;
   right: 0px;
-  top: 160px;
-  z-index: -1;
-}
-
-img[src$="#bgright2"] {
-  position: absolute;
-  right: 0px;
-  top: 160px;
+  top: 200px;
   z-index: -1;
 }
 
@@ -32,29 +33,25 @@ img[src$="#bgright2"] {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 210px;
-    z-index: -1;
-  }
-  img[src$="#bgright2"] {
-    display: none;
+    top: 220px;
     z-index: -1;
   }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 820px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 250px;
+    top: 280px;
     z-index: -1;
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 741px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 290px;
+    top: 330px;
     z-index: -1;
   }
 }
@@ -63,34 +60,34 @@ img[src$="#bgright2"] {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 220px;
+    top: 250px;
     z-index: -1;
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 538px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 280px;
+    top: 310px;
     z-index: -1;
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 429px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 280px;
+    top: 360px;
     z-index: -1;
   }
 }
 
-@media (max-width: 320px) {
+@media (max-width: 349px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 340px;
+    top: 420px;
     z-index: -1;
   }
   #code {

@@ -3,9 +3,9 @@ title: Introduction
 type: docs
 ---
 
-# `eksctl` - a CLI for Amazon EKS
+# **`eksctl` - a CLI for Amazon EKS**
 
-[![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
+### sponsored by [![Weaveworks](introduction/images/weaveworks.svg#inline-svg)](https://www.weave.works/) and built by [![Contributors](introduction/images/gophers.png#inline)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](introduction/images/octocat.svg#inline-svg)](https://github.com/weaveworks/eksctl)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2. It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes contributions from the community. Create a basic cluster in minutes with just one command :
 
@@ -94,9 +94,9 @@ $ eksctl create cluster
 [ℹ]  node "ip-192-168-8-135.us-west-2.compute.internal" is ready
 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
 [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
-$
 ```
 
+[![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 ![Gophers: E, K, S, C, T, & L](introduction/images/eksctl.png)
 
 > **_Logo Credits_**
