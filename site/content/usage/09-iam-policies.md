@@ -1,9 +1,9 @@
 ---
-title: "IAM Policies"
+title: "IAM policies"
 weight: 90
 ---
 
-# Supported IAM Add-on Policies
+## Supported IAM add-on policies
 
 Example of all supported add-on policies:
 
@@ -26,6 +26,7 @@ nodeGroups:
         xRay: true
         cloudWatch: true
 ```
+
 ### Image Builder Policy
 
 The `imageBuilder` policy allows for full ECR (Elastic Container Registry) access. This is useful for building, for
@@ -72,7 +73,8 @@ nodeGroups:
         autoScaler: true
         imageBuilder: true
 ```
-*Important*: if a nodegroup includes the `attachPolicyARNs` it must also include the default node policies, like in
+
+_Important_: if a nodegroup includes the `attachPolicyARNs` it must also include the default node policies, like in
 this example (`AmazonEKSWorkerNodePolicy` and `AmazonEKS_CNI_Policy`).
 
 [comment]: <> (TODO find better example and explain more)

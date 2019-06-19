@@ -27,42 +27,6 @@ A cluster will be created with default parameters
 
 > ∙ using static AMI resolver
 
-Customize your cluster by using a config file. Just run
-
-```
-eksctl create cluster -f cluster.yaml
-```
-
-to apply a `cluster.yaml` file:
-
-```yaml
-apiVersion: eksctl.io/v1alpha5
-kind: ClusterConfig
-
-metadata:
-  name: basic-cluster
-  region: eu-north-1
-
-nodeGroups:
-  - name: ng-1
-    instanceType: m5.large
-    desiredCapacity: 10
-    ssh:
-      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
-  - name: ng-2
-    instanceType: m5.xlarge
-    desiredCapacity: 2
-    ssh:
-      publicKeyPath: ~/.ssh/ec2_id_rsa.pub
-```
-
-_Need help? Join [Weave Community Slack][slackjoin]._
-
-Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
-able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.
-
-[ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
-
 Example output:
 
 ```
@@ -95,6 +59,42 @@ $ eksctl create cluster
 [ℹ]  kubectl command should work with "~/.kube/config", try 'kubectl get nodes'
 [✔]  EKS cluster "floral-unicorn-1540567338" in "us-west-2" region is ready
 ```
+
+_Need help? Join [Weave Community Slack][slackjoin]._
+
+Customize your cluster by using a config file. Just run
+
+```
+eksctl create cluster -f cluster.yaml
+```
+
+to apply a `cluster.yaml` file:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: basic-cluster
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 10
+    ssh:
+      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+  - name: ng-2
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    ssh:
+      publicKeyPath: ~/.ssh/ec2_id_rsa.pub
+```
+
+Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
+able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.
+
+[ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 ![Gophers: E, K, S, C, T, & L](introduction/images/eksctl.png)

@@ -3,7 +3,7 @@ title: "Features"
 weight: 30
 ---
 
-### Feature list [WIP]
+## Feature list [WIP]
 
 The features that are currently implemented are:
 

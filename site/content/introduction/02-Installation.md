@@ -3,7 +3,7 @@ title: "Installation"
 weight: 20
 ---
 
-### Installation
+## Installation
 
 To download the latest release, run:
 
@@ -13,12 +13,14 @@ sudo mv /tmp/eksctl /usr/local/bin
 ```
 
 Alternatively, macOS users can use [Homebrew](https://brew.sh):
+
 ```
 brew tap weaveworks/tap
 brew install weaveworks/tap/eksctl
 ```
 
 and Windows users can use [chocolatey](https://chocolatey.org):
+
 ```
 chocolatey install eksctl
 ```
@@ -32,20 +34,26 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 ### Shell Completion
 
 To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.profile`:
+
 ```
 . <(eksctl completion bash)
 ```
 
 Or for zsh, run:
+
 ```
 mkdir -p ~/.zsh/completion/
 eksctl completion zsh > ~/.zsh/completion/_eksctl
 ```
+
 and put the following in `~/.zshrc`:
+
 ```
 fpath=($fpath ~/.zsh/completion)
 ```
+
 Note if you're not running a distribution like oh-my-zsh you may first have to enable autocompletion:
+
 ```
 autoload -U compinit
 compinit
