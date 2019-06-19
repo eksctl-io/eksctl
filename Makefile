@@ -37,10 +37,12 @@ endif
 
 ifneq ($(INTEGRATION_TEST_REGION),)
 INTEGRATION_TEST_ARGS += -eksctl.region=$(INTEGRATION_TEST_REGION)
+$(info will launch integration tests in region $(INTEGRATION_TEST_REGION))
 endif
 
 ifneq ($(INTEGRATION_TEST_VERSION),)
 INTEGRATION_TEST_ARGS += -eksctl.version=$(INTEGRATION_TEST_VERSION)
+$(info will launch integration tests for Kubernetes version $(INTEGRATION_TEST_VERSION))
 endif
 
 .PHONY: lint
