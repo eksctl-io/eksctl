@@ -76,15 +76,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"--version", version,
 				"--kubeconfig", kubeconfigPath,
 			)
+
 		})
 
-		awsSession := aws.NewSession(region)
+		It("should have created an EKS cluster and two CloudFormation stacks", func() {
+			awsSession := aws.NewSession(region)
 
-		It("should have created an EKS cluster", func() {
-			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.12"))
-		})
+			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, version))
 
-		It("should have the required cloudformation stacks", func() {
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", clusterName, initNG)))
 		})
@@ -406,6 +405,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		})
 
 		Context("and deleting the cluster", func() {
+
 			It("should not return an error", func() {
 				if !doDelete {
 					Skip("will not delete cluster " + clusterName)
@@ -419,20 +419,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 			})
 
-			awsSession := aws.NewSession(region)
-
-			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the EKS cluster", func() {
+			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the EKS cluster and both CloudFormation stacks", func() {
 				if !doDelete {
 					Skip("will not delete cluster " + clusterName)
 				}
+
+				awsSession := aws.NewSession(region)
 
 				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, version))
-			})
-
-			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the required cloudformation stacks", func() {
-				if !doDelete {
-					Skip("will not delete cluster " + clusterName)
-				}
 
 				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
 				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-ng-%d", clusterName, 0)))
