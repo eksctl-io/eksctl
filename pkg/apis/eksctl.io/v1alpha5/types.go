@@ -188,6 +188,7 @@ func SupportedVersions() []string {
 		Version1_10,
 		Version1_11,
 		Version1_12,
+		Version1_13,
 	}
 }
 
