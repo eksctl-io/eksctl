@@ -102,7 +102,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and listing clusters", func() {
 			It("should return the previously created cluster", func() {
-				cmdSession := eksctlSuccess("get", "clusters", "--region", region)
+				cmdSession := eksctlSuccess("get", "clusters", "--all-regions")
 				Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
 			})
 		})
