@@ -109,9 +109,9 @@ func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams)
 	logger.Info("using region %s", meta.Region)
 
 	if cfg.Metadata.Version == "" {
-		cfg.Metadata.Version = api.LatestVersion
+		cfg.Metadata.Version = api.DefaultVersion
 	}
-	if cfg.Metadata.Version != api.LatestVersion {
+	if cfg.Metadata.Version != api.DefaultVersion {
 		validVersion := false
 		for _, v := range api.SupportedVersions() {
 			if cfg.Metadata.Version == v {

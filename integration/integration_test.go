@@ -10,12 +10,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-const (
-	region = api.DefaultRegion
-)
-
 var (
 	eksctlPath string
+
+	region  string
+	version string
 
 	// Flags to help with the development of the integration tests
 	clusterName    string
@@ -28,6 +27,9 @@ var (
 
 func init() {
 	flag.StringVar(&eksctlPath, "eksctl.path", "../eksctl", "Path to eksctl")
+
+	flag.StringVar(&region, "eksctl.region", api.DefaultRegion, "Region to use for the tests")
+	flag.StringVar(&version, "eksctl.version", api.DefaultVersion, "Version of Kubernetes to test")
 
 	// Flags to help with the development of the integration tests
 	flag.StringVar(&clusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
