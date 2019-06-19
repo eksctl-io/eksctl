@@ -141,7 +141,7 @@ func (c *ClusterProvider) doListClusters(chunkSize int64, printer printers.Outpu
 				WaitTimeout: c.Provider.WaitTimeout(),
 			}
 			if err := New(spec, nil).doListClusters(chunkSize, printer, allClusters, false); err != nil {
-				return err
+				logger.Critical("error listing clusters in %q region: %s", region, err.Error())
 			}
 		}
 		return nil
