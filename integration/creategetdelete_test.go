@@ -82,7 +82,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
 			awsSession := aws.NewSession(region)
 
-			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, "1.12"))
+			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, version))
 
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
 			Expect(awsSession).To(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", clusterName, initNG)))
