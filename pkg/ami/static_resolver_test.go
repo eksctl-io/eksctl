@@ -88,8 +88,8 @@ var _ = Describe("AMI Static Resolution", func() {
 			ExpectedAMI:  "ami-0c93eb79d0fc48e9f",
 			ExpectError:  false,
 		}),
-		Entry("with gpu (p3) instance and non-existent region", ResolveCase{
-			Region:       "eu-east-1",
+		Entry("with gpu (p3) instance and non-eks enabled region", ResolveCase{
+			Region:       "ca-central-1",
 			Version:      "1.10",
 			InstanceType: "p3.2xlarge",
 			ImageFamily:  "AmazonLinux2",
