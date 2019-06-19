@@ -34,7 +34,7 @@ m="Tag ${v} release"
 
 git commit --message "${m}"
 
-git fetch --tags git@github.com:weaveworks/eksctl
+git fetch --force --tags git@github.com:weaveworks/eksctl
 
 git push git@github.com:weaveworks/eksctl master
 
