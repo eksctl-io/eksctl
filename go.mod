@@ -119,6 +119,7 @@ require (
 	k8s.io/apiserver v0.0.0-20190226174732-cf2f1d68202d // indirect
 	k8s.io/cli-runtime v0.0.0-20190226180714-082c0831af2b
 	k8s.io/client-go v0.0.0-20190226174127-78295b709ec6
+	k8s.io/code-generator v0.0.0-20190612205613-18da4a14b22b
 	k8s.io/csi-api v0.0.0-20190301175547-a37926bd2215 // indirect
 	k8s.io/kops v0.0.0-20190222135932-278e6606534e
 	k8s.io/kube-openapi v0.0.0-20181018171734-e494cc581111 // indirect
