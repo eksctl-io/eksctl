@@ -3,7 +3,7 @@ title: "Cluster Upgrades"
 weight: 30
 ---
 
-# Cluster upgrades
+## Cluster upgrades
 
 An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 
@@ -19,7 +19,7 @@ Please make sure to read this section in full before you proceed.
 
 > NOTE: Kubernetes supports version drift of up-to 2 minor versions during upgrade process.
 
-## Updating control plane version
+### Updating control plane version
 
 Control plane version updates must be done for one minor version at a time.
 
@@ -32,7 +32,7 @@ eksctl update cluster --name=<clusterName>
 This command will not apply any changes right away, you will need to re-run it with
 `--dry-run=false` to apply the changes.
 
-## Updating nodegroups
+### Updating nodegroups
 
 You should update nodegroups only after you ran `eksctl update cluster`.
 
@@ -61,7 +61,7 @@ eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 
 > NOTE: this will drain all pods from that nodegroup before the instances are deleted.
 
-### Updating multiple nodegroups
+#### Updating multiple nodegroups
 
 If you have multiple nodegroups, it's your responsibility to track how each one was configured.
 You can do this by using config files, but if you haven't used it already, you will need to inspect
@@ -84,7 +84,7 @@ To delete old nodegroup:
 eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 ```
 
-### Updating multiple nodegroups with config file
+#### Updating multiple nodegroups with config file
 
 If you are using config file, you will need to do the following.
 
@@ -107,7 +107,7 @@ eksctl delete nodegroup --config-file=<path> --only-missing
 > NOTE: first run is in plan mode, if you are happy with the proposed
 > changes, re-run with `--approve`.
 
-## Updating default add-ons
+### Updating default add-ons
 
 There are 3 default add-ons that get included in each EKS cluster, the process for updating each of them is different, hence
 there are 3 distinct commands that you will need to run.

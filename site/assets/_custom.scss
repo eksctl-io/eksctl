@@ -24,9 +24,16 @@ img[src$="#bgright"] {
   z-index: -1;
 }
 
-#code {
+#intro-code {
   text-align: center;
   line-height: 200px;
+}
+
+#border-block {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 2px;
+  border-color: #e5e5e5;
 }
 
 @media (max-width: 1060px) {
@@ -90,7 +97,7 @@ img[src$="#bgright"] {
     top: 420px;
     z-index: -1;
   }
-  #code {
+  #intro-code {
     text-align: center;
     font-size: 20px;
     line-height: 200px;

@@ -11,7 +11,7 @@ type: docs
 
 ![eksctl gopher](introduction/images/eksctl-gopher.png#bgright)
 
- <h2 id="code">**`eksctl create cluster`**</h2>
+ <h2 id="intro-code">**`eksctl create cluster`**</h2>
 
 A cluster will be created with default parameters
 
@@ -70,26 +70,30 @@ eksctl create cluster -f cluster.yaml
 
 to apply a `cluster.yaml` file:
 
+ <div id="border-block">
 ```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: basic-cluster
-  region: eu-north-1
+name: basic-cluster
+region: eu-north-1
 
 nodeGroups:
-  - name: ng-1
-    instanceType: m5.large
-    desiredCapacity: 10
-    ssh:
-      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
-  - name: ng-2
-    instanceType: m5.xlarge
-    desiredCapacity: 2
-    ssh:
-      publicKeyPath: ~/.ssh/ec2_id_rsa.pub
+
+- name: ng-1
+  instanceType: m5.large
+  desiredCapacity: 10
+  ssh:
+  allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+- name: ng-2
+  instanceType: m5.xlarge
+  desiredCapacity: 2
+  ssh:
+  publicKeyPath: ~/.ssh/ec2_id_rsa.pub
+
 ```
+</div>
 
 Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have `kubectl` v1.10.x as well as `aws-iam-authenticator` commands in your PATH, you should be
 able to use `kubectl`. You will need to make sure to use the same AWS API credentials for this also. Check [EKS docs][ekskubectl] for instructions. If you installed `eksctl` via Homebrew, you should have all of these dependencies installed already.
@@ -102,3 +106,4 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 > **_Logo Credits_**
 >
 > _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/)._
+```
