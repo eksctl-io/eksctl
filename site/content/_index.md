@@ -61,6 +61,7 @@ $ eksctl create cluster
 ```
 
 _Need help? Join [Weave Community Slack][slackjoin]._
+[slackjoin]: https://slack.weave.works/
 
 Customize your cluster by using a config file. Just run
 

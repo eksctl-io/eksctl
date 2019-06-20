@@ -6,6 +6,7 @@ weight: 10
 ## Getting started
 
 _Need help? Join [Weave Community Slack][slackjoin]._
+[slackjoin]: https://slack.weave.works/
 
 To list the details about a cluster or all of the clusters, use:
 
