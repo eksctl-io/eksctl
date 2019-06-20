@@ -10,11 +10,11 @@ else
   OSARCH="linux-amd64"
 fi
 
-go install ./vendor/github.com/jteeuwen/go-bindata/go-bindata
-go install ./vendor/github.com/weaveworks/github-release
-go install ./vendor/golang.org/x/tools/cmd/stringer
-go install ./vendor/github.com/mattn/goveralls
-go install ./vendor/github.com/vektra/mockery/cmd/mockery
+go install github.com/jteeuwen/go-bindata/go-bindata
+go install github.com/weaveworks/github-release
+go install golang.org/x/tools/cmd/stringer
+go install github.com/mattn/goveralls
+go install github.com/vektra/mockery/cmd/mockery
 
 # Install metalinter
 # Managing all linters that gometalinter uses with dep is going to take
