@@ -16,6 +16,7 @@ go install golang.org/x/tools/cmd/stringer
 go install github.com/mattn/goveralls
 go install github.com/vektra/mockery/cmd/mockery
 
+
 # Install metalinter
 # Managing all linters that gometalinter uses with dep is going to take
 # a lot of work, so we install all of those from the release tarball

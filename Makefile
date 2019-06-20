@@ -117,7 +117,9 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 .PHONY: generate
 generate: ## Generate code
 	@chmod g-w  ./pkg/nodebootstrap/assets/*
-	@go generate ./pkg/nodebootstrap ./pkg/eks/mocks ./pkg/addons/default
+	@mkdir -p vendor/github.com/aws/
+	@ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.19.18" vendor/github.com/aws/aws-sdk-go
+	@env GOBIN=$(GOBIN) go generate ./pkg/nodebootstrap ./pkg/eks/mocks ./pkg/addons/default
 
 .PHONY: generate-ami
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.

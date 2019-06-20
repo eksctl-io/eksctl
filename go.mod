@@ -15,7 +15,7 @@ require (
 	github.com/coreos/go-semver v0.2.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
-	github.com/davecgh/go-spew v1.1.0 // indirect
+	github.com/dave/jennifer v1.3.0
 	github.com/denverdino/aliyungo v0.0.0-20181011130441-a0026e2d173d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dlespiau/kube-test-harness v0.0.0-20190110151726-c51c87635b61
@@ -69,7 +69,6 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/pkg/sftp v1.8.3 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v0.9.0-pre1 // indirect
 	github.com/prometheus/client_model v0.0.0-20171117100541-99fa1f4be8e5 // indirect
 	github.com/prometheus/common v0.0.0-20180518154759-7600349dcfe1 // indirect
@@ -83,14 +82,14 @@ require (
 	github.com/spf13/cobra v0.0.0-20180531180338-1e58aa3361fd
 	github.com/spf13/pflag v1.0.3
 	github.com/spotinst/spotinst-sdk-go v0.0.0-20181012192533-fed4677dbf8f // indirect
-	github.com/stretchr/objx v0.1.1 // indirect
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/stretchr/testify v1.3.0
 	github.com/tidwall/gjson v1.1.3
 	github.com/tidwall/match v1.0.0 // indirect
 	github.com/tidwall/sjson v1.0.2
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5 // indirect
 	github.com/ugorji/go v1.1.1 // indirect
-	github.com/vektra/mockery v0.0.0-20180425233116-2a9162cbfb7a
+	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/vmware/govmomi v0.19.0 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	github.com/weaveworks/github-release v0.6.2

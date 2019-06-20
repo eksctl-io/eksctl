@@ -5,48 +5,17 @@
 .goreleaser.brew.combined.yml
 
 # Locally built binaries
-/eksctl
-/eksctl-integration-test
+eksctl
+eksctl-integration-test
 
-# Bad deps
-vendor/k8s.io/kops/docs
-vendor/github.com/docker/docker/hack
-
-# Exclude symlinks, as those break github pages build
-# find vendor build/vendor  -type l
-vendor/k8s.io/kubernetes/cluster/gce/cos
-vendor/k8s.io/kubernetes/cluster/gce/custom
-vendor/k8s.io/kubernetes/cluster/gce/ubuntu
-vendor/k8s.io/kubernetes/cluster/juju/layers/kubernetes-master/actions/namespace-delete
-vendor/k8s.io/kubernetes/cluster/juju/layers/kubernetes-master/actions/namespace-list
-vendor/k8s.io/kubernetes/Makefile
-vendor/k8s.io/kubernetes/WORKSPACE
-vendor/k8s.io/kubernetes/BUILD.bazel
-vendor/k8s.io/kubernetes/.bazelrc
-vendor/k8s.io/kubernetes/.kazelcfg.json
-vendor/k8s.io/kubernetes/Makefile.generated_files
-vendor/k8s.io/kops/docs/apireference/build/node_modules/.bin/marked
-vendor/k8s.io/kops/docs/apireference/build/node_modules/.bin/static
-vendor/k8s.io/kops/docs/apireference/build/node_modules/.bin/mime
-vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.docker.init
-vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.docker.upstart
-vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.udev
-vendor/github.com/docker/docker/hack/make/.build-deb/docker-engine.docker.default
-vendor/github.com/docker/docker/project/CONTRIBUTORS.md
-vendor/github.com/coreos/etcd/cmd/tools
-vendor/github.com/coreos/etcd/cmd/etcdctl
-vendor/github.com/coreos/etcd/cmd/etcd
-vendor/github.com/coreos/etcd/cmd/functional
-vendor/github.com/coreos/etcd/Documentation/README.md
-build/vendor/github.com/jteeuwen/go-bindata/testdata/symlinkRecursiveParent/symlinkTarget
-build/vendor/github.com/jteeuwen/go-bindata/testdata/symlinkFile/file1
-build/vendor/github.com/jteeuwen/go-bindata/testdata/symlinkParent/symlinkTarget
+# Phony directory used to generate mocks
+vendor
 
 # Jekyll
 _site
 
 # Hugo site
-site/resources/_gen/
+site/resources/_gen
 
 # Do not add temporary files here
 # use ~/.config/git/ignore instead
@@ -55,7 +24,7 @@ site/resources/_gen/
 coverage.out
 
 # Test results
-test-results/
+test-results
 
 integration/kubeconfig-*
 
