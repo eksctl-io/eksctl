@@ -23,6 +23,7 @@ require (
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/evanphx/json-patch v4.1.0+incompatible
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/go-ini/ini v1.37.0 // indirect
@@ -45,6 +46,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
+	github.com/jteeuwen/go-bindata v3.0.8-0.20180305030458-6025e8de665b+incompatible
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
@@ -54,6 +56,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect
+	github.com/mattn/goveralls v0.0.2
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/miekg/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/miekg/dns v0.0.0-20160614162101-5d001d020961 // indirect
@@ -89,6 +92,8 @@ require (
 	github.com/ugorji/go v1.1.1 // indirect
 	github.com/vektra/mockery v0.0.0-20180425233116-2a9162cbfb7a
 	github.com/vmware/govmomi v0.19.0 // indirect
+	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
+	github.com/weaveworks/github-release v0.6.2
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
@@ -97,6 +102,7 @@ require (
 	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20181017192945-9dcd33a902f4 // indirect
 	golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2 // indirect
+	golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
 	google.golang.org/api v0.0.0-20181019000435-7fb5a8353b60 // indirect
 	google.golang.org/appengine v1.2.0 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
