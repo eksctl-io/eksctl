@@ -32,7 +32,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		testNG = "ng-1"
 	)
 
-	commonTimeout := 5 * time.Minute
+	commonTimeout := 10 * time.Minute
 
 	BeforeSuite(func() {
 		kubeconfigTemp = false
