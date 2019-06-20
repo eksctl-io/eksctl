@@ -38,7 +38,7 @@ git fetch --force --tags git@github.com:weaveworks/eksctl
 
 git push git@github.com:weaveworks/eksctl master
 
+git tag --annotate --message "${m}" --force "latest_release"
 git tag --annotate --message "${m}" "${v}"
-git tag --annotate --message "${m}" --force "latest_release" "${v}"
 
 git push --force --tags git@github.com:weaveworks/eksctl
