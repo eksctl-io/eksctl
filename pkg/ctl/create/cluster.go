@@ -85,26 +85,26 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 	})
 }
 
-func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams) error {
+func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 	ngFilter.ExcludeAll = params.withoutNodeGroup
 
-	cfg := resc.ClusterConfig
-	meta := resc.ClusterConfig.Metadata
-
-	if err := cmdutils.NewCreateClusterLoader(resc, ngFilter).Load(); err != nil {
+	if err := cmdutils.NewCreateClusterLoader(rc, ngFilter).Load(); err != nil {
 		return err
 	}
+
+	cfg := rc.ClusterConfig
+	meta := rc.ClusterConfig.Metadata
 
 	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
 		return err
 	}
 
 	printer := printers.NewJSONPrinter()
-	ctl := eks.New(resc.ProviderConfig, cfg)
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(resc.ProviderConfig)
+		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -180,7 +180,7 @@ func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams)
 			if len(params.availabilityZones) != 0 {
 				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
 			}
-			if resc.Command.Flag("vpc-cidr").Changed {
+			if rc.Command.Flag("vpc-cidr").Changed {
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 			}
 
@@ -188,7 +188,7 @@ func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams)
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
 
-			kw, err := kops.NewWrapper(resc.ProviderConfig.Region, params.kopsClusterNameForVPC)
+			kw, err := kops.NewWrapper(rc.ProviderConfig.Region, params.kopsClusterNameForVPC)
 			if err != nil {
 				return err
 			}
@@ -211,7 +211,7 @@ func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams)
 		if len(params.availabilityZones) != 0 {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
 		}
-		if resc.Command.Flag("vpc-cidr").Changed {
+		if rc.Command.Flag("vpc-cidr").Changed {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 		}
 
@@ -274,7 +274,7 @@ func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams)
 	{ // core action
 		ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
 		stackManager := ctl.NewStackManager(cfg)
-		if ngCount := ngSubset.Len(); ngCount == 1 && resc.ClusterConfigFile == "" {
+		if ngCount := ngSubset.Len(); ngCount == 1 && rc.ClusterConfigFile == "" {
 			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		} else {
 			ngFilter.LogInfo(cfg.NodeGroups)
@@ -354,7 +354,7 @@ func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams)
 			// --storage-class flag is only for backwards compatibility,
 			// we always create the storage class when --config-file is
 			// used, as this is 1.10-only
-			if params.addonsStorageClass || resc.ClusterConfigFile != "" {
+			if params.addonsStorageClass || rc.ClusterConfigFile != "" {
 				if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
 					return err
 				}
