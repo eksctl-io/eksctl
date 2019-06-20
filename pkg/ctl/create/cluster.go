@@ -89,12 +89,12 @@ func doCreateCluster(resc *cmdutils.ResourceCmd, params *createClusterCmdParams)
 	ngFilter := cmdutils.NewNodeGroupFilter()
 	ngFilter.ExcludeAll = params.withoutNodeGroup
 
-	cfg := resc.ClusterConfig
-	meta := resc.ClusterConfig.Metadata
-
 	if err := cmdutils.NewCreateClusterLoader(resc, ngFilter).Load(); err != nil {
 		return err
 	}
+
+	cfg := resc.ClusterConfig
+	meta := resc.ClusterConfig.Metadata
 
 	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
 		return err
