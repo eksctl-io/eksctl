@@ -10,10 +10,6 @@ else
   OSARCH="linux-amd64"
 fi
 
-curl --silent --location "https://github.com/golang/dep/releases/download/v0.5.0/dep-${OSARCH}" --output "${GOBIN}/dep"
-chmod +x "${GOBIN}/dep"
-dep ensure
-
 go install ./vendor/github.com/jteeuwen/go-bindata/go-bindata
 go install ./vendor/github.com/weaveworks/github-release
 go install ./vendor/golang.org/x/tools/cmd/stringer
