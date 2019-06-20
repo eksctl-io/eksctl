@@ -444,6 +444,9 @@ type NodeGroup struct {
 
 	// +optional
 	ClusterDNS string `json:"clusterDNS,omitempty"`
+
+	// +optional
+	KubeletExtraConfig *NodeGroupKubeletConfig `json:"kubeletExtraConfig,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -528,6 +531,9 @@ type (
 		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
 	}
 )
+
+// NodeGroupKubeletConfig contains extra config parameters for the kubelet.yaml
+type NodeGroupKubeletConfig map[string]interface{}
 
 // HasMixedInstances checks if a nodegroup has mixed instances option declared
 func HasMixedInstances(ng *NodeGroup) bool {

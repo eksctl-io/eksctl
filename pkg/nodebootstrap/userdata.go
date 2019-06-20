@@ -109,12 +109,19 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 	// use a map here, as using struct will require us to add defaulting etc,
 	// and we only need to add a few top-level fields
 	obj := map[string]interface{}{}
-	if err := yaml.Unmarshal(data, &obj); err != nil {
+	if err := yaml.UnmarshalStrict(data, &obj); err != nil {
 		return nil, err
 	}
 
 	obj["clusterDNS"] = []string{
 		clusterDNS(spec, ng),
+	}
+
+	// Add extra configuration from configfile
+	if ng.KubeletExtraConfig != nil {
+		for k, v := range *ng.KubeletExtraConfig {
+			obj[k] = v
+		}
 	}
 
 	data, err = yaml.Marshal(obj)
@@ -123,7 +130,7 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 	}
 
 	// validate if data can be decoded as KubeletConfiguration
-	if err := yaml.Unmarshal(data, &kubeletapi.KubeletConfiguration{}); err != nil {
+	if err := yaml.UnmarshalStrict(data, &kubeletapi.KubeletConfiguration{}); err != nil {
 		return nil, errors.Wrap(err, "validating generated KubeletConfiguration object")
 	}
 
