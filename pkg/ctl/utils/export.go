@@ -8,13 +8,11 @@ import (
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha4"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -23,65 +21,59 @@ var (
 	exportDir        string
 	offline          bool
 	withoutNodeGroup bool
+	output           string
 )
 
-func exportCmd(g *cmdutils.Grouping) *cobra.Command {
-	p := &api.ProviderConfig{}
+func exportCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
+	rc.ClusterConfig = cfg
 
-	cmd := &cobra.Command{
-		Use:   "export",
-		Short: "Export CloudFormation stacks for a given cluster",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := doExport(p, cfg, cmdutils.GetNameArg(args), cmd); err != nil {
-				logger.Critical("%s\n", err.Error())
-				os.Exit(1)
-			}
-		},
-	}
+	rc.SetDescription("export", "Export CloudFormation stacks for a given cluster", "")
 
-	group := g.New(cmd)
+	rc.SetRunFuncWithNameArg(func() error {
+		return doExport(rc)
+	})
 
 	exampleClusterName := cmdutils.ClusterName("", "")
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
 
-	group.InFlagSet("General", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 		fs.StringVarP(&output, "output", "o", "yaml", "specifies the output format (valid option: json, yaml)")
 		fs.StringVar(&exportDir, "dir", defaultExportDir(), "the directory to save exported files into")
 		fs.BoolVar(&offline, "offline", offline, "disable AWS EC2 AMI lookup and other AWS API interactions")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
-		cmdutils.AddRegionFlag(fs, p)
-		cmdutils.AddConfigFileFlag(&clusterConfigFile, fs)
+		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
-	group.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVar(&ng.Name, "nodegroup-name", "", fmt.Sprintf("name of the nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
 		fs.BoolVar(&withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(group, p, true)
-
-	group.AddTo(cmd)
-
-	return cmd
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 }
 
-func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd *cobra.Command) error {
+func doExport(rc *cmdutils.ResourceCmd) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 	ngFilter.ExcludeAll = withoutNodeGroup
 
-	if err := cmdutils.NewCreateClusterLoader(p, cfg, clusterConfigFile, nameArg, cmd, ngFilter).Load(); err != nil {
+	// TODO: this should have a custom loader
+
+	if err := cmdutils.NewCreateClusterLoader(rc, ngFilter).Load(); err != nil {
 		return err
 	}
+
+	cfg := rc.ClusterConfig
+	meta := rc.ClusterConfig.Metadata
+
+	ctl := eks.New(rc.ProviderConfig, cfg)
 
 	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
 		return err
 	}
-
-	meta := cfg.Metadata
-	ctl := eks.New(p, cfg)
 
 	if !offline {
 		if err := ctl.CheckAuth(); err != nil {
@@ -92,7 +84,7 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 	}
 
 	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(p)
+		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
 	logger.Info("using region %s", meta.Region)
 
@@ -116,7 +108,7 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 
 	// VPC and subnets
 	createOrImportVPC := func() error {
-
+		// TODO: should be possible to simplify this
 		subnetInfo := func() string {
 			return fmt.Sprintf("VPC (%s) and subnets (private:%v public:%v)",
 				cfg.VPC.ID, cfg.PrivateSubnetIDs(), cfg.PublicSubnetIDs())
@@ -132,9 +124,10 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 		}
 
 		if !cfg.HasAnySubnets() {
-			if len(cfg.AvailabilityZones) == 0 {
-				cfg.AvailabilityZones = api.DefaultAvailabilityZones
-			}
+			// TODO: handle AZs properly (offline and not)
+			// if len(cfg.AvailabilityZones) == 0 {
+			// 	cfg.AvailabilityZones = api.DefaultAvailabilityZones
+			// }
 
 			if err := vpc.SetSubnets(cfg); err != nil {
 				return err
@@ -170,12 +163,22 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 
 	// Finalize node groups configuration
 	err := ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
-		// default override user data
-		if ng.OverrideUserData == nil {
-			logger.Info("setting default user data override")
-			ng.OverrideUserData = nodebootstrap.DefaultOverrideUserData(ng)
+		// prepend bootstrap commands for cluster discovery
+		{
+			commonFlags := fmt.Sprintf("--region=%s --name=%s", meta.Region, meta.Name)
+
+			ng.PreBootstrapCommands = append(ng.PreBootstrapCommands, "aws eks wait cluster-active "+commonFlags)
+
+			describeCluster := "aws eks describe-cluster --output=text " + commonFlags
+
+			ng.PreBootstrapCommands = append(ng.PreBootstrapCommands, describeCluster+" --query=cluster.certificateAuthority.data | base64 -d > /etc/eksctl/ca.crt")
+
+			ng.PreBootstrapCommands = append(ng.PreBootstrapCommands, fmt.Sprintf(
+				"kubectl --kubeconfig=/etc/eksctl/kubeconfig.yaml config set-cluster %s.%s.eksctl.io --server=\"$(%s --query=cluster.endpoint)\"",
+				meta.Name, meta.Region, describeCluster))
 		}
 
+		// TODO: make sure SSH keys are handled correctly offline and not
 		// resolve AMI
 		if !offline {
 			if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
@@ -230,6 +233,8 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 		return err
 	}
 
+	// TODO: document steps one should use to deploy stacks, include auth configmap
+
 	for name, template := range templates {
 		if err := saveObj(printer, name, template); err != nil {
 			return err
@@ -240,10 +245,11 @@ func doExport(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg string, cmd
 }
 
 func defaultExportDir() string {
-	return filepath.Join(".", "export")
+	return filepath.Join(".", "export") // TODO: name it by cluster name
 }
 
 func ensureDir(path string) error {
+	// TODO: should consider creating a tarball instead, so we are clear what we exporting is all there is
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return os.MkdirAll(path, os.ModePerm)

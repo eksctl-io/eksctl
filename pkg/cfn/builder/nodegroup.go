@@ -53,10 +53,11 @@ func (n *NodeGroupResourceSet) AddAllResources() (err error) {
 
 	n.vpc = makeImportValue(n.clusterStackName, outputs.ClusterVPC)
 
-	n.userData, err = nodebootstrap.NewUserData(n.clusterSpec, n.spec)
+	userData, err := nodebootstrap.NewUserData(n.clusterSpec, n.spec)
 	if err != nil {
 		return err
 	}
+	n.userData = gfn.NewString(userData)
 
 	// Ensure MinSize is set, as it is required by the ASG cfn resource
 	if n.spec.MinSize == nil {

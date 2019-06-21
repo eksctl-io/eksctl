@@ -15,10 +15,6 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 		return nil, err
 	}
 
-	if len(spec.Status.CertificateAuthorityData) == 0 {
-		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
-	}
-
 	kubeletConfigData, err := makeKubeletConfigYAML(spec, ng)
 	if err != nil {
 		return nil, err
@@ -29,14 +25,17 @@ func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configF
 			"10-eksclt.al2.conf": {isAsset: true},
 		},
 		configDir: {
-			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
-			"kubelet.env":  {content: strings.Join(makeCommonKubeletEnvParams(spec, ng), "\n")},
-			"kubelet.yaml": {content: string(kubeletConfigData)},
-			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
+			"metadata.env":    {content: strings.Join(makeMetadata(spec), "\n")},
+			"kubelet.env":     {content: strings.Join(makeCommonKubeletEnvParams(spec, ng), "\n")},
+			"kubelet.yaml":    {content: string(kubeletConfigData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
 			"max_pods.map":    {content: makeMaxPodsMapping()},
 		},
+	}
+
+	if len(spec.Status.CertificateAuthorityData) != 0 {
+		// TODO: https://github.com/weaveworks/eksctl/issues/161
+		files[configDir]["ca.crt"] = configFile{content: string(spec.Status.CertificateAuthorityData)}
 	}
 
 	return files, nil

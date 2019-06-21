@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -176,11 +175,7 @@ func makeMaxPodsMapping() string {
 }
 
 // NewUserData creates new user data for a given node image family
-func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (*gfn.Value, error) {
-	if ng.OverrideUserData != nil {
-		return NewOverrideUserData(*ng.OverrideUserData), nil
-	}
-
+func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	var userData string
 	var err error
 	switch ng.AMIFamily {
@@ -193,17 +188,7 @@ func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (*gfn.Value, error)
 		logger.Critical("can't get user data", err)
 	}
 
-	return gfn.NewString(userData), err
-}
-
-// NewOverrideUserData creates new user data from NodeGroup.OverrideUserData
-func NewOverrideUserData(userData string) *gfn.Value {
-	return gfn.MakeIntrinsic(
-		gfn.FnBase64,
-		gfn.MakeFnSub(
-			gfn.NewString(userData),
-		),
-	)
+	return userData, err
 }
 
 // DefaultOverrideUserData provides canned default override user data
