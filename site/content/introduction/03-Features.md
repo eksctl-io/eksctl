@@ -10,7 +10,7 @@ The features that are currently implemented are:
 - Create cluster
 - Get cluster
 - Cluster management
-- Autoscaling
+- Auto Scaling
 - Custom AMI support
 - VPC Networking
 - GPU Support

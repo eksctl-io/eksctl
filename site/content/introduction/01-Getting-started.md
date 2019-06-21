@@ -24,7 +24,7 @@ eksctl create cluster --name=cluster-1 --nodes=4
 
 ```
 
-EKS supports versions `1.10`, `1.11` and `1.12` (default), with `eksctl` you can deploy either version by passing `--version`.
+EKS supports versions `1.10`, `1.11` and `1.12` (default), with `eksctl` you can deploy any of these versions by passing `--version`.
 
 ```
 
@@ -80,7 +80,7 @@ eksctl create cluster --name=cluster-5 --nodes-min=3 --nodes-max=5
 
 ```
 
-> NOTE: You will still need to install and configure autoscaling. See the "Enable Autoscaling" section below. Also note that depending on your workloads you might need to use a separate nodegroup for each AZ. See [Zone-aware Autoscaling](#zone-aware-autoscaling) below for more info.
+> NOTE: You will still need to install and configure Auto Scaling. See the "Enable Auto Scaling" section below. Also note that depending on your workloads you might need to use a separate nodegroup for each AZ. See [Zone-aware Auto Scaling](#zone-aware-Auto Scaling) below for more info.
 
 To use 30 `c4.xlarge` nodes and prevent updating current context in `~/.kube/config`, run:
 

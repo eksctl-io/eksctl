@@ -8,7 +8,7 @@ You can create a cluster in minutes with just one command – **`eksctl create c
 
 ![Gophers: E, K, S, C, T, & L](logo/eksctl.png)
 
-*Need help? Join [Weave Community Slack][slackjoin].*
+_Need help? Join [Weave Community Slack][slackjoin]._
 
 ## Usage
 
@@ -20,12 +20,14 @@ sudo mv /tmp/eksctl /usr/local/bin
 ```
 
 Alternatively, macOS users can use [Homebrew](https://brew.sh):
+
 ```
 brew tap weaveworks/tap
 brew install weaveworks/tap/eksctl
 ```
 
 and Windows users can use [chocolatey](https://chocolatey.org):
+
 ```
 chocolatey install eksctl
 ```
@@ -43,6 +45,7 @@ eksctl create cluster
 ```
 
 A cluster will be created with default parameters
+
 - exciting auto-generated name, e.g. "fabulous-mushroom-1527688624"
 - 2x `m5.large` nodes (this instance type suits most common use-cases, and is good value for money)
 - use official AWS EKS AMI
@@ -56,6 +59,7 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 
 Example output:
+
 ```
 $ eksctl create cluster
 [ℹ]  using region us-west-2
@@ -100,14 +104,13 @@ To create the same kind of basic cluster, but with a different name, run:
 eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
-EKS supports versions `1.10`, `1.11`, `1.12` (default) and `1.13`.
-With `eksctl` you can deploy either version by passing `--version`.
+EKS supports versions `1.10`, `1.11` and `1.12` (default), with `eksctl` you can deploy either version by passing `--version`.
 
 ```
 eksctl create cluster --version=1.10
 ```
 
-A default [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/) (gp2 volume type provisioned by EBS) will be added automatically when creating a cluster.  If you want to prevent this, use the `--storage-class` flag.  For example:
+A default [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/) (gp2 volume type provisioned by EBS) will be added automatically when creating a cluster. If you want to prevent this, use the `--storage-class` flag. For example:
 
 ```
 eksctl create cluster --storage-class=false
@@ -143,14 +146,13 @@ To use a 3-5 node Auto Scaling Group, run:
 eksctl create cluster --name=cluster-5 --nodes-min=3 --nodes-max=5
 ```
 
-> NOTE: You will still need to install and configure autoscaling. See the "Enable Autoscaling" section below. Also note that depending on your workloads you might need to use a separate nodegroup for each AZ. See [Zone-aware Autoscaling](#zone-aware-autoscaling) below for more info.
+> NOTE: You will still need to install and configure Auto Scaling. See the "Enable Auto Scaling" section below. Also note that depending on your workloads you might need to use a separate nodegroup for each AZ. See [Zone-aware Auto Scaling](#zone-aware-autoscaling) below for more info.
 
 To use 30 `c4.xlarge` nodes and prevent updating current context in `~/.kube/config`, run:
 
 ```
 eksctl create cluster --name=cluster-6 --nodes=30 --node-type=c4.xlarge --set-kubeconfig-context=false
 ```
-
 
 In order to allow SSH access to nodes, `eksctl` imports `~/.ssh/id_rsa.pub` by default, to use a different SSH public key, e.g. `my_eks_node_id.pub`, run:
 
@@ -199,8 +201,8 @@ To delete a cluster, run:
 ```
 eksctl delete cluster --name=<name> [--region=<region>]
 ```
-> NOTE: Cluster info will be cleaned up in kubernetes config file. Please run `kubectl config get-contexts` to select right context.
 
+> NOTE: Cluster info will be cleaned up in kubernetes config file. Please run `kubectl config get-contexts` to select right context.
 
 ### Managing nodegroups
 
@@ -259,18 +261,22 @@ eksctl create nodegroup --cluster=cluster-1 --node-labels="autoscaling=enabled,p
 ```
 
 To delete a nodegroup, run:
+
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
+
 > NOTE: this will drain all pods from that nodegroup before the instances are deleted.
 
 All nodes are cordoned and all pods are evicted from a nodegroup on deletion,
 but if you need to drain a nodegroup without deleting it, run:
+
 ```
 eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
 
 To uncordon a nodegroup, run:
+
 ```
 eksctl drain nodegroup --cluster=<clusterName> --name=<nodegroupName> --undo
 ```
@@ -295,6 +301,7 @@ Please make sure to read this section in full before you proceed.
 Control plane version updates must be done for one minor version at a time.
 
 To update control plane to the next available version run:
+
 ```
 eksctl update cluster --name=<clusterName>
 ```
@@ -310,20 +317,25 @@ If you have a simple cluster with just an initial nodegroup (i.e. created with
 `eksctl create cluster`), the process is very simple.
 
 Get the name of old nodegroup:
+
 ```
 eksctl get nodegroups --cluster=<clusterName>
 ```
+
 > NOTE: you should see only one nodegroup here, if you see more - read the next section
 
 Create new nodegroup:
+
 ```
 eksctl create nodegroup --cluster=<clusterName>
 ```
 
 Delete old nodegroup:
+
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 ```
+
 > NOTE: this will drain all pods from that nodegroup before the instances are deleted.
 
 ##### Updating multiple nodegroups
@@ -333,15 +345,18 @@ You can do this by using config files, but if you haven't used it already, you w
 your cluster to find out how each nodegroup was configured.
 
 In general terms, you are looking to:
+
 - review nodegroups you have and which ones can be deleted or must be replaced for the new version
 - note down configuration of each nodegroup, consider using config file to ease upgrades next time
 
 To create a new nodegroup:
+
 ```
 eksctl create nodegroup --cluster=<clusterName> --name=<newNodeGroupName>
 ```
 
 To delete old nodegroup:
+
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 ```
@@ -355,14 +370,17 @@ If you just want to update nodegroups and keep the same configuration,
 you can just change nodegroup names, e.g. append `-v2` to the name.
 
 To create all of new nodegroups defined in the config file, run:
+
 ```
 eksctl create nodegroup --config-file=<path>
 ```
 
 Once you have new nodegroups in place, you can delete old ones:
+
 ```
 eksctl delete nodegroup --config-file=<path> --only-missing
 ```
+
 > NOTE: first run is in plan mode, if you are happy with the proposed
 > changes, re-run with `--approve`.
 
@@ -377,28 +395,33 @@ there are 3 distinct commands that you will need to run.
 > if you are happy with the proposed changes, re-run with `--approve`.
 
 To update `kube-proxy`, run:
+
 ```
 eksctl utils update-kube-proxy
 ```
 
 To update `aws-node`, run:
+
 ```
 eksctl utils update-aws-node
 ```
 
 If you have upgraded from 1.10 to 1.11, you will need to replace `kube-dns` with `coredns`.
 To do that, run:
+
 ```
 eksctl utils install-coredns
 ```
 
 If you have upgraded from 1.11 to 1.12, run:
+
 ```
 eksctl utils update-coredns
 ```
 
 Once upgraded, be sure to run `kubectl get pods -n kube-system` and check if all addon pods are in ready state, you should see
 something like this:
+
 ```
 NAME                       READY   STATUS    RESTARTS   AGE
 aws-node-g5ghn             1/1     Running   0          2m
@@ -409,7 +432,7 @@ kube-proxy-djkp7           1/1     Running   0          3m
 kube-proxy-mpdsp           1/1     Running   0          3m
 ```
 
-### Enable Autoscaling
+### Enable Auto Scaling
 
 You can create a cluster (or nodegroup in an existing cluster) with IAM role that will allow use of [cluster autoscaler][]:
 
@@ -422,9 +445,9 @@ and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery shoul
 
 [cluster autoscaler]: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 
-#### Zone-aware Autoscaling
+#### Zone-aware Auto Scaling
 
-If your workloads are zone-specific you'll need to create separate nodegroups for each zone.  This is because the `cluster-autoscaler` assumes that all nodes in a group are exactly equivalent.  So, for example, if a scale-up event is triggered by a pod which needs a zone-specific PVC (e.g. an EBS volume), the new node might get scheduled in the wrong AZ and the pod will fail to start.
+If your workloads are zone-specific you'll need to create separate nodegroups for each zone. This is because the `cluster-autoscaler` assumes that all nodes in a group are exactly equivalent. So, for example, if a scale-up event is triggered by a pod which needs a zone-specific PVC (e.g. an EBS volume), the new node might get scheduled in the wrong AZ and the pod will fail to start.
 
 You won't need a separate nodegroup for each AZ if your environment meets the following criteria:
 
@@ -435,7 +458,7 @@ You won't need a separate nodegroup for each AZ if your environment meets the fo
 
 (Read more [here](https://github.com/kubernetes/autoscaler/pull/1802#issuecomment-474295002) and [here](https://github.com/weaveworks/eksctl/pull/647#issuecomment-474698054).)
 
-If you meet all of the above requirements (and possibly others) then you should be safe with a single nodegroup which spans multiple AZs.  Otherwise you'll want to create separate, single-AZ nodegroups:
+If you meet all of the above requirements (and possibly others) then you should be safe with a single nodegroup which spans multiple AZs. Otherwise you'll want to create separate, single-AZ nodegroups:
 
 BEFORE:
 
@@ -564,6 +587,7 @@ eksctl create cluster \
 You can create a cluster using a config file instead of flags.
 
 First, create `cluster.yaml` file:
+
 ```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -582,10 +606,11 @@ nodeGroups:
     instanceType: m5.xlarge
     desiredCapacity: 2
     ssh:
-      publicKeyPath:  ~/.ssh/ec2_id_rsa.pub
+      publicKeyPath: ~/.ssh/ec2_id_rsa.pub
 ```
 
 Next, run this command:
+
 ```
 eksctl create cluster -f cluster.yaml
 ```
@@ -593,6 +618,7 @@ eksctl create cluster -f cluster.yaml
 This will create a cluster as described.
 
 If you needed to use an existing VPC, you can use a config file like this:
+
 ```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -604,18 +630,18 @@ metadata:
 vpc:
   subnets:
     private:
-      eu-north-1a: {id: subnet-0ff156e0c4a6d300c}
-      eu-north-1b: {id: subnet-0549cdab573695c03}
-      eu-north-1c: {id: subnet-0426fb4a607393184}
+      eu-north-1a: { id: subnet-0ff156e0c4a6d300c }
+      eu-north-1b: { id: subnet-0549cdab573695c03 }
+      eu-north-1c: { id: subnet-0426fb4a607393184 }
 
 nodeGroups:
   - name: ng-1-workers
-    labels: {role: workers}
+    labels: { role: workers }
     instanceType: m5.xlarge
     desiredCapacity: 10
     privateNetworking: true
   - name: ng-2-builders
-    labels: {role: builders}
+    labels: { role: builders }
     instanceType: m5.2xlarge
     desiredCapacity: 2
     privateNetworking: true
@@ -625,10 +651,10 @@ nodeGroups:
 ```
 
 To delete this cluster, run:
+
 ```
 eksctl delete cluster -f cluster.yaml
 ```
-
 
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
 
@@ -650,7 +676,7 @@ Once the cluster is created you will need to install the [NVIDIA Kubernetes devi
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
 ```
 
-> NOTE: Once `addon` support has been added as part of 0.2.0 it is envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
+> NOTE: Once `addon` support has been added as part of 0.2.0 it is envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin. This addon could potentially be installed automatically as we know an GPU instance type is being used.
 
 ### Latest & Custom AMI Support
 
@@ -658,10 +684,10 @@ With the 0.1.2 release we have introduced the `--node-ami` flag for use when cre
 
 The `--node-ami` can take the AMI image id for an image to explicitly use. It also can take the following 'special' keywords:
 
-| Keyword | Description |
-| ------------ | -------------- |
-| static       | Indicates that the AMI images ids embedded into `eksctl` should be used. This relates to the static resolvers. |
-| auto        | Indicates that the AMI to use for the nodes should be found by querying AWS. This relates to the auto resolver. |
+| Keyword | Description                                                                                                     |
+| ------- | --------------------------------------------------------------------------------------------------------------- |
+| static  | Indicates that the AMI images ids embedded into `eksctl` should be used. This relates to the static resolvers.  |
+| auto    | Indicates that the AMI to use for the nodes should be found by querying AWS. This relates to the auto resolver. |
 
 If, for example, AWS release a new version of the EKS node AMIs and a new version of `eksctl` hasn't been released you can use the latest AMI by doing the following:
 
@@ -673,10 +699,10 @@ With the 0.1.9 release we have introduced the `--node-ami-family` flag for use w
 
 The `--node-ami-family` can take following keywords:
 
-| Keyword | Description |
-| --- | --- |
-| AmazonLinux2 | Indicates that the EKS AMI image based on Amazon Linux 2 should be used. (default)|
-| Ubuntu1804 | Indicates that the EKS AMI image based on Ubuntu 18.04 should be used. |
+| Keyword      | Description                                                                        |
+| ------------ | ---------------------------------------------------------------------------------- |
+| AmazonLinux2 | Indicates that the EKS AMI image based on Amazon Linux 2 should be used. (default) |
+| Ubuntu1804   | Indicates that the EKS AMI image based on Ubuntu 18.04 should be used.             |
 
 <!-- TODO for 0.3.0
 To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
@@ -689,32 +715,38 @@ eksctl apply --cluster-config advanced-cluster.yaml
 ### Shell Completion
 
 To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.profile`:
+
 ```
 . <(eksctl completion bash)
 ```
 
 If you are stuck on Bash 3 (macOS) use
+
 ```
 source /dev/stdin <<<"$(eksctl completion bash)"
 ```
 
 Or for zsh, run:
+
 ```
 mkdir -p ~/.zsh/completion/
 eksctl completion zsh > ~/.zsh/completion/_eksctl
 ```
+
 and put the following in `~/.zshrc`:
+
 ```
 fpath=($fpath ~/.zsh/completion)
 ```
+
 Note if you're not running a distribution like oh-my-zsh you may first have to enable autocompletion:
+
 ```
 autoload -U compinit
 compinit
 ```
 
 To make the above persistent, run the first two lines, and put the above in `~/.zshrc`.
-
 
 ## Project Roadmap
 
@@ -760,6 +792,6 @@ Code contributions are very welcome. If you are interested in helping make `eksc
 [slackjoin]: https://slack.weave.works/
 [slackchan]: https://weave-community.slack.com/messages/CAYBZBWGL/
 
-> ***Logo Credits***
+> **_Logo Credits_**
 >
-> *Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/).*
+> _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/)._

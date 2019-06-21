@@ -1,9 +1,9 @@
 ---
-title: "Autoscaling"
+title: "Auto Scaling"
 weight: 40
 ---
 
-## Enable Autoscaling
+## Enable Auto Scaling
 
 You can create a cluster (or nodegroup in an existing cluster) with IAM role that will allow use of [cluster autoscaler][]:
 
@@ -16,7 +16,7 @@ and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery shoul
 
 [cluster autoscaler]: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 
-### Zone-aware Autoscaling
+### Zone-aware Auto Scaling
 
 If your workloads are zone-specific you'll need to create separate nodegroups for each zone. This is because the `cluster-autoscaler` assumes that all nodes in a group are exactly equivalent. So, for example, if a scale-up event is triggered by a pod which needs a zone-specific PVC (e.g. an EBS volume), the new node might get scheduled in the wrong AZ and the pod will fail to start.
 
