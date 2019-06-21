@@ -23,7 +23,6 @@ What OS are you using, are you using a downloaded binary or did you compile eksc
 Please paste in the output of these commands:
 ```
 $ eksctl version
-$ uname -a
 $ kubectl version
 ```
 
