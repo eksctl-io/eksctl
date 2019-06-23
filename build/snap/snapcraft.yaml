@@ -1,6 +1,6 @@
 name: eksctl
 summary: CLI tool.
-description:| a CLI for Amazon EKS
+description: a CLI for Amazon EKS
   
 adopt-info: eksctl
 
