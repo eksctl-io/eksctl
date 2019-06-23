@@ -2,7 +2,7 @@ name: eksctl
 summary: CLI tool.
 description:| a CLI for Amazon EKS
   
-adopt-info:eksctl
+adopt-info: eksctl
 
 grade: stable
 confinement: strict
