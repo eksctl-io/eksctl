@@ -31,6 +31,9 @@ func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, ne
 	resource := &ResourceCmd{
 		Command:        &cobra.Command{},
 		ProviderConfig: &api.ProviderConfig{},
+
+		Plan: true,  // always on by default
+		Wait: false, // varies in some commands
 	}
 	resource.FlagSetGroup = flagGrouping.New(resource.Command)
 	newResourceCmd(resource)

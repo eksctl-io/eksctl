@@ -7,6 +7,7 @@
 - [ ] Code compiles correctly (i.e `make build`)
 - [ ] Added tests that cover your change (if possible)
 - [ ] All unit tests passing (i.e. `make test`)
-- [ ] All integration tests passing (i.e. `make integration-test`)
 - [ ] Added/modified documentation as required (such as the `README.md`, and `examples` directory)
-- [ ] Added yourself to the `humans.txt` file
+- [ ] Manually tested
+
+<!-- If you haven't done so already, you can add your name to the humans.txt file -->

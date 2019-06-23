@@ -37,6 +37,15 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 			ImageClassGeneral: "ubuntu-eks/k8s_1.12/images/*",
 		},
 	},
+	"1.13": {
+		ImageFamilyAmazonLinux2: {
+			ImageClassGeneral: "amazon-eks-node-1.13-v*",
+			ImageClassGPU:     "amazon-eks-gpu-node-1.13-*",
+		},
+		ImageFamilyUbuntu1804: {
+			ImageClassGeneral: "ubuntu-eks/k8s_1.13/images/*",
+		},
+	},
 }
 
 // ImageFamilyToAccountID is a map of image families to account Ids

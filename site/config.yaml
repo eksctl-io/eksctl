@@ -1,0 +1,19 @@
+---
+baseURL: "https://eksctl.io"
+languageCode: en-us
+title:  "Eksctl"
+#theme:  "hugo-book-master"
+pygmentsCodeFences: true
+#pygmentsUseClasses: true
+pygmentsStyle: "colorful"
+
+params:
+  repository: "weaveworks/eksctl"
+  brand_color:  "amber-400"
+  by_weaveworks: true
+  BookSection: "*"
+
+  twitter:
+    username: "weaveworks"
+  author:
+    twitter: "weaveworks"

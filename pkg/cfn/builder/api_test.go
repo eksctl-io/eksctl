@@ -297,6 +297,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		*ng.VolumeType = api.NodeVolumeTypeIO1
 		ng.VolumeName = new(string)
 		*ng.VolumeName = "/dev/xvda"
+		ng.VolumeEncrypted = api.Disabled()
 
 		if withFullVPC {
 			cfg.VPC = testVPC()
@@ -403,11 +404,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeSize:      aws.Int(2),
 					VolumeType:      aws.String(api.NodeVolumeTypeIO1),
 					VolumeName:      aws.String("/dev/xvda"),
+					VolumeEncrypted: api.Disabled(),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
 							ImageBuilder: api.Disabled(),
 							AutoScaler:   api.Disabled(),
 							ExternalDNS:  api.Disabled(),
+							CertManager:  api.Disabled(),
 							AppMesh:      api.Disabled(),
 							EBS:          api.Disabled(),
 							FSX:          api.Disabled(),
@@ -896,6 +899,65 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	})
 
+	Context("NodeGroupAppCertManager", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.CertManager = api.Enabled()
+
+		build(cfg, "eksctl-test-cert-manager-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct policies", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerChangeSet"))
+
+			policy1 := ngTemplate.Resources["PolicyCertManagerChangeSet"].Properties
+
+			Expect(policy1.Roles).To(HaveLen(1))
+			isRefTo(policy1.Roles[0], "NodeInstanceRole")
+
+			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ChangeResourceRecordSets",
+			}))
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerHostedZones"))
+
+			policy2 := ngTemplate.Resources["PolicyCertManagerHostedZones"].Properties
+
+			Expect(policy2.Roles).To(HaveLen(1))
+			isRefTo(policy2.Roles[0], "NodeInstanceRole")
+
+			Expect(policy2.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
+				"route53:ListHostedZonesByName",
+			}))
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerGetChange"))
+
+			policy3 := ngTemplate.Resources["PolicyCertManagerGetChange"].Properties
+
+			Expect(policy3.Roles).To(HaveLen(1))
+			isRefTo(policy3.Roles[0], "NodeInstanceRole")
+
+			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::change/*"))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:GetChange",
+			}))
+		})
+
+	})
+
 	Context("NodeGroupALBIngress", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
@@ -1215,6 +1277,49 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	Context("Nodegroup using Encrypted AMI", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.VolumeEncrypted = api.Enabled()
+
+		build(cfg, "eksctl-test-private-ng", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			ltd := getLaunchTemplateData(ngTemplate)
+			Expect(ltd.BlockDeviceMappings).To(HaveLen(1))
+
+			rootVolume := ltd.BlockDeviceMappings[0].(map[string]interface{})
+			Expect(rootVolume).To(HaveKey("Ebs"))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("Encrypted", true))
+		})
+	})
+
+	Context("Nodegroup{VolumeType=io1 VolumeSize=2.0}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		build(cfg, "eksctl-test-private-ng", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			ltd := getLaunchTemplateData(ngTemplate)
+			Expect(ltd.BlockDeviceMappings).To(HaveLen(1))
+
+			rootVolume := ltd.BlockDeviceMappings[0].(map[string]interface{})
+			Expect(rootVolume).To(HaveKey("Ebs"))
+			Expect(rootVolume).To(HaveKeyWithValue("DeviceName", "/dev/xvda"))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeType", "io1"))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeSize", 2.0))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("Encrypted", false))
+		})
+	})
+
 	Context("NodeGroup{PrivateNetworking=true SSH.Allow=true}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
@@ -1257,15 +1362,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			ltd := getLaunchTemplateData(ngTemplate)
 
 			isFnGetAttOf(ltd.IamInstanceProfile.Arn, "NodeInstanceProfile.Arn")
-
-			Expect(ltd.BlockDeviceMappings).To(HaveLen(1))
-
-			rootVolume := ltd.BlockDeviceMappings[0].(map[string]interface{})
-
-			Expect(rootVolume).To(HaveKeyWithValue("DeviceName", "/dev/xvda"))
-			Expect(rootVolume).To(HaveKey("Ebs"))
-			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeType", "io1"))
-			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeSize", 2.0))
 
 			Expect(ltd.InstanceType).To(Equal("t2.medium"))
 

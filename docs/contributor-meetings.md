@@ -166,3 +166,29 @@ Topics:
 - 0.1.32 release from previous week
 - next feature release - spot instances
 - config file documentation must be our priority
+
+## 05/06/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+- @martina-if
+
+Topics:
+- update on releases: 0.1.33 and 0.1.34
+- change in `--max-pods`
+
+
+
+## 12/06/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+- @martina-if
+- @gemagomez
+
+Topics:
+- update on releases: 0.1.35 and 0.1.36
+- new commands for IAM identity mappings
+- progress update on website & docs

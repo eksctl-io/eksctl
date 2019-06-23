@@ -5,10 +5,14 @@ set -o pipefail
 set -o nounset
 
 resources=(
-  service/kube-dns
-  daemonset.apps/aws-node
   daemonset.apps/kube-proxy
-  deployment.apps/kube-dns
+  service/kube-dns
+  serviceaccount/coredns
+  configmap/coredns
+  deployment.apps/coredns
+  clusterrole.rbac.authorization.k8s.io/system:coredns
+  clusterrolebinding.rbac.authorization.k8s.io/system:coredns
+  daemonset.apps/aws-node
   crd.apiextensions.k8s.io/eniconfigs.crd.k8s.amazonaws.com
   clusterrole.rbac.authorization.k8s.io/aws-node
   clusterrolebinding.rbac.authorization.k8s.io/aws-node
@@ -20,6 +24,7 @@ kubectl \
   --namespace=kube-system \
   --output=json \
     get "${resources[@]}" \
+      | jq -S . \
       | jq '
             del(.metadata) |
               del(.items[].metadata.uid) |
@@ -28,5 +33,7 @@ kubectl \
               del(.items[].metadata.resourceVersion) |
               del(.items[].metadata.creationTimestamp) |
               del(.items[].metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]) |
+              del(.items[].metadata.annotations["deployment.kubernetes.io/revision"]) |
+              del(.items[].secrets) |
               del(.items[].status)
            '

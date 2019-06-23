@@ -100,7 +100,8 @@ To create the same kind of basic cluster, but with a different name, run:
 eksctl create cluster --name=cluster-1 --nodes=4
 ```
 
-EKS supports versions `1.10`, `1.11` and `1.12` (default), with `eksctl` you can deploy either version by passing `--version`.
+EKS supports versions `1.10`, `1.11`, `1.12` (default) and `1.13`.
+With `eksctl` you can deploy either version by passing `--version`.
 
 ```
 eksctl create cluster --version=1.10
@@ -299,7 +300,7 @@ eksctl update cluster --name=<clusterName>
 ```
 
 This command will not apply any changes right away, you will need to re-run it with
-`--dry-run=false` to apply the changes.
+`--approve` to apply the changes.
 
 #### Updating nodegroups
 

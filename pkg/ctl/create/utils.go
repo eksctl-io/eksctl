@@ -23,6 +23,9 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 		break
 	case "":
 		meta.Version = "auto"
+	case "default":
+		meta.Version = api.DefaultVersion
+		logger.Info("will use version default version (%s) for new nodegroup(s)", meta.Version)
 	case "latest":
 		meta.Version = api.LatestVersion
 		logger.Info("will use version latest version (%s) for new nodegroup(s)", meta.Version)
@@ -34,7 +37,7 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 			}
 		}
 		if !validVersion {
-			return fmt.Errorf("invalid version %s, supported values: auto, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
+			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
 		}
 	}
 

@@ -21,11 +21,14 @@ const (
 	// RegionUSWest2 represents the US West Region Oregon
 	RegionUSWest2 = "us-west-2"
 
-	// RegionUSEast1 represents the US East Region North Virgina
+	// RegionUSEast1 represents the US East Region North Virginia
 	RegionUSEast1 = "us-east-1"
 
 	// RegionUSEast2 represents the US East Region Ohio
 	RegionUSEast2 = "us-east-2"
+
+	// RegionCACentral1 represents the Canada Central Region
+	RegionCACentral1 = "ca-central-1"
 
 	// RegionEUWest1 represents the EU West Region Ireland
 	RegionEUWest1 = "eu-west-1"
@@ -69,8 +72,14 @@ const (
 	// Version1_12 represents Kubernetes version 1.12.x
 	Version1_12 = "1.12"
 
+	// Version1_13 represents Kubernetes version 1.13.x
+	Version1_13 = "1.13"
+
+	// DefaultVersion represents default Kubernetes version supported by EKS
+	DefaultVersion = Version1_12
+
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_12
+	LatestVersion = Version1_13
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -163,6 +172,7 @@ func SupportedRegions() []string {
 		RegionUSWest2,
 		RegionUSEast1,
 		RegionUSEast2,
+		RegionCACentral1,
 		RegionEUWest1,
 		RegionEUWest2,
 		RegionEUWest3,
@@ -182,6 +192,7 @@ func SupportedVersions() []string {
 		Version1_10,
 		Version1_11,
 		Version1_12,
+		Version1_13,
 	}
 }
 
@@ -301,7 +312,7 @@ func NewClusterConfig() *ClusterConfig {
 	cfg := &ClusterConfig{
 		TypeMeta: ClusterConfigTypeMeta(),
 		Metadata: &ClusterMeta{
-			Version: LatestVersion,
+			Version: DefaultVersion,
 		},
 		VPC: NewClusterVPC(),
 	}
@@ -350,6 +361,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 				ImageBuilder: Disabled(),
 				AutoScaler:   Disabled(),
 				ExternalDNS:  Disabled(),
+				CertManager:  Disabled(),
 				AppMesh:      Disabled(),
 				EBS:          Disabled(),
 				FSX:          Disabled(),
@@ -406,6 +418,8 @@ type NodeGroup struct {
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
 	// +optional
+	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
+	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
 
 	// +optional
@@ -430,6 +444,9 @@ type NodeGroup struct {
 
 	// +optional
 	ClusterDNS string `json:"clusterDNS,omitempty"`
+
+	// +optional
+	KubeletExtraConfig *NodeGroupKubeletConfig `json:"kubeletExtraConfig,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -470,6 +487,8 @@ type (
 		AutoScaler *bool `json:"autoScaler"`
 		// +optional
 		ExternalDNS *bool `json:"externalDNS"`
+		// +optional
+		CertManager *bool `json:"certManager"`
 		// +optional
 		AppMesh *bool `json:"appMesh"`
 		// +optional
@@ -512,6 +531,9 @@ type (
 		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
 	}
 )
+
+// NodeGroupKubeletConfig contains extra config parameters for the kubelet.yaml
+type NodeGroupKubeletConfig map[string]interface{}
 
 // HasMixedInstances checks if a nodegroup has mixed instances option declared
 func HasMixedInstances(ng *NodeGroup) bool {

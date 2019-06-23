@@ -317,6 +317,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.VolumeEncrypted != nil {
+		in, out := &in.VolumeEncrypted, &out.VolumeEncrypted
+		*out = new(bool)
+		**out = **in
+	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
 		*out = make(map[string]string, len(*in))
@@ -406,6 +411,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 	}
 	if in.ExternalDNS != nil {
 		in, out := &in.ExternalDNS, &out.ExternalDNS
+		*out = new(bool)
+		**out = **in
+	}
+	if in.CertManager != nil {
+		in, out := &in.CertManager, &out.CertManager
 		*out = new(bool)
 		**out = **in
 	}

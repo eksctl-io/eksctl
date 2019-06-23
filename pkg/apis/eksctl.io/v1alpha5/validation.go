@@ -22,6 +22,9 @@ func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) e
 		if IsEnabled(ng.IAM.WithAddonPolicies.ExternalDNS) {
 			return fmt.Errorf("%s.withAddonPolicies.externalDNS cannot be set at the same time", p)
 		}
+		if IsEnabled(ng.IAM.WithAddonPolicies.CertManager) {
+			return fmt.Errorf("%s.withAddonPolicies.certManager cannot be set at the same time", p)
+		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.ImageBuilder) {
 			return fmt.Errorf("%s.imageBuilder cannot be set at the same time", p)
 		}
@@ -152,6 +155,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
+	if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
+		return err
+	}
+
 	if err := validateInstancesDistribution(ng); err != nil {
 		return err
 	}
@@ -220,4 +227,28 @@ func countEnabledFields(fields ...*string) int {
 		}
 	}
 	return count
+}
+
+func validateNodeGroupKubeletExtraConfig(kubeletConfig *NodeGroupKubeletConfig) error {
+	if kubeletConfig == nil {
+		return nil
+	}
+
+	var kubeletForbiddenFields = map[string]struct{}{
+		"kind":               {},
+		"apiVersion":         {},
+		"address":            {},
+		"clusterDomain":      {},
+		"authentication":     {},
+		"authorization":      {},
+		"serverTLSBootstrap": {},
+		"featureGates":       {},
+	}
+
+	for k := range *kubeletConfig {
+		if _, exists := kubeletForbiddenFields[k]; exists {
+			return fmt.Errorf("cannot override %q in kubelet config, as it's critical to eksctl functionality", k)
+		}
+	}
+	return nil
 }

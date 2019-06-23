@@ -1,0 +1,4 @@
+{{ template "hrefhack" . }}
+{{ with .Site.GetPage .Site.Params.BookMenuBundle }}
+  {{- .Content -}}
+{{ end }}

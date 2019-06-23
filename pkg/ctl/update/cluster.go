@@ -29,10 +29,12 @@ func updateClusterCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
+
 		cmdutils.AddApproveFlag(fs, rc)
 		fs.BoolVar(&rc.Plan, "dry-run", rc.Plan, "")
 		fs.MarkDeprecated("dry-run", "see --aprove")
 
+		rc.Wait = true
 		cmdutils.AddWaitFlag(fs, &rc.Wait, "all update operations to complete")
 	})
 
@@ -78,7 +80,9 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 	case api.Version1_11:
 		cfg.Metadata.Version = api.Version1_12
 	case api.Version1_12:
-		cfg.Metadata.Version = api.Version1_12
+		cfg.Metadata.Version = api.Version1_13
+	case api.Version1_13:
+		cfg.Metadata.Version = api.Version1_13
 	default:
 		// version of control is not known to us, maybe we are just too old...
 		return fmt.Errorf("control plane version version %q is known to this version of eksctl, try to upgrade eksctl first", currentVersion)

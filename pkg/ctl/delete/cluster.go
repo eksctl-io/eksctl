@@ -30,7 +30,10 @@ func deleteClusterCmd(rc *cmdutils.ResourceCmd) {
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+
+		rc.Wait = false
 		cmdutils.AddWaitFlag(fs, &rc.Wait, "deletion of all resources")
+
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
