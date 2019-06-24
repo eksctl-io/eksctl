@@ -15,10 +15,10 @@ func createIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	rc.ClusterConfig = cfg
 
-	id := &authconfigmap.MapRole{}
+	id := &authconfigmap.MapIdentity{}
 
 	rc.SetDescription("iamidentitymapping", "Create an IAM identity mapping",
-		dedent.Dedent(`Creates a mapping from IAM role to Kubernetes user and groups.
+		dedent.Dedent(`Creates a mapping from IAM role or user to Kubernetes user and groups.
 
 			Note aws-iam-authenticator only considers the last entry for any given
 			role. If you create a duplicate entry it will shadow all the previous
@@ -31,7 +31,7 @@ func createIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&id.RoleARN, "role", "", "ARN of the IAM role to create")
+		fs.StringVar(&id.ARN, "arn", "", "ARN of the IAM role or user to create")
 		fs.StringVar(&id.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
@@ -42,7 +42,7 @@ func createIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapRole) error {
+func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapIdentity) error {
 	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
@@ -54,8 +54,8 @@ func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapR
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-	if id.RoleARN == "" {
-		return cmdutils.ErrMustBeSet("--role")
+	if id.ARN == "" {
+		return cmdutils.ErrMustBeSet("--arn")
 	}
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")
@@ -77,16 +77,16 @@ func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapR
 	}
 
 	// Check whether role already exists.
-	roles, err := acm.Roles()
+	identities, err := acm.Identities()
 	if err != nil {
 		return err
 	}
-	filtered := roles.Get(id.RoleARN)
+	filtered := identities.Get(id.ARN)
 	if len(filtered) > 0 {
-		logger.Warning("found %d mappings with same role %q (which will be shadowed by your new mapping)", len(filtered), id.RoleARN)
+		logger.Warning("found %d mappings with same arn %q (which will be shadowed by your new mapping)", len(filtered), id.ARN)
 	}
 
-	if err := acm.AddRole(id.RoleARN, id.Username, id.Groups); err != nil {
+	if err := acm.AddIdentity(id.ARN, id.Username, id.Groups); err != nil {
 		return err
 	}
 	return acm.Save()

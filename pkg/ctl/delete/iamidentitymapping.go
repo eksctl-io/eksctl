@@ -15,18 +15,18 @@ func deleteIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	rc.ClusterConfig = cfg
 
 	var (
-		role string
-		all  bool
+		arn string
+		all bool
 	)
 
 	rc.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
 
 	rc.SetRunFunc(func() error {
-		return doDeleteIAMIdentityMapping(rc, role, all)
+		return doDeleteIAMIdentityMapping(rc, arn, all)
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&role, "role", "", "ARN of the IAM role to delete")
+		fs.StringVar(&arn, "arn", "", "ARN of the IAM role or user to delete")
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
@@ -36,7 +36,7 @@ func deleteIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool) error {
+func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, arn string, all bool) error {
 	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool)
 		return err
 	}
 
-	if role == "" {
+	if arn == "" {
 		return cmdutils.ErrMustBeSet("--role")
 	}
 	if cfg.Metadata.Name == "" {
@@ -68,7 +68,7 @@ func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool)
 		return err
 	}
 
-	if err := acm.RemoveRole(role, all); err != nil {
+	if err := acm.RemoveIdentity(arn, all); err != nil {
 		return err
 	}
 	if err := acm.Save(); err != nil {
@@ -76,13 +76,13 @@ func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool)
 	}
 
 	// Check whether we have more roles that match
-	roles, err := acm.Roles()
+	identities, err := acm.Identities()
 	if err != nil {
 		return err
 	}
-	filtered := roles.Get(role)
+	filtered := identities.Get(arn)
 	if len(filtered) > 0 {
-		logger.Warning("there are %d mappings left with same role %q (use --all to delete them at once)", len(filtered), role)
+		logger.Warning("there are %d mappings left with same arn %q (use --all to delete them at once)", len(filtered), arn)
 	}
 	return nil
 }
