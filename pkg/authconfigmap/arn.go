@@ -2,7 +2,7 @@ package authconfigmap
 
 import "github.com/aws/aws-sdk-go/aws/arn"
 
-// Implement the pflag.Value interface for arn.ARN
+// ARN implements the pflag.Value interface for aws-sdk-go/aws/arn.ARN
 type ARN arn.ARN
 
 // Set parses the given string into an arn.ARN and sets the receiver pointer to the
@@ -16,11 +16,13 @@ func (a *ARN) Set(s string) error {
 	return nil
 }
 
+// String returns the canonical representation of the ARN
 func (a *ARN) String() string {
 	tmp := arn.ARN(*a)
 	return tmp.String()
 }
 
+// Type returns a string representation that describes the type
 func (a *ARN) Type() string {
 	return "aws arn"
 }
