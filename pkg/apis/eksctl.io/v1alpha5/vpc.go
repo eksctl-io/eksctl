@@ -26,6 +26,8 @@ type (
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
 		// +optional
 		AutoAllocateIPv6 *bool `json:"autoAllocateIPv6,omitempty"`
+		// +optional
+		NAT *ClusterNAT `json:"nat,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {
@@ -40,6 +42,10 @@ type (
 		ID string `json:"id,omitempty"`
 		// +optional
 		CIDR *ipnet.IPNet `json:"cidr,omitempty"`
+	}
+	// ClusterNAT holds NAT gateway configuration options
+	ClusterNAT struct {
+		Gateway *string `json:"gateway,omitempty"`
 	}
 )
 

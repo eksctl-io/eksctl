@@ -310,7 +310,10 @@ const expected = `
 		"iam": {},
 		"vpc": {
 			"cidr": "192.168.0.0/16",
-			"autoAllocateIPv6": false
+			"autoAllocateIPv6": false,
+			"nat": {
+				"gateway": "Single"
+			  }
 		},
 		"nodeGroups": [
 		  {

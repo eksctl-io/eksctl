@@ -160,6 +160,7 @@ users:
 }
 
 func testVPC() *api.ClusterVPC {
+	disable := api.ClusterDisableNAT
 	return &api.ClusterVPC{
 		Network: api.Network{
 			ID: vpcID,
@@ -169,6 +170,9 @@ func testVPC() *api.ClusterVPC {
 					Mask: []byte{255, 255, 0, 0},
 				},
 			},
+		},
+		NAT: &api.ClusterNAT{
+			Gateway: &disable,
 		},
 		SecurityGroup:           "sg-0b44c48bcba5b7362",
 		SharedNodeSecurityGroup: "sg-shared",
@@ -443,6 +447,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"ClusterStackName":         "",
 			"SharedNodeSecurityGroup":  "sg-shared",
 			"ServiceRoleARN":           arn,
+			"FeatureNATMode":           "Single",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -1435,10 +1440,14 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	Context("NodeGroup{PrivateNetworking=false SSH.Allow=false}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
+		disable := api.ClusterDisableNAT
 
 		cfg.VPC = &api.ClusterVPC{
 			Network: api.Network{
 				ID: vpcID,
+			},
+			NAT: &api.ClusterNAT{
+				Gateway: &disable,
 			},
 			SecurityGroup: "sg-0b44c48bcba5b7362",
 			Subnets: &api.ClusterSubnets{
@@ -2149,8 +2158,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlaneSecurityGroup"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
 
-			Expect(clusterTemplate.Resources).To(HaveKey("PrivateRouteTable"))
-			Expect(clusterTemplate.Resources).To(HaveKey("PrivateSubnetRoute"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicRouteTable"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicSubnetRoute"))
 
@@ -2164,7 +2171,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(28))
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2191,6 +2198,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 					Expect(subnet.CidrBlock).To(HavePrefix("192.168."))
 					Expect(subnet.CidrBlock).To(HaveSuffix(".0/19"))
 				}
+			}
+		})
+
+		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
+			zones := []string{"A", "B", "C"}
+			region := "USWEST2"
+
+			for _, zone := range zones {
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway")
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
 			}
 		})
 	})
@@ -2223,8 +2242,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlaneSecurityGroup"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ClusterSharedNodeSecurityGroup"))
 
-			Expect(clusterTemplate.Resources).To(HaveKey("PrivateRouteTable"))
-			Expect(clusterTemplate.Resources).To(HaveKey("PrivateSubnetRoute"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicRouteTable"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicSubnetRoute"))
 
@@ -2249,7 +2266,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(35))
+			Expect(len(clusterTemplate.Resources)).To(Equal(39))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2276,6 +2293,154 @@ var _ = Describe("CloudFormation template builder API", func() {
 					Expect(subnet.CidrBlock).To(HavePrefix("10.2."))
 					Expect(subnet.CidrBlock).To(HaveSuffix(".0/19"))
 				}
+			}
+		})
+
+		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
+			zones := []string{"A", "B", "C"}
+			region := "USWEST2"
+
+			for _, zone := range zones {
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway")
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+			}
+		})
+
+	})
+
+	Context("VPC with highly available NAT gateways", func() {
+
+		zones := []string{"A", "B", "C"}
+		region := "USWEST2"
+
+		cfg, ng := newClusterConfigAndNodegroup(false)
+
+		cfg.Metadata.Name = "test-HA-NAT-VPC"
+
+		highly := api.ClusterHighlyAvailableNAT
+		cfg.VPC.NAT = &api.ClusterNAT{
+			Gateway: &highly,
+		}
+
+		setSubnets(cfg)
+
+		build(cfg, "eksctl-test-HA-NAT-VPC-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct HA NAT VPC resources", func() {
+
+			Expect(clusterTemplate.Resources).To(HaveKey("VPC"))
+
+			for _, zone := range zones {
+				Expect(clusterTemplate.Resources).To(HaveKey("NATIP" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("NATGateway" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("SubnetPrivate" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("PrivateRouteTable" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("NATPrivateSubnetRoute" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
+			}
+
+			Expect(len(clusterTemplate.Resources)).To(Equal(36))
+		})
+
+		It("should route Internet traffic from private subnets through their corresponding NAT gateways", func() {
+			for _, zone := range zones {
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway"+region+zone)
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+			}
+		})
+	})
+
+	Context("VPC with single NAT gateway", func() {
+
+		zones := []string{"A", "B", "C"}
+		region := "USWEST2"
+
+		cfg, ng := newClusterConfigAndNodegroup(false)
+
+		cfg.Metadata.Name = "test-single-NAT-VPC"
+
+		single := api.ClusterSingleNAT
+		cfg.VPC.NAT = &api.ClusterNAT{
+			Gateway: &single,
+		}
+
+		setSubnets(cfg)
+
+		build(cfg, "eksctl-test-single-NAT-VPC-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct single NAT VPC resources", func() {
+
+			Expect(clusterTemplate.Resources).To(HaveKey("VPC"))
+
+			Expect(clusterTemplate.Resources).To(HaveKey("NATIP"))
+			Expect(clusterTemplate.Resources).To(HaveKey("NATGateway"))
+
+			for _, zone := range zones {
+				Expect(clusterTemplate.Resources).To(HaveKey("SubnetPrivate" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("PrivateRouteTable" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
+			}
+
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
+		})
+
+		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
+			for _, zone := range zones {
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway")
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+			}
+		})
+	})
+
+	Context("VPC with no NAT gateway", func() {
+
+		zones := []string{"A", "B", "C"}
+		region := "USWEST2"
+
+		cfg, ng := newClusterConfigAndNodegroup(false)
+
+		cfg.Metadata.Name = "test-single-NAT-VPC"
+
+		disable := api.ClusterDisableNAT
+		cfg.VPC.NAT = &api.ClusterNAT{
+			Gateway: &disable,
+		}
+
+		setSubnets(cfg)
+
+		build(cfg, "eksctl-test-disabled-NAT-VPC-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct disabled NAT VPC resources and properties", func() {
+
+			Expect(clusterTemplate.Resources).To(HaveKey("VPC"))
+
+			for _, zone := range zones {
+				Expect(clusterTemplate.Resources).To(HaveKey("SubnetPrivate" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("PrivateRouteTable" + region + zone))
+				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
+			}
+
+			Expect(len(clusterTemplate.Resources)).To(Equal(27))
+
+		})
+
+		It("should not route Internet traffic from private subnets", func() {
+
+			for _, zone := range zones {
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
 			}
 		})
 

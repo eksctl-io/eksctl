@@ -139,6 +139,7 @@ func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterC
 		"vpc-private-subnets",
 		"vpc-public-subnets",
 		"vpc-cidr",
+		"vpc-nat-mode",
 		"vpc-from-kops-cluster",
 	)
 
