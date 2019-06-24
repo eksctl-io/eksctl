@@ -17,18 +17,18 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	var role string
+	var arn string
 
 	params := &getCmdParams{}
 
 	cmd.SetDescription("iamidentitymapping", "Get IAM identity mapping(s)", "")
 
-	cmd.SetRunFunc(func() error {
-		return doGetIAMIdentityMapping(cmd, params, role)
+	rc.SetRunFunc(func() error {
+		return doGetIAMIdentityMapping(rc, params, arn)
 	})
 
-	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&role, "role", "", "ARN of the IAM role")
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&arn, "arn", "", "ARN of the IAM role or user")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
@@ -39,8 +39,8 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, role string) error {
-	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+func doGetIAMIdentityMapping(rc *cmdutils.Cmd, params *getCmdParams, arn string) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
 
@@ -70,15 +70,15 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, role strin
 	if err != nil {
 		return err
 	}
-	roles, err := acm.Roles()
+	identities, err := acm.Identities()
 	if err != nil {
 		return err
 	}
-	if role != "" {
-		roles = roles.Get(role)
+	if arn != "" {
+		identities = identities.Get(arn)
 		// If a filter was given, we error if none was found
-		if len(roles) == 0 {
-			return fmt.Errorf("no iamidentitymapping with role %q found", role)
+		if len(identities) == 0 {
+			return fmt.Errorf("no iamidentitymapping with arn %q found", arn)
 		}
 	}
 
@@ -90,7 +90,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, role strin
 		addIAMIdentityMappingTableColumns(printer.(*printers.TablePrinter))
 	}
 
-	if err := printer.PrintObjWithKind("iamidentitymappings", roles, os.Stdout); err != nil {
+	if err := printer.PrintObjWithKind("iamidentitymappings", identities, os.Stdout); err != nil {
 		return err
 	}
 
@@ -98,13 +98,13 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, role strin
 }
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("ROLE", func(r authconfigmap.MapRole) string {
-		return r.RoleARN
+	printer.AddColumn("ARN", func(r authconfigmap.MapIdentity) string {
+		return r.ARN
 	})
-	printer.AddColumn("USERNAME", func(r authconfigmap.MapRole) string {
+	printer.AddColumn("USERNAME", func(r authconfigmap.MapIdentity) string {
 		return r.Username
 	})
-	printer.AddColumn("GROUPS", func(r authconfigmap.MapRole) string {
+	printer.AddColumn("GROUPS", func(r authconfigmap.MapIdentity) string {
 		return strings.Join(r.Groups, ",")
 	})
 }

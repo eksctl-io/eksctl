@@ -14,10 +14,10 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	id := &authconfigmap.MapRole{}
+	id := &authconfigmap.MapIdentity{}
 
-	cmd.SetDescription("iamidentitymapping", "Create an IAM identity mapping",
-		dedent.Dedent(`Creates a mapping from IAM role to Kubernetes user and groups.
+	rc.SetDescription("iamidentitymapping", "Create an IAM identity mapping",
+		dedent.Dedent(`Creates a mapping from IAM role or user to Kubernetes user and groups.
 
 			Note aws-iam-authenticator only considers the last entry for any given
 			role. If you create a duplicate entry it will shadow all the previous
@@ -29,8 +29,8 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		return doCreateIAMIdentityMapping(cmd, id)
 	})
 
-	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&id.RoleARN, "role", "", "ARN of the IAM role to create")
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&id.ARN, "arn", "", "ARN of the IAM role or user to create")
 		fs.StringVar(&id.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
@@ -42,8 +42,8 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *authconfigmap.MapRole) error {
-	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+func doCreateIAMIdentityMapping(rc *cmdutils.Cmd, id *authconfigmap.MapIdentity) error {
+	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
 
@@ -58,8 +58,8 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *authconfigmap.MapRole) er
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-	if id.RoleARN == "" {
-		return cmdutils.ErrMustBeSet("--role")
+	if id.ARN == "" {
+		return cmdutils.ErrMustBeSet("--arn")
 	}
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")
@@ -81,16 +81,16 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *authconfigmap.MapRole) er
 	}
 
 	// Check whether role already exists.
-	roles, err := acm.Roles()
+	identities, err := acm.Identities()
 	if err != nil {
 		return err
 	}
-	filtered := roles.Get(id.RoleARN)
+	filtered := identities.Get(id.ARN)
 	if len(filtered) > 0 {
-		logger.Warning("found %d mappings with same role %q (which will be shadowed by your new mapping)", len(filtered), id.RoleARN)
+		logger.Warning("found %d mappings with same arn %q (which will be shadowed by your new mapping)", len(filtered), id.ARN)
 	}
 
-	if err := acm.AddRole(id.RoleARN, id.Username, id.Groups); err != nil {
+	if err := acm.AddIdentity(id.ARN, id.Username, id.Groups); err != nil {
 		return err
 	}
 	return acm.Save()
