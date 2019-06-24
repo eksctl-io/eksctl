@@ -14,7 +14,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = cfg
 
 	var (
-		arn string
+		arn authconfigmap.ARN
 		all bool
 	)
 
@@ -25,7 +25,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&arn, "arn", "", "ARN of the IAM role or user to delete")
+		fs.Var(&arn, "arn", "ARN of the IAM role or user to delete")
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
@@ -36,7 +36,11 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
+<<<<<<< HEAD
 func doDeleteIAMIdentityMapping(rc *cmdutils.Cmd, arn string, all bool) error {
+=======
+func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, arn authconfigmap.ARN, all bool) error {
+>>>>>>> Use dedicated ARN type instead of string
 	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
@@ -53,7 +57,7 @@ func doDeleteIAMIdentityMapping(rc *cmdutils.Cmd, arn string, all bool) error {
 		return err
 	}
 
-	if arn == "" {
+	if arn.Resource == "" {
 		return cmdutils.ErrMustBeSet("--role")
 	}
 	if cfg.Metadata.Name == "" {
