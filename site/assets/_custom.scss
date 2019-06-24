@@ -36,6 +36,13 @@ img[src$="#bgright"] {
   border-color: #e5e5e5;
 }
 
+#github {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  z-index: -1;
+}
+
 @media (max-width: 1060px) {
   img[src$="#bgright"] {
     position: absolute;
