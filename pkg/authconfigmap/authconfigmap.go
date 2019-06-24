@@ -32,8 +32,12 @@ const (
 	// ObjectNamespace is the namespace the object can be found
 	ObjectNamespace = metav1.NamespaceSystem
 
-	rolesData    = "mapRoles"
-	usersData    = "mapUsers"
+	rolesData = "mapRoles"
+	roleKey   = "rolearn"
+
+	usersData = "mapUsers"
+	userKey   = "userarn"
+
 	accountsData = "mapAccounts"
 
 	// GroupMasters is the admin group which is also automatically
@@ -55,31 +59,76 @@ type MapIdentity struct {
 	ARN          string
 }
 
+// MapIdentities is a list of IAM identities with a role or user ARN.
+type MapIdentities []MapIdentity
+
+// UnmarshalJSON for MapIdentity makes sure there is either a "rolearn" or "userarn" key
+// and places the data of that key into the "ARN" field. All other fields are handled by
+// the default implementation of unmarshal.
 func (m *MapIdentity) UnmarshalJSON(data []byte) error {
-	// We want to unmarshal "(rolearn|userarn)" into the "ARN" field and then unmarshal
-	// the rest as usual
-	outer_keys := map[string]json.RawMessage{}
-	if err := json.Unmarshal(data, &outer_keys); err != nil {
+	// Handle everything as usual
+	type alias MapIdentity
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
 		return err
 	}
 
-	arn, ok := outer_keys["rolearn"]
+	// We want to unmarshal "(rolearn|userarn)" into the "ARN" field and then unmarshal
+	// the rest as usual
+	outerKeys := map[string]*json.RawMessage{}
+	if err := json.Unmarshal(data, &outerKeys); err != nil {
+		return err
+	}
+
+	arn, ok := outerKeys[roleKey]
 	if !ok {
-		arn, ok = outer_keys["userarn"]
+		arn, ok = outerKeys[userKey]
 		if !ok {
 			return errors.New("missing arn")
 		}
 	}
 
-	if err := json.Unmarshal(arn, &m.ARN); err != nil {
+	if err := json.Unmarshal(*arn, &a.ARN); err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(data, &m.Identity); err != nil {
-		return err
-	}
-
+	*m = MapIdentity(a)
 	return nil
+}
+
+// MarshalJSON for MapIdentity marshals the ARN field into either "rolearn" or "userarn"
+// depending on what is appropriate and returns and error if it cannot determine that.
+// All other fields are marshaled with the default marshaler
+func (m *MapIdentity) MarshalJSON() ([]byte, error) {
+	// Marshal everything as one would normally do
+	type alias MapIdentity
+	a := (*alias)(m)
+	data, err := json.Marshal(a)
+	if err != nil {
+		return nil, err
+	}
+
+	// Partially unmarshal everything into a map in order to more easily append the (role|user)arn
+	partial := map[string]*json.RawMessage{}
+	if err := json.Unmarshal(data, &partial); err != nil {
+		return nil, err
+	}
+
+	arn, err := json.Marshal(m.ARN)
+	if err != nil {
+		return nil, err
+	}
+
+	switch {
+	case m.role():
+		partial[roleKey] = (*json.RawMessage)(&arn)
+	case m.user():
+		partial[userKey] = (*json.RawMessage)(&arn)
+	default:
+		return nil, errors.Errorf("cannot determine if %q refers to a user or role", arn)
+	}
+
+	return json.Marshal(partial)
 }
 
 // resource returns the resource portion of the ARN as described by
@@ -100,16 +149,13 @@ func (m MapIdentity) resource() string {
 	return portions[5]
 }
 
-func (m MapIdentity) Role() bool {
+func (m MapIdentity) role() bool {
 	return m.resource() == "role"
 }
 
-func (m MapIdentity) User() bool {
+func (m MapIdentity) user() bool {
 	return m.resource() == "user"
 }
-
-// MapIdentites is a list of IAM identities with a role or user ARN.
-type MapIdentities []MapIdentity
 
 // Get returns all matching role mappings. Note that at this moment
 // aws-iam-authenticator only considers the last one!
@@ -262,12 +308,11 @@ func (a *AuthConfigMap) RemoveIdentity(arn string, all bool) error {
 
 // Identities returns a list of iam users and roles that are currently in the (cached) configmap.
 func (a *AuthConfigMap) Identities() (MapIdentities, error) {
-	var roles MapIdentities
+	var roles, users MapIdentities
 	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling %q", rolesData)
 	}
 
-	var users MapIdentities
 	if err := yaml.Unmarshal([]byte(a.cm.Data[usersData]), &users); err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling %q", usersData)
 	}
@@ -278,11 +323,13 @@ func (a *AuthConfigMap) setIdentities(identities MapIdentities) error {
 	// Determine which are users and which are roles
 	var users, roles MapIdentities
 	for _, identity := range identities {
-		if identity.Role() {
+		switch {
+		case identity.role():
 			roles = append(roles, identity)
-		}
-		if identity.User() {
+		case identity.user():
 			users = append(users, identity)
+		default:
+			return errors.Errorf("cannot determine if %q refers to a user or role", identity)
 		}
 	}
 
