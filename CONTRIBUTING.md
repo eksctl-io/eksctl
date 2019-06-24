@@ -36,48 +36,40 @@ the latest information.
 
 #### 1. Set up your Go environment
 
-This project is written in Go. To be able to contribute you will need a working Go installation. You can check the 
-[official installation guide](https://golang.org/doc/install). Make sure your `GOPATH` and `GOBIN` 
-[environment variables](https://github.com/golang/go/wiki/SettingGOPATH) are set correctly.
+This project is written in Go. To be able to contribute you will need:
 
-Here are some quick start steps you can follow:
+1. A working Go installation of Go >= 1.12. You can check the
+[official installation guide](https://golang.org/doc/install).
 
-Select a folder path for your go projects, for example `~/eksctl`
-```bash
-mkdir ~/eksctl
-cd ~/eksctl
-export GOPATH="$(pwd)"
-export GOBIN="${GOPATH}/bin"
-```
+2. Make sure that `$(go env GOPATH)/bin` is in your shell's `PATH`. You can do so by
+   running `export PATH="$(go env GOPATH)/bin:$PATH"`
 
-> NOTE: Windows users should install Docker for Windows and run `make eksctl-image` to build their code.
-
-> TODO: Improve Windows instructions, ensure `go build` works.
 
 #### 2. Fork and clone the repo
 
-Clone the repo using go:
+Make a fork of this repository and clone it by running:
 
 ```bash
-go get -d github.com/weaveworks/eksctl/...
+git clone git@github.com:<yourusername>/eksctl.git
 ```
 
-Make a fork of this repository and add it as a remote:
+It is not recommended to clone under your `GOPATH` (if you define one). Otherwise, you will need to set 
+`GO111MODULE=on` explicitly.
 
-```bash
-cd src/github.com/weaveworks/eksctl
-git remote add <username> git@github.com:<username>/eksctl.git
-```
 
 #### 3. Run the tests and build eksctl
 
-Make sure you can run the tests and build the binary. For this project you need go version 1.12 or higher.
+Make sure you can run the tests and build the binary.
 
 ```bash 
 make install-build-deps
 make test
 make build
 ```
+
+> NOTE: Windows users should install Docker for Windows and run `make eksctl-image` to build their code.
+
+> TODO: Improve Windows instructions, ensure `go build` works.
 
 
 There are integration tests for *eksctl* being developed and more details of how to run them will be included here. You 

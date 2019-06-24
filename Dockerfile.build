@@ -1,0 +1,18 @@
+FROM golang:1.12-alpine3.9
+
+RUN apk add --no-cache \
+      curl \
+      git \
+      make \
+      gcc \
+      musl-dev \
+      && true
+
+ENV CGO_ENABLED=0
+
+WORKDIR /src
+COPY . /src
+RUN ./install-build-deps.sh
+
+RUN go install -tags netgo github.com/goreleaser/goreleaser
+
