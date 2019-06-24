@@ -16,7 +16,7 @@ GOBIN ?= $(shell echo `go env GOPATH`/bin)
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
-	@cd build && ./install.sh
+	@./install-build-deps.sh
 
 ##@ Build
 
@@ -118,6 +118,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 generate: ## Generate code
 	@chmod g-w  ./pkg/nodebootstrap/assets/*
 	@mkdir -p vendor/github.com/aws/
+	@# Hack for Mockery to find the dependencies handled by `go mod`
 	@ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.19.18" vendor/github.com/aws/aws-sdk-go
 	@env GOBIN=$(GOBIN) go generate ./pkg/nodebootstrap ./pkg/eks/mocks ./pkg/addons/default
 
@@ -132,17 +133,18 @@ ami-check: generate-ami ## Check whether the AMIs have been updated and fail if 
 
 .PHONY: generate-kubernetes-types
 generate-kubernetes-types: ## Generate Kubernetes API helpers
-	@go mod download k8s.io/code-generator # make sure the code-generator is downloaded
-	@echo "/*\n$$(cat LICENSE)*/\n" > build/codegenheader.txt
-	@bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
-	  deepcopy,defaulter _ github.com/weaveworks/eksctl/pkg/apis eksctl.io:v1alpha5 --go-header-file build/codegenheader.txt
+	@go mod download k8s.io/code-generator # make sure the code-generator is present
+	@echo "/*\n$$(cat LICENSE)*/\n" > codegenheader.txt
+	@env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
+	  deepcopy,defaulter pkg/apis ./pkg/apis eksctl.io:v1alpha5 --go-header-file codegenheader.txt --output-base="$${PWD}"
+
 
 ##@ Docker
 
 .PHONY: eksctl-build-image
 eksctl-build-image: ## Create the the eksctl build docker image
 	@-docker pull $(EKSCTL_BUILD_IMAGE)
-	@docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) ./build
+	@docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) -f Dockerfile.build .
 
 EKSCTL_IMAGE_BUILD_ARGS := \
   --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) \
@@ -150,9 +152,6 @@ EKSCTL_IMAGE_BUILD_ARGS := \
 
 ifneq ($(COVERALLS_TOKEN),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
-endif
-ifneq ($(JUNIT_REPORT_DIR),)
-EKSCTL_IMAGE_BUILD_ARGS += --build-arg=JUNIT_REPORT_DIR=$(JUNIT_REPORT_DIR)
 endif
 ifeq ($(OS),Windows_NT)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=unit-test
@@ -173,8 +172,8 @@ release: eksctl-build-image ## Create a new eksctl release
 	  --env=GITHUB_TOKEN \
 	  --env=CIRCLE_TAG \
 	  --env=CIRCLE_PROJECT_USERNAME \
-	  --volume=$(CURDIR):/go/src/github.com/weaveworks/eksctl \
-	  --workdir=/go/src/github.com/weaveworks/eksctl \
+	  --volume=$(CURDIR):/src \
+	  --workdir=/src \
 	    $(EKSCTL_BUILD_IMAGE) \
 	      ./do-release.sh
 

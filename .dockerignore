@@ -1,5 +1,5 @@
 Dockerfile
-build
+Dockerfile.build
 *.md
 DCO
 LICENSE*

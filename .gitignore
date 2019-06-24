@@ -29,5 +29,5 @@ test-results
 integration/kubeconfig-*
 
 # Generated header file
-build/codegenheader.txt
+codegenheader.txt
 
