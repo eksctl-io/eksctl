@@ -32,15 +32,18 @@ func CheckKubectlVersion(env []string) error {
 	}
 	logger.Debug("kubectl: %q", kubectlPath)
 
-	clientVersion, _, err := kubectl.GetVersionInfo(ktl)
+	clientVersion, _, ignoredErr := kubectl.GetVersionInfo(ktl)
 	logger.Debug("kubectl version: %s", clientVersion)
-	if err != nil {
-		logger.Debug("ignored error: %s", err.Error())
+	if ignoredErr != nil {
+		logger.Debug("ignored error: %s", ignoredErr)
 	}
 
 	version, err := semver.Parse(strings.TrimLeft(clientVersion, "v"))
 	if err != nil {
-		return errors.Wrapf(err, "parsing kubectl version string %q", version)
+		if ignoredErr != nil {
+			return errors.Wrapf(err, "parsing kubectl version string %s (upstream error: %s) / %q", clientVersion, ignoredErr, version)
+		}
+		return errors.Wrapf(err, "parsing kubectl version string %s / %q", clientVersion, version)
 	}
 	if version.Major == 1 && version.Minor < 10 {
 		return fmt.Errorf("kubectl version %s was found at %q, minimum required version to use EKS is v1.10.0", clientVersion, kubectlPath)
