@@ -5,10 +5,14 @@ go 1.12
 require (
 	cloud.google.com/go v0.30.0 // indirect
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
+	github.com/Masterminds/semver v1.4.2 // indirect
+	github.com/apex/log v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.19.18
 	github.com/awslabs/goformation v0.0.0-00010101000000-000000000000
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/caarlos0/ctrlc v1.0.0 // indirect
+	github.com/campoy/unique v0.0.0-20180121183637-88950e537e7e // indirect
 	github.com/coredns/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v3.3.10+incompatible // indirect
@@ -32,17 +36,21 @@ require (
 	github.com/gogo/protobuf v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20180924190550-6f2cf27854a4 // indirect
 	github.com/google/btree v1.0.0 // indirect
+	github.com/google/go-github v17.0.0+incompatible // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/google/uuid v1.0.0 // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20181019014921-0719c6b22f30 // indirect
+	github.com/goreleaser/archive v1.1.3 // indirect
+	github.com/goreleaser/goreleaser v0.77.2
+	github.com/goreleaser/nfpm v0.11.0 // indirect
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
-	github.com/imdario/mergo v0.3.4 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
@@ -54,12 +62,15 @@ require (
 	github.com/kubernetes-sigs/aws-iam-authenticator v0.4.0
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
+	github.com/masterminds/semver v1.4.2 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect
+	github.com/mattn/go-zglob v0.0.1 // indirect
 	github.com/mattn/goveralls v0.0.2
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/miekg/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/miekg/dns v0.0.0-20160614162101-5d001d020961 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/onsi/ginkgo v1.5.0
