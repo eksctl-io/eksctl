@@ -7,6 +7,7 @@
 package authconfigmap
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -51,7 +52,34 @@ var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
 // MapIdentity represents an IAM identity with an ARN.
 type MapIdentity struct {
 	iam.Identity `json:",inline"`
-	ARN          string `json:"rolearn"`
+	ARN          string
+}
+
+func (m *MapIdentity) UnmarshalJSON(data []byte) error {
+	// We want to unmarshal "(rolearn|userarn)" into the "ARN" field and then unmarshal
+	// the rest as usual
+	outer_keys := map[string]json.RawMessage{}
+	if err := json.Unmarshal(data, &outer_keys); err != nil {
+		return err
+	}
+
+	arn, ok := outer_keys["rolearn"]
+	if !ok {
+		arn, ok = outer_keys["userarn"]
+		if !ok {
+			return errors.New("missing arn")
+		}
+	}
+
+	if err := json.Unmarshal(arn, &m.ARN); err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(data, &m.Identity); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // resource returns the resource portion of the ARN as described by
