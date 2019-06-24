@@ -7,10 +7,9 @@
 package authconfigmap
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -52,127 +51,6 @@ const (
 // RoleNodeGroupGroups are the groups to allow roles to interact
 // with the cluster, required for the instance role ARNs of node groups.
 var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
-
-// MapIdentity represents an IAM identity with an ARN.
-type MapIdentity struct {
-	iam.Identity `json:",inline"`
-	ARN          string `json:"-"` // This field is (un)marshaled manually
-}
-
-// MapIdentities is a list of IAM identities with a role or user ARN.
-type MapIdentities []MapIdentity
-
-// UnmarshalJSON for MapIdentity makes sure there is either a "rolearn" or "userarn" key
-// and places the data of that key into the "ARN" field. All other fields are handled by
-// the default implementation of unmarshal.
-func (m *MapIdentity) UnmarshalJSON(data []byte) error {
-	// Handle everything as usual
-	type alias MapIdentity
-	var a alias
-	if err := json.Unmarshal(data, &a); err != nil {
-		return err
-	}
-
-	// We want to unmarshal "(rolearn|userarn)" into the "ARN" field and then unmarshal
-	// the rest as usual
-	outerKeys := map[string]*json.RawMessage{}
-	if err := json.Unmarshal(data, &outerKeys); err != nil {
-		return err
-	}
-
-	arn, ok := outerKeys[roleKey]
-	if !ok {
-		arn, ok = outerKeys[userKey]
-		if !ok {
-			return errors.New("missing arn")
-		}
-	}
-
-	if err := json.Unmarshal(*arn, &a.ARN); err != nil {
-		return err
-	}
-
-	*m = MapIdentity(a)
-	return nil
-}
-
-// MarshalJSON for MapIdentity marshals the ARN field into either "rolearn" or "userarn"
-// depending on what is appropriate and returns and error if it cannot determine that.
-// All other fields are marshaled with the default marshaler
-func (m *MapIdentity) MarshalJSON() ([]byte, error) {
-	// Marshal everything as one would normally do
-	type alias MapIdentity
-	a := (*alias)(m)
-	data, err := json.Marshal(a)
-	if err != nil {
-		return nil, err
-	}
-
-	// Partially unmarshal everything into a map in order to more easily append the (role|user)arn
-	partial := map[string]*json.RawMessage{}
-	if err := json.Unmarshal(data, &partial); err != nil {
-		return nil, err
-	}
-
-	arn, err := json.Marshal(m.ARN)
-	if err != nil {
-		return nil, err
-	}
-
-	switch {
-	case m.role():
-		partial[roleKey] = (*json.RawMessage)(&arn)
-	case m.user():
-		partial[userKey] = (*json.RawMessage)(&arn)
-	default:
-		return nil, errors.Errorf("cannot determine if %q refers to a user or role", arn)
-	}
-
-	return json.Marshal(partial)
-}
-
-// resource returns the resource portion of the ARN as described by
-// https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
-//
-// arn:partition:service:region:account-id:resource
-// arn:partition:service:region:account-id:resourcetype/resource
-// arn:partition:service:region:account-id:resourcetype/resource/qualifier
-// arn:partition:service:region:account-id:resourcetype/resource:qualifier
-// arn:partition:service:region:account-id:resourcetype:resource
-// arn:partition:service:region:account-id:resourcetype:resource:qualifier
-func (m MapIdentity) resource() string {
-	portions := strings.Split(m.ARN, ":")
-	if len(portions) < 6 {
-		// malformed arn
-		return ""
-	}
-
-	if idx := strings.Index(portions[5], "/"); idx >= 0 {
-		return portions[5][:idx] // Only return up until the forward slash (if one is present)
-	}
-
-	return portions[5]
-}
-
-func (m MapIdentity) role() bool {
-	return m.resource() == "role"
-}
-
-func (m MapIdentity) user() bool {
-	return m.resource() == "user"
-}
-
-// Get returns all matching role mappings. Note that at this moment
-// aws-iam-authenticator only considers the last one!
-func (rs MapIdentities) Get(arn string) MapIdentities {
-	var m MapIdentities
-	for _, r := range rs {
-		if r.ARN == arn {
-			m = append(m, r)
-		}
-	}
-	return m
-}
 
 // AuthConfigMap allows modifying the auth ConfigMap.
 type AuthConfigMap struct {
@@ -266,11 +144,12 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 // AddIdentity maps an IAM role or user ARN to a k8s group dynamically. It modifies the
 // role or user with given groups. If you are calling
 // this as part of node creation you should use DefaultNodeGroups.
-func (a *AuthConfigMap) AddIdentity(arn string, username string, groups []string) error {
+func (a *AuthConfigMap) AddIdentity(arn ARN, username string, groups []string) error {
 	identities, err := a.Identities()
 	if err != nil {
 		return err
 	}
+
 	identities = append(identities, MapIdentity{
 		ARN: arn,
 		Identity: iam.Identity{
@@ -278,7 +157,7 @@ func (a *AuthConfigMap) AddIdentity(arn string, username string, groups []string
 			Groups:   groups,
 		},
 	})
-	logger.Info("adding identity %q to auth ConfigMap", arn)
+	logger.Info("adding identity %q to auth ConfigMap", arn.String())
 	return a.setIdentities(identities)
 }
 
@@ -287,7 +166,7 @@ func (a *AuthConfigMap) AddIdentity(arn string, username string, groups []string
 // find it.
 // If `all` is true it will remove all of them and not return an
 // error if it cannot be found.
-func (a *AuthConfigMap) RemoveIdentity(arn string, all bool) error {
+func (a *AuthConfigMap) RemoveIdentity(arn ARN, all bool) error {
 	identities, err := a.Identities()
 	if err != nil {
 		return err
@@ -295,8 +174,8 @@ func (a *AuthConfigMap) RemoveIdentity(arn string, all bool) error {
 
 	newidentities := MapIdentities{}
 	for i, identity := range identities {
-		if identity.ARN == arn {
-			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arn, identity.Username, identity.Groups)
+		if identity.ARN.String() == arn.String() {
+			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arn.String(), identity.Username, identity.Groups)
 			if !all {
 				identities = append(identities[:i], identities[i+1:]...)
 				return a.setIdentities(identities)
@@ -306,7 +185,7 @@ func (a *AuthConfigMap) RemoveIdentity(arn string, all bool) error {
 		}
 	}
 	if !all {
-		return fmt.Errorf("instance identity ARN %q not found in auth ConfigMap", arn)
+		return fmt.Errorf("instance identity ARN %q not found in auth ConfigMap", arn.String())
 	}
 	return a.setIdentities(newidentities)
 }
@@ -381,7 +260,13 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	if err != nil {
 		return err
 	}
-	if err := acm.AddIdentity(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
+
+	arn, err := arn.Parse(ng.IAM.InstanceRoleARN)
+	if err != nil {
+		return errors.Wrap(err, "parsing nodegroup instance role ARN")
+	}
+
+	if err := acm.AddIdentity(ARN(arn), RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
 		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {
@@ -394,15 +279,15 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	arn := ng.IAM.InstanceRoleARN
-	if arn == "" {
-		return errors.New("nodegroup instance role ARN is not set")
+	arn, err := arn.Parse(ng.IAM.InstanceRoleARN)
+	if err != nil {
+		return errors.Wrap(err, "nodegroup instance role ARN is invalid")
 	}
 	acm, err := NewFromClientSet(clientSet)
 	if err != nil {
 		return err
 	}
-	if err := acm.RemoveIdentity(arn, false); err != nil {
+	if err := acm.RemoveIdentity(ARN(arn), false); err != nil {
 		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {

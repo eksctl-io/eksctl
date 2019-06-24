@@ -3,6 +3,7 @@ package create
 import (
 	"github.com/kris-nova/logger"
 	"github.com/lithammer/dedent"
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -31,7 +32,7 @@ func createIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&id.ARN, "arn", "", "ARN of the IAM role or user to create")
+		fs.Var(&id.ARN, "arn", "ARN of the IAM role or user to create")
 		fs.StringVar(&id.Username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
@@ -54,8 +55,8 @@ func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapI
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-	if id.ARN == "" {
-		return cmdutils.ErrMustBeSet("--arn")
+	if id.ARN.Resource == "" {
+		return errors.New("empty resource section of arn")
 	}
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")

@@ -18,7 +18,7 @@ func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	rc.ClusterConfig = cfg
 
-	var arn string
+	var arn authconfigmap.ARN
 
 	params := &getCmdParams{}
 
@@ -29,7 +29,7 @@ func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&arn, "arn", "", "ARN of the IAM role or user")
+		fs.Var(&arn, "arn", "ARN of the IAM role or user")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
@@ -39,7 +39,7 @@ func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn string) error {
+func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn authconfigmap.ARN) error {
 	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
@@ -71,7 +71,8 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn
 	if err != nil {
 		return err
 	}
-	if arn != "" {
+
+	if arn.Resource != "" {
 		identities = identities.Get(arn)
 		// If a filter was given, we error if none was found
 		if len(identities) == 0 {
@@ -96,7 +97,7 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("ARN", func(r authconfigmap.MapIdentity) string {
-		return r.ARN
+		return r.ARN.String()
 	})
 	printer.AddColumn("USERNAME", func(r authconfigmap.MapIdentity) string {
 		return r.Username
