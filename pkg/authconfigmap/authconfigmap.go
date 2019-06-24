@@ -56,7 +56,7 @@ var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
 // MapIdentity represents an IAM identity with an ARN.
 type MapIdentity struct {
 	iam.Identity `json:",inline"`
-	ARN          string
+	ARN          string `json:"-"` // This field is (un)marshaled manually
 }
 
 // MapIdentities is a list of IAM identities with a role or user ARN.
@@ -146,6 +146,11 @@ func (m MapIdentity) resource() string {
 		// malformed arn
 		return ""
 	}
+
+	if idx := strings.Index(portions[5], "/"); idx >= 0 {
+		return portions[5][:idx] // Only return up until the forward slash (if one is present)
+	}
+
 	return portions[5]
 }
 
@@ -329,7 +334,7 @@ func (a *AuthConfigMap) setIdentities(identities MapIdentities) error {
 		case identity.user():
 			users = append(users, identity)
 		default:
-			return errors.Errorf("cannot determine if %q refers to a user or role", identity)
+			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity)
 		}
 	}
 
