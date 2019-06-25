@@ -1,3 +1,4 @@
+// Make sure to bump the version of EKSCTL_BUILD_IMAGE if you make any changes in the buildcache
 module github.com/weaveworks/eksctl
 
 go 1.12

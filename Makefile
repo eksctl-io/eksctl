@@ -3,7 +3,8 @@ git_commit := $(shell git describe --dirty --always)
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
-EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:latest
+# The version tag should be bumped every time the build dependencies are updated
+EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:0.1
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 GO_BUILD_TAGS ?= netgo
