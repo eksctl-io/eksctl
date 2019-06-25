@@ -9,6 +9,8 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"context"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -17,7 +19,7 @@ func fmtSecurityGroupNameRegexForCluster(name string) string {
 	return fmt.Sprintf(ourSecurityGroupNameRegexFmt, name)
 }
 
-func findAvailableNetworkInterfaces(provider api.ClusterProvider, spec *api.ClusterConfig) ([]string, error) {
+func findAvailableNetworkInterfaces(ctx context.Context, provider api.ClusterProvider, spec *api.ClusterConfig, fn func(eniID string) error) error {
 	input := &ec2.DescribeNetworkInterfacesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -30,49 +32,50 @@ func findAvailableNetworkInterfaces(provider api.ClusterProvider, spec *api.Clus
 			},
 		},
 	}
-	output, err := provider.EC2().DescribeNetworkInterfaces(input)
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to list dangling network interfaces in %q", spec.VPC.ID)
-	}
+
 	securityGroupRE, err := regexp.Compile(fmtSecurityGroupNameRegexForCluster(spec.Metadata.Name))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to list dangling network interfaces in %q", spec.VPC.ID)
+		return errors.Wrap(err, "failed to create security group regex")
 	}
-	networkInterfaces := []string{}
-	for _, eni := range output.NetworkInterfaces {
-		id := *eni.NetworkInterfaceId
-		for _, sg := range eni.Groups {
-			if securityGroupRE.MatchString(*sg.GroupName) {
-				logger.Debug("found %q, which belongs to our security group %q (%s)", id, *sg.GroupName, *sg.GroupId)
-				networkInterfaces = append(networkInterfaces, id)
-				break
-			} else {
+
+	var lastErr error
+
+	err = provider.EC2().DescribeNetworkInterfacesPagesWithContext(ctx, input, func(output *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
+		for _, eni := range output.NetworkInterfaces {
+			id := *eni.NetworkInterfaceId
+			for _, sg := range eni.Groups {
+				if securityGroupRE.MatchString(*sg.GroupName) {
+					logger.Debug("found %q, which belongs to our security group %q (%s)", id, *sg.GroupName, *sg.GroupId)
+					if err := fn(id); err != nil {
+						lastErr = err
+						return false
+					}
+					break
+				}
 				logger.Debug("found %q, but it belongs to security group %q (%s), which does not appear to be ours", id, *sg.GroupName, *sg.GroupId)
-				break
 			}
 		}
+		return !lastPage
+	})
+
+	if err != nil {
+		return errors.Wrapf(err, "unable to list dangling network interfaces in %q", spec.VPC.ID)
 	}
-	return networkInterfaces, nil
+
+	return lastErr
 }
 
-func deleteNetworkInterfaces(provider api.ClusterProvider, networkInterfaces []string) error {
-	for _, eni := range networkInterfaces {
+// CleanupNetworkInterfaces finds and deletes any dangling ENIs
+func CleanupNetworkInterfaces(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+	ctx := context.TODO()
+	return findAvailableNetworkInterfaces(ctx, provider, spec, func(eniID string) error {
 		input := &ec2.DeleteNetworkInterfaceInput{
-			NetworkInterfaceId: &eni,
+			NetworkInterfaceId: &eniID,
 		}
 		if _, err := provider.EC2().DeleteNetworkInterface(input); err != nil {
-			return errors.Wrapf(err, "unable to delete network interface %q", eni)
+			return errors.Wrapf(err, "unable to delete network interface %q", eniID)
 		}
-		logger.Debug("deleted %q", eni)
-	}
-	return nil
-}
-
-// CleanupNetworkInterfaces find and deletes any dangling ENIs
-func CleanupNetworkInterfaces(provider api.ClusterProvider, spec *api.ClusterConfig) error {
-	networkInterfaces, err := findAvailableNetworkInterfaces(provider, spec)
-	if err != nil {
-		return err
-	}
-	return deleteNetworkInterfaces(provider, networkInterfaces)
+		logger.Debug("deleted network interface %q", eniID)
+		return nil
+	})
 }
