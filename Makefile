@@ -166,11 +166,9 @@ generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS S
 .PHONY: eksctl-build-image
 eksctl-build-image: ## Create the the eksctl build docker image
 	-docker pull $(EKSCTL_BUILD_IMAGE)
-	docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) -f Dockerfile.build .
+	docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) --target buildcache -f Dockerfile .
 
-EKSCTL_IMAGE_BUILD_ARGS := \
-  --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) \
-  --build-arg=GO_BUILD_TAGS=$(GO_BUILD_TAGS)
+EKSCTL_IMAGE_BUILD_ARGS := --build-arg=GO_BUILD_TAGS=$(GO_BUILD_TAGS)
 
 ifneq ($(COVERALLS_TOKEN),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
