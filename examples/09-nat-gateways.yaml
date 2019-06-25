@@ -1,0 +1,18 @@
+# An example of ClusterConfig object with highly available NAT gateways
+--- 
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-9
+  region: eu-west-1
+
+vpc:
+  nat:
+    gateway: HighlyAvailable # other options: Disable, Single (default)
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.xlarge
+    desiredCapacity: 2
+    privateNetworking: true # if only 'Private' subnets are given, this must be enabled

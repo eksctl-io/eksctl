@@ -89,3 +89,11 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 
 	return nil
 }
+
+// DefaultClusterNAT will set the default value for Cluster NAT mode
+func DefaultClusterNAT() *ClusterNAT {
+	single := ClusterSingleNAT
+	return &ClusterNAT{
+		Gateway: &single,
+	}
+}

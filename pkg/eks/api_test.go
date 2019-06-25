@@ -67,7 +67,7 @@ var _ = Describe("eksctl API", func() {
 		It("should reject old API version", func() {
 			err := LoadConfigFromFile("testdata/old-version.json", cfg)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/old-version.json": no kind "ClusterConfig" is registered for version "eksctl.io/v1alpha3" in scheme "k8s.io/client-go/kubernetes/scheme/register.go:60"`))
+			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/old-version.json": no kind "ClusterConfig" is registered for version "eksctl.io/v1alpha3" in scheme`))
 		})
 
 		It("should error when cannot read a file", func() {

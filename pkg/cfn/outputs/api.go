@@ -25,6 +25,7 @@ const (
 	ClusterStackName                = "ClusterStackName"
 	ClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
 	ClusterServiceRoleARN           = "ServiceRoleARN"
+	ClusterFeatureNATMode 			= "FeatureNATMode"
 
 	// outputs from nodegroup stack
 	NodeGroupInstanceRoleARN    = "InstanceRoleARN"
