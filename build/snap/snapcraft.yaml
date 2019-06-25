@@ -41,7 +41,7 @@ parts:
         git checkout "${last_committed_tag}"
       fi
       snapcraftctl set-version "$(git describe --tags | sed 's/v//')"
-      override-build: |
+    override-build: |
       export GOPATH=$PWD
       cd src/github.com/weaveworks/eksctl
       env CGO_ENABLED=0 GOOS=linux \
