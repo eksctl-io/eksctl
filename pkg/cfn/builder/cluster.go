@@ -40,7 +40,9 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	}
 
 	if dedicatedVPC {
-		c.addResourcesForVPC()
+		if err := c.addResourcesForVPC(); err != nil {
+			return errors.Wrap(err, "error adding VPC resources")
+		}
 	} else {
 		c.importResourcesForVPC()
 	}

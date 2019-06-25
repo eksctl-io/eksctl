@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
@@ -77,7 +77,7 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 }
 
 //nolint:interfacer
-func (c *ClusterResourceSet) addResourcesForVPC() {
+func (c *ClusterResourceSet) addResourcesForVPC() error {
 
 	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
 		CidrBlock:          gfn.NewString(c.spec.VPC.CIDR.String()),
@@ -87,7 +87,7 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 
 	if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
 		c.newResource("AutoAllocatedCIDRv6", &gfn.AWSEC2VPCCidrBlock{
-			VpcId:                       c.vpc,
+			VpcId: c.vpc,
 			AmazonProvidedIpv6CidrBlock: gfn.True(),
 		})
 	}
@@ -112,9 +112,12 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 
 	c.addSubnets(refPublicRT, api.SubnetTopologyPublic, c.spec.VPC.Subnets.Public)
 
-	c.addNATGateways()
+	if err := c.addNATGateways(); err != nil {
+		return err
+	}
 
 	c.addSubnets(nil, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private)
+	return nil
 }
 
 func (c *ClusterResourceSet) addNATGateways() error {
@@ -128,7 +131,8 @@ func (c *ClusterResourceSet) addNATGateways() error {
 	case api.ClusterDisableNAT:
 		c.noNAT()
 	default:
-		return errors.New(*c.spec.VPC.NAT.Gateway + "is not a valid NAT gateway mode")
+		// TODO validate this before starting to add resources
+		return fmt.Errorf("%s is not a valid NAT gateway mode", *c.spec.VPC.NAT.Gateway)
 	}
 	return nil
 }
@@ -377,6 +381,7 @@ func (c *ClusterResourceSet) singleNAT() {
 		refRT := c.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
 			VpcId: c.vpc,
 		})
+
 		c.newResource("NATPrivateSubnetRoute"+alphanumericUpperAZ, &gfn.AWSEC2Route{
 			RouteTableId:         refRT,
 			DestinationCidrBlock: internetCIDR,
