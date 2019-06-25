@@ -6,6 +6,7 @@ adopt-info: eksctl
 
 grade: stable
 confinement: strict
+base: core18
 
 architectures:
   - build-on: i386
