@@ -30,7 +30,7 @@ parts:
     source-type: git
     override-pull: |
       git clone https://github.com/weaveworks/eksctl.git src/github.com/weaveworks/eksctl
-       cd src/github.com/weaveworks/eksctl
+      cd src/github.com/weaveworks/eksctl
       last_committed_tag="$(git describe --tags --abbrev=0)"
       last_committed_tag_ver="$(echo ${last_committed_tag} | sed 's/v//')"
       last_released_tag="$(snap info $SNAPCRAFT_PROJECT_NAME | awk '$1 == "beta:" { print $2 }')"
