@@ -50,7 +50,7 @@ lint: ## Run linter over the codebase
 	"$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
 
 .PHONY: test
-test: generate ## Run unit test (and re-generate code under test)
+test: generate-mocks ## Run unit test (and re-generate code under test)
 	$(MAKE) lint
 	git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
 	git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
@@ -114,8 +114,8 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-.PHONY: generate
-generate: generate-kubernetes-types ## Generate code
+.PHONY: generate-mocks
+generate-mocks: generate-kubernetes-types ## Generate code
 	chmod g-w  ./pkg/nodebootstrap/assets/*
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
