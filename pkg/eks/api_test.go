@@ -117,7 +117,7 @@ var _ = Describe("eksctl API", func() {
 			err := ctl.EnsureAMI("1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-052c79e1fdd528e6e"))
+			Expect(ng.AMI).To(Equal("ami-08142df4834399a6b"))
 		})
 		It("should pick a valid AMI for normal instances when AMI is static", func() {
 			ng.AMI = "static"
@@ -150,7 +150,7 @@ var _ = Describe("eksctl API", func() {
 			err := ctl.EnsureAMI("1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-052c79e1fdd528e6e"))
+			Expect(ng.AMI).To(Equal("ami-08142df4834399a6b"))
 		})
 	})
 })
