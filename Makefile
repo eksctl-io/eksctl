@@ -21,7 +21,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 ##@ Build
 
 .PHONY: build
-build: ## Build eksctl
+build: generate-kubernetes-types ## Build eksctl
 	CGO_ENABLED=0 go build -tags "$(GO_BUILD_TAGS)" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
@@ -115,7 +115,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 ##@ Code Generation
 
 .PHONY: generate
-generate: ## Generate code
+generate: generate-kubernetes-types ## Generate code
 	chmod g-w  ./pkg/nodebootstrap/assets/*
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
