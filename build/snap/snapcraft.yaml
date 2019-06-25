@@ -24,7 +24,7 @@ apps:
 
 parts:
   eksctl:
-  plugin: nil 
+    plugin: nil
     source: https://github.com/weaveworks/eksctl.git
     source-type: git
     override-pull: |
