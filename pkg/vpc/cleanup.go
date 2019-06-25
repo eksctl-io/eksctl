@@ -11,6 +11,7 @@ import (
 
 	"context"
 
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -19,7 +20,7 @@ func fmtSecurityGroupNameRegexForCluster(name string) string {
 	return fmt.Sprintf(ourSecurityGroupNameRegexFmt, name)
 }
 
-func findAvailableNetworkInterfaces(ctx context.Context, provider api.ClusterProvider, spec *api.ClusterConfig, fn func(eniID string) error) error {
+func findAvailableNetworkInterfaces(ctx context.Context, ec2API ec2iface.EC2API, spec *api.ClusterConfig, fn func(eniID string) error) error {
 	input := &ec2.DescribeNetworkInterfacesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -40,7 +41,7 @@ func findAvailableNetworkInterfaces(ctx context.Context, provider api.ClusterPro
 
 	var lastErr error
 
-	err = provider.EC2().DescribeNetworkInterfacesPagesWithContext(ctx, input, func(output *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
+	err = ec2API.DescribeNetworkInterfacesPagesWithContext(ctx, input, func(output *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
 		for _, eni := range output.NetworkInterfaces {
 			id := *eni.NetworkInterfaceId
 			for _, sg := range eni.Groups {
@@ -66,13 +67,13 @@ func findAvailableNetworkInterfaces(ctx context.Context, provider api.ClusterPro
 }
 
 // CleanupNetworkInterfaces finds and deletes any dangling ENIs
-func CleanupNetworkInterfaces(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+func CleanupNetworkInterfaces(ec2API ec2iface.EC2API, spec *api.ClusterConfig) error {
 	ctx := context.TODO()
-	return findAvailableNetworkInterfaces(ctx, provider, spec, func(eniID string) error {
+	return findAvailableNetworkInterfaces(ctx, ec2API, spec, func(eniID string) error {
 		input := &ec2.DeleteNetworkInterfaceInput{
 			NetworkInterfaceId: &eniID,
 		}
-		if _, err := provider.EC2().DeleteNetworkInterface(input); err != nil {
+		if _, err := ec2API.DeleteNetworkInterface(input); err != nil {
 			return errors.Wrapf(err, "unable to delete network interface %q", eniID)
 		}
 		logger.Debug("deleted network interface %q", eniID)
