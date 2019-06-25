@@ -21,7 +21,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 ##@ Build
 
 .PHONY: build
-build: generate-kubernetes-types ## Build eksctl
+build: generate-bindata-assets generate-kubernetes-types  ## Build eksctl
 	CGO_ENABLED=0 go build -tags "$(GO_BUILD_TAGS)" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
@@ -50,11 +50,9 @@ lint: ## Run linter over the codebase
 	"$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
 
 .PHONY: test
-test: generate-mocks ## Run unit test (and re-generate code under test)
+test: ## Run unit test (and re-generate code under test)
 	$(MAKE) lint
-	git diff --exit-code pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff pkg/nodebootstrap/assets.go; exit 1)
-	git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
-	git diff --exit-code ./pkg/addons/default > /dev/null || (git --no-pager diff ./pkg/addons/default; exit 1)
+	$(MAKE) generate-aws-mocks-test generate-bindata-assets-test generate-kubernetes-types-test
 	$(MAKE) unit-test
 	test -z $(COVERALLS_TOKEN) || "$(GOBIN)/goveralls" -coverprofile=coverage.out -service=circle-ci
 	$(MAKE) build-integration-test
@@ -114,22 +112,15 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-.PHONY: generate-mocks
-generate-mocks: generate-kubernetes-types ## Generate code
+.PHONY: generate-bindata-assets
+generate-bindata-assets: ## Generate bindata assets (node bootstrap config files & add-on manifests)
 	chmod g-w  ./pkg/nodebootstrap/assets/*
-	mkdir -p vendor/github.com/aws/
-	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.19.18" vendor/github.com/aws/aws-sdk-go
-	env GOBIN=$(GOBIN) go generate ./pkg/nodebootstrap ./pkg/eks/mocks ./pkg/addons/default
+	env GOBIN=$(GOBIN) go generate ./pkg/nodebootstrap ./pkg/addons/default
 
-.PHONY: generate-ami
-generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	go generate ./pkg/ami
-
-.PHONY: ami-check
-ami-check: generate-ami ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
-	git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
-
+.PHONY: generate-bindata-assets-test
+generate-bindata-assets-test: generate-bindata-assets ## Test if generated bindata assets are checked-in
+	git diff --exit-code ./pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff ./pkg/nodebootstrap/assets.go; exit 1)
+	git diff --exit-code ./pkg/addons/default/assets.go > /dev/null || (git --no-pager diff ./pkg/addons/default/assets.go; exit 1)
 
 .PHONY: generate-kubernetes-types
 generate-kubernetes-types: ## Generate Kubernetes API helpers
@@ -139,6 +130,28 @@ generate-kubernetes-types: ## Generate Kubernetes API helpers
 	env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
 	  deepcopy,defaulter pkg/apis ./pkg/apis eksctl.io:v1alpha5 --go-header-file codegenheader.txt --output-base="$${PWD}"
 
+.PHONY: generate-kubernetes-types-test
+generate-kubernetes-types-test: generate-kubernetes-types ## Test if generated Kubernetes API helpers are checked-in
+	git diff --exit-code ./pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff ./pkg/nodebootstrap/assets.go; exit 1)
+
+.PHONY: generate-ami
+generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
+	go generate ./pkg/ami
+
+.PHONY: ami-check
+ami-check: generate-ami ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
+	git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
+
+.PHONY: generate-aws-mocks
+generate-aws-mocks: ## Generate mocks for AWS SDK
+	mkdir -p vendor/github.com/aws/
+	@# Hack for Mockery to find the dependencies handled by `go mod`
+	ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.19.18" vendor/github.com/aws/aws-sdk-go
+	env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
+
+.PHONY: generate-aws-mocks-test
+generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS SDK are checked-in
+	git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
 
 ##@ Docker
 
