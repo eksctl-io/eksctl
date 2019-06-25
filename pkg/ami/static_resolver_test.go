@@ -69,7 +69,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "p2.xlarge",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-04d737b1580c9124c",
+			ExpectedAMI:  "ami-067089d967e068569",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p3) instance and us-east-1", ResolveCase{
@@ -77,7 +77,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "p3.2xlarge",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-005548875cb3a3575",
+			ExpectedAMI:  "ami-0e261247a4b523354",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p2) instance and eu-west-1", ResolveCase{
@@ -85,7 +85,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "p2.xlarge",
 			ImageFamily:  "AmazonLinux2",
-			ExpectedAMI:  "ami-0c93eb79d0fc48e9f",
+			ExpectedAMI:  "ami-0b01f474bfc6c1260",
 			ExpectError:  false,
 		}),
 		Entry("with gpu (p3) instance and non-existent region", ResolveCase{
@@ -101,7 +101,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "Ubuntu1804",
-			ExpectedAMI:  "ami-00aca306f048d7a67",
+			ExpectedAMI:  "ami-05a99f680c36e9ccb",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance, us-east-1 and Ubuntu image", ResolveCase{
@@ -109,7 +109,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "Ubuntu1804",
-			ExpectedAMI:  "ami-058524797b4f788d2",
+			ExpectedAMI:  "ami-0978483636ad2aa99",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance, eu-west-1 and Ubuntu image", ResolveCase{
@@ -117,7 +117,7 @@ var _ = Describe("AMI Static Resolution", func() {
 			Version:      "1.10",
 			InstanceType: "t2.medium",
 			ImageFamily:  "Ubuntu1804",
-			ExpectedAMI:  "ami-0273757a690aa06af",
+			ExpectedAMI:  "ami-03a3e5fb683462c7d",
 			ExpectError:  false,
 		}),
 		Entry("with non-gpu instance, non-eks enabled region and Ubuntu image", ResolveCase{
