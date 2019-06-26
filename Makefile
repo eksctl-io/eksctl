@@ -179,7 +179,7 @@ eksctl-deps-image: ## Create a cache image with all the build dependencies
 	@# in hosts with different default file permissions (umask).
 	chmod 0600 go.mod go.sum
 	chmod 0700 install-build-deps.sh
-	-docker pull $(EKSCTL_DEPENDENCIES_IMAGE)
+	-time docker pull $(EKSCTL_DEPENDENCIES_IMAGE)
 	docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) \
 	  --tag=$(EKSCTL_DEPENDENCIES_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target dependencies .
 
@@ -192,7 +192,7 @@ go-deps.txt: go.mod eksctl-deps-image
 
 .PHONY: eksctl-compiled-deps-image
 eksctl-compiled-deps-image: go-deps.txt ## Create a cache image with all the compiled build dependencies
-	-docker pull $(EKSCTL_COMPILED_DEPENDENCIES_IMAGE)
+	-time docker pull $(EKSCTL_COMPILED_DEPENDENCIES_IMAGE)
 	docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) --cache-from=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) \
 	  --tag=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target compiled_dependencies .
 
