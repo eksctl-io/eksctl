@@ -4,7 +4,9 @@ git_commit := $(shell git describe --dirty --always)
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
 # The version tag should be bumped every time the build dependencies are updated
-EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:0.1
+BUILD_IMAGE_VERSION ?= 0.1
+EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-$(BUILD_IMAGE_VERSION)
+EKSCTL_COMPILED_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:compiled-deps-$(BUILD_IMAGE_VERSION)
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 GOBIN ?= $(shell echo `go env GOPATH`/bin)
@@ -160,15 +162,6 @@ generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS S
 	git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
 
 ##@ Docker
-go-deps.txt: go.mod
-	go list -tags "integration tools" -f '{{join .Imports "\n"}}{{"\n"}}{{join .TestImports "\n" }}{{"\n"}}{{join .XTestImports "\n" }}' ./cmd/... ./pkg/... ./integration/...  | \
-	  sort | uniq | grep -v eksctl | \
-	  xargs go list -f '{{ if not .Standard }}{{.ImportPath}}{{end}}' > $@
-
-.PHONY: eksctl-build-image
-eksctl-build-image: go-deps.txt ## Create the the eksctl build cache docker image
-	-docker pull $(EKSCTL_BUILD_IMAGE)
-	docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target buildcache -f Dockerfile .
 
 ifneq ($(COVERALLS_TOKEN),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
@@ -179,9 +172,24 @@ else
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=test
 endif
 
+.PHONY: eksctl-deps-image
+eksctl-deps-image: ## Create a cache image with all the build dependencies
+	-docker pull $(EKSCTL_DEPENDENCIES_IMAGE)
+	docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) \
+	  --tag=$(EKSCTL_DEPENDENCIES_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target dependencies .
+
+go-deps.txt: go.mod eksctl-deps-image
+	EKSCTL_DEPENDENCIES_IMAGE=$(EKSCTL_DEPENDENCIES_IMAGE) ./get-go-deps.sh > $@
+
+.PHONY: eksctl-compiled-deps-image
+eksctl-compiled-deps-image: go-deps.txt ## Create a cache image with all the compiled build dependencies
+	-docker pull $(EKSCTL_COMPILED_DEPENDENCIES_IMAGE)
+	docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) --cache-from=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) \
+	  --tag=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target compiled_dependencies .
+
 .PHONY: eksctl-image
-eksctl-image: eksctl-build-image ## Create the eksctl image
-	docker build --tag=$(EKSCTL_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
+eksctl-image: eksctl-compiled-deps-image ## Create the eksctl image
+	docker build --cache-from=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
 	[ -z "${CI}" ] || ./get-testresults.sh # only get test results in Continuous Integration
 
 ##@ Release
