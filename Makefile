@@ -162,11 +162,15 @@ generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS S
 	git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
 
 ##@ Docker
+go-deps.txt: go.mod
+	go list -tags "$(GO_BUILD_TAGS) integration tools" -f '{{join .Imports "\n"}}{{"\n"}}{{join .TestImports "\n" }}{{"\n"}}{{join .XTestImports "\n" }}' ./cmd/... ./pkg/... ./integration/...  | \
+	  sort | uniq | grep -v eksctl | \
+	  xargs go list -f '{{ if not .Standard }}{{.ImportPath}}{{end}}' > $@
 
 .PHONY: eksctl-build-image
-eksctl-build-image: ## Create the the eksctl build docker image
+eksctl-build-image: go-deps.txt ## Create the the eksctl build cache docker image
 	-docker pull $(EKSCTL_BUILD_IMAGE)
-	docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) --target buildcache -f Dockerfile .
+	docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target buildcache -f Dockerfile .
 
 EKSCTL_IMAGE_BUILD_ARGS := --build-arg=GO_BUILD_TAGS=$(GO_BUILD_TAGS)
 
@@ -181,7 +185,7 @@ endif
 
 .PHONY: eksctl-image
 eksctl-image: eksctl-build-image ## Create the eksctl image
-	docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
+	docker build --tag=$(EKSCTL_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
 	[ -z "${CI}" ] || ./get-testresults.sh # only get test results in Continuous Integration
 
 ##@ Release

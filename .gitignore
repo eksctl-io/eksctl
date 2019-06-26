@@ -31,3 +31,5 @@ integration/kubeconfig-*
 # Generated header file
 .license-header
 
+# Go packages eksctl depends on, for the build cache
+go-deps.txt

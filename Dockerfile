@@ -14,10 +14,15 @@ ENV CGO_ENABLED=0
 
 WORKDIR /src
 # We intentionally don't copy the full source tree to prevent code-changes
-# from invalidating the dependency build cache
-COPY go.mod go.sum install-build-deps.sh /src/
+# from invalidating the dependency build cache image
+COPY go.mod go.sum go-deps.txt install-build-deps.sh /src/
 
 ARG GO_BUILD_TAGS
+
+# Download all the dependencies and build them
+RUN go mod download
+RUN go build -tags "${GO_BUILD_TAGS}" $(cat go-deps.txt)
+
 RUN GO_BUILD_TAGS="${GO_BUILD_TAGS}" ./install-build-deps.sh
 RUN go install -tags "${GO_BUILD_TAGS}" github.com/goreleaser/goreleaser
 
