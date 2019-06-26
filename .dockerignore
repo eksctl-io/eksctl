@@ -1,5 +1,6 @@
+logo
+site
 Dockerfile
-Dockerfile.build
 *.md
 DCO
 LICENSE.*
