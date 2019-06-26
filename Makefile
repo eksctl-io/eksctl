@@ -122,13 +122,16 @@ generate-bindata-assets-test: generate-bindata-assets ## Test if generated binda
 	git diff --exit-code ./pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff ./pkg/nodebootstrap/assets.go; exit 1)
 	git diff --exit-code ./pkg/addons/default/assets.go > /dev/null || (git --no-pager diff ./pkg/addons/default/assets.go; exit 1)
 
-.PHONY: generate-kubernetes-types
-generate-kubernetes-types: ## Generate Kubernetes API helpers
-	go mod download k8s.io/code-generator # make sure the code-generator is present
+.license-header: LICENSE
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
-	echo "/*\n$$(cat LICENSE)*/\n" > codegenheader.txt
+	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
+
+.PHONY: generate-kubernetes-types
+generate-kubernetes-types: .license-header ## Generate Kubernetes API helpers
+	go mod download k8s.io/code-generator # make sure the code-generator is present
 	env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
-	  deepcopy,defaulter pkg/apis ./pkg/apis eksctl.io:v1alpha5 --go-header-file codegenheader.txt --output-base="$${PWD}"
+	  deepcopy,defaulter pkg/apis ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$${PWD}" \
+	  || (cat codegenheader.txt ; cat pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go ; exit 1)
 
 .PHONY: generate-kubernetes-types-test
 generate-kubernetes-types-test: generate-kubernetes-types ## Test if generated Kubernetes API helpers are checked-in
