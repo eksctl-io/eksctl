@@ -43,12 +43,27 @@ img[src$="#bgright"] {
   z-index: -1;
 }
 
+#github-section {
+  padding-left: 5px;
+  display: inline-block;
+}
+
 @media (max-width: 1060px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
     top: 220px;
     z-index: -1;
+  }
+  #github-section {
+    padding-left: 0px;
+    display: block;
+  }
+}
+
+@media (max-width: 900px) {
+  #github {
+    display: none;
   }
 }
 

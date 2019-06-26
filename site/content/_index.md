@@ -5,7 +5,7 @@ type: docs
 
 # **`eksctl` - a CLI for Amazon EKS**
 
-<div id="github"><script async defer src="https://buttons.github.io/buttons.js"></script><a class="github-button" href="https://github.com/weaveworks/eksctl" data-icon="octicon-star" data-show-count="true" aria-label="Star weaveworks/eksctl on GitHub">Star</a><div style="padding-left: 5px; display: inline-block;"><a class="github-button" href="https://github.com/weaveworks/eksctl/fork" data-icon="octicon-repo-forked" data-show-count="true" aria-label="Fork weaveworks/eksctl on GitHub">Fork</a></div></div>
+<div id="github"><script async defer src="https://buttons.github.io/buttons.js"></script><a class="github-button" href="https://github.com/weaveworks/eksctl" data-icon="octicon-star" data-show-count="true" aria-label="Star weaveworks/eksctl on GitHub">Star</a><div id="github-section"><a class="github-button" href="https://github.com/weaveworks/eksctl/fork" data-icon="octicon-repo-forked" data-show-count="true" aria-label="Fork weaveworks/eksctl on GitHub">Fork</a></div></div>
 
 ### sponsored by [![Weaveworks](introduction/images/weaveworks.svg#inline-svg)](https://www.weave.works/) and built by [![Contributors](introduction/images/gophers.png#inline)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](introduction/images/octocat.svg#inline-svg)](https://github.com/weaveworks/eksctl)
 
