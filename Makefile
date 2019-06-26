@@ -14,12 +14,12 @@ AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
 DEEP_COPY_HELPER := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 GENERATED_GO_FILES := pkg/addons/default/assets.go \
 pkg/nodebootstrap/assets.go \
+pkg/addons/default/assets/aws-node.yaml \
 $(DEEP_COPY_HELPER) \
 pkg/ami/static_resolver_ami.go \
 $(AWS_SDK_MOCKS)
 
 GENERATED_FILES := $(GENERATED_GO_FILES) site/content/usage/20-schema.md
-
 
 .DEFAULT_GOAL := help
 
@@ -134,6 +134,9 @@ check-generated-sources-up-to-date: regenerate-sources
 
 pkg/addons/default/assets.go: pkg/addons/default/assets/*
 	env GOBIN=$(GOBIN) time go generate ./$(@D)
+
+pkg/addons/default/assets/aws-node.yaml:
+	env GOBIN=$(GOBIN) go generate ./pkg/addons/default
 
 pkg	/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
 	chmod g-w $^
