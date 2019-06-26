@@ -2,7 +2,7 @@ Dockerfile
 Dockerfile.build
 *.md
 DCO
-LICENSE*
+LICENSE.*
 skaffold.yaml
 eksctl
 eksctl-integration-test

@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -546,6 +547,16 @@ type (
 
 // NodeGroupKubeletConfig contains extra config parameters for the kubelet.yaml
 type NodeGroupKubeletConfig map[string]interface{}
+
+// DeepCopy is needed to generate kubernetes types for NodeGroupKubeletConfig
+func (in *NodeGroupKubeletConfig) DeepCopy() *NodeGroupKubeletConfig {
+	if in == nil {
+		return nil
+	}
+	out := new(NodeGroupKubeletConfig)
+	*out = NodeGroupKubeletConfig(runtime.DeepCopyJSON(*in))
+	return out
+}
 
 // HasMixedInstances checks if a nodegroup has mixed instances option declared
 func HasMixedInstances(ng *NodeGroup) bool {
