@@ -2,7 +2,8 @@ version: 2
 jobs:
   make-eksctl-image:
     # use machine build, as otherwise we cannot use make and have to duplicate makefile
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
     steps:
       - checkout
       - run: mkdir -p ./test-results/ginkgo
