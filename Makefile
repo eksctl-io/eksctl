@@ -7,8 +7,6 @@ version_pkg := github.com/weaveworks/eksctl/pkg/version
 EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:0.1
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
-GO_BUILD_TAGS ?= netgo
-
 GOBIN ?= $(shell echo `go env GOPATH`/bin)
 
 .DEFAULT_GOAL := help
@@ -23,7 +21,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: build
 build: generate-bindata-assets generate-kubernetes-types  ## Build eksctl
-	CGO_ENABLED=0 go build -tags "$(GO_BUILD_TAGS)" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	CGO_ENABLED=0 go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
@@ -163,7 +161,7 @@ generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS S
 
 ##@ Docker
 go-deps.txt: go.mod
-	go list -tags "$(GO_BUILD_TAGS) integration tools" -f '{{join .Imports "\n"}}{{"\n"}}{{join .TestImports "\n" }}{{"\n"}}{{join .XTestImports "\n" }}' ./cmd/... ./pkg/... ./integration/...  | \
+	go list -tags "integration tools" -f '{{join .Imports "\n"}}{{"\n"}}{{join .TestImports "\n" }}{{"\n"}}{{join .XTestImports "\n" }}' ./cmd/... ./pkg/... ./integration/...  | \
 	  sort | uniq | grep -v eksctl | \
 	  xargs go list -f '{{ if not .Standard }}{{.ImportPath}}{{end}}' > $@
 
@@ -171,8 +169,6 @@ go-deps.txt: go.mod
 eksctl-build-image: go-deps.txt ## Create the the eksctl build cache docker image
 	-docker pull $(EKSCTL_BUILD_IMAGE)
 	docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target buildcache -f Dockerfile .
-
-EKSCTL_IMAGE_BUILD_ARGS := --build-arg=GO_BUILD_TAGS=$(GO_BUILD_TAGS)
 
 ifneq ($(COVERALLS_TOKEN),)
 EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)

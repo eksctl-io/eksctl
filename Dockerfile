@@ -17,14 +17,12 @@ WORKDIR /src
 # from invalidating the dependency build cache image
 COPY go.mod go.sum go-deps.txt install-build-deps.sh /src/
 
-ARG GO_BUILD_TAGS
-
 # Download all the dependencies and build them
 RUN go mod download
-RUN go build -tags "${GO_BUILD_TAGS}" $(cat go-deps.txt)
+RUN go build $(cat go-deps.txt)
 
-RUN GO_BUILD_TAGS="${GO_BUILD_TAGS}" ./install-build-deps.sh
-RUN go install -tags "${GO_BUILD_TAGS}" github.com/goreleaser/goreleaser
+RUN ./install-build-deps.sh
+RUN go install github.com/goreleaser/goreleaser
 
 RUN mkdir -p /out/etc/apk && cp -r /etc/apk/* /out/etc/apk/
 RUN apk add --no-cache --initdb --root /out \
@@ -55,7 +53,7 @@ RUN mkdir -p "${JUNIT_REPORT_DIR}"
 
 WORKDIR /src
 RUN make $TEST_TARGET
-RUN make build GO_BUILD_TAGS="${GO_BUILD_TAGS}" \
+RUN make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 RUN make build-integration-test \
     && mkdir -p /out/usr/local/share/eksctl \
