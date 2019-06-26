@@ -4,6 +4,7 @@ RUN apk add --no-cache \
       curl \
       git \
       make \
+      bash \
       gcc \
       musl-dev \
       && true
