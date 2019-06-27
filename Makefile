@@ -23,7 +23,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: build
 build: generate-bindata-assets generate-kubernetes-types  ## Build eksctl
-	CGO_ENABLED=0 go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	CGO_ENABLED=0 time go build -v -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
@@ -48,27 +48,27 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	"$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
+	time "$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
 
 .PHONY: test
 test: ## Run unit test (and re-generate code under test)
 	$(MAKE) lint
 	$(MAKE) generate-aws-mocks-test generate-bindata-assets-test generate-kubernetes-types-test
 	$(MAKE) unit-test
-	test -z $(COVERALLS_TOKEN) || "$(GOBIN)/goveralls" -coverprofile=coverage.out -service=circle-ci
+	test -z $(COVERALLS_TOKEN) || time "$(GOBIN)/goveralls" -coverprofile=coverage.out -service=circle-ci
 	$(MAKE) build-integration-test
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=0 time go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
 unit-test-race: ## Run unit test with race detection
-	CGO_ENABLED=1 go test -race -covermode=atomic -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=1 time go test -race -covermode=atomic -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
 build-integration-test: ## Build integration test binary
-	go test -tags integration ./integration/... -c -o ./eksctl-integration-test
+	time go test -tags integration ./integration/... -c -o ./eksctl-integration-test
 
 .PHONY: integration-test
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
@@ -116,7 +116,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 .PHONY: generate-bindata-assets
 generate-bindata-assets: ## Generate bindata assets (node bootstrap config files & add-on manifests)
 	chmod g-w  ./pkg/nodebootstrap/assets/*
-	env GOBIN=$(GOBIN) go generate ./pkg/nodebootstrap ./pkg/addons/default
+	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap ./pkg/addons/default
 
 .PHONY: generate-bindata-assets-test
 generate-bindata-assets-test: generate-bindata-assets ## Test if generated bindata assets are checked-in
@@ -129,8 +129,8 @@ generate-bindata-assets-test: generate-bindata-assets ## Test if generated binda
 
 .PHONY: generate-kubernetes-types
 generate-kubernetes-types: .license-header ## Generate Kubernetes API helpers
-	go mod download k8s.io/code-generator # make sure the code-generator is present
-	env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
+	time go mod download k8s.io/code-generator # make sure the code-generator is present
+	time env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
 	  deepcopy,defaulter pkg/apis ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$${PWD}" \
 	  || (cat codegenheader.txt ; cat pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go ; exit 1)
 
@@ -140,7 +140,7 @@ generate-kubernetes-types-test: generate-kubernetes-types ## Test if generated K
 
 .PHONY: generate-ami
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	go generate ./pkg/ami
+	time go generate ./pkg/ami
 
 .PHONY: generate-schema
 generate-schema: ## Generate the schema file in the documentation site.
@@ -155,7 +155,7 @@ generate-aws-mocks: ## Generate mocks for AWS SDK
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
 	ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.19.18" vendor/github.com/aws/aws-sdk-go
-	env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
+	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
 .PHONY: generate-aws-mocks-test
 generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS SDK are checked-in
