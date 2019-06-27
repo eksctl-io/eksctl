@@ -5,6 +5,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
+        GO_VERSION: 1.12.6
         GOCACHE: /home/circleci/.cache/go-build/
         GOPATH: /home/circleci/go
     steps:
@@ -14,6 +15,15 @@ jobs:
                 - go-cache-{{ .Branch }}-{{ .Revision }}
                 - go-cache-{{ .Branch }}-
                 - go-cache-
+      - run:
+            name: Install Golang (needed for dependency calculation)
+            command: |
+                curl -OL https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
+                tar -xf go${GO_VERSION}.linux-amd64.tar.gz
+                sudo rm -rf /usr/local/go
+                sudo mv go /usr/local
+                mkdir -p "$HOME/go/bin"
+                go version
       - run: mkdir -p ./test-results/ginkgo
       - run: make eksctl-image
       - run: sudo chown -R circleci.circleci /home/circleci/.cache/go-build/ /home/circleci/go/pkg/mod/
