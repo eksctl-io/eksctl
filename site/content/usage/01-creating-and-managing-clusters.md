@@ -3,11 +3,36 @@ title: "Creating and managing clusters"
 weight: 10
 ---
 
-### Using Config Files
+## Creating a cluster
+
+Create a simple cluster with the following command:
+
+```bash
+eksctl create cluster
+```
+
+That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one 
+nodegroup containing 2 m5.large nodes.
+
+After the cluster has been created, the appropriate kubernetes configuration will be added to your kubeconfig file. 
+This is, the file that you have configured in the environment variable `KUBECONFIG` or `~/.kube/config` by default. 
+The path to the kubeconfig file can be overriden using the `--kubeconfig` flag.
+
+Other flags that can change how the kubeconfig file is written:
+
+| flag                     | type   | use                                                                                                             | default value                |
+|--------------------------|--------|-----------------------------------------------------------------------------------------------------------------|------------------------------|
+| --kubeconfig             | string | path to write kubeconfig (incompatible with --auto-kubeconfig) (default "/home/martina/.kube/config")           | KUBECONFIG or ~/.kube/config |
+| --set-kubeconfig-context | bool   | if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten | true                         |
+| --auto-kubeconfig        | bool   | save kubeconfig file by cluster name                                                                            | true                         |
+| --write-kubeconfig       | bool   | toggle writing of kubeconfig                                                                                    | true                         |
+
+## Using Config Files
 
 You can create a cluster using a config file instead of flags.
 
 First, create `cluster.yaml` file:
+
 ```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -26,10 +51,11 @@ nodeGroups:
     instanceType: m5.xlarge
     desiredCapacity: 2
     ssh:
-      publicKeyPath:  ~/.ssh/ec2_id_rsa.pub
+      publicKeyPath: ~/.ssh/ec2_id_rsa.pub
 ```
 
 Next, run this command:
+
 ```
 eksctl create cluster -f cluster.yaml
 ```
@@ -37,6 +63,7 @@ eksctl create cluster -f cluster.yaml
 This will create a cluster as described.
 
 If you needed to use an existing VPC, you can use a config file like this:
+
 ```yaml
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -48,18 +75,18 @@ metadata:
 vpc:
   subnets:
     private:
-      eu-north-1a: {id: subnet-0ff156e0c4a6d300c}
-      eu-north-1b: {id: subnet-0549cdab573695c03}
-      eu-north-1c: {id: subnet-0426fb4a607393184}
+      eu-north-1a: { id: subnet-0ff156e0c4a6d300c }
+      eu-north-1b: { id: subnet-0549cdab573695c03 }
+      eu-north-1c: { id: subnet-0426fb4a607393184 }
 
 nodeGroups:
   - name: ng-1-workers
-    labels: {role: workers}
+    labels: { role: workers }
     instanceType: m5.xlarge
     desiredCapacity: 10
     privateNetworking: true
   - name: ng-2-builders
-    labels: {role: builders}
+    labels: { role: builders }
     instanceType: m5.2xlarge
     desiredCapacity: 2
     privateNetworking: true
@@ -69,10 +96,9 @@ nodeGroups:
 ```
 
 To delete this cluster, run:
+
 ```
 eksctl delete cluster -f cluster.yaml
 ```
 
-
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
-

@@ -3,7 +3,7 @@ title: "GPU Support"
 weight: 70
 ---
 
-### GPU Support
+## GPU Support
 
 If you'd like to use GPU instance types (i.e. [p2](https://aws.amazon.com/ec2/instance-types/p2/) or [p3](https://aws.amazon.com/ec2/instance-types/p3/) ) then the first thing you need to do is subscribe to the [EKS-optimized AMI with GPU Support](https://aws.amazon.com/marketplace/pp/B07GRHFXGM). If you don't do this then node creation will fail.
 
@@ -21,5 +21,4 @@ Once the cluster is created you will need to install the [NVIDIA Kubernetes devi
 kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.11/nvidia-device-plugin.yml
 ```
 
-> NOTE: Once `addon` support has been added as part of 0.2.0 it is envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin.  This addon could potentially be installed automatically as we know an GPU instance type is being used.
-
+> NOTE: Once `addon` support has been added as part of 0.2.0 it is envisioned that there will be a addon to install the NVIDIA Kubernetes Device Plugin. This addon could potentially be installed automatically as we know an GPU instance type is being used.

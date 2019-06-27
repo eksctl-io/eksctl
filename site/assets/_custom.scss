@@ -1,25 +1,73 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat&display=swap");
+@import url("https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap");
+
+body {
+  font-family: "Montserrat", sans-serif;
+}
+
+code {
+  font-family: "Roboto Mono", monospace;
+}
+
+img[src$="#inline"] {
+  height: 30px;
+}
+
+img[src$="#inline-svg"] {
+  height: 20px;
+}
+
 img[src$="#bgright"] {
   position: absolute;
   right: 0px;
-  top: 160px;
+  top: 200px;
   z-index: -1;
 }
 
-#code {
+#intro-code {
   text-align: center;
   line-height: 200px;
 }
 
-@media (max-width: 770px) {
+#border-block {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 2px;
+  border-color: #e5e5e5;
+}
+
+#github {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  z-index: -1;
+}
+
+#github-section {
+  padding-left: 5px;
+  display: inline-block;
+}
+
+@media (max-width: 1060px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
     top: 220px;
     z-index: -1;
   }
+  #github-section {
+    padding-left: 0px;
+    display: block;
+  }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 900px) {
+  #github {
+    display: none;
+  }
+}
+
+@media (max-width: 820px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
@@ -28,14 +76,50 @@ img[src$="#bgright"] {
   }
 }
 
-@media (max-width: 320px) {
+@media (max-width: 741px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 340px;
+    top: 330px;
     z-index: -1;
   }
-  #code {
+}
+
+@media (max-width: 659px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 250px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 538px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 310px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 429px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 360px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 349px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 420px;
+    z-index: -1;
+  }
+  #intro-code {
     text-align: center;
     font-size: 20px;
     line-height: 200px;

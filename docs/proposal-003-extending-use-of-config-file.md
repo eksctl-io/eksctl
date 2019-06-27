@@ -10,8 +10,8 @@ become popular amongst users.
 Users currently can specify `ClusterConfig` object in JSON or YAML, which allows them to set more
 fields then they currently can with CLI flags. They can also specify several nodegroups,
 and create a cluster in one go. Besides many missing features in `v1alpha4` incarnation (where there
-is little of  management functionality beyond initial cluster creation), one of commonly requested
-features is management of nodegroups through config files. 
+is little of management functionality beyond initial cluster creation), one of commonly requested
+features is management of nodegroups through config files.
 
 This proposal aims to define how existing `ClusterConfig` object can be enhanced to support new type
 of objects that allow users to define and manage nodegroups via a separate step.
@@ -38,9 +38,9 @@ nodeGroups:
     privateNetworking: true
 ```
 
-There are two nodegroups defined inline. When this file is passed to `eksctl create cluster --config-file=cluster.yaml` the cluster will be created with the nodegroups as defined.  
+There are two nodegroups defined inline. When this file is passed to `eksctl create cluster --config-file=cluster.yaml` the cluster will be created with the nodegroups as defined.
 
-To create additional nodegroups for this cluster, we will enhance the `eksctl create nodegroup` cli to selectively, using glob patterns, pull nodegroups from this configuration file.  This enables the entire cluster definition to live in a single file.
+To create additional nodegroups for this cluster, we will enhance the `eksctl create nodegroup` cli to selectively, using glob patterns, pull nodegroups from this configuration file. This enables the entire cluster definition to live in a single file.
 
 For example, if we add 2 nodegroups to our original cluster config:
 
@@ -71,7 +71,8 @@ nodeGroups:
     desiredCapacity: 4
     privateNetworking: true
 ```
-`eksctl create nodegroup` will be updated to support glob pattern matching for nodegroup names contained within the cluster config.  Therefore, a user can create these additional nodegroups using `eksctl create nodegroup --config-file=cluster.yaml --include="*dev,*test"`.  Eksctl will create two nodegroups in cluster named cluster-5.
+
+`eksctl create nodegroup` will be updated to support glob pattern matching for nodegroup names contained within the cluster config. Therefore, a user can create these additional nodegroups using `eksctl create nodegroup --config-file=cluster.yaml --include="*dev,*test"`. eksctl will create two nodegroups in cluster named cluster-5.
 
 Here are some additional examples:
 
@@ -88,7 +89,7 @@ By using a single configuration file, users can keep their cluster definitions t
 ## Possible future enhancements
 
 - Update `eksctl create cluster` to allow the user to create selected nodegroups defined in the cluster config
-> `eksctl create cluster --config-file=cluster.yaml --include='.*-private' ## only nodegroups matching glob pattern will be created`
+  > `eksctl create cluster --config-file=cluster.yaml --include='.*-private' ## only nodegroups matching glob pattern will be created`
 - Support storing nodegroups within their own configuration files.
 
 For example:
@@ -119,10 +120,9 @@ Two ways that these config files can be used to create cluster:
 ### Questions
 
 - Is it appropriate to also allow referencing nodegroup that is defined externally within `ClusterConfig`?
-   - Yes.  That is the initial implementation we landed on.
+  - Yes. That is the initial implementation we landed on.
 - Where in standalone `NodeGroup` config should labels live? (If we copy the same struct, we will get `spec.labels`,
   while it might make more sense to have them as `metadata.labels`).
-   - We will address the definition of the actual nodegroup config file later.
-- How will `ClusterConfig` and `NodeGroup` compare when inspected in a running cluster? Namely, are all nodegroups supposed to be inline in `ClusterConfig` as well as represented as distinct object? (This is currently hard to say,  but in the future it will become important that there is coherent representation).
-   - For the initial version, all `nodeGroup` definitions will live in the `ClusterConfig` 
-
+  - We will address the definition of the actual nodegroup config file later.
+- How will `ClusterConfig` and `NodeGroup` compare when inspected in a running cluster? Namely, are all nodegroups supposed to be inline in `ClusterConfig` as well as represented as distinct object? (This is currently hard to say, but in the future it will become important that there is coherent representation).
+  - For the initial version, all `nodeGroup` definitions will live in the `ClusterConfig`

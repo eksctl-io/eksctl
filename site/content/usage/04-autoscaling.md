@@ -1,8 +1,9 @@
 ---
-title: "Autoscaling"
+title: "Auto Scaling"
 weight: 40
 ---
-### Enable Autoscaling
+
+## Enable Auto Scaling
 
 You can create a cluster (or nodegroup in an existing cluster) with IAM role that will allow use of [cluster autoscaler][]:
 
@@ -15,9 +16,9 @@ and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery shoul
 
 [cluster autoscaler]: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 
-#### Zone-aware Autoscaling
+### Zone-aware Auto Scaling
 
-If your workloads are zone-specific you'll need to create separate nodegroups for each zone.  This is because the `cluster-autoscaler` assumes that all nodes in a group are exactly equivalent.  So, for example, if a scale-up event is triggered by a pod which needs a zone-specific PVC (e.g. an EBS volume), the new node might get scheduled in the wrong AZ and the pod will fail to start.
+If your workloads are zone-specific you'll need to create separate nodegroups for each zone. This is because the `cluster-autoscaler` assumes that all nodes in a group are exactly equivalent. So, for example, if a scale-up event is triggered by a pod which needs a zone-specific PVC (e.g. an EBS volume), the new node might get scheduled in the wrong AZ and the pod will fail to start.
 
 You won't need a separate nodegroup for each AZ if your environment meets the following criteria:
 
@@ -28,7 +29,7 @@ You won't need a separate nodegroup for each AZ if your environment meets the fo
 
 (Read more [here](https://github.com/kubernetes/autoscaler/pull/1802#issuecomment-474295002) and [here](https://github.com/weaveworks/eksctl/pull/647#issuecomment-474698054).)
 
-If you meet all of the above requirements (and possibly others) then you should be safe with a single nodegroup which spans multiple AZs.  Otherwise you'll want to create separate, single-AZ nodegroups:
+If you meet all of the above requirements (and possibly others) then you should be safe with a single nodegroup which spans multiple AZs. Otherwise you'll want to create separate, single-AZ nodegroups:
 
 BEFORE:
 
@@ -50,4 +51,3 @@ nodeGroups:
     instanceType: m5.xlarge
     availabilityZones: ["eu-west-2b"]
 ```
-

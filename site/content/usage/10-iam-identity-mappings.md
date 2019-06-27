@@ -3,11 +3,10 @@ title: "Manage IAM users and roles"
 weight: 100
 ---
 
-# Managing IAM Users and Roles
+## Managing IAM users and roles
 
-EKS clusters use IAM users and roles to control access to the cluster. The rules are implemented in a config map 
+EKS clusters use IAM users and roles to control access to the cluster. The rules are implemented in a config map
 called `aws-auth`. `eksctl` provides commands to read and edit this config map.
-
 
 Get all identity mappings:
 
@@ -16,11 +15,13 @@ eksctl get iamidentitymapping --name my-cluster-1
 ```
 
 Get all identity mappings matching a role:
+
 ```bash
 eksctl get iamidentitymapping --name my-cluster-1 --role arn:aws:iam::123456:role/testing-role
-``` 
+```
 
 Create an identity mapping:
+
 ```bash
  eksctl create iamidentitymapping --name  my-cluster-1 --role arn:aws:iam::123456:role/testing --group system:masters --username admin
 ```
@@ -31,5 +32,5 @@ Delete a mapping:
 eksctl delete iamidentitymapping --name  my-cluster-1 --role arn:aws:iam::123456:role/testing
 ```
 
-*Note*: this deletes a single mapping FIFO unless `--all`is given in which case it removes all matching. Will warn if 
+_Note_: this deletes a single mapping FIFO unless `--all`is given in which case it removes all matching. Will warn if
 more mappings matching this role are found.

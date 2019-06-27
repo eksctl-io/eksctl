@@ -2,7 +2,8 @@
 title: "VPC Networking"
 weight: 60
 ---
-### VPC Networking
+
+## VPC Networking
 
 By default, `eksctl create cluster` will build a dedicated VPC, in order to avoid interference with any existing resources for a
 variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC.
@@ -13,19 +14,19 @@ not insecure in principle, but some compromised workload could risk an access vi
 
 If that functionality doesn't suit you, the following options are currently available.
 
-#### change VPC CIDR
+### Change VPC CIDR
 
 If you need to setup peering with another VPC, or simply need larger or smaller range of IPs, you can use `--vpc-cidr` flag to
 change it. You cannot use just any sort of CIDR, there only certain ranges that can be used in [AWS VPC][vpcsizing].
 
 [vpcsizing]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html#VPC_Sizing
 
-#### use private subnets for initial nodegroup
+### Use private subnets for initial nodegroup
 
 If you prefer to isolate initial nodegroup from the public internet, you can use `--node-private-networking` flag.
 When used in conjunction with `--ssh-access` flag, SSH port can only be accessed inside the VPC.
 
-#### use existing VPC: shared with kops
+### Use existing VPC: shared with kops
 
 You can use a VPC of an existing Kubernetes cluster managed by kops. This feature is provided to facilitate migration and/or
 cluster peering.
@@ -43,7 +44,7 @@ You can create an EKS cluster in the same AZs using the same VPC subnets (NOTE: 
 eksctl create cluster --name=cluster-2 --region=us-west-2 --vpc-from-kops-cluster=cluster-1.k8s.local
 ```
 
-#### use existing VPC: any custom configuration
+### Use existing VPC: any custom configuration
 
 Use this feature if you must configure a VPC in a way that's different to how dedicated VPC is configured by `eksctl`, or have to
 use a VPC that already exists so your EKS cluster gets shared access to some resources inside that existing VPC, or you have any

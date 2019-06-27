@@ -3,16 +3,17 @@ title: "Cluster Upgrades"
 weight: 30
 ---
 
-### Cluster Upgrades
+## Cluster upgrades
 
 An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 
 1. update control plane version with `eksctl update cluster`
 2. replace each of the nodegroups by creating a new one and deleting the old one
 3. update default add-ons:
-  - `kube-proxy`
-  - `aws-node`
-  - `kube-dns` or `coredns`
+
+- `kube-proxy`
+- `aws-node`
+- `kube-dns` or `coredns`
 
 Please make sure to read this section in full before you proceed.
 
@@ -23,6 +24,7 @@ Please make sure to read this section in full before you proceed.
 Control plane version updates must be done for one minor version at a time.
 
 To update control plane to the next available version run:
+
 ```
 eksctl update cluster --name=<clusterName>
 ```
@@ -30,7 +32,7 @@ eksctl update cluster --name=<clusterName>
 This command will not apply any changes right away, you will need to re-run it with
 `--dry-run=false` to apply the changes.
 
-#### Updating nodegroups
+### Updating nodegroups
 
 You should update nodegroups only after you ran `eksctl update cluster`.
 
@@ -38,43 +40,51 @@ If you have a simple cluster with just an initial nodegroup (i.e. created with
 `eksctl create cluster`), the process is very simple.
 
 Get the name of old nodegroup:
+
 ```
 eksctl get nodegroups --cluster=<clusterName>
 ```
+
 > NOTE: you should see only one nodegroup here, if you see more - read the next section
 
 Create new nodegroup:
+
 ```
 eksctl create nodegroup --cluster=<clusterName>
 ```
 
 Delete old nodegroup:
+
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 ```
+
 > NOTE: this will drain all pods from that nodegroup before the instances are deleted.
 
-##### Updating multiple nodegroups
+#### Updating multiple nodegroups
 
 If you have multiple nodegroups, it's your responsibility to track how each one was configured.
 You can do this by using config files, but if you haven't used it already, you will need to inspect
 your cluster to find out how each nodegroup was configured.
 
 In general terms, you are looking to:
+
 - review nodegroups you have and which ones can be deleted or must be replaced for the new version
 - note down configuration of each nodegroup, consider using config file to ease upgrades next time
 
 To create a new nodegroup:
+
 ```
 eksctl create nodegroup --cluster=<clusterName> --name=<newNodeGroupName>
 ```
 
 To delete old nodegroup:
+
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 ```
 
-##### Updating multiple nodegroups with config file
+#### Updating multiple nodegroups with config file
 
 If you are using config file, you will need to do the following.
 
@@ -83,18 +93,21 @@ If you just want to update nodegroups and keep the same configuration,
 you can just change nodegroup names, e.g. append `-v2` to the name.
 
 To create all of new nodegroups defined in the config file, run:
+
 ```
 eksctl create nodegroup --config-file=<path>
 ```
 
 Once you have new nodegroups in place, you can delete old ones:
+
 ```
 eksctl delete nodegroup --config-file=<path> --only-missing
 ```
+
 > NOTE: first run is in plan mode, if you are happy with the proposed
 > changes, re-run with `--approve`.
 
-#### Updating default add-ons
+### Updating default add-ons
 
 There are 3 default add-ons that get included in each EKS cluster, the process for updating each of them is different, hence
 there are 3 distinct commands that you will need to run.
@@ -105,28 +118,33 @@ there are 3 distinct commands that you will need to run.
 > if you are happy with the proposed changes, re-run with `--approve`.
 
 To update `kube-proxy`, run:
+
 ```
 eksctl utils update-kube-proxy
 ```
 
 To update `aws-node`, run:
+
 ```
 eksctl utils update-aws-node
 ```
 
 If you have upgraded from 1.10 to 1.11, you will need to replace `kube-dns` with `coredns`.
 To do that, run:
+
 ```
 eksctl utils install-coredns
 ```
 
 If you have upgraded from 1.11 to 1.12, run:
+
 ```
 eksctl utils update-coredns
 ```
 
 Once upgraded, be sure to run `kubectl get pods -n kube-system` and check if all addon pods are in ready state, you should see
 something like this:
+
 ```
 NAME                       READY   STATUS    RESTARTS   AGE
 aws-node-g5ghn             1/1     Running   0          2m
