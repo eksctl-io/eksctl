@@ -17,7 +17,6 @@ import (
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/jteeuwen/go-bindata/go-bindata"
 	_ "github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator"
-	_ "github.com/mattn/goveralls"
 	_ "github.com/vektra/mockery/cmd/mockery"
 	_ "github.com/weaveworks/github-release"
 	_ "golang.org/x/tools/cmd/stringer"

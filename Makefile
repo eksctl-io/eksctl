@@ -4,7 +4,7 @@ git_commit := $(shell git describe --dirty --always)
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
 # The dependencies version should be bumped every time the build dependencies are updated
-EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.3
+EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.4
 EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
@@ -54,16 +54,15 @@ test: ## Run unit test (and re-generate code under test)
 	$(MAKE) lint
 	$(MAKE) generate-aws-mocks-test generate-bindata-assets-test generate-kubernetes-types-test
 	$(MAKE) unit-test
-	test -z $(COVERALLS_TOKEN) || time "$(GOBIN)/goveralls" -coverprofile=coverage.out -service=circle-ci
 	$(MAKE) build-integration-test
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	CGO_ENABLED=0 time go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=0 time go test ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
 unit-test-race: ## Run unit test with race detection
-	CGO_ENABLED=1 time go test -race -covermode=atomic -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
 build-integration-test: ## Build integration test binary
