@@ -4,10 +4,24 @@ jobs:
     # use machine build, as otherwise we cannot use make and have to duplicate makefile
     machine:
       image: ubuntu-1604:201903-01
+    environment:
+        GOCACHE: /home/circleci/.cache/go-build/
+        GOPATH: /home/circleci/go
     steps:
       - checkout
+      - restore_cache:
+            keys:
+                - go-cache-{{ .Branch }}-{{ .Revision }}
+                - go-cache-{{ .Branch }}-
+                - go-cache-
       - run: mkdir -p ./test-results/ginkgo
       - run: make eksctl-image
+      - run: sudo chown -R circleci.circleci /home/circleci/.cache/go-build/ /home/circleci/go/pkg/mod/
+      - save_cache:
+            key: go-cache-{{ .Branch }}-{{ .Revision }}
+            paths:
+                - "/home/circleci/.cache/go-build/"
+                - "/home/circleci/go/pkg/mod/"
       - store_test_results:
           path: ./test-results
       - store_artifacts:

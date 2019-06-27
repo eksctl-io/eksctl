@@ -3,10 +3,9 @@ git_commit := $(shell git describe --dirty --always)
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
-# The version tag should be bumped every time the build dependencies are updated
-BUILD_IMAGE_VERSION ?= 0.1
-EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-$(BUILD_IMAGE_VERSION)
-EKSCTL_COMPILED_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:compiled-deps-$(BUILD_IMAGE_VERSION)
+# The dependencies version should be bumped every time the build dependencies are updated
+EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.3
+EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 GOBIN ?= $(shell echo `go env GOPATH`/bin)
@@ -163,43 +162,30 @@ generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS S
 
 ##@ Docker
 
-ifneq ($(COVERALLS_TOKEN),)
-EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
-endif
 ifeq ($(OS),Windows_NT)
-EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=unit-test
+TEST_TARGET=unit-test
 else
-EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=test
+TEST_TARGET=test
 endif
 
 .PHONY: eksctl-deps-image
-eksctl-deps-image: ## Create a cache image with all the build dependencies
-	@# Pin dependency file permissions.
-	@# Docker uses the file permissions as part of the COPY hash, which can lead to cache misses
-	@# in hosts with different default file permissions (umask).
-	chmod 0600 go.mod go.sum
-	chmod 0700 install-build-deps.sh
+eksctl-deps-image: ## Create a cache image with dependencies
 	-time docker pull $(EKSCTL_DEPENDENCIES_IMAGE)
-	docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) \
-	  --tag=$(EKSCTL_DEPENDENCIES_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target dependencies .
-
-go-deps.txt: go.mod eksctl-deps-image
-	EKSCTL_DEPENDENCIES_IMAGE=$(EKSCTL_DEPENDENCIES_IMAGE) ./get-go-deps.sh > $@
 	@# Pin dependency file permissions.
 	@# Docker uses the file permissions as part of the COPY hash, which can lead to cache misses
 	@# in hosts with different default file permissions (umask).
-	chmod 0600 $@
-
-.PHONY: eksctl-compiled-deps-image
-eksctl-compiled-deps-image: go-deps.txt ## Create a cache image with all the compiled build dependencies
-	-time docker pull $(EKSCTL_COMPILED_DEPENDENCIES_IMAGE)
-	docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) --cache-from=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) \
-	  --tag=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) --target compiled_dependencies .
+	chmod 0700 install-build-deps.sh
+	chmod 0600 go.mod go.sum
+	time docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) --tag=$(EKSCTL_DEPENDENCIES_IMAGE) -f Dockerfile.deps .
 
 .PHONY: eksctl-image
-eksctl-image: eksctl-compiled-deps-image ## Create the eksctl image
-	docker build --cache-from=$(EKSCTL_COMPILED_DEPENDENCIES_IMAGE) --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
-	[ -z "${CI}" ] || ./get-testresults.sh # only get test results in Continuous Integration
+eksctl-image: eksctl-deps-image## Create the eksctl image
+	time docker run -t --name eksctl-builder -e TEST_TARGET=$(TEST_TARGET) \
+	  -v "${PWD}":/src -v "$$(go env GOCACHE):/root/.cache/go-build" -v "$$(go env GOPATH)/pkg/mod:/go/pkg/mod" \
+          $(EKSCTL_DEPENDENCIES_IMAGE) /src/eksctl-image-builder.sh || ( docker rm eksctl-builder; exit 1 )
+	time docker commit eksctl-builder $(EKSCTL_BUILDER_IMAGE) && docker rm eksctl-builder
+	docker build --tag $(EKSCTL_IMAGE) .
+
 
 ##@ Release
 
@@ -211,7 +197,7 @@ release: eksctl-build-image ## Create a new eksctl release
 	  --env=CIRCLE_PROJECT_USERNAME \
 	  --volume=$(CURDIR):/src \
 	  --workdir=/src \
-	    $(EKSCTL_BUILD_IMAGE) \
+	    $(EKSCTL_BUILDER_IMAGE) \
 	      ./do-release.sh
 
 JEKYLL := docker run --tty --rm \

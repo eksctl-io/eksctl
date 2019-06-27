@@ -1,4 +1,4 @@
-// Make sure to bump BUILD_IMAGE_VERSION if you make any changes here
+// Make sure to bump the version of EKSCTL_DEPENDENCIES_IMAGE if you make any changes here
 module github.com/weaveworks/eksctl
 
 go 1.12
