@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.30.0 // indirect
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
+	github.com/alecthomas/jsonschema v0.0.0-20190530235721-fd8d96416671
 	github.com/apex/log v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.19.18
 	github.com/awslabs/goformation v0.0.0-00010101000000-000000000000
