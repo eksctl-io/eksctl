@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-//go:generate ${GOPATH}/bin/go-bindata -pkg ${GOPACKAGE} -prefix assets -modtime 1 -o assets.go assets
+//go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -modtime 1 -o assets.go assets
 //go:generate go run ./maxpods_generate.go
 
 const (

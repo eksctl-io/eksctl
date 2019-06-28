@@ -4,13 +4,17 @@ import (
 	"github.com/alecthomas/jsonschema"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"io/ioutil"
+	"os"
 	"sigs.k8s.io/yaml"
 	"strings"
 )
 
-const outputFile = "site/content/usage/20-schema.md"
-
 func main() {
+
+	if len(os.Args) != 2 {
+		panic("expected one argument with the output file")
+	}
+	outputFile := os.Args[1]
 
 	var document strings.Builder
 	document.WriteString(`---

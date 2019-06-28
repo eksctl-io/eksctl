@@ -1,4 +1,6 @@
-#!/bin/sh -eu
+#!/bin/sh -eux
+
+# Make sure to bump the version of EKSCTL_DEPENDENCIES_IMAGE if you make any changes here
 
 if [ -z "${GOBIN+x}" ]; then
  GOBIN="$(go env GOPATH)/bin"
@@ -10,11 +12,10 @@ else
   OSARCH="linux-amd64"
 fi
 
-go mod download
+
 go install github.com/jteeuwen/go-bindata/go-bindata
 go install github.com/weaveworks/github-release
 go install golang.org/x/tools/cmd/stringer
-go install github.com/mattn/goveralls
 go install github.com/vektra/mockery/cmd/mockery
 
 

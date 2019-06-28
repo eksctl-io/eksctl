@@ -3,10 +3,10 @@ git_commit := $(shell git describe --dirty --always)
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
-EKSCTL_BUILD_IMAGE ?= weaveworks/eksctl-build:latest
+# The dependencies version should be bumped every time the build dependencies are updated
+EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.4
+EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
-
-GO_BUILD_TAGS ?= netgo
 
 GOBIN ?= $(shell echo `go env GOPATH`/bin)
 
@@ -20,9 +20,11 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 ##@ Build
 
-.PHONY: build
-build: generate-bindata-assets generate-kubernetes-types  ## Build eksctl
-	CGO_ENABLED=0 go build -tags "$(GO_BUILD_TAGS)" -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1) | sed "s%${PWD}/%%g"
+godeps = $(shell $(call godeps_cmd,$(1)))
+
+eksctl: $(call godeps,./cmd/...) ## Build main binary
+	CGO_ENABLED=0 time go build -v -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
@@ -47,32 +49,29 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	"$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
+	time "$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
 
 .PHONY: test
-test: ## Run unit test (and re-generate code under test)
+test:
 	$(MAKE) lint
-	$(MAKE) generate-aws-mocks-test generate-bindata-assets-test generate-kubernetes-types-test
+	$(MAKE) check-generated-sources-up-to-date
 	$(MAKE) unit-test
-	test -z $(COVERALLS_TOKEN) || "$(GOBIN)/goveralls" -coverprofile=coverage.out -service=circle-ci
-	$(MAKE) build-integration-test
+	$(MAKE) eksctl-integration-test
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	CGO_ENABLED=0 go test -covermode=count -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=0 time go test ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
 unit-test-race: ## Run unit test with race detection
-	CGO_ENABLED=1 go test -race -covermode=atomic -coverprofile=coverage.out ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
-.PHONY: build-integration-test
-build-integration-test: ## Build integration test binary
-	go test -tags integration ./integration/... -c -o ./eksctl-integration-test
+eksctl-integration-test: $(call godeps,`go list -tags integration -f '{{join .XTestImports " "}}' ./integration/...`) ## Build integration test binary
+	time go test -tags integration ./integration/... -c -o $@
 
 .PHONY: integration-test
-integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
-	cd integration; ../eksctl-integration-test -test.timeout 60m \
-		$(INTEGRATION_TEST_ARGS)
+integration-test: eksctl eksctl-integration-test ## Run the integration tests (with cluster creation and cleanup)
+	cd integration; ../eksctl-integration-test -test.timeout 60m $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
 integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
@@ -92,7 +91,7 @@ integration-test-container-pre-built: ## Run the integration tests inside a Dock
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
-integration-test-dev: build build-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
+integration-test-dev: eksctl eksctl-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
 	./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
@@ -112,78 +111,83 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-.PHONY: generate-bindata-assets
-generate-bindata-assets: ## Generate bindata assets (node bootstrap config files & add-on manifests)
-	chmod g-w  ./pkg/nodebootstrap/assets/*
-	env GOBIN=$(GOBIN) go generate ./pkg/nodebootstrap ./pkg/addons/default
+AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
 
-.PHONY: generate-bindata-assets-test
-generate-bindata-assets-test: generate-bindata-assets ## Test if generated bindata assets are checked-in
-	git diff --exit-code ./pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff ./pkg/nodebootstrap/assets.go; exit 1)
-	git diff --exit-code ./pkg/addons/default/assets.go > /dev/null || (git --no-pager diff ./pkg/addons/default/assets.go; exit 1)
+DEEP_COPY_HELPER := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
+GENERATED_FILES := pkg/addons/default/assets.go \
+pkg/nodebootstrap/assets.go \
+$(DEEP_COPY_HELPER) \
+pkg/ami/static_resolver_ami.go \
+site/content/usage/20-schema.md \
+$(AWS_SDK_MOCKS)
+
+.PHONY: regenerate-sources
+# TODO: generate-ami is broken (see https://github.com/weaveworks/eksctl/issues/949 ), include it when fixed
+regenerate-sources: $(GENERATED_FILES) # generate-ami ## Re-generate all the automatically-generated source files
+
+.PHONY: check-generated-files-up-to-date
+check-generated-sources-up-to-date: regenerate-sources
+	git diff --quiet -- $(GENERATED_FILES) || (git --no-pager diff $(GENERATED_FILES); exit 1)
+
+pkg/addons/default/assets.go: pkg/addons/default/assets/*
+	env GOBIN=$(GOBIN) time go generate ./$(@D)
+
+pkg	/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
+	chmod g-w $^
+	env GOBIN=$(GOBIN) time go generate ./$(@D)
 
 .license-header: LICENSE
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-.PHONY: generate-kubernetes-types
-generate-kubernetes-types: .license-header ## Generate Kubernetes API helpers
-	go mod download k8s.io/code-generator # make sure the code-generator is present
-	env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
-	  deepcopy,defaulter pkg/apis ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$${PWD}" \
-	  || (cat codegenheader.txt ; cat pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go ; exit 1)
+DEEP_COPY_DEPS := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's%$(DEEP_COPY_HELPER)%%' )
+$(DEEP_COPY_HELPER): $(DEEP_COPY_DEPS) .license-header ## Generate Kubernetes API helpers
+	time go mod download k8s.io/code-generator # make sure the code-generator is present
+	time env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
+	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$${PWD}" \
+	  || (cat codegenheader.txt ; cat $(DEEP_COPY_HELPER); exit 1)
 
-.PHONY: generate-kubernetes-types-test
-generate-kubernetes-types-test: generate-kubernetes-types ## Test if generated Kubernetes API helpers are checked-in
-	git diff --exit-code ./pkg/nodebootstrap/assets.go > /dev/null || (git --no-pager diff ./pkg/nodebootstrap/assets.go; exit 1)
-
+# static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
+# so we need to forcicly generate it
 .PHONY: generate-ami
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	go generate ./pkg/ami
+	time go generate ./pkg/ami
 
-.PHONY: generate-schema
-generate-schema: ## Generate the schema file in the documentation site.
-	@go run ./cmd/schema/generate.go
+site/content/usage/20-schema.md: $(call godeps,cmd/schema/generate.go)
+	time go run ./cmd/schema/generate.go $@
 
-.PHONY: ami-check
-ami-check: generate-ami ## Check whether the AMIs have been updated and fail if they have. Designed for a automated test
-	git diff --exit-code pkg/ami/static_resolver_ami.go > /dev/null || (git --no-pager diff; exit 1)
-
-.PHONY: generate-aws-mocks
-generate-aws-mocks: ## Generate mocks for AWS SDK
+$(AWS_SDK_MOCKS): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
 	ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.19.18" vendor/github.com/aws/aws-sdk-go
-	env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
-
-.PHONY: generate-aws-mocks-test
-generate-aws-mocks-test: generate-aws-mocks ## Test if generated mocks for AWS SDK are checked-in
-	git diff --exit-code ./pkg/eks/mocks > /dev/null || (git --no-pager diff ./pkg/eks/mocks; exit 1)
+	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
 ##@ Docker
 
-.PHONY: eksctl-build-image
-eksctl-build-image: ## Create the the eksctl build docker image
-	-docker pull $(EKSCTL_BUILD_IMAGE)
-	docker build --tag=$(EKSCTL_BUILD_IMAGE) --cache-from=$(EKSCTL_BUILD_IMAGE) -f Dockerfile.build .
-
-EKSCTL_IMAGE_BUILD_ARGS := \
-  --build-arg=EKSCTL_BUILD_IMAGE=$(EKSCTL_BUILD_IMAGE) \
-  --build-arg=GO_BUILD_TAGS=$(GO_BUILD_TAGS)
-
-ifneq ($(COVERALLS_TOKEN),)
-EKSCTL_IMAGE_BUILD_ARGS += --build-arg=COVERALLS_TOKEN=$(COVERALLS_TOKEN)
-endif
 ifeq ($(OS),Windows_NT)
-EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=unit-test
+TEST_TARGET=unit-test
 else
-EKSCTL_IMAGE_BUILD_ARGS += --build-arg=TEST_TARGET=test
+TEST_TARGET=test
 endif
+
+.PHONY: eksctl-deps-image
+eksctl-deps-image: ## Create a cache image with dependencies
+	-time docker pull $(EKSCTL_DEPENDENCIES_IMAGE)
+	@# Pin dependency file permissions.
+	@# Docker uses the file permissions as part of the COPY hash, which can lead to cache misses
+	@# in hosts with different default file permissions (umask).
+	chmod 0700 install-build-deps.sh
+	chmod 0600 go.mod go.sum
+	time docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) --tag=$(EKSCTL_DEPENDENCIES_IMAGE) -f Dockerfile.deps .
 
 .PHONY: eksctl-image
-eksctl-image: eksctl-build-image ## Create the eksctl image
-	docker build --tag=$(EKSCTL_IMAGE) $(EKSCTL_IMAGE_BUILD_ARGS) .
-	[ -z "${CI}" ] || ./get-testresults.sh # only get test results in Continuous Integration
+eksctl-image: eksctl-deps-image## Create the eksctl image
+	time docker run -t --name eksctl-builder -e TEST_TARGET=$(TEST_TARGET) \
+	  -v "${PWD}":/src -v "$$(go env GOCACHE):/root/.cache/go-build" -v "$$(go env GOPATH)/pkg/mod:/go/pkg/mod" \
+          $(EKSCTL_DEPENDENCIES_IMAGE) /src/eksctl-image-builder.sh || ( docker rm eksctl-builder; exit 1 )
+	time docker commit eksctl-builder $(EKSCTL_BUILDER_IMAGE) && docker rm eksctl-builder
+	docker build --tag $(EKSCTL_IMAGE) .
+
 
 ##@ Release
 
@@ -195,7 +199,7 @@ release: eksctl-build-image ## Create a new eksctl release
 	  --env=CIRCLE_PROJECT_USERNAME \
 	  --volume=$(CURDIR):/src \
 	  --workdir=/src \
-	    $(EKSCTL_BUILD_IMAGE) \
+	    $(EKSCTL_BUILDER_IMAGE) \
 	      ./do-release.sh
 
 JEKYLL := docker run --tty --rm \
