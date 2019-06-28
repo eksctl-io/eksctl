@@ -9,11 +9,15 @@ code {
   font-family: "Roboto Mono", monospace;
 }
 
-img[src$="#inline"] {
-  height: 30px;
+table {
+  overflow-x: scroll;
 }
 
-img[src$="#inline-svg"] {
+img[src$="#inline"] {
+  height: 25px;
+}
+
+img[src$="#inline-ww"] {
   height: 20px;
 }
 
@@ -65,6 +69,9 @@ img[src$="#bgright"] {
   }
   #github {
     display: none;
+  }
+  table {
+    display: block;
   }
 }
 
