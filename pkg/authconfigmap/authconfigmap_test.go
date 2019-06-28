@@ -307,18 +307,18 @@ var _ = Describe("AuthConfigMap{}", func() {
 		}
 
 		It("should remove user", func() {
-			cm := removeAndSave(roleB)
+			cm := removeAndSave(userB)
 			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA + expectedUserA))
 		})
 		It("should remove one user for duplicates", func() {
-			cm := removeAndSave(roleA)
+			cm := removeAndSave(userA)
 			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA))
 		})
 		It("should remove last user", func() {
-			cm := removeAndSave(roleA)
+			cm := removeAndSave(userA)
 			Expect(cm.Data["mapUsers"]).To(MatchYAML("[]"))
 		})
-		It("should fail if role not found", func() {
+		It("should fail if user not found", func() {
 			err := acm.RemoveIdentity(userAArn, false)
 			Expect(err).To(HaveOccurred())
 		})
