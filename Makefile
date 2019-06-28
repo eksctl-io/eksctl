@@ -20,7 +20,8 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 ##@ Build
 
-godeps = $(shell go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1))
+godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1) | sed "s%${PWD}/%%g"
+godeps = $(shell $(call godeps_cmd,$(1)))
 
 eksctl: $(call godeps,./cmd/...) ## Build main binary
 	CGO_ENABLED=0 time go build -v -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
@@ -112,9 +113,10 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
 
-GENERATED_FILES=pkg/addons/default/assets.go \
+DEEP_COPY_HELPER := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
+GENERATED_FILES := pkg/addons/default/assets.go \
 pkg/nodebootstrap/assets.go \
-pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go \
+$(DEEP_COPY_HELPER) \
 pkg/ami/static_resolver_ami.go \
 site/content/usage/20-schema.md \
 $(AWS_SDK_MOCKS)
@@ -138,11 +140,12 @@ pkg	/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go: $(call godeps,./pkg/apis/...) .license-header ## Generate Kubernetes API helpers
+DEEP_COPY_DEPS := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's%$(DEEP_COPY_HELPER)%%' )
+$(DEEP_COPY_HELPER): $(DEEP_COPY_DEPS) .license-header ## Generate Kubernetes API helpers
 	time go mod download k8s.io/code-generator # make sure the code-generator is present
 	time env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
 	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$${PWD}" \
-	  || (cat codegenheader.txt ; cat pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go ; exit 1)
+	  || (cat codegenheader.txt ; cat $(DEEP_COPY_HELPER); exit 1)
 
 # static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
 # so we need to forcicly generate it
