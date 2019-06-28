@@ -38,6 +38,10 @@ git fetch --force --tags git@github.com:weaveworks/eksctl
 
 git push git@github.com:weaveworks/eksctl master
 
+# Update the site by putting everything from master into the docs branch
+git push -f origin master:docs
+
+# Create the release tag and push it to start release process
 git tag --annotate --message "${m}" --force "latest_release"
 git tag --annotate --message "${m}" "${v}"
 
