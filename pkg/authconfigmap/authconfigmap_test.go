@@ -14,16 +14,29 @@ import (
 )
 
 const (
-	roleA    = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX"
-	roleB    = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-ABCDEFGH"
+	roleA = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-NNH3ISP12CX"
+	roleB = "arn:aws:iam::122333:role/eksctl-cluster-5a-nodegroup-ng1-p-NodeInstanceRole-ABCDEFGH"
+
+	userA         = "arn:aws:iam::122333:user/alice"
+	userAUsername = "alice"
+
+	userB         = "arn:aws:iam::122333:user/bob"
+	userBUsername = "bob"
+
 	groupB   = "foo"
 	accountA = "123"
 	accountB = "789"
 )
 
 var (
-	expectedA = makeExpectedRole(roleA, RoleNodeGroupGroups)
-	expectedB = makeExpectedRole(roleB, []string{groupB})
+	userAGroups = []string{"cryptographers", "tin-foil-hat-wearers"}
+	userBGroups = []string{"cryptographers", "private-messages-authors", "dislikers-of-eve"}
+
+	expectedRoleA = makeExpectedRole(roleA, RoleNodeGroupGroups)
+	expectedRoleB = makeExpectedRole(roleB, []string{groupB})
+
+	expectedUserA = makeExpectedUser(userA, "alice", "cryptographers", "tin-foil-hat-wearers")
+	expectedUserB = makeExpectedUser(userB, "bob", "cryptographers", "private-messages-authors", "dislikers-of-eve")
 )
 
 // mockClient implements v1.ConfigMapInterface
@@ -55,6 +68,15 @@ func makeExpectedRole(arn string, groups []string) string {
   groups:
   - %s
 `, arn, strings.Join(groups, "\n  - "))
+}
+
+func makeExpectedUser(arn, user string, groups ...string) string {
+	return fmt.Sprintf(`- userarn: %s
+  username: %s
+  groups:
+  - %s
+`, arn, user, strings.Join(groups, "\n  - "))
+
 }
 
 func makeExpectedAccounts(accounts ...string) string {
@@ -127,9 +149,13 @@ var _ = Describe("AuthConfigMap{}", func() {
 		client := &mockClient{}
 		acm := New(client, existing)
 
-		addAndSave := func(arn string, groups []string) *corev1.ConfigMap {
+		addAndSave := func(canonicalArn string, groups []string) *corev1.ConfigMap {
 			client.reset()
-			err := acm.AddRole(arn, RoleNodeGroupUsername, groups)
+
+			arn, err := Parse(canonicalArn)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.AddIdentity(arn, RoleNodeGroupUsername, groups)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
@@ -142,30 +168,34 @@ var _ = Describe("AuthConfigMap{}", func() {
 
 		It("should add a role", func() {
 			cm := addAndSave(roleA, RoleNodeGroupGroups)
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA))
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA))
 		})
 		It("should append a second role", func() {
 			cm := addAndSave(roleB, []string{groupB})
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA + expectedB))
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA + expectedRoleB))
 		})
 		It("should append a duplicate role", func() {
 			cm := addAndSave(roleA, RoleNodeGroupGroups)
-			expected := expectedA + expectedB + expectedA
+			expected := expectedRoleA + expectedRoleB + expectedRoleA
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expected))
 		})
 	})
 	Describe("RemoveRole()", func() {
 		existing := &corev1.ConfigMap{
 			ObjectMeta: ObjectMeta(),
-			Data:       map[string]string{"mapRoles": expectedA + expectedA + expectedB},
+			Data:       map[string]string{"mapRoles": expectedRoleA + expectedRoleA + expectedRoleB},
 		}
 		existing.UID = "123456"
 		client := &mockClient{}
 		acm := New(client, existing)
 
-		removeAndSave := func(arn string) *corev1.ConfigMap {
+		removeAndSave := func(canonicalArn string) *corev1.ConfigMap {
 			client.reset()
-			err := acm.RemoveRole(arn, false)
+
+			arn, err := Parse(canonicalArn)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.RemoveIdentity(arn, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
@@ -174,32 +204,260 @@ var _ = Describe("AuthConfigMap{}", func() {
 			return client.updated
 		}
 
+		roleAArn, err := Parse(roleA)
+		Expect(err).NotTo(HaveOccurred())
+
 		It("should remove role", func() {
 			cm := removeAndSave(roleB)
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA + expectedA))
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA + expectedRoleA))
 		})
 		It("should remove one role for duplicates", func() {
 			cm := removeAndSave(roleA)
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedA))
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA))
 		})
 		It("should remove last role", func() {
 			cm := removeAndSave(roleA)
 			Expect(cm.Data["mapRoles"]).To(MatchYAML("[]"))
 		})
 		It("should fail if role not found", func() {
-			err := acm.RemoveRole(roleA, false)
+			err := acm.RemoveIdentity(roleAArn, false)
 			Expect(err).To(HaveOccurred())
 		})
 		It("should remove all if specified", func() {
-			err := acm.AddRole(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			err := acm.AddIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups)
 			Expect(err).NotTo(HaveOccurred())
-			err = acm.AddRole(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			err = acm.AddIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapRoles"]).To(Not(MatchYAML("[]")))
 
-			err = acm.RemoveRole(roleA, true)
+			err = acm.RemoveIdentity(roleAArn, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapRoles"]).To(MatchYAML("[]"))
+		})
+	})
+	Describe("AddUser()", func() {
+		existing := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{},
+		}
+		existing.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, existing)
+
+		addAndSave := func(canonicalArn, user string, groups []string) *corev1.ConfigMap {
+			client.reset()
+
+			arn, err := Parse(canonicalArn)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.AddIdentity(arn, user, groups)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+			Expect(client.updated).NotTo(BeNil())
+
+			return client.updated
+		}
+
+		It("should add a user", func() {
+			cm := addAndSave(userA, userAUsername, userAGroups)
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA))
+		})
+		It("should append a second user", func() {
+			cm := addAndSave(userB, userBUsername, userBGroups)
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA + expectedUserB))
+		})
+		It("should append a duplicate user", func() {
+			cm := addAndSave(userA, userAUsername, userAGroups)
+			expected := expectedUserA + expectedUserB + expectedUserA
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expected))
+		})
+	})
+	Describe("RemoveUser()", func() {
+		existing := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{"mapUsers": expectedUserA + expectedUserA + expectedUserB},
+		}
+		existing.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, existing)
+
+		removeAndSave := func(canonicalArn string) *corev1.ConfigMap {
+			client.reset()
+
+			arn, err := Parse(canonicalArn)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.RemoveIdentity(arn, false)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+
+			return client.updated
+		}
+
+		userAArn, err := Parse(userA)
+		Expect(err).NotTo(HaveOccurred())
+
+		It("should remove user", func() {
+			cm := removeAndSave(roleB)
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA + expectedUserA))
+		})
+		It("should remove one user for duplicates", func() {
+			cm := removeAndSave(roleA)
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA))
+		})
+		It("should remove last user", func() {
+			cm := removeAndSave(roleA)
+			Expect(cm.Data["mapUsers"]).To(MatchYAML("[]"))
+		})
+		It("should fail if role not found", func() {
+			err := acm.RemoveIdentity(userAArn, false)
+			Expect(err).To(HaveOccurred())
+		})
+		It("should remove all if specified", func() {
+			err := acm.AddIdentity(userAArn, userAUsername, userAGroups)
+			Expect(err).NotTo(HaveOccurred())
+			err = acm.AddIdentity(userAArn, userAUsername, userAGroups)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapUsers"]).To(Not(MatchYAML("[]")))
+
+			err = acm.RemoveIdentity(userAArn, true)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapUsers"]).To(MatchYAML("[]"))
+		})
+	})
+	Describe("AddIdentity()", func() {
+		existing := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data:       map[string]string{},
+		}
+		existing.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, existing)
+
+		addAndSave := func(canonicalArn, user string, groups []string) *corev1.ConfigMap {
+			client.reset()
+
+			arn, err := Parse(canonicalArn)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.AddIdentity(arn, user, groups)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.created).To(BeNil())
+			Expect(client.updated).NotTo(BeNil())
+
+			return client.updated
+		}
+
+		It("should add a role and a user", func() {
+			cm := addAndSave(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			cm = addAndSave(userA, userAUsername, userAGroups)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA))
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA))
+		})
+		It("should append a second role and user", func() {
+			cm := addAndSave(roleB, RoleNodeGroupUsername, []string{groupB})
+			cm = addAndSave(userB, userBUsername, userBGroups)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA + expectedRoleB))
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA + expectedUserB))
+		})
+		It("should append a duplicate role", func() {
+			cm := addAndSave(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			expectedRoles := expectedRoleA + expectedRoleB + expectedRoleA
+
+			cm = addAndSave(userA, userAUsername, userAGroups)
+			expectedUsers := expectedUserA + expectedUserB + expectedUserA
+
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoles))
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUsers))
+		})
+	})
+	Describe("RemoveIdentity()", func() {
+		existing := &corev1.ConfigMap{
+			ObjectMeta: ObjectMeta(),
+			Data: map[string]string{
+				"mapRoles": expectedRoleA + expectedRoleA + expectedRoleB,
+				"mapUsers": expectedUserA + expectedUserA + expectedUserB,
+			},
+		}
+		existing.UID = "123456"
+		client := &mockClient{}
+		acm := New(client, existing)
+
+		removeAndSave := func(canonicalArn string) *corev1.ConfigMap {
+			client.reset()
+
+			arn, err := Parse(canonicalArn)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.RemoveIdentity(arn, false)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = acm.Save()
+			Expect(err).NotTo(HaveOccurred())
+
+			return client.updated
+		}
+
+		roleAArn, err := Parse(roleA)
+		Expect(err).NotTo(HaveOccurred())
+
+		userAArn, err := Parse(userA)
+		Expect(err).NotTo(HaveOccurred())
+
+		It("should remove role and user", func() {
+			cm := removeAndSave(roleB)
+			cm = removeAndSave(userB)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA + expectedRoleA))
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA + expectedUserA))
+		})
+		It("should remove one role and one user for duplicates", func() {
+			cm := removeAndSave(roleA)
+			cm = removeAndSave(userA)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA))
+			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA))
+		})
+		It("should remove last role and last user", func() {
+			cm := removeAndSave(roleA)
+			cm = removeAndSave(userA)
+			Expect(cm.Data["mapRoles"]).To(MatchYAML("[]"))
+			Expect(cm.Data["mapUsers"]).To(MatchYAML("[]"))
+		})
+		It("should fail if role or user not found", func() {
+			err := acm.RemoveIdentity(roleAArn, false)
+			Expect(err).To(HaveOccurred())
+			err = acm.RemoveIdentity(userAArn, false)
+			Expect(err).To(HaveOccurred())
+		})
+		It("should remove all if specified", func() {
+			err := acm.AddIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			Expect(err).NotTo(HaveOccurred())
+			err = acm.AddIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapRoles"]).To(Not(MatchYAML("[]")))
+
+			err = acm.AddIdentity(userAArn, userAUsername, userAGroups)
+			Expect(err).NotTo(HaveOccurred())
+			err = acm.AddIdentity(userAArn, userAUsername, userAGroups)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapUsers"]).To(Not(MatchYAML("[]")))
+
+			err = acm.RemoveIdentity(roleAArn, true)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapRoles"]).To(MatchYAML("[]"))
+			Expect(client.updated.Data["mapUsers"]).To(Not(MatchYAML("[]")))
+
+			err = acm.RemoveIdentity(userAArn, true)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(client.updated.Data["mapRoles"]).To(MatchYAML("[]"))
+			Expect(client.updated.Data["mapUsers"]).To(MatchYAML("[]"))
 		})
 	})
 	Describe("AddAccount()", func() {
