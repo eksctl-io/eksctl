@@ -9,7 +9,6 @@ package authconfigmap
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -261,12 +260,12 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return err
 	}
 
-	arn, err := arn.Parse(ng.IAM.InstanceRoleARN)
+	arn, err := Parse(ng.IAM.InstanceRoleARN)
 	if err != nil {
 		return errors.Wrap(err, "parsing nodegroup instance role ARN")
 	}
 
-	if err := acm.AddIdentity(ARN(arn), RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
+	if err := acm.AddIdentity(arn, RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
 		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {
@@ -279,7 +278,7 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	arn, err := arn.Parse(ng.IAM.InstanceRoleARN)
+	arn, err := Parse(ng.IAM.InstanceRoleARN)
 	if err != nil {
 		return errors.Wrap(err, "nodegroup instance role ARN is invalid")
 	}
@@ -287,7 +286,7 @@ func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	if err != nil {
 		return err
 	}
-	if err := acm.RemoveIdentity(ARN(arn), false); err != nil {
+	if err := acm.RemoveIdentity(arn, false); err != nil {
 		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {
