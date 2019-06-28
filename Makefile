@@ -20,8 +20,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 ##@ Build
 
-gofiles = $(shell $1 | xargs go list -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}')
-godeps = $(call gofiles,go list -f '{{join .Deps "\n"}}' $1)
+godeps = $(shell go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1))
 
 eksctl: $(call godeps,./cmd/...) ## Build main binary
 	CGO_ENABLED=0 time go build -v -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
@@ -66,7 +65,7 @@ unit-test: ## Run unit test only
 unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
-eksctl-integration-test: $(call gofiles,go list -f '{{join .Deps "\n"}}' `go list -tags integration -f '{{join .XTestImports " "}}' ./integration/...`) ## Build integration test binary
+eksctl-integration-test: $(call godeps,`go list -tags integration -f '{{join .XTestImports " "}}' ./integration/...`) ## Build integration test binary
 	time go test -tags integration ./integration/... -c -o $@
 
 .PHONY: integration-test
