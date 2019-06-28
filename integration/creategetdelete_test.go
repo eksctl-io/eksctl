@@ -669,7 +669,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				BeforeEach(func() {
 					roleCanonicalArn := "arn:aws:iam::123456:role/eksctl-testing-XYZ"
-					role, err := authconfigmap.Parse(roleCanonicalArn)
+					var err error
+					role, err = authconfigmap.Parse(roleCanonicalArn)
 					Expect(err).ShouldNot(HaveOccurred())
 
 					role0 = authconfigmap.MapIdentity{
@@ -687,7 +688,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					}
 
 					userCanonicalArn := "arn:aws:iam::123456:user/alice"
-					user, err := authconfigmap.Parse(userCanonicalArn)
+					user, err = authconfigmap.Parse(userCanonicalArn)
 					Expect(err).ShouldNot(HaveOccurred())
 
 					user0 = authconfigmap.MapIdentity{
@@ -815,8 +816,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(expU0 + expU0)))
 				})
-				It("creates a different role while there is an existing duplicate mapping", func() {
-					createCmd := eksctlCreateCmd.WithArgs(
+				It("creates a duplicate role mapping with different identity", func() {
+					eksctlSuccess("create", "iamidentitymapping",
+						createCmd := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
