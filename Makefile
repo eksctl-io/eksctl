@@ -110,7 +110,7 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-AWS_SDK_MOCKS=$(wildcard pkg/eks/mocks/*API.go)
+AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
 
 GENERATED_FILES=pkg/addons/default/assets.go \
 pkg/nodebootstrap/assets.go \
@@ -127,10 +127,10 @@ regenerate-sources: $(GENERATED_FILES) # generate-ami ## Re-generate all the aut
 check-generated-sources-up-to-date: regenerate-sources
 	git diff --quiet -- $(GENERATED_FILES) || (git --no-pager diff $(GENERATED_FILES); exit 1)
 
-pkg/addons/default/assets.go: $(wildcard pkg/addons/default/assets/*)
+pkg/addons/default/assets.go: pkg/addons/default/assets/*
 	env GOBIN=$(GOBIN) time go generate ./$(@D)
 
-pkg	/nodebootstrap/assets.go: $(wildcard pkg/nodebootstrap/assets/*)
+pkg	/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
 	chmod g-w $^
 	env GOBIN=$(GOBIN) time go generate ./$(@D)
 
