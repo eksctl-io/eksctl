@@ -204,7 +204,7 @@ func (a *AuthConfigMap) Identities() (MapIdentities, error) {
 
 func (a *AuthConfigMap) setIdentities(identities MapIdentities) error {
 	// Determine which are users and which are roles
-	var users, roles MapIdentities
+	users, roles := MapIdentities{}, MapIdentities{}
 	for _, identity := range identities {
 		switch {
 		case identity.role():
