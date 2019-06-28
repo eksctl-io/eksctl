@@ -20,7 +20,7 @@ img[src$="#inline-svg"] {
 img[src$="#bgright"] {
   position: absolute;
   right: 0px;
-  top: 200px;
+  top: 250px;
   z-index: -1;
 }
 
@@ -48,26 +48,36 @@ img[src$="#bgright"] {
   display: inline-block;
 }
 
-@media (max-width: 1060px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 220px;
-    z-index: -1;
-  }
+// Responsive styles
+@media screen and (max-width: $md-breakpoint + $toc-width) {
   #github-section {
     padding-left: 0px;
     display: block;
   }
 }
 
-@media (max-width: 900px) {
+@media screen and (max-width: $md-breakpoint + $padding-16) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 300px;
+    z-index: -1;
+  }
   #github {
     display: none;
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 741px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 350px;
+    z-index: -1;
+  }
+}
+
+@media screen and (max-width: $sm-breakpoint) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
@@ -76,29 +86,11 @@ img[src$="#bgright"] {
   }
 }
 
-@media (max-width: 741px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 330px;
-    z-index: -1;
-  }
-}
-
-@media (max-width: 659px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 250px;
-    z-index: -1;
-  }
-}
-
 @media (max-width: 538px) {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 310px;
+    top: 340px;
     z-index: -1;
   }
 }
@@ -107,7 +99,16 @@ img[src$="#bgright"] {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 360px;
+    top: 380px;
+    z-index: -1;
+  }
+}
+
+@media (max-width: 378px) {
+  img[src$="#bgright"] {
+    position: absolute;
+    right: 0px;
+    top: 400px;
     z-index: -1;
   }
 }
@@ -116,7 +117,7 @@ img[src$="#bgright"] {
   img[src$="#bgright"] {
     position: absolute;
     right: 0px;
-    top: 420px;
+    top: 480px;
     z-index: -1;
   }
   #intro-code {
