@@ -205,7 +205,9 @@ var _ = Describe("AuthConfigMap{}", func() {
 		}
 
 		roleAArn, err := Parse(roleA)
-		Expect(err).NotTo(HaveOccurred())
+		if err != nil {
+			panic(err)
+		}
 
 		It("should remove role", func() {
 			cm := removeAndSave(roleB)
@@ -300,7 +302,9 @@ var _ = Describe("AuthConfigMap{}", func() {
 		}
 
 		userAArn, err := Parse(userA)
-		Expect(err).NotTo(HaveOccurred())
+		if err != nil {
+			panic(err)
+		}
 
 		It("should remove user", func() {
 			cm := removeAndSave(roleB)
@@ -407,10 +411,14 @@ var _ = Describe("AuthConfigMap{}", func() {
 		}
 
 		roleAArn, err := Parse(roleA)
-		Expect(err).NotTo(HaveOccurred())
+		if err != nil {
+			panic(err)
+		}
 
 		userAArn, err := Parse(userA)
-		Expect(err).NotTo(HaveOccurred())
+		if err != nil {
+			panic(err)
+		}
 
 		It("should remove role and user", func() {
 			cm := removeAndSave(roleB)
