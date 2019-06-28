@@ -661,69 +661,149 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 			Context("and manipulating iam identity mappings", func() {
 				var (
-					role, exp0, exp1 string
-					role0, role1     authconfigmap.MapRole
+					role, user, expR0, expR1, expU0 string
+					role0, role1                    authconfigmap.MapIdentity
+					user0                           authconfigmap.MapIdentity
 				)
 
 				BeforeEach(func() {
 					role = "arn:aws:iam::123456:role/eksctl-testing-XYZ"
 
-					role0 = authconfigmap.MapRole{
-						RoleARN: role,
+					role0 = authconfigmap.MapIdentity{
+						IdentityARN: role,
 						Identity: iam.Identity{
 							Username: "admin",
 							Groups:   []string{"system:masters", "system:nodes"},
 						},
 					}
-					role1 = authconfigmap.MapRole{
-						RoleARN: role,
+					role1 = authconfigmap.MapIdentity{
+						IdentityARN: role,
 						Identity: iam.Identity{
 							Groups: []string{"system:something"},
 						},
 					}
 
-					bs, err := yaml.Marshal([]authconfigmap.MapRole{role0})
-					Expect(err).ShouldNot(HaveOccurred())
-					exp0 = string(bs)
+					user = "arn:aws:iam::123456:user/alice"
+					user0 = authconfigmap.MapIdentity{
+						IdentityARN: user,
+						Identity: iam.Identity{
+							Username: "alice",
+							Groups:   []string{"system:masters", "cryptographers"},
+						},
+					}
 
-					bs, err = yaml.Marshal([]authconfigmap.MapRole{role1})
+					bs, err := yaml.Marshal([]authconfigmap.MapIdentity{role0})
 					Expect(err).ShouldNot(HaveOccurred())
-					exp1 = string(bs)
+					expR0 = string(bs)
+
+					bs, err = yaml.Marshal([]authconfigmap.MapIdentity{role1})
+					Expect(err).ShouldNot(HaveOccurred())
+					expR1 = string(bs)
+
+					bs, err := yaml.Marshal([]authconfigmap.MapIdentity{user0})
+					Expect(err).ShouldNot(HaveOccurred())
+					expU0 = string(bs)
 				})
 
-				It("fails getting unknown mapping", func() {
-					cmd := eksctlGetCmd.WithArgs(
-						"iamidentitymapping",
+				It("fails getting unknown role mapping", func() {
+					cmd := eksctlGetCmd.WithArgs("get", "iamidentitymapping",
 						"--name", clusterName,
-						"--role", "idontexist",
+						"--region", region,
+						"--arn", "arn:aws:iam::123456:role/idontexist",
 						"-o", "yaml",
 					)
 					Expect(cmd).ToNot(RunSuccessfully())
 				})
-				It("creates mapping", func() {
-					createCmd := eksctlCreateCmd.WithArgs(
-						"iamidentitymapping",
+				It("fails getting unknown user mapping", func() {
+					cmd := eksctlGetCmd.WithArgs("get", "iamidentitymapping",
 						"--name", clusterName,
-						"--role", role0.RoleARN,
+						"--region", region,
+						"--arn", "arn:aws:iam::123456:user/bob",
+						"-o", "yaml",
+					)
+					Expect(cmd).ToNot(RunSuccessfully())
+				})
+				It("creates role mapping", func() {
+					create := eksctlCreateCmd.WithArgs("create", "iamidentitymapping",
+						"--name", clusterName,
+						"--region", region,
+						"--arn", role0.RoleARN,
 						"--username", role0.Username,
 						"--group", role0.Groups[0],
 						"--group", role0.Groups[1],
 					)
-					Expect(createCmd).To(RunSuccessfully())
+					Expect(create).To(RunSuccessfully())
 
-					getCmd := eksctlGetCmd.WithArgs(
-						"iamidentitymapping",
+					get := eksctlGetCmd.WithArgs("get", "iamidentitymapping",
 						"--name", clusterName,
-						"--role", role0.RoleARN,
+						"--region", region,
+						"--arn", role0.RoleARN,
 						"-o", "yaml",
 					)
-					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0)))
+					Expect(get).To(RunSuccessfullyWithOutputString(MatchYAML(expR0)))
+				})
+				It("creates user mapping", func() {
+					create := eksctlCreateCmd.WithArgs("create", "iamidentitymapping",
+						"--name", clusterName,
+						"--region", region,
+						"--arn", user0.RoleARN,
+						"--username", user0.Username,
+						"--group", user0.Groups[0],
+						"--group", user0.Groups[1],
+					)
+					Expect(create).To(RunSuccessfully())
+
+					get := eksctlGetCmd.WithArgs("get", "iamidentitymapping",
+						"--name", clusterName,
+						"--region", region,
+						"--user", user0.RoleARN,
+						"-o", "yaml",
+					)
+					Expect(get).To(RunSuccessfullyWithOutputString(MatchYAML(expU0)))
+				})
+				It("creates role and user mapping", func() {
+					createRole := eksctlCreateCmd.WithArgs("create", "iamidentitymapping",
+						"--name", clusterName,
+						"--region", region,
+						"--arn", role0.RoleARN,
+						"--username", role0.Username,
+						"--group", role0.Groups[0],
+						"--group", role0.Groups[1],
+					)
+					Expect(createRole).To(RunSuccessfully())
+
+					createUser := eksctlCreateCmd.WithArgs("create", "iamidentitymapping",
+						"--name", clusterName,
+						"--region", region,
+						"--arn", user0.RoleARN,
+						"--username", user0.Username,
+						"--group", user0.Groups[0],
+						"--group", user0.Groups[1],
+					)
+					Expect(createUser).To(RunSuccessfully())
+
+					getRole := eksctlSuccess("get", "iamidentitymapping",
+						"--name", clusterName,
+						"--region", region,
+						"--arn", role0.IdentityARN,
+						"-o", "yaml",
+					)
+					Expect(getRole).To(RunSuccessfullyWithOutputString(MatchYAML(expR0)))
+
+					getUser := eksctlSuccess("get", "iamidentitymapping",
+						"--name", clusterName,
+						"--region", region,
+						"--arn", user0.IdentityARN,
+						"-o", "yaml",
+					)
+					Expect(getUser).To(RunSuccessfullyWithOutputString(MatchYAML(expU0)))
 				})
 				It("creates a duplicate mapping", func() {
 					createCmd := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role0.RoleARN,
+						"--region", region,
+						"--arn", role0.RoleARN,
 						"--username", role0.Username,
 						"--group", role0.Groups[0],
 						"--group", role0.Groups[1],
@@ -733,16 +813,18 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role0.RoleARN,
+						"--region", region,
+						"--arn", role0.RoleARN,
 						"-o", "yaml",
 					)
-					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0 + exp0)))
+					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(expR0 + expR0)))
 				})
 				It("creates a duplicate mapping with different identity", func() {
 					createCmd := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role1.RoleARN,
+						"--region", region,
+						"--arn", role1.RoleARN,
 						"--group", role1.Groups[0],
 					)
 					Expect(createCmd).To(RunSuccessfully())
@@ -750,32 +832,36 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role1.RoleARN,
+						"--region", region,
+						"--arn", role1.RoleARN,
 						"-o", "yaml",
 					)
-					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0 + exp0 + exp1)))
+					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(expR0 + expR0 + expR1)))
 				})
 				It("deletes a single mapping fifo", func() {
 					deleteCmd := eksctlDeleteCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role,
+						"--region", region,
+						"--arn", role,
 					)
 					Expect(deleteCmd).To(RunSuccessfully())
 
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role,
+						"--region", region,
+						"--arn", role,
 						"-o", "yaml",
 					)
-					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0 + exp1)))
+					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(expR0 + expR1)))
 				})
 				It("fails when deleting unknown mapping", func() {
 					deleteCmd := eksctlDeleteCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", "idontexist",
+						"--region", region,
+						"--arn", "arn:aws:iam::123456:role/idontexist",
 					)
 					Expect(deleteCmd).ToNot(RunSuccessfully())
 				})
@@ -783,7 +869,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					deleteCmd := eksctlDeleteCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role,
+						"--region", region,
+						"--arn", role,
 						"--all",
 					)
 					Expect(deleteCmd).To(RunSuccessfully())
@@ -791,7 +878,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--role", role,
+						"--region", region,
+						"--arn", role,
 						"-o", "yaml",
 					)
 					Expect(getCmd).ToNot(RunSuccessfully())

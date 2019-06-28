@@ -58,7 +58,7 @@ func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, arn authconfigmap.ARN,
 	}
 
 	if arn.Resource == "" {
-		return cmdutils.ErrMustBeSet("--role")
+		return cmdutils.ErrMustBeSet("--arn")
 	}
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")
