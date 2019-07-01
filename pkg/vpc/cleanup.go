@@ -9,8 +9,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
-	"context"
-
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -20,7 +18,7 @@ func fmtSecurityGroupNameRegexForCluster(name string) string {
 	return fmt.Sprintf(ourSecurityGroupNameRegexFmt, name)
 }
 
-func findAvailableNetworkInterfaces(ctx context.Context, ec2API ec2iface.EC2API, spec *api.ClusterConfig, fn func(eniID string) error) error {
+func forEachDanglingENI(ec2API ec2iface.EC2API, spec *api.ClusterConfig, fn func(eniID string) error) error {
 	input := &ec2.DescribeNetworkInterfacesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -39,21 +37,23 @@ func findAvailableNetworkInterfaces(ctx context.Context, ec2API ec2iface.EC2API,
 		return errors.Wrap(err, "failed to create security group regex")
 	}
 
-	var lastErr error
+	var fnErr error
 
-	err = ec2API.DescribeNetworkInterfacesPagesWithContext(ctx, input, func(output *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
+	err = ec2API.DescribeNetworkInterfacesPages(input, func(output *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
 		for _, eni := range output.NetworkInterfaces {
 			id := *eni.NetworkInterfaceId
 			for _, sg := range eni.Groups {
-				if securityGroupRE.MatchString(*sg.GroupName) {
-					logger.Debug("found %q, which belongs to our security group %q (%s)", id, *sg.GroupName, *sg.GroupId)
-					if err := fn(id); err != nil {
-						lastErr = err
-						return false
-					}
-					break
+				if !securityGroupRE.MatchString(*sg.GroupName) {
+					logger.Debug("found %q, but it belongs to security group %q (%s), which does not appear to be ours", id, *sg.GroupName, *sg.GroupId)
+					continue
 				}
-				logger.Debug("found %q, but it belongs to security group %q (%s), which does not appear to be ours", id, *sg.GroupName, *sg.GroupId)
+
+				logger.Debug("found %q, which belongs to our security group %q (%s)", id, *sg.GroupName, *sg.GroupId)
+				if err := fn(id); err != nil {
+					fnErr = err
+					return false
+				}
+				break
 			}
 		}
 		return !lastPage
@@ -63,13 +63,12 @@ func findAvailableNetworkInterfaces(ctx context.Context, ec2API ec2iface.EC2API,
 		return errors.Wrapf(err, "unable to list dangling network interfaces in %q", spec.VPC.ID)
 	}
 
-	return lastErr
+	return fnErr
 }
 
 // CleanupNetworkInterfaces finds and deletes any dangling ENIs
 func CleanupNetworkInterfaces(ec2API ec2iface.EC2API, spec *api.ClusterConfig) error {
-	ctx := context.TODO()
-	return findAvailableNetworkInterfaces(ctx, ec2API, spec, func(eniID string) error {
+	return forEachDanglingENI(ec2API, spec, func(eniID string) error {
 		input := &ec2.DeleteNetworkInterfaceInput{
 			NetworkInterfaceId: &eniID,
 		}
