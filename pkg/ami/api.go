@@ -68,6 +68,11 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 		}
 		if ng.VolumeEncrypted == nil {
 			ng.VolumeEncrypted = output.Images[0].BlockDeviceMappings[0].Ebs.Encrypted
+		} else {
+			// VolumeEncrypted cannot be false if the AMI being used is already encrypted.
+			if api.IsDisabled(ng.VolumeEncrypted) && api.IsEnabled(output.Images[0].BlockDeviceMappings[0].Ebs.Encrypted) {
+				return fmt.Errorf("%q is an encrypted AMI and volumeEncrypted has been set to false", ng.AMI)
+			}
 		}
 	}
 

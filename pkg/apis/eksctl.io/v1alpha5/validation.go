@@ -136,6 +136,18 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if IsSetAndNonEmptyString(ng.VolumeName) {
 			return fmt.Errorf("%s.volumeName can not be set without %s.volumeSize", path, path)
 		}
+		if IsEnabled(ng.VolumeEncrypted) {
+			return fmt.Errorf("%s.VolumeEncrypted can not be set without %s.volumeSize", path, path)
+		}
+		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
+			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.volumeSize", path, path)
+		}
+	}
+
+	if ng.VolumeEncrypted == nil || IsDisabled(ng.VolumeEncrypted) {
+		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
+			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.VolumeEncrypted true", path, path)
+		}
 	}
 
 	if ng.IAM != nil {

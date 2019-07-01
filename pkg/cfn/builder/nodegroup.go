@@ -114,14 +114,28 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	}
 
 	if volumeSize := n.spec.VolumeSize; volumeSize != nil && *volumeSize > 0 {
-		launchTemplateData.BlockDeviceMappings = []gfn.AWSEC2LaunchTemplate_BlockDeviceMapping{{
-			DeviceName: gfn.NewString(*n.spec.VolumeName),
-			Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
-				VolumeSize: gfn.NewInteger(*volumeSize),
-				VolumeType: gfn.NewString(*n.spec.VolumeType),
-				Encrypted: gfn.NewBoolean(*n.spec.VolumeEncrypted),
-			},
-		}}
+		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
+			launchTemplateData.BlockDeviceMappings = []gfn.AWSEC2LaunchTemplate_BlockDeviceMapping{{
+				DeviceName: gfn.NewString(*n.spec.VolumeName),
+				Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
+					VolumeSize: gfn.NewInteger(*volumeSize),
+					VolumeType: gfn.NewString(*n.spec.VolumeType),
+					Encrypted: gfn.NewBoolean(*n.spec.VolumeEncrypted),
+					KmsKeyId: gfn.NewString(*n.spec.VolumeKmsKeyID),
+				},
+			}}
+		} else {
+			launchTemplateData.BlockDeviceMappings = []gfn.AWSEC2LaunchTemplate_BlockDeviceMapping{{
+				DeviceName: gfn.NewString(*n.spec.VolumeName),
+				Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
+					VolumeSize: gfn.NewInteger(*volumeSize),
+					VolumeType: gfn.NewString(*n.spec.VolumeType),
+					Encrypted: gfn.NewBoolean(*n.spec.VolumeEncrypted),
+				},
+			}}
+		}
+
+
 	}
 
 	n.newResource("NodeGroupLaunchTemplate", &gfn.AWSEC2LaunchTemplate{
