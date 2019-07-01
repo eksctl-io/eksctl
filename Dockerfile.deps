@@ -8,7 +8,10 @@ RUN apk add --no-cache \
       make \
       bash \
       gcc \
-      musl-dev
+      g++ \
+      libsass-dev \
+      musl-dev \
+      && true
 
 WORKDIR /src
 ENV CGO_ENABLED=0
@@ -31,7 +34,8 @@ RUN apk add --no-cache --initdb --root /out \
     ca-certificates \
     coreutils \
     git \
-    libc6-compat
+    libc6-compat \
+    && true
 
 RUN mv ./aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
 

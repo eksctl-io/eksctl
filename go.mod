@@ -29,13 +29,13 @@ require (
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
-	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/evanphx/json-patch v4.1.0+incompatible
 	github.com/fatih/color v1.7.0 // indirect
-	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/go-ini/ini v1.37.0 // indirect
+	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1 // indirect
+	github.com/gohugoio/hugo v0.55.6 // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
@@ -47,14 +47,10 @@ require (
 	github.com/goreleaser/archive v1.1.3 // indirect
 	github.com/goreleaser/goreleaser v0.77.2
 	github.com/goreleaser/nfpm v0.11.0 // indirect
-	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
-	github.com/hashicorp/golang-lru v0.5.0 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/jteeuwen/go-bindata v3.0.8-0.20180305030458-6025e8de665b+incompatible
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -66,14 +62,11 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/masterminds/semver v1.4.2 // indirect
-	github.com/mattn/go-colorable v0.0.9 // indirect
-	github.com/mattn/go-isatty v0.0.3 // indirect
 	github.com/mattn/go-zglob v0.0.1 // indirect
 	github.com/mattn/goveralls v0.0.2
 	github.com/miekg/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/miekg/dns v0.0.0-20160614162101-5d001d020961 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/onsi/ginkgo v1.5.0
 	github.com/onsi/gomega v1.4.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
@@ -84,16 +77,12 @@ require (
 	github.com/pkg/sftp v1.8.3 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/sanathkr/yaml v1.0.0 // indirect
-	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
-	github.com/spf13/afero v1.2.2 // indirect
-	github.com/spf13/cast v1.3.0 // indirect
-	github.com/spf13/cobra v0.0.0-20180531180338-1e58aa3361fd
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
-	github.com/spf13/viper v1.0.0
+	github.com/spf13/viper v1.3.2
 	github.com/spotinst/spotinst-sdk-go v0.0.0-20181012192533-fed4677dbf8f // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
