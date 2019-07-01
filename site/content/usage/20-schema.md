@@ -214,6 +214,8 @@ NodeGroup:
       type: array
     volumeEncrypted:
       type: boolean
+    volumeKmsKeyID:
+      type: string
     volumeName:
       type: string
     volumeSize:
