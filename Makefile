@@ -203,14 +203,16 @@ release: eksctl-build-image ## Create a new eksctl release
 	      ./do-release.sh
 
 ##@ Site
+HUGO := $(GOBIN)/hugo
+HUGO_ARGS ?= --gc --minify
 
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
-	cd site/ ; hugo serve
+	cd site/ ; $(HUGO) serve $(HUGO_ARGS)
 
 .PHONY: build-pages
 build-pages: ## Generate the site
-	cd site/ ; hugo
+	cd site/ ; $(HUGO) $(HUGO_ARGS)
 
 ##@ Utility
 
