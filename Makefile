@@ -202,23 +202,15 @@ release: eksctl-build-image ## Create a new eksctl release
 	    $(EKSCTL_BUILDER_IMAGE) \
 	      ./do-release.sh
 
-JEKYLL := docker run --tty --rm \
-  --name=eksctl-jekyll \
-  --volume="$(CURDIR)":/usr/src/app \
-  --publish="4000:4000" \
-    starefossen/github-pages
-
 ##@ Site
 
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
-	-docker rm -f eksctl-jekyll
-	$(JEKYLL) jekyll serve -d /_site --watch --force_polling -H 0.0.0.0 -P 4000
+	cd site/ ; hugo serve
 
 .PHONY: build-pages
-build-pages: ## Generate the site using jekyll
-	-docker rm -f eksctl-jekyll
-	$(JEKYLL) jekyll build --verbose
+build-pages: ## Generate the site
+	cd site/ ; hugo
 
 ##@ Utility
 
