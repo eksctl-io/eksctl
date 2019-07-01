@@ -15,6 +15,7 @@ vendor
 _site
 
 # Hugo site
+site/public/
 site/resources/_gen
 
 # Do not add temporary files here
