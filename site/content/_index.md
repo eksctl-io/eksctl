@@ -110,6 +110,8 @@ To learn more about how to create clusters and other features continue reading t
 [![Circle CI](https://circleci.com/gh/weaveworks/eksctl/tree/master.svg?style=shield)](https://circleci.com/gh/weaveworks/eksctl/tree/master) [![Coverage Status](https://coveralls.io/repos/github/weaveworks/eksctl/badge.svg?branch=master)](https://coveralls.io/github/weaveworks/eksctl?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/eksctl)](https://goreportcard.com/report/github.com/weaveworks/eksctl)
 ![Gophers: E, K, S, C, T, & L](introduction/images/eksctl.png)
 
-> **_Logo Credits_**
+> **_Credits_**
 >
 > _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/)._
+>
+> Site powered by [Netlify ©](https://netlify.com)
