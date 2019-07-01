@@ -15,5 +15,8 @@ indent_style = space
 [*.go]
 indent_style = tab
 
+[{*.html, *.css, *.scss}]
+indent_size = 2
+
 [Makefile]
 indent_style = tab
