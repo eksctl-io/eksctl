@@ -1,12 +1,6 @@
 (function() {
     'use strict';
 
-    function flashCopyMessage(el, msg) {
-        el.textContent = msg;
-        setTimeout(function() {
-            el.textContent = "Copy";
-        }, 1000);
-    }
 
     function selectText(node) {
         var selection = window.getSelection();
@@ -17,30 +11,39 @@
         return selection;
     }
 
+    function appendParent(element) {
+        var parent = element.parentNode;
+        var wrapper = document.createElement('div');
+        wrapper.className = "highlight";
+
+        parent.replaceChild(wrapper, element);
+        wrapper.appendChild(element);
+        return wrapper;
+    }
+
     function addCopyButton(containerEl) {
         var copyBtn = document.createElement("button");
         copyBtn.className = "highlight-copy-btn";
-        copyBtn.textContent = "Copy";
 
-        var codeEl = containerEl.firstElementChild;
+
+        var preEl = containerEl.parentElement;
         copyBtn.addEventListener('click', function() {
             try {
-                var selection = selectText(codeEl);
+                var selection = selectText(preEl);
                 document.execCommand('copy');
                 selection.removeAllRanges();
 
-                flashCopyMessage(copyBtn, 'Copied!')
             } catch(e) {
                 console && console.log(e);
-                flashCopyMessage(copyBtn, 'Failed :\'(')
             }
         });
 
-        containerEl.appendChild(copyBtn);
+        var divEl = appendParent(preEl);
+        divEl.appendChild(copyBtn);
     }
 
     // Add copy button to code blocks
-    var highlightBlocks = document.getElementsByClassName('highlight');
+    var highlightBlocks = document.querySelectorAll('pre > code');
     Array.prototype.forEach.call(highlightBlocks, addCopyButton);
 
 })();
