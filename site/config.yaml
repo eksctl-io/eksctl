@@ -1,10 +1,6 @@
 baseURL: "https://eksctl.io"
 languageCode: en-us
 title: "eksctl"
-#theme:  "hugo-book-master"
-#pygmentsCodeFences: true
-#pygmentsUseClasses: true
-#pygmentsStyle: "colorful"
 
 params:
   repository: "weaveworks/eksctl"
