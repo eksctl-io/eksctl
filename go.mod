@@ -35,7 +35,7 @@ require (
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1 // indirect
-	github.com/gohugoio/hugo v0.55.6 // indirect
+	github.com/gohugoio/hugo v0.55.6
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-github v17.0.0+incompatible // indirect
@@ -63,7 +63,6 @@ require (
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/masterminds/semver v1.4.2 // indirect
 	github.com/mattn/go-zglob v0.0.1 // indirect
-	github.com/mattn/goveralls v0.0.2
 	github.com/miekg/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/miekg/dns v0.0.0-20160614162101-5d001d020961 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
