@@ -170,6 +170,53 @@ var _ = Describe("ConfigFile validation", func() {
 
 		})
 	})
+
+	Describe("ebs encryption", func() {
+		var (
+			nodegroup = "ng1"
+			volSize   = 50
+			kmsKeyID  = "36c0b54e-64ed-4f2d-a1c7-96558764311e"
+			disabled  = false
+			enabled   = true
+		)
+
+		Context("Encrypted workers", func() {
+
+			var ng *NodeGroup
+			BeforeEach(func() {
+				ng = &NodeGroup{}
+			})
+
+			It("Forbids setting volumeKmsKeyID without volumeEncrypted", func() {
+				ng.Name = nodegroup
+				ng.VolumeSize = &volSize
+				ng.VolumeEncrypted = nil
+				ng.VolumeKmsKeyID = &kmsKeyID
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("Forbids setting volumeKmsKeyID with volumeEncrypted: false", func() {
+				ng.Name = nodegroup
+				ng.VolumeSize = &volSize
+				ng.VolumeEncrypted = &disabled
+				ng.VolumeKmsKeyID = &kmsKeyID
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("Allows setting volumeKmsKeyID with volumeEncrypted: true", func() {
+				ng.Name = nodegroup
+				ng.VolumeSize = &volSize
+				ng.VolumeEncrypted = &enabled
+				ng.VolumeKmsKeyID = &kmsKeyID
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+		})
+	})
+
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {
