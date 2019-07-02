@@ -113,3 +113,5 @@ To learn more about how to create clusters and other features continue reading t
 > **_Logo Credits_**
 >
 > _Original Gophers drawn by [Ashley McNamara](https://twitter.com/ashleymcnamara), unique E, K, S, C, T & L Gopher identities had been produced with [Gopherize.me](https://gopherize.me/)._
+>
+> Site powered by [Netlify ©](https://netlify.com)
