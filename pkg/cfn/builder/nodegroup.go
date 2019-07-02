@@ -122,6 +122,9 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 				Encrypted: gfn.NewBoolean(*n.spec.VolumeEncrypted),
 			},
 		}}
+		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
+			launchTemplateData.BlockDeviceMappings[0].Ebs.KmsKeyId = gfn.NewString(*n.spec.VolumeKmsKeyID)
+		}
 	}
 
 	n.newResource("NodeGroupLaunchTemplate", &gfn.AWSEC2LaunchTemplate{

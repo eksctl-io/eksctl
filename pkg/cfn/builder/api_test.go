@@ -302,6 +302,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.VolumeName = new(string)
 		*ng.VolumeName = "/dev/xvda"
 		ng.VolumeEncrypted = api.Disabled()
+		ng.VolumeKmsKeyID = new(string)
 
 		if withFullVPC {
 			cfg.VPC = testVPC()
@@ -409,6 +410,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeType:      aws.String(api.NodeVolumeTypeIO1),
 					VolumeName:      aws.String("/dev/xvda"),
 					VolumeEncrypted: api.Disabled(),
+					VolumeKmsKeyID: aws.String(""),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
 							ImageBuilder: api.Disabled(),
@@ -1282,7 +1284,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("Nodegroup using Encrypted AMI", func() {
+	Context("Nodegroup encrypted volume using default key, or encrypted AMI", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.VolumeEncrypted = api.Enabled()
@@ -1300,6 +1302,29 @@ var _ = Describe("CloudFormation template builder API", func() {
 			rootVolume := ltd.BlockDeviceMappings[0].(map[string]interface{})
 			Expect(rootVolume).To(HaveKey("Ebs"))
 			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("Encrypted", true))
+		})
+	})
+
+	Context("Nodegroup encrypted volume using CMK", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.VolumeEncrypted = api.Enabled()
+		*ng.VolumeKmsKeyID = "36c0b54e-64ed-4f2d-a1c7-96558764311e"
+
+		build(cfg, "eksctl-test-private-ng", ng)
+
+		roundtrip()
+
+		It("should have correct resources and attributes", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			ltd := getLaunchTemplateData(ngTemplate)
+			Expect(ltd.BlockDeviceMappings).To(HaveLen(1))
+
+			rootVolume := ltd.BlockDeviceMappings[0].(map[string]interface{})
+			Expect(rootVolume).To(HaveKey("Ebs"))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("Encrypted", true))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("KmsKeyId", "36c0b54e-64ed-4f2d-a1c7-96558764311e"))
 		})
 	})
 

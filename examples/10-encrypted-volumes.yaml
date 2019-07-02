@@ -1,0 +1,24 @@
+# An example of encrypting worker root volumes
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-10
+  region: eu-west-1
+
+nodeGroups:
+  - name: ng1-encrypt-using-default-kms-key
+    instanceType: m5.xlarge
+    desiredCapacity: 1
+    volumeSize: 100
+    volumeType: gp2
+    volumeEncrypted: true
+
+  - name: ng2-encrypt-using-customer-encrytion-key
+    instanceType: m5.xlarge
+    desiredCapacity: 1
+    volumeSize: 100
+    volumeType: gp2
+    volumeEncrypted: true
+    volumeKmsKeyID: 36c0b54e-64ed-4f2d-a1c7-96558764311e # please see https://docs.aws.amazon.com/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html for service-linked role permissions
