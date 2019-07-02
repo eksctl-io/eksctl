@@ -18,7 +18,7 @@ func fmtSecurityGroupNameRegexForCluster(name string) string {
 	return fmt.Sprintf(ourSecurityGroupNameRegexFmt, name)
 }
 
-func forEachDanglingENI(ec2API ec2iface.EC2API, spec *api.ClusterConfig, fn func(eniID string) error) error {
+func findDanglingENIs(ec2API ec2iface.EC2API, spec *api.ClusterConfig) ([]string, error) {
 	input := &ec2.DescribeNetworkInterfacesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -34,41 +34,40 @@ func forEachDanglingENI(ec2API ec2iface.EC2API, spec *api.ClusterConfig, fn func
 
 	securityGroupRE, err := regexp.Compile(fmtSecurityGroupNameRegexForCluster(spec.Metadata.Name))
 	if err != nil {
-		return errors.Wrap(err, "failed to create security group regex")
+		return nil, errors.Wrap(err, "failed to create security group regex")
 	}
 
-	var fnErr error
+	var eniIDs []string
 
 	err = ec2API.DescribeNetworkInterfacesPages(input, func(output *ec2.DescribeNetworkInterfacesOutput, lastPage bool) bool {
 		for _, eni := range output.NetworkInterfaces {
 			id := *eni.NetworkInterfaceId
 			for _, sg := range eni.Groups {
-				if !securityGroupRE.MatchString(*sg.GroupName) {
-					logger.Debug("found %q, but it belongs to security group %q (%s), which does not appear to be ours", id, *sg.GroupName, *sg.GroupId)
-					continue
+				if securityGroupRE.MatchString(*sg.GroupName) {
+					logger.Debug("found %q, which belongs to our security group %q (%s)", id, *sg.GroupName, *sg.GroupId)
+					eniIDs = append(eniIDs, id)
+					break
 				}
+				logger.Debug("found %q, but it belongs to security group %q (%s), which does not appear to be ours", id, *sg.GroupName, *sg.GroupId)
 
-				logger.Debug("found %q, which belongs to our security group %q (%s)", id, *sg.GroupName, *sg.GroupId)
-				if err := fn(id); err != nil {
-					fnErr = err
-					return false
-				}
-				break
 			}
 		}
 		return !lastPage
 	})
 
 	if err != nil {
-		return errors.Wrapf(err, "unable to list dangling network interfaces in %q", spec.VPC.ID)
+		return nil, errors.Wrapf(err, "unable to list dangling network interfaces in %q", spec.VPC.ID)
 	}
-
-	return fnErr
+	return eniIDs, nil
 }
 
 // CleanupNetworkInterfaces finds and deletes any dangling ENIs
 func CleanupNetworkInterfaces(ec2API ec2iface.EC2API, spec *api.ClusterConfig) error {
-	return forEachDanglingENI(ec2API, spec, func(eniID string) error {
+	eniIDs, err := findDanglingENIs(ec2API, spec)
+	if err != nil {
+		return err
+	}
+	for _, eniID := range eniIDs {
 		input := &ec2.DeleteNetworkInterfaceInput{
 			NetworkInterfaceId: &eniID,
 		}
@@ -77,5 +76,6 @@ func CleanupNetworkInterfaces(ec2API ec2iface.EC2API, spec *api.ClusterConfig) e
 		}
 		logger.Debug("deleted network interface %q", eniID)
 		return nil
-	})
+	}
+	return nil
 }
