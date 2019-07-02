@@ -109,7 +109,7 @@ func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 			}
 			go func() {
-				errs <- vpc.CleanupNetworkInterfaces(ctl.Provider, cfg)
+				errs <- vpc.CleanupNetworkInterfaces(ctl.Provider.EC2(), cfg)
 				close(errs)
 			}()
 			return nil
