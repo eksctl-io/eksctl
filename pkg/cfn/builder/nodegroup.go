@@ -120,7 +120,6 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 				VolumeSize: gfn.NewInteger(*volumeSize),
 				VolumeType: gfn.NewString(*n.spec.VolumeType),
 				Encrypted: gfn.NewBoolean(*n.spec.VolumeEncrypted),
-				KmsKeyId: gfn.NewString(*n.spec.VolumeKmsKeyID),
 			},
 		}}
 		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
