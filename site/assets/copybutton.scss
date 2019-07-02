@@ -13,7 +13,7 @@
   border: 0;
   border-radius: 4px;
   padding: 2px;
-  background: url('/svg/copy.svg') no-repeat top right;
+  background: url("/svg/copy.svg") no-repeat top right;
   font-size: 0.7em;
   line-height: 1.8;
   min-height: 22px;
@@ -23,7 +23,7 @@
 }
 
 .highlight-copy-btn:hover {
-  background-color: #ddd;
+  background: url("/svg/copy-darker.svg") no-repeat top right;
 }
 
 .highlight-copy-btn:focus {
