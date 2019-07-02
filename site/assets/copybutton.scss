@@ -3,6 +3,7 @@
 }
 .highlight pre {
   padding-right: 75px;
+  background: #eeeeee;
 }
 
 .highlight-copy-btn {
@@ -20,6 +21,14 @@
   text-align: center;
   display: inline;
 }
+
 .highlight-copy-btn:hover {
-  background-color: #eee;
+  background-color: #ddd;
+}
+
+.highlight-copy-btn:focus {
+  /* Avoid an ugly focus outline on click in Chrome,
+     but darken the button for accessibility.
+     See https://stackoverflow.com/a/25298082/1481479 */
+  outline: 0;
 }
