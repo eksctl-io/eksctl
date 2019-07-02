@@ -36,6 +36,11 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
+  make-release-candidate:
+    machine: true
+    steps:
+      - checkout
+      - run: make release-candidate
   make-release:
     machine: true
     steps:
@@ -58,10 +63,17 @@ workflows:
               ignore: /.*/
             tags:
               ignore: /^latest_release$/
+      - make-release-candidate:
+          requires: [make-eksctl-image]
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
       - make-release:
           requires: [make-eksctl-image]
           filters:
             branches:
               ignore: /.*/
             tags:
-              ignore: /^latest_release$/
+              only: /[0-9]+\.[0-9]+\.[0-9]+/

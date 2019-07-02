@@ -15,17 +15,18 @@ if [ ! "$(git rev-parse --abbrev-ref @)" = master ] ; then
 fi
 
 v="${1}"
+candidate_for="${v/-rc.*}"
 
-if [ ! "${v}" = "${v/-rc.*}" ] ; then
-  echo "Must provide release tag, use './tag-release-candidate.sh ${v}' instead"
+if [ "${v}" = "${candidate_for}" ] ; then
+  echo "Must provide release candidate tag, use './tag-release.sh ${v}' instead"
   exit 3
 fi
 
-RELEASE_NOTES_FILE="docs/release_notes/${v}.md"
+RELEASE_NOTES_FILE="docs/release_notes/${candidate_for}.md"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
   echo "Must have release notes ${RELEASE_NOTES_FILE}"
-  exit 4
+  exit 3
 fi
 
 export RELEASE_GIT_TAG="${v}"
@@ -35,7 +36,7 @@ go generate ./pkg/version
 git add ./pkg/version/release.go
 git add ${RELEASE_NOTES_FILE}
 
-m="Tag ${v} release"
+m="Tag ${v} release candidate"
 
 git commit --message "${m}"
 
@@ -43,11 +44,6 @@ git fetch --force --tags git@github.com:weaveworks/eksctl
 
 git push git@github.com:weaveworks/eksctl master
 
-# Update the site by putting everything from master into the docs branch
-git push -f origin master:docs
-
-# Create the release tag and push it to start release process
-git tag --annotate --message "${m}" --force "latest_release"
 git tag --annotate --message "${m}" "${v}"
 
 git push --force --tags git@github.com:weaveworks/eksctl

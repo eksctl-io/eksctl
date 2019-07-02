@@ -191,18 +191,24 @@ eksctl-image: eksctl-deps-image## Create the eksctl image
 
 ##@ Release
 
+docker_run_release_script = docker run \
+  --env=GITHUB_TOKEN \
+  --env=CIRCLE_TAG \
+  --env=CIRCLE_PROJECT_USERNAME \
+  --volume=$(CURDIR):/src \
+  --workdir=/src \
+    $(EKSCTL_BUILDER_IMAGE)
+
+.PHONY: release-candidate
+release-candidate: eksctl-image ## Create a new eksctl release candidate
+	$(call docker_run_release_script) ./do-release-candidate.sh
+
 .PHONY: release
-release: eksctl-build-image ## Create a new eksctl release
-	docker run \
-	  --env=GITHUB_TOKEN \
-	  --env=CIRCLE_TAG \
-	  --env=CIRCLE_PROJECT_USERNAME \
-	  --volume=$(CURDIR):/src \
-	  --workdir=/src \
-	    $(EKSCTL_BUILDER_IMAGE) \
-	      ./do-release.sh
+release: eksctl-image ## Create a new eksctl release
+	$(call docker_run_release_script) ./do-release.sh
 
 ##@ Site
+
 HUGO := $(GOBIN)/hugo
 HUGO_ARGS ?= --gc --minify
 

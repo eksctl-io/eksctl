@@ -1,4 +1,6 @@
-release: {name_template: "{{ .ProjectName }} {{ .Env.RELEASE_DESCRIPTION }}"}
+release:
+  name_template: "{{ .ProjectName }} {{ .Env.RELEASE_DESCRIPTION }}"
+  prerelease: auto # this should detect a release candidate and mark it as pre-release in GitHub
 
 builds:
   - main: ./cmd/eksctl

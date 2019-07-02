@@ -170,7 +170,7 @@ This allows the message to be easier to read on GitHub as well as in various git
 2. Ensure integration tests pass (see below)
 3. Determine next release tag (e.g. `0.1.35`)
 4. Create release notes file for the given tag – `docs/release_notes/<tag>.md` (e.g. `docs/release_notes/0.1.35.md`)
-5. Run `./tag-release.sh <tag>` (e.g. `./tag-release.sh 0.1.35`)
+5. Run `./tag-release-candidatate.sh <tag>-rc.<N>` or `./tag-release.sh <tag>` (e.g. `./tag-release.sh 0.1.35-rc.2` or `./tag-release.sh 0.1.35`)
 
 ## Notes on Integration Tests
 
