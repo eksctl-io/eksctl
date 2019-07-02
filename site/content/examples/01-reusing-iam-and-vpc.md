@@ -1,6 +1,7 @@
 ---
 title: Example with custom IAM and VPC config
 weight: 10
+url: examples/reusing-iam-and-vpc
 ---
 # Example with custom IAM and VPC config
 

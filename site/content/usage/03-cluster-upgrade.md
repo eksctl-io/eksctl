@@ -1,6 +1,7 @@
 ---
 title: "Cluster Upgrades"
 weight: 30
+url: usage/cluster-upgrades
 ---
 
 ## Cluster upgrades

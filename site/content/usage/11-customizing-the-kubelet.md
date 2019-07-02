@@ -1,6 +1,7 @@
 ---
 title: "Customizing kubelet configuration"
 weight: 110
+url: usage/customizing-the-kubelet
 ---
 
 # Customizing kubelet configuration

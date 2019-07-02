@@ -1,6 +1,7 @@
 ---
 title: "GPU Support"
 weight: 70
+url: usage/gpu-support
 ---
 
 ## GPU Support

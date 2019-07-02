@@ -1,6 +1,7 @@
 ---
 title: "Get in touch"
 weight: 10
+url: community/get-in-touch
 ---
 
 ## Get in touch

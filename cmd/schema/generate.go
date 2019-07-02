@@ -20,6 +20,7 @@ func main() {
 	document.WriteString(`---
 title: Config file schema
 weight: 200
+url: usage/schema
 ---
 
 `)

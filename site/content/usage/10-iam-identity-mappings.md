@@ -1,6 +1,7 @@
 ---
 title: "Manage IAM users and roles"
 weight: 100
+url: usage/iam-identity-mappings
 ---
 
 ## Managing IAM users and roles

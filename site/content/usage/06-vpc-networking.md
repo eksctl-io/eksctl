@@ -1,6 +1,7 @@
 ---
 title: "VPC Networking"
 weight: 60
+url: usage/vpc-networking
 ---
 
 ## VPC Networking

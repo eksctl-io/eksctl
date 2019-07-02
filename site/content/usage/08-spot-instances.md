@@ -1,6 +1,7 @@
 ---
 title: "Spot instances"
 weight: 80
+url: usage/spot-instances
 ---
 
 ## Spot instances
