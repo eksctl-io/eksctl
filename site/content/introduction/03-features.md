@@ -1,6 +1,7 @@
 ---
 title: "Features"
 weight: 30
+url: introduction/features
 ---
 
 ## Feature list

@@ -1,6 +1,7 @@
 ---
 title: Troubleshooting
 weight: 210
+url: usage/troubleshooting
 ---
 
 ## Troubleshooting

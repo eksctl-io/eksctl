@@ -103,7 +103,7 @@ able to use `kubectl`. You will need to make sure to use the same AWS API creden
 dependencies installed already.
 
 To learn more about how to create clusters and other features continue reading the
-[usage section](usage/01-creating-and-managing-clusters/).
+[usage section](usage/creating-and-managing-clusters/).
 
 [ekskubectl]: https://docs.aws.amazon.com/eks/latest/userguide/configure-kubectl.html
 

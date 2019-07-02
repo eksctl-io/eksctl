@@ -1,6 +1,7 @@
 ---
 title: "Custom AMI support"
 weight: 50
+url: usage/custom-ami-support
 ---
 
 ## Latest & Custom AMI Support

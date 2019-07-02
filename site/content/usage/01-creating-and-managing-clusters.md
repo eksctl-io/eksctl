@@ -1,6 +1,7 @@
 ---
 title: "Creating and managing clusters"
 weight: 10
+url: usage/creating-and-managing-clusters
 ---
 
 ## Creating a cluster

@@ -1,6 +1,7 @@
 ---
 title: "IAM policies"
 weight: 90
+url: usage/iam-policies
 ---
 
 ## Supported IAM add-on policies

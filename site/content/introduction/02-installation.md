@@ -1,6 +1,7 @@
 ---
 title: "Installation"
 weight: 20
+url: introduction/installation
 ---
 
 ## Installation

@@ -1,6 +1,7 @@
 ---
 title: "Managing nodegroups"
 weight: 20
+url: usage/managing-nodegroups
 ---
 
 ## Managing nodegroups

@@ -1,9 +1,10 @@
 ---
 title: "Road Map"
 weight: 20
+url: community/road-map
 ---
 
-## Project Roadmap
+## Project Road Map
 
 ### Manage EKS the GitOps way (0.2.0)
 

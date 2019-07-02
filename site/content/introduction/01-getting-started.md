@@ -1,6 +1,7 @@
 ---
 title: "Getting started"
 weight: 10
+url: introduction/getting-started
 ---
 
 ## Getting started

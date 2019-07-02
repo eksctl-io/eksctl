@@ -1,6 +1,7 @@
 ---
 title: "Auto Scaling"
 weight: 40
+url: usage/autoscaling
 ---
 
 ## Enable Auto Scaling

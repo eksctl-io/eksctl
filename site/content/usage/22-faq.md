@@ -1,6 +1,8 @@
 ---
 title: FAQ
 weight: 220
+url: usage/faq
+aliases: [ "/faq" ]
 ---
 
 ## FAQ
