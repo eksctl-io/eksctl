@@ -14,6 +14,7 @@ import (
 	_ "github.com/spf13/viper"
 
 	_ "github.com/dave/jennifer/jen"
+	_ "github.com/gohugoio/hugo"
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/jteeuwen/go-bindata/go-bindata"
 	_ "github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator"
