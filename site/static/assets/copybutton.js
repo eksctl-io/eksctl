@@ -1,7 +1,6 @@
 (function() {
     'use strict';
 
-
     function selectText(node) {
         var selection = window.getSelection();
         var range = document.createRange();
@@ -24,6 +23,7 @@
     function addCopyButton(containerEl) {
         var copyBtn = document.createElement("button");
         copyBtn.className = "highlight-copy-btn";
+        copyBtn.title = "Copy";
 
 
         var preEl = containerEl.parentElement;
@@ -32,7 +32,6 @@
                 var selection = selectText(preEl);
                 document.execCommand('copy');
                 selection.removeAllRanges();
-
             } catch(e) {
                 console && console.log(e);
             }
