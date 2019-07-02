@@ -75,7 +75,7 @@ eksctl create cluster -f cluster.yaml
 
 to apply a `cluster.yaml` file:
 
- <div id="border-block">
+ <div id="styled-code">
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
