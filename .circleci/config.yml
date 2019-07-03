@@ -40,11 +40,21 @@ jobs:
     machine: true
     steps:
       - checkout
+      - restore_cache:
+            keys:
+                - go-cache-{{ .Branch }}-{{ .Revision }}
+                - go-cache-{{ .Branch }}-
+                - go-cache-
       - run: make release-candidate
   make-release:
     machine: true
     steps:
       - checkout
+      - restore_cache:
+            keys:
+                - go-cache-{{ .Branch }}-{{ .Revision }}
+                - go-cache-{{ .Branch }}-
+                - go-cache-
       - run: make release
 
 workflows:
