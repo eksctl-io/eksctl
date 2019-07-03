@@ -94,11 +94,11 @@ $ eksctl create cluster
 $
 ```
 
-Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/02-installation).
+Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/installation).
 
 To learn more abut what `eksctl` can do check [eksctl.io](https://eksctl.io). A good place to start is
-[Getting Started](https://eksctl.io/introduction/01-getting-started/). The full list of features can be found
-[here](https://eksctl.io/introduction/03-features/).
+[Getting Started](https://eksctl.io/introduction/getting-started/). The full list of features can be found
+[here](https://eksctl.io/introduction/features/).
 
 ## Contributions
 
