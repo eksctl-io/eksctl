@@ -263,6 +263,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		return err
 	}
 
+	logger.Info("using Kubernetes version %s", meta.Version)
 	logger.Info("creating %s", meta.LogString())
 
 	// TODO dry-run mode should provide a way to render config with all defaults set
