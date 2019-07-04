@@ -67,7 +67,8 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 	}
 
 	if rc.ClusterConfigFile != "" {
-		logger.Warning("NOTE: config file is only used for finding cluster name and region, deep cluster configuration changes are not yet implemented")
+		logger.Warning("NOTE: config file is used for finding cluster name and region"
+		logger.Warning("NOTE: cluster VPC (subnets, routing & NAT Gateway) configuration changes are not yet implemented")
 	}
 
 	currentVersion := ctl.ControlPlaneVersion()
