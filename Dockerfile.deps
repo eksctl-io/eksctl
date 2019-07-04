@@ -1,5 +1,8 @@
-# Make sure to bump the version of EKSCTL_DEPENDENCIES_IMAGEif you make any changes
-FROM golang:1.12-alpine3.9 AS dependencies
+# Make sure to bump the version of EKSCTL_DEPENDENCIES_IMAGE if you make any changes
+# to this file
+
+# This digest corresponds to golang:1.12.6-alpine3.9 (when Alpine was pointing to 3.9.4)
+FROM golang@sha256:39677a9dd517a8e5d514dff8e36fa46ecc3fb14618b970bfaf3100cb8fab9ba6
 
 # Build-time dependencies
 RUN apk add --no-cache \
