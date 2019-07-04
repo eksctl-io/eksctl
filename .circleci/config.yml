@@ -37,7 +37,12 @@ jobs:
       - store_artifacts:
           path: ./test-results
   make-release-candidate:
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+        GO_VERSION: 1.12.6
+        GOCACHE: /home/circleci/.cache/go-build/
+        GOPATH: /home/circleci/go
     steps:
       - checkout
       - restore_cache:
@@ -45,9 +50,23 @@ jobs:
                 - go-cache-{{ .Branch }}-{{ .Revision }}
                 - go-cache-{{ .Branch }}-
                 - go-cache-
+      - run:
+            name: Install Golang (needed for dependency calculation)
+            command: |
+                curl -OL https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
+                tar -xf go${GO_VERSION}.linux-amd64.tar.gz
+                sudo rm -rf /usr/local/go
+                sudo mv go /usr/local
+                mkdir -p "$HOME/go/bin"
+                go version
       - run: make release-candidate
   make-release:
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+        GO_VERSION: 1.12.6
+        GOCACHE: /home/circleci/.cache/go-build/
+        GOPATH: /home/circleci/go
     steps:
       - checkout
       - restore_cache:
@@ -55,6 +74,15 @@ jobs:
                 - go-cache-{{ .Branch }}-{{ .Revision }}
                 - go-cache-{{ .Branch }}-
                 - go-cache-
+      - run:
+            name: Install Golang (needed for dependency calculation)
+            command: |
+                curl -OL https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
+                tar -xf go${GO_VERSION}.linux-amd64.tar.gz
+                sudo rm -rf /usr/local/go
+                sudo mv go /usr/local
+                mkdir -p "$HOME/go/bin"
+                go version
       - run: make release
 
 workflows:
