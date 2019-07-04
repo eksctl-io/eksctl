@@ -25,15 +25,16 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 		meta.Version = "auto"
 	case "default":
 		meta.Version = api.DefaultVersion
-		logger.Info("will use version default version (%s) for new nodegroup(s)", meta.Version)
+		logger.Info("will use default version (%s) for new nodegroup(s)", meta.Version)
 	case "latest":
 		meta.Version = api.LatestVersion
-		logger.Info("will use version latest version (%s) for new nodegroup(s)", meta.Version)
+		logger.Info("will use latest version (%s) for new nodegroup(s)", meta.Version)
 	default:
 		validVersion := false
 		for _, v := range api.SupportedVersions() {
 			if meta.Version == v {
 				validVersion = true
+				break
 			}
 		}
 		if !validVersion {

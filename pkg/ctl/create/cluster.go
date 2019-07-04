@@ -117,6 +117,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		for _, v := range api.SupportedVersions() {
 			if cfg.Metadata.Version == v {
 				validVersion = true
+				break
 			}
 		}
 		if !validVersion {

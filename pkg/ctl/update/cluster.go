@@ -74,7 +74,7 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 	// determine next version based on what's currently deployed
 	switch currentVersion {
 	case "":
-		return fmt.Errorf("unable to get control plane version")
+		return errors.New("unable to get control plane version")
 	case api.Version1_10:
 		cfg.Metadata.Version = api.Version1_11
 	case api.Version1_11:
@@ -85,7 +85,7 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 		cfg.Metadata.Version = api.Version1_13
 	default:
 		// version of control is not known to us, maybe we are just too old...
-		return fmt.Errorf("control plane version version %q is known to this version of eksctl, try to upgrade eksctl first", currentVersion)
+		return fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)
 	}
 	versionUpdateRequired := cfg.Metadata.Version != currentVersion
 
@@ -116,7 +116,7 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 				if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
 					return err
 				}
-				logger.Success("cluster %q control plan e has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
+				logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
 				logger.Info(msgNodeGroupsAndAddons)
 			} else {
 				if _, err := ctl.UpdateClusterVersion(cfg); err != nil {

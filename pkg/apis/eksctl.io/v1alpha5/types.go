@@ -2,8 +2,9 @@ package v1alpha5
 
 import (
 	"fmt"
-	"k8s.io/apimachinery/pkg/runtime"
 	"time"
+
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
@@ -77,7 +78,7 @@ const (
 	Version1_13 = "1.13"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_12
+	DefaultVersion = Version1_13
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
 	LatestVersion = Version1_13
@@ -432,7 +433,7 @@ type NodeGroup struct {
 	VolumeName *string `json:"volumeName,omitempty"`
 	// +optional
 	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
-    // +optional
+	// +optional
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
 
 	// +optional
