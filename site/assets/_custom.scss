@@ -21,16 +21,10 @@ img[src$="#inline-ww"] {
   height: 20px;
 }
 
-img[src$="#bgright"] {
-  position: absolute;
-  right: 0px;
-  top: 250px;
-  z-index: -1;
-}
-
 #intro-code {
   text-align: center;
   line-height: 200px;
+  background: url("introduction/images/eksctl-gopher.png") no-repeat top right;
 }
 
 #styled-code {
@@ -59,12 +53,6 @@ img[src$="#bgright"] {
 }
 
 @media screen and (max-width: $md-breakpoint + $padding-16) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 300px;
-    z-index: -1;
-  }
   #github {
     display: none;
   }
@@ -73,58 +61,7 @@ img[src$="#bgright"] {
   }
 }
 
-@media (max-width: 741px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 350px;
-    z-index: -1;
-  }
-}
-
-@media screen and (max-width: $sm-breakpoint) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 280px;
-    z-index: -1;
-  }
-}
-
-@media (max-width: 538px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 340px;
-    z-index: -1;
-  }
-}
-
-@media (max-width: 429px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 380px;
-    z-index: -1;
-  }
-}
-
-@media (max-width: 378px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 400px;
-    z-index: -1;
-  }
-}
-
 @media (max-width: 349px) {
-  img[src$="#bgright"] {
-    position: absolute;
-    right: 0px;
-    top: 480px;
-    z-index: -1;
-  }
   #intro-code {
     text-align: center;
     font-size: 20px;

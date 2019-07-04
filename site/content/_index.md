@@ -13,8 +13,6 @@ type: docs
 written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes
 contributions from the community. Create a basic cluster in minutes with just one command :
 
-![eksctl gopher](introduction/images/eksctl-gopher.png#bgright)
-
  <h2 id="intro-code">**`eksctl create cluster`**</h2>
 
 A cluster will be created with default parameters
