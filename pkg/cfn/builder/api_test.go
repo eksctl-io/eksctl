@@ -381,12 +381,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Metadata: &api.ClusterMeta{
 				Region:  "us-west-2",
 				Name:    clusterName,
-				Version: "1.12",
+				Version: "1.13",
 			},
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN:                      arn,
+				ARN: arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -410,7 +410,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeType:      aws.String(api.NodeVolumeTypeIO1),
 					VolumeName:      aws.String("/dev/xvda"),
 					VolumeEncrypted: api.Disabled(),
-					VolumeKmsKeyID: aws.String(""),
+					VolumeKmsKeyID:  aws.String(""),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
 							ImageBuilder: api.Disabled(),
@@ -445,11 +445,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                      arn,
-			"ClusterStackName":         "",
-			"SharedNodeSecurityGroup":  "sg-shared",
-			"ServiceRoleARN":           arn,
-			"FeatureNATMode":           "Single",
+			"ARN":                     arn,
+			"ClusterStackName":        "",
+			"SharedNodeSecurityGroup": "sg-shared",
+			"ServiceRoleARN":          arn,
+			"FeatureNATMode":          "Single",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {

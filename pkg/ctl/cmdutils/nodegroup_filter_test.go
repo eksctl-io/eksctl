@@ -305,7 +305,7 @@ const expected = `
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.12"
+		  "version": "1.13"
 		},
 		"iam": {},
 		"vpc": {
