@@ -12,7 +12,7 @@ RUN apk add --no-cache \
 
 RUN apk add \
       g++ \
-      libsass-dev \
+      libsass-dev
 
 WORKDIR /src
 ENV CGO_ENABLED=0
