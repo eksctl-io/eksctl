@@ -66,11 +66,11 @@ unit-test: ## Run unit test only
 unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
-eksctl-integration-test: $(call godeps,`go list -tags integration -f '{{join .XTestImports " "}}' ./integration/...`) ## Build integration test binary
+eksctl-integration-test: eksctl $(call godeps,`go list -tags integration -f '{{join .XTestImports " "}}' ./integration/...`) ## Build integration test binary
 	time go test -tags integration ./integration/... -c -o $@
 
 .PHONY: integration-test
-integration-test: eksctl eksctl-integration-test ## Run the integration tests (with cluster creation and cleanup)
+integration-test: eksctl-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	cd integration; ../eksctl-integration-test -test.timeout 60m $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
@@ -91,7 +91,7 @@ integration-test-container-pre-built: ## Run the integration tests inside a Dock
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
-integration-test-dev: eksctl eksctl-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
+integration-test-dev: eksctl-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
 	./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
