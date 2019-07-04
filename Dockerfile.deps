@@ -10,8 +10,7 @@ RUN apk add --no-cache \
       gcc \
       g++ \
       libsass-dev \
-      musl-dev \
-      && true
+      musl-dev
 
 WORKDIR /src
 ENV CGO_ENABLED=0
