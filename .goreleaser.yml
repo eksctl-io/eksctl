@@ -3,7 +3,8 @@ release:
   prerelease: auto # this should detect a release candidate and mark it as pre-release in GitHub
 
 builds:
-  - main: ./cmd/eksctl
+  - id: default
+    main: ./cmd/eksctl
     binary: eksctl
     flags:
       - -tags
@@ -20,18 +21,21 @@ builds:
     goarch:
       - amd64
 
-archive:
-  name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-  replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-  format: tar.gz
-  format_overrides:
-    - goos: windows
-      format: zip
-  files:
-  - none*
+archives:
+  - id: default
+    builds:
+    - default
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+    - none*
 
 checksum:
   name_template: "{{ .ProjectName }}_checksums.txt"
