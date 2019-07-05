@@ -138,7 +138,7 @@ pkg/addons/default/assets.go: pkg/addons/default/assets/*
 pkg/addons/default/assets/aws-node.yaml:
 	env GOBIN=$(GOBIN) go generate ./pkg/addons/default
 
-pkg	/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
+pkg/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
 	chmod g-w $^
 	env GOBIN=$(GOBIN) time go generate ./$(@D)
 
