@@ -59,7 +59,11 @@ jobs:
                 sudo mv go /usr/local
                 mkdir -p "$HOME/go/bin"
                 go version
-      - run: make release-candidate
+      - run:
+            name: Create release candidate binaries for all plaforms and upload to GitHub
+            command: make release-candidate
+            no_output_timeout: 21m
+
   make-release:
     machine:
       image: ubuntu-1604:201903-01
@@ -83,7 +87,10 @@ jobs:
                 sudo mv go /usr/local
                 mkdir -p "$HOME/go/bin"
                 go version
-      - run: make release
+      - run:
+            name: Create release binaries for all plaforms and upload to GitHub
+            command: make release
+            no_output_timeout: 21m
 
 workflows:
   version: 2
