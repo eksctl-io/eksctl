@@ -16,7 +16,6 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a // indirect
 	github.com/dave/jennifer v1.3.0
-	github.com/denverdino/aliyungo v0.0.0-20181011130441-a0026e2d173d // indirect
 	github.com/dlespiau/kube-test-harness v0.0.0-20190110151726-c51c87635b61
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/evanphx/json-patch v4.1.0+incompatible
@@ -40,7 +39,6 @@ require (
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/magiconair/properties v1.8.1 // indirect
-	github.com/masterminds/semver v1.4.2 // indirect
 	github.com/mattn/go-zglob v0.0.1 // indirect
 	github.com/miekg/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -53,7 +51,6 @@ require (
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/sanathkr/yaml v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2
@@ -92,4 +89,8 @@ require (
 	sigs.k8s.io/yaml v1.1.0
 )
 
-replace github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
+replace (
+	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
+	// go mod appears to pick wrong version of github.com/docker/distribution automatically, which breaks k8s.io/kubernetes@v1.12.6
+	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc
+)

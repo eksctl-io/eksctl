@@ -4,7 +4,7 @@ git_commit := $(shell git describe --dirty --always)
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
 # The dependencies version should be bumped every time the build dependencies are updated
-EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.6
+EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.7
 EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
