@@ -25,7 +25,7 @@ const (
 	AWSIAMAuthenticator = "aws-iam-authenticator"
 	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
-	// AWS EKS authenticator defines the recently added `aws eks get-token` command
+	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
 )
 
@@ -287,6 +287,7 @@ func deleteClusterInfo(existing *clientcmdapi.Config, cl *api.ClusterMeta) bool 
 	return isChanged
 }
 
+// LookupAuthenticator looks up an available authenticator
 func LookupAuthenticator() (string, bool) {
 	for _, cmd := range AuthenticatorCommands() {
 		_, err := exec.LookPath(cmd)

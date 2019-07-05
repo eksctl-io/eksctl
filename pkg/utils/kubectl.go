@@ -58,9 +58,11 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 		return err
 	}
 
-	if authenticator, found := kubeconfig.LookupAuthenticator(); !found {
-		return fmt.Errorf("could not find any of the authenticator commands: %s", strings.Join(kubeconfig.AuthenticatorCommands(), ", "))
-	} else {
+	{
+		authenticator, found := kubeconfig.LookupAuthenticator()
+		if !found {
+			return fmt.Errorf("could not find any of the authenticator commands: %s", strings.Join(kubeconfig.AuthenticatorCommands(), ", "))
+		}
 		logger.Debug("found authenticator: %s", authenticator)
 	}
 

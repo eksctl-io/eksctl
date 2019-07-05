@@ -41,6 +41,7 @@ func (c *ClusterProvider) NewClient(spec *api.ClusterConfig, withEmbeddedToken b
 	return config.new(spec, c.Provider.STS())
 }
 
+// GetUsername extracts the username part from the IAM role ARN
 func (c *ClusterProvider) GetUsername() string {
 	usernameParts := strings.Split(c.Status.iamRoleARN, "/")
 	if len(usernameParts) > 1 {
