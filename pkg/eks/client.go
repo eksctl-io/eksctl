@@ -27,10 +27,8 @@ type Client struct {
 	rawConfig *restclient.Config
 }
 
-// NewClient creates a new client config, if withEmbeddedToken is true
-// it will embed the STS token, otherwise it will use authenticator exec plugin
-// and ensures that AWS_PROFILE environment variable gets set also
-func (c *ClusterProvider) NewClient(spec *api.ClusterConfig, withEmbeddedToken bool) (*Client, error) {
+// NewClient creates a new client config by embedding the STS token
+func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
 	clientConfig, _, contextName := kubeconfig.New(spec, c.GetUsername(), "")
 
 	config := &Client{
@@ -99,7 +97,7 @@ func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.
 }
 
 func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
-	client, err := c.NewClient(spec, true)
+	client, err := c.NewClient(spec)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
 	}

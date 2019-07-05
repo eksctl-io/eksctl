@@ -77,7 +77,7 @@ func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *
 	config, _, _ := New(spec, username, "")
 	authenticator, found := LookupAuthenticator()
 	if !found {
-		// fallback to aws-iam-authenticator
+		// fall back to aws-iam-authenticator
 		authenticator = AWSIAMAuthenticator
 	}
 	AppendAuthenticator(config, spec, authenticator, roleARN, profile)
