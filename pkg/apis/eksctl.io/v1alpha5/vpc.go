@@ -18,10 +18,6 @@ type (
 		// these are keyed by AZ for convenience
 		// +optional
 		Subnets *ClusterSubnets `json:"subnets,omitempty"`
-		// for additional CIDR associations, e.g. to use with separate CIDR for
-		// private subnets or any ad-hoc subnets
-		// +optional
-		ExtraCIDRs []*ipnet.IPNet `json:"extraCIDRs,omitempty"`
 		// for pre-defined shared node SG
 		SharedNodeSecurityGroup string `json:"sharedNodeSecurityGroup,omitempty"`
 		// +optional
