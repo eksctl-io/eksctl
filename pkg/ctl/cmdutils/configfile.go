@@ -61,6 +61,10 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 	meta := l.ClusterConfig.Metadata
 
+	if meta == nil {
+		return ErrMustBeSet("metadata")
+	}
+
 	for f := range l.flagsIncompatibleWithConfigFile {
 		if flag := l.Command.Flag(f); flag != nil && flag.Changed {
 			return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f))
