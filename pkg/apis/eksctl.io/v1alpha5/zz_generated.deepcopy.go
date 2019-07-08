@@ -21,7 +21,6 @@ limitations under the License.
 package v1alpha5
 
 import (
-	ipnet "github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -234,16 +233,6 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 		in, out := &in.Subnets, &out.Subnets
 		*out = new(ClusterSubnets)
 		(*in).DeepCopyInto(*out)
-	}
-	if in.ExtraCIDRs != nil {
-		in, out := &in.ExtraCIDRs, &out.ExtraCIDRs
-		*out = make([]*ipnet.IPNet, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = (*in).DeepCopy()
-			}
-		}
 	}
 	if in.AutoAllocateIPv6 != nil {
 		in, out := &in.AutoAllocateIPv6, &out.AutoAllocateIPv6
