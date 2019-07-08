@@ -143,3 +143,20 @@ nodeGroups:
     kubeletExtraConfig:
         clusterDNS: ["169.254.20.10","172.20.0.10"] 
 ```
+
+### NAT Gateway
+
+The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`. It can be 
+specified through the `--vpc-nat-mode` CLI flag or in the cluster config file like the example below:
+
+
+```yaml
+vpc:
+  nat:
+    gateway: HighlyAvailable # other options: Disable, Single (default)
+```
+
+See the complete example [here](https://github.com/weaveworks/eksctl/blob/master/examples/09-nat-gateways.yaml).
+
+**Note**: Specifying the NAT Gateway is only supported during cluster creation and it is not touched during a cluster 
+upgrade. There are plans to support changing between different modes on cluster update in the future. 
