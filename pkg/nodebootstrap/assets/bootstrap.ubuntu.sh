@@ -50,7 +50,7 @@ systemctl reset-failed
     "authentication-token-webhook=true"
     "authorization-mode=Webhook"
     "allow-privileged=true"
-    "pod-infra-container-image=602401143452.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/eks/pause-amd64:3.1"
+    "pod-infra-container-image=${AWS_EKS_ECR_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/eks/pause-amd64:3.1"
     "cloud-provider=aws"
     "cluster-domain=cluster.local"
     "cni-bin-dir=/opt/cni/bin"

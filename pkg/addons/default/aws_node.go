@@ -6,7 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,8 +18,8 @@ const (
 	// AWSNode is the name of the aws-node addon
 	AWSNode = "aws-node"
 
-	awsNodeImagePrefix = "602401143452.dkr.ecr."
-	awsNodeImageSuffix = ".amazonaws.com/amazon-k8s-cni"
+	awsNodeImagePrefixPTN = "%s.dkr.ecr."
+	awsNodeImageSuffix    = ".amazonaws.com/amazon-k8s-cni"
 )
 
 // UpdateAWSNode will update the `aws-node` add-on
@@ -49,11 +49,10 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region, controlPlane
 			imageParts := strings.Split(*image, ":")
 
 			if len(imageParts) != 2 {
-				return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
+				return false, fmt.Errorf("unexpected image format %q for %q", *image, AWSNode)
 			}
-
-			if strings.HasPrefix(imageParts[0], awsNodeImagePrefix) &&
-				strings.HasSuffix(imageParts[0], awsNodeImageSuffix) {
+			awsNodeImagePrefix := fmt.Sprintf(awsNodeImagePrefixPTN, api.EKSResourceAccountID(region))
+			if strings.HasSuffix(imageParts[0], awsNodeImageSuffix) {
 				*image = awsNodeImagePrefix + region + awsNodeImageSuffix + ":" + imageParts[1]
 			}
 		}

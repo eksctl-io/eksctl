@@ -6,12 +6,12 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -21,9 +21,10 @@ const (
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
 
-	coreDNSImagePrefix = "602401143452.dkr.ecr."
+	coreDNSImagePrefixPTN = "%s.dkr.ecr."
 	coreDNSImageSuffix = ".amazonaws.com/eks/coredns"
 )
+
 
 // UpdateCoreDNS will update the `coredns` add-on
 func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, plan bool) (bool, error) {
@@ -65,8 +66,8 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 				return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
 			}
 
-			if strings.HasPrefix(imageParts[0], coreDNSImagePrefix) &&
-				strings.HasSuffix(imageParts[0], coreDNSImageSuffix) {
+			coreDNSImagePrefix := fmt.Sprintf(coreDNSImagePrefixPTN, api.EKSResourceAccountID(region))
+			if strings.HasSuffix(imageParts[0], coreDNSImageSuffix) {
 				*image = coreDNSImagePrefix + region + coreDNSImageSuffix + ":" + imageParts[1]
 			}
 		case "Service":

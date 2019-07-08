@@ -17,7 +17,7 @@ import (
 
 const (
 	// ImageFamilyAmazonLinux2 represents Amazon Linux 2 family
-	ImageFamilyAmazonLinux2 = api.NodeImageFamilyAmazonLinux2 // Owner 602401143452
+	ImageFamilyAmazonLinux2 = api.NodeImageFamilyAmazonLinux2 // Owner by EKS(depends on aws partition and opt-in region)
 
 	// ImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	ImageFamilyUbuntu1804 = api.NodeImageFamilyUbuntu1804 // Owner 099720109477
