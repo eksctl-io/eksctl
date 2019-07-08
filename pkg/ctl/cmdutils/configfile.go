@@ -12,7 +12,7 @@ import (
 
 // AddConfigFileFlag adds common --config-file flag
 func AddConfigFileFlag(fs *pflag.FlagSet, path *string) {
-	fs.StringVarP(path, "config-file", "f", "", "load configuration from a file")
+	fs.StringVarP(path, "config-file", "f", "", "load configuration from a file (or stdin if set to '-')")
 }
 
 // ClusterConfigLoader is an inteface that loaders should implement

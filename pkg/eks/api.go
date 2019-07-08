@@ -164,7 +164,7 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 
 // LoadConfigFromFile populates cfg based on contents of configFile
 func LoadConfigFromFile(configFile string, cfg *api.ClusterConfig) error {
-	data, err := ioutil.ReadFile(configFile)
+	data, err := readConfig(configFile)
 	if err != nil {
 		return errors.Wrapf(err, "reading config file %q", configFile)
 	}
@@ -191,6 +191,13 @@ func LoadConfigFromFile(configFile string, cfg *api.ClusterConfig) error {
 	*cfg = *cfgLoaded // mutate the content, not the reference
 
 	return nil
+}
+
+func readConfig(configFile string) ([]byte, error) {
+	if configFile == "-" {
+		return ioutil.ReadAll(os.Stdin)
+	}
+	return ioutil.ReadFile(configFile)
 }
 
 // IsSupportedRegion check if given region is supported
