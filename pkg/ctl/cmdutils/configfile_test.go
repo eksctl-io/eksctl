@@ -82,17 +82,16 @@ var _ = Describe("cmdutils configfile", func() {
 
 			Expect(examples).To(HaveLen(10))
 			for _, example := range examples {
-				cfg := api.NewClusterConfig()
-
 				rc := &ResourceCmd{
 					Command:           newCmd(),
 					ClusterConfigFile: example,
-					ClusterConfig:     cfg,
+					ClusterConfig:     api.NewClusterConfig(),
 					ProviderConfig:    &api.ProviderConfig{},
 				}
 
 				err := NewMetadataLoader(rc).Load()
 
+				cfg := rc.ClusterConfig
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).ToNot(BeEmpty())

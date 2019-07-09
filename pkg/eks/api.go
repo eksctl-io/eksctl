@@ -163,10 +163,9 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	return c
 }
 
-// LoadConfigFromFile populates cfg based on contents of configFile
+// LoadConfigFromFile loads ClusterConfig from configFile
 func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 	data, err := readConfig(configFile)
-	// LoadConfigFromFile loads ClusterConfig from configFile
 	if err != nil {
 		return nil, errors.Wrapf(err, "reading config file %q", configFile)
 	}
