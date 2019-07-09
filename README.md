@@ -104,6 +104,12 @@ To learn more abut what `eksctl` can do check [eksctl.io](https://eksctl.io). A 
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
 
+## Releases
+
+Minor releases of `eksctl` should be expected every two weeks and patch releases will be made available as needed.
+
+One or more release candidate(s) (RC) builds will be made available prior to each minor release. RC builds are intended only for testing purposes.
+
 ## Get in touch
 
 [Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
