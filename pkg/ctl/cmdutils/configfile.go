@@ -56,7 +56,9 @@ func (l *commonClusterConfigLoader) Load() error {
 		return l.validateWithoutConfigFile()
 	}
 
-	if err := eks.LoadConfigFromFile(l.ClusterConfigFile, l.ClusterConfig); err != nil {
+	var err error
+
+	if l.ClusterConfig, err = eks.LoadConfigFromFile(l.ClusterConfigFile); err != nil {
 		return err
 	}
 	meta := l.ClusterConfig.Metadata
@@ -150,6 +152,14 @@ func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterC
 	l.validateWithConfigFile = func() error {
 		if l.ClusterConfig.VPC == nil {
 			l.ClusterConfig.VPC = api.NewClusterVPC()
+		}
+
+		if l.ClusterConfig.VPC.NAT == nil {
+			l.ClusterConfig.VPC.NAT = api.DefaultClusterNAT()
+		}
+
+		if !api.IsSetAndNonEmptyString(l.ClusterConfig.VPC.NAT.Gateway) {
+			*l.ClusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
