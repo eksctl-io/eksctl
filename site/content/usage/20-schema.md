@@ -103,6 +103,10 @@ ClusterVPC:
       $schema: http://json-schema.org/draft-04/schema#
     autoAllocateIPv6:
       type: boolean
+    extraCIDRs:
+      items:
+        $ref: '#/definitions/IPNet'
+      type: array
     nat:
       $ref: '#/definitions/ClusterNAT'
       $schema: http://json-schema.org/draft-04/schema#
