@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/elb"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -103,11 +104,23 @@ func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
 	}
 
 	{
+
+		logger.Info("cleaning up LoadBalancer services")
+		if err := ctl.GetCredentials(cfg); err != nil {
+			return err
+		}
+		client, err := ctl.NewClient(cfg, false)
+		if err != nil {
+			return err
+		}
+		elb.CleanupLoadBalancers(ctl.Provider.ELB(), ctl.Provider.ELBV2(), client)
+
 		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(rc.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.GetClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 			}
+
 			go func() {
 				errs <- vpc.CleanupNetworkInterfaces(ctl.Provider.EC2(), cfg)
 				close(errs)

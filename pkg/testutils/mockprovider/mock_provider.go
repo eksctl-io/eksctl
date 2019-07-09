@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go/service/elb/elbiface"
+	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
@@ -20,6 +22,8 @@ type MockProvider struct {
 	cfn        *mocks.CloudFormationAPI
 	eks        *mocks.EKSAPI
 	ec2        *mocks.EC2API
+	elb        *mocks.ELBAPI
+	elbv2      *mocks.ELBV2API
 	sts        *mocks.STSAPI
 	iam        *mocks.IAMAPI
 	cloudtrail *mocks.CloudTrailAPI
@@ -31,6 +35,8 @@ func NewMockProvider() *MockProvider {
 		cfn:        &mocks.CloudFormationAPI{},
 		eks:        &mocks.EKSAPI{},
 		ec2:        &mocks.EC2API{},
+		elb:        &mocks.ELBAPI{},
+		elbv2:      &mocks.ELBV2API{},
 		sts:        &mocks.STSAPI{},
 		iam:        &mocks.IAMAPI{},
 		cloudtrail: &mocks.CloudTrailAPI{},
@@ -63,6 +69,12 @@ func (m MockProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
 
 // EC2 returns a representation of the EC2 API
 func (m MockProvider) EC2() ec2iface.EC2API { return m.ec2 }
+
+// ELB returns a representation of the ELB API
+func (m MockProvider) ELB() elbiface.ELB { return m.elb }
+
+// ELBV2 returns a representation of the ELBV2 API
+func (m MockProvider) ELBV2() elbv2iface.ELBV2API { return m.elbv2 }
 
 // MockEC2 returns a mocked EC2 API
 func (m MockProvider) MockEC2() *mocks.EC2API { return m.EC2().(*mocks.EC2API) }

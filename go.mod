@@ -84,7 +84,7 @@ require (
 	k8s.io/kops v0.0.0-20190222135932-278e6606534e
 	k8s.io/kube-openapi v0.0.0-20181018171734-e494cc581111 // indirect
 	k8s.io/kubelet v0.0.0-20190313123811-3556bcde9670
-	k8s.io/kubernetes v1.12.6 // indirect
+	k8s.io/kubernetes v1.12.6
 	k8s.io/utils v0.0.0-20181017222159-a82851343d66 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )
