@@ -71,7 +71,7 @@ func (m MockProvider) MockEKS() *mocks.EKSAPI { return m.EKS().(*mocks.EKSAPI) }
 func (m MockProvider) EC2() ec2iface.EC2API { return m.ec2 }
 
 // ELB returns a representation of the ELB API
-func (m MockProvider) ELB() elbiface.ELB { return m.elb }
+func (m MockProvider) ELB() elbiface.ELBAPI { return m.elb }
 
 // ELBV2 returns a representation of the ELBV2 API
 func (m MockProvider) ELBV2() elbv2iface.ELBV2API { return m.elbv2 }
