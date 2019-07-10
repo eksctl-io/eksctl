@@ -58,6 +58,9 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	var err error
 
+	// The reference to ResourceCmd.ClusterConfig should only be reassigned if ClusterConfigFile is specified
+	// because other parts of the code store the pointer locally and access it directly instead of via
+	// the ResourceCmd reference
 	if l.ClusterConfig, err = eks.LoadConfigFromFile(l.ClusterConfigFile); err != nil {
 		return err
 	}
