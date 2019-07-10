@@ -113,7 +113,7 @@ func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
 		if err != nil {
 			return err
 		}
-		elb.CleanupLoadBalancers(ctl.Provider.ELB(), ctl.Provider.ELBV2(), client)
+		elb.Cleanup(ctl.Provider.ELB(), ctl.Provider.ELBV2(), client)
 
 		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(rc.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")

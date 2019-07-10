@@ -24,13 +24,13 @@ const (
 	elbV2      = iota
 )
 
-// CleanupLoadBalancers finds and deletes any dangling ELBs attached to a service
-func CleanupLoadBalancers(elbapi elbiface.ELBAPI, elbv2api elbv2iface.ELBV2API, client *eks.Client) error {
+// Cleanup finds and deletes any dangling ELBs associted to a Kubernetes Service
+func Cleanup(elbapi elbiface.ELBAPI, elbv2api elbv2iface.ELBV2API, client *eks.Client) error {
 	kubernetesCS, err := client.NewClientSet()
 	if err != nil {
 		return err
 	}
-	services, err := kubernetesCS.CoreV1().Services("").List(metav1.ListOptions{})
+	services, err := kubernetesCS.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
 		return err
 	}

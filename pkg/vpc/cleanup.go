@@ -79,4 +79,3 @@ func CleanupNetworkInterfaces(ec2API ec2iface.EC2API, spec *api.ClusterConfig) e
 	}
 	return nil
 }
-
