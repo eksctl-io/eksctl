@@ -2,7 +2,6 @@ package elb
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -38,20 +37,17 @@ func CleanupLoadBalancers(elbapi elbiface.ELBAPI, elbv2api elbv2iface.ELBV2API, 
 
 	// Delete Services of type 'LoadBalancer'
 	elbs := map[string]int{}
-	var deletionErr error
 	for _, s := range services.Items {
 		if s.Spec.Type == corev1.ServiceTypeLoadBalancer {
-			currentErr := kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{})
-			// Report any of the deletion errors if they happen, but go through the full list of services anyways
-			if currentErr != nil {
-				deletionErr = currentErr
-			} else {
-				elbs[cloudprovider.DefaultLoadBalancerName(&s)] = getELBType(&s)
+			err := kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{})
+			if err != nil {
+				return err
 			}
+			elbs[cloudprovider.DefaultLoadBalancerName(&s)] = getELBType(&s)
 		}
 	}
 
-	// Wait for all the ELBs back the LoadBalancer services to disappear, for a maximum of 10 minutes
+	// Wait for all the load balancers backing the LoadBalancer services to disappear, for a maximum of 10 minutes
 	waitDuration := 10 * time.Minute
 	waitDeadline := time.Now().Add(waitDuration)
 	ctx, cleanup := context.WithDeadline(context.Background(), waitDeadline)
@@ -66,16 +62,8 @@ func CleanupLoadBalancers(elbapi elbiface.ELBAPI, elbv2api elbv2iface.ELBV2API, 
 		}
 	}
 
-	var finalErr error
-	if deletionErr != nil {
-		finalErr = fmt.Errorf("error deleting service with load balancer: %s", deletionErr)
-	}
 	if len(elbs) > 0 {
-		errStr := fmt.Sprintf("deadline (%s) surpased waiting for load balancers to be deleted", waitDuration)
-		if finalErr != nil {
-			errStr = finalErr.Error() + "; " + errStr
-		}
-		finalErr = errors.New(errStr)
+		return fmt.Errorf("deadline (%s) surpased waiting for load balancers to be deleted", waitDuration)
 	}
 
 	return nil
