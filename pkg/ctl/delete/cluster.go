@@ -1,7 +1,9 @@
 package delete
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -113,7 +115,11 @@ func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
 		if err != nil {
 			return err
 		}
-		elb.Cleanup(ctl.Provider.ELB(), ctl.Provider.ELBV2(), client)
+		ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
+		defer cleanup()
+		if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), client, cfg); err != nil {
+			return err
+		}
 
 		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(rc.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
