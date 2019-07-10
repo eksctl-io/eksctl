@@ -64,7 +64,7 @@ Make sure you can run the tests and build the binary.
 ```bash 
 make install-build-deps
 make test
-make eksctl
+make build
 ```
 
 > NOTE: Windows users should install Docker for Windows and run `make eksctl-image` to build their code.
