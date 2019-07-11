@@ -83,7 +83,7 @@ build-integration-test: $(GENERATED_GO_FILES) ## Build integration test binary
 	time go test -tags integration ./integration/... -c -o eksctl-integration-test
 
 .PHONY: integration-test
-integration-test: eksctl-integration-test ## Run the integration tests (with cluster creation and cleanup)
+integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup) 
 	cd integration; ../eksctl-integration-test -test.timeout 60m $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
@@ -104,7 +104,7 @@ integration-test-container-pre-built: ## Run the integration tests inside a Dock
 
 TEST_CLUSTER ?= integration-test-dev
 .PHONY: integration-test-dev
-integration-test-dev: eksctl-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
+integration-test-dev: build-integration-test ## Run the integration tests without cluster teardown. For use when developing integration tests.
 	./eksctl utils write-kubeconfig \
 		--auto-kubeconfig \
 		--name=$(TEST_CLUSTER)
