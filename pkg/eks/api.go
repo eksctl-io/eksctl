@@ -2,10 +2,11 @@ package eks
 
 import (
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -162,11 +163,11 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	return c
 }
 
-// LoadConfigFromFile populates cfg based on contents of configFile
-func LoadConfigFromFile(configFile string, cfg *api.ClusterConfig) error {
+// LoadConfigFromFile loads ClusterConfig from configFile
+func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 	data, err := readConfig(configFile)
 	if err != nil {
-		return errors.Wrapf(err, "reading config file %q", configFile)
+		return nil, errors.Wrapf(err, "reading config file %q", configFile)
 	}
 
 	// strict mode is not available in runtime.Decode, so we use the parser
@@ -175,22 +176,19 @@ func LoadConfigFromFile(configFile string, cfg *api.ClusterConfig) error {
 	// NOTE: we must use sigs.k8s.io/yaml, as it behaves differently from
 	// github.com/ghodss/yaml, which didn't handle nested structs well
 	if err := yaml.UnmarshalStrict(data, &api.ClusterConfig{}); err != nil {
-		return errors.Wrapf(err, "loading config file %q", configFile)
+		return nil, errors.Wrapf(err, "loading config file %q", configFile)
 	}
 
 	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), data)
 	if err != nil {
-		return errors.Wrapf(err, "loading config file %q", configFile)
+		return nil, errors.Wrapf(err, "loading config file %q", configFile)
 	}
 
-	cfgLoaded, ok := obj.(*api.ClusterConfig)
+	cfg, ok := obj.(*api.ClusterConfig)
 	if !ok {
-		return fmt.Errorf("decoded object of wrong type")
+		return nil, fmt.Errorf("expected to decode object of type %T; got %T", &api.ClusterConfig{}, cfg)
 	}
-
-	*cfg = *cfgLoaded // mutate the content, not the reference
-
-	return nil
+	return cfg, nil
 }
 
 func readConfig(configFile string) ([]byte, error) {
