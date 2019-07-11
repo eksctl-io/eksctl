@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/spotinst"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -113,4 +115,27 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 	}
 
 	return fmt.Errorf("stack not found for nodegroup %q", ng.Name)
+}
+
+// GetNodeGroupSpotinstOceanId retrieves the Spotinst Ocean cluster identifier.
+func (c *ClusterProvider) GetNodeGroupSpotinstOceanId(stackManager *manager.StackCollection, spec *api.ClusterConfig, ng *api.NodeGroup) error {
+	logger.Debug("attempting to find spotinst ocean nodegroup stack")
+
+	stacks, err := stackManager.DescribeNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+
+	for _, s := range stacks {
+		if stackManager.GetNodeGroupName(s) == "ocean" {
+			if !stackManager.StackStatusIsNotTransitional(s) {
+				return fmt.Errorf("nodegroup %q is in transitional state (%q)", ng.Name, *s.StackStatus)
+			}
+
+			logger.Debug("nodegroup %q will join to an existing spotinst ocean", ng.Name)
+			return spotinst.UseNodeGroupSpotinstOceanId(c.Provider, s, ng)
+		}
+	}
+
+	return fmt.Errorf("stack not found for spotinst ocean nodegroup")
 }

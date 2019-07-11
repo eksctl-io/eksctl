@@ -25,7 +25,7 @@ const (
 	ClusterStackName                = "ClusterStackName"
 	ClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
 	ClusterServiceRoleARN           = "ServiceRoleARN"
-	ClusterFeatureNATMode 			= "FeatureNATMode"
+	ClusterFeatureNATMode           = "FeatureNATMode"
 
 	// outputs from nodegroup stack
 	NodeGroupInstanceRoleARN    = "InstanceRoleARN"
@@ -37,6 +37,9 @@ const (
 	NodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
 	NodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
 	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
+
+	// outputs from spotinst
+	NodeGroupSpotinstOceanID = "SpotinstOceanID"
 )
 
 type (

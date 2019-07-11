@@ -358,7 +358,6 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 // NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
-
 	ng := &NodeGroup{
 		PrivateNetworking: false,
 		SecurityGroups: &NodeGroupSGs{
@@ -464,6 +463,9 @@ type NodeGroup struct {
 
 	// +optional
 	KubeletExtraConfig *NodeGroupKubeletConfig `json:"kubeletExtraConfig,omitempty"`
+
+	// +optional
+	Spotinst *NodeGroupSpotinst `json:"spotinst,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -546,6 +548,58 @@ type (
 		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitEmpty"`
 		//+optional
 		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
+	}
+
+	// NodeGroupSpotinst holds the configuration used by Spotinst
+	NodeGroupSpotinst struct {
+		// +optional
+		Ocean *NodeGroupSpotinstOcean `json:"ocean,omitEmpty"`
+		// +optional
+		Strategy *NodeGroupSpotinstStrategy `json:"strategy,omitEmpty"`
+		// +optional
+		AutoScaler *NodeGroupSpotinstAutoScaler `json:"autoScaler,omitEmpty"`
+	}
+
+	// NodeGroupSpotinstOcean holds the Ocean configuration used by Spotinst
+	NodeGroupSpotinstOcean struct {
+		// +optional
+		ID *string `json:"id,omitEmpty"`
+		// +optional
+		DefaultLaunchSpec *bool `json:"defaultLaunchSpec,omitEmpty"`
+	}
+
+	// NodeGroupSpotinstStrategy holds the strategy configuration used by Spotinst
+	NodeGroupSpotinstStrategy struct {
+		// +optional
+		SpotPercentage *int `json:"spotPercentage,omitEmpty"`
+		// +optional
+		FallbackToOnDemand *bool `json:"fallbackToOnDemand,omitEmpty"`
+		// +optional
+		UtilizeReservedInstances *bool `json:"utilizeReservedInstances,omitEmpty"`
+	}
+
+	// NodeGroupSpotinstAutoScaler holds the auto scaler configuration used by Spotinst
+	NodeGroupSpotinstAutoScaler struct {
+		// +optional
+		Enabled *bool `json:"enabled,omitEmpty"`
+		// +optional
+		AutoConfig *bool `json:"autoConfig,omitEmpty"`
+		// +optional
+		Cooldown *int `json:"cooldown,omitEmpty"`
+		// +optional
+		Headroom *NodeGroupSpotinstAutoScalerHeadroom `json:"headroom,omitEmpty"`
+	}
+
+	// NodeGroupSpotinstAutoScalerHeadroom holds the headroom configuration used by Spotinst
+	NodeGroupSpotinstAutoScalerHeadroom struct {
+		// +optional
+		CPUPerUnit *int `json:"cpuPerUnit,omitEmpty"`
+		// +optional
+		GPUPerUnit *int `json:"gpuPerUnit,omitEmpty"`
+		// +optional
+		MemPerUnit *int `json:"memPerUnit,omitEmpty"`
+		// +optional
+		NumOfUnits *int `json:"numOfUnits,omitEmpty"`
 	}
 )
 

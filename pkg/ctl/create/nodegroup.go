@@ -102,7 +102,8 @@ func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) erro
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
 		}
-		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
+		logger.Info("nodegroup %q will use %q [%s/%s]",
+			ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 
 		if err := ctl.SetNodeLabels(ng, meta); err != nil {
 			return err
@@ -115,6 +116,16 @@ func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) erro
 		if err := loadSSHKey(ng, meta.Name, ctl.Provider); err != nil {
 			return err
 		}
+
+		if ng.Spotinst != nil && (ng.Spotinst.Ocean == nil || ng.Spotinst.Ocean.ID == nil) {
+			if err := ctl.GetNodeGroupSpotinstOceanId(stackManager, cfg, ng); err != nil {
+				return err
+			}
+
+			logger.Info("nodegroup %q will join to spotinst ocean %q",
+				ng.Name, *ng.Spotinst.Ocean.ID)
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -138,7 +149,11 @@ func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) erro
 			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
 		}
 
-		tasks := stackManager.NewTasksToCreateNodeGroups(ngSubset)
+		tasks, err := stackManager.NewTasksToCreateNodeGroups(ngSubset)
+		if err != nil {
+			return fmt.Errorf("failed to create nodegroup tasks: %v", err)
+		}
+
 		logger.Info(tasks.Describe())
 		errs := tasks.DoAllSync()
 		if len(errs) > 0 {
