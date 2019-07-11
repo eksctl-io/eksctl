@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1080 864"
+	 style="enable-background:new 0 0 1080 864;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:round;}
+	.st1{font-family:'HelveticaNeue';}
+	.st2{font-size:35px;}
+	.st3{fill:#FFFFFF;}
+	.st4{fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;}
+	.st5{fill:#009051;}
+	.st6{font-size:24px;}
+	.st7{font-family:'ArialMT';}
+	.st8{font-size:12px;}
+	.st9{font-size:22px;}
+	.st10{fill:#965E79;}
+	.st11{font-size:16px;}
+	.st12{fill:none;stroke:#000000;stroke-miterlimit:10;}
+</style>
+<g id="Graphic_43">
+	<rect x="72" y="216" class="st0" width="936" height="576"/>
+</g>
+<g id="Graphic_42">
+	<text transform="matrix(1 0 0 1 77.365 128)" class="st1 st2">Resource Overview: Cluster Stack</text>
+</g>
+<g id="Graphic_52">
+	<rect x="360" y="288" class="st3" width="144" height="39"/>
+	<rect x="360" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 408.228 316)" class="st5 st1 st6">VPC</text>
+</g>
+<g id="Graphic_53">
+	<rect x="144" y="288" class="st3" width="144" height="66"/>
+	<rect x="144" y="288" class="st4" width="144" height="66"/>
+	<text transform="matrix(1 0 0 1 194.664 316)" class="st5 st1 st6">IAM</text>
+	<text transform="matrix(1 0 0 1 237.3353 316)" class="st5 st7 st8"> </text>
+	<text transform="matrix(1 0 0 1 154.29 342.672)" class="st5 st1 st9">Service Role</text>
+</g>
+<g id="Graphic_57">
+	<rect x="792" y="288" class="st3" width="144" height="39"/>
+	<rect x="792" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 805.548 316)" class="st5 st1 st6">Shared SG</text>
+</g>
+<g id="Graphic_56">
+	<rect x="576" y="288" class="st3" width="144" height="39"/>
+	<rect x="576" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 604.668 316)" class="st5 st1 st6">EKS SG</text>
+</g>
+<g id="Graphic_58">
+	<rect x="810" y="333" class="st3" width="108" height="39"/>
+	<rect x="810" y="333" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 825.108 361)" class="st5 st1 st6">Ingress</text>
+</g>
+<g id="Graphic_59">
+	<rect x="810" y="378" class="st3" width="108" height="39"/>
+	<rect x="810" y="378" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 827.556 406)" class="st5 st1 st6">Egress</text>
+</g>
+<g id="Graphic_60">
+	<rect x="594" y="333" class="st3" width="108" height="39"/>
+	<rect x="594" y="333" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 609.108 361)" class="st5 st1 st6">Ingress</text>
+</g>
+<g id="Graphic_61">
+	<rect x="594" y="378" class="st3" width="108" height="39"/>
+	<rect x="594" y="378" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 611.556 406)" class="st5 st1 st6">Egress</text>
+</g>
+<g id="Graphic_63">
+	<rect x="378" y="333" class="st3" width="108" height="68"/>
+	<rect x="378" y="333" class="st4" width="108" height="68"/>
+	<text transform="matrix(1 0 0 1 394.896 361)" class="st5 st1 st6">Private </text>
+	<text transform="matrix(1 0 0 1 387.54 389.672)" class="st5 st1 st6">Subnets</text>
+</g>
+<g id="Graphic_64">
+	<rect x="378" y="403" class="st3" width="108" height="68"/>
+	<rect x="378" y="403" class="st4" width="108" height="68"/>
+	<text transform="matrix(1 0 0 1 398.664 431)" class="st5 st1 st6">Public </text>
+	<text transform="matrix(1 0 0 1 387.54 459.672)" class="st5 st1 st6">Subnets</text>
+</g>
+<g id="Graphic_66">
+	<text transform="matrix(1 0 0 1 155.356 254)" class="st10 st1 st11">All resources can be imported by the user, and possibly shared between EKS clusters or other AWS entities</text>
+</g>
+<g id="Graphic_67">
+	<rect x="144" y="648" class="st3" width="792" height="66"/>
+	<rect x="144" y="648" class="st4" width="792" height="66"/>
+	<text transform="matrix(1 0 0 1 516.888 676)" class="st5 st1 st6">EKS</text>
+	<text transform="matrix(1 0 0 1 563.1115 676)" class="st5 st7 st8"> </text>
+	<text transform="matrix(1 0 0 1 472.768 702.672)" class="st5 st1 st9">(control pane)</text>
+</g>
+<g id="Graphic_68">
+	<rect x="378" y="486" class="st3" width="108" height="39"/>
+	<rect x="378" y="486" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 393.996 514)" class="st5 st1 st6">Routes</text>
+</g>
+<g id="Graphic_69">
+	<rect x="378" y="531" class="st3" width="108" height="39"/>
+	<rect x="378" y="531" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 409.776 559)" class="st5 st1 st6">NAT</text>
+</g>
+<line class="st4" x1="702" y1="363.8" x2="810" y2="386.2"/>
+<line class="st4" x1="810" y1="363.8" x2="702" y2="386.2"/>
+<g id="Graphic_85">
+	<rect x="216" y="726" class="st3" width="216" height="39"/>
+	<rect x="216" y="726" class="st4" width="216" height="39"/>
+	<text transform="matrix(1 0 0 1 248.868 754)" class="st5 st1 st6">Endpoint URL</text>
+</g>
+<g id="Graphic_86">
+	<rect x="648" y="726" class="st3" width="216" height="39"/>
+	<rect x="648" y="726" class="st4" width="216" height="39"/>
+	<text transform="matrix(1 0 0 1 681.348 754)" class="st5 st1 st6">CA Certificate</text>
+</g>
+<g id="Graphic_87">
+	<rect x="504" y="726" class="st3" width="72" height="39"/>
+	<rect x="504" y="726" class="st4" width="72" height="39"/>
+	<text transform="matrix(1 0 0 1 515.34 754)" class="st5 st1 st6">ARN</text>
+</g>
+<line class="st4" x1="216" y1="360.5" x2="216" y2="629.1"/>
+<line class="st4" x1="349.9" y1="364" x2="350.6" y2="629"/>
+<rect x="371.3" y="361" class="st12" width="6" height="6"/>
+<rect x="371.3" y="431" class="st12" width="6" height="6"/>
+<line class="st4" x1="349.9" y1="364" x2="371.3" y2="364"/>
+<line class="st4" x1="350.8" y1="434" x2="371.3" y2="434"/>
+<line class="st4" x1="585" y1="334" x2="585" y2="629.1"/>
+<rect x="213" y="354.5" class="st12" width="6" height="6"/>
+<rect x="582" y="327.5" class="st12" width="6" height="6"/>
+<path class="st12" d="M350.6,637.1l3-8h-6L350.6,637.1z"/>
+<path class="st12" d="M216,637.1l3-8h-6L216,637.1z"/>
+<path class="st12" d="M585,637.1l3-8h-6L585,637.1z"/>
+</svg>
