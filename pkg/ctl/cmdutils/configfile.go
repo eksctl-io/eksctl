@@ -195,6 +195,10 @@ func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterC
 				ng.SSH.PublicKeyPath = nil
 			}
 
+			if *ng.VolumeType == api.NodeVolumeTypeIO1 {
+				return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
+			}
+
 			// generate nodegroup name or use flag
 			ng.Name = NodeGroupName(ng.Name, "")
 
@@ -250,7 +254,6 @@ func NewCreateNodeGroupLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) Cluste
 		}
 
 		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
-
 			if l.Command.Flag("ssh-public-key").Changed {
 				if *ng.SSH.PublicKeyPath == "" {
 					return fmt.Errorf("--ssh-public-key must be non-empty string")
@@ -258,6 +261,10 @@ func NewCreateNodeGroupLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) Cluste
 				ng.SSH.Allow = api.Enabled()
 			} else {
 				ng.SSH.PublicKeyPath = nil
+			}
+
+			if *ng.VolumeType == api.NodeVolumeTypeIO1 {
+				return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
 			}
 
 			// generate nodegroup name or use either flag or argument
