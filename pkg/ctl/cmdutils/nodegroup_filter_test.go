@@ -243,13 +243,17 @@ func newClusterConfig() *api.ClusterConfig {
 func addGroupA(cfg *api.ClusterConfig) {
 	var ng *api.NodeGroup
 
-	ng1aVolSize := 768
-	ng1aVolType := api.NodeVolumeTypeIO1
+	var (
+		ng1aVolSize = 768
+		ng1aVolType = api.NodeVolumeTypeIO1
+		ng1aVolIOPS = 200
+	)
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng1a"
 	ng.VolumeSize = &ng1aVolSize
 	ng.VolumeType = &ng1aVolType
+	ng.VolumeIOPS = &ng1aVolIOPS
 	ng.IAM.AttachPolicyARNs = []string{"foo"}
 	ng.Labels = map[string]string{"group": "a", "seq": "1"}
 	ng.SSH = nil
@@ -328,6 +332,7 @@ const expected = `
 			  },
 			  "volumeSize": 768,
 			  "volumeType": "io1",
+			  "volumeIOPS": 200,
 			  "labels": {
 			    "group": "a",
 			    "seq": "1"
@@ -366,6 +371,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "volumeIOPS": null,
 			  "labels": {
 			    "group": "a",
 			    "seq": "2"
@@ -404,6 +410,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "volumeIOPS": null,
 			  "labels": {
 			    "group": "a",
 			    "seq": "3"
@@ -441,6 +448,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "volumeIOPS": null,
 			  "labels": {
 			    "group": "b",
 			    "seq": "1"
@@ -481,6 +489,7 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
+			  "volumeIOPS": null,
 			  "labels": {
 			    "group": "b",
 			    "seq": "1"
@@ -521,6 +530,7 @@ const expected = `
 			  },
 			  "volumeSize": 192,
 			  "volumeType": "gp2",
+			  "volumeIOPS": null,
 			  "labels": {
 			    "group": "b",
 			    "seq": "1"
