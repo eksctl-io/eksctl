@@ -176,7 +176,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				It("should deploy podinfo service to the cluster and access it via proxy", func() {
 					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
-					test.WaitForDeploymentReady(d, 1*time.Minute)
+					test.WaitForDeploymentReady(d, commonTimeout)
 
 					pods := test.ListPodsFromDeployment(d)
 					Expect(len(pods.Items)).To(Equal(2))
@@ -199,7 +199,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				It("should have functional DNS", func() {
 					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
 
-					test.WaitForDaemonSetReady(d, 3*time.Minute)
+					test.WaitForDaemonSetReady(d, commonTimeout)
 
 					{
 						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
@@ -211,7 +211,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				It("should have access to HTTP(S) sites", func() {
 					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
 
-					test.WaitForDaemonSetReady(d, 3*time.Minute)
+					test.WaitForDaemonSetReady(d, commonTimeout)
 
 					{
 						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
