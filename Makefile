@@ -1,6 +1,5 @@
 built_at := $(shell date +%s)
 git_commit := $(shell git describe --dirty --always)
-
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
 # The dependencies version should be bumped every time the build dependencies are updated
@@ -9,6 +8,18 @@ EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 GOBIN ?= $(shell echo `go env GOPATH`/bin)
+
+AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
+
+DEEP_COPY_HELPER := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
+GENERATED_GO_FILES := pkg/addons/default/assets.go \
+pkg/nodebootstrap/assets.go \
+$(DEEP_COPY_HELPER) \
+pkg/ami/static_resolver_ami.go \
+$(AWS_SDK_MOCKS)
+
+GENERATED_GO_FILES := $(GENERATED_FILES) site/content/usage/20-schema.md
+
 
 .DEFAULT_GOAL := help
 
@@ -23,8 +34,9 @@ install-build-deps: ## Install dependencies (packages and tools)
 godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1) | sed "s%${PWD}/%%g"
 godeps = $(shell $(call godeps_cmd,$(1)))
 
-eksctl: $(call godeps,./cmd/...) ## Build main binary
-	CGO_ENABLED=0 time go build -v -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+.PHONY: build
+build: $(GENERATED_GO_FILES) ## Build main binary
+	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
 
@@ -56,7 +68,7 @@ test:
 	$(MAKE) lint
 	$(MAKE) check-generated-sources-up-to-date
 	$(MAKE) unit-test
-	$(MAKE) eksctl-integration-test
+	$(MAKE) build-integration-test
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
@@ -66,8 +78,9 @@ unit-test: ## Run unit test only
 unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
-eksctl-integration-test: eksctl $(call godeps,`go list -tags integration -f '{{join .XTestImports " "}}' ./integration/...`) ## Build integration test binary
-	time go test -tags integration ./integration/... -c -o $@
+.PHONY: build-integration-test
+build-integration-test: $(GENERATED_GO_FILES) ## Build integration test binary
+	time go test -tags integration ./integration/... -c -o eksctl-integration-test
 
 .PHONY: integration-test
 integration-test: eksctl-integration-test ## Run the integration tests (with cluster creation and cleanup)
@@ -110,16 +123,6 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 	./eksctl delete cluster --name=integration-test-dev --auto-kubeconfig
 
 ##@ Code Generation
-
-AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
-
-DEEP_COPY_HELPER := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
-GENERATED_FILES := pkg/addons/default/assets.go \
-pkg/nodebootstrap/assets.go \
-$(DEEP_COPY_HELPER) \
-pkg/ami/static_resolver_ami.go \
-site/content/usage/20-schema.md \
-$(AWS_SDK_MOCKS)
 
 .PHONY: regenerate-sources
 # TODO: generate-ami is broken (see https://github.com/weaveworks/eksctl/issues/949 ), include it when fixed
