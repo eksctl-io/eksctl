@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 2088 892"
+	 style="enable-background:new 0 0 2088 892;" xml:space="preserve">
+<style type="text/css">
+	.st0{font-family:'HelveticaNeue';}
+	.st1{font-size:35px;}
+	.st2{fill:none;stroke:#000000;stroke-width:0.25;stroke-miterlimit:10;}
+	.st3{fill:#FFFFFF;}
+	.st4{fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;}
+	.st5{fill:#009051;}
+	.st6{font-size:24px;}
+	.st7{fill:none;stroke:#AAAAAA;stroke-linecap:round;stroke-linejoin:round;}
+	.st8{fill:#AAAAAA;}
+	.st9{font-family:'ArialMT';}
+	.st10{font-size:12px;}
+	.st11{font-size:22px;}
+	.st12{fill:none;stroke:#000000;stroke-miterlimit:10;}
+	.st13{fill:none;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+	.st14{stroke:#000000;stroke-miterlimit:10;}
+	.st15{fill:#96617B;}
+	.st16{font-size:16px;}
+	.st17{fill:#9C627B;}
+	.st18{fill:none;stroke:#AAAAAA;stroke-miterlimit:10;}
+	.st19{fill:none;stroke:#231F20;stroke-miterlimit:10;}
+</style>
+<g id="Graphic_42">
+	<text transform="matrix(1 0 0 1 71.605 128)" class="st0 st1">Resource Overview: Clust &amp; NodeGroup Stack Relationships</text>
+</g>
+<g id="Graphic_43">
+	<rect x="72" y="216" class="st2" width="936" height="576"/>
+</g>
+<g id="Graphic_52">
+	<rect x="360" y="288" class="st3" width="144" height="39"/>
+	<rect x="360" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 408.228 316)" class="st5 st0 st6">VPC</text>
+</g>
+<g id="Graphic_53">
+	<rect x="144" y="288" class="st3" width="144" height="66"/>
+	<rect x="144" y="288" class="st7" width="144" height="66"/>
+	<text transform="matrix(1 0 0 1 194.664 316)" class="st8 st0 st6">IAM</text>
+	<text transform="matrix(1 0 0 1 237.3353 316)" class="st8 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 154.29 342.672)" class="st8 st0 st11">Service Role</text>
+</g>
+<g id="Graphic_57">
+	<rect x="792" y="288" class="st3" width="144" height="39"/>
+	<rect x="792" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 805.548 316)" class="st5 st0 st6">Shared SG</text>
+</g>
+<g id="Graphic_56">
+	<rect x="576" y="288" class="st3" width="144" height="39"/>
+	<rect x="576" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 604.668 316)" class="st5 st0 st6">EKS SG</text>
+</g>
+<g id="Graphic_58">
+	<rect x="810" y="333" class="st3" width="108" height="39"/>
+	<rect x="810" y="333" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 825.108 361)" class="st5 st0 st6">Ingress</text>
+</g>
+<g id="Graphic_59">
+	<rect x="810" y="378" class="st3" width="108" height="39"/>
+	<rect x="810" y="378" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 827.556 406)" class="st5 st0 st6">Egress</text>
+</g>
+<g id="Graphic_60">
+	<rect x="594" y="333" class="st3" width="108" height="39"/>
+	<rect x="594" y="333" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 609.108 361)" class="st5 st0 st6">Ingress</text>
+</g>
+<g id="Graphic_61">
+	<rect x="594" y="378" class="st3" width="108" height="39"/>
+	<rect x="594" y="378" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 611.556 406)" class="st5 st0 st6">Egress</text>
+</g>
+<g id="Graphic_63">
+	<rect x="378" y="333" class="st3" width="108" height="68"/>
+	<rect x="378" y="333" class="st4" width="108" height="68"/>
+	<text transform="matrix(1 0 0 1 394.896 361)" class="st5 st0 st6">Private </text>
+	<text transform="matrix(1 0 0 1 387.54 389.672)" class="st5 st0 st6">Subnets</text>
+</g>
+<g id="Graphic_64">
+	<rect x="378" y="403" class="st3" width="108" height="68"/>
+	<rect x="378" y="403" class="st4" width="108" height="68"/>
+	<text transform="matrix(1 0 0 1 398.664 431)" class="st5 st0 st6">Public </text>
+	<text transform="matrix(1 0 0 1 387.54 459.672)" class="st5 st0 st6">Subnets</text>
+</g>
+<g id="Graphic_67">
+	<rect x="144" y="648" class="st3" width="792" height="66"/>
+	<rect x="144" y="648" class="st4" width="792" height="66"/>
+	<text transform="matrix(1 0 0 1 516.888 676)" class="st5 st0 st6">EKS</text>
+	<text transform="matrix(1 0 0 1 563.1115 676)" class="st5 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 472.768 702.672)" class="st5 st0 st11">(control pane)</text>
+</g>
+<g id="Graphic_68">
+	<rect x="378" y="486" class="st3" width="108" height="39"/>
+	<rect x="378" y="486" class="st7" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 393.996 514)" class="st8 st0 st6">Routes</text>
+</g>
+<g id="Graphic_69">
+	<rect x="378" y="531" class="st3" width="108" height="39"/>
+	<rect x="378" y="531" class="st7" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 409.776 559)" class="st8 st0 st6">NAT</text>
+</g>
+<g id="Graphic_85">
+	<rect x="216" y="726" class="st3" width="216" height="39"/>
+	<rect x="216" y="726" class="st4" width="216" height="39"/>
+	<text transform="matrix(1 0 0 1 248.868 754)" class="st5 st0 st6">Endpoint URL</text>
+</g>
+<g id="Graphic_86">
+	<rect x="648" y="726" class="st3" width="216" height="39"/>
+	<rect x="648" y="726" class="st4" width="216" height="39"/>
+	<text transform="matrix(1 0 0 1 681.348 754)" class="st5 st0 st6">CA Certificate</text>
+</g>
+<g id="Graphic_87">
+	<rect x="504" y="726" class="st3" width="72" height="39"/>
+	<rect x="504" y="726" class="st7" width="72" height="39"/>
+	<text transform="matrix(1 0 0 1 515.34 754)" class="st8 st0 st6">ARN</text>
+</g>
+<g id="Graphic_103">
+	<rect x="1080" y="216" class="st2" width="936" height="576"/>
+</g>
+<g id="Graphic_104">
+	<rect x="1152" y="648" class="st3" width="792" height="66"/>
+	<rect x="1152" y="648" class="st4" width="792" height="66"/>
+	<text transform="matrix(1 0 0 1 1523.34 676)" class="st5 st0 st6">ASG</text>
+	<text transform="matrix(1 0 0 1 1572.6594 676)" class="st5 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1471.605 702.672)" class="st5 st0 st11">(EC2 instances)</text>
+</g>
+<g id="Graphic_105">
+	<rect x="1152" y="288" class="st3" width="144" height="39"/>
+	<rect x="1152" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 1174.668 316)" class="st5 st0 st6">Local SG</text>
+</g>
+<g id="Graphic_107">
+	<rect x="1170" y="333" class="st3" width="108" height="39"/>
+	<rect x="1170" y="333" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 1185.108 361)" class="st5 st0 st6">Ingress</text>
+</g>
+<g id="Graphic_108">
+	<rect x="1170" y="378" class="st3" width="108" height="39"/>
+	<rect x="1170" y="378" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 1187.556 406)" class="st5 st0 st6">Egress</text>
+</g>
+<line class="st4" x1="765" y1="261" x2="1107" y2="261"/>
+<path class="st4" d="M747,342v-99v18"/>
+<line class="st4" x1="747" y1="243" x2="1125" y2="243"/>
+<line class="st4" x1="765" y1="261" x2="765" y2="387"/>
+<line class="st4" x1="1107" y1="261" x2="1107" y2="342"/>
+<line class="st4" x1="1125" y1="243" x2="1125" y2="387"/>
+<line class="st4" x1="747" y1="342" x2="702" y2="342"/>
+<line class="st4" x1="765" y1="387" x2="702" y2="387"/>
+<line class="st4" x1="1107" y1="342" x2="1170" y2="342"/>
+<line class="st4" x1="1125" y1="387" x2="1170" y2="387"/>
+<line class="st4" x1="936" y1="306.9" x2="1044" y2="306"/>
+<line class="st4" x1="514" y1="575.4" x2="1044" y2="575.4"/>
+<line class="st4" x1="324" y1="783" x2="1044" y2="783"/>
+<rect x="1284" y="327" class="st12" width="6" height="6"/>
+<g id="Graphic_166">
+	<rect x="1800" y="288" class="st3" width="144" height="39"/>
+	<rect x="1800" y="288" class="st4" width="144" height="39"/>
+	<text transform="matrix(1 0 0 1 1850.6641 316)" class="st5 st0 st6">IAM</text>
+</g>
+<g id="Graphic_167">
+	<rect x="1818" y="333" class="st3" width="108" height="39"/>
+	<rect x="1818" y="333" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 1847.7841 361)" class="st5 st0 st6">Role</text>
+</g>
+<g id="Graphic_168">
+	<rect x="1818" y="378" class="st3" width="108" height="39"/>
+	<rect x="1818" y="378" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 1838.2321 406)" class="st5 st0 st6">Profile</text>
+</g>
+<g>
+	<rect x="1932" y="327" class="st12" width="6" height="6"/>
+</g>
+<g id="Graphic_170">
+	<rect x="1818" y="423" class="st3" width="108" height="39"/>
+	<rect x="1818" y="423" class="st4" width="108" height="39"/>
+	<text transform="matrix(1 0 0 1 1825.764 451)" class="st5 st0 st6">Add-ons</text>
+</g>
+<g id="Graphic_171">
+	<rect x="1368" y="504" class="st3" width="360" height="39"/>
+	<rect x="1368" y="504" class="st4" width="360" height="39"/>
+	<text transform="matrix(1 0 0 1 1456.4041 532)" class="st5 st0 st6">Launch Template</text>
+</g>
+<g id="Graphic_173">
+	<rect x="1440" y="549" class="st3" width="216" height="39"/>
+	<rect x="1440" y="549" class="st4" width="216" height="39"/>
+	<text transform="matrix(1 0 0 1 1461.552 577)" class="st5 st0 st6">Bootstrap script</text>
+</g>
+<g id="Graphic_174">
+	<rect x="1440" y="594" class="st3" width="216" height="39"/>
+	<rect x="1440" y="594" class="st4" width="216" height="39"/>
+	<text transform="matrix(1 0 0 1 1497.78 622)" class="st5 st0 st6">UserData</text>
+</g>
+<rect x="1689" y="543" class="st12" width="6" height="6"/>
+<path class="st12" d="M1692,637.1l3-8h-6L1692,637.1z"/>
+<line class="st4" x1="1044" y1="783" x2="1044" y2="621"/>
+<path class="st12" d="M1438.1,621l-8-3v6L1438.1,621z"/>
+<line class="st4" x1="1044" y1="306" x2="1044" y2="575.4"/>
+<line class="st13" x1="1332.1" y1="486" x2="1332" y2="522"/>
+<path class="st14" d="M1365.4,522.2l-8.8-3.4v6.6L1365.4,522.2z"/>
+<g id="Graphic_66">
+	<text transform="matrix(1 0 0 1 1406.584 308)" class="st15 st0 st16">All resources can be imported by the user,</text>
+	<text transform="matrix(1 0 0 1 1707.4116 308)" class="st15 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1378.4399 326.448)" class="st15 st0 st16">SGs and IAM can be shared between nodegroups</text>
+</g>
+<g id="Graphic_188">
+	<text transform="matrix(1 0 0 1 1424.5 362)" class="st17 st0 st16">General user parameters include:</text>
+	<text transform="matrix(1 0 0 1 1661.5679 362)" class="st17 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1424.5 380.448)" class="st17 st0 st16">- basics: instance type, size, AMI</text>
+	<text transform="matrix(1 0 0 1 1660.0803 380.448)" class="st17 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1424.5 398.896)" class="st17 st0 st16">- volume type, size and encryption</text>
+	<text transform="matrix(1 0 0 1 1670.7683 398.896)" class="st17 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1424.5 417.344)" class="st17 st0 st16">- mixed instance types</text>
+	<text transform="matrix(1 0 0 1 1586.9133 417.344)" class="st17 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1424.5 435.792)" class="st17 st0 st16">- custom bootstrap scrips</text>
+	<text transform="matrix(1 0 0 1 1609.729 435.792)" class="st17 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1424.5 454.24)" class="st17 st0 st16">- custom kubelet config</text>
+	<text transform="matrix(1 0 0 1 1594.0332 454.24)" class="st17 st9 st10"> </text>
+	<text transform="matrix(1 0 0 1 1424.5 472.688)" class="st17 st0 st16">- enable SSH, public key</text>
+</g>
+<line class="st12" x1="324" y1="771.5" x2="324" y2="783"/>
+<line class="st12" x1="756" y1="771.5" x2="756" y2="783"/>
+<line class="st13" x1="1332" y1="522" x2="1356.6" y2="522.2"/>
+<line class="st4" x1="1044" y1="621" x2="1430.1" y2="621"/>
+<line class="st13" x1="1934.7" y1="486" x2="1045.5" y2="486"/>
+<line class="st4" x1="1935" y1="333" x2="1935" y2="486"/>
+<line class="st7" x1="349.9" y1="364" x2="350.6" y2="629"/>
+<rect x="371.3" y="361" class="st18" width="6" height="6"/>
+<rect x="371.3" y="431" class="st18" width="6" height="6"/>
+<line class="st7" x1="349.9" y1="364" x2="371.3" y2="364"/>
+<line class="st7" x1="350.8" y1="434" x2="371.3" y2="434"/>
+<line class="st7" x1="216" y1="360.5" x2="216" y2="629.1"/>
+<line class="st7" x1="585" y1="334" x2="585" y2="629.1"/>
+<line class="st4" x1="514.3" y1="367" x2="513.7" y2="575.4"/>
+<rect x="486.9" y="364" class="st12" width="6" height="6"/>
+<rect x="486.9" y="434" class="st12" width="6" height="6"/>
+<line class="st4" x1="514.3" y1="367" x2="492.9" y2="367"/>
+<line class="st4" x1="513.5" y1="437" x2="492.9" y2="437"/>
+<line class="st19" x1="1692" y1="549" x2="1692" y2="629.1"/>
+<rect x="753" y="765.5" class="st12" width="6" height="6"/>
+<rect x="321" y="765.5" class="st12" width="6" height="6"/>
+<path class="st18" d="M350.9,637.1l2.7-8.1l-6,0.2L350.9,637.1z"/>
+<path class="st18" d="M585.3,637.1l2.7-8.1l-6,0.2L585.3,637.1z"/>
+<path class="st18" d="M216,637.1l3-8h-6L216,637.1z"/>
+<rect x="213" y="354.5" class="st18" width="6" height="6"/>
+<line class="st4" x1="1287" y1="333" x2="1287" y2="486"/>
+<rect x="582" y="328" class="st18" width="6" height="6"/>
+</svg>
