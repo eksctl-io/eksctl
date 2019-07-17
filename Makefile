@@ -18,7 +18,7 @@ $(DEEP_COPY_HELPER) \
 pkg/ami/static_resolver_ami.go \
 $(AWS_SDK_MOCKS)
 
-GENERATED_GO_FILES := $(GENERATED_FILES) site/content/usage/20-schema.md
+GENERATED_FILES := $(GENERATED_GO_FILES) site/content/usage/20-schema.md
 
 
 .DEFAULT_GOAL := help
