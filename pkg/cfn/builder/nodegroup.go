@@ -2,6 +2,7 @@ package builder
 
 import (
 	"fmt"
+
 	"github.com/kris-nova/logger"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -119,7 +120,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
 				VolumeSize: gfn.NewInteger(*volumeSize),
 				VolumeType: gfn.NewString(*n.spec.VolumeType),
-				Encrypted: gfn.NewBoolean(*n.spec.VolumeEncrypted),
+				Encrypted:  gfn.NewBoolean(*n.spec.VolumeEncrypted),
 			},
 		}}
 		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
@@ -214,6 +215,8 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	}
 	if !api.HasMixedInstances(n.spec) {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)
+	} else {
+		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstancesDistribution.InstanceTypes[0])
 	}
 
 	return launchTemplateData

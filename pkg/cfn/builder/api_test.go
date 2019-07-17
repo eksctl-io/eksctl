@@ -2499,7 +2499,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).To(HaveKey("NodeGroupLaunchTemplate"))
 
 			launchTemplateData := getLaunchTemplateData(ngTemplate)
-			Expect(launchTemplateData.InstanceType).To(Equal(""))
+			Expect(launchTemplateData.InstanceType).To(Equal("m5.large"))
 			Expect(launchTemplateData.InstanceMarketOptions).To(BeNil())
 
 			nodeGroupProperties := getNodeGroupProperties(ngTemplate)
