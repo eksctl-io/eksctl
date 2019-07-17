@@ -80,8 +80,8 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-name: basic-cluster
-region: eu-north-1
+  name: basic-cluster
+  region: eu-north-1
 
 nodeGroups:
   - name: ng-1
