@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1080 648"
+	 style="enable-background:new 0 0 1080 648;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;}
+	.st1{font-family:'HelveticaNeue';}
+	.st2{font-size:35px;}
+	.st3{fill:#FFD579;}
+	.st4{font-size:16px;}
+	.st5{fill:#009193;}
+	.st6{fill:#EBEBEB;}
+	.st7{font-family:'HelveticaNeue-Italic';}
+	.st8{fill:#FFFFFF;}
+	.st9{fill:#009051;}
+	.st10{font-family:'ArialMT';}
+	.st11{font-size:12px;}
+	.st12{font-family:'HelveticaNeue-Bold';}
+</style>
+<g id="Graphic_58">
+	<rect x="576" y="288" class="st0" width="360" height="216"/>
+</g>
+<g id="Graphic_43">
+	<rect x="72" y="216" class="st0" width="936" height="360"/>
+</g>
+<g id="Graphic_57">
+	<rect x="144" y="288" class="st0" width="360" height="216"/>
+</g>
+<g id="Graphic_42">
+	<text transform="matrix(1 0 0 1 77.105 128)" class="st1 st2">EKS &amp; AWS</text>
+	<text transform="matrix(1 0 0 1 263.805 128)" class="st1 st2"> </text>
+	<text transform="matrix(1 0 0 1 272.805 128)" class="st1 st2">architecture overview</text>
+</g>
+<g id="Graphic_44">
+	<rect x="144" y="288" class="st3" width="360" height="30"/>
+	<rect x="144" y="288" class="st0" width="360" height="30"/>
+	<text transform="matrix(1 0 0 1 275.848 308)" class="st1 st4">Cluster Stack</text>
+</g>
+<g id="Graphic_65">
+	<rect x="144" y="342" class="st5" width="360" height="30"/>
+	<rect x="144" y="342" class="st0" width="360" height="30"/>
+	<text transform="matrix(1 0 0 1 263.104 362)" class="st6 st7 st4">shared resources</text>
+</g>
+<g id="Graphic_52">
+	<rect x="153" y="393" class="st8" width="63" height="30"/>
+	<rect x="153" y="393" class="st0" width="63" height="30"/>
+	<text transform="matrix(1 0 0 1 168.652 413)" class="st9 st1 st4">VPC</text>
+</g>
+<g id="Graphic_53">
+	<rect x="243" y="393" class="st8" width="63" height="30"/>
+	<rect x="243" y="393" class="st0" width="63" height="30"/>
+	<text transform="matrix(1 0 0 1 260.276 413)" class="st9 st1 st4">IAM</text>
+</g>
+<g id="Graphic_54">
+	<rect x="144" y="457" class="st5" width="360" height="30"/>
+	<rect x="144" y="457" class="st0" width="360" height="30"/>
+	<text transform="matrix(1 0 0 1 203.984 478)" class="st6 st7 st4">Key resource:</text>
+	<text transform="matrix(1 0 0 1 301.4706 478)" class="st6 st10 st11"> </text>
+	<text transform="matrix(1 0 0 1 304.8046 478)" class="st6 st12 st4">EKS </text>
+	<text transform="matrix(1 0 0 1 341.556 478)" class="st6 st1 st4">(control plane)</text>
+</g>
+<g id="Graphic_55">
+	<rect x="333" y="385" class="st8" width="72" height="47"/>
+	<rect x="333" y="385" class="st0" width="72" height="47"/>
+	<text transform="matrix(1 0 0 1 343.512 405)" class="st9 st1 st4">Shared </text>
+	<text transform="matrix(1 0 0 1 357.744 423.448)" class="st9 st1 st4">SG</text>
+</g>
+<g id="Graphic_56">
+	<rect x="432" y="385" class="st8" width="63" height="47"/>
+	<rect x="432" y="385" class="st0" width="63" height="47"/>
+	<text transform="matrix(1 0 0 1 448.092 405)" class="st9 st1 st4">EKS </text>
+	<text transform="matrix(1 0 0 1 452.244 423.448)" class="st9 st1 st4">SG</text>
+</g>
+<g id="Graphic_45">
+	<rect x="576" y="288" class="st3" width="360" height="27"/>
+	<rect x="576" y="288" class="st0" width="360" height="27"/>
+	<text transform="matrix(1 0 0 1 683.4 306.5)" class="st1 st4">NodeGroup Stack(s)</text>
+</g>
+<g id="Graphic_60">
+	<rect x="585" y="385" class="st8" width="63" height="47"/>
+	<rect x="585" y="385" class="st0" width="63" height="47"/>
+	<text transform="matrix(1 0 0 1 597.092 405)" class="st9 st1 st4">Local </text>
+	<text transform="matrix(1 0 0 1 605.244 423.448)" class="st9 st1 st4">SG</text>
+</g>
+<g id="Graphic_61">
+	<rect x="657" y="393" class="st8" width="63" height="30"/>
+	<rect x="657" y="393" class="st0" width="63" height="30"/>
+	<text transform="matrix(1 0 0 1 674.276 413)" class="st9 st1 st4">IAM</text>
+</g>
+<g id="Graphic_62">
+	<rect x="576" y="457" class="st5" width="360" height="30"/>
+	<rect x="576" y="457" class="st0" width="360" height="30"/>
+	<text transform="matrix(1 0 0 1 630.504 478)" class="st6 st7 st4">Key resource:</text>
+	<text transform="matrix(1 0 0 1 727.9906 478)" class="st6 st10 st11"> </text>
+	<text transform="matrix(1 0 0 1 731.3246 478)" class="st6 st12 st4">ASG </text>
+	<text transform="matrix(1 0 0 1 769.2601 478)" class="st6 st1 st4">(EC2 instances)</text>
+</g>
+<g id="Graphic_63">
+	<rect x="729" y="385" class="st8" width="81" height="47"/>
+	<rect x="729" y="385" class="st0" width="81" height="47"/>
+	<text transform="matrix(1 0 0 1 743.116 405)" class="st9 st1 st4">Launch </text>
+	<text transform="matrix(1 0 0 1 737.044 423.448)" class="st9 st1 st4">Template</text>
+</g>
+<g id="Graphic_64">
+	<rect x="837" y="385" class="st8" width="81" height="47"/>
+	<rect x="837" y="385" class="st0" width="81" height="47"/>
+	<text transform="matrix(1 0 0 1 842.092 405)" class="st9 st1 st4">Bootstrap </text>
+	<text transform="matrix(1 0 0 1 856.316 423.448)" class="st9 st1 st4">Script</text>
+</g>
+<g id="Graphic_66">
+	<rect x="576" y="342" class="st5" width="360" height="30"/>
+	<rect x="576" y="342" class="st0" width="360" height="30"/>
+	<text transform="matrix(1 0 0 1 702.52 362)" class="st6 st7 st4">local resources</text>
+</g>
+</svg>

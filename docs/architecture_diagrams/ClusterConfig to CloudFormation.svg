@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1657 721"
+	 style="enable-background:new 0 0 1657 721;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;}
+	.st1{fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;}
+	.st2{fill:#009193;}
+	.st3{font-family:'Menlo-Regular';}
+	.st4{font-size:16px;}
+	.st5{font-family:'ArialMT';}
+	.st6{font-size:12px;}
+	.st7{font-family:'Menlo-Bold';}
+	.st8{fill:#929292;}
+	.st9{fill:#005493;}
+	.st10{font-family:'HelveticaNeue';}
+	.st11{font-size:35px;}
+	.st12{fill:none;stroke:#000000;stroke-miterlimit:10;}
+	.st13{stroke:#000000;stroke-miterlimit:10;}
+	.st14{fill:none;stroke:#000000;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:round;}
+</style>
+<g id="Graphic_77">
+	<rect x="135" y="288" class="st0" width="297" height="288"/>
+	<rect x="135" y="288" class="st1" width="297" height="288"/>
+	<text transform="matrix(1 0 0 1 140 323.5)" class="st2 st3 st4">apiVersion</text>
+	<text transform="matrix(1 0 0 1 236.3281 323.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 239.6621 323.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 258.9277 323.5)" class="st7 st4">ekctl.io/v1alpha5</text>
+	<text transform="matrix(1 0 0 1 422.6855 323.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 140 342.5)" class="st2 st3 st4">kind</text>
+	<text transform="matrix(1 0 0 1 178.5312 342.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 181.8652 342.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 201.1309 342.5)" class="st7 st4">ClusterConfig</text>
+	<text transform="matrix(1 0 0 1 326.3574 342.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 140 361.5)" class="st2 st3 st4">metadata</text>
+	<text transform="matrix(1 0 0 1 217.0625 361.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 220.3965 361.5)" class="st3 st4">:</text>
+	<text transform="matrix(1 0 0 1 230.0293 361.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 180 380.5)" class="st2 st3 st4">name</text>
+	<text transform="matrix(1 0 0 1 178.5312 380.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 221.8652 380.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 241.1309 380.5)" class="st7 st4">cluster-1</text>
+	<text transform="matrix(1 0 0 1 287.8262 380.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 180 399.5)" class="st2 st3 st4">region</text>
+	<text transform="matrix(1 0 0 1 197.7969 399.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 241.1309 399.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 260.3965 399.5)" class="st7 st4">eu-west-2</text>
+	<text transform="matrix(1 0 0 1 307.0918 399.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 140 437.5)" class="st2 st3 st4">iam</text>
+	<text transform="matrix(1 0 0 1 168.8984 437.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 172.2324 437.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 191.498 437.5)" class="st8 st3 st4">{ }</text>
+	<text transform="matrix(1 0 0 1 220.3965 437.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 140 475.5)" class="st2 st3 st4">vpc</text>
+	<text transform="matrix(1 0 0 1 168.8984 475.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 172.2324 475.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 191.498 475.5)" class="st8 st3 st4">{ }</text>
+	<text transform="matrix(1 0 0 1 220.3965 475.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 140 513.5)" class="st2 st3 st4">nodeGroups</text>
+	<text transform="matrix(1 0 0 1 236.3281 513.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 239.6621 513.5)" class="st3 st4">:</text>
+	<text transform="matrix(1 0 0 1 249.2949 513.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 180 532.5)" class="st8 st3 st4">-</text>
+	<text transform="matrix(1 0 0 1 149.6328 532.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 192.9668 532.5)" class="st2 st3 st4">name</text>
+	<text transform="matrix(1 0 0 1 191.498 532.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 234.832 532.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 254.0977 532.5)" class="st7 st4">ng1-example</text>
+	<text transform="matrix(1 0 0 1 320.0586 532.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 194 551.5)" class="st2 st3 st4">desiredCapacity</text>
+	<text transform="matrix(1 0 0 1 284.4922 551.5)" class="st2 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 341.8262 551.5)" class="st3 st4">: </text>
+	<text transform="matrix(1 0 0 1 361.0918 551.5)" class="st7 st4">1</text>
+</g>
+<g id="Graphic_76">
+	<rect x="720" y="288" class="st0" width="504" height="99"/>
+	<rect x="720" y="288" class="st1" width="504" height="99"/>
+	<text transform="matrix(1 0 0 1 725 324)" class="st9 st3 st4">StackName</text>
+	<text transform="matrix(1 0 0 1 811.6953 324)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 815.0293 324)" class="st3 st4">: eksctl-</text>
+	<text transform="matrix(1 0 0 1 901.7246 324)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 905.0586 324)" class="st7 st4">cluster-1</text>
+	<text transform="matrix(1 0 0 1 991.7539 324)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 995.0879 324)" class="st3 st4">-cluster</text>
+	<text transform="matrix(1 0 0 1 1072.1504 324)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 725 343)" class="st9 st3 st4">Tags</text>
+	<text transform="matrix(1 0 0 1 763.5312 343)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 766.8652 343)" class="st3 st4">:</text>
+	<text transform="matrix(1 0 0 1 776.498 343)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 725 362)" class="st3 st4">- alpha.eksctl.io/cluster-name: cluster-1</text>
+</g>
+<g id="Graphic_75">
+	<rect x="720" y="477" class="st0" width="504" height="99"/>
+	<rect x="720" y="477" class="st1" width="504" height="99"/>
+	<text transform="matrix(1 0 0 1 725 503.5)" class="st9 st3 st4">StackName</text>
+	<text transform="matrix(1 0 0 1 811.6953 503.5)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 815.0293 503.5)" class="st3 st4">: eksctl-</text>
+	<text transform="matrix(1 0 0 1 901.7246 503.5)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 905.0586 503.5)" class="st7 st4">cluster-1-ng1—example</text>
+	<text transform="matrix(1 0 0 1 1107.3477 503.5)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 1110.6816 503.5)" class="st3 st4">-nodegroup</text>
+	<text transform="matrix(1 0 0 1 1207.0098 503.5)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 725 522.5)" class="st9 st3 st4">Tags</text>
+	<text transform="matrix(1 0 0 1 763.5312 522.5)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 766.8652 522.5)" class="st3 st4">:</text>
+	<text transform="matrix(1 0 0 1 776.498 522.5)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 725 541.5)" class="st3 st4">- alpha.eksctl.io/cluster-name: cluster-1</text>
+	<text transform="matrix(1 0 0 1 1119.9453 541.5)" class="st9 st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 725 560.5)" class="st3 st4">- alpha.eksctl.io/nodegroup-name: ng1-example</text>
+</g>
+<g id="Graphic_74">
+	<text transform="matrix(1 0 0 1 169.484 263)" class="st10 st4">Input cluster spec</text>
+</g>
+<g id="Graphic_73">
+	<text transform="matrix(1 0 0 1 460.416 263)" class="st10 st4">Build CloudFormation templates</text>
+</g>
+<g id="Graphic_69">
+	<text transform="matrix(1 0 0 1 747.096 263)" class="st10 st4">Deploy CloudFormation stacks from the templates</text>
+</g>
+<g id="Graphic_68">
+	<text transform="matrix(1 0 0 1 741.744 437)" class="st10 st4">Wait and import outputs</text>
+</g>
+<g id="Graphic_67">
+	<rect x="1269" y="288" class="st0" width="243" height="288"/>
+	<rect x="1269" y="288" class="st1" width="243" height="288"/>
+	<text transform="matrix(1 0 0 1 1274 401.104)" class="st10 st4">Post deployment actions:</text>
+	<text transform="matrix(1 0 0 1 1456.269 401.104)" class="st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 1274 437.552)" class="st10 st4">- authorise nodegroups</text>
+	<text transform="matrix(1 0 0 1 1441.1497 437.552)" class="st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 1274 456)" class="st10 st4">- write kubeconfig</text>
+	<text transform="matrix(1 0 0 1 1403.1816 456)" class="st5 st6"> </text>
+	<text transform="matrix(1 0 0 1 1274 474.448)" class="st10 st4">- validate kubeconfig+kubectl</text>
+</g>
+<g id="Graphic_42">
+	<text transform="matrix(1 0 0 1 81.935 131)" class="st10 st11">Cluster creation: from config file to running cluster</text>
+</g>
+<line class="st1" x1="972" y1="387" x2="972" y2="458.1"/>
+<line class="st1" x1="1223.2" y1="432" x2="1259.1" y2="432"/>
+<path class="st12" d="M702.5,327.3c-16.6-13.3-47.9-34-88.8-35.1c-64.6-1.7-126.5,45.9-162.7,121.5"/>
+<path class="st12" d="M701.8,499.4c-21.6-13-46.7-25.8-75.5-37.2c-66.5-26.2-128.2-34.5-175.2-36.4"/>
+<path class="st12" d="M1207.2,432l8,6l8-6l-8-6L1207.2,432z"/>
+<path class="st13" d="M1267.1,432l-8-3v6L1267.1,432z"/>
+<path class="st12" d="M972,466.1l3-8h-6L972,466.1z"/>
+<path class="st12" d="M709.7,331.4L704,325l-2.8,5.3L709.7,331.4z"/>
+<path class="st12" d="M709.4,502.9l-6-6l-2.5,5.5L709.4,502.9z"/>
+<g id="Graphic_43">
+	<rect x="71" y="192.7" class="st14" width="1501.6" height="416.7"/>
+</g>
+</svg>

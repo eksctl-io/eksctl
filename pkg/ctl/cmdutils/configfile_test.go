@@ -82,22 +82,51 @@ var _ = Describe("cmdutils configfile", func() {
 
 			Expect(examples).To(HaveLen(10))
 			for _, example := range examples {
-				cfg := api.NewClusterConfig()
-
 				rc := &ResourceCmd{
 					Command:           newCmd(),
 					ClusterConfigFile: example,
-					ClusterConfig:     cfg,
+					ClusterConfig:     api.NewClusterConfig(),
 					ProviderConfig:    &api.ProviderConfig{},
 				}
 
 				err := NewMetadataLoader(rc).Load()
 
+				cfg := rc.ClusterConfig
 				Expect(err).ToNot(HaveOccurred())
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).To(Equal(rc.ProviderConfig.Region))
 				Expect(cfg.Metadata.Version).To(BeEmpty())
+			}
+		})
+
+		It("should set VPC.NAT.Gateway with the correct value", func() {
+			natTests := []struct {
+				configFile      string
+				expectedGateway string
+			}{
+				// No VPC set
+				{"01-simple-cluster.yaml", api.ClusterSingleNAT},
+				// VPC set but not NAT
+				{"02-custom-vpc-cidr-no-nodes.yaml", api.ClusterSingleNAT},
+				// VPC and subnets set but not NAT
+				{"04-existing-vpc.yaml", api.ClusterSingleNAT},
+				// NAT set
+				{"09-nat-gateways.yaml", api.ClusterHighlyAvailableNAT},
+			}
+
+			for _, natTest := range natTests {
+				rc := &ResourceCmd{
+					Command:           newCmd(),
+					ClusterConfigFile: filepath.Join(examplesDir, natTest.configFile),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    &api.ProviderConfig{},
+				}
+
+				Expect(NewCreateClusterLoader(rc, nil).Load()).To(Succeed())
+				cfg := rc.ClusterConfig
+				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
+				Expect(*cfg.VPC.NAT.Gateway).To(Equal(natTest.expectedGateway))
 			}
 		})
 	})
