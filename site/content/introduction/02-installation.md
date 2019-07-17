@@ -32,6 +32,8 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 [awsenv]: https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
 [awsconfig]: https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html
 
+You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `heptio-authenticator-aws`) in your `PATH`.
+
 ### Shell Completion
 
 To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.profile`:
