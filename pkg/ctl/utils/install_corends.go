@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -55,13 +53,6 @@ func doInstallCoreDNS(rc *cmdutils.ResourceCmd) error {
 
 	if err := ctl.GetCredentials(cfg); err != nil {
 		return errors.Wrapf(err, "getting credentials for cluster %q", meta.Name)
-	}
-
-	switch ctl.ControlPlaneVersion() {
-	case "":
-		return fmt.Errorf("unable to get control plane version")
-	case api.Version1_10:
-		return fmt.Errorf("%q is not supported on 1.10 cluster, run 'eksctl update cluster' first", defaultaddons.CoreDNS)
 	}
 
 	rawClient, err := ctl.NewRawClient(cfg)
