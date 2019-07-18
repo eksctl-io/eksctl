@@ -34,16 +34,6 @@ eksctl create cluster --version=1.10
 
 ```
 
-A default [StorageClass](https://kubernetes.io/docs/concepts/storage/storage-classes/) (gp2 volume type provisioned
-by EBS) will be added automatically when creating a cluster. If you want to prevent this, use the `--storage-class`
-flag. For example:
-
-```
-
-eksctl create cluster --storage-class=false
-
-```
-
 To write cluster credentials to a file other than default, run:
 
 ```
