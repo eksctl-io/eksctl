@@ -29,7 +29,6 @@ type createClusterCmdParams struct {
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
-	addonsStorageClass    bool
 	withoutNodeGroup      bool
 }
 
@@ -66,7 +65,6 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 
 	rc.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
-		fs.BoolVar(&params.addonsStorageClass, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
 	})
 
 	rc.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {

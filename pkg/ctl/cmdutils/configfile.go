@@ -144,7 +144,6 @@ func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterC
 		"asg-access",
 		"external-dns-access",
 		"full-ecr-access",
-		"storage-class",
 		"vpc-private-subnets",
 		"vpc-public-subnets",
 		"vpc-cidr",
