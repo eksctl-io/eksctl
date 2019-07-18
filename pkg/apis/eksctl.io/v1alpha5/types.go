@@ -435,6 +435,8 @@ type NodeGroup struct {
 	VolumeEncrypted *bool `json:"volumeEncrypted,omitempty"`
 	// +optional
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
+	// +optional
+	VolumeIOPS *int `json:"volumeIOPS"`
 
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`

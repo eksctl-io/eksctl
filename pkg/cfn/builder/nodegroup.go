@@ -115,17 +115,28 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	}
 
 	if volumeSize := n.spec.VolumeSize; volumeSize != nil && *volumeSize > 0 {
+		var (
+			kmsKeyID   *gfn.Value
+			volumeIOPS *gfn.Value
+		)
+		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
+			kmsKeyID = gfn.NewString(*n.spec.VolumeKmsKeyID)
+		}
+
+		if *n.spec.VolumeType == api.NodeVolumeTypeIO1 {
+			volumeIOPS = gfn.NewInteger(*n.spec.VolumeIOPS)
+		}
+
 		launchTemplateData.BlockDeviceMappings = []gfn.AWSEC2LaunchTemplate_BlockDeviceMapping{{
 			DeviceName: gfn.NewString(*n.spec.VolumeName),
 			Ebs: &gfn.AWSEC2LaunchTemplate_Ebs{
 				VolumeSize: gfn.NewInteger(*volumeSize),
 				VolumeType: gfn.NewString(*n.spec.VolumeType),
 				Encrypted:  gfn.NewBoolean(*n.spec.VolumeEncrypted),
+				KmsKeyId:   kmsKeyID,
+				Iops:       volumeIOPS,
 			},
 		}}
-		if api.IsSetAndNonEmptyString(n.spec.VolumeKmsKeyID) {
-			launchTemplateData.BlockDeviceMappings[0].Ebs.KmsKeyId = gfn.NewString(*n.spec.VolumeKmsKeyID)
-		}
 	}
 
 	n.newResource("NodeGroupLaunchTemplate", &gfn.AWSEC2LaunchTemplate{

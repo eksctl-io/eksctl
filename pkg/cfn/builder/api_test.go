@@ -298,7 +298,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.VolumeSize = new(int)
 		*ng.VolumeSize = 2
 		ng.VolumeType = new(string)
-		*ng.VolumeType = api.NodeVolumeTypeIO1
+		*ng.VolumeType = api.NodeVolumeTypeSC1
 		ng.VolumeName = new(string)
 		*ng.VolumeName = "/dev/xvda"
 		ng.VolumeEncrypted = api.Disabled()
@@ -407,7 +407,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					},
 					DesiredCapacity: nil,
 					VolumeSize:      aws.Int(2),
-					VolumeType:      aws.String(api.NodeVolumeTypeIO1),
+					VolumeType:      aws.String(api.NodeVolumeTypeSC1),
 					VolumeName:      aws.String("/dev/xvda"),
 					VolumeEncrypted: api.Disabled(),
 					VolumeKmsKeyID:  aws.String(""),
@@ -1328,7 +1328,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("Nodegroup{VolumeType=io1 VolumeSize=2.0}", func() {
+	Context("Nodegroup{VolumeType=sc1 VolumeSize=2.0}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		build(cfg, "eksctl-test-private-ng", ng)
@@ -1344,7 +1344,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			rootVolume := ltd.BlockDeviceMappings[0].(map[string]interface{})
 			Expect(rootVolume).To(HaveKey("Ebs"))
 			Expect(rootVolume).To(HaveKeyWithValue("DeviceName", "/dev/xvda"))
-			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeType", "io1"))
+			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeType", "sc1"))
 			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("VolumeSize", 2.0))
 			Expect(rootVolume["Ebs"].(map[string]interface{})).To(HaveKeyWithValue("Encrypted", false))
 		})

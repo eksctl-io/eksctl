@@ -186,19 +186,9 @@ func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterC
 		}
 
 		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			if l.Command.Flag("ssh-public-key").Changed {
-				if *ng.SSH.PublicKeyPath == "" {
-					return fmt.Errorf("--ssh-public-key must be non-empty string")
-				}
-				ng.SSH.Allow = api.Enabled()
-			} else {
-				ng.SSH.PublicKeyPath = nil
-			}
-
 			// generate nodegroup name or use flag
 			ng.Name = NodeGroupName(ng.Name, "")
-
-			return nil
+			return normalizeNodeGroup(ng, l)
 		})
 	}
 
@@ -250,27 +240,34 @@ func NewCreateNodeGroupLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) Cluste
 		}
 
 		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
-
-			if l.Command.Flag("ssh-public-key").Changed {
-				if *ng.SSH.PublicKeyPath == "" {
-					return fmt.Errorf("--ssh-public-key must be non-empty string")
-				}
-				ng.SSH.Allow = api.Enabled()
-			} else {
-				ng.SSH.PublicKeyPath = nil
-			}
-
 			// generate nodegroup name or use either flag or argument
-			if NodeGroupName(ng.Name, l.NameArg) == "" {
+			ngName := NodeGroupName(ng.Name, l.NameArg)
+			if ngName == "" {
 				return ErrNameFlagAndArg(ng.Name, l.NameArg)
 			}
-			ng.Name = NodeGroupName(ng.Name, l.NameArg)
-
-			return nil
+			ng.Name = ngName
+			return normalizeNodeGroup(ng, l)
 		})
 	}
 
 	return l
+}
+
+func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
+	if l.Command.Flag("ssh-public-key").Changed {
+		if *ng.SSH.PublicKeyPath == "" {
+			return fmt.Errorf("--ssh-public-key must be non-empty string")
+		}
+		ng.SSH.Allow = api.Enabled()
+	} else {
+		ng.SSH.PublicKeyPath = nil
+	}
+
+	if *ng.VolumeType == api.NodeVolumeTypeIO1 {
+		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
+	}
+
+	return nil
 }
 
 // NewDeleteNodeGroupLoader will laod config or use flags for 'eksctl delete nodegroup'

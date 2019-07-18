@@ -122,7 +122,7 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 	return nil
 }
 
-// ValidateNodeGroup checks compatible fileds of a given nodegroup
+// ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	path := fmt.Sprintf("nodegroups[%d]", i)
 	if ng.Name == "" {
@@ -130,18 +130,29 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if ng.VolumeSize == nil {
+		errCantSet := func(field string) error {
+			return fmt.Errorf("%s.%s cannot be set without %s.volumeSize", path, field, path)
+		}
 		if IsSetAndNonEmptyString(ng.VolumeType) {
-			return fmt.Errorf("%s.volumeType can not be set without %s.volumeSize", path, path)
+			return errCantSet("volumeType")
 		}
 		if IsSetAndNonEmptyString(ng.VolumeName) {
-			return fmt.Errorf("%s.volumeName can not be set without %s.volumeSize", path, path)
+			return errCantSet("volumeName")
 		}
 		if IsEnabled(ng.VolumeEncrypted) {
-			return fmt.Errorf("%s.VolumeEncrypted can not be set without %s.volumeSize", path, path)
+			return errCantSet("volumeEncrypted")
 		}
 		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
-			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.volumeSize", path, path)
+			return errCantSet("volumeKmsKeyID")
 		}
+	}
+
+	if ng.VolumeType != nil && *ng.VolumeType == NodeVolumeTypeIO1 {
+		if ng.VolumeIOPS == nil {
+			return fmt.Errorf("%s.volumeIOPS is required for %s volume type", path, NodeVolumeTypeIO1)
+		}
+	} else if ng.VolumeIOPS != nil {
+		return fmt.Errorf("%s.volumeIOPS is only supported for %s volume type", path, NodeVolumeTypeIO1)
 	}
 
 	if ng.VolumeEncrypted == nil || IsDisabled(ng.VolumeEncrypted) {
