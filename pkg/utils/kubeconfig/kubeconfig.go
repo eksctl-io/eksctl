@@ -2,10 +2,13 @@ package kubeconfig
 
 import (
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/weaveworks/eksctl/pkg/utils/file"
+
+	"os/exec"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -22,6 +25,8 @@ const (
 	AWSIAMAuthenticator = "aws-iam-authenticator"
 	// HeptioAuthenticatorAWS defines the old name of AWS IAM authenticator
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
+	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
+	AWSEKSAuthenticator = "aws"
 )
 
 // AuthenticatorCommands returns all of authenticator commands
@@ -29,11 +34,12 @@ func AuthenticatorCommands() []string {
 	return []string{
 		AWSIAMAuthenticator,
 		HeptioAuthenticatorAWS,
+		AWSEKSAuthenticator,
 	}
 }
 
 // New creates Kubernetes client configuration for a given username
-// if certificateAuthorityPath is no empty, it is used instead of
+// if certificateAuthorityPath is not empty, it is used instead of
 // embedded certificate-authority-data
 func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
 	clusterName := spec.Metadata.String()
@@ -66,26 +72,58 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 	return c, clusterName, contextName
 }
 
+// NewForKubectl creates configuration for kubectl using a suitable authenticator
+func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *clientcmdapi.Config {
+	config, _, _ := New(spec, username, "")
+	authenticator, found := LookupAuthenticator()
+	if !found {
+		// fall back to aws-iam-authenticator
+		authenticator = AWSIAMAuthenticator
+	}
+	AppendAuthenticator(config, spec, authenticator, roleARN, profile)
+	return config
+}
+
 // AppendAuthenticator appends the AWS IAM  authenticator, and
 // if profile is non-empty string it sets AWS_PROFILE environment
 // variable also
-func AppendAuthenticator(c *clientcmdapi.Config, spec *api.ClusterConfig, command, profile string) {
+func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, authenticatorCMD, roleARN, profile string) {
+	var (
+		args        []string
+		roleARNFlag string
+	)
+
+	switch authenticatorCMD {
+	case AWSIAMAuthenticator, HeptioAuthenticatorAWS:
+		args = []string{"token", "-i", spec.Metadata.Name}
+		roleARNFlag = "-r"
+	case AWSEKSAuthenticator:
+		args = []string{"eks", "get-token", "--cluster-name", spec.Metadata.Name}
+		roleARNFlag = "--role-arn"
+		if spec.Metadata.Region != "" {
+			args = append(args, "--region", spec.Metadata.Region)
+		}
+	}
+	if roleARN != "" {
+		args = append(args, roleARNFlag, roleARN)
+	}
+
 	execConfig := &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
-		Command:    command,
-		Args:       []string{"token", "-i", spec.Metadata.Name},
+		Command:    authenticatorCMD,
+		Args:       args,
 	}
 
 	if profile != "" {
 		execConfig.Env = []clientcmdapi.ExecEnvVar{
-			clientcmdapi.ExecEnvVar{
+			{
 				Name:  "AWS_PROFILE",
 				Value: profile,
 			},
 		}
 	}
 
-	c.AuthInfos[c.CurrentContext] = &clientcmdapi.AuthInfo{
+	config.AuthInfos[config.CurrentContext] = &clientcmdapi.AuthInfo{
 		Exec: execConfig,
 	}
 }
@@ -247,4 +285,15 @@ func deleteClusterInfo(existing *clientcmdapi.Config, cl *api.ClusterMeta) bool 
 	}
 
 	return isChanged
+}
+
+// LookupAuthenticator looks up an available authenticator
+func LookupAuthenticator() (string, bool) {
+	for _, cmd := range AuthenticatorCommands() {
+		_, err := exec.LookPath(cmd)
+		if err == nil {
+			return cmd, true
+		}
+	}
+	return "", false
 }

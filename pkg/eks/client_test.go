@@ -1,6 +1,7 @@
 package eks_test
 
 import (
+	"fmt"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -8,6 +9,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 var _ = Describe("eks auth helpers", func() {
@@ -40,17 +42,14 @@ var _ = Describe("eks auth helpers", func() {
 					},
 				}
 
-				It("should create config with authenticator", func() {
-					clientConfig, err := ctl.NewClient(cfg, false)
-
-					Expect(err).To(Not(HaveOccurred()))
-
+				testAuthenticatorConfig := func(roleARN string) {
+					clientConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.Provider.Profile())
 					Expect(clientConfig).To(Not(BeNil()))
-					ctx := clientConfig.ContextName
+					ctx := clientConfig.CurrentContext
 					cluster := strings.Split(ctx, "@")[1]
 					Expect(ctx).To(Equal("iam-root-account@auth-test-cluster.eu-west-3.eksctl.io"))
 
-					k := clientConfig.Config
+					k := clientConfig
 
 					Expect(k.CurrentContext).To(Equal(ctx))
 
@@ -72,7 +71,11 @@ var _ = Describe("eks auth helpers", func() {
 
 					Expect(k.AuthInfos[ctx].Exec.Command).To(MatchRegexp("(heptio-authenticator-aws|aws-iam-authenticator)"))
 
-					Expect(strings.Join(k.AuthInfos[ctx].Exec.Args, " ")).To(Equal("token -i auth-test-cluster"))
+					expectedArgs := "token -i auth-test-cluster"
+					if roleARN != "" {
+						expectedArgs += fmt.Sprintf(" -r %s", roleARN)
+					}
+					Expect(strings.Join(k.AuthInfos[ctx].Exec.Args, " ")).To(Equal(expectedArgs))
 
 					Expect(k.Clusters).To(HaveKey(cluster))
 					Expect(k.Clusters).To(HaveLen(1))
@@ -80,23 +83,16 @@ var _ = Describe("eks auth helpers", func() {
 					Expect(k.Clusters[cluster].InsecureSkipTLSVerify).To(BeFalse())
 					Expect(k.Clusters[cluster].Server).To(Equal(cfg.Status.Endpoint))
 					Expect(k.Clusters[cluster].CertificateAuthorityData).To(Equal(cfg.Status.CertificateAuthorityData))
+				}
+
+				It("should create config with authenticator", func() {
+					testAuthenticatorConfig("")
+					testAuthenticatorConfig("arn:aws:iam::111111111111:role/eksctl")
 				})
 
 				It("should create config with embedded token", func() {
 					// TODO: cannot test this, as token generator uses STS directly, we cannot pass the interface
 					// we can probably fix the package itself
-				})
-
-				It("should create clientset", func() {
-					clientConfig, err := ctl.NewClient(cfg, false)
-
-					Expect(err).To(Not(HaveOccurred()))
-					Expect(clientConfig).To(Not(BeNil()))
-
-					clientSet, err := clientConfig.NewClientSet()
-
-					Expect(err).To(Not(HaveOccurred()))
-					Expect(clientSet).To(Not(BeNil()))
 				})
 			})
 		})

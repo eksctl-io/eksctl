@@ -1,8 +1,9 @@
 package eks
 
 import (
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -15,7 +16,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -27,21 +27,20 @@ type Client struct {
 	rawConfig *restclient.Config
 }
 
-// NewClient creates a new client config, if withEmbeddedToken is true
-// it will embed the STS token, otherwise it will use authenticator exec plugin
-// and ensures that AWS_PROFILE environment variable gets set also
-func (c *ClusterProvider) NewClient(spec *api.ClusterConfig, withEmbeddedToken bool) (*Client, error) {
-	clientConfig, _, contextName := kubeconfig.New(spec, c.getUsername(), "")
+// NewClient creates a new client config by embedding the STS token
+func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
+	clientConfig, _, contextName := kubeconfig.New(spec, c.GetUsername(), "")
 
 	config := &Client{
 		Config:      clientConfig,
 		ContextName: contextName,
 	}
 
-	return config.new(spec, withEmbeddedToken, c.Provider.STS(), c.Provider.Profile())
+	return config.new(spec, c.Provider.STS())
 }
 
-func (c *ClusterProvider) getUsername() string {
+// GetUsername extracts the username part from the IAM role ARN
+func (c *ClusterProvider) GetUsername() string {
 	usernameParts := strings.Split(c.Status.iamRoleARN, "/")
 	if len(usernameParts) > 1 {
 		return usernameParts[len(usernameParts)-1]
@@ -49,13 +48,9 @@ func (c *ClusterProvider) getUsername() string {
 	return "iam-root-account"
 }
 
-func (c *Client) new(spec *api.ClusterConfig, withEmbeddedToken bool, stsClient stsiface.STSAPI, profile string) (*Client, error) {
-	if withEmbeddedToken {
-		if err := c.useEmbeddedToken(spec, stsClient); err != nil {
-			return nil, err
-		}
-	} else {
-		kubeconfig.AppendAuthenticator(c.Config, spec, utils.DetectAuthenticator(), profile)
+func (c *Client) new(spec *api.ClusterConfig, stsClient stsiface.STSAPI) (*Client, error) {
+	if err := c.useEmbeddedToken(spec, stsClient); err != nil {
+		return nil, err
 	}
 
 	rawConfig, err := clientcmd.NewDefaultClientConfig(*c.Config, &clientcmd.ConfigOverrides{}).ClientConfig()
@@ -102,7 +97,7 @@ func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.
 }
 
 func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
-	client, err := c.NewClient(spec, true)
+	client, err := c.NewClient(spec)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
 	}

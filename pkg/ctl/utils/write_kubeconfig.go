@@ -19,13 +19,14 @@ func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 
 	var (
 		outputPath           string
+		authenticatorRoleARN string
 		setContext, autoPath bool
 	)
 
 	rc.SetDescription("write-kubeconfig", "Write kubeconfig file for a given cluster", "")
 
 	rc.SetRunFuncWithNameArg(func() error {
-		return doWriteKubeconfigCmd(rc, outputPath, setContext, autoPath)
+		return doWriteKubeconfigCmd(rc, outputPath, authenticatorRoleARN, setContext, autoPath)
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -34,13 +35,13 @@ func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 	})
 
 	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForKubeconfig(fs, &outputPath, &setContext, &autoPath, "<name>")
+		cmdutils.AddCommonFlagsForKubeconfig(fs, &outputPath, &authenticatorRoleARN, &setContext, &autoPath, "<name>")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath string, setContext, autoPath bool) error {
+func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath, roleARN string, setContext, autoPath bool) error {
 	cfg := rc.ClusterConfig
 
 	ctl := eks.New(rc.ProviderConfig, cfg)
@@ -72,12 +73,8 @@ func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath string, setContex
 		return err
 	}
 
-	client, err := ctl.NewClient(cfg, false)
-	if err != nil {
-		return err
-	}
-
-	filename, err := kubeconfig.Write(outputPath, *client.Config, setContext)
+	kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), roleARN, ctl.Provider.Profile())
+	filename, err := kubeconfig.Write(outputPath, *kubectlConfig, setContext)
 	if err != nil {
 		return errors.Wrap(err, "writing kubeconfig")
 	}

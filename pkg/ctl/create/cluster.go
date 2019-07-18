@@ -20,11 +20,12 @@ import (
 )
 
 type createClusterCmdParams struct {
-	writeKubeconfig    bool
-	kubeconfigPath     string
-	autoKubeconfigPath bool
-	setContext         bool
-	availabilityZones  []string
+	writeKubeconfig      bool
+	kubeconfigPath       string
+	autoKubeconfigPath   bool
+	authenticatorRoleARN string
+	setContext           bool
+	availabilityZones    []string
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
@@ -81,7 +82,7 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 
 	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.kubeconfigPath, &params.setContext, &params.autoKubeconfigPath, exampleClusterName)
+		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.kubeconfigPath, &params.authenticatorRoleARN, &params.setContext, &params.autoKubeconfigPath, exampleClusterName)
 		fs.BoolVar(&params.writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	})
 }
@@ -304,13 +305,10 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		var kubeconfigContextName string
 
 		if params.writeKubeconfig {
-			client, err := ctl.NewClient(cfg, false)
-			if err != nil {
-				return err
-			}
-			kubeconfigContextName = client.ContextName
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.authenticatorRoleARN, ctl.Provider.Profile())
+			kubeconfigContextName = kubectlConfig.CurrentContext
 
-			params.kubeconfigPath, err = kubeconfig.Write(params.kubeconfigPath, *client.Config, params.setContext)
+			params.kubeconfigPath, err = kubeconfig.Write(params.kubeconfigPath, *kubectlConfig, params.setContext)
 			if err != nil {
 				return errors.Wrap(err, "writing kubeconfig")
 			}

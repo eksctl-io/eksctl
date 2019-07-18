@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 
 	"github.com/blang/semver"
@@ -59,8 +58,12 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 		return err
 	}
 
-	if err := checkAuthenticator(); err != nil {
-		return err
+	{
+		authenticator, found := kubeconfig.LookupAuthenticator()
+		if !found {
+			return fmt.Errorf("could not find any of the authenticator commands: %s", strings.Join(kubeconfig.AuthenticatorCommands(), ", "))
+		}
+		logger.Debug("found authenticator: %s", authenticator)
 	}
 
 	if kubeconfigPath != "" {
@@ -95,30 +98,4 @@ func CheckAllCommands(kubeconfigPath string, isContextSet bool, contextName stri
 	}
 
 	return nil
-}
-
-// checkAuthenticator checks if either of authenticator commands is in the path,
-// it returns an error when neither are found
-func checkAuthenticator() error {
-	for _, cmd := range kubeconfig.AuthenticatorCommands() {
-		path, err := exec.LookPath(cmd)
-		if err == nil {
-			// command was found
-			logger.Debug("%s: %q", cmd, path)
-			return nil
-		}
-	}
-	return fmt.Errorf("neither aws-iam-authenticator nor heptio-authenticator-aws are installed")
-}
-
-// DetectAuthenticator finds the authenticator command, it defaults to legacy
-// command when neither are found
-func DetectAuthenticator() string {
-	for _, bin := range kubeconfig.AuthenticatorCommands() {
-		_, err := exec.LookPath(bin)
-		if err == nil {
-			return bin
-		}
-	}
-	return kubeconfig.AWSIAMAuthenticator
 }
