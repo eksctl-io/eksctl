@@ -277,7 +277,7 @@ func describeClassicLoadBalancer(ctx context.Context, elbAPI elbiface.ELBAPI,
 	response, err := elbAPI.DescribeLoadBalancersWithContext(ctx, request)
 	if err != nil {
 		if awsError, ok := err.(awserr.Error); ok {
-			if awsError.Code() == "LoadBalancerNotFound" {
+			if awsError.Code() == elb.ErrCodeAccessPointNotFoundException {
 				return nil, nil
 			}
 		}
