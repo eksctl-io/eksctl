@@ -14,7 +14,7 @@ import (
 var _ = Describe("default addons", func() {
 	Describe("can load a set of resources and create a fake client", func() {
 		It("can create the fake client and verify objects get loaded client", func() {
-			clientSet, _ := testutils.NewFakeClientSetWithSamples("testdata/sample-1.10.json")
+			clientSet, _ := testutils.NewFakeClientSetWithSamples("testdata/sample-1.12.json")
 
 			nsl, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -23,7 +23,7 @@ var _ = Describe("default addons", func() {
 			dl, err := clientSet.AppsV1().Deployments(metav1.NamespaceAll).List(metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(dl.Items).To(HaveLen(1))
-			Expect(dl.Items[0].Spec.Template.Spec.Containers).To(HaveLen(3))
+			Expect(dl.Items[0].Spec.Template.Spec.Containers).To(HaveLen(1))
 
 			kubeProxy, err := clientSet.AppsV1().DaemonSets(metav1.NamespaceSystem).Get(KubeProxy, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
