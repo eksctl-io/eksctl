@@ -10,15 +10,6 @@ import (
 // ImageSearchPatterns is a map of image search patterns by
 // image OS family and by class
 var ImageSearchPatterns = map[string]map[string]map[int]string{
-	"1.10": {
-		ImageFamilyAmazonLinux2: {
-			ImageClassGeneral: "amazon-eks-node-1.10-v*",
-			ImageClassGPU:     "amazon-eks-gpu-node-1.10-*",
-		},
-		ImageFamilyUbuntu1804: {
-			ImageClassGeneral: "ubuntu-eks/k8s_1.10/images/*",
-		},
-	},
 	"1.11": {
 		ImageFamilyAmazonLinux2: {
 			ImageClassGeneral: "amazon-eks-node-1.11-v*",

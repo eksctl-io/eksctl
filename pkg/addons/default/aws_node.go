@@ -34,11 +34,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region, controlPlane
 	}
 
 	// if DaemonSets is present, go through our list of assets
-	assetName := AWSNode
-	if strings.HasPrefix(controlPlaneVersion, "1.10.") {
-		assetName += "-1.10"
-	}
-	list, err := LoadAsset(assetName, "yaml")
+	list, err := LoadAsset(AWSNode, "yaml")
 	if err != nil {
 		return false, err
 	}

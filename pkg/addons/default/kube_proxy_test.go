@@ -25,28 +25,28 @@ var _ = Describe("default addons - kube-proxy", func() {
 			Expect(kubeProxy.Spec.Template.Spec.Containers).To(HaveLen(1))
 
 			Expect(kubeProxy.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.eu-west-2.amazonaws.com/eks/kube-proxy:" + imageTag),
+				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:" + imageTag),
 			)
 		}
 
 		BeforeEach(func() {
-			clientSet, _ = testutils.NewFakeClientSetWithSamples("testdata/sample-1.10.json")
+			clientSet, _ = testutils.NewFakeClientSetWithSamples("testdata/sample-1.12.json")
 		})
 
-		It("can load 1.10 sample", func() {
-			check("v1.10.3")
+		It("can load 1.12 sample", func() {
+			check("v1.12.6")
 		})
 
 		It("can update based on control plane version", func() {
-			_, err := UpdateKubeProxyImageTag(clientSet, "1.11.0", false)
+			_, err := UpdateKubeProxyImageTag(clientSet, "1.13.0", false)
 			Expect(err).ToNot(HaveOccurred())
-			check("v1.11.0")
+			check("v1.13.0")
 		})
 
 		It("can dry-run update based on control plane version", func() {
-			_, err := UpdateKubeProxyImageTag(clientSet, "1.12.1", true)
+			_, err := UpdateKubeProxyImageTag(clientSet, "1.13.1", true)
 			Expect(err).ToNot(HaveOccurred())
-			check("v1.10.3")
+			check("v1.12.6")
 		})
 	})
 })

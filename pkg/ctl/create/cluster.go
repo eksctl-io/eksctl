@@ -29,7 +29,6 @@ type createClusterCmdParams struct {
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
-	addonsStorageClass    bool
 	withoutNodeGroup      bool
 }
 
@@ -66,7 +65,6 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 
 	rc.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
-		fs.BoolVar(&params.addonsStorageClass, "storage-class", true, "if true (default) then a default StorageClass of type gp2 provisioned by EBS will be created")
 	})
 
 	rc.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
@@ -348,18 +346,6 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		})
 		if err != nil {
 			return err
-		}
-
-		// add default storage class only for version 1.10 clusters
-		if meta.Version == "1.10" {
-			// --storage-class flag is only for backwards compatibility,
-			// we always create the storage class when --config-file is
-			// used, as this is 1.10-only
-			if params.addonsStorageClass || rc.ClusterConfigFile != "" {
-				if err = ctl.AddDefaultStorageClass(clientSet); err != nil {
-					return err
-				}
-			}
 		}
 
 		// check kubectl version, and offer install instructions if missing or old

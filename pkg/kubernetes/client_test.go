@@ -15,7 +15,7 @@ import (
 var _ = Describe("kubernets client wrappers", func() {
 	Describe("can create or replace missing objects", func() {
 		It("can update objects that already exist", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.10.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -27,13 +27,13 @@ var _ = Describe("kubernets client wrappers", func() {
 			}
 
 			Expect(ct.Updated()).ToNot(BeEmpty())
-			Expect(ct.UpdatedItems()).To(HaveLen(6))
+			Expect(ct.UpdatedItems()).To(HaveLen(10))
 			Expect(ct.Created()).To(BeEmpty())
 			Expect(ct.CreatedItems()).To(BeEmpty())
 		})
 
 		It("can create objects that don't exist yet", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.10.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -45,13 +45,13 @@ var _ = Describe("kubernets client wrappers", func() {
 			}
 
 			Expect(ct.Created()).ToNot(BeEmpty())
-			Expect(ct.CreatedItems()).To(HaveLen(6))
+			Expect(ct.CreatedItems()).To(HaveLen(10))
 			Expect(ct.Updated()).To(BeEmpty())
 			Expect(ct.UpdatedItems()).To(BeEmpty())
 		})
 
 		It("can update objects that already exist", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.10.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -63,13 +63,13 @@ var _ = Describe("kubernets client wrappers", func() {
 			}
 
 			Expect(ct.Updated()).ToNot(BeEmpty())
-			Expect(ct.UpdatedItems()).To(HaveLen(6))
+			Expect(ct.UpdatedItems()).To(HaveLen(10))
 			Expect(ct.Created()).To(BeEmpty())
 			Expect(ct.CreatedItems()).To(BeEmpty())
 		})
 
 		It("can create objects and update objects in a union", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.10.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
 
 			rawClient := testutils.NewFakeRawClient()
 
@@ -85,7 +85,7 @@ var _ = Describe("kubernets client wrappers", func() {
 			ct := rawClient.Collection
 
 			Expect(ct.Created()).ToNot(BeEmpty())
-			Expect(ct.CreatedItems()).To(HaveLen(6))
+			Expect(ct.CreatedItems()).To(HaveLen(10))
 			Expect(ct.Updated()).To(BeEmpty())
 			Expect(ct.UpdatedItems()).To(BeEmpty())
 
@@ -97,7 +97,7 @@ var _ = Describe("kubernets client wrappers", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.eu-west-2.amazonaws.com/amazon-k8s-cni:v1.3.2"),
+				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.4.1"),
 			)
 
 			saTest1 := &corev1.ServiceAccount{
@@ -142,7 +142,7 @@ var _ = Describe("kubernets client wrappers", func() {
 			}
 
 			Expect(ct.Created()).ToNot(BeEmpty())
-			Expect(ct.CreatedItems()).To(HaveLen(6 + 2))
+			Expect(ct.CreatedItems()).To(HaveLen(10 + 2))
 			Expect(ct.UpdatedItems()).ToNot(BeEmpty())
 			Expect(ct.UpdatedItems()).To(HaveLen(1))
 

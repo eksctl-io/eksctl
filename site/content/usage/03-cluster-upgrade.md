@@ -12,7 +12,7 @@ An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 2. update default add-ons:
     - `kube-proxy`
     - `aws-node`
-    - `kube-dns` or `coredns`
+    - `coredns`
 3. replace each of the nodegroups by creating a new one and deleting the old one
 
 Please make sure to read this section in full before you proceed.
@@ -133,14 +133,7 @@ To update `aws-node`, run:
 eksctl utils update-aws-node
 ```
 
-If you have upgraded from 1.10 to 1.11, you will need to replace `kube-dns` with `coredns`.
-To do that, run:
-
-```
-eksctl utils install-coredns
-```
-
-If you have upgraded from 1.11 to 1.12, run:
+To update `corends`, run:
 
 ```
 eksctl utils update-coredns
