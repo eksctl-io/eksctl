@@ -6,21 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/utils"
-
-	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
-
-	"github.com/weaveworks/eksctl/pkg/ami"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/az"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	"github.com/weaveworks/eksctl/pkg/version"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/yaml"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -35,10 +20,26 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
+	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/aws/aws-sdk-go/service/elb/elbiface"
+	"github.com/aws/aws-sdk-go/service/elbv2"
+	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/yaml"
+
+	"github.com/weaveworks/eksctl/pkg/ami"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/az"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/utils"
+	"github.com/weaveworks/eksctl/pkg/version"
 )
 
 // ClusterProvider stores information about the cluster
@@ -51,12 +52,14 @@ type ClusterProvider struct {
 
 // ProviderServices stores the used APIs
 type ProviderServices struct {
-	spec *api.ProviderConfig
-	cfn  cloudformationiface.CloudFormationAPI
-	eks  eksiface.EKSAPI
-	ec2  ec2iface.EC2API
-	sts  stsiface.STSAPI
-	iam  iamiface.IAMAPI
+	spec  *api.ProviderConfig
+	cfn   cloudformationiface.CloudFormationAPI
+	eks   eksiface.EKSAPI
+	ec2   ec2iface.EC2API
+	elb   elbiface.ELBAPI
+	elbv2 elbv2iface.ELBV2API
+	sts   stsiface.STSAPI
+	iam   iamiface.IAMAPI
 
 	cloudtrail cloudtrailiface.CloudTrailAPI
 }
@@ -72,6 +75,12 @@ func (p ProviderServices) EKS() eksiface.EKSAPI { return p.eks }
 
 // EC2 returns a representation of the EC2 API
 func (p ProviderServices) EC2() ec2iface.EC2API { return p.ec2 }
+
+// ELB returns a representation of the ELB API
+func (p ProviderServices) ELB() elbiface.ELBAPI { return p.elb }
+
+// ELBV2 returns a representation of the ELBV2 API
+func (p ProviderServices) ELBV2() elbv2iface.ELBV2API { return p.elbv2 }
 
 // STS returns a representation of the STS API
 func (p ProviderServices) STS() stsiface.STSAPI { return p.sts }
@@ -113,6 +122,8 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	provider.cfn = cloudformation.New(s)
 	provider.eks = awseks.New(s)
 	provider.ec2 = ec2.New(s)
+	provider.elb = elb.New(s)
+	provider.elbv2 = elbv2.New(s)
 	provider.sts = sts.New(s,
 		// STS retrier has to be disabled, as it's not very helpful
 		// (see https://github.com/weaveworks/eksctl/issues/705)
@@ -141,6 +152,16 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 	if endpoint, ok := os.LookupEnv("AWS_EC2_ENDPOINT"); ok {
 		logger.Debug("Setting EC2 endpoint to %s", endpoint)
 		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
+
+	}
+	if endpoint, ok := os.LookupEnv("AWS_ELB_ENDPOINT"); ok {
+		logger.Debug("Setting ELB endpoint to %s", endpoint)
+		provider.elb = elb.New(s, s.Config.Copy().WithEndpoint(endpoint))
+
+	}
+	if endpoint, ok := os.LookupEnv("AWS_ELBV2_ENDPOINT"); ok {
+		logger.Debug("Setting ELBV2 endpoint to %s", endpoint)
+		provider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 
 	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
