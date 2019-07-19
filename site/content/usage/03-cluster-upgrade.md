@@ -133,13 +133,7 @@ To update `aws-node`, run:
 eksctl utils update-aws-node
 ```
 
-If you have upgraded from 1.10 to 1.11, run:
-
-```
-eksctl utils update-coredns
-```
-
-If you have upgraded from 1.11 to 1.12, run:
+To update `corends`, run:
 
 ```
 eksctl utils update-coredns
