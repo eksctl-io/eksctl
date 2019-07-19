@@ -17,11 +17,11 @@ import (
 	"github.com/kris-nova/logger"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/cloudprovider"
 	awsprovider "k8s.io/kubernetes/pkg/cloudprovider/providers/aws"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 const (
@@ -30,22 +30,18 @@ const (
 )
 
 type loadBalancer struct {
+	name                  string
 	kind                  int
 	ownedSecurityGroupIDs map[string]struct{}
 }
 
 // Cleanup finds and deletes any dangling ELBs associated to a Kubernetes Service
 func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API,
-	client *eks.Client, clusterConfig *api.ClusterConfig) error {
+	kubernetesCS *kubernetes.Clientset, clusterConfig *api.ClusterConfig) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("not context deadline set in call to elb.Cleanup()")
-	}
-
-	kubernetesCS, err := client.NewClientSet()
-	if err != nil {
-		return err
+		return fmt.Errorf("no context deadline set in call to elb.Cleanup()")
 	}
 	services, err := kubernetesCS.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
@@ -55,57 +51,34 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	// Delete Services of type 'LoadBalancer', collecting their ELBs to wait for them to be deleted later on
 	loadBalancers := map[string]loadBalancer{}
 	for _, s := range services.Items {
-		if s.Spec.Type == corev1.ServiceTypeLoadBalancer {
-			name := cloudprovider.DefaultLoadBalancerName(&s)
-			kind := getLoadBalancerKind(&s)
-			ctx, cleanup := context.WithTimeout(context.Background(), 30*time.Second)
-			securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI,
-				clusterConfig.Metadata.Name, name, kind)
-			cleanup()
-			if err != nil {
-				return err
-			}
-			lb := loadBalancer{
-				kind:                  kind,
-				ownedSecurityGroupIDs: securityGroupIDs,
-			}
-			logger.Debug("Tracking deletion of Load Balancer %s of kind %d with security groups %v",
-				name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs))
-			loadBalancers[name] = lb
-			logger.Debug("Deleting 'type: LoadBalancer' service %s/%s", s.Namespace, s.Name)
-			err = kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{})
-			if err != nil {
-				return err
-			}
+		lb, err := getServiceLoadBalancer(ctx, ec2API, elbAPI, clusterConfig.Metadata.Name, &s)
+		if err != nil {
+			return err
+		}
+		if lb == nil {
+			continue
+		}
+		logger.Debug("tracking deletion of Load Balancer %s of kind %d with security groups %v",
+			lb.name, lb.kind, convertStringSetToSlice(lb.ownedSecurityGroupIDs))
+		loadBalancers[lb.name] = *lb
+		logger.Debug("deleting 'type: LoadBalancer' service %s/%s", s.Namespace, s.Name)
+		if err := kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{}); err != nil {
+			return err
 		}
 	}
 
-	// Wait for all the load balancers backing the LoadBalancer services to disappear, for a maximum of 10 minutes
+	// Wait for all the load balancers backing the LoadBalancer services to disappear
 	pollInterval := 1 * time.Second
 	for ; time.Now().Before(deadline) && len(loadBalancers) > 0; time.Sleep(pollInterval) {
 		for name, lb := range loadBalancers {
-			exists, err := loadBalancerExists(ctx, elbAPI, elbv2API, name, lb.kind)
+			exists, err := loadBalancerExists(ctx, ec2API, elbAPI, elbv2API, lb)
 			if err != nil {
-				logger.Warning("error when checking status of load balancer %s: %s", name, err)
-				continue
+				logger.Warning("error when checking existence of load balancer %s: %s", lb.name, err)
 			}
 			if exists {
 				continue
 			}
-
-			// Check whether all the security groups owned by the load balancer have also been deleted
-			// (they are deleted after the load balancer)
-			time.Sleep(pollInterval)
-			sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, convertStringSetToSlice(lb.ownedSecurityGroupIDs))
-			if err != nil {
-				logger.Warning("error when checking status of the security groups of load balancer %s: %s", name, err)
-				continue
-			}
-			if len(sgResponse.SecurityGroups) != 0 {
-				continue
-			}
-
-			logger.Debug("Load balancer %s and its security groups were deleted by the cloud provider", name)
+			logger.Debug("load balancer %s and its security groups were deleted by the cloud provider", name)
 			// The load balancer and its security groups have been deleted
 			delete(loadBalancers, name)
 		}
@@ -114,10 +87,31 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	if len(loadBalancers) > 0 {
 		return fmt.Errorf("deadline surpased waiting for load balancers to be deleted")
 	}
-	logger.Debug("Deleting Load Balancer Security Group orphans")
-	// Needed due to https://github.com/kubernetes/kubernetes/issues/79994 and because we could have started the service
-	// deletion when a service didn't finish its creation
+	logger.Debug("deleting Load Balancer Security Group orphans")
+	// Orphan security-group deletion is needed due to https://github.com/kubernetes/kubernetes/issues/79994
+	// and because we could have started the service deletion when a service didn't finish its creation
 	return deleteOrphanLoadBalancerSecurityGroups(ctx, ec2API, clusterConfig)
+}
+
+func getServiceLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, clusterName string,
+	service *corev1.Service) (*loadBalancer, error) {
+	if service.Spec.Type != corev1.ServiceTypeLoadBalancer {
+		return nil, nil
+	}
+	name := cloudprovider.DefaultLoadBalancerName(service)
+	kind := getLoadBalancerKind(service)
+	ctx, cleanup := context.WithTimeout(context.Background(), 30*time.Second)
+	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, clusterName, name, kind)
+	cleanup()
+	if err != nil {
+		return nil, err
+	}
+	lb := loadBalancer{
+		name:                  name,
+		kind:                  kind,
+		ownedSecurityGroupIDs: securityGroupIDs,
+	}
+	return &lb, nil
 }
 
 func convertStringSetToSlice(set map[string]struct{}) []string {
@@ -147,7 +141,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API ec2iface
 			if !strings.HasPrefix(*sg.GroupName, "k8s-elb-") {
 				continue
 			}
-			logger.Debug("Deleting orphan Load Balancer security group %s with description %q",
+			logger.Debug("deleting orphan Load Balancer security group %s with description %q",
 				aws.StringValue(sg.GroupId), aws.StringValue(sg.Description))
 			input := &ec2.DeleteSecurityGroupInput{
 				GroupId: sg.GroupId,
@@ -214,8 +208,10 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 	for _, sg := range sgResponse.SecurityGroups {
 		sgID := aws.StringValue(sg.GroupId)
 
-		// FIXME(fons): AWS' CloudConfig  accepts a global ELB security group, which shouldn't be deleted.
+		// FIXME(fons): AWS' CloudConfig accepts a global ELB security group, which shouldn't be deleted.
 		//              However, there doesn't seem to be a way to access the CloudConfiguration through the API Server.
+		//              Regardless, EKS doesn't expose the CloudConfiguration at the time of writing (which in
+		//              turn doesn't allow setting the ELB security group).
 		// if sgID == cfg.Global.ElbSecurityGroup {
 		//	//We don't want to delete a security group that was defined in the Cloud Configuration.
 		//	continue
@@ -244,7 +240,25 @@ func getLoadBalancerKind(service *corev1.Service) int {
 	return loadBalancerKindClassic
 }
 
-func loadBalancerExists(ctx context.Context, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API,
+func loadBalancerExists(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API, lb loadBalancer) (bool, error) {
+	exists, err := elbExists(ctx, elbAPI, elbv2API, lb.name, lb.kind)
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		return true, nil
+	}
+
+	// Check whether all the security groups owned by the load balancer have also been deleted
+	// (they are deleted after the load balancer)
+	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, convertStringSetToSlice(lb.ownedSecurityGroupIDs))
+	if err != nil {
+		return false, err
+	}
+	return len(sgResponse.SecurityGroups) != 0, nil
+}
+
+func elbExists(ctx context.Context, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API,
 	name string, kind int) (bool, error) {
 	if kind == loadBalancerKindNetwork {
 		return elbV2Exists(ctx, elbv2API, name)
@@ -271,11 +285,12 @@ func describeClassicLoadBalancer(ctx context.Context, elbAPI elbiface.ELBAPI,
 	}
 
 	var ret *elb.LoadBalancerDescription
-	for _, loadBalancer := range response.LoadBalancerDescriptions {
-		if ret != nil {
-			logger.Warning("found multiple load balancers with name: %s", name)
-		}
-		ret = loadBalancer
+	switch {
+	case len(response.LoadBalancerDescriptions) > 1:
+		logger.Warning("found multiple load balancers with name: %s", name)
+		fallthrough
+	case len(response.LoadBalancerDescriptions) > 0:
+		ret = response.LoadBalancerDescriptions[0]
 	}
 	return ret, nil
 }

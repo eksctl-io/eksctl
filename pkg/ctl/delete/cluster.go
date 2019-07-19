@@ -111,13 +111,13 @@ func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
 		if err := ctl.GetCredentials(cfg); err != nil {
 			return err
 		}
-		client, err := ctl.NewClient(cfg, false)
+		cs, err := ctl.NewStdClientSet(cfg)
 		if err != nil {
 			return err
 		}
 		ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cleanup()
-		if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), client, cfg); err != nil {
+		if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), cs, cfg); err != nil {
 			return err
 		}
 
