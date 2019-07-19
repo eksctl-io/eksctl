@@ -12,7 +12,7 @@ An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 2. update default add-ons:
     - `kube-proxy`
     - `aws-node`
-    - `kube-dns` or `coredns`
+    - `coredns`
 3. replace each of the nodegroups by creating a new one and deleting the old one
 
 Please make sure to read this section in full before you proceed.
