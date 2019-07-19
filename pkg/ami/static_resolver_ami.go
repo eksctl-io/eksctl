@@ -4,58 +4,6 @@ package ami
 
 // StaticImages is a map that holds the list of AMIs to be used by for static resolution
 var StaticImages = map[string]map[string]map[int]map[string]string{
-	"1.10": {
-		"AmazonLinux2": {
-			ImageClassGPU: {
-				"ap-northeast-1": "ami-00f64026212ad62c0",
-				"ap-northeast-2": "ami-060b7aed71dfaa5f5",
-				"ap-south-1":     "ami-0ea42cc96a8375851",
-				"ap-southeast-1": "ami-029b65710f075da3d",
-				"ap-southeast-2": "ami-0f13220d49a34e787",
-				"ca-central-1":   "ami-08acd6c4aadc301cc",
-				"eu-central-1":   "ami-08d32cef88aa48343",
-				"eu-north-1":     "ami-0d1ee923abbb8cf6c",
-				"eu-west-1":      "ami-058a8eec818dc3910",
-				"eu-west-2":      "ami-0cd6f7f1f7ceedc27",
-				"eu-west-3":      "ami-01e3c54f23b6b02b3",
-				"us-east-1":      "ami-0f1b9925c9ace2043",
-				"us-east-2":      "ami-006382264ad5fc773",
-				"us-west-2":      "ami-0c3c59a4a7bea5678",
-			},
-			ImageClassGeneral: {
-				"ap-northeast-1": "ami-02ffa4511b4baa5fa",
-				"ap-northeast-2": "ami-06295f3e6390dae00",
-				"ap-south-1":     "ami-04c2ed5ff15a580f4",
-				"ap-southeast-1": "ami-07f8ccb046b3ce697",
-				"ap-southeast-2": "ami-03ebcd449b224e0a3",
-				"ca-central-1":   "ami-0318d606b6a6c38ef",
-				"eu-central-1":   "ami-0c40973ffcf8bca40",
-				"eu-north-1":     "ami-028df8ba9b8603bdd",
-				"eu-west-1":      "ami-06a96b4cfd627430b",
-				"eu-west-2":      "ami-03356e704fb004162",
-				"eu-west-3":      "ami-0eb77a4ca7135122b",
-				"us-east-1":      "ami-01c1c96b9aa69de37",
-				"us-east-2":      "ami-0523ec257fff1261d",
-				"us-west-2":      "ami-021dd1fb7ba7e6e51",
-			},
-		},
-		"Ubuntu1804": {ImageClassGeneral: {
-			"ap-northeast-1": "ami-0802c68e79d9e377d",
-			"ap-northeast-2": "ami-02895a902393d64ed",
-			"ap-south-1":     "ami-06716a90894333227",
-			"ap-southeast-1": "ami-08b0c39523f52495a",
-			"ap-southeast-2": "ami-039d74cdd29a4de1a",
-			"ca-central-1":   "ami-062fd2f5e53da1590",
-			"eu-central-1":   "ami-03f01e67d5a0f47d8",
-			"eu-north-1":     "ami-2cd55e52",
-			"eu-west-1":      "ami-0cb74e856bb42d19a",
-			"eu-west-2":      "ami-04b12d6bdc4dece5f",
-			"eu-west-3":      "ami-03c39bc1985346dff",
-			"us-east-1":      "ami-0471ad1d407d24ddb",
-			"us-east-2":      "ami-01bb069ab63b48724",
-			"us-west-2":      "ami-009188694d7411c64",
-		}},
-	},
 	"1.11": {
 		"AmazonLinux2": {
 			ImageClassGPU: {

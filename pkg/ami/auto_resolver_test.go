@@ -46,7 +46,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 		Context("with a valid region and N instance type", func() {
 			BeforeEach(func() {
 				region = "eu-west-1"
-				version = "1.10"
+				version = "1.12"
 				expectedAmi = "ami-12345"
 			})
 
@@ -61,7 +61,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "available"
 
 						_, p = createProviders()
-						addMockDescribeImages(p, "amazon-eks-node-1.10-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyAmazonLinux2")
+						addMockDescribeImages(p, "amazon-eks-node-1.12-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyAmazonLinux2")
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -86,7 +86,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageFamily = "Ubuntu1804"
 
 						_, p = createProviders()
-						addMockDescribeImages(p, "ubuntu-eks/k8s_1.10/images/*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyUbuntu1804")
+						addMockDescribeImages(p, "ubuntu-eks/k8s_1.12/images/*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyUbuntu1804")
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -110,7 +110,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "pending"
 
 						_, p = createProviders()
-						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.10-v*", []returnAmi{})
+						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.12-v*", []returnAmi{})
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -148,7 +148,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 							},
 						}
 
-						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.10-v*", images)
+						addMockDescribeImagesMultiple(p, "amazon-eks-node-1.12-v*", images)
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -178,7 +178,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "available"
 
 						_, p = createProviders()
-						addMockDescribeImages(p, "amazon-eks-gpu-node-1.10-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyAmazonLinux2")
+						addMockDescribeImages(p, "amazon-eks-gpu-node-1.12-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyAmazonLinux2")
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
