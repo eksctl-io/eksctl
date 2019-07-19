@@ -68,7 +68,7 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	}
 
 	// Wait for all the load balancers backing the LoadBalancer services to disappear
-	pollInterval := 1 * time.Second
+	pollInterval := 2 * time.Second
 	for ; time.Now().Before(deadline) && len(loadBalancers) > 0; time.Sleep(pollInterval) {
 		for name, lb := range loadBalancers {
 			exists, err := loadBalancerExists(ctx, ec2API, elbAPI, elbv2API, lb)
