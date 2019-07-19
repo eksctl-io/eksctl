@@ -353,6 +353,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.VolumeIOPS != nil {
+		in, out := &in.VolumeIOPS, &out.VolumeIOPS
+		*out = new(int)
+		**out = **in
+	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
 		*out = make(map[string]string, len(*in))
