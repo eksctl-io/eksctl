@@ -133,11 +133,10 @@ To update `aws-node`, run:
 eksctl utils update-aws-node
 ```
 
-If you have upgraded from 1.10 to 1.11, you will need to replace `kube-dns` with `coredns`.
-To do that, run:
+If you have upgraded from 1.10 to 1.11, run:
 
 ```
-eksctl utils install-coredns
+eksctl utils update-coredns
 ```
 
 If you have upgraded from 1.11 to 1.12, run:
