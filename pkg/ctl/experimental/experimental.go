@@ -10,7 +10,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	verbCmd := cmdutils.NewVerbCmd("experimental", "Various commands that are currently experimental",
 		"WARNING: In any release these commands may get removed, renamed or their behaviour may change significantly")
 
-	// cmdutils.AddResourceCmd(flagGrouping, verbCmd, fn)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, exportTemplatesCmd)
 
 	return verbCmd
 }

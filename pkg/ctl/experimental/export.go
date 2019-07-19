@@ -1,4 +1,4 @@
-package utils
+package experimental
 
 import (
 	"bufio"
@@ -24,12 +24,13 @@ var (
 	output           string
 )
 
-func exportCmd(rc *cmdutils.ResourceCmd) {
+func exportTemplatesCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 	rc.ClusterConfig = cfg
 
-	rc.SetDescription("export", "Export CloudFormation stacks for a given cluster", "")
+	rc.SetDescription("export-templates", "Export CloudFormation templates",
+		"Generate and write CloudFormation templates to disk")
 
 	rc.SetRunFuncWithNameArg(func() error {
 		return doExport(rc)
