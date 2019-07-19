@@ -154,6 +154,16 @@ func New(spec *api.ProviderConfig, clusterSpec *api.ClusterConfig) *ClusterProvi
 		provider.ec2 = ec2.New(s, s.Config.Copy().WithEndpoint(endpoint))
 
 	}
+	if endpoint, ok := os.LookupEnv("AWS_ELB_ENDPOINT"); ok {
+		logger.Debug("Setting ELB endpoint to %s", endpoint)
+		provider.elb = elb.New(s, s.Config.Copy().WithEndpoint(endpoint))
+
+	}
+	if endpoint, ok := os.LookupEnv("AWS_ELBV2_ENDPOINT"); ok {
+		logger.Debug("Setting ELBV2 endpoint to %s", endpoint)
+		provider.elbv2 = elbv2.New(s, s.Config.Copy().WithEndpoint(endpoint))
+
+	}
 	if endpoint, ok := os.LookupEnv("AWS_STS_ENDPOINT"); ok {
 		logger.Debug("Setting STS endpoint to %s", endpoint)
 		provider.sts = sts.New(s, s.Config.Copy().WithEndpoint(endpoint))
