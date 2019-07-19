@@ -215,6 +215,8 @@ NodeGroup:
       type: array
     volumeEncrypted:
       type: boolean
+    volumeIOPS:
+      type: integer
     volumeKmsKeyID:
       type: string
     volumeName:
@@ -228,6 +230,7 @@ NodeGroup:
   - privateNetworking
   - volumeSize
   - volumeType
+  - volumeIOPS
   - ssh
   - iam
   type: object
