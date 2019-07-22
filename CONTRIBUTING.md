@@ -172,7 +172,7 @@ This allows the message to be easier to read on GitHub as well as in various git
 
 ### Notes on Integration Tests
 
-It's recommened to run containerised tests with `make integration-test-container TEST_V=1`. The tests require access to an AWS account. If there is an issue with access (e.g. expired MFA token), you will see all tests failing (albeit the error message may be slightly unclear).
+It's recommended to run containerised tests with `make integration-test-container TEST_V=1`. The tests require access to an AWS account. If there is an issue with access (e.g. expired MFA token), you will see all tests failing (albeit the error message may be slightly unclear).
 
 At present we ignore flaky tests, so if you see output like show below, you don't need to worry about this for the purpose of the release. However, you might consider reviewing the issues in question after you made the release.
 
