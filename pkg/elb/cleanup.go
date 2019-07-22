@@ -2,6 +2,7 @@ package elb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/kris-nova/logger"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/cloudprovider"
@@ -45,7 +47,11 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	}
 	services, err := kubernetesCS.CoreV1().Services(metav1.NamespaceAll).List(metav1.ListOptions{})
 	if err != nil {
-		return err
+		errStr := fmt.Sprintf("cannot list Kubernetes Services: %s", err)
+		if k8serrors.IsForbidden(err) {
+			errStr = fmt.Sprintf("%s (deleting a cluster requires permission to list Kubernetes services)", errStr)
+		}
+		return errors.New(errStr)
 	}
 
 	// Delete Services of type 'LoadBalancer', collecting their ELBs to wait for them to be deleted later on
@@ -53,7 +59,8 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	for _, s := range services.Items {
 		lb, err := getServiceLoadBalancer(ctx, ec2API, elbAPI, clusterConfig.Metadata.Name, &s)
 		if err != nil {
-			return err
+			return fmt.Errorf("cannot obtain information for ELB %s from LoadBalancer service %s/%s: %s",
+				cloudprovider.DefaultLoadBalancerName(&s), s.Namespace, s.Name, err)
 		}
 		if lb == nil {
 			continue
@@ -63,7 +70,11 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 		loadBalancers[lb.name] = *lb
 		logger.Debug("deleting 'type: LoadBalancer' service %s/%s", s.Namespace, s.Name)
 		if err := kubernetesCS.CoreV1().Services(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{}); err != nil {
-			return err
+			errStr := fmt.Sprintf("cannot delete Kubernetes Service %s/%s: %s", s.Namespace, s.Name, err)
+			if k8serrors.IsForbidden(err) {
+				errStr = fmt.Sprintf("%s (deleting a cluster requires permission to delete Kubernetes services)", errStr)
+			}
+			return errors.New(errStr)
 		}
 	}
 
@@ -90,7 +101,10 @@ func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI
 	logger.Debug("deleting Load Balancer Security Group orphans")
 	// Orphan security-group deletion is needed due to https://github.com/kubernetes/kubernetes/issues/79994
 	// and because we could have started the service deletion when a service didn't finish its creation
-	return deleteOrphanLoadBalancerSecurityGroups(ctx, ec2API, clusterConfig)
+	if err := deleteOrphanLoadBalancerSecurityGroups(ctx, ec2API, clusterConfig); err != nil {
+		return fmt.Errorf("cannot delete orphan ELB Security Groups: %s", err)
+	}
+	return nil
 }
 
 func getServiceLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, clusterName string,
@@ -104,7 +118,7 @@ func getServiceLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI 
 	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, clusterName, name, kind)
 	cleanup()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot obtain security groups for ELB %s: %s", name, err)
 	}
 	lb := loadBalancer{
 		name:                  name,
@@ -135,7 +149,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API ec2iface
 	for {
 		result, err := ec2API.DescribeSecurityGroupsWithContext(ctx, describeRequest)
 		if err != nil {
-			return err
+			return fmt.Errorf("cannot describe security groups: %s", err)
 		}
 		for _, sg := range result.SecurityGroups {
 			if !strings.HasPrefix(*sg.GroupName, "k8s-elb-") {
@@ -147,7 +161,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API ec2iface
 				GroupId: sg.GroupId,
 			}
 			if _, err := ec2API.DeleteSecurityGroupWithContext(ctx, input); err != nil {
-				return err
+				return fmt.Errorf("cannot delete security group %s: %s", *sg.GroupName, err)
 			}
 		}
 		if result.NextToken == nil {
@@ -190,7 +204,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 
 	lb, err := describeClassicLoadBalancer(ctx, elbAPI, loadBalancerName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot describe ELB: %s", err)
 	}
 	if lb == nil {
 		// The load balancer wasn't found
@@ -200,7 +214,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 	sgResponse, err := describeSecurityGroupsByID(ctx, ec2API, aws.StringValueSlice(lb.SecurityGroups))
 
 	if err != nil {
-		return nil, fmt.Errorf("error querying security groups for ELB %s: %s", loadBalancerName, err)
+		return nil, fmt.Errorf("error obtaining security groups for ELB: %s", err)
 	}
 
 	result := map[string]struct{}{}
