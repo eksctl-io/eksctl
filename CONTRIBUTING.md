@@ -162,10 +162,10 @@ This allows the message to be easier to read on GitHub as well as in various git
 
 ## Release Process
 
-1. Ensure integration tests pass (see below)
-2. Determine next release tag (e.g. `0.1.35`)
-3. Create release notes file for the given tag – `docs/release_notes/<tag>.md` (e.g. `docs/release_notes/0.1.35.md`)
-4. Run `./tag-release-candidate.sh <tag>-rc.<N>` or `./tag-release.sh <tag>` (e.g. `./tag-release-candidate.sh 0.1.35-rc.0` or `./tag-release.sh 0.1.35`)
+1. Ensure integration tests pass (see below).
+2. Determine next release tag (e.g. `0.1.35`).
+3. Create release notes file for the given tag – `docs/release_notes/<tag>.md` (e.g. `docs/release_notes/0.1.35.md`).
+4. Run `./tag-release-candidate.sh <tag>-rc.<N>` or `./tag-release.sh <tag>` (e.g. `./tag-release-candidate.sh 0.1.35-rc.0` or `./tag-release.sh 0.1.35`).
 5. Ensure release jobs succeeded in [CircleCI](https://circleci.com/gh/weaveworks/eksctl).
 6. Ensure the release was successfully [published in Github](https://github.com/weaveworks/eksctl/releases).
 7. Download the binary just released, verify its checksum, and perform any relevant manual testing.
