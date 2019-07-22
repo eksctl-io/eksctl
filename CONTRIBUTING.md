@@ -178,6 +178,7 @@ At present we ignore flaky tests, so if you see output like show below, you don'
 
 ```console
 $ make integration-test-container TEST_V=1
+[...]
 Summarizing 2 Failures:
 
 [Fail] (Integration) Create, Get, Scale & Delete when creating a cluster with 1 node and add the second nodegroup and delete the second nodegroup [It] {FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total
