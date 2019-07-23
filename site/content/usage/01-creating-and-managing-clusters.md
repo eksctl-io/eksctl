@@ -96,6 +96,24 @@ nodeGroups:
         imageBuilder: true
 ```
 
+You can also specify the kubernetes version to use with the flag `--version` or by adding the field to the config file
+like in this example:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-in-existing-vpc
+  region: eu-north-1
+  version: "1.13"
+
+nodeGroups:
+  - name: ng-1-workers
+    instanceType: m5.xlarge
+    desiredCapacity: 10
+```
+
 To delete this cluster, run:
 
 ```
