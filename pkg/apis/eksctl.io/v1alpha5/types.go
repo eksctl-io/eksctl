@@ -65,6 +65,9 @@ const (
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
+	// Version1_10 represents Kubernetes version 1.10.x
+	Version1_10 = "1.10"
+
 	// Version1_11 represents Kubernetes version 1.11.x
 	Version1_11 = "1.11"
 
@@ -191,6 +194,15 @@ func SupportedRegions() []string {
 		RegionAPSouthEast1,
 		RegionAPSouthEast2,
 		RegionAPSouth1,
+	}
+}
+
+// DeprecatedVersions are the versions of Kubernetes that EKS used to support
+// but no longer does. See also:
+// https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html
+func DeprecatedVersions() []string {
+	return []string{
+		Version1_10,
 	}
 }
 
