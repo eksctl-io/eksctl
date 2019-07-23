@@ -30,14 +30,7 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 		meta.Version = api.LatestVersion
 		logger.Info("will use latest version (%s) for new nodegroup(s)", meta.Version)
 	default:
-		validVersion := false
-		for _, v := range api.SupportedVersions() {
-			if meta.Version == v {
-				validVersion = true
-				break
-			}
-		}
-		if !validVersion {
+		if !isValidVersion(meta.Version) {
 			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
 		}
 	}
@@ -56,6 +49,15 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 	}
 
 	return nil
+}
+
+func isValidVersion(version string) bool {
+	for _, v := range api.SupportedVersions() {
+		if version == v {
+			return true
+		}
+	}
+	return false
 }
 
 // loadSSHKey loads the ssh public key specified in the NodeGroup. The key should be specified

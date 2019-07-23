@@ -112,14 +112,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		cfg.Metadata.Version = api.DefaultVersion
 	}
 	if cfg.Metadata.Version != api.DefaultVersion {
-		validVersion := false
-		for _, v := range api.SupportedVersions() {
-			if cfg.Metadata.Version == v {
-				validVersion = true
-				break
-			}
-		}
-		if !validVersion {
+		if !isValidVersion(cfg.Metadata.Version) {
 			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
 		}
 	}
