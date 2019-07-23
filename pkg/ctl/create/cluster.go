@@ -112,14 +112,10 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		cfg.Metadata.Version = api.DefaultVersion
 	}
 	if cfg.Metadata.Version != api.DefaultVersion {
-		validVersion := false
-		for _, v := range api.SupportedVersions() {
-			if cfg.Metadata.Version == v {
-				validVersion = true
-				break
+		if !isValidVersion(cfg.Metadata.Version) {
+			if isDeprecatedVersion(cfg.Metadata.Version) {
+				return fmt.Errorf("invalid version, %s is now deprecated, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
 			}
-		}
-		if !validVersion {
 			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
 		}
 	}
