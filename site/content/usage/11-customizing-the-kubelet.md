@@ -13,7 +13,7 @@ of resource starvation the kubelet might not be able to evict pods and eventuall
 
  
 Some fields in the `kubelet.yaml` are set by eksctl and therefore are not overwritable, such as the `address`, 
-`clusterDomain`, `authentication`, `authorization`, `serverTLSBootstrap` or `featureGates`. 
+`clusterDomain`, `authentication`, `authorization`, or `serverTLSBootstrap`.
 
 The following example config file creates a nodegroup that reserves `300m` vCPU, `300Mi` of memory and `1Gi` of 
 ephemeral-storage for the kubelet; `300m` vCPU, `300Mi` of memory and `1Gi`of ephemeral storage for OS system 
@@ -45,7 +45,18 @@ nodeGroups:
         evictionHard:
             memory.available:  "200Mi"
             nodefs.available: "10%"
+        featureGates:
+            DynamicKubeletConfig: true
+            RotateKubeletServerCertificate: true # has to be enabled, otherwise it will be disabled
 ```
 
 In this example, given instances of type `m5a.xlarge` which have 4 vCPUs and 16GiB of memory, the `Allocatable` amount
- of CPUs would be 3.4 and 15.4 GiB of memory. 
+of CPUs would be 3.4 and 15.4 GiB of memory. In addition, the `DynamicKubeletConfig` feature gate is also enabled. It is
+important to know that the values specified in the config file for the the fields in `kubeletExtraconfig` will 
+completely overwrite the default values specified by eksctl.
+
+>**IMPORTANT**: by default `eksctl` sets  `featureGates.RotateKubeletServerCertificate=true`, but when custom 
+`featureGates` are provided, it will be unset. You should always include 
+`featureGates.RotateKubeletServerCertificate=true`, unless you have to disable it.
+ 
+
