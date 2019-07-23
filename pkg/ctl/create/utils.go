@@ -31,6 +31,9 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 		logger.Info("will use latest version (%s) for new nodegroup(s)", meta.Version)
 	default:
 		if !isValidVersion(meta.Version) {
+			if isDeprecatedVersion(meta.Version) {
+				return fmt.Errorf("invalid version, %s is now deprecated, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", meta.Version, strings.Join(api.SupportedVersions(), ", "))
+			}
 			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
 		}
 	}
@@ -53,6 +56,15 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 
 func isValidVersion(version string) bool {
 	for _, v := range api.SupportedVersions() {
+		if version == v {
+			return true
+		}
+	}
+	return false
+}
+
+func isDeprecatedVersion(version string) bool {
+	for _, v := range api.DeprecatedVersions() {
 		if version == v {
 			return true
 		}
