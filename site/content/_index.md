@@ -3,7 +3,7 @@ title: Introduction
 type: docs
 ---
 
-# **`eksctl` - a CLI for Amazon EKS**
+# **`eksctl` - The official CLI for Amazon EKS**
 
 <div id="github"><script async defer src="https://buttons.github.io/buttons.js"></script><a class="github-button" href="https://github.com/weaveworks/eksctl" data-icon="octicon-star" data-show-count="true" aria-label="Star weaveworks/eksctl on GitHub">Star</a><div id="github-section"><a class="github-button" href="https://github.com/weaveworks/eksctl/fork" data-icon="octicon-repo-forked" data-show-count="true" aria-label="Fork weaveworks/eksctl on GitHub">Fork</a></div></div>
 
