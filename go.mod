@@ -24,13 +24,12 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1 // indirect
 	github.com/gohugoio/hugo v0.55.6
-	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/google/btree v1.0.0 // indirect
-	github.com/googleapis/gnostic v0.2.0 // indirect
-	github.com/gophercloud/gophercloud v0.0.0-20181019014921-0719c6b22f30 // indirect
 	github.com/goreleaser/goreleaser v0.110.0
+	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
 	github.com/jteeuwen/go-bindata v3.0.8-0.20180305030458-6025e8de665b+incompatible
+	github.com/justinbarrick/go-k8s-portforward v1.0.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
@@ -49,6 +48,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.8.3 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
+	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/sanathkr/yaml v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/cobra v0.0.3
@@ -63,34 +63,40 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/vmware/govmomi v0.19.0 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
+	github.com/weaveworks/flux v0.0.0-20190725154800-aa69deb0c2a9
 	github.com/weaveworks/github-release v0.6.2
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
-	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
-	k8s.io/api v0.0.0-20190226173710-145d52631d00
-	k8s.io/apiextensions-apiserver v0.0.0-20190226180157-bd0469a053ff
-	k8s.io/apimachinery v0.0.0-20190221084156-01f179d85dbc
+	k8s.io/api v0.0.0-20190313235455-40a48860b5ab
+	k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
+	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
 	k8s.io/apiserver v0.0.0-20190226174732-cf2f1d68202d // indirect
 	k8s.io/cli-runtime v0.0.0-20190226180714-082c0831af2b
-	k8s.io/client-go v0.0.0-20190226174127-78295b709ec6
+	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20190612205613-18da4a14b22b
 	k8s.io/csi-api v0.0.0-20190301175547-a37926bd2215 // indirect
 	k8s.io/kops v0.0.0-20190222135932-278e6606534e
-	k8s.io/kube-openapi v0.0.0-20181018171734-e494cc581111 // indirect
 	k8s.io/kubelet v0.0.0-20190313123811-3556bcde9670
 	k8s.io/kubernetes v1.12.6
-	k8s.io/utils v0.0.0-20181017222159-a82851343d66 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )
 
 replace (
+	github.com/Azure/go-autorest => github.com/Azure/go-autorest v10.14.0+incompatible
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
 	// go mod appears to pick wrong version of github.com/docker/distribution automatically, which breaks k8s.io/kubernetes@v1.12.6
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc
+	// Needed until https://github.com/fluxcd/flux/pull/2287 is merged
+	github.com/weaveworks/flux => github.com/2opremio/flux v0.0.0-20190725151241-568fe5a31494
+	// Used to pin the k8s library versions regardless of what other dependencies enforce
+	k8s.io/api => k8s.io/api v0.0.0-20190226173710-145d52631d00
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190226180157-bd0469a053ff
+	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221084156-01f179d85dbc
+	k8s.io/client-go => k8s.io/client-go v0.0.0-20190226174127-78295b709ec6
 )

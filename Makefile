@@ -3,7 +3,7 @@ git_commit := $(shell git describe --dirty --always)
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
 # The dependencies version should be bumped every time the build dependencies are updated
-EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.8
+EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.9
 EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
@@ -83,7 +83,7 @@ build-integration-test: $(GENERATED_GO_FILES) ## Build integration test binary
 	time go test -tags integration ./integration/... -c -o eksctl-integration-test
 
 .PHONY: integration-test
-integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup) 
+integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
 	cd integration; ../eksctl-integration-test -test.timeout 60m $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
