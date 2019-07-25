@@ -35,7 +35,7 @@ func main() {
 
 	rootCmd := &cobra.Command{
 		Use:   "eksctl [command]",
-		Short: "a CLI for Amazon EKS",
+		Short: "The official CLI for Amazon EKS",
 		Run: func(c *cobra.Command, _ []string) {
 			if err := c.Help(); err != nil {
 				logger.Debug("ignoring cobra error %q", err.Error())
