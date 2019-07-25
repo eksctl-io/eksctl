@@ -15,7 +15,7 @@ func updateCoreDNSCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	rc.ClusterConfig = cfg
 
-	rc.SetDescription("update-coredns", "Update coredns add-on to ensure image the standard Amazon EKS version", "")
+	rc.SetDescription("update-coredns", "Update coredns add-on to ensure image matches the standard Amazon EKS version", "")
 
 	rc.SetRunFuncWithNameArg(func() error {
 		return doUpdateCoreDNS(rc)
