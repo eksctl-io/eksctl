@@ -19,15 +19,15 @@ import (
 )
 
 func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
-	rootCmd.AddCommand(versionCmd(flagGrouping))
 	rootCmd.AddCommand(create.Command(flagGrouping))
-	rootCmd.AddCommand(delete.Command(flagGrouping))
 	rootCmd.AddCommand(get.Command(flagGrouping))
 	rootCmd.AddCommand(update.Command(flagGrouping))
+	rootCmd.AddCommand(delete.Command(flagGrouping))
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
+	rootCmd.AddCommand(versionCmd(flagGrouping))
 }
 
 func main() {
