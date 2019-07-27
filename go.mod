@@ -29,7 +29,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
 	github.com/jteeuwen/go-bindata v3.0.8-0.20180305030458-6025e8de665b+incompatible
-	github.com/justinbarrick/go-k8s-portforward v1.0.3
+	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20190722134107-d79fe1b9d79d
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
@@ -93,7 +93,7 @@ replace (
 	// go mod appears to pick wrong version of github.com/docker/distribution automatically, which breaks k8s.io/kubernetes@v1.12.6
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc
 	// Needed until https://github.com/fluxcd/flux/pull/2287 is merged
-	github.com/weaveworks/flux => github.com/2opremio/flux v0.0.0-20190725151241-568fe5a31494
+	github.com/weaveworks/flux => github.com/2opremio/flux v0.0.0-20190727101340-878307d481c8
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.0.0-20190226173710-145d52631d00
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190226180157-bd0469a053ff
