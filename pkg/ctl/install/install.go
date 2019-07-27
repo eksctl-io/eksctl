@@ -310,7 +310,7 @@ func getFluxManifests(params install.TemplateParameters, cs *kubernetes.Clientse
 		return manifests, nil
 	}
 	if !k8serrors.IsNotFound(err) {
-		return nil, fmt.Errorf("cannot check whether namespace %s exists: %s", params.Namespace)
+		return nil, fmt.Errorf("cannot check whether namespace %s exists: %s", params.Namespace, err)
 	}
 	nsTemplate := `---
 apiVersion: v1
