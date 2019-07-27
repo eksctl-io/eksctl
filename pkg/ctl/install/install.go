@@ -240,6 +240,16 @@ func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, clon
 		return err
 	}
 
+	// Confirm there is something to commit, otherwise move on
+	diffCtx, diffCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
+	defer diffCtxCancel()
+	if err := runGitCmd(diffCtx, cloneDir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
+		logger.Info("Nothing to commit (the repository contained identical manifests), moving on")
+		return nil
+	} else if  _, ok := err.(*exec.ExitError); !ok{
+		return err
+	}
+
 	// Commit
 	commitCtx, commitCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
 	defer commitCtxCancel()
@@ -381,7 +391,7 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 	// Obtain SSH key
 	var fluxGitConfig fluxapi.GitConfig
 	gitConfigDeadline := time.Now().Add(30 * time.Second)
-	for ; time.Now().Before(gitConfigDeadline); time.Sleep(1 * time.Second) {
+	for ; time.Now().Before(gitConfigDeadline); time.Sleep(100 * time.Millisecond) {
 		repoCtx, repoCtxCancel := context.WithTimeout(ctx, opts.timeout)
 		var err error
 		fluxGitConfig, err = fluxClient.GitRepoConfig(repoCtx, false)
@@ -409,7 +419,7 @@ func createNamespaceSynchronously(cs *kubernetes.Clientset, namespace string) er
 		return fmt.Errorf("cannot create namespace %s: %s", namespace, err)
 	}
 	nsDeadline := time.Now().Add(30 * time.Second)
-	for ; time.Now().Before(nsDeadline); time.Sleep(1 * time.Second) {
+	for ; time.Now().Before(nsDeadline); time.Sleep(100 * time.Millisecond) {
 		_, err := cs.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 		if err == nil {
 			break
