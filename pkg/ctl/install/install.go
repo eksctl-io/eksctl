@@ -207,7 +207,7 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	}
 	logger.Info("Flux started successfully")
 
-	logger.Info("Commiting and pushing Flux manifests to %s", fi.opts.templateParams.GitURL)
+	logger.Info("Committing and pushing Flux manifests to %s", fi.opts.templateParams.GitURL)
 	if err := fi.addCommitAndPushFluxManifests(ctx, cloneDir); err != nil {
 		return err
 	}
