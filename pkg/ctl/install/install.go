@@ -368,7 +368,7 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 			defer portforwarder.Stop()
 			break
 		}
-		if !strings.Contains(err.Error(), "Could not find pod for selector") {
+		if !strings.Contains(err.Error(), "Could not find running pod for selector") {
 			logger.Warning("Flux is not ready yet (%s), retrying ...", err)
 		}
 	}
