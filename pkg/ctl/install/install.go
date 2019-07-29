@@ -213,10 +213,8 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	}
 	cleanCloneDir = true
 
-	logger.Info("In order for Flux to operate properly make sure it has SSH access to %s",
-		fi.opts.templateParams.GitURL)
-	logger.Info("Flux's current Public SSH key is:\n%s", fluxSSHKey.Key)
-
+	logger.Info("Flux will operate properly only once it has SSH access to: %s", fi.opts.templateParams.GitURL)
+	logger.Info("please add the following Flux public SSH key to your repository:\n%s", fluxSSHKey.Key)
 	return nil
 }
 
