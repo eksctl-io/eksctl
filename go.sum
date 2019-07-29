@@ -18,8 +18,6 @@ dmitri.shuralyov.com/service/change v0.0.0-20181023043359-a85b471d5412/go.mod h1
 dmitri.shuralyov.com/state v0.0.0-20180228185332-28bcc343414c/go.mod h1:0PRwlb0D6DFvNNtx+9ybjezNCa8XF0xaYcETyp6rHWU=
 git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
 git.apache.org/thrift.git v0.12.0/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
-github.com/2opremio/flux v0.0.0-20190727101340-878307d481c8 h1:C8V0ZXYai0DgSUJ8BF4jTKdCdGBnZp0r/6oS86FXTVM=
-github.com/2opremio/flux v0.0.0-20190727101340-878307d481c8/go.mod h1:ZKP5adRfgMH9xY8/nG+Z+Z+fylHgimnL6/+/wzfQJr8=
 github.com/Azure/azure-amqp-common-go v1.1.3/go.mod h1:FhZtXirFANw40UXI2ntweO+VOkfaw8s6vZxUiRhLYW8=
 github.com/Azure/azure-amqp-common-go v1.1.4/go.mod h1:FhZtXirFANw40UXI2ntweO+VOkfaw8s6vZxUiRhLYW8=
 github.com/Azure/azure-pipeline-go v0.1.8 h1:KmVRa8oFMaargVesEuuEoiLCQ4zCCwQ8QX/xg++KS20=
@@ -857,6 +855,8 @@ github.com/vmware/govmomi v0.19.0/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
+github.com/weaveworks/flux v0.0.0-20190729084415-077060ee53dc h1:c6u7vNsbyTM4q9/iR3kivZnwtKhYoKqENhdf2gsGdCU=
+github.com/weaveworks/flux v0.0.0-20190729084415-077060ee53dc/go.mod h1:ZKP5adRfgMH9xY8/nG+Z+Z+fylHgimnL6/+/wzfQJr8=
 github.com/weaveworks/github-release v0.6.2 h1:cAn2DAjEoUugV+JY6VG4slDL0FZvQ/gNKVsAv3nezW0=
 github.com/weaveworks/github-release v0.6.2/go.mod h1:NhXnzaCgBhORf9yYJD1ddsxIxL8u/z7wdp8LGvco7aM=
 github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab/go.mod h1:qkbvw5GPibQ/Nf7IZJL0UoLwmJ6858b4S/hUWRd+cH4=

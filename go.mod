@@ -63,7 +63,7 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/vmware/govmomi v0.19.0 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/weaveworks/flux v0.0.0-20190725154800-aa69deb0c2a9
+	github.com/weaveworks/flux v0.0.0-20190729084415-077060ee53dc
 	github.com/weaveworks/github-release v0.6.2
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	go.etcd.io/bbolt v1.3.3 // indirect
@@ -92,8 +92,6 @@ replace (
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
 	// go mod appears to pick wrong version of github.com/docker/distribution automatically, which breaks k8s.io/kubernetes@v1.12.6
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc
-	// Needed until https://github.com/fluxcd/flux/pull/2287 is merged
-	github.com/weaveworks/flux => github.com/2opremio/flux v0.0.0-20190727101340-878307d481c8
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.0.0-20190226173710-145d52631d00
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190226180157-bd0469a053ff
