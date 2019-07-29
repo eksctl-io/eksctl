@@ -88,7 +88,7 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 		fs.DurationVar(&opts.timeout, "timeout", 20*time.Second,
 			"Timeout duration for I/O operations")
 		fs.StringVar(&opts.templateParams.Namespace, "namespace", "flux",
-			"Cluster namespace where to install flux")
+			"Cluster namespace where to install Flux")
 		fs.BoolVar(&opts.amend, "amend", false,
 			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
 		cmdutils.AddNameFlag(fs, rc.ClusterConfig.Metadata)
