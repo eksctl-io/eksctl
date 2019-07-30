@@ -54,7 +54,7 @@ func doDrainNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, undo, onlyMis
 		return err
 	}
 
-	if err := ctl.GetCredentials(cfg); err != nil {
+	if err := ctl.GetActiveCluster(cfg); err != nil {
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
