@@ -87,6 +87,13 @@ var _ = Describe("StackCollection Tasks", func() {
 					subTask1.Append(subTask3)
 
 					Expect(tasks.Describe()).To(Equal("2 sequential tasks: { 2 sequential sub-tasks: { t1.1, 2 parallel sub-tasks: { t3.1, t3.2 } }, t2.1 }"))
+
+					tasks.SkipAll = true
+					tasks.tasks[0].(*TaskTree).tasks[0].(*taskWithoutParams).skip = true
+					tasks.tasks[0].(*TaskTree).tasks[1].(*TaskTree).PlanMode = true
+
+					Expect(tasks.Describe()).To(Equal("2 sequential skipped tasks: { 2 sequential sub-tasks: { (skip) t1.1, (plan) 2 parallel sub-tasks: { t3.1, t3.2 } }, t2.1 }"))
+
 				}
 			})
 
@@ -433,6 +440,12 @@ var _ = Describe("StackCollection Tasks", func() {
 					Expect(tasks.DoAllSync()).To(HaveLen(0))
 
 					tasks.PlanMode = false
+					tasks.SkipAll = true
+
+					Expect(tasks.DoAllSync()).To(HaveLen(0))
+
+					tasks.SkipAll = false
+
 					errs := tasks.DoAllSync()
 					Expect(errs).To(HaveLen(4))
 					Expect(errs[0].Error()).To(Equal("t1.0 does not even bother and always returns an immediate error"))

@@ -386,12 +386,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
 			IAM: api.ClusterIAM{
 				ServiceRoleARN: arn,
+			},
+			CloudWatch: &api.ClusterCloudWatch{
+				ClusterLogging: &api.ClusterCloudWatchLogging{},
 			},
 			NodeGroups: []*api.NodeGroup{
 				{
@@ -445,11 +448,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                     arn,
-			"ClusterStackName":        "",
-			"SharedNodeSecurityGroup": "sg-shared",
-			"ServiceRoleARN":          arn,
-			"FeatureNATMode":          "Single",
+			"ARN":                      arn,
+			"ClusterStackName":         "",
+			"SharedNodeSecurityGroup":  "sg-shared",
+			"ServiceRoleARN":           arn,
+			"FeatureNATMode":           "Single",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {

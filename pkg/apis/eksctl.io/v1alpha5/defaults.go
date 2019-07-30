@@ -1,5 +1,18 @@
 package v1alpha5
 
+// SetClusterConfigDefaults will set defaults for a given cluster
+func SetClusterConfigDefaults(cfg *ClusterConfig) error {
+	if cfg.HasClusterCloudWatchLogging() {
+		for _, logType := range cfg.CloudWatch.ClusterLogging.EnableTypes {
+			switch logType {
+			case "all", "*":
+				cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
+			}
+		}
+	}
+	return nil
+}
+
 // SetNodeGroupDefaults will set defaults for a given nodegroup
 func SetNodeGroupDefaults(_ int, ng *NodeGroup) error {
 	if ng.InstanceType == "" {

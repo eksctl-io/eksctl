@@ -12,21 +12,23 @@ import (
 
 // Task is a common interface for the stack manager tasks
 type Task interface {
-	Do(chan error) error
+	Skip() bool
 	Describe() string
+	Do(chan error) error
 }
 
 // TaskTree wraps a set of tasks
 type TaskTree struct {
 	tasks     []Task
+	SkipAll   bool
 	Parallel  bool
 	PlanMode  bool
 	IsSubTask bool
 }
 
 // Append new tasks to the set
-func (t *TaskTree) Append(task ...Task) {
-	t.tasks = append(t.tasks, task...)
+func (t *TaskTree) Append(newTasks ...Task) {
+	t.tasks = append(t.tasks, newTasks...)
 }
 
 // Len returns number of tasks in the set
@@ -35,6 +37,11 @@ func (t *TaskTree) Len() int {
 		return 0
 	}
 	return len(t.tasks)
+}
+
+// Skip indicated if all tasks in a tree should be skipped
+func (t *TaskTree) Skip() bool {
+	return t.SkipAll
 }
 
 // Describe the set
@@ -52,6 +59,9 @@ func (t *TaskTree) Describe() string {
 	noun := "task"
 	if t.IsSubTask {
 		noun = "sub-task"
+	}
+	if t.SkipAll {
+		noun = "skipped " + noun
 	}
 	switch count {
 	case 0:
@@ -75,7 +85,7 @@ func (t *TaskTree) Describe() string {
 // or eventually write to the errs channel; it will close the channel once all tasks
 // are completed
 func (t *TaskTree) Do(allErrs chan error) error {
-	if t.Len() == 0 || t.PlanMode {
+	if t.Len() == 0 || t.PlanMode || t.SkipAll {
 		logger.Debug("no actual tasks")
 		close(allErrs)
 		return nil
@@ -102,7 +112,7 @@ func (t *TaskTree) Do(allErrs chan error) error {
 // DoAllSync will run through the set in the foregounds and return all the errors
 // in a slice
 func (t *TaskTree) DoAllSync() []error {
-	if t.Len() == 0 || t.PlanMode {
+	if t.Len() == 0 || t.PlanMode || t.SkipAll {
 		logger.Debug("no actual tasks")
 		return nil
 	}
@@ -122,56 +132,69 @@ func (t *TaskTree) DoAllSync() []error {
 	return allErrs
 }
 
+func info(skip bool, info string) string {
+	if skip {
+		return "(skip) " + info
+	}
+	return info
+}
+
 type taskWithoutParams struct {
 	info string
+	skip bool
 	call func(chan error) error
 }
 
-func (t *taskWithoutParams) Describe() string { return t.info }
-func (t *taskWithoutParams) Do(errs chan error) error {
-	return t.call(errs)
-}
+func (t *taskWithoutParams) Skip() bool               { return t.skip }
+func (t *taskWithoutParams) Describe() string         { return info(t.skip, t.info) }
+func (t *taskWithoutParams) Do(errs chan error) error { return t.call(errs) }
 
 type taskWithNameParam struct {
 	info string
+	skip bool
 	name string
 	call func(chan error, string) error
 }
 
-func (t *taskWithNameParam) Describe() string { return t.info }
-func (t *taskWithNameParam) Do(errs chan error) error {
-	return t.call(errs, t.name)
-}
+func (t *taskWithNameParam) Skip() bool               { return t.skip }
+func (t *taskWithNameParam) Describe() string         { return info(t.skip, t.info) }
+func (t *taskWithNameParam) Do(errs chan error) error { return t.call(errs, t.name) }
 
 type taskWithNodeGroupSpec struct {
 	info      string
+	skip      bool
 	nodeGroup *api.NodeGroup
 	call      func(chan error, *api.NodeGroup) error
 }
 
-func (t *taskWithNodeGroupSpec) Describe() string { return t.info }
+func (t *taskWithNodeGroupSpec) Skip() bool       { return t.skip }
+func (t *taskWithNodeGroupSpec) Describe() string { return info(t.skip, t.info) }
 func (t *taskWithNodeGroupSpec) Do(errs chan error) error {
 	return t.call(errs, t.nodeGroup)
 }
 
 type taskWithStackSpec struct {
 	info  string
+	skip  bool
 	stack *Stack
 	call  func(*Stack, chan error) error
 }
 
-func (t *taskWithStackSpec) Describe() string { return t.info }
+func (t *taskWithStackSpec) Skip() bool       { return t.skip }
+func (t *taskWithStackSpec) Describe() string { return info(t.skip, t.info) }
 func (t *taskWithStackSpec) Do(errs chan error) error {
 	return t.call(t.stack, errs)
 }
 
 type asyncTaskWithStackSpec struct {
 	info  string
+	skip  bool
 	stack *Stack
 	call  func(*Stack) (*Stack, error)
 }
 
-func (t *asyncTaskWithStackSpec) Describe() string { return t.info + " [async]" }
+func (t *asyncTaskWithStackSpec) Skip() bool       { return t.skip }
+func (t *asyncTaskWithStackSpec) Describe() string { return info(t.skip, t.info) + " [async]" }
 func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
 	_, err := t.call(t.stack)
 	close(errs)
@@ -180,6 +203,10 @@ func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
 
 func doSingleTask(allErrs chan error, task Task) bool {
 	desc := task.Describe()
+	if task.Skip() {
+		logger.Debug("skipping task: %s", desc)
+		return true
+	}
 	logger.Debug("started task: %s", desc)
 	errs := make(chan error)
 	if err := task.Do(errs); err != nil {

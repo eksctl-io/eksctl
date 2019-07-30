@@ -92,29 +92,31 @@ func (l *commonClusterConfigLoader) Load() error {
 	return l.validateWithConfigFile()
 }
 
+func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
+	meta := l.ClusterConfig.Metadata
+
+	if meta.Name != "" && l.NameArg != "" {
+		return ErrNameFlagAndArg(meta.Name, l.NameArg)
+	}
+
+	if l.NameArg != "" {
+		meta.Name = l.NameArg
+	}
+
+	if meta.Name == "" {
+		return ErrMustBeSet("--name")
+	}
+
+	return nil
+}
+
 // NewMetadataLoader handles loading of clusterConfigFile vs using flags for all commands that require only
 // metadata fileds, e.g. `eksctl delete cluster` or `eksctl utils update-kube-proxy` and other similar
 // commands that do simple operations against existing clusters
 func NewMetadataLoader(rc *ResourceCmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
 
-	l.validateWithoutConfigFile = func() error {
-		meta := l.ClusterConfig.Metadata
-
-		if meta.Name != "" && l.NameArg != "" {
-			return ErrNameFlagAndArg(meta.Name, l.NameArg)
-		}
-
-		if l.NameArg != "" {
-			meta.Name = l.NameArg
-		}
-
-		if meta.Name == "" {
-			return ErrMustBeSet("--name")
-		}
-
-		return nil
-	}
+	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
 
 	return l
 }
@@ -312,6 +314,19 @@ func NewDeleteNodeGroupLoader(rc *ResourceCmd, ng *api.NodeGroup, ngFilter *Node
 
 		return nil
 	}
+
+	return l
+}
+
+// NewUtilsEnableLoggingLoader will laod config or use flags for 'eksctl utils enable-logging'
+func NewUtilsEnableLoggingLoader(rc *ResourceCmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(rc)
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		append(api.SupportedCloudWatchClusterLogTypes(), "all")...,
+	)
+
+	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
 
 	return l
 }

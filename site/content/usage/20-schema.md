@@ -5,6 +5,21 @@ url: usage/schema
 ---
 
 ```yaml
+ClusterCloudWatch:
+  additionalProperties: false
+  properties:
+    clusterLogging:
+      $ref: '#/definitions/ClusterCloudWatchLogging'
+      $schema: http://json-schema.org/draft-04/schema#
+  type: object
+ClusterCloudWatchLogging:
+  additionalProperties: false
+  properties:
+    enableTypes:
+      items:
+        type: string
+      type: array
+  type: object
 ClusterConfig:
   additionalProperties: false
   properties:
@@ -15,6 +30,9 @@ ClusterConfig:
       items:
         type: string
       type: array
+    cloudWatch:
+      $ref: '#/definitions/ClusterCloudWatch'
+      $schema: http://json-schema.org/draft-04/schema#
     iam:
       $ref: '#/definitions/ClusterIAM'
       $schema: http://json-schema.org/draft-04/schema#

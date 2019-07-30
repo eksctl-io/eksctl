@@ -80,7 +80,7 @@ var _ = Describe("cmdutils configfile", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(examples).To(HaveLen(10))
+			Expect(examples).To(HaveLen(11))
 			for _, example := range examples {
 				rc := &ResourceCmd{
 					Command:           newCmd(),

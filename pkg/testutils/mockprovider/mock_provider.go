@@ -3,6 +3,7 @@ package mockprovider
 import (
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
 	"github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -12,12 +13,40 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 
+	//"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/awstesting"
+
+	//"github.com/aws/aws-sdk-go/awstesting/unit"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 )
 
+// ProviderConfig holds current global config
+var ProviderConfig = &api.ProviderConfig{
+	Region:      api.DefaultRegion,
+	Profile:     "default",
+	WaitTimeout: 1200000000000,
+}
+
+type MockAWSClient struct {
+	*client.Client
+}
+
+type MockInput struct{}
+type MockOutput struct {
+	States []*MockState
+}
+type MockState struct {
+	State *string
+}
+
 // MockProvider stores the mocked APIs
 type MockProvider struct {
+	Client *MockAWSClient
+
 	cfnRoleARN string
 	cfn        *mocks.CloudFormationAPI
 	eks        *mocks.EKSAPI
@@ -32,6 +61,8 @@ type MockProvider struct {
 // NewMockProvider returns a new MockProvider
 func NewMockProvider() *MockProvider {
 	return &MockProvider{
+		Client: NewMockAWSClient(),
+
 		cfn:        &mocks.CloudFormationAPI{},
 		eks:        &mocks.EKSAPI{},
 		ec2:        &mocks.EC2API{},
@@ -41,13 +72,6 @@ func NewMockProvider() *MockProvider {
 		iam:        &mocks.IAMAPI{},
 		cloudtrail: &mocks.CloudTrailAPI{},
 	}
-}
-
-// ProviderConfig holds current global config
-var ProviderConfig = &api.ProviderConfig{
-	Region:      api.DefaultRegion,
-	Profile:     "default",
-	WaitTimeout: 1200000000000,
 }
 
 // CloudFormation returns a representation of the CloudFormation API
@@ -107,3 +131,59 @@ func (m MockProvider) Region() string { return ProviderConfig.Region }
 
 // WaitTimeout returns current timeout setting
 func (m MockProvider) WaitTimeout() time.Duration { return ProviderConfig.WaitTimeout }
+
+func NewMockAWSClient() *MockAWSClient {
+	m := &MockAWSClient{
+		Client: awstesting.NewClient(&aws.Config{
+			Region: &ProviderConfig.Region,
+		}),
+	}
+
+	m.Handlers.Send.Clear()
+	m.Handlers.Unmarshal.Clear()
+	m.Handlers.UnmarshalMeta.Clear()
+	m.Handlers.ValidateResponse.Clear()
+
+	return m
+}
+
+func (m *MockAWSClient) MockRequestForMockOutput(input *MockInput) (*request.Request, *MockOutput) {
+	op := &request.Operation{
+		Name:       "Mock",
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &MockInput{}
+	}
+
+	output := &MockOutput{}
+	req := m.NewRequest(op, input, output)
+	req.Data = output
+	return req, output
+}
+
+func BuildNewMockRequestForMockOutput(m *MockAWSClient, in *MockInput) func([]request.Option) (*request.Request, error) {
+	return func(opts []request.Option) (*request.Request, error) {
+		req, _ := m.MockRequestForMockOutput(in)
+		req.ApplyOptions(opts...)
+		return req, nil
+	}
+}
+
+func (m *MockAWSClient) MockRequestForGivenOutput(input, output interface{}) *request.Request {
+	op := &request.Operation{
+		Name:       "Mock",
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &MockInput{}
+	}
+
+	req := m.NewRequest(op, input, output)
+	req.Data = output
+	return req
+}

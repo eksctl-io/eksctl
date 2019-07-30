@@ -7,49 +7,90 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
-func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) error {
-	if value != "" {
-		p := fmt.Sprintf("%s.iam.%s and %s.iam", path, fieldName, path)
-		if ng.IAM.InstanceRoleName != "" {
-			return fmt.Errorf("%s.instanceRoleName cannot be set at the same time", p)
-		}
-		if len(ng.IAM.AttachPolicyARNs) != 0 {
-			return fmt.Errorf("%s.attachPolicyARNs cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.AutoScaler) {
-			return fmt.Errorf("%s.withAddonPolicies.autoScaler cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.ExternalDNS) {
-			return fmt.Errorf("%s.withAddonPolicies.externalDNS cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.CertManager) {
-			return fmt.Errorf("%s.withAddonPolicies.certManager cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.ImageBuilder) {
-			return fmt.Errorf("%s.imageBuilder cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.AppMesh) {
-			return fmt.Errorf("%s.AppMesh cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.EBS) {
-			return fmt.Errorf("%s.ebs cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.FSX) {
-			return fmt.Errorf("%s.fsx cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.EFS) {
-			return fmt.Errorf("%s.efs cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.ALBIngress) {
-			return fmt.Errorf("%s.albIngress cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.XRay) {
-			return fmt.Errorf("%s.xRay cannot be set at the same time", p)
-		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.CloudWatch) {
-			return fmt.Errorf("%s.cloudWatch cannot be set at the same time", p)
+
+// ValidateClusterConfig checks compatible fields of a given ClusterConfig
+func ValidateClusterConfig(cfg *ClusterConfig) error {
+	if cfg.HasClusterCloudWatchLogging() {
+		// NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
+		for _, logType := range cfg.CloudWatch.ClusterLogging.EnableTypes {
+			isUnknown := true
+			for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
+				if logType == knownLogType {
+					isUnknown = false
+				}
+			}
+			if isUnknown {
+				return fmt.Errorf("log type %q is unknown", logType)
+			}
 		}
 	}
+	return nil
+}
+
+// ValidateNodeGroup checks compatible fields of a given nodegroup
+func ValidateNodeGroup(i int, ng *NodeGroup) error {
+	path := fmt.Sprintf("nodegroups[%d]", i)
+	if ng.Name == "" {
+		return fmt.Errorf("%s.name must be set", path)
+	}
+
+	if ng.VolumeSize == nil {
+		errCantSet := func(field string) error {
+			return fmt.Errorf("%s.%s cannot be set without %s.volumeSize", path, field, path)
+		}
+		if IsSetAndNonEmptyString(ng.VolumeType) {
+			return errCantSet("volumeType")
+		}
+		if IsSetAndNonEmptyString(ng.VolumeName) {
+			return errCantSet("volumeName")
+		}
+		if IsEnabled(ng.VolumeEncrypted) {
+			return errCantSet("volumeEncrypted")
+		}
+		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
+			return errCantSet("volumeKmsKeyID")
+		}
+	}
+
+	if ng.VolumeType != nil && *ng.VolumeType == NodeVolumeTypeIO1 {
+		if ng.VolumeIOPS == nil {
+			return fmt.Errorf("%s.volumeIOPS is required for %s volume type", path, NodeVolumeTypeIO1)
+		}
+	} else if ng.VolumeIOPS != nil {
+		return fmt.Errorf("%s.volumeIOPS is only supported for %s volume type", path, NodeVolumeTypeIO1)
+	}
+
+	if ng.VolumeEncrypted == nil || IsDisabled(ng.VolumeEncrypted) {
+		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
+			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.VolumeEncrypted true", path, path)
+		}
+	}
+
+	if ng.IAM != nil {
+		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
+			return err
+		}
+		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
+			return err
+		}
+
+		if err := ValidateNodeGroupLabels(ng); err != nil {
+			return err
+		}
+
+		if err := validateNodeGroupSSH(ng.SSH); err != nil {
+			return fmt.Errorf("only one ssh public key can be specified per node-group")
+		}
+	}
+
+	if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
+		return err
+	}
+
+	if err := validateInstancesDistribution(ng); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -122,70 +163,50 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 	return nil
 }
 
-// ValidateNodeGroup checks compatible fields of a given nodegroup
-func ValidateNodeGroup(i int, ng *NodeGroup) error {
-	path := fmt.Sprintf("nodegroups[%d]", i)
-	if ng.Name == "" {
-		return fmt.Errorf("%s.name must be set", path)
-	}
 
-	if ng.VolumeSize == nil {
-		errCantSet := func(field string) error {
-			return fmt.Errorf("%s.%s cannot be set without %s.volumeSize", path, field, path)
+func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) error {
+	if value != "" {
+		p := fmt.Sprintf("%s.iam.%s and %s.iam", path, fieldName, path)
+		if ng.IAM.InstanceRoleName != "" {
+			return fmt.Errorf("%s.instanceRoleName cannot be set at the same time", p)
 		}
-		if IsSetAndNonEmptyString(ng.VolumeType) {
-			return errCantSet("volumeType")
+		if len(ng.IAM.AttachPolicyARNs) != 0 {
+			return fmt.Errorf("%s.attachPolicyARNs cannot be set at the same time", p)
 		}
-		if IsSetAndNonEmptyString(ng.VolumeName) {
-			return errCantSet("volumeName")
+		if IsEnabled(ng.IAM.WithAddonPolicies.AutoScaler) {
+			return fmt.Errorf("%s.withAddonPolicies.autoScaler cannot be set at the same time", p)
 		}
-		if IsEnabled(ng.VolumeEncrypted) {
-			return errCantSet("volumeEncrypted")
+		if IsEnabled(ng.IAM.WithAddonPolicies.ExternalDNS) {
+			return fmt.Errorf("%s.withAddonPolicies.externalDNS cannot be set at the same time", p)
 		}
-		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
-			return errCantSet("volumeKmsKeyID")
+		if IsEnabled(ng.IAM.WithAddonPolicies.CertManager) {
+			return fmt.Errorf("%s.withAddonPolicies.certManager cannot be set at the same time", p)
 		}
-	}
-
-	if ng.VolumeType != nil && *ng.VolumeType == NodeVolumeTypeIO1 {
-		if ng.VolumeIOPS == nil {
-			return fmt.Errorf("%s.volumeIOPS is required for %s volume type", path, NodeVolumeTypeIO1)
+		if IsEnabled(ng.IAM.WithAddonPolicies.ImageBuilder) {
+			return fmt.Errorf("%s.imageBuilder cannot be set at the same time", p)
 		}
-	} else if ng.VolumeIOPS != nil {
-		return fmt.Errorf("%s.volumeIOPS is only supported for %s volume type", path, NodeVolumeTypeIO1)
-	}
-
-	if ng.VolumeEncrypted == nil || IsDisabled(ng.VolumeEncrypted) {
-		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
-			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.VolumeEncrypted true", path, path)
+		if IsEnabled(ng.IAM.WithAddonPolicies.AppMesh) {
+			return fmt.Errorf("%s.AppMesh cannot be set at the same time", p)
 		}
-	}
-
-	if ng.IAM != nil {
-		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
-			return err
+		if IsEnabled(ng.IAM.WithAddonPolicies.EBS) {
+			return fmt.Errorf("%s.ebs cannot be set at the same time", p)
 		}
-		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
-			return err
+		if IsEnabled(ng.IAM.WithAddonPolicies.FSX) {
+			return fmt.Errorf("%s.fsx cannot be set at the same time", p)
 		}
-
-		if err := ValidateNodeGroupLabels(ng); err != nil {
-			return err
+		if IsEnabled(ng.IAM.WithAddonPolicies.EFS) {
+			return fmt.Errorf("%s.efs cannot be set at the same time", p)
 		}
-
-		if err := validateNodeGroupSSH(ng.SSH); err != nil {
-			return fmt.Errorf("only one ssh public key can be specified per node-group")
+		if IsEnabled(ng.IAM.WithAddonPolicies.ALBIngress) {
+			return fmt.Errorf("%s.albIngress cannot be set at the same time", p)
+		}
+		if IsEnabled(ng.IAM.WithAddonPolicies.XRay) {
+			return fmt.Errorf("%s.xRay cannot be set at the same time", p)
+		}
+		if IsEnabled(ng.IAM.WithAddonPolicies.CloudWatch) {
+			return fmt.Errorf("%s.cloudWatch cannot be set at the same time", p)
 		}
 	}
-
-	if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
-		return err
-	}
-
-	if err := validateInstancesDistribution(ng); err != nil {
-		return err
-	}
-
 	return nil
 }
 
