@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/justinbarrick/go-k8s-portforward"
+	portforward "github.com/justinbarrick/go-k8s-portforward"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/riywo/loginshell"
@@ -60,7 +60,7 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 		"flux",
 		"Bootstrap Flux, installing it in the cluster and initializing its manifests in the Git repository",
 		"",
-		)
+	)
 	var opts installFluxOpts
 	rc.SetRunFuncWithNameArg(func() error {
 		installer, err := newFluxInstaller(rc, &opts)
@@ -99,11 +99,11 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 }
 
 type fluxInstaller struct {
-	opts *installFluxOpts
-	resourceCmd *cmdutils.ResourceCmd
-	k8sConfig  *clientcmdapi.Config
+	opts          *installFluxOpts
+	resourceCmd   *cmdutils.ResourceCmd
+	k8sConfig     *clientcmdapi.Config
 	k8sRestConfig *rest.Config
-	k8sClientSet *kubernetes.Clientset
+	k8sClientSet  *kubernetes.Clientset
 }
 
 func newFluxInstaller(rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxInstaller, error) {
@@ -140,22 +140,20 @@ func newFluxInstaller(rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxIns
 		return nil, errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 	fi := &fluxInstaller{
-		opts: opts,
-		resourceCmd: rc,
-		k8sConfig: k8sConfig,
+		opts:          opts,
+		resourceCmd:   rc,
+		k8sConfig:     k8sConfig,
 		k8sRestConfig: k8sRestConfig,
-		k8sClientSet: k8sClientSet,
+		k8sClientSet:  k8sClientSet,
 	}
 	return fi, nil
 }
-
 
 func (fi *fluxInstaller) run(ctx context.Context) error {
 	manifests, err := getFluxManifests(fi.opts.templateParams, fi.k8sClientSet)
 	if err != nil {
 		return fmt.Errorf("failed to create flux manifests: %s", err)
 	}
-
 
 	logger.Info("Cloning %s", fi.opts.templateParams.GitURL)
 	cloneDir, err := fi.cloneRepo(ctx)
@@ -190,7 +188,7 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	// Otherwise there is a race between the creation of the namespace and the other resources living in it
 	if _, ok := manifests[namespaceFileName]; ok {
 		logger.Info("Creating namespace %s", fi.opts.templateParams.Namespace)
-		if err:= createNamespaceSynchronously(fi.k8sClientSet, fi.opts.templateParams.Namespace); err != nil {
+		if err := createNamespaceSynchronously(fi.k8sClientSet, fi.opts.templateParams.Namespace); err != nil {
 			return err
 		}
 	}
@@ -201,7 +199,7 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	}
 
 	logger.Info("Waiting for Flux to start")
-	fluxSSHKey, err :=  waitForFluxToStart(ctx, fi.opts, fi.k8sRestConfig, fi.k8sClientSet)
+	fluxSSHKey, err := waitForFluxToStart(ctx, fi.opts, fi.k8sRestConfig, fi.k8sClientSet)
 	if err != nil {
 		return err
 	}
@@ -218,7 +216,7 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	return nil
 }
 
-func (fi *fluxInstaller) cloneRepo(ctx context.Context) (string, error){
+func (fi *fluxInstaller) cloneRepo(ctx context.Context) (string, error) {
 	cloneDir, err := ioutil.TempDir(os.TempDir(), "eksctl-install-flux-clone")
 	if err != nil {
 		return "", fmt.Errorf("cannot create temporary directory: %s", err)
@@ -226,7 +224,7 @@ func (fi *fluxInstaller) cloneRepo(ctx context.Context) (string, error){
 	cloneCtx, cloneCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
 	defer cloneCtxCancel()
 	args := []string{"clone", "-b", fi.opts.templateParams.GitBranch, fi.opts.templateParams.GitURL, cloneDir}
-	err = runGitCmd(cloneCtx,cloneDir, args...)
+	err = runGitCmd(cloneCtx, cloneDir, args...)
 	return cloneDir, err
 }
 
@@ -244,7 +242,7 @@ func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, clon
 	if err := runGitCmd(diffCtx, cloneDir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
 		logger.Info("Nothing to commit (the repository contained identical manifests), moving on")
 		return nil
-	} else if  _, ok := err.(*exec.ExitError); !ok{
+	} else if _, ok := err.(*exec.ExitError); !ok {
 		return err
 	}
 
@@ -282,7 +280,7 @@ func (fi *fluxInstaller) applyManifestsInDir(ctx context.Context, dir string) er
 	}
 
 	kubectlCmd := exec.CommandContext(applyCtx, "kubectl", "apply", "-f", dir)
-	kubectlCmd.Env = []string{"KUBECONFIG="+kubeconfigFile.Name()}
+	kubectlCmd.Env = []string{"KUBECONFIG=" + kubeconfigFile.Name()}
 	kubectlCmd.Stdout = os.Stdout
 	kubectlCmd.Stderr = os.Stderr
 	return kubectlCmd.Run()
@@ -323,7 +321,7 @@ metadata:
 	return manifests, nil
 }
 
-func writeFluxManifests(baseDir string, manifests map[string][]byte) error{
+func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
 	if err := os.MkdirAll(baseDir, 0700); err != nil {
 		return fmt.Errorf("cannot create Flux manifests directory (%s): %s", baseDir, err)
 	}
@@ -363,11 +361,11 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 		},
 	}
 	portforwarder := portforward.PortForward{
-		Labels: fluxSelector,
-		Config: restConfig,
-		Clientset: cs,
+		Labels:          fluxSelector,
+		Config:          restConfig,
+		Clientset:       cs,
 		DestinationPort: 3030,
-		Namespace: opts.templateParams.Namespace,
+		Namespace:       opts.templateParams.Namespace,
 	}
 	podDeadline := time.Now().Add(30 * time.Second)
 	for ; time.Now().Before(podDeadline); time.Sleep(1 * time.Second) {
@@ -381,7 +379,7 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 		}
 	}
 	if time.Now().After(podDeadline) {
-		return ssh.PublicKey{},fmt.Errorf("timed out waiting for flux's pod to be created")
+		return ssh.PublicKey{}, fmt.Errorf("timed out waiting for flux's pod to be created")
 	}
 	fluxURL := fmt.Sprintf("http://127.0.0.1:%d/api/flux", portforwarder.ListenPort)
 	fluxClient := client.New(http.DefaultClient, transport.NewAPIRouter(), fluxURL, client.Token(""))
@@ -401,7 +399,7 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 		logger.Warning("Flux is not ready yet (%s), retrying ...", err)
 	}
 	if time.Now().After(podDeadline) {
-		return ssh.PublicKey{},fmt.Errorf("timed out waiting for Flux to be operative")
+		return ssh.PublicKey{}, fmt.Errorf("timed out waiting for Flux to be operative")
 	}
 	return fluxGitConfig.PublicSSHKey, nil
 }
@@ -409,7 +407,7 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 func createNamespaceSynchronously(cs *kubernetes.Clientset, namespace string) error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: namespace,
+			Name:   namespace,
 			Labels: map[string]string{"name": namespace},
 		},
 	}
