@@ -17,6 +17,7 @@ import (
 	"github.com/riywo/loginshell"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	kubeutils "github.com/weaveworks/eksctl/pkg/kubernetes"
 	fluxapi "github.com/weaveworks/flux/api/v6"
 	transport "github.com/weaveworks/flux/http"
 	"github.com/weaveworks/flux/http/client"
@@ -25,6 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -33,7 +35,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 const namespaceFileName = "namespace.yaml"
@@ -194,7 +195,7 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	}
 
 	logger.Info("Installing Flux into the cluster")
-	if err := fi.applyManifestsInDir(ctx, fluxManifestDir); err != nil {
+	if err := fi.applyManifests(manifests); err != nil {
 		return err
 	}
 
@@ -263,27 +264,43 @@ func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, clon
 	return runGitCmd(pushCtx, cloneDir, "push")
 }
 
-func (fi *fluxInstaller) applyManifestsInDir(ctx context.Context, dir string) error {
-	// NOTE: invoking kubectl is not ideal, but it's the less hairy way to do it until
-	//       server-side apply is available ( https://github.com/kubernetes/enhancements/issues/555 )
-	applyCtx, applyCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
-	defer applyCtxCancel()
-	kubeconfigFile, err := ioutil.TempFile(os.TempDir(), "eksctl-flux-install-kubeconfig")
+func (fi *fluxInstaller) applyManifests(manifests map[string][]byte) error {
+	objects, err := manifestsToObjects(manifests)
 	if err != nil {
-		return fmt.Errorf("cannot find temporary kubeconfig file: %s", err)
+		return err
 	}
-	kubeconfigPath := kubeconfigFile.Name()
-	kubeconfigFile.Close()
-	// defer os.Remove(kubeconfigFile.Name())
-	if _, err := kubeconfig.Write(kubeconfigPath, *fi.k8sConfig, true); err != nil {
-		return fmt.Errorf("cannot write to temporary kubeconfig file (%s): %s", kubeconfigFile.Name(), err)
+	// TODO: initialise the client elsewhere so that a mock client can easily be dependency-injected for testing purposes.
+	client, err := kubeutils.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
+	if err != nil {
+		return err
 	}
+	for _, object := range objects {
+		resource, err := client.NewRawResource(object)
+		if err != nil {
+			return err
+		}
+		status, err := resource.CreateOrReplace(false)
+		if err != nil {
+			return err
+		}
+		logger.Info(status)
+	}
+	return nil
+}
 
-	kubectlCmd := exec.CommandContext(applyCtx, "kubectl", "apply", "-f", dir)
-	kubectlCmd.Env = []string{"KUBECONFIG=" + kubeconfigFile.Name()}
-	kubectlCmd.Stdout = os.Stdout
-	kubectlCmd.Stderr = os.Stderr
-	return kubectlCmd.Run()
+// manifestsToObjects decodes all of the provided manifests' bytes into Kubernetes objects.
+func manifestsToObjects(manifests map[string][]byte) ([]runtime.RawExtension, error) {
+	objects := []runtime.RawExtension{}
+	for _, manifest := range manifests {
+		list, err := kubeutils.NewList(manifest)
+		if err != nil {
+			return nil, err
+		}
+		for _, object := range list.Items {
+			objects = append(objects, object)
+		}
+	}
+	return objects, nil
 }
 
 func runGitCmd(ctx context.Context, dir string, args ...string) error {
