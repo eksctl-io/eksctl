@@ -47,8 +47,12 @@ func (c *ClusterProvider) DescribeControlPlaneMustBeActive(cl *api.ClusterMeta) 
 	return cluster, nil
 }
 
-// GetCredentials retrieves cluster endpoint and the certificate authority data
-func (c *ClusterProvider) GetCredentials(spec *api.ClusterConfig) error {
+// RefreshClusterConfig calls c.DescribeControlPlaneMustBeActive and caches the results;
+// it parses the credentials (endpoint, CA certificate) and stores them in spec.Status,
+// so that a Kubernetes client can be constructed; additionally it caches Kubernetes
+// version (use ctl.ControlPlaneVersion to retrieve it) and other properties in
+// c.Status.cachedClusterInfo
+func (c *ClusterProvider) RefreshClusterConfig(spec *api.ClusterConfig) error {
 	// Check the cluster exists and is active
 	cluster, err := c.DescribeControlPlaneMustBeActive(spec.Metadata)
 	if err != nil {
