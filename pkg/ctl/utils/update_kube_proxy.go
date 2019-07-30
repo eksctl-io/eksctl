@@ -50,7 +50,7 @@ func doUpdateKubeProxy(rc *cmdutils.ResourceCmd) error {
 		return err
 	}
 
-	if err := ctl.GetActiveCluster(cfg); err != nil {
+	if err := ctl.RefreshClusterConfig(cfg); err != nil {
 		return errors.Wrapf(err, "getting credentials for cluster %q", meta.Name)
 	}
 
