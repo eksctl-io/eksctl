@@ -18,7 +18,8 @@ type Client struct {
 	email    string
 }
 
-func NewGitClient(cloneDir string, user string, email string, ctx context.Context, timeout time.Duration) *Client {
+// NewGitClient returns a client that can perform git operations
+func NewGitClient(ctx context.Context, cloneDir string, user string, email string, timeout time.Duration) *Client {
 	return &Client{
 		executor: executor.NewShellExecutor(ctx, timeout),
 		dir:      cloneDir,
@@ -27,6 +28,7 @@ func NewGitClient(cloneDir string, user string, email string, ctx context.Contex
 	}
 }
 
+// NewGitClientFromExecutor returns a client that can have an executor injected. Useful for testing
 func NewGitClientFromExecutor(cloneDir string, user string, email string, executor executor.Executor) *Client {
 	return &Client{
 		executor: executor,
@@ -38,17 +40,18 @@ func NewGitClientFromExecutor(cloneDir string, user string, email string, execut
 
 // CloneRepo clones a repo specified in the gitURL and checks out the specified branch
 func (git *Client) CloneRepo(branch string, gitURL string) (string, error) {
-	// TODO TODO TODO create directory if needed. Fail if given dir is not empty
-	// FIXME
-	//cloneDir, err := ioutil.TempDir(os.TempDir(), "eksctl-install-flux-clone")
-	//if err != nil {
-	//	return "", fmt.Errorf("cannot create temporary directory: %s", err)
-	//}
+	if _, err := os.Stat(git.dir); os.IsNotExist(err) {
+		err = os.Mkdir(git.dir, os.FileMode(0744))
+		if err != nil {
+			return "", fmt.Errorf("cannot create directory %s to clone the repository: %s", git.dir, err)
+		}
+	}
 	args := []string{"clone", "-b", branch, gitURL, git.dir}
 	err := git.runGitCmd(args...)
 	return git.dir, err
 }
 
+// Add performs can perform a `git add` operation on the given file paths
 func (git Client) Add(files ...string) error {
 	args := append([]string{"add", "--"}, files...)
 	if err := git.runGitCmd(args...); err != nil {
@@ -58,9 +61,9 @@ func (git Client) Add(files ...string) error {
 }
 
 // Commit  makes a commit if there are staged changes
-func (git Client) Commit() error {
+func (git Client) Commit(message string) error {
 	// Note, this useed to do runGitCmd(diffCtx, git.dir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
-	if err := git.runGitCmd(git.dir, "diff", "--cached", "--quiet"); err == nil {
+	if err := git.runGitCmd("diff", "--cached", "--quiet"); err == nil {
 		logger.Info("Nothing to commit (the repository contained identical manifests), moving on")
 		return nil
 	} else if _, ok := err.(*exec.ExitError); !ok {
@@ -69,7 +72,7 @@ func (git Client) Commit() error {
 
 	// Commit
 	args := []string{"commit",
-		"-m", "Add Initial Flux configuration",
+		"-m", message,
 		fmt.Sprintf("--author=%s <%s>", git.user, git.email),
 	}
 	if err := git.runGitCmd(args...); err != nil {
