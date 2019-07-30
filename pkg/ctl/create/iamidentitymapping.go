@@ -64,7 +64,7 @@ func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapR
 		return err
 	}
 
-	if err := ctl.GetCredentials(cfg); err != nil {
+	if err := ctl.RefreshClusterConfig(cfg); err != nil {
 		return err
 	}
 	clientSet, err := ctl.NewStdClientSet(cfg)

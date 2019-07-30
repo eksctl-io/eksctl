@@ -69,7 +69,7 @@ func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath, roleARN string, 
 		outputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
 	}
 
-	if err := ctl.GetCredentials(cfg); err != nil {
+	if err := ctl.RefreshClusterConfig(cfg); err != nil {
 		return err
 	}
 

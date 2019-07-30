@@ -108,7 +108,7 @@ func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
 	{
 
 		logger.Info("cleaning up LoadBalancer services")
-		if err := ctl.GetCredentials(cfg); err != nil {
+		if err := ctl.RefreshClusterConfig(cfg); err != nil {
 			return err
 		}
 		cs, err := ctl.NewStdClientSet(cfg)
