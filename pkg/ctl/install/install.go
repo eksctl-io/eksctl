@@ -153,6 +153,22 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create flux manifests: %s", err)
 	}
+	isNamespaceCreated, err := isNamespaceCreated(fi.opts.templateParams.Namespace, fi.k8sClientSet)
+	if err != nil {
+		return err
+	}
+	if !isNamespaceCreated {
+		// If we need to create a Namespace, we do it synchronously before
+		// creating the other resources. Otherwise there is a race between the
+		// creation of the namespace and the other resources living in it.
+		logger.Info("Creating namespace %s", fi.opts.templateParams.Namespace)
+		if err := createNamespaceSynchronously(fi.k8sClientSet, fi.opts.templateParams.Namespace); err != nil {
+			return err
+		}
+		// Also add the namespace to the manifests so that it later gets
+		// serialised and added to the Git repository.
+		manifests[namespaceFileName] = kubernetes.NamespaceYAML(fi.opts.templateParams.Namespace)
+	}
 
 	logger.Info("Cloning %s", fi.opts.templateParams.GitURL)
 	cloneDir, err := fi.cloneRepo(ctx)
@@ -179,15 +195,6 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	if fi.opts.amend {
 		logger.Info("Stopping to amend the the Flux manifests, please exit the shell when done.")
 		if err := runShell(fluxManifestDir); err != nil {
-			return err
-		}
-	}
-
-	// If we need to create a Namespace, we do it synchronously before invoking kubectl apply.
-	// Otherwise there is a race between the creation of the namespace and the other resources living in it
-	if _, ok := manifests[namespaceFileName]; ok {
-		logger.Info("Creating namespace %s", fi.opts.templateParams.Namespace)
-		if err := createNamespaceSynchronously(fi.k8sClientSet, fi.opts.templateParams.Namespace); err != nil {
 			return err
 		}
 	}
@@ -302,15 +309,6 @@ func getFluxManifests(params install.TemplateParameters, cs *kubeclient.Clientse
 	if err != nil {
 		return nil, err
 	}
-	// Verify if the namespace to install Flux already exists and otherwise add a manifest for it
-	_, err = cs.CoreV1().Namespaces().Get(params.Namespace, metav1.GetOptions{})
-	if err == nil {
-		return manifests, nil
-	}
-	if !apierrors.IsNotFound(err) {
-		return nil, fmt.Errorf("cannot check whether namespace %s exists: %s", params.Namespace, err)
-	}
-	manifests[namespaceFileName] = kubernetes.NamespaceYAML(params.Namespace)
 	return manifests, nil
 }
 
@@ -397,6 +395,17 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 	// Return Flux's public SSH key as it later needs to be printed/logged for
 	// the end-user to take action and add it to their Git repository.
 	return fluxGitConfig.PublicSSHKey, nil
+}
+
+func isNamespaceCreated(name string, cs *kubeclient.Clientset) (bool, error) {
+	_, err := cs.CoreV1().Namespaces().Get(name, metav1.GetOptions{})
+	if err == nil {
+		return true, nil
+	}
+	if !apierrors.IsNotFound(err) {
+		return false, fmt.Errorf("cannot check whether namespace %s exists: %s", name, err)
+	}
+	return false, nil
 }
 
 func createNamespaceSynchronously(cs *kubeclient.Clientset, namespace string) error {
