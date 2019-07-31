@@ -6,6 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/gitops"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/ctl/completion"
@@ -26,6 +27,7 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(delete.Command(flagGrouping))
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
+	rootCmd.AddCommand(gitops.Command(flagGrouping))
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
 	rootCmd.AddCommand(versionCmd(flagGrouping))
