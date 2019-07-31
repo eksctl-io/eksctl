@@ -69,8 +69,7 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 		}
 		return installer.run(context.Background())
 	})
-
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	rc.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
 		fs.StringVar(&opts.templateParams.GitURL, "git-url", "",
 			"URL of the Git repository to be used by Flux, e.g. git@github.com:<your username>/flux-get-started")
 		fs.StringVar(&opts.templateParams.GitBranch, "git-branch", "master",
@@ -86,16 +85,17 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringVar(&opts.gitFluxPath, "git-flux-subdir", "flux/",
 			"Directory within the Git repository where to commit the Flux manifests")
 		fs.DurationVar(&opts.timeout, "timeout", 20*time.Second,
-			"Timeout duration for I/O operations")
+			"Timeout for I/O operations")
 		fs.StringVar(&opts.templateParams.Namespace, "namespace", "flux",
 			"Cluster namespace where to install Flux")
 		fs.BoolVar(&opts.amend, "amend", false,
 			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
+	})
+	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, rc.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
-
 }
 
 type fluxInstaller struct {
