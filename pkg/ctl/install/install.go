@@ -229,7 +229,7 @@ func (fi *fluxInstaller) cloneRepo(ctx context.Context) (string, error) {
 }
 
 func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, cloneDir string) error {
-	// Add
+	// git add
 	addCtx, addCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
 	defer addCtxCancel()
 	if err := runGitCmd(addCtx, cloneDir, "add", "--", fi.opts.gitFluxPath); err != nil {
@@ -246,7 +246,7 @@ func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, clon
 		return err
 	}
 
-	// Commit
+	// git commit
 	commitCtx, commitCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
 	defer commitCtxCancel()
 	args := []string{"commit",
@@ -257,7 +257,7 @@ func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, clon
 		return err
 	}
 
-	// Push
+	// git push
 	pushCtx, pushCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
 	defer pushCtxCancel()
 	return runGitCmd(pushCtx, cloneDir, "push")
