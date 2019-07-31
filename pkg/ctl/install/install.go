@@ -24,7 +24,7 @@ import (
 	"github.com/weaveworks/flux/install"
 	"github.com/weaveworks/flux/ssh"
 	corev1 "k8s.io/api/core/v1"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -308,7 +308,7 @@ func getFluxManifests(params install.TemplateParameters, cs *kubeclient.Clientse
 	if err == nil {
 		return manifests, nil
 	}
-	if !k8serrors.IsNotFound(err) {
+	if !apierrors.IsNotFound(err) {
 		return nil, fmt.Errorf("cannot check whether namespace %s exists: %s", params.Namespace, err)
 	}
 	nsTemplate := `---
@@ -423,7 +423,7 @@ func createNamespaceSynchronously(cs *kubeclient.Clientset, namespace string) er
 		if err == nil {
 			break
 		}
-		if !k8serrors.IsNotFound(err) {
+		if !apierrors.IsNotFound(err) {
 			return fmt.Errorf("cannot check whether namespace %s exists: %s", namespace, err)
 		}
 	}
