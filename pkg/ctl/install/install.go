@@ -404,6 +404,8 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 	if time.Now().After(podDeadline) {
 		return ssh.PublicKey{}, fmt.Errorf("timed out waiting for Flux to be operative")
 	}
+	// Return Flux's public SSH key as it later needs to be printed/logged for
+	// the end-user to take action and add it to their Git repository.
 	return fluxGitConfig.PublicSSHKey, nil
 }
 
