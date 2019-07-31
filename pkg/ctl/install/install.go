@@ -23,7 +23,6 @@ import (
 	"github.com/weaveworks/flux/http/client"
 	"github.com/weaveworks/flux/install"
 	"github.com/weaveworks/flux/ssh"
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -311,16 +310,7 @@ func getFluxManifests(params install.TemplateParameters, cs *kubeclient.Clientse
 	if !apierrors.IsNotFound(err) {
 		return nil, fmt.Errorf("cannot check whether namespace %s exists: %s", params.Namespace, err)
 	}
-	nsTemplate := `---
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    name: %s
-  name: %s
-`
-	ns := fmt.Sprintf(nsTemplate, params.Namespace, params.Namespace)
-	manifests[namespaceFileName] = []byte(ns)
+	manifests[namespaceFileName] = kubernetes.NamespaceYAML(params.Namespace)
 	return manifests, nil
 }
 
@@ -410,12 +400,7 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 }
 
 func createNamespaceSynchronously(cs *kubeclient.Clientset, namespace string) error {
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   namespace,
-			Labels: map[string]string{"name": namespace},
-		},
-	}
+	ns := kubernetes.Namespace(namespace)
 	if _, err := cs.CoreV1().Namespaces().Create(ns); err != nil {
 		return fmt.Errorf("cannot create namespace %s: %s", namespace, err)
 	}
