@@ -40,6 +40,18 @@ var _ = Describe("AMI Auto Resolution", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
+			It("should return the AWS Account ID for AL2 images in ap-east-1", func() {
+				ownerAccount, err := OwnerAccountID(ImageFamilyAmazonLinux2, "ap-east-1")
+				Expect(ownerAccount).To(BeEquivalentTo("800184023465"))
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should return the AWS Account ID for Ubuntu images in ap-east-1", func() {
+				ownerAccount, err := OwnerAccountID(ImageFamilyUbuntu1804, "ap-east-1")
+				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
+				Expect(err).NotTo(HaveOccurred())
+			})
+
 			It("should return the Ubuntu Account ID for Ubuntu images", func() {
 				ownerAccount, err := OwnerAccountID(ImageFamilyUbuntu1804, region)
 				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
