@@ -270,7 +270,7 @@ func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
 		return err
 	}
 
-	manifests := kubernetes.JoinManifestValues(manifestsMap)
+	manifests := kubernetes.ConcatManifestValues(manifestsMap)
 	objects, err := kubernetes.NewRawExtensions(manifests)
 	if err != nil {
 		return err

@@ -76,30 +76,30 @@ var _ = Describe("Kubernetes client toolkit", func() {
 	})
 })
 
-func TestJoinManifestValues(t *testing.T) {
+func TestConcatManifestValues(t *testing.T) {
 	a := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: a\n"
 	b := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: b\n"
 
-	assert.Equal(t, []byte(a), JoinManifestValues(map[string][]byte{
+	assert.Equal(t, []byte(a), ConcatManifestValues(map[string][]byte{
 		"a": []byte(a),
 	}))
 
-	assert.Equal(t, []byte(a+"---\n"+b), JoinManifestValues(map[string][]byte{
+	assert.Equal(t, []byte(a+"---\n"+b), ConcatManifestValues(map[string][]byte{
 		"a": []byte(a),
 		"b": []byte(b),
 	}))
 }
 
-func TestJoinManifests(t *testing.T) {
+func TestConcatManifests(t *testing.T) {
 	a := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: a\n"
 	b := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: b\n"
 
-	assert.Equal(t, []byte(a), JoinManifests([][]byte{
+	assert.Equal(t, []byte(a), ConcatManifests([][]byte{
 		[]byte(a),
-	}))
+	}...))
 
-	assert.Equal(t, []byte(a+"---\n"+b), JoinManifests([][]byte{
+	assert.Equal(t, []byte(a+"---\n"+b), ConcatManifests([][]byte{
 		[]byte(a),
 		[]byte(b),
-	}))
+	}...))
 }
