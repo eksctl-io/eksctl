@@ -17,7 +17,7 @@ import (
 	"github.com/riywo/loginshell"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	kubeutils "github.com/weaveworks/eksctl/pkg/kubernetes"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	fluxapi "github.com/weaveworks/flux/api/v6"
 	transport "github.com/weaveworks/flux/http"
 	"github.com/weaveworks/flux/http/client"
@@ -26,8 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes"
+	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -104,7 +103,7 @@ type fluxInstaller struct {
 	resourceCmd   *cmdutils.ResourceCmd
 	k8sConfig     *clientcmdapi.Config
 	k8sRestConfig *rest.Config
-	k8sClientSet  *kubernetes.Clientset
+	k8sClientSet  *kubeclient.Clientset
 }
 
 func newFluxInstaller(rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxInstaller, error) {
@@ -136,7 +135,7 @@ func newFluxInstaller(rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxIns
 	if err != nil {
 		return nil, errors.Errorf("cannot create Kubernetes client configuration: %s", err)
 	}
-	k8sClientSet, err := kubernetes.NewForConfig(k8sRestConfig)
+	k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
 	if err != nil {
 		return nil, errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
@@ -264,13 +263,15 @@ func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, clon
 	return runGitCmd(pushCtx, cloneDir, "push")
 }
 
-func (fi *fluxInstaller) applyManifests(manifests map[string][]byte) error {
-	objects, err := manifestsToObjects(manifests)
+func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
+	// TODO: initialise the client elsewhere so that a mock client can easily be dependency-injected for testing purposes.
+	client, err := kubernetes.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
 	if err != nil {
 		return err
 	}
-	// TODO: initialise the client elsewhere so that a mock client can easily be dependency-injected for testing purposes.
-	client, err := kubeutils.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
+
+	manifests := kubernetes.JoinManifestValues(manifestsMap)
+	objects, err := kubernetes.NewRawExtensions(manifests)
 	if err != nil {
 		return err
 	}
@@ -288,21 +289,6 @@ func (fi *fluxInstaller) applyManifests(manifests map[string][]byte) error {
 	return nil
 }
 
-// manifestsToObjects decodes all of the provided manifests' bytes into Kubernetes objects.
-func manifestsToObjects(manifests map[string][]byte) ([]runtime.RawExtension, error) {
-	objects := []runtime.RawExtension{}
-	for _, manifest := range manifests {
-		list, err := kubeutils.NewList(manifest)
-		if err != nil {
-			return nil, err
-		}
-		for _, object := range list.Items {
-			objects = append(objects, object)
-		}
-	}
-	return objects, nil
-}
-
 func runGitCmd(ctx context.Context, dir string, args ...string) error {
 	gitCmd := exec.CommandContext(ctx, "git", args...)
 	gitCmd.Stdout = os.Stdout
@@ -311,7 +297,7 @@ func runGitCmd(ctx context.Context, dir string, args ...string) error {
 	return gitCmd.Run()
 }
 
-func getFluxManifests(params install.TemplateParameters, cs *kubernetes.Clientset) (map[string][]byte, error) {
+func getFluxManifests(params install.TemplateParameters, cs *kubeclient.Clientset) (map[string][]byte, error) {
 	params.AdditionalFluxArgs = []string{"--sync-garbage-collection", "--manifest-generation"}
 	manifests, err := install.FillInTemplates(params)
 	if err != nil {
@@ -367,7 +353,7 @@ func runShell(workDir string) error {
 }
 
 func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *rest.Config,
-	cs *kubernetes.Clientset) (ssh.PublicKey, error) {
+	cs *kubeclient.Clientset) (ssh.PublicKey, error) {
 	fluxSelector := metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
 			{
@@ -421,7 +407,7 @@ func waitForFluxToStart(ctx context.Context, opts *installFluxOpts, restConfig *
 	return fluxGitConfig.PublicSSHKey, nil
 }
 
-func createNamespaceSynchronously(cs *kubernetes.Clientset, namespace string) error {
+func createNamespaceSynchronously(cs *kubeclient.Clientset, namespace string) error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   namespace,

@@ -2,10 +2,11 @@ package kubernetes_test
 
 import (
 	"io/ioutil"
+	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
+	"github.com/stretchr/testify/assert"
 	. "github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -74,3 +75,31 @@ var _ = Describe("Kubernetes client toolkit", func() {
 		})
 	})
 })
+
+func TestJoinManifestValues(t *testing.T) {
+	a := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: a\n"
+	b := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: b\n"
+
+	assert.Equal(t, []byte(a), JoinManifestValues(map[string][]byte{
+		"a": []byte(a),
+	}))
+
+	assert.Equal(t, []byte(a+"---\n"+b), JoinManifestValues(map[string][]byte{
+		"a": []byte(a),
+		"b": []byte(b),
+	}))
+}
+
+func TestJoinManifests(t *testing.T) {
+	a := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: a\n"
+	b := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: b\n"
+
+	assert.Equal(t, []byte(a), JoinManifests([][]byte{
+		[]byte(a),
+	}))
+
+	assert.Equal(t, []byte(a+"---\n"+b), JoinManifests([][]byte{
+		[]byte(a),
+		[]byte(b),
+	}))
+}
