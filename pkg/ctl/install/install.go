@@ -122,7 +122,7 @@ func newFluxInstaller(rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxIns
 	if !ctl.IsSupportedRegion() {
 		return nil, cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
 	}
-	if err := ctl.GetCredentials(cfg); err != nil {
+	if err := ctl.RefreshClusterConfig(cfg); err != nil {
 		return nil, err
 	}
 	kubernetesClientConfigs, err := ctl.NewClient(cfg)
