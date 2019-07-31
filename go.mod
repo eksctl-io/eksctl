@@ -51,6 +51,7 @@ require (
 	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/sanathkr/yaml v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
+	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2
@@ -73,6 +74,7 @@ require (
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
+	gopkg.in/src-d/go-git.v4 v4.8.1
 	k8s.io/api v0.0.0-20190313235455-40a48860b5ab
 	k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 	k8s.io/apimachinery v0.0.0-20190404173353-6a84e37a896d
@@ -84,6 +86,7 @@ require (
 	k8s.io/kops v0.0.0-20190222135932-278e6606534e
 	k8s.io/kubelet v0.0.0-20190313123811-3556bcde9670
 	k8s.io/kubernetes v1.12.6
+	sigs.k8s.io/kustomize v2.0.3+incompatible
 	sigs.k8s.io/yaml v1.1.0
 )
 
