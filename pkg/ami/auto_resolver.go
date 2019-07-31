@@ -1,9 +1,12 @@
 package ami
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
@@ -39,10 +42,16 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 	},
 }
 
-// ImageFamilyToAccountID is a map of image families to account Ids
-var ImageFamilyToAccountID = map[string]string{
-	ImageFamilyAmazonLinux2: "602401143452",
-	ImageFamilyUbuntu1804:   "099720109477",
+// OwnerAccountID returns the AWS account ID that owns worker AMI.
+func OwnerAccountID(imageFamily string, region string) (string, error) {
+	switch imageFamily {
+	case ImageFamilyUbuntu1804:
+		return "099720109477", nil
+	case ImageFamilyAmazonLinux2:
+		return api.EKSResourceAccountID(region), nil
+	default:
+		return "", fmt.Errorf("unable to determine the account owner for image family %s", imageFamily)
+	}
 }
 
 // AutoResolver resolves the AMi to the defaults for the region
@@ -66,9 +75,9 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 		}
 	}
 
-	ownerAccount, knownOwner := ImageFamilyToAccountID[imageFamily]
-	if !knownOwner {
-		logger.Critical("unable to determine the account owner for image family %s", imageFamily)
+	ownerAccount, err := OwnerAccountID(imageFamily, region)
+	if err != nil {
+		logger.Critical("%v", err)
 		return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
 	}
 

@@ -35,11 +35,27 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 		Context("setting proper AWS Account IDs based on instance families", func() {
 			It("should return the AWS Account ID for AL2 images", func() {
-				Expect(ImageFamilyToAccountID[ImageFamilyAmazonLinux2]).To(BeEquivalentTo("602401143452"))
+				ownerAccount, err := OwnerAccountID(ImageFamilyAmazonLinux2, region)
+				Expect(ownerAccount).To(BeEquivalentTo("602401143452"))
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should return the AWS Account ID for AL2 images in ap-east-1", func() {
+				ownerAccount, err := OwnerAccountID(ImageFamilyAmazonLinux2, "ap-east-1")
+				Expect(ownerAccount).To(BeEquivalentTo("800184023465"))
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should return the AWS Account ID for Ubuntu images in ap-east-1", func() {
+				ownerAccount, err := OwnerAccountID(ImageFamilyUbuntu1804, "ap-east-1")
+				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("should return the Ubuntu Account ID for Ubuntu images", func() {
-				Expect(ImageFamilyToAccountID[ImageFamilyUbuntu1804]).To(BeEquivalentTo("099720109477"))
+				ownerAccount, err := OwnerAccountID(ImageFamilyUbuntu1804, region)
+				Expect(ownerAccount).To(BeEquivalentTo("099720109477"))
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
@@ -61,8 +77,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "available"
 
 						_, p = createProviders()
-						addMockDescribeImages(p, "amazon-eks-node-1.12-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyAmazonLinux2")
-
+						addMockDescribeImages(p, "amazon-eks-node-1.12-v*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", ImageFamilyAmazonLinux2)
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
 					})
@@ -86,7 +101,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageFamily = "Ubuntu1804"
 
 						_, p = createProviders()
-						addMockDescribeImages(p, "ubuntu-eks/k8s_1.12/images/*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyUbuntu1804")
+						addMockDescribeImages(p, "ubuntu-eks/k8s_1.12/images/*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", ImageFamilyUbuntu1804)
 
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
@@ -178,8 +193,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 						imageState = "available"
 
 						_, p = createProviders()
-						addMockDescribeImages(p, "amazon-eks-gpu-node-1.12-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", "ImageFamilyAmazonLinux2")
-
+						addMockDescribeImages(p, "amazon-eks-gpu-node-1.12-*", expectedAmi, imageState, "2018-08-20T23:25:53.000Z", ImageFamilyAmazonLinux2)
 						resolver := NewAutoResolver(p.MockEC2())
 						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
 					})
@@ -230,7 +244,6 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 			&ec2.Image{
 				ImageId: aws.String(amiId),
 				State:   aws.String(amiState),
-				OwnerId: aws.String(ImageFamilyToAccountID[instanceFamily]),
 			},
 		},
 	}, nil)
