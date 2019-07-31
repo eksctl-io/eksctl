@@ -197,6 +197,11 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 		if err := runShell(fluxManifestDir); err != nil {
 			return err
 		}
+		// Re-read the manifests, as they may have changed:
+		manifests, err = readFluxManifests(fluxManifestDir)
+		if err != nil {
+			return err
+		}
 	}
 
 	logger.Info("Installing Flux into the cluster")
@@ -323,6 +328,22 @@ func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
 		}
 	}
 	return nil
+}
+
+func readFluxManifests(baseDir string) (map[string][]byte, error) {
+	manifestFiles, err := ioutil.ReadDir(baseDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list Flux manifest files in %s: %s", baseDir, err)
+	}
+	manifests := map[string][]byte{}
+	for _, manifestFile := range manifestFiles {
+		manifest, err := ioutil.ReadFile(manifestFile.Name())
+		if err != nil {
+			return nil, fmt.Errorf("failed to read Flux manifest file %s: %s", manifestFile.Name(), err)
+		}
+		manifests[manifestFile.Name()] = manifest
+	}
+	return manifests, nil
 }
 
 func runShell(workDir string) error {
