@@ -58,7 +58,7 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 	rc.ClusterConfig = api.NewClusterConfig()
 	rc.SetDescription(
 		"flux",
-		"Bootstrap Flux, installing it in the cluster and initializing its manifests in the Git repository",
+		"Bootstrap Flux, installing it in the cluster and initializing its manifests in the specified Git repository",
 		"",
 	)
 	var opts installFluxOpts
