@@ -265,7 +265,6 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *NodeGroupKubeletConfig) 
 		"authentication":     {},
 		"authorization":      {},
 		"serverTLSBootstrap": {},
-		"featureGates":       {},
 	}
 
 	for k := range *kubeletConfig {

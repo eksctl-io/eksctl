@@ -44,13 +44,17 @@ var _ = Describe("User data", func() {
 			Expect(errUnmarshal).ToNot(HaveOccurred())
 		})
 
-		It("the kubelet is serialized with the correct format", func() {
+		It("the kubelet config contains the overwritten values", func() {
 
 			ng.KubeletExtraConfig = &api.NodeGroupKubeletConfig{
 				"kubeReserved": &map[string]string{
 					"cpu":               "300m",
 					"memory":            "300Mi",
 					"ephemeral-storage": "1Gi",
+				},
+				"featureGates": map[string]bool{
+					"HugePages":            false,
+					"DynamicKubeletConfig": true,
 				},
 			}
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
@@ -65,6 +69,9 @@ var _ = Describe("User data", func() {
 			Expect(kubelet.KubeReserved["cpu"]).To(Equal("300m"))
 			Expect(kubelet.KubeReserved["memory"]).To(Equal("300Mi"))
 			Expect(kubelet.KubeReserved["ephemeral-storage"]).To(Equal("1Gi"))
+			Expect(kubelet.FeatureGates["HugePages"]).To(Equal(false))
+			Expect(kubelet.FeatureGates["DynamicKubeletConfig"]).To(Equal(true))
+			Expect(kubelet.FeatureGates["RotateKubeletServerCertificate"]).To(Equal(false))
 		})
 	})
 })

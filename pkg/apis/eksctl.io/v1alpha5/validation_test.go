@@ -143,7 +143,7 @@ var _ = Describe("ConfigFile validation", func() {
 
 			It("Forbids overriding basic fields", func() {
 				testKeys := []string{"kind", "apiVersion", "address", "clusterDomain", "authentication",
-					"authorization", "serverTLSBootstrap", "featureGates"}
+					"authorization", "serverTLSBootstrap"}
 
 				for _, key := range testKeys {
 					ng.KubeletExtraConfig = &NodeGroupKubeletConfig{
@@ -163,6 +163,10 @@ var _ = Describe("ConfigFile validation", func() {
 					},
 					"kubeReservedCgroup": "/kube-reserved",
 					"cgroupDriver":       "systemd",
+					"featureGates": map[string]bool{
+						"VolumeScheduling":         false,
+						"VolumeSnapshotDataSource": true,
+					},
 				}
 				err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig)
 				Expect(err).ToNot(HaveOccurred())
