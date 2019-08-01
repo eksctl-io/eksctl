@@ -115,18 +115,19 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 	return nil
 }
 
-// UpdateClusterConfigTasks returns all tasks for updating cluster configuration
-func (c *ClusterProvider) UpdateClusterConfigTasks(cfg *api.ClusterConfig) *manager.TaskTree {
-	tasks := &manager.TaskTree{Parallel: false}
+// UpdateClusterConfigTasks returns all tasks for updating cluster configuration or nil if there are no tasks
+func (c *ClusterProvider) GetUpdateClusterConfigTasks(cfg *api.ClusterConfig) *manager.TaskTree {
+	if !cfg.HasClusterCloudWatchLogging() {
+		logger.Info("CloudWatch logging will not be enabled for cluster %q in %q", cfg.Metadata.Name, cfg.Metadata.Region)
+		logger.Info("you can enable it with 'eksctl utils enable-logging --region=%s --name=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
+		return nil
+	}
 
-	tasks.Append(&updateClusterConfigTask{
+	loggingTasks := &manager.TaskTree{Parallel: false}
+	loggingTasks.Append(&updateClusterConfigTask{
 		info: "update CloudWatch logging configurtaion",
-		skip: !cfg.HasClusterCloudWatchLogging(),
-		spec: cfg,
-		call: c.UpdateClusterConfigForLogging,
 	})
-
-	return tasks
+	return loggingTasks
 }
 
 // UpdateClusterVersion calls eks.UpdateClusterVersion and updates to cfg.Metadata.Version,

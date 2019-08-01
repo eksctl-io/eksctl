@@ -288,7 +288,10 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(ngSubset)
-		tasks.Append(ctl.UpdateClusterConfigTasks(cfg))
+		if updateClusterTasks := ctl.GetUpdateClusterConfigTasks(cfg); updateClusterTasks != nil {
+			tasks.Append(updateClusterTasks)
+		}
+
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
