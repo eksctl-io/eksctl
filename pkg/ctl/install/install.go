@@ -25,7 +25,6 @@ import (
 	"github.com/weaveworks/flux/ssh"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -270,39 +269,13 @@ func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
 	// resource which should potentially be created within this namespace.
 	// Otherwise, creation of these resources will fail.
 	if namespace, ok := manifestsMap[namespaceFileName]; ok {
-		if err := createOrReplace(namespace, client); err != nil {
+		if err := client.CreateOrReplace(namespace, false); err != nil {
 			return err
 		}
 		delete(manifestsMap, namespaceFileName)
 	}
 	manifests := kubernetes.ConcatManifestValues(manifestsMap)
-	return createOrReplace(manifests, client)
-}
-
-func createOrReplace(manifest []byte, client *kubernetes.RawClient) error {
-	objects, err := kubernetes.NewRawExtensions(manifest)
-	if err != nil {
-		return err
-	}
-	for _, object := range objects {
-		if err := createOrReplaceObject(object, client); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func createOrReplaceObject(object runtime.RawExtension, client *kubernetes.RawClient) error {
-	resource, err := client.NewRawResource(object)
-	if err != nil {
-		return err
-	}
-	status, err := resource.CreateOrReplace(false)
-	if err != nil {
-		return err
-	}
-	logger.Info(status)
-	return nil
+	return client.CreateOrReplace(manifests, false)
 }
 
 func runGitCmd(ctx context.Context, dir string, args ...string) error {
