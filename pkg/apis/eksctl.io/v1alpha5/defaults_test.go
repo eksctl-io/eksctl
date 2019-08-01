@@ -20,7 +20,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"anything"}
 
 			SetClusterConfigDefaults(cfg)
-			Expect(err).NotTo(HaveOccurred())
 			err = ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 		})
@@ -37,7 +36,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"*"}
 
 			SetClusterConfigDefaults(cfg)
-			Expect(err).NotTo(HaveOccurred())
 			err = ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -48,7 +46,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"all"}
 
 			SetClusterConfigDefaults(cfg)
-			Expect(err).NotTo(HaveOccurred())
 			err = ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
