@@ -12,7 +12,6 @@ import (
 
 // Task is a common interface for the stack manager tasks
 type Task interface {
-	Skip() bool
 	Describe() string
 	Do(chan error) error
 }
@@ -20,7 +19,6 @@ type Task interface {
 // TaskTree wraps a set of tasks
 type TaskTree struct {
 	tasks     []Task
-	SkipAll   bool
 	Parallel  bool
 	PlanMode  bool
 	IsSubTask bool
@@ -39,11 +37,6 @@ func (t *TaskTree) Len() int {
 	return len(t.tasks)
 }
 
-// Skip indicated if all tasks in a tree should be skipped
-func (t *TaskTree) Skip() bool {
-	return t.SkipAll
-}
-
 // Describe the set
 func (t *TaskTree) Describe() string {
 	descriptions := []string{}
@@ -59,9 +52,6 @@ func (t *TaskTree) Describe() string {
 	noun := "task"
 	if t.IsSubTask {
 		noun = "sub-task"
-	}
-	if t.SkipAll {
-		noun = "skipped " + noun
 	}
 	switch count {
 	case 0:
@@ -85,7 +75,7 @@ func (t *TaskTree) Describe() string {
 // or eventually write to the errs channel; it will close the channel once all tasks
 // are completed
 func (t *TaskTree) Do(allErrs chan error) error {
-	if t.Len() == 0 || t.PlanMode || t.SkipAll {
+	if t.Len() == 0 || t.PlanMode {
 		logger.Debug("no actual tasks")
 		close(allErrs)
 		return nil
@@ -112,7 +102,7 @@ func (t *TaskTree) Do(allErrs chan error) error {
 // DoAllSync will run through the set in the foregounds and return all the errors
 // in a slice
 func (t *TaskTree) DoAllSync() []error {
-	if t.Len() == 0 || t.PlanMode || t.SkipAll {
+	if t.Len() == 0 || t.PlanMode {
 		logger.Debug("no actual tasks")
 		return nil
 	}
@@ -203,10 +193,6 @@ func (t *asyncTaskWithStackSpec) Do(errs chan error) error {
 
 func doSingleTask(allErrs chan error, task Task) bool {
 	desc := task.Describe()
-	if task.Skip() {
-		logger.Debug("skipping task: %s", desc)
-		return true
-	}
 	logger.Debug("started task: %s", desc)
 	errs := make(chan error)
 	if err := task.Do(errs); err != nil {

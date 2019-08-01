@@ -115,7 +115,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 	return nil
 }
 
-// UpdateClusterConfigTasks returns all tasks for updating cluster configuration or nil if there are no tasks
+// GetUpdateClusterConfigTasks returns all tasks for updating cluster configuration or nil if there are no tasks
 func (c *ClusterProvider) GetUpdateClusterConfigTasks(cfg *api.ClusterConfig) *manager.TaskTree {
 	if !cfg.HasClusterCloudWatchLogging() {
 		logger.Info("CloudWatch logging will not be enabled for cluster %q in %q", cfg.Metadata.Name, cfg.Metadata.Region)
