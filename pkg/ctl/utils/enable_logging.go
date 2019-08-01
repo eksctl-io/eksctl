@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/kris-nova/logger"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -20,10 +19,12 @@ func enableLoggingCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	rc.ClusterConfig = cfg
 
-	rc.SetDescription("enable-logging", "Update cluster logging configuration", "")
+	rc.SetDescription("update-cluster-logging", "Update cluster logging configuration", "")
 
+	var typesEnabled []string
+	var typesDisabled []string
 	rc.SetRunFuncWithNameArg(func() error {
-		return doEnableLogging(rc)
+		return doEnableLogging(rc, typesEnabled, typesDisabled)
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -34,51 +35,25 @@ func enableLoggingCmd(rc *cmdutils.ResourceCmd) {
 	})
 
 	rc.FlagSetGroup.InFlagSet("Enable/disable log types", func(fs *pflag.FlagSet) {
-		enableExplicitly := sets.NewString()
 		allSupportedTypes := api.SupportedCloudWatchClusterLogTypes()
-		inherit := sets.NewString()
 
-		enableAll := fs.Bool("all", true, fmt.Sprintf("Enable all supported log types (%s)", strings.Join(allSupportedTypes, ", ")))
+		fs.StringSliceVar(&typesEnabled, "enable-types", []string{}, fmt.Sprintf("Log types to be enabled. Supported log types: (all, none, %s)", strings.Join(allSupportedTypes, ", ")))
+		fs.StringSliceVar(&typesDisabled, "disable-types", []string{}, fmt.Sprintf("Log types to be disabled, the rest will be disabled. Supported log types: (all, none, %s)", strings.Join(allSupportedTypes, ", ")))
 
-		for _, logType := range allSupportedTypes {
-			_ = fs.Bool(logType, false, fmt.Sprintf("Enable %q log type", logType))
-		}
-
-		cmdutils.AddPreRun(rc.Command, func(cmd *cobra.Command, args []string) {
-			if *enableAll {
-				inherit.Insert(allSupportedTypes...)
-			}
-
-			for _, logType := range allSupportedTypes {
-				f := cmd.Flag(logType)
-
-				shouldEnable := f.Value.String() == "true"
-				shouldDisable := f.Changed && !shouldEnable
-
-				if shouldEnable {
-					enableExplicitly.Insert(logType)
-					if !cmd.Flag("all").Changed {
-						// do not include all log types if --all wasn't specified explicitly
-						inherit = sets.NewString()
-					}
-				}
-
-				if shouldDisable {
-					inherit.Delete(logType)
-				}
-			}
-
-			cfg.AppendClusterCloudWatchLogTypes(enableExplicitly.List()...)
-			cfg.AppendClusterCloudWatchLogTypes(inherit.List()...)
-		})
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doEnableLogging(rc *cmdutils.ResourceCmd) error {
+func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTypesToDisable []string) error {
 	if err := cmdutils.NewUtilsEnableLoggingLoader(rc).Load(); err != nil {
 		return err
+	}
+
+	if !rc.ClusterConfig.HasClusterCloudWatchLogging() {
+		if err := validateLoggingFlags(logTypesToEnable, logTypesToDisable); err != nil {
+			return err
+		}
 	}
 
 	cfg := rc.ClusterConfig
@@ -103,29 +78,32 @@ func doEnableLogging(rc *cmdutils.ResourceCmd) error {
 		return err
 	}
 
-	shouldEnable := sets.NewString()
-
+	willBeEnabled := sets.NewString()
 	if cfg.HasClusterCloudWatchLogging() {
-		shouldEnable.Insert(cfg.CloudWatch.ClusterLogging.EnableTypes...)
+		willBeEnabled.Insert(cfg.CloudWatch.ClusterLogging.EnableTypes...)
+	} else {
+		baselineEnabled := sets.NewString(currentlyEnabled.List()...).Union(willBeEnabled)
+		toEnable := processTypesToEnable(baselineEnabled.List(), logTypesToEnable, logTypesToDisable)
+		willBeEnabled.Insert(toEnable...)
 	}
 
-	shouldDisable := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...).Difference(shouldEnable)
+	cfg.CloudWatch.ClusterLogging.EnableTypes = willBeEnabled.List()
+	willBeDisabled := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...).Difference(willBeEnabled)
+	updateRequired := !currentlyEnabled.Equal(willBeEnabled)
 
-	updateRequired := !currentlyEnabled.Equal(shouldEnable)
-
-	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
+	if err = printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
 
 	if updateRequired {
 		describeTypesToEnable := "no types to enable"
-		if len(shouldEnable.List()) > 0 {
-			describeTypesToEnable = fmt.Sprintf("enable types: %s", strings.Join(shouldEnable.List(), ", "))
+		if len(willBeEnabled.List()) > 0 {
+			describeTypesToEnable = fmt.Sprintf("enable types: %s", strings.Join(willBeEnabled.List(), ", "))
 		}
 
 		describeTypesToDisable := "no types to disable"
-		if len(shouldDisable.List()) > 0 {
-			describeTypesToDisable = fmt.Sprintf("disable types: %s", strings.Join(shouldDisable.List(), ", "))
+		if len(willBeDisabled.List()) > 0 {
+			describeTypesToDisable = fmt.Sprintf("disable types: %s", strings.Join(willBeDisabled.List(), ", "))
 		}
 
 		cmdutils.LogIntendedAction(rc.Plan, "update CloudWatch logging for cluster %q in %q (%s & %s)",
@@ -142,5 +120,77 @@ func doEnableLogging(rc *cmdutils.ResourceCmd) error {
 
 	cmdutils.LogPlanModeWarning(rc.Plan && updateRequired)
 
+	return nil
+}
+
+func validateLoggingFlags(toEnable []string, toDisable []string) error {
+	emptyToEnable := toEnable == nil || len(toEnable) == 0
+	emptyToDisable := toDisable == nil || len(toDisable) == 0
+
+	// At least enable-types or disable-types should be provided
+	if emptyToEnable && emptyToDisable {
+		return fmt.Errorf("at least one flag has to be provided: --enable-types, --disable-types")
+	}
+
+	isEnableAll := !emptyToEnable && toEnable[0] == "all"
+	isDisableAll := !emptyToDisable && toDisable[0] == "all"
+
+	// Can't enable all and disable all
+	if isDisableAll && isEnableAll {
+		return fmt.Errorf("cannot use `all` for both --enable-types and --disable-types at the same time")
+	}
+
+	// Check all are valid values
+	// TODO if this is too restrictive we can drop it
+	if err := checkAllTypesAreSupported(toEnable); err != nil {
+		return err
+	}
+	if err := checkAllTypesAreSupported(toDisable); err != nil {
+		return err
+	}
+	// both options are provided but without "all"
+	toEnableSet := sets.NewString(toEnable...)
+	toDisableSet := sets.NewString(toDisable...)
+
+	appearInBoth := toEnableSet.Intersection(toDisableSet)
+
+	if appearInBoth.Len() != 0 {
+		return fmt.Errorf("log types cannot be part of --enable-types and --disable-types simultaneously")
+	}
+	return nil
+}
+
+func processTypesToEnable(existingEnabled []string, toEnable []string, toDisable []string) []string {
+	emptyToEnable := toEnable == nil || len(toEnable) == 0
+	emptyToDisable := toDisable == nil || len(toDisable) == 0
+
+	isEnableAll := !emptyToEnable && toEnable[0] == "all"
+	isDisableAll := !emptyToDisable && toDisable[0] == "all"
+
+	// When all is provided in one of the options
+	if isDisableAll {
+		return toEnable
+	}
+	if isEnableAll {
+		toDisableSet := sets.NewString(toDisable...)
+		toEnableSet := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...).Difference(toDisableSet)
+		return toEnableSet.List()
+	}
+
+	// willEnable = existing - toDisable + toEnable
+	willEnable := sets.NewString(existingEnabled...)
+	willEnable.Insert(toEnable...)
+	willEnable.Delete(toDisable...)
+
+	return willEnable.List()
+}
+
+func checkAllTypesAreSupported(logTypes []string) error {
+	allSupportedTypesSet := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...)
+	for _, logType := range logTypes {
+		if !allSupportedTypesSet.Has(logType) {
+			return fmt.Errorf("unknown log type %s. Supported log types: all, %s", logType, strings.Join(api.SupportedCloudWatchClusterLogTypes(), ", "))
+		}
+	}
 	return nil
 }

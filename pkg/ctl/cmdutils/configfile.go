@@ -323,7 +323,8 @@ func NewUtilsEnableLoggingLoader(rc *ResourceCmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
-		append(api.SupportedCloudWatchClusterLogTypes(), "all")...,
+		"enable-types",
+		"disable-types",
 	)
 
 	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
