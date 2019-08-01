@@ -19,15 +19,14 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should handle unknown types", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"anything"}
 
-			err = SetClusterConfigDefaults(cfg)
+			SetClusterConfigDefaults(cfg)
 			Expect(err).NotTo(HaveOccurred())
 			err = ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("should have no logging by default", func() {
-			err = SetClusterConfigDefaults(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			SetClusterConfigDefaults(cfg)
 			err = ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -37,7 +36,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should expand `['*']` to all", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"*"}
 
-			err = SetClusterConfigDefaults(cfg)
+			SetClusterConfigDefaults(cfg)
 			Expect(err).NotTo(HaveOccurred())
 			err = ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
@@ -48,7 +47,7 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should expand `['all']` to all", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"all"}
 
-			err = SetClusterConfigDefaults(cfg)
+			SetClusterConfigDefaults(cfg)
 			Expect(err).NotTo(HaveOccurred())
 			err = ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())

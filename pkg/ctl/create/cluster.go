@@ -96,9 +96,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 	cfg := rc.ClusterConfig
 	meta := rc.ClusterConfig.Metadata
 
-	if err := api.SetClusterConfigDefaults(cfg); err != nil {
-		return err
-	}
+	api.SetClusterConfigDefaults(cfg)
 
 	if err := api.ValidateClusterConfig(cfg); err != nil {
 		return err

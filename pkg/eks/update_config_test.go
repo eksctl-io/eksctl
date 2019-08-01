@@ -102,8 +102,7 @@ var _ = Describe("EKS API wrapper", func() {
 		It("should expand `[]` to none", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{}
 
-			err = api.SetClusterConfigDefaults(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			api.SetClusterConfigDefaults(cfg)
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -121,8 +120,7 @@ var _ = Describe("EKS API wrapper", func() {
 		It("should expand `['*']` to all", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"*"}
 
-			err = api.SetClusterConfigDefaults(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			api.SetClusterConfigDefaults(cfg)
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -140,8 +138,7 @@ var _ = Describe("EKS API wrapper", func() {
 		It("should enable some logging facilities and disable others", func() {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"authenticator", "controllerManager"}
 
-			err = api.SetClusterConfigDefaults(cfg)
-			Expect(err).NotTo(HaveOccurred())
+			api.SetClusterConfigDefaults(cfg)
 			err = api.ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
