@@ -1862,7 +1862,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			kubeletConfigAssetContentString := string(kubeletConfigAssetContent) +
 				"\n" +
-				"clusterDNS: [10.100.0.10]\n"
+				"clusterDNS: [172.20.0.10]\n"
 
 			kubeletConfig := getFile(cc, "/etc/eksctl/kubelet.yaml")
 			Expect(kubeletConfig).ToNot(BeNil())
