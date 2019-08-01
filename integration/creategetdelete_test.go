@@ -238,7 +238,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					ctl = eks.New(&api.ProviderConfig{Region: region}, cfg)
 				})
 
-				It("should have all types should be disabled by default", func() {
+				It("should have all types disabled by default", func() {
 					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
@@ -270,6 +270,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(2))
 					Expect(disable.List()).To(HaveLen(3))
+					Expect(enabled.List()).To(ConsistOf("api", "controllerManager"))
+					Expect(disable.List()).To(ConsistOf("audit", "authenticator", "scheduler"))
 				})
 
 				It("should enable all of the types with --all flag", func() {
