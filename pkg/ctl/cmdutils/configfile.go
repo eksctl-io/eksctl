@@ -111,7 +111,7 @@ func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 }
 
 // NewMetadataLoader handles loading of clusterConfigFile vs using flags for all commands that require only
-// metadata fileds, e.g. `eksctl delete cluster` or `eksctl utils update-kube-proxy` and other similar
+// metadata fields, e.g. `eksctl delete cluster` or `eksctl utils update-kube-proxy` and other similar
 // commands that do simple operations against existing clusters
 func NewMetadataLoader(rc *ResourceCmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
@@ -121,7 +121,7 @@ func NewMetadataLoader(rc *ResourceCmd) ClusterConfigLoader {
 	return l
 }
 
-// NewCreateClusterLoader will laod config or use flags for 'eksctl create cluster'
+// NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
 func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
 
@@ -196,7 +196,7 @@ func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterC
 	return l
 }
 
-// NewCreateNodeGroupLoader will laod config or use flags for 'eksctl create nodegroup'
+// NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
 func NewCreateNodeGroupLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
 
@@ -271,7 +271,7 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 	return nil
 }
 
-// NewDeleteNodeGroupLoader will laod config or use flags for 'eksctl delete nodegroup'
+// NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
 func NewDeleteNodeGroupLoader(rc *ResourceCmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
 
@@ -318,7 +318,7 @@ func NewDeleteNodeGroupLoader(rc *ResourceCmd, ng *api.NodeGroup, ngFilter *Node
 	return l
 }
 
-// NewUtilsEnableLoggingLoader will laod config or use flags for 'eksctl utils enable-logging'
+// NewUtilsEnableLoggingLoader will load config or use flags for 'eksctl utils enable-logging'
 func NewUtilsEnableLoggingLoader(rc *ResourceCmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
 

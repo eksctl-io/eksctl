@@ -38,7 +38,7 @@ func (t *updateClusterConfigTask) Do(errs chan error) error {
 	return err
 }
 
-// GetCurrentClusterConfigForLogging fetches current cluster logging configuration as two sets - dsiable and enanaled types
+// GetCurrentClusterConfigForLogging fetches current cluster logging configuration as two sets - enabled and disabled types
 func (c *ClusterProvider) GetCurrentClusterConfigForLogging(cl *api.ClusterMeta) (sets.String, sets.String, error) {
 	enabled := sets.NewString()
 	disabled := sets.NewString()
