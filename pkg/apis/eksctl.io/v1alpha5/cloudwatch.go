@@ -19,18 +19,7 @@ func SupportedCloudWatchClusterLogTypes() []string {
 
 // HasClusterCloudWatchLogging determines if cluster logging was enabled or not
 func (c *ClusterConfig) HasClusterCloudWatchLogging() bool {
-	if c.CloudWatch == nil {
-		return false
-	}
-	if c.CloudWatch != nil {
-		if c.CloudWatch.ClusterLogging == nil {
-			return false
-		}
-		if len(c.CloudWatch.ClusterLogging.EnableTypes) == 0 {
-			return false
-		}
-	}
-	return true
+	return c.CloudWatch != nil && c.CloudWatch.ClusterLogging != nil && len(c.CloudWatch.ClusterLogging.EnableTypes) > 0
 }
 
 // AppendClusterCloudWatchLogTypes will append given log types to the config structure

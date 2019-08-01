@@ -1,16 +1,13 @@
 package v1alpha5
 
 // SetClusterConfigDefaults will set defaults for a given cluster
-func SetClusterConfigDefaults(cfg *ClusterConfig) error {
-	if cfg.HasClusterCloudWatchLogging() {
-		for _, logType := range cfg.CloudWatch.ClusterLogging.EnableTypes {
-			switch logType {
-			case "all", "*":
-				cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
-			}
+func SetClusterConfigDefaults(cfg *ClusterConfig) {
+	if cfg.HasClusterCloudWatchLogging() && len(cfg.CloudWatch.ClusterLogging.EnableTypes) == 1 {
+		switch cfg.CloudWatch.ClusterLogging.EnableTypes[0] {
+		case "all", "*":
+			cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
 		}
 	}
-	return nil
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
