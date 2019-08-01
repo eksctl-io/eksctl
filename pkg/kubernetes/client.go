@@ -154,6 +154,34 @@ func (c *RawClient) NewRawResource(rawObj runtime.RawExtension) (*RawResource, e
 	return r, nil
 }
 
+// CreateOrReplace will check if the resources in the provided manifest exists,
+// and create or update them as needed.
+func (c *RawClient) CreateOrReplace(manifest []byte, plan bool) error {
+	objects, err := NewRawExtensions(manifest)
+	if err != nil {
+		return err
+	}
+	for _, object := range objects {
+		if err := c.createOrReplaceObject(object, plan); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *RawClient) createOrReplaceObject(object runtime.RawExtension, plan bool) error {
+	resource, err := c.NewRawResource(object)
+	if err != nil {
+		return err
+	}
+	status, err := resource.CreateOrReplace(plan)
+	if err != nil {
+		return err
+	}
+	logger.Info(status)
+	return nil
+}
+
 // String returns a canonical name of the resource
 func (r *RawResource) String() string {
 	description := ""

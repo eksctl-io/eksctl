@@ -13,6 +13,40 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
+// ConcatManifestValues joins the provided manifests (as a map of byte arrays)
+// into one single manifest. This can be useful to only have one I/O operation
+// with Kubernetes down the line, when trying to apply these manifests.
+func ConcatManifestValues(manifestsMap map[string][]byte) []byte {
+	manifests := [][]byte{}
+	for _, manifest := range manifestsMap {
+		manifests = append(manifests, manifest)
+	}
+	return ConcatManifests(manifests...)
+}
+
+// ConcatManifests joins the provided manifests (as byte arrays) into one single
+// manifest. This can be useful to only have one I/O operation with Kubernetes
+// down the line, when trying to apply these manifests.
+func ConcatManifests(manifests ...[]byte) []byte {
+	return bytes.Join(manifests, separator)
+}
+
+var separator = []byte("---\n")
+
+// NewRawExtensions decodes the provided manifest's bytes into "raw extension"
+// Kubernetes objects. These can then be passed to NewRawResource.
+func NewRawExtensions(manifest []byte) ([]runtime.RawExtension, error) {
+	objects := []runtime.RawExtension{}
+	list, err := NewList(manifest)
+	if err != nil {
+		return nil, err
+	}
+	for _, object := range list.Items {
+		objects = append(objects, object)
+	}
+	return objects, nil
+}
+
 // NewList decoded data into a list of Kubernetes resources
 func NewList(data []byte) (*metav1.List, error) {
 	list := metav1.List{}
