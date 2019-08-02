@@ -78,13 +78,12 @@ func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTyp
 		return err
 	}
 
-	willBeEnabled := sets.NewString()
+	var willBeEnabled sets.String
 	if cfg.HasClusterCloudWatchLogging() {
-		willBeEnabled.Insert(cfg.CloudWatch.ClusterLogging.EnableTypes...)
+		willBeEnabled = sets.NewString(cfg.CloudWatch.ClusterLogging.EnableTypes...)
 	} else {
-		baselineEnabled := sets.NewString(currentlyEnabled.List()...).Union(willBeEnabled)
-		toEnable := processTypesToEnable(baselineEnabled.List(), logTypesToEnable, logTypesToDisable)
-		willBeEnabled.Insert(toEnable...)
+		baselineEnabled := currentlyEnabled.List()
+		willBeEnabled = processTypesToEnable(baselineEnabled, logTypesToEnable, logTypesToDisable)
 	}
 
 	cfg.CloudWatch.ClusterLogging.EnableTypes = willBeEnabled.List()
@@ -160,7 +159,7 @@ func validateLoggingFlags(toEnable []string, toDisable []string) error {
 	return nil
 }
 
-func processTypesToEnable(existingEnabled []string, toEnable []string, toDisable []string) []string {
+func processTypesToEnable(existingEnabled, toEnable, toDisable []string) sets.String {
 	emptyToEnable := toEnable == nil || len(toEnable) == 0
 	emptyToDisable := toDisable == nil || len(toDisable) == 0
 
@@ -169,12 +168,12 @@ func processTypesToEnable(existingEnabled []string, toEnable []string, toDisable
 
 	// When all is provided in one of the options
 	if isDisableAll {
-		return toEnable
+		return sets.NewString(toEnable...)
 	}
 	if isEnableAll {
 		toDisableSet := sets.NewString(toDisable...)
 		toEnableSet := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...).Difference(toDisableSet)
-		return toEnableSet.List()
+		return toEnableSet
 	}
 
 	// willEnable = existing - toDisable + toEnable
@@ -182,7 +181,7 @@ func processTypesToEnable(existingEnabled []string, toEnable []string, toDisable
 	willEnable.Insert(toEnable...)
 	willEnable.Delete(toDisable...)
 
-	return willEnable.List()
+	return willEnable
 }
 
 func checkAllTypesAreSupported(logTypes []string) error {
