@@ -185,6 +185,9 @@ func processTypesToEnable(existingEnabled, toEnable, toDisable []string) sets.St
 }
 
 func checkAllTypesAreSupported(logTypes []string) error {
+	if len(logTypes) == 1 && logTypes[0] == "all" {
+		return nil
+	}
 	allSupportedTypesSet := sets.NewString(api.SupportedCloudWatchClusterLogTypes()...)
 	for _, logType := range logTypes {
 		if !allSupportedTypesSet.Has(logType) {
