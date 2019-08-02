@@ -125,13 +125,13 @@ func (c *ClusterProvider) GetUpdateClusterConfigTasks(cfg *api.ClusterConfig) *m
 
 	loggingTasks := &manager.TaskTree{Parallel: false}
 	loggingTasks.Append(&updateClusterConfigTask{
-		info: "update CloudWatch logging configurtaion",
+		info: "update CloudWatch logging configuration",
 	})
 	return loggingTasks
 }
 
 // UpdateClusterVersion calls eks.UpdateClusterVersion and updates to cfg.Metadata.Version,
-// it will return update ID along with an error (if it occurrs)
+// it will return update ID along with an error (if it occurs)
 func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*awseks.Update, error) {
 	input := &awseks.UpdateClusterVersionInput{
 		Name:    &cfg.Metadata.Name,
