@@ -119,7 +119,7 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 func (c *ClusterProvider) GetUpdateClusterConfigTasks(cfg *api.ClusterConfig) *manager.TaskTree {
 	if !cfg.HasClusterCloudWatchLogging() {
 		logger.Info("CloudWatch logging will not be enabled for cluster %q in %q", cfg.Metadata.Name, cfg.Metadata.Region)
-		logger.Info("you can enable it with 'eksctl utils enable-logging --region=%s --name=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
+		logger.Info("you can enable it with 'eksctl utils update-cluster-logging --region=%s --name=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
 		return nil
 	}
 

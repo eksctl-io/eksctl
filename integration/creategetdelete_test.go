@@ -246,7 +246,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should plan to enable two of the types using flags", func() {
-					eksctlSuccess("utils", "enable-logging",
+					eksctlSuccess("utils", "update-cluster-logging",
 						"--name", clusterName,
 						"--region", region,
 						"--enable-types", "api,controllerManager",
@@ -258,7 +258,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should enable two of the types using flags", func() {
-					eksctlSuccess("utils", "enable-logging",
+					eksctlSuccess("utils", "update-cluster-logging",
 						"--name", clusterName,
 						"--region", region,
 						"--approve",
@@ -273,7 +273,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should enable all of the types with --enable-types=all", func() {
-					eksctlSuccess("utils", "enable-logging",
+					eksctlSuccess("utils", "update-cluster-logging",
 						"--name", clusterName,
 						"--region", region,
 						"--approve",
@@ -286,7 +286,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should enable all but one type", func() {
-					eksctlSuccess("utils", "enable-logging",
+					eksctlSuccess("utils", "update-cluster-logging",
 						"--name", clusterName,
 						"--region", region,
 						"--approve",
@@ -302,7 +302,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should disable all but one type", func() {
-					eksctlSuccess("utils", "enable-logging",
+					eksctlSuccess("utils", "update-cluster-logging",
 						"--name", clusterName,
 						"--region", region,
 						"--approve",
@@ -318,7 +318,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should disable all of the types with --disable-types=all", func() {
-					eksctlSuccess("utils", "enable-logging",
+					eksctlSuccess("utils", "update-cluster-logging",
 						"--name", clusterName,
 						"--region", region,
 						"--approve",

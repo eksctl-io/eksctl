@@ -318,7 +318,7 @@ func NewDeleteNodeGroupLoader(rc *ResourceCmd, ng *api.NodeGroup, ngFilter *Node
 	return l
 }
 
-// NewUtilsEnableLoggingLoader will load config or use flags for 'eksctl utils enable-logging'
+// NewUtilsEnableLoggingLoader will load config or use flags for 'eksctl utils update-cluster-logging'
 func NewUtilsEnableLoggingLoader(rc *ResourceCmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(rc)
 

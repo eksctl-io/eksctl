@@ -16,36 +16,36 @@ To enable control plane logging when cluster is created, you will need to define
 So if you have a config file with correct **`cloudWatch.clusterLogging.enableTypes`**
 setting, you can create a cluster with `eksctl create cluster --config-file=<path>`.
 
-If you have created a cluster already, you can use `eksctl utils enable-logging`.
+If you have created a cluster already, you can use `eksctl utils update-cluster-logging`.
 
 > **NOTE**: this command runs in plan mode by default, you will need to specify `--approve` flag to
 > apply the changes to your cluster.
 
 If you are using a config file, run:
 ```
-eksctl utils enable-logging --config-file=<path>
+eksctl utils update-cluster-logging --config-file=<path>
 ```
 
 Alternatively, you can use CLI flags.
 
 To enable all types of logs, run:
 ```
-eksctl utils enable-logging
+eksctl utils update-cluster-logging
 ```
 
 To enable `audit` logs, run:
 ```
-eksctl utils enable-logging --audit
+eksctl utils update-cluster-logging --audit
 ```
 
 To enable all but `controllerManager` logs, run:
 ```
-eksctl utils enable-logging --controllerManager=false
+eksctl utils update-cluster-logging --controllerManager=false
 ```
 
 To disable all types of logs, run:
 ```
-eksctl utils enable-logging --all=false
+eksctl utils update-cluster-logging --all=false
 ```
 
 ### `ClusterConfig` Examples
