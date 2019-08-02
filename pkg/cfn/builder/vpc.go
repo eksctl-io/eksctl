@@ -61,15 +61,18 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 		EnableDnsHostnames: gfn.True(),
 	})
 
+	// Add each pod CIDR block as secondary, unless it is the VPC primary
 	for i, podCIDR := range c.spec.VPC.PodCIDRs {
-		c.newResource(fmt.Sprintf("PodCIDR%d", i), &awsCloudFormationResource{
-			Type: "AWS::EC2::VPCCidrBlock",
-			Properties: map[string]interface{}{
-				"CidrBlock": podCIDR.String(),
-				"VpcId":     c.vpc,
-			},
-			DependsOn: []string{"VPC"},
-		})
+		if podCIDR.String() != c.spec.VPC.CIDR.String() {
+			c.newResource(fmt.Sprintf("PodCIDR%d", i), &awsCloudFormationResource{
+				Type: "AWS::EC2::VPCCidrBlock",
+				Properties: map[string]interface{}{
+					"CidrBlock": podCIDR.String(),
+					"VpcId":     c.vpc,
+				},
+				DependsOn: []string{"VPC"},
+			})
+		}
 	}
 
 	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
@@ -114,9 +117,7 @@ func (c *ClusterResourceSet) addResourcesForVPC() {
 
 	c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private, "")
 
-	// TODO add specific name for pod subnets
 	for i := range c.spec.VPC.PodCIDRs {
-
 		c.addSubnets(refPrivateRT, api.SubnetTopologyPrivate, c.spec.VPC.PodSubnets[fmt.Sprintf("eksctlGroup%d", i)].Subnets.Private, fmt.Sprintf("PodCIDR%d", i))
 	}
 }

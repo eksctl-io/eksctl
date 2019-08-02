@@ -246,6 +246,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		return err
 	}
 
+	// Add aws-node AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG true
+
 	err := ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
@@ -357,6 +359,8 @@ func doCreateCluster(p *api.ProviderConfig, cfg *api.ClusterConfig, nameArg stri
 		if err != nil {
 			return err
 		}
+
+		// Add eniconfigmap
 
 		// add default storage class only for version 1.10 clusters
 		if meta.Version == "1.10" {
