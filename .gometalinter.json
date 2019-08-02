@@ -11,6 +11,7 @@
         "^pkg\/nodebootstrap\/assets.go",
         "^pkg\/testutils\/ginkgo.go",
         "^pkg\/testutils\/client.go",
+        "^pkg\/testutils\/mockprovider\/mock_provider.go",
         "^pkg\/drain",
         "^vendor\/github.com\/awslabs\/goformation"
     ],

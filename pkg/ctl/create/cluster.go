@@ -96,6 +96,12 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 	cfg := rc.ClusterConfig
 	meta := rc.ClusterConfig.Metadata
 
+	api.SetClusterConfigDefaults(cfg)
+
+	if err := api.ValidateClusterConfig(cfg); err != nil {
+		return err
+	}
+
 	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
 		return err
 	}
@@ -280,6 +286,10 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(ngSubset)
+		if updateClusterTasks := ctl.GetUpdateClusterConfigTasks(cfg); updateClusterTasks != nil {
+			tasks.Append(updateClusterTasks)
+		}
+
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
 			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))

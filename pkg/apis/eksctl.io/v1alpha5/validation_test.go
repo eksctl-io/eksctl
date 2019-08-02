@@ -5,7 +5,25 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("ConfigFile validation", func() {
+var _ = Describe("ClusterConfig validation", func() {
+	Describe("cloudWatch.clusterLogging", func() {
+		var (
+			cfg *ClusterConfig
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+		})
+
+		It("should handle unknown types", func() {
+			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"anything"}
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
 	Describe("ssh flags", func() {
 		var (
 			testKeyPath = "some/path/to/file.pub"

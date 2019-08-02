@@ -63,6 +63,12 @@ func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) erro
 	cfg := rc.ClusterConfig
 	meta := rc.ClusterConfig.Metadata
 
+	api.SetClusterConfigDefaults(cfg)
+
+	if err := api.ValidateClusterConfig(cfg); err != nil {
+		return err
+	}
+
 	if err := ngFilter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups); err != nil {
 		return err
 	}

@@ -321,13 +321,10 @@ type ClusterConfig struct {
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
-	Status *ClusterStatus `json:"status,omitempty"`
-}
-
-// ClusterIAM holds all IAM attributes of a cluster
-type ClusterIAM struct {
 	// +optional
-	ServiceRoleARN string `json:"serviceRoleARN,omitempty"`
+	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
+
+	Status *ClusterStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -358,6 +355,9 @@ func NewClusterConfig() *ClusterConfig {
 			Version: DefaultVersion,
 		},
 		VPC: NewClusterVPC(),
+		CloudWatch: &ClusterCloudWatch{
+			ClusterLogging: &ClusterCloudWatchLogging{},
+		},
 	}
 
 	return cfg
@@ -426,6 +426,12 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	c.NodeGroups = append(c.NodeGroups, ng)
 
 	return ng
+}
+
+// ClusterIAM holds all IAM attributes of a cluster
+type ClusterIAM struct {
+	// +optional
+	ServiceRoleARN string `json:"serviceRoleARN,omitempty"`
 }
 
 // NodeGroup holds all configuration attributes that are

@@ -20,6 +20,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
@@ -218,6 +219,116 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Expect(err).ShouldNot(HaveOccurred())
 						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
 					}
+				})
+			})
+
+			Context("toggle CloudWatch logging", func() {
+				var (
+					cfg *api.ClusterConfig
+					ctl *eks.ClusterProvider
+				)
+
+				BeforeEach(func() {
+					cfg = &api.ClusterConfig{
+						Metadata: &api.ClusterMeta{
+							Name:   clusterName,
+							Region: region,
+						},
+					}
+					ctl = eks.New(&api.ProviderConfig{Region: region}, cfg)
+				})
+
+				It("should have all types disabled by default", func() {
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(enabled.List()).To(HaveLen(0))
+					Expect(disable.List()).To(HaveLen(5))
+				})
+
+				It("should plan to enable two of the types using flags", func() {
+					eksctlSuccess("utils", "update-cluster-logging",
+						"--name", clusterName,
+						"--region", region,
+						"--enable-types", "api,controllerManager",
+					)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(enabled.List()).To(HaveLen(0))
+					Expect(disable.List()).To(HaveLen(5))
+				})
+
+				It("should enable two of the types using flags", func() {
+					eksctlSuccess("utils", "update-cluster-logging",
+						"--name", clusterName,
+						"--region", region,
+						"--approve",
+						"--enable-types", "api,controllerManager",
+					)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(enabled.List()).To(HaveLen(2))
+					Expect(disable.List()).To(HaveLen(3))
+					Expect(enabled.List()).To(ConsistOf("api", "controllerManager"))
+					Expect(disable.List()).To(ConsistOf("audit", "authenticator", "scheduler"))
+				})
+
+				It("should enable all of the types with --enable-types=all", func() {
+					eksctlSuccess("utils", "update-cluster-logging",
+						"--name", clusterName,
+						"--region", region,
+						"--approve",
+						"--enable-types", "all",
+					)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(enabled.List()).To(HaveLen(5))
+					Expect(disable.List()).To(HaveLen(0))
+				})
+
+				It("should enable all but one type", func() {
+					eksctlSuccess("utils", "update-cluster-logging",
+						"--name", clusterName,
+						"--region", region,
+						"--approve",
+						"--enable-types", "all",
+						"--disable-types", "controllerManager",
+					)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(enabled.List()).To(HaveLen(4))
+					Expect(disable.List()).To(HaveLen(1))
+					Expect(enabled.List()).To(ConsistOf("api", "audit", "authenticator", "scheduler"))
+					Expect(disable.List()).To(ConsistOf("controllerManager"))
+				})
+
+				It("should disable all but one type", func() {
+					eksctlSuccess("utils", "update-cluster-logging",
+						"--name", clusterName,
+						"--region", region,
+						"--approve",
+						"--disable-types", "all",
+						"--enable-types", "controllerManager",
+					)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(disable.List()).To(HaveLen(4))
+					Expect(enabled.List()).To(HaveLen(1))
+					Expect(disable.List()).To(ConsistOf("api", "audit", "authenticator", "scheduler"))
+					Expect(enabled.List()).To(ConsistOf("controllerManager"))
+				})
+
+				It("should disable all of the types with --disable-types=all", func() {
+					eksctlSuccess("utils", "update-cluster-logging",
+						"--name", clusterName,
+						"--region", region,
+						"--approve",
+						"--disable-types", "all",
+					)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(enabled.List()).To(HaveLen(0))
+					Expect(disable.List()).To(HaveLen(5))
+					Expect(disable.HasAll(api.SupportedCloudWatchClusterLogTypes()...)).To(BeTrue())
 				})
 			})
 

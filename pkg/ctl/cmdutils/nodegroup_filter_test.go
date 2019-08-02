@@ -319,6 +319,9 @@ const expected = `
 				"gateway": "Single"
 			  }
 		},
+		"cloudWatch": {
+		  "clusterLogging": {}
+		},
 		"nodeGroups": [
 		  {
 			  "name": "test-ng1a",
@@ -338,24 +341,24 @@ const expected = `
 			    "seq": "1"
 			  },
 			  "ssh": {
-			    "allow": false
-        },
+				"allow": false
+			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-			  	"foo"
+				  "foo"
 			    ],
 			    "withAddonPolicies": {
-			  		"imageBuilder": false,
-			  		"autoScaler": false,
-			  		"externalDNS": false,
-			  		"certManager": false,
-			  		"appMesh": false,
-			  		"ebs": false,
-			  		"fsx": false,
-			  		"efs": false,
-					"albIngress": false,
-					"xRay": false,
-					"cloudWatch": false
+				  "imageBuilder": false,
+				  "autoScaler": false,
+				  "externalDNS": false,
+				  "certManager": false,
+				  "appMesh": false,
+				  "ebs": false,
+				  "fsx": false,
+				  "efs": false,
+				  "albIngress": false,
+				  "xRay": false,
+				  "cloudWatch": false
 			    }
 			  }
 		  },
@@ -378,23 +381,23 @@ const expected = `
 			  },
 			  "ssh": {
 			    "allow": false
-        },
+			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-			  	"bar"
+				  "bar"
 			    ],
 			    "withAddonPolicies": {
-			  		"imageBuilder": false,
-			  		"autoScaler": false,
-			  		"externalDNS": false,
-			  		"certManager": false,
-			  		"appMesh": false,
-			  		"ebs": false,
-			  		"fsx": false,
-			  		"efs": false,
-					"albIngress": false,
-					"xRay": false,
-					"cloudWatch": false
+				  "imageBuilder": false,
+				  "autoScaler": false,
+				  "externalDNS": false,
+				  "certManager": false,
+				  "appMesh": false,
+				  "ebs": false,
+				  "fsx": false,
+				  "efs": false,
+				  "albIngress": false,
+				  "xRay": false,
+				  "cloudWatch": false
 			    }
 			  }
 		  },
@@ -415,24 +418,24 @@ const expected = `
 			    "group": "a",
 			    "seq": "3"
 			  },
-        "ssh": {
+			  "ssh": {
 			    "allow": true,
 			    "publicKeyPath": "~/.ssh/id_rsa.pub"
-        },
+			  },
 			  "iam": {
-			    "withAddonPolicies": {
-			  	"imageBuilder": false,
-			  	"autoScaler": false,
-			  	"externalDNS": false,
-			  	"certManager": false,
-			  	"appMesh": false,
-			  	"ebs": false,
-			  	"fsx": false,
-			  	"efs": false,
-				"albIngress": false,
-				"xRay": false,
-				"cloudWatch": false
-			  }
+				"withAddonPolicies": {
+				  "imageBuilder": false,
+				  "autoScaler": false,
+				  "externalDNS": false,
+				  "certManager": false,
+				  "appMesh": false,
+				  "ebs": false,
+				  "fsx": false,
+				  "efs": false,
+				  "albIngress": false,
+				  "xRay": false,
+				  "cloudWatch": false
+			    }
 			  },
 			  "clusterDNS": "1.2.3.4"
 		  },
@@ -535,9 +538,9 @@ const expected = `
 			    "group": "b",
 			    "seq": "1"
 			  },
-        "ssh": {
+			  "ssh": {
 			    "allow": false
-        },
+			  },
 			  "iam": {
 			    "withAddonPolicies": {
 			  	  "imageBuilder": false,

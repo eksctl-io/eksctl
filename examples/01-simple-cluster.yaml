@@ -10,4 +10,11 @@ metadata:
 nodeGroups:
   - name: ng-1
     instanceType: m5.large
-    desiredCapacity: 10
+    desiredCapacity: 1
+
+cloudWatch:
+    clusterLogging:
+        # enable specific types of cluster control plane logs
+        enableTypes: ["audit", "authenticator", "controllerManager"]
+        # all supported types: "api", "audit", "authenticator", "controllerManager", "scheduler"
+        # supported special values: "*" and "all"

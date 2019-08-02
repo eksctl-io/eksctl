@@ -50,6 +50,8 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 	cfg := rc.ClusterConfig
 	meta := rc.ClusterConfig.Metadata
 
+	api.SetClusterConfigDefaults(cfg)
+
 	printer := printers.NewJSONPrinter()
 	ctl := eks.New(rc.ProviderConfig, cfg)
 
