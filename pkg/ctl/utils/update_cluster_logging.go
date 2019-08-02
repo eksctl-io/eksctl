@@ -123,16 +123,13 @@ func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTyp
 }
 
 func validateLoggingFlags(toEnable []string, toDisable []string) error {
-	emptyToEnable := toEnable == nil || len(toEnable) == 0
-	emptyToDisable := toDisable == nil || len(toDisable) == 0
-
 	// At least enable-types or disable-types should be provided
-	if emptyToEnable && emptyToDisable {
+	if len(toEnable) == 0 && len(toDisable) == 0 {
 		return fmt.Errorf("at least one flag has to be provided: --enable-types, --disable-types")
 	}
 
-	isEnableAll := !emptyToEnable && toEnable[0] == "all"
-	isDisableAll := !emptyToDisable && toDisable[0] == "all"
+	isEnableAll := len(toEnable) == 1 && toEnable[0] == "all"
+	isDisableAll := len(toDisable) == 1 && toDisable[0] == "all"
 
 	// Can't enable all and disable all
 	if isDisableAll && isEnableAll {
