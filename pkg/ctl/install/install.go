@@ -274,7 +274,12 @@ func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
 		}
 		delete(manifestsMap, namespaceFileName)
 	}
-	manifests := kubernetes.ConcatManifestValues(manifestsMap)
+
+	var manifestValues [][]byte
+	for _, manifest := range manifestsMap {
+		manifestValues = append(manifestValues, manifest)
+	}
+	manifests := kubernetes.ConcatManifests(manifestValues...)
 	return client.CreateOrReplace(manifests, false)
 }
 

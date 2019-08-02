@@ -13,17 +13,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
-// ConcatManifestValues joins the provided manifests (as a map of byte arrays)
-// into one single manifest. This can be useful to only have one I/O operation
-// with Kubernetes down the line, when trying to apply these manifests.
-func ConcatManifestValues(manifestsMap map[string][]byte) []byte {
-	manifests := [][]byte{}
-	for _, manifest := range manifestsMap {
-		manifests = append(manifests, manifest)
-	}
-	return ConcatManifests(manifests...)
-}
-
 // ConcatManifests joins the provided manifests (as byte arrays) into one single
 // manifest. This can be useful to only have one I/O operation with Kubernetes
 // down the line, when trying to apply these manifests.
