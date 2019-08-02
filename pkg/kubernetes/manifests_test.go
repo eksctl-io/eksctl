@@ -76,20 +76,6 @@ var _ = Describe("Kubernetes client toolkit", func() {
 	})
 })
 
-func TestConcatManifestValues(t *testing.T) {
-	a := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: a\n"
-	b := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: b\n"
-
-	assert.Equal(t, []byte(a), ConcatManifestValues(map[string][]byte{
-		"a": []byte(a),
-	}))
-
-	assert.Equal(t, []byte(a+"---\n"+b), ConcatManifestValues(map[string][]byte{
-		"a": []byte(a),
-		"b": []byte(b),
-	}))
-}
-
 func TestConcatManifests(t *testing.T) {
 	a := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: a\n"
 	b := "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: b\n"
