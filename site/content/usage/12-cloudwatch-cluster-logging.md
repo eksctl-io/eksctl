@@ -23,29 +23,38 @@ If you have created a cluster already, you can use `eksctl utils update-cluster-
 
 If you are using a config file, run:
 ```
-eksctl utils update-cluster-logging --config-file=<path>
+eksctl utils update-cluster-logging --config-file=<path> --enable-types all
 ```
 
 Alternatively, you can use CLI flags.
 
 To enable all types of logs, run:
 ```
-eksctl utils update-cluster-logging
+eksctl utils update-cluster-logging --enable-types all
 ```
 
 To enable `audit` logs, run:
 ```
-eksctl utils update-cluster-logging --audit
+eksctl utils update-cluster-logging --enable-types audit
 ```
 
 To enable all but `controllerManager` logs, run:
 ```
-eksctl utils update-cluster-logging --controllerManager=false
+eksctl utils update-cluster-logging --enable-types=all --disable-types=controllerManager
 ```
+
+If the `api` and `scheduler` log types were already enabled, to disable `scheduler` and enable `controllerManager` at
+the same time, run:
+
+```
+eksctl utils update-cluster-logging --enable-types=controllerManager --disable-types=scheduler
+```
+
+This will leave `api` and `controllerManager` as the only log types enabled.
 
 To disable all types of logs, run:
 ```
-eksctl utils update-cluster-logging --all=false
+eksctl utils update-cluster-logging --disable-types all
 ```
 
 ### `ClusterConfig` Examples
