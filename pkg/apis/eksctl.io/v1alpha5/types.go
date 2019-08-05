@@ -118,19 +118,19 @@ const (
 	// OldClusterNameTag defines the tag of the cluster name
 	OldClusterNameTag = "eksctl.cluster.k8s.io/v1alpha1/cluster-name"
 
-	// NodeGroupNameTag defines the tag of the node group name
+	// NodeGroupNameTag defines the tag of the nodegroup name
 	NodeGroupNameTag = "alpha.eksctl.io/nodegroup-name"
 
-	// OldNodeGroupNameTag defines the tag of the node group name
+	// OldNodeGroupNameTag defines the tag of the nodegroup name
 	OldNodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
 
-	// OldNodeGroupIDTag defines the old version of tag of the node group name
+	// OldNodeGroupIDTag defines the old version of tag of the nodegroup name
 	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 
 	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
 
-	// NodeGroupNameLabel defines the label of the node group name
+	// NodeGroupNameLabel defines the label of the nodegroup name
 	NodeGroupNameLabel = "alpha.eksctl.io/nodegroup-name"
 
 	// ClusterHighlyAvailableNAT defines the highly available NAT configuration option
@@ -511,6 +511,11 @@ func (n *NodeGroup) ListOptions() metav1.ListOptions {
 	return metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, n.Name),
 	}
+}
+
+// NameString returns common name string
+func (n *NodeGroup) NameString() string {
+	return n.Name
 }
 
 type (
