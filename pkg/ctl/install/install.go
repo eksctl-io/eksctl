@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/git"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -62,7 +63,7 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 	)
 	var opts installFluxOpts
 	rc.SetRunFuncWithNameArg(func() error {
-		installer, err := newFluxInstaller(rc, &opts)
+		installer, err := newFluxInstaller(context.Background(), rc, &opts)
 		if err != nil {
 			return err
 		}
@@ -103,9 +104,10 @@ type fluxInstaller struct {
 	k8sConfig     *clientcmdapi.Config
 	k8sRestConfig *rest.Config
 	k8sClientSet  *kubeclient.Clientset
+	gitClient     *git.Client
 }
 
-func newFluxInstaller(rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxInstaller, error) {
+func newFluxInstaller(ctx context.Context, rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxInstaller, error) {
 	if opts.templateParams.GitURL == "" {
 		return nil, fmt.Errorf("please supply a valid --git-url argument")
 	}
@@ -138,12 +140,15 @@ func newFluxInstaller(rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxIns
 	if err != nil {
 		return nil, errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
+
+	gitClient := git.NewGitClient(ctx, opts.templateParams.GitUser, opts.templateParams.GitEmail, opts.timeout)
 	fi := &fluxInstaller{
 		opts:          opts,
 		resourceCmd:   rc,
 		k8sConfig:     k8sConfig,
 		k8sRestConfig: k8sRestConfig,
 		k8sClientSet:  k8sClientSet,
+		gitClient:     gitClient,
 	}
 	return fi, nil
 }
@@ -155,14 +160,14 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	}
 
 	logger.Info("Cloning %s", fi.opts.templateParams.GitURL)
-	cloneDir, err := fi.cloneRepo(ctx)
+	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.templateParams.GitBranch, fi.opts.templateParams.GitURL)
 	if err != nil {
 		return fmt.Errorf("cannot clone repository %s: %s", fi.opts.templateParams.GitURL, err)
 	}
 	cleanCloneDir := false
 	defer func() {
 		if cleanCloneDir {
-			os.RemoveAll(cloneDir)
+			fi.gitClient.DeleteLocalRepo()
 		} else {
 			logger.Critical("You may find the local clone of %s used by eksctl at %s",
 				fi.opts.templateParams.GitURL,
@@ -201,7 +206,7 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	logger.Info("Flux started successfully")
 
 	logger.Info("Committing and pushing Flux manifests to %s", fi.opts.templateParams.GitURL)
-	if err := fi.addCommitAndPushFluxManifests(ctx, cloneDir); err != nil {
+	if err := fi.addFilesToRepo(ctx, cloneDir); err != nil {
 		return err
 	}
 	cleanCloneDir = true
@@ -211,51 +216,21 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	return nil
 }
 
-func (fi *fluxInstaller) cloneRepo(ctx context.Context) (string, error) {
-	cloneDir, err := ioutil.TempDir(os.TempDir(), "eksctl-install-flux-clone")
-	if err != nil {
-		return "", fmt.Errorf("cannot create temporary directory: %s", err)
-	}
-	cloneCtx, cloneCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
-	defer cloneCtxCancel()
-	args := []string{"clone", "-b", fi.opts.templateParams.GitBranch, fi.opts.templateParams.GitURL, cloneDir}
-	err = runGitCmd(cloneCtx, cloneDir, args...)
-	return cloneDir, err
-}
-
-func (fi *fluxInstaller) addCommitAndPushFluxManifests(ctx context.Context, cloneDir string) error {
-	// git add
-	addCtx, addCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
-	defer addCtxCancel()
-	if err := runGitCmd(addCtx, cloneDir, "add", "--", fi.opts.gitFluxPath); err != nil {
+func (fi *fluxInstaller) addFilesToRepo(ctx context.Context, cloneDir string) error {
+	if err := fi.gitClient.Add(fi.opts.gitFluxPath); err != nil {
 		return err
 	}
 
 	// Confirm there is something to commit, otherwise move on
-	diffCtx, diffCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
-	defer diffCtxCancel()
-	if err := runGitCmd(diffCtx, cloneDir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
-		logger.Info("Nothing to commit (the repository contained identical manifests), moving on")
-		return nil
-	} else if _, ok := err.(*exec.ExitError); !ok {
-		return err
-	}
-
-	// git commit
-	commitCtx, commitCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
-	defer commitCtxCancel()
-	args := []string{"commit",
-		"-m", "Add Initial Flux configuration",
-		fmt.Sprintf("--author=%s <%s>", fi.opts.templateParams.GitUser, fi.opts.templateParams.GitEmail),
-	}
-	if err := runGitCmd(commitCtx, cloneDir, args...); err != nil {
+	if err := fi.gitClient.Commit("Add Initial Flux configuration"); err != nil {
 		return err
 	}
 
 	// git push
-	pushCtx, pushCtxCancel := context.WithTimeout(ctx, fi.opts.timeout)
-	defer pushCtxCancel()
-	return runGitCmd(pushCtx, cloneDir, "push")
+	if err := fi.gitClient.Push(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
@@ -281,14 +256,6 @@ func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
 	}
 	manifests := kubernetes.ConcatManifests(manifestValues...)
 	return client.CreateOrReplace(manifests, false)
-}
-
-func runGitCmd(ctx context.Context, dir string, args ...string) error {
-	gitCmd := exec.CommandContext(ctx, "git", args...)
-	gitCmd.Stdout = os.Stdout
-	gitCmd.Stderr = os.Stderr
-	gitCmd.Dir = dir
-	return gitCmd.Run()
 }
 
 func getFluxManifests(params install.TemplateParameters, cs *kubeclient.Clientset) (map[string][]byte, error) {

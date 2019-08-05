@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/git/executor"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"time"
@@ -19,35 +20,33 @@ type Client struct {
 }
 
 // NewGitClient returns a client that can perform git operations
-func NewGitClient(ctx context.Context, cloneDir string, user string, email string, timeout time.Duration) *Client {
+func NewGitClient(ctx context.Context, user string, email string, timeout time.Duration) *Client {
 	return &Client{
 		executor: executor.NewShellExecutor(ctx, timeout),
-		dir:      cloneDir,
 		user:     user,
 		email:    email,
 	}
 }
 
 // NewGitClientFromExecutor returns a client that can have an executor injected. Useful for testing
-func NewGitClientFromExecutor(cloneDir string, user string, email string, executor executor.Executor) *Client {
+func NewGitClientFromExecutor(user string, email string, executor executor.Executor) *Client {
 	return &Client{
 		executor: executor,
-		dir:      cloneDir,
 		user:     user,
 		email:    email,
 	}
 }
 
 // CloneRepo clones a repo specified in the gitURL and checks out the specified branch
-func (git *Client) CloneRepo(branch string, gitURL string) (string, error) {
-	if _, err := os.Stat(git.dir); os.IsNotExist(err) {
-		err = os.Mkdir(git.dir, os.FileMode(0744))
-		if err != nil {
-			return "", fmt.Errorf("cannot create directory %s to clone the repository: %s", git.dir, err)
-		}
+func (git *Client) CloneRepo(cloneDirPrefix string, branch string, gitURL string) (string, error) {
+	cloneDir, err := ioutil.TempDir(os.TempDir(), cloneDirPrefix)
+	if err != nil {
+		return "", fmt.Errorf("cannot create temporary directory: %s", err)
 	}
+
+	git.dir = cloneDir
 	args := []string{"clone", "-b", branch, gitURL, git.dir}
-	err := git.runGitCmd(args...)
+	err = git.runGitCmd(args...)
 	return git.dir, err
 }
 
@@ -64,7 +63,7 @@ func (git Client) Add(files ...string) error {
 func (git Client) Commit(message string) error {
 	// Note, this useed to do runGitCmd(diffCtx, git.dir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
 	if err := git.runGitCmd("diff", "--cached", "--quiet"); err == nil {
-		logger.Info("Nothing to commit (the repository contained identical manifests), moving on")
+		logger.Info("Nothing to commit (the repository contained identical files), moving on")
 		return nil
 	} else if _, ok := err.(*exec.ExitError); !ok {
 		return err
@@ -88,7 +87,10 @@ func (git Client) Push() error {
 
 // DeleteLocalRepo deletes the local copy of a repository, including the directory
 func (git Client) DeleteLocalRepo() error {
-	return os.RemoveAll(git.dir)
+	if git.dir != "" {
+		return os.RemoveAll(git.dir)
+	}
+	return fmt.Errorf("no cloned directory to delete")
 }
 
 func (git Client) runGitCmd(args ...string) error {

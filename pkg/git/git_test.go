@@ -1,7 +1,6 @@
 package git
 
 import (
-	"github.com/docker/docker/pkg/ioutils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -20,31 +19,20 @@ var _ = Describe("GitClient", func() {
 	)
 
 	BeforeEach(func() {
-		tempCloneDir, _ = ioutils.TempDir("", "git_test-")
 		fakeExecutor = new(executor.FakeExecutor)
-		gitClient = NewGitClientFromExecutor(tempCloneDir, "test-user", "test-user@example.com", fakeExecutor)
+		gitClient = NewGitClientFromExecutor("test-user", "test-user@example.com", fakeExecutor)
 	})
 
 	AfterEach(func() {
 		deleteTempDir(tempCloneDir)
 	})
 
-	It("can clone repo on the given directory", func() {
-		fakeExecutor.On("Exec", "git", mock.Anything, mock.Anything).Return(nil)
-
-		_, err := gitClient.CloneRepo("my-branch", "git@example.com:test/example-repo.git")
-
-		Expect(err).To(Not(HaveOccurred()))
-		Expect(fakeExecutor.Dir).To(Equal(tempCloneDir))
-		Expect(fakeExecutor.Args).To(
-			Equal([]string{"clone", "-b", "my-branch", "git@example.com:test/example-repo.git", tempCloneDir}))
-	})
-
-	It("creates the directory when it doesn't exist", func() {
+	It("it can create a directory, clone the repo and delete it afterwards", func() {
 		fakeExecutor.On("Exec", "git", mock.Anything, mock.Anything).Return(nil)
 		deleteTempDir(tempCloneDir)
 
-		_, err := gitClient.CloneRepo("my-branch", "git@example.com:test/example-repo.git")
+		var err error
+		tempCloneDir, err = gitClient.CloneRepo("test-git-", "my-branch", "git@example.com:test/example-repo.git")
 
 		// It called clone
 		Expect(err).To(Not(HaveOccurred()))
@@ -55,16 +43,14 @@ var _ = Describe("GitClient", func() {
 		// The directory was created
 		_, err = os.Stat(tempCloneDir)
 		Expect(err).ToNot(HaveOccurred())
-	})
 
-	It("can delete the clone directory", func() {
-		err := gitClient.DeleteLocalRepo()
+		// It can delete it
+		err = gitClient.DeleteLocalRepo()
 
 		Expect(err).ToNot(HaveOccurred())
 		_, err = os.Stat(tempCloneDir)
 		Expect(err).To(HaveOccurred())
 		Expect(os.IsNotExist(err)).To(BeTrue())
-
 	})
 
 	It("can add files", func() {
@@ -73,7 +59,6 @@ var _ = Describe("GitClient", func() {
 		err := gitClient.Add("file1", "file2")
 
 		Expect(err).To(Not(HaveOccurred()))
-		Expect(fakeExecutor.Dir).To(Equal(tempCloneDir))
 		Expect(fakeExecutor.Args).To(
 			Equal([]string{"add", "--", "file1", "file2"}))
 	})
@@ -90,11 +75,9 @@ var _ = Describe("GitClient", func() {
 
 		Expect(err).To(Not(HaveOccurred()))
 		Expect(fakeExecutor.Calls[0].Arguments[0]).To(Equal("git"))
-		Expect(fakeExecutor.Calls[0].Arguments[1]).To(Equal(tempCloneDir))
 		Expect(fakeExecutor.Calls[0].Arguments[2]).To(Equal([]string{"diff", "--cached", "--quiet"}))
 
 		Expect(fakeExecutor.Calls[1].Arguments[0]).To(Equal("git"))
-		Expect(fakeExecutor.Calls[1].Arguments[1]).To(Equal(tempCloneDir))
 		Expect(fakeExecutor.Calls[1].Arguments[2]).To(
 			Equal([]string{"commit", "-m", "test commit", "--author=test-user <test-user@example.com>"}))
 	})
@@ -105,14 +88,13 @@ var _ = Describe("GitClient", func() {
 		err := gitClient.Push()
 
 		Expect(err).To(Not(HaveOccurred()))
-		Expect(fakeExecutor.Dir).To(Equal(tempCloneDir))
 		Expect(fakeExecutor.Args).To(
 			Equal([]string{"push"}))
 	})
 })
 
 func deleteTempDir(tempDir string) {
-	if strings.HasPrefix(tempDir, os.TempDir()) && len(tempDir) > len(os.TempDir())+1 {
+	if tempDir != "" && strings.HasPrefix(tempDir, os.TempDir()) {
 		_ = os.RemoveAll(tempDir)
 	}
 }
