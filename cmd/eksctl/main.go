@@ -14,10 +14,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/delete"
 	"github.com/weaveworks/eksctl/pkg/ctl/drain"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
+	"github.com/weaveworks/eksctl/pkg/ctl/install"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
 	"github.com/weaveworks/eksctl/pkg/ctl/update"
 	"github.com/weaveworks/eksctl/pkg/ctl/utils"
-	"github.com/weaveworks/eksctl/pkg/ctl/install"
 )
 
 func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
@@ -27,13 +27,13 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(delete.Command(flagGrouping))
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
-	rootCmd.AddCommand(gitops.Command(flagGrouping))
+	if os.Getenv("EKSCTL_EXPERIMENTAL") == "true" {
+		rootCmd.AddCommand(install.Command(flagGrouping))
+		rootCmd.AddCommand(gitops.Command(flagGrouping))
+	}
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
 	rootCmd.AddCommand(versionCmd(flagGrouping))
-	if os.Getenv("EKSCTL_EXPERIMENTAL") == "true" {
-		rootCmd.AddCommand(install.Command(flagGrouping))
-	}
 }
 
 func main() {
