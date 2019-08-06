@@ -2,7 +2,6 @@ package gitops
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -82,22 +81,56 @@ func (p *Profile) Generate(ctx context.Context, o GitOptions) error {
 
 	overlaysPath := filepath.Join(p.Path, overlaysDir)
 
-	if err := p.Fs.MkdirAll(overlaysPath, os.ModePerm); err != nil {
+	if err := p.Fs.MkdirAll(overlaysPath, 0755); err != nil {
 		return errors.Wrapf(err, "error creating overlays dir: %q", overlaysDir)
 	}
 
 	for _, manifestFile := range manifestFiles {
-		err := p.IO.WriteFile(filepath.Join(overlaysPath, manifestFile.Name), manifestFile.Data, os.ModePerm)
+		err := p.IO.WriteFile(filepath.Join(overlaysPath, manifestFile.Name), manifestFile.Data, 0644)
 		if err != nil {
 			return errors.Wrapf(err, "error writing overlay manifest: %q", manifestFile.Name)
 		}
 	}
+
+	if err := p.writeFluxConfig(); err != nil {
+		return errors.Wrapf(err, "error writing Flux config")
+	}
 	return nil
+}
+
+func (p *Profile) writeFluxConfig() error {
+	type generator struct {
+		Command string `json:"command"`
+	}
+	type commandUpdated struct {
+		Generators []generator `json:"generators"`
+	}
+
+	fluxConfig := struct {
+		Version        int            `json:"version"`
+		CommandUpdated commandUpdated `json:"commandUpdated"`
+	}{
+		Version: 1,
+		CommandUpdated: commandUpdated{
+			Generators: []generator{
+				{
+					Command: "kustomize build overlays/cluster-components",
+				},
+			},
+		},
+	}
+
+	data, err := yaml.Marshal(fluxConfig)
+	if err != nil {
+		return errors.Wrap(err, "error marshaling Flux config")
+	}
+
+	return p.IO.WriteFile(filepath.Join(p.Path, ".flux.yaml"), data, 0644)
 }
 
 func matchesDefaultProfile(e *transport.Endpoint) bool {
 	return e.Host == defaultProfileGitHost && ((e.Protocol == "ssh" && e.Path == defaultProfileGitPath) ||
-		(e.Protocol == "https" && e.Path == "/"+e.Path))
+		(e.Protocol == "https" && e.Path == "/"+defaultProfileGitPath))
 }
 
 type kustomizePatch struct {
