@@ -74,15 +74,19 @@ func (p *Profile) Generate(ctx context.Context, o GitOptions) error {
 		return nil
 	}
 
-	manifestFiles, err := p.MakeOverlays()
-	if err != nil {
-		return err
-	}
-
 	overlaysPath := filepath.Join(p.Path, overlaysDir)
 
 	if err := p.Fs.MkdirAll(overlaysPath, 0755); err != nil {
 		return errors.Wrapf(err, "error creating overlays dir: %q", overlaysDir)
+	}
+
+	if err := p.writeFluxConfig(); err != nil {
+		return errors.Wrapf(err, "error writing Flux config")
+	}
+
+	manifestFiles, err := p.MakeOverlays()
+	if err != nil {
+		return err
 	}
 
 	for _, manifestFile := range manifestFiles {
@@ -92,9 +96,6 @@ func (p *Profile) Generate(ctx context.Context, o GitOptions) error {
 		}
 	}
 
-	if err := p.writeFluxConfig(); err != nil {
-		return errors.Wrapf(err, "error writing Flux config")
-	}
 	return nil
 }
 

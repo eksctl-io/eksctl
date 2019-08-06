@@ -64,14 +64,12 @@ patchesJson6902:
 				t.Fatal(err)
 			}
 
-			expectedFiles := 3
-			assert.Equal(t, expectedFiles, len(overlayFiles))
-
 			expectedPatches := map[string]string{
 				"alb-patch.yaml":     generateALBPatch(t, tt.clusterName),
 				"grafana-patch.yaml": expectedGrafanaPatch,
 				"kustomization.yaml": expectedKustFile,
 			}
+			assert.Equal(t, len(expectedPatches), len(overlayFiles))
 
 			for i, overlayFile := range overlayFiles {
 				t.Run(strconv.Itoa(i), func(t *testing.T) {
