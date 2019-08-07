@@ -211,7 +211,7 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	}
 	cleanCloneDir = true
 
-	logger.Info("Flux will operate properly only once it has SSH write-access")
+	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
 	logger.Info("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.templateParams.GitURL, fluxSSHKey.Key)
 	return nil
