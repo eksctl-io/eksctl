@@ -4,8 +4,6 @@ weight: 120
 url: usage/cloudwatch-cluster-logging
 ---
 
-[eksdocs]: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
-
 ## Enabling CloudWatch logging
 
 [CloudWatch logging][eksdocs] for EKS control plane is not enabled by default due to data
@@ -105,3 +103,5 @@ cloudWatch:
   clusterLogging:
     enableTypes: ["audit", "authenticator"]
 ```
+
+[eksdocs]: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html

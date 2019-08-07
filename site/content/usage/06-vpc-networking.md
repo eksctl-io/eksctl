@@ -107,10 +107,10 @@ eksctl create cluster \
 
 ### Custom Cluster DNS address
 
-There are two ways of overwriting the DNS server IP address used for all the internal and external DNs lookups (this 
+There are two ways of overwriting the DNS server IP address used for all the internal and external DNs lookups (this
 is, the equivalent of the `--cluster-dns` flag for the `kubelet`).
 
-The first, is through the `clusterDNS` field. [Config files](20-schema.md) accept a `string` field called 
+The first, is through the `clusterDNS` field. [Config files](../schema) accept a `string` field called
 `clusterDNS` with the IP address of the DNS server to use.
 This will be passed to the `kubelet` that in turn will pass it to the pods through the `/etc/resolv.conf` file.
 
@@ -127,8 +127,8 @@ nodeGroups:
   clusterDNS: 169.254.20.10
 ```
 
-Note that this configuration only accepts one IP address. To specify more than one address, use the 
-[`extraKubeletConfig` parameter](11-customizing-the-kubelet.md):
+Note that this configuration only accepts one IP address. To specify more than one address, use the
+[`extraKubeletConfig` parameter](../customizing-the-kubelet):
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -141,12 +141,12 @@ metadata:
 nodeGroups:
   - name: ng-1
     kubeletExtraConfig:
-        clusterDNS: ["169.254.20.10","172.20.0.10"] 
+        clusterDNS: ["169.254.20.10","172.20.0.10"]
 ```
 
 ### NAT Gateway
 
-The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`. It can be 
+The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`. It can be
 specified through the `--vpc-nat-mode` CLI flag or in the cluster config file like the example below:
 
 
@@ -158,5 +158,5 @@ vpc:
 
 See the complete example [here](https://github.com/weaveworks/eksctl/blob/master/examples/09-nat-gateways.yaml).
 
-**Note**: Specifying the NAT Gateway is only supported during cluster creation and it is not touched during a cluster 
-upgrade. There are plans to support changing between different modes on cluster update in the future. 
+**Note**: Specifying the NAT Gateway is only supported during cluster creation and it is not touched during a cluster
+upgrade. There are plans to support changing between different modes on cluster update in the future.

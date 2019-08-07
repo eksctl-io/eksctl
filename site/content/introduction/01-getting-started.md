@@ -152,4 +152,4 @@ eksctl delete cluster --name=<name> [--region=<region>]
 
 ### Contributions
 
-Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
+Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md).
