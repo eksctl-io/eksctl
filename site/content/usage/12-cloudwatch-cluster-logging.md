@@ -59,7 +59,7 @@ eksctl utils update-cluster-logging --disable-types all
 
 ### `ClusterConfig` Examples
 
-There 5 types of logs that you may wish to enable (see [EKS documentation](eksdocs) for more details):
+There 5 types of logs that you may wish to enable (see [EKS documentation][eksdocs] for more details):
 
 - `api`
 - `audit`
