@@ -20,18 +20,12 @@ import (
 
 type updateClusterConfigTask struct {
 	info string
-	skip bool
 	spec *api.ClusterConfig
 	call func(*api.ClusterConfig) error
 }
 
-func (t *updateClusterConfigTask) Skip() bool { return t.skip }
-func (t *updateClusterConfigTask) Describe() string {
-	if t.skip {
-		return "(skip) " + t.info
-	}
-	return t.info
-}
+func (t *updateClusterConfigTask) Describe() string { return t.info }
+
 func (t *updateClusterConfigTask) Do(errs chan error) error {
 	err := t.call(t.spec)
 	close(errs)
@@ -126,6 +120,8 @@ func (c *ClusterProvider) GetUpdateClusterConfigTasks(cfg *api.ClusterConfig) *m
 	loggingTasks := &manager.TaskTree{Parallel: false}
 	loggingTasks.Append(&updateClusterConfigTask{
 		info: "update CloudWatch logging configuration",
+		spec: cfg,
+		call: c.UpdateClusterConfigForLogging,
 	})
 	return loggingTasks
 }
