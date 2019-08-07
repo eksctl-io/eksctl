@@ -17,6 +17,6 @@ workloads move to the new one. After that step is complete you can delete the ol
 
 ### How do I set up ingress with `eksctl`?
 
-If the plan is to use AWS ALB Ingress controller, setting `nodegroups[*].iam.withAddonPolicies.albIngress` to true will add the required IAM policies to your nodes allowing the controller to provision load balancers. Then you can follow [https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/controller/setup/](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/controller/setup/).
+If the plan is to use AWS ALB Ingress controller, setting `nodegroups[*].iam.withAddonPolicies.albIngress` to `true` will add the required IAM policies to your nodes allowing the controller to provision load balancers. Then you can follow [https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/controller/setup/](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/controller/setup/).
 
 For Nginx Ingress Controller, setup would be the same as any other Kubernetes cluster (see (https://kubernetes.github.io/ingress-nginx/deploy/#aws)[https://kubernetes.github.io/ingress-nginx/deploy/#aws]).
