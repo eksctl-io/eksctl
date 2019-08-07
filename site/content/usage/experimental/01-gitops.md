@@ -74,14 +74,15 @@ Writing objects: 100% (9/9), 3.52 KiB | 1.17 MiB/s, done.
 Total 9 (delta 0), reused 0 (delta 0)
 To github.com:weaveworks/cluster-1-gitops.git
    d41f36d..4ff0d8f  master -> master
-[ℹ]  Flux will operate properly only once it has SSH access to: git@github.com:weaveworks/cluster-1-gitops.git
-[ℹ]  please add the following Flux public SSH key to your repository:
+[ℹ]  Flux will operate properly only once it has SSH write-access
+[ℹ]  please configure git@github.com:weaveworks/cluster-1-gitops.git so that the following Flux SSH public key has write access to it
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCn9l5vVmcRbjZJmBG4GcYTK4w+8NjfMHOUr8W1w7E+PX8ono/cXsr9yohIPRUGKT1JSMXqwOTNNqYQoL6qbS7hGzOdO/IPW3JN1qvbBXLjBB8jo3op4KvudMuImBiE0dPB/mITk43t3WNbzZ33xlS9emtQdQlIno8HTFthohljcW5tUzdpC6Fv43fqt1EdHb8NtJz5oFbYbPuRf7swH0raxrhqKs4HW8VDVVqkROG2i0drg8rSalICbJX1YB3tgMYvP//f9uhWskXh5kuetS541I9gqtJD29pFibYQ1GwjfyAvkPBHTmumXdvb111111JWnfiiT7zCrdjYIEUt/9
 
 ```
 
-At this point Flux should already be installed in the specified cluster. The only thing left to do would be to install
-the SSH key. 
+At this point Flux should already be installed in the specified cluster. The only thing left to do would be to give Flux
+write access to the repository. Configure your repo to allow write access to that ssh key, for example, through the 
+Deploy keys if it lives in GitHub.
 
 ```bash
 $ kubectl get pods --namespace flux
@@ -89,9 +90,6 @@ NAME                       READY   STATUS    RESTARTS   AGE
 flux-699cc7f4cb-9qc45      1/1     Running   0          29m
 memcached-958f745c-qdfgz   1/1     Running   0          29m
 ```
-
-To finish the installation, Flux needs access to the repository. Configure your repo to allow write access to that ssh
-key, for example, through the Deploy keys if it lives in GitHub.
 
 
 ### Adding a workload
