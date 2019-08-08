@@ -5,6 +5,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
@@ -26,30 +27,11 @@ var (
 	}
 )
 
-func makePolicyDocument(statement map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"Version": "2012-10-17",
-		"Statement": []interface{}{
-			statement,
-		},
-	}
-}
-
-func makeAssumeRolePolicyDocument(service string) map[string]interface{} {
-	return makePolicyDocument(map[string]interface{}{
-		"Effect": "Allow",
-		"Principal": map[string][]string{
-			"Service": []string{service},
-		},
-		"Action": []string{"sts:AssumeRole"},
-	})
-}
-
 func (c *resourceSet) attachAllowPolicy(name string, refRole *gfn.Value, resources interface{}, actions []string) {
 	c.newResource(name, &gfn.AWSIAMPolicy{
 		PolicyName: makeName(name),
 		Roles:      makeSlice(refRole),
-		PolicyDocument: makePolicyDocument(map[string]interface{}{
+		PolicyDocument: cft.MakePolicyDocument(map[string]interface{}{
 			"Effect":   "Allow",
 			"Resource": resources,
 			"Action":   actions,
@@ -79,7 +61,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
-		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("eks.amazonaws.com"),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("eks.amazonaws.com"),
 		ManagedPolicyArns: makeStringSlice(
 			iamPolicyAmazonEKSServicePolicyARN,
 			iamPolicyAmazonEKSClusterPolicyARN,
@@ -173,7 +155,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 
 	role := gfn.AWSIAMRole{
 		Path:                     gfn.NewString("/"),
-		AssumeRolePolicyDocument: makeAssumeRolePolicyDocument("ec2.amazonaws.com"),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(n.spec.IAM.AttachPolicyARNs...),
 	}
 
