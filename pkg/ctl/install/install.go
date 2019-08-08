@@ -148,7 +148,7 @@ func newFluxInstaller(ctx context.Context, cmd *cmdutils.Cmd, opts *installFluxO
 		return nil, errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 
-	gitClient := git.NewGitClient(ctx, opts.templateParams.GitUser, opts.templateParams.GitEmail, opts.timeout)
+	gitClient := git.NewGitClient(ctx, opts.timeout)
 	fi := &fluxInstaller{
 		opts:          opts,
 		cmd:           cmd,
@@ -230,7 +230,8 @@ func (fi *fluxInstaller) addFilesToRepo(ctx context.Context, cloneDir string) er
 	}
 
 	// Confirm there is something to commit, otherwise move on
-	if err := fi.gitClient.Commit("Add Initial Flux configuration"); err != nil {
+	if err := fi.gitClient.Commit("Add Initial Flux configuration",
+		fi.opts.templateParams.GitUser, fi.opts.templateParams.GitEmail); err != nil {
 		return err
 	}
 

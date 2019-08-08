@@ -51,6 +51,7 @@ require (
 	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/sanathkr/yaml v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
+	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2
@@ -84,6 +85,7 @@ require (
 	k8s.io/kops v0.0.0-20190222135932-278e6606534e
 	k8s.io/kubelet v0.0.0-20190313123811-3556bcde9670
 	k8s.io/kubernetes v1.12.6
+	sigs.k8s.io/kustomize v2.0.3+incompatible // indirect
 	sigs.k8s.io/yaml v1.1.0
 )
 
