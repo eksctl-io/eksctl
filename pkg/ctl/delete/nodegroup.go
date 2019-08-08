@@ -40,7 +40,7 @@ func deleteNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddWaitFlag(fs, &rc.Wait, "deletion of all resources")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
 }
 
 func doDeleteNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool) error {

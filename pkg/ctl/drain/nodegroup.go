@@ -36,7 +36,7 @@ func drainNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		fs.BoolVar(&undo, "undo", false, "Uncordone the nodegroup")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
 }
 
 func doDrainNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, undo, onlyMissing bool) error {

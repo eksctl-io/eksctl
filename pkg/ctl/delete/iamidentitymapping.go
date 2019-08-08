@@ -33,7 +33,7 @@ func deleteIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool) error {

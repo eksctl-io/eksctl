@@ -31,7 +31,7 @@ func getClusterCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doGetCluster(rc *cmdutils.ResourceCmd, params *getCmdParams, listAllRegions bool) error {

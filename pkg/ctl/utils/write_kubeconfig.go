@@ -38,7 +38,7 @@ func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &outputPath, &authenticatorRoleARN, &setContext, &autoPath, "<name>")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath, roleARN string, setContext, autoPath bool) error {

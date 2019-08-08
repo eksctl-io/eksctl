@@ -38,8 +38,7 @@ func updateClusterCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddWaitFlag(fs, &rc.Wait, "all update operations to complete")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
-
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {

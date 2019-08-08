@@ -42,7 +42,7 @@ func enableLoggingCmd(rc *cmdutils.ResourceCmd) {
 
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTypesToDisable []string) error {

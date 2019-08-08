@@ -50,7 +50,7 @@ func createNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
 }
 
 func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) error {

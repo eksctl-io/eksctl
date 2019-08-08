@@ -28,7 +28,7 @@ func updateCoreDNSCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddApproveFlag(fs, rc)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doUpdateCoreDNS(rc *cmdutils.ResourceCmd) error {

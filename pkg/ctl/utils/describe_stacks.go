@@ -32,7 +32,7 @@ func describeStacksCmd(rc *cmdutils.ResourceCmd) {
 		fs.BoolVar(&trail, "trail", false, "lookup CloudTrail events for the cluster")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doDescribeStacksCmd(rc *cmdutils.ResourceCmd, all, events, trail bool) error {

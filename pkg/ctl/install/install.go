@@ -3,7 +3,6 @@ package install
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/git"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/weaveworks/eksctl/pkg/git"
 
 	portforward "github.com/justinbarrick/go-k8s-portforward"
 	"github.com/kris-nova/logger"
@@ -84,8 +85,6 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 			"Email to use as Git committer")
 		fs.StringVar(&opts.gitFluxPath, "git-flux-subdir", "flux/",
 			"Directory within the Git repository where to commit the Flux manifests")
-		fs.DurationVar(&opts.timeout, "timeout", 20*time.Second,
-			"Timeout for I/O operations")
 		fs.StringVar(&opts.templateParams.Namespace, "namespace", "flux",
 			"Cluster namespace where to install Flux")
 		fs.BoolVar(&opts.amend, "amend", false,
@@ -95,7 +94,10 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddNameFlag(fs, rc.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &opts.timeout, 20*time.Second, "Maximum wait time for all I/O operations")
 	})
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, false)
+	rc.ProviderConfig.WaitTimeout = opts.timeout
 }
 
 type fluxInstaller struct {

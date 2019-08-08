@@ -77,7 +77,7 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
 
 	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.kubeconfigPath, &params.authenticatorRoleARN, &params.setContext, &params.autoKubeconfigPath, exampleClusterName)

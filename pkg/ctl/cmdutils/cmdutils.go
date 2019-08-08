@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -89,7 +90,7 @@ func GetNameArg(args []string) string {
 }
 
 // AddCommonFlagsForAWS adds common flags for api.ProviderConfig
-func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRole bool) {
+func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRole, timeout bool) {
 	group.InFlagSet("AWS client", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&p.Profile, "profile", "p", "", "AWS credentials profile to use (overrides the AWS_PROFILE environment variable)")
 
@@ -98,11 +99,19 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRo
 		if err := fs.MarkHidden("aws-api-timeout"); err != nil {
 			logger.Debug("ignoring error %q", err.Error())
 		}
-		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
+		if timeout {
+			AddTimeoutFlag(fs, &p.WaitTimeout, api.DefaultWaitTimeout, "Maximum wait time in any polling operations")
+		}
 		if cfnRole {
 			fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
 		}
 	})
+}
+
+// AddTimeoutFlag configures the timeout flag with the provided value and
+// description.
+func AddTimeoutFlag(fs *pflag.FlagSet, p *time.Duration, value time.Duration, usage string) {
+	fs.DurationVar(p, "timeout", value, usage)
 }
 
 // AddNameFlag adds common --name flag for cluster

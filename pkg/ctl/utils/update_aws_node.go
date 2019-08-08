@@ -28,7 +28,7 @@ func updateAWSNodeCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddApproveFlag(fs, rc)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doUpdateAWSNode(rc *cmdutils.ResourceCmd) error {

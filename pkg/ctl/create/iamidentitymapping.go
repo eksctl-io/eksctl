@@ -39,7 +39,7 @@ func createIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
 }
 
 func doCreateIAMIdentityMapping(rc *cmdutils.ResourceCmd, id *authconfigmap.MapRole) error {
