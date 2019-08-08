@@ -211,7 +211,7 @@ var _ = Describe("ClusterConfig validation", func() {
 					"authorization", "serverTLSBootstrap"}
 
 				for _, key := range testKeys {
-					ng.KubeletExtraConfig = &NodeGroupKubeletConfig{
+					ng.KubeletExtraConfig = &InlineDocument{
 						key: "should-not-be-allowed",
 					}
 					err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig)
@@ -220,7 +220,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 
 			It("Allows other kubelet options", func() {
-				ng.KubeletExtraConfig = &NodeGroupKubeletConfig{
+				ng.KubeletExtraConfig = &InlineDocument{
 					"kubeReserved": map[string]string{
 						"cpu":               "300m",
 						"memory":            "300Mi",

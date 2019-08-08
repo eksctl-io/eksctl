@@ -503,7 +503,7 @@ type NodeGroup struct {
 	ClusterDNS string `json:"clusterDNS,omitempty"`
 
 	// +optional
-	KubeletExtraConfig *NodeGroupKubeletConfig `json:"kubeletExtraConfig,omitempty"`
+	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -594,16 +594,16 @@ type (
 	}
 )
 
-// NodeGroupKubeletConfig contains extra config parameters for the kubelet.yaml
-type NodeGroupKubeletConfig map[string]interface{}
+// InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies
+type InlineDocument map[string]interface{}
 
-// DeepCopy is needed to generate kubernetes types for NodeGroupKubeletConfig
-func (in *NodeGroupKubeletConfig) DeepCopy() *NodeGroupKubeletConfig {
+// DeepCopy is needed to generate kubernetes types for InlineDocument
+func (in *InlineDocument) DeepCopy() *InlineDocument {
 	if in == nil {
 		return nil
 	}
-	out := new(NodeGroupKubeletConfig)
-	*out = NodeGroupKubeletConfig(runtime.DeepCopyJSON(*in))
+	out := new(InlineDocument)
+	*out = InlineDocument(runtime.DeepCopyJSON(*in))
 	return out
 }
 
