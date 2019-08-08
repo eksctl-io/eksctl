@@ -23,7 +23,7 @@ type ResourceCmd struct {
 	ProviderConfig *api.ProviderConfig
 	ClusterConfig  *api.ClusterConfig
 
-	IncludeNodeGroups, ExcludeNodeGroups []string
+	Include, Exclude []string
 }
 
 // AddResourceCmd create a registers a new command under the given verb command

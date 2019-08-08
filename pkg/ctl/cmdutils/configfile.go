@@ -223,7 +223,7 @@ func NewCreateNodeGroupLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) Cluste
 	)
 
 	l.validateWithConfigFile = func() error {
-		if err := ngFilter.AppendGlobs(l.IncludeNodeGroups, l.ExcludeNodeGroups, l.ClusterConfig.NodeGroups); err != nil {
+		if err := ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.NodeGroups); err != nil {
 			return err
 		}
 		return nil
@@ -280,7 +280,7 @@ func NewDeleteNodeGroupLoader(rc *ResourceCmd, ng *api.NodeGroup, ngFilter *Node
 	)
 
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.IncludeNodeGroups, l.ExcludeNodeGroups, l.ClusterConfig.NodeGroups)
+		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.NodeGroups)
 	}
 
 	l.flagsIncompatibleWithoutConfigFile.Insert(

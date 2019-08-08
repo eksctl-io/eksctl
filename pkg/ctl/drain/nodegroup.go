@@ -31,7 +31,7 @@ func drainNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to delete")
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 		cmdutils.AddApproveFlag(fs, rc)
-		cmdutils.AddNodeGroupFilterFlags(fs, &rc.IncludeNodeGroups, &rc.ExcludeNodeGroups)
+		cmdutils.AddNodeGroupFilterFlags(fs, &rc.Include, &rc.Exclude)
 		fs.BoolVar(&onlyMissing, "only-missing", false, "Only drain nodegroups that are not defined in the given config file")
 		fs.BoolVar(&undo, "undo", false, "Uncordone the nodegroup")
 		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
