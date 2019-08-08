@@ -1,42 +1,74 @@
 package kubernetes_test
 
 import (
-	"testing"
+	"encoding/json"
 
-	"github.com/stretchr/testify/assert"
-	. "github.com/weaveworks/eksctl/pkg/kubernetes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/yaml"
+
+	. "github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
-func TestNamespace(t *testing.T) {
-	ns := Namespace("flux")
-	assert.Equal(t, "v1", ns.APIVersion)
-	assert.Equal(t, "Namespace", ns.Kind)
-	assert.Equal(t, "flux", ns.Name)
-	assert.Equal(t, "flux", ns.Labels["name"])
-	bytes, err := yaml.Marshal(ns)
-	assert.NoError(t, err)
-	assert.Equal(t, `apiVersion: v1
-kind: Namespace
-metadata:
-  creationTimestamp: null
-  labels:
-    name: flux
-  name: flux
-spec: {}
-status: {}
-`, string(bytes))
-}
+var _ = Describe("Kubernetes namespace object helpers", func() {
+	var (
+		clientSet *fake.Clientset
+		err       error
+	)
 
-func TestNamespaceYAML(t *testing.T) {
-	nsBytes := NamespaceYAML("flux")
-	var ns corev1.Namespace
-	err := yaml.Unmarshal(nsBytes, &ns)
-	assert.NoError(t, err)
-	assert.Equal(t, "v1", ns.APIVersion)
-	assert.Equal(t, "Namespace", ns.Kind)
-	assert.Equal(t, "flux", ns.Name)
-	assert.Equal(t, "flux", ns.Labels["name"])
-	assert.Equal(t, ns, *Namespace("flux"))
-}
+	BeforeEach(func() {
+		clientSet = fake.NewSimpleClientset()
+	})
+
+	It("can create a namespace object", func() {
+		ns := NewNamespace("ns123")
+
+		Expect(ns.APIVersion).To(Equal("v1"))
+		Expect(ns.Kind).To(Equal("Namespace"))
+		Expect(ns.Name).To(Equal("ns123"))
+
+		Expect(ns.Labels).To(BeEmpty())
+
+		js, err := json.Marshal(ns)
+		Expect(err).ToNot(HaveOccurred())
+
+		expected := `{
+				"apiVersion": "v1",
+				"kind": "Namespace",
+				"metadata": {
+					"creationTimestamp": null,
+					"name": "ns123"
+				},
+				"spec": {},
+				"status": {}
+			}`
+		Expect(js).To(MatchJSON([]byte(expected)))
+	})
+
+	It("can create a clean serialised namespace object", func() {
+		ys := NewNamespaceYAML("ns123")
+		ns := &corev1.Namespace{}
+
+		err = yaml.Unmarshal(ys, ns)
+
+		Expect(err).ToNot(HaveOccurred())
+
+		Expect(ns.APIVersion).To(Equal("v1"))
+		Expect(ns.Kind).To(Equal("Namespace"))
+		Expect(ns.Name).To(Equal("ns123"))
+
+		Expect(*ns).To(Equal(*NewNamespace("ns123")))
+	})
+
+	It("can create namespace using fake client and check confirm that it exists", func() {
+		err = MaybeCreateNamespace(clientSet, "ns-1")
+		Expect(err).ToNot(HaveOccurred())
+
+		ok, err := CheckNamespaceExists(clientSet, "ns-1")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ok).To(BeTrue())
+	})
+})
