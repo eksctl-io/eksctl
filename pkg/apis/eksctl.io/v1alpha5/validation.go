@@ -7,12 +7,33 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+// NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
+type nameSet map[string]int
+
+func (s nameSet) checkNonUnique(path, name string) (bool, error) {
+	if _, notUnique := s[name]; notUnique {
+		s[name]++
+		return false, fmt.Errorf("%s %q is not unique (count %d)", path, name, s[name])
+	}
+	s[name] = 1
+	return true, nil
+}
 
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
+	ngNames := nameSet{}
+	for i, ng := range cfg.NodeGroups {
+		path := fmt.Sprintf("nodeGroups[%d]", i)
+		if ng.Name == "" {
+			return fmt.Errorf("%s.name must be set", path)
+		}
+		if ok, err := ngNames.checkNonUnique(path, ng.NameString()); !ok {
+			return err
+		}
+	}
+
 	if cfg.HasClusterCloudWatchLogging() {
-		// NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
-		for _, logType := range cfg.CloudWatch.ClusterLogging.EnableTypes {
+		for i, logType := range cfg.CloudWatch.ClusterLogging.EnableTypes {
 			isUnknown := true
 			for _, knownLogType := range SupportedCloudWatchClusterLogTypes() {
 				if logType == knownLogType {
@@ -20,19 +41,17 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 				}
 			}
 			if isUnknown {
-				return fmt.Errorf("log type %q is unknown", logType)
+				return fmt.Errorf("log type %q (cloudWatch.clusterLogging.enableTypes[%d]) is unknown", logType, i)
 			}
 		}
 	}
+
 	return nil
 }
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup
 func ValidateNodeGroup(i int, ng *NodeGroup) error {
-	path := fmt.Sprintf("nodegroups[%d]", i)
-	if ng.Name == "" {
-		return fmt.Errorf("%s.name must be set", path)
-	}
+	path := fmt.Sprintf("nodeGroups[%d]", i)
 
 	if ng.VolumeSize == nil {
 		errCantSet := func(field string) error {
@@ -62,7 +81,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 	if ng.VolumeEncrypted == nil || IsDisabled(ng.VolumeEncrypted) {
 		if IsSetAndNonEmptyString(ng.VolumeKmsKeyID) {
-			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.VolumeEncrypted true", path, path)
+			return fmt.Errorf("%s.VolumeKmsKeyID can not be set without %s.VolumeEncrypted enabled explicitly", path, path)
 		}
 	}
 
@@ -162,7 +181,6 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 	}
 	return nil
 }
-
 
 func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) error {
 	if value != "" {
