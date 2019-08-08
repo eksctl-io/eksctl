@@ -3,12 +3,12 @@ package az_test
 import (
 	"fmt"
 
-	. "github.com/weaveworks/eksctl/pkg/az"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/aws/aws-sdk-go/aws"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	. "github.com/weaveworks/eksctl/pkg/az"
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
