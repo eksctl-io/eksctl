@@ -6,6 +6,46 @@ import (
 )
 
 var _ = Describe("ClusterConfig validation", func() {
+	Describe("nodeGroups", func() {
+		var (
+			cfg *ClusterConfig
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "ng0"
+			ng1 := cfg.NewNodeGroup()
+			ng1.Name = "ng1"
+		})
+
+		It("should handle unique nodegroups", func() {
+			err = ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			for i, ng := range cfg.NodeGroups {
+				err = ValidateNodeGroup(i, ng)
+				Expect(err).ToNot(HaveOccurred())
+			}
+		})
+
+		It("should handle non-unique nodegroups", func() {
+			cfg.NodeGroups[0].Name = "ng"
+			cfg.NodeGroups[1].Name = "ng"
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should handle unamed nodegroups", func() {
+			cfg.NodeGroups[0].Name = ""
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
 	Describe("cloudWatch.clusterLogging", func() {
 		var (
 			cfg *ClusterConfig
@@ -14,6 +54,13 @@ var _ = Describe("ClusterConfig validation", func() {
 
 		BeforeEach(func() {
 			cfg = NewClusterConfig()
+		})
+
+		It("should handle known types", func() {
+			cfg.CloudWatch.ClusterLogging.EnableTypes = []string{"api"}
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should handle unknown types", func() {
