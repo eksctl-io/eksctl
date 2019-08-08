@@ -235,7 +235,6 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		)
 	}
 
-
 	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AppMesh) {
 		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",
 			[]string{

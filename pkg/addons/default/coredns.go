@@ -22,9 +22,8 @@ const (
 	KubeDNS = "kube-dns"
 
 	coreDNSImagePrefixPTN = "%s.dkr.ecr."
-	coreDNSImageSuffix = ".amazonaws.com/eks/coredns"
+	coreDNSImageSuffix    = ".amazonaws.com/eks/coredns"
 )
-
 
 // UpdateCoreDNS will update the `coredns` add-on
 func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, plan bool) (bool, error) {
