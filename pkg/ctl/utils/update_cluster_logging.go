@@ -11,7 +11,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -60,13 +59,11 @@ func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTyp
 	cfg := rc.ClusterConfig
 	meta := rc.ClusterConfig.Metadata
 
-	api.SetClusterConfigDefaults(cfg)
-
 	printer := printers.NewJSONPrinter()
-	ctl := eks.New(rc.ProviderConfig, cfg)
 
-	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
 	}
 	logger.Info("using region %s", meta.Region)
 

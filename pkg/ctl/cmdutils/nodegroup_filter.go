@@ -112,20 +112,6 @@ func (f *NodeGroupFilter) ForEach(nodeGroups []*api.NodeGroup, iterFn func(i int
 	return nil
 }
 
-// ValidateNodeGroupsAndSetDefaults is calls api.ValidateNodeGroup & api.SetNodeGroupDefaults for
-// all nodegroups that match the filter
-func (f *NodeGroupFilter) ValidateNodeGroupsAndSetDefaults(nodeGroups []*api.NodeGroup) error {
-	return f.ForEach(nodeGroups, func(i int, ng *api.NodeGroup) error {
-		if err := api.ValidateNodeGroup(i, ng); err != nil {
-			return err
-		}
-		if err := api.SetNodeGroupDefaults(i, ng); err != nil {
-			return err
-		}
-		return nil
-	})
-}
-
 func (*NodeGroupFilter) collectNames(nodeGroups []*api.NodeGroup) []string {
 	names := []string{}
 	for _, ng := range nodeGroups {

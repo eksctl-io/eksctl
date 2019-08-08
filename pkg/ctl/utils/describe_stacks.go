@@ -9,7 +9,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func describeStacksCmd(rc *cmdutils.ResourceCmd) {
@@ -39,7 +38,11 @@ func describeStacksCmd(rc *cmdutils.ResourceCmd) {
 func doDescribeStacksCmd(rc *cmdutils.ResourceCmd, all, events, trail bool) error {
 	cfg := rc.ClusterConfig
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
+	}
+	logger.Info("using region %s", cfg.Metadata.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
