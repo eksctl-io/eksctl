@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
-var _ = Describe("kubernets client wrappers", func() {
+var _ = Describe("Kubernetes client wrappers", func() {
 	Describe("can create or replace missing objects", func() {
 		It("can update objects that already exist", func() {
 			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")

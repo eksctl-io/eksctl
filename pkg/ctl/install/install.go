@@ -25,7 +25,6 @@ import (
 	"github.com/weaveworks/flux/http/client"
 	"github.com/weaveworks/flux/install"
 	"github.com/weaveworks/flux/ssh"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -261,33 +260,22 @@ func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
 	return client.CreateOrReplace(manifests, false)
 }
 
-func getFluxManifests(params install.TemplateParameters, cs *kubeclient.Clientset) (map[string][]byte, error) {
+func getFluxManifests(params install.TemplateParameters, clientSet *kubeclient.Clientset) (map[string][]byte, error) {
 	params.AdditionalFluxArgs = []string{"--sync-garbage-collection", "--manifest-generation"}
 	manifests, err := install.FillInTemplates(params)
 	if err != nil {
 		return nil, err
 	}
-	created, err := isNamespaceCreated(params.Namespace, cs)
+	created, err := kubernetes.CheckNamespaceExists(clientSet, params.Namespace)
 	if err != nil {
 		return nil, err
 	}
 	if !created {
 		// Add the namespace to the manifests so that it later gets serialised,
 		// added to the Git repository, and added to the cluster.
-		manifests[namespaceFileName] = kubernetes.NamespaceYAML(params.Namespace)
+		manifests[namespaceFileName] = kubernetes.NewNamespaceYAML(params.Namespace)
 	}
 	return manifests, nil
-}
-
-func isNamespaceCreated(name string, cs *kubeclient.Clientset) (bool, error) {
-	_, err := cs.CoreV1().Namespaces().Get(name, metav1.GetOptions{})
-	if err == nil {
-		return true, nil
-	}
-	if !apierrors.IsNotFound(err) {
-		return false, fmt.Errorf("cannot check whether namespace %s exists: %s", name, err)
-	}
-	return false, nil
 }
 
 func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
