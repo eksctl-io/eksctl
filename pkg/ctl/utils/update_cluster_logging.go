@@ -32,6 +32,7 @@ func enableLoggingCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 		cmdutils.AddApproveFlag(fs, rc)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	rc.FlagSetGroup.InFlagSet("Enable/disable log types", func(fs *pflag.FlagSet) {
@@ -42,7 +43,7 @@ func enableLoggingCmd(rc *cmdutils.ResourceCmd) {
 
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
 func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTypesToDisable []string) error {

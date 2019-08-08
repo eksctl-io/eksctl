@@ -55,6 +55,7 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringSliceVar(&params.availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	rc.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -77,7 +78,7 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 
 	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.kubeconfigPath, &params.authenticatorRoleARN, &params.setContext, &params.autoKubeconfigPath, exampleClusterName)

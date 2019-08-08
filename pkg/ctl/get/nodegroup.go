@@ -33,9 +33,10 @@ func getNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup")
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
 func doGetNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, params *getCmdParams) error {

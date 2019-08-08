@@ -32,13 +32,14 @@ func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &outputPath, &authenticatorRoleARN, &setContext, &autoPath, "<name>")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
 func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath, roleARN string, setContext, autoPath bool) error {

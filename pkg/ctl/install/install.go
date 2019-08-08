@@ -94,9 +94,9 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddNameFlag(fs, rc.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
-		cmdutils.AddTimeoutFlag(fs, &opts.timeout, 20*time.Second, "Maximum wait time for all I/O operations")
+		cmdutils.AddTimeoutFlagWithValue(fs, &opts.timeout, 20*time.Second)
 	})
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, false)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 	rc.ProviderConfig.WaitTimeout = opts.timeout
 }
 

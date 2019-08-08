@@ -33,9 +33,10 @@ func scaleNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		})
 
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 }
 
 func doScaleNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup) error {

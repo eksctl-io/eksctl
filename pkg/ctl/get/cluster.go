@@ -29,9 +29,10 @@ func getClusterCmd(rc *cmdutils.ResourceCmd) {
 		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
 func doGetCluster(rc *cmdutils.ResourceCmd, params *getCmdParams, listAllRegions bool) error {

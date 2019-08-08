@@ -38,9 +38,10 @@ func deleteClusterCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddWaitFlag(fs, &rc.Wait, "deletion of all resources")
 
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 }
 
 func handleErrors(errs []error, subject string) error {

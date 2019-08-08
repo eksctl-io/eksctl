@@ -34,9 +34,10 @@ func drainNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddNodeGroupFilterFlags(fs, &rc.IncludeNodeGroups, &rc.ExcludeNodeGroups)
 		fs.BoolVar(&onlyMissing, "only-missing", false, "Only drain nodegroups that are not defined in the given config file")
 		fs.BoolVar(&undo, "undo", false, "Uncordone the nodegroup")
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true, true)
+	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
 }
 
 func doDrainNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, undo, onlyMissing bool) error {
