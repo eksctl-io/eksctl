@@ -55,6 +55,7 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringSliceVar(&params.availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	rc.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {

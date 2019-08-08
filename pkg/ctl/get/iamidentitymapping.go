@@ -34,6 +34,7 @@ func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)

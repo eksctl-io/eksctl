@@ -33,6 +33,7 @@ func scaleNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		})
 
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)

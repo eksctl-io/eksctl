@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
@@ -98,11 +99,20 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRo
 		if err := fs.MarkHidden("aws-api-timeout"); err != nil {
 			logger.Debug("ignoring error %q", err.Error())
 		}
-		fs.DurationVar(&p.WaitTimeout, "timeout", api.DefaultWaitTimeout, "max wait time in any polling operations")
 		if cfnRole {
 			fs.StringVar(&p.CloudFormationRoleARN, "cfn-role-arn", "", "IAM role used by CloudFormation to call AWS API on your behalf")
 		}
 	})
+}
+
+// AddTimeoutFlagWithValue configures the timeout flag with the provided value.
+func AddTimeoutFlagWithValue(fs *pflag.FlagSet, p *time.Duration, value time.Duration) {
+	fs.DurationVar(p, "timeout", value, "Maximum waiting time for any long-running operation")
+}
+
+// AddTimeoutFlag configures the timeout flag.
+func AddTimeoutFlag(fs *pflag.FlagSet, p *time.Duration) {
+	AddTimeoutFlagWithValue(fs, p, api.DefaultWaitTimeout)
 }
 
 // AddNameFlag adds common --name flag for cluster

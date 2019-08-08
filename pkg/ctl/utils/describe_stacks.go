@@ -30,6 +30,7 @@ func describeStacksCmd(rc *cmdutils.ResourceCmd) {
 		fs.BoolVar(&all, "all", false, "include deleted stacks")
 		fs.BoolVar(&events, "events", false, "include stack events")
 		fs.BoolVar(&trail, "trail", false, "lookup CloudTrail events for the cluster")
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)

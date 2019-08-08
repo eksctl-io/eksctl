@@ -39,6 +39,7 @@ func createNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
 		cmdutils.AddNodeGroupFilterFlags(fs, &rc.IncludeNodeGroups, &rc.ExcludeNodeGroups)
 		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	rc.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {

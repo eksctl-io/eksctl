@@ -32,6 +32,7 @@ func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {

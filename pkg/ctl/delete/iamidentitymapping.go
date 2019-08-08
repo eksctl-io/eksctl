@@ -31,6 +31,7 @@ func deleteIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
