@@ -291,7 +291,7 @@ func countEnabledFields(fields ...*string) int {
 	return count
 }
 
-func validateNodeGroupKubeletExtraConfig(kubeletConfig *NodeGroupKubeletConfig) error {
+func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 	if kubeletConfig == nil {
 		return nil
 	}

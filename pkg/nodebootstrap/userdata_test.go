@@ -1,13 +1,15 @@
 package nodebootstrap
 
 import (
+	"strconv"
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	kubeletapi "k8s.io/kubelet/config/v1beta1"
 	"sigs.k8s.io/yaml"
-	"strconv"
-	"strings"
 )
 
 var _ = Describe("User data", func() {
@@ -46,7 +48,7 @@ var _ = Describe("User data", func() {
 
 		It("the kubelet config contains the overwritten values", func() {
 
-			ng.KubeletExtraConfig = &api.NodeGroupKubeletConfig{
+			ng.KubeletExtraConfig = &api.InlineDocument{
 				"kubeReserved": &map[string]string{
 					"cpu":               "300m",
 					"memory":            "300Mi",
