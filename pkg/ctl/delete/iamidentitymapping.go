@@ -9,41 +9,41 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-func deleteIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
+func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
 	var (
 		role string
 		all  bool
 	)
 
-	rc.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
+	cmd.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
 
-	rc.SetRunFunc(func() error {
-		return doDeleteIAMIdentityMapping(rc, role, all)
+	cmd.SetRunFunc(func() error {
+		return doDeleteIAMIdentityMapping(cmd, role, all)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&role, "role", "", "ARN of the IAM role to delete")
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, role string, all bool) error {
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, role string, all bool) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	cfg := rc.ClusterConfig
+	cfg := cmd.ClusterConfig
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}

@@ -53,22 +53,22 @@ type installFluxOpts struct {
 	amend          bool
 }
 
-func installFluxCmd(rc *cmdutils.ResourceCmd) {
-	rc.ClusterConfig = api.NewClusterConfig()
-	rc.SetDescription(
+func installFluxCmd(cmd *cmdutils.Cmd) {
+	cmd.ClusterConfig = api.NewClusterConfig()
+	cmd.SetDescription(
 		"flux",
 		"Bootstrap Flux, installing it in the cluster and initializing its manifests in the specified Git repository",
 		"",
 	)
 	var opts installFluxOpts
-	rc.SetRunFuncWithNameArg(func() error {
-		installer, err := newFluxInstaller(context.Background(), rc, &opts)
+	cmd.SetRunFuncWithNameArg(func() error {
+		installer, err := newFluxInstaller(context.Background(), cmd, &opts)
 		if err != nil {
 			return err
 		}
 		return installer.run(context.Background())
 	})
-	rc.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
 		fs.StringVar(&opts.templateParams.GitURL, "git-url", "",
 			"URL of the Git repository to be used by Flux, e.g. git@github.com:<your username>/flux-get-started")
 		fs.StringVar(&opts.templateParams.GitBranch, "git-branch", "master",
@@ -88,26 +88,26 @@ func installFluxCmd(rc *cmdutils.ResourceCmd) {
 		fs.BoolVar(&opts.amend, "amend", false,
 			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
 	})
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, rc.ClusterConfig.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		cmdutils.AddNameFlag(fs, cmd.ClusterConfig.Metadata)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlagWithValue(fs, &opts.timeout, 20*time.Second)
 	})
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
-	rc.ProviderConfig.WaitTimeout = opts.timeout
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	cmd.ProviderConfig.WaitTimeout = opts.timeout
 }
 
 type fluxInstaller struct {
 	opts          *installFluxOpts
-	resourceCmd   *cmdutils.ResourceCmd
+	cmd           *cmdutils.Cmd
 	k8sConfig     *clientcmdapi.Config
 	k8sRestConfig *rest.Config
 	k8sClientSet  *kubeclient.Clientset
 	gitClient     *git.Client
 }
 
-func newFluxInstaller(ctx context.Context, rc *cmdutils.ResourceCmd, opts *installFluxOpts) (*fluxInstaller, error) {
+func newFluxInstaller(ctx context.Context, cmd *cmdutils.Cmd, opts *installFluxOpts) (*fluxInstaller, error) {
 	if opts.templateParams.GitURL == "" {
 		return nil, fmt.Errorf("please supply a valid --git-url argument")
 	}
@@ -115,13 +115,13 @@ func newFluxInstaller(ctx context.Context, rc *cmdutils.ResourceCmd, opts *insta
 		return nil, fmt.Errorf("please supply a valid --git-email argument")
 	}
 
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return nil, err
 	}
 
-	cfg := rc.ClusterConfig
+	cfg := cmd.ClusterConfig
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func newFluxInstaller(ctx context.Context, rc *cmdutils.ResourceCmd, opts *insta
 	gitClient := git.NewGitClient(ctx, opts.templateParams.GitUser, opts.templateParams.GitEmail, opts.timeout)
 	fi := &fluxInstaller{
 		opts:          opts,
-		resourceCmd:   rc,
+		cmd:           cmd,
 		k8sConfig:     k8sConfig,
 		k8sRestConfig: k8sRestConfig,
 		k8sClientSet:  k8sClientSet,

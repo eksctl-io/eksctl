@@ -21,18 +21,18 @@ type ClusterConfigLoader interface {
 }
 
 type commonClusterConfigLoader struct {
-	*ResourceCmd
+	*Cmd
 
 	flagsIncompatibleWithConfigFile, flagsIncompatibleWithoutConfigFile sets.String
 
 	validateWithConfigFile, validateWithoutConfigFile func() error
 }
 
-func newCommonClusterConfigLoader(rc *ResourceCmd) *commonClusterConfigLoader {
+func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 	nilValidatorFunc := func() error { return nil }
 
 	return &commonClusterConfigLoader{
-		ResourceCmd: rc,
+		Cmd: cmd,
 
 		validateWithConfigFile:             nilValidatorFunc,
 		flagsIncompatibleWithConfigFile:    sets.NewString("name", "region", "version"),
@@ -49,7 +49,7 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	if l.ClusterConfigFile == "" {
 		for f := range l.flagsIncompatibleWithoutConfigFile {
-			if flag := l.Command.Flag(f); flag != nil && flag.Changed {
+			if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
 				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
 			}
 		}
@@ -58,9 +58,9 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	var err error
 
-	// The reference to ResourceCmd.ClusterConfig should only be reassigned if ClusterConfigFile is specified
+	// The reference to ClusterConfig should only be reassigned if ClusterConfigFile is specified
 	// because other parts of the code store the pointer locally and access it directly instead of via
-	// the ResourceCmd reference
+	// the Cmd reference
 	if l.ClusterConfig, err = eks.LoadConfigFromFile(l.ClusterConfigFile); err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 
 	for f := range l.flagsIncompatibleWithConfigFile {
-		if flag := l.Command.Flag(f); flag != nil && flag.Changed {
+		if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
 			return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f))
 		}
 	}
@@ -113,8 +113,8 @@ func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 // NewMetadataLoader handles loading of clusterConfigFile vs using flags for all commands that require only
 // metadata fields, e.g. `eksctl delete cluster` or `eksctl utils update-kube-proxy` and other similar
 // commands that do simple operations against existing clusters
-func NewMetadataLoader(rc *ResourceCmd) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(rc)
+func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
 
@@ -122,8 +122,8 @@ func NewMetadataLoader(rc *ResourceCmd) ClusterConfigLoader {
 }
 
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
-func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(rc)
+func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",
@@ -197,8 +197,8 @@ func NewCreateClusterLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterC
 }
 
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(rc)
+func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"cluster",
@@ -255,7 +255,7 @@ func NewCreateNodeGroupLoader(rc *ResourceCmd, ngFilter *NodeGroupFilter) Cluste
 }
 
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
-	if l.Command.Flag("ssh-public-key").Changed {
+	if l.CobraCommand.Flag("ssh-public-key").Changed {
 		if *ng.SSH.PublicKeyPath == "" {
 			return fmt.Errorf("--ssh-public-key must be non-empty string")
 		}
@@ -272,8 +272,8 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 }
 
 // NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
-func NewDeleteNodeGroupLoader(rc *ResourceCmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(rc)
+func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"cluster",
@@ -319,8 +319,8 @@ func NewDeleteNodeGroupLoader(rc *ResourceCmd, ng *api.NodeGroup, ngFilter *Node
 }
 
 // NewUtilsEnableLoggingLoader will load config or use flags for 'eksctl utils update-cluster-logging'
-func NewUtilsEnableLoggingLoader(rc *ResourceCmd) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(rc)
+func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"enable-types",

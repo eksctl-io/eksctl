@@ -12,9 +12,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
+func writeKubeconfigCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
 	var (
 		outputPath           string
@@ -22,29 +22,29 @@ func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 		setContext, autoPath bool
 	)
 
-	rc.SetDescription("write-kubeconfig", "Write kubeconfig file for a given cluster", "")
+	cmd.SetDescription("write-kubeconfig", "Write kubeconfig file for a given cluster", "")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doWriteKubeconfigCmd(rc, outputPath, authenticatorRoleARN, setContext, autoPath)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doWriteKubeconfigCmd(cmd, outputPath, authenticatorRoleARN, setContext, autoPath)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &outputPath, &authenticatorRoleARN, &setContext, &autoPath, "<name>")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath, roleARN string, setContext, autoPath bool) error {
-	cfg := rc.ClusterConfig
+func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setContext, autoPath bool) error {
+	cfg := cmd.ClusterConfig
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -54,12 +54,12 @@ func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath, roleARN string, 
 		return err
 	}
 
-	if cfg.Metadata.Name != "" && rc.NameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, rc.NameArg)
+	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, cmd.NameArg)
 	}
 
-	if rc.NameArg != "" {
-		cfg.Metadata.Name = rc.NameArg
+	if cmd.NameArg != "" {
+		cfg.Metadata.Name = cmd.NameArg
 	}
 
 	if cfg.Metadata.Name == "" {

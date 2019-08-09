@@ -10,36 +10,36 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-func updateCoreDNSCmd(rc *cmdutils.ResourceCmd) {
+func updateCoreDNSCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
-	rc.SetDescription("update-coredns", "Update coredns add-on to ensure image matches the standard Amazon EKS version", "")
+	cmd.SetDescription("update-coredns", "Update coredns add-on to ensure image matches the standard Amazon EKS version", "")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doUpdateCoreDNS(rc)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doUpdateCoreDNS(cmd)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
-		cmdutils.AddApproveFlag(fs, rc)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddApproveFlag(fs, cmd)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doUpdateCoreDNS(rc *cmdutils.ResourceCmd) error {
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+func doUpdateCoreDNS(cmd *cmdutils.Cmd) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	cfg := rc.ClusterConfig
-	meta := rc.ClusterConfig.Metadata
+	cfg := cmd.ClusterConfig
+	meta := cmd.ClusterConfig.Metadata
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -63,12 +63,12 @@ func doUpdateCoreDNS(rc *cmdutils.ResourceCmd) error {
 		return err
 	}
 
-	updateRequired, err := defaultaddons.UpdateCoreDNS(rawClient, meta.Region, kubernetesVersion, rc.Plan)
+	updateRequired, err := defaultaddons.UpdateCoreDNS(rawClient, meta.Region, kubernetesVersion, cmd.Plan)
 	if err != nil {
 		return err
 	}
 
-	cmdutils.LogPlanModeWarning(rc.Plan && updateRequired)
+	cmdutils.LogPlanModeWarning(cmd.Plan && updateRequired)
 
 	return nil
 }

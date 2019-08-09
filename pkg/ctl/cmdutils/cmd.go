@@ -10,9 +10,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-// ResourceCmd holds attributes that most of the commands use
-type ResourceCmd struct {
-	Command      *cobra.Command
+// Cmd holds attributes that are common between commands;
+// not all commands use each attribute, but but they can if needed
+type Cmd struct {
+	CobraCommand *cobra.Command
 	FlagSetGroup *NamedFlagSetGroup
 
 	Plan, Wait, Validate bool
@@ -30,19 +31,19 @@ type ResourceCmd struct {
 // NewCtl performs common defaulting and validation and constructs a new
 // instance of eks.ClusterProvider, it may return an error if configuration
 // is invalid or region is not supported
-func (rc *ResourceCmd) NewCtl() (*eks.ClusterProvider, error) {
-	api.SetClusterConfigDefaults(rc.ClusterConfig)
+func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
+	api.SetClusterConfigDefaults(c.ClusterConfig)
 
-	if err := api.ValidateClusterConfig(rc.ClusterConfig); err != nil {
-		if rc.Validate {
+	if err := api.ValidateClusterConfig(c.ClusterConfig); err != nil {
+		if c.Validate {
 			return nil, err
 		}
 		logger.Warning("ignoring validation error: %s", err.Error())
 	}
 
-	for i, ng := range rc.ClusterConfig.NodeGroups {
+	for i, ng := range c.ClusterConfig.NodeGroups {
 		if err := api.ValidateNodeGroup(i, ng); err != nil {
-			if rc.Validate {
+			if c.Validate {
 				return nil, err
 			}
 			logger.Warning("ignoring validation error: %s", err.Error())
@@ -52,50 +53,50 @@ func (rc *ResourceCmd) NewCtl() (*eks.ClusterProvider, error) {
 		api.SetNodeGroupDefaults(i, ng)
 	}
 
-	ctl := eks.New(rc.ProviderConfig, rc.ClusterConfig)
+	ctl := eks.New(c.ProviderConfig, c.ClusterConfig)
 
 	if !ctl.IsSupportedRegion() {
-		return nil, ErrUnsupportedRegion(rc.ProviderConfig)
+		return nil, ErrUnsupportedRegion(c.ProviderConfig)
 	}
 
 	return ctl, nil
 }
 
 // AddResourceCmd create a registers a new command under the given verb command
-func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, newResourceCmd func(*ResourceCmd)) {
-	resource := &ResourceCmd{
-		Command:        &cobra.Command{},
+func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, newCmd func(*Cmd)) {
+	c := &Cmd{
+		CobraCommand:   &cobra.Command{},
 		ProviderConfig: &api.ProviderConfig{},
 
 		Plan:     true,  // always on by default
 		Wait:     false, // varies in some commands
 		Validate: true,  // also on by default
 	}
-	resource.FlagSetGroup = flagGrouping.New(resource.Command)
-	newResourceCmd(resource)
-	resource.FlagSetGroup.AddTo(resource.Command)
-	parentVerbCmd.AddCommand(resource.Command)
+	c.FlagSetGroup = flagGrouping.New(c.CobraCommand)
+	newCmd(c)
+	c.FlagSetGroup.AddTo(c.CobraCommand)
+	parentVerbCmd.AddCommand(c.CobraCommand)
 }
 
 // SetDescription sets usage along with short and long descriptions as well as aliases
-func (rc *ResourceCmd) SetDescription(use, short, long string, aliases ...string) {
-	rc.Command.Use = use
-	rc.Command.Short = short
-	rc.Command.Long = long
-	rc.Command.Aliases = aliases
+func (c *Cmd) SetDescription(use, short, long string, aliases ...string) {
+	c.CobraCommand.Use = use
+	c.CobraCommand.Short = short
+	c.CobraCommand.Long = long
+	c.CobraCommand.Aliases = aliases
 }
 
 // SetRunFunc registers a command function
-func (rc *ResourceCmd) SetRunFunc(cmd func() error) {
-	rc.Command.Run = func(_ *cobra.Command, _ []string) {
+func (c *Cmd) SetRunFunc(cmd func() error) {
+	c.CobraCommand.Run = func(_ *cobra.Command, _ []string) {
 		run(cmd)
 	}
 }
 
 // SetRunFuncWithNameArg registers a command function with an optional name argument
-func (rc *ResourceCmd) SetRunFuncWithNameArg(cmd func() error) {
-	rc.Command.Run = func(_ *cobra.Command, args []string) {
-		rc.NameArg = GetNameArg(args)
+func (c *Cmd) SetRunFuncWithNameArg(cmd func() error) {
+	c.CobraCommand.Run = func(_ *cobra.Command, args []string) {
+		c.NameArg = GetNameArg(args)
 		run(cmd)
 	}
 }

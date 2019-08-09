@@ -19,28 +19,28 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-func deleteClusterCmd(rc *cmdutils.ResourceCmd) {
+func deleteClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
-	rc.SetDescription("cluster", "Delete a cluster", "")
+	cmd.SetDescription("cluster", "Delete a cluster", "")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doDeleteCluster(rc)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doDeleteCluster(cmd)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 
-		rc.Wait = false
-		cmdutils.AddWaitFlag(fs, &rc.Wait, "deletion of all resources")
+		cmd.Wait = false
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")
 
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
 func handleErrors(errs []error, subject string) error {
@@ -67,17 +67,17 @@ func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error)
 	return false, nil
 }
 
-func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+func doDeleteCluster(cmd *cmdutils.Cmd) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	cfg := rc.ClusterConfig
-	meta := rc.ClusterConfig.Metadata
+	cfg := cmd.ClusterConfig
+	meta := cmd.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func doDeleteCluster(rc *cmdutils.ResourceCmd) error {
 			return err
 		}
 
-		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(rc.Wait, func(errs chan error, _ string) error {
+		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(cmd.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.GetClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
