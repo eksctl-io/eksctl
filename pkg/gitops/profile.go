@@ -24,7 +24,7 @@ type Profile struct {
 	Params    TemplateParameters
 	Path      string
 	GitOpts   GitOptions
-	GitClient *git.Client
+	gitCloner git.Cloner
 	Fs        afero.Fs
 	IO        afero.Afero
 }
@@ -58,7 +58,7 @@ type ManifestFile struct {
 // points to a profile repo
 func (p *Profile) Generate(ctx context.Context) error {
 	logger.Info("cloning repository %q:%s", p.GitOpts.URL, p.GitOpts.Branch)
-	clonedDir, err := p.GitClient.CloneRepo(cloneDirPrefix, p.GitOpts.Branch, p.GitOpts.URL)
+	clonedDir, err := p.gitCloner.CloneRepo(cloneDirPrefix, p.GitOpts.Branch, p.GitOpts.URL)
 	if err != nil {
 		return errors.Wrapf(err, "error cloning repository %s", p.GitOpts.URL)
 	}

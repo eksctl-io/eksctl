@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+// Cloner can clone git repositories
+type Cloner interface {
+	CloneRepo(cloneDirPrefix string, branch string, gitURL string) (string, error)
+}
+
 // Client can perform git operations on the given directory
 type Client struct {
 	executor executor.Executor
