@@ -9,7 +9,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
@@ -45,7 +44,11 @@ func writeKubeconfigCmd(rc *cmdutils.ResourceCmd) {
 func doWriteKubeconfigCmd(rc *cmdutils.ResourceCmd, outputPath, roleARN string, setContext, autoPath bool) error {
 	cfg := rc.ClusterConfig
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
+	}
+	logger.Info("using region %s", cfg.Metadata.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

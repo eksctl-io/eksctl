@@ -5,9 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func scaleNodeGroupCmd(rc *cmdutils.ResourceCmd) {
@@ -42,7 +42,10 @@ func scaleNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 func doScaleNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup) error {
 	cfg := rc.ClusterConfig
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -69,7 +72,7 @@ func doScaleNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup) error {
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
-	err := stackManager.ScaleNodeGroup(ng)
+	err = stackManager.ScaleNodeGroup(ng)
 	if err != nil {
 		return fmt.Errorf("failed to scale nodegroup for cluster %q, error %v", cfg.Metadata.Name, err)
 	}

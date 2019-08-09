@@ -10,7 +10,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -47,7 +46,10 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, rol
 
 	cfg := rc.ClusterConfig
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

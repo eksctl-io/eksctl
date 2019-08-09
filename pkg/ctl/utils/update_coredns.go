@@ -8,7 +8,6 @@ import (
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func updateCoreDNSCmd(rc *cmdutils.ResourceCmd) {
@@ -40,10 +39,9 @@ func doUpdateCoreDNS(rc *cmdutils.ResourceCmd) error {
 	cfg := rc.ClusterConfig
 	meta := rc.ClusterConfig.Metadata
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
-
-	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
 	}
 	logger.Info("using region %s", meta.Region)
 

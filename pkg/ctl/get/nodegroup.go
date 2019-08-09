@@ -11,7 +11,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -41,7 +40,11 @@ func getNodeGroupCmd(rc *cmdutils.ResourceCmd) {
 
 func doGetNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, params *getCmdParams) error {
 	cfg := rc.ClusterConfig
-	ctl := eks.New(rc.ProviderConfig, cfg)
+
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

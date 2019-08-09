@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/drain"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func deleteNodeGroupCmd(rc *cmdutils.ResourceCmd) {
@@ -53,7 +52,11 @@ func doDeleteNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, updateAuthCo
 
 	cfg := rc.ClusterConfig
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
+	}
+	logger.Info("using region %s", cfg.Metadata.Region)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

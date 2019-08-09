@@ -129,7 +129,7 @@ var _ = Describe("nodegroup filter", func() {
 
 	Context("ForEach", func() {
 
-		It("should iterate over unique nodegroups and apply defaults with ValidateNodeGroupsAndSetDefaults", func() {
+		It("should iterate over unique nodegroups, apply defaults and validate", func() {
 			cfg := newClusterConfig()
 			addGroupA(cfg)
 			addGroupB(cfg)
@@ -138,7 +138,12 @@ var _ = Describe("nodegroup filter", func() {
 			printer := printers.NewJSONPrinter()
 			names := []string{}
 
-			filter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups)
+			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+				api.SetNodeGroupDefaults(i, nodeGroup)
+				err := api.ValidateNodeGroup(i, nodeGroup)
+				Expect(err).ToNot(HaveOccurred())
+				return nil
+			})
 
 			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
@@ -161,7 +166,13 @@ var _ = Describe("nodegroup filter", func() {
 
 			filter := NewNodeGroupFilter()
 			filter.ExcludeAll = true
-			filter.ValidateNodeGroupsAndSetDefaults(cfg.NodeGroups)
+
+			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+				api.SetNodeGroupDefaults(i, nodeGroup)
+				err := api.ValidateNodeGroup(i, nodeGroup)
+				Expect(err).ToNot(HaveOccurred())
+				return nil
+			})
 
 			callback := false
 			filter.ForEach(cfg.NodeGroups, func(_ int, _ *api.NodeGroup) error {

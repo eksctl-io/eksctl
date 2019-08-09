@@ -33,7 +33,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 const namespaceFileName = "namespace.yaml"
@@ -119,11 +118,18 @@ func newFluxInstaller(ctx context.Context, rc *cmdutils.ResourceCmd, opts *insta
 	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return nil, err
 	}
+
 	cfg := rc.ClusterConfig
-	ctl := eks.New(rc.ProviderConfig, cfg)
-	if !ctl.IsSupportedRegion() {
-		return nil, cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
+
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return nil, err
 	}
+
+	if err := ctl.CheckAuth(); err != nil {
+		return nil, err
+	}
+
 	if err := ctl.RefreshClusterConfig(cfg); err != nil {
 		return nil, err
 	}

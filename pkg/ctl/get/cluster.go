@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func getClusterCmd(rc *cmdutils.ResourceCmd) {
@@ -39,10 +38,9 @@ func doGetCluster(rc *cmdutils.ResourceCmd, params *getCmdParams, listAllRegions
 	cfg := rc.ClusterConfig
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the fist place
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
-
-	if !ctl.IsSupportedRegion() {
-		return cmdutils.ErrUnsupportedRegion(rc.ProviderConfig)
+	ctl, err := rc.NewCtl()
+	if err != nil {
+		return err
 	}
 
 	if regionGiven && listAllRegions {
