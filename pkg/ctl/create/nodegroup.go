@@ -14,58 +14,58 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-func createNodeGroupCmd(rc *cmdutils.ResourceCmd) {
+func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
 	var updateAuthConfigMap bool
 
 	cfg.Metadata.Version = "auto"
 
-	rc.SetDescription("nodegroup", "Create a nodegroup", "", "ng")
+	cmd.SetDescription("nodegroup", "Create a nodegroup", "", "ng")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doCreateNodeGroups(rc, updateAuthConfigMap)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doCreateNodeGroups(cmd, updateAuthConfigMap)
 	})
 
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
-		cmdutils.AddNodeGroupFilterFlags(fs, &rc.Include, &rc.Exclude)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	rc.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		cmdutils.AddCommonCreateNodeGroupFlags(fs, rc, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng)
 	})
 
-	rc.FlagSetGroup.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
-func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) error {
+func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	if err := cmdutils.NewCreateNodeGroupLoader(rc, ngFilter).Load(); err != nil {
+	if err := cmdutils.NewCreateNodeGroupLoader(cmd, ngFilter).Load(); err != nil {
 		return err
 	}
 
-	cfg := rc.ClusterConfig
-	meta := rc.ClusterConfig.Metadata
+	cfg := cmd.ClusterConfig
+	meta := cmd.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func doCreateNodeGroups(rc *cmdutils.ResourceCmd, updateAuthConfigMap bool) erro
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
-	if err := checkVersion(rc, ctl, cfg.Metadata); err != nil {
+	if err := checkVersion(cmd, ctl, cfg.Metadata); err != nil {
 		return err
 	}
 

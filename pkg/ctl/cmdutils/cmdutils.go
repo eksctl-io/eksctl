@@ -68,11 +68,11 @@ func LogPlanModeWarning(plan bool) {
 }
 
 // AddApproveFlag adds common `--approve` flag
-func AddApproveFlag(fs *pflag.FlagSet, rc *ResourceCmd) {
-	approve := fs.Bool("approve", !rc.Plan, "Apply the changes")
-	AddPreRun(rc.Command, func(cmd *cobra.Command, args []string) {
-		if cmd.Flag("approve").Changed {
-			rc.Plan = !*approve
+func AddApproveFlag(fs *pflag.FlagSet, cmd *Cmd) {
+	approve := fs.Bool("approve", !cmd.Plan, "Apply the changes")
+	AddPreRun(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) {
+		if cobraCmd.Flag("approve").Changed {
+			cmd.Plan = !*approve
 		}
 	})
 }

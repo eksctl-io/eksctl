@@ -10,35 +10,35 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func waitNodesCmd(rc *cmdutils.ResourceCmd) {
+func waitNodesCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
 	var kubeconfigPath string
 
-	rc.SetDescription("wait-nodes", "Wait for nodes", "")
+	cmd.SetDescription("wait-nodes", "Wait for nodes", "")
 
-	rc.SetRunFunc(func() error {
-		return doWaitNodes(rc, ng, kubeconfigPath)
+	cmd.SetRunFunc(func() error {
+		return doWaitNodes(cmd, ng, kubeconfigPath)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&kubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")
 		minSize := fs.IntP("nodes-min", "m", api.DefaultNodeCount, "minimum number of nodes to wait for")
-		cmdutils.AddPreRun(rc.Command, func(cmd *cobra.Command, args []string) {
-			if f := cmd.Flag("nodes-min"); f.Changed {
+		cmdutils.AddPreRun(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) {
+			if f := cobraCmd.Flag("nodes-min"); f.Changed {
 				ng.MinSize = minSize
 			}
 		})
-		fs.DurationVar(&rc.ProviderConfig.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
+		fs.DurationVar(&cmd.ProviderConfig.WaitTimeout, "timeout", api.DefaultWaitTimeout, "how long to wait")
 	})
 }
 
-func doWaitNodes(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, kubeconfigPath string) error {
-	cfg := rc.ClusterConfig
+func doWaitNodes(cmd *cmdutils.Cmd, ng *api.NodeGroup, kubeconfigPath string) error {
+	cfg := cmd.ClusterConfig
 
-	ctl := eks.New(rc.ProviderConfig, cfg)
+	ctl := eks.New(cmd.ProviderConfig, cfg)
 
 	if kubeconfigPath == "" {
 		return cmdutils.ErrMustBeSet("--kubeconfig")

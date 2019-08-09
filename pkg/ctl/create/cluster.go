@@ -31,43 +31,43 @@ type createClusterCmdParams struct {
 	withoutNodeGroup      bool
 }
 
-func createClusterCmd(rc *cmdutils.ResourceCmd) {
+func createClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
 	params := &createClusterCmdParams{}
 
-	rc.SetDescription("cluster", "Create a cluster", "")
+	cmd.SetDescription("cluster", "Create a cluster", "")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doCreateCluster(rc, params)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doCreateCluster(cmd, params)
 	})
 
 	exampleClusterName := cmdutils.ClusterName("", "")
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		fs.StringSliceVar(&params.availabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	rc.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVar(&ng.Name, "nodegroup-name", "", fmt.Sprintf("name of the nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
 		fs.BoolVar(&params.withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
-		cmdutils.AddCommonCreateNodeGroupFlags(fs, rc, ng)
+		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng)
 	})
 
-	rc.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
-	rc.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
 		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", cfg.VPC.CIDR.IPNet, "global CIDR to use for VPC")
 		params.subnets = map[api.SubnetTopology]*[]string{
 			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
@@ -77,28 +77,28 @@ func createClusterCmd(rc *cmdutils.ResourceCmd) {
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, true)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 
-	rc.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.kubeconfigPath, &params.authenticatorRoleARN, &params.setContext, &params.autoKubeconfigPath, exampleClusterName)
 		fs.BoolVar(&params.writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	})
 }
 
-func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) error {
+func doCreateCluster(cmd *cmdutils.Cmd, params *createClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 	ngFilter.ExcludeAll = params.withoutNodeGroup
 
-	if err := cmdutils.NewCreateClusterLoader(rc, ngFilter).Load(); err != nil {
+	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter).Load(); err != nil {
 		return err
 	}
 
-	cfg := rc.ClusterConfig
-	meta := rc.ClusterConfig.Metadata
+	cfg := cmd.ClusterConfig
+	meta := cmd.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 			if len(params.availabilityZones) != 0 {
 				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
 			}
-			if rc.Command.Flag("vpc-cidr").Changed {
+			if cmd.CobraCommand.Flag("vpc-cidr").Changed {
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 			}
 
@@ -181,7 +181,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
 
-			kw, err := kops.NewWrapper(rc.ProviderConfig.Region, params.kopsClusterNameForVPC)
+			kw, err := kops.NewWrapper(cmd.ProviderConfig.Region, params.kopsClusterNameForVPC)
 			if err != nil {
 				return err
 			}
@@ -204,7 +204,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 		if len(params.availabilityZones) != 0 {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
 		}
-		if rc.Command.Flag("vpc-cidr").Changed {
+		if cmd.CobraCommand.Flag("vpc-cidr").Changed {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --vpc-cidr %s", cmdutils.IncompatibleFlags)
 		}
 
@@ -268,7 +268,7 @@ func doCreateCluster(rc *cmdutils.ResourceCmd, params *createClusterCmdParams) e
 	{ // core action
 		ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
 		stackManager := ctl.NewStackManager(cfg)
-		if ngCount := ngSubset.Len(); ngCount == 1 && rc.ClusterConfigFile == "" {
+		if ngCount := ngSubset.Len(); ngCount == 1 && cmd.ClusterConfigFile == "" {
 			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		} else {
 			ngFilter.LogInfo(cfg.NodeGroups)

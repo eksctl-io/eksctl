@@ -14,34 +14,34 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-func getNodeGroupCmd(rc *cmdutils.ResourceCmd) {
+func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
 	params := &getCmdParams{}
 
-	rc.SetDescription("nodegroup", "Get nodegroup(s)", "", "ng", "nodegroups")
+	cmd.SetDescription("nodegroup", "Get nodegroup(s)", "", "ng", "nodegroups")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doGetNodeGroup(rc, ng, params)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doGetNodeGroup(cmd, ng, params)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup")
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doGetNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, params *getCmdParams) error {
-	cfg := rc.ClusterConfig
+func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) error {
+	cfg := cmd.ClusterConfig
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -54,12 +54,12 @@ func doGetNodeGroup(rc *cmdutils.ResourceCmd, ng *api.NodeGroup, params *getCmdP
 		return cmdutils.ErrMustBeSet("--cluster")
 	}
 
-	if ng.Name != "" && rc.NameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(ng.Name, rc.NameArg)
+	if ng.Name != "" && cmd.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(ng.Name, cmd.NameArg)
 	}
 
-	if rc.NameArg != "" {
-		ng.Name = rc.NameArg
+	if cmd.NameArg != "" {
+		ng.Name = cmd.NameArg
 	}
 
 	manager := ctl.NewStackManager(cfg)

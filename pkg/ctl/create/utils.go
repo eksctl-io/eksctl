@@ -17,7 +17,7 @@ func checkSubnetsGivenAsFlags(params *createClusterCmdParams) bool {
 	return len(*params.subnets[api.SubnetTopologyPrivate])+len(*params.subnets[api.SubnetTopologyPublic]) != 0
 }
 
-func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
+func checkVersion(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
 	switch meta.Version {
 	case "auto":
 		break
@@ -45,7 +45,7 @@ func checkVersion(rc *cmdutils.ResourceCmd, ctl *eks.ClusterProvider, meta *api.
 		logger.Info("will use version %s for new nodegroup(s) based on control plane version", meta.Version)
 	} else if meta.Version != v {
 		hint := "--version=auto"
-		if rc.ClusterConfigFile != "" {
+		if cmd.ClusterConfigFile != "" {
 			hint = "metadata.version: auto"
 		}
 		logger.Warning("will use version %s for new nodegroup(s), while control plane version is %s; to automatically inherit the version use %q", meta.Version, v, hint)

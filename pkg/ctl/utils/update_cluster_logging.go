@@ -14,27 +14,27 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-func enableLoggingCmd(rc *cmdutils.ResourceCmd) {
+func enableLoggingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
-	rc.SetDescription("update-cluster-logging", "Update cluster logging configuration", "")
+	cmd.SetDescription("update-cluster-logging", "Update cluster logging configuration", "")
 
 	var typesEnabled []string
 	var typesDisabled []string
-	rc.SetRunFuncWithNameArg(func() error {
-		return doEnableLogging(rc, typesEnabled, typesDisabled)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doEnableLogging(cmd, typesEnabled, typesDisabled)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
-		cmdutils.AddApproveFlag(fs, rc)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddApproveFlag(fs, cmd)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	rc.FlagSetGroup.InFlagSet("Enable/disable log types", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Enable/disable log types", func(fs *pflag.FlagSet) {
 		allSupportedTypes := api.SupportedCloudWatchClusterLogTypes()
 
 		fs.StringSliceVar(&typesEnabled, "enable-types", []string{}, fmt.Sprintf("Log types to be enabled. Supported log types: (all, none, %s)", strings.Join(allSupportedTypes, ", ")))
@@ -42,26 +42,26 @@ func enableLoggingCmd(rc *cmdutils.ResourceCmd) {
 
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTypesToDisable []string) error {
-	if err := cmdutils.NewUtilsEnableLoggingLoader(rc).Load(); err != nil {
+func doEnableLogging(cmd *cmdutils.Cmd, logTypesToEnable []string, logTypesToDisable []string) error {
+	if err := cmdutils.NewUtilsEnableLoggingLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	if !rc.ClusterConfig.HasClusterCloudWatchLogging() {
+	if !cmd.ClusterConfig.HasClusterCloudWatchLogging() {
 		if err := validateLoggingFlags(logTypesToEnable, logTypesToDisable); err != nil {
 			return err
 		}
 	}
 
-	cfg := rc.ClusterConfig
-	meta := rc.ClusterConfig.Metadata
+	cfg := cmd.ClusterConfig
+	meta := cmd.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -103,10 +103,10 @@ func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTyp
 			describeTypesToDisable = fmt.Sprintf("disable types: %s", strings.Join(willBeDisabled.List(), ", "))
 		}
 
-		cmdutils.LogIntendedAction(rc.Plan, "update CloudWatch logging for cluster %q in %q (%s & %s)",
+		cmdutils.LogIntendedAction(cmd.Plan, "update CloudWatch logging for cluster %q in %q (%s & %s)",
 			meta.Name, meta.Region, describeTypesToEnable, describeTypesToDisable,
 		)
-		if !rc.Plan {
+		if !cmd.Plan {
 			if err := ctl.UpdateClusterConfigForLogging(cfg); err != nil {
 				return err
 			}
@@ -115,7 +115,7 @@ func doEnableLogging(rc *cmdutils.ResourceCmd, logTypesToEnable []string, logTyp
 		logger.Success("CloudWatch logging for cluster %q in %q is already up-to-date", meta.Name, meta.Region)
 	}
 
-	cmdutils.LogPlanModeWarning(rc.Plan && updateRequired)
+	cmdutils.LogPlanModeWarning(cmd.Plan && updateRequired)
 
 	return nil
 }

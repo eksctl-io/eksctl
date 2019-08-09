@@ -9,36 +9,36 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-func getClusterCmd(rc *cmdutils.ResourceCmd) {
+func getClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
 	var listAllRegions bool
 
 	params := &getCmdParams{}
 
-	rc.SetDescription("cluster", "Get cluster(s)", "", "clusters")
+	cmd.SetDescription("cluster", "Get cluster(s)", "", "clusters")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doGetCluster(rc, params, listAllRegions)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doGetCluster(cmd, params, listAllRegions)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doGetCluster(rc *cmdutils.ResourceCmd, params *getCmdParams, listAllRegions bool) error {
-	cfg := rc.ClusterConfig
+func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+	cfg := cmd.ClusterConfig
 	regionGiven := cfg.Metadata.Region != "" // eks.New resets this field, so we need to check if it was set in the fist place
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -47,12 +47,12 @@ func doGetCluster(rc *cmdutils.ResourceCmd, params *getCmdParams, listAllRegions
 		logger.Warning("--region=%s is ignored, as --all-regions is given", cfg.Metadata.Region)
 	}
 
-	if cfg.Metadata.Name != "" && rc.NameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, rc.NameArg)
+	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, cmd.NameArg)
 	}
 
-	if rc.NameArg != "" {
-		cfg.Metadata.Name = rc.NameArg
+	if cmd.NameArg != "" {
+		cfg.Metadata.Name = cmd.NameArg
 	}
 
 	if cfg.Metadata.Name != "" && listAllRegions {

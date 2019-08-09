@@ -12,47 +12,47 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
-func updateClusterCmd(rc *cmdutils.ResourceCmd) {
+func updateClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
-	rc.SetDescription("cluster", "Update cluster", "")
+	cmd.SetDescription("cluster", "Update cluster", "")
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doUpdateClusterCmd(rc)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doUpdateClusterCmd(cmd)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
 		// cmdutils.AddVersionFlag(fs, cfg.Metadata, `"next" and "latest" can be used to automatically increment version by one, or force latest`)
 
-		cmdutils.AddApproveFlag(fs, rc)
-		fs.BoolVar(&rc.Plan, "dry-run", rc.Plan, "")
+		cmdutils.AddApproveFlag(fs, cmd)
+		fs.BoolVar(&cmd.Plan, "dry-run", cmd.Plan, "")
 		fs.MarkDeprecated("dry-run", "see --aprove")
 
-		rc.Wait = true
-		cmdutils.AddWaitFlag(fs, &rc.Wait, "all update operations to complete")
-		cmdutils.AddTimeoutFlag(fs, &rc.ProviderConfig.WaitTimeout)
+		cmd.Wait = true
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "all update operations to complete")
+		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 
 }
 
-func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	cfg := rc.ClusterConfig
-	meta := rc.ClusterConfig.Metadata
+	cfg := cmd.ClusterConfig
+	meta := cmd.ClusterConfig.Metadata
 
 	printer := printers.NewJSONPrinter()
 
-	ctl, err := rc.NewCtl()
+	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
 	}
 
-	if rc.ClusterConfigFile != "" {
+	if cmd.ClusterConfigFile != "" {
 		logger.Warning("NOTE: config file is used for finding cluster name and region")
 		logger.Warning("NOTE: cluster VPC (subnets, routing & NAT Gateway) configuration changes are not yet implemented")
 	}
@@ -98,7 +98,7 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(rc.Plan)
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan)
 	if err != nil {
 		return err
 	}
@@ -109,9 +109,9 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 
 	if versionUpdateRequired {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
-		cmdutils.LogIntendedAction(rc.Plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
-		if !rc.Plan {
-			if rc.Wait {
+		cmdutils.LogIntendedAction(cmd.Plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
+		if !cmd.Plan {
+			if cmd.Wait {
 				if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
 					return err
 				}
@@ -127,7 +127,7 @@ func doUpdateClusterCmd(rc *cmdutils.ResourceCmd) error {
 		}
 	}
 
-	cmdutils.LogPlanModeWarning(rc.Plan && (stackUpdateRequired || versionUpdateRequired))
+	cmdutils.LogPlanModeWarning(cmd.Plan && (stackUpdateRequired || versionUpdateRequired))
 
 	return nil
 }
