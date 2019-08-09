@@ -1860,6 +1860,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(kubeconfig.Permissions).To(Equal("0644"))
 			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("heptio-authenticator-aws")))
 
+			kubeletConfigAssetContent, err := nodebootstrap.Asset("kubelet.yaml")
+			Expect(err).ToNot(HaveOccurred())
+
+			kubeletConfigAssetContentString := string(kubeletConfigAssetContent) +
+				"\n" +
+				"clusterDNS: [172.20.0.10]\n"
+
+			kubeletConfig := getFile(cc, "/etc/eksctl/kubelet.yaml")
+			Expect(kubeletConfig).ToNot(BeNil())
+			Expect(kubeletConfig.Permissions).To(Equal("0644"))
+
+			Expect(kubeletConfig.Content).To(MatchYAML(kubeletConfigAssetContentString))
+
 			ca := getFile(cc, "/etc/eksctl/ca.crt")
 			Expect(ca).ToNot(BeNil())
 			Expect(ca.Permissions).To(Equal("0644"))

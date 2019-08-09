@@ -50,6 +50,7 @@ Cristian Radu           @cristian-radu
 Bianca Cheng Costanzo   @bia
 Mathias Lafeldt         @mlafeldt
 Gema Gomez              @gemagomez
+David Hao               @davidhao3300
 
 /* Thanks */
 

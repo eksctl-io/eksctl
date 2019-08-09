@@ -24,10 +24,16 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
 	)
 
+	kubeletConfigData, err := makeKubeletConfigYAML(spec, ng)
+	if err != nil {
+		return nil, err
+	}
+
 	files := configFiles{
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},
 			"kubelet.env":  {content: strings.Join(kubeletEnvParams, "\n")},
+			"kubelet.yaml": {content: string(kubeletConfigData)},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
 			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
 			"kubeconfig.yaml": {content: string(clientConfigData)},
