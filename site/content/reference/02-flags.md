@@ -14,6 +14,7 @@ toggle colorized logs
 **Valid options are**: true, false, fabulous (default "true")
 
 ### supported commands
+
 All eksctl commands.
 
 ## config-file <a name="config-file"></a>
@@ -23,19 +24,33 @@ All eksctl commands.
 load configuration from a file (or stdin if set to '-')
 
 ### supported commands
+
 - [create cluster](01-commands.md#create-common-flags)
 - [create iamidentitymapping](01-commands.md#create-common-flags)
 - [create nodegroup](01-commands.md#create-common-flags)
 
+## group <a name="group"></a>
+
+`--group stringArray`
+
+Kubernetes group to which `eksctl` will map an IAM role.
+
+### supported commands
+
+- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+
 ## help <a name="help"></a>
+
 `-h, --help`
 
 help for this command
 
 ### supported commands
+
 All eksctl commands.
 
-## name
+## name <a name="name"></a>
+
 `-n, --name string`
 
 The resource name to which the command will apply.
@@ -43,18 +58,84 @@ The resource name to which the command will apply.
 ***Note***: If this value is not specified for `create` commands, the resource will be assigned an auto-generated name (e.g. "unique-mushroom-1565299533").
 
 ### supported commands
+
 - [create cluster](01-commands.md#create-cluster)
 - [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
   - ***Note***: the string value of the name flag denotes the name of the EKS cluster for which the `create identitymapping` command will create the identity mapping and **NOT** the name of the identity mapping resource.
 - [create nodegroup](01-commands.md#create-nodegroup)
+  - ***Note***: the auto-generated name for a nodegroup will start with "ng" (e.g. "ng-f06b88af")
 
-## tags
+## profile <a name="profile></a>
+
+`-p, --profile string`
+
+AWS credentials profile to use (overrides the AWS_PROFILE environment variable)
+
+### supported commands
+
+- [create cluster](01-commands.md#create-cluster)
+- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+- [create nodegroup](01-commands.md#create-nodegroup)
+
+## region <a name="region></a>
+
+`-r, --region string`
+
+AWS region
+
+### supported commands
+
+- [create cluster](01-commands.md#create-cluster)
+- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+- [create nodegroup](01-commands.md#create-nodegroup)
+
+## role <a name="role"></a>
+
+`--role string`
+
+ARN of the IAM role to create.
+
+### supported commands
+
+- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+
+## tags <a name="tags"></a>
+
 `--tags stringToString`
 
-A list of KV pairs used to tag the AWS resources (default [])
+A comma-separated list of KV pairs used to tag the AWS resources.  By default, no tags will be applied.
 
-### Example
+If your tag values include spaces, be sure to wrap the value string for this flag in quotes.
+
+### example
+
 `--tags "Owner=John Doe,Team=Some Team"`
+
+### supported commands
+
+- [create cluster](01-commands.md#create-cluster)
+
+## timeout <a name="timeout"></a>
+
+`--timeout duration`
+
+Max wait time in any polling operations (default 25m0s)
+
+### supported commands
+
+- [create cluster](01-commands.md#create-cluster)
+- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+- [create nodegroup](01-commands.md#create-nodegroup)
+
+## username <a name="username"></a>
+
+`--username string`
+
+User name within Kubernetes to map to IAM role.
+
+### supported commands
+
+- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
 
 ## verbose <a name="verbose"></a>
 
@@ -63,6 +144,7 @@ A list of KV pairs used to tag the AWS resources (default [])
 set log level, use 0 to silence, 4 for debugging and 5 for debugging with AWS debug logging (default 3)
 
 ### supported commands
+
 All eksctl commands.
 
 ## version <a name="version"></a>
@@ -72,27 +154,38 @@ All eksctl commands.
 Kubernetes version
 
 ### valid values
+
 1.11, 1.12, 1.13 (default 1.13)
 
 ### supported commands
 
 - [create cluster](01-commands.md#create-cluster)
 - [create nodegroup](01-commands.md#create-nodegroup)
-  - ***Note***: Additional valid values
+  - ***Note***: Additional valid values for nodegroups
     - **auto**: automatically inherit version from the control plane
     - **latest**: use latest version
-    - uses a default value of **auto** if left unspecified
+    - defaults to **auto** for nodegroups
 
+## zones <a name="zones"></a>
+
+`--zones strings`
+
+AWS zones associated with the EKS cluster.  By default, eksctl will auto-select appropriate zones for the AWS region.
+
+***Note***: In the `us-east-1` region you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass them in as values for the `--zones` flag. This may occur in other regions, but less likely. You shouldn’t need to use --zone flag otherwise.
+
+### example
+
+`eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`
+
+### supported commands
+
+- [create cluster](01-commands.md#create-cluster)
 
 # Scratch space
 ## create cluster flags
 
 ```
-      --tags stringToString   A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team") (default [])
-  -r, --region string         AWS region
-      --zones strings         (auto-select if unspecified)
-      --version string        Kubernetes version (valid options: 1.11, 1.12, 1.13) (default "1.13")
-  -f, --config-file string    load configuration from a file (or stdin if set to '-')
       --nodegroup-name string          name of the nodegroup (generated if unspecified, e.g. "ng-946e68f1")
       --without-nodegroup              if set, initial nodegroup will not be created
   -t, --node-type string               node instance type (default "m5.large")
@@ -120,8 +213,6 @@ Kubernetes version
       --vpc-public-subnets strings     re-use public subnets of an existing VPC
       --vpc-from-kops-cluster string   re-use VPC from a given kops cluster
       --vpc-nat-mode string            VPC NAT mode, valid options: HighlyAvailable, Single, Disable (default "Single")
-  -p, --profile string        AWS credentials profile to use (overrides the AWS_PROFILE environment variable)
-      --timeout duration      max wait time in any polling operations (default 25m0s)
       --cfn-role-arn string   IAM role used by CloudFormation to call AWS API on your behalf
       --kubeconfig string               path to write kubeconfig (incompatible with --auto-kubeconfig) (default "/Users/sebastianbernheim/.kube/config")
       --authenticator-role-arn string   AWS IAM role to assume for authenticator
@@ -133,30 +224,18 @@ Kubernetes version
 ## create identitymapping flags
 
 ```
-      --role string          ARN of the IAM role to create
-      --username string      User name within Kubernetes to map to IAM role
-      --group stringArray    Group within Kubernetes to which IAM role is mapped
-  -n, --name string          EKS cluster name
-  -r, --region string        AWS region
-  -f, --config-file string   load configuration from a file (or stdin if set to '-')
-  -p, --profile string     AWS credentials profile to use (overrides the AWS_PROFILE environment variable)
-      --timeout duration   max wait time in any polling operations (default 25m0s)
-
+done
 ```
 
 ## create nodegroup flags
 
 ```
       --cluster string          name of the EKS cluster to add the nodegroup to
-  -r, --region string           AWS region
-      --version string          Kubernetes version (valid options: 1.11, 1.12, 1.13) [for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest] (default "auto")
-  -f, --config-file string      load configuration from a file (or stdin if set to '-')
       --include strings         nodegroups to include (list of globs), e.g.: 'ng-team-?,prod-*'
       --exclude strings         nodegroups to exclude (list of globs), e.g.: 'ng-team-?,prod-*'
       --update-auth-configmap   Remove nodegroup IAM role from aws-auth configmap (default true)
 
 New nodegroup flags:
-  -n, --name string                    name of the new nodegroup (generated if unspecified, e.g. "ng-f06b88af")
   -t, --node-type string               node instance type (default "m5.large")
   -N, --nodes int                      total number of nodes (for a static ASG) (default 2)
   -m, --nodes-min int                  minimum nodes in ASG (default 2)
@@ -181,8 +260,5 @@ IAM addons flags:
       --alb-ingress-access    enable full access for alb-ingress-controller
 
 AWS client flags:
-  -p, --profile string        AWS credentials profile to use (overrides the AWS_PROFILE environment variable)
-      --timeout duration      max wait time in any polling operations (default 25m0s)
       --cfn-role-arn string   IAM role used by CloudFormation to call AWS API on your behalf
-
 ```
