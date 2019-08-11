@@ -1,9 +1,9 @@
 ---
-title: "Command-Line Flags Reference"
+title: "Flags Reference"
 weight: 10
 ---
 
-# Command-Line Flags Reference
+# Flags Reference
 
 ## color <a name="color"></a>
 
@@ -28,6 +28,21 @@ load configuration from a file (or stdin if set to '-')
 - [create cluster](01-commands.md#create-common-flags)
 - [create iamidentitymapping](01-commands.md#create-common-flags)
 - [create nodegroup](01-commands.md#create-common-flags)
+
+## enable-types <a name="enable-types"></a>
+
+`--enable-types stringArray`
+
+List of CloudWatch logging types to enable
+
+### supported commands
+
+- [utils update-cluster-logging](01-commands.md#utils-update-cluster-logging)
+
+### config yaml
+
+- [clusterLogging](03-config-yaml#clusterLogging)
+- [enableTypes](03-config-yaml#enableTypes)
 
 ## group <a name="group"></a>
 
@@ -64,6 +79,20 @@ The resource name to which the command will apply.
   - ***Note***: the string value of the name flag denotes the name of the EKS cluster for which the `create identitymapping` command will create the identity mapping and **NOT** the name of the identity mapping resource.
 - [create nodegroup](01-commands.md#create-nodegroup)
   - ***Note***: the auto-generated name for a nodegroup will start with "ng" (e.g. "ng-f06b88af")
+
+## node-zones <a name="node-zones"></a>
+
+`--node-zones strings`
+
+AWS availability zones for an EKS cluster nodegroup.
+
+Inherited from the cluster if unspecified.
+
+### supported commands
+
+- [create cluster](01-commands.md#create-cluster)
+- [create nodegroup](01-commands.md#create-nodegroup)
+  - Inherited from the cluster if unspecified.
 
 ## profile <a name="profile></a>
 
@@ -181,6 +210,10 @@ AWS zones associated with the EKS cluster.  By default, eksctl will auto-select 
 ### supported commands
 
 - [create cluster](01-commands.md#create-cluster)
+
+### config yaml
+
+- [availabilityZones](03-config-yaml)
 
 # Scratch space
 ## create cluster flags

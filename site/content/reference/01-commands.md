@@ -1,9 +1,9 @@
 ---
-title: "Command Reference"
+title: "Commands Reference"
 weight: 10
 ---
 
-## eksctl commands
+## Commands Reference
 
 ```
 a CLI for Amazon EKS
@@ -227,6 +227,8 @@ Updates resource(s).
 ### utils <a name="utils"></a>
 
 Various utils (?)
+
+#### update-cluster-logging <a name="update-cluster-logging"></a>
 
 ### version <a name="version"></a>
 
