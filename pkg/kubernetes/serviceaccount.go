@@ -90,3 +90,22 @@ func MaybeCreateServiceAccountOrUpdateMetadata(clientSet Interface, meta metav1.
 	logger.Info("updated serviceaccount %q", name)
 	return nil
 }
+
+// MaybeDeleteServiceAccount will only delete the serviceaccount if it exists
+func MaybeDeleteServiceAccount(clientSet Interface, meta metav1.ObjectMeta) error {
+	name := meta.Namespace + "/" + meta.Name
+	exists, err := CheckServiceAccountExists(clientSet, meta)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		logger.Info("serviceaccount %q was already deleted", name)
+		return nil
+	}
+	err = clientSet.CoreV1().ServiceAccounts(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	logger.Info("deleted serviceaccount %q", name)
+	return nil
+}

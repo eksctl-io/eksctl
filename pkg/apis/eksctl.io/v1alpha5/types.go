@@ -130,6 +130,9 @@ const (
 	// OldNodeGroupIDTag defines the old version of tag of the nodegroup name
 	OldNodeGroupIDTag = "eksctl.cluster.k8s.io/v1alpha1/nodegroup-id"
 
+	// IAMServiceAccountNameTag defines the tag of the iamserviceaccount name
+	IAMServiceAccountNameTag = "alpha.eksctl.io/iamserviceaccount-name"
+
 	// ClusterNameLabel defines the tag of the cluster name
 	ClusterNameLabel = "alpha.eksctl.io/cluster-name"
 
@@ -319,7 +322,7 @@ type ClusterConfig struct {
 	Metadata *ClusterMeta `json:"metadata"`
 
 	// +optional
-	IAM ClusterIAM `json:"iam"`
+	IAM *ClusterIAM `json:"iam,omitempty"`
 
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
@@ -363,6 +366,7 @@ func NewClusterConfig() *ClusterConfig {
 		Metadata: &ClusterMeta{
 			Version: DefaultVersion,
 		},
+		IAM: &ClusterIAM{},
 		VPC: NewClusterVPC(),
 		CloudWatch: &ClusterCloudWatch{
 			ClusterLogging: &ClusterCloudWatchLogging{},
@@ -438,12 +442,6 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	c.NodeGroups = append(c.NodeGroups, ng)
 
 	return ng
-}
-
-// ClusterIAM holds all IAM attributes of a cluster
-type ClusterIAM struct {
-	// +optional
-	ServiceRoleARN string `json:"serviceRoleARN,omitempty"`
 }
 
 // NodeGroup holds all configuration attributes that are

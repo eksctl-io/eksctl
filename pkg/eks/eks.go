@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -120,6 +121,22 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 		return ""
 	}
 	return *c.Status.clusterInfo.cluster.Version
+}
+
+// NewOpenIDConnectManager returns OpenIDConnectManager
+func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error) {
+	switch c.ControlPlaneVersion() {
+	case "", api.Version1_10, api.Version1_11, api.Version1_12:
+		return nil, errors.New("OIDC is only supported in Kubernetes versions 1.13 and above")
+	}
+	if c.Status.cachedClusterInfo == nil || c.Status.cachedClusterInfo.Identity == nil || c.Status.cachedClusterInfo.Identity.Oidc == nil || c.Status.cachedClusterInfo.Identity.Oidc.Issuer == nil {
+		return nil, fmt.Errorf("unknown OIDC issuer URL")
+	}
+	if !strings.HasPrefix(spec.Status.ARN, "arn:aws:eks:") {
+		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
+	}
+	accountID := strings.Split(spec.Status.ARN, ":")[4]
+	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), accountID, *c.Status.cachedClusterInfo.Identity.Oidc.Issuer)
 }
 
 // LoadClusterVPC loads the VPC configuration

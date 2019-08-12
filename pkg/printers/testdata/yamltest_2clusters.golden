@@ -3,6 +3,7 @@
   ClientRequestToken: null
   CreatedAt: "0001-01-01T00:00:00Z"
   Endpoint: null
+  Identity: null
   Logging: null
   Name: test-cluster-1
   PlatformVersion: null
@@ -22,6 +23,7 @@
   ClientRequestToken: null
   CreatedAt: "0001-01-01T00:00:00Z"
   Endpoint: null
+  Identity: null
   Logging: null
   Name: test-cluster-2
   PlatformVersion: null

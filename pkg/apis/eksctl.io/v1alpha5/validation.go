@@ -8,26 +8,43 @@ import (
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
-type nameSet map[string]int
+type nameSet map[string]struct{}
 
-func (s nameSet) checkNonUnique(path, name string) (bool, error) {
+func (s nameSet) checkUnique(path, name string) (bool, error) {
 	if _, notUnique := s[name]; notUnique {
-		s[name]++
-		return false, fmt.Errorf("%s %q is not unique (count %d)", path, name, s[name])
+		return false, fmt.Errorf("%s %q is not unique", path, name)
 	}
-	s[name] = 1
+	s[name] = struct{}{}
 	return true, nil
 }
 
 // ValidateClusterConfig checks compatible fields of a given ClusterConfig
 func ValidateClusterConfig(cfg *ClusterConfig) error {
+	if IsDisabled(cfg.IAM.WithOIDC) && len(cfg.IAM.ServiceAccounts) > 0 {
+		return fmt.Errorf("iam.withOIDC must be enabled explicitly for iam.serviceAccounts to be created")
+	}
+
+	saNames := nameSet{}
+	for i, sa := range cfg.IAM.ServiceAccounts {
+		path := fmt.Sprintf("iam.serviceAccounts[%d]", i)
+		if sa.Name == "" {
+			return fmt.Errorf("%s.name must be set", path)
+		}
+		if ok, err := saNames.checkUnique("<namespace>/<name> of "+path, sa.NameString()); !ok {
+			return err
+		}
+		if len(sa.AttachPolicyARNs) == 0 && sa.AttachPolicy == nil {
+			return fmt.Errorf("%s.attachPolicyARNs or %s.attachPolicy must be set", path, path)
+		}
+	}
+
 	ngNames := nameSet{}
 	for i, ng := range cfg.NodeGroups {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
 		if ng.Name == "" {
 			return fmt.Errorf("%s.name must be set", path)
 		}
-		if ok, err := ngNames.checkNonUnique(path, ng.NameString()); !ok {
+		if ok, err := ngNames.checkUnique(path+".name", ng.NameString()); !ok {
 			return err
 		}
 	}

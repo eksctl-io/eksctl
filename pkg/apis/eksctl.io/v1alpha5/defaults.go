@@ -1,7 +1,25 @@
 package v1alpha5
 
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
 // SetClusterConfigDefaults will set defaults for a given cluster
 func SetClusterConfigDefaults(cfg *ClusterConfig) {
+	if cfg.IAM == nil {
+		cfg.IAM = &ClusterIAM{}
+	}
+
+	if cfg.IAM.WithOIDC == nil {
+		cfg.IAM.WithOIDC = Disabled()
+	}
+
+	for _, sa := range cfg.IAM.ServiceAccounts {
+		if sa.Namespace == "" {
+			sa.Namespace = metav1.NamespaceDefault
+		}
+	}
+
 	if cfg.HasClusterCloudWatchLogging() && len(cfg.CloudWatch.ClusterLogging.EnableTypes) == 1 {
 		switch cfg.CloudWatch.ClusterLogging.EnableTypes[0] {
 		case "all", "*":

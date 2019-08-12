@@ -18,7 +18,7 @@ func NewFakeCluster(clusterName string, status string) *awseks.Cluster {
 		CreatedAt: created,
 		ResourcesVpcConfig: &awseks.VpcConfigResponse{
 			VpcId:     aws.String("vpc-1234"),
-			SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+			SubnetIds: aws.StringSlice([]string{"sub1", "sub2"}),
 		},
 		CertificateAuthority: &awseks.Certificate{
 			Data: aws.String("dGVzdAo="),

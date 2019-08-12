@@ -145,6 +145,127 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	})
 
+	Describe("iam.{withOIDC,serviceAccounts}", func() {
+		var (
+			cfg *ClusterConfig
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+		})
+
+		It("should pass when iam.withOIDC is unset", func() {
+			cfg.IAM.WithOIDC = nil
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should pass when iam.withOIDC is disabled", func() {
+			cfg.IAM.WithOIDC = Disabled()
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should pass when iam.withOIDC is enabled", func() {
+			cfg.IAM.WithOIDC = Enabled()
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should fail when iam.withOIDC is disabled and some iam.serviceAccounts are given", func() {
+			cfg.IAM.WithOIDC = Disabled()
+
+			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
+			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix("iam.withOIDC must be enabled explicitly"))
+		})
+
+		It("should pass when iam.withOIDC is enabled and some iam.serviceAccounts are given", func() {
+			cfg.IAM.WithOIDC = Enabled()
+
+			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+
+			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
+			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
+
+			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
+			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should fail when unnamed iam.serviceAccounts[1] is given", func() {
+			cfg.IAM.WithOIDC = Enabled()
+
+			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
+			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
+
+			cfg.IAM.ServiceAccounts[1].Name = ""
+			cfg.IAM.ServiceAccounts[1].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix("iam.serviceAccounts[1].name must be set"))
+		})
+
+		It("should fail when iam.serviceAccounts[1] has no policy", func() {
+			cfg.IAM.WithOIDC = Enabled()
+
+			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}}
+			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
+			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
+
+			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+
+			Expect(err.Error()).To(HavePrefix("iam.serviceAccounts[1].attachPolicyARNs or iam.serviceAccounts[1].attachPolicy must be set"))
+		})
+
+		It("should fail when non-uniquely named iam.serviceAccounts are given", func() {
+			cfg.IAM.WithOIDC = Enabled()
+
+			cfg.IAM.ServiceAccounts = []*ClusterIAMServiceAccount{{}, {}, {}, {}, {}}
+			cfg.IAM.ServiceAccounts[0].Name = "sa-1"
+			cfg.IAM.ServiceAccounts[0].AttachPolicyARNs = []string{""}
+
+			cfg.IAM.ServiceAccounts[1].Name = "sa-2"
+			cfg.IAM.ServiceAccounts[1].Namespace = "ns-2"
+			cfg.IAM.ServiceAccounts[1].AttachPolicyARNs = []string{""}
+
+			cfg.IAM.ServiceAccounts[2].Name = "sa-2"
+			cfg.IAM.ServiceAccounts[2].Namespace = "ns-2"
+			cfg.IAM.ServiceAccounts[2].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+
+			cfg.IAM.ServiceAccounts[3].Name = "sa-3"
+			cfg.IAM.ServiceAccounts[3].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+
+			cfg.IAM.ServiceAccounts[4].Name = "sa-1"
+			cfg.IAM.ServiceAccounts[4].AttachPolicy = map[string]interface{}{"Statement": "foo"}
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix("<namespace>/<name> of iam.serviceAccounts[2] \"ns-2/sa-2\" is not unique"))
+
+			cfg.IAM.ServiceAccounts[2].Namespace = "ns-3"
+
+			err = ValidateClusterConfig(cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(HavePrefix("<namespace>/<name> of iam.serviceAccounts[4] \"/sa-1\" is not unique"))
+		})
+	})
+
 	Describe("cloudWatch.clusterLogging", func() {
 		var (
 			cfg *ClusterConfig

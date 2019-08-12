@@ -1,0 +1,26 @@
+# A simple example of ClusterConfig object:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: irp-test-2
+  region: us-west-2
+
+iam:
+ withOIDC: true
+ serviceAccounts:
+ - metadata:
+     name: "test-f-1"
+     namespace: "x2"
+     labels: {test: ""}
+   attachPolicy: {}
+   attachPolicyARNs:
+   - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+ - metadata:
+     name: "test-f-2"
+     labels: {test: "true"}
+   attachPolicyARNs:
+   - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
+
+nodeGroups: [{name: "ng-1", desiredCapacity: 1}]

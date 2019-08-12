@@ -12,6 +12,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, deleteClusterCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, deleteNodeGroupCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, deleteIAMServiceAccountCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, deleteIAMIdentityMappingCmd)
 
 	return verbCmd
