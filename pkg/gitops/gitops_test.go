@@ -72,7 +72,7 @@ var _ = Describe("gitops profile", func() {
 			io.RemoveAll(outputDir)
 		})
 
-		It("process the templates and writes them to the output directory", func() {
+		It("process go templates and writes them to the output directory", func() {
 			err := profile.Generate(context.Background())
 
 			Expect(err).ToNot(HaveOccurred())
@@ -85,11 +85,11 @@ var _ = Describe("gitops profile", func() {
 			Expect(template2).To(Equal([]byte("name: test-cluster")))
 		})
 
-		It("loads only .tmpl files", func() {
+		It("can load files", func() {
 			files, err := profile.loadFiles(testDir)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(files).To(HaveLen(2))
+			Expect(files).To(HaveLen(4))
 			Expect(files).To(ConsistOf(
 				fileprocessor.File{
 					Name: filepath.Join(testDir, "a/good-template1.yaml.tmpl"),
@@ -98,6 +98,14 @@ var _ = Describe("gitops profile", func() {
 				fileprocessor.File{
 					Name: filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"),
 					Data: []byte("name: {{ .ClusterName }}"),
+				},
+				fileprocessor.File{
+					Name: filepath.Join(testDir, "a/not-a-template2.yaml"),
+					Data: []byte("somekey2: value2"),
+				},
+				fileprocessor.File{
+					Name: filepath.Join(testDir, "not-a-template.yaml"),
+					Data: []byte("somekey: value"),
 				}))
 		})
 

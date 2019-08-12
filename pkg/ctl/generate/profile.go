@@ -32,7 +32,7 @@ type options struct {
 	ProfilePath string
 }
 
-func generateProfileCmd(rc *cmdutils.ResourceCmd) {
+func generateProfileCmd(rc *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	rc.ClusterConfig = cfg
 
@@ -58,7 +58,7 @@ func generateProfileCmd(rc *cmdutils.ResourceCmd) {
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doGenerateProfile(rc *cmdutils.ResourceCmd, o options) error {
+func doGenerateProfile(rc *cmdutils.Cmd, o options) error {
 	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}

@@ -53,7 +53,12 @@ func (p *Profile) Generate(ctx context.Context) error {
 		return errors.Wrapf(err, "error processing manifests from repository %s", p.GitOpts.URL)
 	}
 
-	logger.Info("writing new manifests to %q", p.Path)
+	if len(outputFiles) > 0 {
+		logger.Info("writing new manifests to %q", p.Path)
+	} else {
+		logger.Info("no template files found, nothing to write")
+	}
+
 	err = p.writeFiles(outputFiles, p.Path)
 	if err != nil {
 		return errors.Wrapf(err, "error writing manifests to dir: %q", p.Path)
@@ -68,11 +73,11 @@ func (p *Profile) loadFiles(directory string) ([]fileprocessor.File, error) {
 		if err != nil {
 			return errors.Wrapf(err, "cannot walk files in directory: %q", directory)
 		}
-		if info.IsDir() || !isGoTemplate(info.Name()) {
+		if info.IsDir() || strings.HasSuffix(".git", path) {
 			return nil
 		}
 
-		logger.Debug("found template file %q", path)
+		logger.Debug("found file %q", path)
 		fileContents, err := p.IO.ReadFile(path)
 		if err != nil {
 			return errors.Wrapf(err, "cannot read file %q", path)
@@ -96,13 +101,12 @@ func (p *Profile) processFiles(files []fileprocessor.File, baseDir string) ([]fi
 		if err != nil {
 			return nil, errors.Wrapf(err, "error processing file %q ", file.Name)
 		}
+		if outputFile == nil {
+			continue
+		}
 		outputFiles = append(outputFiles, *outputFile)
 	}
 	return outputFiles, nil
-}
-
-func isGoTemplate(fileName string) bool {
-	return strings.HasSuffix(fileName, templateExtension)
 }
 
 func (p *Profile) writeFiles(manifests []fileprocessor.File, outputPath string) error {

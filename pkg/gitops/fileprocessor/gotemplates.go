@@ -2,6 +2,7 @@ package fileprocessor
 
 import (
 	"bytes"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"path/filepath"
@@ -33,6 +34,11 @@ type GoTemplateProcessor struct {
 
 // ProcessFile takes a template file and executes the template applying the TemplateParameters
 func (p *GoTemplateProcessor) ProcessFile(file File, baseDir string) (*File, error) {
+	if !isGoTemplate(file.Name) {
+		logger.Debug("ignoring non template file %q", file.Name)
+		return nil, nil
+	}
+
 	parsedTemplate, err := template.New(file.Name).Parse(string(file.Data))
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot parse manifest template file %q", file.Name)
@@ -52,4 +58,8 @@ func (p *GoTemplateProcessor) ProcessFile(file File, baseDir string) (*File, err
 		Data: out.Bytes(),
 		Name: newFileName,
 	}, nil
+}
+
+func isGoTemplate(fileName string) bool {
+	return strings.HasSuffix(fileName, templateExtension)
 }
