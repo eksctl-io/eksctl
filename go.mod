@@ -50,6 +50,7 @@ require (
 	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/sanathkr/yaml v1.0.0 // indirect
+	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v0.0.3

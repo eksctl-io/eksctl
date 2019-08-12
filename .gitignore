@@ -31,3 +31,6 @@ integration/kubeconfig-*
 
 # Generated header file
 .license-header
+
+# Generated Go file
+*_vfsdata.go

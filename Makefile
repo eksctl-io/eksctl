@@ -11,10 +11,15 @@ GOBIN ?= $(shell echo `go env GOPATH`/bin)
 
 AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
 
+ADDON_CLUSTER_AUTOSCALER_MANIFESTS=$(shell find pkg/addons/clusterautoscaler/templates -name '*.tmpl' -print)
+pkg/addons/clusterautoscaler/templates_vfsdata.go: $(ADDON_CLUSTER_AUTOSCALER_MANIFESTS)
+	go generate ./pkg/addons/clusterautoscaler/
+
 DEEP_COPY_HELPER := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 GENERATED_GO_FILES := pkg/addons/default/assets.go \
 pkg/nodebootstrap/assets.go \
 pkg/addons/default/assets/aws-node.yaml \
+pkg/addons/clusterautoscaler/templates_vfsdata.go \
 $(DEEP_COPY_HELPER) \
 pkg/ami/static_resolver_ami.go \
 $(AWS_SDK_MOCKS)
