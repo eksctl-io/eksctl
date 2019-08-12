@@ -7,9 +7,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
-	"os"
 	"path/filepath"
-	"strings"
 )
 
 type mockCloner struct {
@@ -85,7 +83,7 @@ var _ = Describe("gitops profile", func() {
 			Expect(template2).To(Equal([]byte("name: test-cluster")))
 		})
 
-		It("can load files", func() {
+		It("can load files and ignore .git/ files", func() {
 			files, err := profile.loadFiles(testDir)
 
 			Expect(err).ToNot(HaveOccurred())
@@ -169,6 +167,10 @@ func createTestFiles(testDir string, memFs afero.Fs) {
 	createFile(memFs, filepath.Join(testDir, "a/not-a-template2.yaml"), "somekey2: value2")
 	createFile(memFs, filepath.Join(testDir, "a/good-template1.yaml.tmpl"), "cluster: {{ .ClusterName }}")
 	createFile(memFs, filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"), "name: {{ .ClusterName }}")
+	memFs.Mkdir(".git", 0755)
+	createFile(memFs, filepath.Join(testDir, ".git/some-git-file"), "this is a git file and should be ignored")
+	createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml"), "this is a git file and should be ignored")
+	createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml.tmpl"), "this is a git file and should be ignored")
 }
 
 func createFile(memFs afero.Fs, path string, content string) error {
@@ -180,10 +182,4 @@ func createFile(memFs afero.Fs, path string, content string) error {
 		return err
 	}
 	return nil
-}
-
-func deleteTempDir(tempDir string) {
-	if tempDir != "" && strings.HasPrefix(tempDir, os.TempDir()) {
-		_ = os.RemoveAll(tempDir)
-	}
 }

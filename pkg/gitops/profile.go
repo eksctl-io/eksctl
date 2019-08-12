@@ -13,8 +13,7 @@ import (
 )
 
 const (
-	cloneDirPrefix    = "quickstart-"
-	templateExtension = ".tmpl"
+	cloneDirPrefix = "quickstart-"
 )
 
 // Profile represents a GitOps profile
@@ -73,7 +72,7 @@ func (p *Profile) loadFiles(directory string) ([]fileprocessor.File, error) {
 		if err != nil {
 			return errors.Wrapf(err, "cannot walk files in directory: %q", directory)
 		}
-		if info.IsDir() || strings.HasSuffix(".git", path) {
+		if info.IsDir() || isGitFile(directory, path) {
 			return nil
 		}
 
@@ -124,4 +123,8 @@ func (p *Profile) writeFiles(manifests []fileprocessor.File, outputPath string) 
 		}
 	}
 	return nil
+}
+
+func isGitFile(baseDir string, path string) bool {
+	return strings.HasPrefix(path, filepath.Join(baseDir, ".git"))
 }
