@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
+	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,6 +30,7 @@ var _ = Describe("gitops profile", func() {
 		testDir   string
 		profile   *Profile
 		outputDir string
+		processor fileprocessor.FileProcessor
 	)
 
 	Context("generating a profile", func() {
@@ -49,6 +51,9 @@ var _ = Describe("gitops profile", func() {
 			// output path
 			outputDir, _ = io.TempDir("", "test-output-dir-")
 
+			processor = &fileprocessor.GoTemplateProcessor{
+				Params: fileprocessor.TemplateParameters{ClusterName: "test-cluster"},
+			}
 			profile = &Profile{
 				Path: outputDir,
 				GitOpts: GitOptions{
@@ -57,8 +62,8 @@ var _ = Describe("gitops profile", func() {
 				},
 				IO:        io,
 				Fs:        memFs,
-				gitCloner: gitCloner,
-				Params:    TemplateParameters{ClusterName: "test-cluster"},
+				GitCloner: gitCloner,
+				Processor: processor,
 			}
 		})
 
@@ -71,7 +76,7 @@ var _ = Describe("gitops profile", func() {
 			err := profile.Generate(context.Background())
 
 			Expect(err).ToNot(HaveOccurred())
-			template1, err := io.ReadFile(filepath.Join(outputDir, "/a/good-template1.yaml"))
+			template1, err := io.ReadFile(filepath.Join(outputDir, "a/good-template1.yaml"))
 			Expect(err).ToNot(HaveOccurred())
 			Expect(template1).To(Equal([]byte("cluster: test-cluster")))
 
@@ -80,28 +85,25 @@ var _ = Describe("gitops profile", func() {
 			Expect(template2).To(Equal([]byte("name: test-cluster")))
 		})
 
-		It("loads only .templ files", func() {
+		It("loads only .tmpl files", func() {
 			files, err := profile.loadFiles(testDir)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(files).To(HaveLen(2))
 			Expect(files).To(ConsistOf(
-				ManifestFile{
-					Name: filepath.Join(testDir, "/a/good-template1.yaml.templ"),
+				fileprocessor.File{
+					Name: filepath.Join(testDir, "a/good-template1.yaml.tmpl"),
 					Data: []byte("cluster: {{ .ClusterName }}"),
 				},
-				ManifestFile{
-					Name: filepath.Join(testDir, "a/b/good-template2.yaml.templ"),
+				fileprocessor.File{
+					Name: filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"),
 					Data: []byte("name: {{ .ClusterName }}"),
 				}))
 		})
 
 		Context("processing templates", func() {
 
-			It("loads only .templ files", func() {
-				params := TemplateParameters{
-					ClusterName: "fancy-unicorn",
-				}
+			It("loads only .tmpl files", func() {
 				templateContent := []byte(`
 apiVersion: v1
 kind: Namespace
@@ -114,37 +116,37 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    name: fancy-unicorn
+    name: test-cluster
   name: flux`)
-				templates := []ManifestFile{
+				templates := []fileprocessor.File{
 					{
 						Data: templateContent,
-						Name: "dir0/some-file.yaml.templ",
+						Name: "dir0/some-file.yaml.tmpl",
 					},
 					{
 						Data: templateContent,
-						Name: "dir0/dir1/some-file2.yaml.templ",
+						Name: "dir0/dir1/some-file2.yaml.tmpl",
 					},
 					{
 						Data: templateContent,
-						Name: "dir0/dir1/dir2/some-file3.yaml.templ",
+						Name: "dir0/dir1/dir2/some-file3.yaml.tmpl",
 					},
 				}
 
-				files, err := processFiles(templates, params, "dir0")
+				files, err := profile.processFiles(templates, "dir0")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(files).To(HaveLen(3))
 				Expect(files).To(ConsistOf(
-					ManifestFile{
+					fileprocessor.File{
 						Name: "some-file.yaml",
 						Data: expectedProcessedTemplate,
 					},
-					ManifestFile{
+					fileprocessor.File{
 						Name: "dir1/some-file2.yaml",
 						Data: expectedProcessedTemplate,
 					},
-					ManifestFile{
+					fileprocessor.File{
 						Name: "dir1/dir2/some-file3.yaml",
 						Data: expectedProcessedTemplate,
 					},
@@ -157,8 +159,8 @@ metadata:
 func createTestFiles(testDir string, memFs afero.Fs) {
 	createFile(memFs, filepath.Join(testDir, "not-a-template.yaml"), "somekey: value")
 	createFile(memFs, filepath.Join(testDir, "a/not-a-template2.yaml"), "somekey2: value2")
-	createFile(memFs, filepath.Join(testDir, "a/good-template1.yaml.templ"), "cluster: {{ .ClusterName }}")
-	createFile(memFs, filepath.Join(testDir, "a/b/good-template2.yaml.templ"), "name: {{ .ClusterName }}")
+	createFile(memFs, filepath.Join(testDir, "a/good-template1.yaml.tmpl"), "cluster: {{ .ClusterName }}")
+	createFile(memFs, filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"), "name: {{ .ClusterName }}")
 }
 
 func createFile(memFs afero.Fs, path string, content string) error {

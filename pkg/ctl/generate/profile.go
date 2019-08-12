@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"time"
 
 	"github.com/spf13/afero"
@@ -62,11 +63,14 @@ func doGenerateProfile(rc *cmdutils.ResourceCmd, o options) error {
 		return err
 	}
 
+	processor := &fileprocessor.GoTemplateProcessor{
+		Params: fileprocessor.NewTemplateParameters(rc.ClusterConfig),
+	}
 	profile := &gitops.Profile{
-		Params:    gitops.NewTemplateParams(rc.ClusterConfig),
+		Processor: processor,
 		Path:      o.ProfilePath,
 		GitOpts:   o.GitOptions,
-		GitClient: git.NewGitClient(context.Background(), defaultGitTimeout),
+		GitCloner: git.NewGitClient(context.Background(), defaultGitTimeout),
 		Fs:        afero.NewOsFs(),
 		IO:        afero.Afero{Fs: afero.NewOsFs()},
 	}
