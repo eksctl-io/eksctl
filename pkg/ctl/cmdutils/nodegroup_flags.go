@@ -11,7 +11,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-// AddCommonCreateNodeGroupFlags adds common flags for creating a node group
+// AddCommonCreateNodeGroupFlags adds common flags for creating a nodegroup
 func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGroup) {
 	fs.StringVarP(&ng.InstanceType, "node-type", "t", api.DefaultNodeType, "node instance type")
 
