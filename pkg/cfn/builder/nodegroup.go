@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/nodebootstrap"
 )
 
-// NodeGroupResourceSet stores the resource information of the node group
+// NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
 	rs                 *resourceSet
 	clusterSpec        *api.ClusterConfig
@@ -27,7 +27,7 @@ type NodeGroupResourceSet struct {
 	userData           *gfn.Value
 }
 
-// NewNodeGroupResourceSet returns a resource set for a node group embedded in a cluster config
+// NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
 func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
 		rs:               newResourceSet(),
@@ -39,7 +39,7 @@ func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConf
 	}
 }
 
-// AddAllResources adds all the information about the node group to the resource set
+// AddAllResources adds all the information about the nodegroup to the resource set
 func (n *NodeGroupResourceSet) AddAllResources() error {
 	n.rs.template.Description = fmt.Sprintf(
 		"%s (AMI family: %s, SSH access: %v, private networking: %v) %s",
@@ -206,7 +206,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	return nil
 }
 
-// GetAllOutputs collects all outputs of the node group
+// GetAllOutputs collects all outputs of the nodegroup
 func (n *NodeGroupResourceSet) GetAllOutputs(stack cfn.Stack) error {
 	return n.rs.GetAllOutputs(stack)
 }

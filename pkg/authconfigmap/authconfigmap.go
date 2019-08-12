@@ -43,7 +43,7 @@ const (
 )
 
 // RoleNodeGroupGroups are the groups to allow roles to interact
-// with the cluster, required for the instance role ARNs of node groups.
+// with the cluster, required for the instance role ARNs of nodegroups.
 var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
 
 // MapRole represents an IAM identity with role.
