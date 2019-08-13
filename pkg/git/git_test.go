@@ -69,6 +69,12 @@ var _ = Describe("GitClient", func() {
 			return args[0] == "diff"
 		})).Return(&exec.ExitError{})
 		fakeExecutor.On("Exec", mock.Anything, mock.Anything, mock.MatchedBy(func(args []string) bool {
+			return args[0] == "config"
+		})).Return(nil)
+		fakeExecutor.On("Exec", mock.Anything, mock.Anything, mock.MatchedBy(func(args []string) bool {
+			return args[0] == "config"
+		})).Return(nil)
+		fakeExecutor.On("Exec", mock.Anything, mock.Anything, mock.MatchedBy(func(args []string) bool {
 			return args[0] == "commit"
 		})).Return(nil)
 
@@ -80,6 +86,14 @@ var _ = Describe("GitClient", func() {
 
 		Expect(fakeExecutor.Calls[1].Arguments[0]).To(Equal("git"))
 		Expect(fakeExecutor.Calls[1].Arguments[2]).To(
+			Equal([]string{"config", "user.email", "test-user@example.com"}))
+
+		Expect(fakeExecutor.Calls[2].Arguments[0]).To(Equal("git"))
+		Expect(fakeExecutor.Calls[2].Arguments[2]).To(
+			Equal([]string{"config", "user.name", "test-user"}))
+
+		Expect(fakeExecutor.Calls[3].Arguments[0]).To(Equal("git"))
+		Expect(fakeExecutor.Calls[3].Arguments[2]).To(
 			Equal([]string{"commit", "-m", "test commit", "--author=test-user <test-user@example.com>"}))
 	})
 

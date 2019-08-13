@@ -73,6 +73,27 @@ func (git Client) Commit(message, user, email string) error {
 		return err
 	}
 
+	// If the username and email have been provided, configure and use these as
+	// otherwise, git will rely on the global configuration, which may lead to
+	// confusion at best, as a different username/email will be used, or if
+	// missing (e.g.: in CI, in a blank environment), will fail with:
+	//   *** Please tell me who you are.
+	//   [...]
+	//   fatal: unable to auto-detect email address (got '[...]')
+	// N.B.: we do it before committing, instead of after cloning, as other
+	// operations will not fail because of missing configuration, and as we may
+	// commit on a repository we haven't cloned ourselves.
+	if email != "" {
+		if err := git.runGitCmd("config", "user.email", email); err != nil {
+			return err
+		}
+	}
+	if user != "" {
+		if err := git.runGitCmd("config", "user.name", user); err != nil {
+			return err
+		}
+	}
+
 	// Commit
 	args := []string{"commit",
 		"-m", message,
