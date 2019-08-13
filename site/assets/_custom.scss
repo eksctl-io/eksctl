@@ -11,6 +11,11 @@ code {
 
 table {
   overflow-x: scroll;
+  font-size: 14px;
+}
+
+th {
+  font-weight: normal;
 }
 
 img[src$="#inline"] {
