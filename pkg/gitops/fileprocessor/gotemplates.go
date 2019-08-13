@@ -36,7 +36,7 @@ type GoTemplateProcessor struct {
 func (p *GoTemplateProcessor) ProcessFile(file File, baseDir string) (*File, error) {
 	if !isGoTemplate(file.Name) {
 		logger.Debug("ignoring non template file %q", file.Name)
-		return nil, nil
+		return &file, nil
 	}
 
 	parsedTemplate, err := template.New(file.Name).Parse(string(file.Data))

@@ -70,7 +70,7 @@ var _ = Describe("gitops profile", func() {
 			io.RemoveAll(outputDir)
 		})
 
-		It("process go templates and writes them to the output directory", func() {
+		It("processes go templates and writes them to the output directory", func() {
 			err := profile.Generate(context.Background())
 
 			Expect(err).ToNot(HaveOccurred())
@@ -109,7 +109,7 @@ var _ = Describe("gitops profile", func() {
 
 		Context("processing templates", func() {
 
-			It("loads only .tmpl files", func() {
+			It("processes go templates and leaves the rest intact", func() {
 				templateContent := []byte(`
 apiVersion: v1
 kind: Namespace
@@ -124,7 +124,8 @@ metadata:
   labels:
     name: test-cluster
   name: flux`)
-				templates := []fileprocessor.File{
+				pureYaml := []byte("this: is just yaml")
+				inputFiles := []fileprocessor.File{
 					{
 						Data: templateContent,
 						Name: "dir0/some-file.yaml.tmpl",
@@ -134,15 +135,19 @@ metadata:
 						Name: "dir0/dir1/some-file2.yaml.tmpl",
 					},
 					{
+						Data: pureYaml,
+						Name: "dir0/dir1/non-template.yaml",
+					},
+					{
 						Data: templateContent,
 						Name: "dir0/dir1/dir2/some-file3.yaml.tmpl",
 					},
 				}
 
-				files, err := profile.processFiles(templates, "dir0")
+				files, err := profile.processFiles(inputFiles, "dir0")
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(files).To(HaveLen(3))
+				Expect(files).To(HaveLen(4))
 				Expect(files).To(ConsistOf(
 					fileprocessor.File{
 						Name: "some-file.yaml",
@@ -151,6 +156,10 @@ metadata:
 					fileprocessor.File{
 						Name: "dir1/some-file2.yaml",
 						Data: expectedProcessedTemplate,
+					},
+					fileprocessor.File{
+						Name: "dir0/dir1/non-template.yaml",
+						Data: pureYaml,
 					},
 					fileprocessor.File{
 						Name: "dir1/dir2/some-file3.yaml",
