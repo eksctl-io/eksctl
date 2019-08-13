@@ -4,7 +4,7 @@ weight: 190
 url: usage/experimental/gitops-flux
 ---
 
-## GitOps
+# GitOps
 
 [GitOps][gitops] is a way to do Kubernetes application delivery. It works by using Git as a single source of truth for
 Kubernetes resources. With Git at the center of your delivery pipelines, developers can make pull requests to accelerate
@@ -15,7 +15,7 @@ and simplify application deployments and operations tasks to Kubernetes.
 [gitops]: https://www.weave.works/technologies/gitops/
 
 
-### Installing Flux
+## Installing Flux
 
 > This is an experimental feature. To enable it, set the environment variable `EKSCTL_EXPERIMENTAL=true`. 
 > Experimental features are not stable and their command name and flags may change.
@@ -92,12 +92,12 @@ memcached-958f745c-qdfgz   1/1     Running   0          29m
 ```
 
 
-### Adding a workload
+## Adding a workload
 
 To deploy a new workload on the cluster using GitOps just add a kubernetes manifest to the repository. After a few 
 minutes you should see the resources appearing in the cluster.
 
-### Further reading
+## Further reading
 
 To learn more about GitOps and Flux, check the [Flux documentation][flux]
  

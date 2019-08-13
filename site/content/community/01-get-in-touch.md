@@ -4,7 +4,7 @@ weight: 10
 url: community/get-in-touch
 ---
 
-## Get in touch
+# Get in touch
 
 [Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
 

@@ -4,7 +4,7 @@ weight: 80
 url: usage/spot-instances
 ---
 
-## Spot instances
+# Spot instances
 
 `eksctl` has support for spot instances through the MixedInstancesPolicy for Auto Scaling Groups.
 
@@ -49,7 +49,7 @@ nodeGroups:
       instanceTypes: ["t3.small", "t3.medium"] # At least two instance types should be specified
 ```
 
-### Parameters in instancesDistribution
+## Parameters in instancesDistribution
 
 |                                     | type        | required | default value   |
 | ----------------------------------- | ----------- | -------- | --------------- |

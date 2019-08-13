@@ -4,7 +4,7 @@ weight: 120
 url: usage/cloudwatch-cluster-logging
 ---
 
-## Enabling CloudWatch logging
+# Enabling CloudWatch logging
 
 [CloudWatch logging][eksdocs] for EKS control plane is not enabled by default due to data
 ingestion and storage costs.
@@ -55,7 +55,7 @@ To disable all types of logs, run:
 eksctl utils update-cluster-logging --disable-types all
 ```
 
-### `ClusterConfig` Examples
+## `ClusterConfig` Examples
 
 There 5 types of logs that you may wish to enable (see [EKS documentation][eksdocs] for more details):
 

@@ -4,7 +4,7 @@ weight: 20
 url: introduction/installation
 ---
 
-## Installation
+# Installation
 
 To download the latest release, run:
 
@@ -34,7 +34,7 @@ or [environment variables][awsenv]. For more information read [AWS documentation
 
 You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kubernetes-sigs/aws-iam-authenticator) command (either `aws-iam-authenticator` or `aws eks get-token` (available in version 1.16.156 or greater of AWS CLI) in your `PATH`.
 
-### Shell Completion
+## Shell Completion
 
 To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.profile`:
 

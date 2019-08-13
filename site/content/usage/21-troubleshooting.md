@@ -4,7 +4,7 @@ weight: 210
 url: usage/troubleshooting
 ---
 
-## Troubleshooting
+# Troubleshooting
 
 ### subnet ID "subnet-11111111" is not the same as "subnet-22222222"
 

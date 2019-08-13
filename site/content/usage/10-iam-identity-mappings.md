@@ -4,7 +4,7 @@ weight: 100
 url: usage/iam-identity-mappings
 ---
 
-## Managing IAM users and roles
+# Managing IAM users and roles
 
 EKS clusters use IAM users and roles to control access to the cluster. The rules are implemented in a config map
 called `aws-auth`. `eksctl` provides commands to read and edit this config map.

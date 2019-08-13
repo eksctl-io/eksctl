@@ -4,7 +4,7 @@ weight: 50
 url: usage/custom-ami-support
 ---
 
-## Latest & Custom AMI Support
+# Latest & Custom AMI Support
 
 With the 0.1.2 release we have introduced the `--node-ami` flag for use when creating a cluster. This enables a number of advanced use cases such as using a custom AMI or querying AWS in realtime to determine which AMI to use (non-GPU and GPU instances).
 

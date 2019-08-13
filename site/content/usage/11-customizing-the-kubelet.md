@@ -4,7 +4,7 @@ weight: 110
 url: usage/customizing-the-kubelet
 ---
 
-## Customizing kubelet configuration
+# Customizing kubelet configuration
 
 System resources can be reserved through the configuration of the kubelet. This is recommended, because in the case 
 of resource starvation the kubelet might not be able to evict pods and eventually make the node become `NotReady`. To

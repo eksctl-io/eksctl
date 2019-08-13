@@ -4,7 +4,7 @@ weight: 30
 url: introduction/features
 ---
 
-## Feature list
+# Feature list
 
 The features that are currently implemented are:
 

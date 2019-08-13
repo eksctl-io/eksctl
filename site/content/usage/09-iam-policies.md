@@ -4,7 +4,7 @@ weight: 90
 url: usage/iam-policies
 ---
 
-## Supported IAM add-on policies
+# Supported IAM add-on policies
 
 Example of all supported add-on policies:
 
@@ -28,18 +28,18 @@ nodeGroups:
         cloudWatch: true
 ```
 
-### Image Builder Policy
+## Image Builder Policy
 
 The `imageBuilder` policy allows for full ECR (Elastic Container Registry) access. This is useful for building, for
 example, a CI server that needs to push images to ECR.
 
-### EBS Policy
+## EBS Policy
 
 The `ebs` policy enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver.
 
 [comment]: <> (TODO: One section per addon and brief explanation of what it is )
 
-## Adding a custom instance role
+# Adding a custom instance role
 
 This example creates a nodegroup that reuses an existing IAM Instance Role from another cluster:
 
@@ -59,7 +59,7 @@ nodeGroups:
       instanceRoleARN: "arn:aws:iam::123:role/eksctl-test-cluster-a-3-nodegroup-NodeInstanceRole-DNGMQTQHQHBJ"
 ```
 
-## Attaching policies by ARN
+# Attaching policies by ARN
 
 ```yaml
 nodeGroups:

@@ -3,7 +3,7 @@ title: "Commands reference"
 weight: 10
 ---
 
-## Commands reference
+# Commands reference
 
 ```
 a CLI for Amazon EKS
@@ -27,15 +27,16 @@ Use 'eksctl [command] --help' for more information about a command.
 
 `Usage: eksctl [command] [flags]`
 
-### common flags<a name="common-flags"></a>
+## common flags<a name="common-flags"></a>
 
 These flags can be applied to all eksctl commands and behave consistently between them.
 
-- [C, color](../02-flags#color)
-- [h, help](../02-flags#help)
-- [v, verbose](../02-flags#verbose)
 
-### completion <a name="completion"></a>
+  [C, color](../02-flags#color)  | [h, help](../02-flags#help) | [v, verbose](../02-flags#verbose)
+  ------------- | ------------- | -------------
+ 
+
+## completion <a name="completion"></a>
 
 Generates shell completion scripts for various Unix command-line shells.
 
@@ -45,7 +46,7 @@ The `completion` commands do not support any additional flags.
 
 Without an invoking a sub-command, the completion command simply prints the help screen.
 
-#### bash <a name="completion-bash"></a>
+### bash <a name="completion-bash"></a>
 
 Generates shell completion scripts for the bash shell.
 
@@ -68,7 +69,7 @@ If you are stuck on Bash 3 (macOS) use
 source /dev/stdin <<<"$(eksctl completion bash)"
 ```
 
-#### zsh <a name="completion-zsh"></a>
+### zsh <a name="completion-zsh"></a>
 
 Generates shell completion scripts for the zsh shell.
 
@@ -85,13 +86,13 @@ and put the following in ~/.zshrc:
 fpath=($fpath ~/.zsh/completion)
 ```
 
-### create <a name="create"></a>
+## create <a name="create"></a>
 
 Creates cluster, nodegroup, and IAM idenitity mapping resources.
 
 `Usage: eksctl create [command] [flags]`
 
-#### common create flags <a name="create-common-flags"></a>
+### common create flags <a name="create-common-flags"></a>
 
 These flags can be applied to all eksctl commands and behave consistently between them.
 
@@ -100,7 +101,7 @@ These flags can be applied to all eksctl commands and behave consistently betwee
 - [r, region](../02-flags#region)
 - [timeout](../02-flags#timeout)
 
-#### cluster <a name="create-cluster"></a>
+### cluster <a name="create-cluster"></a>
 
 Create a cluster.
 
@@ -144,7 +145,7 @@ Create a cluster.
 - [auto-kubeconfig](../02-flags#auto-kubeconfig)
 - [write-kubeconfig](../02-flags#write-kubeconfig)
 
-#### iamidentitymapping <a name="create-iamidentitymapping"></a>
+### iamidentitymapping <a name="create-iamidentitymapping"></a>
 
 Creates a mapping from IAM role to Kubernetes user and groups.
 
@@ -154,23 +155,18 @@ username and groups mappings.
 
 `Usage: eksctl create iamidentitymapping [flags]`
 
-##### flags
 - [role](../02-flags#role)
 - [username](../02-flags#username)
 - [group](../02-flags#group)
 - [n, name](../02-flags#name)
   - ***Note***: the string value of the name flag denotes the name of the EKS cluster for which the `create identitymapping` command will create the identity mapping and **NOT** the name of the identity mapping resource.
 
-#### nodegroup <a name="create-nodegroup"></a>
+### nodegroup, ng
 
 Create a nodegroup
 
 `Usage: eksctl create nodegroup [flags]`
 
-##### aliases
-nodegroup, ng
-
-##### flags
 - [cluster](../02-flags#cluster)
 - [version](../02-flags#version)
 - [include](../02-flags#include)
@@ -199,36 +195,36 @@ nodegroup, ng
 - [alb-ingress-access](../02-flags#alb-ingress-access)
 - [cfn-role-arn](../02-flags#cfn-role-arn)
 
-### delete <a name="delete"></a>
+## delete
 
 Deletes resource(s).
 
-### drain <a name="drain"></a>
+## drain
 
 Drains resources(s).
 
-### get <a name="get"></a>
+## get
 
 Get resource(s).
 
-### help <a name="help"></a>
+## help
 
 Prints a help screen for any `eksctl` command.
 
-### scale <a name="scale"></a>
+## scale
 
 Scales resources(s).
 
-### update <a name="update"></a>
+## update
 
 Updates resource(s).
 
-### utils <a name="utils"></a>
+## utils
 
 Various utils (?)
 
-#### update-cluster-logging <a name="update-cluster-logging"></a>
+### update-cluster-logging
 
-### version <a name="version"></a>
+## version
 
 Prints the installed `eksctl` version.

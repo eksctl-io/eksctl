@@ -4,7 +4,7 @@ weight: 10
 url: introduction/getting-started
 ---
 
-## Getting started
+# Getting started
 
 _Need help? Join [Weave Community Slack][slackjoin]._
 [slackjoin]: https://slack.weave.works/
@@ -150,6 +150,6 @@ eksctl delete cluster --name=<name> [--region=<region>]
 
 > NOTE: Cluster info will be cleaned up in kubernetes config file. Please run `kubectl config get-contexts` to select right context.
 
-### Contributions
+## Contributions
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md).

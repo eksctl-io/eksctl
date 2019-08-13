@@ -4,7 +4,7 @@ weight: 10
 url: usage/creating-and-managing-clusters
 ---
 
-## Creating a cluster
+# Creating a cluster
 
 Create a simple cluster with the following command:
 

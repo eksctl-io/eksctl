@@ -1,9 +1,9 @@
 ---
 title: "Flags reference"
-weight: 10
+weight: 20
 ---
 
-## Flags reference
+# Flags reference
 
 ## color
 

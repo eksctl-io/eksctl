@@ -1,12 +1,12 @@
 ---
 title: "Configuration file YAML reference"
-weight: 10
+weight: 30
 ---
 
 
-## Configuration file YAML reference
+# Configuration file YAML reference
 
-### apiVersion <a name="apiVersion"></a>
+## apiVersion
 
 The `eksctl` API version that supports this YAML configuration file.
 
@@ -22,7 +22,7 @@ The `eksctl` API version that supports this YAML configuration file.
 
 Top-level YAML field.
 
-## availabilityZones <a name="availabilityZones"></a>
+## availabilityZones
 
 The AWS availability zones for the managed cluster or nodegroup represented as an array of strings.
 
@@ -112,7 +112,7 @@ metadata:
 
 Top-level YAML field for the ClusterConfig type.
 
-## nodeGroups <a name="nodeGroups"></a>
+## nodeGroups
 
 ### parent
 
@@ -122,13 +122,13 @@ Top-level YAML field for the ClusterConfig type.
 
 Top-level YAML field for the ClusterConfig type.
 
-## status <a name="status"></a>
+## status
 
 ### parent
 
 Top-level YAML field for the ClusterConfig type.
 
-## vpc <a name="vpc"></a>
+## vpc
 
 ### parent
 
