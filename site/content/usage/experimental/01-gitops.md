@@ -117,14 +117,54 @@ memcached-958f745c-qdfgz   1/1     Running   0          29m
 ```
 
 
-### Adding a workload
+#### Adding a workload
 
 To deploy a new workload on the cluster using GitOps just add a kubernetes manifest to the repository. After a few 
 minutes you should see the resources appearing in the cluster.
 
-### Further reading
+#### Further reading
 
 To learn more about GitOps and Flux, check the [Flux documentation][flux]
  
+
+### Installing components from a quickstart
+
+`eksctl` provides an application development quickstart profile which can install the following components in your
+cluster: 
+  - Metrics Server
+  - Cortex/dynamo
+  - Grafana
+  - Kubernetes Dashboard
+  - FluentD with connection to cloudwatch logs
+  - CNI, present by default in EKS clusters
+  - Cluster Autoscaler
+  - ALB ingress controller
+  - Podinfo as a demo application
+
+To install those components the command `generate profile` can be used:
+
+```bash
+EKSCTL_EXPERIMENTAL=true eksctl generate profile --config-file=<cluster_config_file> --git-url git@github.com:weaveworks/eks-gitops-example.git --profile-path <output_directory>
+```
+
+For example:
+
+<!-- TODO -->
+
+After running the command, add, commit and push the files:
+
+```bash
+cd my-gitops-repo/
+git add .
+git commit -m"Add application development quickstart components"
+git push origin master
+```
+
+After a few minutes, Flux and Helm should have installed all the components in your cluster.
+<!-- TODO -->
+```bash
+kubectl get pods
+```
+
 
 [flux]: https://docs.fluxcd.io/en/latest/
