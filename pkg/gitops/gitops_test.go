@@ -158,7 +158,7 @@ metadata:
 						Data: expectedProcessedTemplate,
 					},
 					fileprocessor.File{
-						Name: "dir0/dir1/non-template.yaml",
+						Name: "dir1/non-template.yaml",
 						Data: pureYaml,
 					},
 					fileprocessor.File{
