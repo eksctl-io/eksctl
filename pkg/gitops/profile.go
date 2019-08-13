@@ -96,13 +96,20 @@ func (p *Profile) loadFiles(directory string) ([]fileprocessor.File, error) {
 func (p *Profile) processFiles(files []fileprocessor.File, baseDir string) ([]fileprocessor.File, error) {
 	outputFiles := make([]fileprocessor.File, 0, len(files))
 	for _, file := range files {
-		outputFile, err := p.Processor.ProcessFile(file, baseDir)
+		outputFile, err := p.Processor.ProcessFile(file)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error processing file %q ", file.Name)
 		}
 		if outputFile == nil {
 			continue
 		}
+
+		// Rewrite the path to a relative path from the root of the repo
+		relPath, err := filepath.Rel(baseDir, outputFile.Name)
+		if err != nil {
+			return nil, errors.Wrapf(err, "cannot get relative path for file %q", file.Name)
+		}
+		outputFile.Name = relPath
 		outputFiles = append(outputFiles, *outputFile)
 	}
 	return outputFiles, nil
@@ -117,6 +124,7 @@ func (p *Profile) writeFiles(manifests []fileprocessor.File, outputPath string) 
 			return errors.Wrapf(err, "error creating output manifests dir: %q", outputPath)
 		}
 
+		logger.Debug("writing file %q", filePath)
 		err := p.IO.WriteFile(filePath, manifest.Data, 0644)
 		if err != nil {
 			return errors.Wrapf(err, "error writing manifest: %q", filePath)

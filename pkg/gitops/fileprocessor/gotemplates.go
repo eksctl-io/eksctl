@@ -5,7 +5,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -33,9 +32,9 @@ type GoTemplateProcessor struct {
 }
 
 // ProcessFile takes a template file and executes the template applying the TemplateParameters
-func (p *GoTemplateProcessor) ProcessFile(file File, baseDir string) (*File, error) {
+func (p *GoTemplateProcessor) ProcessFile(file File) (*File, error) {
 	if !isGoTemplate(file.Name) {
-		logger.Debug("ignoring non template file %q", file.Name)
+		logger.Debug("copying non template file %q", file.Name)
 		return &file, nil
 	}
 
@@ -49,11 +48,7 @@ func (p *GoTemplateProcessor) ProcessFile(file File, baseDir string) (*File, err
 		return nil, errors.Wrapf(err, "cannot execute template for file %q", file.Name)
 	}
 
-	relPath, err := filepath.Rel(baseDir, file.Name)
-	if err != nil {
-		return nil, errors.Wrapf(err, "cannot get relative path for file %q", file.Name)
-	}
-	newFileName := strings.TrimSuffix(relPath, templateExtension)
+	newFileName := strings.TrimSuffix(file.Name, templateExtension)
 	return &File{
 		Data: out.Bytes(),
 		Name: newFileName,

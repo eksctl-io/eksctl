@@ -8,5 +8,5 @@ type File struct {
 
 // FileProcessor can process a template file and produce an output file
 type FileProcessor interface {
-	ProcessFile(file File, baseDir string) (*File, error)
+	ProcessFile(file File) (*File, error)
 }
