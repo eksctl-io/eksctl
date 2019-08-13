@@ -31,7 +31,7 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddApproveFlag(fs, cmd)
 		fs.BoolVar(&cmd.Plan, "dry-run", cmd.Plan, "")
-		fs.MarkDeprecated("dry-run", "see --aprove")
+		_ = fs.MarkDeprecated("dry-run", "see --aprove")
 
 		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "all update operations to complete")

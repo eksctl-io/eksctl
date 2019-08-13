@@ -48,7 +48,7 @@ func generateProfileCmd(rc *cmdutils.Cmd) {
 		fs.StringVarP(&o.URL, "git-url", "", "", "Git repository URL")
 		fs.StringVarP(&o.Branch, "git-branch", "", "master", "Git branch; defaults to master")
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "", "Path to generate the profile in; defaults to CWD")
-		cobra.MarkFlagRequired(fs, "git-url")
+		_ = cobra.MarkFlagRequired(fs, "git-url")
 
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)

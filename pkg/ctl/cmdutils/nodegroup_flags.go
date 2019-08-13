@@ -69,7 +69,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 // AddNodeGroupFilterFlags add common `--include` and `--exclude` flags for filtering nodegroups
 func AddNodeGroupFilterFlags(fs *pflag.FlagSet, includeGlobs, excludeGlobs *[]string) {
 	fs.StringSliceVar(includeGlobs, "only", nil, "")
-	fs.MarkDeprecated("only", "use --include")
+	_ = fs.MarkDeprecated("only", "use --include")
 
 	fs.StringSliceVar(includeGlobs, "include", nil,
 		"nodegroups to include (list of globs), e.g.: 'ng-team-?,prod-*'")

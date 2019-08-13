@@ -174,7 +174,9 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 	cleanCloneDir := false
 	defer func() {
 		if cleanCloneDir {
-			fi.gitClient.DeleteLocalRepo()
+			if err := fi.gitClient.DeleteLocalRepo(); err != nil {
+				logger.Warning("unable to delete local copy of repository at %s", cloneDir)
+			}
 		} else {
 			logger.Critical("You may find the local clone of %s used by eksctl at %s",
 				fi.opts.templateParams.GitURL,
