@@ -93,7 +93,7 @@ func waitForPodToStart(namespace string, nameLabelValue string, port int, name s
 		if err == nil {
 			break
 		}
-		logger.Warning("Helm Operator is not ready yet (%s), retrying ...", err)
+		logger.Warning("%s is not ready yet (%s), retrying ...", name, err)
 	}
 	if time.Now().After(retryDeadline) {
 		return fmt.Errorf("timed out waiting for %s to be operative", name)
