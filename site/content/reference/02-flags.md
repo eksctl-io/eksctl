@@ -1,11 +1,11 @@
 ---
-title: "Flags Reference"
+title: "Flags reference"
 weight: 10
 ---
 
-# Flags Reference
+## Flags reference
 
-## color <a name="color"></a>
+## color
 
 `-C, --color string`
 
@@ -17,7 +17,7 @@ toggle colorized logs
 
 All eksctl commands.
 
-## config-file <a name="config-file"></a>
+## config-file
 
 `-f, --config-file string`
 
@@ -25,11 +25,11 @@ load configuration from a file (or stdin if set to '-')
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-common-flags)
-- [create iamidentitymapping](01-commands.md#create-common-flags)
-- [create nodegroup](01-commands.md#create-common-flags)
+- [create cluster](../01-commands#create-common-flags)
+- [create iamidentitymapping](../01-commands#create-common-flags)
+- [create nodegroup](../01-commands#create-common-flags)
 
-## enable-types <a name="enable-types"></a>
+## enable-types
 
 `--enable-types stringArray`
 
@@ -37,14 +37,14 @@ List of CloudWatch logging types to enable
 
 ### supported commands
 
-- [utils update-cluster-logging](01-commands.md#utils-update-cluster-logging)
+- [utils update-cluster-logging](../01-commands#utils-update-cluster-logging)
 
 ### config yaml
 
 - [clusterLogging](03-config-yaml#clusterLogging)
 - [enableTypes](03-config-yaml#enableTypes)
 
-## group <a name="group"></a>
+## group
 
 `--group stringArray`
 
@@ -52,9 +52,9 @@ Kubernetes group to which `eksctl` will map an IAM role.
 
 ### supported commands
 
-- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
 
-## help <a name="help"></a>
+## help
 
 `-h, --help`
 
@@ -64,7 +64,7 @@ help for this command
 
 All eksctl commands.
 
-## name <a name="name"></a>
+## name
 
 `-n, --name string`
 
@@ -74,13 +74,13 @@ The resource name to which the command will apply.
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
-- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+- [create cluster](../01-commands#create-cluster)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
   - ***Note***: the string value of the name flag denotes the name of the EKS cluster for which the `create identitymapping` command will create the identity mapping and **NOT** the name of the identity mapping resource.
-- [create nodegroup](01-commands.md#create-nodegroup)
+- [create nodegroup](../01-commands#create-nodegroup)
   - ***Note***: the auto-generated name for a nodegroup will start with "ng" (e.g. "ng-f06b88af")
 
-## node-zones <a name="node-zones"></a>
+## node-zones
 
 `--node-zones strings`
 
@@ -90,11 +90,11 @@ Inherited from the cluster if unspecified.
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
-- [create nodegroup](01-commands.md#create-nodegroup)
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
   - Inherited from the cluster if unspecified.
 
-## profile <a name="profile></a>
+## profile
 
 `-p, --profile string`
 
@@ -102,11 +102,11 @@ AWS credentials profile to use (overrides the AWS_PROFILE environment variable)
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
-- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
-- [create nodegroup](01-commands.md#create-nodegroup)
+- [create cluster](../01-commands#create-cluster)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
+- [create nodegroup](../01-commands#create-nodegroup)
 
-## region <a name="region></a>
+## region
 
 `-r, --region string`
 
@@ -114,11 +114,11 @@ AWS region
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
-- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
-- [create nodegroup](01-commands.md#create-nodegroup)
+- [create cluster](../01-commands#create-cluster)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
+- [create nodegroup](../01-commands#create-nodegroup)
 
-## role <a name="role"></a>
+## role
 
 `--role string`
 
@@ -126,9 +126,9 @@ ARN of the IAM role to create.
 
 ### supported commands
 
-- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
 
-## tags <a name="tags"></a>
+## tags
 
 `--tags stringToString`
 
@@ -142,9 +142,9 @@ If your tag values include spaces, be sure to wrap the value string for this fla
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
+- [create cluster](../01-commands#create-cluster)
 
-## timeout <a name="timeout"></a>
+## timeout
 
 `--timeout duration`
 
@@ -152,11 +152,11 @@ Max wait time in any polling operations (default 25m0s)
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
-- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
-- [create nodegroup](01-commands.md#create-nodegroup)
+- [create cluster](../01-commands#create-cluster)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
+- [create nodegroup](../01-commands#create-nodegroup)
 
-## username <a name="username"></a>
+## username
 
 `--username string`
 
@@ -164,9 +164,9 @@ User name within Kubernetes to map to IAM role.
 
 ### supported commands
 
-- [create iamidentitymapping](01-commands.md#create-iamidentitymapping)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
 
-## verbose <a name="verbose"></a>
+## verbose
 
 `-v, --verbose int`
 
@@ -176,7 +176,7 @@ set log level, use 0 to silence, 4 for debugging and 5 for debugging with AWS de
 
 All eksctl commands.
 
-## version <a name="version"></a>
+## version
 
 `--version string`
 
@@ -188,14 +188,14 @@ Kubernetes version
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
-- [create nodegroup](01-commands.md#create-nodegroup)
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
   - ***Note***: Additional valid values for nodegroups
     - **auto**: automatically inherit version from the control plane
     - **latest**: use latest version
     - defaults to **auto** for nodegroups
 
-## zones <a name="zones"></a>
+## zones
 
 `--zones strings`
 
@@ -209,7 +209,7 @@ AWS zones associated with the EKS cluster.  By default, eksctl will auto-select 
 
 ### supported commands
 
-- [create cluster](01-commands.md#create-cluster)
+- [create cluster](../01-commands#create-cluster)
 
 ### config yaml
 

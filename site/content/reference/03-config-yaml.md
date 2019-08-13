@@ -1,11 +1,12 @@
 ---
-title: "Configuration File YAML Reference"
+title: "Configuration file YAML reference"
 weight: 10
 ---
 
-#Configuration File YAML Reference
 
-## apiVersion <a name="apiVersion"></a>
+## Configuration file YAML reference
+
+### apiVersion <a name="apiVersion"></a>
 
 The `eksctl` API version that supports this YAML configuration file.
 
@@ -45,8 +46,8 @@ For multiple zones:
 
 ### flag
 
-- [zones](02-flags.md#zones)
-- [node-zones](02-flags.md#node-zones)
+- [zones](../02-flags#zones)
+- [node-zones](../02-flags#node-zones)
 
 ## cloudWatch <a name="cloudWatch"></a>
 
@@ -61,11 +62,11 @@ CloudWatch configurations for the managed EKS cluster.
 
 ### flag
 
-- [enable-types](02-flags.md#enable-types)
+- [enable-types](../02-flags#enable-types)
 
 ### command
 
-- [utils update-cluster-logging](01-commands.md#utils-update-cluster-logging)
+- [utils update-cluster-logging](../01-commands#utils-update-cluster-logging)
 
 ## iam <a name="iam"></a>
 
@@ -93,7 +94,7 @@ Top-level YAML field.
 
 ### command
 
-- [create cluster](01-commands.md#create-common-flags)
+- [create cluster](../01-commands#create-common-flags)
 
 ## metadata <a name="metadata"></a>
 
