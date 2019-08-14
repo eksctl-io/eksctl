@@ -192,3 +192,21 @@ Topics:
 - update on releases: 0.1.35 and 0.1.36
 - new commands for IAM identity mappings
 - progress update on website & docs
+
+## 07/08/2019
+
+Attendees:
+- @errordeveloper
+- @mumoshu
+
+Topics:
+- latest releases, new cadence
+- gitops features, add-ons and cluster configuration
+
+## 14/08/2019
+
+Attendees:
+- @errordeveloper
+
+Topics:
+- 0.4.0 update
