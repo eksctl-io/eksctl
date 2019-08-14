@@ -45,7 +45,7 @@ func generateProfileCmd(rc *cmdutils.Cmd) {
 	})
 
 	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&o.URL, "git-url", "", "", "Git repository URL")
+		fs.StringVarP(&o.URL, "git-url", "", "", "URL for the quickstart base repository")
 		fs.StringVarP(&o.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "./", "Path to generate the profile in")
 		_ = cobra.MarkFlagRequired(fs, "git-url")

@@ -51,8 +51,7 @@ func (git *Client) CloneRepo(cloneDirPrefix string, branch string, gitURL string
 func (git *Client) CloneRepoInPath(clonePath string, branch string, gitURL string) error {
 	git.dir = clonePath
 	args := []string{"clone", "-b", branch, gitURL, git.dir}
-	err := git.runGitCmd(args...)
-	return err
+	return git.runGitCmd(args...)
 }
 
 // Add performs can perform a `git add` operation on the given file paths
