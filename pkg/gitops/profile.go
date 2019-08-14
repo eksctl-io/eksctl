@@ -2,14 +2,16 @@ package gitops
 
 import (
 	"context"
-	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
-	"github.com/spf13/afero"
-	"github.com/weaveworks/eksctl/pkg/git"
-	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+	"github.com/spf13/afero"
+
+	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
 
 const (

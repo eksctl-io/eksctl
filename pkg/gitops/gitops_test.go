@@ -2,12 +2,14 @@ package gitops
 
 import (
 	"context"
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
+
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
-	"path/filepath"
 )
 
 type mockCloner struct {
