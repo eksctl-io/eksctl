@@ -58,6 +58,7 @@ func (p *Profile) Generate(ctx context.Context) error {
 		logger.Info("writing new manifests to %q", p.Path)
 	} else {
 		logger.Info("no template files found, nothing to write")
+		return nil
 	}
 
 	err = p.writeFiles(outputFiles, p.Path)
@@ -102,9 +103,6 @@ func (p *Profile) processFiles(files []fileprocessor.File, baseDir string) ([]fi
 		if err != nil {
 			return nil, errors.Wrapf(err, "error processing file %q ", file.Path)
 		}
-		if outputFile == nil {
-			continue
-		}
 
 		// Rewrite the path to a relative path from the root of the repo
 		relPath, err := filepath.Rel(baseDir, outputFile.Path)
@@ -112,7 +110,7 @@ func (p *Profile) processFiles(files []fileprocessor.File, baseDir string) ([]fi
 			return nil, errors.Wrapf(err, "cannot get relative path for file %q", file.Path)
 		}
 		outputFile.Path = relPath
-		outputFiles = append(outputFiles, *outputFile)
+		outputFiles = append(outputFiles, outputFile)
 	}
 	return outputFiles, nil
 }

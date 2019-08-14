@@ -65,7 +65,7 @@ func (git Client) Add(files ...string) error {
 }
 
 // Commit  makes a commit if there are staged changes
-func (git Client) Commit(message string, user string, email string) error {
+func (git Client) Commit(message, user, email string) error {
 	// Note, this useed to do runGitCmd(diffCtx, git.dir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
 	if err := git.runGitCmd("diff", "--cached", "--quiet"); err == nil {
 		logger.Info("Nothing to commit (the repository contained identical files), moving on")
