@@ -42,6 +42,7 @@ func (p *Profile) Generate(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "error cloning repository %s", p.GitOpts.URL)
 	}
+	defer p.deleteClonedDirectory(clonedDir)
 
 	allManifests, err := p.loadFiles(clonedDir)
 	if err != nil {
@@ -67,6 +68,13 @@ func (p *Profile) Generate(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (p *Profile) deleteClonedDirectory(path string) {
+	logger.Debug("deleting cloned directory %q", path)
+	if err := p.IO.RemoveAll(path); err != nil {
+		logger.Warning("unable to delete cloned directory %q", path)
+	}
 }
 
 func (p *Profile) loadFiles(directory string) ([]fileprocessor.File, error) {
