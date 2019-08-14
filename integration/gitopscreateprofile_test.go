@@ -50,7 +50,7 @@ var _ = Describe("(Integration) generate profile", func() {
 
 			contents, err := fs.ReadFile(filepath.Join(testDirectory, "workloads/namespace.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(contents)).To(Equal(
+			Expect(string(contents)).To(MatchYAML(
 				`apiVersion: v1
 kind: Namespace
 metadata:
@@ -61,7 +61,7 @@ metadata:
 
 			contents, err = fs.ReadFile(filepath.Join(testDirectory, "workloads/services/service.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(contents)).To(Equal(
+			Expect(string(contents)).To(MatchYAML(
 				`apiVersion: v1
 kind: Service
 metadata:
@@ -77,7 +77,7 @@ spec:
 
 			contents, err = fs.ReadFile(filepath.Join(testDirectory, "metadata.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(contents)).To(Equal(
+			Expect(string(contents)).To(MatchYAML(
 				`somekey:
   repo: eks-gitops-tests
   thisFile: should not be modified by eksctl generate profile

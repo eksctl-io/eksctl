@@ -59,7 +59,7 @@ var _ = Describe("gitops profile", func() {
 					URL:    "git@github.com:someorg/test-gitops-repo.git",
 				},
 				IO:        io,
-				Fs:        memFs,
+				FS:        memFs,
 				GitCloner: gitCloner,
 				Processor: processor,
 			}
@@ -76,11 +76,11 @@ var _ = Describe("gitops profile", func() {
 			Expect(err).ToNot(HaveOccurred())
 			template1, err := io.ReadFile(filepath.Join(outputDir, "a/good-template1.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(template1).To(Equal([]byte("cluster: test-cluster")))
+			Expect(template1).To(MatchYAML([]byte("cluster: test-cluster")))
 
 			template2, err := io.ReadFile(filepath.Join(outputDir, "a/b/good-template2.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(template2).To(Equal([]byte("name: test-cluster")))
+			Expect(template2).To(MatchYAML([]byte("name: test-cluster")))
 		})
 
 		It("can load files and ignore .git/ files", func() {
@@ -90,19 +90,19 @@ var _ = Describe("gitops profile", func() {
 			Expect(files).To(HaveLen(4))
 			Expect(files).To(ConsistOf(
 				fileprocessor.File{
-					Name: filepath.Join(testDir, "a/good-template1.yaml.tmpl"),
+					Path: filepath.Join(testDir, "a/good-template1.yaml.tmpl"),
 					Data: []byte("cluster: {{ .ClusterName }}"),
 				},
 				fileprocessor.File{
-					Name: filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"),
+					Path: filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"),
 					Data: []byte("name: {{ .ClusterName }}"),
 				},
 				fileprocessor.File{
-					Name: filepath.Join(testDir, "a/not-a-template2.yaml"),
+					Path: filepath.Join(testDir, "a/not-a-template2.yaml"),
 					Data: []byte("somekey2: value2"),
 				},
 				fileprocessor.File{
-					Name: filepath.Join(testDir, "not-a-template.yaml"),
+					Path: filepath.Join(testDir, "not-a-template.yaml"),
 					Data: []byte("somekey: value"),
 				}))
 		})
@@ -128,19 +128,19 @@ metadata:
 				inputFiles := []fileprocessor.File{
 					{
 						Data: templateContent,
-						Name: "dir0/some-file.yaml.tmpl",
+						Path: "dir0/some-file.yaml.tmpl",
 					},
 					{
 						Data: templateContent,
-						Name: "dir0/dir1/some-file2.yaml.tmpl",
+						Path: "dir0/dir1/some-file2.yaml.tmpl",
 					},
 					{
 						Data: pureYaml,
-						Name: "dir0/dir1/non-template.yaml",
+						Path: "dir0/dir1/non-template.yaml",
 					},
 					{
 						Data: templateContent,
-						Name: "dir0/dir1/dir2/some-file3.yaml.tmpl",
+						Path: "dir0/dir1/dir2/some-file3.yaml.tmpl",
 					},
 				}
 
@@ -150,19 +150,19 @@ metadata:
 				Expect(files).To(HaveLen(4))
 				Expect(files).To(ConsistOf(
 					fileprocessor.File{
-						Name: "some-file.yaml",
+						Path: "some-file.yaml",
 						Data: expectedProcessedTemplate,
 					},
 					fileprocessor.File{
-						Name: "dir1/some-file2.yaml",
+						Path: "dir1/some-file2.yaml",
 						Data: expectedProcessedTemplate,
 					},
 					fileprocessor.File{
-						Name: "dir1/non-template.yaml",
+						Path: "dir1/non-template.yaml",
 						Data: pureYaml,
 					},
 					fileprocessor.File{
-						Name: "dir1/dir2/some-file3.yaml",
+						Path: "dir1/dir2/some-file3.yaml",
 						Data: expectedProcessedTemplate,
 					},
 				))

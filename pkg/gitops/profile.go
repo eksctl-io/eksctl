@@ -22,7 +22,7 @@ type Profile struct {
 	Path      string
 	GitOpts   GitOptions
 	GitCloner git.Cloner
-	Fs        afero.Fs
+	FS        afero.Fs
 	IO        afero.Afero
 }
 
@@ -82,7 +82,7 @@ func (p *Profile) loadFiles(directory string) ([]fileprocessor.File, error) {
 			return errors.Wrapf(err, "cannot read file %q", path)
 		}
 		files = append(files, fileprocessor.File{
-			Name: path,
+			Path: path,
 			Data: fileContents,
 		})
 		return nil
@@ -98,18 +98,18 @@ func (p *Profile) processFiles(files []fileprocessor.File, baseDir string) ([]fi
 	for _, file := range files {
 		outputFile, err := p.Processor.ProcessFile(file)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error processing file %q ", file.Name)
+			return nil, errors.Wrapf(err, "error processing file %q ", file.Path)
 		}
 		if outputFile == nil {
 			continue
 		}
 
 		// Rewrite the path to a relative path from the root of the repo
-		relPath, err := filepath.Rel(baseDir, outputFile.Name)
+		relPath, err := filepath.Rel(baseDir, outputFile.Path)
 		if err != nil {
-			return nil, errors.Wrapf(err, "cannot get relative path for file %q", file.Name)
+			return nil, errors.Wrapf(err, "cannot get relative path for file %q", file.Path)
 		}
-		outputFile.Name = relPath
+		outputFile.Path = relPath
 		outputFiles = append(outputFiles, *outputFile)
 	}
 	return outputFiles, nil
@@ -117,10 +117,10 @@ func (p *Profile) processFiles(files []fileprocessor.File, baseDir string) ([]fi
 
 func (p *Profile) writeFiles(manifests []fileprocessor.File, outputPath string) error {
 	for _, manifest := range manifests {
-		filePath := filepath.Join(outputPath, manifest.Name)
+		filePath := filepath.Join(outputPath, manifest.Path)
 		fileBase := filepath.Dir(filePath)
 
-		if err := p.Fs.MkdirAll(fileBase, 0755); err != nil {
+		if err := p.FS.MkdirAll(fileBase, 0755); err != nil {
 			return errors.Wrapf(err, "error creating output manifests dir: %q", outputPath)
 		}
 

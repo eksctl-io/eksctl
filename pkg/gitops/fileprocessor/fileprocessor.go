@@ -2,7 +2,7 @@ package fileprocessor
 
 // File represents the contents and the path to a file
 type File struct {
-	Name string
+	Path string
 	Data []byte
 }
 

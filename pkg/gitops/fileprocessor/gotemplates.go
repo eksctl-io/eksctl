@@ -33,25 +33,25 @@ type GoTemplateProcessor struct {
 
 // ProcessFile takes a template file and executes the template applying the TemplateParameters
 func (p *GoTemplateProcessor) ProcessFile(file File) (*File, error) {
-	if !isGoTemplate(file.Name) {
-		logger.Debug("copying non template file %q", file.Name)
+	if !isGoTemplate(file.Path) {
+		logger.Debug("copying non template file %q", file.Path)
 		return &file, nil
 	}
 
-	parsedTemplate, err := template.New(file.Name).Parse(string(file.Data))
+	parsedTemplate, err := template.New(file.Path).Parse(string(file.Data))
 	if err != nil {
-		return nil, errors.Wrapf(err, "cannot parse manifest template file %q", file.Name)
+		return nil, errors.Wrapf(err, "cannot parse manifest template file %q", file.Path)
 	}
 
 	out := bytes.NewBuffer(nil)
 	if err = parsedTemplate.Execute(out, p.Params); err != nil {
-		return nil, errors.Wrapf(err, "cannot execute template for file %q", file.Name)
+		return nil, errors.Wrapf(err, "cannot execute template for file %q", file.Path)
 	}
 
-	newFileName := strings.TrimSuffix(file.Name, templateExtension)
+	newFileName := strings.TrimSuffix(file.Path, templateExtension)
 	return &File{
 		Data: out.Bytes(),
-		Name: newFileName,
+		Path: newFileName,
 	}, nil
 }
 

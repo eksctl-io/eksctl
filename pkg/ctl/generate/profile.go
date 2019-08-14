@@ -2,18 +2,17 @@ package generate
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/git"
-	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/gitops"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/gitops"
+	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
 
 const (
@@ -71,7 +70,7 @@ func doGenerateProfile(rc *cmdutils.Cmd, o options) error {
 		Path:      o.ProfilePath,
 		GitOpts:   o.GitOptions,
 		GitCloner: git.NewGitClient(context.Background(), defaultGitTimeout),
-		Fs:        afero.NewOsFs(),
+		FS:        afero.NewOsFs(),
 		IO:        afero.Afero{Fs: afero.NewOsFs()},
 	}
 

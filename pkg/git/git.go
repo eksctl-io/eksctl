@@ -3,12 +3,13 @@ package git
 import (
 	"context"
 	"fmt"
-	"github.com/kris-nova/logger"
-	"github.com/weaveworks/eksctl/pkg/git/executor"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/kris-nova/logger"
+	"github.com/weaveworks/eksctl/pkg/git/executor"
 )
 
 // Cloner can clone git repositories
