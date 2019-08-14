@@ -308,7 +308,7 @@ func (c *ClusterProvider) SetNodeLabels(ng *api.NodeGroup, meta *api.ClusterMeta
 }
 
 func errTooFewAvailabilityZones(azs []string) error {
-	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unque)", len(azs), azs, az.MinRequiredAvailabilityZones)
+	return fmt.Errorf("only %d zones specified %v, %d are required (can be non-unique)", len(azs), azs, az.MinRequiredAvailabilityZones)
 }
 
 // SetAvailabilityZones sets the given (or chooses) the availability zones

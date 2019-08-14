@@ -51,6 +51,7 @@ Bianca Cheng Costanzo   @bia
 Mathias Lafeldt         @mlafeldt
 Gema Gomez              @gemagomez
 David Hao               @davidhao3300
+Brett Shouse            @bmshouse
 
 /* Thanks */
 
