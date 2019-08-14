@@ -11,25 +11,17 @@ Usage: `eksctl [command] [flags]`
 
 Commands:
 
-  `eksctl completion`  Generates shell completion scripts
-
-  `eksctl create`      Create resource(s)
-
-  `eksctl delete`      Delete resource(s)
-
-  `eksctl drain`       drain resources(s)
-
-  `eksctl get`         Get resource(s)
-
-  `eksctl help`        Help about any command
-
-  `eksctl scale`       Scale resources(s)
-
-  `eksctl update`      Update resource(s)
-
-  `eksctl utils`       Various utils
-
-  `eksctl version`     Output the version of eksctl
+`eksctl completion` | Generates shell completion scripts
+------------- | -------------
+`eksctl create` | Create resource(s)
+`eksctl delete` | Delete resource(s)
+`eksctl drain` | drain resources(s)
+`eksctl get` | Get resource(s)
+`eksctl help` | Help about any command
+`eksctl scale` | Scale resources(s)
+`eksctl update` | Update resource(s)
+`eksctl utils` | Various utils
+`eksctl version` | Output the version of eksctl
 
 Use `eksctl [command] --help` for more information about a command.
 
@@ -112,6 +104,8 @@ Create a cluster.
 
 `Usage: eksctl create cluster [flags]`
 
+#### flags
+
 [n, name](../02-flags#name) | [tags](../02-flags#tags) | [zones](../02-flags#zones) | [version](../02-flags#version)
   ------------- | ------------- | ------------- | -------------
 [nodegroup-name](../02-flags#nodegroup-name) | [without-nodegroup](../02-flags#without-nodegroup) | [t, node-type](../02-flags#node-type) | [N, nodes](../02-flags#nodes) | [m, nodes-min](../02-flags#nodes-min)
@@ -143,6 +137,8 @@ Usage: `eksctl create iamidentitymapping [flags]`
 Create a nodegroup
 
 Usage: `eksctl create nodegroup [flags]`
+
+#### flags
 
 [cluster](../02-flags#cluster) | [version](../02-flags#version) | [include](../02-flags#include) | [exclude](../02-flags#exclude)
   ------------- | ------------- | ------------- | -------------

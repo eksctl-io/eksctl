@@ -9,13 +9,26 @@ code {
   font-family: "Roboto Mono", monospace;
 }
 
+h2{
+  font-size: $font-size-base*1.7;
+}
+
+h3{
+  font-size: $font-size-base*1.4;
+}
+
+h4{
+  font-size: $font-size-base*1.2;
+}
+
 table {
   overflow-x: scroll;
-  font-size: 14px;
+  font-size: $font-size-14;
 }
 
 th {
   font-weight: normal;
+  background: #f8f9fa;
 }
 
 img[src$="#inline"] {
