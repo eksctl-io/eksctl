@@ -72,7 +72,7 @@ func waitForPodToStart(namespace string, nameLabelValue string, port int, name s
 		Namespace:       namespace,
 	}
 	podDeadline := time.Now().Add(time.Second * 30)
-	for ; time.Now().Before(podDeadline); time.Sleep(1 * time.Second) {
+	for ; time.Now().Before(podDeadline); time.Sleep(2 * time.Second) {
 		err := portforwarder.Start()
 		if err == nil {
 			defer portforwarder.Stop()
@@ -88,7 +88,7 @@ func waitForPodToStart(namespace string, nameLabelValue string, port int, name s
 	baseURL := fmt.Sprintf("http://127.0.0.1:%d/", portforwarder.ListenPort)
 	// Make sure it's alive
 	retryDeadline := time.Now().Add(30 * time.Second)
-	for ; time.Now().Before(retryDeadline); time.Sleep(1 * time.Second) {
+	for ; time.Now().Before(retryDeadline); time.Sleep(2 * time.Second) {
 		err := try(baseURL)
 		if err == nil {
 			break
