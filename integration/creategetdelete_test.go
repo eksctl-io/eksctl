@@ -24,6 +24,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
+	"github.com/weaveworks/eksctl/pkg/utils/random"
 )
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
@@ -106,6 +107,34 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should return the previously created cluster", func() {
 				cmdSession := eksctlSuccess("get", "clusters", "--all-regions")
 				Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
+			})
+		})
+
+		Context("and configuring Flux for GitOps", func() {
+			It("should not return an error", func() {
+				// Use a random branch to ensure test runs don't step on each others.
+				branch := random.String(8)
+				cloneDir, err := createBranch(branch)
+				Expect(err).ShouldNot(HaveOccurred())
+				defer deleteBranch(branch, cloneDir)
+
+				assertFluxManifestsAbsentInGit(branch)
+				assertFluxPodsAbsentInKubernetes()
+
+				eksctlSuccessWith(params{
+					Args: []string{"install", "flux",
+						"--git-url", Repository,
+						"--git-email", Email,
+						"--git-private-ssh-key-path", PrivateSSHKeyPath,
+						"--git-branch", branch,
+						"--name", clusterName,
+						"--region", region,
+					},
+					Env: []string{"EKSCTL_EXPERIMENTAL=true"},
+				})
+
+				assertFluxManifestsPresentInGit(branch)
+				assertFluxPodsPresentInKubernetes()
 			})
 		})
 

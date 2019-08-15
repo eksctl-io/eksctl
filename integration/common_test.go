@@ -36,16 +36,21 @@ func newKubeTest() (*harness.Test, error) {
 	return test, nil
 }
 
-func eksctl(args ...string) *gexec.Session {
-	command := exec.Command(eksctlPath, args...)
-	command.Env = os.Environ()
-	command.Env = append(command.Env, "EKSCTL_EXPERIMENTAL=true")
-	fmt.Fprintf(GinkgoWriter, "calling %q with %s and %v\n", eksctlPath, "EKSCTL_EXPERIMENTAL=true", args)
+type params struct {
+	Args []string
+	Env  []string
+}
+
+func eksctl(params params) *gexec.Session {
+	command := exec.Command(eksctlPath, params.Args...)
+	params.Env = append(params.Env, "EKSCTL_EXPERIMENTAL=true")
+	command.Env = append(os.Environ(), params.Env...)
+	fmt.Fprintf(GinkgoWriter, "calling %q with %v and %v\n", eksctlPath, params.Env, params.Args)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).To(BeNil())
 
 	t := time.Minute
-	switch args[0] {
+	switch params.Args[0] {
 	case "create":
 		t *= 25
 	case "delete":
@@ -62,13 +67,17 @@ func eksctl(args ...string) *gexec.Session {
 }
 
 func eksctlSuccess(args ...string) *gexec.Session {
-	session := eksctl(args...)
+	return eksctlSuccessWith(params{Args: args})
+}
+
+func eksctlSuccessWith(params params) *gexec.Session {
+	session := eksctl(params)
 	Expect(session.ExitCode()).To(BeZero())
 	return session
 }
 
 func eksctlFail(args ...string) *gexec.Session {
-	session := eksctl(args...)
+	session := eksctl(params{Args: args})
 	Expect(session.ExitCode()).ToNot(BeZero())
 	return session
 }
