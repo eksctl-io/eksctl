@@ -64,12 +64,19 @@ make test
 make build
 ```
 
-> NOTE: Windows users should install Docker for Windows and run `make eksctl-image` to build their code.
+To run integration test you will need an AWS account.
+```bash
+make integration-test-container TEST_V=1
+```
 
-> TODO: Improve Windows instructions, ensure `go build` works.
-
-There are integration tests for *eksctl* being developed and more details of
-how to run them will be included here. You can follow the progress [here](https://github.com/weaveworks/eksctl/issues/151).
+> NOTE: If you are working on Windows, you cannot use `make` at the moment,
+> as the `Makefile` is currently not portable.
+> However, if you have Git and Go installed, you can still build a binary
+> and run unit tests.
+> ```
+> go build .\cmd\eksctl
+> go test .\pkg\...
+> ```
 
 #### 4. Write your feature
 
