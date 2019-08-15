@@ -69,7 +69,6 @@ func newPKI(hostName string, validFor time.Duration, rsaKeyBitSize int) (*public
 	}
 
 	// Generate Client certificate
-	generateCertificate(caCert, caKey, keyReq, hostName, "client", validFor)
 	clientCert, clientKey, err := generateCertificate(caCert, caKey, keyReq, hostName, "client", validFor)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot generate client certificate")
@@ -86,8 +85,8 @@ func newPKI(hostName string, validFor time.Duration, rsaKeyBitSize int) (*public
 
 }
 
-func generateCertificate(caCert []byte, caKey []byte, keyReq *csr.KeyRequest,
-	hostName string, commonName string, validFor time.Duration) ([]byte, []byte, error) {
+func generateCertificate(caCert, caKey []byte, keyReq *csr.KeyRequest, hostName, commonName string,
+	validFor time.Duration) ([]byte, []byte, error) {
 	policy := &config.Signing{
 		Default: &config.SigningProfile{
 			Expiry: validFor,
