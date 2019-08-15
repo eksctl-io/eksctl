@@ -21,8 +21,8 @@ import (
 func waitForFluxToStart(ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
 	cs kubeclient.Interface) (ssh.PublicKey, error) {
 	var fluxGitConfig fluxapi.GitConfig
-	try := func(baseURL string) error {
-		fluxURL := baseURL + "/api/flux"
+	try := func(rootURL string) error {
+		fluxURL := rootURL + "api/flux"
 		fluxClient := client.New(http.DefaultClient, transport.NewAPIRouter(), fluxURL, client.Token(""))
 		repoCtx, repoCtxCancel := context.WithTimeout(ctx, timeout)
 		defer repoCtxCancel()
@@ -36,8 +36,8 @@ func waitForFluxToStart(ctx context.Context, namespace string, timeout time.Dura
 
 func waitForHelmOpToStart(ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
 	cs kubeclient.Interface) error {
-	try := func(baseURL string) error {
-		helmOpURL := baseURL + "/healthz"
+	try := func(rootURL string) error {
+		helmOpURL := rootURL + "healthz"
 		req, err := http.NewRequest("GET", helmOpURL, nil)
 		if err != nil {
 			return fmt.Errorf("failed to create request: %s", err)
@@ -51,7 +51,7 @@ func waitForHelmOpToStart(ctx context.Context, namespace string, timeout time.Du
 	return waitForPodToStart(namespace, "flux-helm-operator", 3030, "Helm Operator", restConfig, cs, try)
 }
 
-type tryFunc func(potBaseURL string) error
+type tryFunc func(rootURL string) error
 
 func waitForPodToStart(namespace string, nameLabelValue string, port int, name string,
 	restConfig *rest.Config, cs kubeclient.Interface, try tryFunc) error {
