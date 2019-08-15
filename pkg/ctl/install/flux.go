@@ -4,7 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	kubeclient "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -20,10 +23,43 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 	)
 	var opts flux.InstallOpts
 	cmd.SetRunFuncWithNameArg(func() error {
-		installer, err := flux.NewInstaller(context.Background(), cmd, &opts)
+		if opts.GitURL == "" {
+			return errors.New("please supply a valid --git-url argument")
+		}
+		if opts.GitEmail == "" {
+			return errors.New("please supply a valid --git-email argument")
+		}
+
+		if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+			return err
+		}
+		cfg := cmd.ClusterConfig
+		ctl, err := cmd.NewCtl()
 		if err != nil {
 			return err
 		}
+
+		if err := ctl.CheckAuth(); err != nil {
+			return err
+		}
+		if err := ctl.RefreshClusterConfig(cfg); err != nil {
+			return err
+		}
+		kubernetesClientConfigs, err := ctl.NewClient(cfg)
+		if err != nil {
+			return err
+		}
+		k8sConfig := kubernetesClientConfigs.Config
+
+		k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
+		if err != nil {
+			return errors.Wrap(err, "cannot create Kubernetes client configuration")
+		}
+		k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
+		if err != nil {
+			return errors.Errorf("cannot create Kubernetes client set: %s", err)
+		}
+		installer := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &opts)
 		return installer.Run(context.Background())
 	})
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {

@@ -17,12 +17,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	tillerinstall "k8s.io/helm/cmd/helm/installer"
 	"sigs.k8s.io/yaml"
 
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
@@ -113,63 +110,21 @@ type InstallOpts struct {
 // Installer installs Flux
 type Installer struct {
 	opts          *InstallOpts
-	cmd           *cmdutils.Cmd
-	k8sConfig     *clientcmdapi.Config
 	k8sRestConfig *rest.Config
 	k8sClientSet  kubeclient.Interface
 	gitClient     *git.Client
 }
 
 // NewInstaller creates a new Flux installer
-func NewInstaller(ctx context.Context, cmd *cmdutils.Cmd, opts *InstallOpts) (*Installer, error) {
-	if opts.GitURL == "" {
-		return nil, fmt.Errorf("please supply a valid --git-url argument")
-	}
-	if opts.GitEmail == "" {
-		return nil, fmt.Errorf("please supply a valid --git-email argument")
-	}
-
-	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
-		return nil, err
-	}
-	cfg := cmd.ClusterConfig
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := ctl.CheckAuth(); err != nil {
-		return nil, err
-	}
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
-		return nil, err
-	}
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
-	if err != nil {
-		return nil, err
-	}
-	k8sConfig := kubernetesClientConfigs.Config
-
-	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return nil, errors.Errorf("cannot create Kubernetes client configuration: %s", err)
-	}
-	k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
-	if err != nil {
-		return nil, errors.Errorf("cannot create Kubernetes client set: %s", err)
-	}
-
+func NewInstaller(ctx context.Context, k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
 	gitClient := git.NewGitClient(ctx, opts.Timeout)
 	fi := &Installer{
-
 		opts:          opts,
-		cmd:           cmd,
-		k8sConfig:     k8sConfig,
 		k8sRestConfig: k8sRestConfig,
 		k8sClientSet:  k8sClientSet,
 		gitClient:     gitClient,
 	}
-	return fi, nil
+	return fi
 }
 
 // Run runs the Flux installer
