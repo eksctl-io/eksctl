@@ -187,7 +187,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 		logger.Warning("Note: certificate secrets aren't added to the Git repository for security reasons")
 	}
 
-	if !fi.opts.WithHelm {
+	if fi.opts.WithHelm {
 		logger.Info("Waiting for Helm Operator to start")
 		if err := waitForHelmOpToStart(ctx, fi.opts.Namespace, fi.opts.Timeout, fi.k8sRestConfig, fi.k8sClientSet); err != nil {
 			return err
