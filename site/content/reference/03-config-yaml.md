@@ -6,7 +6,7 @@ weight: 30
 
 # Configuration file YAML reference
 
-## apiVersion
+## apiVersion <a name="apiVersion"></a>
 
 The `eksctl` API version that supports this YAML configuration file.
 
@@ -22,7 +22,7 @@ The `eksctl` API version that supports this YAML configuration file.
 
 Top-level YAML field.
 
-## availabilityZones
+## availabilityZones <a name="availabilityZones"></a>
 
 The AWS availability zones for the managed cluster or nodegroup represented as an array of strings.
 
@@ -53,7 +53,7 @@ For multiple zones:
 
 CloudWatch configurations for the managed EKS cluster.
 
-**Also used as*** a boolean attribute of nodegroup IAM add-on policies.
+**Also used as** a boolean attribute of nodegroup IAM add-on policies.
 
 ### parent
 
@@ -112,23 +112,19 @@ metadata:
 
 Top-level YAML field for the ClusterConfig type.
 
-## nodeGroups
+## nodeGroups <a name="nodeGroups"></a>
 
 ### parent
 
 Top-level YAML field for the ClusterConfig type.
 
-### parent
-
-Top-level YAML field for the ClusterConfig type.
-
-## status
+## status <a name="status"></a>
 
 ### parent
 
 Top-level YAML field for the ClusterConfig type.
 
-## vpc
+## vpc <a name="vpc"></a>
 
 ### parent
 

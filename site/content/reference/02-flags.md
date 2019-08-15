@@ -277,6 +277,10 @@ Inherited from the cluster if unspecified.
 - [create nodegroup](../01-commands#create-nodegroup)
   - Inherited from the cluster if unspecified.
 
+### config yaml
+
+- [availabilityZones](../03-config-yaml#availabilityZones)
+
 ## nodes
 
 `-N, --nodes`
@@ -517,7 +521,7 @@ eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1
 
 ### config yaml
 
-- [availabilityZones](../03-config-yaml)
+- [availabilityZones](../03-config-yaml#availabilityZones)
 
 # Scratch space
 ## create cluster flags

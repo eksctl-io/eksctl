@@ -168,36 +168,36 @@ Usage: `eksctl create nodegroup [flags]`
 
 
 
-## delete
+## delete <a name="delete"></a>
 
 Deletes resource(s).
 
-## drain
+## drain <a name="drain"></a>
 
 Drains resources(s).
 
-## get
+## get <a name="get"></a>
 
 Get resource(s).
 
-## help
+## help <a name="help"></a>
 
 Prints a help screen for any `eksctl` command.
 
-## scale
+## scale <a name="scale"></a>
 
 Scales resources(s).
 
-## update
+## update <a name="update"></a>
 
 Updates resource(s).
 
-## utils
+## utils <a name="utils"></a>
 
 Various utils (?)
 
-### update-cluster-logging
+### update-cluster-logging <a name="utils-update-cluster-logging"></a>
 
-## version
+## version <a name="version"></a>
 
 Prints the installed `eksctl` version.
