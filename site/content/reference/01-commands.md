@@ -91,14 +91,14 @@ Creates cluster, nodegroup, and IAM idenitity mapping resources.
 
 Usage: `eksctl create [command] [flags]`
 
-### common create flags
+### common create flags <a name="create-common-flags"></a>
 
 These flags can be applied to all eksctl commands and behave consistently between them.
 
 [`-f, --config-file`](../02-flags#config-file) | [`-p, --profile`](../02-flags#profile) | [`-r, --region`](../02-flags#region) | [`--timeout`](../02-flags#timeout)
 ------------- | ------------- | ------------- | -------------
 
-### cluster
+### cluster <a name="create-cluster"></a>
 
 Create a cluster.
 
@@ -111,23 +111,23 @@ Create a cluster.
 [`--asg-access`](../02-flags#asg-access) | [`--authenticator-role-arn`](../02-flags#authenticator-role-arn)
 [`--auto-kubeconfig`](../02-flags#auto-kubeconfig) | [`--cfn-role-arn`](../02-flags#cfn-role-arn)
 [`--external-dns-access`](../02-flags#external-dns-access) | [`--full-ecr-access`](../02-flags#full-ecr-access)
-[`--kubeconfig`](../02-flags#kubeconfig) | [`-m, --nodes-min`](../02-flags#nodes-min)
-[`-M, --nodes-max`](../02-flags#nodes-max) | [`--max-pods-per-node`](../02-flags#max-pods-per-node)
-[`-n, --name`](../02-flags#name) |[`-N, --nodes`](../02-flags#nodes)
-[`--node-ami`](../02-flags#node-ami) | [`--node-ami-family`](../02-flags#node-ami-family)
-[`--node-labels`](../02-flags#node-labels) | [`--node-security-groups`](../02-flags#node-security-groups)
-[`--node-volume-size`](../02-flags#node-volume-size) | [`--node-volume-type`](../02-flags#node-volume-type)
-[`--node-zones`](../02-flags#node-zones) | [`--nodegroup-name`](../02-flags#nodegroup-name)
-[`-P, --node-private-networking`](../02-flags#node-private-networking) | [`--set-kubeconfig-context`](../02-flags#set-kubeconfig-context)
-[`--ssh-access`](../02-flags#ssh-access) | [`--ssh-public-key`](../02-flags#ssh-public-key)
-[`-t, --node-type`](../02-flags#node-type) | [`-tags`](../02-flags#tags)
+[`--kubeconfig`](../02-flags#kubeconfig) | [`--max-pods-per-node`](../02-flags#max-pods-per-node)
+[`-n, --name`](../02-flags#name) | [`--node-ami`](../02-flags#node-ami)
+[`--node-ami-family`](../02-flags#node-ami-family) | [`--node-labels`](../02-flags#node-labels)
+[`--node-security-groups`](../02-flags#node-security-groups) | [`--node-volume-size`](../02-flags#node-volume-size)
+[`--node-volume-type`](../02-flags#node-volume-type) | [`--node-zones`](../02-flags#node-zones)
+[`--nodegroup-name`](../02-flags#nodegroup-name) |[`-N, --nodes`](../02-flags#nodes)
+[`-M, --nodes-max`](../02-flags#nodes-max) | [`-m, --nodes-min`](../02-flags#nodes-min)
+[`-P, --node-private-networking`](../02-flags#node-private-networking) | [`-t, --node-type`](../02-flags#node-type)
+[`--set-kubeconfig-context`](../02-flags#set-kubeconfig-context) | [`--ssh-access`](../02-flags#ssh-access)
+[`--ssh-public-key`](../02-flags#ssh-public-key) | [`-tags`](../02-flags#tags)
 [`-version`](../02-flags#version) | [`--vpc-cidr`](../02-flags#vpc-cidr)
 [`--vpc-from-kops-cluster`](../02-flags#vpc-from-kops-cluster) | [`--vpc-nat-mode`](../02-flags#vpc-nat-mode)
 [`--vpc-private-subnets`](../02-flags#vpc-private-subnets) | [`--vpc-public-subnets`](../02-flags#vpc-public-subnets)
 [`--without-nodegroup`](../02-flags#without-nodegroup) | [`--write-kubeconfig`](../02-flags#write-kubeconfig)
 [`-zones`](../02-flags#zones) |
 
-### iamidentitymapping
+### iamidentitymapping <a name="create-iamidentitymapping"></a>
 
 Creates a mapping from IAM role to Kubernetes user and groups.
 
@@ -142,7 +142,7 @@ Usage: `eksctl create iamidentitymapping [flags]`
 
 ***Note***: the string value of the name flag denotes the name of the EKS cluster for which the `create identitymapping` command will create the identity mapping and **NOT** the name of the identity mapping resource.
 
-### nodegroup, ng
+### nodegroup, ng <a name="create-nodegroup"></a>
 
 Create a nodegroup
 
@@ -155,15 +155,15 @@ Usage: `eksctl create nodegroup [flags]`
 [`--asg-access`](../02-flags#asg-access) | [`--cfn-role-arn`](../02-flags#cfn-role-arn)
 [`--cluster`](../02-flags#cluster) | [`--exclude`](../02-flags#exclude)
 [`--external-dns-access`](../02-flags#external-dns-access) | [`--full-ecr-access`](../02-flags#full-ecr-access)
-[`--include`](../02-flags#include) | [`-m, --nodes-min`](../02-flags#nodes-min)
-[`-M, --nodes-max`](../02-flags#nodes-max) | [`--max-pods-per-node`](../02-flags#max-pods-per-node)
-[`-n, --name`](../02-flags#name) | [`-N, --nodes`](../02-flags#nodes)
-[`--node-ami`](../02-flags#node-ami) | [`--node-ami-family`](../02-flags#node-ami-family)
-[`--node-labels`](../02-flags#node-labels) | [`--node-security-groups`](../02-flags#node-security-groups)
-[`--node-volume-size`](../02-flags#node-volume-size) | [`--node-volume-type`](../02-flags#node-volume-type)
-[`--node-zones`](../02-flags#node-zones) | [`-P, --node-private-networking`](../02-flags#node-private-networking)
-[`--ssh-access`](../02-flags#ssh-access) | [`--ssh-public-key`](../02-flags#ssh-public-key)
-[`-t, --node-type`](../02-flags#node-type) | [`--update-auth-configmap`](../02-flags#update-auth-configmap)
+[`--include`](../02-flags#include) | [`--max-pods-per-node`](../02-flags#max-pods-per-node)
+[`-n, --name`](../02-flags#name) | [`--node-ami`](../02-flags#node-ami)
+[`--node-ami-family`](../02-flags#node-ami-family) | [`--node-labels`](../02-flags#node-labels)
+[`-P, --node-private-networking`](../02-flags#node-private-networking) | [`--node-security-groups`](../02-flags#node-security-groups)
+[`-t, --node-type`](../02-flags#node-type) | [`--node-volume-size`](../02-flags#node-volume-size)
+[`--node-volume-type`](../02-flags#node-volume-type) | [`--node-zones`](../02-flags#node-zones)
+[`-N, --nodes`](../02-flags#nodes) | [`-M, --nodes-max`](../02-flags#nodes-max)
+[`-m, --nodes-min`](../02-flags#nodes-min) | [`--ssh-access`](../02-flags#ssh-access)
+[`--ssh-public-key`](../02-flags#ssh-public-key) | [`--update-auth-configmap`](../02-flags#update-auth-configmap)
 [`--version`](../02-flags#version) |
 
 

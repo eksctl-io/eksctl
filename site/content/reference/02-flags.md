@@ -5,6 +5,66 @@ weight: 20
 
 # Flags reference
 
+## alb-ingress-access
+
+`--alb-ingress-access`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## appmesh-access
+
+`--appmesh-access`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## asg-access
+
+`--appmesh-access`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## authenticator-role-arn
+
+`--authenticator-role-arn`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## auto-kubeconfig
+
+`--auto-kubeconfig`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## cfn-role-arn
+
+`--cfn-role-arn`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## cluster
+
+`--cluster`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create nodegroup](../01-commands#create-nodegroup)
+
 ## color
 
 `-C, --color string`
@@ -25,9 +85,9 @@ load configuration from a file (or stdin if set to '-')
 
 ### supported commands
 
-- [create cluster](../01-commands#create-common-flags)
-- [create iamidentitymapping](../01-commands#create-common-flags)
-- [create nodegroup](../01-commands#create-common-flags)
+- [create cluster](../01-commands#create-cluster)
+- [create iamidentitymapping](../01-commands#create-iamidentitymapping)
+- [create nodegroup](../01-commands#create-nodegroup)
 
 ## enable-types
 
@@ -41,8 +101,34 @@ List of CloudWatch logging types to enable
 
 ### config yaml
 
-- [clusterLogging](03-config-yaml#clusterLogging)
-- [enableTypes](03-config-yaml#enableTypes)
+- [clusterLogging](../03-config-yaml#clusterLogging)
+- [enableTypes](../03-config-yaml#enableTypes)
+
+## exclude
+
+`--exclude`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## external-dns-access
+
+`--external-dns-access`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## full-ecr-access
+
+`--full-ecr-access`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
 
 ## group
 
@@ -64,6 +150,31 @@ help for this command
 
 All eksctl commands.
 
+## include
+
+`--include`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## kubeconfig
+
+`--kubeconfig`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## max-pods-per-node
+
+`--max-pods-per-node`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
 ## name
 
 `-n, --name string`
@@ -80,6 +191,78 @@ The resource name to which the command will apply.
 - [create nodegroup](../01-commands#create-nodegroup)
   - ***Note***: the auto-generated name for a nodegroup will start with "ng" (e.g. "ng-f06b88af")
 
+## node-ami
+
+`--node-ami`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## node-ami-family
+
+`--node-ami-family`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## node-labels
+
+`--node-labels`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## node-private-networking
+
+`-P, --node-private-networking`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## node-type
+
+`-t, --node-type`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## node-security-groups
+
+`--node-security-groups`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## node-volume-size
+
+`--node-volume-size`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## node-volume-type
+
+`--node-volume-type`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
 ## node-zones
 
 `--node-zones strings`
@@ -93,6 +276,33 @@ Inherited from the cluster if unspecified.
 - [create cluster](../01-commands#create-cluster)
 - [create nodegroup](../01-commands#create-nodegroup)
   - Inherited from the cluster if unspecified.
+
+## nodes
+
+`-N, --nodes`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## nodes-max
+
+`-M, --nodes-max`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## nodes-min
+
+`-m, --nodes-min`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
 
 ## profile
 
@@ -128,6 +338,32 @@ ARN of the IAM role to create.
 
 - [create iamidentitymapping](../01-commands#create-iamidentitymapping)
 
+## set-kubeconfig-context
+
+`--set-kubeconfig-context`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## ssh-access
+
+`--ssh-access`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## ssh-public-key
+
+`--ssh-public-key`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+- [create nodegroup](../01-commands#create-nodegroup)
+
 ## tags
 
 `--tags stringToString`
@@ -156,6 +392,14 @@ Max wait time in any polling operations (default 25m0s)
 
 - [create cluster](../01-commands#create-cluster)
 - [create iamidentitymapping](../01-commands#create-iamidentitymapping)
+- [create nodegroup](../01-commands#create-nodegroup)
+
+## update-auth-configmap
+
+`--update-auth-configmap`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
 - [create nodegroup](../01-commands#create-nodegroup)
 
 ## username
@@ -197,6 +441,62 @@ Kubernetes version
     - **latest**: use latest version
     - defaults to **auto** for nodegroups
 
+## vpc-cidr
+
+`--vpc-cidr`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## vpc-from-kops-cluster
+
+`--vpc-from-kops-cluster`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## vpc-nat-mode
+
+`--vpc-nat-mode`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## vpc-private-subnets
+
+`--vpc-private-subnets`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## vpc-public-subnets
+
+`--vpc-public-subnets`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## without-nodegroup
+
+`--without-nodegroup`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
+## write-kubeconfig
+
+`--write-kubeconfig`
+<!-- FIXME(bianca, sebastian): add description -->
+### supported commands
+
+- [create cluster](../01-commands#create-cluster)
+
 ## zones
 
 `--zones strings`
@@ -217,7 +517,7 @@ eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1
 
 ### config yaml
 
-- [availabilityZones](03-config-yaml)
+- [availabilityZones](../03-config-yaml)
 
 # Scratch space
 ## create cluster flags
