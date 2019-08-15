@@ -1,4 +1,4 @@
-package install
+package flux
 
 import (
 	"context"

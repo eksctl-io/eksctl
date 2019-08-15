@@ -1,22 +1,25 @@
-package install
+package flux
 
 import (
-	"testing"
 	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-func TestNewPKI(t *testing.T) {
+var _ = Describe("PKI", func() {
 	pki, err := newPKI("foo.com", 5*365*24*time.Hour, 2048) // shorter key, to save time
-	if err != nil {
-		t.Fatalf("PKI creation failed: %s", err)
-	}
+	It("should not error", func() {
+		Expect(err).NotTo(HaveOccurred())
+	})
 	for _, content := range [][]byte{
 		pki.caCertificate, pki.caKey, pki.serverCertificate,
 		pki.serverCertificate, pki.serverKey,
 		pki.clientCertificate, pki.clientKey,
 	} {
-		if len(content) == 0 {
-			t.Fatalf("empty content found")
-		}
+
+		It("should not be empty", func() {
+			Expect(len(content)).NotTo(Equal(0))
+		})
 	}
-}
+})

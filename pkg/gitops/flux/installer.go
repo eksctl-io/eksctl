@@ -1,4 +1,4 @@
-package install
+package flux
 
 import (
 	"context"
@@ -29,9 +29,9 @@ import (
 
 const (
 	fluxNamespaceFileName    = "flux-namespace.yaml"
+	helmTLSValidFor          = 5 * 365 * 24 * time.Hour // 5 years
 	tillerManifestPrefix     = "tiller-"
-	tillerNamespaceFileName  = tillerManifestPrefix + "namespace.yaml"
-	tillerServiceName        = "tiller-deploy" // do not change at will, hardcoded in Tiller's manifest generation
+	tillerServiceName        = "tiller-deploy" // do not change at will, hardcoded in Tiller's manifest generation API
 	tillerServiceAccountName = "tiller"
 	tillerRBACTemplate       = `apiVersion: v1
 kind: ServiceAccount
@@ -95,9 +95,24 @@ subjects:
 `
 )
 
-type fluxInstaller struct {
-	opts          *installFluxOpts
-	helmOpTLS     bool
+// InstallOpts are the installation options for Flux
+type InstallOpts struct {
+	GitURL      string
+	GitBranch   string
+	GitPaths    []string
+	GitLabel    string
+	GitUser     string
+	GitEmail    string
+	GitFluxPath string
+	Namespace   string
+	Timeout     time.Duration
+	Amend       bool
+	WithHelmOp  bool
+}
+
+// Installer installs Flux
+type Installer struct {
+	opts          *InstallOpts
 	cmd           *cmdutils.Cmd
 	k8sConfig     *clientcmdapi.Config
 	k8sRestConfig *rest.Config
@@ -105,29 +120,13 @@ type fluxInstaller struct {
 	gitClient     *git.Client
 }
 
-func newFluxInstaller(ctx context.Context, cmd *cmdutils.Cmd, opts *installFluxOpts) (*fluxInstaller, error) {
-	if opts.gitURL == "" {
+// NewInstaller creates a new Flux installer
+func NewInstaller(ctx context.Context, cmd *cmdutils.Cmd, opts *InstallOpts) (*Installer, error) {
+	if opts.GitURL == "" {
 		return nil, fmt.Errorf("please supply a valid --git-url argument")
 	}
-	if opts.gitEmail == "" {
+	if opts.GitEmail == "" {
 		return nil, fmt.Errorf("please supply a valid --git-email argument")
-	}
-	helmOpTLS := true
-	if !opts.noHelmOp && opts.noTiller {
-		// check that either all or none of the TLS files are provided
-		tlsPaths := []string{opts.helmOpTLSKeyFile, opts.helmOpTLSCertFile, opts.helmOpTLSKeyFile}
-		numTLSPaths := len(tlsPaths)
-		numNonEmptyTLSFiles := 0
-		for _, path := range tlsPaths {
-			if len(path) > 0 {
-				numNonEmptyTLSFiles++
-			}
-		}
-		if numNonEmptyTLSFiles == 0 {
-			helmOpTLS = false
-		} else if numNonEmptyTLSFiles != numTLSPaths {
-			return nil, fmt.Errorf("either none or all --helmop-tls-*-path flags should be provided")
-		}
 	}
 
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
@@ -160,10 +159,10 @@ func newFluxInstaller(ctx context.Context, cmd *cmdutils.Cmd, opts *installFluxO
 		return nil, errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 
-	gitClient := git.NewGitClient(ctx, opts.timeout)
-	fi := &fluxInstaller{
+	gitClient := git.NewGitClient(ctx, opts.Timeout)
+	fi := &Installer{
+
 		opts:          opts,
-		helmOpTLS:     helmOpTLS,
 		cmd:           cmd,
 		k8sConfig:     k8sConfig,
 		k8sRestConfig: k8sRestConfig,
@@ -173,7 +172,8 @@ func newFluxInstaller(ctx context.Context, cmd *cmdutils.Cmd, opts *installFluxO
 	return fi, nil
 }
 
-func (fi *fluxInstaller) run(ctx context.Context) error {
+// Run runs the Flux installer
+func (fi *Installer) Run(ctx context.Context) error {
 	pki, pkiPaths, err := fi.setupPKI()
 	if err != nil {
 		return err
@@ -185,10 +185,10 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 		return err
 	}
 
-	logger.Info("Cloning %s", fi.opts.gitURL)
-	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.gitBranch, fi.opts.gitURL)
+	logger.Info("Cloning %s", fi.opts.GitURL)
+	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.GitBranch, fi.opts.GitURL)
 	if err != nil {
-		return fmt.Errorf("cannot clone repository %s: %s", fi.opts.gitURL, err)
+		return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitURL)
 	}
 	cleanCloneDir := false
 	defer func() {
@@ -196,18 +196,18 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 			_ = fi.gitClient.DeleteLocalRepo()
 		} else {
 			logger.Critical("You may find the local clone of %s used by eksctl at %s",
-				fi.opts.gitURL,
+				fi.opts.GitURL,
 				cloneDir)
 		}
 	}()
 
 	logger.Info("Writing Flux manifests")
-	fluxManifestDir := filepath.Join(cloneDir, fi.opts.gitFluxPath)
+	fluxManifestDir := filepath.Join(cloneDir, fi.opts.GitFluxPath)
 	if err := writeFluxManifests(fluxManifestDir, manifests); err != nil {
 		return err
 	}
 
-	if fi.opts.amend {
+	if fi.opts.Amend {
 		logger.Info("Stopping to amend the the Flux manifests, please exit the shell when done.")
 		if err := runShell(fluxManifestDir); err != nil {
 			return err
@@ -232,22 +232,22 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 		logger.Warning("Note: certificate secrets aren't added to the Git repository for security reasons")
 	}
 
-	if !fi.opts.noHelmOp {
+	if !fi.opts.WithHelmOp {
 		logger.Info("Waiting for Helm Operator to start")
-		if err := waitForHelmOpToStart(ctx, fi.opts.namespace, fi.opts.timeout, fi.k8sRestConfig, fi.k8sClientSet); err != nil {
+		if err := waitForHelmOpToStart(ctx, fi.opts.Namespace, fi.opts.Timeout, fi.k8sRestConfig, fi.k8sClientSet); err != nil {
 			return err
 		}
 		logger.Info("Helm Operator started successfully")
 	}
 
 	logger.Info("Waiting for Flux to start")
-	fluxSSHKey, err := waitForFluxToStart(ctx, fi.opts.namespace, fi.opts.timeout, fi.k8sRestConfig, fi.k8sClientSet)
+	fluxSSHKey, err := waitForFluxToStart(ctx, fi.opts.Namespace, fi.opts.Timeout, fi.k8sRestConfig, fi.k8sClientSet)
 	if err != nil {
 		return err
 	}
 	logger.Info("Flux started successfully")
 
-	logger.Info("Committing and pushing manifests to %s", fi.opts.gitURL)
+	logger.Info("Committing and pushing manifests to %s", fi.opts.GitURL)
 	if err := fi.addFilesToRepo(ctx, cloneDir); err != nil {
 		return err
 	}
@@ -255,40 +255,25 @@ func (fi *fluxInstaller) run(ctx context.Context) error {
 
 	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
 	logger.Info("please configure %s so that the following Flux SSH public key has write access to it\n%s",
-		fi.opts.gitURL, fluxSSHKey.Key)
+		fi.opts.GitURL, fluxSSHKey.Key)
 	return nil
 }
 
-func (fi *fluxInstaller) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrastructurePaths, error) {
-	if fi.opts.noHelmOp {
+func (fi *Installer) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrastructurePaths, error) {
+	if !fi.opts.WithHelmOp {
 		return nil, nil, nil
-	}
-
-	var err error
-	if fi.opts.noTiller {
-		logger.Info("Configuring TLS for Helm Operator using files from --helmop-tls-*-path flags")
-		pkiPaths := &publicKeyInfrastructurePaths{
-			caCertificate:     fi.opts.helmOpTLSCACertFile,
-			clientKey:         fi.opts.helmOpTLSKeyFile,
-			clientCertificate: fi.opts.helmOpTLSCertFile,
-		}
-		var pki = &publicKeyInfrastructure{}
-		if err = pki.loadFrom(pkiPaths); err != nil {
-			return nil, nil, err
-		}
-		return pki, pkiPaths, nil
 	}
 
 	logger.Info("Generating public key infrastructure for the Helm Operator and Tiller")
 	logger.Info("  this may take up to a minute, please be patient")
-	fi.opts.tillerHost = tillerServiceName + "." + fi.opts.tillerNamespace
-	pki, err := newPKI(fi.opts.tillerHost, 5*365*24*time.Hour, 4096)
+	tillerHost := tillerServiceName + "." + fi.opts.Namespace
+	pki, err := newPKI(tillerHost, helmTLSValidFor, 4096)
 	if err != nil {
 		return nil, nil, err
 	}
 	baseDir, err := ioutil.TempDir(os.TempDir(), "eksctl-helm-pki")
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot create temporary directory %q to output PKI files", baseDir)
+		return nil, nil, errors.Errorf("cannot create temporary directory %q to output PKI files", baseDir)
 	}
 	pkiPaths := &publicKeyInfrastructurePaths{
 		caKey:             filepath.Join(baseDir, "ca-key.pem"),
@@ -306,13 +291,13 @@ func (fi *fluxInstaller) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrast
 	return pki, pkiPaths, nil
 }
 
-func (fi *fluxInstaller) addFilesToRepo(ctx context.Context, cloneDir string) error {
-	if err := fi.gitClient.Add(fi.opts.gitFluxPath); err != nil {
+func (fi *Installer) addFilesToRepo(ctx context.Context, cloneDir string) error {
+	if err := fi.gitClient.Add(fi.opts.GitFluxPath); err != nil {
 		return err
 	}
 
 	// Confirm there is something to commit, otherwise move on
-	if err := fi.gitClient.Commit("Add Initial Flux configuration", fi.opts.gitUser, fi.opts.gitEmail); err != nil {
+	if err := fi.gitClient.Commit("Add Initial Flux configuration", fi.opts.GitUser, fi.opts.GitEmail); err != nil {
 		return err
 	}
 
@@ -323,22 +308,20 @@ func (fi *fluxInstaller) addFilesToRepo(ctx context.Context, cloneDir string) er
 	return nil
 }
 
-func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
+func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 	client, err := kubernetes.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
 	if err != nil {
 		return err
 	}
 
-	// If namespaces need to be created, do it first, before any other
+	// If the flux namespace needs to be created, do it first, before any other
 	// resource which should potentially be created within the namespace.
 	// Otherwise, creation of these resources will fail.
-	for _, nsFileName := range []string{fluxNamespaceFileName, tillerNamespaceFileName} {
-		if namespace, ok := manifestsMap[nsFileName]; ok {
-			if err := client.CreateOrReplace(namespace, false); err != nil {
-				return err
-			}
-			delete(manifestsMap, nsFileName)
+	if namespace, ok := manifestsMap[fluxNamespaceFileName]; ok {
+		if err := client.CreateOrReplace(namespace, false); err != nil {
+			return err
 		}
+		delete(manifestsMap, fluxNamespaceFileName)
 	}
 
 	var manifestValues [][]byte
@@ -349,13 +332,13 @@ func (fi *fluxInstaller) applyManifests(manifestsMap map[string][]byte) error {
 	return client.CreateOrReplace(manifests, false)
 }
 
-func (fi *fluxInstaller) applySecrets(secrets []*corev1.Secret) error {
+func (fi *Installer) applySecrets(secrets []*corev1.Secret) error {
 	secretMap := map[string][]byte{}
 	for _, secret := range secrets {
 		id := fmt.Sprintf("secret/%s/%s", secret.Namespace, secret.Name)
 		secretBytes, err := yaml.Marshal(secret)
 		if err != nil {
-			return fmt.Errorf("cannot serialize secret %s: %s", id, err)
+			return errors.Wrapf(err, "cannot serialize secret %s", id)
 		}
 		secretMap[id] = secretBytes
 	}
@@ -364,12 +347,12 @@ func (fi *fluxInstaller) applySecrets(secrets []*corev1.Secret) error {
 
 func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
 	if err := os.MkdirAll(baseDir, 0700); err != nil {
-		return fmt.Errorf("cannot create Flux manifests directory (%s): %s", baseDir, err)
+		return errors.Wrapf(err, "cannot create Flux manifests directory (%s)", baseDir)
 	}
 	for fileName, contents := range manifests {
 		fullPath := filepath.Join(baseDir, fileName)
 		if err := ioutil.WriteFile(fullPath, contents, 0600); err != nil {
-			return fmt.Errorf("failed to write Flux manifest file %s: %s", fullPath, err)
+			return errors.Wrapf(err, "failed to write Flux manifest file %s", fullPath)
 		}
 	}
 	return nil
@@ -378,13 +361,13 @@ func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
 func readFluxManifests(baseDir string) (map[string][]byte, error) {
 	manifestFiles, err := ioutil.ReadDir(baseDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list Flux manifest files in %s: %s", baseDir, err)
+		return nil, errors.Wrapf(err, "failed to list Flux manifest files in %s", baseDir)
 	}
 	manifests := map[string][]byte{}
 	for _, manifestFile := range manifestFiles {
 		manifest, err := ioutil.ReadFile(manifestFile.Name())
 		if err != nil {
-			return nil, fmt.Errorf("failed to read Flux manifest file %s: %s", manifestFile.Name(), err)
+			return nil, errors.Wrapf(err, "failed to read Flux manifest file %s", manifestFile.Name())
 		}
 		manifests[manifestFile.Name()] = manifest
 	}
@@ -394,7 +377,7 @@ func readFluxManifests(baseDir string) (map[string][]byte, error) {
 func runShell(workDir string) error {
 	shell, err := loginshell.Shell()
 	if err != nil {
-		return fmt.Errorf("failed to obtain login shell %s: %s", shell, err)
+		return errors.Wrapf(err, "failed to obtain login shell %s", shell)
 	}
 	shellCmd := exec.Cmd{
 		Path:   shell,
@@ -406,7 +389,7 @@ func runShell(workDir string) error {
 	return shellCmd.Run()
 }
 
-func (fi *fluxInstaller) getManifestsAndSecrets(pki *publicKeyInfrastructure,
+func (fi *Installer) getManifestsAndSecrets(pki *publicKeyInfrastructure,
 	pkiPaths *publicKeyInfrastructurePaths) (map[string][]byte, []*corev1.Secret, error) {
 	manifests := map[string][]byte{}
 	secrets := []*corev1.Secret{}
@@ -418,10 +401,10 @@ func (fi *fluxInstaller) getManifestsAndSecrets(pki *publicKeyInfrastructure,
 	}
 
 	// Helm Operator
-	if fi.opts.noHelmOp {
+	if !fi.opts.WithHelmOp {
 		return manifests, secrets, nil
 	}
-	helmOpManifests, helmOpSecrets, err := getHelmOpManifestsAndSecrets(fi.opts.namespace, fi.opts.tillerNamespace, pki)
+	helmOpManifests, helmOpSecrets, err := getHelmOpManifestsAndSecrets(fi.opts.Namespace, pki)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -429,10 +412,7 @@ func (fi *fluxInstaller) getManifestsAndSecrets(pki *publicKeyInfrastructure,
 	secrets = append(secrets, helmOpSecrets...)
 
 	// Tiller
-	if fi.opts.noTiller {
-		return manifests, secrets, nil
-	}
-	tillerManifests, tillerSecrets, err := getTillerManifestsAndSecrets(fi.opts.tillerNamespace, fi.k8sClientSet, pkiPaths)
+	tillerManifests, tillerSecrets, err := getTillerManifestsAndSecrets(fi.opts.Namespace, fi.k8sClientSet, pkiPaths)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -442,37 +422,37 @@ func (fi *fluxInstaller) getManifestsAndSecrets(pki *publicKeyInfrastructure,
 	return manifests, secrets, nil
 }
 
-func getFluxManifests(opts *installFluxOpts, cs kubeclient.Interface) (map[string][]byte, error) {
+func getFluxManifests(opts *InstallOpts, cs kubeclient.Interface) (map[string][]byte, error) {
 	manifests := map[string][]byte{}
-	fluxNSExists, err := kubernetes.CheckNamespaceExists(cs, opts.namespace)
+	fluxNSExists, err := kubernetes.CheckNamespaceExists(cs, opts.Namespace)
 	if err != nil {
-		return nil, fmt.Errorf("cannot check if namespace %s exists: %s", opts.namespace, err)
+		return nil, errors.Wrapf(err, "cannot check if namespace %s exists", opts.Namespace)
 	}
 	if !fluxNSExists {
-		manifests[fluxNamespaceFileName] = kubernetes.NewNamespaceYAML(opts.namespace)
+		manifests[fluxNamespaceFileName] = kubernetes.NewNamespaceYAML(opts.Namespace)
 	}
 	fluxParameters := fluxinstall.TemplateParameters{
-		GitURL:             opts.gitURL,
-		GitBranch:          opts.gitBranch,
-		GitPaths:           opts.gitPaths,
-		GitLabel:           opts.gitLabel,
-		GitUser:            opts.gitUser,
-		GitEmail:           opts.gitEmail,
-		Namespace:          opts.namespace,
+		GitURL:             opts.GitURL,
+		GitBranch:          opts.GitBranch,
+		GitPaths:           opts.GitPaths,
+		GitLabel:           opts.GitLabel,
+		GitUser:            opts.GitUser,
+		GitEmail:           opts.GitEmail,
+		Namespace:          opts.Namespace,
 		AdditionalFluxArgs: []string{"--sync-garbage-collection", "--manifest-generation"},
 	}
 	fluxManifests, err := fluxinstall.FillInTemplates(fluxParameters)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Flux manifests: %s", err)
+		return nil, errors.Wrap(err, "failed to create Flux manifests")
 	}
 	return mergeMaps(manifests, fluxManifests), nil
 }
 
-func getHelmOpManifestsAndSecrets(namespace string, tillerNamespace string, pki *publicKeyInfrastructure) (map[string][]byte, []*corev1.Secret, error) {
+func getHelmOpManifestsAndSecrets(namespace string, pki *publicKeyInfrastructure) (map[string][]byte, []*corev1.Secret, error) {
 	var secrets []*corev1.Secret
 	helmOpParameters := helmopinstall.TemplateParameters{
 		Namespace:       namespace,
-		TillerNamespace: tillerNamespace,
+		TillerNamespace: namespace,
 		SSHSecretName:   "flux-git-deploy", // determined by the generated Flux manifests
 	}
 	if pki != nil {
@@ -495,23 +475,16 @@ func getHelmOpManifestsAndSecrets(namespace string, tillerNamespace string, pki 
 	}
 	manifests, err := helmopinstall.FillInTemplates(helmOpParameters)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create Flux Helm Operator Manifests: %s", err)
+		return nil, nil, errors.Wrap(err, "failed to create Helm Operator Manifests")
 	}
 	return manifests, secrets, nil
 }
 
-func getTillerManifestsAndSecrets(tillerNamespace string, cs kubeclient.Interface,
+func getTillerManifestsAndSecrets(namespace string, cs kubeclient.Interface,
 	pkiPaths *publicKeyInfrastructurePaths) (map[string][]byte, []*corev1.Secret, error) {
 	manifests := map[string][]byte{}
-	tillerNSExists, err := kubernetes.CheckNamespaceExists(cs, tillerNamespace)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot check if namespace %s exists: %s", tillerNamespace, err)
-	}
-	if !tillerNSExists {
-		manifests[tillerNamespaceFileName] = kubernetes.NewNamespaceYAML(tillerNamespace)
-	}
 	tillerOptions := &tillerinstall.Options{
-		Namespace:                    tillerNamespace,
+		Namespace:                    namespace,
 		ServiceAccount:               tillerServiceAccountName,
 		AutoMountServiceAccountToken: true,
 		MaxHistory:                   10,
@@ -524,24 +497,24 @@ func getTillerManifestsAndSecrets(tillerNamespace string, cs kubeclient.Interfac
 	}
 	tillerDeployment, err := tillerinstall.Deployment(tillerOptions)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate Tiller's Deployment: %s", err)
+		return nil, nil, errors.Wrap(err, "failed to generate Tiller's Deployment")
 	}
 	tillerDeploymentBytes, err := yaml.Marshal(tillerDeployment)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to serialize Tiller's Deployment: %s", err)
+		return nil, nil, errors.Wrap(err, "failed to serialize Tiller's Deployment")
 	}
 	manifests[tillerManifestPrefix+"dep.yaml"] = tillerDeploymentBytes
-	tillerService := tillerinstall.Service(tillerNamespace)
+	tillerService := tillerinstall.Service(namespace)
 	tillerServiceBytes, err := yaml.Marshal(tillerService)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to serialize Tiller's Deployment: %s", err)
+		return nil, nil, errors.Wrap(err, "failed to serialize Tiller's Deployment")
 	}
 	manifests[tillerManifestPrefix+"svc.yaml"] = tillerServiceBytes
-	tillerRBACManifests := fmt.Sprintf(tillerRBACTemplate, tillerServiceAccountName, tillerNamespace)
+	tillerRBACManifests := fmt.Sprintf(tillerRBACTemplate, tillerServiceAccountName, namespace)
 	manifests[tillerManifestPrefix+"rbac.yaml"] = []byte(tillerRBACManifests)
 	tillerSecret, err := tillerinstall.Secret(tillerOptions)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate Tiller's Secret: %s", err)
+		return nil, nil, errors.Wrap(err, "failed to generate Tiller's Secret")
 	}
 	return manifests, []*corev1.Secret{tillerSecret}, nil
 }

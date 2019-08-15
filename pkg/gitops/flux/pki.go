@@ -1,11 +1,10 @@
-package install
+package flux
 
 import (
 	"fmt"
 	"io/ioutil"
 	"time"
 
-	"github.com/cloudflare/cfssl/cli/genkey"
 	"github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/cloudflare/cfssl/helpers"
@@ -13,6 +12,7 @@ import (
 	"github.com/cloudflare/cfssl/log"
 	"github.com/cloudflare/cfssl/signer"
 	"github.com/cloudflare/cfssl/signer/local"
+	"github.com/pkg/errors"
 )
 
 type publicKeyInfrastructurePaths struct {
@@ -33,17 +33,17 @@ type publicKeyInfrastructure struct {
 	clientKey         []byte
 }
 
-type devnull struct{}
+type noopLogger struct{}
 
-func (devnull) Debug(string)   {}
-func (devnull) Info(string)    {}
-func (devnull) Warning(string) {}
-func (devnull) Err(string)     {}
-func (devnull) Crit(string)    {}
-func (devnull) Emerg(string)   {}
+func (noopLogger) Debug(string)   {}
+func (noopLogger) Info(string)    {}
+func (noopLogger) Warning(string) {}
+func (noopLogger) Err(string)     {}
+func (noopLogger) Crit(string)    {}
+func (noopLogger) Emerg(string)   {}
 func init() {
 	// Disable logging of cfssl since we handle errors explicitly
-	log.SetLogger(devnull{})
+	log.SetLogger(noopLogger{})
 }
 
 func newPKI(hostName string, validFor time.Duration, rsaKeyBitSize int) (*publicKeyInfrastructure, error) {
@@ -59,20 +59,20 @@ func newPKI(hostName string, validFor time.Duration, rsaKeyBitSize int) (*public
 	}
 	caCert, _, caKey, err := initca.New(caReq)
 	if err != nil {
-		return nil, fmt.Errorf("cannot generate root CA: %s", err)
+		return nil, errors.Wrap(err, "cannot generate root CA")
 	}
 
 	// Generate Server Certificate
 	serverCert, serverKey, err := generateCertificate(caCert, caKey, keyReq, hostName, "server", validFor)
 	if err != nil {
-		return nil, fmt.Errorf("cannot generate server certificate: %s", err)
+		return nil, errors.Wrap(err, "cannot generate server certificate")
 	}
 
 	// Generate Client certificate
 	generateCertificate(caCert, caKey, keyReq, hostName, "client", validFor)
 	clientCert, clientKey, err := generateCertificate(caCert, caKey, keyReq, hostName, "client", validFor)
 	if err != nil {
-		return nil, fmt.Errorf("cannot generate client certificate: %s", err)
+		return nil, errors.Wrap(err, "cannot generate client certificate")
 	}
 	pki := &publicKeyInfrastructure{
 		caCertificate:     caCert,
@@ -104,17 +104,16 @@ func generateCertificate(caCert []byte, caKey []byte, keyReq *csr.KeyRequest,
 	}
 	certSigner, err := local.NewSigner(priv, parsedCa, signer.DefaultSigAlgo(priv), policy)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot create signer: %s", err)
+		return nil, nil, errors.Wrap(err, "cannot create signer")
 	}
-	serverReq := &csr.CertificateRequest{
+	req := &csr.CertificateRequest{
 		KeyRequest: keyReq,
 		CN:         commonName,
 		Hosts:      []string{hostName},
 	}
-	g := &csr.Generator{Validator: genkey.Validator}
-	csrBytes, key, err := g.ProcessRequest(serverReq)
+	csrBytes, key, err := csr.ParseRequest(req)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot process server-certificate signing request: %s", err)
+		return nil, nil, errors.Wrap(err, "cannot process certificate signing request")
 	}
 	serverSignRequest := signer.SignRequest{
 		Request: string(csrBytes),
@@ -122,29 +121,9 @@ func generateCertificate(caCert []byte, caKey []byte, keyReq *csr.KeyRequest,
 	}
 	cert, err := certSigner.Sign(serverSignRequest)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot generate server certificate: %s", err)
+		return nil, nil, err
 	}
 	return cert, key, nil
-}
-
-func (pki *publicKeyInfrastructure) loadFrom(paths *publicKeyInfrastructurePaths) error {
-	for path, destination := range map[string]*[]byte{
-		paths.caCertificate:     &pki.caCertificate,
-		paths.caKey:             &pki.caKey,
-		paths.serverCertificate: &pki.serverCertificate,
-		paths.serverKey:         &pki.serverKey,
-		paths.clientCertificate: &pki.clientCertificate,
-		paths.clientKey:         &pki.clientKey,
-	} {
-		if len(path) == 0 {
-			continue
-		}
-		var err error
-		if *destination, err = ioutil.ReadFile(path); err != nil {
-			return fmt.Errorf("cannot read file %q: %s", path, err)
-		}
-	}
-	return nil
 }
 
 func (pki *publicKeyInfrastructure) saveTo(paths *publicKeyInfrastructurePaths) error {
@@ -160,7 +139,7 @@ func (pki *publicKeyInfrastructure) saveTo(paths *publicKeyInfrastructurePaths) 
 			continue
 		}
 		if err := ioutil.WriteFile(path, content, 0400); err != nil {
-			return fmt.Errorf("cannot write file %q: %s", path, err)
+			return errors.Wrapf(err, "cannot write file %q", path)
 		}
 	}
 	return nil
