@@ -7,5 +7,5 @@ import (
 )
 
 func init() {
-	apiextensionsv1beta1.AddToScheme(scheme.Scheme)
+	_ = apiextensionsv1beta1.AddToScheme(scheme.Scheme)
 }

@@ -50,6 +50,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		if kubeconfigTemp {
 			os.Remove(kubeconfigPath)
 		}
+		os.RemoveAll(testDirectory)
 	})
 
 	Describe("when creating a cluster with 1 node", func() {

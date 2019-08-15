@@ -1,13 +1,14 @@
 package git
 
 import (
+	"os"
+	"os/exec"
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	"github.com/weaveworks/eksctl/pkg/git/executor"
-	"os"
-	"os/exec"
-	"strings"
 )
 
 var _ = Describe("GitClient", func() {
@@ -20,7 +21,7 @@ var _ = Describe("GitClient", func() {
 
 	BeforeEach(func() {
 		fakeExecutor = new(executor.FakeExecutor)
-		gitClient = NewGitClientFromExecutor("test-user", "test-user@example.com", fakeExecutor)
+		gitClient = NewGitClientFromExecutor(fakeExecutor)
 	})
 
 	AfterEach(func() {
@@ -71,7 +72,7 @@ var _ = Describe("GitClient", func() {
 			return args[0] == "commit"
 		})).Return(nil)
 
-		err := gitClient.Commit("test commit")
+		err := gitClient.Commit("test commit", "test-user", "test-user@example.com")
 
 		Expect(err).To(Not(HaveOccurred()))
 		Expect(fakeExecutor.Calls[0].Arguments[0]).To(Equal("git"))

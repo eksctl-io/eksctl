@@ -4,6 +4,7 @@ package integration_test
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
@@ -37,7 +38,9 @@ func newKubeTest() (*harness.Test, error) {
 
 func eksctl(args ...string) *gexec.Session {
 	command := exec.Command(eksctlPath, args...)
-	fmt.Fprintf(GinkgoWriter, "calling %q with %v\n", eksctlPath, args)
+	command.Env = os.Environ()
+	command.Env = append(command.Env, "EKSCTL_EXPERIMENTAL=true")
+	fmt.Fprintf(GinkgoWriter, "calling %q with %s and %v\n", eksctlPath, "EKSCTL_EXPERIMENTAL=true", args)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	if err != nil {
 		Fail(fmt.Sprintf("error starting process: %v\n", err), 1)

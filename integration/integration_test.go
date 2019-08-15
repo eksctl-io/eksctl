@@ -23,6 +23,7 @@ var (
 	kubeconfigPath string
 
 	kubeconfigTemp bool
+	testDirectory  = "test_profile"
 )
 
 func init() {

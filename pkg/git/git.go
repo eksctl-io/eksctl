@@ -3,37 +3,37 @@ package git
 import (
 	"context"
 	"fmt"
-	"github.com/kris-nova/logger"
-	"github.com/weaveworks/eksctl/pkg/git/executor"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/kris-nova/logger"
+	"github.com/weaveworks/eksctl/pkg/git/executor"
 )
+
+// Cloner can clone git repositories
+type Cloner interface {
+	CloneRepo(cloneDirPrefix string, branch string, gitURL string) (string, error)
+}
 
 // Client can perform git operations on the given directory
 type Client struct {
 	executor executor.Executor
 	dir      string
-	user     string
-	email    string
 }
 
 // NewGitClient returns a client that can perform git operations
-func NewGitClient(ctx context.Context, user string, email string, timeout time.Duration) *Client {
+func NewGitClient(ctx context.Context, timeout time.Duration) *Client {
 	return &Client{
 		executor: executor.NewShellExecutor(ctx, timeout),
-		user:     user,
-		email:    email,
 	}
 }
 
 // NewGitClientFromExecutor returns a client that can have an executor injected. Useful for testing
-func NewGitClientFromExecutor(user string, email string, executor executor.Executor) *Client {
+func NewGitClientFromExecutor(executor executor.Executor) *Client {
 	return &Client{
 		executor: executor,
-		user:     user,
-		email:    email,
 	}
 }
 
@@ -44,10 +44,14 @@ func (git *Client) CloneRepo(cloneDirPrefix string, branch string, gitURL string
 		return "", fmt.Errorf("cannot create temporary directory: %s", err)
 	}
 
-	git.dir = cloneDir
+	return cloneDir, git.CloneRepoInPath(cloneDir, branch, gitURL)
+}
+
+// CloneRepoInPath clones a repo to the specified directory
+func (git *Client) CloneRepoInPath(clonePath string, branch string, gitURL string) error {
+	git.dir = clonePath
 	args := []string{"clone", "-b", branch, gitURL, git.dir}
-	err = git.runGitCmd(args...)
-	return git.dir, err
+	return git.runGitCmd(args...)
 }
 
 // Add performs can perform a `git add` operation on the given file paths
@@ -60,7 +64,7 @@ func (git Client) Add(files ...string) error {
 }
 
 // Commit  makes a commit if there are staged changes
-func (git Client) Commit(message string) error {
+func (git Client) Commit(message, user, email string) error {
 	// Note, this useed to do runGitCmd(diffCtx, git.dir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
 	if err := git.runGitCmd("diff", "--cached", "--quiet"); err == nil {
 		logger.Info("Nothing to commit (the repository contained identical files), moving on")
@@ -72,7 +76,7 @@ func (git Client) Commit(message string) error {
 	// Commit
 	args := []string{"commit",
 		"-m", message,
-		fmt.Sprintf("--author=%s <%s>", git.user, git.email),
+		fmt.Sprintf("--author=%s <%s>", user, email),
 	}
 	if err := git.runGitCmd(args...); err != nil {
 		return err
