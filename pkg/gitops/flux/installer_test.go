@@ -22,7 +22,7 @@ var _ = Describe("Installer", func() {
 		GitEmail:    "gitemail@example.com",
 		GitFluxPath: "fluxpath/",
 		Namespace:   "fluxnamespace",
-		WithHelmOp:  true,
+		WithHelm:    true,
 	}
 	mockInstaller := &Installer{
 		opts:         mockOpts,

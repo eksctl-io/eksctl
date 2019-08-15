@@ -79,7 +79,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 			"Directory within the Git repository where to commit the Flux manifests")
 		fs.StringVar(&opts.Namespace, "namespace", "flux",
 			"Cluster namespace where to install Flux, the Helm Operator and Tiller")
-		fs.BoolVar(&opts.WithHelmOp, "with-helmop", true,
+		fs.BoolVar(&opts.WithHelm, "with-helm", true,
 			"Install the Helm Operator and Tiller")
 		fs.BoolVar(&opts.Amend, "amend", false,
 			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")

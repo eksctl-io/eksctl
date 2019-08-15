@@ -104,7 +104,7 @@ type InstallOpts struct {
 	Namespace   string
 	Timeout     time.Duration
 	Amend       bool
-	WithHelmOp  bool
+	WithHelm    bool
 }
 
 // Installer installs Flux
@@ -187,7 +187,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 		logger.Warning("Note: certificate secrets aren't added to the Git repository for security reasons")
 	}
 
-	if !fi.opts.WithHelmOp {
+	if !fi.opts.WithHelm {
 		logger.Info("Waiting for Helm Operator to start")
 		if err := waitForHelmOpToStart(ctx, fi.opts.Namespace, fi.opts.Timeout, fi.k8sRestConfig, fi.k8sClientSet); err != nil {
 			return err
@@ -215,7 +215,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 }
 
 func (fi *Installer) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrastructurePaths, error) {
-	if !fi.opts.WithHelmOp {
+	if !fi.opts.WithHelm {
 		return nil, nil, nil
 	}
 
@@ -356,7 +356,7 @@ func (fi *Installer) getManifestsAndSecrets(pki *publicKeyInfrastructure,
 	}
 
 	// Helm Operator
-	if !fi.opts.WithHelmOp {
+	if !fi.opts.WithHelm {
 		return manifests, secrets, nil
 	}
 	helmOpManifests, helmOpSecrets, err := getHelmOpManifestsAndSecrets(fi.opts.Namespace, pki)
