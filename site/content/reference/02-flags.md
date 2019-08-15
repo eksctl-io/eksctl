@@ -138,7 +138,9 @@ If your tag values include spaces, be sure to wrap the value string for this fla
 
 ### example
 
-`--tags "Owner=John Doe,Team=Some Team"`
+```
+--tags "Owner=John Doe,Team=Some Team"
+```
 
 ### supported commands
 
@@ -205,7 +207,9 @@ AWS zones associated with the EKS cluster.  By default, eksctl will auto-select 
 
 ### example
 
-`eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`
+```
+eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d
+```
 
 ### supported commands
 
