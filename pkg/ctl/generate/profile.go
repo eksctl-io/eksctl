@@ -29,7 +29,8 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 
 type options struct {
 	gitops.GitOptions
-	ProfilePath string
+	ProfilePath       string
+	PrivateSSHKeyPath string
 }
 
 func generateProfileCmd(cmd *cmdutils.Cmd) {
@@ -49,6 +50,8 @@ func generateProfileCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&o.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "./", "Path to generate the profile in")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
+		fs.StringVar(&o.PrivateSSHKeyPath, "git-private-ssh-key-path", "",
+			"Optional path to the private SSH key to use with Git, e.g.: ~/.ssh/id_rsa")
 
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
@@ -74,9 +77,12 @@ func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
 		Processor: processor,
 		Path:      o.ProfilePath,
 		GitOpts:   o.GitOptions,
-		GitCloner: git.NewGitClient(context.Background(), defaultGitTimeout),
-		FS:        afero.NewOsFs(),
-		IO:        afero.Afero{Fs: afero.NewOsFs()},
+		GitCloner: git.NewGitClient(context.Background(), git.ClientParams{
+			Timeout:           defaultGitTimeout,
+			PrivateSSHKeyPath: o.PrivateSSHKeyPath,
+		}),
+		FS: afero.NewOsFs(),
+		IO: afero.Afero{Fs: afero.NewOsFs()},
 	}
 
 	err := profile.Generate(context.Background())

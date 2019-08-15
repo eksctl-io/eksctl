@@ -23,10 +23,16 @@ type Client struct {
 	dir      string
 }
 
+// ClientParams groups the arguments to provide to create a new Git client.
+type ClientParams struct {
+	Timeout           time.Duration
+	PrivateSSHKeyPath string
+}
+
 // NewGitClient returns a client that can perform git operations
-func NewGitClient(ctx context.Context, timeout time.Duration) *Client {
+func NewGitClient(ctx context.Context, params ClientParams) *Client {
 	return &Client{
-		executor: executor.NewShellExecutor(ctx, timeout),
+		executor: executor.NewShellExecutor(ctx, params.Timeout, params.PrivateSSHKeyPath),
 	}
 }
 
@@ -63,9 +69,9 @@ func (git Client) Add(files ...string) error {
 	return nil
 }
 
-// Commit  makes a commit if there are staged changes
+// Commit makes a commit if there are staged changes
 func (git Client) Commit(message, user, email string) error {
-	// Note, this useed to do runGitCmd(diffCtx, git.dir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
+	// Note, this used to do runGitCmd(diffCtx, git.dir, "diff", "--cached", "--quiet", "--", fi.opts.gitFluxPath); err == nil {
 	if err := git.runGitCmd("diff", "--cached", "--quiet"); err == nil {
 		logger.Info("Nothing to commit (the repository contained identical files), moving on")
 		return nil
