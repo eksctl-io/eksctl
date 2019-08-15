@@ -21,7 +21,7 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/evanphx/json-patch v4.2.0+incompatible
-	github.com/fluxcd/helm-operator v0.0.0-20190813115430-0c769f5cbb3e
+	github.com/fluxcd/helm-operator v1.0.0-rc1
 	github.com/go-ini/ini v1.37.0 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3
