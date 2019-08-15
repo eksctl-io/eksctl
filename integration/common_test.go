@@ -74,3 +74,16 @@ func eksctlFail(args ...string) *gexec.Session {
 	Expect(session.ExitCode()).To(Not(Equal(0)))
 	return session
 }
+
+//eksctlStart starts running an eksctl command, waits 45 seconds, but doesn't wait for it to finish the command
+//This is primarily so that we can run eksctl create ... and then subsequently call eksctl delete on the same cluster.
+func eksctlStart(args ...string) error {
+	cmd := exec.Command(eksctlPath, args...)
+	fmt.Fprintf(GinkgoWriter, "calling %q with %v\n", eksctlPath, args)
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+	time.Sleep(45 * time.Second)
+	return nil
+}

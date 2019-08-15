@@ -33,6 +33,7 @@ func (c *ClusterProvider) DescribeControlPlane(cl *api.ClusterMeta) (*awseks.Clu
 }
 
 // DescribeControlPlaneMustBeActive describes the cluster control plane and checks if status is active
+// If status isn't active and error will be returned unless strict is set to false.
 func (c *ClusterProvider) DescribeControlPlaneMustBeActive(cl *api.ClusterMeta) (*awseks.Cluster, error) {
 	cluster, err := c.DescribeControlPlane(cl)
 	if err != nil {
@@ -56,6 +57,7 @@ func (c *ClusterProvider) RefreshClusterConfig(spec *api.ClusterConfig) error {
 	if err != nil {
 		return err
 	}
+
 	logger.Debug("cluster = %#v", cluster)
 
 	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
