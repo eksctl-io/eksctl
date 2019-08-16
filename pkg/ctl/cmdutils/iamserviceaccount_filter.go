@@ -6,6 +6,7 @@ import (
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 // IAMServiceAccountFilter holds filter configuration
@@ -39,7 +40,7 @@ func (f *IAMServiceAccountFilter) AppendIncludeGlobs(serviceAccounts []*api.Clus
 
 // SetExcludeExistingFilter uses stackManager to list existing nodegroup stacks and configures
 // the filter accordingly
-func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager *manager.StackCollection) error {
+func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager *manager.StackCollection, clientSet kubernetes.Interface, serviceAccounts []*api.ClusterIAMServiceAccount, overrideExistingServiceAccounts bool) error {
 	if f.ExcludeAll {
 		return nil
 	}
@@ -47,6 +48,22 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager *manager
 	existing, err := stackManager.ListIAMServiceAccountStacks()
 	if err != nil {
 		return err
+	}
+
+	if !overrideExistingServiceAccounts {
+		err := f.ForEach(serviceAccounts, func(_ int, sa *api.ClusterIAMServiceAccount) error {
+			exists, err := kubernetes.CheckServiceAccountExists(clientSet, sa.ObjectMeta)
+			if err != nil {
+				return err
+			}
+			if exists {
+				existing = append(existing, sa.NameString())
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return f.doSetExcludeExistingFilter(existing, "iamserviceaccount")

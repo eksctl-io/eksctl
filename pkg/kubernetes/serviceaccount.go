@@ -39,6 +39,7 @@ func CheckServiceAccountExists(clientSet Interface, meta metav1.ObjectMeta) (boo
 // meta will be retained
 func MaybeCreateServiceAccountOrUpdateMetadata(clientSet Interface, meta metav1.ObjectMeta) error {
 	name := meta.Namespace + "/" + meta.Name
+
 	if err := MaybeCreateNamespace(clientSet, meta.Namespace); err != nil {
 		return err
 	}
@@ -54,6 +55,9 @@ func MaybeCreateServiceAccountOrUpdateMetadata(clientSet Interface, meta metav1.
 		logger.Info("created serviceaccount %q", name)
 		return nil
 	}
+
+	logger.Info("serviceaccount %q already exists", name)
+
 	current, err := clientSet.CoreV1().ServiceAccounts(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if err != nil {
 		return err

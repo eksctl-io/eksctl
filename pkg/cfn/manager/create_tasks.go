@@ -5,9 +5,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
@@ -37,9 +37,6 @@ func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup
 
 	for i := range c.spec.NodeGroups {
 		ng := c.spec.NodeGroups[i]
-		if onlySubset != nil && !onlySubset.Has(ng.NameString()) {
-			continue
-		}
 		tasks.Append(&taskWithNodeGroupSpec{
 			info:      fmt.Sprintf("create nodegroup %q", ng.NameString()),
 			nodeGroup: ng,
@@ -73,6 +70,7 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(onlySubset sets.Str
 			oidc:           oidc,
 			call:           c.createIAMServiceAccountTask,
 		})
+
 		saTasks.Append(&kubernetesTask{
 			info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
 			kubernetes: clientSetGetter,

@@ -22,10 +22,12 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cfg.IAM.WithOIDC = api.Enabled()
 	cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, serviceAccount)
 
+	var overrideExistingServiceAccounts bool
+
 	cmd.SetDescription("iamserviceaccount", "Create an iamserviceaccount - AWS IAM role bound to a Kubernetes service account", "")
 
 	cmd.SetRunFunc(func() error {
-		return doCreateIAMServiceAccount(cmd)
+		return doCreateIAMServiceAccount(cmd, overrideExistingServiceAccounts)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -34,6 +36,8 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to create")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
 		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
+
+		fs.BoolVar(&overrideExistingServiceAccounts, "override-existing-serviceaccounts", false, "create IAM roles for existing serviceaccounts and update the serviceaccount")
 
 		cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddApproveFlag(fs, cmd)
@@ -45,7 +49,7 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
-func doCreateIAMServiceAccount(cmd *cmdutils.Cmd) error {
+func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
 	saFilter := cmdutils.NewIAMServiceAccountFilter()
 
 	if err := cmdutils.NewCreateIAMServiceAccountLoader(cmd, saFilter).Load(); err != nil {
@@ -93,12 +97,17 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := saFilter.SetExcludeExistingFilter(stackManager); err != nil {
+	if err := saFilter.SetExcludeExistingFilter(stackManager, clientSet, cfg.IAM.ServiceAccounts, overrideExistingServiceAccounts); err != nil {
 		return err
 	}
 
 	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
 	saFilter.LogInfo(cfg.IAM.ServiceAccounts)
+	if !overrideExistingServiceAccounts {
+		logger.Warning("serviceaccounts that exists in Kubernetes will be excluded, use --include-existing-serviceaccounts to override")
+	} else {
+		logger.Warning("metadata of serviceaccounts that exist in Kubernetes will be updated, as --include-existing-serviceaccounts was set")
+	}
 
 	tasks := stackManager.NewTasksToCreateIAMServiceAccounts(saSubset, oidc, kubernetes.NewCachedClientSet(clientSet))
 	tasks.PlanMode = cmd.Plan
