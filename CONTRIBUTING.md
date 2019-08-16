@@ -170,12 +170,35 @@ This allows the message to be easier to read on GitHub as well as in various git
 ## Release Process
 
 1. Ensure integration tests pass (ETA: 45 minutes ; more details below).
-2. Determine next release tag (e.g. `0.1.35`).
-3. Create release notes file for the given tag – `docs/release_notes/<tag>.md` (e.g. `docs/release_notes/0.1.35.md`).
-4. Run `./tag-release-candidate.sh <tag>-rc.<N>` or `./tag-release.sh <tag>` (e.g. `./tag-release-candidate.sh 0.1.35-rc.0` or `./tag-release.sh 0.1.35`).
-5. Ensure release jobs succeeded in [CircleCI](https://circleci.com/gh/weaveworks/eksctl).
-6. Ensure the release was successfully [published in Github](https://github.com/weaveworks/eksctl/releases).
-7. Download the binary just released, verify its checksum, and perform any relevant manual testing.
+2. Determine the next release tag, e.g.:
+
+   - for a release candidate, `0.4.0-rc.0`, or
+   - for a release, `0.4.0`.
+
+3. Create a `docs/release_notes/<tag>.md` release notes file for the given tag, e.g.:
+
+    ```console
+    touch docs/release_notes/0.4.0.md
+    ```
+
+4. Check out the latest `master`:
+
+    ```console
+    git checkout master
+    git fetch origin master
+    git merge --ff-only origin/master
+    ```
+
+5. Run:
+
+   - for a release candidate: `./tag-release-candidate.sh <tag>-rc.<N>`
+     e.g.: `./tag-release-candidate.sh 0.4.0-rc.0`, or
+   - for a release: `./tag-release.sh <tag>`
+     e.g.: `./tag-release.sh 0.4.0`.
+
+6. Ensure release jobs succeeded in [CircleCI](https://circleci.com/gh/weaveworks/eksctl).
+7. Ensure the release was successfully [published in Github](https://github.com/weaveworks/eksctl/releases).
+8. Download the binary just released, verify its checksum, and perform any relevant manual testing.
 
 ### Notes on Integration Tests
 
@@ -203,7 +226,7 @@ FAIL! -- 24 Passed | 2 Failed | 0 Pending | 0 Skipped
 
 When you run `./tag-release.sh <tag>` it will push a commit to master and a tag, which will trigger [release workflow](https://github.com/weaveworks/eksctl/blob/38364943776230bcc9ad57a9f8a423c7ec3fb7fe/.circleci/config.yml#L28-L42) in Circle CI. This runs `make eksctl-image` followed by `make release`. Most of the logic is defined in [`do-release.sh`](https://github.com/weaveworks/eksctl/blob/master/do-release.sh).
 
-You want to keep an eye on Circle CI for the progress of the release ([0.1.35 example logs](https://circleci.com/workflow-run/3553542c-88ad-4a77-bd42-441da4c87fa1)). It normally takes 15-20 minutes.
+You want to keep an eye on Circle CI for the progress of the release ([0.3.1 example logs](https://circleci.com/workflow-run/02d8b5fb-bc7f-404c-9051-68307c124649)). It normally takes around 30 minutes.
 
 ### Notes on Artefacts
 
@@ -211,5 +234,5 @@ We use `latest_release` floating tag, in order to enable static URLs for release
 
 That means you will see two entries on [the release page](https://github.com/weaveworks/eksctl/releases):
 
-- [**eksctl 0.1.35 (permalink)**](https://github.com/weaveworks/eksctl/releases/tag/0.1.35)
-- [**eksctl 0.1.35**](https://github.com/weaveworks/eksctl/releases/tag/latest_release)
+- [**eksctl 0.4.0 (permalink)**](https://github.com/weaveworks/eksctl/releases/tag/0.4.0)
+- [**eksctl 0.4.0**](https://github.com/weaveworks/eksctl/releases/tag/latest_release)
