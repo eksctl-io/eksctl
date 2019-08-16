@@ -25,8 +25,6 @@ const (
 	Repository = "git@github.com:eksctl-bot/my-gitops-repo.git"
 	// Email is the default testing Git email.
 	Email = "eksctl-bot@weave.works"
-	// PrivateSSHKeyPath is the default SSH key to use for Git operations.
-	PrivateSSHKeyPath = "~/.ssh/eksctl-bot_id_rsa"
 	// Name is the default cluster name to test against.
 	Name = "autoscaler"
 	// Region is the default region to test against.
@@ -93,7 +91,7 @@ func gitWith(params gitParams) error {
 }
 
 func gitSSHCommand() []string {
-	return []string{fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", PrivateSSHKeyPath)}
+	return []string{fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", privateSSHKeyPath)}
 }
 
 func assertFluxManifestsAbsentInGit(branch string) {

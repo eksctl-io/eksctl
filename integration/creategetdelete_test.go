@@ -125,7 +125,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Args: []string{"install", "flux",
 						"--git-url", Repository,
 						"--git-email", Email,
-						"--git-private-ssh-key-path", PrivateSSHKeyPath,
+						"--git-private-ssh-key-path", privateSSHKeyPath,
 						"--git-branch", branch,
 						"--name", clusterName,
 						"--region", region,

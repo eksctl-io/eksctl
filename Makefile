@@ -95,6 +95,7 @@ integration-test-container-pre-built: ## Run the integration tests inside a Dock
 	docker run \
 	  --env=AWS_PROFILE \
 	  --volume=$(HOME)/.aws:/root/.aws \
+	  --volume=$(HOME)/.ssh:/root/.ssh \
 	  --workdir=/usr/local/share/eksctl \
 	    $(EKSCTL_IMAGE) \
 		  eksctl-integration-test \
