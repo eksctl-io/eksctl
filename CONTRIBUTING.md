@@ -191,10 +191,17 @@ This allows the message to be easier to read on GitHub as well as in various git
 
 5. Run:
 
-   - for a release candidate: `./tag-release-candidate.sh <tag>-rc.<N>`
-     e.g.: `./tag-release-candidate.sh 0.4.0-rc.0`, or
-   - for a release: `./tag-release.sh <tag>`
-     e.g.: `./tag-release.sh 0.4.0`.
+   - for a release candidate: `./tag-release-candidate.sh <tag>-rc.<N>`, e.g.:
+
+     ```console
+     ./tag-release-candidate.sh 0.4.0-rc.0
+     ```
+
+   - for a release: `./tag-release.sh <tag>`, e.g.:
+
+     ```console
+     ./tag-release.sh 0.4.0
+     ```
 
 6. Ensure release jobs succeeded in [CircleCI](https://circleci.com/gh/weaveworks/eksctl).
 7. Ensure the release was successfully [published in Github](https://github.com/weaveworks/eksctl/releases).
