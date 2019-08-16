@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/weaveworks/eksctl/pkg/ctl/generate"
+	"github.com/weaveworks/eksctl/pkg/ctl/gitops"
+
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -30,6 +32,7 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	if os.Getenv("EKSCTL_EXPERIMENTAL") == "true" {
 		rootCmd.AddCommand(install.Command(flagGrouping))
 		rootCmd.AddCommand(generate.Command(flagGrouping))
+		rootCmd.AddCommand(gitops.Command(flagGrouping))
 	}
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))

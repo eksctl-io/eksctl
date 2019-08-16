@@ -22,16 +22,11 @@ const (
 type Profile struct {
 	Processor fileprocessor.FileProcessor
 	Path      string
-	GitOpts   GitOptions
+	GitOpts   git.Options
 	GitCloner git.Cloner
 	FS        afero.Fs
 	IO        afero.Afero
-}
-
-// GitOptions holds options for cloning a git repository
-type GitOptions struct {
-	URL    string
-	Branch string
+	clonedDir string
 }
 
 // Generate clones the specified Git repo in a base directory and generates overlays if the Git repo
@@ -42,7 +37,7 @@ func (p *Profile) Generate(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrapf(err, "error cloning repository %s", p.GitOpts.URL)
 	}
-	defer p.deleteClonedDirectory(clonedDir)
+	p.clonedDir = clonedDir
 
 	allManifests, err := p.loadFiles(clonedDir)
 	if err != nil {
@@ -70,10 +65,15 @@ func (p *Profile) Generate(ctx context.Context) error {
 	return nil
 }
 
-func (p *Profile) deleteClonedDirectory(path string) {
-	logger.Debug("deleting cloned directory %q", path)
-	if err := p.IO.RemoveAll(path); err != nil {
-		logger.Warning("unable to delete cloned directory %q", path)
+// DeleteClonedDirectory deletes the directory where the repository was cloned
+func (p *Profile) DeleteClonedDirectory() {
+	if p.clonedDir == "" {
+		logger.Debug("no cloned directory to delete")
+		return
+	}
+	logger.Debug("deleting cloned directory %q", p.clonedDir)
+	if err := p.IO.RemoveAll(p.clonedDir); err != nil {
+		logger.Warning("unable to delete cloned directory %q", p.clonedDir)
 	}
 }
 

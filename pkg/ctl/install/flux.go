@@ -62,9 +62,16 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 		if err != nil {
 			return errors.Errorf("cannot create Kubernetes client set: %s", err)
 		}
+
 		installer := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &opts)
-		return installer.Run(context.Background())
+		err = installer.Run(context.Background())
+		if err != nil {
+			return err
+		}
+		installer.DeleteCloneDir()
+		return nil
 	})
+
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
 		fs.StringVar(&opts.GitURL, "git-url", "",
 			"URL of the Git repository to be used by Flux, e.g. git@github.com:<github_org>/flux-get-started")

@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/git/executor"
 )
 
@@ -27,6 +31,15 @@ type Client struct {
 type ClientParams struct {
 	Timeout           time.Duration
 	PrivateSSHKeyPath string
+	Dir               string
+}
+
+// Options holds options for cloning a git repository
+type Options struct {
+	URL    string
+	Branch string
+	User   string
+	Email  string
 }
 
 // NewGitClient returns a client that can perform git operations
@@ -64,6 +77,9 @@ func (git *Client) CloneRepo(cloneDirPrefix string, branch string, gitURL string
 // CloneRepoInPath clones a repo to the specified directory
 func (git *Client) CloneRepoInPath(clonePath string, branch string, gitURL string) error {
 	git.dir = clonePath
+	if err := os.MkdirAll(git.dir, 0755); err != nil {
+		return errors.Wrapf(err, "unable to create directory for cloning")
+	}
 	args := []string{"clone", "-b", branch, gitURL, git.dir}
 	return git.runGitCmd(args...)
 }
@@ -132,6 +148,21 @@ func (git Client) DeleteLocalRepo() error {
 	return fmt.Errorf("no cloned directory to delete")
 }
 
+// RepoName returns the name of the repository given its URL
+func RepoName(repoURL string) (string, error) {
+	// FIXME: urls like git@github.com:weaveworks/eksctl produce the error "first path segment in URL cannot contain colon"
+	u, err := url.Parse(strings.ReplaceAll(repoURL, ":", "/"))
+	if err != nil {
+		return "", errors.Wrapf(err, "unable to parse git url '%s'", repoURL)
+	}
+	parts := strings.Split(u.Path, "/")
+	if len(parts) == 0 {
+		return "", fmt.Errorf("could not find name of repository %s", repoURL)
+	}
+	return parts[len(parts)-1], nil
+}
+
 func (git Client) runGitCmd(args ...string) error {
+	logger.Debug(fmt.Sprintf("running git %v in %s", args, git.dir))
 	return git.executor.Exec("git", git.dir, args...)
 }

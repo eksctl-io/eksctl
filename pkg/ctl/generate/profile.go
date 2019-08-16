@@ -21,7 +21,7 @@ const (
 )
 
 type options struct {
-	gitops.GitOptions
+	GitOptions        git.Options
 	ProfilePath       string
 	PrivateSSHKeyPath string
 }
@@ -39,8 +39,8 @@ func generateProfileCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&o.URL, "git-url", "", "", "URL for the quickstart base repository")
-		fs.StringVarP(&o.Branch, "git-branch", "", "master", "Git branch")
+		fs.StringVarP(&o.GitOptions.URL, "git-url", "", "", "URL for the quickstart base repository")
+		fs.StringVarP(&o.GitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "./", "Path to generate the profile in")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
 		fs.StringVar(&o.PrivateSSHKeyPath, "git-private-ssh-key-path", "",
@@ -84,5 +84,6 @@ func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
 		return errors.Wrap(err, "error generating profile")
 	}
 
+	profile.DeleteClonedDirectory()
 	return nil
 }

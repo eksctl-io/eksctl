@@ -106,6 +106,7 @@ type InstallOpts struct {
 	Timeout              time.Duration
 	Amend                bool
 	WithHelm             bool
+        OutputPath           string
 }
 
 // Installer installs Flux
@@ -114,6 +115,7 @@ type Installer struct {
 	k8sRestConfig *rest.Config
 	k8sClientSet  kubeclient.Interface
 	gitClient     *git.Client
+	clonedDir     string
 }
 
 // NewInstaller creates a new Flux installer
@@ -145,23 +147,25 @@ func (fi *Installer) Run(ctx context.Context) error {
 	}
 
 	logger.Info("Cloning %s", fi.opts.GitURL)
-	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.GitBranch, fi.opts.GitURL)
-	if err != nil {
-		return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitURL)
-	}
-	cleanCloneDir := false
-	defer func() {
-		if cleanCloneDir {
-			_ = fi.gitClient.DeleteLocalRepo()
-		} else {
-			logger.Critical("You may find the local clone of %s used by eksctl at %s",
-				fi.opts.GitURL,
-				cloneDir)
+	if fi.opts.OutputPath != "" {
+		repoName, err := git.RepoName(fi.opts.GitURL)
+		if err != nil {
+			return err
 		}
-	}()
+		fi.clonedDir = filepath.Join(fi.opts.OutputPath, repoName)
+		err = fi.gitClient.CloneRepoInPath(fi.clonedDir, fi.opts.GitBranch, fi.opts.GitURL)
+		if err != nil {
+			return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitURL)
+		}
+	} else {
+		fi.clonedDir, err = fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.GitBranch, fi.opts.GitURL)
+		if err != nil {
+			return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitURL)
+		}
+	}
 
 	logger.Info("Writing Flux manifests")
-	fluxManifestDir := filepath.Join(cloneDir, fi.opts.GitFluxPath)
+	fluxManifestDir := filepath.Join(fi.clonedDir, fi.opts.GitFluxPath)
 	if err := writeFluxManifests(fluxManifestDir, manifests); err != nil {
 		return err
 	}
@@ -209,15 +213,26 @@ func (fi *Installer) Run(ctx context.Context) error {
 	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
 	logger.Info("Committing and pushing manifests to %s", fi.opts.GitURL)
-	if err := fi.addFilesToRepo(ctx, cloneDir); err != nil {
+	if err := fi.addFilesToRepo(ctx, fi.clonedDir); err != nil {
 		return err
 	}
-	cleanCloneDir = true
 
 	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
 	logger.Info("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.GitURL, fluxSSHKey.Key)
 	return nil
+}
+
+// DeleteCloneDir deletes the directory used for cloning the user's repository
+func (fi *Installer) DeleteCloneDir() {
+	if fi.clonedDir == "" {
+		logger.Debug("no cloned directory to delete")
+		return
+	}
+	logger.Debug("deleting cloned directory %q", fi.clonedDir)
+	if err := fi.gitClient.DeleteLocalRepo(); err != nil {
+		logger.Warning("unable to delete cloned directory %q", fi.clonedDir)
+	}
 }
 
 func (fi *Installer) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrastructurePaths, error) {
