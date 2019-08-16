@@ -20,13 +20,6 @@ const (
 	defaultGitTimeout = 20 * time.Second
 )
 
-// Command creates `generate` commands
-func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
-	verbCmd := cmdutils.NewVerbCmd("generate", "Generate GitOps manifests", "")
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, generateProfileCmd)
-	return verbCmd
-}
-
 type options struct {
 	gitops.GitOptions
 	ProfilePath       string
