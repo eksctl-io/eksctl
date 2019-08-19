@@ -16,6 +16,7 @@ var _ = Describe("(Integration) generate profile", func() {
 		It("should write the processed repo files in the supplied directory", func() {
 
 			clusterName = "amazing-testing-gopher"
+			region = "eu-north-1"
 
 			eksctlSuccess("generate", "profile",
 				"--verbose", "4",
@@ -37,7 +38,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    name: amazing-testing-gopher
+    name: amazing-testing-gopher-eu-north-1
   name: amazing-testing-gopher
 `))
 

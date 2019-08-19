@@ -32,39 +32,43 @@ type options struct {
 	ProfilePath string
 }
 
-func generateProfileCmd(rc *cmdutils.Cmd) {
+func generateProfileCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	rc.ClusterConfig = cfg
+	cmd.ClusterConfig = cfg
 
-	rc.SetDescription("profile", "Generate a GitOps profile", "")
+	cmd.SetDescription("profile", "Generate a GitOps profile", "")
 
 	var o options
 
-	rc.SetRunFuncWithNameArg(func() error {
-		return doGenerateProfile(rc, o)
+	cmd.SetRunFuncWithNameArg(func() error {
+		return doGenerateProfile(cmd, o)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&o.URL, "git-url", "", "", "URL for the quickstart base repository")
 		fs.StringVarP(&o.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "./", "Path to generate the profile in")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
 
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
-		cmdutils.AddRegionFlag(fs, rc.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &rc.ClusterConfigFile)
+		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})
 
-	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
+	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doGenerateProfile(rc *cmdutils.Cmd, o options) error {
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
+	// TODO move the load of the region outside of the creation of the EKS client
+	// currently that is done inside cmd.NewCtl() but we don't need EKS here
+	cmd.ClusterConfig.Metadata.Region = cmd.ProviderConfig.Region
+
 	processor := &fileprocessor.GoTemplateProcessor{
-		Params: fileprocessor.NewTemplateParameters(rc.ClusterConfig),
+		Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
 	}
 	profile := &gitops.Profile{
 		Processor: processor,
