@@ -83,12 +83,12 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 	case api.Version1_13:
 		cfg.Metadata.Version = api.Version1_13
 	default:
-		// version of control is not known to us, maybe we are just too old...
+		// version of control plane is not known to us, maybe we are just too old...
 		return fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)
 	}
 	versionUpdateRequired := cfg.Metadata.Version != currentVersion
 
-	if err := ctl.GetClusterVPC(cfg); err != nil {
+	if err := ctl.LoadClusterVPC(cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
