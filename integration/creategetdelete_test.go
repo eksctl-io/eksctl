@@ -119,7 +119,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				defer deleteBranch(branch, cloneDir)
 
 				assertFluxManifestsAbsentInGit(branch)
-				assertFluxPodsAbsentInKubernetes()
+				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
 
 				eksctlSuccessWith(params{
 					Args: []string{"install", "flux",
@@ -134,7 +134,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				assertFluxManifestsPresentInGit(branch)
-				assertFluxPodsPresentInKubernetes()
+				assertFluxPodsPresentInKubernetes(kubeconfigPath)
 			})
 		})
 

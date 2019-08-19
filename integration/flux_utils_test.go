@@ -510,13 +510,13 @@ func assertValidTillerRBAC(fileName string) {
 	}
 }
 
-func assertFluxPodsAbsentInKubernetes() {
-	pods := fluxPods()
+func assertFluxPodsAbsentInKubernetes(kubeconfigPath string) {
+	pods := fluxPods(kubeconfigPath)
 	Expect(pods.Items).To(HaveLen(0))
 }
 
-func assertFluxPodsPresentInKubernetes() {
-	pods := fluxPods()
+func assertFluxPodsPresentInKubernetes(kubeconfigPath string) {
+	pods := fluxPods(kubeconfigPath)
 	Expect(pods.Items).To(HaveLen(4))
 	Expect(pods.Items[0].Labels["name"]).To(Equal("flux"))
 	Expect(pods.Items[1].Labels["name"]).To(Equal("flux-helm-operator"))
@@ -524,8 +524,8 @@ func assertFluxPodsPresentInKubernetes() {
 	Expect(pods.Items[3].Labels["name"]).To(Equal("tiller"))
 }
 
-func fluxPods() *corev1.PodList {
-	output, err := kubectl("get", "pods", "--namespace", "flux", "--output", "json")
+func fluxPods(kubeconfigPath string) *corev1.PodList {
+	output, err := kubectl("get", "pods", "--namespace", "flux", "--output", "json", "--kubeconfig", kubeconfigPath)
 	Expect(err).ShouldNot(HaveOccurred())
 	var pods corev1.PodList
 	err = yaml.Unmarshal(output, &pods)
