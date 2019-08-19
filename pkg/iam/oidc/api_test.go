@@ -87,7 +87,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		It("should handle bad issuer URL scheme", func() {
 			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo.com/")
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix("unsupport URL scheme"))
+			Expect(err.Error()).To(HavePrefix("unsupported URL scheme"))
 		})
 
 		It("should get cluster, and fail to connect to fake issue URL", func() {
@@ -137,25 +137,25 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(exists).To(BeFalse())
 
-			Expect(oidc.providerARN).To(BeEmpty())
+			Expect(oidc.ProviderARN).To(BeEmpty())
 
 			err = oidc.CreateProvider()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(oidc.providerARN).To(Equal(fakeProviderARN))
+			Expect(oidc.ProviderARN).To(Equal(fakeProviderARN))
 		})
 
 		It("should check OIDC provider exists, delete it and check again", func() {
 			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:8443/")
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(oidc.providerARN).To(BeEmpty())
+			Expect(oidc.ProviderARN).To(BeEmpty())
 
 			exists, err := oidc.CheckProviderExists()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(exists).To(BeTrue())
 
-			Expect(oidc.providerARN).To(Equal(fakeProviderARN))
+			Expect(oidc.ProviderARN).To(Equal(fakeProviderARN))
 
 			// TODO
 			// - m.DeleteProvider

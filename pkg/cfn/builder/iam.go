@@ -1,6 +1,8 @@
 package builder
 
 import (
+	"fmt"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 
@@ -397,6 +399,12 @@ func (*IAMServiceAccountResourceSet) WithNamedIAM() bool { return false }
 
 // AddAllResources adds all resources for the stack
 func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
+	rs.template.Description = fmt.Sprintf(
+		"IAM role for serviceaccount %q %s",
+		rs.spec.NameString(),
+		templateDescriptionSuffix,
+	)
+
 	// we use a single stack for each service account, but there maybe a few roles in it
 	// so will need to give them unique names
 	// we will need to consider using a large stack for all the roles, but that needs some

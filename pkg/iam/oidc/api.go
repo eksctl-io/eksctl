@@ -25,7 +25,7 @@ type OpenIDConnectManager struct {
 	insecureSkipVerify bool
 	issuerCAThumbprint string
 
-	providerARN string
+	ProviderARN string
 
 	iam iamiface.IAMAPI
 }
@@ -71,7 +71,7 @@ func (m *OpenIDConnectManager) CheckProviderExists() (bool, error) {
 		}
 		return false, err
 	}
-	m.providerARN = *input.OpenIDConnectProviderArn
+	m.ProviderARN = *input.OpenIDConnectProviderArn
 	return true, nil
 }
 
@@ -91,7 +91,7 @@ func (m *OpenIDConnectManager) CreateProvider() error {
 	if err != nil {
 		return errors.Wrap(err, "creating OIDC provider")
 	}
-	m.providerARN = *output.OpenIDConnectProviderArn
+	m.ProviderARN = *output.OpenIDConnectProviderArn
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (m *OpenIDConnectManager) DeleteProvider() error {
 	// as we don't use CloudFormation;
 	// finding dangling resource will require looking at all clusters...
 	input := &awsiam.DeleteOpenIDConnectProviderInput{
-		OpenIDConnectProviderArn: &m.providerARN,
+		OpenIDConnectProviderArn: &m.ProviderARN,
 	}
 	if _, err := m.iam.DeleteOpenIDConnectProvider(input); err != nil {
 		return errors.Wrap(err, "deleting OIDC provider")
@@ -136,7 +136,7 @@ func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
 // provider
 func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocument(serviceAccountNamespace, serviceAccountName string) cft.MapOfInterfaces {
 	subject := fmt.Sprintf("system:serviceaccount:%s:%s", serviceAccountNamespace, serviceAccountName)
-	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.providerARN, cft.MapOfInterfaces{
+	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.ProviderARN, cft.MapOfInterfaces{
 		"StringEquals": map[string]string{
 			m.hostnameAndPath() + ":sub": subject,
 			m.hostnameAndPath() + ":aud": defaultAudience,
