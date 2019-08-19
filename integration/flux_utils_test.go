@@ -14,7 +14,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -144,22 +146,39 @@ func assertContainsFluxManifests(dir string) {
 	files, err := ioutil.ReadDir(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	for _, f := range files {
-		filePath := filepath.Join(dir, f.Name())
-		if !f.IsDir() && f.Name() == "flux-account.yaml" {
-			assertValidFluxAccountManifest(filePath)
-		} else if !f.IsDir() && f.Name() == "flux-deployment.yaml" {
-			assertValidFluxDeploymentManifest(filePath)
-		} else if !f.IsDir() && f.Name() == "flux-secret.yaml" {
-			assertValidFluxSecretManifest(filePath)
-		} else if !f.IsDir() && f.Name() == "memcache-dep.yaml" {
-			assertValidFluxMemcacheDeploymentManifest(filePath)
-		} else if !f.IsDir() && f.Name() == "memcache-svc.yaml" {
-			assertValidFluxMemcacheServiceManifest(filePath)
-		} else if !f.IsDir() && f.Name() == "namespace.yaml" {
-			assertValidFluxNamespaceManifest(filePath)
-		} else if f.IsDir() {
+		if f.IsDir() {
 			Fail(fmt.Sprintf("Unrecognized directory: %s", f.Name()))
-		} else {
+		}
+		filePath := filepath.Join(dir, f.Name())
+		switch f.Name() {
+		// Flux resources:
+		case "flux-account.yaml":
+			assertValidFluxAccountManifest(filePath)
+		case "flux-deployment.yaml":
+			assertValidFluxDeploymentManifest(filePath)
+		case "flux-namespace.yaml":
+			assertValidFluxNamespaceManifest(filePath)
+		case "flux-secret.yaml":
+			assertValidFluxSecretManifest(filePath)
+		case "memcache-dep.yaml":
+			assertValidFluxMemcacheDeploymentManifest(filePath)
+		case "memcache-svc.yaml":
+			assertValidFluxMemcacheServiceManifest(filePath)
+		// Helm operator resources:
+		case "flux-helm-operator-account.yaml":
+			assertValidFluxHelmOperatorAccount(filePath)
+		case "flux-helm-release-crd.yaml":
+			assertValidFluxHelmReleaseCRD(filePath)
+		case "helm-operator-deployment.yaml":
+			assertValidHelmOperatorDeployment(filePath)
+		case "tiller-ca-cert-configmap.yaml":
+			assertValidTillerCACertConfigMap(filePath)
+		case "tiller-dep.yaml":
+			assertValidTillerDep(filePath)
+		case "tiller-rbac.yaml":
+			assertValidTillerRBAC(filePath)
+		case "tiller-svc.yaml":
+		default:
 			Fail(fmt.Sprintf("Unrecognized file: %s", f.Name()))
 		}
 	}
@@ -319,6 +338,178 @@ func assertValidFluxNamespaceManifest(fileName string) {
 	}
 }
 
+func assertValidFluxHelmOperatorAccount(fileName string) {
+	bytes, err := ioutil.ReadFile(fileName)
+	Expect(err).ShouldNot(HaveOccurred())
+	list, err := kubernetes.NewRawExtensions(bytes)
+	Expect(err).ShouldNot(HaveOccurred())
+	Expect(list).To(HaveLen(3))
+	for _, item := range list {
+		gvk := item.Object.GetObjectKind().GroupVersionKind()
+		if gvk.Version == "v1" && gvk.Kind == "ServiceAccount" {
+			sa, ok := item.Object.(*corev1.ServiceAccount)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(sa.Kind).To(Equal("ServiceAccount"))
+			Expect(sa.Namespace).To(Equal(Namespace))
+			Expect(sa.Name).To(Equal("flux-helm-operator"))
+			Expect(sa.Labels["name"]).To(Equal("flux-helm-operator"))
+		} else if gvk.Version == "v1beta1" && gvk.Kind == "ClusterRole" {
+			cr, ok := item.Object.(*rbacv1beta1.ClusterRole)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(cr.Kind).To(Equal("ClusterRole"))
+			Expect(cr.Name).To(Equal("flux-helm-operator"))
+			Expect(cr.Labels["name"]).To(Equal("flux-helm-operator"))
+		} else if gvk.Version == "v1beta1" && gvk.Kind == "ClusterRoleBinding" {
+			crb, ok := item.Object.(*rbacv1beta1.ClusterRoleBinding)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(crb.Kind).To(Equal("ClusterRoleBinding"))
+			Expect(crb.Name).To(Equal("flux-helm-operator"))
+			Expect(crb.Labels["name"]).To(Equal("flux-helm-operator"))
+		} else {
+			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
+		}
+	}
+}
+
+func assertValidFluxHelmReleaseCRD(fileName string) {
+	bytes, err := ioutil.ReadFile(fileName)
+	Expect(err).ShouldNot(HaveOccurred())
+	list, err := kubernetes.NewRawExtensions(bytes)
+	Expect(err).ShouldNot(HaveOccurred())
+	Expect(list).To(HaveLen(1))
+	for _, item := range list {
+		gvk := item.Object.GetObjectKind().GroupVersionKind()
+		if gvk.Version == "v1beta1" && gvk.Kind == "CustomResourceDefinition" {
+			crd, ok := item.Object.(*apiextensionsv1beta1.CustomResourceDefinition)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(crd.Kind).To(Equal("CustomResourceDefinition"))
+			Expect(crd.Name).To(Equal("helmreleases.helm.fluxcd.io"))
+			Expect(crd.Spec.Group).To(Equal("helm.fluxcd.io"))
+			Expect(crd.Spec.Names.Kind).To(Equal("HelmRelease"))
+		} else {
+			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
+		}
+	}
+}
+
+func assertValidHelmOperatorDeployment(fileName string) {
+	bytes, err := ioutil.ReadFile(fileName)
+	Expect(err).ShouldNot(HaveOccurred())
+	list, err := kubernetes.NewRawExtensions(bytes)
+	Expect(err).ShouldNot(HaveOccurred())
+	Expect(list).To(HaveLen(1))
+	for _, item := range list {
+		gvk := item.Object.GetObjectKind().GroupVersionKind()
+		if gvk.Version == "v1" && gvk.Kind == "Deployment" {
+			deployment, ok := item.Object.(*appsv1.Deployment)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(deployment.Kind).To(Equal("Deployment"))
+			Expect(deployment.Namespace).To(Equal(Namespace))
+			Expect(deployment.Name).To(Equal("flux-helm-operator"))
+			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
+			Expect(deployment.Spec.Template.Labels["name"]).To(Equal("flux-helm-operator"))
+			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
+			container := deployment.Spec.Template.Spec.Containers[0]
+			Expect(container.Name).To(Equal("flux-helm-operator"))
+			Expect(container.Image).To(Equal("docker.io/fluxcd/helm-operator:1.0.0-rc1"))
+		} else {
+			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
+		}
+	}
+}
+
+func assertValidTillerCACertConfigMap(fileName string) {
+	bytes, err := ioutil.ReadFile(fileName)
+	Expect(err).ShouldNot(HaveOccurred())
+	list, err := kubernetes.NewRawExtensions(bytes)
+	Expect(err).ShouldNot(HaveOccurred())
+	Expect(list).To(HaveLen(1))
+	for _, item := range list {
+		gvk := item.Object.GetObjectKind().GroupVersionKind()
+		if gvk.Version == "v1" && gvk.Kind == "ConfigMap" {
+			cm, ok := item.Object.(*corev1.ConfigMap)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(cm.Kind).To(Equal("ConfigMap"))
+			Expect(cm.Namespace).To(Equal(Namespace))
+			Expect(cm.Name).To(Equal("flux-helm-tls-ca-config"))
+			Expect(cm.Data).To(HaveLen(1))
+			Expect(cm.Data).To(HaveKey("ca.crt"))
+		} else {
+			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
+		}
+	}
+}
+
+func assertValidTillerDep(fileName string) {
+	bytes, err := ioutil.ReadFile(fileName)
+	Expect(err).ShouldNot(HaveOccurred())
+	list, err := kubernetes.NewRawExtensions(bytes)
+	Expect(err).ShouldNot(HaveOccurred())
+	Expect(list).To(HaveLen(1))
+	for _, item := range list {
+		gvk := item.Object.GetObjectKind().GroupVersionKind()
+		if gvk.Version == "v1beta1" && gvk.Kind == "Deployment" {
+			deployment, ok := item.Object.(*extensionsv1beta1.Deployment)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(deployment.Kind).To(Equal("Deployment"))
+			Expect(deployment.Namespace).To(Equal(Namespace))
+			Expect(deployment.Name).To(Equal("tiller-deploy"))
+			Expect(deployment.Labels["app"]).To(Equal("helm"))
+			Expect(deployment.Labels["name"]).To(Equal("tiller"))
+			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
+			Expect(deployment.Spec.Template.Labels["app"]).To(Equal("helm"))
+			Expect(deployment.Spec.Template.Labels["name"]).To(Equal("tiller"))
+			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
+			container := deployment.Spec.Template.Spec.Containers[0]
+			Expect(container.Name).To(Equal("tiller"))
+			Expect(container.Image).To(Equal("gcr.io/kubernetes-helm/tiller:canary"))
+		} else {
+			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
+		}
+	}
+}
+
+func assertValidTillerRBAC(fileName string) {
+	bytes, err := ioutil.ReadFile(fileName)
+	Expect(err).ShouldNot(HaveOccurred())
+	list, err := kubernetes.NewRawExtensions(bytes)
+	Expect(err).ShouldNot(HaveOccurred())
+	Expect(list).To(HaveLen(5))
+	for i, item := range list {
+		gvk := item.Object.GetObjectKind().GroupVersionKind()
+		if gvk.Version == "v1" && gvk.Kind == "ServiceAccount" {
+			sa, ok := item.Object.(*corev1.ServiceAccount)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(sa.Kind).To(Equal("ServiceAccount"))
+			Expect(sa.Namespace).To(Equal(Namespace))
+			if i == 0 {
+				Expect(sa.Name).To(Equal("tiller"))
+			} else {
+				Expect(sa.Name).To(Equal("helm"))
+			}
+		} else if gvk.Version == "v1beta1" && gvk.Kind == "ClusterRoleBinding" {
+			crb, ok := item.Object.(*rbacv1beta1.ClusterRoleBinding)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(crb.Kind).To(Equal("ClusterRoleBinding"))
+			Expect(crb.Name).To(Equal("tiller"))
+		} else if gvk.Version == "v1beta1" && gvk.Kind == "Role" {
+			r, ok := item.Object.(*rbacv1beta1.Role)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(r.Kind).To(Equal("Role"))
+			Expect(r.Namespace).To(Equal(Namespace))
+			Expect(r.Name).To(Equal("tiller-user"))
+		} else if gvk.Version == "v1beta1" && gvk.Kind == "RoleBinding" {
+			cr, ok := item.Object.(*rbacv1beta1.RoleBinding)
+			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
+			Expect(cr.Kind).To(Equal("RoleBinding"))
+			Expect(cr.Namespace).To(Equal("kube-system"))
+			Expect(cr.Name).To(Equal("tiller-user-binding"))
+		} else {
+			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
+		}
+	}
+}
+
 func assertFluxPodsAbsentInKubernetes() {
 	pods := fluxPods()
 	Expect(pods.Items).To(HaveLen(0))
@@ -326,9 +517,11 @@ func assertFluxPodsAbsentInKubernetes() {
 
 func assertFluxPodsPresentInKubernetes() {
 	pods := fluxPods()
-	Expect(pods.Items).To(HaveLen(2))
+	Expect(pods.Items).To(HaveLen(4))
 	Expect(pods.Items[0].Labels["name"]).To(Equal("flux"))
-	Expect(pods.Items[1].Labels["name"]).To(Equal("memcached"))
+	Expect(pods.Items[1].Labels["name"]).To(Equal("flux-helm-operator"))
+	Expect(pods.Items[2].Labels["name"]).To(Equal("memcached"))
+	Expect(pods.Items[3].Labels["name"]).To(Equal("tiller"))
 }
 
 func fluxPods() *corev1.PodList {
