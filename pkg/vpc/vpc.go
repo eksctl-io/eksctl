@@ -90,9 +90,9 @@ func describe(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 // is treated as the source of truth
 func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.ClusterConfig) error {
 	if spec.VPC == nil {
-		spec.VPC = &api.ClusterVPC{}
+		spec.VPC = api.NewClusterVPC()
 	}
-	// this call is authoritive, and we can safely override the
+	// this call is authoritative, and we can safely override the
 	// CIDR, as it can only be set to anything due to defaulting
 	spec.VPC.CIDR = nil
 

@@ -123,7 +123,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(cmd.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
-			if err := ctl.GetClusterVPC(cfg); err != nil {
+			if err := ctl.LoadClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 			}
 

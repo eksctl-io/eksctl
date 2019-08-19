@@ -63,17 +63,14 @@ func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error)
 
 	// NOTE: currently we can only append new resources to the stack,
 	// as there are a few limitations:
-	// - it must work with VPC that are imported as well as VPC that
-	//   is mamaged as part of the stack;
+	// - it must work with VPC that is imported as well as VPC that
+	//   is managed as part of the stack;
 	// - CloudFormation cannot yet upgrade EKS control plane itself;
 
 	currentTemplate, err := c.GetStackTemplate(name)
 	if err != nil {
 		return false, errors.Wrapf(err, "error getting stack template %s", name)
 	}
-
-	addResources := []string{}
-	addOutputs := []string{}
 
 	currentResources := gjson.Get(currentTemplate, resourcesRootPath)
 	currentOutputs := gjson.Get(currentTemplate, outputsRootPath)
@@ -112,6 +109,12 @@ func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error)
 		currentTemplate, iterErr = sjson.Set(currentTemplate, path, value.Value())
 		return iterErr == nil
 	}
+
+	var (
+		addResources []string
+		addOutputs   []string
+	)
+
 	newResources.ForEach(func(k, v gjson.Result) bool {
 		return iterFunc(&addResources, resourcesRootPath, currentResources, k, v)
 	})
