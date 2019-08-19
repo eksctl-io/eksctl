@@ -83,7 +83,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		return err
 	}
 
-	if err := ctl.GetClusterVPC(cfg); err != nil {
+	if err := ctl.LoadClusterVPC(cfg); err != nil {
 		return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
 	}
 
