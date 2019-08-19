@@ -127,14 +127,12 @@ type AnythingMap MapOfInterfaces
 
 // MarshalJSON serialises the value as JSON data
 func (v AnythingMap) MarshalJSON() ([]byte, error) {
-	return json.Marshal(v)
+	return json.Marshal(MapOfInterfaces(v))
 }
 
 // Convert will serialise the receiver as JSON, and deserialise it into obj
 func (v AnythingMap) Convert(obj interface{}) error {
-	x := MapOfInterfaces{}
-	x = v
-	data, err := json.Marshal(x)
+	data, err := json.Marshal(MapOfInterfaces(v))
 	if err != nil {
 		return err
 	}
@@ -151,9 +149,7 @@ func (v AnythingSlice) MarshalJSON() ([]byte, error) {
 
 // Convert will serialise the receiver as JSON, and deserialise it into obj
 func (v AnythingSlice) Convert(obj interface{}) error {
-	x := SliceOfInterfaces{}
-	x = v
-	data, err := json.Marshal(x)
+	data, err := json.Marshal(SliceOfInterfaces(v))
 	if err != nil {
 		return err
 	}
