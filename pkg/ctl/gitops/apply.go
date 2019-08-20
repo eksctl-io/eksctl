@@ -155,12 +155,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	})
 
 	gitOps := gitops.GitOps{
-		UsersRepoOpts: git.Options{
-			Email:  opts.git.Email,
-			User:   opts.git.User,
-			Branch: opts.git.Branch,
-			URL:    opts.git.URL,
-		}, // FIXME
+		UsersRepoOpts:    opts.git,
 		GitClient:        gitClient,
 		ProfileGenerator: profile,
 		FluxInstaller:    fluxInstaller,

@@ -49,19 +49,8 @@ func (g *GitOps) Apply(ctx context.Context) error {
 	if err = g.GitClient.Push(); err != nil {
 		return err
 	}
+
+	// Delete temporary clone of the quickstart profile repo
+	g.FluxInstaller.DeleteCloneDir()
 	return nil
 }
-
-/* FIXME delete
-```bash
-$ git clone https://github.com/nayo/my-eks-cluster
-
-$ eksctl install flux --git-url=https://github.com/nayo/my-eks-cluster --git-branch=test
-
-$ eksctl generate profile --profile=url=https://github.com/weaveworks/eks-gitops-quickstart
-
-$ git add -A
-$ git commit
-$ git push origin master
-```
-*/
