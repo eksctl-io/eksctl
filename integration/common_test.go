@@ -76,10 +76,9 @@ func eksctlFail(args ...string) *gexec.Session {
 //eksctlStart starts running an eksctl command but doesn't wait for it to finish the command
 //This is primarily so that we can run eksctl create and then subsequently call eksctl delete
 //on the same cluster, but might be useful for other test scenarios as well.
-func eksctlStart(args ...string) (err error) {
+func eksctlStart(args ...string) {
 	fmt.Fprintf(GinkgoWriter, "calling %q with %v\n", eksctlPath, args)
 	cmd := exec.Command(eksctlPath, args...)
-	err = cmd.Start()
+	err := cmd.Start()
 	Expect(err).To(BeNil())
-	return
 }
