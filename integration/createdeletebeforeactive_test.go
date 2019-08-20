@@ -14,70 +14,74 @@ import (
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
 )
 
+const (
+	POLLINTERVAL = 15   //seconds
+	TIMEOUT      = 1200 //seconds = 20 minutes
+)
+
 var _ = Describe("(Integration) Create & Delete before Active", func() {
-	const (
-		initNG = "ng-0"
-		testNG = "ng-1"
-	)
+	const initNG = "ng-0"
+	var clName string
 
-	Describe("when creating a cluster with 1 node", func() {
-		var clName string
-		Context("for deleting a creating cluster", func() {
-			It("should run eksctl and not wait for it to finish", func() {
+	// initialize clName (and possibly clusterName) for this test suite
+	if clusterName == "" {
+		clusterName = cmdutils.ClusterName("", "")
+	}
+	if clName == "" {
+		clName = clusterName + "-delb4active"
+	}
 
-				fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", kubeconfigPath)
-
-				if clName == "" {
-					clName = cmdutils.ClusterName("", "") + "-delb4active"
-				}
-
-				eksctlStart("create", "cluster",
-					"--verbose", "4",
-					"--name", clName,
-					"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
-					"--nodegroup-name", initNG,
-					"--node-labels", "ng-name="+initNG,
-					"--node-type", "t2.medium",
-					"--nodes", "1",
-					"--region", region,
-					"--version", version,
-				)
-			})
+	Context("when creating a new cluster", func() {
+		It("should not return an error", func() {
+			eksctlStart("create", "cluster",
+				"--verbose", "4",
+				"--name", clName,
+				"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
+				"--nodegroup-name", initNG,
+				"--node-labels", "ng-name="+initNG,
+				"--node-type", "t2.medium",
+				"--nodes", "1",
+				"--region", region,
+				"--version", version,
+			)
 		})
 
-		Context("when deleting the (creating) cluster", func() {
-
-			It("should not return an error", func() {
-
-				eksctlSuccess("delete", "cluster",
-					"--verbose", "4",
-					"--name", clName,
-					"--region", region,
-					"--wait",
-				)
-			})
-
-			It("and should have deleted the EKS cluster and both CloudFormation stacks", func() {
-
-				awsSession := aws.NewSession(region)
-
-				Expect(awsSession).ToNot(HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
-
-				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clName)))
-				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-ng-%d", clName, 0)))
-			})
+		It("should eventually show up as creating", func() {
+			awsSession := aws.NewSession(region)
+			Eventually(awsSession, TIMEOUT, POLLINTERVAL).Should(
+				HaveExistingCluster(clName, awseks.ClusterStatusCreating, version))
 		})
+	})
 
-		Context("when trying to delete the cluster again", func() {
+	Context("when deleting the cluster in process of being created", func() {
+		It("deleting cluster should have a zero exitcode", func() {
+			eksctlSuccess("delete", "cluster",
+				"--verbose", "4",
+				"--name", clName,
+				"--region", region,
+			)
+		})
+	})
 
-			It("should return an a non-zero exit code", func() {
+	Context("after the delete of the cluster in progress has been initiated", func() {
+		It("should eventually delete the EKS cluster and both CloudFormation stacks", func() {
+			awsSession := aws.NewSession(region)
+			Eventually(awsSession, TIMEOUT, POLLINTERVAL).ShouldNot(
+				HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
+			Eventually(awsSession, TIMEOUT, POLLINTERVAL).ShouldNot(
+				HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clName)))
+			Eventually(awsSession, TIMEOUT, POLLINTERVAL).ShouldNot(
+				HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", clName, initNG)))
+		})
+	})
 
-				eksctlFail("delete", "cluster",
-					"--verbose", "4",
-					"--name", clName,
-					"--region", region,
-				)
-			})
+	Context("when trying to delete the cluster again", func() {
+		It("should return an a non-zero exit code", func() {
+			eksctlFail("delete", "cluster",
+				"--verbose", "4",
+				"--name", clName,
+				"--region", region,
+			)
 		})
 	})
 })
