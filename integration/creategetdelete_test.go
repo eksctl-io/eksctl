@@ -24,6 +24,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"github.com/weaveworks/eksctl/pkg/utils/random"
 )
 
@@ -58,6 +59,16 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		It("should not return an error", func() {
 			if !doCreate {
 				fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", clusterName)
+				if !file.Exists(kubeconfigPath) {
+					// Generate the Kubernetes configuration that eksctl create
+					// would have generated otherwise:
+					eksctlSuccess("utils", "write-kubeconfig",
+						"--verbose", "4",
+						"--name", clusterName,
+						"--region", region,
+						"--kubeconfig", kubeconfigPath,
+					)
+				}
 				return
 			}
 
