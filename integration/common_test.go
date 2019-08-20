@@ -42,9 +42,7 @@ func eksctl(args ...string) *gexec.Session {
 	command.Env = append(command.Env, "EKSCTL_EXPERIMENTAL=true")
 	fmt.Fprintf(GinkgoWriter, "calling %q with %s and %v\n", eksctlPath, "EKSCTL_EXPERIMENTAL=true", args)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	if err != nil {
-		Fail(fmt.Sprintf("error starting process: %v\n", err), 1)
-	}
+	Expect(err).To(BeNil())
 
 	t := time.Minute
 	switch args[0] {
@@ -65,12 +63,22 @@ func eksctl(args ...string) *gexec.Session {
 
 func eksctlSuccess(args ...string) *gexec.Session {
 	session := eksctl(args...)
-	Expect(session.ExitCode()).To(Equal(0))
+	Expect(session.ExitCode()).To(BeZero())
 	return session
 }
 
 func eksctlFail(args ...string) *gexec.Session {
 	session := eksctl(args...)
-	Expect(session.ExitCode()).To(Not(Equal(0)))
+	Expect(session.ExitCode()).ToNot(BeZero())
 	return session
+}
+
+//eksctlStart starts running an eksctl command but doesn't wait for it to finish the command
+//This is primarily so that we can run eksctl create and then subsequently call eksctl delete
+//on the same cluster, but might be useful for other test scenarios as well.
+func eksctlStart(args ...string) {
+	fmt.Fprintf(GinkgoWriter, "calling %q with %v\n", eksctlPath, args)
+	cmd := exec.Command(eksctlPath, args...)
+	err := cmd.Start()
+	Expect(err).To(BeNil())
 }
