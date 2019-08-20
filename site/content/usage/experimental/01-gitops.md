@@ -21,7 +21,7 @@ and simplify application deployments and operations tasks to Kubernetes.
 > Experimental features are not stable and their command name and flags may change.
 
 Installing Flux on the cluster is the first step towards a gitops workflow. To install it, you need a Git repository 
-and an existing cluster. Then run the following command:
+and an existing EKS cluster. Then run the following command:
 
 ```bash
 EKSCTL_EXPERIMENTAL=true eksctl install flux --name <cluster_name> --region <region> --git-url=<git_repo> --git-email=<git_user_email>
@@ -32,57 +32,82 @@ Or use a config file:
 EKSCTL_EXPERIMENTAL=true eksctl install flux -f examples/01-simple-cluster.yaml --git-url=git@github.com:weaveworks/cluster-1-gitops.git --git-email=johndoe+flux@weave.works
 ```
 
+Note that, by default, `eksctl install flux` installs [Helm](https://helm.sh/) server components to the cluster (it 
+installs [Tiller](https://helm.sh/docs/glossary/#tiller) and the [Flux Helm Operator](https://github.com/fluxcd/helm-operator)). To
+disable the installation of the Helm server components, pass the flag `--with-helm=false`.
+
 Full example:
 
 ```bash
-EKSCTL_EXPERIMENTAL=true eksctl install flux --name cluster-1 --region eu-west-2 --git-url=git@github.com:weaveworks/cluster-1-gitops.git --git-email=johndoe+flux@weave.works
-$ EKSCTL_EXPERIMENTAL=true eksctl install flux -f examples/01-simple-cluster.yaml --git-url=git@github.com:weaveworks/cluster-1-gitops.git --git-email=johndoe+flux@weave.works
-[ℹ]  Cloning git@github.com:weaveworks/cluster-1-gitops.git
-Cloning into '/tmp/eksctl-install-flux-clone310610186'...
-warning: templates not found /home/johndoe/.git_template
-remote: Enumerating objects: 3, done.
-remote: Counting objects: 100% (3/3), done.
-remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
-Receiving objects: 100% (3/3), done.
+$ EKSCTL_EXPERIMENTAL=true ./eksctl install flux --name=cluster-1 --region eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works--namespace=flux
+[ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
+[ℹ]    this may take up to a minute, please be patient
+[!]  Public key infrastructure files were written into directory "/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-helm-pki330304977"
+[!]  please move the files into a safe place or delete them
+[ℹ]  Generating manifests
+[ℹ]  Cloning git@github.com:weaveworks/cluster-1-gitops.git 
+Cloning into '/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-install-flux-clone-142184188'...
+remote: Enumerating objects: 74, done.
+remote: Counting objects: 100% (74/74), done.
+remote: Compressing objects: 100% (55/55), done.
+remote: Total 74 (delta 19), reused 69 (delta 17), pack-reused 0
+Receiving objects: 100% (74/74), 30.57 KiB | 381.00 KiB/s, done.
+Resolving deltas: 100% (19/19), done.
 [ℹ]  Writing Flux manifests
-[ℹ]  Installing Flux into the cluster
+[ℹ]  Applying manifests
 [ℹ]  created "Namespace/flux"
-[ℹ]  created "flux:ServiceAccount/flux"
-[ℹ]  replaced "ClusterRole.rbac.authorization.k8s.io/flux"
-[ℹ]  replaced "ClusterRoleBinding.rbac.authorization.k8s.io/flux"
-[ℹ]  created "flux:Deployment.apps/flux"
 [ℹ]  created "flux:Secret/flux-git-deploy"
 [ℹ]  created "flux:Deployment.apps/memcached"
+[ℹ]  created "flux:ServiceAccount/flux"
+[ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux"
+[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux"
+[ℹ]  created "flux:ConfigMap/flux-helm-tls-ca-config"
+[ℹ]  created "flux:Deployment.extensions/tiller-deploy"
+[ℹ]  created "flux:Service/tiller-deploy"
+[ℹ]  created "CustomResourceDefinition.apiextensions.k8s.io/helmreleases.helm.fluxcd.io"
+[ℹ]  created "flux:ServiceAccount/tiller"
+[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/tiller"
+[ℹ]  created "flux:ServiceAccount/helm"
+[ℹ]  created "flux:Role.rbac.authorization.k8s.io/tiller-user"
+[ℹ]  created "kube-system:RoleBinding.rbac.authorization.k8s.io/tiller-user-binding"
+[ℹ]  created "flux:Deployment.apps/flux"
 [ℹ]  created "flux:Service/memcached"
+[ℹ]  created "flux:Deployment.apps/flux-helm-operator"
+[ℹ]  created "flux:ServiceAccount/flux-helm-operator"
+[ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux-helm-operator"
+[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux-helm-operator"
+[ℹ]  Applying Helm TLS Secret(s)
+[ℹ]  created "flux:Secret/flux-helm-tls-cert"
+[ℹ]  created "flux:Secret/tiller-secret"
+[!]  Note: certificate secrets aren't added to the Git repository for security reasons
+[ℹ]  Waiting for Helm Operator to start
+ERROR: logging before flag.Parse: E0820 16:05:12.218007   98823 portforward.go:331] an error occurred forwarding 60356 -> 3030: error forwarding port 3030 to pod b1a872e7e6a7f86567488d66c1a880fcfa26179143115b102041e0ee77fe6f9e, uid : exit status 1: 2019/08/20 14:05:12 socat[2873] E connect(5, AF=2 127.0.0.1:3030, 16): Connection refused
+[!]  Helm Operator is not ready yet (Get http://127.0.0.1:60356/healthz: EOF), retrying ...
+[ℹ]  Helm Operator started successfully
 [ℹ]  Waiting for Flux to start
-[!]  Flux is not ready yet (executing HTTP request: executing HTTP request: Post http://127.0.0.1:41483/api/flux/v9/git-repo-config: EOF), retrying ...
 [ℹ]  Flux started successfully
-[ℹ]  Committing and pushing Flux manifests to git@github.com:weaveworks/cluster-1-gitops.git
-[master 4ff0d8f] Add Initial Flux configuration
+[ℹ]  Committing and pushing manifests to git@github.com:weaveworks/cluster-1-gitops.git 
+[master ec43024] Add Initial Flux configuration
  Author: Flux <johndoe+flux@weave.works>
- 6 files changed, 255 insertions(+)
- create mode 100644 flux/flux-account.yaml
- create mode 100644 flux/flux-deployment.yaml
- create mode 100644 flux/flux-secret.yaml
- create mode 100644 flux/memcache-dep.yaml
- create mode 100644 flux/memcache-svc.yaml
- create mode 100644 flux/namespace.yaml
-Counting objects: 9, done.
-Delta compression using up to 4 threads.
-Compressing objects: 100% (9/9), done.
-Writing objects: 100% (9/9), 3.52 KiB | 1.17 MiB/s, done.
-Total 9 (delta 0), reused 0 (delta 0)
+14 files changed, 694 insertions(+)
+Enumerating objects: 11, done.
+Counting objects: 100% (11/11), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 2.09 KiB | 2.09 MiB/s, done.
+Total 6 (delta 3), reused 0 (delta 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
 To github.com:weaveworks/cluster-1-gitops.git
-   d41f36d..4ff0d8f  master -> master
-[ℹ]  Flux will operate properly only once it has SSH write-access
-[ℹ]  please configure git@github.com:weaveworks/cluster-1-gitops.git so that the following Flux SSH public key has write access to it
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCn9l5vVmcRbjZJmBG4GcYTK4w+8NjfMHOUr8W1w7E+PX8ono/cXsr9yohIPRUGKT1JSMXqwOTNNqYQoL6qbS7hGzOdO/IPW3JN1qvbBXLjBB8jo3op4KvudMuImBiE0dPB/mITk43t3WNbzZ33xlS9emtQdQlIno8HTFthohljcW5tUzdpC6Fv43fqt1EdHb8NtJz5oFbYbPuRf7swH0raxrhqKs4HW8VDVVqkROG2i0drg8rSalICbJX1YB3tgMYvP//f9uhWskXh5kuetS541I9gqtJD29pFibYQ1GwjfyAvkPBHTmumXdvb111111JWnfiiT7zCrdjYIEUt/9
+   5fe1eb8..ec43024  master -> master
+[ℹ]  Flux will only operate properly once it has write-access to the Git repository
+[ℹ]  please configure git@github.com:weaveworks/cluster-1-gitops.git  so that the following Flux SSH public key has write access to it
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYYsPuHzo1L29u3zhr4uAOF29HNyMcS8zJmOTDNZC4EiIwa5BXgg/IBDKudxQ+NBJ7mknPlNv17cqo4ncEq1xiQidfaUawwx3xxtDkZWam5nCBMXEJwkr4VXx/6QQ9Z1QGXpaFwdoVRcY/kM4NaxM54pEh5m43yeqkcpRMKraE0EgbdqFNNARN8rIEHY/giDorCrXp7e6AbzBgZSvc/in7Ul9FQhJ6K4+7QuMFpJt3O/N8KDumoTG0e5ssJGp5L1ugIqhzqvbHdmHVfnXsEvq6cR1SJtYKi2GLCscypoF3XahfjK+xGV/92a1E7X+6fHXSq+bdOKfBc4Z3f9NBwz0v
 
 ```
 
-At this point Flux should already be installed in the specified cluster. The only thing left to do would be to give Flux
-write access to the repository. Configure your repo to allow write access to that ssh key, for example, through the 
-Deploy keys if it lives in GitHub.
+At this point Flux and the Helm server components should be installed in the specified cluster. The only thing left to 
+do is to give Flux write access to the repository. Configure your repository to allow write access to that ssh key, 
+for example, through the Deploy keys if it lives in GitHub.
 
 ```bash
 $ kubectl get pods --namespace flux
