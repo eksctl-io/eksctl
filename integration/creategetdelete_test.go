@@ -18,13 +18,14 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/testutils/aws"
-	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
@@ -62,12 +63,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				if !file.Exists(kubeconfigPath) {
 					// Generate the Kubernetes configuration that eksctl create
 					// would have generated otherwise:
-					eksctlSuccess("utils", "write-kubeconfig",
+					cmd := eksctlUtilsCmd.WithArgs(
+						"write-kubeconfig",
 						"--verbose", "4",
 						"--name", clusterName,
-						"--region", region,
 						"--kubeconfig", kubeconfigPath,
 					)
+					Expect(cmd).To(RunSuccessfully())
 				}
 				return
 			}
@@ -78,7 +80,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				clusterName = cmdutils.ClusterName("", "")
 			}
 
-			eksctlSuccess("create", "cluster",
+			cmd := eksctlCreateCmd.WithArgs(
+				"cluster",
 				"--verbose", "4",
 				"--name", clusterName,
 				"--tags", "alpha.eksctl.io/description=eksctl integration test",
@@ -86,15 +89,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"--node-labels", "ng-name="+initNG,
 				"--node-type", "t2.medium",
 				"--nodes", "1",
-				"--region", region,
 				"--version", version,
 				"--kubeconfig", kubeconfigPath,
 			)
-
+			Expect(cmd).To(RunSuccessfully())
 		})
 
 		It("should have created an EKS cluster and two CloudFormation stacks", func() {
-			awsSession := aws.NewSession(region)
+			awsSession := NewSession(region)
 
 			Expect(awsSession).To(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, version))
 
@@ -116,8 +118,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and listing clusters", func() {
 			It("should return the previously created cluster", func() {
-				cmdSession := eksctlSuccess("get", "clusters", "--all-regions")
-				Expect(string(cmdSession.Buffer().Contents())).To(ContainSubstring(clusterName))
+				cmd := eksctlGetCmd.WithArgs("clusters", "--all-regions")
+				Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(clusterName)))
 			})
 		})
 
@@ -132,17 +134,15 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				assertFluxManifestsAbsentInGit(branch)
 				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
 
-				eksctlSuccessWith(params{
-					Args: []string{"install", "flux",
-						"--git-url", Repository,
-						"--git-email", Email,
-						"--git-private-ssh-key-path", privateSSHKeyPath,
-						"--git-branch", branch,
-						"--name", clusterName,
-						"--region", region,
-					},
-					Env: []string{"EKSCTL_EXPERIMENTAL=true"},
-				})
+				cmd := eksctlExperimentalCmd.WithArgs(
+					"install", "flux",
+					"--git-url", Repository,
+					"--git-email", Email,
+					"--git-private-ssh-key-path", privateSSHKeyPath,
+					"--git-branch", branch,
+					"--name", clusterName,
+				)
+				Expect(cmd).To(RunSuccessfully())
 
 				assertFluxManifestsPresentInGit(branch)
 				assertFluxPodsPresentInKubernetes(kubeconfigPath)
@@ -163,8 +163,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				deleteFluxInstallation(kubeconfigPath)
 				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
 
-				eksctlSuccessWith(params{
-					Args: []string{"gitops", "apply",
+				cmd := eksctlExperimentalCmd.WithArgs(
+					"gitops", "apply",
 						"--git-url", Repository,
 						"--git-email", Email,
 						"--git-branch", branch,
@@ -173,9 +173,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--quickstart-profile", "app-dev",
 						"--cluster", clusterName,
 						"--region", region,
-					},
-					Env: []string{"EKSCTL_EXPERIMENTAL=true"},
-				})
+				)
+				Expect(cmd).To(RunSuccessfully())
 
 				assertQuickStartComponentsPresentInGit(branch)
 				assertFluxManifestsPresentInGit(branch)
@@ -185,13 +184,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and scale the initial nodegroup", func() {
 			It("should not return an error", func() {
-				eksctlSuccess("scale", "nodegroup",
-					"--verbose", "4",
+				cmd := eksctlScaleNodeGroupCmd.WithArgs(
 					"--cluster", clusterName,
-					"--region", region,
 					"--nodes", "4",
 					"--name", initNG,
 				)
+				Expect(cmd).To(RunSuccessfully())
 			})
 
 			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total", func() {
@@ -211,45 +209,51 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and add the second nodegroup", func() {
 			It("should not return an error", func() {
-				eksctlSuccess("create", "nodegroup",
+				cmd := eksctlCreateCmd.WithArgs(
+					"nodegroup",
 					"--cluster", clusterName,
-					"--region", region,
 					"--nodes", "4",
 					"--node-private-networking",
 					testNG,
 				)
+				Expect(cmd).To(RunSuccessfully())
 			})
 
 			It("should be able to list nodegroups", func() {
 				{
-					cmdSession := eksctlSuccess("get", "nodegroup",
+					cmd := eksctlGetCmd.WithArgs(
+						"nodegroup",
 						"--cluster", clusterName,
 						"--region", region,
 						initNG,
 					)
-					output := string(cmdSession.Buffer().Contents())
-					Expect(output).To(ContainSubstring(initNG))
-					Expect(output).ToNot(ContainSubstring(testNG))
-
+					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+						ContainElement(ContainSubstring(initNG)),
+						Not(ContainElement(ContainSubstring(testNG))),
+					))
 				}
 				{
-					cmdSession := eksctlSuccess("get", "nodegroup",
+					cmd := eksctlGetCmd.WithArgs(
+						 "nodegroup",
 						"--cluster", clusterName,
 						"--region", region,
 						testNG,
 					)
-					output := string(cmdSession.Buffer().Contents())
-					Expect(output).To(ContainSubstring(testNG))
-					Expect(output).ToNot(ContainSubstring(initNG))
+					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+						ContainElement(ContainSubstring(testNG)),
+						Not(ContainElement(ContainSubstring(initNG))),
+					))
 				}
 				{
-					cmdSession := eksctlSuccess("get", "nodegroup",
+					cmd := eksctlGetCmd.WithArgs(
+						"nodegroup",
 						"--cluster", clusterName,
 						"--region", region,
 					)
-					output := string(cmdSession.Buffer().Contents())
-					Expect(output).To(ContainSubstring(initNG))
-					Expect(output).To(ContainSubstring(testNG))
+					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
+						ContainElement(ContainSubstring(testNG)),
+						ContainElement(ContainSubstring(initNG)),
+					))
 				}
 			})
 
@@ -354,11 +358,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should plan to enable two of the types using flags", func() {
-					eksctlSuccess("utils", "update-cluster-logging",
+					cmd := eksctlUtilsCmd.WithArgs(
+						"update-cluster-logging",
 						"--name", clusterName,
-						"--region", region,
 						"--enable-types", "api,controllerManager",
 					)
+					Expect(cmd).To(RunSuccessfully())
+
 					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
@@ -366,12 +372,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should enable two of the types using flags", func() {
-					eksctlSuccess("utils", "update-cluster-logging",
+					cmd := eksctlUtilsCmd.WithArgs(
+						"update-cluster-logging",
 						"--name", clusterName,
-						"--region", region,
 						"--approve",
 						"--enable-types", "api,controllerManager",
 					)
+					Expect(cmd).To(RunSuccessfully())
+
 					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(2))
@@ -381,12 +389,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should enable all of the types with --enable-types=all", func() {
-					eksctlSuccess("utils", "update-cluster-logging",
+					cmd := eksctlUtilsCmd.WithArgs(
+						"update-cluster-logging",
 						"--name", clusterName,
-						"--region", region,
 						"--approve",
 						"--enable-types", "all",
 					)
+					Expect(cmd).To(RunSuccessfully())
+
 					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(5))
@@ -394,13 +404,15 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should enable all but one type", func() {
-					eksctlSuccess("utils", "update-cluster-logging",
+					cmd := eksctlUtilsCmd.WithArgs(
+						"update-cluster-logging",
 						"--name", clusterName,
-						"--region", region,
 						"--approve",
 						"--enable-types", "all",
 						"--disable-types", "controllerManager",
 					)
+					Expect(cmd).To(RunSuccessfully())
+
 					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(4))
@@ -410,13 +422,15 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should disable all but one type", func() {
-					eksctlSuccess("utils", "update-cluster-logging",
+					cmd := eksctlUtilsCmd.WithArgs(
+						"update-cluster-logging",
 						"--name", clusterName,
-						"--region", region,
 						"--approve",
 						"--disable-types", "all",
 						"--enable-types", "controllerManager",
 					)
+					Expect(cmd).To(RunSuccessfully())
+
 					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(disable.List()).To(HaveLen(4))
@@ -426,12 +440,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should disable all of the types with --disable-types=all", func() {
-					eksctlSuccess("utils", "update-cluster-logging",
+					cmd := eksctlUtilsCmd.WithArgs(
+						"update-cluster-logging",
 						"--name", clusterName,
-						"--region", region,
 						"--approve",
 						"--disable-types", "all",
 					)
+					Expect(cmd).To(RunSuccessfully())
+
 					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
@@ -473,111 +489,122 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("fails getting unknown mapping", func() {
-					eksctlFail("get", "iamidentitymapping",
+					cmd := eksctlGetCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", "idontexist",
 						"-o", "yaml",
 					)
+					Expect(cmd).ToNot(RunSuccessfully())
 				})
 				It("creates mapping", func() {
-					eksctlSuccess("create", "iamidentitymapping",
+					createCmd := eksctlCreateCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role0.RoleARN,
 						"--username", role0.Username,
 						"--group", role0.Groups[0],
 						"--group", role0.Groups[1],
 					)
+					Expect(createCmd).To(RunSuccessfully())
 
-					get := eksctlSuccess("get", "iamidentitymapping",
+					getCmd := eksctlGetCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role0.RoleARN,
 						"-o", "yaml",
 					)
-					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0))
+					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0)))
 				})
 				It("creates a duplicate mapping", func() {
-					eksctlSuccess("create", "iamidentitymapping",
+					createCmd := eksctlCreateCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role0.RoleARN,
 						"--username", role0.Username,
 						"--group", role0.Groups[0],
 						"--group", role0.Groups[1],
 					)
+					Expect(createCmd).To(RunSuccessfully())
 
-					get := eksctlSuccess("get", "iamidentitymapping",
+					getCmd := eksctlGetCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role0.RoleARN,
 						"-o", "yaml",
 					)
-					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0 + exp0))
+					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0 + exp0)))
 				})
 				It("creates a duplicate mapping with different identity", func() {
-					eksctlSuccess("create", "iamidentitymapping",
+					createCmd := eksctlCreateCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role1.RoleARN,
 						"--group", role1.Groups[0],
 					)
+					Expect(createCmd).To(RunSuccessfully())
 
-					get := eksctlSuccess("get", "iamidentitymapping",
+					getCmd := eksctlGetCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role1.RoleARN,
 						"-o", "yaml",
 					)
-					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0 + exp0 + exp1))
+					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0 + exp0 + exp1)))
 				})
 				It("deletes a single mapping fifo", func() {
-					eksctlSuccess("delete", "iamidentitymapping",
+					deleteCmd := eksctlDeleteCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role,
 					)
+					Expect(deleteCmd).To(RunSuccessfully())
 
-					get := eksctlSuccess("get", "iamidentitymapping",
+					getCmd := eksctlGetCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
+
 						"--role", role,
 						"-o", "yaml",
 					)
-					Expect(string(get.Buffer().Contents())).To(MatchYAML(exp0 + exp1))
+					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(exp0 + exp1)))
 				})
 				It("fails when deleting unknown mapping", func() {
-					eksctlFail("delete", "iamidentitymapping",
+					deleteCmd := eksctlDeleteCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", "idontexist",
 					)
+					Expect(deleteCmd).ToNot(RunSuccessfully())
 				})
 				It("deletes duplicate mappings with --all", func() {
-					eksctlSuccess("delete", "iamidentitymapping",
+					deleteCmd := eksctlDeleteCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role,
 						"--all",
 					)
-					eksctlFail("get", "iamidentitymapping",
+					Expect(deleteCmd).To(RunSuccessfully())
+
+					getCmd := eksctlGetCmd.WithArgs(
+						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--role", role,
 						"-o", "yaml",
 					)
+					Expect(getCmd).ToNot(RunSuccessfully())
 				})
 			})
 
 			Context("and delete the second nodegroup", func() {
 				It("should not return an error", func() {
-					eksctlSuccess("delete", "nodegroup",
+					cmd := eksctlDeleteCmd.WithArgs(
+						"nodegroup",
 						"--verbose", "4",
 						"--cluster", clusterName,
-						"--region", region,
 						testNG,
 					)
+					Expect(cmd).To(RunSuccessfully())
 				})
 
 				It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total", func() {
@@ -599,13 +626,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and scale the initial nodegroup back to 1 node", func() {
 			It("should not return an error", func() {
-				eksctlSuccess("scale", "nodegroup",
-					"--verbose", "4",
+				cmd := eksctlScaleNodeGroupCmd.WithArgs(
 					"--cluster", clusterName,
-					"--region", region,
 					"--nodes", "1",
 					"--name", initNG,
 				)
+				Expect(cmd).To(RunSuccessfully())
 			})
 
 			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 1 nodes total", func() {
@@ -630,12 +656,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Skip("will not delete cluster " + clusterName)
 				}
 
-				eksctlSuccess("delete", "cluster",
-					"--verbose", "4",
+				cmd := eksctlDeleteClusterCmd.WithArgs(
 					"--name", clusterName,
-					"--region", region,
 					"--wait",
 				)
+				Expect(cmd).To(RunSuccessfully())
 			})
 
 			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the EKS cluster and both CloudFormation stacks", func() {
@@ -643,7 +668,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Skip("will not delete cluster " + clusterName)
 				}
 
-				awsSession := aws.NewSession(region)
+				awsSession := NewSession(region)
 
 				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, version))
 

@@ -1,4 +1,4 @@
-package aws
+package matchers
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ const (
 	errorMessageTemplate = "Stack with id %s does not exist"
 )
 
-// StackExists checks to see if a CloudFormation stack exists
-func StackExists(stackName string, session *session.Session) (bool, error) {
+// stackExists checks to see if a CloudFormation stack exists
+func stackExists(stackName string, session *session.Session) (bool, error) {
 	cfn := cloudformation.New(session)
 
 	input := &cloudformation.ListStackResourcesInput{
@@ -33,18 +33,4 @@ func StackExists(stackName string, session *session.Session) (bool, error) {
 	}
 
 	return true, nil
-}
-
-// DeleteStack deletes a cloudformation stack
-func DeleteStack(stackName string, session *session.Session) error {
-	cfn := cloudformation.New(session)
-
-	input := &cloudformation.DeleteStackInput{
-		StackName: aws.String(stackName),
-	}
-
-	_, err := cfn.DeleteStack(input)
-
-	return err
-
 }
