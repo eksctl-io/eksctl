@@ -3,9 +3,11 @@
 package integration_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
@@ -26,6 +28,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/iam"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
@@ -327,6 +330,81 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
 					}
 				})
+
+				It("should be able to run pods with an iamserviceaccount", func() {
+					createCmd := eksctlCreateCmd.WithArgs(
+						"iamserviceaccount",
+						"--cluster", clusterName,
+						"--name", "s3-reader",
+						"--namespace", test.Namespace,
+						"--attach-policy-arn", "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+						"--approve",
+					)
+
+					Expect(createCmd).To(RunSuccessfully())
+
+					d := test.CreateDeploymentFromFile(test.Namespace, "iamserviceaccount-checker.yaml")
+					test.WaitForDeploymentReady(d, commonTimeout)
+
+					pods := test.ListPodsFromDeployment(d)
+					Expect(len(pods.Items)).To(Equal(2))
+
+					// For each pod of the Deployment, check we get expected environment variables
+					// via a GET request on /env.
+					type sessionObject struct {
+						AssumedRoleUser struct {
+							AssumedRoleId, Arn string
+						}
+						Audience, Provider, SubjectFromWebIdentityToken string
+						Credentials                                     struct {
+							SecretAccessKey, SessionToken, Expiration, AccessKeyId string
+						}
+					}
+
+					for _, pod := range pods.Items {
+						Expect(pod.Namespace).To(Equal(test.Namespace))
+
+						so := sessionObject{}
+
+						var js []string
+						test.PodProxyGetJSON(&pod, "", "/env", &js)
+
+						Expect(js).To(ContainElement(HavePrefix("AWS_ROLE_ARN=arn:aws:iam::")))
+						Expect(js).To(ContainElement("AWS_WEB_IDENTITY_TOKEN_FILE=/var/run/secrets/eks.amazonaws.com/serviceaccount/token"))
+						Expect(js).To(ContainElement(HavePrefix("AWS_SESSION_OBJECT=")))
+
+						for _, envVar := range js {
+							if strings.HasPrefix(envVar, "AWS_SESSION_OBJECT=") {
+								err := json.Unmarshal([]byte(strings.TrimPrefix(envVar, "AWS_SESSION_OBJECT=")), &so)
+								Expect(err).ShouldNot(HaveOccurred())
+							}
+						}
+
+						Expect(so.AssumedRoleUser.AssumedRoleId).To(HaveSuffix(":integration-test"))
+
+						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:iam::.*:assumed-role/eksctl-" + clusterName + "-addon-iamserviceaccount-.*/integration-test$"))
+
+						Expect(so.Audience).To(Equal("sts.amazonaws.com"))
+
+						Expect(so.Provider).To(MatchRegexp("^arn:aws:iam::.*:oidc-provider/oidc.eks." + region + ".amazonaws.com/id/.*$"))
+
+						Expect(so.SubjectFromWebIdentityToken).To(Equal("system:serviceaccount:" + test.Namespace + ":s3-reader"))
+
+						Expect(so.Credentials.SecretAccessKey).ToNot(BeEmpty())
+						Expect(so.Credentials.SessionToken).ToNot(BeEmpty())
+						Expect(so.Credentials.Expiration).ToNot(BeEmpty())
+						Expect(so.Credentials.AccessKeyId).ToNot(BeEmpty())
+					}
+
+					deleteCmd := eksctlDeleteCmd.WithArgs(
+						"iamserviceaccount",
+						"--cluster", clusterName,
+						"--name", "s3-reader",
+						"--namespace", test.Namespace,
+					)
+
+					Expect(deleteCmd).To(RunSuccessfully())
+				})
 			})
 
 			Context("toggle CloudWatch logging", func() {
@@ -451,6 +529,138 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 			})
 
+			Context("create and delete iamserviceaccounts", func() {
+				var (
+					cfg  *api.ClusterConfig
+					ctl  *eks.ClusterProvider
+					oidc *iamoidc.OpenIDConnectManager
+					err  error
+				)
+
+				BeforeEach(func() {
+					cfg = &api.ClusterConfig{
+						Metadata: &api.ClusterMeta{
+							Name:   clusterName,
+							Region: region,
+						},
+					}
+					ctl = eks.New(&api.ProviderConfig{Region: region}, cfg)
+					err = ctl.RefreshClusterConfig(cfg)
+					Expect(err).ShouldNot(HaveOccurred())
+					oidc, err = ctl.NewOpenIDConnectManager(cfg)
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				It("should enable OIDC and create two iamserviceaccounts", func() {
+					{
+						exists, err := oidc.CheckProviderExists()
+						Expect(err).ShouldNot(HaveOccurred())
+						Expect(exists).To(BeFalse())
+					}
+
+					setupCmd := eksctlUtilsCmd.WithArgs(
+						"associate-iam-oidc-provider",
+						"--name", clusterName,
+						"--approve",
+					)
+					Expect(setupCmd).To(RunSuccessfully())
+
+					{
+						exists, err := oidc.CheckProviderExists()
+						Expect(err).ShouldNot(HaveOccurred())
+						Expect(exists).To(BeTrue())
+					}
+
+					cmds := []Cmd{
+						eksctlCreateCmd.WithArgs(
+							"iamserviceaccount",
+							"--cluster", clusterName,
+							"--name", "app-cache-access",
+							"--namespace", "app1",
+							"--attach-policy-arn", "arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess",
+							"--attach-policy-arn", "arn:aws:iam::aws:policy/AmazonElastiCacheFullAccess",
+							"--approve",
+						),
+						eksctlCreateCmd.WithArgs(
+							"iamserviceaccount",
+							"--cluster", clusterName,
+							"--name", "s3-read-only",
+							"--attach-policy-arn", "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+							"--approve",
+						),
+					}
+
+					Expect(cmds).To(RunSuccessfully())
+
+					awsSession := NewSession(region)
+
+					stackNamePrefix := fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-", clusterName)
+
+					Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
+					Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
+
+					clientSet, err := ctl.NewStdClientSet(cfg)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					{
+						sa, err := clientSet.CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get("s3-read-only", metav1.GetOptions{})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						Expect(sa.Annotations).To(HaveLen(1))
+						Expect(sa.Annotations).To(HaveKey(api.AnnotationEKSRoleARN))
+						Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + clusterName + ".*$"))
+					}
+
+					{
+						sa, err := clientSet.CoreV1().ServiceAccounts("app1").Get("app-cache-access", metav1.GetOptions{})
+						Expect(err).ShouldNot(HaveOccurred())
+
+						Expect(sa.Annotations).To(HaveLen(1))
+						Expect(sa.Annotations).To(HaveKey(api.AnnotationEKSRoleARN))
+						Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + clusterName + ".*$"))
+					}
+				})
+
+				It("should list both iamserviceaccounts", func() {
+					cmd := eksctlGetCmd.WithArgs(
+						"iamserviceaccount",
+						"--cluster", clusterName,
+					)
+
+					Expect(cmd).To(RunSuccessfullyWithOutputString(MatchRegexp(
+						`(?m:^NAMESPACE\s+NAME\s+ROLE\sARN$)` +
+							`|(?m:^app1\s+app-cache-access\s+arn:aws:iam::.*$)` +
+							`|(?m:^default\s+s3-read-only\s+arn:aws:iam::.*$)`,
+					)))
+				})
+
+				It("delete both iamserviceaccounts", func() {
+					cmds := []Cmd{
+						eksctlDeleteCmd.WithArgs(
+							"iamserviceaccount",
+							"--cluster", clusterName,
+							"--name", "s3-read-only",
+							"--wait",
+						),
+						eksctlDeleteCmd.WithArgs(
+							"iamserviceaccount",
+							"--cluster", clusterName,
+							"--name", "app-cache-access",
+							"--namespace", "app1",
+							"--wait",
+						),
+					}
+					Expect(cmds).To(RunSuccessfully())
+
+					awsSession := NewSession(region)
+
+					stackNamePrefix := fmt.Sprintf("eksctl-%s-addon-iamserviceaccount-", clusterName)
+
+					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
+					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
+				})
+			})
+
 			Context("and manipulating iam identity mappings", func() {
 				var (
 					role, exp0, exp1 string
@@ -558,7 +768,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-
 						"--role", role,
 						"-o", "yaml",
 					)

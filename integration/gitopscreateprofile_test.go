@@ -11,8 +11,9 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	. "github.com/weaveworks/eksctl/integration/runner"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+
 )
 
 var _ = Describe("(Integration) generate profile", func() {
