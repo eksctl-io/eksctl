@@ -107,7 +107,6 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 	{
 
-		logger.Info("cleaning up LoadBalancer services")
 		// only need to cleanup ELBs if the cluster has already been created.
 		if err := ctl.RefreshClusterConfig(cfg); err == nil {
 			cs, err := ctl.NewStdClientSet(cfg)
@@ -116,6 +115,8 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 			}
 			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cleanup()
+
+			logger.Info("cleaning up LoadBalancer services")
 			if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), cs, cfg); err != nil {
 				return err
 			}
