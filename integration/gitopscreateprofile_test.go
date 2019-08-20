@@ -3,6 +3,7 @@
 package integration_test
 
 import (
+	"fmt"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
@@ -14,9 +15,6 @@ var _ = Describe("(Integration) generate profile", func() {
 
 	Describe("when generating a profile", func() {
 		It("should write the processed repo files in the supplied directory", func() {
-
-			clusterName = "amazing-testing-gopher"
-			region = "eu-north-1"
 
 			eksctlSuccess("generate", "profile",
 				"--verbose", "4",
@@ -32,24 +30,24 @@ var _ = Describe("(Integration) generate profile", func() {
 
 			contents, err := fs.ReadFile(filepath.Join(testDirectory, "workloads/namespace.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(contents)).To(MatchYAML(
+			Expect(string(contents)).To(MatchYAML(fmt.Sprintf(
 				`---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    name: amazing-testing-gopher-eu-north-1
-  name: amazing-testing-gopher
-`))
+    name: %s-%s
+  name: %s
+`, clusterName, region, clusterName)))
 
 			contents, err = fs.ReadFile(filepath.Join(testDirectory, "workloads/services/service.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(contents)).To(MatchYAML(
+			Expect(string(contents)).To(MatchYAML(fmt.Sprintf(
 				`---
 apiVersion: v1
 kind: Service
 metadata:
-  name: amazing-testing-gopher-service1
+  name: %s-service1
 spec:
   selector:
     app: MyApp
@@ -57,7 +55,7 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 9376
-`))
+`, clusterName)))
 
 			contents, err = fs.ReadFile(filepath.Join(testDirectory, "metadata.yaml"))
 			Expect(err).ToNot(HaveOccurred())
