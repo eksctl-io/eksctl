@@ -47,12 +47,14 @@ func applyGitops(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVarP(&opts.quickstartNameArg, "quickstart-profile", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
 		fs.StringVarP(&opts.git.URL, "git-url", "", "", "URL for the git repository that will contain the cluster components")
 		fs.StringVarP(&opts.git.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&opts.outputPath, "output-path", "", "./", "Path to directory where the GitOps repo will be cloned")
 		fs.StringVar(&opts.git.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.git.Email, "git-email", "", "Email to use as Git committer")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
+		_ = cobra.MarkFlagRequired(fs, "quickstart-profile")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
 		_ = cobra.MarkFlagRequired(fs, "cluster")
 
@@ -64,16 +66,14 @@ func applyGitops(cmd *cmdutils.Cmd) {
 }
 
 func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
-	opts.quickstartNameArg = cmd.NameArg
 	if opts.quickstartNameArg == "" {
-		return errors.New("please supply a valid gitops quickstart url or name")
+		return errors.New("please supply a valid gitops Quick Start URL or name in --quickstart-profile")
 	}
+
 	if opts.git.URL == "" {
 		return errors.New("please supply a valid --git-url argument")
 	}
-	//if opts.git.Email == "" {
-	//	return errors.New("please supply a valid --git-email argument")
-	//}
+
 	quickstartRepoURL, err := repoURLForQuickstart(opts.quickstartNameArg)
 	if err != nil {
 		return errors.Wrapf(err, "please supply a valid Quick Start name or url")
