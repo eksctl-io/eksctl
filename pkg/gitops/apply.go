@@ -13,6 +13,7 @@ import (
 
 // GitOps can set up a repo as a gitops repo with flux
 type GitOps struct {
+	UserRepoPath     string
 	ClusterConfig    *api.ClusterConfig
 	UsersRepoOpts    git.Options
 	QuickstartName   string
@@ -26,6 +27,12 @@ func (g *GitOps) Apply(ctx context.Context) error {
 
 	// Install Flux, Helm and Tiller. Clones the user's repo
 	err := g.FluxInstaller.Run(context.Background())
+	if err != nil {
+		return err
+	}
+
+	// Clone user's repo to apply Quick Start profile
+	err = g.GitClient.CloneRepoInPath(g.UserRepoPath, g.UsersRepoOpts.Branch, g.UsersRepoOpts.URL)
 	if err != nil {
 		return err
 	}
@@ -50,7 +57,5 @@ func (g *GitOps) Apply(ctx context.Context) error {
 		return err
 	}
 
-	// Delete temporary clone of the quickstart profile repo
-	g.FluxInstaller.DeleteCloneDir()
 	return nil
 }

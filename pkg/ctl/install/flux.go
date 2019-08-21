@@ -64,12 +64,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 		}
 
 		installer := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &opts)
-		err = installer.Run(context.Background())
-		if err != nil {
-			return err
-		}
-		installer.DeleteCloneDir()
-		return nil
+		return installer.Run(context.Background())
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {

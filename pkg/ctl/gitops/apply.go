@@ -105,7 +105,6 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	fluxOpts := flux.InstallOpts{
 		GitURL:      opts.gitOptions.URL,
 		GitBranch:   opts.gitOptions.Branch,
-		OutputPath:  opts.outputPath,
 		GitEmail:    opts.gitOptions.Email,
 		GitUser:     opts.gitOptions.User,
 		Namespace:   "flux",
@@ -147,6 +146,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	})
 
 	gitOps := gitops.GitOps{
+		UserRepoPath:     usersRepoDir,
 		UsersRepoOpts:    opts.gitOptions,
 		GitClient:        gitClient,
 		ProfileGenerator: profile,

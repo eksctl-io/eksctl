@@ -130,6 +130,10 @@ var _ = Describe("GitClient", func() {
 		Expect(IsGitURL("git@github.com:weaveworks/eksctl.git")).To(BeTrue())
 		Expect(IsGitURL("https://github.com/weaveworks/eksctl.git")).To(BeTrue())
 		Expect(IsGitURL("https://username@secr3t:my-repo.example.com:8080/weaveworks/eksctl.git")).To(BeTrue())
+
+		Expect(IsGitURL("git@github")).To(BeFalse())
+		Expect(IsGitURL("https://")).To(BeFalse())
+		Expect(IsGitURL("app-dev")).To(BeFalse())
 	})
 
 })

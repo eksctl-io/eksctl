@@ -177,7 +177,7 @@ func RepoName(repoURL string) (string, error) {
 // IsGitURL returns true if the argument matches the git url format
 func IsGitURL(rawURL string) bool {
 	parsedURL, err := giturls.Parse(rawURL)
-	if err == nil && parsedURL.IsAbs() {
+	if err == nil && parsedURL.IsAbs() && parsedURL.Hostname() != "" {
 		return true
 	}
 	return false
