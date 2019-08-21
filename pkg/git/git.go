@@ -32,8 +32,16 @@ type ClientParams struct {
 // NewGitClient returns a client that can perform git operations
 func NewGitClient(ctx context.Context, params ClientParams) *Client {
 	return &Client{
-		executor: executor.NewShellExecutor(ctx, params.Timeout, params.PrivateSSHKeyPath),
+		executor: executor.NewShellExecutor(ctx, params.Timeout, envVars(params)),
 	}
+}
+
+func envVars(params ClientParams) []string {
+	envVars := []string{}
+	if params.PrivateSSHKeyPath != "" {
+		envVars = append(envVars, fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", params.PrivateSSHKeyPath))
+	}
+	return envVars
 }
 
 // NewGitClientFromExecutor returns a client that can have an executor injected. Useful for testing
