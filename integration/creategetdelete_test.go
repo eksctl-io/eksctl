@@ -149,6 +149,41 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
+		Context("gitops apply", func() {
+			It("should add quickstart to the repo and the cluster", func() {
+				// Use a random branch to ensure test runs don't step on each others.
+				branch := namer.RandomName()
+				cloneDir, err := createBranch(branch)
+				Expect(err).ShouldNot(HaveOccurred())
+				defer deleteBranch(branch, cloneDir)
+
+				tempOutputDir, err := ioutil.TempDir(os.TempDir(), "gitops-repo-")
+				assertFluxManifestsAbsentInGit(branch)
+
+				deleteFluxInstallation(kubeconfigPath)
+				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
+
+				eksctlSuccessWith(params{
+					Args: []string{"gitops", "apply",
+						"--git-url", Repository,
+						"--git-email", Email,
+						"--git-branch", branch,
+						// FIXME
+						// "--git-private-ssh-key-path", privateSSHKeyPath,
+						"--output-path", tempOutputDir,
+						"--quickstart-profile", "app-dev",
+						"--cluster", clusterName,
+						"--region", region,
+					},
+					Env: []string{"EKSCTL_EXPERIMENTAL=true"},
+				})
+
+				assertQuickStartComponentsPresentInGit(branch)
+				assertFluxManifestsPresentInGit(branch)
+				assertFluxPodsPresentInKubernetes(kubeconfigPath)
+			})
+		})
+
 		Context("and scale the initial nodegroup", func() {
 			It("should not return an error", func() {
 				eksctlSuccess("scale", "nodegroup",

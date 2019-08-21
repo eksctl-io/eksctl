@@ -18,12 +18,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 type options struct {
-	gitOptions        git.Options
-	quickstartNameArg string
-	outputPath        string
+	gitOptions           git.Options
+	quickstartNameArg    string
+	outputPath           string
+	gitPrivateSSHKeyPath string
 }
 
 func applyGitops(cmd *cmdutils.Cmd) {
@@ -45,6 +47,8 @@ func applyGitops(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&opts.outputPath, "output-path", "", "./", "Path to directory where the GitOps repo will be cloned")
 		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
+		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
+			"Optional path to the private SSH key to use with Git, e.g.: ~/.ssh/id_rsa")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 		_ = cobra.MarkFlagRequired(fs, "quickstart-profile")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
@@ -64,6 +68,9 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 	if opts.gitOptions.URL == "" {
 		return errors.New("please supply a valid --git-url argument")
+	}
+	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
+		return errors.New("please supply a valid --git-private-ssh-key-path argument")
 	}
 
 	quickstartRepoURL, err := repoURLForQuickstart(opts.quickstartNameArg)
@@ -109,6 +116,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		GitUser:     opts.gitOptions.User,
 		Namespace:   "flux",
 		GitFluxPath: "flux/",
+		WithHelm:    true,
 		Timeout:     git.DefaultGitTimeout,
 	}
 	fluxInstaller := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &fluxOpts)
@@ -141,8 +149,9 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 	// A git client that operates in the user's repo
 	gitClient := git.NewGitClient(context.Background(), git.ClientParams{
-		Timeout: git.DefaultGitTimeout,
-		Dir:     usersRepoDir,
+		PrivateSSHKeyPath: opts.gitPrivateSSHKeyPath,
+		Timeout:           git.DefaultGitTimeout,
+		Dir:               usersRepoDir,
 	})
 
 	gitOps := gitops.GitOps{

@@ -112,18 +112,18 @@ func assertFluxManifestsPresentInGit(branch string) {
 }
 
 func assertContainsFluxDir(dir string) {
-	fluxDirExists, err := fluxDirExists(dir)
+	fluxDirExists, err := dirExists(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(fluxDirExists).To(BeTrue(), "flux directory could not be found in %s", dir)
 }
 
 func assertDoesNotContainFluxDir(dir string) {
-	fluxDirExists, err := fluxDirExists(dir)
+	fluxDirExists, err := dirExists(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(fluxDirExists).To(BeFalse(), "flux directory was unexpectedly found in %s", dir)
 }
 
-func fluxDirExists(dir string) (bool, error) {
+func dirExists(dir string) (bool, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return false, err
@@ -531,6 +531,11 @@ func fluxPods(kubeconfigPath string) *corev1.PodList {
 	err = yaml.Unmarshal(output, &pods)
 	Expect(err).ShouldNot(HaveOccurred())
 	return &pods
+}
+
+func deleteFluxInstallation(kubeconfigPath string) {
+	_, err := kubectl("delete", "namespace", "flux", "--kubeconfig", kubeconfigPath)
+	Expect(err).ShouldNot(HaveOccurred())
 }
 
 func kubectl(args ...string) ([]byte, error) {
