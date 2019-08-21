@@ -1,5 +1,6 @@
 built_at := $(shell date +%s)
 git_commit := $(shell git describe --dirty --always)
+git_toplevel := $(shell git rev-parse --show-toplevel)
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
 # The dependencies version should be bumped every time the build dependencies are updated
@@ -31,7 +32,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 ##@ Build
 
-godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1) | sed "s%${PWD}/%%g"
+godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $(1) | sed "s|$(git_toplevel)/||g"
 godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
@@ -147,11 +148,11 @@ pkg/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-DEEP_COPY_DEPS := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's%$(DEEP_COPY_HELPER)%%' )
+DEEP_COPY_DEPS := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(DEEP_COPY_HELPER)||' )
 $(DEEP_COPY_HELPER): $(DEEP_COPY_DEPS) .license-header ## Generate Kubernetes API helpers
 	time go mod download k8s.io/code-generator # make sure the code-generator is present
 	time env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
-	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$${PWD}" \
+	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$(git_toplevel)" \
 	  || (cat codegenheader.txt ; cat $(DEEP_COPY_HELPER); exit 1)
 
 # static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
@@ -190,7 +191,7 @@ eksctl-deps-image: ## Create a cache image with dependencies
 .PHONY: eksctl-image
 eksctl-image: eksctl-deps-image## Create the eksctl image
 	time docker run -t --name eksctl-builder -e TEST_TARGET=$(TEST_TARGET) \
-	  -v "${PWD}":/src -v "$$(go env GOCACHE):/root/.cache/go-build" -v "$$(go env GOPATH)/pkg/mod:/go/pkg/mod" \
+	  -v "$(git_toplevel)":/src -v "$$(go env GOCACHE):/root/.cache/go-build" -v "$$(go env GOPATH)/pkg/mod:/go/pkg/mod" \
           $(EKSCTL_DEPENDENCIES_IMAGE) /src/eksctl-image-builder.sh || ( docker rm eksctl-builder; exit 1 )
 	time docker commit eksctl-builder $(EKSCTL_BUILDER_IMAGE) && docker rm eksctl-builder
 	docker build --tag $(EKSCTL_IMAGE) .
