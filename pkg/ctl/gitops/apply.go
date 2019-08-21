@@ -3,9 +3,7 @@ package gitops
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -171,8 +169,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 func repoURLForQuickstart(quickstartArgument string) (string, error) {
 	// FIXME: urls like git@github.com:weaveworks/eksctl produce the error "first path segment in URL cannot contain colon"
-	parsedURL, err := url.Parse(strings.ReplaceAll(quickstartArgument, ":", "/"))
-	if err == nil && parsedURL.IsAbs() {
+	if git.IsGitURL(quickstartArgument) {
 		return quickstartArgument, nil
 	}
 	if quickstartArgument == "app-dev" {

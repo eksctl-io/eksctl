@@ -73,6 +73,7 @@ require (
 	github.com/weaveworks/flux v0.0.0-20190729133003-c78ccd3706b5
 	github.com/weaveworks/github-release v0.6.2
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
+	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	github.com/zmap/zlint v0.0.0-20190806182416-88c3f6b6f2f5 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.4.0 // indirect

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -12,6 +11,8 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
+	giturls "github.com/whilp/git-urls"
 
 	"github.com/weaveworks/eksctl/pkg/git/executor"
 )
@@ -148,10 +149,14 @@ func (git Client) DeleteLocalRepo() error {
 	return fmt.Errorf("no cloned directory to delete")
 }
 
+func (git Client) runGitCmd(args ...string) error {
+	logger.Debug(fmt.Sprintf("running git %v in %s", args, git.dir))
+	return git.executor.Exec("git", git.dir, args...)
+}
+
 // RepoName returns the name of the repository given its URL
 func RepoName(repoURL string) (string, error) {
-	// FIXME: urls like git@github.com:weaveworks/eksctl produce the error "first path segment in URL cannot contain colon"
-	u, err := url.Parse(strings.ReplaceAll(repoURL, ":", "/"))
+	u, err := giturls.Parse(repoURL)
 	if err != nil {
 		return "", errors.Wrapf(err, "unable to parse git url '%s'", repoURL)
 	}
@@ -159,10 +164,16 @@ func RepoName(repoURL string) (string, error) {
 	if len(parts) == 0 {
 		return "", fmt.Errorf("could not find name of repository %s", repoURL)
 	}
-	return parts[len(parts)-1], nil
+
+	lastPathSegment := parts[len(parts)-1]
+	return strings.TrimRight(lastPathSegment, ".git"), nil
 }
 
-func (git Client) runGitCmd(args ...string) error {
-	logger.Debug(fmt.Sprintf("running git %v in %s", args, git.dir))
-	return git.executor.Exec("git", git.dir, args...)
+// IsGitURL returns true if the argument matches the git url format
+func IsGitURL(rawURL string) bool {
+	parsedURL, err := giturls.Parse(rawURL)
+	if err == nil && parsedURL.IsAbs() {
+		return true
+	}
+	return false
 }
