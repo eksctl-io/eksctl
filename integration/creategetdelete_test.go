@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
 
+	"github.com/kubicorn/kubicorn/pkg/namer"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -25,7 +26,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils/aws"
 	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
-	"github.com/weaveworks/eksctl/pkg/utils/random"
 )
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
@@ -124,7 +124,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		Context("and configuring Flux for GitOps", func() {
 			It("should not return an error", func() {
 				// Use a random branch to ensure test runs don't step on each others.
-				branch := random.String(8)
+				branch := namer.RandomName()
 				cloneDir, err := createBranch(branch)
 				Expect(err).ShouldNot(HaveOccurred())
 				defer deleteBranch(branch, cloneDir)
