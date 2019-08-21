@@ -23,12 +23,12 @@ and simplify application deployments and operations tasks to Kubernetes.
 Installing Flux on the cluster is the first step towards a gitops workflow. To install it, you need a Git repository 
 and an existing EKS cluster. Then run the following command:
 
-```bash
+```console
 EKSCTL_EXPERIMENTAL=true eksctl install flux --name <cluster_name> --region <region> --git-url=<git_repo> --git-email=<git_user_email>
 ```
 
 Or use a config file:
-```bash
+```console
 EKSCTL_EXPERIMENTAL=true eksctl install flux -f examples/01-simple-cluster.yaml --git-url=git@github.com:weaveworks/cluster-1-gitops.git --git-email=johndoe+flux@weave.works
 ```
 
@@ -38,7 +38,7 @@ disable the installation of the Helm server components, pass the flag `--with-he
 
 Full example:
 
-```bash
+```console
 $ EKSCTL_EXPERIMENTAL=true ./eksctl install flux --name=cluster-1 --region eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works--namespace=flux
 [ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
 [ℹ]    this may take up to a minute, please be patient
@@ -109,7 +109,7 @@ At this point Flux and the Helm server components should be installed in the spe
 do is to give Flux write access to the repository. Configure your repository to allow write access to that ssh key, 
 for example, through the Deploy keys if it lives in GitHub.
 
-```bash
+```console
 $ kubectl get pods --namespace flux
 NAME                       READY   STATUS    RESTARTS   AGE
 flux-699cc7f4cb-9qc45      1/1     Running   0          29m
