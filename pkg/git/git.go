@@ -17,6 +17,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/git/executor"
 )
 
+const (
+	// DefaultGitTimeout timeout for Git operations 20 seconds
+	DefaultGitTimeout = 20 * time.Second
+)
+
 // Cloner can clone git repositories
 type Cloner interface {
 	CloneRepo(cloneDirPrefix string, branch string, gitURL string) (string, error)
@@ -158,7 +163,7 @@ func (git Client) runGitCmd(args ...string) error {
 func RepoName(repoURL string) (string, error) {
 	u, err := giturls.Parse(repoURL)
 	if err != nil {
-		return "", errors.Wrapf(err, "unable to parse git url '%s'", repoURL)
+		return "", errors.Wrapf(err, "unable to parse git URL '%s'", repoURL)
 	}
 	parts := strings.Split(u.Path, "/")
 	if len(parts) == 0 {

@@ -2,7 +2,6 @@ package generate
 
 import (
 	"context"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -14,10 +13,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
-)
-
-const (
-	defaultGitTimeout = 20 * time.Second
 )
 
 type options struct {
@@ -43,8 +38,6 @@ func generateProfileCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&o.GitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "./", "Path to generate the profile in")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
-		fs.StringVar(&o.PrivateSSHKeyPath, "git-private-ssh-key-path", "",
-			"Optional path to the private SSH key to use with Git, e.g.: ~/.ssh/id_rsa")
 
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
@@ -71,7 +64,7 @@ func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
 		Path:      o.ProfilePath,
 		GitOpts:   o.GitOptions,
 		GitCloner: git.NewGitClient(context.Background(), git.ClientParams{
-			Timeout:           defaultGitTimeout,
+			Timeout:           git.DefaultGitTimeout,
 			PrivateSSHKeyPath: o.PrivateSSHKeyPath,
 		}),
 		FS: afero.NewOsFs(),
@@ -79,7 +72,6 @@ func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
 	}
 
 	err := profile.Generate(context.Background())
-
 	if err != nil {
 		return errors.Wrap(err, "error generating profile")
 	}

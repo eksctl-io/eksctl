@@ -4,15 +4,13 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"k8s.io/client-go/tools/clientcmd"
-
 	kubeclient "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -22,12 +20,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
-const (
-	defaultGitTimeout = 20 * time.Second
-)
-
 type options struct {
-	git               git.Options
+	gitOptions        git.Options
 	quickstartNameArg string
 	outputPath        string
 }
@@ -46,11 +40,11 @@ func applyGitops(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&opts.quickstartNameArg, "quickstart-profile", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
-		fs.StringVarP(&opts.git.URL, "git-url", "", "", "URL for the git repository that will contain the cluster components")
-		fs.StringVarP(&opts.git.Branch, "git-branch", "", "master", "Git branch")
+		fs.StringVarP(&opts.gitOptions.URL, "git-url", "", "", "URL for the git repository that will contain the cluster components")
+		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&opts.outputPath, "output-path", "", "./", "Path to directory where the GitOps repo will be cloned")
-		fs.StringVar(&opts.git.User, "git-user", "Flux", "Username to use as Git committer")
-		fs.StringVar(&opts.git.Email, "git-email", "", "Email to use as Git committer")
+		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
+		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 		_ = cobra.MarkFlagRequired(fs, "quickstart-profile")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
@@ -68,13 +62,13 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.New("please supply a valid gitops Quick Start URL or name in --quickstart-profile")
 	}
 
-	if opts.git.URL == "" {
+	if opts.gitOptions.URL == "" {
 		return errors.New("please supply a valid --git-url argument")
 	}
 
 	quickstartRepoURL, err := repoURLForQuickstart(opts.quickstartNameArg)
 	if err != nil {
-		return errors.Wrapf(err, "please supply a valid Quick Start name or url")
+		return errors.Wrapf(err, "please supply a valid Quick Start name or URL")
 	}
 
 	if err := cmdutils.NewGitopsMetadataLoader(cmd).Load(); err != nil {
@@ -109,14 +103,14 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 	// Create the flux installer. It will clone the user's repository in the outputPath
 	fluxOpts := flux.InstallOpts{
-		GitURL:      opts.git.URL,
-		GitBranch:   opts.git.Branch,
+		GitURL:      opts.gitOptions.URL,
+		GitBranch:   opts.gitOptions.Branch,
 		OutputPath:  opts.outputPath,
-		GitEmail:    opts.git.Email,
-		GitUser:     opts.git.User,
+		GitEmail:    opts.gitOptions.Email,
+		GitUser:     opts.gitOptions.User,
 		Namespace:   "flux",
 		GitFluxPath: "flux/",
-		Timeout:     defaultGitTimeout,
+		Timeout:     git.DefaultGitTimeout,
 	}
 	fluxInstaller := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &fluxOpts)
 
@@ -125,7 +119,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	}
 
 	// Create the profile generator. It will output the processed templates into a new "/base" directory into the user's repo
-	usersRepoName, err := git.RepoName(opts.git.URL)
+	usersRepoName, err := git.RepoName(opts.gitOptions.URL)
 	if err != nil {
 		return err
 	}
@@ -140,7 +134,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 			Branch: "master",
 		},
 		GitCloner: git.NewGitClient(context.Background(), git.ClientParams{
-			Timeout: defaultGitTimeout,
+			Timeout: git.DefaultGitTimeout,
 		}),
 		FS: afero.NewOsFs(),
 		IO: afero.Afero{Fs: afero.NewOsFs()},
@@ -148,12 +142,12 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 	// A git client that operates in the user's repo
 	gitClient := git.NewGitClient(context.Background(), git.ClientParams{
-		Timeout: defaultGitTimeout,
+		Timeout: git.DefaultGitTimeout,
 		Dir:     usersRepoDir,
 	})
 
 	gitOps := gitops.GitOps{
-		UsersRepoOpts:    opts.git,
+		UsersRepoOpts:    opts.gitOptions,
 		GitClient:        gitClient,
 		ProfileGenerator: profile,
 		FluxInstaller:    fluxInstaller,
@@ -168,7 +162,6 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 }
 
 func repoURLForQuickstart(quickstartArgument string) (string, error) {
-	// FIXME: urls like git@github.com:weaveworks/eksctl produce the error "first path segment in URL cannot contain colon"
 	if git.IsGitURL(quickstartArgument) {
 		return quickstartArgument, nil
 	}
@@ -176,5 +169,5 @@ func repoURLForQuickstart(quickstartArgument string) (string, error) {
 		// FIXME rename to eks-quickstart-app-dev once the repo is renamed
 		return "git@github.com:weaveworks/eks-gitops-example.git", nil
 	}
-	return "", fmt.Errorf("invalid url or unknown Quick Start %s ", quickstartArgument)
+	return "", fmt.Errorf("invalid URL or unknown Quick Start %s ", quickstartArgument)
 }
