@@ -197,6 +197,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 			return err
 		}
 		logger.Info("Helm Operator started successfully")
+		logger.Info("see https://docs.fluxcd.io/projects/helm-operator for details on how to use the Helm Operator")
 	}
 
 	logger.Info("Waiting for Flux to start")
@@ -205,6 +206,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 		return err
 	}
 	logger.Info("Flux started successfully")
+	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
 	logger.Info("Committing and pushing manifests to %s", fi.opts.GitURL)
 	if err := fi.addFilesToRepo(ctx, cloneDir); err != nil {
