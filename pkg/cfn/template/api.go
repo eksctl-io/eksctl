@@ -31,11 +31,17 @@ type AnyResource struct {
 	Properties interface{}
 }
 
-// Output represents a CloudFormation output definition
-type Output struct {
-	Description string          `json:",omitempty"`
-	Value       MapOfInterfaces `json:",omitempty"`
-}
+type (
+	// Output represents a CloudFormation output definition
+	Output struct {
+		Value  *Value        `json:",omitempty"`
+		Export *OutputExport `json:",omitempty"`
+	}
+	// OutputExport represents export name of a CloudFormation output
+	OutputExport struct {
+		Name *Value `json:",omitempty"`
+	}
+)
 
 // Resource defines the interface that every resource should implements
 type Resource interface {
