@@ -160,3 +160,32 @@ See the complete example [here](https://github.com/weaveworks/eksctl/blob/master
 
 **Note**: Specifying the NAT Gateway is only supported during cluster creation and it is not touched during a cluster
 upgrade. There are plans to support changing between different modes on cluster update in the future.
+
+### Managing Access to the Kubernetes API Server Endpoints
+
+The default creation of an EKS cluster exposes the Kubernetes API server publicly but not directly
+from within the
+VPC subnets (Public=true, Private=false). Traffic destined for the API server from within the VPC
+must first exit
+the VPC networks (but not Amazon's network) and then re-enter to reach the API server. Allowing direct access from
+within the VPC subnets is possible but not without some caveats. See [Amazon EKS Cluster
+Endpoint Access Control](https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html) for
+further information
+on additional steps needed when public=false, private=true.
+
+The Kubernetes API server endpoint access for a cluster can be cofigured for public and private
+access by
+specifiying the `--vpc-endpoint-access-public` and/or`--vpc-endpoint-access-private` CLI flags to be
+`true` (access enabled)
+or
+`false` (access disabled).
+
+Alternatively, one can configure access in the cluster config file like
+the example below:
+
+```yaml
+vpc:
+  endpointAccess:
+    public:  <true|false>
+    private: <true|false>
+```
