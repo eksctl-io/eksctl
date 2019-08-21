@@ -2,7 +2,6 @@ package executor
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -15,17 +14,17 @@ type Executor interface {
 
 // ShellExecutor an executor that shells out to run commands
 type ShellExecutor struct {
-	parentCtx         context.Context
-	timeout           time.Duration
-	privateSSHKeyPath string
+	parentCtx context.Context
+	timeout   time.Duration
+	envVars   []string
 }
 
 // NewShellExecutor creates a new executor that runs commands
-func NewShellExecutor(ctx context.Context, timeout time.Duration, privateSSHKeyPath string) Executor {
+func NewShellExecutor(ctx context.Context, timeout time.Duration, envVars []string) Executor {
 	return ShellExecutor{
-		parentCtx:         ctx,
-		timeout:           timeout,
-		privateSSHKeyPath: privateSSHKeyPath,
+		parentCtx: ctx,
+		timeout:   timeout,
+		envVars:   envVars,
 	}
 }
 
@@ -34,8 +33,8 @@ func (e ShellExecutor) Exec(command string, dir string, args ...string) error {
 	ctx, ctxCancel := context.WithTimeout(e.parentCtx, e.timeout)
 	defer ctxCancel()
 	cmd := exec.CommandContext(ctx, command, args...)
-	if e.privateSSHKeyPath != "" {
-		cmd.Env = []string{fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", e.privateSSHKeyPath)}
+	if len(e.envVars) > 0 {
+		cmd.Env = e.envVars
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
