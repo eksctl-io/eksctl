@@ -6,12 +6,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	kubeclient "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
+	kubeclient "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func installFluxCmd(cmd *cmdutils.Cmd) {
@@ -28,6 +28,9 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 		}
 		if opts.GitEmail == "" {
 			return errors.New("please supply a valid --git-email argument")
+		}
+		if opts.GitPrivateSSHKeyPath != "" && !file.Exists(opts.GitPrivateSSHKeyPath) {
+			return errors.New("please supply a valid --git-private-ssh-key-path argument")
 		}
 
 		if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
@@ -77,6 +80,8 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 			"Email to use as Git committer")
 		fs.StringVar(&opts.GitFluxPath, "git-flux-subdir", "flux/",
 			"Directory within the Git repository where to commit the Flux manifests")
+		fs.StringVar(&opts.GitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
+			"Optional path to the private SSH key to use with Git, e.g.: ~/.ssh/id_rsa")
 		fs.StringVar(&opts.Namespace, "namespace", "flux",
 			"Cluster namespace where to install Flux, the Helm Operator and Tiller")
 		fs.BoolVar(&opts.WithHelm, "with-helm", true,

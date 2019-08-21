@@ -94,17 +94,18 @@ subjects:
 
 // InstallOpts are the installation options for Flux
 type InstallOpts struct {
-	GitURL      string
-	GitBranch   string
-	GitPaths    []string
-	GitLabel    string
-	GitUser     string
-	GitEmail    string
-	GitFluxPath string
-	Namespace   string
-	Timeout     time.Duration
-	Amend       bool
-	WithHelm    bool
+	GitURL               string
+	GitBranch            string
+	GitPaths             []string
+	GitLabel             string
+	GitUser              string
+	GitEmail             string
+	GitFluxPath          string
+	GitPrivateSSHKeyPath string
+	Namespace            string
+	Timeout              time.Duration
+	Amend                bool
+	WithHelm             bool
 }
 
 // Installer installs Flux
@@ -117,7 +118,10 @@ type Installer struct {
 
 // NewInstaller creates a new Flux installer
 func NewInstaller(ctx context.Context, k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
-	gitClient := git.NewGitClient(ctx, opts.Timeout)
+	gitClient := git.NewGitClient(ctx, git.ClientParams{
+		Timeout:           opts.Timeout,
+		PrivateSSHKeyPath: opts.GitPrivateSSHKeyPath,
+	})
 	fi := &Installer{
 		opts:          opts,
 		k8sRestConfig: k8sRestConfig,

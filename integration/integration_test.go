@@ -4,6 +4,7 @@ package integration_test
 
 import (
 	"flag"
+	"fmt"
 	"testing"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -24,6 +25,12 @@ var (
 
 	kubeconfigTemp bool
 	testDirectory  = "test_profile"
+	// privateSSHKeyPath is the SSH key to use for Git operations.
+	privateSSHKeyPath string
+)
+
+const (
+	defaultPrivateSSHKeyPath = "~/.ssh/eksctl-bot_id_rsa"
 )
 
 func init() {
@@ -37,6 +44,7 @@ func init() {
 	flag.BoolVar(&doCreate, "eksctl.create", true, "Skip the creation tests. Useful for debugging the tests")
 	flag.BoolVar(&doDelete, "eksctl.delete", true, "Skip the cleanup after the tests have run")
 	flag.StringVar(&kubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create it a temporary file)")
+	flag.StringVar(&privateSSHKeyPath, "eksctl.git.sshkeypath", defaultPrivateSSHKeyPath, fmt.Sprintf("Path to the SSH key to use for Git operations (default: %s)", defaultPrivateSSHKeyPath))
 }
 
 func TestSuite(t *testing.T) {
