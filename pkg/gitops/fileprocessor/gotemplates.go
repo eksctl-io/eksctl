@@ -19,12 +19,14 @@ const (
 // be applied to the go template files found. Templates filenames must end in .templ
 type TemplateParameters struct {
 	ClusterName string
+	Region      string
 }
 
 // NewTemplateParameters creates a set of variables for templating given a ClusterConfig object
 func NewTemplateParameters(clusterConfig *api.ClusterConfig) TemplateParameters {
 	return TemplateParameters{
 		ClusterName: clusterConfig.Metadata.Name,
+		Region:      clusterConfig.Metadata.Region,
 	}
 }
 

@@ -84,8 +84,8 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 	return *c.Status.cachedClusterInfo.Version
 }
 
-// GetClusterVPC retrieves the VPC configuration
-func (c *ClusterProvider) GetClusterVPC(spec *api.ClusterConfig) error {
+// LoadClusterVPC loads the VPC configuration
+func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
 	stack, err := c.NewStackManager(spec).DescribeClusterStack()
 	if err != nil {
 		return err

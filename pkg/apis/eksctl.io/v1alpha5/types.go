@@ -366,13 +366,12 @@ func NewClusterConfig() *ClusterConfig {
 // NewClusterVPC creates new VPC config for a cluster
 func NewClusterVPC() *ClusterVPC {
 	cidr := DefaultCIDR()
-	nat := DefaultClusterNAT()
 
 	return &ClusterVPC{
 		Network: Network{
 			CIDR: &cidr,
 		},
-		NAT:              nat,
+		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
 	}
 }

@@ -11,7 +11,7 @@ import (
 )
 
 // Cmd holds attributes that are common between commands;
-// not all commands use each attribute, but but they can if needed
+// not all commands use each attribute, but they can if needed
 type Cmd struct {
 	CobraCommand *cobra.Command
 	FlagSetGroup *NamedFlagSetGroup
