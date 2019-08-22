@@ -154,7 +154,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		Dir:               usersRepoDir,
 	})
 
-	gitOps := gitops.GitOps{
+	gitOps := gitops.Applier{
 		UserRepoPath:     usersRepoDir,
 		UsersRepoOpts:    opts.gitOptions,
 		GitClient:        gitClient,
@@ -164,7 +164,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		QuickstartName:   opts.quickstartNameArg,
 	}
 
-	if err = gitOps.Apply(context.Background()); err != nil {
+	if err = gitOps.Run(context.Background()); err != nil {
 		return err
 	}
 	return nil

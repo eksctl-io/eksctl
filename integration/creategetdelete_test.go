@@ -8,8 +8,7 @@ import (
 	"os"
 	"time"
 
-	awseks "github.com/aws/aws-sdk-go/service/eks"
-	harness "github.com/dlespiau/kube-test-harness"
+	"github.com/kubicorn/kubicorn/pkg/namer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -17,7 +16,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
 
-	"github.com/kubicorn/kubicorn/pkg/namer"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -168,8 +166,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"--git-url", Repository,
 						"--git-email", Email,
 						"--git-branch", branch,
-						// FIXME
-						// "--git-private-ssh-key-path", privateSSHKeyPath,
+						"--git-private-ssh-key-path", privateSSHKeyPath,
 						"--output-path", tempOutputDir,
 						"--quickstart-profile", "app-dev",
 						"--cluster", clusterName,

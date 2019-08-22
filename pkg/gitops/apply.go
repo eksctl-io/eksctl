@@ -11,8 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
-// GitOps can set up a repo as a gitops repo with flux
-type GitOps struct {
+// Applier can set up a repo as a gitops repo with flux
+type Applier struct {
 	UserRepoPath     string
 	ClusterConfig    *api.ClusterConfig
 	UsersRepoOpts    git.Options
@@ -22,8 +22,8 @@ type GitOps struct {
 	GitClient        *git.Client
 }
 
-// Apply setups gitops in a repository and a cluster and installs flux, helm, tiller and a quickstart into the cluster
-func (g *GitOps) Apply(ctx context.Context) error {
+// Run sets up gitops in a repository and a cluster and installs flux, helm, tiller and a quickstart into the cluster
+func (g *Applier) Run(ctx context.Context) error {
 
 	// Install Flux, Helm and Tiller. Clones the user's repo
 	err := g.FluxInstaller.Run(context.Background())

@@ -534,8 +534,7 @@ func fluxPods(kubeconfigPath string) *corev1.PodList {
 }
 
 func deleteFluxInstallation(kubeconfigPath string) {
-	_, err := kubectl("delete", "namespace", "flux", "--kubeconfig", kubeconfigPath)
-	Expect(err).ShouldNot(HaveOccurred())
+	kubectl("delete", "namespace", "--kubeconfig", kubeconfigPath, "flux")
 }
 
 func kubectl(args ...string) ([]byte, error) {

@@ -11,7 +11,6 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-
 	giturls "github.com/whilp/git-urls"
 
 	"github.com/weaveworks/eksctl/pkg/git/executor"
