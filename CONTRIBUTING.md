@@ -15,14 +15,20 @@ simple statement that you, as a contributor, have the legal right to make the
 contribution. No action from you is required, but it's a good idea to see the
 [DCO](DCO) file for details before you start contributing code to eksctl.
 
-## Chat
+## Communication
 
 The project uses Slack. If you get stuck or just have a question then you are encouraged to join the
 [Weave Community](https://weaveworks.github.io/community-slack/) Slack workspace and use the
-[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
+[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel and/or the [mailing
+list](maillist).
+
+We use the mailing list for some discussion, potentially for sharing documents
+and for calendar invites.
 
 Regular contributor meetings are held on Slack, see [`docs/contributor-meetings.md`](docs/contributor-meetings.md) for
 the latest information.
+
+[maillist]: https://groups.google.com/forum/#!forum/eksctl
 
 ## Getting Started
 
