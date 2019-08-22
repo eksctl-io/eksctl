@@ -273,7 +273,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfig
 }
 
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
-	if l.CobraCommand.Flag("ssh-public-key").Changed {
+	if flag := l.CobraCommand.Flag("ssh-public-key"); flag != nil && flag.Changed {
 		if *ng.SSH.PublicKeyPath == "" {
 			return fmt.Errorf("--ssh-public-key must be non-empty string")
 		}
