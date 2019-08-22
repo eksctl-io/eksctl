@@ -16,7 +16,7 @@ import (
 
 func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	params := &getCmdParams{}
@@ -54,9 +54,9 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		ng.Name = cmd.NameArg
 	}
 
-	if ng.Name == "" {
-		// avoid validation errors when listing all nodegroups
-		cfg.NodeGroups = nil
+	// prevent creation of invalid config object with unnamed nodegroup
+	if ng.Name != "" {
+		cfg.NodeGroups = append(cfg.NodeGroups, ng)
 	}
 
 	ctl, err := cmd.NewCtl()

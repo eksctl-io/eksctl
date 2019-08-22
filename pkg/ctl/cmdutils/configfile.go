@@ -132,8 +132,10 @@ func NewGitopsMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
-func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, withoutNodeGroup bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
+
+	ngFilter.ExcludeAll = withoutNodeGroup
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",
@@ -196,8 +198,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLo
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		if ngFilter.ExcludeAll {
-			l.ClusterConfig.NodeGroups = nil // avoid validation errors when --without-nodegroup is used
+		// prevent creation of invalid config object with irrelevant nodegroup
+		// that may or may not be constructed correctly
+		if !withoutNodeGroup {
+			l.ClusterConfig.NodeGroups = append(l.ClusterConfig.NodeGroups, ng)
 		}
 
 		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
