@@ -33,7 +33,7 @@ type createClusterCmdParams struct {
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	params := &createClusterCmdParams{}
@@ -41,7 +41,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("cluster", "Create a cluster", "")
 
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doCreateCluster(cmd, params)
+		return doCreateCluster(cmd, ng, params)
 	})
 
 	exampleClusterName := cmdutils.ClusterName("", "")
@@ -85,11 +85,10 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 	})
 }
 
-func doCreateCluster(cmd *cmdutils.Cmd, params *createClusterCmdParams) error {
+func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
-	ngFilter.ExcludeAll = params.withoutNodeGroup
 
-	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter).Load(); err != nil {
+	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params.withoutNodeGroup).Load(); err != nil {
 		return err
 	}
 
