@@ -23,10 +23,10 @@ if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
   exit 3
 fi
 
-if git remote get-url origin | grep -v "git@github.com:weaveworks/eksctl" ; then
+if [ ! "$(git remote get-url origin)" = "git@github.com:weaveworks/eksctl" ] ; then
   echo "Invalid origin: $(git remote get-url origin)"
   exit 3
-if
+fi
 
 function branch_exists() {
   git ls-remote --heads origin "${1}" | grep -q "${1}"
@@ -72,7 +72,7 @@ export RELEASE_GIT_TAG="${v}"
 go generate ./pkg/version
 
 git add ./pkg/version/release.go
-git add ${RELEASE_NOTES_FILE}
+git add "${RELEASE_NOTES_FILE}"
 
 m="Tag ${v} release candidate"
 
