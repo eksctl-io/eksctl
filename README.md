@@ -105,6 +105,7 @@ To learn more abut what `eksctl` can do check [eksctl.io](https://eksctl.io). A 
 ## Contributions
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
+Or join the discussion on our [mailing list](maillist).
 
 ## Releases
 
@@ -117,7 +118,8 @@ One or more release candidate(s) (RC) builds will be made available prior to eac
 [Create an issue](https://github.com/weaveworks/eksctl/issues/new), or login to [Weave Community Slack (#eksctl)][slackchan] ([signup][slackjoin]).
 
 [slackjoin]: https://slack.weave.works/
-[slackchan]: https://weave-community.slack.com/messages/CAYBZBWGL/
+[slackchan]: https://weave-community.slack.com/messages/eksctl/
+[maillist]: https://groups.google.com/forum/#!forum/eksctl
 
 > **_Logo Credits_**
 >
