@@ -117,14 +117,88 @@ memcached-958f745c-qdfgz   1/1     Running   0          29m
 ```
 
 
-### Adding a workload
+#### Adding a workload
 
 To deploy a new workload on the cluster using GitOps just add a kubernetes manifest to the repository. After a few 
 minutes you should see the resources appearing in the cluster.
 
-### Further reading
+#### Further reading
 
 To learn more about GitOps and Flux, check the [Flux documentation][flux]
  
+
+### Installing components from a quickstart
+
+`eksctl` provides an application development quickstart profile which can install the following components in your
+cluster: 
+  - Metrics Server
+  - Prometheus
+  - Grafana
+  - Kubernetes Dashboard
+  - FluentD with connection to CloudWatch logs
+  - CNI, present by default in EKS clusters
+  - Cluster Autoscaler
+  - ALB ingress controller
+  - Podinfo as a demo application
+
+To install those components the command `generate profile` can be used:
+
+```console
+EKSCTL_EXPERIMENTAL=true eksctl generate profile --config-file=<cluster_config_file> --git-url git@github.com:weaveworks/eks-gitops-example.git --profile-path <output_directory>
+```
+
+For example:
+
+```
+$ EKSCTL_EXPERIMENTAL=true eksctl generate profile  --config-file 01-simple-cluster.yaml --git-url git@github.com:weaveworks/eks-gitops-example.git --profile-path my-gitops-repo/base/
+[ℹ]  cloning repository "git@github.com:weaveworks/eks-gitops-example.git":master
+Cloning into '/tmp/quickstart-224631067'...
+warning: templates not found /home/.../.git_template
+remote: Enumerating objects: 75, done.
+remote: Counting objects: 100% (75/75), done.
+remote: Compressing objects: 100% (63/63), done.
+remote: Total 75 (delta 25), reused 49 (delta 11), pack-reused 0
+Receiving objects: 100% (75/75), 19.02 KiB | 1.19 MiB/s, done.
+Resolving deltas: 100% (25/25), done.
+[ℹ]  processing template files in repository
+[ℹ]  writing new manifests to "base/"
+
+$ tree my-gitops-repo/base
+base
+├── amazon-cloudwatch
+│   ├── 0-namespace.yaml
+│   ├── config-map.yaml
+│   ├── daemonset.yaml
+│   ├── fluentd-config-map.yaml
+│   ├── fluentd.yml
+│   └── service-account.yaml
+├── demo
+│   ├── 00-namespace.yaml
+│   └── helm-release.yaml
+├── kube-system
+│   ├── aws-alb-ingress-controller
+│   │   ├── deployment.yaml
+│   │   └── rbac-role.yaml
+│   ├── cluster-autoscaler-autodiscover.yaml
+│   └── kubernetes-dashboard.yaml
+├── LICENSE
+├── monitoring
+│   ├── 00-namespace.yaml
+│   ├── metrics-server.yaml
+│   └── prometheus.yaml
+└── README.md
+```
+
+After running the command, add, commit and push the files:
+
+```bash
+cd my-gitops-repo/
+git add .
+git commit -m "Add application development quickstart components"
+git push origin master
+```
+
+After a few minutes, Flux and Helm should have installed all the components in your cluster.
+
 
 [flux]: https://docs.fluxcd.io/en/latest/
