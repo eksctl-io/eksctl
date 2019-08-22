@@ -186,6 +186,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLo
 			return fmt.Errorf("status fields are read-only")
 		}
 
+		if ngFilter.ExcludeAll {
+			l.ClusterConfig.NodeGroups = nil // avoid validation errors when --without-nodegroup is used
+		}
+
 		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
 			// generate nodegroup name or use flag
 			ng.Name = NodeGroupName(ng.Name, "")
