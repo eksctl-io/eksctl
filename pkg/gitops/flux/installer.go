@@ -159,7 +159,6 @@ func (fi *Installer) Run(ctx context.Context) error {
 				cloneDir)
 		}
 	}()
-
 	logger.Info("Writing Flux manifests")
 	fluxManifestDir := filepath.Join(cloneDir, fi.opts.GitFluxPath)
 	if err := writeFluxManifests(fluxManifestDir, manifests); err != nil {

@@ -9,12 +9,18 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
+
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 var _ = Describe("(Integration) generate profile", func() {
 
 	Describe("when generating a profile", func() {
 		It("should write the processed repo files in the supplied directory", func() {
+
+			if clusterName == "" {
+				clusterName = cmdutils.ClusterName("", "")
+			}
 
 			eksctlSuccess("generate", "profile",
 				"--verbose", "4",
