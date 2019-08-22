@@ -123,11 +123,95 @@ var _ = Describe("cmdutils configfile", func() {
 					ProviderConfig:    &api.ProviderConfig{},
 				}
 
-				Expect(NewCreateClusterLoader(cmd, nil).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, NewNodeGroupFilter(), nil, true).Load()).To(Succeed())
 				cfg := cmd.ClusterConfig
 				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
 				Expect(*cfg.VPC.NAT.Gateway).To(Equal(natTest.expectedGateway))
 			}
+		})
+
+		It("loader should handle named and unnamed nodegroups without config file", func() {
+			unnamedNG := api.NewNodeGroup()
+
+			namedNG := api.NewNodeGroup()
+			namedNG.Name = "ng-1"
+
+			loaderParams := []struct {
+				ng               *api.NodeGroup
+				withoutNodeGroup bool
+			}{
+				{unnamedNG, false},
+				{unnamedNG, true},
+				{namedNG, false},
+				{namedNG, false},
+			}
+
+			for _, loaderTest := range loaderParams {
+				cmd := &Cmd{
+					CobraCommand:   newCmd(),
+					ClusterConfig:  api.NewClusterConfig(),
+					ProviderConfig: &api.ProviderConfig{},
+				}
+
+				ngFilter := NewNodeGroupFilter()
+
+				Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(0))
+
+				Expect(NewCreateClusterLoader(cmd, ngFilter, loaderTest.ng, loaderTest.withoutNodeGroup).Load()).To(Succeed())
+
+				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
+
+				if loaderTest.withoutNodeGroup {
+					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(0))
+				}
+				if !loaderTest.withoutNodeGroup {
+					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(1))
+					Expect(cmd.ClusterConfig.NodeGroups[0]).To(Equal(loaderTest.ng))
+				}
+
+				_, err := cmd.NewCtl()
+				Expect(err).ToNot(HaveOccurred())
+			}
+		})
+
+		It("loader should handle nodegroup exclusion with config file", func() {
+			loaderParams := []struct {
+				configFile       string
+				nodeGroupCount   int
+				withoutNodeGroup bool
+			}{
+				{"01-simple-cluster.yaml", 1, true},
+				{"01-simple-cluster.yaml", 1, false},
+				{"02-custom-vpc-cidr-no-nodes.yaml", 0, true},
+				{"02-custom-vpc-cidr-no-nodes.yaml", 0, true},
+				{"03-two-nodegroups.yaml", 2, true},
+				{"03-two-nodegroups.yaml", 2, false},
+				{"05-advanced-nodegroups.yaml", 3, true},
+				{"05-advanced-nodegroups.yaml", 3, false},
+				{"07-ssh-keys.yaml", 5, true},
+				{"07-ssh-keys.yaml", 5, false},
+			}
+
+			for _, loaderTest := range loaderParams {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: filepath.Join(examplesDir, loaderTest.configFile),
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    &api.ProviderConfig{},
+				}
+
+				ngFilter := NewNodeGroupFilter()
+
+				Expect(NewCreateClusterLoader(cmd, ngFilter, nil, loaderTest.withoutNodeGroup).Load()).To(Succeed())
+
+				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
+
+				Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(loaderTest.nodeGroupCount))
+
+				_, err := cmd.NewCtl()
+				Expect(err).ToNot(HaveOccurred())
+			}
+
 		})
 	})
 })
