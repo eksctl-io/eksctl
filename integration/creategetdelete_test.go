@@ -146,6 +146,39 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 			})
 
+			It("should be able to list nodegroups", func() {
+				{
+					cmdSession := eksctlSuccess("get", "nodegroup",
+						"--cluster", clusterName,
+						"--region", region,
+						initNG,
+					)
+					output := string(cmdSession.Buffer().Contents())
+					Expect(output).To(ContainSubstring(initNG))
+					Expect(output).ToNot(ContainSubstring(testNG))
+
+				}
+				{
+					cmdSession := eksctlSuccess("get", "nodegroup",
+						"--cluster", clusterName,
+						"--region", region,
+						testNG,
+					)
+					output := string(cmdSession.Buffer().Contents())
+					Expect(output).To(ContainSubstring(testNG))
+					Expect(output).ToNot(ContainSubstring(initNG))
+				}
+				{
+					cmdSession := eksctlSuccess("get", "nodegroup",
+						"--cluster", clusterName,
+						"--region", region,
+					)
+					output := string(cmdSession.Buffer().Contents())
+					Expect(output).To(ContainSubstring(initNG))
+					Expect(output).To(ContainSubstring(testNG))
+				}
+			})
+
 			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 8 nodes total", func() {
 				test, err := newKubeTest()
 				Expect(err).ShouldNot(HaveOccurred())
