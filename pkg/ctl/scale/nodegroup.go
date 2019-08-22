@@ -42,15 +42,7 @@ func scaleNodeGroupCmd(cmd *cmdutils.Cmd) {
 func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
-
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
+	// TODO: move this into a loader when --config-file gets added to this command
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--cluster")
 	}
@@ -65,6 +57,15 @@ func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
 
 	if ng.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")
+	}
+
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
+
+	if err := ctl.CheckAuth(); err != nil {
+		return err
 	}
 
 	if ng.DesiredCapacity == nil || *ng.DesiredCapacity < 0 {
