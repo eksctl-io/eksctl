@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	awseks "github.com/aws/aws-sdk-go/service/eks"
+	harness "github.com/dlespiau/kube-test-harness"
 	"github.com/kubicorn/kubicorn/pkg/namer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
