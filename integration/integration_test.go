@@ -6,7 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 )
@@ -27,6 +29,12 @@ var (
 	testDirectory  = "test_profile"
 	// privateSSHKeyPath is the SSH key to use for Git operations.
 	privateSSHKeyPath string
+
+	eksctlCmd, eksctlCreateCmd, eksctlGetCmd, eksctlDeleteCmd runner.Cmd
+
+	eksctlDeleteClusterCmd, eksctlScaleNodeGroupCmd runner.Cmd
+
+	eksctlUtilsCmd, eksctlExperimentalCmd runner.Cmd
 )
 
 const (
@@ -45,6 +53,37 @@ func init() {
 	flag.BoolVar(&doDelete, "eksctl.delete", true, "Skip the cleanup after the tests have run")
 	flag.StringVar(&kubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create it a temporary file)")
 	flag.StringVar(&privateSSHKeyPath, "eksctl.git.sshkeypath", defaultPrivateSSHKeyPath, fmt.Sprintf("Path to the SSH key to use for Git operations (default: %s)", defaultPrivateSSHKeyPath))
+
+	eksctlCmd = runner.NewCmd(eksctlPath).
+		WithArgs("--region", region).
+		WithTimeout(30 * time.Minute)
+
+	eksctlCreateCmd = eksctlCmd.
+		WithArgs("create").
+		WithTimeout(25 * time.Minute)
+
+	eksctlGetCmd = eksctlCmd.
+		WithArgs("get").
+		WithTimeout(1 * time.Minute)
+
+	eksctlDeleteCmd = eksctlCmd.
+		WithArgs("delete").
+		WithTimeout(15 * time.Minute)
+
+	eksctlDeleteClusterCmd = eksctlDeleteCmd.
+		WithArgs("cluster", "--verbose", "4")
+
+	eksctlScaleNodeGroupCmd = eksctlCmd.
+		WithArgs("scale", "nodegroup", "--verbose", "4").
+		WithTimeout(5 * time.Minute)
+
+	eksctlUtilsCmd = eksctlCmd.
+		WithArgs("utils").
+		WithTimeout(5 * time.Minute)
+
+	eksctlExperimentalCmd = eksctlCmd.
+		WithEnv("EKSCTL_EXPERIMENTAL=true")
+
 }
 
 func TestSuite(t *testing.T) {

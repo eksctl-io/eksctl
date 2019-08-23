@@ -81,7 +81,7 @@ unit-test-race: ## Run unit test with race detection
 
 .PHONY: build-integration-test
 build-integration-test: $(GENERATED_GO_FILES) ## Build integration test binary
-	time go test -tags integration ./integration/... -c -o eksctl-integration-test
+	time go test -tags integration ./integration/ -c -o eksctl-integration-test
 
 .PHONY: integration-test
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)

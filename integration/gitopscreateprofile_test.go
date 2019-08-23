@@ -8,9 +8,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	"github.com/spf13/afero"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	. "github.com/weaveworks/eksctl/integration/runner"
 )
 
 var _ = Describe("(Integration) generate profile", func() {
@@ -22,13 +24,14 @@ var _ = Describe("(Integration) generate profile", func() {
 				clusterName = cmdutils.ClusterName("", "")
 			}
 
-			eksctlSuccess("generate", "profile",
+			cmd := eksctlExperimentalCmd.WithArgs(
+				"generate", "profile",
 				"--verbose", "4",
 				"--name", clusterName,
-				"--region", region,
 				"--git-url", "git@github.com:eksctl-bot/eksctl-profile-integration-tests.git",
 				"--profile-path", testDirectory,
 			)
+			Expect(cmd).To(RunSuccessfully())
 
 			fs := afero.Afero{
 				Fs: afero.NewOsFs(),

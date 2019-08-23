@@ -12,6 +12,8 @@
         "^pkg\/testutils\/(ginkgo|client).go",
         "^pkg\/testutils\/mockprovider\/mock_provider.go",
         "^pkg\/cfn\/template\/matchers\/matchers.go",
+        "^integration\/matchers\/matchers.go",
+        "^integration\/runner\/runner.go",
         "^pkg\/drain",
         "^vendor\/github.com\/awslabs\/goformation"
     ],
