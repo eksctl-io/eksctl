@@ -1,0 +1,19 @@
+# Make sure to run the following commands after changes to this file are made:
+# `make update-build-image-manifest && make push-build-image`
+
+# This digest corresponds to golang:1.12.9-alpine3.10
+FROM golang@sha256:e0660b4f1e68e0d408420acb874b396fc6dd25e7c1d03ad36e7d6d1155a4dff6 AS base
+
+# Build-time dependencies
+RUN apk add --no-cache \
+      bash \
+      curl \
+      docker-cli \
+      g++ \
+      gcc \
+      git \
+      libsass-dev \
+      make \
+      musl-dev \
+      && true
+

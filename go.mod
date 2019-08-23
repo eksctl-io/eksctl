@@ -1,4 +1,5 @@
-// Make sure to bump the version of EKSCTL_DEPENDENCIES_IMAGE if you make any changes here
+// Make sure to run the following commands after changes to this file are made:
+// `make update-build-image-manifest && make push-build-image`
 module github.com/weaveworks/eksctl
 
 go 1.12
