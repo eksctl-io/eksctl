@@ -27,7 +27,7 @@ vpc:
       us-east-1a:
           id: "subnet-11113"
           cidr: "152.28.136.0/21"
-iam: 
+iam:
   serviceRoleARN: "arn:aws:iam::11111:role/eks-base-service-role"
 
 nodeGroups:
@@ -47,8 +47,8 @@ nodeGroups:
       withShared: true
       withLocal: true
       attachIDs: ['sg-11111', 'sg-11112']
-    allowSSH: true
-    sshPublicKeyName: 'my-instance-key'
+    ssh:
+      publicKeyName: 'my-instance-key'
     tags:
       'environment:basedomain': 'example.org'
 ```
