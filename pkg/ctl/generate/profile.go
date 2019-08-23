@@ -2,7 +2,6 @@ package generate
 
 import (
 	"context"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -16,20 +15,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
 
-const (
-	defaultGitTimeout = 20 * time.Second
-)
-
-// Command creates `generate` commands
-func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
-	verbCmd := cmdutils.NewVerbCmd("generate", "Generate GitOps manifests", "")
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, generateProfileCmd)
-	return verbCmd
-}
-
 type options struct {
-	gitops.GitOptions
-	ProfilePath string
+	GitOptions        git.Options
+	ProfilePath       string
+	PrivateSSHKeyPath string
 }
 
 func generateProfileCmd(cmd *cmdutils.Cmd) {
@@ -45,8 +34,8 @@ func generateProfileCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&o.URL, "git-url", "", "", "URL for the quickstart base repository")
-		fs.StringVarP(&o.Branch, "git-branch", "", "master", "Git branch")
+		fs.StringVarP(&o.GitOptions.URL, "git-url", "", "", "URL for the quickstart base repository")
+		fs.StringVarP(&o.GitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "./", "Path to generate the profile in")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
 
@@ -74,16 +63,19 @@ func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
 		Processor: processor,
 		Path:      o.ProfilePath,
 		GitOpts:   o.GitOptions,
-		GitCloner: git.NewGitClient(context.Background(), defaultGitTimeout),
-		FS:        afero.NewOsFs(),
-		IO:        afero.Afero{Fs: afero.NewOsFs()},
+		GitCloner: git.NewGitClient(context.Background(), git.ClientParams{
+			Timeout:           git.DefaultGitTimeout,
+			PrivateSSHKeyPath: o.PrivateSSHKeyPath,
+		}),
+		FS: afero.NewOsFs(),
+		IO: afero.Afero{Fs: afero.NewOsFs()},
 	}
 
 	err := profile.Generate(context.Background())
-
 	if err != nil {
 		return errors.Wrap(err, "error generating profile")
 	}
 
+	profile.DeleteClonedDirectory()
 	return nil
 }

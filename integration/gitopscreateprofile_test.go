@@ -3,11 +3,16 @@
 package integration_test
 
 import (
+	"fmt"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	"github.com/spf13/afero"
+
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	. "github.com/weaveworks/eksctl/integration/runner"
 )
 
 var _ = Describe("(Integration) generate profile", func() {
@@ -15,16 +20,18 @@ var _ = Describe("(Integration) generate profile", func() {
 	Describe("when generating a profile", func() {
 		It("should write the processed repo files in the supplied directory", func() {
 
-			clusterName = "amazing-testing-gopher"
-			region = "eu-north-1"
+			if clusterName == "" {
+				clusterName = cmdutils.ClusterName("", "")
+			}
 
-			eksctlSuccess("generate", "profile",
+			cmd := eksctlExperimentalCmd.WithArgs(
+				"generate", "profile",
 				"--verbose", "4",
 				"--name", clusterName,
-				"--region", region,
 				"--git-url", "git@github.com:eksctl-bot/eksctl-profile-integration-tests.git",
 				"--profile-path", testDirectory,
 			)
+			Expect(cmd).To(RunSuccessfully())
 
 			fs := afero.Afero{
 				Fs: afero.NewOsFs(),
@@ -32,24 +39,24 @@ var _ = Describe("(Integration) generate profile", func() {
 
 			contents, err := fs.ReadFile(filepath.Join(testDirectory, "workloads/namespace.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(contents)).To(MatchYAML(
+			Expect(string(contents)).To(MatchYAML(fmt.Sprintf(
 				`---
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    name: amazing-testing-gopher-eu-north-1
-  name: amazing-testing-gopher
-`))
+    name: %s-%s
+  name: %s
+`, clusterName, region, clusterName)))
 
 			contents, err = fs.ReadFile(filepath.Join(testDirectory, "workloads/services/service.yaml"))
 			Expect(err).ToNot(HaveOccurred())
-			Expect(string(contents)).To(MatchYAML(
+			Expect(string(contents)).To(MatchYAML(fmt.Sprintf(
 				`---
 apiVersion: v1
 kind: Service
 metadata:
-  name: amazing-testing-gopher-service1
+  name: %s-service1
 spec:
   selector:
     app: MyApp
@@ -57,7 +64,7 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 9376
-`))
+`, clusterName)))
 
 			contents, err = fs.ReadFile(filepath.Join(testDirectory, "metadata.yaml"))
 			Expect(err).ToNot(HaveOccurred())

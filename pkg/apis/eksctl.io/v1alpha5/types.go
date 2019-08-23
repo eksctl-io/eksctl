@@ -386,11 +386,9 @@ func (c *ClusterConfig) AppendAvailabilityZone(newAZ string) {
 	c.AvailabilityZones = append(c.AvailabilityZones, newAZ)
 }
 
-// NewNodeGroup creates new nodegroup inside cluster config,
-// it returns pointer to the nodegroup for convenience
-func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
-
-	ng := &NodeGroup{
+// NewNodeGroup creates new nodegroup, and returns pointer to it
+func NewNodeGroup() *NodeGroup {
+	return &NodeGroup{
 		PrivateNetworking: false,
 		SecurityGroups: &NodeGroupSGs{
 			AttachIDs:  []string{},
@@ -421,6 +419,12 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 			PublicKeyPath: &DefaultNodeSSHPublicKeyPath,
 		},
 	}
+}
+
+// NewNodeGroup creates new nodegroup inside cluster config,
+// it returns pointer to the nodegroup for convenience
+func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
+	ng := NewNodeGroup()
 
 	c.NodeGroups = append(c.NodeGroups, ng)
 

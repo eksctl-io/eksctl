@@ -38,6 +38,7 @@ RUN apk add --no-cache --initdb --root /out \
     coreutils \
     git \
     libc6-compat \
+    openssh \
     && true
 
 RUN mv ./aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator

@@ -69,6 +69,12 @@ var _ = Describe("GitClient", func() {
 			return args[0] == "diff"
 		})).Return(&exec.ExitError{})
 		fakeExecutor.On("Exec", mock.Anything, mock.Anything, mock.MatchedBy(func(args []string) bool {
+			return args[0] == "config"
+		})).Return(nil)
+		fakeExecutor.On("Exec", mock.Anything, mock.Anything, mock.MatchedBy(func(args []string) bool {
+			return args[0] == "config"
+		})).Return(nil)
+		fakeExecutor.On("Exec", mock.Anything, mock.Anything, mock.MatchedBy(func(args []string) bool {
 			return args[0] == "commit"
 		})).Return(nil)
 
@@ -80,6 +86,14 @@ var _ = Describe("GitClient", func() {
 
 		Expect(fakeExecutor.Calls[1].Arguments[0]).To(Equal("git"))
 		Expect(fakeExecutor.Calls[1].Arguments[2]).To(
+			Equal([]string{"config", "user.email", "test-user@example.com"}))
+
+		Expect(fakeExecutor.Calls[2].Arguments[0]).To(Equal("git"))
+		Expect(fakeExecutor.Calls[2].Arguments[2]).To(
+			Equal([]string{"config", "user.name", "test-user"}))
+
+		Expect(fakeExecutor.Calls[3].Arguments[0]).To(Equal("git"))
+		Expect(fakeExecutor.Calls[3].Arguments[2]).To(
 			Equal([]string{"commit", "-m", "test commit", "--author=test-user <test-user@example.com>"}))
 	})
 
@@ -92,6 +106,36 @@ var _ = Describe("GitClient", func() {
 		Expect(fakeExecutor.Args).To(
 			Equal([]string{"push"}))
 	})
+
+	It("can parse the repository name from a URL", func() {
+		name, err := RepoName("git@github.com:weaveworks/eksctl.git")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(name).To(Equal("eksctl"))
+
+		name, err = RepoName("git@github.com:weaveworks/sock-shop.git")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(name).To(Equal("sock-shop"))
+
+		name, err = RepoName("https://example.com/department1/team1/some-repo-name.git")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(name).To(Equal("some-repo-name"))
+
+		name, err = RepoName("https://github.com/department1/team2/another-repo-name")
+		Expect(err).ToNot(HaveOccurred())
+		Expect(name).To(Equal("another-repo-name"))
+
+	})
+
+	It("can determine if a string is a git URL", func() {
+		Expect(IsGitURL("git@github.com:weaveworks/eksctl.git")).To(BeTrue())
+		Expect(IsGitURL("https://github.com/weaveworks/eksctl.git")).To(BeTrue())
+		Expect(IsGitURL("https://username@secr3t:my-repo.example.com:8080/weaveworks/eksctl.git")).To(BeTrue())
+
+		Expect(IsGitURL("git@github")).To(BeFalse())
+		Expect(IsGitURL("https://")).To(BeFalse())
+		Expect(IsGitURL("app-dev")).To(BeFalse())
+	})
+
 })
 
 func deleteTempDir(tempDir string) {

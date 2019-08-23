@@ -52,6 +52,7 @@ Mathias Lafeldt         @mlafeldt
 Gema Gomez              @gemagomez
 David Hao               @davidhao3300
 Brett Shouse            @bmshouse
+Daniel Holbach          @dholbach
 
 /* Thanks */
 

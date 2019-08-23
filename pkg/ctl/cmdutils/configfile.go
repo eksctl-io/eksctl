@@ -121,9 +121,21 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-// NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
-func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+// NewGitopsMetadataLoader handles loading of clusterConfigFile vs using flags for gitops commands
+func NewGitopsMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		return nil
+	}
+	return l
+}
+
+// NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
+func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, withoutNodeGroup bool) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	ngFilter.ExcludeAll = withoutNodeGroup
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",
@@ -184,6 +196,12 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLo
 
 		if l.ClusterConfig.Status != nil {
 			return fmt.Errorf("status fields are read-only")
+		}
+
+		// prevent creation of invalid config object with irrelevant nodegroup
+		// that may or may not be constructed correctly
+		if !withoutNodeGroup {
+			l.ClusterConfig.NodeGroups = append(l.ClusterConfig.NodeGroups, ng)
 		}
 
 		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
@@ -255,7 +273,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfig
 }
 
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
-	if l.CobraCommand.Flag("ssh-public-key").Changed {
+	if flag := l.CobraCommand.Flag("ssh-public-key"); flag != nil && flag.Changed {
 		if *ng.SSH.PublicKeyPath == "" {
 			return fmt.Errorf("--ssh-public-key must be non-empty string")
 		}

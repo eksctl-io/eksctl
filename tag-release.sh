@@ -22,15 +22,24 @@ if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
   exit 3
 fi
 
+if [ ! "$(git remote get-url origin)" = "git@github.com:weaveworks/eksctl" ] ; then
+  echo "Invalid origin: $(git remote get-url origin)"
+  exit 3
+fi
+
 function branch_exists() {
-  git ls-remote --heads git@github.com:weaveworks/eksctl.git "${1}" | grep "${1}" >/dev/null
+  git ls-remote --heads origin "${1}" | grep -q "${1}"
+}
+
+function current_branch() {
+  git rev-parse --abbrev-ref @
 }
 
 if ! branch_exists "${release_branch}" ; then
   git checkout master
-  if [ ! "$(git rev-parse --abbrev-ref @)" = master ] ; then
+  if [ ! "$(current_branch)" = master ] ; then
     echo "Must be on master branch"
-    exit 4
+    exit 7
   fi
   # Ensure local master is up-to-date by pulling its latest version from origin
   # and fast-forwarding local master:
@@ -44,7 +53,7 @@ fi
 # origin and fast-forwarding the local branch:
 git fetch origin "${release_branch}"
 git checkout "${release_branch}"
-if [ ! "$(git rev-parse --abbrev-ref @)" = "${release_branch}" ] ; then
+if [ ! "$(current_branch)" = "${release_branch}" ] ; then
   echo "Must be on ${release_branch} branch"
   exit 5
 fi
@@ -62,21 +71,21 @@ export RELEASE_GIT_TAG="${v}"
 go generate ./pkg/version
 
 git add ./pkg/version/release.go
-git add ${RELEASE_NOTES_FILE}
+git add "${RELEASE_NOTES_FILE}"
 
 m="Tag ${v} release"
 
 git commit --message "${m}"
 
-git fetch --force --tags git@github.com:weaveworks/eksctl
+git fetch --force --tags origin
 
-git push git@github.com:weaveworks/eksctl master
+git push origin "${release_branch}"
 
 # Update the site by putting everything from master into the docs branch
-git push -f origin master:docs
+git push --force origin "${release_branch}":docs
 
 # Create the release tag and push it to start release process
 git tag --annotate --message "${m}" --force "latest_release"
 git tag --annotate --message "${m}" "${v}"
 
-git push --force --tags git@github.com:weaveworks/eksctl
+git push --force --tags origin

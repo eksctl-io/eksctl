@@ -94,17 +94,18 @@ subjects:
 
 // InstallOpts are the installation options for Flux
 type InstallOpts struct {
-	GitURL      string
-	GitBranch   string
-	GitPaths    []string
-	GitLabel    string
-	GitUser     string
-	GitEmail    string
-	GitFluxPath string
-	Namespace   string
-	Timeout     time.Duration
-	Amend       bool
-	WithHelm    bool
+	GitURL               string
+	GitBranch            string
+	GitPaths             []string
+	GitLabel             string
+	GitUser              string
+	GitEmail             string
+	GitFluxPath          string
+	GitPrivateSSHKeyPath string
+	Namespace            string
+	Timeout              time.Duration
+	Amend                bool
+	WithHelm             bool
 }
 
 // Installer installs Flux
@@ -117,7 +118,10 @@ type Installer struct {
 
 // NewInstaller creates a new Flux installer
 func NewInstaller(ctx context.Context, k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
-	gitClient := git.NewGitClient(ctx, opts.Timeout)
+	gitClient := git.NewGitClient(ctx, git.ClientParams{
+		Timeout:           opts.Timeout,
+		PrivateSSHKeyPath: opts.GitPrivateSSHKeyPath,
+	})
 	fi := &Installer{
 		opts:          opts,
 		k8sRestConfig: k8sRestConfig,
@@ -155,7 +159,6 @@ func (fi *Installer) Run(ctx context.Context) error {
 				cloneDir)
 		}
 	}()
-
 	logger.Info("Writing Flux manifests")
 	fluxManifestDir := filepath.Join(cloneDir, fi.opts.GitFluxPath)
 	if err := writeFluxManifests(fluxManifestDir, manifests); err != nil {
@@ -193,6 +196,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 			return err
 		}
 		logger.Info("Helm Operator started successfully")
+		logger.Info("see https://docs.fluxcd.io/projects/helm-operator for details on how to use the Helm Operator")
 	}
 
 	logger.Info("Waiting for Flux to start")
@@ -201,6 +205,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 		return err
 	}
 	logger.Info("Flux started successfully")
+	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
 	logger.Info("Committing and pushing manifests to %s", fi.opts.GitURL)
 	if err := fi.addFilesToRepo(ctx, cloneDir); err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
 
@@ -56,7 +57,7 @@ var _ = Describe("gitops profile", func() {
 			}
 			profile = &Profile{
 				Path: outputDir,
-				GitOpts: GitOptions{
+				GitOpts: git.Options{
 					Branch: "master",
 					URL:    "git@github.com:someorg/test-gitops-repo.git",
 				},

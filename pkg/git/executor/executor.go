@@ -16,13 +16,15 @@ type Executor interface {
 type ShellExecutor struct {
 	parentCtx context.Context
 	timeout   time.Duration
+	envVars   []string
 }
 
 // NewShellExecutor creates a new executor that runs commands
-func NewShellExecutor(ctx context.Context, timeout time.Duration) Executor {
+func NewShellExecutor(ctx context.Context, timeout time.Duration, envVars []string) Executor {
 	return ShellExecutor{
 		parentCtx: ctx,
 		timeout:   timeout,
+		envVars:   envVars,
 	}
 }
 
@@ -31,6 +33,9 @@ func (e ShellExecutor) Exec(command string, dir string, args ...string) error {
 	ctx, ctxCancel := context.WithTimeout(e.parentCtx, e.timeout)
 	defer ctxCancel()
 	cmd := exec.CommandContext(ctx, command, args...)
+	if len(e.envVars) > 0 {
+		cmd.Env = e.envVars
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = dir

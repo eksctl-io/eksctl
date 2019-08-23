@@ -9,9 +9,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/testutils/aws"
-	. "github.com/weaveworks/eksctl/pkg/testutils/matchers"
 )
 
 const (
@@ -33,7 +34,8 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 
 	Context("when creating a new cluster", func() {
 		It("should not return an error", func() {
-			eksctlStart("create", "cluster",
+			cmd := eksctlCreateCmd.WithArgs(
+				"cluster",
 				"--verbose", "4",
 				"--name", delBeforeActiveName,
 				"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
@@ -44,10 +46,11 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 				"--region", region,
 				"--version", version,
 			)
+			cmd.Start()
 		})
 
 		It("should eventually show up as creating", func() {
-			awsSession := aws.NewSession(region)
+			awsSession := NewSession(region)
 			Eventually(awsSession, timeOut, pollInterval).Should(
 				HaveExistingCluster(delBeforeActiveName, awseks.ClusterStatusCreating, version))
 		})
@@ -55,17 +58,17 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 
 	Context("when deleting the cluster in process of being created", func() {
 		It("deleting cluster should have a zero exitcode", func() {
-			eksctlSuccess("delete", "cluster",
-				"--verbose", "4",
+			cmd := eksctlDeleteClusterCmd.WithArgs(
 				"--name", delBeforeActiveName,
 				"--region", region,
 			)
+			Expect(cmd).To(RunSuccessfully())
 		})
 	})
 
 	Context("after the delete of the cluster in progress has been initiated", func() {
 		It("should eventually delete the EKS cluster and both CloudFormation stacks", func() {
-			awsSession := aws.NewSession(region)
+			awsSession := NewSession(region)
 			Eventually(awsSession, timeOut, pollInterval).ShouldNot(
 				HaveExistingCluster(delBeforeActiveName, awseks.ClusterStatusActive, version))
 			Eventually(awsSession, timeOut, pollInterval).ShouldNot(
@@ -77,11 +80,11 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 
 	Context("when trying to delete the cluster again", func() {
 		It("should return an a non-zero exit code", func() {
-			eksctlFail("delete", "cluster",
-				"--verbose", "4",
+			cmd := eksctlDeleteClusterCmd.WithArgs(
 				"--name", delBeforeActiveName,
 				"--region", region,
 			)
+			Expect(cmd).To(RunSuccessfully())
 		})
 	})
 })

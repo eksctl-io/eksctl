@@ -15,14 +15,20 @@ simple statement that you, as a contributor, have the legal right to make the
 contribution. No action from you is required, but it's a good idea to see the
 [DCO](DCO) file for details before you start contributing code to eksctl.
 
-## Chat
+## Communication
 
 The project uses Slack. If you get stuck or just have a question then you are encouraged to join the
 [Weave Community](https://weaveworks.github.io/community-slack/) Slack workspace and use the
-[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel.
+[#eksctl](https://weave-community.slack.com/messages/eksctl/) channel and/or the [mailing
+list](maillist).
+
+We use the mailing list for some discussion, potentially for sharing documents
+and for calendar invites.
 
 Regular contributor meetings are held on Slack, see [`docs/contributor-meetings.md`](docs/contributor-meetings.md) for
 the latest information.
+
+[maillist]: https://groups.google.com/forum/#!forum/eksctl
 
 ## Getting Started
 
@@ -209,7 +215,10 @@ This allows the message to be easier to read on GitHub as well as in various git
 
 ### Notes on Integration Tests
 
-It's recommended to run containerised tests with `make integration-test-container TEST_V=1 AWS_PROFILE="<AWS profile name>"`. The tests require access to an AWS account. If there is an issue with access (e.g. expired MFA token), you will see all tests failing (albeit the error message may be slightly unclear).
+It's recommended to run containerised tests with `make integration-test-container TEST_V=1 AWS_PROFILE="<AWS profile name>"`. The tests require:
+
+- Access to an AWS account. If there is an issue with access (e.g. expired MFA token), you will see all tests failing (albeit the error message may be slightly unclear).
+- Access to the private SSH key for the Git repository to use for testing GitOps-related operations. It is recommended to extract the private SSH key available [here](https://weaveworks.1password.com/vaults/all/allitems/kuxa5ujn7424jzkqqk7qtngovi) into `~/.ssh/eksctl-bot_id_rsa`, and then let the integration tests mount this path and use this key.
 
 At present we ignore flaky tests, so if you see output like show below, you don't need to worry about this for the purpose of the release. However, you might consider reviewing the issues in question after you made the release.
 

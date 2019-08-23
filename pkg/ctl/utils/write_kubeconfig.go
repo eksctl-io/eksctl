@@ -44,16 +44,7 @@ func writeKubeconfigCmd(cmd *cmdutils.Cmd) {
 func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setContext, autoPath bool) error {
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
-	logger.Info("using region %s", cfg.Metadata.Region)
-
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
+	// TODO: move this into a loader when --config-file gets added to this command
 	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
 		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, cmd.NameArg)
 	}
@@ -71,6 +62,16 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
 		outputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
+	}
+
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
+	logger.Info("using region %s", cfg.Metadata.Region)
+
+	if err := ctl.CheckAuth(); err != nil {
+		return err
 	}
 
 	if err := ctl.RefreshClusterConfig(cfg); err != nil {

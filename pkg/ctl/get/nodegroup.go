@@ -16,7 +16,7 @@ import (
 
 func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	params := &getCmdParams{}
@@ -41,15 +41,7 @@ func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) error {
 	cfg := cmd.ClusterConfig
 
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
-
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-
+	// TODO: move this into a loader when --config-file gets added to this command
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--cluster")
 	}
@@ -60,6 +52,20 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 
 	if cmd.NameArg != "" {
 		ng.Name = cmd.NameArg
+	}
+
+	// prevent creation of invalid config object with unnamed nodegroup
+	if ng.Name != "" {
+		cfg.NodeGroups = append(cfg.NodeGroups, ng)
+	}
+
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
+
+	if err := ctl.CheckAuth(); err != nil {
+		return err
 	}
 
 	manager := ctl.NewStackManager(cfg)
