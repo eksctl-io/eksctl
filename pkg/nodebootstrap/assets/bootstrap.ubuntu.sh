@@ -21,7 +21,12 @@ INSTANCE_TYPE="$(curl --silent http://169.254.169.254/latest/meta-data/instance-
 
 source /etc/eksctl/kubelet.env # this can override MAX_PODS
 
-INSTANCE_LIFECYCLE=$(aws ec2 describe-instances --instance-ids  ${INSTANCE_ID}  --query 'Reservations[0].Instances[0].InstanceLifecycle' --output text)
+#FIXME: Ideally this script should not call & depends on the AWS APIs
+#however it is the only way at the moment to obtain the instanceLifecycle value (Spot/on-demand)
+
+INSTANCE_LIFECYCLE=$(aws ec2 describe-instances --region $AWS_DEFAULT_REGION --instance-ids ${INSTANCE_ID} \
+--query 'Reservations[0].Instances[0].InstanceLifecycle' --output text)
+
 if [ "$INSTANCE_LIFECYCLE" == "spot" ] && [ "$SPOT_NODE_LABELS" != ""  ]; then
   if [ "$NODE_LABELS" == "" ];then
      NODE_LABELS="${SPOT_NODE_LABELS}"
