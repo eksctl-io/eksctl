@@ -63,9 +63,9 @@ systemctl reset-failed
   # and meant to be portable to most systemd distros), but it's
   # not clear how to load these from kubelet snap without having
   # to customise the snap itself
-  source /etc/eksctl/kubelet.local.env
   source /etc/eksctl/kubelet.env
   source /etc/eksctl/metadata.env
+  source /etc/eksctl/kubelet.local.env
 
   flags=(
     "node-ip=${NODE_IP}"
