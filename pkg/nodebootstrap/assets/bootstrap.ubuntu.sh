@@ -24,7 +24,7 @@ source /etc/eksctl/kubelet.env # this can override MAX_PODS
 #FIXME: Ideally this script should not call & depends on the AWS APIs
 #however it is the only way at the moment to obtain the instanceLifecycle value (Spot/on-demand)
 
-INSTANCE_LIFECYCLE=$(aws ec2 describe-instances --region $AWS_DEFAULT_REGION --instance-ids ${INSTANCE_ID} \
+INSTANCE_LIFECYCLE=$(/snap/bin/aws ec2 describe-instances --region $AWS_DEFAULT_REGION --instance-ids ${INSTANCE_ID} \
 --query 'Reservations[0].Instances[0].InstanceLifecycle' --output text)
 
 if [ "$INSTANCE_LIFECYCLE" == "spot" ] && [ "$SPOT_NODE_LABELS" != ""  ]; then
