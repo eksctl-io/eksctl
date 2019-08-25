@@ -1606,6 +1606,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"SPOT_NODE_LABELS=",
+				"SPOT_NODE_TAINTS=",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1647,6 +1649,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		ng.InstanceType = "m5.xlarge"
 		ng.MaxPodsPerNode = 55
 
+		ng.LabelsOnSpot= map[string]string{
+			"spotInstance": "Ec2SpotInstance",
+		}
+
 		ng.PreBootstrapCommands = []string{
 			"touch /tmp/test",
 			"rm /tmp/test",
@@ -1671,6 +1677,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"SPOT_NODE_LABELS=spotInstance=Ec2SpotInstance",
+				"SPOT_NODE_TAINTS=",
 				"MAX_PODS=55",
 			}))
 
@@ -1712,6 +1720,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"key1": "value1:NoSchedule",
 		}
 
+		ng.LabelsOnSpot = map[string]string{
+			"os": "al2-Spot",
+		}
+		ng.TaintsOnSpot = map[string]string{
+			"key2": "value2:NoSchedule",
+		}
+
 		ng.OverrideBootstrapCommand = &overrideBootstrapCommand
 
 		ng.ClusterDNS = "169.254.20.10"
@@ -1731,6 +1746,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=al2",
 				"NODE_TAINTS=key1=value1:NoSchedule",
+				"SPOT_NODE_LABELS=os=al2-Spot",
+				"SPOT_NODE_TAINTS=key2=value2:NoSchedule",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1768,6 +1785,14 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"os": "al2",
 		}
 
+		ng.LabelsOnSpot = map[string]string{
+			"os": "al2-Spot",
+		}
+
+		ng.TaintsOnSpot = map[string]string{
+			"key2": "value2:NoSchedule",
+		}
+
 		ng.PreBootstrapCommands = []string{"echo 1 > /tmp/1", "echo 2 > /tmp/2", "echo 3 > /tmp/3"}
 		ng.OverrideBootstrapCommand = &overrideBootstrapCommand
 
@@ -1788,6 +1813,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=al2",
 				"NODE_TAINTS=",
+				"SPOT_NODE_LABELS=os=al2-Spot",
+				"SPOT_NODE_TAINTS=key2=value2:NoSchedule",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1852,6 +1879,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"SPOT_NODE_LABELS=",
+				"SPOT_NODE_TAINTS=",
 				"CLUSTER_DNS=172.20.0.10",
 			}))
 
@@ -1914,6 +1943,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"SPOT_NODE_LABELS=",
+				"SPOT_NODE_TAINTS=",
 				"CLUSTER_DNS=172.20.0.10",
 			}))
 
@@ -1978,6 +2009,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=ubuntu",
 				"NODE_TAINTS=key1=value1:NoSchedule",
+				"SPOT_NODE_LABELS=",
+				"SPOT_NODE_TAINTS=",
 				"MAX_PODS=66",
 				"CLUSTER_DNS=169.254.20.10",
 			}))
@@ -2040,6 +2073,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=ubuntu",
 				"NODE_TAINTS=",
+				"SPOT_NODE_LABELS=",
+				"SPOT_NODE_TAINTS=",
 				"CLUSTER_DNS=169.254.20.10",
 			}))
 
