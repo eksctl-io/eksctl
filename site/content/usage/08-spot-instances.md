@@ -49,6 +49,33 @@ nodeGroups:
       instanceTypes: ["t3.small", "t3.medium"] # At least two instance types should be specified
 ```
 
+`labelsOnSpot` and `taintsOnSpot` parameters can be used to append extra labels and taints or
+to override the key for the label or tain clashes with the ones already set when using the
+`labels` and `taints` parameters.
+
+In the example below, On-Demand instances will have a label
+named "lifecycle" set to "OnDemand", while Spot instances will override the "lifecycle" and
+instead use "Ec2Spot". Spot instances will also have a taint "spotInstance=true:PreferNoSchedule"
+
+```yaml
+nodeGroups:
+  - name: mixed-instance-group-1
+    minSize: 1
+    maxSize: 10
+    labels:
+      lifecycle: OnDemand
+    labelsOnSpot:
+      lifecycle: Ec2Spot
+    taintsOnSpot:
+      spotInstance: "true:PreferNoSchedule"
+    instancesDistribution:
+      instanceTypes: ["t3.small", "t2.small"] # At least two instance types should be specified
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 50
+      spotInstancePools: 2
+```
+
+
 ### Parameters in instancesDistribution
 
 |                                     | type        | required | default value   |
