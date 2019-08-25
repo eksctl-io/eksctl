@@ -484,9 +484,14 @@ type NodeGroup struct {
 
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
+	// +optional
+	LabelsOnSpot map[string]string `json:"labelsOnSpot,omitempty"`
 
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
+	// +optional
+	TaintsOnSpot map[string]string `json:"taintsOnSpot,omitempty"`
+
 
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
