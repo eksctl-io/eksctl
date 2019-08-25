@@ -195,6 +195,11 @@ NodeGroup:
         .*:
           type: string
       type: object
+    labelsOnSpot:
+      patternProperties:
+        .*:
+          type: string
+      type: object
     maxPodsPerNode:
       type: integer
     maxSize:
@@ -223,6 +228,11 @@ NodeGroup:
           type: string
       type: object
     taints:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    taintsOnSpot:
       patternProperties:
         .*:
           type: string

@@ -422,8 +422,22 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 			(*out)[key] = val
 		}
 	}
+	if in.LabelsOnSpot != nil {
+		in, out := &in.LabelsOnSpot, &out.LabelsOnSpot
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.Taints != nil {
 		in, out := &in.Taints, &out.Taints
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.TaintsOnSpot != nil {
+		in, out := &in.TaintsOnSpot, &out.TaintsOnSpot
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
