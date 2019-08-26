@@ -3,12 +3,12 @@ package manager
 import (
 	"fmt"
 
-	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
-func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*v1alpha5.NodeGroup) *TaskTree {
+func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup) *TaskTree {
 	tasks := &TaskTree{Parallel: false}
 
 	tasks.Append(
@@ -28,7 +28,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*v1
 }
 
 // NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*v1alpha5.NodeGroup) *TaskTree {
+func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {

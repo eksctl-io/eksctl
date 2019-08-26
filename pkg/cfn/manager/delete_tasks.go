@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete all the nodegroup
@@ -45,7 +45,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(wait bool, clean
 }
 
 // NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
-func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroups []*v1alpha5.NodeGroup, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroups []*api.NodeGroup, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
