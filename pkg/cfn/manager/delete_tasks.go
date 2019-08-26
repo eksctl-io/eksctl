@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-
-	"k8s.io/apimachinery/pkg/util/sets"
+	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete all the nodegroup
@@ -45,20 +44,27 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(wait bool, clean
 	return tasks, nil
 }
 
-// NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups if
-// onlySubset is nil, otherwise just the tasks for nodegroups that are in onlySubset
-// will be defined
-func (c *StackCollection) NewTasksToDeleteNodeGroups(onlySubset sets.String, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
+// NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
+func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroups []*v1alpha5.NodeGroup, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
 	}
 
 	tasks := &TaskTree{Parallel: true}
+	hasNodeGroup := func(name string) bool {
+		for _, ng := range nodeGroups {
+			if ng.Name == name {
+				return true
+			}
+		}
+		return false
+	}
 
 	for _, s := range nodeGroupStacks {
 		name := c.GetNodeGroupName(s)
-		if onlySubset != nil && !onlySubset.Has(name) {
+
+		if !hasNodeGroup(name) {
 			continue
 		}
 		if *s.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
