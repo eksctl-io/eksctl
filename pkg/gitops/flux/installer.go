@@ -1,12 +1,14 @@
 package flux
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	helmopinstall "github.com/fluxcd/helm-operator/pkg/install"
@@ -133,6 +135,28 @@ func NewInstaller(ctx context.Context, k8sRestConfig *rest.Config, k8sClientSet 
 
 // Run runs the Flux installer
 func (fi *Installer) Run(ctx context.Context) error {
+	fluxNSExists, err := kubernetes.CheckNamespaceExists(fi.k8sClientSet, fi.opts.Namespace)
+	if err != nil {
+		return errors.Wrapf(err, "cannot check if namespace %s exists", fi.opts.Namespace)
+	}
+	if fluxNSExists {
+		logger.Info("Namespace \"%s\" already exists. eksctl will now delete all its content before proceeding to install Flux.", fi.opts.Namespace)
+		cont, err := continueInstallation()
+		if err != nil {
+			return err
+		}
+		if !cont {
+			logger.Info("Installation of Flux was aborted.")
+			return nil
+		}
+		if cont {
+			err := kubernetes.DeleteNamespace(fi.k8sClientSet, fi.opts.Namespace)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	pki, pkiPaths, err := fi.setupPKI()
 	if err != nil {
 		return err
@@ -217,6 +241,27 @@ func (fi *Installer) Run(ctx context.Context) error {
 	logger.Info("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.GitURL, fluxSSHKey.Key)
 	return nil
+}
+
+func continueInstallation() (bool, error) {
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Continue? [y/n]: ")
+		choice, err := reader.ReadString('\n')
+		if err != nil {
+			return false, errors.Wrapf(err, "failed to read user's choice")
+		}
+		choice = strings.ToLower(strings.TrimSpace(choice))
+		logger.Debug("user's choice is: %s", choice)
+		switch choice {
+		case "y":
+			return true, nil
+		case "n":
+			return false, nil
+		default:
+			fmt.Println("Invalid choice.")
+		}
+	}
 }
 
 func (fi *Installer) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrastructurePaths, error) {
