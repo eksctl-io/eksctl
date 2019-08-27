@@ -246,7 +246,7 @@ func (m *OutputValueMatcher) Match(actualTemplate interface{}) (bool, error) {
 	actualOutputValue := *actualOutput.Value
 	js, err := actualOutputValue.MarshalJSON()
 	if err != nil {
-		return false, fmt.Errorf("value %v of ouput %q cannot be marshalled to JSON: %s", actualOutputValue, m.outputName, err.Error())
+		return false, fmt.Errorf("value %v of output %q cannot be marshalled to JSON: %s", actualOutputValue, m.outputName, err.Error())
 	}
 
 	return m.matchJSON(m.outputValue, js)
@@ -293,7 +293,7 @@ func (m *OutputExportNameMatcher) Match(actualTemplate interface{}) (bool, error
 	actualExportName := *actualOutput.Export.Name
 	js, err := actualExportName.MarshalJSON()
 	if err != nil {
-		return false, fmt.Errorf("export name %v of ouput %q cannot be marshalled to JSON: %s", actualExportName, m.outputName, err.Error())
+		return false, fmt.Errorf("export name %v of output %q cannot be marshalled to JSON: %s", actualExportName, m.outputName, err.Error())
 	}
 
 	return m.matchJSON(m.exportName, js)
