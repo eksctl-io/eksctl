@@ -17,7 +17,7 @@ nodegroup containing 2 m5.large nodes.
 
 After the cluster has been created, the appropriate kubernetes configuration will be added to your kubeconfig file. 
 This is, the file that you have configured in the environment variable `KUBECONFIG` or `~/.kube/config` by default. 
-The path to the kubeconfig file can be overriden using the `--kubeconfig` flag.
+The path to the kubeconfig file can be overridden using the `--kubeconfig` flag.
 
 Other flags that can change how the kubeconfig file is written:
 

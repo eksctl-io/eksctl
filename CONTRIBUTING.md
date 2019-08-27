@@ -147,11 +147,11 @@ Changes to ensure that AWS profiles are supported. This involved making
 sure that the AWS config file is loaded (SharedConfigEnabled) and
 also making sure we have a TokenProvider set.
 
-Added an explicit --profile flag that can be used to explicity specify
+Added an explicit --profile flag that can be used to explicitly specify
 which AWS profile you would like to use. This will override any profile
 that you have specified via AWS_PROFILE.
 
-If endpoints are being overriden then the credentials from the initial
+If endpoints are being overridden then the credentials from the initial
 session creation are shared with any subsequent session creation to
 ensure that the tokens are shared (otherwise you may get multiple MFA
 prompts).

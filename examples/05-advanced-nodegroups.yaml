@@ -41,7 +41,7 @@ nodeGroups:
     taints:
       special: "true:NoSchedule"
     privateNetworking: true
-    availabilityZones: ["eu-west-2a"] # use single AZ to optimise data transfer between isntances
+    availabilityZones: ["eu-west-2a"] # use single AZ to optimise data transfer between instances
     preBootstrapCommands:
       # disable hyperthreading
       - "for n in $(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | cut -s -d, -f2- | tr ',' '\n' | sort -un); do echo 0 > /sys/devices/system/cpu/cpu${n}/online; done"
