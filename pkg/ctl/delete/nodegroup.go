@@ -80,53 +80,42 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		}
 	}
 
-	ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
-	ngCount := ngSubset.Len()
+	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
 
 	ngFilter.LogInfo(cfg.NodeGroups)
 
 	if updateAuthConfigMap {
-		cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from auth ConfigMap in cluster %q", ngCount, cfg.Metadata.Name)
-		err := ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
-			if cmd.Plan {
-				return nil
-			}
-			if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
-				if err := ctl.GetNodeGroupIAM(stackManager, cfg, ng); err != nil {
-					logger.Warning("error getting instance role ARN for nodegroup %q", ng.Name)
-					return nil
+		cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from auth ConfigMap in cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
+		if !cmd.Plan {
+			for _, ng := range filteredNodeGroups {
+				if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
+					if err := ctl.GetNodeGroupIAM(stackManager, cfg, ng); err != nil {
+						logger.Warning("error getting instance role ARN for nodegroup %q", ng.Name)
+						return nil
+					}
+				}
+				if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
+					logger.Warning(err.Error())
 				}
 			}
-			if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
-				logger.Warning(err.Error())
-			}
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 	}
 
 	if deleteNodeGroupDrain {
-		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
-		err := ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
-			if cmd.Plan {
-				return nil
+		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroups in cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
+		if !cmd.Plan {
+			for _, ng := range filteredNodeGroups {
+				if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), false); err != nil {
+					return err
+				}
 			}
-			if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), false); err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 	}
 
-	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", ngCount, cfg.Metadata.Name)
+	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
 
 	{
-		tasks, err := stackManager.NewTasksToDeleteNodeGroups(ngSubset, cmd.Wait, nil)
+		tasks, err := stackManager.NewTasksToDeleteNodeGroups(filteredNodeGroups, cmd.Wait, nil)
 		if err != nil {
 			return err
 		}
@@ -135,10 +124,10 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
 			return handleErrors(errs, "nodegroup(s)")
 		}
-		cmdutils.LogCompletedAction(cmd.Plan, "deleted %d nodegroups from cluster %q", ngCount, cfg.Metadata.Name)
+		cmdutils.LogCompletedAction(cmd.Plan, "deleted %d nodegroups from cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
 	}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && ngCount > 0)
+	cmdutils.LogPlanModeWarning(cmd.Plan && len(filteredNodeGroups) > 0)
 
 	return nil
 }

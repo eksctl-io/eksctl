@@ -10,7 +10,6 @@ import (
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 var _ = Describe("StackCollection Tasks", func() {
@@ -637,32 +636,42 @@ var _ = Describe("StackCollection Tasks", func() {
 			})
 
 			It("should have nice description", func() {
+				makeNodeGroups := func(names ...string) []*api.NodeGroup {
+					var nodeGroups []*api.NodeGroup
+					for _, name := range names {
+						ng := api.NewNodeGroup()
+						ng.Name = name
+						nodeGroups = append(nodeGroups, ng)
+					}
+					return nodeGroups
+				}
+
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(nil)
+					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar", "foo"))
 					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString("bar"))
+					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar"))
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString("foo"))
+					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("foo"))
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(sets.NewString())
+					tasks := stackManager.NewTasksToCreateNodeGroups(nil)
 					Expect(tasks.Describe()).To(Equal(`no tasks`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil)
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"))
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "bar", create nodegroup "foo" } }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(sets.NewString("bar"))
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"))
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(sets.NewString())
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
 				}
 			})

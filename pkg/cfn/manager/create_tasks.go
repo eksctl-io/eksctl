@@ -3,12 +3,12 @@ package manager
 import (
 	"fmt"
 
-	"k8s.io/apimachinery/pkg/util/sets"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
-func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(onlyNodeGroupSubset sets.String) *TaskTree {
+func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup) *TaskTree {
 	tasks := &TaskTree{Parallel: false}
 
 	tasks.Append(
@@ -18,7 +18,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(onlyNodeGroupSub
 		},
 	)
 
-	nodeGroupTasks := c.NewTasksToCreateNodeGroups(onlyNodeGroupSubset)
+	nodeGroupTasks := c.NewTasksToCreateNodeGroups(nodeGroups)
 	if nodeGroupTasks.Len() > 0 {
 		nodeGroupTasks.IsSubTask = true
 		tasks.Append(nodeGroupTasks)
@@ -27,17 +27,11 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(onlyNodeGroupSub
 	return tasks
 }
 
-// NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups if
-// onlySubset is nil, otherwise just the tasks for nodegroups that are in onlySubset
-// will be defined
-func (c *StackCollection) NewTasksToCreateNodeGroups(onlySubset sets.String) *TaskTree {
+// NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups
+func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
-	for i := range c.spec.NodeGroups {
-		ng := c.spec.NodeGroups[i]
-		if onlySubset != nil && !onlySubset.Has(ng.Name) {
-			continue
-		}
+	for _, ng := range nodeGroups {
 		tasks.Append(&taskWithNodeGroupSpec{
 			info:      fmt.Sprintf("create nodegroup %q", ng.Name),
 			nodeGroup: ng,

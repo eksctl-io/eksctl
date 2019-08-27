@@ -120,7 +120,7 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 	// compact version based on:
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/cmd/kubelet/app/options/options.go#L257-L267
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/pkg/kubelet/apis/well_known_labels.go
-	// we cannot import those package because they break other dependencies
+	// we cannot import those packages because they break other dependencies
 
 	unknownKubernetesLabels := []string{}
 

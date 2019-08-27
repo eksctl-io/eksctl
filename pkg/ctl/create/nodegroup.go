@@ -93,7 +93,9 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		return err
 	}
 
-	err = ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
+
+	for _, ng := range filteredNodeGroups {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -111,10 +113,6 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		if err := loadSSHKey(ng, meta.Name, ctl.Provider); err != nil {
 			return err
 		}
-		return nil
-	})
-	if err != nil {
-		return err
 	}
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
@@ -125,16 +123,13 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		return errors.Wrap(err, "cluster compatibility check failed")
 	}
 
-	ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
-	ngCount := ngSubset.Len()
-
 	{
 		ngFilter.LogInfo(cfg.NodeGroups)
-		if ngCount > 0 {
-			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", ngCount, cfg.Metadata.Name)
+		if len(filteredNodeGroups) > 0 {
+			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
 		}
 
-		tasks := stackManager.NewTasksToCreateNodeGroups(ngSubset)
+		tasks := stackManager.NewTasksToCreateNodeGroups(filteredNodeGroups)
 		logger.Info(tasks.Describe())
 		errs := tasks.DoAllSync()
 		if len(errs) > 0 {
@@ -155,7 +150,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 			return err
 		}
 
-		err = ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+		for _, ng := range filteredNodeGroups {
 			if updateAuthConfigMap {
 				// authorise nodes to join
 				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -175,11 +170,9 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 			}
 
 			return nil
-		})
-		if err != nil {
-			return err
 		}
-		logger.Success("created %d nodegroup(s) in cluster %q", ngCount, cfg.Metadata.Name)
+
+		logger.Success("created %d nodegroup(s) in cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
 	}
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
