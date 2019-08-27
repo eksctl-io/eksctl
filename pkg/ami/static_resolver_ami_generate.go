@@ -38,7 +38,10 @@ func main() {
 				classImages := Dict{}
 				for _, region := range api.SupportedRegions() {
 					namePattern := ami.ImageSearchPatterns[version][family][class]
-					ownerAccount := ami.ImageFamilyToAccountID[family]
+					ownerAccount, err := ami.OwnerAccountID(family, region)
+					if err != nil {
+						log.Fatal(err)
+					}
 					log.Printf("looking up images matching %q in %q", namePattern, region)
 					id, err := ami.FindImage(client[region], ownerAccount, namePattern)
 					if err != nil {
