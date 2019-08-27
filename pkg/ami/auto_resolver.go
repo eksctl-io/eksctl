@@ -43,7 +43,7 @@ var ImageSearchPatterns = map[string]map[string]map[int]string{
 }
 
 // OwnerAccountID returns the AWS account ID that owns worker AMI.
-func OwnerAccountID(imageFamily string, region string) (string, error) {
+func OwnerAccountID(imageFamily, region string) (string, error) {
 	switch imageFamily {
 	case ImageFamilyUbuntu1804:
 		return "099720109477", nil
