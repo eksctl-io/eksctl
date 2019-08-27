@@ -76,25 +76,24 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		}
 	}
 
-	ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
-	ngCount := ngSubset.Len()
+	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
 
 	ngFilter.LogInfo(cfg.NodeGroups)
 	verb := "drain"
 	if undo {
 		verb = "uncordon"
 	}
-	cmdutils.LogIntendedAction(cmd.Plan, "%s %d nodegroups in cluster %q", verb, ngCount, cfg.Metadata.Name)
+	cmdutils.LogIntendedAction(cmd.Plan, "%s %d nodegroups in cluster %q", verb, len(filteredNodeGroups), cfg.Metadata.Name)
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && ngCount > 0)
+	cmdutils.LogPlanModeWarning(cmd.Plan && len(filteredNodeGroups) > 0)
 
-	return ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
-		if cmd.Plan {
-			return nil
-		}
+	if cmd.Plan {
+		return nil
+	}
+	for _, ng := range filteredNodeGroups {
 		if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), undo); err != nil {
 			return err
 		}
-		return nil
-	})
+	}
+	return nil
 }

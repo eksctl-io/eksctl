@@ -112,6 +112,7 @@ type LaunchTemplateData struct {
 	IamInstanceProfile              struct{ Arn interface{} }
 	UserData, InstanceType, ImageId string
 	BlockDeviceMappings             []interface{}
+	EbsOptimized                    bool
 	NetworkInterfaces               []struct {
 		DeviceIndex              int
 		AssociatePublicIpAddress bool
@@ -1547,6 +1548,28 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("SSHIPv6"))
 
+		})
+	})
+
+	Context("NodeGroup{EbsOptimized=true}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.DesiredCapacity = nil
+		ng.MaxSize = nil
+		ng.MinSize = nil
+
+		ng.InstanceType = "m5.2xlarge"
+
+		build(cfg, "eksctl-test-ebs-optimized", ng)
+
+		roundtrip()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).InstanceType).To(Equal("m5.2xlarge"))
+			Expect(getLaunchTemplateData(ngTemplate).EbsOptimized).To(Equal(true))
+			Expect(getNodeGroupProperties(ngTemplate).DesiredCapacity).To(BeEmpty())
+			Expect(getNodeGroupProperties(ngTemplate).MaxSize).To(Equal("2"))
+			Expect(getNodeGroupProperties(ngTemplate).MinSize).To(Equal("2"))
 		})
 	})
 

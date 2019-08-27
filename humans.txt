@@ -53,6 +53,7 @@ Gema Gomez              @gemagomez
 David Hao               @davidhao3300
 Brett Shouse            @bmshouse
 Daniel Holbach          @dholbach
+Tak Noguchi             @tnir
 Carlos  Rueda           @ruecarlo
 
 /* Thanks */

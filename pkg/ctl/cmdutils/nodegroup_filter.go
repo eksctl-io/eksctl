@@ -53,7 +53,7 @@ func (f *NodeGroupFilter) SetExcludeExistingFilter(stackManager *manager.StackCo
 }
 
 // SetIncludeOrExcludeMissingFilter uses stackManager to list existing nodegroup stacks and configures
-// the filter to either explictily exluce or include nodegroups that are missing from given nodeGroups
+// the filter to either explicitly exclude or include nodegroups that are missing from given nodeGroups
 func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager.StackCollection, includeOnlyMissing bool, nodeGroups *[]*api.NodeGroup) error {
 	existing, err := stackManager.ListNodeGroupStacks()
 	if err != nil {
@@ -98,6 +98,17 @@ func (f *NodeGroupFilter) LogInfo(nodeGroups []*api.NodeGroup) {
 // MatchAll all names against the filter and return two sets of names - included and excluded
 func (f *NodeGroupFilter) MatchAll(nodeGroups []*api.NodeGroup) (sets.String, sets.String) {
 	return f.doMatchAll(f.collectNames(nodeGroups))
+}
+
+// FilterMatching matches names against the filter and returns all included node groups
+func (f *NodeGroupFilter) FilterMatching(nodeGroups []*api.NodeGroup) []*api.NodeGroup {
+	var match []*api.NodeGroup
+	for _, ng := range nodeGroups {
+		if f.Match(ng.NameString()) {
+			match = append(match, ng)
+		}
+	}
+	return match
 }
 
 // ForEach iterates over each nodegroup that is included by the filter and calls iterFn

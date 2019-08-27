@@ -138,6 +138,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			}
 		}
 	}
+	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 
 	createOrImportVPC := func() error {
@@ -149,9 +150,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 
 		customNetworkingNotice := "custom VPC/subnets will be used; if resulting cluster doesn't function as expected, make sure to review the configuration of VPC/subnets"
 
-		canUseForPrivateNodeGroups := func(_ int, ng *api.NodeGroup) error {
+		canUseForPrivateNodeGroups := func(ng *api.NodeGroup) error {
 			if ng.PrivateNetworking && !cfg.HasSufficientPrivateSubnets() {
-				return fmt.Errorf("none or too few private subnets to use with --node-private-networking")
+				return errors.New("none or too few private subnets to use with --node-private-networking")
 			}
 			return nil
 		}
@@ -189,8 +190,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 				return err
 			}
 
-			if err := ngFilter.ForEach(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
-				return err
+			for _, ng := range filteredNodeGroups {
+				if err := canUseForPrivateNodeGroups(ng); err != nil {
+					return err
+				}
 			}
 
 			logger.Success("using %s from kops cluster %q", subnetInfo(), params.kopsClusterNameForVPC)
@@ -216,8 +219,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			return err
 		}
 
-		if err := ngFilter.ForEach(cfg.NodeGroups, canUseForPrivateNodeGroups); err != nil {
-			return err
+		for _, ng := range filteredNodeGroups {
+			if err := canUseForPrivateNodeGroups(ng); err != nil {
+				return err
+			}
 		}
 
 		logger.Success("using existing %s", subnetInfo())
@@ -229,7 +234,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		return err
 	}
 
-	err = ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+	for _, ng := range filteredNodeGroups {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -247,17 +252,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		if err := loadSSHKey(ng, meta.Name, ctl.Provider); err != nil {
 			return err
 		}
-		return nil
-	})
-	if err != nil {
-		return err
 	}
 
 	logger.Info("using Kubernetes version %s", meta.Version)
 	logger.Info("creating %s", meta.LogString())
 
 	// TODO dry-run mode should provide a way to render config with all defaults set
-	// we should also make a call to resolve the AMI and write the result, similaraly
+	// we should also make a call to resolve the AMI and write the result, similarly
 	// the body of the SSH key can be read
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
@@ -265,16 +266,15 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 	}
 
 	{ // core action
-		ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
 		stackManager := ctl.NewStackManager(cfg)
-		if ngCount := ngSubset.Len(); ngCount == 1 && cmd.ClusterConfigFile == "" {
+		if len(filteredNodeGroups) == 1 && cmd.ClusterConfigFile == "" {
 			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
 		} else {
 			ngFilter.LogInfo(cfg.NodeGroups)
-			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", ngCount)
+			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(filteredNodeGroups))
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
-		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(ngSubset)
+		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups)
 		ctl.AppendExtraClusterConfigTasks(cfg, tasks)
 
 		logger.Info(tasks.Describe())
@@ -318,7 +318,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			return err
 		}
 
-		err = ngFilter.ForEach(cfg.NodeGroups, func(_ int, ng *api.NodeGroup) error {
+		for _, ng := range filteredNodeGroups {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err
@@ -335,10 +335,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 			}
 
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 
 		// check kubectl version, and offer install instructions if missing or old

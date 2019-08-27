@@ -156,7 +156,7 @@ $(DEEP_COPY_HELPER): $(DEEP_COPY_DEPS) .license-header ## Generate Kubernetes A
 	  || (cat codegenheader.txt ; cat $(DEEP_COPY_HELPER); exit 1)
 
 # static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
-# so we need to forcicly generate it
+# so we need to forcibly generate it
 .PHONY: generate-ami
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
 	time go generate ./pkg/ami
