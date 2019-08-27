@@ -140,7 +140,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--git-email", Email,
 					"--git-private-ssh-key-path", privateSSHKeyPath,
 					"--git-branch", branch,
-					"--name", clusterName,
+					"--cluster", clusterName,
 				)
 				Expect(cmd).To(RunSuccessfully())
 
@@ -165,14 +165,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 				cmd := eksctlExperimentalCmd.WithArgs(
 					"gitops", "apply",
-						"--git-url", Repository,
-						"--git-email", Email,
-						"--git-branch", branch,
-						"--git-private-ssh-key-path", privateSSHKeyPath,
-						"--output-path", tempOutputDir,
-						"--quickstart-profile", "app-dev",
-						"--cluster", clusterName,
-						"--region", region,
+					"--git-url", Repository,
+					"--git-email", Email,
+					"--git-branch", branch,
+					"--git-private-ssh-key-path", privateSSHKeyPath,
+					"--output-path", tempOutputDir,
+					"--quickstart-profile", "app-dev",
+					"--cluster", clusterName,
+					"--region", region,
 				)
 				Expect(cmd).To(RunSuccessfully())
 
@@ -234,7 +234,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				}
 				{
 					cmd := eksctlGetCmd.WithArgs(
-						 "nodegroup",
+						"nodegroup",
 						"--cluster", clusterName,
 						"--region", region,
 						testNG,

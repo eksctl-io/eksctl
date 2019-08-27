@@ -17,14 +17,14 @@ and simplify application deployments and operations tasks to Kubernetes.
 
 ### Installing Flux
 
-> This is an experimental feature. To enable it, set the environment variable `EKSCTL_EXPERIMENTAL=true`. 
+> This is an experimental feature. To enable it, set the environment variable `EKSCTL_EXPERIMENTAL=true`.
 > Experimental features are not stable and their command name and flags may change.
 
-Installing Flux on the cluster is the first step towards a gitops workflow. To install it, you need a Git repository 
+Installing Flux on the cluster is the first step towards a gitops workflow. To install it, you need a Git repository
 and an existing EKS cluster. Then run the following command:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl install flux --name <cluster_name> --region <region> --git-url=<git_repo> --git-email=<git_user_email>
+EKSCTL_EXPERIMENTAL=true eksctl install flux --cluster <cluster_name> --region <region> --git-url=<git_repo> --git-email=<git_user_email>
 ```
 
 Or use a config file:
@@ -32,20 +32,20 @@ Or use a config file:
 EKSCTL_EXPERIMENTAL=true eksctl install flux -f examples/01-simple-cluster.yaml --git-url=git@github.com:weaveworks/cluster-1-gitops.git --git-email=johndoe+flux@weave.works
 ```
 
-Note that, by default, `eksctl install flux` installs [Helm](https://helm.sh/) server components to the cluster (it 
+Note that, by default, `eksctl install flux` installs [Helm](https://helm.sh/) server components to the cluster (it
 installs [Tiller](https://helm.sh/docs/glossary/#tiller) and the [Flux Helm Operator](https://github.com/fluxcd/helm-operator)). To
 disable the installation of the Helm server components, pass the flag `--with-helm=false`.
 
 Full example:
 
 ```console
-$ EKSCTL_EXPERIMENTAL=true ./eksctl install flux --name=cluster-1 --region eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works--namespace=flux
+$ EKSCTL_EXPERIMENTAL=true ./eksctl install flux --cluster=cluster-1 --region eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works--namespace=flux
 [ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
 [ℹ]    this may take up to a minute, please be patient
 [!]  Public key infrastructure files were written into directory "/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-helm-pki330304977"
 [!]  please move the files into a safe place or delete them
 [ℹ]  Generating manifests
-[ℹ]  Cloning git@github.com:weaveworks/cluster-1-gitops.git 
+[ℹ]  Cloning git@github.com:weaveworks/cluster-1-gitops.git
 Cloning into '/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-install-flux-clone-142184188'...
 remote: Enumerating objects: 74, done.
 remote: Counting objects: 100% (74/74), done.
@@ -86,7 +86,7 @@ ERROR: logging before flag.Parse: E0820 16:05:12.218007   98823 portforward.go:3
 [ℹ]  Helm Operator started successfully
 [ℹ]  Waiting for Flux to start
 [ℹ]  Flux started successfully
-[ℹ]  Committing and pushing manifests to git@github.com:weaveworks/cluster-1-gitops.git 
+[ℹ]  Committing and pushing manifests to git@github.com:weaveworks/cluster-1-gitops.git
 [master ec43024] Add Initial Flux configuration
  Author: Flux <johndoe+flux@weave.works>
 14 files changed, 694 insertions(+)
@@ -105,8 +105,8 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYYsPuHzo1L29u3zhr4uAOF29HNyMcS8zJmOTDNZC4
 
 ```
 
-At this point Flux and the Helm server components should be installed in the specified cluster. The only thing left to 
-do is to give Flux write access to the repository. Configure your repository to allow write access to that ssh key, 
+At this point Flux and the Helm server components should be installed in the specified cluster. The only thing left to
+do is to give Flux write access to the repository. Configure your repository to allow write access to that ssh key,
 for example, through the Deploy keys if it lives in GitHub.
 
 ```console
@@ -119,18 +119,18 @@ memcached-958f745c-qdfgz   1/1     Running   0          29m
 
 #### Adding a workload
 
-To deploy a new workload on the cluster using GitOps just add a kubernetes manifest to the repository. After a few 
+To deploy a new workload on the cluster using GitOps just add a kubernetes manifest to the repository. After a few
 minutes you should see the resources appearing in the cluster.
 
 #### Further reading
 
 To learn more about GitOps and Flux, check the [Flux documentation][flux]
- 
+
 
 ### Installing components from a quickstart
 
 `eksctl` provides an application development quickstart profile which can install the following components in your
-cluster: 
+cluster:
   - Metrics Server
   - Prometheus
   - Grafana
