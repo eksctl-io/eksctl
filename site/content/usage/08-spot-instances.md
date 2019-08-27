@@ -50,12 +50,12 @@ nodeGroups:
 ```
 
 `labelsOnSpot` and `taintsOnSpot` parameters can be used to append extra labels and taints or
-to override the key for the label or tain clashes with the ones already set when using the
+to override the key for the label or taint clashes with the ones already set when using the
 `labels` and `taints` parameters.
 
-In the example below, On-Demand instances will have a label
-named "lifecycle" set to "OnDemand", while Spot instances will override the "lifecycle" and
-instead use "Ec2Spot". Spot instances will also have a taint "spotInstance=true:PreferNoSchedule"
+In the example below, On-Demand instances will have the "lifecycle" label set to "Ec2Spot", 
+while Spot instances will override the "lifecycle" and instead use "Ec2Spot". 
+Spot instances will also have a taint "spotInstance=true:PreferNoSchedule"
 
 ```yaml
 nodeGroups:
