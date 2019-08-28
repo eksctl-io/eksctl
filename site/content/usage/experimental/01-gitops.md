@@ -24,7 +24,7 @@ Installing Flux on the cluster is the first step towards a gitops workflow. To i
 and an existing EKS cluster. Then run the following command:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl install flux --cluster <cluster_name> --region <region> --git-url=<git_repo> --git-email=<git_user_email>
+EKSCTL_EXPERIMENTAL=true eksctl install flux --cluster=<cluster_name> --region=<region> --git-url=<git_repo> --git-email=<git_user_email>
 ```
 
 Or use a config file:
@@ -39,7 +39,7 @@ disable the installation of the Helm server components, pass the flag `--with-he
 Full example:
 
 ```console
-$ EKSCTL_EXPERIMENTAL=true ./eksctl install flux --cluster=cluster-1 --region eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works--namespace=flux
+$ EKSCTL_EXPERIMENTAL=true ./eksctl install flux --cluster=cluster-1 --region=eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works--namespace=flux
 [ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
 [ℹ]    this may take up to a minute, please be patient
 [!]  Public key infrastructure files were written into directory "/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-helm-pki330304977"
