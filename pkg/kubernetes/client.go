@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/blang/semver"
 	jsonpatch "github.com/evanphx/json-patch"
@@ -351,6 +352,51 @@ func (r *RawResource) CreatePatchOrReplace() error {
 	}
 	msg("patched")
 	return nil
+}
+
+// Delete attempts to delete this Kubernetes resource, or returns doing nothing
+// if it does not exist.
+func (r *RawResource) Delete() (string, error) {
+	exists, _, err := r.exists()
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return "", nil
+	}
+	propagationPolicy := metav1.DeletePropagationForeground
+	if _, err := r.Helper.DeleteWithOptions(r.Info.Namespace, r.Info.Name, &metav1.DeleteOptions{
+		PropagationPolicy: &propagationPolicy,
+	}); err != nil {
+		return "", err
+	}
+	if err := r.waitForDeletion(); err != nil {
+		return "", err
+	}
+	return r.LogAction(false, "deleted"), nil
+}
+
+const maxWaitingTime = 2 * 60 * time.Second
+
+func (r *RawResource) waitForDeletion() error {
+	// Wait for the resource's deletion, typically to avoid "races" as much as
+	// possible on eksctl's side, as objects may be still "TERMINATING" while
+	// eksctl then tries to create them again.
+	waitingTime := maxWaitingTime
+	checkInterval := 1 * time.Second
+	for waitingTime > 0 {
+		exists, _, err := r.exists()
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return nil
+		}
+		time.Sleep(checkInterval)
+		waitingTime = waitingTime - checkInterval
+		checkInterval = 2 * checkInterval
+	}
+	return fmt.Errorf("waited for %v's deletion, but could not confirm it within %v", r, maxWaitingTime)
 }
 
 func (r *RawResource) exists() (bool, runtime.Object, error) {
