@@ -25,12 +25,14 @@ import (
 )
 
 const (
-	fluxNamespaceFileName    = "flux-namespace.yaml"
-	helmTLSValidFor          = 5 * 365 * 24 * time.Hour // 5 years
-	tillerManifestPrefix     = "tiller-"
-	tillerServiceName        = "tiller-deploy" // do not change at will, hardcoded in Tiller's manifest generation API
-	tillerServiceAccountName = "tiller"
-	tillerRBACTemplate       = `apiVersion: v1
+	fluxNamespaceFileName       = "flux-namespace.yaml"
+	fluxPrivateSSHKeyFileName   = "flux-secret.yaml"
+	fluxPrivateSSHKeySecretName = "flux-git-deploy"
+	helmTLSValidFor             = 5 * 365 * 24 * time.Hour // 5 years
+	tillerManifestPrefix        = "tiller-"
+	tillerServiceName           = "tiller-deploy" // do not change at will, hardcoded in Tiller's manifest generation API
+	tillerServiceAccountName    = "tiller"
+	tillerRBACTemplate          = `apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: %[1]s
@@ -284,11 +286,26 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 		delete(manifestsMap, fluxNamespaceFileName)
 	}
 
+	if fluxSecret, ok := manifestsMap[fluxPrivateSSHKeyFileName]; ok {
+		existence, err := client.Exists(fluxSecret)
+		if err != nil {
+			return err
+		}
+		// We do NOT want to recreate the flux-git-deploy Secret object inside
+		// the flux-secret.yaml file, as it contains Flux's private SSH key,
+		// and deleting it would force the user to set Flux's permissions up
+		// again in their Git repository, which is not very "friendly".
+		if existence[fi.opts.Namespace][fluxPrivateSSHKeySecretName] {
+			delete(manifestsMap, fluxPrivateSSHKeyFileName)
+		}
+	}
+
 	var manifestValues [][]byte
 	for _, manifest := range manifestsMap {
 		manifestValues = append(manifestValues, manifest)
 	}
 	manifests := kubernetes.ConcatManifests(manifestValues...)
+	client.Delete(manifests)
 	return client.CreateOrReplace(manifests, false)
 }
 
