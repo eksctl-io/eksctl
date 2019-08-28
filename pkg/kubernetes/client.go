@@ -255,6 +255,32 @@ func (c *RawClient) deleteObject(object runtime.RawExtension) error {
 	return nil
 }
 
+// Exists checks if the Kubernetes resources in the provided manifest exist or
+// not, and returns a map[<namespace>]map[<name>]bool to indicate each
+// resource's existence.
+func (c *RawClient) Exists(manifest []byte) (map[string]map[string]bool, error) {
+	objects, err := NewRawExtensions(manifest)
+	if err != nil {
+		return nil, err
+	}
+	existence := map[string]map[string]bool{}
+	for _, object := range objects {
+		resource, err := c.NewRawResource(object)
+		if err != nil {
+			return nil, err
+		}
+		exists, err := resource.Exists()
+		if err != nil {
+			return nil, err
+		}
+		if _, ok := existence[resource.Info.Namespace]; !ok {
+			existence[resource.Info.Namespace] = map[string]bool{}
+		}
+		existence[resource.Info.Namespace][resource.Info.Name] = exists
+	}
+	return existence, nil
+}
+
 // String returns a canonical name of the resource
 func (r *RawResource) String() string {
 	description := ""
