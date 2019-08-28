@@ -429,6 +429,13 @@ func (r *RawResource) waitForDeletion() error {
 	return fmt.Errorf("waited for %v's deletion, but could not confirm it within %v", r, maxWaitingTime)
 }
 
+// Exists checks if this Kubernetes resource exists or not, and returns true if
+// so, or false otherwise.
+func (r *RawResource) Exists() (bool, error) {
+	exists, _, err := r.exists()
+	return exists, err
+}
+
 func (r *RawResource) exists() (bool, runtime.Object, error) {
 	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
 	if err != nil {
