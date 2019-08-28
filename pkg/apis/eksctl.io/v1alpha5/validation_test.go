@@ -6,7 +6,7 @@ import (
 )
 
 var _ = Describe("ClusterConfig validation", func() {
-	Describe("nodeGroups", func() {
+	Describe("nodeGroups[*].name", func() {
 		var (
 			cfg *ClusterConfig
 			err error
@@ -44,6 +44,105 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 		})
+	})
+
+	Describe("nodeGroups[*].iam", func() {
+		var (
+			cfg *ClusterConfig
+			err error
+			ng1 *NodeGroup
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "ng0"
+
+			ng0.IAM.AttachPolicyARNs = []string{
+				"foo",
+				"bar",
+			}
+			ng0.IAM.WithAddonPolicies.ExternalDNS = Enabled()
+			ng0.IAM.WithAddonPolicies.ALBIngress = Enabled()
+			ng0.IAM.WithAddonPolicies.ImageBuilder = Enabled()
+
+			ng1 = cfg.NewNodeGroup()
+			ng1.Name = "ng1"
+		})
+
+		JustBeforeEach(func() {
+			err = ValidateClusterConfig(cfg)
+			Expect(err).ToNot(HaveOccurred())
+
+			for i, ng := range cfg.NodeGroups {
+				err = ValidateNodeGroup(i, ng)
+				Expect(err).ToNot(HaveOccurred())
+			}
+		})
+
+		It("should allow setting only instanceProfileARN", func() {
+			ng1.IAM.InstanceProfileARN = "p1"
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should allow setting only instanceRoleARN", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should allow setting instanceProfileARN and instanceRoleARN", func() {
+			ng1.IAM.InstanceProfileARN = "p1"
+			ng1.IAM.InstanceRoleARN = "r1"
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should not allow setting instanceProfileARN and instanceRoleName", func() {
+			ng1.IAM.InstanceProfileARN = "p1"
+			ng1.IAM.InstanceRoleName = "aRole"
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceProfileARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
+		})
+
+		It("should not allow setting instanceRoleARN and instanceRoleName", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+			ng1.IAM.InstanceRoleName = "aRole"
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
+		})
+
+		It("should not allow setting instanceRoleARN and attachPolicyARNs", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+			ng1.IAM.AttachPolicyARNs = []string{
+				"foo",
+				"bar",
+			}
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.attachPolicyARNs cannot be set at the same time"))
+		})
+
+		It("should not allow setting instanceRoleARN and withAddonPolicies", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+
+			ng1.IAM.WithAddonPolicies.ExternalDNS = Enabled()
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.withAddonPolicies.externalDNS cannot be set at the same time"))
+		})
+
 	})
 
 	Describe("cloudWatch.clusterLogging", func() {

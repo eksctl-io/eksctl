@@ -184,45 +184,49 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 
 func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) error {
 	if value != "" {
-		p := fmt.Sprintf("%s.iam.%s and %s.iam", path, fieldName, path)
+		fmtFieldConflictErr := func(conflictingField string) error {
+			return fmt.Errorf("%s.iam.%s and %s.iam.%s cannot be set at the same time", path, fieldName, path, conflictingField)
+		}
+
 		if ng.IAM.InstanceRoleName != "" {
-			return fmt.Errorf("%s.instanceRoleName cannot be set at the same time", p)
+			return fmtFieldConflictErr("instanceRoleName")
 		}
 		if len(ng.IAM.AttachPolicyARNs) != 0 {
-			return fmt.Errorf("%s.attachPolicyARNs cannot be set at the same time", p)
+			return fmtFieldConflictErr("attachPolicyARNs")
 		}
+		prefix := "withAddonPolicies."
 		if IsEnabled(ng.IAM.WithAddonPolicies.AutoScaler) {
-			return fmt.Errorf("%s.withAddonPolicies.autoScaler cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "autoScaler")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.ExternalDNS) {
-			return fmt.Errorf("%s.withAddonPolicies.externalDNS cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "externalDNS")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.CertManager) {
-			return fmt.Errorf("%s.withAddonPolicies.certManager cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "certManager")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.ImageBuilder) {
-			return fmt.Errorf("%s.imageBuilder cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "imageBuilder")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.AppMesh) {
-			return fmt.Errorf("%s.AppMesh cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "appMesh")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.EBS) {
-			return fmt.Errorf("%s.ebs cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "ebs")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.FSX) {
-			return fmt.Errorf("%s.fsx cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "fsx")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.EFS) {
-			return fmt.Errorf("%s.efs cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "efs")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.ALBIngress) {
-			return fmt.Errorf("%s.albIngress cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "albIngress")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.XRay) {
-			return fmt.Errorf("%s.xRay cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "xRay")
 		}
 		if IsEnabled(ng.IAM.WithAddonPolicies.CloudWatch) {
-			return fmt.Errorf("%s.cloudWatch cannot be set at the same time", p)
+			return fmtFieldConflictErr(prefix + "cloudWatch")
 		}
 	}
 	return nil
