@@ -248,15 +248,11 @@ func (r *RawResource) LogAction(plan bool, verb string) string {
 
 // CreateOrReplace will check if the given resource exists, and create or update it as needed
 func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
-	create := false
-	if _, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false); err != nil {
-		if !apierrs.IsNotFound(err) {
-			return "", errors.Wrap(err, "unexpected non-404 error")
-		}
-		create = true
+	exists, _, err := r.exists()
+	if err != nil {
+		return "", errors.Wrap(err, "unexpected non-404 error")
 	}
-
-	if create {
+	if !exists {
 		_, err := r.Helper.Create(r.Info.Namespace, !plan, r.Info.Object, &metav1.CreateOptions{})
 		if err != nil {
 			return "", err
@@ -295,16 +291,12 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 func (r *RawResource) CreatePatchOrReplace() error {
 	msg := func(verb string) { logger.Info("%s %q", verb, r) }
 
-	create := false
-	oldObj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
+	exists, oldObj, err := r.exists()
 	if err != nil {
-		if !apierrs.IsNotFound(err) {
-			create = true
-		}
 		return err
 	}
 
-	if create {
+	if !exists {
 		_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object, &metav1.CreateOptions{})
 		if err != nil {
 			return err
@@ -359,4 +351,15 @@ func (r *RawResource) CreatePatchOrReplace() error {
 	}
 	msg("patched")
 	return nil
+}
+
+func (r *RawResource) exists() (bool, runtime.Object, error) {
+	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
+	if err != nil {
+		if apierrs.IsNotFound(err) {
+			return false, nil, nil
+		}
+		return false, nil, err
+	}
+	return true, obj, nil
 }
