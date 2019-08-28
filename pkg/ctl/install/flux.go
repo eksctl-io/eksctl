@@ -92,7 +92,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cmd.ClusterConfig.Metadata)
+		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlagWithValue(fs, &opts.Timeout, 20*time.Second)
