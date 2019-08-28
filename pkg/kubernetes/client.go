@@ -225,6 +225,36 @@ func (c *RawClient) createOrReplaceObject(object runtime.RawExtension, plan bool
 	return nil
 }
 
+// Delete attempts to delete the Kubernetes resources in the provided manifest,
+// or do nothing if they do not exist.
+func (c *RawClient) Delete(manifest []byte) error {
+	objects, err := NewRawExtensions(manifest)
+	if err != nil {
+		return err
+	}
+	for _, object := range objects {
+		if err := c.deleteObject(object); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *RawClient) deleteObject(object runtime.RawExtension) error {
+	resource, err := c.NewRawResource(object)
+	if err != nil {
+		return err
+	}
+	status, err := resource.Delete()
+	if err != nil {
+		return err
+	}
+	if status != "" {
+		logger.Info(status)
+	}
+	return nil
+}
+
 // String returns a canonical name of the resource
 func (r *RawResource) String() string {
 	description := ""
