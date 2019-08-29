@@ -84,7 +84,7 @@ func (git *Client) CloneRepoInPath(clonePath string, branch string, gitURL strin
 	if err := os.MkdirAll(git.dir, 0700); err != nil {
 		return errors.Wrapf(err, "unable to create directory for cloning")
 	}
-	args := []string{"clone", "-b", branch, gitURL, git.dir}
+	args := []string{"clone", "-b", branch, gitURL, "."}
 	return git.runGitCmd(args...)
 }
 
