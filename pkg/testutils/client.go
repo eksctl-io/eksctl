@@ -150,6 +150,7 @@ func (c *CollectionTracker) UpdatedItems() (items []runtime.Object) {
 }
 
 func (t *requestTracker) Delete(req *http.Request, item runtime.Object) bool {
+	*t.missing = true
 	if t.collection != nil {
 		if *t.unionised {
 			k := objectKey(req, item)
