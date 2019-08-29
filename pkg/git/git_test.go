@@ -37,7 +37,7 @@ var _ = Describe("GitClient", func() {
 
 		// It called clone
 		Expect(err).To(Not(HaveOccurred()))
-		Expect(fakeExecutor.Dir).To(Equal(tempCloneDir))
+		Expect(fakeExecutor.Dir).To(Equal(""))
 		Expect(fakeExecutor.Args).To(
 			Equal([]string{"clone", "-b", "my-branch", "git@example.com:test/example-repo.git", tempCloneDir}))
 
