@@ -50,9 +50,13 @@ func applyGitops(cmd *cmdutils.Cmd) {
 		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
 			"Optional path to the private SSH key to use with Git, e.g.: ~/.ssh/id_rsa")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
-		_ = cobra.MarkFlagRequired(fs, "quickstart-profile")
-		_ = cobra.MarkFlagRequired(fs, "git-url")
-		_ = cobra.MarkFlagRequired(fs, "cluster")
+
+		requiredFlags := []string{"quickstart-profile", "git-url", "cluster", "git-email"}
+		for _, f := range requiredFlags {
+			if err := cobra.MarkFlagRequired(fs, f); err != nil {
+				panic(fmt.Sprintf("unexpected error: %v", err))
+			}
+		}
 
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
