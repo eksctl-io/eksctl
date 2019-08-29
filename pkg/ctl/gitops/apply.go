@@ -151,7 +151,6 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	gitClient := git.NewGitClient(context.Background(), git.ClientParams{
 		PrivateSSHKeyPath: opts.gitPrivateSSHKeyPath,
 		Timeout:           git.DefaultGitTimeout,
-		Dir:               usersRepoDir,
 	})
 
 	gitOps := gitops.Applier{

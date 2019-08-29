@@ -36,7 +36,6 @@ type Client struct {
 type ClientParams struct {
 	Timeout           time.Duration
 	PrivateSSHKeyPath string
-	Dir               string
 }
 
 // Options holds options for cloning a git repository
