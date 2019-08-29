@@ -179,9 +179,13 @@ func (fi *Installer) Run(ctx context.Context) error {
 		}
 	}
 
+	if err := fi.createFluxNamespaceIfMissing(manifests); err != nil {
+		return err
+	}
+
 	if len(secrets) > 0 {
 		logger.Info("Applying Helm TLS Secret(s)")
-		if err := fi.applySecrets(secrets, manifests); err != nil {
+		if err := fi.applySecrets(secrets); err != nil {
 			return err
 		}
 		logger.Warning("Note: certificate secrets aren't added to the Git repository for security reasons")
@@ -270,7 +274,7 @@ func (fi *Installer) addFilesToRepo(ctx context.Context, cloneDir string) error 
 	return nil
 }
 
-func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
+func (fi *Installer) createFluxNamespaceIfMissing(manifestsMap map[string][]byte) error {
 	client, err := kubernetes.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
 	if err != nil {
 		return err
@@ -284,6 +288,14 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 			return err
 		}
 		delete(manifestsMap, fluxNamespaceFileName)
+	}
+	return nil
+}
+
+func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
+	client, err := kubernetes.NewRawClient(fi.k8sClientSet, fi.k8sRestConfig)
+	if err != nil {
+		return err
 	}
 
 	if fluxSecret, ok := manifestsMap[fluxPrivateSSHKeyFileName]; ok {
@@ -309,7 +321,7 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 	return client.CreateOrReplace(manifests, false)
 }
 
-func (fi *Installer) applySecrets(secrets []*corev1.Secret, manifests map[string][]byte) error {
+func (fi *Installer) applySecrets(secrets []*corev1.Secret) error {
 	secretMap := map[string][]byte{}
 	for _, secret := range secrets {
 		id := fmt.Sprintf("secret/%s/%s", secret.Namespace, secret.Name)
@@ -319,8 +331,6 @@ func (fi *Installer) applySecrets(secrets []*corev1.Secret, manifests map[string
 		}
 		secretMap[id] = secretBytes
 	}
-	// Add the flux manifest, in case it needs to be created first:
-	secretMap[fluxNamespaceFileName] = manifests[fluxNamespaceFileName]
 	return fi.applyManifests(secretMap)
 }
 
