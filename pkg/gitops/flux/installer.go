@@ -179,17 +179,17 @@ func (fi *Installer) Run(ctx context.Context) error {
 		}
 	}
 
-	logger.Info("Applying manifests")
-	if err := fi.applyManifests(manifests); err != nil {
-		return err
-	}
-
 	if len(secrets) > 0 {
 		logger.Info("Applying Helm TLS Secret(s)")
-		if err := fi.applySecrets(secrets); err != nil {
+		if err := fi.applySecrets(secrets, manifests); err != nil {
 			return err
 		}
 		logger.Warning("Note: certificate secrets aren't added to the Git repository for security reasons")
+	}
+
+	logger.Info("Applying manifests")
+	if err := fi.applyManifests(manifests); err != nil {
+		return err
 	}
 
 	if fi.opts.WithHelm {
@@ -309,7 +309,7 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 	return client.CreateOrReplace(manifests, false)
 }
 
-func (fi *Installer) applySecrets(secrets []*corev1.Secret) error {
+func (fi *Installer) applySecrets(secrets []*corev1.Secret, manifests map[string][]byte) error {
 	secretMap := map[string][]byte{}
 	for _, secret := range secrets {
 		id := fmt.Sprintf("secret/%s/%s", secret.Namespace, secret.Name)
@@ -319,6 +319,8 @@ func (fi *Installer) applySecrets(secrets []*corev1.Secret) error {
 		}
 		secretMap[id] = secretBytes
 	}
+	// Add the flux manifest, in case it needs to be created first:
+	secretMap[fluxNamespaceFileName] = manifests[fluxNamespaceFileName]
 	return fi.applyManifests(secretMap)
 }
 
