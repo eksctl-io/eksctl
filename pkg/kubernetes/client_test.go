@@ -1,6 +1,8 @@
 package kubernetes_test
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -20,10 +22,19 @@ var _ = Describe("Kubernetes client wrappers", func() {
 
 			for _, item := range sampleAddons {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
-				_, err := rc.CreateOrReplace(false)
+
+				exists, err := rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
+
+				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(track).ToNot(BeNil())
-				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "PUT"}))
+				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "GET", "PUT"}))
+
+				exists, err = rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource still exists.
 			}
 
 			Expect(ct.Updated()).ToNot(BeEmpty())
@@ -38,10 +49,19 @@ var _ = Describe("Kubernetes client wrappers", func() {
 
 			for _, item := range sampleAddons {
 				rc, track := testutils.NewFakeRawResource(item, true, false, ct)
-				_, err := rc.CreateOrReplace(false)
+
+				exists, err := rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeFalse()) // The Kubernetes resource has not been created yet.
+
+				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(track).ToNot(BeNil())
-				Expect(track.Methods()).To(Equal([]string{"GET", "POST"}))
+				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "POST"}))
+
+				exists, err = rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource has not been created yet.
 			}
 
 			Expect(ct.Created()).ToNot(BeEmpty())
@@ -56,10 +76,19 @@ var _ = Describe("Kubernetes client wrappers", func() {
 
 			for _, item := range sampleAddons {
 				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
-				_, err := rc.CreateOrReplace(false)
+
+				exists, err := rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
+
+				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(track).ToNot(BeNil())
-				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "PUT"}))
+				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "GET", "PUT"}))
+
+				exists, err = rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource still exists.
 			}
 
 			Expect(ct.Updated()).ToNot(BeEmpty())
@@ -174,6 +203,36 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			Expect(err).ToNot(HaveOccurred())
 			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get("test1", metav1.GetOptions{})
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("can delete existing objects", func() {
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
+			ct := testutils.NewCollectionTracker()
+
+			for _, item := range sampleAddons {
+				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
+
+				exists, err := rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
+
+				status, err := rc.DeleteSync()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(status).To(Equal(fmt.Sprintf("deleted %q", rc)))
+				Expect(track).ToNot(BeNil())
+				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "DELETE", "GET"}))
+
+				exists, err = rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeFalse()) // The Kubernetes resource no longer exists.
+			}
+
+			Expect(ct.Created()).To(BeEmpty())
+			Expect(ct.CreatedItems()).To(BeEmpty())
+			Expect(ct.Updated()).To(BeEmpty())
+			Expect(ct.UpdatedItems()).To(BeEmpty())
+			Expect(ct.Deleted()).ToNot(BeEmpty())
+			Expect(ct.DeletedItems()).To(HaveLen(10))
 		})
 	})
 })

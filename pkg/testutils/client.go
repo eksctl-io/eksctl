@@ -54,6 +54,7 @@ var mapper = testrestmapper.TestOnlyStaticRESTMapper(scheme.Scheme)
 type CollectionTracker struct {
 	created map[string]runtime.Object
 	updated map[string]runtime.Object
+	deleted map[string]runtime.Object
 	objects map[string]runtime.Object
 }
 
@@ -61,6 +62,7 @@ func NewCollectionTracker() *CollectionTracker {
 	return &CollectionTracker{
 		created: make(map[string]runtime.Object),
 		updated: make(map[string]runtime.Object),
+		deleted: make(map[string]runtime.Object),
 		objects: make(map[string]runtime.Object),
 	}
 }
@@ -150,7 +152,9 @@ func (c *CollectionTracker) UpdatedItems() (items []runtime.Object) {
 }
 
 func (t *requestTracker) Delete(req *http.Request, item runtime.Object) bool {
+	*t.missing = true
 	if t.collection != nil {
+		t.collection.deleted[objectReqKey(req, item)] = item
 		if *t.unionised {
 			k := objectKey(req, item)
 			if _, ok := t.collection.objects[k]; ok {
@@ -161,6 +165,15 @@ func (t *requestTracker) Delete(req *http.Request, item runtime.Object) bool {
 		}
 	}
 	return true
+}
+
+func (c *CollectionTracker) Deleted() map[string]runtime.Object { return c.deleted }
+
+func (c *CollectionTracker) DeletedItems() (items []runtime.Object) {
+	for _, item := range c.Deleted() {
+		items = append(items, item)
+	}
+	return
 }
 
 func (c *CollectionTracker) AllTracked() map[string]runtime.Object { return c.objects }
