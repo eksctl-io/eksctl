@@ -245,7 +245,7 @@ func (c *RawClient) deleteObject(object runtime.RawExtension) error {
 	if err != nil {
 		return err
 	}
-	status, err := resource.Delete()
+	status, err := resource.DeleteSync()
 	if err != nil {
 		return err
 	}
@@ -410,9 +410,9 @@ func (r *RawResource) CreatePatchOrReplace() error {
 	return nil
 }
 
-// Delete attempts to delete this Kubernetes resource, or returns doing nothing
-// if it does not exist.
-func (r *RawResource) Delete() (string, error) {
+// DeleteSync attempts to delete this Kubernetes resource, or returns doing
+// nothing if it does not exist. It blocks until the resource has been deleted.
+func (r *RawResource) DeleteSync() (string, error) {
 	exists, _, err := r.exists()
 	if err != nil {
 		return "", err

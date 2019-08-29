@@ -216,7 +216,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
 
-				status, err := rc.Delete()
+				status, err := rc.DeleteSync()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(status).To(Equal(fmt.Sprintf("deleted %q", rc)))
 				Expect(track).ToNot(BeNil())
