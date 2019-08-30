@@ -39,6 +39,7 @@ func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
 
 // NodeGroup drains a nodegroup
 func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout time.Duration, undo bool) error {
+	evictError := 0
 	drainer := &Helper{
 		Client: clientSet,
 
@@ -89,7 +90,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 	// or any other changes in the ASG
 	timer := time.After(waitTimeout)
 	timeout := false
-	for !timeout {
+	for !timeout || evictError > 0 {
 		select {
 		case <-timer:
 			timeout = true
@@ -144,18 +145,31 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 
 			for _, node := range nodes.Items {
 				if newPendingNodes.Has(node.Name) {
+					retry := 1
 					pending, err := evictPods(drainer, &node)
-					if err != nil {
-						return err
+					for pending > 0 {
+						logger.Debug("%d pods to be evicted from %s", pending, node.Name)
+						time.Sleep(5 * time.Second)
+						pending, err = evictPods(drainer, &node)
+						if err != nil && retry < 60 {
+							logger.Warning("pod eviction error: \"%s\", on node: %s (retry in 5 sec, %d/60)", err, node.Name, retry)
+						} else if retry >= 60 {
+							logger.Warning("pod eviction unable to complete after 60 retry on node: %s", node.Name)
+							evictError++
+							break
+						}
+						retry++
 					}
-					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
-					if pending == 0 {
-						drainedNodes.Insert(node.Name)
-					}
+					drainedNodes.Insert(node.Name)
 				}
 			}
 		}
 	}
+
+	if evictError > 0 {
+		return fmt.Errorf("pod eviction error on nodegroup %q", ng.Name)
+	}
+
 	if timeout {
 		return fmt.Errorf("timed out (after %s) waiting for nodedroup %q to be drain", waitTimeout, ng.Name)
 	}
