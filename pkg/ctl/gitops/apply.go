@@ -3,8 +3,10 @@ package gitops
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -54,7 +56,8 @@ func applyGitops(cmd *cmdutils.Cmd) {
 		requiredFlags := []string{"quickstart-profile", "git-url", "cluster", "git-email"}
 		for _, f := range requiredFlags {
 			if err := cobra.MarkFlagRequired(fs, f); err != nil {
-				panic(fmt.Sprintf("unexpected error: %v", err))
+				logger.Critical("unexpected error: %v", err)
+				os.Exit(1)
 			}
 		}
 
