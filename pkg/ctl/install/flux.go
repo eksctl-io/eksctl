@@ -69,7 +69,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
 		fs.StringVar(&opts.GitOptions.URL, "git-url", "",
-			"URL of the Git repository to be used by Flux, e.g. git@github.com:<github_org>/flux-get-started")
+			"SSH URL of the Git repository to be used by Flux, e.g.: git@github.com:<github_org>/<repo_name>")
 		fs.StringVar(&opts.GitOptions.Branch, "git-branch", "master",
 			"Git branch to be used by Flux")
 		fs.StringSliceVar(&opts.GitPaths, "git-paths", []string{},
