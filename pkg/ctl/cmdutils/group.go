@@ -38,7 +38,7 @@ func (g *FlagGrouping) New(cmd *cobra.Command) *NamedFlagSetGroup {
 	return n
 }
 
-// InFlagSet returs new or existing named GlagSet in a group
+// InFlagSet returns new or existing named FlagSet in a group
 func (n *NamedFlagSetGroup) InFlagSet(name string, cb func(*pflag.FlagSet)) {
 	for _, nfs := range n.list {
 		if nfs.name == name {
