@@ -31,7 +31,7 @@ const (
 
 // Variations of iamge classes
 const (
-	ImageClassGeneral int = iota
+	ImageClassGeneral = iota
 	ImageClassGPU
 )
 
