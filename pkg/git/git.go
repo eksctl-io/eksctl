@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,9 +22,9 @@ const (
 	DefaultGitTimeout = 20 * time.Second
 )
 
-// Cloner can clone git repositories
-type Cloner interface {
-	CloneRepo(cloneDirPrefix string, branch string, gitURL string) (string, error)
+// TmpCloner can clone git repositories in temporary directories
+type TmpCloner interface {
+	CloneRepoInTmpDir(cloneDirPrefix string, options CloneOptions) (string, error)
 }
 
 // Client can perform git operations on the given directory
@@ -88,28 +89,59 @@ func NewGitClientFromExecutor(executor executor.Executor) *Client {
 	}
 }
 
-// CloneRepo clones a repo specified in the gitURL and checks out the specified branch
-func (git *Client) CloneRepo(cloneDirPrefix string, branch string, gitURL string) (string, error) {
-	cloneDir, err := ioutil.TempDir(os.TempDir(), cloneDirPrefix)
+// CloneOptions are the options for cloning a Git repository
+type CloneOptions struct {
+	URL       string
+	Branch    string
+	Bootstrap bool // create the branch if the repository is empty
+}
+
+// CloneRepoInTmpDir clones a repo specified in the gitURL in a temporary directory and checks out the specified branch
+func (git *Client) CloneRepoInTmpDir(tmpDirPrefix string, options CloneOptions) (string, error) {
+	cloneDir, err := ioutil.TempDir(os.TempDir(), tmpDirPrefix)
 	if err != nil {
 		return "", fmt.Errorf("cannot create temporary directory: %s", err)
 	}
-
-	return cloneDir, git.CloneRepoInPath(cloneDir, branch, gitURL)
+	return cloneDir, git.cloneRepoInPath(cloneDir, options)
 }
 
-// CloneRepoInPath clones a repo to the specified directory
-func (git *Client) CloneRepoInPath(clonePath string, branch string, gitURL string) error {
+// CloneRepoInPath behaves like CloneRepoInTmpDir but clones the repository in a specific directory
+// which creates if needed
+func (git *Client) CloneRepoInPath(clonePath string, options CloneOptions) error {
 	if err := os.MkdirAll(clonePath, 0700); err != nil {
 		return errors.Wrapf(err, "unable to create directory for cloning")
 	}
-	args := []string{"clone", "-b", branch, gitURL, clonePath}
+	return git.cloneRepoInPath(clonePath, options)
+}
+
+func (git *Client) cloneRepoInPath(clonePath string, options CloneOptions) error {
+	args := []string{"clone", options.URL, clonePath}
 	if err := git.runGitCmd(args...); err != nil {
 		return err
 	}
-	// Set the working directory only after the clone so that
-	// it doesn't create an undesirable nested directory
+	// Set the working directory to the cloned directory, but
+	// only do it after the clone so that it doesn't create an
+	// undesirable nested directory
 	git.dir = clonePath
+
+	if options.Branch != "" {
+		// Switch to target branch
+		args := []string{"checkout", options.Branch}
+		if options.Bootstrap {
+			// create the branch if the repository is empty (no pre-existing branches)
+			files, err := ioutil.ReadDir(filepath.Join(git.dir, ".git", "refs", "heads"))
+			if err != nil {
+				return err
+			}
+			if len(files) == 0 {
+				args = []string{"checkout", "-b", options.Branch}
+			}
+		}
+		if err := git.runGitCmd(args...); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -166,7 +198,8 @@ func (git Client) Commit(message, user, email string) error {
 
 // Push pushes the changes to the origin remote
 func (git Client) Push() error {
-	return git.runGitCmd("push")
+	err := git.runGitCmd("push")
+	return err
 }
 
 // DeleteLocalRepo deletes the local copy of a repository, including the directory

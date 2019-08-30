@@ -32,7 +32,12 @@ func (g *Applier) Run(ctx context.Context) error {
 	}
 
 	// Clone user's repo to apply Quick Start profile
-	err = g.GitClient.CloneRepoInPath(g.UserRepoPath, g.UsersRepoOpts.Branch, g.UsersRepoOpts.URL)
+	options := git.CloneOptions{
+		URL:       g.UsersRepoOpts.URL,
+		Branch:    g.UsersRepoOpts.Branch,
+		Bootstrap: true,
+	}
+	err = g.GitClient.CloneRepoInPath(g.UserRepoPath, options)
 	if err != nil {
 		return err
 	}

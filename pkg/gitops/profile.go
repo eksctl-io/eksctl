@@ -23,7 +23,7 @@ type Profile struct {
 	Processor fileprocessor.FileProcessor
 	Path      string
 	GitOpts   git.Options
-	GitCloner git.Cloner
+	GitCloner git.TmpCloner
 	FS        afero.Fs
 	IO        afero.Afero
 	clonedDir string
@@ -33,7 +33,11 @@ type Profile struct {
 // points to a profile repo
 func (p *Profile) Generate(ctx context.Context) error {
 	logger.Info("cloning repository %q:%s", p.GitOpts.URL, p.GitOpts.Branch)
-	clonedDir, err := p.GitCloner.CloneRepo(cloneDirPrefix, p.GitOpts.Branch, p.GitOpts.URL)
+	options := git.CloneOptions{
+		URL:    p.GitOpts.URL,
+		Branch: p.GitOpts.Branch,
+	}
+	clonedDir, err := p.GitCloner.CloneRepoInTmpDir(cloneDirPrefix, options)
 	if err != nil {
 		return errors.Wrapf(err, "error cloning repository %s", p.GitOpts.URL)
 	}
