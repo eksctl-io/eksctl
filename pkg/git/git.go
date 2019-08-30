@@ -62,7 +62,8 @@ func (o Options) ValidateURL() error {
 }
 
 func (o Options) isSSHURL() bool {
-	return strings.HasPrefix(o.URL, "git@") || strings.HasPrefix(o.URL, "ssh://")
+	url, err := giturls.Parse(o.URL)
+	return err == nil && (url.Scheme == "git" || url.Scheme == "ssh")
 }
 
 // NewGitClient returns a client that can perform git operations
