@@ -2,7 +2,6 @@ package nodebootstrap
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -17,7 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-//go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -modtime 1 -o assets.go assets
+//go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -nometadata -o assets.go assets
 //go:generate go run ./maxpods_generate.go
 
 const (
@@ -32,16 +31,12 @@ type configFile struct {
 
 type configFiles = map[string]map[string]configFile
 
-func getAsset(name string) (string, os.FileInfo, error) {
+func getAsset(name string) (string, error) {
 	data, err := Asset(name)
 	if err != nil {
-		return "", nil, errors.Wrapf(err, "decoding embedded file %q", name)
+		return "", errors.Wrapf(err, "decoding embedded file %q", name)
 	}
-	info, err := AssetInfo(name)
-	if err != nil {
-		return "", nil, errors.Wrapf(err, "getting info for embedded file %q", name)
-	}
-	return string(data), info, nil
+	return string(data), nil
 }
 
 func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scripts []string) error {
@@ -51,12 +46,11 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 				Path: dir + fileName,
 			}
 			if file.isAsset {
-				data, info, err := getAsset(fileName)
+				data, err := getAsset(fileName)
 				if err != nil {
 					return err
 				}
 				f.Content = data
-				f.Permissions = fmt.Sprintf("%04o", uint(info.Mode()))
 			} else {
 				f.Content = file.content
 			}
@@ -64,7 +58,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 		}
 	}
 	for _, scriptName := range scripts {
-		data, _, err := getAsset(scriptName)
+		data, err := getAsset(scriptName)
 		if err != nil {
 			return err
 		}
