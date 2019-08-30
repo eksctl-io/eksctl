@@ -29,7 +29,7 @@ const (
 	ResolverAuto = api.NodeImageResolverAuto
 )
 
-// Variations of iamge classes
+// Variations of image classes
 const (
 	ImageClassGeneral = iota
 	ImageClassGPU
