@@ -73,8 +73,8 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.New("please supply a valid gitops Quick Start URL or name in --quickstart-profile")
 	}
 
-	if opts.gitOptions.URL == "" {
-		return errors.New("please supply a valid --git-url argument")
+	if err := opts.gitOptions.ValidateURL(); err != nil {
+		return errors.Wrapf(err, "please supply a valid --git-url argument")
 	}
 	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
 		return errors.New("please supply a valid --git-private-ssh-key-path argument")
