@@ -136,6 +136,21 @@ func NewGitopsMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
+// NewInstallMetadataLoader handles loading of clusterConfigFile vs using flags for install commands
+func NewInstallMetadataLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := l.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+		return nil
+	}
+
+	return l
+}
+
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
 func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, withoutNodeGroup bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
