@@ -96,12 +96,9 @@ subjects:
 
 // InstallOpts are the installation options for Flux
 type InstallOpts struct {
-	GitURL               string
-	GitBranch            string
+	GitOptions           git.Options
 	GitPaths             []string
 	GitLabel             string
-	GitUser              string
-	GitEmail             string
 	GitFluxPath          string
 	GitPrivateSSHKeyPath string
 	Namespace            string
@@ -146,10 +143,10 @@ func (fi *Installer) Run(ctx context.Context) error {
 		return err
 	}
 
-	logger.Info("Cloning %s", fi.opts.GitURL)
-	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.GitBranch, fi.opts.GitURL)
+	logger.Info("Cloning %s", fi.opts.GitOptions.URL)
+	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.GitOptions.Branch, fi.opts.GitOptions.URL)
 	if err != nil {
-		return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitURL)
+		return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitOptions.URL)
 	}
 	cleanCloneDir := false
 	defer func() {
@@ -157,7 +154,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 			_ = fi.gitClient.DeleteLocalRepo()
 		} else {
 			logger.Critical("You may find the local clone of %s used by eksctl at %s",
-				fi.opts.GitURL,
+				fi.opts.GitOptions.URL,
 				cloneDir)
 		}
 	}()
@@ -213,7 +210,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 	logger.Info("Flux started successfully")
 	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
-	logger.Info("Committing and pushing manifests to %s", fi.opts.GitURL)
+	logger.Info("Committing and pushing manifests to %s", fi.opts.GitOptions.URL)
 	if err := fi.addFilesToRepo(ctx, cloneDir); err != nil {
 		return err
 	}
@@ -221,7 +218,7 @@ func (fi *Installer) Run(ctx context.Context) error {
 
 	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
 	logger.Info("please configure %s so that the following Flux SSH public key has write access to it\n%s",
-		fi.opts.GitURL, fluxSSHKey.Key)
+		fi.opts.GitOptions.URL, fluxSSHKey.Key)
 	return nil
 }
 
@@ -263,7 +260,7 @@ func (fi *Installer) addFilesToRepo(ctx context.Context, cloneDir string) error 
 	}
 
 	// Confirm there is something to commit, otherwise move on
-	if err := fi.gitClient.Commit("Add Initial Flux configuration", fi.opts.GitUser, fi.opts.GitEmail); err != nil {
+	if err := fi.gitClient.Commit("Add Initial Flux configuration", fi.opts.GitOptions.User, fi.opts.GitOptions.Email); err != nil {
 		return err
 	}
 
@@ -421,12 +418,12 @@ func getFluxManifests(opts *InstallOpts, cs kubeclient.Interface) (map[string][]
 		manifests[fluxNamespaceFileName] = kubernetes.NewNamespaceYAML(opts.Namespace)
 	}
 	fluxParameters := fluxinstall.TemplateParameters{
-		GitURL:             opts.GitURL,
-		GitBranch:          opts.GitBranch,
+		GitURL:             opts.GitOptions.URL,
+		GitBranch:          opts.GitOptions.Branch,
 		GitPaths:           opts.GitPaths,
 		GitLabel:           opts.GitLabel,
-		GitUser:            opts.GitUser,
-		GitEmail:           opts.GitEmail,
+		GitUser:            opts.GitOptions.User,
+		GitEmail:           opts.GitOptions.Email,
 		Namespace:          opts.Namespace,
 		AdditionalFluxArgs: []string{"--sync-garbage-collection", "--manifest-generation"},
 	}

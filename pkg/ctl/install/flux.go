@@ -23,10 +23,10 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 	)
 	var opts flux.InstallOpts
 	cmd.SetRunFuncWithNameArg(func() error {
-		if opts.GitURL == "" {
+		if opts.GitOptions.URL == "" {
 			return errors.New("please supply a valid --git-url argument")
 		}
-		if opts.GitEmail == "" {
+		if opts.GitOptions.Email == "" {
 			return errors.New("please supply a valid --git-email argument")
 		}
 		if opts.GitPrivateSSHKeyPath != "" && !file.Exists(opts.GitPrivateSSHKeyPath) {
@@ -68,17 +68,17 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
-		fs.StringVar(&opts.GitURL, "git-url", "",
+		fs.StringVar(&opts.GitOptions.URL, "git-url", "",
 			"URL of the Git repository to be used by Flux, e.g. git@github.com:<github_org>/flux-get-started")
-		fs.StringVar(&opts.GitBranch, "git-branch", "master",
+		fs.StringVar(&opts.GitOptions.Branch, "git-branch", "master",
 			"Git branch to be used by Flux")
 		fs.StringSliceVar(&opts.GitPaths, "git-paths", []string{},
 			"Relative paths within the Git repo for Flux to locate Kubernetes manifests")
 		fs.StringVar(&opts.GitLabel, "git-label", "flux",
 			"Git label to keep track of Flux's sync progress; overrides both --git-sync-tag and --git-notes-ref")
-		fs.StringVar(&opts.GitUser, "git-user", "Flux",
+		fs.StringVar(&opts.GitOptions.User, "git-user", "Flux",
 			"Username to use as Git committer")
-		fs.StringVar(&opts.GitEmail, "git-email", "",
+		fs.StringVar(&opts.GitOptions.Email, "git-email", "",
 			"Email to use as Git committer")
 		fs.StringVar(&opts.GitFluxPath, "git-flux-subdir", "flux/",
 			"Directory within the Git repository where to commit the Flux manifests")

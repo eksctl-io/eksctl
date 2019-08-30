@@ -8,18 +8,21 @@ import (
 	"github.com/instrumenta/kubeval/kubeval"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/git"
 	"k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Installer", func() {
 	mockOpts := &InstallOpts{
-		GitURL:      "git@github.com/foo/bar.git",
-		GitBranch:   "gitbranch",
+		GitOptions: git.Options{
+			URL:    "git@github.com/foo/bar.git",
+			Branch: "gitbranch",
+			User:   "gituser",
+			Email:  "gitemail@example.com",
+		},
 		GitPaths:    []string{"gitpath/"},
 		GitLabel:    "gitlabel",
-		GitUser:     "gituser",
-		GitEmail:    "gitemail@example.com",
 		GitFluxPath: "fluxpath/",
 		Namespace:   "fluxnamespace",
 		WithHelm:    true,
