@@ -86,7 +86,7 @@ func _10EkscltAl2Conf() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "10-eksclt.al2.conf", size: 999, mode: os.FileMode(384), modTime: time.Unix(1, 0)}
+	info := bindataFileInfo{name: "10-eksclt.al2.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -106,7 +106,7 @@ func bootstrapAl2Sh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap.al2.sh", size: 843, mode: os.FileMode(384), modTime: time.Unix(1, 0)}
+	info := bindataFileInfo{name: "bootstrap.al2.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -126,7 +126,7 @@ func bootstrapUbuntuSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap.ubuntu.sh", size: 1946, mode: os.FileMode(384), modTime: time.Unix(1, 0)}
+	info := bindataFileInfo{name: "bootstrap.ubuntu.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -146,7 +146,7 @@ func kubeletYaml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "kubelet.yaml", size: 464, mode: os.FileMode(384), modTime: time.Unix(1, 0)}
+	info := bindataFileInfo{name: "kubelet.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
