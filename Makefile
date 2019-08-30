@@ -10,17 +10,21 @@ EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
 GOBIN ?= $(shell echo `go env GOPATH`/bin)
 
-AWS_SDK_MOCKS := $(wildcard pkg/eks/mocks/*API.go)
+generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
-DEEP_COPY_HELPER := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
-GENERATED_GO_FILES := pkg/addons/default/assets.go \
-pkg/nodebootstrap/assets.go \
-pkg/addons/default/assets/aws-node.yaml \
-$(DEEP_COPY_HELPER) \
-pkg/ami/static_resolver_ami.go \
-$(AWS_SDK_MOCKS)
+generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
-GENERATED_FILES := $(GENERATED_GO_FILES) site/content/usage/20-schema.md
+all_generated_code := \
+  pkg/addons/default/assets.go \
+  pkg/nodebootstrap/assets.go \
+  pkg/nodebootstrap/maxpods.go \
+  pkg/addons/default/assets/aws-node.yaml \
+  pkg/ami/static_resolver_ami.go \
+  $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
+
+all_generated_files := \
+  site/content/usage/20-schema.md \
+  $(all_generated_code)
 
 .DEFAULT_GOAL := help
 
@@ -36,7 +40,7 @@ godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFi
 godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
-build: $(GENERATED_GO_FILES) ## Build main binary
+build: $(all_generated_code) ## Build main binary
 	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
@@ -67,7 +71,7 @@ lint: ## Run linter over the codebase
 .PHONY: test
 test:
 	$(MAKE) lint
-	$(MAKE) check-generated-sources-up-to-date
+	$(MAKE) check-all-generated-files-up-to-date
 	$(MAKE) unit-test
 	$(MAKE) build-integration-test
 
@@ -80,7 +84,7 @@ unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
-build-integration-test: $(GENERATED_GO_FILES) ## Build integration test binary
+build-integration-test: $(all_generated_code) ## Build integration test binary
 	time go test -tags integration ./integration/ -c -o eksctl-integration-test
 
 .PHONY: integration-test
@@ -126,13 +130,13 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-.PHONY: regenerate-sources
+.PHONY: generate-all
 # TODO: generate-ami is broken (see https://github.com/weaveworks/eksctl/issues/949 ), include it when fixed
-regenerate-sources: $(GENERATED_FILES) # generate-ami ## Re-generate all the automatically-generated source files
+generate-all: $(all_generated_files) # generate-ami ## Re-generate all the automatically-generated source files
 
-.PHONY: check-generated-files-up-to-date
-check-generated-sources-up-to-date: regenerate-sources
-	git diff --quiet -- $(GENERATED_FILES) || (git --no-pager diff $(GENERATED_FILES); exit 1)
+.PHONY: check-all-generated-files-up-to-date
+check-all-generated-files-up-to-date: generate-all
+	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); exit 1)
 
 pkg/addons/default/assets.go: pkg/addons/default/assets/*
 	env GOBIN=$(GOBIN) time go generate ./$(@D)
@@ -141,19 +145,22 @@ pkg/addons/default/assets/aws-node.yaml:
 	env GOBIN=$(GOBIN) go generate ./pkg/addons/default
 
 pkg/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
-	chmod g-w $^
+	env GOBIN=$(GOBIN) time go generate ./$(@D)
+
+.PHONY: pkg/nodebootstrap/maxpods.go
+pkg/nodebootstrap/maxpods.go:
 	env GOBIN=$(GOBIN) time go generate ./$(@D)
 
 .license-header: LICENSE
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-DEEP_COPY_DEPS := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(DEEP_COPY_HELPER)||' )
-$(DEEP_COPY_HELPER): $(DEEP_COPY_DEPS) .license-header ## Generate Kubernetes API helpers
+deep_copy_helper_input := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
+$(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
 	time go mod download k8s.io/code-generator # make sure the code-generator is present
 	time env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190612205613-18da4a14b22b/generate-groups.sh" \
 	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$(git_toplevel)" \
-	  || (cat codegenheader.txt ; cat $(DEEP_COPY_HELPER); exit 1)
+	  || (cat codegenheader.txt ; cat $(generated_code_deep_copy_helper); exit 1)
 
 # static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
 # so we need to forcibly generate it
@@ -164,7 +171,7 @@ generate-ami: ## Generate the list of AMIs for use with static resolver. Queries
 site/content/usage/20-schema.md: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
 
-$(AWS_SDK_MOCKS): $(call godeps,pkg/eks/mocks/mocks.go)
+$(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
 	ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.19.18" vendor/github.com/aws/aws-sdk-go
@@ -195,7 +202,6 @@ eksctl-image: eksctl-deps-image## Create the eksctl image
           $(EKSCTL_DEPENDENCIES_IMAGE) /src/eksctl-image-builder.sh || ( docker rm eksctl-builder; exit 1 )
 	time docker commit eksctl-builder $(EKSCTL_BUILDER_IMAGE) && docker rm eksctl-builder
 	docker build --tag $(EKSCTL_IMAGE) .
-
 
 ##@ Release
 
