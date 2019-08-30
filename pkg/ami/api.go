@@ -1,6 +1,7 @@
 package ami
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -9,8 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-
-	"fmt"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -29,9 +28,9 @@ const (
 	ResolverAuto = api.NodeImageResolverAuto
 )
 
-// Variations of iamge classes
+// Variations of image classes
 const (
-	ImageClassGeneral int = iota
+	ImageClassGeneral = iota
 	ImageClassGPU
 )
 

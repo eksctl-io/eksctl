@@ -65,6 +65,9 @@ const (
 	// RegionAPEast1 represents the Asia Pacific Region Hong Kong
 	RegionAPEast1 = "ap-east-1"
 
+	// RegionMESouth1 represents the Middle East Region Bahrain
+	RegionMESouth1 = "me-south-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -142,12 +145,15 @@ const (
 	// ClusterDisableNAT defines the disabled NAT configuration option
 	ClusterDisableNAT = "Disable"
 
-	// eksResourceAccountStandard defines the eks aws accountID that provides node resources in default regions
-	// for standard aws partition.
+	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
+	// for standard AWS partition
 	eksResourceAccountStandard = "602401143452"
 
-	// eksResourceAccountAPEast1 defines the eks aws accountID that provides node resources in ap-east-1 region.
+	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
 	eksResourceAccountAPEast1 = "800184023465"
+
+	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
+	eksResourceAccountMESouth1 = "558608220178"
 )
 
 var (
@@ -205,6 +211,7 @@ func SupportedRegions() []string {
 		RegionAPSouthEast2,
 		RegionAPSouth1,
 		RegionAPEast1,
+		RegionMESouth1,
 	}
 }
 
@@ -242,6 +249,8 @@ func EKSResourceAccountID(region string) string {
 	switch region {
 	case RegionAPEast1:
 		return eksResourceAccountAPEast1
+	case RegionMESouth1:
+		return eksResourceAccountMESouth1
 	default:
 		return eksResourceAccountStandard
 	}
