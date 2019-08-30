@@ -74,7 +74,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	}
 
 	if err := opts.gitOptions.ValidateURL(); err != nil {
-		return errors.Wrapf(err, "please supply a valid --git-url argument")
+		return errors.Wrap(err, "please supply a valid --git-url argument")
 	}
 	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
 		return errors.New("please supply a valid --git-private-ssh-key-path argument")
@@ -82,7 +82,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 	quickstartRepoURL, err := repoURLForQuickstart(opts.quickstartNameArg)
 	if err != nil {
-		return errors.Wrapf(err, "please supply a valid Quick Start name or URL")
+		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
 	if err := cmdutils.NewGitopsMetadataLoader(cmd).Load(); err != nil {

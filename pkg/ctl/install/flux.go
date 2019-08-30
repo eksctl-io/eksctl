@@ -24,7 +24,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 	var opts flux.InstallOpts
 	cmd.SetRunFuncWithNameArg(func() error {
 		if err := opts.GitOptions.ValidateURL(); err != nil {
-			return errors.Wrapf(err, "please supply a valid --git-url argument")
+			return errors.Wrap(err, "please supply a valid --git-url argument")
 		}
 		if opts.GitOptions.Email == "" {
 			return errors.New("please supply a valid --git-email argument")
