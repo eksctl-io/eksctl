@@ -141,6 +141,32 @@ var _ = Describe("git", func() {
 			Expect(git.IsGitURL("app-dev")).To(BeFalse())
 		})
 	})
+
+	Describe("Options", func() {
+		Describe("ValidateURL", func() {
+			It("returns an error on empty Git URL", func() {
+				Expect(git.Options{}.ValidateURL()).To(MatchError("empty Git URL"))
+			})
+
+			It("returns an error on invalid Git URL", func() {
+				Expect(git.Options{
+					URL: "https://",
+				}.ValidateURL()).To(MatchError("invalid Git URL"))
+			})
+
+			It("returns an error on HTTPS Git URL", func() {
+				Expect(git.Options{
+					URL: "https://github.com/eksctl-bot/my-gitops-repo.git",
+				}.ValidateURL()).To(MatchError("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs"))
+			})
+
+			It("succeeds when a SSH Git URL is provided", func() {
+				Expect(git.Options{
+					URL: "git@github.com:eksctl-bot/my-gitops-repo.git",
+				}.ValidateURL()).NotTo(HaveOccurred())
+			})
+		})
+	})
 })
 
 func deleteTempDir(tempDir string) {

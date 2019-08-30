@@ -44,13 +44,13 @@ func applyGitops(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&opts.quickstartNameArg, "quickstart-profile", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
-		fs.StringVarP(&opts.gitOptions.URL, "git-url", "", "", "URL for the git repository that will contain the cluster components")
+		fs.StringVarP(&opts.gitOptions.URL, "git-url", "", "", "SSH URL of the Git repository that will contain the cluster components, e.g. git@github.com:<github_org>/<repo_name>")
 		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVarP(&opts.outputPath, "output-path", "", "./", "Path to directory where the GitOps repo will be cloned")
 		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
 		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
-			"Optional path to the private SSH key to use with Git, e.g.: ~/.ssh/id_rsa")
+			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 
 		requiredFlags := []string{"quickstart-profile", "git-url", "cluster", "git-email"}
@@ -73,8 +73,8 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.New("please supply a valid gitops Quick Start URL or name in --quickstart-profile")
 	}
 
-	if opts.gitOptions.URL == "" {
-		return errors.New("please supply a valid --git-url argument")
+	if err := opts.gitOptions.ValidateURL(); err != nil {
+		return errors.Wrap(err, "please supply a valid --git-url argument")
 	}
 	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
 		return errors.New("please supply a valid --git-private-ssh-key-path argument")
@@ -82,7 +82,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 	quickstartRepoURL, err := repoURLForQuickstart(opts.quickstartNameArg)
 	if err != nil {
-		return errors.Wrapf(err, "please supply a valid Quick Start name or URL")
+		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
 	if err := cmdutils.NewGitopsMetadataLoader(cmd).Load(); err != nil {
@@ -117,10 +117,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 
 	// Create the flux installer. It will clone the user's repository in the outputPath
 	fluxOpts := flux.InstallOpts{
-		GitURL:      opts.gitOptions.URL,
-		GitBranch:   opts.gitOptions.Branch,
-		GitEmail:    opts.gitOptions.Email,
-		GitUser:     opts.gitOptions.User,
+		GitOptions:  opts.gitOptions,
 		Namespace:   "flux",
 		GitFluxPath: "flux/",
 		WithHelm:    true,
