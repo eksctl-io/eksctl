@@ -1,4 +1,4 @@
-package git
+package git_test
 
 import (
 	"os"
@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/git/executor"
 )
 
@@ -15,13 +16,13 @@ var _ = Describe("git", func() {
 	Describe("Client", func() {
 		var (
 			fakeExecutor *executor.FakeExecutor
-			gitClient    *Client
+			gitClient    *git.Client
 			tempCloneDir string
 		)
 
 		BeforeEach(func() {
 			fakeExecutor = new(executor.FakeExecutor)
-			gitClient = NewGitClientFromExecutor(fakeExecutor)
+			gitClient = git.NewGitClientFromExecutor(fakeExecutor)
 		})
 
 		AfterEach(func() {
@@ -108,32 +109,32 @@ var _ = Describe("git", func() {
 		})
 
 		It("can parse the repository name from a URL", func() {
-			name, err := RepoName("git@github.com:weaveworks/eksctl.git")
+			name, err := git.RepoName("git@github.com:weaveworks/eksctl.git")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(name).To(Equal("eksctl"))
 
-			name, err = RepoName("git@github.com:weaveworks/sock-shop.git")
+			name, err = git.RepoName("git@github.com:weaveworks/sock-shop.git")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(name).To(Equal("sock-shop"))
 
-			name, err = RepoName("https://example.com/department1/team1/some-repo-name.git")
+			name, err = git.RepoName("https://example.com/department1/team1/some-repo-name.git")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(name).To(Equal("some-repo-name"))
 
-			name, err = RepoName("https://github.com/department1/team2/another-repo-name")
+			name, err = git.RepoName("https://github.com/department1/team2/another-repo-name")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(name).To(Equal("another-repo-name"))
 
 		})
 
 		It("can determine if a string is a git URL", func() {
-			Expect(IsGitURL("git@github.com:weaveworks/eksctl.git")).To(BeTrue())
-			Expect(IsGitURL("https://github.com/weaveworks/eksctl.git")).To(BeTrue())
-			Expect(IsGitURL("https://username@secr3t:my-repo.example.com:8080/weaveworks/eksctl.git")).To(BeTrue())
+			Expect(git.IsGitURL("git@github.com:weaveworks/eksctl.git")).To(BeTrue())
+			Expect(git.IsGitURL("https://github.com/weaveworks/eksctl.git")).To(BeTrue())
+			Expect(git.IsGitURL("https://username@secr3t:my-repo.example.com:8080/weaveworks/eksctl.git")).To(BeTrue())
 
-			Expect(IsGitURL("git@github")).To(BeFalse())
-			Expect(IsGitURL("https://")).To(BeFalse())
-			Expect(IsGitURL("app-dev")).To(BeFalse())
+			Expect(git.IsGitURL("git@github")).To(BeFalse())
+			Expect(git.IsGitURL("https://")).To(BeFalse())
+			Expect(git.IsGitURL("app-dev")).To(BeFalse())
 		})
 	})
 })
