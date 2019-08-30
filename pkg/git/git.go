@@ -46,6 +46,25 @@ type Options struct {
 	Email  string
 }
 
+// ValidateURL validates the URL field of this Options object, returning an
+// error should the current value not be valid.
+func (o Options) ValidateURL() error {
+	if o.URL == "" {
+		return errors.New("empty Git URL")
+	}
+	if !IsGitURL(o.URL) {
+		return errors.New("invalid Git URL")
+	}
+	if !o.isSSHURL() {
+		return errors.New("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs")
+	}
+	return nil
+}
+
+func (o Options) isSSHURL() bool {
+	return strings.HasPrefix(o.URL, "git@") || strings.HasPrefix(o.URL, "ssh://")
+}
+
 // NewGitClient returns a client that can perform git operations
 func NewGitClient(ctx context.Context, params ClientParams) *Client {
 	return &Client{
