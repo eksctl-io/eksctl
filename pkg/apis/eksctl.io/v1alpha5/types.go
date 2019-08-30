@@ -151,6 +151,9 @@ const (
 
 	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region.
 	eksResourceAccountAPEast1 = "800184023465"
+
+	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region.
+	eksResourceAccountMESouth1 = "558608220178"
 )
 
 var (
@@ -246,6 +249,8 @@ func EKSResourceAccountID(region string) string {
 	switch region {
 	case RegionAPEast1:
 		return eksResourceAccountAPEast1
+	case RegionMESouth1:
+		return eksResourceAccountMESouth1
 	default:
 		return eksResourceAccountStandard
 	}
