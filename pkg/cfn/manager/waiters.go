@@ -102,7 +102,7 @@ func (c *StackCollection) troubleshootStackFailureCause(i *Stack, desiredStatus 
 			case cfn.ResourceStatusDeleteSkipped:
 				logger.Warning(msg)
 			default:
-				logger.Info(msg)
+				logger.Debug(msg) // only output this when verbose logging is enabled
 			}
 		default:
 			logger.Info(msg)
