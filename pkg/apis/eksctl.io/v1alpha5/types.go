@@ -145,14 +145,14 @@ const (
 	// ClusterDisableNAT defines the disabled NAT configuration option
 	ClusterDisableNAT = "Disable"
 
-	// eksResourceAccountStandard defines the eks aws accountID that provides node resources in default regions
-	// for standard aws partition.
+	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
+	// for standard AWS partition
 	eksResourceAccountStandard = "602401143452"
 
-	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region.
+	// eksResourceAccountAPEast1 defines the AWS EKS account ID that provides node resources in ap-east-1 region
 	eksResourceAccountAPEast1 = "800184023465"
 
-	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region.
+	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
 )
 
