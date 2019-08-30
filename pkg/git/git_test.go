@@ -107,7 +107,9 @@ var _ = Describe("git", func() {
 			Expect(fakeExecutor.Args).To(
 				Equal([]string{"push"}))
 		})
+	})
 
+	Describe("RepoName", func() {
 		It("can parse the repository name from a URL", func() {
 			name, err := git.RepoName("git@github.com:weaveworks/eksctl.git")
 			Expect(err).ToNot(HaveOccurred())
@@ -126,7 +128,9 @@ var _ = Describe("git", func() {
 			Expect(name).To(Equal("another-repo-name"))
 
 		})
+	})
 
+	Describe("IsGitURL", func() {
 		It("can determine if a string is a git URL", func() {
 			Expect(git.IsGitURL("git@github.com:weaveworks/eksctl.git")).To(BeTrue())
 			Expect(git.IsGitURL("https://github.com/weaveworks/eksctl.git")).To(BeTrue())
