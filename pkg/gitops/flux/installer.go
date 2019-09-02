@@ -144,7 +144,12 @@ func (fi *Installer) Run(ctx context.Context) error {
 	}
 
 	logger.Info("Cloning %s", fi.opts.GitOptions.URL)
-	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.GitOptions.Branch, fi.opts.GitOptions.URL)
+	options := git.CloneOptions{
+		URL:       fi.opts.GitOptions.URL,
+		Branch:    fi.opts.GitOptions.Branch,
+		Bootstrap: true,
+	}
+	cloneDir, err := fi.gitClient.CloneRepoInTmpDir("eksctl-install-flux-clone-", options)
 	if err != nil {
 		return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitOptions.URL)
 	}

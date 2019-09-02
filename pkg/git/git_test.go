@@ -34,13 +34,19 @@ var _ = Describe("git", func() {
 			deleteTempDir(tempCloneDir)
 
 			var err error
-			tempCloneDir, err = gitClient.CloneRepo("test-git-", "my-branch", "git@example.com:test/example-repo.git")
+			options := git.CloneOptions{
+				Branch: "my-branch",
+				URL:    "git@example.com:test/example-repo.git",
+			}
+			tempCloneDir, err = gitClient.CloneRepoInTmpDir("test-git-", options)
 
-			// It called clone
+			// It called clone and checkout on the branch
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(fakeExecutor.Dir).To(Equal(""))
-			Expect(fakeExecutor.Args).To(
-				Equal([]string{"clone", "-b", "my-branch", "git@example.com:test/example-repo.git", tempCloneDir}))
+			Expect(len(fakeExecutor.Calls)).To(Equal(2))
+			Expect(fakeExecutor.Calls[0].Arguments[2]).To(Equal([]string{"clone", "git@example.com:test/example-repo.git", tempCloneDir}))
+			Expect(fakeExecutor.Calls[1].Arguments[2]).To(Equal([]string{"checkout", "my-branch"}))
+			// The directory for the checkout command was the cloned directory
+			Expect(fakeExecutor.Calls[1].Arguments[1]).To(Equal(tempCloneDir))
 
 			// The directory was created
 			_, err = os.Stat(tempCloneDir)
@@ -61,7 +67,7 @@ var _ = Describe("git", func() {
 			err := gitClient.Add("file1", "file2")
 
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(fakeExecutor.Args).To(
+			Expect(fakeExecutor.Calls[0].Arguments[2]).To(
 				Equal([]string{"add", "--", "file1", "file2"}))
 		})
 
@@ -104,7 +110,7 @@ var _ = Describe("git", func() {
 			err := gitClient.Push()
 
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(fakeExecutor.Args).To(
+			Expect(fakeExecutor.Calls[0].Arguments[2]).To(
 				Equal([]string{"push"}))
 		})
 	})

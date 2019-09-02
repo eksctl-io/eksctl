@@ -17,8 +17,8 @@ type mockCloner struct {
 	mock.Mock
 }
 
-func (m *mockCloner) CloneRepo(cloneDirPrefix string, branch string, gitURL string) (string, error) {
-	args := m.Called(cloneDirPrefix, branch, gitURL)
+func (m *mockCloner) CloneRepoInTmpDir(cloneDirPrefix string, options git.CloneOptions) (string, error) {
+	args := m.Called(cloneDirPrefix, options)
 	return args.String(0), args.Error(1)
 }
 
@@ -47,7 +47,7 @@ var _ = Describe("gitops profile", func() {
 
 			// mock git clone
 			gitCloner = new(mockCloner)
-			gitCloner.On("CloneRepo", mock.Anything, mock.Anything, mock.Anything).Return(testDir, nil)
+			gitCloner.On("CloneRepoInTmpDir", mock.Anything, mock.Anything, mock.Anything).Return(testDir, nil)
 
 			// output path
 			outputDir, _ = io.TempDir("", "test-output-dir-")
