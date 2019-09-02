@@ -116,9 +116,8 @@ type Installer struct {
 }
 
 // NewInstaller creates a new Flux installer
-func NewInstaller(ctx context.Context, k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
-	gitClient := git.NewGitClient(ctx, git.ClientParams{
-		Timeout:           opts.Timeout,
+func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
+	gitClient := git.NewGitClient(git.ClientParams{
 		PrivateSSHKeyPath: opts.GitPrivateSSHKeyPath,
 	})
 	fi := &Installer{

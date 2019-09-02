@@ -63,7 +63,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 			return errors.Errorf("cannot create Kubernetes client set: %s", err)
 		}
 
-		installer := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &opts)
+		installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts)
 		return installer.Run(context.Background())
 	})
 
