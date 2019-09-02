@@ -3,7 +3,12 @@ package iam
 import "errors"
 
 var (
-	ErrNeitherUserNorRole   = errors.New("arn is neither user nor role")
+	// ErrNeitherUserNorRole is the error returned when an identity is missing both UserARN
+	// and RoleARN.
+	ErrNeitherUserNorRole = errors.New("arn is neither user nor role")
+
+	// ErrNoKubernetesIdentity is the error returned when an identity has neither a Kubernetes
+	// username nor a list of groups.
 	ErrNoKubernetesIdentity = errors.New("neither username nor groups is set for iam identity")
 )
 
@@ -17,13 +22,30 @@ type Identity struct {
 
 // Valid ensures the identity is proper.
 func (i Identity) Valid() error {
-	if len(i.Groups) == 0 {
-		return errors.New("identity mapping needs at least 1 group")
+	if i.UserARN == nil && i.RoleARN == nil {
+		return ErrNeitherUserNorRole
+	}
+
+	if i.Username == nil && len(i.Groups) == 0 {
+		return ErrNoKubernetesIdentity
 	}
 	return nil
 }
 
-func NewIdentity(arn ARN, username string, groups []string) (Identity, error) {
+// ARN returns either the identites UserARN, RoleARN or ErrNeitherUserNorRole
+func (i *Identity) ARN() (*ARN, error) {
+	if i.UserARN != nil {
+		return i.UserARN, nil
+	} else if i.RoleARN != nil {
+		return i.RoleARN, nil
+	} else {
+		return nil, ErrNeitherUserNorRole
+	}
+}
+
+// NewIdentity determines into which field the given arn goes and returns the new identity
+// alongside any error resulting for checking its validity.
+func NewIdentity(arn ARN, username string, groups []string) (*Identity, error) {
 	identity := Identity{}
 
 	if arn.User() {
@@ -31,7 +53,7 @@ func NewIdentity(arn ARN, username string, groups []string) (Identity, error) {
 	} else if arn.Role() {
 		identity.RoleARN = &arn
 	} else {
-		return Identity{}, ErrNeitherUserNorRole
+		return nil, ErrNeitherUserNorRole
 	}
 
 	if username != "" {
@@ -42,9 +64,5 @@ func NewIdentity(arn ARN, username string, groups []string) (Identity, error) {
 		identity.Groups = groups
 	}
 
-	if identity.Username == nil && len(identity.Groups) == 0 {
-		return Identity{}, ErrNoKubernetesIdentity
-	}
-
-	return identity, nil
+	return &identity, identity.Valid()
 }

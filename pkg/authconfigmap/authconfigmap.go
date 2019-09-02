@@ -31,10 +31,8 @@ const (
 	ObjectNamespace = metav1.NamespaceSystem
 
 	rolesData = "mapRoles"
-	roleKey   = "rolearn"
 
 	usersData = "mapUsers"
-	userKey   = "userarn"
 
 	accountsData = "mapAccounts"
 
@@ -143,19 +141,20 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 // AddIdentity maps an IAM role or user ARN to a k8s group dynamically. It modifies the
 // role or user with given groups. If you are calling
 // this as part of node creation you should use DefaultNodeGroups.
-func (a *AuthConfigMap) AddIdentity(arn ARN, username string, groups []string) error {
+func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
 	identities, err := a.Identities()
 	if err != nil {
 		return err
 	}
 
-	identities = append(identities, MapIdentity{
-		ARN: arn,
-		Identity: iam.Identity{
-			Username: username,
-			Groups:   groups,
-		},
-	})
+	// Should the caller do this check or should this happen here?
+	if err = identity.Valid(); err != nil {
+		return err
+	}
+
+	identities = append(identities, identity)
+
+	arn, _ := identity.ARN() // The Valid() call above makes sure this cannot error
 	logger.Info("adding identity %q to auth ConfigMap", arn.String())
 	return a.setIdentities(identities)
 }
@@ -165,15 +164,19 @@ func (a *AuthConfigMap) AddIdentity(arn ARN, username string, groups []string) e
 // find it.
 // If `all` is true it will remove all of them and not return an
 // error if it cannot be found.
-func (a *AuthConfigMap) RemoveIdentity(arn ARN, all bool) error {
+func (a *AuthConfigMap) RemoveIdentity(arn iam.ARN, all bool) error {
 	identities, err := a.Identities()
 	if err != nil {
 		return err
 	}
 
-	newidentities := MapIdentities{}
+	newidentities := []iam.Identity{}
 	for i, identity := range identities {
-		if identity.ARN.String() == arn.String() {
+		_arn, err := identity.ARN()
+		if err != nil {
+			return err
+		}
+		if _arn.String() == arn.String() {
 			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arn.String(), identity.Username, identity.Groups)
 			if !all {
 				identities = append(identities[:i], identities[i+1:]...)
@@ -190,8 +193,8 @@ func (a *AuthConfigMap) RemoveIdentity(arn ARN, all bool) error {
 }
 
 // Identities returns a list of iam users and roles that are currently in the (cached) configmap.
-func (a *AuthConfigMap) Identities() (MapIdentities, error) {
-	var roles, users MapIdentities
+func (a *AuthConfigMap) Identities() ([]iam.Identity, error) {
+	var roles, users []iam.Identity
 	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling %q", rolesData)
 	}
@@ -202,14 +205,19 @@ func (a *AuthConfigMap) Identities() (MapIdentities, error) {
 	return append(roles, users...), nil
 }
 
-func (a *AuthConfigMap) setIdentities(identities MapIdentities) error {
+func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
 	// Determine which are users and which are roles
-	users, roles := MapIdentities{}, MapIdentities{}
+	users, roles := []iam.Identity{}, []iam.Identity{}
 	for _, identity := range identities {
+		arn, err := identity.ARN()
+		if err != nil {
+			return err
+		}
+
 		switch {
-		case identity.role():
+		case arn.Role():
 			roles = append(roles, identity)
-		case identity.user():
+		case arn.User():
 			users = append(users, identity)
 		default:
 			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity)
@@ -260,12 +268,17 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return err
 	}
 
-	arn, err := Parse(ng.IAM.InstanceRoleARN)
+	arn, err := iam.Parse(ng.IAM.InstanceRoleARN)
 	if err != nil {
 		return errors.Wrap(err, "parsing nodegroup instance role ARN")
 	}
 
-	if err := acm.AddIdentity(arn, RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
+	identity, err := iam.NewIdentity(arn, RoleNodeGroupUsername, RoleNodeGroupGroups)
+	if err != nil {
+		return err
+	}
+
+	if err := acm.AddIdentity(*identity); err != nil {
 		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {
@@ -278,7 +291,7 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	arn, err := Parse(ng.IAM.InstanceRoleARN)
+	arn, err := iam.Parse(ng.IAM.InstanceRoleARN)
 	if err != nil {
 		return errors.Wrap(err, "nodegroup instance role ARN is invalid")
 	}

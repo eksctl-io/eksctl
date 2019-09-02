@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -18,7 +19,7 @@ func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cfg := api.NewClusterConfig()
 	rc.ClusterConfig = cfg
 
-	var arn authconfigmap.ARN
+	var arn iam.ARN
 
 	params := &getCmdParams{}
 
@@ -39,7 +40,7 @@ func getIAMIdentityMappingCmd(rc *cmdutils.ResourceCmd) {
 	cmdutils.AddCommonFlagsForAWS(rc.FlagSetGroup, rc.ProviderConfig, false)
 }
 
-func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn authconfigmap.ARN) error {
+func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn iam.ARN) error {
 	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
 		return err
 	}
@@ -73,7 +74,19 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn
 	}
 
 	if arn.Resource != "" {
-		identities = identities.Get(arn)
+		_identities := []iam.Identity{}
+
+		for _, identity := range identities {
+			_arn, err := identity.ARN()
+			if err != nil {
+				return err
+			}
+			if _arn.String() == arn.String() {
+				_identities = append(_identities, identity)
+			}
+		}
+
+		identities = _identities
 		// If a filter was given, we error if none was found
 		if len(identities) == 0 {
 			return fmt.Errorf("no iamidentitymapping with arn %q found", arn)
@@ -96,13 +109,23 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn
 }
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("ARN", func(r authconfigmap.MapIdentity) string {
-		return r.ARN.String()
+	printer.AddColumn("ARN", func(r iam.Identity) string {
+		arn, err := r.ARN()
+		if err == nil {
+			return arn.String()
+		}
+		return ""
 	})
-	printer.AddColumn("USERNAME", func(r authconfigmap.MapIdentity) string {
-		return r.Username
+	printer.AddColumn("USERNAME", func(r iam.Identity) string {
+		if r.Username != nil {
+			return *r.Username
+		}
+		return ""
 	})
-	printer.AddColumn("GROUPS", func(r authconfigmap.MapIdentity) string {
-		return strings.Join(r.Groups, ",")
+	printer.AddColumn("GROUPS", func(r iam.Identity) string {
+		if r.Groups != nil {
+			return strings.Join(r.Groups, ",")
+		}
+		return ""
 	})
 }
