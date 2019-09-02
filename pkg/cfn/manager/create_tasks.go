@@ -33,8 +33,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
-	for i := range c.spec.NodeGroups {
-		ng := c.spec.NodeGroups[i]
+	for _, ng := range nodeGroups {
 		tasks.Append(&taskWithNodeGroupSpec{
 			info:      fmt.Sprintf("create nodegroup %q", ng.NameString()),
 			nodeGroup: ng,
