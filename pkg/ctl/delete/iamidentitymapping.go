@@ -7,6 +7,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
 func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
@@ -14,17 +15,17 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = cfg
 
 	var (
-		arn authconfigmap.ARN
+		arn iam.ARN
 		all bool
 	)
 
 	cmd.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
 
-	rc.SetRunFunc(func() error {
-		return doDeleteIAMIdentityMapping(rc, arn, all)
+	cmd.SetRunFunc(func() error {
+		return doDeleteIAMIdentityMapping(cmd, arn, all)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.Var(&arn, "arn", "ARN of the IAM role or user to delete")
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
@@ -36,12 +37,8 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-<<<<<<< HEAD
-func doDeleteIAMIdentityMapping(rc *cmdutils.Cmd, arn string, all bool) error {
-=======
-func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, arn authconfigmap.ARN, all bool) error {
->>>>>>> Use dedicated ARN type instead of string
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn iam.ARN, all bool) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
@@ -88,9 +85,21 @@ func doDeleteIAMIdentityMapping(rc *cmdutils.ResourceCmd, arn authconfigmap.ARN,
 	if err != nil {
 		return err
 	}
-	filtered := identities.Get(arn)
-	if len(filtered) > 0 {
-		logger.Warning("there are %d mappings left with same arn %q (use --all to delete them at once)", len(filtered), arn)
+
+	duplicates := 0
+	for _, identity := range identities {
+		_arn, err := identity.ARN()
+		if err != nil {
+			return err
+		}
+
+		if arn.String() == _arn.String() {
+			duplicates++
+		}
+	}
+
+	if duplicates > 0 {
+		logger.Warning("there are %d mappings left with same arn %q (use --all to delete them at once)", duplicates, arn)
 	}
 	return nil
 }

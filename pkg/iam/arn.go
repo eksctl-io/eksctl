@@ -29,6 +29,11 @@ func (a *ARN) Set(s string) error {
 	return nil
 }
 
+// Type describes the argument type in the pflag.Value interface
+func (a *ARN) Type() string {
+	return "aws arn"
+}
+
 func (a *ARN) resource() string {
 	resource := a.Resource
 	if idx := strings.Index(resource, "/"); idx >= 0 {
@@ -38,10 +43,12 @@ func (a *ARN) resource() string {
 	return resource
 }
 
+// User returns whether the arn represents a IAM user or not
 func (a *ARN) User() bool {
 	return a.resource() == "user"
 }
 
+// Role returns whether the arn represents a IAM role or not
 func (a *ARN) Role() bool {
 	return a.resource() == "role"
 }

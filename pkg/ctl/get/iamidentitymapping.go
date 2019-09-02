@@ -10,6 +10,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/iam"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
@@ -17,17 +18,17 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	var arn authconfigmap.ARN
+	var arn iam.ARN
 
 	params := &getCmdParams{}
 
 	cmd.SetDescription("iamidentitymapping", "Get IAM identity mapping(s)", "")
 
-	rc.SetRunFunc(func() error {
-		return doGetIAMIdentityMapping(rc, params, arn)
+	cmd.SetRunFunc(func() error {
+		return doGetIAMIdentityMapping(cmd, params, arn)
 	})
 
-	rc.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.Var(&arn, "arn", "ARN of the IAM role or user")
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
@@ -39,12 +40,8 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-<<<<<<< HEAD
-func doGetIAMIdentityMapping(rc *cmdutils.Cmd, params *getCmdParams, arn string) error {
-=======
-func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn authconfigmap.ARN) error {
->>>>>>> Use dedicated ARN type instead of string
-	if err := cmdutils.NewMetadataLoader(rc).Load(); err != nil {
+func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn iam.ARN) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
 
@@ -80,7 +77,19 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn
 	}
 
 	if arn.Resource != "" {
-		identities = identities.Get(arn)
+		_identities := []iam.Identity{}
+
+		for _, identity := range identities {
+			_arn, err := identity.ARN()
+			if err != nil {
+				return err
+			}
+			if _arn.String() == arn.String() {
+				_identities = append(_identities, identity)
+			}
+		}
+
+		identities = _identities
 		// If a filter was given, we error if none was found
 		if len(identities) == 0 {
 			return fmt.Errorf("no iamidentitymapping with arn %q found", arn)
@@ -103,13 +112,23 @@ func doGetIAMIdentityMapping(rc *cmdutils.ResourceCmd, params *getCmdParams, arn
 }
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
-	printer.AddColumn("ARN", func(r authconfigmap.MapIdentity) string {
-		return r.ARN.String()
+	printer.AddColumn("ARN", func(r iam.Identity) string {
+		arn, err := r.ARN()
+		if err == nil {
+			return arn.String()
+		}
+		return ""
 	})
-	printer.AddColumn("USERNAME", func(r authconfigmap.MapIdentity) string {
-		return r.Username
+	printer.AddColumn("USERNAME", func(r iam.Identity) string {
+		if r.Username != nil {
+			return *r.Username
+		}
+		return ""
 	})
-	printer.AddColumn("GROUPS", func(r authconfigmap.MapIdentity) string {
-		return strings.Join(r.Groups, ",")
+	printer.AddColumn("GROUPS", func(r iam.Identity) string {
+		if r.Groups != nil {
+			return strings.Join(r.Groups, ",")
+		}
+		return ""
 	})
 }
