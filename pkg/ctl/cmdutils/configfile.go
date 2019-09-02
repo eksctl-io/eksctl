@@ -121,13 +121,33 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-// NewGitopsMetadataLoader handles loading of clusterConfigFile vs using flags for gitops commands
-func NewGitopsMetadataLoader(cmd *Cmd) ClusterConfigLoader {
+// NewGitopsApplyLoader handles loading of clusterConfigFile vs using flags for gitops commands
+func NewGitopsApplyLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithoutConfigFile = func() error {
+		meta := l.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
 		return nil
 	}
+
+	return l
+}
+
+// NewInstallFluxLoader handles loading of clusterConfigFile vs using flags for install commands
+func NewInstallFluxLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := l.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+		return nil
+	}
+
 	return l
 }
 

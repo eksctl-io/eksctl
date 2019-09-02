@@ -53,7 +53,7 @@ func applyGitops(cmd *cmdutils.Cmd) {
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 
-		requiredFlags := []string{"quickstart-profile", "git-url", "cluster", "git-email"}
+		requiredFlags := []string{"quickstart-profile", "git-url", "git-email"}
 		for _, f := range requiredFlags {
 			if err := cobra.MarkFlagRequired(fs, f); err != nil {
 				logger.Critical("unexpected error: %v", err)
@@ -85,7 +85,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
-	if err := cmdutils.NewGitopsMetadataLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewGitopsApplyLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig

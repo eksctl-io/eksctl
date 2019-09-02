@@ -33,7 +33,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 			return errors.New("please supply a valid --git-private-ssh-key-path argument")
 		}
 
-		if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+		if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
 			return err
 		}
 		cfg := cmd.ClusterConfig
