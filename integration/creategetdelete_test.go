@@ -172,7 +172,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--output-path", tempOutputDir,
 					"--quickstart-profile", "app-dev",
 					"--cluster", clusterName,
-					"--region", region,
 				)
 				Expect(cmd).To(RunSuccessfully())
 
@@ -224,7 +223,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					cmd := eksctlGetCmd.WithArgs(
 						"nodegroup",
 						"--cluster", clusterName,
-						"--region", region,
 						initNG,
 					)
 					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
@@ -236,7 +234,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					cmd := eksctlGetCmd.WithArgs(
 						"nodegroup",
 						"--cluster", clusterName,
-						"--region", region,
 						testNG,
 					)
 					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
@@ -248,7 +245,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					cmd := eksctlGetCmd.WithArgs(
 						"nodegroup",
 						"--cluster", clusterName,
-						"--region", region,
 					)
 					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
 						ContainElement(ContainSubstring(testNG)),
