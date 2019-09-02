@@ -128,12 +128,11 @@ func (git *Client) cloneRepoInPath(clonePath string, options CloneOptions) error
 		// Switch to target branch
 		args := []string{"checkout", options.Branch}
 		if options.Bootstrap {
-			// create the branch if the repository is empty (no pre-existing branches)
-			files, err := ioutil.ReadDir(filepath.Join(git.dir, ".git", "refs", "heads"))
+			empty, err := git.isRepoEmpty()
 			if err != nil {
 				return err
 			}
-			if len(files) == 0 {
+			if empty {
 				args = []string{"checkout", "-b", options.Branch}
 			}
 		}
@@ -143,6 +142,15 @@ func (git *Client) cloneRepoInPath(clonePath string, options CloneOptions) error
 	}
 
 	return nil
+}
+
+func (git *Client) isRepoEmpty() (bool, error) {
+	// A repository is empty if it doesn't have branches
+	files, err := ioutil.ReadDir(filepath.Join(git.dir, ".git", "refs", "heads"))
+	if err != nil {
+		return false, err
+	}
+	return len(files) == 0, nil
 }
 
 // Add performs can perform a `git add` operation on the given file paths
