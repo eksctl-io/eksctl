@@ -85,7 +85,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
-	if err := cmdutils.NewGitopsMetadataLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewGitopsApplyLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
