@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -113,7 +112,7 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oid
 
 	tasks := &TaskTree{Parallel: false}
 
-	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(nil, oidc, clientSetGetter, true)
+	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(c.spec.IAM.ServiceAccounts, oidc, clientSetGetter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -129,10 +128,8 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oid
 	return tasks, nil
 }
 
-// NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts if
-// onlySubset is nil, otherwise just the tasks for iamserviceaccounts that are in onlySubset
-// will be defined
-func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(onlySubset sets.String, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
+// NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
+func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
 	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
 	if err != nil {
 		return nil, err
@@ -140,15 +137,26 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(onlySubset sets.Str
 
 	tasks := &TaskTree{Parallel: true}
 
+	hasServiceAccount := func(saName string) bool {
+		for _, sa := range serviceAccounts {
+			if saName == sa.Name {
+				return true
+			}
+		}
+		return false
+	}
+
 	for _, s := range serviceAccountStacks {
 		saTasks := &TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
 		}
 		name := c.GetIAMServiceAccountName(s)
-		if onlySubset != nil && !onlySubset.Has(name) {
+
+		if !hasServiceAccount(name) {
 			continue
 		}
+
 		info := fmt.Sprintf("delete IAM role for serviceaccount %q", name)
 		if wait {
 			saTasks.Append(&taskWithStackSpec{

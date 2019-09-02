@@ -3,8 +3,6 @@ package manager
 import (
 	"fmt"
 
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -48,20 +46,15 @@ func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup
 	return tasks
 }
 
-// NewTasksToCreateIAMServiceAccounts defines tasks required to create all of the IAM ServiceAccounts if
-// onlySubset is nil, otherwise just the tasks for IAM ServiceAccounts that are in onlySubset
-// will be defined
-func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(onlySubset sets.String, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *TaskTree {
+// NewTasksToCreateIAMServiceAccounts defines tasks required to create all of the IAM ServiceAccounts
+func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
-	for i := range c.spec.IAM.ServiceAccounts {
-		sa := c.spec.IAM.ServiceAccounts[i]
+	for i := range serviceAccounts {
+		sa := serviceAccounts[i]
 		saTasks := &TaskTree{
 			Parallel:  false,
 			IsSubTask: true,
-		}
-		if onlySubset != nil && !onlySubset.Has(sa.NameString()) {
-			continue
 		}
 
 		saTasks.Append(&taskWithClusterIAMServiceAccountSpec{

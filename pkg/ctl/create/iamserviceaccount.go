@@ -101,7 +101,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		return err
 	}
 
-	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
+	filteredServiceAccounts := saFilter.FilterMatching(cfg.IAM.ServiceAccounts)
 	saFilter.LogInfo(cfg.IAM.ServiceAccounts)
 	if !overrideExistingServiceAccounts {
 		logger.Warning("serviceaccounts that exists in Kubernetes will be excluded, use --include-existing-serviceaccounts to override")
@@ -109,7 +109,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		logger.Warning("metadata of serviceaccounts that exist in Kubernetes will be updated, as --include-existing-serviceaccounts was set")
 	}
 
-	tasks := stackManager.NewTasksToCreateIAMServiceAccounts(saSubset, oidc, kubernetes.NewCachedClientSet(clientSet))
+	tasks := stackManager.NewTasksToCreateIAMServiceAccounts(filteredServiceAccounts, oidc, kubernetes.NewCachedClientSet(clientSet))
 	tasks.PlanMode = cmd.Plan
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
@@ -125,7 +125,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		return fmt.Errorf("failed to create iamserviceaccount(s)")
 	}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && saSubset.Len() > 0)
+	cmdutils.LogPlanModeWarning(cmd.Plan && len(filteredServiceAccounts) > 0)
 
 	return nil
 }

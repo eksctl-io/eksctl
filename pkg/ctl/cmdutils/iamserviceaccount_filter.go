@@ -125,6 +125,17 @@ func (f *IAMServiceAccountFilter) MatchAll(serviceAccounts []*api.ClusterIAMServ
 	return f.doMatchAll(f.collectNames(serviceAccounts))
 }
 
+// FilterMatching matches names against the filter and returns all included service accounts
+func (f *IAMServiceAccountFilter) FilterMatching(serviceAccounts []*api.ClusterIAMServiceAccount) []*api.ClusterIAMServiceAccount {
+	var match []*api.ClusterIAMServiceAccount
+	for _, sa := range serviceAccounts {
+		if f.Match(sa.NameString()) {
+			match = append(match, sa)
+		}
+	}
+	return match
+}
+
 // ForEach iterates over each nodegroup that is included by the filter and calls iterFn
 func (f *IAMServiceAccountFilter) ForEach(serviceAccounts []*api.ClusterIAMServiceAccount, iterFn func(i int, sa *api.ClusterIAMServiceAccount) error) error {
 	for i, sa := range serviceAccounts {
