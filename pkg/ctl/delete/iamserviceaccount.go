@@ -103,10 +103,11 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 		}
 	}
 
-	filteredServiceAccounts := saFilter.FilterMatching(cfg.IAM.ServiceAccounts)
 	saFilter.LogInfo(cfg.IAM.ServiceAccounts)
 
-	tasks, err := stackManager.NewTasksToDeleteIAMServiceAccounts(filteredServiceAccounts, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait)
+	saSubset, _ := saFilter.MatchAll(cfg.IAM.ServiceAccounts)
+
+	tasks, err := stackManager.NewTasksToDeleteIAMServiceAccounts(saSubset.Has, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait)
 	if err != nil {
 		return err
 	}
@@ -125,7 +126,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 		return fmt.Errorf("failed to delete iamserviceaccount(s)")
 	}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && len(filteredServiceAccounts) > 0)
+	cmdutils.LogPlanModeWarning(cmd.Plan && saSubset.Len() > 0)
 
 	return nil
 }

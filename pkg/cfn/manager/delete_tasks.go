@@ -10,11 +10,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
+func deleteAll(_ string) bool { return true }
+
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
 func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(clusterOperable bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
-	deleteAll := func(_ string) bool { return true }
 	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(deleteAll, true, cleanup)
 
 	if err != nil {
@@ -105,7 +106,7 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
-	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(c.spec.IAM.ServiceAccounts, oidc, clientSetGetter, true)
+	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(deleteAll, oidc, clientSetGetter, true)
 	if err != nil {
 		return nil, err
 	}
@@ -131,22 +132,13 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oid
 }
 
 // NewTasksToDeleteIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
-func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(string) bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
 	serviceAccountStacks, err := c.DescribeIAMServiceAccountStacks()
 	if err != nil {
 		return nil, err
 	}
 
 	tasks := &TaskTree{Parallel: true}
-
-	hasServiceAccount := func(saName string) bool {
-		for _, sa := range serviceAccounts {
-			if saName == sa.Name {
-				return true
-			}
-		}
-		return false
-	}
 
 	for _, s := range serviceAccountStacks {
 		saTasks := &TaskTree{
@@ -155,7 +147,7 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(serviceAccounts []*
 		}
 		name := c.GetIAMServiceAccountName(s)
 
-		if !hasServiceAccount(name) {
+		if !shouldDelete(name) {
 			continue
 		}
 
