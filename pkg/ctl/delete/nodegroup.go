@@ -115,7 +115,16 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
 
 	{
-		tasks, err := stackManager.NewTasksToDeleteNodeGroups(filteredNodeGroups, cmd.Wait, nil)
+		hasNodeGroup := func(name string) bool {
+			for _, ng := range filteredNodeGroups {
+				if ng.Name == name {
+					return true
+				}
+			}
+			return false
+		}
+
+		tasks, err := stackManager.NewTasksToDeleteNodeGroups(hasNodeGroup, cmd.Wait, nil)
 		if err != nil {
 			return err
 		}

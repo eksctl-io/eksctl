@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete all the nodegroup
@@ -13,7 +11,9 @@ import (
 func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
-	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(nil, true, cleanup)
+	deleteAll := func(_ string) bool { return true }
+	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(deleteAll, true, cleanup)
+
 	if err != nil {
 		return nil, err
 	}
@@ -46,26 +46,18 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(wait bool, clean
 }
 
 // NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
-func (c *StackCollection) NewTasksToDeleteNodeGroups(nodeGroups []*api.NodeGroup, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
 	}
 
 	tasks := &TaskTree{Parallel: true}
-	hasNodeGroup := func(name string) bool {
-		for _, ng := range nodeGroups {
-			if ng.Name == name {
-				return true
-			}
-		}
-		return false
-	}
 
 	for _, s := range nodeGroupStacks {
 		name := c.GetNodeGroupName(s)
 
-		if !hasNodeGroup(name) {
+		if !shouldDelete(name) {
 			continue
 		}
 		if *s.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
