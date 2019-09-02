@@ -49,7 +49,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
+	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
 

@@ -62,7 +62,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 		return err
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
+	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
 

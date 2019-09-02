@@ -11,7 +11,7 @@ import (
 )
 
 // NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
-func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
+func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(clusterOperable bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
 	deleteAll := func(_ string) bool { return true }
@@ -25,14 +25,16 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(oidc *iamoidc.Op
 		tasks.Append(nodeGroupTasks)
 	}
 
-	serviceAccountAndOIDCTasks, err := c.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter, true)
-	if err != nil {
-		return nil, err
-	}
+	if clusterOperable {
+		serviceAccountAndOIDCTasks, err := c.NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc, clientSetGetter, true)
+		if err != nil {
+			return nil, err
+		}
 
-	if serviceAccountAndOIDCTasks.Len() > 0 {
-		serviceAccountAndOIDCTasks.IsSubTask = true
-		tasks.Append(serviceAccountAndOIDCTasks)
+		if serviceAccountAndOIDCTasks.Len() > 0 {
+			serviceAccountAndOIDCTasks.IsSubTask = true
+			tasks.Append(serviceAccountAndOIDCTasks)
+		}
 	}
 
 	clusterStack, err := c.DescribeClusterStack()
@@ -101,15 +103,6 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 // NewTasksToDeleteOIDCProviderWithIAMServiceAccounts defines tasks required to delete all of the iamserviceaccounts
 // along with associated IAM ODIC provider
 func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool) (*TaskTree, error) {
-	providerExists, err := oidc.CheckProviderExists()
-	if err != nil {
-		return nil, err
-	}
-
-	if !providerExists {
-		return nil, fmt.Errorf("unable to delete iamserviceaccount(s) without IAM OIDC provider enabled")
-	}
-
 	tasks := &TaskTree{Parallel: false}
 
 	saTasks, err := c.NewTasksToDeleteIAMServiceAccounts(c.spec.IAM.ServiceAccounts, oidc, clientSetGetter, true)
@@ -121,10 +114,19 @@ func (c *StackCollection) NewTasksToDeleteOIDCProviderWithIAMServiceAccounts(oid
 		saTasks.IsSubTask = true
 		tasks.Append(saTasks)
 	}
-	tasks.Append(&asyncTaskWithoutParams{
-		info: "delete IAM OIDC provider",
-		call: oidc.DeleteProvider,
-	})
+
+	providerExists, err := oidc.CheckProviderExists()
+	if err != nil {
+		return nil, err
+	}
+
+	if providerExists {
+		tasks.Append(&asyncTaskWithoutParams{
+			info: "delete IAM OIDC provider",
+			call: oidc.DeleteProvider,
+		})
+	}
+
 	return tasks, nil
 }
 

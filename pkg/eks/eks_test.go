@@ -317,7 +317,7 @@ var _ = Describe("EKS API wrapper", func() {
 		})
 
 		It("should get cluster, cache status and construct OIDC manager", func() {
-			err = ctl.RefreshClusterConfig(cfg)
+			err = ctl.RefreshClusterStatus(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(cfg.Status.Endpoint).To(Equal("https://localhost/"))

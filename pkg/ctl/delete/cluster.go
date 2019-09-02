@@ -110,7 +110,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 			return err
 		}
 
-		oidc, err := ctl.NewOpenIDConnectManager(cfg)
+		oidc, err = ctl.NewOpenIDConnectManager(cfg)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 			}
 		}
 
-		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait, func(errs chan error, _ string) error {
+		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(clusterOperable, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.LoadClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)

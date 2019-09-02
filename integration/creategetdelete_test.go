@@ -545,7 +545,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						},
 					}
 					ctl = eks.New(&api.ProviderConfig{Region: region}, cfg)
-					err = ctl.RefreshClusterConfig(cfg)
+					err = ctl.RefreshClusterStatus(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					oidc, err = ctl.NewOpenIDConnectManager(cfg)
 					Expect(err).ShouldNot(HaveOccurred())

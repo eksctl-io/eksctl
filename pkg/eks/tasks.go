@@ -59,7 +59,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 		info: "associate IAM OIDC provider",
 		spec: cfg,
 		call: func(cfg *api.ClusterConfig) error {
-			if err := c.RefreshClusterConfig(cfg); err != nil {
+			if err := c.RefreshClusterStatus(cfg); err != nil {
 				return err
 			}
 			oidc, err := c.NewOpenIDConnectManager(cfg)
