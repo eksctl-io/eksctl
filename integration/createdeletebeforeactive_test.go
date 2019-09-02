@@ -43,7 +43,6 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 				"--node-labels", "ng-name="+initNG,
 				"--node-type", "t2.medium",
 				"--nodes", "1",
-				"--region", region,
 				"--version", version,
 			)
 			cmd.Start()
@@ -60,7 +59,6 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 		It("deleting cluster should have a zero exitcode", func() {
 			cmd := eksctlDeleteClusterCmd.WithArgs(
 				"--name", delBeforeActiveName,
-				"--region", region,
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})
@@ -82,7 +80,6 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 		It("should return an a non-zero exit code", func() {
 			cmd := eksctlDeleteClusterCmd.WithArgs(
 				"--name", delBeforeActiveName,
-				"--region", region,
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})
