@@ -1,25 +1,18 @@
 package git
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	giturls "github.com/whilp/git-urls"
 
 	"github.com/weaveworks/eksctl/pkg/git/executor"
-)
-
-const (
-	// DefaultGitTimeout timeout for Git operations 20 seconds
-	DefaultGitTimeout = 20 * time.Second
 )
 
 // TmpCloner can clone git repositories in temporary directories
@@ -35,7 +28,6 @@ type Client struct {
 
 // ClientParams groups the arguments to provide to create a new Git client.
 type ClientParams struct {
-	Timeout           time.Duration
 	PrivateSSHKeyPath string
 }
 
@@ -68,9 +60,9 @@ func (o Options) isSSHURL() bool {
 }
 
 // NewGitClient returns a client that can perform git operations
-func NewGitClient(ctx context.Context, params ClientParams) *Client {
+func NewGitClient(params ClientParams) *Client {
 	return &Client{
-		executor: executor.NewShellExecutor(ctx, params.Timeout, envVars(params)),
+		executor: executor.NewShellExecutor(envVars(params)),
 	}
 }
 
