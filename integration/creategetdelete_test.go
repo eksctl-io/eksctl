@@ -87,7 +87,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				"--tags", "alpha.eksctl.io/description=eksctl integration test",
 				"--nodegroup-name", initNG,
 				"--node-labels", "ng-name="+initNG,
-				"--node-type", "t2.medium",
 				"--nodes", "1",
 				"--version", version,
 				"--kubeconfig", kubeconfigPath,
