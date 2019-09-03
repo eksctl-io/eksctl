@@ -208,11 +208,11 @@ func isValidConfig(p, name string) error {
 }
 
 // MaybeDeleteConfig will delete the auto-generated kubeconfig, if it exists
-func MaybeDeleteConfig(cl *api.ClusterMeta) {
-	p := AutoPath(cl.Name)
+func MaybeDeleteConfig(meta *api.ClusterMeta) {
+	p := AutoPath(meta.Name)
 
 	if file.Exists(p) {
-		if err := isValidConfig(p, cl.Name); err != nil {
+		if err := isValidConfig(p, meta.Name); err != nil {
 			logger.Debug(err.Error())
 			return
 		}
@@ -229,7 +229,7 @@ func MaybeDeleteConfig(cl *api.ClusterMeta) {
 		return
 	}
 
-	if !deleteClusterInfo(config, cl) {
+	if !deleteClusterInfo(config, meta) {
 		return
 	}
 
@@ -243,9 +243,9 @@ func MaybeDeleteConfig(cl *api.ClusterMeta) {
 // deleteClusterInfo removes a cluster's information from the kubeconfig if the cluster name
 // provided by ctl matches a eksctl-created cluster in the kubeconfig
 // returns 'true' if the existing config has changes and 'false' otherwise
-func deleteClusterInfo(existing *clientcmdapi.Config, cl *api.ClusterMeta) bool {
+func deleteClusterInfo(existing *clientcmdapi.Config, meta *api.ClusterMeta) bool {
 	isChanged := false
-	clusterName := cl.String()
+	clusterName := meta.String()
 
 	if _, ok := existing.Clusters[clusterName]; ok {
 		delete(existing.Clusters, clusterName)
