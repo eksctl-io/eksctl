@@ -1,10 +1,12 @@
 [
   {
-    "Arn": "arn-12345678",
-    "CertificateAuthority": null,
+    "Arn": "arn:aws:eks:us-west-2:12345:cluster/test-12345",
+    "CertificateAuthority": {
+      "Data": "dGVzdAo="
+    },
     "ClientRequestToken": null,
     "CreatedAt": "0001-01-01T00:00:00Z",
-    "Endpoint": null,
+    "Endpoint": "https://localhost/",
     "Logging": null,
     "Name": "test-cluster",
     "PlatformVersion": null,

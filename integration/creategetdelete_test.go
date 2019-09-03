@@ -346,7 +346,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have all types disabled by default", func() {
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
 					Expect(disable.List()).To(HaveLen(5))
@@ -360,7 +360,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
 					Expect(disable.List()).To(HaveLen(5))
@@ -375,7 +375,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(2))
 					Expect(disable.List()).To(HaveLen(3))
@@ -392,7 +392,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(5))
 					Expect(disable.List()).To(HaveLen(0))
@@ -408,7 +408,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(4))
 					Expect(disable.List()).To(HaveLen(1))
@@ -426,7 +426,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(disable.List()).To(HaveLen(4))
 					Expect(enabled.List()).To(HaveLen(1))
@@ -443,7 +443,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+					enabled, disable, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(enabled.List()).To(HaveLen(0))
 					Expect(disable.List()).To(HaveLen(5))

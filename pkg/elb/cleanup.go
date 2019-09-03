@@ -39,7 +39,7 @@ type loadBalancer struct {
 
 // Cleanup finds and deletes any dangling ELBs associated to a Kubernetes Service
 func Cleanup(ctx context.Context, ec2API ec2iface.EC2API, elbAPI elbiface.ELBAPI, elbv2API elbv2iface.ELBV2API,
-	kubernetesCS *kubernetes.Clientset, clusterConfig *api.ClusterConfig) error {
+	kubernetesCS kubernetes.Interface, clusterConfig *api.ClusterConfig) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {

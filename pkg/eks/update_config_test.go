@@ -29,6 +29,7 @@ var _ = Describe("EKS API wrapper", func() {
 			p := mockprovider.NewMockProvider()
 			ctl = &ClusterProvider{
 				Provider: p,
+				Status:   &ProviderStatus{},
 			}
 
 			cfg = api.NewClusterConfig()
@@ -92,7 +93,7 @@ var _ = Describe("EKS API wrapper", func() {
 		})
 
 		It("should get current config", func() {
-			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(cfg.Metadata)
+			enabled, disabled, err := ctl.GetCurrentClusterConfigForLogging(cfg)
 			Expect(err).NotTo(HaveOccurred())
 
 			enabled.HasAll("api", "audit")
