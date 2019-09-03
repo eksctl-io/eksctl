@@ -267,146 +267,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(len(nodes.Items)).To(Equal(8))
 			})
 
-			Context("create test workloads", func() {
-				var (
-					err  error
-					test *harness.Test
-				)
-
-				BeforeEach(func() {
-					test, err = newKubeTest()
-					Expect(err).ShouldNot(HaveOccurred())
-				})
-
-				AfterEach(func() {
-					test.Close()
-					Eventually(func() int {
-						return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
-					}, "3m", "1s").Should(BeZero())
-				})
-
-				It("should deploy podinfo service to the cluster and access it via proxy", func() {
-					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
-					test.WaitForDeploymentReady(d, commonTimeout)
-
-					pods := test.ListPodsFromDeployment(d)
-					Expect(len(pods.Items)).To(Equal(2))
-
-					// For each pod of the Deployment, check we receive a sensible response to a
-					// GET request on /version.
-					for _, pod := range pods.Items {
-						Expect(pod.Namespace).To(Equal(test.Namespace))
-
-						req := test.PodProxyGet(&pod, "", "/version")
-						fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
-
-						var js interface{}
-						test.PodProxyGetJSON(&pod, "", "/version", &js)
-
-						Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.5.1"))
-					}
-				})
-
-				It("should have functional DNS", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
-
-					test.WaitForDaemonSetReady(d, commonTimeout)
-
-					{
-						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-						Expect(err).ShouldNot(HaveOccurred())
-						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
-					}
-				})
-
-				It("should have access to HTTP(S) sites", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
-
-					test.WaitForDaemonSetReady(d, commonTimeout)
-
-					{
-						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
-						Expect(err).ShouldNot(HaveOccurred())
-						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
-					}
-				})
-
-				It("should be able to run pods with an iamserviceaccount", func() {
-					createCmd := eksctlCreateCmd.WithArgs(
-						"iamserviceaccount",
-						"--cluster", clusterName,
-						"--name", "s3-reader",
-						"--namespace", test.Namespace,
-						"--attach-policy-arn", "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-						"--approve",
-					)
-
-					Expect(createCmd).To(RunSuccessfully())
-
-					d := test.CreateDeploymentFromFile(test.Namespace, "iamserviceaccount-checker.yaml")
-					test.WaitForDeploymentReady(d, commonTimeout)
-
-					pods := test.ListPodsFromDeployment(d)
-					Expect(len(pods.Items)).To(Equal(2))
-
-					// For each pod of the Deployment, check we get expected environment variables
-					// via a GET request on /env.
-					type sessionObject struct {
-						AssumedRoleUser struct {
-							AssumedRoleId, Arn string
-						}
-						Audience, Provider, SubjectFromWebIdentityToken string
-						Credentials                                     struct {
-							SecretAccessKey, SessionToken, Expiration, AccessKeyId string
-						}
-					}
-
-					for _, pod := range pods.Items {
-						Expect(pod.Namespace).To(Equal(test.Namespace))
-
-						so := sessionObject{}
-
-						var js []string
-						test.PodProxyGetJSON(&pod, "", "/env", &js)
-
-						Expect(js).To(ContainElement(HavePrefix("AWS_ROLE_ARN=arn:aws:iam::")))
-						Expect(js).To(ContainElement("AWS_WEB_IDENTITY_TOKEN_FILE=/var/run/secrets/eks.amazonaws.com/serviceaccount/token"))
-						Expect(js).To(ContainElement(HavePrefix("AWS_SESSION_OBJECT=")))
-
-						for _, envVar := range js {
-							if strings.HasPrefix(envVar, "AWS_SESSION_OBJECT=") {
-								err := json.Unmarshal([]byte(strings.TrimPrefix(envVar, "AWS_SESSION_OBJECT=")), &so)
-								Expect(err).ShouldNot(HaveOccurred())
-							}
-						}
-
-						Expect(so.AssumedRoleUser.AssumedRoleId).To(HaveSuffix(":integration-test"))
-
-						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:iam::.*:assumed-role/eksctl-" + clusterName + "-addon-iamserviceaccount-.*/integration-test$"))
-
-						Expect(so.Audience).To(Equal("sts.amazonaws.com"))
-
-						Expect(so.Provider).To(MatchRegexp("^arn:aws:iam::.*:oidc-provider/oidc.eks." + region + ".amazonaws.com/id/.*$"))
-
-						Expect(so.SubjectFromWebIdentityToken).To(Equal("system:serviceaccount:" + test.Namespace + ":s3-reader"))
-
-						Expect(so.Credentials.SecretAccessKey).ToNot(BeEmpty())
-						Expect(so.Credentials.SessionToken).ToNot(BeEmpty())
-						Expect(so.Credentials.Expiration).ToNot(BeEmpty())
-						Expect(so.Credentials.AccessKeyId).ToNot(BeEmpty())
-					}
-
-					deleteCmd := eksctlDeleteCmd.WithArgs(
-						"iamserviceaccount",
-						"--cluster", clusterName,
-						"--name", "s3-reader",
-						"--namespace", test.Namespace,
-					)
-
-					Expect(deleteCmd).To(RunSuccessfully())
-				})
-			})
-
 			Context("toggle CloudWatch logging", func() {
 				var (
 					cfg *api.ClusterConfig
@@ -658,6 +518,146 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
 					Expect(awsSession).ToNot(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
+				})
+			})
+
+			Context("create test workloads", func() {
+				var (
+					err  error
+					test *harness.Test
+				)
+
+				BeforeEach(func() {
+					test, err = newKubeTest()
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+
+				AfterEach(func() {
+					test.Close()
+					Eventually(func() int {
+						return len(test.ListPods(test.Namespace, metav1.ListOptions{}).Items)
+					}, "3m", "1s").Should(BeZero())
+				})
+
+				It("should deploy podinfo service to the cluster and access it via proxy", func() {
+					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
+					test.WaitForDeploymentReady(d, commonTimeout)
+
+					pods := test.ListPodsFromDeployment(d)
+					Expect(len(pods.Items)).To(Equal(2))
+
+					// For each pod of the Deployment, check we receive a sensible response to a
+					// GET request on /version.
+					for _, pod := range pods.Items {
+						Expect(pod.Namespace).To(Equal(test.Namespace))
+
+						req := test.PodProxyGet(&pod, "", "/version")
+						fmt.Fprintf(GinkgoWriter, "url = %#v", req.URL())
+
+						var js interface{}
+						test.PodProxyGetJSON(&pod, "", "/version", &js)
+
+						Expect(js.(map[string]interface{})).To(HaveKeyWithValue("version", "1.5.1"))
+					}
+				})
+
+				It("should have functional DNS", func() {
+					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
+
+					test.WaitForDaemonSetReady(d, commonTimeout)
+
+					{
+						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
+						Expect(err).ShouldNot(HaveOccurred())
+						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
+					}
+				})
+
+				It("should have access to HTTP(S) sites", func() {
+					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
+
+					test.WaitForDaemonSetReady(d, commonTimeout)
+
+					{
+						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
+						Expect(err).ShouldNot(HaveOccurred())
+						fmt.Fprintf(GinkgoWriter, "ds.Status = %#v", ds.Status)
+					}
+				})
+
+				It("should be able to run pods with an iamserviceaccount", func() {
+					createCmd := eksctlCreateCmd.WithArgs(
+						"iamserviceaccount",
+						"--cluster", clusterName,
+						"--name", "s3-reader",
+						"--namespace", test.Namespace,
+						"--attach-policy-arn", "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+						"--approve",
+					)
+
+					Expect(createCmd).To(RunSuccessfully())
+
+					d := test.CreateDeploymentFromFile(test.Namespace, "iamserviceaccount-checker.yaml")
+					test.WaitForDeploymentReady(d, commonTimeout)
+
+					pods := test.ListPodsFromDeployment(d)
+					Expect(len(pods.Items)).To(Equal(2))
+
+					// For each pod of the Deployment, check we get expected environment variables
+					// via a GET request on /env.
+					type sessionObject struct {
+						AssumedRoleUser struct {
+							AssumedRoleId, Arn string
+						}
+						Audience, Provider, SubjectFromWebIdentityToken string
+						Credentials                                     struct {
+							SecretAccessKey, SessionToken, Expiration, AccessKeyId string
+						}
+					}
+
+					for _, pod := range pods.Items {
+						Expect(pod.Namespace).To(Equal(test.Namespace))
+
+						so := sessionObject{}
+
+						var js []string
+						test.PodProxyGetJSON(&pod, "", "/env", &js)
+
+						Expect(js).To(ContainElement(HavePrefix("AWS_ROLE_ARN=arn:aws:iam::")))
+						Expect(js).To(ContainElement("AWS_WEB_IDENTITY_TOKEN_FILE=/var/run/secrets/eks.amazonaws.com/serviceaccount/token"))
+						Expect(js).To(ContainElement(HavePrefix("AWS_SESSION_OBJECT=")))
+
+						for _, envVar := range js {
+							if strings.HasPrefix(envVar, "AWS_SESSION_OBJECT=") {
+								err := json.Unmarshal([]byte(strings.TrimPrefix(envVar, "AWS_SESSION_OBJECT=")), &so)
+								Expect(err).ShouldNot(HaveOccurred())
+							}
+						}
+
+						Expect(so.AssumedRoleUser.AssumedRoleId).To(HaveSuffix(":integration-test"))
+
+						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:iam::.*:assumed-role/eksctl-" + clusterName + "-addon-iamserviceaccount-.*/integration-test$"))
+
+						Expect(so.Audience).To(Equal("sts.amazonaws.com"))
+
+						Expect(so.Provider).To(MatchRegexp("^arn:aws:iam::.*:oidc-provider/oidc.eks." + region + ".amazonaws.com/id/.*$"))
+
+						Expect(so.SubjectFromWebIdentityToken).To(Equal("system:serviceaccount:" + test.Namespace + ":s3-reader"))
+
+						Expect(so.Credentials.SecretAccessKey).ToNot(BeEmpty())
+						Expect(so.Credentials.SessionToken).ToNot(BeEmpty())
+						Expect(so.Credentials.Expiration).ToNot(BeEmpty())
+						Expect(so.Credentials.AccessKeyId).ToNot(BeEmpty())
+					}
+
+					deleteCmd := eksctlDeleteCmd.WithArgs(
+						"iamserviceaccount",
+						"--cluster", clusterName,
+						"--name", "s3-reader",
+						"--namespace", test.Namespace,
+					)
+
+					Expect(deleteCmd).To(RunSuccessfully())
 				})
 			})
 
