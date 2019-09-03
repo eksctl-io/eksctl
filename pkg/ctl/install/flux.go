@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -64,7 +65,9 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 		}
 
 		installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts)
-		return installer.Run(context.Background())
+		userInstructions, err := installer.Run(context.Background())
+		logger.Info(userInstructions)
+		return err
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
