@@ -217,7 +217,7 @@ After a few minutes, Flux and Helm should have installed all the components in y
 
 Configuring GitOps can be done easily with eksctl. The command `eksctl gitops apply` takes an existing EKS cluster and
 an empty repository and sets them up with GitOps and a specified Quick Start profile. This means that with one command
-the cluster will have all the components provided by the Quick Start profile installed in the cluster.
+the cluster will have all the components provided by the Quick Start profile installed in the cluster and you can enjoy the advantages of GitOps moving forward.
 
 The basic command usage looks like this:
 
@@ -413,16 +413,16 @@ monitoring             prometheus-prometheus-operator-prometheus-0              
 
 All CLI arguments:
 
-| Flag                     | default value | type   | required | use                                                           |
-|--------------------------|---------------|--------|----------|---------------------------------------------------------------|
-| cluster                  |               | string | yes      | name of the EKS cluster to add the nodegroup to               |
-| quickstart-profile       |               | string | yes      | name or URL of the Quick Start profile. For example, app-deve |
-| git-url                  |               | string | yes      | URL                                                           |
-| git-branch               | master        | string | no       | Git branch                                                    |
-| output-path              | ./            | string | no       | Path                                                          |
-| git-user                 | Flux          | string | no       | Username                                                      |
-| git-email                |               | string | no       | Email                                                         |
-| git-private-ssh-key-path |               | string | no       | Optional path to the private SSH key to use with Git          |
+| Flag                         | Default value | Type   | Required       | Use                                                           |
+|------------------------------|---------------|--------|----------------|---------------------------------------------------------------|
+| `--cluster`                  |               | string | required       | name of the EKS cluster to add the nodegroup to               |
+| `--quickstart-profile`       |               | string | required       | name or URL of the Quick Start profile. For example, app-dev  |
+| `--git-url`                  |               | string | required       | URL                                                           |
+| `--git-branch`               | master        | string | optional       | Git branch                                                    |
+| `--output-path`              | ./            | string | optional       | Path                                                          |
+| `--git-user`                 | Flux          | string | optional       | Username                                                      |
+| `--git-email`                |               | string | optional       | Email                                                         |
+| `--git-private-ssh-key-path` |               | string | optional       | Optional path to the private SSH key to use with Git          |
 
 
 [flux]: https://docs.fluxcd.io/en/latest/
