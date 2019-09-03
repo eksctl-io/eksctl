@@ -84,7 +84,7 @@ func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccou
 		}
 
 		// TODO: we need to make it easier to fetch full definition of the object,
-		// namely: all label, full role definiton; we can do that by caching
+		// namely: all label, full role definition; we can do that by caching
 		// the ClusterConfig time we make an update and a mechanism of validating
 		// whether it is up to date;
 		// otherwise we could extend this with tedious calls to each of the API,
