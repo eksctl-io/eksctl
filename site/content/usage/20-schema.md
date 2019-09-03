@@ -53,12 +53,44 @@ ClusterConfig:
   required:
   - TypeMeta
   - metadata
-  - iam
   type: object
 ClusterIAM:
   additionalProperties: false
   properties:
+    serviceAccounts:
+      items:
+        $ref: '#/definitions/ClusterIAMServiceAccount'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
     serviceRoleARN:
+      type: string
+    withOIDC:
+      type: boolean
+  type: object
+ClusterIAMServiceAccount:
+  additionalProperties: false
+  properties:
+    attachPolicy:
+      patternProperties:
+        .*:
+          additionalProperties: true
+          type: object
+      type: object
+    attachPolicyARNs:
+      items:
+        type: string
+      type: array
+    metadata:
+      $ref: '#/definitions/ObjectMeta'
+      $schema: http://json-schema.org/draft-04/schema#
+    status:
+      $ref: '#/definitions/ClusterIAMServiceAccountStatus'
+      $schema: http://json-schema.org/draft-04/schema#
+  type: object
+ClusterIAMServiceAccountStatus:
+  additionalProperties: false
+  properties:
+    roleARN:
       type: string
   type: object
 ClusterMeta:
@@ -151,6 +183,38 @@ IPNet:
   required:
   - IP
   - Mask
+  type: object
+Initializer:
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+  required:
+  - name
+  type: object
+Initializers:
+  additionalProperties: false
+  properties:
+    pending:
+      items:
+        $ref: '#/definitions/Initializer'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
+    result:
+      $ref: '#/definitions/Status'
+      $schema: http://json-schema.org/draft-04/schema#
+  required:
+  - pending
+  type: object
+ListMeta:
+  additionalProperties: false
+  properties:
+    continue:
+      type: string
+    resourceVersion:
+      type: string
+    selfLink:
+      type: string
   type: object
 Network:
   additionalProperties: false
@@ -356,6 +420,130 @@ NodeGroupSSH:
       type: string
   required:
   - allow
+  type: object
+ObjectMeta:
+  additionalProperties: false
+  properties:
+    annotations:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    clusterName:
+      type: string
+    creationTimestamp:
+      $ref: '#/definitions/Time'
+      $schema: http://json-schema.org/draft-04/schema#
+    deletionGracePeriodSeconds:
+      type: integer
+    deletionTimestamp:
+      $ref: '#/definitions/Time'
+    finalizers:
+      items:
+        type: string
+      type: array
+    generateName:
+      type: string
+    generation:
+      type: integer
+    initializers:
+      $ref: '#/definitions/Initializers'
+      $schema: http://json-schema.org/draft-04/schema#
+    labels:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    name:
+      type: string
+    namespace:
+      type: string
+    ownerReferences:
+      items:
+        $ref: '#/definitions/OwnerReference'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
+    resourceVersion:
+      type: string
+    selfLink:
+      type: string
+    uid:
+      type: string
+  type: object
+OwnerReference:
+  additionalProperties: false
+  properties:
+    apiVersion:
+      type: string
+    blockOwnerDeletion:
+      type: boolean
+    controller:
+      type: boolean
+    kind:
+      type: string
+    name:
+      type: string
+    uid:
+      type: string
+  required:
+  - apiVersion
+  - kind
+  - name
+  - uid
+  type: object
+Status:
+  additionalProperties: false
+  properties:
+    TypeMeta:
+      $ref: '#/definitions/TypeMeta'
+    code:
+      type: integer
+    details:
+      $ref: '#/definitions/StatusDetails'
+      $schema: http://json-schema.org/draft-04/schema#
+    message:
+      type: string
+    metadata:
+      $ref: '#/definitions/ListMeta'
+      $schema: http://json-schema.org/draft-04/schema#
+    reason:
+      type: string
+    status:
+      type: string
+  required:
+  - TypeMeta
+  type: object
+StatusCause:
+  additionalProperties: false
+  properties:
+    field:
+      type: string
+    message:
+      type: string
+    reason:
+      type: string
+  type: object
+StatusDetails:
+  additionalProperties: false
+  properties:
+    causes:
+      items:
+        $ref: '#/definitions/StatusCause'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
+    group:
+      type: string
+    kind:
+      type: string
+    name:
+      type: string
+    retryAfterSeconds:
+      type: integer
+    uid:
+      type: string
+  type: object
+Time:
+  additionalProperties: false
   type: object
 TypeMeta:
   additionalProperties: false
