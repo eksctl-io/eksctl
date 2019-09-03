@@ -21,9 +21,9 @@ import (
 )
 
 // DescribeControlPlane describes the cluster control plane
-func (c *ClusterProvider) DescribeControlPlane(cl *api.ClusterMeta) (*awseks.Cluster, error) {
+func (c *ClusterProvider) DescribeControlPlane(meta *api.ClusterMeta) (*awseks.Cluster, error) {
 	input := &awseks.DescribeClusterInput{
-		Name: &cl.Name,
+		Name: &meta.Name,
 	}
 	output, err := c.Provider.EKS().DescribeCluster(input)
 	if err != nil {
@@ -32,56 +32,94 @@ func (c *ClusterProvider) DescribeControlPlane(cl *api.ClusterMeta) (*awseks.Clu
 	return output.Cluster, nil
 }
 
-// DescribeControlPlaneMustBeActive describes the cluster control plane and checks if status is active
-func (c *ClusterProvider) DescribeControlPlaneMustBeActive(cl *api.ClusterMeta) (*awseks.Cluster, error) {
-	cluster, err := c.DescribeControlPlane(cl)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to describe cluster control plane")
-	}
-	if *cluster.Status != awseks.ClusterStatusActive {
-		return nil, fmt.Errorf("status of cluster %q is %q, has to be %q", *cluster.Name, *cluster.Status, awseks.ClusterStatusActive)
-	}
-
-	return cluster, nil
-}
-
-// RefreshClusterConfig calls c.DescribeControlPlaneMustBeActive and caches the results;
+// RefreshClusterStatus calls c.DescribeControlPlane and caches the results;
 // it parses the credentials (endpoint, CA certificate) and stores them in spec.Status,
 // so that a Kubernetes client can be constructed; additionally it caches Kubernetes
 // version (use ctl.ControlPlaneVersion to retrieve it) and other properties in
 // c.Status.cachedClusterInfo
-func (c *ClusterProvider) RefreshClusterConfig(spec *api.ClusterConfig) error {
-	// Check the cluster exists and is active
-	cluster, err := c.DescribeControlPlaneMustBeActive(spec.Metadata)
+func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
+	cluster, err := c.DescribeControlPlane(spec.Metadata)
 	if err != nil {
 		return err
 	}
 	logger.Debug("cluster = %#v", cluster)
 
-	data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
-	if err != nil {
-		return errors.Wrap(err, "decoding certificate authority data")
-	}
-
 	if spec.Status == nil {
 		spec.Status = &api.ClusterStatus{}
 	}
 
-	spec.Status.Endpoint = *cluster.Endpoint
-	spec.Status.CertificateAuthorityData = data
-	spec.Status.ARN = *cluster.Arn
+	c.setClusterInfo(cluster)
 
-	c.Status.cachedClusterInfo = cluster
+	switch *cluster.Status {
+	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
+		return nil
+	default:
+		data, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
+		if err != nil {
+			return errors.Wrap(err, "decoding certificate authority data")
+		}
+		spec.Status.Endpoint = *cluster.Endpoint
+		spec.Status.CertificateAuthorityData = data
+		spec.Status.ARN = *cluster.Arn
+		return nil
+	}
+}
 
+func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) error {
+	if c.clusterInfoNeedsUpdate() {
+		return c.RefreshClusterStatus(spec)
+	}
 	return nil
+}
+
+// CanDelete return true when a cluster can be deleted, otherwise it returns false along with an error explaining the reason
+func (c *ClusterProvider) CanDelete(spec *api.ClusterConfig) (bool, error) {
+	err := c.maybeRefreshClusterStatus(spec)
+	if err != nil {
+		return false, errors.Wrapf(err, "fetching cluster status to determine if it can be deleted")
+	}
+	// it must be possible to delete cluster in any state
+	return true, nil
+}
+
+// CanOperate return true when a cluster can be operated, otherwise it returns false along with an error explaining the reason
+func (c *ClusterProvider) CanOperate(spec *api.ClusterConfig) (bool, error) {
+	err := c.maybeRefreshClusterStatus(spec)
+	if err != nil {
+		return false, errors.Wrapf(err, "fetching cluster status to determine operability")
+	}
+
+	switch status := *c.Status.clusterInfo.cluster.Status; status {
+	case awseks.ClusterStatusCreating, awseks.ClusterStatusDeleting, awseks.ClusterStatusFailed:
+		return false, fmt.Errorf("cannot perform Kubernetes API operations on cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
+	default:
+		// all other states are considered operable, including UPDGRADING (which is missing from the SDK)
+		return true, nil
+	}
+}
+
+// CanUpdate return true when a cluster or add-ons can be updated, otherwise it returns false along with an error explaining the reason
+func (c *ClusterProvider) CanUpdate(spec *api.ClusterConfig) (bool, error) {
+	err := c.maybeRefreshClusterStatus(spec)
+	if err != nil {
+		return false, errors.Wrapf(err, "fetching cluster status to determine update status")
+	}
+
+	switch status := *c.Status.clusterInfo.cluster.Status; status {
+	case awseks.ClusterStatusActive:
+		// only active cluster can be upgraded
+		return true, nil
+	default:
+		return false, fmt.Errorf("cannot update cluster %q in %q region due to status %q", spec.Metadata.Name, spec.Metadata.Region, status)
+	}
 }
 
 // ControlPlaneVersion returns cached version (EKS API)
 func (c *ClusterProvider) ControlPlaneVersion() string {
-	if c.Status.cachedClusterInfo == nil || c.Status.cachedClusterInfo.Version == nil {
+	if c.Status.clusterInfo.cluster == nil || c.Status.clusterInfo.cluster.Version == nil {
 		return ""
 	}
-	return *c.Status.cachedClusterInfo.Version
+	return *c.Status.clusterInfo.cluster.Version
 }
 
 // LoadClusterVPC loads the VPC configuration
@@ -204,7 +242,7 @@ func (c *ClusterProvider) doGetCluster(clusterName string, printer printers.Outp
 }
 
 // WaitForControlPlane waits till the control plane is ready
-func (c *ClusterProvider) WaitForControlPlane(id *api.ClusterMeta, clientSet *kubernetes.Clientset) error {
+func (c *ClusterProvider) WaitForControlPlane(meta *api.ClusterMeta, clientSet *kubernetes.Clientset) error {
 	if _, err := clientSet.ServerVersion(); err == nil {
 		return nil
 	}
@@ -224,7 +262,7 @@ func (c *ClusterProvider) WaitForControlPlane(id *api.ClusterMeta, clientSet *ku
 			}
 			logger.Debug("control plane not ready yet – %s", err.Error())
 		case <-timer.C:
-			return fmt.Errorf("timed out waiting for control plane %q after %s", id.Name, c.Provider.WaitTimeout())
+			return fmt.Errorf("timed out waiting for control plane %q after %s", meta.Name, c.Provider.WaitTimeout())
 		}
 	}
 }

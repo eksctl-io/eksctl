@@ -46,7 +46,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 		if err := ctl.CheckAuth(); err != nil {
 			return err
 		}
-		if err := ctl.RefreshClusterConfig(cfg); err != nil {
+		if ok, err := ctl.CanOperate(cfg); !ok {
 			return err
 		}
 		kubernetesClientConfigs, err := ctl.NewClient(cfg)

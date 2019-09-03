@@ -60,7 +60,7 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, role string, all bool) error 
 		return cmdutils.ErrMustBeSet("--name")
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
+	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
 	clientSet, err := ctl.NewStdClientSet(cfg)

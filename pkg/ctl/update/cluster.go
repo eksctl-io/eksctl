@@ -62,8 +62,8 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
-		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	if ok, err := ctl.CanUpdate(cfg); !ok {
+		return err
 	}
 
 	if cmd.ClusterConfigFile != "" {

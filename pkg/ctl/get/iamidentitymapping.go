@@ -59,7 +59,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, role strin
 		return cmdutils.ErrMustBeSet("--name")
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
+	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
 	clientSet, err := ctl.NewStdClientSet(cfg)

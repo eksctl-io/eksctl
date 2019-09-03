@@ -99,7 +99,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
+	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
 	kubernetesClientConfigs, err := ctl.NewClient(cfg)

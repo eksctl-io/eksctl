@@ -102,9 +102,9 @@ func (p ProviderServices) WaitTimeout() time.Duration { return p.spec.WaitTimeou
 
 // ProviderStatus stores information about the used IAM role and the resulting session
 type ProviderStatus struct {
-	iamRoleARN        string
-	sessionCreds      *credentials.Credentials
-	cachedClusterInfo *awseks.Cluster
+	iamRoleARN   string
+	sessionCreds *credentials.Credentials
+	clusterInfo  *clusterInfo
 }
 
 // New creates a new setup of the used AWS APIs

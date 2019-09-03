@@ -6,8 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
-// NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete all the nodegroup
-// stacks and the cluster
+// NewTasksToDeleteClusterWithNodeGroups defines tasks required to delete the given cluster along with all of its resources
 func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
