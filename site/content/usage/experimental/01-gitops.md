@@ -144,14 +144,14 @@ cluster:
 To install those components the command `generate profile` can be used:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl generate profile --config-file=<cluster_config_file> --git-url git@github.com:weaveworks/eks-gitops-example.git --profile-path <output_directory>
+EKSCTL_EXPERIMENTAL=true eksctl generate profile --config-file=<cluster_config_file> --git-url git@github.com:weaveworks/eks-quickstart-app-dev.git --profile-path <output_directory>
 ```
 
 For example:
 
 ```
-$ EKSCTL_EXPERIMENTAL=true eksctl generate profile  --config-file 01-simple-cluster.yaml --git-url git@github.com:weaveworks/eks-gitops-example.git --profile-path my-gitops-repo/base/
-[ℹ]  cloning repository "git@github.com:weaveworks/eks-gitops-example.git":master
+$ EKSCTL_EXPERIMENTAL=true eksctl generate profile  --config-file 01-simple-cluster.yaml --git-url git@github.com:weaveworks/eks-quickstart-app-dev.git --profile-path my-gitops-repo/base/
+[ℹ]  cloning repository "git@github.com:weaveworks/eks-quickstart-app-dev.git":master
 Cloning into '/tmp/quickstart-224631067'...
 warning: templates not found /home/.../.git_template
 remote: Enumerating objects: 75, done.
@@ -321,7 +321,7 @@ remote: Compressing objects: 100% (98/98), done.
 remote: Total 118 (delta 37), reused 96 (delta 17), pack-reused 0
 Receiving objects: 100% (118/118), 33.15 KiB | 1.44 MiB/s, done.
 Resolving deltas: 100% (37/37), done.
-[ℹ]  cloning repository "git@github.com:weaveworks/eks-gitops-example.git":master
+[ℹ]  cloning repository "git@github.com:weaveworks/eks-quickstart-app-dev.git":master
 Cloning into '/tmp/quickstart-365477450'...
 remote: Enumerating objects: 127, done.
 remote: Counting objects: 100% (127/127), done.                                         
