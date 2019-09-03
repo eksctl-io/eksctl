@@ -636,7 +636,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 						Expect(so.AssumedRoleUser.AssumedRoleId).To(HaveSuffix(":integration-test"))
 
-						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:iam::.*:assumed-role/eksctl-" + clusterName + "-addon-iamserviceaccount-.*/integration-test$"))
+						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:sts::.*:assumed-role/eksctl-" + clusterName + "-.*/integration-test$"))
 
 						Expect(so.Audience).To(Equal("sts.amazonaws.com"))
 
