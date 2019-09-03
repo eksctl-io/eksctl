@@ -164,29 +164,42 @@ Resolving deltas: 100% (25/25), done.
 [ℹ]  writing new manifests to "base/"
 
 $ tree my-gitops-repo/base
-base
+$ tree base/
+base/
 ├── amazon-cloudwatch
-│   ├── 0-namespace.yaml
-│   ├── config-map.yaml
-│   ├── daemonset.yaml
-│   ├── fluentd-config-map.yaml
-│   ├── fluentd.yml
-│   └── service-account.yaml
+│   ├── cloudwatch-agent-configmap.yaml
+│   ├── cloudwatch-agent-daemonset.yaml
+│   ├── cloudwatch-agent-rbac.yaml
+│   ├── fluentd-configmap-cluster-info.yaml
+│   ├── fluentd-configmap-fluentd-config.yaml
+│   ├── fluentd-daemonset.yaml
+│   └── fluentd-rbac.yaml
 ├── demo
-│   ├── 00-namespace.yaml
 │   └── helm-release.yaml
+├── kubernetes-dashboard
+│   ├── dashboard-metrics-scraper-deployment.yaml
+│   ├── dashboard-metrics-scraper-service.yaml
+│   ├── kubernetes-dashboard-configmap.yaml
+│   ├── kubernetes-dashboard-deployment.yaml
+│   ├── kubernetes-dashboard-rbac.yaml
+│   ├── kubernetes-dashboard-secrets.yaml
+│   └── kubernetes-dashboard-service.yaml
 ├── kube-system
-│   ├── aws-alb-ingress-controller
-│   │   ├── deployment.yaml
-│   │   └── rbac-role.yaml
-│   ├── cluster-autoscaler-autodiscover.yaml
-│   └── kubernetes-dashboard.yaml
+│   ├── alb-ingress-controller-deployment.yaml
+│   ├── alb-ingress-controller-rbac.yaml
+│   ├── cluster-autoscaler-deployment.yaml
+│   └── cluster-autoscaler-rbac.yaml
 ├── LICENSE
 ├── monitoring
-│   ├── 00-namespace.yaml
 │   ├── metrics-server.yaml
-│   └── prometheus.yaml
+│   └── prometheus-operator.yaml
+├── namespaces
+│   ├── amazon-cloudwatch.yaml
+│   ├── demo.yaml
+│   ├── kubernetes-dashboard.yaml
+│   └── monitoring.yaml
 └── README.md
+
 ```
 
 After running the command, add, commit and push the files:
@@ -199,6 +212,217 @@ git push origin master
 ```
 
 After a few minutes, Flux and Helm should have installed all the components in your cluster.
+
+## Setting up GitOps in a repo from a Quick Start
+
+Configuring GitOps can be done easily with eksctl. The command `eksctl gitops apply` takes an existing EKS cluster and
+an empty repository and sets them up with GitOps and a specified Quick Start profile. This means that with one command
+the cluster will have all the components provided by the Quick Start profile installed in the cluster and you can enjoy the advantages of GitOps moving forward.
+
+The basic command usage looks like this:
+
+```console
+EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster <cluster-name> --region <region> --git-url=<url_to_your_repo> --quickstart-profile app-dev
+```
+
+
+This command will clone the specified repository in your current working directory and then it will follow these steps:
+
+  1. install Flux, Helm and Tiller in the cluster and add the manifests of those components into the `flux/` folder in your repo
+  2. add the component manifests of the Quick Start profile to your repository inside the `base/` folder
+  3. commit the Quick Start files and push the changes to the origin remote
+  4. once you have given read and write access to your repository to the the private SSH key printed by the command Flux will install the components from the `base/` folder into your cluster
+
+Example:
+
+```
+$ EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes --output-path=/tmp/gitops-repos/  --quickstart-profile app-dev
+[ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
+[ℹ]    this may take up to a minute, please be patient
+[!]  Public key infrastructure files were written into directory "/tmp/eksctl-helm-pki786744152"
+[!]  please move the files into a safe place or delete them
+[ℹ]  Generating manifests
+[ℹ]  Cloning git@github.com:myorg/production-kubernetes
+Cloning into '/tmp/eksctl-install-flux-clone-615092439'...
+remote: Enumerating objects: 114, done.
+remote: Counting objects: 100% (114/114), done.
+remote: Compressing objects: 100% (94/94), done.
+remote: Total 114 (delta 36), reused 93 (delta 17), pack-reused 0
+Receiving objects: 100% (114/114), 31.43 KiB | 4.49 MiB/s, done.
+Resolving deltas: 100% (36/36), done.
+[ℹ]  Writing Flux manifests
+[ℹ]  Applying manifests
+[ℹ]  created "Namespace/flux"
+[ℹ]  created "flux:Deployment.apps/flux-helm-operator"
+[ℹ]  created "flux:Deployment.apps/flux"
+[ℹ]  created "flux:Deployment.apps/memcached"
+[ℹ]  created "flux:ConfigMap/flux-helm-tls-ca-config"
+[ℹ]  created "flux:Deployment.extensions/tiller-deploy"
+[ℹ]  created "flux:Service/tiller-deploy"
+[ℹ]  created "CustomResourceDefinition.apiextensions.k8s.io/helmreleases.helm.fluxcd.io"
+[ℹ]  created "flux:Service/memcached"
+[ℹ]  created "flux:ServiceAccount/flux"
+[ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux"
+[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux"
+[ℹ]  created "flux:Secret/flux-git-deploy"
+[ℹ]  created "flux:ServiceAccount/flux-helm-operator"
+[ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux-helm-operator"
+[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux-helm-operator"
+[ℹ]  created "flux:ServiceAccount/tiller"
+[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/tiller"
+[ℹ]  created "flux:ServiceAccount/helm"
+[ℹ]  created "flux:Role.rbac.authorization.k8s.io/tiller-user"
+[ℹ]  created "kube-system:RoleBinding.rbac.authorization.k8s.io/tiller-user-binding"
+[ℹ]  Applying Helm TLS Secret(s)
+[ℹ]  created "flux:Secret/flux-helm-tls-cert"
+[ℹ]  created "flux:Secret/tiller-secret"
+[!]  Note: certificate secrets aren't added to the Git repository for security reasons
+[ℹ]  Waiting for Helm Operator to start
+ERROR: logging before flag.Parse: E0822 14:45:28.440236   17028 portforward.go:331] an error occurred forwarding 44915 -> 3030: error forwarding port 3030 to pod 2f6282bf597b345b3ffad8a0447bdd8515d91060335456591d759ad87a976ed2, uid : exit status 1: 2019/08/22 12:45:28 socat[8131] E connect(5, AF=2 127.0.0.1:3030, 16): Connection refused
+[!]  Helm Operator is not ready yet (Get http://127.0.0.1:44915/healthz: EOF), retrying ...
+[!]  Helm Operator is not ready yet (Get http://127.0.0.1:44915/healthz: EOF), retrying ...
+[ℹ]  Helm Operator started successfully
+[ℹ]  see https://docs.fluxcd.io/projects/helm-operator for details on how to use the Helm Operator
+[ℹ]  Waiting for Flux to start
+[ℹ]  Flux started successfully
+[ℹ]  see https://docs.fluxcd.io/projects/flux for details on how to use Flux
+[ℹ]  Committing and pushing manifests to git@github.com:myorg/production-kubernetes
+[master 0985830] Add Initial Flux configuration
+ Author: Flux <>
+ 13 files changed, 727 insertions(+)
+ create mode 100644 flux/flux-account.yaml
+ create mode 100644 flux/flux-deployment.yaml
+ create mode 100644 flux/flux-helm-operator-account.yaml
+ create mode 100644 flux/flux-helm-release-crd.yaml
+ create mode 100644 flux/flux-namespace.yaml
+ create mode 100644 flux/flux-secret.yaml
+ create mode 100644 flux/helm-operator-deployment.yaml
+ create mode 100644 flux/memcache-dep.yaml
+ create mode 100644 flux/memcache-svc.yaml
+ create mode 100644 flux/tiller-ca-cert-configmap.yaml
+ create mode 100644 flux/tiller-dep.yaml
+ create mode 100644 flux/tiller-rbac.yaml
+ create mode 100644 flux/tiller-svc.yaml
+Counting objects: 16, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (15/15), done.
+Writing objects: 100% (16/16), 8.23 KiB | 8.23 MiB/s, done.
+Total 16 (delta 1), reused 12 (delta 1)
+remote: Resolving deltas: 100% (1/1), done.
+To github.com:myorg/production-kubernetes
+   3ea1fdc..0985830  master -> master
+[ℹ]  Flux will only operate properly once it has write-access to the Git repository
+[ℹ]  please configure git@github.com:myorg/production-kubernetes so that the following Flux SSH public key has write access to it
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAdDG4LAEiEOTbT3XVL5sYf0Hy7T30PG2sFReIwrylR7syA+IU9GPf7azgjjbzbQc/5BXTx2E0GotrzDkvCNScuYfw7wXKK87yr5jhPudpNubK9bFsKKwOj7wxO2XsUOceKVRhTKP7VJgpAliCCPK288HvQzIZfWEgbDQjhE0EnFgZVYXKkgye2Cc3MkwiYuZJtuynxipb5rPrY/3Kjywk/vWxLeZ/hvv58mZSdRQwX6zbGGW1h70QA47B+W2076MBQQ1t0H0KKctuS8A1/n+aKjpD4Ne6lXqHDhqi25SBhJxK3zEXhskS9DMW8DYi1xHT2MCjE8HhiVBMRIITyTox
+Cloning into '/tmp/gitops-repos/flux-test-3'...
+remote: Enumerating objects: 118, done.
+remote: Counting objects: 100% (118/118), done.
+remote: Compressing objects: 100% (98/98), done.
+remote: Total 118 (delta 37), reused 96 (delta 17), pack-reused 0
+Receiving objects: 100% (118/118), 33.15 KiB | 1.44 MiB/s, done.
+Resolving deltas: 100% (37/37), done.
+[ℹ]  cloning repository "git@github.com:weaveworks/eks-gitops-example.git":master
+Cloning into '/tmp/quickstart-365477450'...
+remote: Enumerating objects: 127, done.
+remote: Counting objects: 100% (127/127), done.                                         
+remote: Compressing objects: 100% (95/95), done.
+remote: Total 127 (delta 53), reused 92 (delta 30), pack-reused 0
+Receiving objects: 100% (127/127), 30.20 KiB | 351.00 KiB/s, done.
+Resolving deltas: 100% (53/53), done.
+[ℹ]  processing template files in repository
+[ℹ]  writing new manifests to "/tmp/gitops-repos/flux-test-3/base"
+[master d0810f7] Add app-dev quickstart components
+ Author: Flux <>
+ 27 files changed, 1207 insertions(+)
+ create mode 100644 base/LICENSE
+ create mode 100644 base/README.md
+ create mode 100644 base/amazon-cloudwatch/cloudwatch-agent-configmap.yaml
+ create mode 100644 base/amazon-cloudwatch/cloudwatch-agent-daemonset.yaml
+ create mode 100644 base/amazon-cloudwatch/cloudwatch-agent-rbac.yaml
+ create mode 100644 base/amazon-cloudwatch/fluentd-configmap-cluster-info.yaml
+ create mode 100644 base/amazon-cloudwatch/fluentd-configmap-fluentd-config.yaml
+ create mode 100644 base/amazon-cloudwatch/fluentd-daemonset.yaml
+ create mode 100644 base/amazon-cloudwatch/fluentd-rbac.yaml
+ create mode 100644 base/demo/helm-release.yaml
+ create mode 100644 base/kube-system/alb-ingress-controller-deployment.yaml
+ create mode 100644 base/kube-system/alb-ingress-controller-rbac.yaml
+ create mode 100644 base/kube-system/cluster-autoscaler-deployment.yaml
+ create mode 100644 base/kube-system/cluster-autoscaler-rbac.yaml
+ create mode 100644 base/kubernetes-dashboard/dashboard-metrics-scraper-deployment.yaml
+ create mode 100644 base/kubernetes-dashboard/dashboard-metrics-scraper-service.yaml
+ create mode 100644 base/kubernetes-dashboard/kubernetes-dashboard-configmap.yaml
+ create mode 100644 base/kubernetes-dashboard/kubernetes-dashboard-deployment.yaml
+ create mode 100644 base/kubernetes-dashboard/kubernetes-dashboard-rbac.yaml
+ create mode 100644 base/kubernetes-dashboard/kubernetes-dashboard-secrets.yaml
+ create mode 100644 base/kubernetes-dashboard/kubernetes-dashboard-service.yaml
+ create mode 100644 base/monitoring/metrics-server.yaml
+ create mode 100644 base/monitoring/prometheus-operator.yaml
+ create mode 100644 base/namespaces/amazon-cloudwatch.yaml
+ create mode 100644 base/namespaces/demo.yaml
+ create mode 100644 base/namespaces/kubernetes-dashboard.yaml
+ create mode 100644 base/namespaces/monitoring.yaml
+Counting objects: 36, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (27/27), done.
+Writing objects: 100% (36/36), 11.17 KiB | 3.72 MiB/s, done.
+Total 36 (delta 8), reused 27 (delta 8)
+remote: Resolving deltas: 100% (8/8), done.
+To github.com:myorg/production-kubernetes
+   0985830..d0810f7  master -> master
+
+```
+
+Now the ssh key printed above:
+
+```
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAdDG4LAEiEOTbT3XVL5sYf0Hy7T30PG2sFReIwrylR7syA+IU9GPf7azgjjbzbQc/5BXTx2E0GotrzDkvCNScuYfw7wXKK87yr5jhPudpNubK9bFsKKwOj7wxO2XsUOceKVRhTKP7VJgpAliCCPK288HvQzIZfWEgbDQjhE0EnFgZVYXKkgye2Cc3MkwiYuZJtuynxipb5rPrY/3Kjywk/vWxLeZ/hvv58mZSdRQwX6zbGGW1h70QA47B+W2076MBQQ1t0H0KKctuS8A1/n+aKjpD4Ne6lXqHDhqi25SBhJxK3zEXhskS9DMW8DYi1xHT2MCjE8HhiVBMRIITyTox
+```
+
+needs to be added as a deploy key to the chosen Github repository, in this case `github.com:myorg/production-kubernetes`.
+Once that is done, Flux will pick up the changes in the repository with the Quick Start components and apply them to the
+ cluster. After a couple of minutes the pods should appear in the cluster:
+ 
+
+```
+$ kube get pods --all-namespaces 
+NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
+amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0           4m28s
+amazon-cloudwatch      fluentd-cloudwatch-4rwwr                                  1/1     Running                      0           4m28s
+demo                   podinfo-75b8547f78-56dll                                  1/1     Running                      0          103s
+flux                   flux-56b5664cdd-nfzx2                                     1/1     Running                      0          11m
+flux                   flux-helm-operator-6bc7c85bb5-l2nzn                       1/1     Running                      0          11m
+flux                   memcached-958f745c-dqllc                                  1/1     Running                      0          11m
+flux                   tiller-deploy-7ccc4b4d45-w2mrt                            1/1     Running                      0          11m
+kube-system            alb-ingress-controller-6b64bcbbd8-6l7kf                   1/1     Running                      0          4m28s
+kube-system            aws-node-l49ct                                            1/1     Running                      0          14m
+kube-system            cluster-autoscaler-5b8c96cd98-26z5f                       1/1     Running                      0          4m28s
+kube-system            coredns-7d7755744b-4jkp6                                  1/1     Running                      0          21m
+kube-system            coredns-7d7755744b-ls5d9                                  1/1     Running                      0          21m
+kube-system            kube-proxy-wllff                                          1/1     Running                      0          14m
+kubernetes-dashboard   dashboard-metrics-scraper-f7b5dbf7d-rm5z7                 1/1     Running                      0          4m28s
+kubernetes-dashboard   kubernetes-dashboard-7447f48f55-94rhg                     1/1     Running                      0          4m28s
+monitoring             alertmanager-prometheus-operator-alertmanager-0           2/2     Running                      0          78s
+monitoring             metrics-server-7dfc675884-q9qps                           1/1     Running                      0          4m24s
+monitoring             prometheus-operator-grafana-9bb769cf-pjk4r                2/2     Running                      0          89s
+monitoring             prometheus-operator-kube-state-metrics-79f476bff6-r9m2s   1/1     Running                      0          89s
+monitoring             prometheus-operator-operator-58fcb66576-6dwpg             1/1     Running                      0          89s
+monitoring             prometheus-operator-prometheus-node-exporter-tllwl        1/1     Running                      0          89s
+monitoring             prometheus-prometheus-operator-prometheus-0               3/3     Running                      1          72s
+```
+
+
+All CLI arguments:
+
+| Flag                         | Default value | Type   | Required       | Use                                                           |
+|------------------------------|---------------|--------|----------------|---------------------------------------------------------------|
+| `--cluster`                  |               | string | required       | name of the EKS cluster to add the nodegroup to               |
+| `--quickstart-profile`       |               | string | required       | name or URL of the Quick Start profile. For example, app-dev  |
+| `--git-url`                  |               | string | required       | URL                                                           |
+| `--git-branch`               | master        | string | optional       | Git branch                                                    |
+| `--output-path`              | ./            | string | optional       | Path                                                          |
+| `--git-user`                 | Flux          | string | optional       | Username                                                      |
+| `--git-email`                |               | string | optional       | Email                                                         |
+| `--git-private-ssh-key-path` |               | string | optional       | Optional path to the private SSH key to use with Git          |
 
 
 [flux]: https://docs.fluxcd.io/en/latest/
