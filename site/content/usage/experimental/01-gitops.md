@@ -461,7 +461,7 @@ Write this into a file with the extension `*.yaml.tmpl` and commit it to your Qu
 Files with this extension get processed by eksctl before committing them to the user's GitOps repository, while the rest get copied unmodified.
 
 Regarding the folder structure inside the Quick Start repository, we recommend using a folder for each `namespace` and
-one file per kubernetes resource.
+one file per Kubernetes resource.
 
 ```
 repository-name/
