@@ -12,9 +12,6 @@ func IsGPUInstanceType(instanceType string) bool {
 
 // HasGPUInstanceType returns true if it finds a gpu instance among the mixed instances
 func HasGPUInstanceType(instanceTypes []string) bool {
-	if instanceTypes == nil || len(instanceTypes) == 0 {
-		return false
-	}
 	for _, instanceType := range instanceTypes {
 		if IsGPUInstanceType(instanceType) {
 			return true
