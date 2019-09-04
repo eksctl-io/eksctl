@@ -10,36 +10,17 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-// ImageSearchPatterns is a map of image search patterns by
-// image OS family and by class
-var ImageSearchPatterns = map[string]map[string]map[int]string{
-	"1.11": {
+// MakeImageSearchPatterns creates a map of image search patterns by image OS family and class
+func MakeImageSearchPatterns(version string) map[string]map[int]string {
+	return map[string]map[int]string{
 		ImageFamilyAmazonLinux2: {
-			ImageClassGeneral: "amazon-eks-node-1.11-v*",
-			ImageClassGPU:     "amazon-eks-gpu-node-1.11-*",
+			ImageClassGeneral: fmt.Sprintf("amazon-eks-node-%s-v*", version),
+			ImageClassGPU:     fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
 		},
 		ImageFamilyUbuntu1804: {
-			ImageClassGeneral: "ubuntu-eks/k8s_1.11/images/*",
+			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*", version),
 		},
-	},
-	"1.12": {
-		ImageFamilyAmazonLinux2: {
-			ImageClassGeneral: "amazon-eks-node-1.12-v*",
-			ImageClassGPU:     "amazon-eks-gpu-node-1.12-*",
-		},
-		ImageFamilyUbuntu1804: {
-			ImageClassGeneral: "ubuntu-eks/k8s_1.12/images/*",
-		},
-	},
-	"1.13": {
-		ImageFamilyAmazonLinux2: {
-			ImageClassGeneral: "amazon-eks-node-1.13-v*",
-			ImageClassGPU:     "amazon-eks-gpu-node-1.13-*",
-		},
-		ImageFamilyUbuntu1804: {
-			ImageClassGeneral: "ubuntu-eks/k8s_1.13/images/*",
-		},
-	},
+	}
 }
 
 // OwnerAccountID returns the AWS account ID that owns worker AMI.
@@ -65,10 +46,11 @@ type AutoResolver struct {
 func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using AutoResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
-	namePattern := ImageSearchPatterns[version][imageFamily][ImageClassGeneral]
+	imageClasses := MakeImageSearchPatterns(version)[imageFamily]
+	namePattern := imageClasses[ImageClassGeneral]
 	if utils.IsGPUInstanceType(instanceType) {
 		var ok bool
-		namePattern, ok = ImageSearchPatterns[version][imageFamily][ImageClassGPU]
+		namePattern, ok = imageClasses[ImageClassGPU]
 		if !ok {
 			logger.Critical("image family %s doesn't support GPU image class", imageFamily)
 			return "", NewErrFailedResolution(region, version, instanceType, imageFamily)
