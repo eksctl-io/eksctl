@@ -425,4 +425,72 @@ All CLI arguments:
 | `--git-private-ssh-key-path` |               | string | optional       | Optional path to the private SSH key to use with Git          |
 
 
+## Creating your own Quick Start profile
+
+A Quick Start profile is a git repository that contains kubernetes manifests that can be installed in a cluster using
+GitOps (through [Flux][flux]).
+
+These manifests, will probably need some information about the cluster they will be installed in, such as the cluster
+name or the AWS region. That's why they are templated using [Go templates][go-templates].
+
+> Please bear in mind that this is an experimental feature and therefore the chosen templating technology can be changed
+before the feature becomes stable.
+
+The variables that can be templated are shown below:
+
+| Name                | Template               |
+|---------------------|------------------------|
+| cluster name        | `{{ .ClusterName }}`   |
+| cluster region      | `{{ .Region }}`        |
+
+
+For example, we could create a config map using these variables:
+
+```yaml
+apiVersion: v1
+data:
+  cluster.name: {{ .ClusterName }}
+  logs.region: {{ .Region }}
+kind: ConfigMap
+metadata:
+  name: cluster-info
+  namespace: my-namespace
+```
+
+Write this into a file with the extension `*.yaml.tmpl` and commit it to your Quick Start repository.
+Files with this extension get processed by eksctl before committing them to the user's GitOps repository, while the rest get copied unmodified.
+
+Regarding the folder structure inside the Quick Stat repository, we recommend using a folder for each `namespace` and
+one file per kubernetes resource.
+
+```
+repository-name/
+├── kube-system
+│   ├── ingress-controller-deployment.yaml.tmpl
+│   └── ingress-controller-rbac.yaml.tmpl
+└── alerting
+    ├── alerting-app-deployment.yaml
+    ├── alerting-app-service.yaml.tmpl
+    ├── monitoring-sidecar-deployment.yaml
+    ├── monitoring-sidecar-service.yaml.tmpl
+    ├── cluster-info-configmap.yaml.tmpl
+    └── alerting-namespace.yaml
+
+```
+
+Note that some files have the extension `*.yaml` while others have `*.yaml.tmpl`. The last ones are the ones that can
+contain template actions while the former are plain `yaml` files.
+
+For a full example, see our first Quick Start profile [App Dev][app-dev].
+
+If this repository was located in a url like `git@github.com:my-org/production-infra` it could be applied to any cluster that is GitOpsed through a GitOps repo called `git@github.com:my-org/team1-cluster` using the `eksctl gitops apply` command like explaned above:
+
+
+```console
+EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster team1 --region eu-west-1 --git-url <git@github.com:my-org/team1-cluster --quickstart-profile git@github.com:my-org/production-infra
+```
+
+
 [flux]: https://docs.fluxcd.io/en/latest/
+[go-templates]: https://golang.org/pkg/text/template/
+[app-dev]: https://github.com/weaveworks/eks-quickstart-app-dev
