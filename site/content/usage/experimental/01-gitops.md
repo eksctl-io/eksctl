@@ -427,7 +427,7 @@ All CLI arguments:
 
 ## Creating your own Quick Start profile
 
-A Quick Start profile is a git repository that contains kubernetes manifests that can be installed in a cluster using
+A Quick Start profile is a Git repository that contains Kubernetes manifests that can be installed in a cluster using
 GitOps (through [Flux][flux]).
 
 These manifests, will probably need some information about the cluster they will be installed in, such as the cluster
