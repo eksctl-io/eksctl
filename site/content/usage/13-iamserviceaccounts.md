@@ -136,7 +136,7 @@ eksctl create iamserviceaccount --config-file=<path>
 
 ### Further information
 
-- IAM Roles For Service Accounts
+- [IAM Roles For Service Accounts](https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/)
 - [Mapping IAM users and role to Kubernetes RBAC roles](https://eksctl.io/usage/iam-identity-mappings/)
 
 <!-- TODO: links to official docs -->
