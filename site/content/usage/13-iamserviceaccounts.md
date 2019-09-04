@@ -6,13 +6,16 @@ url: usage/iamserviceaccounts
 
 ## Introduction
 
-Amazon EKS supports IAM Roles for Service Accounts that allows cluster operators to map AWS IAM Roles to Kubernetes Service Accounts.
+Amazon EKS supports IAM Roles for Service Accounts that allows cluster operators to map AWS IAM Roles to Kubernetes Service Accounts (IRSA).
+
+This provides fine-grain permission management for apps that run on EKS and use other AWS services. These could be apps that use S3,
+any other data services (RDS, MQ, STS, DynamoDB), or a Kubernetes components like ALB Ingress controller or External DNS.
 
 You can easily create IAM Role and Service Account pairs with `eksctl`.
 
 <!-- TODO: links to official docs -->
 
-> NOTE: if you chose to use this feature, you probably want to stop using [instance roles](https://eksctl.io/usage/iam-policies/).
+> NOTE: if you used [instance roles](https://eksctl.io/usage/iam-policies/), and considering to use IRSA instead, you shouldn't mix the two.
 
 ## How it works
 
