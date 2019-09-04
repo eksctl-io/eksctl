@@ -481,14 +481,27 @@ repository-name/
 Note that some files have the extension `*.yaml` while others have `*.yaml.tmpl`. The last ones are the ones that can
 contain template actions while the former are plain `yaml` files.
 
-For a full example, see our first Quick Start profile [App Dev][app-dev].
+These files can now be committed and pushed to your Quick Start repository, for example `git@github.com:my-org/production-infra`.
 
-If this repository was located in a url like `git@github.com:my-org/production-infra` it could be applied to any cluster that is GitOpsed through a GitOps repo called `git@github.com:my-org/team1-cluster` using the `eksctl gitops apply` command like explaned above:
+```
+cd repository-name/
+git add .
+git commit -m "Add component templates"
+git push origin master
+```
 
+Now that the templates are in the remote repository, the Quick Start is ready to be used with `eksctl gitops apply`:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster team1 --region eu-west-1 --git-url <git@github.com:my-org/team1-cluster --quickstart-profile git@github.com:my-org/production-infra
+EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster team1 --region eu-west-1 --git-url git@github.com:my-org/team1-cluster --quickstart-profile git@github.com:my-org/production-infra --git-email alice@my-org.com
 ```
+
+In this example we provide github.com:my-org/production-infra as the Quick Start profile and 
+`github.com:my-org/team1-cluster` as the GitOps repository that is connected to the Flux instance in the cluster named
+`cluster1`.
+
+
+For a full example of a Quick Start profile, check out [App Dev][app-dev].
 
 
 [flux]: https://docs.fluxcd.io/en/latest/
