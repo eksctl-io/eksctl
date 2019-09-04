@@ -29,15 +29,17 @@ func main() {
 
 	client := newMultiRegionClient()
 
-	for version := range ami.ImageSearchPatterns {
+	for _, version := range api.SupportedVersions() {
 		versionImages := Dict{}
-		for family := range ami.ImageSearchPatterns[version] {
+		imageFamilies := ami.MakeImageSearchPatterns(version)
+		for family := range imageFamilies {
 			familyImages := Dict{}
 			log.Printf("looking up %s/%s images", family, version)
-			for class := range ami.ImageSearchPatterns[version][family] {
+			imageClasses := imageFamilies[family]
+			for class := range imageClasses {
 				classImages := Dict{}
 				for _, region := range api.SupportedRegions() {
-					namePattern := ami.ImageSearchPatterns[version][family][class]
+					namePattern := imageClasses[class]
 					ownerAccount, err := ami.OwnerAccountID(family, region)
 					if err != nil {
 						log.Fatal(err)
