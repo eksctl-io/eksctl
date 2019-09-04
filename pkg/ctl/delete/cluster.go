@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/elb"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/ssh"
@@ -99,11 +100,17 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 	var (
 		clientSet kubernetes.Interface
+		oidc      *iamoidc.OpenIDConnectManager
 	)
 
 	clusterOperable, _ := ctl.CanOperate(cfg)
 	if clusterOperable {
 		clientSet, err = ctl.NewStdClientSet(cfg)
+		if err != nil {
+			return err
+		}
+
+		oidc, err = ctl.NewOpenIDConnectManager(cfg)
 		if err != nil {
 			return err
 		}
@@ -134,7 +141,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 			}
 		}
 
-		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(cmd.Wait, func(errs chan error, _ string) error {
+		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(clusterOperable, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.LoadClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)

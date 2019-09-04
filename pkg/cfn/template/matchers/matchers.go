@@ -128,17 +128,16 @@ func (m *ResourceNameAndTypeMatcher) NegatedFailureMessage(_ interface{}) string
 type ResourcePropertiesMatcher struct {
 	*commonMatcher
 
-	resourceName                string
-	propertyName, propertyValue string
+	resourceName  string
+	propertyNames []string
 }
 
-func HaveResourceWithPropertyValue(resourceName, propertyName, propertyValue string) types.GomegaMatcher {
+func HaveResourceWithProperties(resourceName string, propertyNames ...string) types.GomegaMatcher {
 	return &ResourcePropertiesMatcher{
 		commonMatcher: &commonMatcher{},
 
 		resourceName:  resourceName,
-		propertyName:  propertyName,
-		propertyValue: propertyValue,
+		propertyNames: propertyNames,
 	}
 }
 
@@ -147,14 +146,61 @@ func (m *ResourcePropertiesMatcher) Match(actualTemplate interface{}) (bool, err
 		return ok, err
 	}
 
-	actualProperty := actualTemplate.(*Template).Resources[m.resourceName].Properties
+	actualProperties := actualTemplate.(*Template).Resources[m.resourceName].Properties
 
-	if actualProperty == nil {
+	if actualProperties == nil {
 		m.err = fmt.Errorf("resource %q has no properties", m.resourceName)
 		return false, nil
 	}
 
-	actualValue, ok := actualProperty.(MapOfInterfaces)[m.propertyName]
+	for _, expectedPropertyName := range m.propertyNames {
+		ok, err := gomega.HaveKey(expectedPropertyName).Match(actualProperties)
+		if !ok {
+			return ok, err
+		}
+	}
+
+	return true, nil
+}
+
+func (m *ResourcePropertiesMatcher) FailureMessage(_ interface{}) string {
+	return m.failureMessageWithError(fmt.Sprintf("Expected the template to have resoruce %q with propertes %v", m.resourceName, m.propertyNames))
+}
+
+func (m *ResourcePropertiesMatcher) NegatedFailureMessage(_ interface{}) string {
+	return fmt.Sprintf("Expected the template to NOT have resoruce %q with properties %v", m.resourceName, m.propertyNames)
+}
+
+type ResourceWithPropertyValueMatcher struct {
+	*commonMatcher
+
+	resourceName                string
+	propertyName, propertyValue string
+}
+
+func HaveResourceWithPropertyValue(resourceName, propertyName, propertyValue string) types.GomegaMatcher {
+	return &ResourceWithPropertyValueMatcher{
+		commonMatcher: &commonMatcher{},
+
+		resourceName:  resourceName,
+		propertyName:  propertyName,
+		propertyValue: propertyValue,
+	}
+}
+
+func (m *ResourceWithPropertyValueMatcher) Match(actualTemplate interface{}) (bool, error) {
+	if ok, err := HaveResource(m.resourceName, "*").Match(actualTemplate); !ok {
+		return ok, err
+	}
+
+	actualProperties := actualTemplate.(*Template).Resources[m.resourceName].Properties
+
+	if actualProperties == nil {
+		m.err = fmt.Errorf("resource %q has no properties", m.resourceName)
+		return false, nil
+	}
+
+	actualValue, ok := actualProperties.(MapOfInterfaces)[m.propertyName]
 	if !ok {
 		m.err = fmt.Errorf("resource %q does not have property %q", m.resourceName, m.propertyName)
 		return false, nil
@@ -174,11 +220,11 @@ func (m *ResourcePropertiesMatcher) Match(actualTemplate interface{}) (bool, err
 	return m.matchJSON(m.propertyValue, js)
 }
 
-func (m *ResourcePropertiesMatcher) FailureMessage(_ interface{}) string {
+func (m *ResourceWithPropertyValueMatcher) FailureMessage(_ interface{}) string {
 	return m.failureMessageWithError(fmt.Sprintf("Expected the template to have resoruce %q with property %q: %s", m.resourceName, m.propertyName, m.propertyValue))
 }
 
-func (m *ResourcePropertiesMatcher) NegatedFailureMessage(_ interface{}) string {
+func (m *ResourceWithPropertyValueMatcher) NegatedFailureMessage(_ interface{}) string {
 	return fmt.Sprintf("Expected the template to NOT have resoruce %q with property %q: %s", m.resourceName, m.propertyName, m.propertyValue)
 }
 

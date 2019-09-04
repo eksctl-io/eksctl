@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
@@ -33,11 +35,44 @@ func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup
 
 	for _, ng := range nodeGroups {
 		tasks.Append(&taskWithNodeGroupSpec{
-			info:      fmt.Sprintf("create nodegroup %q", ng.Name),
+			info:      fmt.Sprintf("create nodegroup %q", ng.NameString()),
 			nodeGroup: ng,
 			call:      c.createNodeGroupTask,
 		})
+		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
 	}
 
+	return tasks
+}
+
+// NewTasksToCreateIAMServiceAccounts defines tasks required to create all of the IAM ServiceAccounts
+func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*api.ClusterIAMServiceAccount, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter) *TaskTree {
+	tasks := &TaskTree{Parallel: true}
+
+	for i := range serviceAccounts {
+		sa := serviceAccounts[i]
+		saTasks := &TaskTree{
+			Parallel:  false,
+			IsSubTask: true,
+		}
+
+		saTasks.Append(&taskWithClusterIAMServiceAccountSpec{
+			info:           fmt.Sprintf("create IAM role for serviceaccount %q", sa.NameString()),
+			serviceAccount: sa,
+			oidc:           oidc,
+			call:           c.createIAMServiceAccountTask,
+		})
+
+		saTasks.Append(&kubernetesTask{
+			info:       fmt.Sprintf("create serviceaccount %q", sa.NameString()),
+			kubernetes: clientSetGetter,
+			call: func(clientSet kubernetes.Interface) error {
+				sa.SetAnnotations()
+				return kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ObjectMeta)
+			},
+		})
+
+		tasks.Append(saTasks)
+	}
 	return tasks
 }

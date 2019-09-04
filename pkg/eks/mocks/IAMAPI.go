@@ -3913,6 +3913,84 @@ func (_m *IAMAPI) GenerateCredentialReportWithContext(_a0 context.Context, _a1 *
 	return r0, r1
 }
 
+// GenerateOrganizationsAccessReport provides a mock function with given fields: _a0
+func (_m *IAMAPI) GenerateOrganizationsAccessReport(_a0 *iam.GenerateOrganizationsAccessReportInput) (*iam.GenerateOrganizationsAccessReportOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.GenerateOrganizationsAccessReportOutput
+	if rf, ok := ret.Get(0).(func(*iam.GenerateOrganizationsAccessReportInput) *iam.GenerateOrganizationsAccessReportOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GenerateOrganizationsAccessReportOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.GenerateOrganizationsAccessReportInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GenerateOrganizationsAccessReportRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) GenerateOrganizationsAccessReportRequest(_a0 *iam.GenerateOrganizationsAccessReportInput) (*request.Request, *iam.GenerateOrganizationsAccessReportOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.GenerateOrganizationsAccessReportInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.GenerateOrganizationsAccessReportOutput
+	if rf, ok := ret.Get(1).(func(*iam.GenerateOrganizationsAccessReportInput) *iam.GenerateOrganizationsAccessReportOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.GenerateOrganizationsAccessReportOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GenerateOrganizationsAccessReportWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) GenerateOrganizationsAccessReportWithContext(_a0 context.Context, _a1 *iam.GenerateOrganizationsAccessReportInput, _a2 ...request.Option) (*iam.GenerateOrganizationsAccessReportOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.GenerateOrganizationsAccessReportOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GenerateOrganizationsAccessReportInput, ...request.Option) *iam.GenerateOrganizationsAccessReportOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GenerateOrganizationsAccessReportOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GenerateOrganizationsAccessReportInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GenerateServiceLastAccessedDetails provides a mock function with given fields: _a0
 func (_m *IAMAPI) GenerateServiceLastAccessedDetails(_a0 *iam.GenerateServiceLastAccessedDetailsInput) (*iam.GenerateServiceLastAccessedDetailsOutput, error) {
 	ret := _m.Called(_a0)
@@ -4989,6 +5067,84 @@ func (_m *IAMAPI) GetOpenIDConnectProviderWithContext(_a0 context.Context, _a1 *
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetOpenIDConnectProviderInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOrganizationsAccessReport provides a mock function with given fields: _a0
+func (_m *IAMAPI) GetOrganizationsAccessReport(_a0 *iam.GetOrganizationsAccessReportInput) (*iam.GetOrganizationsAccessReportOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.GetOrganizationsAccessReportOutput
+	if rf, ok := ret.Get(0).(func(*iam.GetOrganizationsAccessReportInput) *iam.GetOrganizationsAccessReportOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GetOrganizationsAccessReportOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.GetOrganizationsAccessReportInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOrganizationsAccessReportRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) GetOrganizationsAccessReportRequest(_a0 *iam.GetOrganizationsAccessReportInput) (*request.Request, *iam.GetOrganizationsAccessReportOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.GetOrganizationsAccessReportInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.GetOrganizationsAccessReportOutput
+	if rf, ok := ret.Get(1).(func(*iam.GetOrganizationsAccessReportInput) *iam.GetOrganizationsAccessReportOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.GetOrganizationsAccessReportOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetOrganizationsAccessReportWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) GetOrganizationsAccessReportWithContext(_a0 context.Context, _a1 *iam.GetOrganizationsAccessReportInput, _a2 ...request.Option) (*iam.GetOrganizationsAccessReportOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.GetOrganizationsAccessReportOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetOrganizationsAccessReportInput, ...request.Option) *iam.GetOrganizationsAccessReportOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.GetOrganizationsAccessReportOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.GetOrganizationsAccessReportInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -9745,6 +9901,84 @@ func (_m *IAMAPI) SetDefaultPolicyVersionWithContext(_a0 context.Context, _a1 *i
 	return r0, r1
 }
 
+// SetSecurityTokenServicePreferences provides a mock function with given fields: _a0
+func (_m *IAMAPI) SetSecurityTokenServicePreferences(_a0 *iam.SetSecurityTokenServicePreferencesInput) (*iam.SetSecurityTokenServicePreferencesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *iam.SetSecurityTokenServicePreferencesOutput
+	if rf, ok := ret.Get(0).(func(*iam.SetSecurityTokenServicePreferencesInput) *iam.SetSecurityTokenServicePreferencesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.SetSecurityTokenServicePreferencesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*iam.SetSecurityTokenServicePreferencesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SetSecurityTokenServicePreferencesRequest provides a mock function with given fields: _a0
+func (_m *IAMAPI) SetSecurityTokenServicePreferencesRequest(_a0 *iam.SetSecurityTokenServicePreferencesInput) (*request.Request, *iam.SetSecurityTokenServicePreferencesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*iam.SetSecurityTokenServicePreferencesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *iam.SetSecurityTokenServicePreferencesOutput
+	if rf, ok := ret.Get(1).(func(*iam.SetSecurityTokenServicePreferencesInput) *iam.SetSecurityTokenServicePreferencesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*iam.SetSecurityTokenServicePreferencesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// SetSecurityTokenServicePreferencesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) SetSecurityTokenServicePreferencesWithContext(_a0 context.Context, _a1 *iam.SetSecurityTokenServicePreferencesInput, _a2 ...request.Option) (*iam.SetSecurityTokenServicePreferencesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *iam.SetSecurityTokenServicePreferencesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.SetSecurityTokenServicePreferencesInput, ...request.Option) *iam.SetSecurityTokenServicePreferencesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*iam.SetSecurityTokenServicePreferencesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *iam.SetSecurityTokenServicePreferencesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SimulateCustomPolicy provides a mock function with given fields: _a0
 func (_m *IAMAPI) SimulateCustomPolicy(_a0 *iam.SimulateCustomPolicyInput) (*iam.SimulatePolicyResponse, error) {
 	ret := _m.Called(_a0)
@@ -11636,6 +11870,76 @@ func (_m *IAMAPI) WaitUntilInstanceProfileExistsWithContext(_a0 context.Context,
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetInstanceProfileInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilPolicyExists provides a mock function with given fields: _a0
+func (_m *IAMAPI) WaitUntilPolicyExists(_a0 *iam.GetPolicyInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*iam.GetPolicyInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilPolicyExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) WaitUntilPolicyExistsWithContext(_a0 context.Context, _a1 *iam.GetPolicyInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetPolicyInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilRoleExists provides a mock function with given fields: _a0
+func (_m *IAMAPI) WaitUntilRoleExists(_a0 *iam.GetRoleInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*iam.GetRoleInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilRoleExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *IAMAPI) WaitUntilRoleExistsWithContext(_a0 context.Context, _a1 *iam.GetRoleInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *iam.GetRoleInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)

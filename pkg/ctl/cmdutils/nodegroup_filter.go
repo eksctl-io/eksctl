@@ -66,7 +66,7 @@ func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager
 	for _, localNodeGroup := range *nodeGroups {
 		local.Insert(localNodeGroup.Name)
 		if !remote.Has(localNodeGroup.Name) {
-			logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup.Name)
+			logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup.NameString())
 			f.AppendExcludeNames(localNodeGroup.Name)
 		} else if includeOnlyMissing {
 			f.AppendExcludeNames(localNodeGroup.Name)
