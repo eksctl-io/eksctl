@@ -14,12 +14,16 @@ func NewFakeCluster(clusterName string, status string) *awseks.Cluster {
 	cluster := &awseks.Cluster{
 		Name:      aws.String(clusterName),
 		Status:    aws.String(status),
-		Arn:       aws.String("arn-12345678"),
+		Arn:       aws.String("arn:aws:eks:us-west-2:12345:cluster/test-12345"),
 		CreatedAt: created,
 		ResourcesVpcConfig: &awseks.VpcConfigResponse{
 			VpcId:     aws.String("vpc-1234"),
-			SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
+			SubnetIds: aws.StringSlice([]string{"sub1", "sub2"}),
 		},
+		CertificateAuthority: &awseks.Certificate{
+			Data: aws.String("dGVzdAo="),
+		},
+		Endpoint: aws.String("https://localhost/"),
 	}
 
 	return cluster

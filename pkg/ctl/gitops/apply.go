@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -53,7 +54,7 @@ func applyGitops(cmd *cmdutils.Cmd) {
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 
-		requiredFlags := []string{"quickstart-profile", "git-url", "cluster", "git-email"}
+		requiredFlags := []string{"quickstart-profile", "git-url", "git-email"}
 		for _, f := range requiredFlags {
 			if err := cobra.MarkFlagRequired(fs, f); err != nil {
 				logger.Critical("unexpected error: %v", err)
@@ -63,6 +64,7 @@ func applyGitops(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 20*time.Second)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
@@ -85,7 +87,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
-	if err := cmdutils.NewGitopsMetadataLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewGitopsApplyLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
@@ -97,7 +99,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
+	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
 	kubernetesClientConfigs, err := ctl.NewClient(cfg)
@@ -121,9 +123,9 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		Namespace:   "flux",
 		GitFluxPath: "flux/",
 		WithHelm:    true,
-		Timeout:     git.DefaultGitTimeout,
+		Timeout:     cmd.ProviderConfig.WaitTimeout,
 	}
-	fluxInstaller := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &fluxOpts)
+	fluxInstaller := flux.NewInstaller(k8sRestConfig, k8sClientSet, &fluxOpts)
 
 	processor := &fileprocessor.GoTemplateProcessor{
 		Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
@@ -144,17 +146,14 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 			URL:    quickstartRepoURL,
 			Branch: "master",
 		},
-		GitCloner: git.NewGitClient(context.Background(), git.ClientParams{
-			Timeout: git.DefaultGitTimeout,
-		}),
-		FS: afero.NewOsFs(),
-		IO: afero.Afero{Fs: afero.NewOsFs()},
+		GitCloner: git.NewGitClient(git.ClientParams{}),
+		FS:        afero.NewOsFs(),
+		IO:        afero.Afero{Fs: afero.NewOsFs()},
 	}
 
 	// A git client that operates in the user's repo
-	gitClient := git.NewGitClient(context.Background(), git.ClientParams{
+	gitClient := git.NewGitClient(git.ClientParams{
 		PrivateSSHKeyPath: opts.gitPrivateSSHKeyPath,
-		Timeout:           git.DefaultGitTimeout,
 	})
 
 	gitOps := gitops.Applier{

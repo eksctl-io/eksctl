@@ -116,9 +116,8 @@ type Installer struct {
 }
 
 // NewInstaller creates a new Flux installer
-func NewInstaller(ctx context.Context, k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
-	gitClient := git.NewGitClient(ctx, git.ClientParams{
-		Timeout:           opts.Timeout,
+func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
+	gitClient := git.NewGitClient(git.ClientParams{
 		PrivateSSHKeyPath: opts.GitPrivateSSHKeyPath,
 	})
 	fi := &Installer{
@@ -131,22 +130,27 @@ func NewInstaller(ctx context.Context, k8sRestConfig *rest.Config, k8sClientSet 
 }
 
 // Run runs the Flux installer
-func (fi *Installer) Run(ctx context.Context) error {
+func (fi *Installer) Run(ctx context.Context) (string, error) {
 	pki, pkiPaths, err := fi.setupPKI()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	logger.Info("Generating manifests")
 	manifests, secrets, err := fi.getManifestsAndSecrets(pki, pkiPaths)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	logger.Info("Cloning %s", fi.opts.GitOptions.URL)
-	cloneDir, err := fi.gitClient.CloneRepo("eksctl-install-flux-clone-", fi.opts.GitOptions.Branch, fi.opts.GitOptions.URL)
+	options := git.CloneOptions{
+		URL:       fi.opts.GitOptions.URL,
+		Branch:    fi.opts.GitOptions.Branch,
+		Bootstrap: true,
+	}
+	cloneDir, err := fi.gitClient.CloneRepoInTmpDir("eksctl-install-flux-clone-", options)
 	if err != nil {
-		return errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitOptions.URL)
+		return "", errors.Wrapf(err, "cannot clone repository %s", fi.opts.GitOptions.URL)
 	}
 	cleanCloneDir := false
 	defer func() {
@@ -161,42 +165,42 @@ func (fi *Installer) Run(ctx context.Context) error {
 	logger.Info("Writing Flux manifests")
 	fluxManifestDir := filepath.Join(cloneDir, fi.opts.GitFluxPath)
 	if err := writeFluxManifests(fluxManifestDir, manifests); err != nil {
-		return err
+		return "", err
 	}
 
 	if fi.opts.Amend {
 		logger.Info("Stopping to amend the the Flux manifests, please exit the shell when done.")
 		if err := runShell(fluxManifestDir); err != nil {
-			return err
+			return "", err
 		}
 		// Re-read the manifests, as they may have changed:
 		manifests, err = readFluxManifests(fluxManifestDir)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	if err := fi.createFluxNamespaceIfMissing(manifests); err != nil {
-		return err
+		return "", err
 	}
 
 	if len(secrets) > 0 {
 		logger.Info("Applying Helm TLS Secret(s)")
 		if err := fi.applySecrets(secrets); err != nil {
-			return err
+			return "", err
 		}
 		logger.Warning("Note: certificate secrets aren't added to the Git repository for security reasons")
 	}
 
 	logger.Info("Applying manifests")
 	if err := fi.applyManifests(manifests); err != nil {
-		return err
+		return "", err
 	}
 
 	if fi.opts.WithHelm {
 		logger.Info("Waiting for Helm Operator to start")
 		if err := waitForHelmOpToStart(ctx, fi.opts.Namespace, fi.opts.Timeout, fi.k8sRestConfig, fi.k8sClientSet); err != nil {
-			return err
+			return "", err
 		}
 		logger.Info("Helm Operator started successfully")
 		logger.Info("see https://docs.fluxcd.io/projects/helm-operator for details on how to use the Helm Operator")
@@ -205,21 +209,21 @@ func (fi *Installer) Run(ctx context.Context) error {
 	logger.Info("Waiting for Flux to start")
 	fluxSSHKey, err := waitForFluxToStart(ctx, fi.opts.Namespace, fi.opts.Timeout, fi.k8sRestConfig, fi.k8sClientSet)
 	if err != nil {
-		return err
+		return "", err
 	}
 	logger.Info("Flux started successfully")
 	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
 	logger.Info("Committing and pushing manifests to %s", fi.opts.GitOptions.URL)
 	if err := fi.addFilesToRepo(ctx, cloneDir); err != nil {
-		return err
+		return "", err
 	}
 	cleanCloneDir = true
 
 	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
-	logger.Info("please configure %s so that the following Flux SSH public key has write access to it\n%s",
+	instruction := fmt.Sprintf("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.GitOptions.URL, fluxSSHKey.Key)
-	return nil
+	return instruction, nil
 }
 
 func (fi *Installer) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrastructurePaths, error) {

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -49,8 +48,8 @@ func doUpdateKubeProxy(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
-		return errors.Wrapf(err, "getting credentials for cluster %q", meta.Name)
+	if ok, err := ctl.CanUpdate(cfg); !ok {
+		return err
 	}
 
 	rawClient, err := ctl.NewRawClient(cfg)

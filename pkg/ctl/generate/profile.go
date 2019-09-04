@@ -63,8 +63,7 @@ func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
 		Processor: processor,
 		Path:      o.ProfilePath,
 		GitOpts:   o.GitOptions,
-		GitCloner: git.NewGitClient(context.Background(), git.ClientParams{
-			Timeout:           git.DefaultGitTimeout,
+		GitCloner: git.NewGitClient(git.ClientParams{
 			PrivateSSHKeyPath: o.PrivateSSHKeyPath,
 		}),
 		FS: afero.NewOsFs(),

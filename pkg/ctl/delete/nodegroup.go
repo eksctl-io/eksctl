@@ -2,7 +2,6 @@ package delete
 
 import (
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -62,8 +61,8 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		return err
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
-		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	if ok, err := ctl.CanOperate(cfg); !ok {
+		return err
 	}
 
 	clientSet, err := ctl.NewStdClientSet(cfg)
@@ -115,7 +114,8 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
 
 	{
-		tasks, err := stackManager.NewTasksToDeleteNodeGroups(filteredNodeGroups, cmd.Wait, nil)
+		ngSubset, _ := ngFilter.MatchAll(cfg.NodeGroups)
+		tasks, err := stackManager.NewTasksToDeleteNodeGroups(ngSubset.Has, cmd.Wait, nil)
 		if err != nil {
 			return err
 		}

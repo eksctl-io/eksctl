@@ -36,23 +36,19 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 		It("should not return an error", func() {
 			cmd := eksctlCreateCmd.WithArgs(
 				"cluster",
-				"--verbose", "4",
+				"--verbose", "2",
 				"--name", delBeforeActiveName,
 				"--tags", "alpha.eksctl.io/description=eksctl delete before active test",
-				"--nodegroup-name", initNG,
-				"--node-labels", "ng-name="+initNG,
-				"--node-type", "t2.medium",
-				"--nodes", "1",
-				"--region", region,
+				"--without-nodegroup",
 				"--version", version,
 			)
-			cmd.Start()
-		})
+			gexecSession := cmd.Start()
 
-		It("should eventually show up as creating", func() {
 			awsSession := NewSession(region)
 			Eventually(awsSession, timeOut, pollInterval).Should(
 				HaveExistingCluster(delBeforeActiveName, awseks.ClusterStatusCreating, version))
+
+			gexecSession.Interrupt() // interrupt as soon as cluster is in creating stage
 		})
 	})
 
@@ -60,7 +56,6 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 		It("deleting cluster should have a zero exitcode", func() {
 			cmd := eksctlDeleteClusterCmd.WithArgs(
 				"--name", delBeforeActiveName,
-				"--region", region,
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})
@@ -82,7 +77,6 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 		It("should return an a non-zero exit code", func() {
 			cmd := eksctlDeleteClusterCmd.WithArgs(
 				"--name", delBeforeActiveName,
-				"--region", region,
 			)
 			Expect(cmd).To(RunSuccessfully())
 		})

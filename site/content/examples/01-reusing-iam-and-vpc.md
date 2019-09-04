@@ -31,14 +31,10 @@ iam:
   serviceRoleARN: "arn:aws:iam::11111:role/eks-base-service-role"
 
 nodeGroups:
-  - name: my-test-m5-private
-    labels: {pool: my-test-m5-private}
+  - name: ng-1
+
     instanceType: m5.large
     desiredCapacity: 3
-    minSize: 1
-    maxSize: 15
-    volumeSize: 50
-    volumeType: gp2
     iam:
       instanceProfileARN: "arn:aws:iam::11111:instance-profile/eks-nodes-base-role"
       instanceRoleARN: "arn:aws:iam::1111:role/eks-nodes-base-role"

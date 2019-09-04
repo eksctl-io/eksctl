@@ -75,8 +75,8 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		return err
 	}
 
-	if err := ctl.RefreshClusterConfig(cfg); err != nil {
-		return errors.Wrapf(err, "getting credentials for cluster %q", cfg.Metadata.Name)
+	if ok, err := ctl.CanOperate(cfg); !ok {
+		return err
 	}
 
 	if err := checkVersion(cmd, ctl, cfg.Metadata); err != nil {

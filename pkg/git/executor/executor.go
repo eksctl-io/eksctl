@@ -1,10 +1,8 @@
 package executor
 
 import (
-	"context"
 	"os"
 	"os/exec"
-	"time"
 )
 
 // Executor executes commands shelling out and binding the stdout and stderr to the os ones
@@ -14,25 +12,19 @@ type Executor interface {
 
 // ShellExecutor an executor that shells out to run commands
 type ShellExecutor struct {
-	parentCtx context.Context
-	timeout   time.Duration
-	envVars   []string
+	envVars []string
 }
 
 // NewShellExecutor creates a new executor that runs commands
-func NewShellExecutor(ctx context.Context, timeout time.Duration, envVars []string) Executor {
+func NewShellExecutor(envVars []string) Executor {
 	return ShellExecutor{
-		parentCtx: ctx,
-		timeout:   timeout,
-		envVars:   envVars,
+		envVars: envVars,
 	}
 }
 
 // Exec execute the command inside the directory with the specified args
 func (e ShellExecutor) Exec(command string, dir string, args ...string) error {
-	ctx, ctxCancel := context.WithTimeout(e.parentCtx, e.timeout)
-	defer ctxCancel()
-	cmd := exec.CommandContext(ctx, command, args...)
+	cmd := exec.Command(command, args...)
 	if len(e.envVars) > 0 {
 		cmd.Env = e.envVars
 	}

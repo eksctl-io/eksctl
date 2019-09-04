@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -278,5 +279,54 @@ var _ = Describe("EKS API wrapper", func() {
 			})
 		})
 
+	})
+
+	Describe("can get OIDC issuer URL and host fingerprint", func() {
+		var (
+			ctl *ClusterProvider
+			cfg *api.ClusterConfig
+			err error
+
+			issuer = "https://exampleIssuer.eksctl.io/id/13EBFE0C5BD60778E91DFE559E02689C"
+		)
+
+		BeforeEach(func() {
+			p := mockprovider.NewMockProvider()
+			ctl = &ClusterProvider{
+				Provider: p,
+				Status:   &ProviderStatus{},
+			}
+
+			cfg = api.NewClusterConfig()
+
+			describeClusterOutput := &awseks.DescribeClusterOutput{
+				Cluster: testutils.NewFakeCluster("testcluster", awseks.ClusterStatusActive),
+			}
+
+			describeClusterOutput.Cluster.Version = aws.String(api.Version1_13)
+
+			describeClusterOutput.Cluster.Identity = &awseks.Identity{
+				Oidc: &awseks.OIDC{
+					Issuer: &issuer,
+				},
+			}
+
+			p.MockEKS().On("DescribeCluster", mock.MatchedBy(func(input *awseks.DescribeClusterInput) bool {
+				return true
+			})).Return(describeClusterOutput, nil)
+		})
+
+		It("should get cluster, cache status and construct OIDC manager", func() {
+			err = ctl.RefreshClusterStatus(cfg)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(cfg.Status.Endpoint).To(Equal("https://localhost/"))
+			Expect(cfg.Status.CertificateAuthorityData).To(Equal([]byte("test\n")))
+
+			Expect(ctl.ControlPlaneVersion()).To(Equal(api.Version1_13))
+
+			_, err := ctl.NewOpenIDConnectManager(cfg)
+			Expect(err).NotTo(HaveOccurred())
+		})
 	})
 })

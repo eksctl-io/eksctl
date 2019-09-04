@@ -9,7 +9,6 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	// "github.com/weaveworks/eksctl/pkg/printers"
 )
 
 var _ = Describe("cmdutils configfile", func() {
@@ -32,6 +31,7 @@ var _ = Describe("cmdutils configfile", func() {
 				cmd := &Cmd{
 					ClusterConfig: cfg,
 					NameArg:       "foo-1",
+					CobraCommand:  newCmd(),
 				}
 
 				err := NewMetadataLoader(cmd).Load()
@@ -43,6 +43,7 @@ var _ = Describe("cmdutils configfile", func() {
 				cmd := &Cmd{
 					ClusterConfig: cfg,
 					NameArg:       "foo-2",
+					CobraCommand:  newCmd(),
 				}
 
 				err := NewMetadataLoader(cmd).Load()
@@ -80,7 +81,7 @@ var _ = Describe("cmdutils configfile", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(examples).To(HaveLen(11))
+			Expect(examples).To(HaveLen(13))
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),

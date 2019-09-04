@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -33,7 +34,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 			return errors.New("please supply a valid --git-private-ssh-key-path argument")
 		}
 
-		if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+		if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
 			return err
 		}
 		cfg := cmd.ClusterConfig
@@ -45,7 +46,7 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 		if err := ctl.CheckAuth(); err != nil {
 			return err
 		}
-		if err := ctl.RefreshClusterConfig(cfg); err != nil {
+		if ok, err := ctl.CanOperate(cfg); !ok {
 			return err
 		}
 		kubernetesClientConfigs, err := ctl.NewClient(cfg)
@@ -63,8 +64,10 @@ func installFluxCmd(cmd *cmdutils.Cmd) {
 			return errors.Errorf("cannot create Kubernetes client set: %s", err)
 		}
 
-		installer := flux.NewInstaller(context.Background(), k8sRestConfig, k8sClientSet, &opts)
-		return installer.Run(context.Background())
+		installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts)
+		userInstructions, err := installer.Run(context.Background())
+		logger.Info(userInstructions)
+		return err
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {

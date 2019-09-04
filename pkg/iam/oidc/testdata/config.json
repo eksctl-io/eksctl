@@ -1,0 +1,15 @@
+{
+    "signing": {
+        "profiles": {
+            "test-server": {
+                "expiry": "43800h",
+                "usages": [
+                    "signing",
+                    "digital signing",
+                    "key encipherment",
+                    "server auth"
+                ]
+            }
+        }
+    }
+}

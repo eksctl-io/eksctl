@@ -101,4 +101,31 @@ var _ = Describe("Kubernetes serviceaccount object helpers", func() {
 			Expect(resp.Annotations).To(HaveKeyWithValue("test", "2"))
 		}
 	})
+
+	It("can delete existsing service account, and doesn't fail if it doesn't exist", func() {
+		sa := metav1.ObjectMeta{Name: "sa-2", Namespace: "ns-2"}
+
+		err = MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa)
+		Expect(err).ToNot(HaveOccurred())
+
+		ok, err := CheckServiceAccountExists(clientSet, sa)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ok).To(BeTrue())
+
+		// should delete it
+		err = MaybeDeleteServiceAccount(clientSet, sa)
+		Expect(err).ToNot(HaveOccurred())
+
+		ok, err = CheckServiceAccountExists(clientSet, sa)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ok).To(BeFalse())
+
+		// shouldn't fail if it doesn't exist
+		err = MaybeDeleteServiceAccount(clientSet, sa)
+		Expect(err).ToNot(HaveOccurred())
+
+		ok, err = CheckServiceAccountExists(clientSet, sa)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(ok).To(BeFalse())
+	})
 })

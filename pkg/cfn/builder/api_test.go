@@ -391,8 +391,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
-			IAM: api.ClusterIAM{
-				ServiceRoleARN: arn,
+			IAM: &api.ClusterIAM{
+				ServiceRoleARN: aws.String(arn),
 			},
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
@@ -2101,7 +2101,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		cfg.Metadata.Name = "test-1"
 
-		cfg.IAM.ServiceRoleARN = "role-1"
+		role1 := "role-1"
+
+		cfg.IAM = &api.ClusterIAM{
+			ServiceRoleARN: &role1,
+		}
 
 		build(cfg, "eksctl-test-1-cluster", ng)
 
@@ -2115,7 +2119,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(cp.Name).To(Equal(cfg.Metadata.Name))
 
-			Expect(cp.RoleArn).To(Equal("role-1"))
+			Expect(cp.RoleArn).To(Equal(role1))
 
 			Expect(cp.ResourcesVpcConfig.SecurityGroupIds).To(HaveLen(1))
 			Expect(cp.ResourcesVpcConfig.SecurityGroupIds[0]).To(Equal(cfg.VPC.SecurityGroup))

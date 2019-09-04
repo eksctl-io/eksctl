@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -26,13 +27,18 @@ type Applier struct {
 func (g *Applier) Run(ctx context.Context) error {
 
 	// Install Flux, Helm and Tiller. Clones the user's repo
-	err := g.FluxInstaller.Run(context.Background())
+	userInstructions, err := g.FluxInstaller.Run(context.Background())
 	if err != nil {
 		return err
 	}
 
 	// Clone user's repo to apply Quick Start profile
-	err = g.GitClient.CloneRepoInPath(g.UserRepoPath, g.UsersRepoOpts.Branch, g.UsersRepoOpts.URL)
+	options := git.CloneOptions{
+		URL:       g.UsersRepoOpts.URL,
+		Branch:    g.UsersRepoOpts.Branch,
+		Bootstrap: true,
+	}
+	err = g.GitClient.CloneRepoInPath(g.UserRepoPath, options)
 	if err != nil {
 		return err
 	}
@@ -57,5 +63,6 @@ func (g *Applier) Run(ctx context.Context) error {
 		return err
 	}
 
+	logger.Info(userInstructions)
 	return nil
 }

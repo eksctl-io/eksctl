@@ -92,8 +92,8 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 	}
 
 	serviceRoleARN := gfn.MakeFnGetAttString("ServiceRole.Arn")
-	if c.spec.IAM.ServiceRoleARN != "" {
-		serviceRoleARN = gfn.NewString(c.spec.IAM.ServiceRoleARN)
+	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {
+		serviceRoleARN = gfn.NewString(*c.spec.IAM.ServiceRoleARN)
 	}
 
 	c.newResource("ControlPlane", &gfn.AWSEKSCluster{

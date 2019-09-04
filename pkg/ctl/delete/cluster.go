@@ -13,6 +13,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/elb"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -92,6 +94,28 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
+	if ok, err := ctl.CanDelete(cfg); !ok {
+		return err
+	}
+
+	var (
+		clientSet kubernetes.Interface
+		oidc      *iamoidc.OpenIDConnectManager
+	)
+
+	clusterOperable, _ := ctl.CanOperate(cfg)
+	if clusterOperable {
+		clientSet, err = ctl.NewStdClientSet(cfg)
+		if err != nil {
+			return err
+		}
+
+		oidc, err = ctl.NewOpenIDConnectManager(cfg)
+		if err != nil {
+			return err
+		}
+	}
+
 	stackManager := ctl.NewStackManager(cfg)
 
 	ssh.DeleteKeys(meta.Name, ctl.Provider)
@@ -106,22 +130,18 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 	}
 
 	{
-
 		// only need to cleanup ELBs if the cluster has already been created.
-		if err := ctl.RefreshClusterConfig(cfg); err == nil {
-			cs, err := ctl.NewStdClientSet(cfg)
-			if err != nil {
-				return err
-			}
+		if clusterOperable {
 			ctx, cleanup := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cleanup()
 
 			logger.Info("cleaning up LoadBalancer services")
-			if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), cs, cfg); err != nil {
+			if err := elb.Cleanup(ctx, ctl.Provider.EC2(), ctl.Provider.ELB(), ctl.Provider.ELBV2(), clientSet, cfg); err != nil {
 				return err
 			}
 		}
-		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(cmd.Wait, func(errs chan error, _ string) error {
+
+		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(clusterOperable, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.LoadClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)

@@ -34,10 +34,21 @@ func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 	return &commonClusterConfigLoader{
 		Cmd: cmd,
 
-		validateWithConfigFile:             nilValidatorFunc,
-		flagsIncompatibleWithConfigFile:    sets.NewString("name", "region", "version"),
-		validateWithoutConfigFile:          nilValidatorFunc,
-		flagsIncompatibleWithoutConfigFile: sets.NewString(),
+		validateWithConfigFile: nilValidatorFunc,
+		flagsIncompatibleWithConfigFile: sets.NewString(
+			"name",
+			"region",
+			"version",
+			"cluster",
+			"namepace",
+		),
+		validateWithoutConfigFile: nilValidatorFunc,
+		flagsIncompatibleWithoutConfigFile: sets.NewString(
+			"only",
+			"include",
+			"exclude",
+			"only-missing",
+		),
 	}
 }
 
@@ -121,13 +132,33 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-// NewGitopsMetadataLoader handles loading of clusterConfigFile vs using flags for gitops commands
-func NewGitopsMetadataLoader(cmd *Cmd) ClusterConfigLoader {
+// NewGitopsApplyLoader handles loading of clusterConfigFile vs using flags for gitops commands
+func NewGitopsApplyLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithoutConfigFile = func() error {
+		meta := l.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
 		return nil
 	}
+
+	return l
+}
+
+// NewInstallFluxLoader handles loading of clusterConfigFile vs using flags for install commands
+func NewInstallFluxLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		meta := l.ClusterConfig.Metadata
+		if meta.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+		return nil
+	}
+
 	return l
 }
 
@@ -219,7 +250,6 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfig
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
-		"cluster",
 		"nodes",
 		"nodes-min",
 		"nodes-max",
@@ -241,17 +271,8 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfig
 	)
 
 	l.validateWithConfigFile = func() error {
-		if err := ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.NodeGroups); err != nil {
-			return err
-		}
-		return nil
+		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.NodeGroups)
 	}
-
-	l.flagsIncompatibleWithoutConfigFile.Insert(
-		"only",
-		"include",
-		"exclude",
-	)
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
@@ -293,19 +314,11 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	l.flagsIncompatibleWithConfigFile.Insert(
-		"cluster",
-	)
-
 	l.validateWithConfigFile = func() error {
 		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.NodeGroups)
 	}
 
 	l.flagsIncompatibleWithoutConfigFile.Insert(
-		"only",
-		"include",
-		"exclude",
-		"only-missing",
 		"approve",
 	)
 
@@ -346,6 +359,138 @@ func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 	)
 
 	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
+
+	return l
+}
+
+// NewUtilsAssociateIAMOIDCProviderLoader will load config or use flags for 'eksctl utils associal-iam-oidc-provider'
+func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithoutConfigFile = func() error {
+		l.ClusterConfig.IAM.WithOIDC = api.Enabled()
+		return l.validateMetadataWithoutConfigFile()
+	}
+
+	l.validateWithConfigFile = func() error {
+		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
+			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
+		}
+		return nil
+	}
+
+	return l
+}
+
+// NewCreateIAMServiceAccountLoader will laod config or use flags for 'eksctl create iamserviceaccount'
+func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilter) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"policy-arn",
+	)
+
+	l.validateWithConfigFile = func() error {
+		return saFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.IAM.ServiceAccounts)
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		if l.ClusterConfig.Metadata.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+
+		if len(l.ClusterConfig.IAM.ServiceAccounts) != 1 {
+			return fmt.Errorf("unexpected number of service accounts")
+		}
+
+		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
+
+		if serviceAccount.Name == "" {
+			return ErrMustBeSet("--name")
+		}
+
+		if len(serviceAccount.AttachPolicyARNs) == 0 {
+			return ErrMustBeSet("--attach-policy-arn")
+		}
+
+		return nil
+	}
+
+	return l
+}
+
+// NewGetIAMServiceAccountLoader will load config or use flags for 'eksctl get iamserviceaccount'
+func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithConfigFile = func() error {
+		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
+			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
+		}
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		sa.AttachPolicyARNs = []string{""} // force to pass general validation
+
+		if l.ClusterConfig.Metadata.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+
+		if l.NameArg != "" {
+			sa.Name = l.NameArg
+		}
+
+		if sa.Name == "" {
+			l.ClusterConfig.IAM.ServiceAccounts = nil
+		}
+
+		l.Plan = false
+
+		return nil
+	}
+
+	return l
+}
+
+// NewDeleteIAMServiceAccountLoader will load config or use flags for 'eksctl delete iamserviceaccount'
+func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount, saFilter *IAMServiceAccountFilter) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithConfigFile = func() error {
+		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
+			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
+		}
+		return saFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.IAM.ServiceAccounts)
+	}
+
+	l.flagsIncompatibleWithoutConfigFile.Insert(
+		"approve",
+	)
+
+	l.validateWithoutConfigFile = func() error {
+		sa.AttachPolicyARNs = []string{""} // force to pass general validation
+
+		if l.ClusterConfig.Metadata.Name == "" {
+			return ErrMustBeSet("--cluster")
+		}
+
+		if sa.Name != "" && l.NameArg != "" {
+			return ErrNameFlagAndArg(sa.Name, l.NameArg)
+		}
+
+		if l.NameArg != "" {
+			sa.Name = l.NameArg
+		}
+
+		if sa.Name == "" {
+			return ErrMustBeSet("--name")
+		}
+
+		l.Plan = false
+
+		return nil
+	}
 
 	return l
 }

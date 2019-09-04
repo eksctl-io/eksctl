@@ -16,16 +16,15 @@ import (
 )
 
 // GetCurrentClusterConfigForLogging fetches current cluster logging configuration as two sets - enabled and disabled types
-func (c *ClusterProvider) GetCurrentClusterConfigForLogging(cl *api.ClusterMeta) (sets.String, sets.String, error) {
+func (c *ClusterProvider) GetCurrentClusterConfigForLogging(spec *api.ClusterConfig) (sets.String, sets.String, error) {
 	enabled := sets.NewString()
 	disabled := sets.NewString()
 
-	cluster, err := c.DescribeControlPlaneMustBeActive(cl)
-	if err != nil {
+	if ok, err := c.CanOperate(spec); !ok {
 		return nil, nil, errors.Wrap(err, "unable to retrieve current cluster logging configuration")
 	}
 
-	for _, logTypeGroup := range cluster.Logging.ClusterLogging {
+	for _, logTypeGroup := range c.Status.clusterInfo.cluster.Logging.ClusterLogging {
 		for _, logType := range logTypeGroup.Types {
 			if logType == nil {
 				return nil, nil, fmt.Errorf("unexpected response from EKS API - nil string")
