@@ -8,6 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -104,6 +105,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 	)
 
 	clusterOperable, _ := ctl.CanOperate(cfg)
+	oidcSupported := true
 	if clusterOperable {
 		clientSet, err = ctl.NewStdClientSet(cfg)
 		if err != nil {
@@ -112,7 +114,10 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 		oidc, err = ctl.NewOpenIDConnectManager(cfg)
 		if err != nil {
-			return err
+			if _, ok := err.(*eks.UnsupportedOIDCError); !ok {
+				return err
+			}
+			oidcSupported = false
 		}
 	}
 
@@ -122,7 +127,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 	kubeconfig.MaybeDeleteConfig(meta)
 
-	if hasDeprectatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprectatedStacks {
+	if hasDeprecatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprecatedStacks {
 		if err != nil {
 			return err
 		}
@@ -141,7 +146,8 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 			}
 		}
 
-		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(clusterOperable, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait, func(errs chan error, _ string) error {
+		deleteOIDCProvider := clusterOperable && oidcSupported
+		tasks, err := stackManager.NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider, oidc, kubernetes.NewCachedClientSet(clientSet), cmd.Wait, func(errs chan error, _ string) error {
 			logger.Info("trying to cleanup dangling network interfaces")
 			if err := ctl.LoadClusterVPC(cfg); err != nil {
 				return errors.Wrapf(err, "getting VPC configuration for cluster %q", cfg.Metadata.Name)
