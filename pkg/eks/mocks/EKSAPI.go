@@ -348,6 +348,41 @@ func (_m *EKSAPI) ListClusters(_a0 *eks.ListClustersInput) (*eks.ListClustersOut
 	return r0, r1
 }
 
+// ListClustersPages provides a mock function with given fields: _a0, _a1
+func (_m *EKSAPI) ListClustersPages(_a0 *eks.ListClustersInput, _a1 func(*eks.ListClustersOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.ListClustersInput, func(*eks.ListClustersOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListClustersPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EKSAPI) ListClustersPagesWithContext(_a0 context.Context, _a1 *eks.ListClustersInput, _a2 func(*eks.ListClustersOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListClustersInput, func(*eks.ListClustersOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListClustersRequest provides a mock function with given fields: _a0
 func (_m *EKSAPI) ListClustersRequest(_a0 *eks.ListClustersInput) (*request.Request, *eks.ListClustersOutput) {
 	ret := _m.Called(_a0)
@@ -424,6 +459,41 @@ func (_m *EKSAPI) ListUpdates(_a0 *eks.ListUpdatesInput) (*eks.ListUpdatesOutput
 	}
 
 	return r0, r1
+}
+
+// ListUpdatesPages provides a mock function with given fields: _a0, _a1
+func (_m *EKSAPI) ListUpdatesPages(_a0 *eks.ListUpdatesInput, _a1 func(*eks.ListUpdatesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.ListUpdatesInput, func(*eks.ListUpdatesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListUpdatesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EKSAPI) ListUpdatesPagesWithContext(_a0 context.Context, _a1 *eks.ListUpdatesInput, _a2 func(*eks.ListUpdatesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListUpdatesInput, func(*eks.ListUpdatesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListUpdatesRequest provides a mock function with given fields: _a0
@@ -635,4 +705,74 @@ func (_m *EKSAPI) UpdateClusterVersionWithContext(_a0 context.Context, _a1 *eks.
 	}
 
 	return r0, r1
+}
+
+// WaitUntilClusterActive provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilClusterActive(_a0 *eks.DescribeClusterInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeClusterInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilClusterActiveWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilClusterActiveWithContext(_a0 context.Context, _a1 *eks.DescribeClusterInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilClusterDeleted provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilClusterDeleted(_a0 *eks.DescribeClusterInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeClusterInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilClusterDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilClusterDeletedWithContext(_a0 context.Context, _a1 *eks.DescribeClusterInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
