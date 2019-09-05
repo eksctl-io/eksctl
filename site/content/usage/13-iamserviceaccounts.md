@@ -6,14 +6,12 @@ url: usage/iamserviceaccounts
 
 ## Introduction
 
-Amazon EKS supports IAM Roles for Service Accounts (IRSA) that allows cluster operators to map AWS IAM Roles to Kubernetes Service Accounts.
+Amazon EKS supports [IAM Roles for Service Accounts (IRSA)][eks-user-guide] that allows cluster operators to map AWS IAM Roles to Kubernetes Service Accounts.
 
 This provides fine-grained permission management for apps that run on EKS and use other AWS services. These could be apps that use S3,
 any other data services (RDS, MQ, STS, DynamoDB), or Kubernetes components like AWS ALB Ingress controller or ExternalDNS.
 
 You can easily create IAM Role and Service Account pairs with `eksctl`.
-
-<!-- TODO: links to official docs -->
 
 > NOTE: if you used [instance roles](https://eksctl.io/usage/iam-policies/), and are considering to use IRSA instead, you shouldn't mix the two.
 
@@ -22,9 +20,7 @@ You can easily create IAM Role and Service Account pairs with `eksctl`.
 It works via IAM OpenID Connect Provider (OIDC) that EKS exposes, and IAM Roles must be constructed with reference to the IAM OIDC Provider (specific to a given EKS cluster), and a reference to the Kubernetes Service Account it will be bound to.
 Once an IAM Role is created, a service account should include the ARN of that role as an annotation (`eks.amazonaws.com/role-arn`).
 
-Inside EKS, there is an [admission controller](https://github.com/aws/amazon-eks-pod-identity-webhook/) that injects AWS session credentials into pods respectively of the roles based on the annotation on the Service Account used by the pod. The credentials will get exposed by `AWS_ROLE_ARN` & `AWS_WEB_IDENTITY_TOKEN_FILE` environment variables. Given a recent version of AWS SDK is used (see AWS documentation for details of exact version), the application will use these credentials.
-
-<!-- TODO: links to official docs -->
+Inside EKS, there is an [admission controller](https://github.com/aws/amazon-eks-pod-identity-webhook/) that injects AWS session credentials into pods respectively of the roles based on the annotation on the Service Account used by the pod. The credentials will get exposed by `AWS_ROLE_ARN` & `AWS_WEB_IDENTITY_TOKEN_FILE` environment variables. Given a recent version of AWS SDK is used (see [AWS documentation][eks-user-guide-sdk] for details of exact version), the application will use these credentials.
 
 In `eksctl` the name of the resource is _iamserviceaccount_, which represents an IAM Role and Service Account pair.
 
@@ -136,7 +132,9 @@ eksctl create iamserviceaccount --config-file=<path>
 
 ### Further information
 
-- [IAM Roles For Service Accounts](https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/)
+- [Introducing Fine-grained IAM Roles For Service Accounts](https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/)
+- [AWS EKS User Guide - IAM Roles For Service Accounts][eks-user-guide]
 - [Mapping IAM users and role to Kubernetes RBAC roles](https://eksctl.io/usage/iam-identity-mappings/)
 
-<!-- TODO: links to official docs -->
+[eks-user-guide]: https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html
+[eks-user-guide-sdk]: https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts-minimum-sdk.html
