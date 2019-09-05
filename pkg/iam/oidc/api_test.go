@@ -252,11 +252,5 @@ func (s *testServer) serve() error {
 }
 
 func (s *testServer) close() error {
-	if err := s.listener.Close(); err != nil {
-		return err
-	}
-	if err := s.server.Close(); err != nil {
-		return err
-	}
-	return nil
+	return s.server.Close()
 }
