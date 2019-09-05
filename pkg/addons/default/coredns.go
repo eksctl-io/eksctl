@@ -97,7 +97,7 @@ func loadAssetCoreDNS(controlPlaneVersion string) (*metav1.List, error) {
 
 	for _, version := range api.SupportedVersions() {
 		if strings.HasPrefix(controlPlaneVersion, version+".") {
-			return LoadAsset(fmt.Sprint(CoreDNS, "-", version), "json")
+			return LoadAsset(fmt.Sprintf("%s-%s", CoreDNS, version), "json")
 		}
 	}
 
