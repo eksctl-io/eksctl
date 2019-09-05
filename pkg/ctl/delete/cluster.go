@@ -127,7 +127,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 	kubeconfig.MaybeDeleteConfig(meta)
 
-	if hasDeprectatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprectatedStacks {
+	if hasDeprecatedStacks, err := deleteDeprecatedStacks(stackManager); hasDeprecatedStacks {
 		if err != nil {
 			return err
 		}
