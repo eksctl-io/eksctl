@@ -496,7 +496,7 @@ Now that the templates are in the remote repository, the Quick Start is ready to
 EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster team1 --region eu-west-1 --git-url git@github.com:my-org/team1-cluster --quickstart-profile git@github.com:my-org/production-infra --git-email alice@my-org.com
 ```
 
-In this example we provide github.com:my-org/production-infra as the Quick Start profile and 
+In this example we provide `github.com:my-org/production-infra` as the Quick Start profile and 
 `github.com:my-org/team1-cluster` as the GitOps repository that is connected to the Flux instance in the cluster named
 `cluster1`.
 
