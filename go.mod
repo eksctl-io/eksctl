@@ -1,5 +1,5 @@
 // Make sure to run the following commands after changes to this file are made:
-// `make update-build-image-manifest && make push-build-image`
+// `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 module github.com/weaveworks/eksctl
 
 go 1.12
@@ -80,7 +80,7 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/arch v0.0.0-20190815191158-8a70ba74b3a1 // indirect
-	golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59
+	golang.org/x/tools v0.0.0-20190621195816-6e04913cbbac
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
@@ -90,7 +90,7 @@ require (
 	k8s.io/apiserver v0.0.0-20190226174732-cf2f1d68202d // indirect
 	k8s.io/cli-runtime v0.0.0-20190226180714-082c0831af2b
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/code-generator v0.0.0-20190808180452-d0071a119380
+	k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353
 	k8s.io/csi-api v0.0.0-20190301175547-a37926bd2215 // indirect
 	k8s.io/helm v2.13.1+incompatible
 	k8s.io/kops v0.0.0-20190222135932-278e6606534e
@@ -107,9 +107,15 @@ replace (
 	// Needed due to to Sirupsen/sirupsen case clash
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
-	github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8
+	// Override version since auto-detected one fails with GOPROXY
+	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
 	// go mod appears to pick wrong version of github.com/docker/distribution automatically, which breaks k8s.io/kubernetes@v1.12.6
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc
+	// https://github.com/kubernetes/code-generator/blob/732c9ca86353b432e0cd118b64a941cadff73357/go.mod#L23-L28
+	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20181025213731-e84da0312774
+	golang.org/x/sync => golang.org/x/sync v0.0.0-20181108010431-42b317875d0f
+	golang.org/x/sys => golang.org/x/sys v0.0.0-20190209173611-3b5209105503
+	golang.org/x/text => golang.org/x/text v0.3.1-0.20181227161524-e6919f6577db
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.0.0-20190226173710-145d52631d00
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190226180157-bd0469a053ff

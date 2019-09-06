@@ -1,0 +1,10 @@
+built_at := $(shell date +%s)
+
+git_commit = $(shell git describe --dirty --always)
+git_toplevel := $(shell git rev-parse --show-toplevel)
+
+unique_tag = $(shell printf "%s-%s-%s" `git rev-parse @` $(build_image_tag) $(built_at))
+
+eksctl_image_name ?= weaveworks/eksctl:latest
+
+intermediate_image_name = weaveworks/eksctl-intermediate:$(unique_tag)

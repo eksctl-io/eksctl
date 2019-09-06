@@ -1,37 +1,35 @@
 version: 2
 jobs:
-  make-eksctl-image:
+  make-test:
     docker:
-      - image: weaveworks/eksctl-build:base-latest
+      - image: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
+    resource_class: large
     environment:
-        GOCACHE: /home/circleci/.cache/go-build/
-        GOPATH: /home/circleci/go
+      #GOPATH: /tmp/go/path
+      #GOCACHE: /tmp/go/cache
+      JUNIT_REPORT_DIR: /tmp/test-results
     steps:
       - checkout
-      - restore_cache:
-            keys:
-                - go-cache-{{ .Branch }}-{{ .Revision }}
-                - go-cache-{{ .Branch }}-
-                - go-cache-
-      - setup_remote_docker: {docker_layer_caching: true}
-      - run: mkdir -p ./test-results/ginkgo
-      - run: make eksctl-image
-      - run: sudo chown -R circleci.circleci /home/circleci/.cache/go-build/ /home/circleci/go/pkg/mod/
-      - save_cache:
-            key: go-cache-{{ .Branch }}-{{ .Revision }}
-            paths:
-                - "/home/circleci/.cache/go-build/"
-                - "/home/circleci/go/pkg/mod/"
+      #- restore_cache:
+      #-   keys:
+      #-     - go-cache-{{ .Branch }}-{{ .Revision }}
+      #-     - go-cache-{{ .Branch }}-
+      #-     - go-cache-
+      - run: make test
+      #- run: sudo chown -R circleci.circleci $GOPATH $GOCACHE
+      #- save_cache:
+      #    key: go-cache-{{ .Branch }}-{{ .Revision }}
+      #    paths: [ /var/tmp/go ]
       - store_test_results:
-          path: ./test-results
+          path: /tmp/test-results
       - store_artifacts:
-          path: ./test-results
+          path: /tmp/test-results
   make-release-candidate:
     docker:
-      - image: weaveworks/eksctl-build:base-latest
+      - image: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     environment:
-        GOCACHE: /home/circleci/.cache/go-build/
-        GOPATH: /home/circleci/go
+      GOPATH: /var/tmp/gopath
+      GOCACHE: /var/tmp/gocache
     steps:
       - checkout
       - restore_cache:
@@ -47,10 +45,10 @@ jobs:
 
   make-release:
     docker:
-      - image: weaveworks/eksctl-build:base-latest
+      - image: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     environment:
-        GOCACHE: /home/circleci/.cache/go-build/
-        GOPATH: /home/circleci/go
+      GOPATH: /var/tmp/gopath
+      GOCACHE: /var/tmp/gocache
     steps:
       - checkout
       - restore_cache:
@@ -68,27 +66,27 @@ workflows:
   version: 2
   any-commit:
     jobs:
-      - make-eksctl-image:
+      - make-test:
           filters:
             tags:
               ignore: /.*/
   release:
     jobs:
-      - make-eksctl-image:
+      - make-test:
           filters:
             branches:
               ignore: /.*/
             tags:
               ignore: /^latest_release$/
       - make-release-candidate:
-          requires: [make-eksctl-image]
+          requires: [make-test]
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
       - make-release:
-          requires: [make-eksctl-image]
+          requires: [make-test]
           filters:
             branches:
               ignore: /.*/

@@ -1,44 +1,11 @@
-built_at := $(shell date +%s)
-git_commit = $(shell git describe --dirty --always)
+include Makefile.common
 
-git_toplevel := $(shell git rev-parse --show-toplevel)
 version_pkg := github.com/weaveworks/eksctl/pkg/version
-
-build_image_input := Dockerfile.base Dockerfile install-build-deps.sh go.mod go.sum
-
-# We use git object hashes for determining the input files used for any given build image
-# E.g. given `weaveworks/eksctl-build:e6e8800773d3adf8e7999a23dcdb07414c66a4da` one can
-# run `git show e6e8800773d3adf8e7999a23dcdb07414c66a4da` to get contents of `.build_image_manifest`,
-# and `git show <hash>` for each of the hashes in the manifest to determine contents of each of the
-# files used in `$(build_image_input)` at the time.
-base_build_image_tag = base-$(shell git ls-tree --full-tree @ -- Dockerfile.base | awk '{ print $$3 }')
-build_image_tag = $(shell git ls-tree --full-tree @ -- .build_image_manifest | awk '{ print $$3 }')
-
-base_build_image_name = weaveworks/eksctl-build:$(base_build_image_tag)
-build_image_name = weaveworks/eksctl-build:$(build_image_tag)
-
-unique_tag = $(shell printf "%s-%s-%s" `git rev-parse @` $(build_image_tag) $(built_at))
-
-intermidiate_container_name = eksctl-build-$(unique_tag)
-intermediate_image_name = weaveworks/eksctl-intermediate:$(unique_tag)
-
-eksctl_image_name ?= weaveworks/eksctl:latest
 
 gopath := $(shell go env GOPATH)
 gocache := $(shell go env GOCACHE)
 
-docker_build := time docker build
-# We should eventually switch to buildkit, as it has a many feature and cleaner output with timing info,
-# but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
-# docker_build := env DOCKER_BUILDKIT=1 $(docker_build)
-
 GOBIN ?= $(gopath)/bin
-
-ifeq ($(OS),Windows_NT)
-TEST_TARGET=unit-test
-else
-TEST_TARGET=test
-endif
 
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
@@ -185,12 +152,11 @@ pkg/nodebootstrap/maxpods.go:
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-deep_copy_helper_input := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
+deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
-	time go mod download k8s.io/code-generator # make sure the code-generator is present
-	time env GOPATH="$(gopath)" bash "$(gopath)/pkg/mod/k8s.io/code-generator@v0.0.0-20190808180452-d0071a119380/generate-groups.sh" \
+	time env GOPATH="$(gopath)" bash "$(gopath)/pkg/mod/k8s.io/code-generator@v0.0.0-20190831074504-732c9ca86353/generate-groups.sh" \
 	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$(git_toplevel)" \
-	  || (cat codegenheader.txt ; cat $(generated_code_deep_copy_helper); exit 1)
+	  || (cat .license-header ; cat $(generated_code_deep_copy_helper); exit 1)
 
 # static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
 # so we need to forcibly generate it
@@ -209,72 +175,9 @@ $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 
 ##@ Docker
 
-update_build_image_manifest = git ls-tree --full-tree @ -- $(build_image_input) > .build_image_manifest
-
-.PHONY: check-build-image-manifest-up-to-date
-check-build-image-manifest-up-to-date: ## Update build image manifest and commits the changes
-	git diff --quiet -- $(build_image_input) || (git --no-pager diff $(build_image_input); exit 1)
-	$(update_build_image_manifest)
-	git diff --quiet -- .build_image_manifest || (git --no-pager diff .build_image_manifest; echo "HINT: to fix this, run 'make update-build-image-manifest'"; exit 1)
-
-.PHONY: update-build-image-manifest
-update-build-image-manifest: ## Update build image manifest and commits the changes
-	$(update_build_image_manifest)
-	git commit --quiet .build_image_manifest --message 'Update build image manifest'
-	$(info build image name is $(build_image_name))
-
-.PHONY: base-build-image
-base-build-image: ## Build the base build image that has all of external dependencies
-	-docker pull $(base_build_image_name)
-	cat Dockerfile.base \
-	  | $(docker_build) \
-	  --iidfile=.base_build_image.iid \
-	  --cache-from=$(base_build_image_name) \
-	  --tag=$(base_build_image_name) -
-
-.PHONY: build-image
-build-image: base-build-image check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
-	-docker pull $(build_image_name)
-	rm -rf .build_image_context
-	mkdir .build_image_context
-	cp $(build_image_input) .build_image_context/
-	@# git only ensures owner's perssions are set, it ignores group and other's permissions,
-	@# we need to force permissions here to avoid cache misses
-	chmod go-wrx .build_image_context/*
-	$(docker_build) \
-	  --iidfile=.build_image.iid \
-	  --cache-from=$(build_image_name) \
-	  --build-arg=BASE_BUILD_IMAGE_ID=$(base_build_image_name) \
-	  --tag=$(build_image_name) \
-	  .build_image_context/
-
-.PHONY: push-build-image
-push-build-image: base-build-image build-image ## Push the build image to the registry
-	docker push $(base_build_image_name)
-	docker tag $(base_build_image_name) weaveworks/eksctl-build:base-latest
-	docker push weaveworks/eksctl-build:base-latest
-	docker push $(build_image_name)
-
-.PHONY: intermediate-image
-intermediate-image: build-image ## Build the intermediate image that has all artefacts
-	time docker run \
-	  --tty \
-	  --name=$(intermidiate_container_name) \
-	  --env=TEST_TARGET=$(TEST_TARGET) \
-	  --volume=$(git_toplevel):/src \
-	  --volume=$(gocache):/root/.cache/go-build \
-	  --volume=$(gopath)/pkg/mod:/go/pkg/mod \
-	    $(build_image_name) /src/eksctl-image-builder.sh \
-	  || (docker rm $(intermidiate_container_name) ; exit 1)
-	time docker commit $(intermidiate_container_name) $(intermediate_image_name) \
-	  && docker rm $(intermidiate_container_name)
-
 .PHONY: eksctl-image
 eksctl-image: intermediate-image ## Build the eksctl image that has release artefacts and no build dependencies
-	printf 'FROM scratch\nCMD eksctl\nCOPY --from=%s /out /' $(intermediate_image_name) \
-	  | $(docker_build) \
-	      --iidfile=.eksctl_image.iid \
-	      --tag="$(eksctl_image_name)" -
+	$(MAKE) -f Makefile.docker $@
 
 ##@ Release
 
@@ -282,7 +185,7 @@ docker_run_release_script = docker run \
   --env=GITHUB_TOKEN \
   --env=CIRCLE_TAG \
   --env=CIRCLE_PROJECT_USERNAME \
-  --volume=$(CURDIR):/src \
+  --volume=$(git_toplevel):/src \
   --workdir=/src \
     $(intermediate_image_name)
 

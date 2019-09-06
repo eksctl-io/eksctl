@@ -1,0 +1,16 @@
+name: Image Update Workflow
+on: [push] # TODO make it post-merge
+
+jobs:
+  build:
+    name: Build All Images
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: make -f Makefile.docker eksctl-image
+      - run: make -f Makefile.docker check-build-image-manifest-up-to-date || (make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image)
+      # TODO update image used for commit workflow actions
+      # TODO push a commit back to the repo
+      # TODO push a image to the registry
+      # TODO try github registry
+

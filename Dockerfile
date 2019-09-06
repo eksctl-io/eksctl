@@ -1,21 +1,21 @@
 # Make sure to run the following commands after changes to this file are made:
-# `make update-build-image-manifest && make push-build-image`
+# `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 
-ARG BASE_BUILD_IMAGE_ID
-FROM ${BASE_BUILD_IMAGE_ID}
+# This digest corresponds to golang:1.12.9-alpine3.10
+FROM golang@sha256:e0660b4f1e68e0d408420acb874b396fc6dd25e7c1d03ad36e7d6d1155a4dff6 AS base
 
-WORKDIR /src
-ENV CGO_ENABLED=0
-COPY install-build-deps.sh go.mod go.sum /src/
-
-# Install all go dependencies and remove the go caches in a single step to reduce the image footprint
-# (caches won't be used later on, we overwrite them by volume-mounting)
-RUN ./install-build-deps.sh && \
-    go install github.com/goreleaser/goreleaser && \
-    go build github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator && \
-    rm -rf /root/.cache/go-build /go/pkg/mod
-
-
+# Build-time dependencies
+RUN apk add --no-cache \
+    bash \
+    curl \
+    docker-cli \
+    g++ \
+    gcc \
+    git \
+    libsass-dev \
+    make \
+    musl-dev \
+    && true
 
 # Runtime dependencies. Build the root filesystem of the eksctl image at /out
 RUN mkdir -p /out/etc/apk && cp -r /etc/apk/* /out/etc/apk/
@@ -29,8 +29,22 @@ RUN apk add --no-cache --initdb --root /out \
     openssh \
     && true
 
-RUN mv ./aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
-
 ENV KUBECTL_VERSION v1.11.5
 RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
     && chmod +x /out/usr/local/bin/kubectl
+
+# Remaining dependencies are controlled by go.mod
+WORKDIR /src
+ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org
+
+COPY install-build-deps.sh go.mod go.sum /src/
+
+# Install all build tools dependencies
+RUN ./install-build-deps.sh
+
+# Download and cache all of the modules
+RUN go mod download
+
+# The authenticator is a runtime dependency, so it needs to be in /out
+RUN go install github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
+    && mv $GOPATH/bin/aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
