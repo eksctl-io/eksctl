@@ -33,7 +33,7 @@ who run workloads at scale.
 
 To use EKS, you need to have your [AWS account][aws-account] set up.
 
-Next you will have to have the following tools installed:
+Next, you will have to have the following tools installed:
 
 - [AWS CLI][aws-cli]: at least `1.16.156` - older versions will require
   [AWS IAM Authenticator][aws-iam-authenticator] to be installed too
@@ -50,7 +50,7 @@ Next you will have to have the following tools installed:
 The main point of GitOps is to keep everything (config, alerts, dashboards,
 apps, literally everything) in Git and use it as a single source of truth.
 To keep your cluster configuration in Git, please go ahead and create an
-_empty_ repository. On Github for example, follow [these steps][github-repo].
+_empty_ repository. On Github, for example, follow [these steps][github-repo].
 
 [github-repo]: https://help.github.com/articles/create-a-repo
 
@@ -77,6 +77,18 @@ ip-192-168-15-6.eu-central-1.compute.internal     Ready    <none>   39s   v1.13.
 ip-192-168-64-189.eu-central-1.compute.internal   Ready    <none>   38s   v1.13.8-eks-cd3eb0
 ```
 
+```console
+$ kube get pods --all-namespaces 
+NAMESPACE     NAME                       READY   STATUS    RESTARTS   AGE
+kube-system   aws-node-l8mk7             1/1     Running   0          45s
+kube-system   aws-node-s2p2c             1/1     Running   0          45s
+kube-system   coredns-7d7755744b-f88w7   1/1     Running   0          45s
+kube-system   coredns-7d7755744b-qgc6r   1/1     Running   0          45s
+kube-system   kube-proxy-kg57w           1/1     Running   0          45s
+kube-system   kube-proxy-qzcmk           1/1     Running   0          45s
+```
+
+
 ## Applying GitOps
 
 The following command will set up your cluster with the `app-dev` profile,
@@ -98,14 +110,14 @@ deploy to the cluster.
 
 What will happen during the following command is:
 
-- `eksctl` will add the definition of your EKS cluster itself to Git,
-  so you can operate it through pull requests.
+- `eksctl` will add install [Flux](https://fluxcd.io) and Helm in your cluster, and add their
+  manifess to Git, so you can configure them through pull requests.
 - It will also add the `app-dev` GitOps Quick Start profile to it,
   which comes with a lot of very useful services and config. It is how
   we feel EKS `app-dev` clusters are best run.
 
-Run this command from your local check-out of your config repository.
-Or tweak `output-path` accordingly.
+Run this command from any folder in your file system or tweak 
+`output-path` accordingly. That's where `eksctl` will clone your repository.
 
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl \
@@ -133,41 +145,60 @@ There are more arguments and options, please refer to the
 [GitOps reference of eksctl](/usage/experimental/gitops-flux/)
 which details all the flags and resulting directory structure.
 
+This will set up Flux on your cluster and load GitOps
+Quick Start config files into your repo. It will use templating to add your
+cluster name and region to the configuration so that cluster components
+that need those values can work (e.g. `alb-ingress`).
+
 The command will take a while to run and it's a good idea to scan
 the output. You will note a similar bit of information in the log
 like this one:
 
 ```console
 [ℹ]  Flux will only operate properly once it has write-access to the Git repository
+...
 [ℹ]  please configure git@github.com:YOURUSER/eks-quickstart-app-dev.git so that the following Flux SSH public key has write access to it
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8msUDG9tEEWHKKJw1o8BpwfMkCvCepeUSMa9iTVK6Bmxeu2pA/ivBS8Qgx/Lg8Jnu4Gk2RbXYMt3KL3/lcIezLwqipGmVvLgBLvUccbBpeUpWt+SlW2LMwcMOnhF3n86VOYjaRPggoPtWfLhFIfnkvKOFLHPRYS3nqyYspFeCGUmOzQim+JAWokf4oGOOX4SNzRKjusboh93oy8fvWk8SrtSwLBWXOKu+kKXC0ecZJK7G0jW91qb40QvB+VeSAbfk8LJZcXGWWvWa3W0/woKzGNWBPZz+pGuflUjVwQG5GoOq5VVWu71gmXoXBS3bUNqlu6nDobd2LlqiXNViaszX
 ```
 
-Copy the lines starting with `ssh-rsa` and add it as a deploy key, to
-e.g. Github. There you can easily do this in the
-`Settings > Deploy keys > Add deploy key`. Just make sure you check
-`Allow write access` as well.
+Copy the lines starting with `ssh-rsa` and give it read/write access to your
+repository. For example, in Github, by adding it as a deploy key. There you
+can easily do this in the `Settings > Deploy keys > Add deploy key`. Just
+make sure you check `Allow write access` as well.
 
 The next time Flux syncs from Git, it will start updating the cluster
 and actively deploying.
 
-This will set up [Flux](https://fluxcd.io) on your cluster and load GitOps
-Quick Start config files into your repo. It will use templating to add your
-cluster name and region to the configuration so that key cluster components
-that need those values can work (e.g. `alb-ingress`).
-
-If you run `git pull` next, you will see that Flux has commited them to your
+If you run `git pull` next, you will see that Flux has committed them to your
 config repository already.
 
 In our case we are going to see these new arrivals in the cluster:
 
-```console
-kubectl get pods -n kubernetes-dashboard
 ```
-
-```console
-kubernetes-dashboard   dashboard-metrics-scraper-f7b5dbf7d-kwz7n   1/1     Running   0          4m
-kubernetes-dashboard   kubernetes-dashboard-7447f48f55-2pl66       1/1     Running   0          4m
+$ kube get pods --all-namespaces 
+NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
+amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0           4m28s
+amazon-cloudwatch      fluentd-cloudwatch-4rwwr                                  1/1     Running                      0           4m28s
+demo                   podinfo-75b8547f78-56dll                                  1/1     Running                      0          103s
+flux                   flux-56b5664cdd-nfzx2                                     1/1     Running                      0          11m
+flux                   flux-helm-operator-6bc7c85bb5-l2nzn                       1/1     Running                      0          11m
+flux                   memcached-958f745c-dqllc                                  1/1     Running                      0          11m
+flux                   tiller-deploy-7ccc4b4d45-w2mrt                            1/1     Running                      0          11m
+kube-system            alb-ingress-controller-6b64bcbbd8-6l7kf                   1/1     Running                      0          4m28s
+kube-system            aws-node-l49ct                                            1/1     Running                      0          14m
+kube-system            cluster-autoscaler-5b8c96cd98-26z5f                       1/1     Running                      0          4m28s
+kube-system            coredns-7d7755744b-4jkp6                                  1/1     Running                      0          21m
+kube-system            coredns-7d7755744b-ls5d9                                  1/1     Running                      0          21m
+kube-system            kube-proxy-wllff                                          1/1     Running                      0          14m
+kubernetes-dashboard   dashboard-metrics-scraper-f7b5dbf7d-rm5z7                 1/1     Running                      0          4m28s
+kubernetes-dashboard   kubernetes-dashboard-7447f48f55-94rhg                     1/1     Running                      0          4m28s
+monitoring             alertmanager-prometheus-operator-alertmanager-0           2/2     Running                      0          78s
+monitoring             metrics-server-7dfc675884-q9qps                           1/1     Running                      0          4m24s
+monitoring             prometheus-operator-grafana-9bb769cf-pjk4r                2/2     Running                      0          89s
+monitoring             prometheus-operator-kube-state-metrics-79f476bff6-r9m2s   1/1     Running                      0          89s
+monitoring             prometheus-operator-operator-58fcb66576-6dwpg             1/1     Running                      0          89s
+monitoring             prometheus-operator-prometheus-node-exporter-tllwl        1/1     Running                      0          89s
+monitoring             prometheus-prometheus-operator-prometheus-0               3/3     Running                      1          72s
 ```
 
 All of the cluster configuration can be easily edited in Git now.
@@ -219,7 +250,7 @@ Congratulations to your GitOpsed cluster on EKS!
 1. `eksctl generate profile`
 
 So for more complex use cases, you will want to run these steps
-separately and on your own and adjust flags and options as necessary. The
+separately on your own and adjust flags and options as necessary. The
 first command installs Flux and links it to a Git repo that you provide.
 The second generates the manifest files from the GitOps Quick Start profile
 locally, so that you can edit them before pushing to your Git repo.
@@ -248,10 +279,19 @@ EKSCTL_EXPERIMENTAL=true eksctl install flux \
     --name wonderful-wardrobe-1565767990
 ```
 
-After about a minute your cluster will have `flux` running, which will
-monitor your git repository once you added an SSH key to e.g. Github deploy keys.
-The [Flux Helm Operator](https://github.com/fluxcd/helm-operator) and Tiller will
-be deployed in your cluster too.
+After about a minute your cluster will have `flux`, the
+[Flux Helm Operator](https://github.com/fluxcd/helm-operator) and Tiller running.
+
+```console
+$ kube get pods --namespace flux
+NAME                                  READY   STATUS    RESTARTS   AGE
+flux-7975d44685-57lk8                 1/1     Running   0          10m
+flux-helm-operator-6bc7c85bb5-ws7rm   1/1     Running   0          10m
+memcached-958f745c-225xv              1/1     Running   0          10m
+tiller-deploy-7ccc4b4d45-mhlcf        1/1     Running   0          10m
+```
+
+Flux will monitor your git repository once you added an SSH key to e.g. Github deploy keys.
 
 This key can be found at the end of the output of the command, this
 might for example be:
@@ -274,7 +314,7 @@ repo](https://github.com/fluxcd/flux-get-started) from above, here's
 what you will see in your cluster:
 
 ```console
-kubectl get pods -n demo
+kubectl get pods --namespace demo
 ```
 
 ```console
@@ -289,22 +329,21 @@ discussed in our [`install flux` docs](/usage/experimental/gitops-flux/).
 ### Handcrafting your configuration
 
 In this second step we will use `eksctl generate profile`, so you can
-easily handcraft your cluster configuration and maintain it in Git, just
-like you would for the workloads you are running.
+easily handcraft your workloads' configuration and maintain it in Git.
 
 During the previous call (`eksctl install flux`), we instructed Flux
-to watch a config repository and deploy changes to the cluster. This
-config repository is where the workloads are defined. Now we will add
+to watch a repository and deploy changes to the cluster. This
+repository is where the workloads are defined. Now we will add
 the config of the infrastructure tooling as well.
 
 `eksctl` has the ability to use a base config for for the
-infrastructure tooling. So if your organisation has already experience
-in setting up clusters and use the same defaults, it makes sense to use
-those as a base config. You could be entirely starting from scratch here
-too. What we will do in this part of the tutorial is using
-`weaveworks/eks-quickstart-app-dev`, which is the `app-dev` GitOps Quick
-Start profile. To create your own base config repository check out
-[the documentation](usage/experimental/gitops-flux/#creating-your-own-quick-start-profile).
+infrastructure tooling, also known as a Quick Star profile. So if your 
+organisation has already experience in setting up clusters and use the
+same defaults, it makes sense to use those as a profile. You could
+be entirely starting from scratch here too. What we will do in this part
+of the tutorial is using `weaveworks/eks-quickstart-app-dev`, which is
+the `app-dev` GitOps Quick Start profile. To create your own profile
+check out [the documentation](usage/experimental/gitops-flux/#creating-your-own-quick-start-profile).
 
 Now please run:
 
@@ -320,22 +359,23 @@ least wants:
 
 - `--name`: the name of the cluster - check `eksctl get cluster`
   to see what the name of yours is
-- `--git-url`: the Git URL of the base config of your cluster
+- `--git-url`: the Git URL of the Quick Start profile to apply to the cluster
 - `--profile-path`: a local path: this is an empty new directory
   (here `cluster-config`) you create in your local checkout of
   the config repository, which we used in the previous command
 
-The base config can be something you and your organisation
+The Quick Start profile can be something you and your organisation
 tailored to your needs, but can be something like our [app-dev
 Quick Start profile][eks-quickstart-app-dev] as well. It is meant
 to be a starting point for clusters you can iterate over.
 
-[eks-quickstart-app-dev]: https://github.com/weaveworks/eks-quickstart-app-dev
 
 So after all this preface, what happens when we run the command?
-`eksctl` will check out the base config (here we use a copy of the
-GitOps example config) in an empty sub-directory (`cluster-config`)
-of our local checkout of `flux-get-started`.
+`eksctl` will check out the Quick Start profile (here we use
+[app-dev profile][eks-quickstart-app-dev]) in an empty
+sub-directory (`cluster-config`) of our local checkout of `flux-get-started`.
+
+[eks-quickstart-app-dev]: https://github.com/weaveworks/eks-quickstart-app-dev
 
 All that is left now to get our cluster components managed by Flux
 is to commit them to our config repository:
@@ -353,7 +393,7 @@ cluster.
 In our case we are going to see these new arrivals in the cluster:
 
 ```console
-kubectl get pods -n kubernetes-dashboard
+kubectl get pods --namespace kubernetes-dashboard
 ```
 
 ```console
