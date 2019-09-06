@@ -230,6 +230,9 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	} else {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstancesDistribution.InstanceTypes[0])
 	}
+	if n.spec.EBSOptimized != nil {
+		launchTemplateData.EbsOptimized = gfn.NewBoolean(*n.spec.EBSOptimized)
+	}
 
 	return launchTemplateData
 }

@@ -478,6 +478,9 @@ type NodeGroup struct {
 	MaxSize *int `json:"maxSize,omitempty"`
 
 	// +optional
+	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
+
+	// +optional
 	VolumeSize *int `json:"volumeSize"`
 	// +optional
 	VolumeType *string `json:"volumeType"`
