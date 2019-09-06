@@ -189,7 +189,7 @@ func (f *Filter) doLogInfo(resource string, names []string) {
 	if f.hasIncludeRules() {
 		logger.Info("combined include rules: %s", f.describeIncludeRules())
 		if included.Len() == 0 {
-			logger.Info("no %ss were included by the filter", resource)
+			logger.Info("no %ss present in the current set were included by the filter", resource)
 		}
 	}
 	if included.Len() > 0 {
@@ -198,7 +198,7 @@ func (f *Filter) doLogInfo(resource string, names []string) {
 	if f.hasExcludeRules() {
 		logger.Info("combined exclude rules: %s", f.describeExcludeRules())
 		if excluded.Len() == 0 {
-			logger.Info("no %ss were excluded by the filter", resource)
+			logger.Info("no %ss present in the current set were excluded by the filter", resource)
 		}
 	}
 	if excluded.Len() > 0 {
