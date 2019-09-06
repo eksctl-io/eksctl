@@ -42,13 +42,10 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 				"--without-nodegroup",
 				"--version", version,
 			)
-			gexecSession := cmd.Start()
-
+			cmd.Start()
 			awsSession := NewSession(region)
 			Eventually(awsSession, timeOut, pollInterval).Should(
 				HaveExistingCluster(delBeforeActiveName, awseks.ClusterStatusCreating, version))
-
-			gexecSession.Interrupt() // interrupt as soon as cluster is in creating stage
 		})
 	})
 
@@ -78,7 +75,7 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 			cmd := eksctlDeleteClusterCmd.WithArgs(
 				"--name", delBeforeActiveName,
 			)
-			Expect(cmd).To(RunSuccessfully())
+			Expect(cmd).ToNot(RunSuccessfully())
 		})
 	})
 })
