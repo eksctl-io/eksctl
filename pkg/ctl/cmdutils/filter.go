@@ -156,7 +156,9 @@ func (f *Filter) doSetExcludeExistingFilter(names []string, resource string) err
 			return fmt.Errorf("existing %s %q should be excluded, but matches include filter: %s", resource, n, f.describeIncludeRules())
 		}
 	}
-	logger.Info("%d %s(s) that already exist (%s) will be excluded", len(uniqueNames), resource, strings.Join(uniqueNames, ","))
+	if len(uniqueNames) != 0 {
+		logger.Info("%d %s(s) that already exist (%s) will be excluded", len(uniqueNames), resource, strings.Join(uniqueNames, ","))
+	}
 	return nil
 }
 
