@@ -133,7 +133,7 @@ To update `aws-node`, run:
 eksctl utils update-aws-node
 ```
 
-To update `corends`, run:
+To update `coredns`, run:
 
 ```
 eksctl utils update-coredns
