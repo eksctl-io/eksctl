@@ -180,12 +180,12 @@ func (f *Filter) doLogInfo(resource string, names []string) {
 		if count == 1 {
 			subjectFmt = "%d %s (%s) was %s"
 		}
-		logger.Info(subjectFmt, count, resource, list, status)
+		logger.Info(subjectFmt, count, resource, list, status+" (based on the include/exclude rules)")
 	}
 
 	included, excluded := f.doMatchAll(names)
 	if f.hasIncludeRules() {
-		logger.Info("include rules: %s", f.describeIncludeRules())
+		logger.Info("combined include rules: %s", f.describeIncludeRules())
 		if included.Len() == 0 {
 			logger.Info("no %ss were included by the filter", resource)
 		}
@@ -194,7 +194,7 @@ func (f *Filter) doLogInfo(resource string, names []string) {
 		logMsg(included, "included")
 	}
 	if f.hasExcludeRules() {
-		logger.Info("exclude rules: %s", f.describeExcludeRules())
+		logger.Info("combined exclude rules: %s", f.describeExcludeRules())
 		if excluded.Len() == 0 {
 			logger.Info("no %ss were excluded by the filter", resource)
 		}
