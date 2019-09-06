@@ -240,6 +240,8 @@ NodeGroup:
       type: string
     desiredCapacity:
       type: integer
+    ebsOptimized:
+      type: boolean
     iam:
       $ref: '#/definitions/NodeGroupIAM'
       $schema: http://json-schema.org/draft-04/schema#

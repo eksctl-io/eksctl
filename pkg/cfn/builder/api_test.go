@@ -387,7 +387,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN:                      arn,
+				ARN: arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -449,11 +449,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                      arn,
-			"ClusterStackName":         "",
-			"SharedNodeSecurityGroup":  "sg-shared",
-			"ServiceRoleARN":           arn,
-			"FeatureNATMode":           "Single",
+			"ARN":                     arn,
+			"ClusterStackName":        "",
+			"SharedNodeSecurityGroup": "sg-shared",
+			"ServiceRoleARN":          arn,
+			"FeatureNATMode":          "Single",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -1551,7 +1551,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{EbsOptimized=true}", func() {
+	Context("NodeGroup{EbsOptimized=nil}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
 		ng.DesiredCapacity = nil
@@ -1566,7 +1566,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should have correct instance type and sizes", func() {
 			Expect(getLaunchTemplateData(ngTemplate).InstanceType).To(Equal("m5.2xlarge"))
-			Expect(getLaunchTemplateData(ngTemplate).EbsOptimized).To(Equal(true))
+			Expect(getLaunchTemplateData(ngTemplate).EbsOptimized).To(Equal(false))
 			Expect(getNodeGroupProperties(ngTemplate).DesiredCapacity).To(BeEmpty())
 			Expect(getNodeGroupProperties(ngTemplate).MaxSize).To(Equal("2"))
 			Expect(getNodeGroupProperties(ngTemplate).MinSize).To(Equal("2"))

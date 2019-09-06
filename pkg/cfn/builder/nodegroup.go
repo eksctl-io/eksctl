@@ -216,9 +216,8 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 		IamInstanceProfile: &gfn.AWSEC2LaunchTemplate_IamInstanceProfile{
 			Arn: n.instanceProfileARN,
 		},
-		ImageId:      gfn.NewString(n.spec.AMI),
-		EbsOptimized: gfn.True(),
-		UserData:     n.userData,
+		ImageId:  gfn.NewString(n.spec.AMI),
+		UserData: n.userData,
 		NetworkInterfaces: []gfn.AWSEC2LaunchTemplate_NetworkInterface{{
 			AssociatePublicIpAddress: gfn.NewBoolean(!n.spec.PrivateNetworking),
 			DeviceIndex:              gfn.NewInteger(0),
@@ -229,6 +228,9 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)
 	} else {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstancesDistribution.InstanceTypes[0])
+	}
+	if n.spec.EBSOptimized != nil {
+		launchTemplateData.EbsOptimized = gfn.NewBoolean(*n.spec.EBSOptimized)
 	}
 
 	return launchTemplateData
