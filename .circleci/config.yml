@@ -1,92 +1,77 @@
 version: 2
 jobs:
-  make-test:
-    docker:
-      - image: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
-    resource_class: large
+  test-and-build:
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
-      #GOPATH: /tmp/go/path
-      #GOCACHE: /tmp/go/cache
-      JUNIT_REPORT_DIR: /tmp/test-results
+      BUILD_IMAGE: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     steps:
       - checkout
-      #- restore_cache:
-      #-   keys:
-      #-     - go-cache-{{ .Branch }}-{{ .Revision }}
-      #-     - go-cache-{{ .Branch }}-
-      #-     - go-cache-
-      - run: make test
-      #- run: sudo chown -R circleci.circleci $GOPATH $GOCACHE
-      #- save_cache:
-      #    key: go-cache-{{ .Branch }}-{{ .Revision }}
-      #    paths: [ /var/tmp/go ]
+      # enabling docker executor will require to use large resource class, which
+      # implies extra cost - we don't really have to do that, we can just run the
+      # image this way
+      - run: docker pull $BUILD_IMAGE
+      - run:
+          name: Test & Build
+          command: |
+            docker run \
+              --env=JUNIT_REPORT_DIR=/src/test-results \
+              --volume=$(pwd):/src \
+                $BUILD_IMAGE make test build
       - store_test_results:
-          path: /tmp/test-results
+          path: ./test-results
       - store_artifacts:
-          path: /tmp/test-results
-  make-release-candidate:
-    docker:
-      - image: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
+          path: ./test-results
+  release-candidate:
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
-      GOPATH: /var/tmp/gopath
-      GOCACHE: /var/tmp/gocache
+      BUILD_IMAGE: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     steps:
       - checkout
-      - restore_cache:
-            keys:
-                - go-cache-{{ .Branch }}-{{ .Revision }}
-                - go-cache-{{ .Branch }}-
-                - go-cache-
-      - setup_remote_docker: {docker_layer_caching: true}
+      - run: docker pull $BUILD_IMAGE
       - run:
-            name: Create release candidate binaries for all plaforms and upload to GitHub
-            command: make release-candidate
-            no_output_timeout: 21m
-
-  make-release:
-    docker:
-      - image: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
+          name: Create release candidate binaries for all plaforms and upload to GitHub
+          command: make release-candidate
+          no_output_timeout: 21m
+  release:
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
-      GOPATH: /var/tmp/gopath
-      GOCACHE: /var/tmp/gocache
+      BUILD_IMAGE: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     steps:
       - checkout
-      - restore_cache:
-            keys:
-                - go-cache-{{ .Branch }}-{{ .Revision }}
-                - go-cache-{{ .Branch }}-
-                - go-cache-
-      - setup_remote_docker: {docker_layer_caching: true}
+      - run: docker pull $BUILD_IMAGE
       - run:
-            name: Create release binaries for all plaforms and upload to GitHub
-            command: make release
-            no_output_timeout: 21m
+          name: Create release binaries for all plaforms and upload to GitHub
+          command: make release
+          no_output_timeout: 21m
 
 workflows:
   version: 2
   any-commit:
     jobs:
-      - make-test:
+      - test-and-build:
           filters:
             tags:
               ignore: /.*/
   release:
     jobs:
-      - make-test:
+      - test-and-build:
           filters:
             branches:
               ignore: /.*/
             tags:
               ignore: /^latest_release$/
-      - make-release-candidate:
-          requires: [make-test]
+      - release-candidate:
+          requires: [test-and-build]
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
-      - make-release:
-          requires: [make-test]
+      - release:
+          requires: [test-and-build]
           filters:
             branches:
               ignore: /.*/
