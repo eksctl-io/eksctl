@@ -2,14 +2,19 @@ package template
 
 // AttachAllowPolicy constructs a role with allow policy for given resources and actions
 func (t *Template) AttachAllowPolicy(name string, refRole *Value, resources interface{}, actions []string) {
+	t.AttachPolicy(name, refRole, MakePolicyDocument(MapOfInterfaces{
+		"Effect":   "Allow",
+		"Resource": resources,
+		"Action":   actions,
+	}))
+}
+
+// AttachPolicy attaches the specified policy document
+func (t *Template) AttachPolicy(name string, refRole *Value, policyDoc MapOfInterfaces) {
 	t.NewResource(name, &IAMPolicy{
-		PolicyName: MakeName(name),
-		Roles:      MakeSlice(refRole),
-		PolicyDocument: MakePolicyDocument(MapOfInterfaces{
-			"Effect":   "Allow",
-			"Resource": resources,
-			"Action":   actions,
-		}),
+		PolicyName:     MakeName(name),
+		Roles:          MakeSlice(refRole),
+		PolicyDocument: policyDoc,
 	})
 }
 
