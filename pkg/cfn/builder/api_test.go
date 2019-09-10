@@ -112,7 +112,7 @@ type LaunchTemplateData struct {
 	IamInstanceProfile              struct{ Arn interface{} }
 	UserData, InstanceType, ImageId string
 	BlockDeviceMappings             []interface{}
-	EbsOptimized                    bool
+	EbsOptimized                    *bool
 	NetworkInterfaces               []struct {
 		DeviceIndex              int
 		AssociatePublicIpAddress bool
@@ -387,7 +387,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -449,11 +449,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                     arn,
-			"ClusterStackName":        "",
-			"SharedNodeSecurityGroup": "sg-shared",
-			"ServiceRoleARN":          arn,
-			"FeatureNATMode":          "Single",
+			"ARN":                      arn,
+			"ClusterStackName":         "",
+			"SharedNodeSecurityGroup":  "sg-shared",
+			"ServiceRoleARN":           arn,
+			"FeatureNATMode":           "Single",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -1551,25 +1551,45 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	Context("NodeGroup{EbsOptimized=nil}", func() {
+	Context("NodeGroup{EBSOptimized=nil}", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
-
-		ng.DesiredCapacity = nil
-		ng.MaxSize = nil
-		ng.MinSize = nil
-
-		ng.InstanceType = "m5.2xlarge"
 
 		build(cfg, "eksctl-test-ebs-optimized", ng)
 
 		roundtrip()
 
 		It("should have correct instance type and sizes", func() {
-			Expect(getLaunchTemplateData(ngTemplate).InstanceType).To(Equal("m5.2xlarge"))
-			Expect(getLaunchTemplateData(ngTemplate).EbsOptimized).To(Equal(false))
-			Expect(getNodeGroupProperties(ngTemplate).DesiredCapacity).To(BeEmpty())
-			Expect(getNodeGroupProperties(ngTemplate).MaxSize).To(Equal("2"))
-			Expect(getNodeGroupProperties(ngTemplate).MinSize).To(Equal("2"))
+			Expect(getLaunchTemplateData(ngTemplate).EbsOptimized).To(BeNil())
+		})
+	})
+
+	Context("NodeGroup{EBSOptimized=false}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.EBSOptimized = api.Disabled()
+
+		build(cfg, "eksctl-test-ebs-optimized", ng)
+
+		roundtrip()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).EbsOptimized).ToNot(BeNil())
+			Expect(*getLaunchTemplateData(ngTemplate).EbsOptimized).To(BeFalse())
+		})
+	})
+
+	Context("NodeGroup{EBSOptimized=true}", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.EBSOptimized = api.Enabled()
+
+		build(cfg, "eksctl-test-ebs-optimized", ng)
+
+		roundtrip()
+
+		It("should have correct instance type and sizes", func() {
+			Expect(getLaunchTemplateData(ngTemplate).EbsOptimized).ToNot(BeNil())
+			Expect(*getLaunchTemplateData(ngTemplate).EbsOptimized).To(BeTrue())
 		})
 	})
 
