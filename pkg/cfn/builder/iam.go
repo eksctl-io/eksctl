@@ -430,22 +430,10 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 	})
 
 	if len(rs.spec.AttachPolicy) != 0 {
-		rs.template.NewResource("Policy1", &cft.IAMPolicy{
-			PolicyName:     cft.NewString(truncateResourceName(fmt.Sprintf("%s-%s", rs.spec.Namespace, rs.spec.Name))),
-			Roles:          cft.MakeSlice(roleRef),
-			PolicyDocument: rs.spec.AttachPolicy,
-		})
+		rs.template.AttachPolicy("Policy1", roleRef, cft.MapOfInterfaces(rs.spec.AttachPolicy))
 	}
 
 	return nil
-}
-
-func truncateResourceName(name string) string {
-	const maxLength = 128
-	if len(name) > maxLength {
-		return name[:maxLength]
-	}
-	return name
 }
 
 // RenderJSON will render iamserviceaccount stack as JSON
