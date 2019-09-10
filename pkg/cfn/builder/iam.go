@@ -158,7 +158,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	role := gfn.AWSIAMRole{
-		Path:                     gfn.NewString("/"),
+		Path: gfn.NewString("/"),
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(n.spec.IAM.AttachPolicyARNs...),
 	}
@@ -430,10 +430,7 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 	})
 
 	if len(rs.spec.AttachPolicy) != 0 {
-		rs.template.NewResource("Policy1", &cft.IAMPolicy{
-			Roles:          cft.MakeSlice(roleRef),
-			PolicyDocument: rs.spec.AttachPolicy,
-		})
+		rs.template.AttachPolicy("Policy1", roleRef, cft.MapOfInterfaces(rs.spec.AttachPolicy))
 	}
 
 	return nil
