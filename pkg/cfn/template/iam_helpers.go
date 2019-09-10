@@ -9,6 +9,7 @@ func (t *Template) AttachAllowPolicy(name string, refRole *Value, resources inte
 	}))
 }
 
+// AttachPolicy attaches the specified policy document
 func (t *Template) AttachPolicy(name string, refRole *Value, policyDoc MapOfInterfaces) {
 	t.NewResource(name, &IAMPolicy{
 		PolicyName:     MakeName(name),
