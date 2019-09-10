@@ -104,7 +104,7 @@ var _ = Describe("template builder for IAM", func() {
 		Expect(t).ToNot(HaveResourceWithProperties("Role1", "ManagedPolicyArns"))
 
 		Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
-		Expect(t).To(HaveResourceWithProperties("Policy1", "PolicyName"))
+		Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
 		Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyDocument", `{
             "Version": "2012-10-17",
             "Statement": [
@@ -167,7 +167,7 @@ var _ = Describe("template builder for IAM", func() {
 		]`))
 
 		Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
-		Expect(t).To(HaveResourceWithProperties("Policy1", "PolicyName"))
+		Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyName", `{ "Fn::Sub": "${AWS::StackName}-Policy1" }`))
 		Expect(t).To(HaveResourceWithPropertyValue("Policy1", "PolicyDocument", `{
             "Version": "2012-10-17",
             "Statement": [
