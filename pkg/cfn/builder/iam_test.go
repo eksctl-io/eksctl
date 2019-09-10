@@ -32,7 +32,7 @@ var _ = Describe("template builder for IAM", func() {
 		cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{}
 	})
 
-	It("can constuct an iamserviceaccount addon template with one managed policy", func() {
+	It("can construct an iamserviceaccount addon template with one managed policy", func() {
 		serviceAccount := &api.ClusterIAMServiceAccount{}
 
 		serviceAccount.Name = "sa-1"
