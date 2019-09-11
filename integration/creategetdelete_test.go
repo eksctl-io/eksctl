@@ -670,7 +670,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				BeforeEach(func() {
 					roleCanonicalArn := "arn:aws:iam::123456:role/eksctl-testing-XYZ"
 					var err error
-					role, err = authconfigmap.Parse(roleCanonicalArn)
+					role, err = iam.Parse(roleCanonicalArn)
 					Expect(err).ShouldNot(HaveOccurred())
 
 					role0 = authconfigmap.MapIdentity{
@@ -688,7 +688,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					}
 
 					userCanonicalArn := "arn:aws:iam::123456:user/alice"
-					user, err = authconfigmap.Parse(userCanonicalArn)
+					user, err = iam.Parse(userCanonicalArn)
 					Expect(err).ShouldNot(HaveOccurred())
 
 					user0 = authconfigmap.MapIdentity{

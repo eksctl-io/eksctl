@@ -220,7 +220,7 @@ func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
 		case arn.User():
 			users = append(users, identity)
 		default:
-			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity)
+			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", arn.Resource)
 		}
 	}
 
