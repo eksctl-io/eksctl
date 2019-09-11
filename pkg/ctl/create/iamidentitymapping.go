@@ -47,8 +47,6 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
-
-	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
 func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *iam.Identity) error {
