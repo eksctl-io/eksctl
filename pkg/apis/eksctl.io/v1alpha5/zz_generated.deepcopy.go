@@ -459,6 +459,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = new(int)
 		**out = **in
 	}
+	if in.EBSOptimized != nil {
+		in, out := &in.EBSOptimized, &out.EBSOptimized
+		*out = new(bool)
+		**out = **in
+	}
 	if in.VolumeSize != nil {
 		in, out := &in.VolumeSize, &out.VolumeSize
 		*out = new(int)

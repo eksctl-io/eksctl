@@ -123,6 +123,15 @@ func (c *ClusterProvider) ControlPlaneVersion() string {
 	return *c.Status.clusterInfo.cluster.Version
 }
 
+// UnsupportedOIDCError represents an unsupported OIDC error
+type UnsupportedOIDCError struct {
+	msg string
+}
+
+func (u *UnsupportedOIDCError) Error() string {
+	return u.msg
+}
+
 // NewOpenIDConnectManager returns OpenIDConnectManager
 func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iamoidc.OpenIDConnectManager, error) {
 	if _, err := c.CanOperate(spec); err != nil {
@@ -131,10 +140,10 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 
 	switch c.ControlPlaneVersion() {
 	case "", api.Version1_10, api.Version1_11, api.Version1_12:
-		return nil, errors.New("OIDC is only supported in Kubernetes versions 1.13 and above")
+		return nil, &UnsupportedOIDCError{"OIDC is only supported in Kubernetes versions 1.13 and above"}
 	}
 	if c.Status.clusterInfo.cluster == nil || c.Status.clusterInfo.cluster.Identity == nil || c.Status.clusterInfo.cluster.Identity.Oidc == nil || c.Status.clusterInfo.cluster.Identity.Oidc.Issuer == nil {
-		return nil, fmt.Errorf("unknown OIDC issuer URL")
+		return nil, &UnsupportedOIDCError{"unknown OIDC issuer URL"}
 	}
 	if !strings.HasPrefix(spec.Status.ARN, "arn:aws:eks:") {
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)

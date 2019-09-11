@@ -145,8 +145,9 @@ func (f *Filter) doAppendIncludeGlobs(names []string, resource string, globExprs
 }
 
 func (f *Filter) doSetExcludeExistingFilter(names []string, resource string) error {
-	f.excludeNames.Insert(names...)
-	for _, n := range names {
+	uniqueNames := sets.NewString(names...).List()
+	f.excludeNames.Insert(uniqueNames...)
+	for _, n := range uniqueNames {
 		isAlsoIncluded := f.includeNames.Has(n)
 		if f.matchGlobs(n, f.includeGlobs) {
 			isAlsoIncluded = true
@@ -154,6 +155,9 @@ func (f *Filter) doSetExcludeExistingFilter(names []string, resource string) err
 		if isAlsoIncluded {
 			return fmt.Errorf("existing %s %q should be excluded, but matches include filter: %s", resource, n, f.describeIncludeRules())
 		}
+	}
+	if len(uniqueNames) != 0 {
+		logger.Info("%d %s(s) that already exist (%s) will be excluded", len(uniqueNames), resource, strings.Join(uniqueNames, ","))
 	}
 	return nil
 }
@@ -178,23 +182,23 @@ func (f *Filter) doLogInfo(resource string, names []string) {
 		if count == 1 {
 			subjectFmt = "%d %s (%s) was %s"
 		}
-		logger.Info(subjectFmt, count, resource, list, status)
+		logger.Info(subjectFmt, count, resource, list, status+" (based on the include/exclude rules)")
 	}
 
 	included, excluded := f.doMatchAll(names)
 	if f.hasIncludeRules() {
-		logger.Info("include rules: %s", f.describeIncludeRules())
+		logger.Info("combined include rules: %s", f.describeIncludeRules())
 		if included.Len() == 0 {
-			logger.Info("no %ss were included by the filter", resource)
+			logger.Info("no %ss present in the current set were included by the filter", resource)
 		}
 	}
 	if included.Len() > 0 {
 		logMsg(included, "included")
 	}
 	if f.hasExcludeRules() {
-		logger.Info("exclude rules: %s", f.describeExcludeRules())
+		logger.Info("combined exclude rules: %s", f.describeExcludeRules())
 		if excluded.Len() == 0 {
-			logger.Info("no %ss were excluded by the filter", resource)
+			logger.Info("no %ss present in the current set were excluded by the filter", resource)
 		}
 	}
 	if excluded.Len() > 0 {

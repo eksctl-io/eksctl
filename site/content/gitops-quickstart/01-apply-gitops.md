@@ -303,7 +303,8 @@ in setting up clusters and use the same defaults, it makes sense to use
 those as a base config. You could be entirely starting from scratch here
 too. What we will do in this part of the tutorial is using
 `weaveworks/eks-quickstart-app-dev`, which is the `app-dev` GitOps Quick
-Start profile.
+Start profile. To create your own base config repository check out
+[the documentation](usage/experimental/gitops-flux/#creating-your-own-quick-start-profile).
 
 Now please run:
 

@@ -83,11 +83,14 @@ const (
 	// Version1_13 represents Kubernetes version 1.13.x
 	Version1_13 = "1.13"
 
+	// Version1_14 represents Kubernetes version 1.14.x
+	Version1_14 = "1.14"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_13
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_13
+	LatestVersion = Version1_14
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -233,6 +236,7 @@ func SupportedVersions() []string {
 		Version1_11,
 		Version1_12,
 		Version1_13,
+		Version1_14,
 	}
 }
 
@@ -472,6 +476,9 @@ type NodeGroup struct {
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
 	MaxSize *int `json:"maxSize,omitempty"`
+
+	// +optional
+	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
 	// +optional
 	VolumeSize *int `json:"volumeSize"`

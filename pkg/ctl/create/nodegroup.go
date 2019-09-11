@@ -168,8 +168,6 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 				logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
 				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 			}
-
-			return nil
 		}
 
 		logger.Success("created %d nodegroup(s) in cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
