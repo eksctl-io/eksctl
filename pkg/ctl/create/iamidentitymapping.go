@@ -37,9 +37,9 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.Var(&arn, "arn", "ARN of the IAM role or user to create")
 		fs.StringVar(&username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, arn)
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)

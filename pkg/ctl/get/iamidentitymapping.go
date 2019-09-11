@@ -29,7 +29,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.Var(&arn, "arn", "ARN of the IAM role or user")
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, arn)
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
