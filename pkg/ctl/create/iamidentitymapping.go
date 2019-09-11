@@ -15,8 +15,6 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	id := &iam.Identity{}
-
 	cmd.SetDescription("iamidentitymapping", "Create an IAM identity mapping",
 		dedent.Dedent(`Creates a mapping from IAM role or user to Kubernetes user and groups.
 
@@ -26,13 +24,17 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		`),
 	)
 
-	cmd.SetRunFunc(func() error {
-		return doCreateIAMIdentityMapping(cmd, id)
-	})
-
 	var arn iam.ARN
 	var username string
 	var groups []string
+
+	cmd.SetRunFunc(func() error {
+		id, err := iam.NewIdentity(arn, username, groups)
+		if err != nil {
+			return err
+		}
+		return doCreateIAMIdentityMapping(cmd, id)
+	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.Var(&arn, "arn", "ARN of the IAM role or user to create")
@@ -45,11 +47,6 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
-
-	id, err := iam.NewIdentity(arn, username, groups)
-	if err != nil {
-		// What does one do here?
-	}
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
