@@ -19,6 +19,11 @@ func Parse(s string) (ARN, error) {
 	return ARN{a}, err
 }
 
+// String implements fmt.Stringer.
+func (a ARN) String() string {
+	return a.ARN.String()
+}
+
 // MarshalJSON writes the ARN as a string
 func (a ARN) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a.String())
@@ -33,11 +38,6 @@ func (a *ARN) UnmarshalJSON(data []byte) error {
 	}
 	*a, err = Parse(s)
 	return err
-}
-
-// String implements fmt.Stringer.
-func (a ARN) String() string {
-	return a.ARN.String()
 }
 
 // Set parses the given string into an arn.ARN and sets the receiver pointer to the
