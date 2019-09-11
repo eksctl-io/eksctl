@@ -1,6 +1,7 @@
 package iam
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
@@ -12,10 +13,26 @@ type ARN struct {
 }
 
 // Parse wraps the aws-sdk-go/aws/arn.Parse function and instead returns a
-// authconfigmap.ARN
+// iam.ARN
 func Parse(s string) (ARN, error) {
 	a, err := arn.Parse(s)
 	return ARN{a}, err
+}
+
+// MarshalJSON writes the ARN as a string
+func (a ARN) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.String())
+}
+
+// UnmarshalJSON reads the ARN as a string
+func (a *ARN) UnmarshalJSON(data []byte) error {
+	var s string
+	var err error
+	if err = json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	*a, err = Parse(s)
+	return err
 }
 
 // Set parses the given string into an arn.ARN and sets the receiver pointer to the
