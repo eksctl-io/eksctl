@@ -35,6 +35,11 @@ func (a *ARN) UnmarshalJSON(data []byte) error {
 	return err
 }
 
+// String implements fmt.Stringer.
+func (a ARN) String() string {
+	return a.ARN.String()
+}
+
 // Set parses the given string into an arn.ARN and sets the receiver pointer to the
 // populated struct
 func (a *ARN) Set(s string) error {
@@ -51,21 +56,21 @@ func (a *ARN) Type() string {
 	return "aws arn"
 }
 
-func (a *ARN) resource() string {
-	resource := a.Resource
-	if idx := strings.Index(resource, "/"); idx >= 0 {
-		resource = resource[:idx] // remove everything following the forward slash
+func (a *ARN) resourceType() string {
+	t := a.Resource
+	if idx := strings.Index(t, "/"); idx >= 0 {
+		t = t[:idx] // remove everything following the forward slash
 	}
 
-	return resource
+	return t
 }
 
 // User returns whether the arn represents a IAM user or not
 func (a *ARN) User() bool {
-	return a.resource() == "user"
+	return a.resourceType() == "user"
 }
 
 // Role returns whether the arn represents a IAM role or not
 func (a *ARN) Role() bool {
-	return a.resource() == "role"
+	return a.resourceType() == "role"
 }
