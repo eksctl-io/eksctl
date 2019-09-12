@@ -174,14 +174,7 @@ further information
 on additional steps needed when public=false, private=true.
 
 The Kubernetes API server endpoint access for a cluster can be cofigured for public and private
-access by
-specifiying the `--vpc-endpoint-access-public` and/or`--vpc-endpoint-access-private` CLI flags to be
-`true` (access enabled)
-or
-`false` (access disabled).
-
-Alternatively, one can configure access in the cluster config file like
-the example below:
+access using the cluster config file. Example below:
 
 ```yaml
 vpc:
