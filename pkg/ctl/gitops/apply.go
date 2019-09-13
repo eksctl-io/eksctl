@@ -31,6 +31,19 @@ type options struct {
 	gitPrivateSSHKeyPath string
 }
 
+func (opts options) validate() error {
+	if opts.quickstartNameArg == "" {
+		return errors.New("please supply a valid gitops Quick Start URL or name in --quickstart-profile")
+	}
+	if err := opts.gitOptions.ValidateURL(); err != nil {
+		return errors.Wrap(err, "please supply a valid --git-url argument")
+	}
+	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
+		return errors.New("please supply a valid --git-private-ssh-key-path argument")
+	}
+	return nil
+}
+
 func applyGitops(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
@@ -71,15 +84,8 @@ func applyGitops(cmd *cmdutils.Cmd) {
 }
 
 func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
-	if opts.quickstartNameArg == "" {
-		return errors.New("please supply a valid gitops Quick Start URL or name in --quickstart-profile")
-	}
-
-	if err := opts.gitOptions.ValidateURL(); err != nil {
-		return errors.Wrap(err, "please supply a valid --git-url argument")
-	}
-	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
-		return errors.New("please supply a valid --git-private-ssh-key-path argument")
+	if err := opts.validate(); err != nil {
+		return err
 	}
 
 	quickstartRepoURL, err := repoURLForQuickstart(opts.quickstartNameArg)
