@@ -111,7 +111,7 @@ deploy to the cluster.
 What will happen during the following command is:
 
 - `eksctl` will add install [Flux](https://fluxcd.io) and Helm in your cluster, and add their
-  manifess to Git, so you can configure them through pull requests.
+  manifest to Git, so you can configure them through pull requests.
 - It will also add the `app-dev` GitOps Quick Start profile to it,
   which comes with a lot of very useful services and config. It is how
   we feel EKS `app-dev` clusters are best run.
