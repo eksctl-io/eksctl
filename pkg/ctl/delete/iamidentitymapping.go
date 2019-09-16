@@ -7,7 +7,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
 func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
@@ -15,7 +14,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = cfg
 
 	var (
-		arn iam.ARN
+		arn string
 		all bool
 	)
 
@@ -27,7 +26,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, arn)
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -37,7 +36,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn iam.ARN, all bool) error {
+func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -54,7 +53,7 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn iam.ARN, all bool) error 
 		return err
 	}
 
-	if arn.Resource == "" {
+	if arn == "" {
 		return cmdutils.ErrMustBeSet("--arn")
 	}
 	if cfg.Metadata.Name == "" {
@@ -88,12 +87,8 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn iam.ARN, all bool) error 
 
 	duplicates := 0
 	for _, identity := range identities {
-		_arn, err := identity.ARN()
-		if err != nil {
-			return err
-		}
 
-		if arn.String() == _arn.String() {
+		if arn == identity.GetARN() {
 			duplicates++
 		}
 	}

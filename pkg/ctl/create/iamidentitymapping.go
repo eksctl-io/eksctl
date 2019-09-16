@@ -24,22 +24,18 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		`),
 	)
 
-	var arn iam.ARN
+	var arn string
 	var username string
 	var groups []string
 
 	cmd.SetRunFunc(func() error {
-		id, err := iam.NewIdentity(arn, username, groups)
-		if err != nil {
-			return err
-		}
-		return doCreateIAMIdentityMapping(cmd, id)
+		return doCreateIAMIdentityMapping(cmd, arn, username, groups)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&username, "username", "", "User name within Kubernetes to map to IAM role")
 		fs.StringArrayVar(&groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, arn)
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -49,7 +45,12 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *iam.Identity) error {
+func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, groups []string) error {
+	id, err := iam.NewIdentity(arn, username, groups)
+	if err != nil {
+		return err
+	}
+
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -68,9 +69,6 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *iam.Identity) error {
 
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")
-	}
-	if err := id.Valid(); err != nil {
-		return err
 	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
@@ -91,24 +89,17 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *iam.Identity) error {
 		return err
 	}
 
-	arn, _ := id.ARN() // The call to Valid above makes sure this cannot error
-	duplicates := 0
+	createdArn := id.GetARN() // The call to Valid above makes sure this cannot error
 	for _, identity := range identities {
-		_arn, err := identity.ARN()
-		if err != nil {
-			return err
-		}
+		arn := identity.GetARN()
 
-		if arn.String() == _arn.String() {
-			duplicates++
+		if createdArn == arn {
+			logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)
+			break
 		}
 	}
 
-	if duplicates > 0 {
-		logger.Warning("found %d mappings with same arn %q (which will be shadowed by your new mapping)", duplicates, arn)
-	}
-
-	if err := acm.AddIdentity(*id); err != nil {
+	if err := acm.AddIdentity(id); err != nil {
 		return err
 	}
 	return acm.Save()

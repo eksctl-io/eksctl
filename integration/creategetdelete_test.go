@@ -660,7 +660,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 			Context("and manipulating iam identity mappings", func() {
 				var (
-					role, user          iam.ARN
 					expR0, expR1, expU0 string
 					role0, role1        iam.Identity
 					user0               iam.Identity
@@ -671,38 +670,39 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				BeforeEach(func() {
 					roleCanonicalArn := "arn:aws:iam::123456:role/eksctl-testing-XYZ"
 					var err error
-					role, err = iam.Parse(roleCanonicalArn)
-					Expect(err).ShouldNot(HaveOccurred())
-
-					role0 = iam.Identity{
-						RoleARN:  &role,
-						Username: &admin,
-						Groups:   []string{"system:masters", "system:nodes"},
+					role0 = iam.RoleIdentity{
+						RoleARN: roleCanonicalArn,
+						KubernetesIdentity: iam.KubernetesIdentity{
+							Username: admin,
+							Groups:   []string{"system:masters", "system:nodes"},
+						},
 					}
-					role1 = iam.Identity{
-						RoleARN: &role,
-						Groups:  []string{"system:something"},
+					role1 = iam.RoleIdentity{
+						RoleARN: roleCanonicalArn,
+						KubernetesIdentity: iam.KubernetesIdentity{
+							Groups: []string{"system:something"},
+						},
 					}
 
 					userCanonicalArn := "arn:aws:iam::123456:user/alice"
-					user, err = iam.Parse(userCanonicalArn)
-					Expect(err).ShouldNot(HaveOccurred())
 
-					user0 = iam.Identity{
-						UserARN:  &user,
-						Username: &alice,
-						Groups:   []string{"system:masters", "cryptographers"},
+					user0 = iam.UserIdentity{
+						UserARN: userCanonicalArn,
+						KubernetesIdentity: iam.KubernetesIdentity{
+							Username: alice,
+							Groups:   []string{"system:masters", "cryptographers"},
+						},
 					}
 
-					bs, err := yaml.Marshal([]iam.Identity{role0})
+					bs, err := yaml.Marshal(role0)
 					Expect(err).ShouldNot(HaveOccurred())
 					expR0 = string(bs)
 
-					bs, err = yaml.Marshal([]iam.Identity{role1})
+					bs, err = yaml.Marshal(role1)
 					Expect(err).ShouldNot(HaveOccurred())
 					expR1 = string(bs)
 
-					bs, err = yaml.Marshal([]iam.Identity{user0})
+					bs, err = yaml.Marshal(user0)
 					Expect(err).ShouldNot(HaveOccurred())
 					expU0 = string(bs)
 				})
@@ -732,10 +732,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
-						"--username", *role0.Username,
-						"--group", role0.Groups[0],
-						"--group", role0.Groups[1],
+						"--arn", role0.GetARN(),
+						"--username", role0.GetUsername(),
+						"--group", role0.GetGroups()[0],
+						"--group", role0.GetGroups()[1],
 					)
 					Expect(create).To(RunSuccessfully())
 
@@ -743,7 +743,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
+						"--arn", role0.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(get).To(RunSuccessfullyWithOutputString(MatchYAML(expR0)))
@@ -753,10 +753,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", user.String(),
-						"--username", *user0.Username,
-						"--group", user0.Groups[0],
-						"--group", user0.Groups[1],
+						"--arn", user0.GetARN(),
+						"--username", user0.GetUsername(),
+						"--group", user0.GetGroups()[0],
+						"--group", user0.GetGroups()[1],
 					)
 					Expect(create).To(RunSuccessfully())
 
@@ -764,7 +764,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", user.String(),
+						"--arn", user0.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(get).To(RunSuccessfullyWithOutputString(MatchYAML(expU0)))
@@ -774,10 +774,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
-						"--username", *role0.Username,
-						"--group", role0.Groups[0],
-						"--group", role0.Groups[1],
+						"--arn", role0.GetARN(),
+						"--username", role0.GetUsername(),
+						"--group", role0.GetGroups()[0],
+						"--group", role0.GetGroups()[1],
 					)
 					Expect(createRole).To(RunSuccessfully())
 
@@ -785,7 +785,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
+						"--arn", role0.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(get).To(RunSuccessfullyWithOutputString(MatchYAML(expR0 + expR0)))
@@ -795,10 +795,10 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", user.String(),
-						"--username", *user0.Username,
-						"--group", user0.Groups[0],
-						"--group", user0.Groups[1],
+						"--arn", user0.GetARN(),
+						"--username", user0.GetUsername(),
+						"--group", user0.GetGroups()[0],
+						"--group", user0.GetGroups()[1],
 					)
 					Expect(createCmd).To(RunSuccessfully())
 
@@ -806,7 +806,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", user.String(),
+						"--arn", user0.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(expU0 + expU0)))
@@ -816,8 +816,8 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
-						"--group", role1.Groups[0],
+						"--arn", role1.GetARN(),
+						"--group", role1.GetGroups()[0],
 					)
 					Expect(createCmd).To(RunSuccessfully())
 
@@ -825,7 +825,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
+						"--arn", role1.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(expR0 + expR0 + expR1)))
@@ -835,7 +835,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
+						"--arn", role1.GetARN(),
 					)
 					Expect(deleteCmd).To(RunSuccessfully())
 
@@ -843,7 +843,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
+						"--arn", role1.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(getCmd).To(RunSuccessfullyWithOutputString(MatchYAML(expR0 + expR1)))
@@ -862,7 +862,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
+						"--arn", role1.GetARN(),
 						"--all",
 					)
 					Expect(deleteCmd).To(RunSuccessfully())
@@ -871,7 +871,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", role.String(),
+						"--arn", role1.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(getCmd).ToNot(RunSuccessfully())
@@ -881,7 +881,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", user.String(),
+						"--arn", user0.GetARN(),
 						"--all",
 					)
 					Expect(deleteCmd).To(RunSuccessfully())
@@ -890,7 +890,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						"iamidentitymapping",
 						"--name", clusterName,
 						"--region", region,
-						"--arn", user.String(),
+						"--arn", user0.GetARN(),
 						"-o", "yaml",
 					)
 					Expect(getCmd).ToNot(RunSuccessfully())

@@ -105,20 +105,20 @@ func (a *AuthConfigMap) RemoveAccount(account string) error {
 		return err
 	}
 
-	var newaccounts []string
+	var newAccounts []string
 	found := false
 	for _, acc := range accounts {
 		if acc == account {
 			found = true
 			continue
 		}
-		newaccounts = append(newaccounts, acc)
+		newAccounts = append(newAccounts, acc)
 	}
 	if !found {
 		return fmt.Errorf("account %q not found in auth ConfigMap", account)
 	}
 	logger.Info("removing account %q from auth ConfigMap", account)
-	return a.setAccounts(newaccounts)
+	return a.setAccounts(newAccounts)
 }
 
 func (a *AuthConfigMap) accounts() ([]string, error) {
@@ -147,15 +147,9 @@ func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
 		return err
 	}
 
-	// Should the caller do this check or should this happen here?
-	if err = identity.Valid(); err != nil {
-		return err
-	}
-
 	identities = append(identities, identity)
 
-	arn, _ := identity.ARN() // The Valid() call above makes sure this cannot error
-	logger.Info("adding identity %q to auth ConfigMap", arn.String())
+	logger.Info("adding identity %q to auth ConfigMap", identity.GetARN())
 	return a.setIdentities(identities)
 }
 
@@ -164,20 +158,20 @@ func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
 // find it.
 // If `all` is true it will remove all of them and not return an
 // error if it cannot be found.
-func (a *AuthConfigMap) RemoveIdentity(arn iam.ARN, all bool) error {
+func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
 	identities, err := a.Identities()
 	if err != nil {
 		return err
 	}
 
-	newidentities := []iam.Identity{}
+	newidentities := make([]iam.Identity, 0)
 	for i, identity := range identities {
-		_arn, err := identity.ARN()
+		arn := identity.GetARN()
 		if err != nil {
 			return err
 		}
-		if _arn.String() == arn.String() {
-			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arn.String(), identity.Username, identity.Groups)
+		if arn == arnToDelete {
+			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arnToDelete, identity.GetUsername(), identity.GetGroups())
 			if !all {
 				identities = append(identities[:i], identities[i+1:]...)
 				return a.setIdentities(identities)
@@ -187,40 +181,44 @@ func (a *AuthConfigMap) RemoveIdentity(arn iam.ARN, all bool) error {
 		}
 	}
 	if !all {
-		return fmt.Errorf("instance identity ARN %q not found in auth ConfigMap", arn.String())
+		return fmt.Errorf("instance identity ARN %q not found in auth ConfigMap", arnToDelete)
 	}
 	return a.setIdentities(newidentities)
 }
 
 // Identities returns a list of iam users and roles that are currently in the (cached) configmap.
 func (a *AuthConfigMap) Identities() ([]iam.Identity, error) {
-	var roles, users []iam.Identity
+	var roles []iam.RoleIdentity
 	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling %q", rolesData)
 	}
 
+	var users []iam.UserIdentity
 	if err := yaml.Unmarshal([]byte(a.cm.Data[usersData]), &users); err != nil {
 		return nil, errors.Wrapf(err, "unmarshalling %q", usersData)
 	}
-	return append(roles, users...), nil
+
+	all := make([]iam.Identity, len(users)+len(roles))
+	for i, r := range roles {
+		all[i] = r
+	}
+	for i, u := range users {
+		all[i+len(roles)] = u
+	}
+	return all, nil
 }
 
 func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
-	// Determine which are users and which are roles
+	// Split identities into list of roles and list of users
 	users, roles := []iam.Identity{}, []iam.Identity{}
 	for _, identity := range identities {
-		arn, err := identity.ARN()
-		if err != nil {
-			return err
-		}
-
-		switch {
-		case arn.Role():
+		switch identity.Type() {
+		case "role":
 			roles = append(roles, identity)
-		case arn.User():
+		case "user":
 			users = append(users, identity)
 		default:
-			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", arn.Resource)
+			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.GetARN())
 		}
 	}
 
@@ -268,17 +266,12 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return err
 	}
 
-	arn, err := iam.Parse(ng.IAM.InstanceRoleARN)
-	if err != nil {
-		return errors.Wrap(err, "parsing nodegroup instance role ARN")
-	}
-
-	identity, err := iam.NewIdentity(arn, RoleNodeGroupUsername, RoleNodeGroupGroups)
+	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, RoleNodeGroupGroups)
 	if err != nil {
 		return err
 	}
 
-	if err := acm.AddIdentity(*identity); err != nil {
+	if err := acm.AddIdentity(identity); err != nil {
 		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {
@@ -291,15 +284,11 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	arn, err := iam.Parse(ng.IAM.InstanceRoleARN)
-	if err != nil {
-		return errors.Wrap(err, "nodegroup instance role ARN is invalid")
-	}
 	acm, err := NewFromClientSet(clientSet)
 	if err != nil {
 		return err
 	}
-	if err := acm.RemoveIdentity(arn, false); err != nil {
+	if err := acm.RemoveIdentity(ng.IAM.InstanceRoleARN, false); err != nil {
 		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {

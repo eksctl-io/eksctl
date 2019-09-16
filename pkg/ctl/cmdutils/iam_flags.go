@@ -3,7 +3,6 @@ package cmdutils
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
 // AddIAMServiceAccountFilterFlags add common `--include` and `--exclude` flags for filtering iamserviceaccounts
@@ -16,8 +15,8 @@ func AddIAMServiceAccountFilterFlags(fs *pflag.FlagSet, includeGlobs, excludeGlo
 }
 
 // AddIAMIdentityMappingARNFlags adds --arn and deprecated --role flags
-func AddIAMIdentityMappingARNFlags(fs *pflag.FlagSet, cmd *Cmd, arn iam.ARN) {
-	fs.Var(&arn, "arn", "ARN of the IAM role or user to create")
+func AddIAMIdentityMappingARNFlags(fs *pflag.FlagSet, cmd *Cmd, arn *string) {
+	fs.StringVar(arn, "arn", "", "ARN of the IAM role or user to create")
 	// Add deprecated --role
 	var role string
 	fs.StringVar(&role, "role", "", "")
@@ -25,7 +24,7 @@ func AddIAMIdentityMappingARNFlags(fs *pflag.FlagSet, cmd *Cmd, arn iam.ARN) {
 	AddPreRunE(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) error {
 		var err error
 		if role != "" {
-			arn, err = iam.Parse(role)
+			*arn = role
 		}
 		return err
 	})

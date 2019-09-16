@@ -91,13 +91,10 @@ func makeExpectedAccounts(accounts ...string) string {
 	return y
 }
 
-func mustIdentity(arn iam.ARN, username string, groups []string) iam.Identity {
+func mustIdentity(arn string, username string, groups []string) iam.Identity {
 	id, err := iam.NewIdentity(arn, username, groups)
 	Expect(err).ToNot(HaveOccurred())
-	if id != nil {
-		return *id
-	}
-	return iam.Identity{}
+	return id
 }
 
 var _ = Describe("AuthConfigMap{}", func() {
@@ -162,10 +159,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 		addAndSave := func(canonicalArn string, groups []string) *corev1.ConfigMap {
 			client.reset()
 
-			arn, err := iam.Parse(canonicalArn)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = acm.AddIdentity(mustIdentity(arn, RoleNodeGroupUsername, groups))
+			err := acm.AddIdentity(mustIdentity(canonicalArn, RoleNodeGroupUsername, groups))
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
@@ -202,21 +196,13 @@ var _ = Describe("AuthConfigMap{}", func() {
 		removeAndSave := func(canonicalArn string) *corev1.ConfigMap {
 			client.reset()
 
-			arn, err := iam.Parse(canonicalArn)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = acm.RemoveIdentity(arn, false)
+			err := acm.RemoveIdentity(canonicalArn, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 
 			return client.updated
-		}
-
-		roleAArn, err := iam.Parse(roleA)
-		if err != nil {
-			panic(err)
 		}
 
 		It("should remove role", func() {
@@ -232,17 +218,17 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Expect(cm.Data["mapRoles"]).To(MatchYAML("[]"))
 		})
 		It("should fail if role not found", func() {
-			err := acm.RemoveIdentity(roleAArn, false)
+			err := acm.RemoveIdentity(roleA, false)
 			Expect(err).To(HaveOccurred())
 		})
 		It("should remove all if specified", func() {
-			err := acm.AddIdentity(mustIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups))
+			err := acm.AddIdentity(mustIdentity(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups))
 			Expect(err).NotTo(HaveOccurred())
-			err = acm.AddIdentity(mustIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups))
+			err = acm.AddIdentity(mustIdentity(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapRoles"]).To(Not(MatchYAML("[]")))
 
-			err = acm.RemoveIdentity(roleAArn, true)
+			err = acm.RemoveIdentity(roleA, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapRoles"]).To(MatchYAML("[]"))
 		})
@@ -259,10 +245,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 		addAndSave := func(canonicalArn, user string, groups []string) *corev1.ConfigMap {
 			client.reset()
 
-			arn, err := iam.Parse(canonicalArn)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = acm.AddIdentity(mustIdentity(arn, user, groups))
+			err := acm.AddIdentity(mustIdentity(canonicalArn, user, groups))
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
@@ -299,21 +282,13 @@ var _ = Describe("AuthConfigMap{}", func() {
 		removeAndSave := func(canonicalArn string) *corev1.ConfigMap {
 			client.reset()
 
-			arn, err := iam.Parse(canonicalArn)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = acm.RemoveIdentity(arn, false)
+			err := acm.RemoveIdentity(canonicalArn, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 
 			return client.updated
-		}
-
-		userAArn, err := iam.Parse(userA)
-		if err != nil {
-			panic(err)
 		}
 
 		It("should remove user", func() {
@@ -329,17 +304,17 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Expect(cm.Data["mapUsers"]).To(MatchYAML("[]"))
 		})
 		It("should fail if user not found", func() {
-			err := acm.RemoveIdentity(userAArn, false)
+			err := acm.RemoveIdentity(userA, false)
 			Expect(err).To(HaveOccurred())
 		})
 		It("should remove all if specified", func() {
-			err := acm.AddIdentity(mustIdentity(userAArn, userAUsername, userAGroups))
+			err := acm.AddIdentity(mustIdentity(userA, userAUsername, userAGroups))
 			Expect(err).NotTo(HaveOccurred())
-			err = acm.AddIdentity(mustIdentity(userAArn, userAUsername, userAGroups))
+			err = acm.AddIdentity(mustIdentity(userA, userAUsername, userAGroups))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapUsers"]).To(Not(MatchYAML("[]")))
 
-			err = acm.RemoveIdentity(userAArn, true)
+			err = acm.RemoveIdentity(userA, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapUsers"]).To(MatchYAML("[]"))
 		})
@@ -356,10 +331,7 @@ var _ = Describe("AuthConfigMap{}", func() {
 		addAndSave := func(canonicalArn, user string, groups []string) *corev1.ConfigMap {
 			client.reset()
 
-			arn, err := iam.Parse(canonicalArn)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = acm.AddIdentity(mustIdentity(arn, user, groups))
+			err := acm.AddIdentity(mustIdentity(canonicalArn, user, groups))
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
@@ -408,26 +380,13 @@ var _ = Describe("AuthConfigMap{}", func() {
 		removeAndSave := func(canonicalArn string) *corev1.ConfigMap {
 			client.reset()
 
-			arn, err := iam.Parse(canonicalArn)
-			Expect(err).NotTo(HaveOccurred())
-
-			err = acm.RemoveIdentity(arn, false)
+			err := acm.RemoveIdentity(canonicalArn, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = acm.Save()
 			Expect(err).NotTo(HaveOccurred())
 
 			return client.updated
-		}
-
-		roleAArn, err := iam.Parse(roleA)
-		if err != nil {
-			panic(err)
-		}
-
-		userAArn, err := iam.Parse(userA)
-		if err != nil {
-			panic(err)
 		}
 
 		It("should remove role and user", func() {
@@ -449,30 +408,30 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Expect(cm.Data["mapUsers"]).To(MatchYAML("[]"))
 		})
 		It("should fail if role or user not found", func() {
-			err := acm.RemoveIdentity(roleAArn, false)
+			err := acm.RemoveIdentity(roleA, false)
 			Expect(err).To(HaveOccurred())
-			err = acm.RemoveIdentity(userAArn, false)
+			err = acm.RemoveIdentity(userA, false)
 			Expect(err).To(HaveOccurred())
 		})
 		It("should remove all if specified", func() {
-			err := acm.AddIdentity(mustIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups))
+			err := acm.AddIdentity(mustIdentity(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups))
 			Expect(err).NotTo(HaveOccurred())
-			err = acm.AddIdentity(mustIdentity(roleAArn, RoleNodeGroupUsername, RoleNodeGroupGroups))
+			err = acm.AddIdentity(mustIdentity(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapRoles"]).To(Not(MatchYAML("[]")))
 
-			err = acm.AddIdentity(mustIdentity(userAArn, userAUsername, userAGroups))
+			err = acm.AddIdentity(mustIdentity(userA, userAUsername, userAGroups))
 			Expect(err).NotTo(HaveOccurred())
-			err = acm.AddIdentity(mustIdentity(userAArn, userAUsername, userAGroups))
+			err = acm.AddIdentity(mustIdentity(userA, userAUsername, userAGroups))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapUsers"]).To(Not(MatchYAML("[]")))
 
-			err = acm.RemoveIdentity(roleAArn, true)
+			err = acm.RemoveIdentity(roleA, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapRoles"]).To(MatchYAML("[]"))
 			Expect(client.updated.Data["mapUsers"]).To(Not(MatchYAML("[]")))
 
-			err = acm.RemoveIdentity(userAArn, true)
+			err = acm.RemoveIdentity(userA, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(client.updated.Data["mapRoles"]).To(MatchYAML("[]"))
 			Expect(client.updated.Data["mapUsers"]).To(MatchYAML("[]"))

@@ -18,7 +18,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	var arn iam.ARN
+	var arn string
 
 	params := &getCmdParams{}
 
@@ -29,7 +29,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, arn)
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
@@ -40,7 +40,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn iam.ARN) error {
+func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -76,20 +76,16 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn iam.AR
 		return err
 	}
 
-	if arn.Resource != "" {
-		_identities := []iam.Identity{}
+	if arn != "" {
+		selectedIdentities := []iam.Identity{}
 
 		for _, identity := range identities {
-			_arn, err := identity.ARN()
-			if err != nil {
-				return err
-			}
-			if _arn.String() == arn.String() {
-				_identities = append(_identities, identity)
+			if identity.GetARN() == arn {
+				selectedIdentities = append(selectedIdentities, identity)
 			}
 		}
 
-		identities = _identities
+		identities = selectedIdentities
 		// If a filter was given, we error if none was found
 		if len(identities) == 0 {
 			return fmt.Errorf("no iamidentitymapping with arn %q found", arn)
@@ -113,22 +109,12 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn iam.AR
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("ARN", func(r iam.Identity) string {
-		arn, err := r.ARN()
-		if err == nil {
-			return arn.String()
-		}
-		return ""
+		return r.GetARN()
 	})
 	printer.AddColumn("USERNAME", func(r iam.Identity) string {
-		if r.Username != nil {
-			return *r.Username
-		}
-		return ""
+		return r.GetUsername()
 	})
 	printer.AddColumn("GROUPS", func(r iam.Identity) string {
-		if r.Groups != nil {
-			return strings.Join(r.Groups, ",")
-		}
-		return ""
+		return strings.Join(r.GetGroups(), ",")
 	})
 }

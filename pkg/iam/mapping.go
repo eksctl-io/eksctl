@@ -1,6 +1,9 @@
 package iam
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	// ErrNeitherUserNorRole is the error returned when an identity is missing both UserARN
@@ -13,56 +16,102 @@ var (
 )
 
 // Identity represents an IAM identity and its corresponding Kubernetes identity
-type Identity struct {
-	UserARN  *ARN     `json:"userarn,omitempty"`
-	RoleARN  *ARN     `json:"rolearn,omitempty"`
-	Username *string  `json:"username,omitempty"`
+type Identity interface {
+	GetARN() string
+	Type() string
+	GetUsername() string
+	GetGroups() []string
+}
+
+// KubernetesIdentity represents a kubernetes identity to be used in iam mappings
+type KubernetesIdentity struct {
+	Username string   `json:"username,omitempty"`
 	Groups   []string `json:"groups,omitempty"`
 }
 
-// Valid ensures the identity is proper.
-func (i Identity) Valid() error {
-	if i.UserARN == nil && i.RoleARN == nil {
-		return ErrNeitherUserNorRole
-	}
-
-	if i.Username == nil && len(i.Groups) == 0 {
-		return ErrNoKubernetesIdentity
-	}
-	return nil
+// UserIdentity represents a mapping from an IAM user to a kubernetes identity
+type UserIdentity struct {
+	UserARN string `json:"userarn,omitempty"`
+	KubernetesIdentity
 }
 
-// ARN returns either the identites UserARN, RoleARN or ErrNeitherUserNorRole
-func (i *Identity) ARN() (*ARN, error) {
-	if i.UserARN != nil {
-		return i.UserARN, nil
-	} else if i.RoleARN != nil {
-		return i.RoleARN, nil
-	} else {
-		return nil, ErrNeitherUserNorRole
+// RoleIdentity represents a mapping from an IAM role to a kubernetes identity
+type RoleIdentity struct {
+	RoleARN string `json:"rolearn,omitempty"`
+	KubernetesIdentity
+}
+
+// GetUsername returns the Kubernetes username
+func (k KubernetesIdentity) GetUsername() string {
+	return k.Username
+}
+
+// GetGroups returns the Kubernetes groups
+func (k KubernetesIdentity) GetGroups() []string {
+	return k.Groups
+}
+
+// GetARN returns the ARN of the iam mapping
+func (u UserIdentity) GetARN() string {
+	return u.UserARN
+}
+
+// Type returns the resource type of the iam mapping
+func (u UserIdentity) Type() string {
+	parsedARN, err := Parse(u.UserARN)
+	if err != nil {
+		return ""
 	}
+	return parsedARN.ResourceType()
+}
+
+// GetARN returns the ARN of the iam mapping
+func (r RoleIdentity) GetARN() string {
+	return r.RoleARN
+}
+
+// Type returns the resource type of the iam mapping
+func (r RoleIdentity) Type() string {
+	parsedARN, err := Parse(r.RoleARN)
+	if err != nil {
+		return ""
+	}
+	return parsedARN.ResourceType()
 }
 
 // NewIdentity determines into which field the given arn goes and returns the new identity
 // alongside any error resulting for checking its validity.
-func NewIdentity(arn ARN, username string, groups []string) (*Identity, error) {
-	identity := Identity{}
+func NewIdentity(arn string, username string, groups []string) (Identity, error) {
+	if arn == "" {
+		return nil, fmt.Errorf("expected a valid arn but got empty string")
+	}
+	if username == "" && len(groups) == 0 {
+		return nil, ErrNoKubernetesIdentity
+	}
 
-	if arn.User() {
-		identity.UserARN = &arn
-	} else if arn.Role() {
-		identity.RoleARN = &arn
+	parsedARN, err := Parse(arn)
+	if err != nil {
+		return nil, err
+	}
+
+	if parsedARN.IsUser() {
+		return &UserIdentity{
+			UserARN: arn,
+			KubernetesIdentity: KubernetesIdentity{
+				Username: username,
+				Groups:   groups,
+			},
+		}, nil
+	} else if parsedARN.IsRole() {
+		return &RoleIdentity{
+			RoleARN: arn,
+			KubernetesIdentity: KubernetesIdentity{
+				Username: username,
+				Groups:   groups,
+			},
+		}, nil
 	} else {
 		return nil, ErrNeitherUserNorRole
 	}
 
-	if username != "" {
-		identity.Username = &username
-	}
-
-	if len(groups) > 0 {
-		identity.Groups = groups
-	}
-
-	return &identity, identity.Valid()
 }
