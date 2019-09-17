@@ -209,6 +209,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			*l.ClusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
+		if l.ClusterConfig.VPC.ClusterEndpoints == nil {
+			l.ClusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+		}
+
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
 			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
@@ -356,6 +360,20 @@ func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"enable-types",
 		"disable-types",
+	)
+
+	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
+
+	return l
+}
+
+// NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils vpc-cluster-api-access
+func NewUtilsEnableEndpointAccessLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"private-access",
+		"public-access",
 	)
 
 	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile

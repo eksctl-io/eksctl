@@ -32,6 +32,7 @@ require (
 	github.com/goreleaser/goreleaser v0.110.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190804145309-805845b47dfc
 	github.com/jteeuwen/go-bindata v3.0.8-0.20180305030458-6025e8de665b+incompatible
 	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20190722134107-d79fe1b9d79d
@@ -78,6 +79,7 @@ require (
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
+	golang.org/x/arch v0.0.0-20190815191158-8a70ba74b3a1 // indirect
 	golang.org/x/tools v0.0.0-20190614205625-5aca471b1d59
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect

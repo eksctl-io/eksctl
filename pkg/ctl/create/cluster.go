@@ -19,13 +19,12 @@ import (
 )
 
 type createClusterCmdParams struct {
-	writeKubeconfig      bool
-	kubeconfigPath       string
-	autoKubeconfigPath   bool
-	authenticatorRoleARN string
-	setContext           bool
-	availabilityZones    []string
-
+	writeKubeconfig       bool
+	kubeconfigPath        string
+	autoKubeconfigPath    bool
+	authenticatorRoleARN  string
+	setContext            bool
+	availabilityZones     []string
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
 	withoutNodeGroup      bool
@@ -115,6 +114,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 	}
 
+	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
+		return err
+	}
+	
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
