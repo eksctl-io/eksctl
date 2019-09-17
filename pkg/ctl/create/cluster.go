@@ -27,10 +27,9 @@ type createClusterCmdParams struct {
 	setContext                  bool
 	availabilityZones           []string
 	installWindowsVPCController bool
-
-	kopsClusterNameForVPC string
-	subnets               map[api.SubnetTopology]*[]string
-	withoutNodeGroup      bool
+	kopsClusterNameForVPC       string
+	subnets                     map[api.SubnetTopology]*[]string
+	withoutNodeGroup            bool
 }
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
@@ -116,6 +115,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			}
 			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
 		}
+	}
+
+	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
+		return err
 	}
 
 	if err := ctl.CheckAuth(); err != nil {

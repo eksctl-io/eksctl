@@ -57,7 +57,7 @@ func init() {
 	flag.Parse()
 
 	eksctlCmd = runner.NewCmd(eksctlPath).
-		WithArgs("--region", region).
+		// WithArgs("--region", region).
 		WithTimeout(30 * time.Minute)
 
 	eksctlCreateCmd = eksctlCmd.
