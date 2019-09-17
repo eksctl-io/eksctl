@@ -32,6 +32,7 @@ const (
 	EvictionKind = "Eviction"
 	// EvictionSubresource represents the kind of evictions object as pod's subresource
 	EvictionSubresource = "pods/eviction"
+	podEvictionMaxRetries = 60
 )
 
 // Helper contains the parameters to control the behaviour of drainer

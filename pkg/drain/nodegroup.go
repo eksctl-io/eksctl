@@ -151,10 +151,10 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 						logger.Debug("%d pods to be evicted from %s", pending, node.Name)
 						time.Sleep(5 * time.Second)
 						pending, err = evictPods(drainer, &node)
-						if err != nil && retry < 60 {
-							logger.Warning("pod eviction error: \"%s\", on node: %s (retry in 5 sec, %d/60)", err, node.Name, retry)
-						} else if retry >= 60 {
-							logger.Warning("pod eviction unable to complete after 60 retry on node: %s", node.Name)
+						if err != nil && retry < podEvictionMaxRetries {
+							logger.Warning("pod eviction error: \"%s\", on node: %s (retry in 5 sec, %d/%d)", err, node.Name, retry, podEvictionMaxRetries)
+						} else if retry >= podEvictionMaxRetries {
+							logger.Warning("pod eviction unable to complete after %d retries on node: %s", podEvictionMaxRetries, node.Name)
 							evictError++
 							break
 						}
