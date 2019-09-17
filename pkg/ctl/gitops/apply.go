@@ -43,7 +43,7 @@ func (opts options) validate() error {
 		return errors.New("please supply a valid --git-private-ssh-key-path argument")
 	}
 	if !file.Exists(opts.outputPath) {
-		return errors.New("directory does not exists: please supply a valid --output-path argument")
+		return errors.New("directory does not exist: please supply a valid --output-path argument")
 	}
 	isEmpty, err := dir.IsEmpty(opts.outputPath)
 	if err != nil {
