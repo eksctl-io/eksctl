@@ -196,8 +196,11 @@ func IsEnabled(v *bool) bool { return v != nil && *v }
 // IsDisabled will only return true if v is not nil and false
 func IsDisabled(v *bool) bool { return v != nil && !*v }
 
+// IsSet will only return true if v is not nil
+func IsSet(v *string) bool { return v != nil }
+
 // IsSetAndNonEmptyString will only return true if s is not nil and not empty
-func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
+func IsSetAndNonEmptyString(s *string) bool { return IsSet(s) && *s != "" }
 
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
@@ -390,6 +393,7 @@ func NewClusterVPC() *ClusterVPC {
 		},
 		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
+		ClusterEndpoints: ClusterEndpointAccessDefaults(),
 	}
 }
 

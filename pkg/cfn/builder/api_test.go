@@ -238,6 +238,10 @@ func testVPC() *api.ClusterVPC {
 				},
 			},
 		},
+		ClusterEndpoints: &api.ClusterEndpoints {
+			PrivateAccess: api.Disabled(),
+			PublicAccess:  api.Enabled(),
+		},
 	}
 }
 
