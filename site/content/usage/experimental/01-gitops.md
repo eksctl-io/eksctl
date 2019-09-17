@@ -127,9 +127,9 @@ minutes you should see the resources appearing in the cluster.
 To learn more about GitOps and Flux, check the [Flux documentation][flux]
 
 
-### Installing components from a quickstart
+### Installing components from a Quick Start profile
 
-`eksctl` provides an application development quickstart profile which can install the following components in your
+`eksctl` provides an application development Quick Star profile which can install the following components in your
 cluster:
   - Metrics Server
   - Prometheus
@@ -207,7 +207,7 @@ After running the command, add, commit and push the files:
 ```bash
 cd my-gitops-repo/
 git add .
-git commit -m "Add application development quickstart components"
+git commit -m "Add application development quick start components"
 git push origin master
 ```
 
@@ -231,7 +231,7 @@ This command will clone the specified repository in your current working directo
   1. install Flux, Helm and Tiller in the cluster and add the manifests of those components into the `flux/` folder in your repo
   2. add the component manifests of the Quick Start profile to your repository inside the `base/` folder
   3. commit the Quick Start files and push the changes to the origin remote
-  4. once you have given read and write access to your repository to the the private SSH key printed by the command Flux will install the components from the `base/` folder into your cluster
+  4. once you have given read and write access to your repository to the the SSH key printed by the command, Flux will install the components from the `base/` folder into your cluster
 
 Example:
 
