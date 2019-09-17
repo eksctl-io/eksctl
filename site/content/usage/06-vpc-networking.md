@@ -178,7 +178,7 @@ access using the cluster config file. Example below:
 
 ```yaml
 vpc:
-  endpointAccess:
-    public:  <true|false>
-    private: <true|false>
+  clusterEndpoints:
+    publicAccess:  <true|false>
+    privateAccess: <true|false>
 ```
