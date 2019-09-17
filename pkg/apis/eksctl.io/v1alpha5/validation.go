@@ -114,7 +114,7 @@ func NoAccess(ces *ClusterEndpoints) bool {
 	return !(*ces.PublicAccess || *ces.PrivateAccess)
 }
 
-//PrivateOnly returns true if public cluster endpoint access is disabled and public cluster endpoint access is enabled, and false otherwise
+//PrivateOnly returns true if public cluster endpoint access is disabled and private cluster endpoint access is enabled, and false otherwise
 func PrivateOnly(ces *ClusterEndpoints) bool {
 	return !*ces.PublicAccess && *ces.PrivateAccess
 }

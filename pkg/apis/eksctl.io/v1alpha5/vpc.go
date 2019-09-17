@@ -84,7 +84,6 @@ func SubnetTopologies() []SubnetTopology {
 	}
 }
 
-
 // DefaultCIDR returns default global CIDR for VPC
 func DefaultCIDR() ipnet.IPNet {
 	return ipnet.IPNet{
