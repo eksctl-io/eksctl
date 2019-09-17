@@ -21,6 +21,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
+	"github.com/weaveworks/eksctl/pkg/utils/dir"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
@@ -40,6 +41,16 @@ func (opts options) validate() error {
 	}
 	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
 		return errors.New("please supply a valid --git-private-ssh-key-path argument")
+	}
+	if !file.Exists(opts.outputPath) {
+		return errors.New("directory does not exists: please supply a valid --output-path argument")
+	}
+	isEmpty, err := dir.IsEmpty(opts.outputPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to validate directory provided via the --output-path argument")
+	}
+	if !isEmpty {
+		return errors.New("directory is not empty: please supply a valid --output-path argument")
 	}
 	return nil
 }
