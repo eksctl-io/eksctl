@@ -28,6 +28,8 @@ type (
 		AutoAllocateIPv6 *bool `json:"autoAllocateIPv6,omitempty"`
 		// +optional
 		NAT *ClusterNAT `json:"nat,omitempty"`
+		// +optional
+		ClusterEndpoints *ClusterEndpoints `json:"clusterEndpoints,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {
@@ -47,6 +49,12 @@ type (
 	ClusterNAT struct {
 		Gateway *string `json:"gateway,omitempty"`
 	}
+
+	// ClusterEndpoints holds cluster api server endpoint access information
+	ClusterEndpoints struct {
+		PrivateAccess *bool `json:"privateAccess,omitempty,false"`
+		PublicAccess  *bool `json:"publicAccess,omitempty,true"`
+	}
 )
 
 const (
@@ -58,6 +66,14 @@ const (
 	SubnetTopologyPrivate SubnetTopology = "Private"
 	// SubnetTopologyPublic represents publicly-routed subnets
 	SubnetTopologyPublic SubnetTopology = "Public"
+
+)
+
+var (
+	// True holds true value and can have it's address taken
+	True = true
+	// False holds false value and can have it's address taken
+	False = false
 )
 
 // SubnetTopologies returns a list of topologies
@@ -67,6 +83,7 @@ func SubnetTopologies() []SubnetTopology {
 		SubnetTopologyPublic,
 	}
 }
+
 
 // DefaultCIDR returns default global CIDR for VPC
 func DefaultCIDR() ipnet.IPNet {
@@ -185,4 +202,19 @@ func (c *ClusterConfig) HasSufficientSubnets() error {
 	}
 
 	return nil
+}
+
+//HasClusterEndpointAccess determines if endpoint access was configured in config file or not
+func (c *ClusterConfig) HasClusterEndpointAccess() bool {
+	hasAccess := false
+	if !(c.VPC == nil || c.VPC.ClusterEndpoints == nil) {
+		hasPublicAccess := &c.VPC.ClusterEndpoints.PublicAccess != nil && *c.VPC.ClusterEndpoints.PublicAccess
+		hasPrivateAccess := &c.VPC.ClusterEndpoints.PrivateAccess != nil && *c.VPC.ClusterEndpoints.PrivateAccess
+
+		hasAccess = hasPublicAccess || hasPrivateAccess
+	} else {
+		// an empty VPC or ClusterEndpoints config defaults to public true/private false
+		hasAccess = true
+	}
+	return hasAccess
 }

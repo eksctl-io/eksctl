@@ -328,7 +328,11 @@ const expected = `
 			"autoAllocateIPv6": false,
 			"nat": {
 				"gateway": "Single"
-			  }
+			  },
+			"clusterEndpoints": {
+				"privateAccess": false,
+				"publicAccess": true
+			}
 		},
 		"cloudWatch": {
 		  "clusterLogging": {}

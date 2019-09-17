@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -63,7 +64,59 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	if !cfg.HasClusterEndpointAccess() {
+		return fmt.Errorf("Cluster endpoint access invalid, at least one of Public, Private " +
+			"needs to be enabled")
+	}
 	return nil
+}
+// NoAccessMsg function returns a message inidicating that the config leaves no API endpoint access
+func NoAccessMsg(endpts *ClusterEndpoints) string {
+	return fmt.Sprintf("Cluster API access must have one of public or private endpointAccess " +
+		"enabled, current values are publicAccess=%v and privateAccess=%v, aborting",
+		endpts.PublicAccess, endpts.PrivateAccess)
+}
+
+// PrivateOnlyUseUtilsMsg returns a message that indicates that the operation must be done using
+// eksctl utils update-cluster-api-access
+func PrivateOnlyUseUtilsMsg() string {
+	return "eksctl cannot join worker nodes to the EKS cluster when public access isn't allowed. " +
+		"use 'eksctl utils update-cluster-api-access ...' after creating cluster with default access"
+}
+
+// PrivateOnlyAwsChangesNeededMsg returns a message that warns that not having pulbic access
+// requires changes to AWS resource configuration in order to effectively use clients in the VPC
+func PrivateOnlyAwsChangesNeededMsg() string {
+	return "warning, having public access disallowed will subsequently interfere with some " +
+		"features of eksctl. This will require running subsequent eksctl (and kubernetes) " +
+		"commands from within the VPC.  Running such commands in the VPC requires making " +
+		"updates to some AWS resources.  See: " +
+		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
+		"for more details"
+}
+
+//ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
+func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
+	if c.HasClusterEndpointAccess() {
+		endpts := c.VPC.ClusterEndpoints
+		if NoAccess(endpts) {
+			return errors.New(NoAccessMsg(endpts))
+		}
+		if PrivateOnly(endpts) {
+			return errors.New(PrivateOnlyUseUtilsMsg())
+		}
+	}
+	return nil
+}
+
+//NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherise
+func NoAccess(ces *ClusterEndpoints) bool {
+	return !(*ces.PublicAccess || *ces.PrivateAccess)
+}
+
+//PrivateOnly returns true if public cluster endpoint access is disabled and public cluster endpoint access is enabled, and false otherwise
+func PrivateOnly(ces *ClusterEndpoints) bool {
+	return !*ces.PublicAccess && *ces.PrivateAccess
 }
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup
