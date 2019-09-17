@@ -3,6 +3,7 @@ package gitops
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -21,14 +22,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
-	"github.com/weaveworks/eksctl/pkg/utils/dir"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 type options struct {
 	gitOptions           git.Options
 	quickstartNameArg    string
-	outputPath           string
 	gitPrivateSSHKeyPath string
 }
 
@@ -41,16 +40,6 @@ func (opts options) validate() error {
 	}
 	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
 		return errors.New("please supply a valid --git-private-ssh-key-path argument")
-	}
-	if !file.Exists(opts.outputPath) {
-		return errors.New("directory does not exist: please supply a valid --output-path argument")
-	}
-	isEmpty, err := dir.IsEmpty(opts.outputPath)
-	if err != nil {
-		return errors.Wrap(err, "failed to validate directory provided via the --output-path argument")
-	}
-	if !isEmpty {
-		return errors.New("directory is not empty: please supply a valid --output-path argument")
 	}
 	return nil
 }
@@ -71,7 +60,6 @@ func applyGitops(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&opts.quickstartNameArg, "quickstart-profile", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
 		fs.StringVarP(&opts.gitOptions.URL, "git-url", "", "", "SSH URL of the Git repository that will contain the cluster components, e.g. git@github.com:<github_org>/<repo_name>")
 		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
-		fs.StringVarP(&opts.outputPath, "output-path", "", "./", "Path to directory where the GitOps repo will be cloned")
 		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
 		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
@@ -134,7 +122,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 
-	// Create the flux installer. It will clone the user's repository in the outputPath
+	// Create the flux installer. It will clone the user's repository in a temporary directory.
 	fluxOpts := flux.InstallOpts{
 		GitOptions:  opts.gitOptions,
 		Namespace:   "flux",
@@ -153,7 +141,9 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	if err != nil {
 		return err
 	}
-	usersRepoDir := filepath.Join(opts.outputPath, usersRepoName)
+	dir, err := ioutil.TempDir("", usersRepoName)
+	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", dir)
+	usersRepoDir := filepath.Join(dir, usersRepoName)
 	profileOutputPath := filepath.Join(usersRepoDir, "base")
 
 	profile := &gitops.Profile{
@@ -186,6 +176,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	if err = gitOps.Run(context.Background()); err != nil {
 		return err
 	}
+	os.RemoveAll(dir) // Only clean up if the command completely successfully, for more convenient debugging.
 	return nil
 }
 
