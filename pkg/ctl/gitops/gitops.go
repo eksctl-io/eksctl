@@ -8,7 +8,7 @@ import (
 
 // Command will create the `gitops` commands
 func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
-	verbCmd := cmdutils.NewVerbCmd("gitops", "Helps setting up GitOps in a cluster", "")
+	verbCmd := cmdutils.NewVerbCmd("gitops", "Helps setting up gitops in a cluster", "")
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, applyGitops)
 

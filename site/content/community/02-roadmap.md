@@ -13,9 +13,9 @@ One or more release candidate(s) (RC) builds will be made available prior to eac
 
 ## Project Roadmap Themes
 
-### Cluster quickstart with GitOps
+### Cluster Quick Start with gitops
 
-It should be easy to create a cluster with various applications pre-installed, e.g. Weave Flux, Helm 2 (Tiller), ALB Ingress controller. It should also be easy to manage these applications in a declarative way using config files in a git repo (with [GitOps](https://www.weave.works/blog/what-is-gitops-really)).
+It should be easy to create a cluster with various applications pre-installed, e.g. Weave Flux, Helm 2 (Tiller), ALB Ingress controller. It should also be easy to manage these applications in a declarative way using config files in a git repo (with [gitops](https://www.weave.works/blog/what-is-gitops-really)).
 
 ### Declarative configuration management for clusters
 
