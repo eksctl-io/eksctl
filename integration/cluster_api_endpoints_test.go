@@ -23,13 +23,12 @@ import (
 )
 
 const (
-	createCluster    = `CreateCluster`
-	updateCluster    = `UpdateCluster`
+	createCluster    = `Create`
+	updateCluster    = `Update`
+	deleteCluster    = `Delete`
 	endpointPubTmpl  = `EndpointPublicAccess: %v`
 	endpointPrivTmpl = `EndpointPrivateAccess: %v`
 )
-
-var False = false
 
 func setEndpointConfig(cfg *api.ClusterConfig, privateAccess, publicAccess bool) {
 	cfg.VPC.ClusterEndpoints.PrivateAccess = &privateAccess
@@ -55,18 +54,21 @@ func printSeparator(op, clname string) {
 }
 
 var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs", func() {
-	type EndpointAccessCases struct {
+
+	type EndpointAccessCase struct {
 		Name    string
 		Private bool
 		Public  bool
-		Type    string // createCluster or updateCluster
+		Type    string
 		Output  string
 		Error   error
 		Delete  bool
+		fun     func(string, string)
 	}
 
-	FDescribeTable("Can create/update Cluster Endpoint Access",
-		func(e EndpointAccessCases) {
+	DescribeTable("Can create/update Cluster Endpoint Access",
+		func(e EndpointAccessCase) {
+			printSeparator(e.Type, e.Name)
 			//create clusterconfig
 			cfg := api.NewClusterConfig()
 			clName := generateName(e.Name)
@@ -89,13 +91,12 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 
 			// create cluster with config file
 			if e.Type == createCluster {
-				printSeparator("Creating", clName)
 				cmd := eksctlCreateCmd.WithArgs(
 					"cluster",
 					"--verbose", "2",
 					"--config-file", tmpfile.Name(),
 					"--without-nodegroup",
-				)
+				).WithoutArg("--region", region)
 				if e.Error != nil {
 					Expect(cmd).ShouldNot(RunSuccessfully())
 					return
@@ -105,21 +106,18 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				Eventually(awsSession, timeOut, pollInterval).Should(
 					HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
 			} else if e.Type == updateCluster {
-				printSeparator("Updating", clName)
 				utilsCmd := eksctlUtilsCmd.WithArgs(
 					"update-cluster-api-access",
 					"--name", clName,
 					fmt.Sprintf("--private-access=%v", e.Private),
 					fmt.Sprintf("--public-access=%v", e.Public),
-					fmt.Sprintf("--approve"),
-				)
+					"--approve")
 				if e.Error != nil {
 					Expect(utilsCmd).ShouldNot(RunSuccessfully())
 					return
 				}
 				Expect(utilsCmd).Should(RunSuccessfully())
 			}
-			printSeparator("Getting", clName)
 			getCmd := eksctlGetCmd.WithArgs(
 				"cluster",
 				"--name", clName,
@@ -129,8 +127,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				ContainElement(ContainSubstring(endpointPubTmpl, e.Public)),
 				ContainElement(ContainSubstring(endpointPrivTmpl, e.Private)),
 			))
-			if e.Delete {
-				printSeparator("Deleting", clName)
+			if e.Type == deleteCluster {
 				// nned to update public access to allow access to delete when it isn't allowed
 				if e.Public == false {
 					utilsCmd := eksctlUtilsCmd.WithArgs(
@@ -150,71 +147,77 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				Expect(getCmd).ShouldNot(RunSuccessfully())
 			}
 		},
-		Entry("Create cluster1 with Private=false, Public=true", EndpointAccessCases{
+		Entry("Create cluster1 with Private=false, Public=true", EndpointAccessCase{
 			Name:    "cluster1",
 			Private: false,
 			Public:  true,
 			Type:    createCluster,
 			Error:   nil,
-			Delete:  false,
 		}),
-		Entry("Create cluster2 with Private=true, Public=false", EndpointAccessCases{
+		Entry("Create cluster2 with Private=true, Public=false", EndpointAccessCase{
 			Name:    "cluster2",
 			Private: true,
 			Public:  false,
 			Type:    createCluster,
 			Error:   errors.New(api.PrivateOnlyUseUtilsMsg()),
-			Delete:  true, // In case the cluster gets create because of a bug
 		}),
-		Entry("Create cluster 3 Private=true, Public=true", EndpointAccessCases{
+		Entry("Create cluster 3 Private=true, Public=true", EndpointAccessCase{
 			Name:    "cluster3",
 			Private: true,
 			Public:  true,
 			Type:    createCluster,
 			Error:   nil,
-			Delete:  false,
 		}),
-		Entry("Create cluster4 with Private=false, Public=false (should error)", EndpointAccessCases{
+		Entry("Create cluster4 with Private=false, Public=false (should error)", EndpointAccessCase{
 			Name:    "cluster4",
 			Private: false,
 			Public:  false,
 			Type:    createCluster,
 			Error:   errors.New(api.NoAccessMsg(
-				&api.ClusterEndpoints{PrivateAccess: &False, PublicAccess: &False,},
+				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled(),},
 			)),
-			Delete:  true, // In case the cluster gets created because of a bug.
 		}),
-		Entry("Update cluster1 to Private=true, Public=false", EndpointAccessCases{
+		Entry("Update cluster1 to Private=true, Public=false", EndpointAccessCase{
 			Name:    "cluster1",
 			Private: true,
 			Public:  false,
 			Type:    updateCluster,
 			Error:   nil,
-			Delete:  true,
 		}),
-		Entry("Update cluster3 to Private=true, Public=false", EndpointAccessCases{
+		Entry("Update cluster3 to Private=true, Public=false", EndpointAccessCase{
 			Name:    "cluster3",
 			Private: true,
 			Public:  false,
 			Type:    updateCluster,
 			Error:   nil,
-			Delete:  false,
 		}),
-		Entry("Update cluster3 to Private=false, Public=false (should error)", EndpointAccessCases{
+		Entry("Update cluster3 to Private=false, Public=false (should error)", EndpointAccessCase{
 			Name:    "cluster3",
 			Private: false,
 			Public:  false,
 			Type:    updateCluster,
 			Error:   errors.New("Unable to make requested changes.  Either public access or private access must be enabled"),
-			Delete:  false,
 		}),
-		Entry("Update cluster3 to Private=false, Public=false (should error)", EndpointAccessCases{
+		Entry("Update cluster3 to Private=false, Public=false (should error)", EndpointAccessCase{
 			Name:    "cluster3",
 			Private: false,
 			Public:  true,
 			Type:    updateCluster,
 			Error:   nil,
-			Delete:  true,
+		}),
+		Entry("Delete cluster1", EndpointAccessCase{
+			Name:    "cluster1",
+			Private:  true,
+			Public:   false,
+			Type:     deleteCluster,
+			Error:    nil,
+		}),
+		Entry("Delete cluster3", EndpointAccessCase{
+			Name:    "cluster3",
+			Private:  false,
+			Public:   true,
+			Type:     deleteCluster,
+			Error:    nil,
 		}),
 	)
 })
