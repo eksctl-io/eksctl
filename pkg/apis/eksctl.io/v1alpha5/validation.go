@@ -88,9 +88,9 @@ func PrivateOnlyUseUtilsMsg() string {
 // requires changes to AWS resource configuration in order to effectively use clients in the VPC
 func PrivateOnlyAwsChangesNeededMsg() string {
 	return "warning, having public access disallowed will subsequently interfere with some " +
-		"features of eksctl. This will require running subsequent eksctl (and kubernetes) " +
-		"commands from within the VPC.  Running such commands in the VPC requires making " +
-		"updates to some AWS resources.  See: " +
+		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
+		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
+	    "updates to some AWS resources.  See: " +
 		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
 		"for more details"
 }

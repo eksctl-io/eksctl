@@ -56,29 +56,29 @@ var _ = Describe("VPC Configuration", func() {
 			Public:    nil,
 			Private:   nil,
 		}),
-		Entry("Public=True, Private=true", EndpointAccessCases{
+		Entry("Public=true, Private=true", EndpointAccessCases{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
-			Public:    &True,
-			Private:   &True,
+			Public:    Enabled(),
+			Private:   Enabled(),
 		}),
 		Entry("Public=true, Private=false", EndpointAccessCases{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
-			Public:    &True,
-			Private:   &False,
+			Public:    Enabled(),
+			Private:   Disabled(),
 		}),
 		Entry("Public=false, Private=true", EndpointAccessCases{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
-			Public:    nil,
-			Private:   nil,
+			Public:    Disabled(),
+			Private:   Enabled(),
 		}),
 		Entry("Public=false, Private=false", EndpointAccessCases{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
-			Public:    &False,
-			Private:   &False,
+			Public:    Disabled(),
+			Private:   Disabled(),
 		}),
 	)
 })
