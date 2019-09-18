@@ -69,13 +69,6 @@ const (
 
 )
 
-var (
-	// True holds true value and can have it's address taken
-	True = true
-	// False holds false value and can have it's address taken
-	False = false
-)
-
 // SubnetTopologies returns a list of topologies
 func SubnetTopologies() []SubnetTopology {
 	return []SubnetTopology{
@@ -206,9 +199,9 @@ func (c *ClusterConfig) HasSufficientSubnets() error {
 //HasClusterEndpointAccess determines if endpoint access was configured in config file or not
 func (c *ClusterConfig) HasClusterEndpointAccess() bool {
 	hasAccess := false
-	if !(c.VPC == nil || c.VPC.ClusterEndpoints == nil) {
-		hasPublicAccess := &c.VPC.ClusterEndpoints.PublicAccess != nil && *c.VPC.ClusterEndpoints.PublicAccess
-		hasPrivateAccess := &c.VPC.ClusterEndpoints.PrivateAccess != nil && *c.VPC.ClusterEndpoints.PrivateAccess
+	if IsSet(c.VPC) && IsSet(c.VPC.ClusterEndpoints) {
+		hasPublicAccess := IsSet(c.VPC.ClusterEndpoints.PublicAccess) && *c.VPC.ClusterEndpoints.PublicAccess
+		hasPrivateAccess := IsSet(c.VPC.ClusterEndpoints.PrivateAccess) && *c.VPC.ClusterEndpoints.PrivateAccess
 
 		hasAccess = hasPublicAccess || hasPrivateAccess
 	} else {
