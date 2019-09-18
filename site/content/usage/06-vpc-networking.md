@@ -179,9 +179,9 @@ vpc:
 
 There are some additional caveats when configuring cluster api endpoint access:
 
-1. EKS doesn't allow one to create or update a cluster without at least one of Private or Public access being
+1. EKS doesn't allow one to create or update a cluster without at least one of private or public access being
    enabled.
-1. EKS does allow creating a configuration which allows only Private access to be enabled, but eksctl doesn't
+1. EKS does allow creating a configuration which allows only private access to be enabled, but eksctl doesn't
    support it during cluster creation as it prevents eksctl from being able to join the worker nodes to the cluster.
 1. To create private-only cluster api endpoint access, one must first create the cluster *with* public cluster api
    endpoint access, and then use `/eksctl utils update-cluster-api-access` to change it after the cluster is finished
