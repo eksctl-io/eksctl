@@ -140,7 +140,7 @@ func DecodeCloudConfig(s string) (*CloudConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer close(gr)
+	defer safeClose(gr)
 	data, err = ioutil.ReadAll(gr)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func DecodeCloudConfig(s string) (*CloudConfig, error) {
 	return c, nil
 }
 
-func close(c io.Closer) {
+func safeClose(c io.Closer) {
 	if err := c.Close(); err != nil {
 		logger.Debug("could not close file: %v", err)
 	}
