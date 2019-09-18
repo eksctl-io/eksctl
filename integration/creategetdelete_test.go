@@ -694,15 +694,15 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						},
 					}
 
-					bs, err := yaml.Marshal(role0)
+					bs, err := yaml.Marshal([]iam.Identity{role0})
 					Expect(err).ShouldNot(HaveOccurred())
 					expR0 = string(bs)
 
-					bs, err = yaml.Marshal(role1)
+					bs, err = yaml.Marshal([]iam.Identity{role1})
 					Expect(err).ShouldNot(HaveOccurred())
 					expR1 = string(bs)
 
-					bs, err = yaml.Marshal(user0)
+					bs, err = yaml.Marshal([]iam.Identity{user0})
 					Expect(err).ShouldNot(HaveOccurred())
 					expU0 = string(bs)
 				})
@@ -711,7 +711,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					cmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", "arn:aws:iam::123456:role/idontexist",
 						"-o", "yaml",
 					)
@@ -721,7 +720,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					cmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", "arn:aws:iam::123456:user/bob",
 						"-o", "yaml",
 					)
@@ -731,7 +729,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					create := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role0.GetARN(),
 						"--username", role0.GetUsername(),
 						"--group", role0.GetGroups()[0],
@@ -742,7 +739,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					get := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role0.GetARN(),
 						"-o", "yaml",
 					)
@@ -752,7 +748,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					create := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", user0.GetARN(),
 						"--username", user0.GetUsername(),
 						"--group", user0.GetGroups()[0],
@@ -763,7 +758,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					get := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", user0.GetARN(),
 						"-o", "yaml",
 					)
@@ -773,7 +767,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					createRole := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role0.GetARN(),
 						"--username", role0.GetUsername(),
 						"--group", role0.GetGroups()[0],
@@ -784,7 +777,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					get := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role0.GetARN(),
 						"-o", "yaml",
 					)
@@ -794,7 +786,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					createCmd := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", user0.GetARN(),
 						"--username", user0.GetUsername(),
 						"--group", user0.GetGroups()[0],
@@ -805,7 +796,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", user0.GetARN(),
 						"-o", "yaml",
 					)
@@ -815,7 +805,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					createCmd := eksctlCreateCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role1.GetARN(),
 						"--group", role1.GetGroups()[0],
 					)
@@ -824,7 +813,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role1.GetARN(),
 						"-o", "yaml",
 					)
@@ -834,7 +822,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					deleteCmd := eksctlDeleteCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role1.GetARN(),
 					)
 					Expect(deleteCmd).To(RunSuccessfully())
@@ -842,7 +829,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role1.GetARN(),
 						"-o", "yaml",
 					)
@@ -852,7 +838,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					deleteCmd := eksctlDeleteCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", "arn:aws:iam::123456:role/idontexist",
 					)
 					Expect(deleteCmd).ToNot(RunSuccessfully())
@@ -861,7 +846,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					deleteCmd := eksctlDeleteCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role1.GetARN(),
 						"--all",
 					)
@@ -870,7 +854,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", role1.GetARN(),
 						"-o", "yaml",
 					)
@@ -880,7 +863,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					deleteCmd := eksctlDeleteCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", user0.GetARN(),
 						"--all",
 					)
@@ -889,7 +871,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					getCmd := eksctlGetCmd.WithArgs(
 						"iamidentitymapping",
 						"--name", clusterName,
-						"--region", region,
 						"--arn", user0.GetARN(),
 						"-o", "yaml",
 					)
