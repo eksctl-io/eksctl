@@ -54,6 +54,8 @@ func init() {
 	flag.StringVar(&kubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create it a temporary file)")
 	flag.StringVar(&privateSSHKeyPath, "eksctl.git.sshkeypath", defaultPrivateSSHKeyPath, fmt.Sprintf("Path to the SSH key to use for Git operations (default: %s)", defaultPrivateSSHKeyPath))
 
+	flag.Parse()
+
 	eksctlCmd = runner.NewCmd(eksctlPath).
 		WithArgs("--region", region).
 		WithTimeout(30 * time.Minute)
