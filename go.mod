@@ -7,7 +7,7 @@ require (
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/alecthomas/jsonschema v0.0.0-20190530235721-fd8d96416671
 	github.com/aws/aws-sdk-go v1.23.15
-	github.com/awslabs/goformation v0.0.0-00010101000000-000000000000
+	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/christopherhein/go-version v0.0.0-20180807222509-fee8dd1f7c24
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7

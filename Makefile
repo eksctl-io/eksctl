@@ -4,7 +4,7 @@ git_toplevel := $(shell git rev-parse --show-toplevel)
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
 # The dependencies version should be bumped every time the build dependencies are updated
-EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.15
+EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.16
 EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
 EKSCTL_IMAGE ?= weaveworks/eksctl:latest
 
