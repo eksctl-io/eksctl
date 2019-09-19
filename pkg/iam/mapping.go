@@ -86,7 +86,8 @@ func NewIdentity(arn string, username string, groups []string) (Identity, error)
 		return nil, err
 	}
 
-	if parsedARN.IsUser() {
+	switch {
+	case parsedARN.IsUser():
 		return &UserIdentity{
 			UserARN: arn,
 			KubernetesIdentity: KubernetesIdentity{
@@ -94,7 +95,7 @@ func NewIdentity(arn string, username string, groups []string) (Identity, error)
 				Groups:   groups,
 			},
 		}, nil
-	} else if parsedARN.IsRole() {
+	case parsedARN.IsRole():
 		return &RoleIdentity{
 			RoleARN: arn,
 			KubernetesIdentity: KubernetesIdentity{
@@ -102,8 +103,7 @@ func NewIdentity(arn string, username string, groups []string) (Identity, error)
 				Groups:   groups,
 			},
 		}, nil
-	} else {
+	default:
 		return nil, ErrNeitherUserNorRole
 	}
-
 }
