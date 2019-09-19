@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 
@@ -66,7 +67,6 @@ const (
 	SubnetTopologyPrivate SubnetTopology = "Private"
 	// SubnetTopologyPublic represents publicly-routed subnets
 	SubnetTopologyPublic SubnetTopology = "Public"
-
 )
 
 // SubnetTopologies returns a list of topologies
@@ -196,17 +196,45 @@ func (c *ClusterConfig) HasSufficientSubnets() error {
 	return nil
 }
 
+//DefaultEndpointsMsg returns a message that the EndpointAccess is the same as the default
+func (c *ClusterConfig) DefaultEndpointsMsg() string {
+	return fmt.Sprintf(
+		"Kubernetes API endpoint access will use default of {Pulic: true, Private false} for cluster %q in %q", c.Metadata.Name, c.Metadata.Region)
+}
+
+//CustomEndpointsMsg returns a message indicating the EndpointAccess given by the user
+func (c *ClusterConfig) CustomEndpointsMsg() string {
+	return fmt.Sprintf(
+		"Kubernetes API endpoint access will use provided values {Public: %v, Private %v} for cluster %q in %q", *c.VPC.ClusterEndpoints.PublicAccess, *c.VPC.ClusterEndpoints.PrivateAccess, c.Metadata.Name, c.Metadata.Region)
+}
+
+//UpdateEndpointsMsg gives message indicating that they need to use eksctl utils to make this config
+func (c *ClusterConfig) UpdateEndpointsMsg() string {
+	return fmt.Sprintf(
+		"you can update Kubernetes API endpoint access with `eksctl utils update-cluster-endpoints --region=%s --name=%s --private-access=bool --public-access=bool`", c.Metadata.Region, c.Metadata.Name)
+}
+
+// EndpointsEqual returns true of two endpoints have same values after dereferencing any pointers
+func EndpointsEqual(a, b ClusterEndpoints) bool {
+	ajson, err := json.MarshalIndent(a, "", "\t")
+	if err != nil {
+		return false
+	}
+	bjson, err := json.MarshalIndent(b, "", "\t")
+	if err != nil {
+		return false
+	}
+	return string(ajson) == string(bjson)
+}
+
 //HasClusterEndpointAccess determines if endpoint access was configured in config file or not
 func (c *ClusterConfig) HasClusterEndpointAccess() bool {
-	hasAccess := false
-	if IsSet(c.VPC) && IsSet(c.VPC.ClusterEndpoints) {
-		hasPublicAccess := IsSet(c.VPC.ClusterEndpoints.PublicAccess) && *c.VPC.ClusterEndpoints.PublicAccess
-		hasPrivateAccess := IsSet(c.VPC.ClusterEndpoints.PrivateAccess) && *c.VPC.ClusterEndpoints.PrivateAccess
-
-		hasAccess = hasPublicAccess || hasPrivateAccess
-	} else {
-		// an empty VPC or ClusterEndpoints config defaults to public true/private false
-		hasAccess = true
+	if c.VPC != nil && c.VPC.ClusterEndpoints != nil {
+		pubAccess := c.VPC.ClusterEndpoints.PublicAccess
+		privAccess := c.VPC.ClusterEndpoints.PrivateAccess
+		hasPublicAccess := pubAccess != nil && *pubAccess
+		hasPrivateAccess := privAccess != nil && *privAccess
+		return hasPublicAccess || hasPrivateAccess
 	}
-	return hasAccess
+	return true
 }

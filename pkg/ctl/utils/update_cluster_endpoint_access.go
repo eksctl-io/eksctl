@@ -12,11 +12,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-func updateEndpointAccessCmd(cmd *cmdutils.Cmd) {
+func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("update-cluster-api-access", "Update cluster API endpoint configuration", "")
+	cmd.SetDescription("update-cluster-endpoints", "Update Kubernetes API endpoint access configuration", "")
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
@@ -27,25 +27,25 @@ func updateEndpointAccessCmd(cmd *cmdutils.Cmd) {
 	})
 
 	var private, public bool
-	cmd.FlagSetGroup.InFlagSet("Allow/Disallow Cluster API access flags",
+	cmd.FlagSetGroup.InFlagSet("Update private/public Kubernetes API endpoint access configuration",
 		func(fs *pflag.FlagSet) {
 			fs.BoolVar(&private, "private-access", false, "access for private (VPC) clients")
 			fs.BoolVar(&public, "public-access", true, "access for public clients")
 		})
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doConfigureEndpointAccess(cmd, private, public)
+		return doUpdateClusterEndpoints(cmd, private, public)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doConfigureEndpointAccess(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool) error {
+func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool) error {
 	if err := cmdutils.NewUtilsEnableEndpointAccessLoader(cmd).Load(); err != nil {
 		return err
 	}
 
 	if cmd.ClusterConfig.HasClusterEndpointAccess() {
-		if err := validateEndpointConfig(newPrivate, newPublic); err != nil {
+		if err := validateClusterEndpointConfig(newPrivate, newPublic); err != nil {
 			return err
 		}
 	}
@@ -68,39 +68,44 @@ func doConfigureEndpointAccess(cmd *cmdutils.Cmd, newPrivate bool, newPublic boo
 	}
 
 	curPrivate, curPublic, err := ctl.GetCurrentClusterConfigForEndpoints(cfg)
-	if err!= nil {
+	if err != nil {
 		return err
 	}
-	logger.Info("Current endpoint access: private access:%v, public access: %v",
-		*curPrivate, *curPublic)
+	logger.Info("current Kubernetes API endpoint access: privateAccess=%v, publicAccess=%v",
+		curPrivate, curPublic)
 
 	if newPrivate == false && newPublic == false {
 		logger.Critical(api.NoAccessMsg(
-			&api.ClusterEndpoints{PublicAccess: &newPublic, PrivateAccess: &newPrivate}))
+			&api.ClusterEndpoints{PublicAccess: &newPublic, PrivateAccess: &newPrivate},
+		))
 		os.Exit(2)
 	} else if newPrivate == true && newPublic == false {
 		logger.Warning(api.PrivateOnlyAwsChangesNeededMsg())
 	}
 
-	describeAccessToUpdate := []string{"no updates to make"}
-
 	needsUpdate := false
-	if newPrivate != *curPrivate || newPublic != *curPublic {
+	if newPrivate != curPrivate || newPublic != curPublic {
 		needsUpdate = true
 	}
 
 	if needsUpdate {
+		describeAccessToUpdate := []string{}
+
 		cfg.VPC.ClusterEndpoints.PrivateAccess = &newPrivate
-		describeAccessToUpdate[0] = fmt.Sprintf("private access:%v", newPrivate)
+		if newPrivate != curPrivate {
+			describeAccessToUpdate =
+				append(describeAccessToUpdate, fmt.Sprintf("privateAccess=%v", newPrivate))
+		}
 
 		cfg.VPC.ClusterEndpoints.PublicAccess = &newPublic
-		msg := fmt.Sprintf("public access:%v", newPublic)
-		describeAccessToUpdate = append(describeAccessToUpdate, msg)
-
+		if newPublic != curPublic {
+			describeAccessToUpdate =
+				append(describeAccessToUpdate, fmt.Sprintf("publicAccess=%v", newPublic))
+		}
 		describeAccessUpdate := strings.Join(describeAccessToUpdate, ", ")
 
 		cmdutils.LogIntendedAction(
-			cmd.Plan, "update Cluster API Endpoint Access for cluster %q in %q to: (%s)",
+			cmd.Plan, "update Kubernetes API Endpoint Access for cluster %q in %q to: (%s)",
 			meta.Name, meta.Region, describeAccessUpdate)
 		if !cmd.Plan {
 			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
@@ -108,11 +113,11 @@ func doConfigureEndpointAccess(cmd *cmdutils.Cmd, newPrivate bool, newPublic boo
 			}
 			cmdutils.LogCompletedAction(
 				false,
-				"Cluster API Endpoint Access for cluster %q in %q has been upddated to: {%s}",
-				meta.Name, meta.Region, describeAccessUpdate)
+				"the Kubernetes API Endpoint Access for cluster %q in %q has been upddated to: (privateAccess=%s, publicAccess=%s)",
+				meta.Name, meta.Region, newPrivate, newPublic)
 		}
 	} else {
-		logger.Success("Cluster API Endpoint Access for cluster %q in %q is already up to date", meta.Name, meta.Region)
+		logger.Success("Kubernetes API Endpoint Access for cluster %q in %q is already up to date", meta.Name, meta.Region)
 	}
 
 	cmdutils.LogPlanModeWarning(cmd.Plan && needsUpdate)
@@ -120,7 +125,7 @@ func doConfigureEndpointAccess(cmd *cmdutils.Cmd, newPrivate bool, newPublic boo
 	return nil
 }
 
-func validateEndpointConfig(private, public bool) error {
+func validateClusterEndpointConfig(private, public bool) error {
 	cfg := api.NewClusterConfig()
 	cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: &private, PublicAccess: &public}
 	err := cfg.ValidateClusterEndpointConfig()

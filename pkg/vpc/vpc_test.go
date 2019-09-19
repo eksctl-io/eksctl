@@ -15,7 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
-type EndpointAccessCases struct {
+type endpointAccessCase struct {
 	ClusterName string
 	Private     bool
 	Public      bool
@@ -41,11 +41,11 @@ var _ = Describe("VPC Endpoints", func() {
 
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
-		p   = mockprovider.NewMockProvider()
+		p = mockprovider.NewMockProvider()
 	})
 
 	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
-		func(e EndpointAccessCases) {
+		func(e endpointAccessCase) {
 			p.MockEKS()
 			cluster = NewFakeClusterWithEndpoints(e.Private, e.Public, e.ClusterName)
 			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
@@ -65,28 +65,28 @@ var _ = Describe("VPC Endpoints", func() {
 			Expect(cfg.VPC.ClusterEndpoints.PrivateAccess == &e.Private)
 			Expect(cfg.VPC.ClusterEndpoints.PublicAccess == &e.Public)
 		},
-		Entry("Private=false, Public=true", EndpointAccessCases{
+		Entry("Private=false, Public=true", endpointAccessCase{
 			ClusterName: "false-true-cluster",
 			Private:     false,
 			Public:      true,
 			DCOutput:    &eks.DescribeClusterOutput{Cluster: cluster},
 			Error:       nil,
 		}),
-		Entry("Private=true, Public=false", EndpointAccessCases{
+		Entry("Private=true, Public=false", endpointAccessCase{
 			ClusterName: "true-false-cluster",
 			Private:     true,
 			Public:      false,
 			DCOutput:    &eks.DescribeClusterOutput{Cluster: cluster},
 			Error:       nil,
 		}),
-		Entry("Private=true, Public=true", EndpointAccessCases{
+		Entry("Private=true, Public=true", endpointAccessCase{
 			ClusterName: "true-true-cluster",
 			Private:     true,
 			Public:      true,
 			DCOutput:    &eks.DescribeClusterOutput{Cluster: cluster},
 			Error:       nil,
 		}),
-		Entry("Private=false, Public=false", EndpointAccessCases{
+		Entry("Private=false, Public=false", endpointAccessCase{
 			ClusterName: "notFouncCluster",
 			Private:     false,
 			Public:      false,

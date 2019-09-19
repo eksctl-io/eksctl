@@ -6,16 +6,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type EndpointAccessCases struct {
+type endpointAccessCase struct {
 	vpc       *ClusterVPC
 	endpoints *ClusterEndpoints
 	Public    *bool
 	Private   *bool
+	Expected  bool
 }
 
 var _ = Describe("VPC Configuration", func() {
 	DescribeTable("Can determine if VPC config in config file has cluster endpoints",
-		func(e EndpointAccessCases) {
+		func(e endpointAccessCase) {
 			cc := &ClusterConfig{}
 			Expect(cc.HasClusterEndpointAccess()).Should(BeTrue())
 			cc.VPC = e.vpc
@@ -30,55 +31,61 @@ var _ = Describe("VPC Configuration", func() {
 				cc.VPC.ClusterEndpoints.PrivateAccess = e.Private
 			}
 			if e.Public != nil && e.Private != nil {
-				if *e.Public == true || *e.Private == true {
+				if e.Expected {
 					Expect(cc.HasClusterEndpointAccess()).Should(BeTrue())
 				}
-				if *e.Public == true && *e.Private == false {
+				if e.Expected {
 					Expect(cc.HasClusterEndpointAccess()).Should(BeTrue())
 				}
-				if *e.Public == false && *e.Private == true {
+				if e.Expected {
 					Expect(cc.HasClusterEndpointAccess()).Should(BeTrue())
 				}
-				if *e.Public == false && *e.Private == false {
+				if !e.Expected {
 					Expect(cc.HasClusterEndpointAccess()).Should(BeFalse())
 				}
 			}
 		},
-		Entry("No VPC", EndpointAccessCases{
+		Entry("No VPC", endpointAccessCase{
 			vpc:       nil,
 			endpoints: nil,
 			Public:    nil,
 			Private:   nil,
+			Expected:  true,
 		}),
-		Entry("Has Empty VPC", EndpointAccessCases{
+		Entry("Has Empty VPC", endpointAccessCase{
 			vpc:       &ClusterVPC{},
 			endpoints: nil,
 			Public:    nil,
 			Private:   nil,
+			Expected:  true,
 		}),
-		Entry("Public=true, Private=true", EndpointAccessCases{
+		Entry("Public=true, Private=true", endpointAccessCase{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
 			Public:    Enabled(),
 			Private:   Enabled(),
+			Expected:  true,
 		}),
-		Entry("Public=true, Private=false", EndpointAccessCases{
+		Entry("Public=true, Private=false", endpointAccessCase{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
 			Public:    Enabled(),
 			Private:   Disabled(),
+			Expected:  true,
 		}),
-		Entry("Public=false, Private=true", EndpointAccessCases{
+		Entry("Public=false, Private=true", endpointAccessCase{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
 			Public:    Disabled(),
 			Private:   Enabled(),
+			Expected:  true,
 		}),
-		Entry("Public=false, Private=false", EndpointAccessCases{
+		Entry("Public=false, Private=false", endpointAccessCase{
 			vpc:       &ClusterVPC{},
 			endpoints: &ClusterEndpoints{},
 			Public:    Disabled(),
 			Private:   Disabled(),
+			Expected:  false,
 		}),
 	)
 })

@@ -92,13 +92,13 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 }
 
 // GetCurrentClusterConfigForEndpoints fetches current cluster endpoint configuration for public and private access types
-func (c *ClusterProvider) GetCurrentClusterConfigForEndpoints(spec *api.ClusterConfig) (*bool, *bool, error) {
+func (c *ClusterProvider) GetCurrentClusterConfigForEndpoints(spec *api.ClusterConfig) (bool, bool, error) {
 	if ok, err := c.CanOperate(spec); !ok {
-		return nil, nil, errors.Wrap(err, "unable to retrieve current cluster endpoint access configuration")
+		return false, false, errors.Wrap(err, "unable to retrieve current cluster endpoint access configuration")
 	}
 
-	private := c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPrivateAccess
-	public := c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPublicAccess
+	private := *c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPrivateAccess
+	public := *c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPublicAccess
 
 	return private, public, nil
 }
@@ -107,7 +107,7 @@ func (c *ClusterProvider) GetCurrentClusterConfigForEndpoints(spec *api.ClusterC
 func (c *ClusterProvider) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig) error {
 
 	input := &awseks.UpdateClusterConfigInput{
-		Name:               &cfg.Metadata.Name,
+		Name: &cfg.Metadata.Name,
 		ResourcesVpcConfig: &awseks.VpcConfigRequest{
 			EndpointPrivateAccess: cfg.VPC.ClusterEndpoints.PrivateAccess,
 			EndpointPublicAccess:  cfg.VPC.ClusterEndpoints.PublicAccess,
