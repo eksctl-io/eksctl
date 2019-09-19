@@ -47,27 +47,25 @@ func setMetadata(cfg *api.ClusterConfig, name, region string) {
 	cfg.Metadata.Region = region
 }
 
-func printSeparator(op, clname string) {
-	fmt.Println("\n==================================================================")
-	fmt.Printf("%v cluster %v\n", op, clname)
-	fmt.Println("==================================================================")
+func printSeparator(op, clname string, pub, priv bool, err error) {
+	fmr.Println("")
+	fmt.Println("=================================================================================")
+	fmt.Printf("%v cluster %v, public=%v, private=%v, should error: %v\n", op, clname, err != nil)
+	fmt.Println("=================================================================================")
 }
 
 var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs", func() {
 
-	type EndpointAccessCase struct {
+	type endpointAccessCase struct {
 		Name    string
 		Private bool
 		Public  bool
 		Type    string
-		Output  string
 		Error   error
-		Delete  bool
-		fun     func(string, string)
 	}
 
 	DescribeTable("Can create/update Cluster Endpoint Access",
-		func(e EndpointAccessCase) {
+		func(e endpointAccessCase) {
 			printSeparator(e.Type, e.Name)
 			//create clusterconfig
 			cfg := api.NewClusterConfig()
@@ -107,7 +105,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
 			} else if e.Type == updateCluster {
 				utilsCmd := eksctlUtilsCmd.WithArgs(
-					"update-cluster-api-access",
+					"update-cluster-endpoints",
 					"--name", clName,
 					fmt.Sprintf("--private-access=%v", e.Private),
 					fmt.Sprintf("--public-access=%v", e.Public),
@@ -131,7 +129,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				// nned to update public access to allow access to delete when it isn't allowed
 				if e.Public == false {
 					utilsCmd := eksctlUtilsCmd.WithArgs(
-						"update-cluster-api-access",
+						"update-cluster-endpoints",
 						"--name", clName,
 						fmt.Sprintf("--public-access=%v", true),
 						fmt.Sprintf("--approve"),
@@ -141,83 +139,82 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				deleteCmd := eksctlDeleteCmd.WithArgs(
 					"cluster",
 					"--name", clName,
-					"--wait",
 				)
 				Expect(deleteCmd).Should(RunSuccessfully())
 				Expect(getCmd).ShouldNot(RunSuccessfully())
 			}
 		},
-		Entry("Create cluster1 with Private=false, Public=true", EndpointAccessCase{
+		Entry("Create cluster1 with Private=false, Public=true", endpointAccessCase{
 			Name:    "cluster1",
 			Private: false,
 			Public:  true,
 			Type:    createCluster,
 			Error:   nil,
 		}),
-		Entry("Create cluster2 with Private=true, Public=false", EndpointAccessCase{
+		Entry("Create cluster2 with Private=true, Public=false", endpointAccessCase{
 			Name:    "cluster2",
 			Private: true,
 			Public:  false,
 			Type:    createCluster,
 			Error:   errors.New(api.PrivateOnlyUseUtilsMsg()),
 		}),
-		Entry("Create cluster 3 Private=true, Public=true", EndpointAccessCase{
+		Entry("Create cluster 3 Private=true, Public=true", endpointAccessCase{
 			Name:    "cluster3",
 			Private: true,
 			Public:  true,
 			Type:    createCluster,
 			Error:   nil,
 		}),
-		Entry("Create cluster4 with Private=false, Public=false (should error)", EndpointAccessCase{
+		Entry("Create cluster4 with Private=false, Public=false (should error)", endpointAccessCase{
 			Name:    "cluster4",
 			Private: false,
 			Public:  false,
 			Type:    createCluster,
-			Error:   errors.New(api.NoAccessMsg(
-				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled(),},
+			Error: errors.New(api.NoAccessMsg(
+				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()},
 			)),
 		}),
-		Entry("Update cluster1 to Private=true, Public=false", EndpointAccessCase{
+		Entry("Update cluster1 to Private=true, Public=false", endpointAccessCase{
 			Name:    "cluster1",
 			Private: true,
 			Public:  false,
 			Type:    updateCluster,
 			Error:   nil,
 		}),
-		Entry("Update cluster3 to Private=true, Public=false", EndpointAccessCase{
+		Entry("Update cluster3 to Private=true, Public=false", endpointAccessCase{
 			Name:    "cluster3",
 			Private: true,
 			Public:  false,
 			Type:    updateCluster,
 			Error:   nil,
 		}),
-		Entry("Update cluster3 to Private=false, Public=false (should error)", EndpointAccessCase{
+		Entry("Update cluster3 to Private=false, Public=false (should error)", endpointAccessCase{
 			Name:    "cluster3",
 			Private: false,
 			Public:  false,
 			Type:    updateCluster,
 			Error:   errors.New("Unable to make requested changes.  Either public access or private access must be enabled"),
 		}),
-		Entry("Update cluster3 to Private=false, Public=false (should error)", EndpointAccessCase{
+		Entry("Update cluster3 to Private=false, Public=false (should error)", endpointAccessCase{
 			Name:    "cluster3",
 			Private: false,
 			Public:  true,
 			Type:    updateCluster,
 			Error:   nil,
 		}),
-		Entry("Delete cluster1", EndpointAccessCase{
+		Entry("Delete cluster1", endpointAccessCase{
 			Name:    "cluster1",
-			Private:  true,
-			Public:   false,
-			Type:     deleteCluster,
-			Error:    nil,
+			Private: true,
+			Public:  false,
+			Type:    deleteCluster,
+			Error:   nil,
 		}),
-		Entry("Delete cluster3", EndpointAccessCase{
+		Entry("Delete cluster3", endpointAccessCase{
 			Name:    "cluster3",
-			Private:  false,
-			Public:   true,
-			Type:     deleteCluster,
-			Error:    nil,
+			Private: false,
+			Public:  true,
+			Type:    deleteCluster,
+			Error:   nil,
 		}),
 	)
 })

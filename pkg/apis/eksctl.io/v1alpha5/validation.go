@@ -70,18 +70,19 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 	return nil
 }
+
 // NoAccessMsg function returns a message inidicating that the config leaves no API endpoint access
 func NoAccessMsg(endpts *ClusterEndpoints) string {
-	return fmt.Sprintf("Cluster API access must have one of public or private endpointAccess " +
+	return fmt.Sprintf("Kubernetes API access must have one of public or private clusterEndpoints "+
 		"enabled, current values are publicAccess=%v and privateAccess=%v, aborting",
 		endpts.PublicAccess, endpts.PrivateAccess)
 }
 
 // PrivateOnlyUseUtilsMsg returns a message that indicates that the operation must be done using
-// eksctl utils update-cluster-api-access
+// eksctl utils update-cluster-endpoints
 func PrivateOnlyUseUtilsMsg() string {
 	return "eksctl cannot join worker nodes to the EKS cluster when public access isn't allowed. " +
-		"use 'eksctl utils update-cluster-api-access ...' after creating cluster with default access"
+		"use 'eksctl utils update-cluster-endpoints ...' after creating cluster with default access"
 }
 
 // PrivateOnlyAwsChangesNeededMsg returns a message that warns that not having pulbic access
@@ -90,7 +91,7 @@ func PrivateOnlyAwsChangesNeededMsg() string {
 	return "warning, having public access disallowed will subsequently interfere with some " +
 		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
 		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
-	    "updates to some AWS resources.  See: " +
+		"updates to some AWS resources.  See: " +
 		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
 		"for more details"
 }

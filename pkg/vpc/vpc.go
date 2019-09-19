@@ -244,7 +244,7 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 // as the CloudFormation Stack doesn't support that configuration currently
 func UseEndpointAccessFromCluster(provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	input := &awseks.DescribeClusterInput{
-		Name: aws.String(spec.Metadata.Name),
+		Name: &spec.Metadata.Name,
 	}
 	output, err := provider.EKS().DescribeCluster(input)
 	if err != nil {
