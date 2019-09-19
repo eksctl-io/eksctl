@@ -1,7 +1,6 @@
 package cmdutils
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -17,15 +16,6 @@ func AddIAMServiceAccountFilterFlags(fs *pflag.FlagSet, includeGlobs, excludeGlo
 // AddIAMIdentityMappingARNFlags adds --arn and deprecated --role flags
 func AddIAMIdentityMappingARNFlags(fs *pflag.FlagSet, cmd *Cmd, arn *string) {
 	fs.StringVar(arn, "arn", "", "ARN of the IAM role or user to create")
-	// Add deprecated --role
-	var role string
-	fs.StringVar(&role, "role", "", "")
-	_ = fs.MarkDeprecated("role", "see --arn")
-	AddPreRunE(cmd.CobraCommand, func(cobraCmd *cobra.Command, args []string) error {
-		var err error
-		if role != "" {
-			*arn = role
-		}
-		return err
-	})
+	fs.StringVar(arn, "role", "", "")
+	_ = fs.MarkDeprecated("role", "use --arn instead")
 }

@@ -42,20 +42,6 @@ func AddPreRun(cmd *cobra.Command, newFn func(cmd *cobra.Command, args []string)
 	}
 }
 
-// AddPreRunE chains cmd.PreRunE handlers, as cobra only allows one, so we don't
-// accidentally override one we registered earlier
-func AddPreRunE(cmd *cobra.Command, newFn func(cmd *cobra.Command, args []string) error) {
-	currentFn := cmd.PreRunE
-	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-		if currentFn != nil {
-			if err := currentFn(cmd, args); err != nil {
-				return err
-			}
-		}
-		return newFn(cmd, args)
-	}
-}
-
 // LogIntendedAction calls logger.Info with appropriate prefix
 func LogIntendedAction(plan bool, msgFmt string, args ...interface{}) {
 	prefix := "will "
