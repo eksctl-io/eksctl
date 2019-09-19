@@ -151,7 +151,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("gitops apply", func() {
+		Context("gitops enable", func() {
 			It("should add quickstart to the repo and the cluster", func() {
 				// Use a random branch to ensure test runs don't step on each others.
 				branch := namer.RandomName()
@@ -166,14 +166,14 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
 
 				cmd := eksctlExperimentalCmd.WithArgs(
-					"gitops", "apply",
+					"enable", "profile",
 					"--git-url", Repository,
 					"--git-email", Email,
 					"--git-branch", branch,
 					"--git-private-ssh-key-path", privateSSHKeyPath,
 					"--output-path", tempOutputDir,
-					"--quickstart-profile", "app-dev",
 					"--cluster", clusterName,
+					"app-dev",
 				)
 				Expect(cmd).To(RunSuccessfully())
 

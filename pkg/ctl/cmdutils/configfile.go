@@ -132,8 +132,8 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-// NewGitopsApplyLoader handles loading of clusterConfigFile vs using flags for gitops commands
-func NewGitopsApplyLoader(cmd *Cmd) ClusterConfigLoader {
+// NewEnableProfileLoader handles loading of clusterConfigFile vs using flags for gitops commands
+func NewEnableProfileLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithoutConfigFile = func() error {
