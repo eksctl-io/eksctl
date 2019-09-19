@@ -44,7 +44,7 @@ func (opts options) validate() error {
 	return nil
 }
 
-func enableProfile(cmd *cmdutils.Cmd) {
+func enableProfileCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
