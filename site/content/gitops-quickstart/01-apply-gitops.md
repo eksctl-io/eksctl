@@ -89,7 +89,7 @@ kube-system   kube-proxy-qzcmk           1/1     Running   0          45s
 ```
 
 
-## Applying gitops
+## Enabling a Quick Start profile
 
 The following command will set up your cluster with the `app-dev` profile,
 the first gitops Quick Start. All of the config files you need for a
@@ -103,7 +103,7 @@ in the configuration they will be reflected on your cluster.
 > Experimental features are not stable and their command name and flags
 > may change.
 
-The most important ingredient using `gitops apply` is your config
+The most important ingredient using `gitops enable profile` is your config
 repository (which includes your workload manifests, etc). You can start with
 an empty repository and push that to Git, or use the one you intend to
 deploy to the cluster.
@@ -121,11 +121,11 @@ Run this command from any folder in your file system or tweak
 
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl \
-        gitops apply \
-        --quickstart-profile app-dev \
+        enable profile \
         --git-url git@github.com:example/my-eks-config \
         --git-email your@email.com \
-        --cluster your-cluster-name
+        --cluster your-cluster-name \
+        app-dev
 ```
 
 Let us go through the specified arguments one by one:
@@ -146,7 +146,7 @@ There are more arguments and options, please refer to the
 which details all the flags and resulting directory structure.
 
 This will set up Flux on your cluster and load gitops
-Quick Start config files into your repo. It will use templating to add your
+Quick Start manifests into your repo. It will use templating to add your
 cluster name and region to the configuration so that cluster components
 that need those values can work (e.g. `alb-ingress`).
 
@@ -244,7 +244,7 @@ Congratulations to your gitopsed cluster on EKS!
 
 ## Advanced setups
 
-`eksctl gitops apply` can largely be decomposed into
+`eksctl enable profile` can largely be decomposed into
 
 1. `eksctl install flux`
 1. `eksctl generate profile`
@@ -359,7 +359,7 @@ least wants:
 
 - `--name`: the name of the cluster - check `eksctl get cluster`
   to see what the name of yours is
-- `--git-url`: the Git URL of the Quick Start profile to apply to the cluster
+- `--git-url`: the Git URL of the Quick Start profile to deploy to the cluster
 - `--profile-path`: a local path: this is an empty new directory
   (here `cluster-config`) you create in your local checkout of
   the config repository, which we used in the previous command
