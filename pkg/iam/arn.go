@@ -6,6 +6,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 )
 
+const (
+	// ResourceTypeRole is the resource type of the role ARN
+	ResourceTypeRole = "role"
+	// ResourceTypeUser is the resource type of the user ARN
+	ResourceTypeUser = "user"
+)
+
 // ARN implements the pflag.Value interface for aws-sdk-go/aws/arn.ARN
 type ARN struct {
 	arn.ARN
@@ -31,10 +38,10 @@ func (a *ARN) ResourceType() string {
 
 // IsUser returns whether the arn represents a IAM user or not
 func (a *ARN) IsUser() bool {
-	return a.ResourceType() == "user"
+	return a.ResourceType() == ResourceTypeUser
 }
 
 // IsRole returns whether the arn represents a IAM role or not
 func (a *ARN) IsRole() bool {
-	return a.ResourceType() == "role"
+	return a.ResourceType() == ResourceTypeRole
 }

@@ -58,11 +58,7 @@ func (u UserIdentity) GetARN() string {
 
 // Type returns the resource type of the iam mapping
 func (u UserIdentity) Type() string {
-	parsedARN, err := Parse(u.UserARN)
-	if err != nil {
-		return ""
-	}
-	return parsedARN.ResourceType()
+	return ResourceTypeUser
 }
 
 // GetARN returns the ARN of the iam mapping
@@ -72,11 +68,7 @@ func (r RoleIdentity) GetARN() string {
 
 // Type returns the resource type of the iam mapping
 func (r RoleIdentity) Type() string {
-	parsedARN, err := Parse(r.RoleARN)
-	if err != nil {
-		return ""
-	}
-	return parsedARN.ResourceType()
+	return ResourceTypeRole
 }
 
 // NewIdentity determines into which field the given arn goes and returns the new identity

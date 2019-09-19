@@ -213,9 +213,9 @@ func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
 	users, roles := []iam.Identity{}, []iam.Identity{}
 	for _, identity := range identities {
 		switch identity.Type() {
-		case "role":
+		case iam.ResourceTypeRole:
 			roles = append(roles, identity)
-		case "user":
+		case iam.ResourceTypeUser:
 			users = append(users, identity)
 		default:
 			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.GetARN())
