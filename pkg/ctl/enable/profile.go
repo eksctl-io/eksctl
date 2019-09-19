@@ -1,4 +1,4 @@
-package gitops
+package enable
 
 import (
 	"context"
@@ -44,11 +44,11 @@ func (opts options) validate() error {
 	return nil
 }
 
-func applyGitops(cmd *cmdutils.Cmd) {
+func enableProfile(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("apply", "Setting up gitops and apply a Quick Start profile", "")
+	cmd.SetDescription("profile", "Set up Flux and deploy the components from the selected Quick Start profile.", "")
 
 	var opts options
 
