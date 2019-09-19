@@ -18,7 +18,7 @@ const (
 	cloneDirPrefix = "quickstart-"
 )
 
-// Profile represents a GitOps profile
+// Profile represents a gitops profile
 type Profile struct {
 	Processor fileprocessor.FileProcessor
 	Path      string

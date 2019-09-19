@@ -48,7 +48,7 @@ func applyGitops(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("apply", "Setting up GitOps and apply a Quick Start profile", "")
+	cmd.SetDescription("apply", "Setting up gitops and apply a Quick Start profile", "")
 
 	var opts options
 

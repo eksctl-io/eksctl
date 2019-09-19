@@ -125,7 +125,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and configuring Flux for GitOps", func() {
+		Context("and configuring Flux for gitops", func() {
 			It("should not return an error", func() {
 				// Use a random branch to ensure test runs don't step on each others.
 				branch := namer.RandomName()
