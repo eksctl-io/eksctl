@@ -39,7 +39,6 @@ func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
 
 // NodeGroup drains a nodegroup
 func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout time.Duration, undo bool) error {
-	evictError := 0
 	drainer := &Helper{
 		Client: clientSet,
 
@@ -90,7 +89,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 	// or any other changes in the ASG
 	timer := time.After(waitTimeout)
 	timeout := false
-	for !timeout || evictError > 0 {
+	for !timeout {
 		select {
 		case <-timer:
 			timeout = true
@@ -145,31 +144,20 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 
 			for _, node := range nodes.Items {
 				if newPendingNodes.Has(node.Name) {
-					retry := 1
 					pending, err := evictPods(drainer, &node)
-					for pending > 0 {
-						logger.Debug("%d pods to be evicted from %s", pending, node.Name)
-						time.Sleep(5 * time.Second)
-						pending, err = evictPods(drainer, &node)
-						if err != nil && retry < podEvictionMaxRetries {
-							logger.Warning("pod eviction error: \"%s\", on node: %s (retry in 5 sec, %d/%d)", err, node.Name, retry, podEvictionMaxRetries)
-						} else if retry >= podEvictionMaxRetries {
-							logger.Warning("pod eviction unable to complete after %d retries on node: %s", podEvictionMaxRetries, node.Name)
-							evictError++
-							break
-						}
-						retry++
+					if err != nil {
+						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %vs", err, node.Name, retryDelay)
+						time.Sleep(retryDelay * time.Second)
+						continue
 					}
-					drainedNodes.Insert(node.Name)
+					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
+					if pending == 0 {
+						drainedNodes.Insert(node.Name)
+					}
 				}
 			}
 		}
 	}
-
-	if evictError > 0 {
-		return fmt.Errorf("pod eviction error on nodegroup %q", ng.Name)
-	}
-
 	if timeout {
 		return fmt.Errorf("timed out (after %s) waiting for nodedroup %q to be drain", waitTimeout, ng.Name)
 	}
