@@ -53,7 +53,7 @@ func enableProfile(cmd *cmdutils.Cmd) {
 	var opts options
 
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doApplyGitops(cmd, opts)
+		return doEnableProfile(cmd, opts)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -82,7 +82,7 @@ func enableProfile(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
+func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
 	if cmd.NameArg != "" && opts.quickstartNameArg != "" {
 		return cmdutils.ErrNameFlagAndArg(cmd.NameArg, opts.quickstartNameArg)
 	}
@@ -98,7 +98,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
-	if err := cmdutils.NewGitopsApplyLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewEnableProfileLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
