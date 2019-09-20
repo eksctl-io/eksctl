@@ -31,18 +31,7 @@ var _ = Describe("VPC Configuration", func() {
 				cc.VPC.ClusterEndpoints.PrivateAccess = e.Private
 			}
 			if e.Public != nil && e.Private != nil {
-				if e.Expected {
-					Expect(cc.HasClusterEndpointAccess()).Should(BeTrue())
-				}
-				if e.Expected {
-					Expect(cc.HasClusterEndpointAccess()).Should(BeTrue())
-				}
-				if e.Expected {
-					Expect(cc.HasClusterEndpointAccess()).Should(BeTrue())
-				}
-				if !e.Expected {
-					Expect(cc.HasClusterEndpointAccess()).Should(BeFalse())
-				}
+				Expect(cc.HasClusterEndpointAccess()).Should(Equal(e.Expected))
 			}
 		},
 		Entry("No VPC", endpointAccessCase{

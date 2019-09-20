@@ -32,7 +32,7 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 			fs.BoolVar(&private, "private-access", false, "access for private (VPC) clients")
 			fs.BoolVar(&public, "public-access", true, "access for public clients")
 		})
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.SetRunFunc(func() error {
 		return doUpdateClusterEndpoints(cmd, private, public)
 	})
 
@@ -105,7 +105,7 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		describeAccessUpdate := strings.Join(describeAccessToUpdate, ", ")
 
 		cmdutils.LogIntendedAction(
-			cmd.Plan, "update Kubernetes API Endpoint Access for cluster %q in %q to: (%s)",
+			cmd.Plan, "update Kubernetes API Endpoint Access for cluster %q in %q to: %s",
 			meta.Name, meta.Region, describeAccessUpdate)
 		if !cmd.Plan {
 			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
@@ -113,7 +113,7 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 			}
 			cmdutils.LogCompletedAction(
 				false,
-				"the Kubernetes API Endpoint Access for cluster %q in %q has been upddated to: (privateAccess=%s, publicAccess=%s)",
+				"the Kubernetes API Endpoint Access for cluster %q in %q has been upddated to: privateAccess=%s, publicAccess=%s",
 				meta.Name, meta.Region, newPrivate, newPublic)
 		}
 	} else {
