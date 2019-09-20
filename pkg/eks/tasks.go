@@ -2,10 +2,11 @@ package eks
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -23,8 +24,29 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	return err
 }
 
+type vpcControllerTask struct {
+	info            string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (v *vpcControllerTask) Describe() string { return v.info }
+
+func (v *vpcControllerTask) Do(errCh chan error) error {
+	defer close(errCh)
+	rawClient, err := v.clusterProvider.NewRawClient(v.spec)
+	if err != nil {
+		return err
+	}
+	vpcController := NewVPCController(rawClient, v.spec.Status, "kube-system")
+	if err := vpcController.Deploy(); err != nil {
+		return errors.Wrap(err, "deploying VPC controller")
+	}
+	return nil
+}
+
 // AppendExtraClusterConfigTasks returns all tasks for updating cluster configuration or nil if there are no tasks
-func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, tasks *manager.TaskTree) {
+func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, windowsSupport bool, tasks *manager.TaskTree) {
 	newTasks := &manager.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -43,6 +65,14 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
 	}
+	if windowsSupport {
+		newTasks.Append(&vpcControllerTask{
+			info:            "create VPC resource controller",
+			spec:            cfg,
+			clusterProvider: c,
+		})
+	}
+
 	if newTasks.Len() > 0 {
 		tasks.Append(newTasks)
 	}

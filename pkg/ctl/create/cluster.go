@@ -25,6 +25,7 @@ type createClusterCmdParams struct {
 	authenticatorRoleARN string
 	setContext           bool
 	availabilityZones    []string
+	windowsSupport       bool
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
@@ -55,6 +56,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		fs.BoolVarP(&params.windowsSupport, "windows-support", "", false, "Enable Windows support")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -275,7 +277,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups)
-		ctl.AppendExtraClusterConfigTasks(cfg, tasks)
+		ctl.AppendExtraClusterConfigTasks(cfg, params.windowsSupport, tasks)
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {

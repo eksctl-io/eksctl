@@ -49,6 +49,8 @@ const (
 // with the cluster, required for the instance role ARNs of nodegroups.
 var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
 
+var roleNodeGroupWindows = "eks:kube-proxy-windows"
+
 // AuthConfigMap allows modifying the auth ConfigMap.
 type AuthConfigMap struct {
 	client v1.ConfigMapInterface
@@ -266,7 +268,12 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return err
 	}
 
-	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, RoleNodeGroupGroups)
+	nodeGroupRoles := RoleNodeGroupGroups
+	if ng.IsWindows() {
+		nodeGroupRoles = append([]string{roleNodeGroupWindows}, nodeGroupRoles...)
+	}
+
+	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, nodeGroupRoles)
 	if err != nil {
 		return err
 	}

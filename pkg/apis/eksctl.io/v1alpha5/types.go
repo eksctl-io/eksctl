@@ -116,6 +116,13 @@ const (
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
 	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
+
+	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
+	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
+
+	// NodeImageFamilyWindowsServer2019FullContainer represents Windows 2019 full container family
+	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+
 	// NodeImageResolverStatic represents static AMI resolver (see ami package)
 	NodeImageResolverStatic = "static"
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
@@ -537,6 +544,10 @@ func (n *NodeGroup) ListOptions() metav1.ListOptions {
 // NameString returns common name string
 func (n *NodeGroup) NameString() string {
 	return n.Name
+}
+
+func (n *NodeGroup) IsWindows() bool {
+	return n.AMI == NodeImageFamilyWindowsServer2019CoreContainer || n.AMI == NodeImageFamilyWindowsServer2019FullContainer
 }
 
 type (

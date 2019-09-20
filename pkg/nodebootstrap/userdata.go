@@ -130,15 +130,15 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 	return data, nil
 }
 
-func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
-	kvs := func(kv map[string]string) string {
-		var params []string
-		for k, v := range kv {
-			params = append(params, fmt.Sprintf("%s=%s", k, v))
-		}
-		return strings.Join(params, ",")
+func kvs(kv map[string]string) string {
+	var params []string
+	for k, v := range kv {
+		params = append(params, fmt.Sprintf("%s=%s", k, v))
 	}
+	return strings.Join(params, ",")
+}
 
+func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
 	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
 		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),
@@ -174,6 +174,8 @@ func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 		return NewUserDataForAmazonLinux2(spec, ng)
 	case ami.ImageFamilyUbuntu1804:
 		return NewUserDataForUbuntu1804(spec, ng)
+	case ami.ImageFamilyWindowsServer2019CoreContainer, ami.ImageFamilyWindowsServer2019FullContainer:
+		return newUserDataForWindows(spec, ng)
 	default:
 		return "", nil
 	}
