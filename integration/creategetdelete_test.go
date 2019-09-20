@@ -151,7 +151,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("gitops enable", func() {
+		Context("enable profile", func() {
 			It("should add quickstart to the repo and the cluster", func() {
 				// Use a random branch to ensure test runs don't step on each others.
 				branch := namer.RandomName()
@@ -159,7 +159,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				defer deleteBranch(branch, cloneDir)
 
-				tempOutputDir, err := ioutil.TempDir(os.TempDir(), "gitops-repo-")
 				assertFluxManifestsAbsentInGit(branch)
 
 				deleteFluxInstallation(kubeconfigPath)
@@ -171,7 +170,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					"--git-email", Email,
 					"--git-branch", branch,
 					"--git-private-ssh-key-path", privateSSHKeyPath,
-					"--output-path", tempOutputDir,
 					"--cluster", clusterName,
 					"app-dev",
 				)
