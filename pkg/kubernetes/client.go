@@ -174,7 +174,7 @@ func (c *RawClient) NewRawResource(rawObj runtime.RawExtension) (*RawResource, e
 
 	obj, ok := rawObj.Object.(metav1.Object)
 	if !ok {
-		return nil, fmt.Errorf("cannot conver object of type %T to metav1.Object", rawObj.Object)
+		return nil, fmt.Errorf("cannot convert object of type %T to metav1.Object", rawObj.Object)
 	}
 
 	info := &resource.Info{
