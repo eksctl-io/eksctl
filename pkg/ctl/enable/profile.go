@@ -98,13 +98,18 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
-	if err := cmdutils.NewEnableProfileLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewGitopsConfigLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
+	}
+
+	// TODO when the logic that loads the region is moved outside of cmd.NewCtl() we can do this validation earlier
+	if cmd.ClusterConfig.Metadata.Region == "" {
+		return cmdutils.ErrMustBeSet("region")
 	}
 
 	if err := ctl.CheckAuth(); err != nil {

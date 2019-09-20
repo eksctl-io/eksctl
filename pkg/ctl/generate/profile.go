@@ -55,6 +55,9 @@ func doGenerateProfile(cmd *cmdutils.Cmd, o options) error {
 	// TODO move the load of the region outside of the creation of the EKS client
 	// currently that is done inside cmd.NewCtl() but we don't need EKS here
 	cmd.ClusterConfig.Metadata.Region = cmd.ProviderConfig.Region
+	if cmd.ClusterConfig.Metadata.Region == "" {
+		return cmdutils.ErrMustBeSet("region")
+	}
 
 	processor := &fileprocessor.GoTemplateProcessor{
 		Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
