@@ -18,13 +18,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+const DefaultVPCControllerNamespace = "kube-system"
+
 // NewVPCController creates a new VPCController
-func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region, namespace string) *VPCController {
+func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region, namespace string, planMode bool) *VPCController {
 	return &VPCController{
 		rawClient:     rawClient,
 		clusterStatus: clusterStatus,
 		namespace:     namespace,
 		region:        region,
+		planMode:      planMode,
 	}
 }
 
@@ -34,6 +37,7 @@ type VPCController struct {
 	clusterStatus *api.ClusterStatus
 	region        string
 	namespace     string
+	planMode      bool
 }
 
 // Deploy deploys Windows VPC controller to the specified cluster
@@ -199,7 +203,7 @@ func (v *VPCController) applyRawResource(r runtime.RawExtension) error {
 		return err
 	}
 
-	msg, err := rawResource.CreateOrReplace(false)
+	msg, err := rawResource.CreateOrReplace(v.planMode)
 	if err != nil {
 		return err
 	}
@@ -207,7 +211,7 @@ func (v *VPCController) applyRawResource(r runtime.RawExtension) error {
 	return nil
 }
 
-// TODO use the same function for other addons
+// TODO use this for other addons
 func useRegionalImage(spec *corev1.PodTemplateSpec, region string) {
 	imageFormat := spec.Spec.Containers[0].Image
 	regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region)

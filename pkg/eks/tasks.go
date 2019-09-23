@@ -39,9 +39,9 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), "kube-system")
+	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), addons.DefaultVPCControllerNamespace, false)
 	if err := vpcController.Deploy(); err != nil {
-		return errors.Wrap(err, "deploying VPC controller")
+		return errors.Wrap(err, "error installing VPC controller")
 	}
 	return nil
 }
