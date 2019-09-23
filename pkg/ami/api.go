@@ -14,14 +14,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-const (
-	// ResolverStatic is used to indicate that the static (i.e. compiled into eksctl) AMIs should be used
-	ResolverStatic = api.NodeImageResolverStatic
-	// ResolverAuto is used to indicate that the latest EKS AMIs should be used for the nodes. This implies
-	// that automatic resolution of AMI will occur.
-	ResolverAuto = api.NodeImageResolverAuto
-)
-
 // Variations of image classes
 const (
 	ImageClassGeneral = iota
