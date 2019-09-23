@@ -15,18 +15,6 @@ import (
 )
 
 const (
-	// ImageFamilyAmazonLinux2 represents Amazon Linux 2 family
-	ImageFamilyAmazonLinux2 = api.NodeImageFamilyAmazonLinux2 // Owner by EKS(depends on aws partition and opt-in region)
-
-	// ImageFamilyUbuntu1804 represents Ubuntu 18.04 family
-	ImageFamilyUbuntu1804 = api.NodeImageFamilyUbuntu1804 // Owner 099720109477
-
-	// ImageFamilyWindowsServer2019CoreContainer represents Windows Server 2019 core container family
-	ImageFamilyWindowsServer2019CoreContainer = api.NodeImageFamilyWindowsServer2019CoreContainer
-
-	// ImageFamilyWindowsServer2019FullContainer represents Windows Server 2019 full container family
-	ImageFamilyWindowsServer2019FullContainer = api.NodeImageFamilyWindowsServer2019FullContainer
-
 	// ResolverStatic is used to indicate that the static (i.e. compiled into eksctl) AMIs should be used
 	ResolverStatic = api.NodeImageResolverStatic
 	// ResolverAuto is used to indicate that the latest EKS AMIs should be used for the nodes. This implies

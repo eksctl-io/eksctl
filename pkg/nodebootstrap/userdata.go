@@ -10,7 +10,6 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -70,7 +69,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
 	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
 	authenticator := kubeconfig.AWSIAMAuthenticator
-	if ng.AMIFamily == ami.ImageFamilyUbuntu1804 {
+	if ng.AMIFamily == api.NodeImageFamilyUbuntu1804 {
 		authenticator = kubeconfig.HeptioAuthenticatorAWS
 	}
 	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator, "", "")
@@ -170,11 +169,11 @@ func makeMaxPodsMapping() string {
 // NewUserData creates new user data for a given node image family
 func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	switch ng.AMIFamily {
-	case ami.ImageFamilyAmazonLinux2:
+	case api.NodeImageFamilyAmazonLinux2:
 		return NewUserDataForAmazonLinux2(spec, ng)
-	case ami.ImageFamilyUbuntu1804:
+	case api.NodeImageFamilyUbuntu1804:
 		return NewUserDataForUbuntu1804(spec, ng)
-	case ami.ImageFamilyWindowsServer2019CoreContainer, ami.ImageFamilyWindowsServer2019FullContainer:
+	case api.NodeImageFamilyWindowsServer2019FullContainer, api.NodeImageFamilyWindowsServer2019CoreContainer:
 		return newUserDataForWindows(spec, ng)
 	default:
 		return "", nil

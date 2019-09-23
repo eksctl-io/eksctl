@@ -13,11 +13,11 @@ import (
 // MakeImageSearchPatterns creates a map of image search patterns by image OS family and class
 func MakeImageSearchPatterns(version string) map[string]map[int]string {
 	return map[string]map[int]string{
-		ImageFamilyAmazonLinux2: {
+		api.NodeImageFamilyAmazonLinux2: {
 			ImageClassGeneral: fmt.Sprintf("amazon-eks-node-%s-v*", version),
 			ImageClassGPU:     fmt.Sprintf("amazon-eks-gpu-node-%s-*", version),
 		},
-		ImageFamilyUbuntu1804: {
+		api.NodeImageFamilyUbuntu1804: {
 			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*", version),
 		},
 	}
@@ -26,9 +26,9 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 // OwnerAccountID returns the AWS account ID that owns worker AMI.
 func OwnerAccountID(imageFamily, region string) (string, error) {
 	switch imageFamily {
-	case ImageFamilyUbuntu1804:
+	case api.NodeImageFamilyUbuntu1804:
 		return "099720109477", nil
-	case ImageFamilyAmazonLinux2:
+	case api.NodeImageFamilyAmazonLinux2:
 		return api.EKSResourceAccountID(region), nil
 	default:
 		return "", fmt.Errorf("unable to determine the account owner for image family %s", imageFamily)
