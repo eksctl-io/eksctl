@@ -89,9 +89,9 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, 
 		return err
 	}
 
-	createdArn := id.GetARN() // The call to Valid above makes sure this cannot error
+	createdArn := id.ARN() // The call to Valid above makes sure this cannot error
 	for _, identity := range identities {
-		arn := identity.GetARN()
+		arn := identity.ARN()
 
 		if createdArn == arn {
 			logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)

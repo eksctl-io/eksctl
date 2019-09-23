@@ -88,7 +88,7 @@ func doDeleteIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, all bool) error {
 	duplicates := 0
 	for _, identity := range identities {
 
-		if arn == identity.GetARN() {
+		if arn == identity.ARN() {
 			duplicates++
 		}
 	}

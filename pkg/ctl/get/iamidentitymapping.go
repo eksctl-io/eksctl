@@ -80,7 +80,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		selectedIdentities := []iam.Identity{}
 
 		for _, identity := range identities {
-			if identity.GetARN() == arn {
+			if identity.ARN() == arn {
 				selectedIdentities = append(selectedIdentities, identity)
 			}
 		}
@@ -109,12 +109,12 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 
 func addIAMIdentityMappingTableColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("ARN", func(r iam.Identity) string {
-		return r.GetARN()
+		return r.ARN()
 	})
 	printer.AddColumn("USERNAME", func(r iam.Identity) string {
-		return r.GetUsername()
+		return r.Username()
 	})
 	printer.AddColumn("GROUPS", func(r iam.Identity) string {
-		return strings.Join(r.GetGroups(), ",")
+		return strings.Join(r.Groups(), ",")
 	})
 }

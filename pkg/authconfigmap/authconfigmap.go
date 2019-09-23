@@ -149,7 +149,7 @@ func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
 
 	identities = append(identities, identity)
 
-	logger.Info("adding identity %q to auth ConfigMap", identity.GetARN())
+	logger.Info("adding identity %q to auth ConfigMap", identity.ARN())
 	return a.setIdentities(identities)
 }
 
@@ -166,12 +166,12 @@ func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
 
 	newidentities := make([]iam.Identity, 0)
 	for i, identity := range identities {
-		arn := identity.GetARN()
+		arn := identity.ARN()
 		if err != nil {
 			return err
 		}
 		if arn == arnToDelete {
-			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arnToDelete, identity.GetUsername(), identity.GetGroups())
+			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arnToDelete, identity.Username(), identity.Groups())
 			if !all {
 				identities = append(identities[:i], identities[i+1:]...)
 				return a.setIdentities(identities)
@@ -218,7 +218,7 @@ func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
 		case iam.ResourceTypeUser:
 			users = append(users, identity)
 		default:
-			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.GetARN())
+			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.ARN())
 		}
 	}
 

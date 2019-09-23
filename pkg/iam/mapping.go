@@ -17,16 +17,16 @@ var (
 
 // Identity represents an IAM identity and its corresponding Kubernetes identity
 type Identity interface {
-	GetARN() string
+	ARN() string
 	Type() string
-	GetUsername() string
-	GetGroups() []string
+	Username() string
+	Groups() []string
 }
 
 // KubernetesIdentity represents a kubernetes identity to be used in iam mappings
 type KubernetesIdentity struct {
-	Username string   `json:"username,omitempty"`
-	Groups   []string `json:"groups,omitempty"`
+	KubernetesUsername string   `json:"username,omitempty"`
+	KubernetesGroups   []string `json:"groups,omitempty"`
 }
 
 // UserIdentity represents a mapping from an IAM user to a kubernetes identity
@@ -41,18 +41,18 @@ type RoleIdentity struct {
 	KubernetesIdentity
 }
 
-// GetUsername returns the Kubernetes username
-func (k KubernetesIdentity) GetUsername() string {
-	return k.Username
+// Username returns the Kubernetes username
+func (k KubernetesIdentity) Username() string {
+	return k.KubernetesUsername
 }
 
-// GetGroups returns the Kubernetes groups
-func (k KubernetesIdentity) GetGroups() []string {
-	return k.Groups
+// Groups returns the Kubernetes groups
+func (k KubernetesIdentity) Groups() []string {
+	return k.KubernetesGroups
 }
 
-// GetARN returns the ARN of the iam mapping
-func (u UserIdentity) GetARN() string {
+// ARN returns the ARN of the iam mapping
+func (u UserIdentity) ARN() string {
 	return u.UserARN
 }
 
@@ -61,8 +61,8 @@ func (u UserIdentity) Type() string {
 	return ResourceTypeUser
 }
 
-// GetARN returns the ARN of the iam mapping
-func (r RoleIdentity) GetARN() string {
+// ARN returns the ARN of the iam mapping
+func (r RoleIdentity) ARN() string {
 	return r.RoleARN
 }
 
@@ -91,16 +91,16 @@ func NewIdentity(arn string, username string, groups []string) (Identity, error)
 		return &UserIdentity{
 			UserARN: arn,
 			KubernetesIdentity: KubernetesIdentity{
-				Username: username,
-				Groups:   groups,
+				KubernetesUsername: username,
+				KubernetesGroups:   groups,
 			},
 		}, nil
 	case parsedARN.IsRole():
 		return &RoleIdentity{
 			RoleARN: arn,
 			KubernetesIdentity: KubernetesIdentity{
-				Username: username,
-				Groups:   groups,
+				KubernetesUsername: username,
+				KubernetesGroups:   groups,
 			},
 		}, nil
 	default:
