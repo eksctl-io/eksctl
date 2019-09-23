@@ -26,6 +26,7 @@ const (
 	ClusterSharedNodeSecurityGroup  = "SharedNodeSecurityGroup"
 	ClusterServiceRoleARN           = "ServiceRoleARN"
 	ClusterFeatureNATMode           = "FeatureNATMode"
+	ClusterFeatureEndpointAccess    = "FeatureEndpointAccess"
 
 	// outputs from nodegroup stack
 	NodeGroupInstanceRoleARN    = "InstanceRoleARN"
@@ -34,9 +35,10 @@ const (
 	// outputs to indicate configuration attributes that may have critical effect
 	// on critical effect on forward-compatibility with respect to overal functionality
 	// and integrity, e.g. networking
-	NodeGroupFeaturePrivateNetworking   = "FeaturePrivateNetworking"
-	NodeGroupFeatureSharedSecurityGroup = "FeatureSharedSecurityGroup"
-	NodeGroupFeatureLocalSecurityGroup  = "FeatureLocalSecurityGroup"
+	NodeGroupFeaturePrivateNetworking     = "FeaturePrivateNetworking"
+	NodeGroupFeatureSharedSecurityGroup   = "FeatureSharedSecurityGroup"
+	NodeGroupFeatureLocalSecurityGroup    = "FeatureLocalSecurityGroup"
+	NodeGroupFeaturePrivateEndpointAccess = "FeaturePrivateEndointAccess"
 )
 
 type (
