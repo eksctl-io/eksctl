@@ -69,6 +69,9 @@ var _ = Describe("eks auth helpers", func() {
 					Expect(k.AuthInfos[ctx].Token).To(BeEmpty())
 					Expect(k.AuthInfos[ctx].Exec).To(Not(BeNil()))
 
+					// TODO: This test depends on which authenticator(s) is(are) installed and
+					// the code deciding which one should be picked up. Ideally we'd like to
+					// test all combinations, probably best done with a unit test.
 					Expect(k.AuthInfos[ctx].Exec.Command).To(MatchRegexp("(heptio-authenticator-aws|aws-iam-authenticator|aws)"))
 
 					var expectedArgs, roleARNArg string
