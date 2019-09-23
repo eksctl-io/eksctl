@@ -18,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+// NewVPCController creates a new VPCController
 func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region, namespace string) *VPCController {
 	return &VPCController{
 		rawClient:     rawClient,
@@ -27,6 +28,7 @@ func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *ap
 	}
 }
 
+// A VPCController deploys Windows VPC controller to a cluster
 type VPCController struct {
 	rawClient     kubernetes.RawClientInterface
 	clusterStatus *api.ClusterStatus
@@ -34,6 +36,7 @@ type VPCController struct {
 	namespace     string
 }
 
+// Deploy deploys Windows VPC controller to the specified cluster
 func (v *VPCController) Deploy() error {
 	if err := v.deployVPCResourceController(); err != nil {
 		return err
