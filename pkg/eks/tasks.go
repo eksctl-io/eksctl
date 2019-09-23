@@ -4,6 +4,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
+	"github.com/weaveworks/eksctl/pkg/addons"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -38,7 +39,7 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	vpcController := NewVPCController(rawClient, v.spec.Status, "kube-system")
+	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), "kube-system")
 	if err := vpcController.Deploy(); err != nil {
 		return errors.Wrap(err, "deploying VPC controller")
 	}
