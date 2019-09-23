@@ -186,12 +186,12 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
 1. To create private-only Kubernetes API endpoint access, one must first create the cluster *with* public Kubernetes API
    endpoint access, and then use `/eksctl utils update-cluster-endpoints` to change it after the cluster is finished
    creating.
-1. Updating a a cluster to have private only Kubernetes API endpoint access means that Kubernetes commands
+1. Updating a cluster to have private only Kubernetes API endpoint access means that Kubernetes commands
    (e.g. `kubectl`) as well as `eksctl delete cluster`, `eksctl utils write-kubeconfig`, and possibly the command
    `eksctl utils update-kube-proxy` must be run within the cluster VPC.  This requires some changes to various AWS
    resources.  See:
-   https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access
-   
+   [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
+
 The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` subcommand:
 
 ```
