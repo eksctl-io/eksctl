@@ -78,7 +78,7 @@ type RawClient struct {
 // RawClientInterface defines high level abstraction for RawClient for testing
 type RawClientInterface interface {
 	ClientSet() Interface
-	NewRawResource(runtime.RawExtension) (*RawResource, error)
+	NewRawResource(runtime.Object) (*RawResource, error)
 }
 
 // RawResource holds info about a resource along with a type-specific raw client instance
@@ -168,19 +168,19 @@ func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper,
 	return resource.NewHelper(client, mapping), nil
 }
 
-// NewRawResource constructs a type-specific instance or RawClient for rawObj
-func (c *RawClient) NewRawResource(rawObj runtime.RawExtension) (*RawResource, error) {
-	gvk := rawObj.Object.GetObjectKind().GroupVersionKind()
+// NewRawResource constructs a type-specific instance or RawClient for object
+func (c *RawClient) NewRawResource(object runtime.Object) (*RawResource, error) {
+	gvk := object.GetObjectKind().GroupVersionKind()
 
-	obj, ok := rawObj.Object.(metav1.Object)
+	metaObj, ok := object.(metav1.Object)
 	if !ok {
-		return nil, fmt.Errorf("cannot convert object of type %T to metav1.Object", rawObj.Object)
+		return nil, fmt.Errorf("cannot convert object of type %T to metav1.Object", object)
 	}
 
 	info := &resource.Info{
-		Name:      obj.GetName(),
-		Namespace: obj.GetNamespace(),
-		Object:    rawObj.Object,
+		Name:      metaObj.GetName(),
+		Namespace: metaObj.GetNamespace(),
+		Object:    object,
 	}
 
 	helper, err := c.NewHelperFor(gvk)
@@ -213,7 +213,7 @@ func (c *RawClient) CreateOrReplace(manifest []byte, plan bool) error {
 }
 
 func (c *RawClient) createOrReplaceObject(object runtime.RawExtension, plan bool) error {
-	resource, err := c.NewRawResource(object)
+	resource, err := c.NewRawResource(object.Object)
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (c *RawClient) Delete(manifest []byte) error {
 }
 
 func (c *RawClient) deleteObject(object runtime.RawExtension) error {
-	resource, err := c.NewRawResource(object)
+	resource, err := c.NewRawResource(object.Object)
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (c *RawClient) Exists(manifest []byte) (map[string]map[string]bool, error) 
 	}
 	existence := map[string]map[string]bool{}
 	for _, object := range objects {
-		resource, err := c.NewRawResource(object)
+		resource, err := c.NewRawResource(object.Object)
 		if err != nil {
 			return nil, err
 		}

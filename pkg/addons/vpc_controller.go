@@ -198,7 +198,7 @@ func (v *VPCController) applyDeployment(assetFn assetFunc) error {
 }
 
 func (v *VPCController) applyRawResource(r runtime.RawExtension) error {
-	rawResource, err := v.rawClient.NewRawResource(r)
+	rawResource, err := v.rawClient.NewRawResource(r.Object)
 	if err != nil {
 		return err
 	}
