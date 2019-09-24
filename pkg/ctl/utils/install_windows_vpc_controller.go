@@ -58,7 +58,7 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	vpcController := addons.NewVPCController(rawClient, cfg.Status, ctl.Provider.Region(), addons.DefaultVPCControllerNamespace, cmd.Plan)
+	vpcController := addons.NewVPCController(rawClient, cfg.Status, ctl.Provider.Region(), cmd.Plan)
 
 	if err := vpcController.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")

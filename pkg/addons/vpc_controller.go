@@ -20,16 +20,15 @@ import (
 )
 
 const (
-	DefaultVPCControllerNamespace = "kube-system"
-	webhookServiceName            = "vpc-admission-webhook"
+	vpcControllerNamespace = "kube-system"
+	webhookServiceName     = "vpc-admission-webhook"
 )
 
 // NewVPCController creates a new VPCController
-func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region, namespace string, planMode bool) *VPCController {
+func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region string, planMode bool) *VPCController {
 	return &VPCController{
 		rawClient:     rawClient,
 		clusterStatus: clusterStatus,
-		namespace:     namespace,
 		region:        region,
 		planMode:      planMode,
 	}
@@ -40,7 +39,6 @@ type VPCController struct {
 	rawClient     kubernetes.RawClientInterface
 	clusterStatus *api.ClusterStatus
 	region        string
-	namespace     string
 	planMode      bool
 }
 
@@ -63,7 +61,7 @@ func (v *VPCController) Deploy() error {
 
 func (v *VPCController) hasApprovedCert() (bool, error) {
 	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
-	request, err := csrClientSet.Get(fmt.Sprintf("%s.%s", webhookServiceName, DefaultVPCControllerNamespace), metav1.GetOptions{})
+	request, err := csrClientSet.Get(fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace), metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return false, err
@@ -75,7 +73,7 @@ func (v *VPCController) hasApprovedCert() (bool, error) {
 	switch len(conditions) {
 	case 1:
 		if conditions[0].Type == certsv1beta1.CertificateApproved {
-			_, err := v.rawClient.ClientSet().CoreV1().Secrets(DefaultVPCControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
+			_, err := v.rawClient.ClientSet().CoreV1().Secrets(vpcControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
 			if err != nil {
 				if !apierrors.IsNotFound(err) {
 					return false, err
@@ -100,7 +98,7 @@ func (v *VPCController) generateCert() error {
 		return nil
 	}
 
-	csrPEM, privateKey, err := generateCertReq(webhookServiceName, v.namespace)
+	csrPEM, privateKey, err := generateCertReq(webhookServiceName, vpcControllerNamespace)
 	if err != nil {
 		return errors.Wrap(err, "generating CSR")
 	}
@@ -120,7 +118,7 @@ func (v *VPCController) generateCert() error {
 	}
 
 	certificateSigningRequest.Spec.Request = csrPEM
-	certificateSigningRequest.ObjectMeta.Name = fmt.Sprintf("%s.%s", webhookServiceName, v.namespace)
+	certificateSigningRequest.ObjectMeta.Name = fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace)
 
 	if err := v.applyRawResource(certificateSigningRequest); err != nil {
 		return errors.Wrap(err, "creating CertificateSigningRequest")
@@ -160,7 +158,7 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "vpc-admission-webhook-certs",
-			Namespace: v.namespace,
+			Namespace: vpcControllerNamespace,
 		},
 		Data: map[string][]byte{
 			"key.pem":  key,
@@ -248,7 +246,7 @@ func (v *VPCController) applyDeployment(assetFn assetFunc) error {
 
 func (v *VPCController) applyRawResource(object runtime.Object) error {
 	if svc, ok := object.(*corev1.Service); ok {
-		existingSvc, err := v.rawClient.ClientSet().CoreV1().Services(v.namespace).Get(svc.Name, metav1.GetOptions{})
+		existingSvc, err := v.rawClient.ClientSet().CoreV1().Services(vpcControllerNamespace).Get(svc.Name, metav1.GetOptions{})
 		if err != nil {
 			if !apierrors.IsNotFound(err) {
 				return errors.Wrapf(err, "retrieving service: %q", svc.Name)

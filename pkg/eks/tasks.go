@@ -39,7 +39,7 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), addons.DefaultVPCControllerNamespace, false)
+	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), false)
 	if err := vpcController.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
 	}
