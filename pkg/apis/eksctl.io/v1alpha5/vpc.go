@@ -199,13 +199,13 @@ func (c *ClusterConfig) HasSufficientSubnets() error {
 //DefaultEndpointsMsg returns a message that the EndpointAccess is the same as the default
 func (c *ClusterConfig) DefaultEndpointsMsg() string {
 	return fmt.Sprintf(
-		"Kubernetes API endpoint access will use default of {Pulic: true, Private false} for cluster %q in %q", c.Metadata.Name, c.Metadata.Region)
+		"Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster %q in %q", c.Metadata.Name, c.Metadata.Region)
 }
 
 //CustomEndpointsMsg returns a message indicating the EndpointAccess given by the user
 func (c *ClusterConfig) CustomEndpointsMsg() string {
 	return fmt.Sprintf(
-		"Kubernetes API endpoint access will use provided values {Public: %v, Private %v} for cluster %q in %q", *c.VPC.ClusterEndpoints.PublicAccess, *c.VPC.ClusterEndpoints.PrivateAccess, c.Metadata.Name, c.Metadata.Region)
+		"Kubernetes API endpoint access will use provided values {publicAccess=%v, privateAccess=%v} for cluster %q in %q", *c.VPC.ClusterEndpoints.PublicAccess, *c.VPC.ClusterEndpoints.PrivateAccess, c.Metadata.Name, c.Metadata.Region)
 }
 
 //UpdateEndpointsMsg gives message indicating that they need to use eksctl utils to make this config
@@ -216,11 +216,11 @@ func (c *ClusterConfig) UpdateEndpointsMsg() string {
 
 // EndpointsEqual returns true of two endpoints have same values after dereferencing any pointers
 func EndpointsEqual(a, b ClusterEndpoints) bool {
-	ajson, err := json.MarshalIndent(a, "", "\t")
+	ajson, err := json.Marshal(a)
 	if err != nil {
 		return false
 	}
-	bjson, err := json.MarshalIndent(b, "", "\t")
+	bjson, err := json.Marshal(b)
 	if err != nil {
 		return false
 	}
