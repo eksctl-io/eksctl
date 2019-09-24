@@ -2,13 +2,14 @@ apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: vpc-admission-webhook-cfg
+  namespace: kube-system
   labels:
     app: vpc-admission-webhook
 webhooks:
   - name: vpc-admission-webhook.amazonaws.com
     clientConfig:
       service:
-        name: vpc-admission-webhook-svc
+        name: vpc-admission-webhook
         namespace: kube-system
         path: "/mutate"
     rules:

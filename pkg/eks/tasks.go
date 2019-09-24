@@ -47,7 +47,7 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 }
 
 // AppendExtraClusterConfigTasks returns all tasks for updating cluster configuration or nil if there are no tasks
-func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, windowsSupport bool, tasks *manager.TaskTree) {
+func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool, tasks *manager.TaskTree) {
 	newTasks := &manager.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -66,9 +66,9 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
 	}
-	if windowsSupport {
+	if installVPCController {
 		newTasks.Append(&vpcControllerTask{
-			info:            "create VPC resource controller",
+			info:            "install Windows VPC controller",
 			spec:            cfg,
 			clusterProvider: c,
 		})

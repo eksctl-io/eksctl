@@ -64,7 +64,7 @@ func NewRawExtension(manifest []byte) (runtime.RawExtension, error) {
 		return runtime.RawExtension{}, err
 	}
 	if len(list.Items) != 1 {
-		return runtime.RawExtension{}, fmt.Errorf("expected to find a single item; got %d items", len(list.Items))
+		return runtime.RawExtension{}, fmt.Errorf("expected to decode a single item; got %d items", len(list.Items))
 	}
 	return list.Items[0], nil
 }

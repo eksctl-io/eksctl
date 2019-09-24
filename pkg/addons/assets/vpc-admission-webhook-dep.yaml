@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vpc-admission-webhook-deployment
+  name: vpc-admission-webhook
   namespace: kube-system
   labels:
     app: vpc-admission-webhook

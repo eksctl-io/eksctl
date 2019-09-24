@@ -14,11 +14,15 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	certsv1beta1 "k8s.io/api/certificates/v1beta1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-const DefaultVPCControllerNamespace = "kube-system"
+const (
+	DefaultVPCControllerNamespace = "kube-system"
+	webhookServiceName            = "vpc-admission-webhook"
+)
 
 // NewVPCController creates a new VPCController
 func NewVPCController(rawClient kubernetes.RawClientInterface, clusterStatus *api.ClusterStatus, region, namespace string, planMode bool) *VPCController {
@@ -57,38 +61,72 @@ func (v *VPCController) Deploy() error {
 	return nil
 }
 
-func (v *VPCController) generateCert() error {
-	const webhookName = "vpc-admission-webhook"
+func (v *VPCController) hasApprovedCert() (bool, error) {
+	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
+	request, err := csrClientSet.Get(fmt.Sprintf("%s.%s", webhookServiceName, DefaultVPCControllerNamespace), metav1.GetOptions{})
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return false, err
+		}
+		return false, nil
+	}
 
-	csrPEM, privateKey, err := generateCertReq(webhookName, v.namespace)
+	conditions := request.Status.Conditions
+	switch len(conditions) {
+	case 1:
+		if conditions[0].Type == certsv1beta1.CertificateApproved {
+			_, err := v.rawClient.ClientSet().CoreV1().Secrets(DefaultVPCControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
+			if err != nil {
+				if !apierrors.IsNotFound(err) {
+					return false, err
+				}
+				return false, nil
+			}
+			return true, nil
+		}
+	case 0:
+		return false, nil
+
+	}
+	return false, fmt.Errorf("unexpected number of request conditions: %d", len(conditions))
+}
+
+func (v *VPCController) generateCert() error {
+	skipCSRGeneration, err := v.hasApprovedCert()
+	if err != nil {
+		return err
+	}
+	if skipCSRGeneration {
+		return nil
+	}
+
+	csrPEM, privateKey, err := generateCertReq(webhookServiceName, v.namespace)
 	if err != nil {
 		return errors.Wrap(err, "generating CSR")
 	}
 
-	certificateSigningRequest := &certsv1beta1.CertificateSigningRequest{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprintf("%s.%s", webhookName, v.namespace),
-		},
-		Spec: certsv1beta1.CertificateSigningRequestSpec{
-			Request: csrPEM,
-			Usages: []certsv1beta1.KeyUsage{
-				certsv1beta1.UsageSigning,
-				certsv1beta1.UsageKeyEncipherment,
-				certsv1beta1.UsageServerAuth,
-			},
-			Groups: []string{"system:authenticated"},
-		},
-	}
-
-	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
-
-	// TODO create or replace
-	request, err := csrClientSet.Create(certificateSigningRequest)
+	manifest, err := vpcAdmissionWebhookCsrYamlBytes()
 	if err != nil {
-		return errors.Wrap(err, "creating CSR")
+		return err
+	}
+	rawExtension, err := kubernetes.NewRawExtension(manifest)
+	if err != nil {
+		return err
 	}
 
-	request.Status.Conditions = []certsv1beta1.CertificateSigningRequestCondition{
+	certificateSigningRequest, ok := rawExtension.Object.(*certsv1beta1.CertificateSigningRequest)
+	if !ok {
+		return fmt.Errorf("expected type to be %T; got %T", &certsv1beta1.CertificateSigningRequest{}, rawExtension.Object)
+	}
+
+	certificateSigningRequest.Spec.Request = csrPEM
+	certificateSigningRequest.ObjectMeta.Name = fmt.Sprintf("%s.%s", webhookServiceName, v.namespace)
+
+	if err := v.applyRawResource(certificateSigningRequest); err != nil {
+		return errors.Wrap(err, "creating CertificateSigningRequest")
+	}
+
+	certificateSigningRequest.Status.Conditions = []certsv1beta1.CertificateSigningRequestCondition{
 		{
 			Type:           certsv1beta1.CertificateApproved,
 			LastUpdateTime: metav1.NewTime(time.Now()),
@@ -97,11 +135,13 @@ func (v *VPCController) generateCert() error {
 		},
 	}
 
-	if _, err := csrClientSet.UpdateApproval(request); err != nil {
+	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
+
+	if _, err := csrClientSet.UpdateApproval(certificateSigningRequest); err != nil {
 		return errors.Wrap(err, "updating approval")
 	}
 
-	approvedCSR, err := csrClientSet.Get(request.Name, metav1.GetOptions{})
+	approvedCSR, err := csrClientSet.Get(certificateSigningRequest.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -113,16 +153,25 @@ func (v *VPCController) generateCert() error {
 }
 
 func (v *VPCController) createCertSecrets(key, cert []byte) error {
-	_, err := v.rawClient.ClientSet().CoreV1().Secrets(v.namespace).Create(&corev1.Secret{
+	secret := &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "secret",
+			APIVersion: "v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "vpc-admission-webhook-certs",
+			Name:      "vpc-admission-webhook-certs",
+			Namespace: v.namespace,
 		},
 		Data: map[string][]byte{
 			"key.pem":  key,
 			"cert.pem": cert,
 		},
-	})
+	}
 
+	err := v.applyRawResource(secret)
+	if err != nil {
+		return errors.Wrap(err, "error creating secret")
+	}
 	return err
 }
 
@@ -156,7 +205,7 @@ func (v *VPCController) deployVPCWebhook() error {
 	}
 
 	mutatingWebhook.Webhooks[0].ClientConfig.CABundle = v.clusterStatus.CertificateAuthorityData
-	return v.applyRawResource(rawExtension)
+	return v.applyRawResource(rawExtension.Object)
 }
 
 type assetFunc func() ([]byte, error)
@@ -172,7 +221,7 @@ func (v *VPCController) applyResources(assetFn assetFunc) error {
 	}
 
 	for _, item := range list.Items {
-		if err := v.applyRawResource(item); err != nil {
+		if err := v.applyRawResource(item.Object); err != nil {
 			return err
 		}
 	}
@@ -194,11 +243,21 @@ func (v *VPCController) applyDeployment(assetFn assetFunc) error {
 		return fmt.Errorf("expected %T; got %T", &appsv1.Deployment{}, rawExtension.Object)
 	}
 	useRegionalImage(&deployment.Spec.Template, v.region)
-	return v.applyRawResource(rawExtension)
+	return v.applyRawResource(rawExtension.Object)
 }
 
-func (v *VPCController) applyRawResource(r runtime.RawExtension) error {
-	rawResource, err := v.rawClient.NewRawResource(r.Object)
+func (v *VPCController) applyRawResource(object runtime.Object) error {
+	if svc, ok := object.(*corev1.Service); ok {
+		existingSvc, err := v.rawClient.ClientSet().CoreV1().Services(v.namespace).Get(svc.Name, metav1.GetOptions{})
+		if err != nil {
+			if !apierrors.IsNotFound(err) {
+				return errors.Wrapf(err, "retrieving service: %q", svc.Name)
+			}
+		} else {
+			svc.Spec.ClusterIP = existingSvc.Spec.ClusterIP
+		}
+	}
+	rawResource, err := v.rawClient.NewRawResource(object)
 	if err != nil {
 		return err
 	}
@@ -214,7 +273,9 @@ func (v *VPCController) applyRawResource(r runtime.RawExtension) error {
 // TODO use this for other addons
 func useRegionalImage(spec *corev1.PodTemplateSpec, region string) {
 	imageFormat := spec.Spec.Containers[0].Image
-	regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region)
+	// TODO uncomment this call after these container images are available publicly
+	// regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region)
+	regionalImage := fmt.Sprintf(imageFormat, "940911992744", region)
 	spec.Spec.Containers[0].Image = regionalImage
 }
 
