@@ -8,7 +8,7 @@
 // assets/vpc-resource-controller.yaml
 // DO NOT EDIT!
 
-package addons
+package windows
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package addons
+package windows
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	vpcControllerNamespace = "kube-system"
+	vpcControllerNamespace = metav1.NamespaceSystem
 	webhookServiceName     = "vpc-admission-webhook"
 )
 

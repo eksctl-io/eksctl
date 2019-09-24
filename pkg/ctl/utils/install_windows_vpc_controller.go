@@ -4,7 +4,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/eksctl/pkg/addons"
+	"github.com/weaveworks/eksctl/pkg/addons/windows"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -58,7 +58,7 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	vpcController := addons.NewVPCController(rawClient, cfg.Status, ctl.Provider.Region(), cmd.Plan)
+	vpcController := windows.NewVPCController(rawClient, cfg.Status, ctl.Provider.Region(), cmd.Plan)
 
 	if err := vpcController.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
