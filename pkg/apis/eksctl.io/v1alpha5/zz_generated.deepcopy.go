@@ -463,6 +463,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.Subnets != nil {
+		in, out := &in.Subnets, &out.Subnets
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
 		*out = make(map[string]string, len(*in))

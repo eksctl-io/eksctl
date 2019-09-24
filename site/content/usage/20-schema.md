@@ -294,6 +294,10 @@ NodeGroup:
     ssh:
       $ref: '#/definitions/NodeGroupSSH'
       $schema: http://json-schema.org/draft-04/schema#
+    subnets:
+      items:
+        type: string
+      type: array
     tags:
       patternProperties:
         .*:

@@ -164,6 +164,11 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 			}
 			vpcZoneIdentifier.([]interface{})[i] = subnet.ID
 		}
+	} else if numSubnets := len(n.spec.Subnets); numSubnets > 0 {
+		vpcZoneIdentifier = make([]interface{}, numSubnets)
+		for i, subnet := range n.spec.Subnets {
+			vpcZoneIdentifier.([]interface{})[i] = subnet
+		}
 	} else {
 		subnets := makeImportValue(n.clusterStackName, outputs.ClusterSubnetsPrivate)
 		if !n.spec.PrivateNetworking {
