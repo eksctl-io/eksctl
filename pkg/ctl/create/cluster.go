@@ -142,8 +142,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 	}
 	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
-	if params.installWindowsVPCController && eks.SupportsWindowsWorkloads(filteredNodeGroups) {
-		return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
+	if params.installWindowsVPCController {
+		if eks.SupportsWindowsWorkloads(filteredNodeGroups) {
+			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
+		}
+	} else {
+		eks.LogWindowsCompatibility(filteredNodeGroups, cfg.Metadata)
 	}
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets

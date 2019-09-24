@@ -548,7 +548,7 @@ func (n *NodeGroup) NameString() string {
 
 // IsWindows reports whether the AMI family is for Windows
 func (n *NodeGroup) IsWindows() bool {
-	return n.AMI == NodeImageFamilyWindowsServer2019CoreContainer || n.AMI == NodeImageFamilyWindowsServer2019FullContainer
+	return n.AMIFamily == NodeImageFamilyWindowsServer2019CoreContainer || n.AMIFamily == NodeImageFamilyWindowsServer2019FullContainer
 }
 
 type (

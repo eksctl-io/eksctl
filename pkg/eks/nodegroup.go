@@ -47,9 +47,11 @@ func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 
 // SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
 func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
-	hasWindows := false
-	hasLinux := false
+	hasWindows, hasLinux := hasWindowsLinuxNodes(nodeGroups)
+	return hasWindows && hasLinux
+}
 
+func hasWindowsLinuxNodes(nodeGroups []*api.NodeGroup) (hasWindows bool, hasLinux bool) {
 	for _, ng := range nodeGroups {
 		if ng.IsWindows() {
 			hasWindows = true
@@ -57,10 +59,23 @@ func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
 			hasLinux = true
 		}
 		if hasWindows && hasLinux {
-			return true
+			break
 		}
 	}
-	return false
+	return
+}
+
+// LogWindowsCompatibility logs Windows compatibility messages
+func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.ClusterMeta) {
+	hasWindows, hasLinux := hasWindowsLinuxNodes(nodeGroups)
+	if hasWindows {
+		if !hasLinux {
+			logger.Warning("a Linux node group is required to support Windows workloads")
+			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2)
+		}
+		logger.Warning("Windows VPC resource controller is required to run Windows workloads")
+		logger.Warning("install it using 'eksctl utils install-windows-vpc-controller --name=%s --region=%s --approve'", clusterMeta.Name, clusterMeta.Region)
+	}
 }
 
 // WaitForNodes waits till the nodes are ready
