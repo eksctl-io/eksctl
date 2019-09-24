@@ -30,7 +30,7 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -57,7 +57,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	}
 
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--name")
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
