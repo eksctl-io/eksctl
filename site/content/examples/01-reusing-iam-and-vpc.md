@@ -8,7 +8,7 @@ url: examples/reusing-iam-and-vpc
 This example shows how to create a cluster reusing pre-existing IAM and VPC resources:
 
 ```yaml
-apiVersion: eksctl.io/v1alpha4
+apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 metadata:
   name: my-test
