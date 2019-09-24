@@ -7,6 +7,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -19,13 +20,13 @@ import (
 )
 
 type createClusterCmdParams struct {
-	writeKubeconfig      bool
-	kubeconfigPath       string
-	autoKubeconfigPath   bool
-	authenticatorRoleARN string
-	setContext           bool
-	availabilityZones    []string
-	windowsSupport       bool
+	writeKubeconfig             bool
+	kubeconfigPath              string
+	autoKubeconfigPath          bool
+	authenticatorRoleARN        string
+	setContext                  bool
+	availabilityZones           []string
+	installWindowsVPCController bool
 
 	kopsClusterNameForVPC string
 	subnets               map[api.SubnetTopology]*[]string
@@ -56,7 +57,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
-		fs.BoolVarP(&params.windowsSupport, "windows-support", "", false, "Enable Windows support")
+		fs.BoolVarP(&params.installWindowsVPCController, "install-windows-vpc-controller", "", false, "Install Windows VPC controller that's required for Windows workloads")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -141,6 +142,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 	}
 	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
+	if params.installWindowsVPCController && eks.SupportsWindowsWorkloads(filteredNodeGroups) {
+		return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
+	}
+
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
 
 	createOrImportVPC := func() error {
@@ -277,7 +282,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups)
-		ctl.AppendExtraClusterConfigTasks(cfg, params.windowsSupport, tasks)
+		ctl.AppendExtraClusterConfigTasks(cfg, params.installWindowsVPCController, tasks)
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {

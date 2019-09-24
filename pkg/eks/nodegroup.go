@@ -45,6 +45,24 @@ func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 	return counter, nil
 }
 
+// SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
+func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
+	hasWindows := false
+	hasLinux := false
+
+	for _, ng := range nodeGroups {
+		if ng.IsWindows() {
+			hasWindows = true
+		} else if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+			hasLinux = true
+		}
+		if hasWindows && hasLinux {
+			return true
+		}
+	}
+	return false
+}
+
 // WaitForNodes waits till the nodes are ready
 func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	if ng.MinSize == nil || *ng.MinSize == 0 {

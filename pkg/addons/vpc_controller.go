@@ -59,36 +59,6 @@ func (v *VPCController) Deploy() error {
 	return nil
 }
 
-func (v *VPCController) hasApprovedCert() (bool, error) {
-	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
-	request, err := csrClientSet.Get(fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace), metav1.GetOptions{})
-	if err != nil {
-		if !apierrors.IsNotFound(err) {
-			return false, err
-		}
-		return false, nil
-	}
-
-	conditions := request.Status.Conditions
-	switch len(conditions) {
-	case 1:
-		if conditions[0].Type == certsv1beta1.CertificateApproved {
-			_, err := v.rawClient.ClientSet().CoreV1().Secrets(vpcControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
-			if err != nil {
-				if !apierrors.IsNotFound(err) {
-					return false, err
-				}
-				return false, nil
-			}
-			return true, nil
-		}
-	case 0:
-		return false, nil
-
-	}
-	return false, fmt.Errorf("unexpected number of request conditions: %d", len(conditions))
-}
-
 func (v *VPCController) generateCert() error {
 	skipCSRGeneration, err := v.hasApprovedCert()
 	if err != nil {
@@ -204,6 +174,38 @@ func (v *VPCController) deployVPCWebhook() error {
 
 	mutatingWebhook.Webhooks[0].ClientConfig.CABundle = v.clusterStatus.CertificateAuthorityData
 	return v.applyRawResource(rawExtension.Object)
+}
+
+func (v *VPCController) hasApprovedCert() (bool, error) {
+	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
+	request, err := csrClientSet.Get(fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace), metav1.GetOptions{})
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return false, err
+		}
+		return false, nil
+	}
+
+	conditions := request.Status.Conditions
+	switch len(conditions) {
+	case 1:
+		if conditions[0].Type == certsv1beta1.CertificateApproved {
+			_, err := v.rawClient.ClientSet().CoreV1().Secrets(vpcControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
+			if err != nil {
+				if !apierrors.IsNotFound(err) {
+					return false, err
+				}
+				return false, nil
+			}
+			return true, nil
+		}
+		return false, fmt.Errorf("expected certificate to be approved; got %q", conditions[0].Type)
+
+	case 0:
+		return false, nil
+	default:
+		return false, fmt.Errorf("unexpected number of request conditions: %d", len(conditions))
+	}
 }
 
 type assetFunc func() ([]byte, error)
