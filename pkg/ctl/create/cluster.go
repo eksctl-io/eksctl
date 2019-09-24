@@ -143,7 +143,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 	}
 	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
 	if params.installWindowsVPCController {
-		if eks.SupportsWindowsWorkloads(filteredNodeGroups) {
+		if !eks.SupportsWindowsWorkloads(filteredNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}
 	} else {
