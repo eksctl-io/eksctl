@@ -42,8 +42,18 @@ type VPCController struct {
 	planMode      bool
 }
 
-// Deploy deploys Windows VPC controller to the specified cluster
-func (v *VPCController) Deploy() error {
+// Deploy deploys VPC controller to the specified cluster
+func (v *VPCController) Deploy() (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if ae, ok := r.(*assetError); ok {
+				err = ae
+			} else {
+				panic(r)
+			}
+		}
+	}()
+
 	if err := v.deployVPCResourceController(); err != nil {
 		return err
 	}
@@ -52,11 +62,16 @@ func (v *VPCController) Deploy() error {
 		return err
 	}
 
-	if err := v.deployVPCWebhook(); err != nil {
-		return err
-	}
+	return v.deployVPCWebhook()
+}
 
-	return nil
+type typeAssertionError struct {
+	expected interface{}
+	got      interface{}
+}
+
+func (t *typeAssertionError) Error() string {
+	return fmt.Sprintf("expected type to be %T; got %T", t.expected, t.got)
 }
 
 func (v *VPCController) generateCert() error {
@@ -73,10 +88,7 @@ func (v *VPCController) generateCert() error {
 		return errors.Wrap(err, "generating CSR")
 	}
 
-	manifest, err := vpcAdmissionWebhookCsrYamlBytes()
-	if err != nil {
-		return err
-	}
+	manifest := mustGenerateAsset(vpcAdmissionWebhookCsrYamlBytes)
 	rawExtension, err := kubernetes.NewRawExtension(manifest)
 	if err != nil {
 		return err
@@ -84,7 +96,7 @@ func (v *VPCController) generateCert() error {
 
 	certificateSigningRequest, ok := rawExtension.Object.(*certsv1beta1.CertificateSigningRequest)
 	if !ok {
-		return fmt.Errorf("expected type to be %T; got %T", &certsv1beta1.CertificateSigningRequest{}, rawExtension.Object)
+		return &typeAssertionError{&certsv1beta1.CertificateSigningRequest{}, rawExtension.Object}
 	}
 
 	certificateSigningRequest.Spec.Request = csrPEM
@@ -144,24 +156,21 @@ func (v *VPCController) createCertSecrets(key, cert []byte) error {
 }
 
 func (v *VPCController) deployVPCResourceController() error {
-	if err := v.applyResources(vpcResourceControllerYamlBytes); err != nil {
+	if err := v.applyResources(mustGenerateAsset(vpcResourceControllerYamlBytes)); err != nil {
 		return err
 	}
-	return v.applyDeployment(vpcResourceControllerDepYamlBytes)
+	return v.applyDeployment(mustGenerateAsset(vpcResourceControllerDepYamlBytes))
 }
 
 func (v *VPCController) deployVPCWebhook() error {
-	if err := v.applyResources(vpcAdmissionWebhookYamlBytes); err != nil {
+	if err := v.applyResources(mustGenerateAsset(vpcAdmissionWebhookYamlBytes)); err != nil {
 		return err
 	}
-	if err := v.applyDeployment(vpcAdmissionWebhookDepYamlBytes); err != nil {
+	if err := v.applyDeployment(mustGenerateAsset(vpcAdmissionWebhookDepYamlBytes)); err != nil {
 		return err
 	}
 
-	manifest, err := vpcAdmissionWebhookConfigYamlBytes()
-	if err != nil {
-		return err
-	}
+	manifest := mustGenerateAsset(vpcAdmissionWebhookConfigYamlBytes)
 	rawExtension, err := kubernetes.NewRawExtension(manifest)
 	if err != nil {
 		return err
@@ -169,7 +178,7 @@ func (v *VPCController) deployVPCWebhook() error {
 
 	mutatingWebhook, ok := rawExtension.Object.(*admv1beta1.MutatingWebhookConfiguration)
 	if !ok {
-		return fmt.Errorf("expected type to be %T; got %T", &admv1beta1.MutatingWebhookConfiguration{}, rawExtension.Object)
+		return &typeAssertionError{&admv1beta1.MutatingWebhookConfiguration{}, rawExtension.Object}
 	}
 
 	mutatingWebhook.Webhooks[0].ClientConfig.CABundle = v.clusterStatus.CertificateAuthorityData
@@ -208,14 +217,8 @@ func (v *VPCController) hasApprovedCert() (bool, error) {
 	}
 }
 
-type assetFunc func() ([]byte, error)
-
-func (v *VPCController) applyResources(assetFn assetFunc) error {
-	manifests, err := assetFn()
-	if err != nil {
-		return errors.Wrap(err, "unexpected error reading assets")
-	}
-	list, err := kubernetes.NewList([]byte(manifests))
+func (v *VPCController) applyResources(manifests []byte) error {
+	list, err := kubernetes.NewList(manifests)
 	if err != nil {
 		return err
 	}
@@ -228,11 +231,7 @@ func (v *VPCController) applyResources(assetFn assetFunc) error {
 	return nil
 }
 
-func (v *VPCController) applyDeployment(assetFn assetFunc) error {
-	manifests, err := assetFn()
-	if err != nil {
-		return errors.Wrap(err, "unexpected error reading assets")
-	}
+func (v *VPCController) applyDeployment(manifests []byte) error {
 	rawExtension, err := kubernetes.NewRawExtension(manifests)
 	if err != nil {
 		return err
@@ -240,24 +239,43 @@ func (v *VPCController) applyDeployment(assetFn assetFunc) error {
 
 	deployment, ok := rawExtension.Object.(*appsv1.Deployment)
 	if !ok {
-		return fmt.Errorf("expected %T; got %T", &appsv1.Deployment{}, rawExtension.Object)
+		return &typeAssertionError{&appsv1.Deployment{}, rawExtension.Object}
 	}
 	useRegionalImage(&deployment.Spec.Template, v.region)
 	return v.applyRawResource(rawExtension.Object)
 }
 
 func (v *VPCController) applyRawResource(object runtime.Object) error {
-	if svc, ok := object.(*corev1.Service); ok {
-		existingSvc, err := v.rawClient.ClientSet().CoreV1().Services(vpcControllerNamespace).Get(svc.Name, metav1.GetOptions{})
+	rawResource, err := v.rawClient.NewRawResource(object)
+
+	switch newObject := object.(type) {
+	case *corev1.Service:
+		r, found, err := rawResource.Get()
 		if err != nil {
-			if !apierrors.IsNotFound(err) {
-				return errors.Wrapf(err, "retrieving service: %q", svc.Name)
+			return err
+		}
+		if found {
+			service, ok := r.(*corev1.Service)
+			if !ok {
+				return &typeAssertionError{&corev1.Service{}, r}
 			}
-		} else {
-			svc.Spec.ClusterIP = existingSvc.Spec.ClusterIP
+			newObject.Spec.ClusterIP = service.Spec.ClusterIP
+			newObject.SetResourceVersion(service.GetResourceVersion())
+		}
+	case *admv1beta1.MutatingWebhookConfiguration:
+		r, found, err := rawResource.Get()
+		if err != nil {
+			return err
+		}
+		if found {
+			mwc, ok := r.(*admv1beta1.MutatingWebhookConfiguration)
+			if !ok {
+				return &typeAssertionError{&admv1beta1.MutatingWebhookConfiguration{}, r}
+			}
+			newObject.SetResourceVersion(mwc.GetResourceVersion())
 		}
 	}
-	rawResource, err := v.rawClient.NewRawResource(object)
+
 	if err != nil {
 		return err
 	}
@@ -270,12 +288,28 @@ func (v *VPCController) applyRawResource(object runtime.Object) error {
 	return nil
 }
 
+type assetError struct {
+	error
+}
+
+func (ae *assetError) Error() string {
+	return fmt.Sprintf("unexpected error generating assets: %v", ae.error.Error())
+}
+
+type assetFunc func() ([]byte, error)
+
+func mustGenerateAsset(assetFunc assetFunc) []byte {
+	bytes, err := assetFunc()
+	if err != nil {
+		panic(&assetError{err})
+	}
+	return bytes
+}
+
 // TODO use this for other addons
 func useRegionalImage(spec *corev1.PodTemplateSpec, region string) {
 	imageFormat := spec.Spec.Containers[0].Image
-	// TODO uncomment this call after these container images are available publicly
-	// regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region)
-	regionalImage := fmt.Sprintf(imageFormat, "940911992744", region)
+	regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region)
 	spec.Spec.Containers[0].Image = regionalImage
 }
 

@@ -58,6 +58,7 @@ func doInstallWindowsVPCController(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
+	// TODO cmd.Plan doesn't work as intended for all addons
 	vpcController := windows.NewVPCController(rawClient, cfg.Status, ctl.Provider.Region(), cmd.Plan)
 
 	if err := vpcController.Deploy(); err != nil {

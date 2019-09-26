@@ -462,6 +462,18 @@ func (r *RawResource) Exists() (bool, error) {
 	return exists, err
 }
 
+// Get returns the Kubernetes resource from the server
+func (r *RawResource) Get() (runtime.Object, bool, error) {
+	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
+	if err != nil {
+		if apierrs.IsNotFound(err) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	return obj, true, nil
+}
+
 func (r *RawResource) exists() (bool, runtime.Object, error) {
 	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
 	if err != nil {
