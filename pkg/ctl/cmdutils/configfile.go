@@ -196,7 +196,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 		"vpc-from-kops-cluster",
 	)
 
-	l.flagsIncompatibleWithoutConfigFile.Insert("install-windows-vpc-controller")
+	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
 
 	l.validateWithConfigFile = func() error {
 		if l.ClusterConfig.VPC == nil {

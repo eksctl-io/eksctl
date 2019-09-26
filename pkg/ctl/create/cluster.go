@@ -57,7 +57,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
-		fs.BoolVarP(&params.installWindowsVPCController, "install-windows-vpc-controller", "", false, "Install Windows VPC controller that's required for Windows workloads")
+		fs.BoolVarP(&params.installWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -299,7 +299,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 	}
 
-	logger.Success("all EKS cluster resource for %q had been created", meta.Name)
+	logger.Success("all EKS cluster resources for %q have been created", meta.Name)
 
 	// obtain cluster credentials, write kubeconfig
 

@@ -14,7 +14,7 @@ func installWindowsVPCController(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("install-windows-vpc-controller", "Install Windows VPC controller to support running Windows workloads", "")
+	cmd.SetDescription("install-vpc-controllers", "Install Windows VPC controller to support running Windows workloads", "")
 
 	cmd.SetRunFuncWithNameArg(func() error {
 		return doInstallWindowsVPCController(cmd)

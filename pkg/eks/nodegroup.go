@@ -74,7 +74,7 @@ func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.Clust
 			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2)
 		}
 		logger.Warning("Windows VPC resource controller is required to run Windows workloads")
-		logger.Warning("install it using 'eksctl utils install-windows-vpc-controller --name=%s --region=%s --approve'", clusterMeta.Name, clusterMeta.Region)
+		logger.Warning("install it using 'eksctl utils install-vpc-controllers --name=%s --region=%s --approve'", clusterMeta.Name, clusterMeta.Region)
 	}
 }
 
