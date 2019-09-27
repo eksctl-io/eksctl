@@ -305,7 +305,7 @@ func (r *RawResource) LogAction(plan bool, verb string) string {
 
 // CreateOrReplace will check if the given resource exists, and create or update it as needed
 func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
-	exists, _, err := r.exists()
+	_, exists, err := r.Get()
 	if err != nil {
 		return "", errors.Wrap(err, "unexpected non-404 error")
 	}
@@ -348,7 +348,7 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 func (r *RawResource) CreatePatchOrReplace() error {
 	msg := func(verb string) { logger.Info("%s %q", verb, r) }
 
-	exists, oldObj, err := r.exists()
+	oldObj, exists, err := r.Get()
 	if err != nil {
 		return err
 	}
@@ -413,7 +413,7 @@ func (r *RawResource) CreatePatchOrReplace() error {
 // DeleteSync attempts to delete this Kubernetes resource, or returns doing
 // nothing if it does not exist. It blocks until the resource has been deleted.
 func (r *RawResource) DeleteSync() (string, error) {
-	exists, _, err := r.exists()
+	_, exists, err := r.Get()
 	if err != nil {
 		return "", err
 	}
@@ -441,7 +441,7 @@ func (r *RawResource) waitForDeletion() error {
 	waitingTime := maxWaitingTime
 	checkInterval := 1 * time.Second
 	for waitingTime > 0 {
-		exists, _, err := r.exists()
+		_, exists, err := r.Get()
 		if err != nil {
 			return err
 		}
@@ -458,7 +458,7 @@ func (r *RawResource) waitForDeletion() error {
 // Exists checks if this Kubernetes resource exists or not, and returns true if
 // so, or false otherwise.
 func (r *RawResource) Exists() (bool, error) {
-	exists, _, err := r.exists()
+	_, exists, err := r.Get()
 	return exists, err
 }
 
@@ -472,15 +472,4 @@ func (r *RawResource) Get() (runtime.Object, bool, error) {
 		return nil, false, err
 	}
 	return obj, true, nil
-}
-
-func (r *RawResource) exists() (bool, runtime.Object, error) {
-	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
-	if err != nil {
-		if apierrs.IsNotFound(err) {
-			return false, nil, nil
-		}
-		return false, nil, err
-	}
-	return true, obj, nil
 }
