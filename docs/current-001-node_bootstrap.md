@@ -1,11 +1,11 @@
 # Current Design #001: Node Bootstrap
 
-> NOTE: the purpose of this document is to summaries how node bootstrap process is currently implemented in `eksctl`,
+> NOTE: the purpose of this document is to summarize how node bootstrap process is currently implemented in `eksctl`,
 > so it can be referred to in any discussions.
 
 ## Guiding Principles
 
-To enable reliable node management at large-scale, the bootstrap process of a node should bare the following attributes:
+To enable reliable node management at large-scale, the bootstrap process of a node should bear the following attributes:
 
 - stateless
 - immutable
@@ -13,7 +13,7 @@ To enable reliable node management at large-scale, the bootstrap process of a no
 - simple
 
 It **should avoid**:
-- non essential runtime parameters
+- non-essential runtime parameters
 - mutation of configuration during execution
 - generating complex configuration files
 - download of configuration files
@@ -24,7 +24,7 @@ It **should avoid**:
 Current implementation is build for official AL2 EKS AMIs, that includes dependencies such as AWS CLI and jq, however
 it's ought to be possible for one to create a stripped-down AMI and re-use the bootstrap script.
 
-Aside from all of the above concerns, it's crucial to bare in mind that the dependencies of bootstrap process should
+Aside from all of the above concerns, it's crucial to bear in mind that the dependencies of bootstrap process should
 not pose requirements that affect running of the node or the entire cluster past the bootstrap stage. For example, relying
 on particular AWS APIs implies instance role has to be adjusted to allow for access to such APIs, which could otherwise
 be avoided, or any software required solely for bootstrap function has to be tracked for security vulnerabilities.
@@ -39,10 +39,10 @@ one of the Python packages that AWS CLI uses, the node will have to be upgraded.
 
 ### Use of EC2 tags for parameter discovery
 
-This require multiple remote calls, and parsing JSON. It can be does with AWS CLI, yet it's a Python dependency
+This requires multiple remote calls, and parsing JSON. It can be done with AWS CLI, yet it's a Python dependency
 that is not essential otherwise. Furthermore, discovering tags requires listing tags of all instances and searching
 the list. It's not as simple as asking "what are the tags of this instance?", it's "what is the ID of this instance?",
-followed by "what are the tags of all instance? which of all instances is this instance? what are the tags of this
+followed by "what are the tags of all instances? which of all instances is this instance? what are the tags of this
 instance?".
 
 Aside from this, this approach requires instance IAM role to have access to EC2 APIs, which is considered non-essential
@@ -53,9 +53,9 @@ for any other purpose.
 Summary:
 - all configuration files along with [the bootstrap script](https://github.com/weaveworks/eksctl/blob/70041a226bb8ef5c51a229d587235551a2410eda/pkg/nodebootstrap/assets/bootstrap.al2.sh) are passed to the node as cloud-init config
 - all configuration files are written to `/etc/eksctl` directory
-- only the remote API that is use is the EC2 metadata service, required to obtain instance ID, type and IP address
+- the only remote API that's used is the EC2 metadata service, required to obtain instance ID, type and IP address
 - the behavior is fully determined by:
-    - `ClusterConfig` set in configuration file file
+    - `ClusterConfig` set in configuration file
     - version of `eksctl`
 - single mode of execution
 
@@ -65,7 +65,7 @@ More specifically, as part of CloudFormation template, `eksctl` will define full
 - `/etc/eksctl/kubelet.yaml` - fully-formed kubelet configuration file (NOTE: currently it doesn't support all the options that flags support)
 - `/etc/eksctl/kubeconfig.yaml` - client credentials for kubelet
 - `/etc/eksctl/ca.crt`
-- `/etc/eksctl/metadata.env` - known metadata for a all nodes in a nodegroup, used by the bootstrap process and for kubelet flags that are not otherwise settable via `/etc/eksctl/kubelet.yaml`
+- `/etc/eksctl/metadata.env` - known metadata for all nodes in a nodegroup, used by the bootstrap process and for kubelet flags that are not otherwise settable via `/etc/eksctl/kubelet.yaml`
         - `AWS_DEFAULT_REGION`
         - `AWS_EKS_CLUSTER_NAME`
         - `AWS_EKS_ENDPOINT`
@@ -177,7 +177,6 @@ EnvironmentFile=/etc/eksctl/kubelet.env
 # Local non-static parameters: NODE_IP, INSTANCE_ID
 EnvironmentFile=/etc/eksctl/kubelet.local.env
 
-ExecStart=
 ExecStart=/usr/bin/kubelet \
   --node-ip=${NODE_IP} \
   --node-labels=${NODE_LABELS},alpha.eksctl.io/instance-id=${INSTANCE_ID} \
@@ -235,7 +234,7 @@ The [EKS Amazon Linux 2 script](https://github.com/awslabs/amazon-eks-ami/blob/b
 - uses `jq` to generate JSON files (`/etc/docker/daemon.json` and `/etc/kubernetes/kubelet/kubelet-config.json`)
 - calls `aws eks wait cluster-active` and `aws eks describe-cluster`
 - implements API call retry logic
-- uses `awk` abnd `grep` to parse structure data obtained from EC2 metadata API
+- uses `awk` and `grep` to parse structured data obtained from EC2 metadata API
 
 Dependencies:
 - systemd
@@ -249,7 +248,7 @@ Dependencies:
 
 ## Comparison to Ubuntu script
 
-No source for the script used by Ubuntu is publicly available. I can be obtained from the AMI, but it is not
+No source for the script used by Ubuntu is publicly available. It can be obtained from the AMI, but it is not
 clear if copyright may permit us from sharing the script here.
 It is known to be very different from the AL2 script, but similar in complexity and requires access to EC2 APIs
 for tag-based discovery (discussed above).
