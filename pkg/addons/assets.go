@@ -8,7 +8,7 @@
 // assets/vpc-resource-controller.yaml
 // DO NOT EDIT!
 
-package windows
+package addons
 
 import (
 	"bytes"
@@ -246,11 +246,11 @@ func AssetNames() []string {
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
 	"vpc-admission-webhook-config.yaml": vpcAdmissionWebhookConfigYaml,
-	"vpc-admission-webhook-csr.yaml": vpcAdmissionWebhookCsrYaml,
-	"vpc-admission-webhook-dep.yaml": vpcAdmissionWebhookDepYaml,
-	"vpc-admission-webhook.yaml": vpcAdmissionWebhookYaml,
-	"vpc-resource-controller-dep.yaml": vpcResourceControllerDepYaml,
-	"vpc-resource-controller.yaml": vpcResourceControllerYaml,
+	"vpc-admission-webhook-csr.yaml":    vpcAdmissionWebhookCsrYaml,
+	"vpc-admission-webhook-dep.yaml":    vpcAdmissionWebhookDepYaml,
+	"vpc-admission-webhook.yaml":        vpcAdmissionWebhookYaml,
+	"vpc-resource-controller-dep.yaml":  vpcResourceControllerDepYaml,
+	"vpc-resource-controller.yaml":      vpcResourceControllerYaml,
 }
 
 // AssetDir returns the file names below a certain
@@ -292,13 +292,14 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
 	"vpc-admission-webhook-config.yaml": &bintree{vpcAdmissionWebhookConfigYaml, map[string]*bintree{}},
-	"vpc-admission-webhook-csr.yaml": &bintree{vpcAdmissionWebhookCsrYaml, map[string]*bintree{}},
-	"vpc-admission-webhook-dep.yaml": &bintree{vpcAdmissionWebhookDepYaml, map[string]*bintree{}},
-	"vpc-admission-webhook.yaml": &bintree{vpcAdmissionWebhookYaml, map[string]*bintree{}},
-	"vpc-resource-controller-dep.yaml": &bintree{vpcResourceControllerDepYaml, map[string]*bintree{}},
-	"vpc-resource-controller.yaml": &bintree{vpcResourceControllerYaml, map[string]*bintree{}},
+	"vpc-admission-webhook-csr.yaml":    &bintree{vpcAdmissionWebhookCsrYaml, map[string]*bintree{}},
+	"vpc-admission-webhook-dep.yaml":    &bintree{vpcAdmissionWebhookDepYaml, map[string]*bintree{}},
+	"vpc-admission-webhook.yaml":        &bintree{vpcAdmissionWebhookYaml, map[string]*bintree{}},
+	"vpc-resource-controller-dep.yaml":  &bintree{vpcResourceControllerDepYaml, map[string]*bintree{}},
+	"vpc-resource-controller.yaml":      &bintree{vpcResourceControllerYaml, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory
@@ -347,4 +348,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-

@@ -3,7 +3,7 @@ package eks
 import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/addons/windows"
+	"github.com/weaveworks/eksctl/pkg/addons"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -39,7 +39,7 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	if err != nil {
 		return err
 	}
-	vpcController := windows.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), false)
+	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), false)
 	if err := vpcController.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing VPC controller")
 	}
