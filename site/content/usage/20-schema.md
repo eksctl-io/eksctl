@@ -170,6 +170,17 @@ ClusterVPC:
   required:
   - Network
   type: object
+Fields:
+  additionalProperties: false
+  properties:
+    Map:
+      patternProperties:
+        .*:
+          $ref: '#/definitions/Fields'
+      type: object
+  required:
+  - Map
+  type: object
 IPNet:
   additionalProperties: false
   properties:
@@ -215,6 +226,21 @@ ListMeta:
       type: string
     selfLink:
       type: string
+  type: object
+ManagedFieldsEntry:
+  additionalProperties: false
+  properties:
+    apiVersion:
+      type: string
+    fields:
+      $ref: '#/definitions/Fields'
+      $schema: http://json-schema.org/draft-04/schema#
+    manager:
+      type: string
+    operation:
+      type: string
+    time:
+      $ref: '#/definitions/Time'
   type: object
 Network:
   additionalProperties: false
@@ -456,6 +482,11 @@ ObjectMeta:
         .*:
           type: string
       type: object
+    managedFields:
+      items:
+        $ref: '#/definitions/ManagedFieldsEntry'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
     name:
       type: string
     namespace:
