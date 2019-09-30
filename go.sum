@@ -241,6 +241,8 @@ github.com/dlclark/regexp2 v1.1.6 h1:CqB4MjHw0MFCDj+PHHjiESmHX+N7t0tJzKvC6M97BRg
 github.com/dlclark/regexp2 v1.1.6/go.mod h1:2pZnwuY/m+8K6iRw6wQdMtk+rH5tNGR1i55kozfMjCc=
 github.com/dlespiau/kube-test-harness v0.0.0-20190110151726-c51c87635b61 h1:tGMQTUcXkbpQcJUihEboWDHYqnHIL8S3MMC/sTDk0mQ=
 github.com/dlespiau/kube-test-harness v0.0.0-20190110151726-c51c87635b61/go.mod h1:rTr8X4qZPRmQKsyAjhECPi+zPnmlcmv5W9s1F11oBSo=
+github.com/dlespiau/kube-test-harness v0.0.0-20190930170435-ec3f93e1a754 h1:Qd6djMDE2KFeLwuKQ4B316XYt101DFoymbgoxFHeKCY=
+github.com/dlespiau/kube-test-harness v0.0.0-20190930170435-ec3f93e1a754/go.mod h1:rTr8X4qZPRmQKsyAjhECPi+zPnmlcmv5W9s1F11oBSo=
 github.com/dnaeon/go-vcr v1.0.1 h1:r8L/HqC0Hje5AXMu1ooW8oyQyOFv4GxqpL0nRP7SLLY=
 github.com/dnaeon/go-vcr v1.0.1/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
 github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc h1:iUaqb8LG62nmhe4p+y/mhD7Xzj7kAKr+SJ/L5LuisYQ=
