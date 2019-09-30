@@ -20,7 +20,7 @@ contribution. No action from you is required, but it's a good idea to see the
 The project uses Slack. If you get stuck or just have a question then you are encouraged to join the
 [Weave Community](https://weaveworks.github.io/community-slack/) Slack workspace and use the
 [#eksctl](https://weave-community.slack.com/messages/eksctl/) channel and/or the [mailing
-list](maillist).
+list][maillist].
 
 We use the mailing list for some discussion, potentially for sharing documents
 and for calendar invites.
