@@ -31,7 +31,7 @@ func NewVerbCmd(use, short, long string) *cobra.Command {
 }
 
 // AddPreRun chains cmd.PreRun handlers, as cobra only allows one, so we don't
-// accidentially override one we registered earlier
+// accidentally override one we registered earlier
 func AddPreRun(cmd *cobra.Command, newFn func(cmd *cobra.Command, args []string)) {
 	currentFn := cmd.PreRun
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {

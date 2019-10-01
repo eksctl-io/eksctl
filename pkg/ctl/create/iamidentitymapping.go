@@ -8,16 +8,15 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
 func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	id := &authconfigmap.MapRole{}
-
 	cmd.SetDescription("iamidentitymapping", "Create an IAM identity mapping",
-		dedent.Dedent(`Creates a mapping from IAM role to Kubernetes user and groups.
+		dedent.Dedent(`Creates a mapping from IAM role or user to Kubernetes user and groups.
 
 			Note aws-iam-authenticator only considers the last entry for any given
 			role. If you create a duplicate entry it will shadow all the previous
@@ -25,14 +24,18 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		`),
 	)
 
+	var arn string
+	var username string
+	var groups []string
+
 	cmd.SetRunFunc(func() error {
-		return doCreateIAMIdentityMapping(cmd, id)
+		return doCreateIAMIdentityMapping(cmd, arn, username, groups)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&id.RoleARN, "role", "", "ARN of the IAM role to create")
-		fs.StringVar(&id.Username, "username", "", "User name within Kubernetes to map to IAM role")
-		fs.StringArrayVar(&id.Groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
+		fs.StringVar(&username, "username", "", "User name within Kubernetes to map to IAM role")
+		fs.StringArrayVar(&groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
 		cmdutils.AddNameFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
@@ -42,7 +45,12 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *authconfigmap.MapRole) error {
+func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, groups []string) error {
+	id, err := iam.NewIdentity(arn, username, groups)
+	if err != nil {
+		return err
+	}
+
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -58,14 +66,9 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *authconfigmap.MapRole) er
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
-	if id.RoleARN == "" {
-		return cmdutils.ErrMustBeSet("--role")
-	}
+
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet("--name")
-	}
-	if err := id.Valid(); err != nil {
-		return err
 	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {
@@ -81,16 +84,22 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, id *authconfigmap.MapRole) er
 	}
 
 	// Check whether role already exists.
-	roles, err := acm.Roles()
+	identities, err := acm.Identities()
 	if err != nil {
 		return err
 	}
-	filtered := roles.Get(id.RoleARN)
-	if len(filtered) > 0 {
-		logger.Warning("found %d mappings with same role %q (which will be shadowed by your new mapping)", len(filtered), id.RoleARN)
+
+	createdArn := id.ARN() // The call to Valid above makes sure this cannot error
+	for _, identity := range identities {
+		arn := identity.ARN()
+
+		if createdArn == arn {
+			logger.Warning("found existing mappings with same arn %q (which will be shadowed by your new mapping)", createdArn)
+			break
+		}
 	}
 
-	if err := acm.AddRole(id.RoleARN, id.Username, id.Groups); err != nil {
+	if err := acm.AddIdentity(id); err != nil {
 		return err
 	}
 	return acm.Save()
