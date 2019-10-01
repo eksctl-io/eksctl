@@ -12,7 +12,7 @@ var (
 
 	// ErrNoKubernetesIdentity is the error returned when an identity has neither a Kubernetes
 	// username nor a list of groups.
-	ErrNoKubernetesIdentity = errors.New("neither username nor groups is set for iam identity")
+	ErrNoKubernetesIdentity = errors.New("neither username nor group are set for iam identity")
 )
 
 // Identity represents an IAM identity and its corresponding Kubernetes identity
