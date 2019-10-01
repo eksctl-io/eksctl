@@ -25,10 +25,12 @@ With the 0.1.9 release we have introduced the `--node-ami-family` flag for use w
 
 The `--node-ami-family` can take following keywords:
 
-| Keyword      | Description                                                                        |
-| ------------ | ---------------------------------------------------------------------------------- |
-| AmazonLinux2 | Indicates that the EKS AMI image based on Amazon Linux 2 should be used. (default) |
-| Ubuntu1804   | Indicates that the EKS AMI image based on Ubuntu 18.04 should be used.             |
+| Keyword                        |                                          Description                                         |
+|--------------------------------|:--------------------------------------------------------------------------------------------:|
+| AmazonLinux2                   | Indicates that the EKS AMI image based on Amazon Linux 2 should be used (default).           |
+| Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 should be used.                       |
+| WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used. |
+| WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used. |
 
 <!-- TODO for 0.3.0
 To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
