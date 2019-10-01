@@ -47,29 +47,31 @@ func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 
 // SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
 func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
-	hasWindows, hasLinux := hasWindowsLinuxNodes(nodeGroups)
-	return hasWindows && hasLinux
+	return hasWindowsNodes(nodeGroups) && hasAmazonLinux2Nodes(nodeGroups)
 }
 
-func hasWindowsLinuxNodes(nodeGroups []*api.NodeGroup) (hasWindows bool, hasLinux bool) {
+func hasWindowsNodes(nodeGroups []*api.NodeGroup) bool {
 	for _, ng := range nodeGroups {
 		if ng.IsWindows() {
-			hasWindows = true
-		} else if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
-			hasLinux = true
-		}
-		if hasWindows && hasLinux {
-			break
+			return true
 		}
 	}
-	return
+	return false
+}
+
+func hasAmazonLinux2Nodes(nodeGroups []*api.NodeGroup) bool {
+	for _, ng := range nodeGroups {
+		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+			return true
+		}
+	}
+	return false
 }
 
 // LogWindowsCompatibility logs Windows compatibility messages
 func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.ClusterMeta) {
-	hasWindows, hasLinux := hasWindowsLinuxNodes(nodeGroups)
-	if hasWindows {
-		if !hasLinux {
+	if hasWindowsNodes(nodeGroups) {
+		if !hasAmazonLinux2Nodes(nodeGroups) {
 			logger.Warning("a Linux node group is required to support Windows workloads")
 			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2)
 		}

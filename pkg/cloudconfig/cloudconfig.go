@@ -96,6 +96,18 @@ func (c *CloudConfig) RunScript(name, s string) {
 	c.AddCommand(p)
 }
 
+// Encode encodes the cloud config
+func (c *CloudConfig) Encode() (string, error) {
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return "", err
+	}
+
+	data = append([]byte(fmt.Sprintln(header)), data...)
+
+	return encodeUserData(data)
+}
+
 func encodeUserData(data []byte) (string, error) {
 	var (
 		buf bytes.Buffer
@@ -110,18 +122,6 @@ func encodeUserData(data []byte) (string, error) {
 	}
 
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
-}
-
-// Encode encodes the cloud config
-func (c *CloudConfig) Encode() (string, error) {
-	data, err := yaml.Marshal(c)
-	if err != nil {
-		return "", err
-	}
-
-	data = append([]byte(fmt.Sprintln(header)), data...)
-
-	return encodeUserData(data)
 }
 
 // DecodeCloudConfig decodes the cloud config
