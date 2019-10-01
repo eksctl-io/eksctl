@@ -78,7 +78,7 @@ ip-192-168-64-189.eu-central-1.compute.internal   Ready    <none>   38s   v1.13.
 ```
 
 ```console
-$ kube get pods --all-namespaces 
+$ kubectl get pods --all-namespaces 
 NAMESPACE     NAME                       READY   STATUS    RESTARTS   AGE
 kube-system   aws-node-l8mk7             1/1     Running   0          45s
 kube-system   aws-node-s2p2c             1/1     Running   0          45s
