@@ -166,7 +166,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			Public:  false,
 			Type:    createCluster,
 			Error: errors.New(api.NoAccessMsg(
-				&api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()},
+				api.ClusterEndpoints{PrivateAccess: api.Disabled(), PublicAccess: api.Disabled()},
 			)),
 		}),
 		Entry("Update cluster1 to Private=true, Public=false, should succeed", endpointAccessCase{

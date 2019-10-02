@@ -72,10 +72,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 }
 
 // NoAccessMsg function returns a message inidicating that the config leaves no API endpoint access
-func NoAccessMsg(endpts *ClusterEndpoints) string {
+func NoAccessMsg(endpts ClusterEndpoints) string {
 	return fmt.Sprintf("Kubernetes API access must have one of public or private clusterEndpoints "+
-		"enabled, current values are publicAccess=%v and privateAccess=%v, aborting",
-		endpts.PublicAccess, endpts.PrivateAccess)
+		"enabled, new values would be privateAccess=%v, publicAccess=%v, aborting",
+		*endpts.PrivateAccess, *endpts.PublicAccess)
 }
 
 // PrivateOnlyUseUtilsMsg returns a message that indicates that the operation must be done using
@@ -101,7 +101,7 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	if c.HasClusterEndpointAccess() {
 		endpts := c.VPC.ClusterEndpoints
 		if NoAccess(endpts) {
-			return errors.New(NoAccessMsg(endpts))
+			return errors.New(NoAccessMsg(*endpts))
 		}
 		if PrivateOnly(endpts) {
 			return errors.New(PrivateOnlyUseUtilsMsg())
