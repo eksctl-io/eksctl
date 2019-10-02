@@ -291,6 +291,49 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("cluster endpoint access config", func() {
+		var (
+			cfg *ClusterConfig
+			vpc *ClusterVPC
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+			vpc = NewClusterVPC()
+			cfg.VPC = vpc
+		})
+
+		It("should not error on private=true, public=true", func() {
+			cfg.VPC.ClusterEndpoints =
+				&ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Enabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should not error on private=false, public=true", func() {
+			cfg.VPC.ClusterEndpoints =
+				&ClusterEndpoints{PrivateAccess: Disabled(), PublicAccess: Enabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should error on private=true, public=false", func() {
+			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(BeIdenticalTo(PrivateOnlyAwsChangesNeededMsg()))
+		})
+
+		It("should error on private=false, public=false", func() {
+			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Disabled(), PublicAccess: Disabled()}
+			ep := cfg.VPC.ClusterEndpoints
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(BeIdenticalTo(NoAccessMsg(ep)))
+		})
+	})
+
 	Describe("ssh flags", func() {
 		var (
 			testKeyPath = "some/path/to/file.pub"

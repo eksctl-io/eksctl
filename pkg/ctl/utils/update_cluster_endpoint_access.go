@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -103,15 +104,6 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	}
 
 	if needsUpdate {
-		if newPrivate == false && newPublic == false {
-			logger.Critical(api.NoAccessMsg(
-				api.ClusterEndpoints{PublicAccess: &newPublic, PrivateAccess: &newPrivate},
-			))
-			os.Exit(2)
-		} else if newPrivate == true && newPublic == false {
-			logger.Warning(api.PrivateOnlyAwsChangesNeededMsg())
-		}
-
 		cfg.VPC.ClusterEndpoints.PrivateAccess = &newPrivate
 		cfg.VPC.ClusterEndpoints.PublicAccess = &newPublic
 
@@ -121,6 +113,16 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		cmdutils.LogIntendedAction(
 			cmd.Plan, "update Kubernetes API Endpoint Access for cluster %q in %q to: %s",
 			meta.Name, meta.Region, describeAccessToUpdate)
+
+		fatal, err := validateClusterEndpointConfig(newPrivate, newPublic)
+		if err != nil {
+			if fatal {
+				logger.Critical(err.Error())
+				os.Exit(2)
+			}
+			logger.Warning(err.Error())
+		}
+
 		if !cmd.Plan {
 			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
 				return err
@@ -141,16 +143,26 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	return nil
 }
 
-func validateClusterEndpointConfig(private, public bool) error {
+func validateClusterEndpointConfig(private, public bool) (fatal bool, err error) {
 	cfg := api.NewClusterConfig()
 	cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: &private, PublicAccess: &public}
-	err := cfg.ValidateClusterEndpointConfig()
+	err = cfg.ValidateClusterEndpointConfig()
 	if err != nil {
-		// utils can change public access to false since cluster creation has already completed
-		if err.Error() == api.PrivateOnlyUseUtilsMsg() {
-			return nil
+		endpoints := cfg.VPC.ClusterEndpoints
+		noAccessMsg := api.NoAccessMsg(endpoints)
+		privateOnlyMsg := api.PrivateOnlyAwsChangesNeededMsg()
+
+		switch err.Error() {
+		case noAccessMsg:
+			fatal = true
+		case privateOnlyMsg:
+			// utils can change public access to false since cluster creation has already completed
+			// so not an error in utils and should cause an exit
+		default:
+			err = errors.Wrap(err, "Unexpected error: ")
+			fatal = true
 		}
-		return err
+		return fatal, err
 	}
-	return nil
+	return
 }

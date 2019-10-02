@@ -1,9 +1,10 @@
 package v1alpha5
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -72,7 +73,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 }
 
 // NoAccessMsg function returns a message inidicating that the config leaves no API endpoint access
-func NoAccessMsg(endpts ClusterEndpoints) string {
+func NoAccessMsg(endpts *ClusterEndpoints) string {
 	return fmt.Sprintf("Kubernetes API access must have one of public or private clusterEndpoints "+
 		"enabled, new values would be privateAccess=%v, publicAccess=%v, aborting",
 		*endpts.PrivateAccess, *endpts.PublicAccess)
@@ -98,19 +99,17 @@ func PrivateOnlyAwsChangesNeededMsg() string {
 
 //ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
-	if c.HasClusterEndpointAccess() {
-		endpts := c.VPC.ClusterEndpoints
-		if NoAccess(endpts) {
-			return errors.New(NoAccessMsg(*endpts))
-		}
-		if PrivateOnly(endpts) {
-			return errors.New(PrivateOnlyUseUtilsMsg())
-		}
+	endpts := c.VPC.ClusterEndpoints
+	if NoAccess(endpts) {
+		return errors.New(NoAccessMsg(endpts))
+	}
+	if PrivateOnly(endpts) {
+		return errors.New(PrivateOnlyAwsChangesNeededMsg())
 	}
 	return nil
 }
 
-//NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherise
+//NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
 func NoAccess(ces *ClusterEndpoints) bool {
 	return !(*ces.PublicAccess || *ces.PrivateAccess)
 }
