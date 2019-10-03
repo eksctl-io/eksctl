@@ -282,6 +282,8 @@ github.com/fluxcd/flux v1.15.0 h1:xWu4dRrF7Qdsojdn9wjtoL4XsLtsGFyVHqQwh+WRuwY=
 github.com/fluxcd/flux v1.15.0/go.mod h1:eKTHFkxOIEQL23j5Uz+OY1NLcWDjppTPlsRlDol6JZk=
 github.com/fluxcd/helm-operator v1.0.0-rc1 h1:YOEmL3wjIvFxl7rFI0SwGKwEr8Wqm44vh7OucYCzs80=
 github.com/fluxcd/helm-operator v1.0.0-rc1/go.mod h1:qBr+Yiqv9T2EjBsYzJNFQJ83b0ALM+aCJhxtPWyOP+E=
+github.com/fluxcd/helm-operator v1.0.0-rc2 h1:735XE/GvmY79VeokNE0CXSswx5iPbUJqVhOkYOU8uCo=
+github.com/fluxcd/helm-operator v1.0.0-rc2/go.mod h1:lBILt3uB6Oi2Z4QdU3COC0wT/PYlAQXtKs1rUja2IcA=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/fortytw2/leaktest v1.2.0 h1:cj6GCiwJDH7l3tMHLjZDo0QqPtrXJiWSI9JgpeQKw+Q=
 github.com/fortytw2/leaktest v1.2.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
@@ -1301,6 +1303,8 @@ k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af h1:SwjZbO0u5ZuaV6TRMWOGB40iaycX8
 k8s.io/gengo v0.0.0-20190116091435-f8a0810f38af/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=
 k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6 h1:4s3/R4+OYYYUKptXPhZKjQ04WJ6EhQQVFdjOFvCazDk=
 k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=
+k8s.io/gengo v0.0.0-20190907103519-ebc107f98eab h1:j4L8spMe0tFfBvvW6lrc0c+Ql8+nnkcV3RYfi3eSwGY=
+k8s.io/gengo v0.0.0-20190907103519-ebc107f98eab/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=
 k8s.io/helm v2.13.1+incompatible h1:qt0LBsHQ7uxCtS3F2r3XI0DNm8ml0xQeSJixUorDyn0=
 k8s.io/helm v2.13.1+incompatible/go.mod h1:LZzlS4LQBHfciFOurYBFkCMTaZ0D1l+p0teMg7TSULI=
 k8s.io/klog v0.0.0-20181102134211-b9b56d5dfc92/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
