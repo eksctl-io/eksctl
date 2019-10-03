@@ -46,16 +46,12 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 func accessFlagsSet(cmd *cmdutils.Cmd) (privateSet, publicSet bool) {
 	cmd.FlagSetGroup.InFlagSet("Update private/public Kubernetes API endpoint access configuration",
 		func(fs *pflag.FlagSet) {
-			fs.VisitAll(func(f *pflag.Flag) {
-				switch f.Name {
-				case "private-access":
-					privateSet = f.Changed
-				case "public-access":
-					publicSet = f.Changed
-				default:
-					// do nothing
-				}
-			})
+			if priv := fs.Lookup("private-access"); priv != nil {
+				privateSet = priv.Changed
+			}
+			if pub := fs.Lookup("public-access"); pub != nil {
+				publicSet = pub.Changed
+			}
 		})
 	return
 }
