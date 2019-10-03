@@ -135,7 +135,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error)
 
 	logger.Debug("currentTemplate = %s", currentTemplate)
 
-	describeUpdate := fmt.Sprintf("updating stack to add new resources %v and ouputs %v", addResources, addOutputs)
+	describeUpdate := fmt.Sprintf("updating stack to add new resources %v and outputs %v", addResources, addOutputs)
 	if plan {
 		logger.Info("(plan) %s", describeUpdate)
 		return false, nil
