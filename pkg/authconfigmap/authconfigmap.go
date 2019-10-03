@@ -13,7 +13,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	kerr "k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
@@ -79,7 +79,7 @@ func NewFromClientSet(clientSet kubernetes.Interface) (*AuthConfigMap, error) {
 
 	cm, err := client.Get(ObjectName, metav1.GetOptions{})
 	// It is fine for the configmap not to exist. Any other error is fatal.
-	if err != nil && !kerr.IsNotFound(err) {
+	if err != nil && !apierrors.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "getting auth ConfigMap")
 	}
 	logger.Debug("aws-auth = %s", awsutil.Prettify(cm))
