@@ -10,7 +10,7 @@ Amazon EKS 1.14 supports [Windows Containers][eks-user-guide] that allow running
 In addition to having Windows nodes, a Linux node in the cluster is required to run the VPC resource controller and CoreDNS, as Microsoft doesn't support host-networking mode yet. Thus, a Windows EKS cluster will be a mixed-mode cluster containing Windows nodes and at least one Linux node.
 The Linux nodes are critical to the functioning of the cluster, and thus, for a production-grade cluster, it's recommended to have at least two `t2.large` Linux nodes for HA.
 
-eksctl provides a flag to install the VPC resource controller as part of cluster creation, and a command to install it after a cluster has been created.
+`eksctl` provides a flag to install the VPC resource controller as part of cluster creation, and a command to install it after a cluster has been created.
 
 ### Creating a new Windows cluster
 
