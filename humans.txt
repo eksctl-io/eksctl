@@ -55,6 +55,7 @@ Brett Shouse            @bmshouse
 Daniel Holbach          @dholbach
 Tak Noguchi             @tnir
 Theo Salvo              @buzzsurfr
+Cedric Kring            @cedrickring
 
 /* Thanks */
 
