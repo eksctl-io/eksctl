@@ -57,7 +57,6 @@ func accessFlagsSet(cmd *cmdutils.Cmd) (privateSet, publicSet bool) {
 }
 
 func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool) error {
-	privateSet, publicSet := accessFlagsSet(cmd)
 	if err := cmdutils.NewUtilsEnableEndpointAccessLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -87,6 +86,7 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	logger.Info("current Kubernetes API endpoint access: privateAccess=%v, publicAccess=%v",
 		curPrivate, curPublic)
 
+	privateSet, publicSet := accessFlagsSet(cmd)
 	if !privateSet {
 		newPrivate = curPrivate
 	}
@@ -94,47 +94,43 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		newPublic = curPublic
 	}
 
-	needsUpdate := false
-	if newPrivate != curPrivate || newPublic != curPublic {
-		needsUpdate = true
-	}
-
-	if needsUpdate {
-		cfg.VPC.ClusterEndpoints.PrivateAccess = &newPrivate
-		cfg.VPC.ClusterEndpoints.PublicAccess = &newPublic
-
-		describeAccessToUpdate :=
-			fmt.Sprintf("privateAccess=%v, publicAccess=%v", newPrivate, newPublic)
-
-		cmdutils.LogIntendedAction(
-			cmd.Plan, "update Kubernetes API Endpoint Access for cluster %q in %q to: %s",
-			meta.Name, meta.Region, describeAccessToUpdate)
-
-		fatal, err := validateClusterEndpointConfig(newPrivate, newPublic)
-		if err != nil {
-			if fatal {
-				logger.Critical(err.Error())
-				os.Exit(2)
-			}
-			logger.Warning(err.Error())
-		}
-
-		if !cmd.Plan {
-			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
-				return err
-			}
-			cmdutils.LogCompletedAction(
-				false,
-				"the Kubernetes API Endpoint Access for cluster %q in %q has been upddated to: "+
-					"privateAccess=%v, publicAccess=%v",
-				meta.Name, meta.Region, newPrivate, newPublic)
-		}
-	} else {
-		logger.Success("Kubernetes API Endpoint Access for cluster %q in %q is already up to date",
+	// Nothing changed?
+	if newPrivate == curPrivate && newPublic == curPublic {
+		logger.Success("Kubernetes API endpoint access for cluster %q in %q is already up to date",
 			meta.Name, meta.Region)
+		return nil
 	}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && needsUpdate)
+	cfg.VPC.ClusterEndpoints.PrivateAccess = &newPrivate
+	cfg.VPC.ClusterEndpoints.PublicAccess = &newPublic
+
+	describeAccessToUpdate :=
+		fmt.Sprintf("privateAccess=%v, publicAccess=%v", newPrivate, newPublic)
+
+	cmdutils.LogIntendedAction(
+		cmd.Plan, "update Kubernetes API endpoint access for cluster %q in %q to: %s",
+		meta.Name, meta.Region, describeAccessToUpdate)
+
+	fatal, err := validateClusterEndpointConfig(newPrivate, newPublic)
+	if err != nil {
+		if fatal {
+			logger.Critical(err.Error())
+			os.Exit(2)
+		}
+		logger.Warning(err.Error())
+	}
+
+	if !cmd.Plan {
+		if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+			return err
+		}
+		cmdutils.LogCompletedAction(
+			false,
+			"the Kubernetes API endpoint access for cluster %q in %q has been updated to: "+
+				"privateAccess=%v, publicAccess=%v",
+			meta.Name, meta.Region, newPrivate, newPublic)
+	}
+	cmdutils.LogPlanModeWarning(cmd.Plan)
 
 	return nil
 }
@@ -155,7 +151,7 @@ func validateClusterEndpointConfig(private, public bool) (fatal bool, err error)
 			// utils can change public access to false since cluster creation has already completed
 			// so not an error in utils and should cause an exit
 		default:
-			err = errors.Wrap(err, "Unexpected error: ")
+			err = errors.Wrap(err, "unexpected error: ")
 			fatal = true
 		}
 		return fatal, err
