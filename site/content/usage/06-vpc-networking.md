@@ -195,15 +195,8 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
 The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` subcommand:
 
 ```
-eksctl utils update-cluster-endpoints --name=<clustername> --private-access=true --public-access=false --approve
+eksctl utils update-cluster-endpoints --name=<clustername> --private-access=true --public-access=false
 ```
 
-An alternate form of setting access to true is to just use the flag without a boolean value, such as in this example:
-
-```
-eksctl utils update-cluster-endpoints --name=<clustername> --private-access --public-access=false --approve
-```
-
-Note that you should always run such command without the `--approve` command to verify the changes it will be making
-without actually making the change.  Once you're satisfied with the proposed changed, add the `approve` flag to
-make the change to the running cluster.
+Note that if you don't pass a flag in it will keep the current value. Once you're satisfied with the proposed changed,
+add the `approve` flag to make the change to the running cluster.
