@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/kris-nova/logger"
 	"github.com/spf13/pflag"
 
@@ -101,12 +100,9 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	cfg.VPC.ClusterEndpoints.PrivateAccess = &newPrivate
 	cfg.VPC.ClusterEndpoints.PublicAccess = &newPublic
 
-	describeAccessToUpdate :=
-		fmt.Sprintf("privateAccess=%v, publicAccess=%v", newPrivate, newPublic)
-
 	cmdutils.LogIntendedAction(
-		cmd.Plan, "update Kubernetes API endpoint access for cluster %q in %q to: %s",
-		meta.Name, meta.Region, describeAccessToUpdate)
+		cmd.Plan, "update Kubernetes API endpoint access for cluster %q in %q to: privateAccess=%v, publicAccess=%v",
+		meta.Name, meta.Region, newPrivate, newPublic)
 
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
 		// Error for everything except private-only (which leaves the cluster accessible)

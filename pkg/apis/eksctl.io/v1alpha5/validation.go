@@ -92,7 +92,7 @@ func PrivateOnlyUseUtilsMsg() string {
 		"use 'eksctl utils update-cluster-endpoints ...' after creating cluster with default access"
 }
 
-//ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
+// ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
@@ -104,12 +104,12 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	return nil
 }
 
-//NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
+// NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
 func NoAccess(ces *ClusterEndpoints) bool {
 	return !(*ces.PublicAccess || *ces.PrivateAccess)
 }
 
-//PrivateOnly returns true if public cluster endpoint access is disabled and private cluster endpoint access is enabled, and false otherwise
+// PrivateOnly returns true if public cluster endpoint access is disabled and private cluster endpoint access is enabled, and false otherwise
 func PrivateOnly(ces *ClusterEndpoints) bool {
 	return !*ces.PublicAccess && *ces.PrivateAccess
 }
