@@ -321,16 +321,13 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should error on private=true, public=false", func() {
 			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(BeIdenticalTo(PrivateOnlyAwsChangesNeededMsg()))
+			Expect(err).To(BeIdenticalTo(ErrClusterEndpointPrivateOnly))
 		})
 
 		It("should error on private=false, public=false", func() {
 			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Disabled(), PublicAccess: Disabled()}
-			ep := cfg.VPC.ClusterEndpoints
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).ToNot(BeNil())
-			Expect(err.Error()).To(BeIdenticalTo(NoAccessMsg(ep)))
+			Expect(err).To(BeIdenticalTo(ErrClusterEndpointNoAccess))
 		})
 	})
 

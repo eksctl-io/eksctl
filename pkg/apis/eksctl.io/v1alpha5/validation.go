@@ -85,13 +85,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	return nil
 }
 
-// PrivateOnlyUseUtilsMsg returns a message that indicates that the operation must be done using
-// eksctl utils update-cluster-endpoints
-func PrivateOnlyUseUtilsMsg() string {
-	return "eksctl cannot join worker nodes to the EKS cluster when public access isn't allowed. " +
-		"use 'eksctl utils update-cluster-endpoints ...' after creating cluster with default access"
-}
-
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	endpts := c.VPC.ClusterEndpoints
