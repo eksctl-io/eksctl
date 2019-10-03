@@ -87,7 +87,7 @@ const (
 	Version1_14 = "1.14"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_13
+	DefaultVersion = Version1_14
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
 	LatestVersion = Version1_14
