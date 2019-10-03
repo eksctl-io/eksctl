@@ -9,6 +9,7 @@ require (
 	github.com/aws/aws-sdk-go v1.23.15
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/census-instrumentation/opencensus-proto v0.2.1 // indirect
 	github.com/christopherhein/go-version v0.0.0-20180807222509-fee8dd1f7c24
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
 	github.com/coredns/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
@@ -105,6 +106,7 @@ replace (
 	// Needed due to to Sirupsen/sirupsen case clash
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
+	github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.2.1
 	// go mod appears to pick wrong version of github.com/docker/distribution automatically, which breaks k8s.io/kubernetes@v1.12.6
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
