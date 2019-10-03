@@ -4,7 +4,6 @@ package integration_test
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"

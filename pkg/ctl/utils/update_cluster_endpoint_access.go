@@ -2,10 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -111,11 +108,10 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		cmd.Plan, "update Kubernetes API endpoint access for cluster %q in %q to: %s",
 		meta.Name, meta.Region, describeAccessToUpdate)
 
-	fatal, err := validateClusterEndpointConfig(newPrivate, newPublic)
-	if err != nil {
-		if fatal {
-			logger.Critical(err.Error())
-			os.Exit(2)
+	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
+		// Error for everything except private-only (which leaves the cluster accessible)
+		if err != api.ErrClusterEndpointPrivateOnly {
+			return err
 		}
 		logger.Warning(err.Error())
 	}
@@ -133,28 +129,4 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	cmdutils.LogPlanModeWarning(cmd.Plan)
 
 	return nil
-}
-
-func validateClusterEndpointConfig(private, public bool) (fatal bool, err error) {
-	cfg := api.NewClusterConfig()
-	cfg.VPC.ClusterEndpoints = &api.ClusterEndpoints{PrivateAccess: &private, PublicAccess: &public}
-	err = cfg.ValidateClusterEndpointConfig()
-	if err != nil {
-		endpoints := cfg.VPC.ClusterEndpoints
-		noAccessMsg := api.NoAccessMsg(endpoints)
-		privateOnlyMsg := api.PrivateOnlyAwsChangesNeededMsg()
-
-		switch err.Error() {
-		case noAccessMsg:
-			fatal = true
-		case privateOnlyMsg:
-			// utils can change public access to false since cluster creation has already completed
-			// so not an error in utils and should cause an exit
-		default:
-			err = errors.Wrap(err, "unexpected error: ")
-			fatal = true
-		}
-		return fatal, err
-	}
-	return
 }

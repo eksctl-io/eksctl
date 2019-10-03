@@ -9,6 +9,20 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+var (
+	// ErrClusterEndpointNoAccess indicates the config prevents API access
+	ErrClusterEndpointNoAccess = errors.New("Kubernetes API access must have one of public or private clusterEndpoints enabled")
+
+	// ErrClusterEndpointPrivateOnly warns private-only access requires changes
+	// to AWS resource configuration in order to effectively use clients in the VPC
+	ErrClusterEndpointPrivateOnly = errors.New("warning, having public access disallowed will subsequently interfere with some " +
+		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
+		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
+		"updates to some AWS resources.  See: " +
+		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
+		"for more details")
+)
+
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
 type nameSet map[string]struct{}
 
@@ -66,17 +80,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 
 	if !cfg.HasClusterEndpointAccess() {
-		return fmt.Errorf("Cluster endpoint access invalid, at least one of Public, Private " +
-			"needs to be enabled")
+		return ErrClusterEndpointNoAccess
 	}
 	return nil
-}
-
-// NoAccessMsg function returns a message inidicating that the config leaves no API endpoint access
-func NoAccessMsg(endpts *ClusterEndpoints) string {
-	return fmt.Sprintf("Kubernetes API access must have one of public or private clusterEndpoints "+
-		"enabled, new values would be privateAccess=%v, publicAccess=%v, aborting",
-		*endpts.PrivateAccess, *endpts.PublicAccess)
 }
 
 // PrivateOnlyUseUtilsMsg returns a message that indicates that the operation must be done using
@@ -86,25 +92,14 @@ func PrivateOnlyUseUtilsMsg() string {
 		"use 'eksctl utils update-cluster-endpoints ...' after creating cluster with default access"
 }
 
-// PrivateOnlyAwsChangesNeededMsg returns a message that warns that not having pulbic access
-// requires changes to AWS resource configuration in order to effectively use clients in the VPC
-func PrivateOnlyAwsChangesNeededMsg() string {
-	return "warning, having public access disallowed will subsequently interfere with some " +
-		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
-		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
-		"updates to some AWS resources.  See: " +
-		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
-		"for more details"
-}
-
 //ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
-		return errors.New(NoAccessMsg(endpts))
+		return ErrClusterEndpointNoAccess
 	}
 	if PrivateOnly(endpts) {
-		return errors.New(PrivateOnlyAwsChangesNeededMsg())
+		return ErrClusterEndpointPrivateOnly
 	}
 	return nil
 }
