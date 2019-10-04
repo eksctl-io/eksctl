@@ -56,12 +56,7 @@ func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	kubernetesVersion, err := rawClient.ServerVersion()
-	if err != nil {
-		return err
-	}
-
-	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, kubernetesVersion, cmd.Plan)
+	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, cmd.Plan)
 	if err != nil {
 		return err
 	}
