@@ -71,7 +71,8 @@ func LogPlanModeWarning(plan bool) {
 // LogRegionAndVersionInfo will log the selected region and build version
 func LogRegionAndVersionInfo(meta *api.ClusterMeta) {
 	if meta != nil {
-		logger.Info("using region %s, version %s", meta.Region, version.GetVersion())
+		logger.Info("using region %s", meta.Region)
+		logger.Info("eksctl version %s", version.GetVersion())
 	}
 }
 
