@@ -68,6 +68,9 @@ const (
 	// RegionMESouth1 represents the Middle East Region Bahrain
 	RegionMESouth1 = "me-south-1"
 
+	// RegionSAEast1 represents the South America Region Sao Paulo
+	RegionSAEast1 = "sa-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -218,6 +221,7 @@ func SupportedRegions() []string {
 		RegionAPSouth1,
 		RegionAPEast1,
 		RegionMESouth1,
+		RegionSAEast1,
 	}
 }
 
