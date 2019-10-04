@@ -5,7 +5,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	. "github.com/weaveworks/eksctl/pkg/addons/default"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
@@ -56,7 +55,7 @@ var _ = Describe("default addons - aws-node", func() {
 		It("can update 1.12 sample to latest", func() {
 			rawClient.AssumeObjectsMissing = false
 
-			_, err := UpdateAWSNode(rawClient, "eu-west-2", api.LatestVersion, false)
+			_, err := UpdateAWSNode(rawClient, "eu-west-2", false)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(rawClient.Collection.UpdatedItems()).To(HaveLen(4))
 			Expect(rawClient.Collection.CreatedItems()).To(HaveLen(10))
@@ -76,7 +75,7 @@ var _ = Describe("default addons - aws-node", func() {
 		It("can update 1.12 sample for different region", func() {
 			rawClient.ClientSetUseUpdatedObjects = false // must be set for subsequent UpdateAWSNode
 
-			_, err := UpdateAWSNode(rawClient, "us-east-1", api.DefaultVersion, false)
+			_, err := UpdateAWSNode(rawClient, "us-east-1", false)
 			Expect(err).ToNot(HaveOccurred())
 
 			rawClient.ClientSetUseUpdatedObjects = true // for verification of updated objects
