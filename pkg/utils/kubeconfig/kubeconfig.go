@@ -149,7 +149,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 	}
 
 	if err := clientcmd.ModifyConfig(configAccess, *merged, true); err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return configAccess.GetDefaultFilename(), nil
