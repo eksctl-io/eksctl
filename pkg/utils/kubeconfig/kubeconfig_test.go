@@ -63,10 +63,9 @@ var _ = Describe("Kubeconfig", func() {
 		Expect(readConfig.Contexts["test-context"].Namespace).To(Equal(testConfig.Contexts["test-context"].Namespace))
 	})
 
-	It("creating new Kubeconfig with no permission", func() {
-		filename, err := kubeconfig.Write("/no-permission", testConfig, false)
+	It("creating new Kubeconfig with directory", func() {
+		filename, err := kubeconfig.Write("/", testConfig, false)
 		Expect(err).NotTo(BeNil())
-		Expect(err.Error()).To(ContainSubstring("permission denied"))
 		Expect(filename).To(BeEmpty())
 	})
 
