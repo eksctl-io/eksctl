@@ -226,7 +226,8 @@ func SupportedRegions() []string {
 // https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html
 func DeprecatedVersions() []string {
 	return []string{
-		Version1_10, Version1_11,
+		Version1_10,
+		Version1_11,
 	}
 }
 
