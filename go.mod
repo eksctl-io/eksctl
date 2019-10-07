@@ -21,8 +21,10 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/evanphx/json-patch v4.2.0+incompatible
-	github.com/fluxcd/helm-operator v1.0.0-rc1
+	github.com/fluxcd/flux v1.15.0
+	github.com/fluxcd/helm-operator v1.0.0-rc2
 	github.com/go-ini/ini v1.37.0 // indirect
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1 // indirect
@@ -51,7 +53,6 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.8.3 // indirect
-	github.com/prometheus/client_golang v1.0.0 // indirect
 	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/sanathkr/yaml v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
@@ -70,7 +71,6 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/vmware/govmomi v0.19.0 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/weaveworks/flux v0.0.0-20190729133003-c78ccd3706b5
 	github.com/weaveworks/github-release v0.6.2
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
