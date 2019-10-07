@@ -9,7 +9,6 @@ require (
 	github.com/aws/aws-sdk-go v1.23.15
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/census-instrumentation/opencensus-proto v0.2.1 // indirect
 	github.com/christopherhein/go-version v0.0.0-20180807222509-fee8dd1f7c24
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
 	github.com/coredns/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
