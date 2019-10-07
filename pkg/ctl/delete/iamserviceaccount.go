@@ -65,7 +65,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 	if err != nil {
 		return err
 	}
-	logger.Info("using region %s", meta.Region)
+	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

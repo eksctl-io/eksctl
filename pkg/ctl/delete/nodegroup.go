@@ -55,7 +55,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	if err != nil {
 		return err
 	}
-	logger.Info("using region %s", cfg.Metadata.Region)
+	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

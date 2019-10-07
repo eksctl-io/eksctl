@@ -56,6 +56,7 @@ Daniel Holbach          @dholbach
 Tak Noguchi             @tnir
 Theo Salvo              @buzzsurfr
 Hidde Beydals           @hiddeco
+Cedric Kring            @cedrickring
 
 /* Thanks */
 
