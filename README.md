@@ -66,8 +66,8 @@ Example output:
 
 ```
 $ eksctl create cluster
-[ℹ] eksctl version 0.6.0
-[ℹ] using region us-west-2
+[ℹ]  eksctl version 0.6.0
+[ℹ]  using region us-west-2
 [ℹ]  setting availability zones to [us-west-2a us-west-2c us-west-2b]
 [ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
 [ℹ]  subnets for us-west-2c - public:192.168.32.0/19 private:192.168.128.0/19
