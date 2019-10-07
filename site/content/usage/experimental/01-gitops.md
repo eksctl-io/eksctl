@@ -1,12 +1,12 @@
 ---
-title: "GitOps"
+title: "gitops"
 weight: 190
 url: usage/experimental/gitops-flux
 ---
 
-## GitOps
+## gitops
 
-[GitOps][gitops] is a way to do Kubernetes application delivery. It works by using Git as a single source of truth for
+[gitops][gitops] is a way to do Kubernetes application delivery. It works by using Git as a single source of truth for
 Kubernetes resources. With Git at the center of your delivery pipelines, developers can make pull requests to accelerate
 and simplify application deployments and operations tasks to Kubernetes.
 
@@ -119,12 +119,12 @@ memcached-958f745c-qdfgz   1/1     Running   0          29m
 
 #### Adding a workload
 
-To deploy a new workload on the cluster using GitOps just add a kubernetes manifest to the repository. After a few
+To deploy a new workload on the cluster using gitops just add a kubernetes manifest to the repository. After a few
 minutes you should see the resources appearing in the cluster.
 
 #### Further reading
 
-To learn more about GitOps and Flux, check the [Flux documentation][flux]
+To learn more about gitops and Flux, check the [Flux documentation][flux]
 
 
 ### Installing components from a Quick Start profile
@@ -213,16 +213,17 @@ git push origin master
 
 After a few minutes, Flux and Helm should have installed all the components in your cluster.
 
-## Setting up GitOps in a repo from a Quick Start
+## Setting up gitops in a repo from a Quick Start
 
-Configuring GitOps can be done easily with eksctl. The command `eksctl gitops apply` takes an existing EKS cluster and
-an empty repository and sets them up with GitOps and a specified Quick Start profile. This means that with one command
-the cluster will have all the components provided by the Quick Start profile installed in the cluster and you can enjoy the advantages of GitOps moving forward.
+Configuring gitops can be done easily with eksctl. The command `eksctl enable profile` takes an existing EKS cluster and
+an empty repository and sets them up with gitops and a specified Quick Start profile. This means that with one command
+the cluster will have all the components provided by the Quick Start profile installed in the cluster and you can enjoy
+the advantages of gitops moving forward.
 
 The basic command usage looks like this:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster <cluster-name> --region <region> --git-url=<url_to_your_repo> --quickstart-profile app-dev
+EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster <cluster-name> --region <region> --git-url=<url_to_your_repo> app-dev
 ```
 
 
@@ -236,7 +237,7 @@ This command will clone the specified repository in your current working directo
 Example:
 
 ```
-$ EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes --output-path=/tmp/gitops-repos/  --quickstart-profile app-dev
+$ EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes --output-path=/tmp/gitops-repos/  app-dev
 [ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
 [ℹ]    this may take up to a minute, please be patient
 [!]  Public key infrastructure files were written into directory "/tmp/eksctl-helm-pki786744152"
@@ -379,7 +380,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAdDG4LAEiEOTbT3XVL5sYf0Hy7T30PG2sFReIwryl
 ```
 
 needs to be added as a deploy key to the chosen Github repository, in this case `github.com:myorg/production-kubernetes`.
-Once that is done, Flux will pick up the changes in the repository with the Quick Start components and apply them to the
+Once that is done, Flux will pick up the changes in the repository with the Quick Start components and deploy them to the
  cluster. After a couple of minutes the pods should appear in the cluster:
  
 
@@ -416,7 +417,8 @@ All CLI arguments:
 | Flag                         | Default value | Type   | Required       | Use                                                           |
 |------------------------------|---------------|--------|----------------|---------------------------------------------------------------|
 | `--cluster`                  |               | string | required       | name of the EKS cluster to add the nodegroup to               |
-| `--quickstart-profile`       |               | string | required       | name or URL of the Quick Start profile. For example, app-dev  |
+| `--name`                     |               | string | required       | name or URL of the Quick Start profile. For example, app-dev  |
+| <name positional argument>   |               | string | required       | same as `--name`                                              |
 | `--git-url`                  |               | string | required       | URL                                                           |
 | `--git-branch`               | master        | string | optional       | Git branch                                                    |
 | `--output-path`              | ./            | string | optional       | Path                                                          |
@@ -428,7 +430,7 @@ All CLI arguments:
 ## Creating your own Quick Start profile
 
 A Quick Start profile is a Git repository that contains Kubernetes manifests that can be installed in a cluster using
-GitOps (through [Flux][flux]).
+gitops (through [Flux][flux]).
 
 These manifests, will probably need some information about the cluster they will be installed in, such as the cluster
 name or the AWS region. That's why they are templated using [Go templates][go-templates].
@@ -458,7 +460,7 @@ metadata:
 ```
 
 Write this into a file with the extension `*.yaml.tmpl` and commit it to your Quick Start repository.
-Files with this extension get processed by eksctl before committing them to the user's GitOps repository, while the rest get copied unmodified.
+Files with this extension get processed by eksctl before committing them to the user's gitops repository, while the rest get copied unmodified.
 
 Regarding the folder structure inside the Quick Start repository, we recommend using a folder for each `namespace` and
 one file per Kubernetes resource.
@@ -490,14 +492,14 @@ git commit -m "Add component templates"
 git push origin master
 ```
 
-Now that the templates are in the remote repository, the Quick Start is ready to be used with `eksctl gitops apply`:
+Now that the templates are in the remote repository, the Quick Start is ready to be used with `eksctl enable profile`:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl gitops apply --cluster team1 --region eu-west-1 --git-url git@github.com:my-org/team1-cluster --quickstart-profile git@github.com:my-org/production-infra --git-email alice@my-org.com
+EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster team1 --region eu-west-1 --git-url git@github.com:my-org/team1-cluster --git-email alice@my-org.com git@github.com:my-org/production-infra 
 ```
 
 In this example we provide `github.com:my-org/production-infra` as the Quick Start profile and 
-`github.com:my-org/team1-cluster` as the GitOps repository that is connected to the Flux instance in the cluster named
+`github.com:my-org/team1-cluster` as the gitops repository that is connected to the Flux instance in the cluster named
 `cluster1`.
 
 

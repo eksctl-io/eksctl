@@ -13,7 +13,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/riywo/loginshell"
-	fluxinstall "github.com/weaveworks/flux/install"
+	fluxinstall "github.com/fluxcd/flux/pkg/install"
 	corev1 "k8s.io/api/core/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

@@ -69,11 +69,24 @@ var _ = Describe("eks auth helpers", func() {
 					Expect(k.AuthInfos[ctx].Token).To(BeEmpty())
 					Expect(k.AuthInfos[ctx].Exec).To(Not(BeNil()))
 
-					Expect(k.AuthInfos[ctx].Exec.Command).To(MatchRegexp("(heptio-authenticator-aws|aws-iam-authenticator)"))
+					// TODO: This test depends on which authenticator(s) is(are) installed and
+					// the code deciding which one should be picked up. Ideally we'd like to
+					// test all combinations, probably best done with a unit test.
+					Expect(k.AuthInfos[ctx].Exec.Command).To(MatchRegexp("(heptio-authenticator-aws|aws-iam-authenticator|aws)"))
 
-					expectedArgs := "token -i auth-test-cluster"
+					var expectedArgs, roleARNArg string
+					switch k.AuthInfos[ctx].Exec.Command {
+					case "aws":
+						expectedArgs = "eks get-token --cluster-name auth-test-cluster --region eu-west-3"
+						roleARNArg = "--role-arn"
+					case "heptio-authenticator-aws":
+						fallthrough
+					case "aws-iam-authenticator":
+						expectedArgs = "token -i auth-test-cluster"
+						roleARNArg = "-r"
+					}
 					if roleARN != "" {
-						expectedArgs += fmt.Sprintf(" -r %s", roleARN)
+						expectedArgs += fmt.Sprintf(" %s %s", roleARNArg, roleARN)
 					}
 					Expect(strings.Join(k.AuthInfos[ctx].Exec.Args, " ")).To(Equal(expectedArgs))
 

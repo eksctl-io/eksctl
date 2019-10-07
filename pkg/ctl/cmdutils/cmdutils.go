@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/version"
 )
 
 // IncompatibleFlags is a common substring of an error message
@@ -31,7 +32,7 @@ func NewVerbCmd(use, short, long string) *cobra.Command {
 }
 
 // AddPreRun chains cmd.PreRun handlers, as cobra only allows one, so we don't
-// accidentially override one we registered earlier
+// accidentally override one we registered earlier
 func AddPreRun(cmd *cobra.Command, newFn func(cmd *cobra.Command, args []string)) {
 	currentFn := cmd.PreRun
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
@@ -64,6 +65,14 @@ func LogCompletedAction(plan bool, msgFmt string, args ...interface{}) {
 func LogPlanModeWarning(plan bool) {
 	if plan {
 		logger.Warning("no changes were applied, run again with '--approve' to apply the changes")
+	}
+}
+
+// LogRegionAndVersionInfo will log the selected region and build version
+func LogRegionAndVersionInfo(meta *api.ClusterMeta) {
+	if meta != nil {
+		logger.Info("eksctl version %s", version.GetVersion())
+		logger.Info("using region %s", meta.Region)
 	}
 }
 

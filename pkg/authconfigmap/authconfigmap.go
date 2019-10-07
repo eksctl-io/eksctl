@@ -30,7 +30,10 @@ const (
 	// ObjectNamespace is the namespace the object can be found
 	ObjectNamespace = metav1.NamespaceSystem
 
-	rolesData    = "mapRoles"
+	rolesData = "mapRoles"
+
+	usersData = "mapUsers"
+
 	accountsData = "mapAccounts"
 
 	// GroupMasters is the admin group which is also automatically
@@ -45,27 +48,6 @@ const (
 // RoleNodeGroupGroups are the groups to allow roles to interact
 // with the cluster, required for the instance role ARNs of nodegroups.
 var RoleNodeGroupGroups = []string{"system:bootstrappers", "system:nodes"}
-
-// MapRole represents an IAM identity with role.
-type MapRole struct {
-	iam.Identity `json:",inline"`
-	RoleARN      string `json:"rolearn"`
-}
-
-// MapRoles is a list of IAM identities with roles.
-type MapRoles []MapRole
-
-// Get returns all matching role mappings. Note that at this moment
-// aws-iam-authenticator only considers the last one!
-func (rs MapRoles) Get(arn string) MapRoles {
-	var m MapRoles
-	for _, r := range rs {
-		if r.RoleARN == arn {
-			m = append(m, r)
-		}
-	}
-	return m
-}
 
 // AuthConfigMap allows modifying the auth ConfigMap.
 type AuthConfigMap struct {
@@ -123,20 +105,20 @@ func (a *AuthConfigMap) RemoveAccount(account string) error {
 		return err
 	}
 
-	var newaccounts []string
+	var newAccounts []string
 	found := false
 	for _, acc := range accounts {
 		if acc == account {
 			found = true
 			continue
 		}
-		newaccounts = append(newaccounts, acc)
+		newAccounts = append(newAccounts, acc)
 	}
 	if !found {
 		return fmt.Errorf("account %q not found in auth ConfigMap", account)
 	}
 	logger.Info("removing account %q from auth ConfigMap", account)
-	return a.setAccounts(newaccounts)
+	return a.setAccounts(newAccounts)
 }
 
 func (a *AuthConfigMap) accounts() ([]string, error) {
@@ -156,69 +138,103 @@ func (a *AuthConfigMap) setAccounts(accounts []string) error {
 	return nil
 }
 
-// AddRole maps an IAM role to a k8s group dynamically. It modifies the
-// a role with given groups. If you are calling
+// AddIdentity maps an IAM role or user ARN to a k8s group dynamically. It modifies the
+// role or user with given groups. If you are calling
 // this as part of node creation you should use DefaultNodeGroups.
-func (a *AuthConfigMap) AddRole(arn string, username string, groups []string) error {
-	roles, err := a.Roles()
+func (a *AuthConfigMap) AddIdentity(identity iam.Identity) error {
+	identities, err := a.Identities()
 	if err != nil {
 		return err
 	}
-	roles = append(roles, MapRole{
-		RoleARN: arn,
-		Identity: iam.Identity{
-			Username: username,
-			Groups:   groups,
-		},
-	})
-	logger.Info("adding role %q to auth ConfigMap", arn)
-	return a.setRoles(roles)
+
+	identities = append(identities, identity)
+
+	logger.Info("adding identity %q to auth ConfigMap", identity.ARN())
+	return a.setIdentities(identities)
 }
 
-// RemoveRole removes a role. If `all` is false it will only
+// RemoveIdentity removes an identity. If `all` is false it will only
 // remove the first it encounters and return an error if it cannot
 // find it.
 // If `all` is true it will remove all of them and not return an
 // error if it cannot be found.
-func (a *AuthConfigMap) RemoveRole(arn string, all bool) error {
-	roles, err := a.Roles()
+func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
+	identities, err := a.Identities()
 	if err != nil {
 		return err
 	}
 
-	newroles := MapRoles{}
-	for i, role := range roles {
-		if role.RoleARN == arn {
-			logger.Info("removing role %q from auth ConfigMap (username = %q, groups = %q)", arn, role.Username, role.Groups)
+	newidentities := make([]iam.Identity, 0)
+	for i, identity := range identities {
+		arn := identity.ARN()
+		if err != nil {
+			return err
+		}
+		if arn == arnToDelete {
+			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arnToDelete, identity.Username(), identity.Groups())
 			if !all {
-				roles = append(roles[:i], roles[i+1:]...)
-				return a.setRoles(roles)
+				identities = append(identities[:i], identities[i+1:]...)
+				return a.setIdentities(identities)
 			}
 		} else if all {
-			newroles = append(newroles, role)
+			newidentities = append(newidentities, identity)
 		}
 	}
 	if !all {
-		return fmt.Errorf("instance role ARN %q not found in auth ConfigMap", arn)
+		return fmt.Errorf("instance identity ARN %q not found in auth ConfigMap", arnToDelete)
 	}
-	return a.setRoles(newroles)
+	return a.setIdentities(newidentities)
 }
 
-// Roles returns a list of roles that are currently in the (cached) configmap.
-func (a *AuthConfigMap) Roles() (MapRoles, error) {
-	var roles MapRoles
+// Identities returns a list of iam users and roles that are currently in the (cached) configmap.
+func (a *AuthConfigMap) Identities() ([]iam.Identity, error) {
+	var roles []iam.RoleIdentity
 	if err := yaml.Unmarshal([]byte(a.cm.Data[rolesData]), &roles); err != nil {
-		return nil, errors.Wrap(err, "unmarshalling mapRoles")
+		return nil, errors.Wrapf(err, "unmarshalling %q", rolesData)
 	}
-	return roles, nil
+
+	var users []iam.UserIdentity
+	if err := yaml.Unmarshal([]byte(a.cm.Data[usersData]), &users); err != nil {
+		return nil, errors.Wrapf(err, "unmarshalling %q", usersData)
+	}
+
+	all := make([]iam.Identity, len(users)+len(roles))
+	for i, r := range roles {
+		all[i] = r
+	}
+	for i, u := range users {
+		all[i+len(roles)] = u
+	}
+	return all, nil
 }
 
-func (a *AuthConfigMap) setRoles(r MapRoles) error {
-	bs, err := yaml.Marshal(r)
-	if err != nil {
-		return errors.Wrap(err, "marshalling mapRoles")
+func (a *AuthConfigMap) setIdentities(identities []iam.Identity) error {
+	// Split identities into list of roles and list of users
+	users, roles := []iam.Identity{}, []iam.Identity{}
+	for _, identity := range identities {
+		switch identity.Type() {
+		case iam.ResourceTypeRole:
+			roles = append(roles, identity)
+		case iam.ResourceTypeUser:
+			users = append(users, identity)
+		default:
+			return errors.Errorf("cannot determine if %q refers to a user or role during setIdentities preprocessing", identity.ARN())
+		}
 	}
-	a.cm.Data[rolesData] = string(bs)
+
+	// Update the corresponding keys
+	_roles, err := yaml.Marshal(roles)
+	if err != nil {
+		return errors.Wrapf(err, "marshalling %q", rolesData)
+	}
+	a.cm.Data[rolesData] = string(_roles)
+
+	_users, err := yaml.Marshal(users)
+	if err != nil {
+		return errors.Wrapf(err, "marshalling %q", usersData)
+	}
+	a.cm.Data[usersData] = string(_users)
+
 	return nil
 }
 
@@ -249,7 +265,13 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	if err != nil {
 		return err
 	}
-	if err := acm.AddRole(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, RoleNodeGroupGroups); err != nil {
+
+	identity, err := iam.NewIdentity(ng.IAM.InstanceRoleARN, RoleNodeGroupUsername, RoleNodeGroupGroups)
+	if err != nil {
+		return err
+	}
+
+	if err := acm.AddIdentity(identity); err != nil {
 		return errors.Wrap(err, "adding nodegroup to auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {
@@ -262,15 +284,11 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 // RemoveNodeGroup removes a nodegroup from the ConfigMap and
 // does a client update.
 func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	arn := ng.IAM.InstanceRoleARN
-	if arn == "" {
-		return errors.New("nodegroup instance role ARN is not set")
-	}
 	acm, err := NewFromClientSet(clientSet)
 	if err != nil {
 		return err
 	}
-	if err := acm.RemoveRole(arn, false); err != nil {
+	if err := acm.RemoveIdentity(ng.IAM.InstanceRoleARN, false); err != nil {
 		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
 	}
 	if err := acm.Save(); err != nil {

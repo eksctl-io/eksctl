@@ -54,6 +54,9 @@ David Hao               @davidhao3300
 Brett Shouse            @bmshouse
 Daniel Holbach          @dholbach
 Tak Noguchi             @tnir
+Theo Salvo              @buzzsurfr
+Hidde Beydals           @hiddeco
+Cedric Kring            @cedrickring
 
 /* Thanks */
 

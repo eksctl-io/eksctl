@@ -1,12 +1,12 @@
 ---
-title: Setup your cluster with GitOps
+title: Setup your cluster with gitops
 weight: 10
 url: gitops-quickstart/setup-gitops
 ---
 
-# Setup your cluster with GitOps
+# Setup your cluster with gitops
 
-Welcome to `eksctl` GitOps Quick Starts. In this guide we will show you
+Welcome to `eksctl` gitops Quick Starts. In this guide we will show you
 how to launch fully-configured Kubernetes clusters that are ready to
 run production workloads in minutes: easy for you to get started running
 Kubernetes on EKS and to launch standard clusters in your organisation.
@@ -15,9 +15,9 @@ At the end of this, you will have a Kubernetes cluster including control
 plane, worker nodes, and all of the software needed for code deployment,
 monitoring, and logging.
 
-## Quick Start to GitOps
+## Quick Start to gitops
 
-[GitOps][gitops] is a way to do Kubernetes application delivery. It
+[gitops][gitops] is a way to do Kubernetes application delivery. It
 works by using Git as a single source of truth for Kubernetes resources
 and everything else. With Git at the center of your delivery pipelines,
 you and your team can make pull requests to accelerate and simplify
@@ -25,7 +25,7 @@ application deployments and operations tasks to Kubernetes.
 
 [gitops]: https://www.weave.works/technologies/gitops/
 
-Using GitOps Quick Starts will get you set up in next to no time. You
+Using gitops Quick Starts will get you set up in next to no time. You
 will benefit from a setup that is based on the experience of companies
 who run workloads at scale.
 
@@ -45,9 +45,9 @@ Next, you will have to have the following tools installed:
 [aws-iam-authenticator]: https://github.com/kubernetes-sigs/aws-iam-authenticator
 [aws-kubectl]: https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html
 
-### Getting ready for GitOps
+### Getting ready for gitops
 
-The main point of GitOps is to keep everything (config, alerts, dashboards,
+The main point of gitops is to keep everything (config, alerts, dashboards,
 apps, literally everything) in Git and use it as a single source of truth.
 To keep your cluster configuration in Git, please go ahead and create an
 _empty_ repository. On Github, for example, follow [these steps][github-repo].
@@ -78,7 +78,7 @@ ip-192-168-64-189.eu-central-1.compute.internal   Ready    <none>   38s   v1.13.
 ```
 
 ```console
-$ kube get pods --all-namespaces 
+$ kubectl get pods --all-namespaces 
 NAMESPACE     NAME                       READY   STATUS    RESTARTS   AGE
 kube-system   aws-node-l8mk7             1/1     Running   0          45s
 kube-system   aws-node-s2p2c             1/1     Running   0          45s
@@ -89,10 +89,10 @@ kube-system   kube-proxy-qzcmk           1/1     Running   0          45s
 ```
 
 
-## Applying GitOps
+## Enabling a Quick Start profile
 
 The following command will set up your cluster with the `app-dev` profile,
-the first GitOps Quick Start. All of the config files you need for a
+the first gitops Quick Start. All of the config files you need for a
 production-ready cluster will be in the git repo you have provided and
 those components will be deployed to your cluster. When you make changes
 in the configuration they will be reflected on your cluster.
@@ -103,7 +103,7 @@ in the configuration they will be reflected on your cluster.
 > Experimental features are not stable and their command name and flags
 > may change.
 
-The most important ingredient using `gitops apply` is your config
+The most important ingredient using `gitops enable profile` is your config
 repository (which includes your workload manifests, etc). You can start with
 an empty repository and push that to Git, or use the one you intend to
 deploy to the cluster.
@@ -112,7 +112,7 @@ What will happen during the following command is:
 
 - `eksctl` will add install [Flux](https://fluxcd.io) and Helm in your cluster, and add their
   manifest to Git, so you can configure them through pull requests.
-- It will also add the `app-dev` GitOps Quick Start profile to it,
+- It will also add the `app-dev` gitops Quick Start profile to it,
   which comes with a lot of very useful services and config. It is how
   we feel EKS `app-dev` clusters are best run.
 
@@ -121,11 +121,11 @@ Run this command from any folder in your file system or tweak
 
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl \
-        gitops apply \
-        --quickstart-profile app-dev \
+        enable profile \
         --git-url git@github.com:example/my-eks-config \
         --git-email your@email.com \
-        --cluster your-cluster-name
+        --cluster your-cluster-name \
+        app-dev
 ```
 
 Let us go through the specified arguments one by one:
@@ -142,11 +142,11 @@ Let us go through the specified arguments one by one:
   to see all clusters in your default region.
 
 There are more arguments and options, please refer to the
-[GitOps reference of eksctl](/usage/experimental/gitops-flux/)
+[gitops reference of eksctl](/usage/experimental/gitops-flux/)
 which details all the flags and resulting directory structure.
 
-This will set up Flux on your cluster and load GitOps
-Quick Start config files into your repo. It will use templating to add your
+This will set up Flux on your cluster and load gitops
+Quick Start manifests into your repo. It will use templating to add your
 cluster name and region to the configuration so that cluster components
 that need those values can work (e.g. `alb-ingress`).
 
@@ -202,11 +202,11 @@ monitoring             prometheus-prometheus-operator-prometheus-0              
 ```
 
 All of the cluster configuration can be easily edited in Git now.
-Welcome to a fully GitOpsed world!
+Welcome to a fully gitopsed world!
 
-## Your GitOps cluster
+## Your gitops cluster
 
-Welcome to your fully GitOpsed cluster. By choosing the `app-dev` Quick
+Welcome to your fully gitopsed cluster. By choosing the `app-dev` Quick
 Start profile, you will now also have the following components running
 in your cluster:
 
@@ -240,11 +240,11 @@ If you open `localhost:9898` in your browser, you will see
 
 ![podinfo up and running](../images/podinfo-screenshot.png)
 
-Congratulations to your GitOpsed cluster on EKS!
+Congratulations to your gitopsed cluster on EKS!
 
 ## Advanced setups
 
-`eksctl gitops apply` can largely be decomposed into
+`eksctl enable profile` can largely be decomposed into
 
 1. `eksctl install flux`
 1. `eksctl generate profile`
@@ -252,12 +252,12 @@ Congratulations to your GitOpsed cluster on EKS!
 So for more complex use cases, you will want to run these steps
 separately on your own and adjust flags and options as necessary. The
 first command installs Flux and links it to a Git repo that you provide.
-The second generates the manifest files from the GitOps Quick Start profile
+The second generates the manifest files from the gitops Quick Start profile
 locally, so that you can edit them before pushing to your Git repo.
 
 ### Configuring Flux
 
-Here we will install [Flux](https://fluxcd.io), the Kubernetes GitOps
+Here we will install [Flux](https://fluxcd.io), the Kubernetes gitops
 operator in your cluster. It will take care of deployments for you.
 
 ```console
@@ -342,7 +342,7 @@ organisation has already experience in setting up clusters and use the
 same defaults, it makes sense to use those as a profile. You could
 be entirely starting from scratch here too. What we will do in this part
 of the tutorial is using `weaveworks/eks-quickstart-app-dev`, which is
-the `app-dev` GitOps Quick Start profile. To create your own profile
+the `app-dev` gitops Quick Start profile. To create your own profile
 check out [the documentation](usage/experimental/gitops-flux/#creating-your-own-quick-start-profile).
 
 Now please run:
@@ -359,7 +359,7 @@ least wants:
 
 - `--name`: the name of the cluster - check `eksctl get cluster`
   to see what the name of yours is
-- `--git-url`: the Git URL of the Quick Start profile to apply to the cluster
+- `--git-url`: the Git URL of the Quick Start profile to deploy to the cluster
 - `--profile-path`: a local path: this is an empty new directory
   (here `cluster-config`) you create in your local checkout of
   the config repository, which we used in the previous command
@@ -402,7 +402,7 @@ kubernetes-dashboard   kubernetes-dashboard-7447f48f55-2pl66       1/1     Runni
 ```
 
 All of the cluster configuration can be easily edited in Git now.
-Welcome to a fully GitOpsed world!
+Welcome to a fully gitopsed world!
 
 ## Conclusion
 

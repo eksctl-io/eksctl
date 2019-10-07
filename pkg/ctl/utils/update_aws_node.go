@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"github.com/kris-nova/logger"
 	"github.com/spf13/pflag"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -42,7 +41,7 @@ func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("using region %s", meta.Region)
+	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
@@ -57,12 +56,7 @@ func doUpdateAWSNode(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	kubernetesVersion, err := rawClient.ServerVersion()
-	if err != nil {
-		return err
-	}
-
-	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, kubernetesVersion, cmd.Plan)
+	updateRequired, err := defaultaddons.UpdateAWSNode(rawClient, meta.Region, cmd.Plan)
 	if err != nil {
 		return err
 	}

@@ -101,7 +101,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 	if err != nil {
 		return err
 	}
-	logger.Info("using region %s", meta.Region)
+	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if cfg.Metadata.Version == "" {
 		cfg.Metadata.Version = api.DefaultVersion

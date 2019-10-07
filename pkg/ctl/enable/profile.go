@@ -1,8 +1,9 @@
-package gitops
+package enable
 
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -21,20 +22,18 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
-	"github.com/weaveworks/eksctl/pkg/utils/dir"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 type options struct {
 	gitOptions           git.Options
 	quickstartNameArg    string
-	outputPath           string
 	gitPrivateSSHKeyPath string
 }
 
 func (opts options) validate() error {
 	if opts.quickstartNameArg == "" {
-		return errors.New("please supply a valid gitops Quick Start URL or name in --quickstart-profile")
+		return errors.New("please supply a valid gitops Quick Start URL or name")
 	}
 	if err := opts.gitOptions.ValidateURL(); err != nil {
 		return errors.Wrap(err, "please supply a valid --git-url argument")
@@ -42,43 +41,32 @@ func (opts options) validate() error {
 	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
 		return errors.New("please supply a valid --git-private-ssh-key-path argument")
 	}
-	if !file.Exists(opts.outputPath) {
-		return errors.New("directory does not exist: please supply a valid --output-path argument")
-	}
-	isEmpty, err := dir.IsEmpty(opts.outputPath)
-	if err != nil {
-		return errors.Wrap(err, "failed to validate directory provided via the --output-path argument")
-	}
-	if !isEmpty {
-		return errors.New("directory is not empty: please supply a valid --output-path argument")
-	}
 	return nil
 }
 
-func applyGitops(cmd *cmdutils.Cmd) {
+func enableProfileCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("apply", "Setting up GitOps and apply a Quick Start profile", "")
+	cmd.SetDescription("profile", "Set up Flux and deploy the components from the selected Quick Start profile.", "")
 
 	var opts options
 
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doApplyGitops(cmd, opts)
+		return doEnableProfile(cmd, opts)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&opts.quickstartNameArg, "quickstart-profile", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
+		fs.StringVarP(&opts.quickstartNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
 		fs.StringVarP(&opts.gitOptions.URL, "git-url", "", "", "SSH URL of the Git repository that will contain the cluster components, e.g. git@github.com:<github_org>/<repo_name>")
 		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
-		fs.StringVarP(&opts.outputPath, "output-path", "", "./", "Path to directory where the GitOps repo will be cloned")
 		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
 		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 
-		requiredFlags := []string{"quickstart-profile", "git-url", "git-email"}
+		requiredFlags := []string{"git-url", "git-email"}
 		for _, f := range requiredFlags {
 			if err := cobra.MarkFlagRequired(fs, f); err != nil {
 				logger.Critical("unexpected error: %v", err)
@@ -94,7 +82,13 @@ func applyGitops(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
+func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
+	if cmd.NameArg != "" && opts.quickstartNameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cmd.NameArg, opts.quickstartNameArg)
+	}
+	if cmd.NameArg != "" {
+		opts.quickstartNameArg = cmd.NameArg
+	}
 	if err := opts.validate(); err != nil {
 		return err
 	}
@@ -104,7 +98,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
 
-	if err := cmdutils.NewGitopsApplyLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewEnableProfileLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
@@ -134,7 +128,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 		return errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 
-	// Create the flux installer. It will clone the user's repository in the outputPath
+	// Create the flux installer. It will clone the user's repository in a temporary directory.
 	fluxOpts := flux.InstallOpts{
 		GitOptions:  opts.gitOptions,
 		Namespace:   "flux",
@@ -153,7 +147,9 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	if err != nil {
 		return err
 	}
-	usersRepoDir := filepath.Join(opts.outputPath, usersRepoName)
+	dir, err := ioutil.TempDir("", usersRepoName)
+	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", dir)
+	usersRepoDir := filepath.Join(dir, usersRepoName)
 	profileOutputPath := filepath.Join(usersRepoDir, "base")
 
 	profile := &gitops.Profile{
@@ -186,6 +182,7 @@ func doApplyGitops(cmd *cmdutils.Cmd, opts options) error {
 	if err = gitOps.Run(context.Background()); err != nil {
 		return err
 	}
+	os.RemoveAll(dir) // Only clean up if the command completely successfully, for more convenient debugging.
 	return nil
 }
 

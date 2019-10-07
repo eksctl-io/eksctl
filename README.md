@@ -66,6 +66,7 @@ Example output:
 
 ```
 $ eksctl create cluster
+[ℹ]  eksctl version 0.6.0
 [ℹ]  using region us-west-2
 [ℹ]  setting availability zones to [us-west-2a us-west-2c us-west-2b]
 [ℹ]  subnets for us-west-2a - public:192.168.0.0/19 private:192.168.96.0/19
@@ -105,7 +106,7 @@ To learn more abut what `eksctl` can do check [eksctl.io](https://eksctl.io). A 
 ## Contributions
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](CONTRIBUTING.md).
-Or join the discussion on our [mailing list](maillist).
+Or join the discussion on our [mailing list][maillist].
 
 ## Releases
 

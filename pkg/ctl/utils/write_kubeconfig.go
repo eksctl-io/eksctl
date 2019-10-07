@@ -68,7 +68,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 	if err != nil {
 		return err
 	}
-	logger.Info("using region %s", cfg.Metadata.Region)
+	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

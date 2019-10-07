@@ -25,7 +25,7 @@ func generateProfileCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("profile", "Generate a GitOps profile", "")
+	cmd.SetDescription("profile", "Generate a gitops profile", "")
 
 	var o options
 
