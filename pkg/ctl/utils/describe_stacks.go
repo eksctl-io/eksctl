@@ -42,7 +42,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("using region %s", cfg.Metadata.Region)
+	cmdutils.LogRegionAndVersionInfo(cfg.Metadata)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
