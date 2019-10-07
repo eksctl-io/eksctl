@@ -146,8 +146,8 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 				if newPendingNodes.Has(node.Name) {
 					pending, err := evictPods(drainer, &node)
 					if err != nil {
-						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %vs", err, node.Name, retryDelay)
-						time.Sleep(retryDelay * time.Second)
+						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
+						time.Sleep(retryDelay)
 						continue
 					}
 					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
