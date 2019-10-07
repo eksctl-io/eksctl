@@ -106,7 +106,7 @@ replace (
 	// Needed due to to Sirupsen/sirupsen case clash
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
-	github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.2.1
+	github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8
 	// go mod appears to pick wrong version of github.com/docker/distribution automatically, which breaks k8s.io/kubernetes@v1.12.6
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190619192407-5223c27422cc
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
