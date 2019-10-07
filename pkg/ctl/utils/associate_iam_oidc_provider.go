@@ -43,7 +43,7 @@ func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("using region %s", meta.Region)
+	cmdutils.LogRegionAndVersionInfo(meta)
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err

@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/version"
 )
 
 // IncompatibleFlags is a common substring of an error message
@@ -64,6 +65,14 @@ func LogCompletedAction(plan bool, msgFmt string, args ...interface{}) {
 func LogPlanModeWarning(plan bool) {
 	if plan {
 		logger.Warning("no changes were applied, run again with '--approve' to apply the changes")
+	}
+}
+
+// LogRegionAndVersionInfo will log the selected region and build version
+func LogRegionAndVersionInfo(meta *api.ClusterMeta) {
+	if meta != nil {
+		logger.Info("eksctl version %s", version.GetVersion())
+		logger.Info("using region %s", meta.Region)
 	}
 }
 
