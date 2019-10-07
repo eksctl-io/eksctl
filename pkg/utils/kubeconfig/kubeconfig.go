@@ -95,7 +95,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 
 	switch authenticatorCMD {
 	case AWSIAMAuthenticator, HeptioAuthenticatorAWS:
-		args = []string{"token", "-i", spec.Metadata.Name}
+		args = []string{"token", "-i", spec.Metadata.Name, "--cache"}
 		roleARNFlag = "-r"
 	case AWSEKSAuthenticator:
 		args = []string{"eks", "get-token", "--cluster-name", spec.Metadata.Name}
