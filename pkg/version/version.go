@@ -29,3 +29,8 @@ func String() string {
 	}
 	return ""
 }
+
+// GetVersion return the exact version of this build
+func GetVersion() string {
+	return info.GitTag
+}
