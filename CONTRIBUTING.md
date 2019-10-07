@@ -110,7 +110,8 @@ make integration-test-container TEST_V=1
 
 Push your changes to your fork and submit a pull request to the original repository. If your PR is a work in progress
 then make sure you prefix the title with `WIP: `. This lets everyone know that this is still being worked on. Once its
-ready remove the `WIP: ` title prefix and where possible squash your commits.
+ready remove the `WIP: ` title prefix and where possible squash your commits. Alternatively, you can use `Draft PR`
+feature of Github as mentioned [here](https://github.blog/2019-02-14-introducing-draft-pull-requests/)
 
 ```bash
 git push <username> <feature-name>
