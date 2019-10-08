@@ -20,6 +20,12 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		api.NodeImageFamilyUbuntu1804: {
 			ImageClassGeneral: fmt.Sprintf("ubuntu-eks/k8s_%s/images/*", version),
 		},
+		api.NodeImageFamilyWindowsServer2019CoreContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Core-EKS_Optimized-%v-*", version),
+		},
+		api.NodeImageFamilyWindowsServer2019FullContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Full-EKS_Optimized-%v-*", version),
+		},
 	}
 }
 
@@ -28,6 +34,8 @@ func OwnerAccountID(imageFamily, region string) (string, error) {
 	switch imageFamily {
 	case api.NodeImageFamilyUbuntu1804:
 		return "099720109477", nil
+	case api.NodeImageFamilyWindowsServer2019CoreContainer, api.NodeImageFamilyWindowsServer2019FullContainer:
+		return "801119661308", nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return api.EKSResourceAccountID(region), nil
 	default:
