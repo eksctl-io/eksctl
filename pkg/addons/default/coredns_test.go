@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var _ = Describe("default addons - coredns", func() {
@@ -28,7 +27,7 @@ var _ = Describe("default addons - coredns", func() {
 			rawClient.UseUnionTracker = true
 
 			for _, item := range sampleAddons {
-				rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: item})
+				rc, err := rawClient.NewRawResource(item)
 				Expect(err).ToNot(HaveOccurred())
 				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())

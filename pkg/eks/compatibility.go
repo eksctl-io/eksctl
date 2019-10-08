@@ -92,7 +92,7 @@ func isNodeGroupCompatible(name string, info manager.StackInfo) bool {
 func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.ClusterConfig, stackManager *manager.StackCollection) error {
 	infoByNodeGroup, err := stackManager.DescribeNodeGroupStacksAndResources()
 	if err != nil {
-		return errors.Wrap(err, "getting resources for of all nodegroup stacks")
+		return errors.Wrap(err, "getting resources for all nodegroup stacks")
 	}
 	if len(infoByNodeGroup) == 0 {
 		return nil

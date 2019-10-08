@@ -289,8 +289,8 @@ func (c *FakeRawClient) ClientSet() kubeclient.Interface {
 	return fake.NewSimpleClientset(c.Collection.CreatedItems()...)
 }
 
-func (c *FakeRawClient) NewRawResource(item runtime.RawExtension) (*kubernetes.RawResource, error) {
-	r, _ := NewFakeRawResource(item.Object, c.AssumeObjectsMissing, c.UseUnionTracker, c.Collection)
+func (c *FakeRawClient) NewRawResource(object runtime.Object) (*kubernetes.RawResource, error) {
+	r, _ := NewFakeRawResource(object, c.AssumeObjectsMissing, c.UseUnionTracker, c.Collection)
 	return r, nil
 }
 

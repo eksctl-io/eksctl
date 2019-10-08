@@ -119,7 +119,21 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
+	if ng.IsWindows() {
+		fieldNotSupported := func(field string) error {
+			return fmt.Errorf("%s is not supported for Windows node groups (path=%s.%s)", field, path, field)
+		}
+		if ng.KubeletExtraConfig != nil {
+			return fieldNotSupported("kubeletExtraConfig")
+		}
+		if ng.PreBootstrapCommands != nil {
+			return fieldNotSupported("preBootstrapCommands")
+		}
+		if ng.OverrideBootstrapCommand != nil {
+			return fieldNotSupported("overrideBootstrapCommand")
+		}
+
+	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
 	}
 

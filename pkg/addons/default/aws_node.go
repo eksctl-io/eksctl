@@ -40,7 +40,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 	}
 
 	for _, rawObj := range list.Items {
-		resource, err := rawClient.NewRawResource(rawObj)
+		resource, err := rawClient.NewRawResource(rawObj.Object)
 		if err != nil {
 			return false, err
 		}
