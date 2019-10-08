@@ -14,7 +14,7 @@ fi
 
 env CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo
 
-go install github.com/jteeuwen/go-bindata/go-bindata
+go install github.com/kevinburke/go-bindata/go-bindata
 go install github.com/vektra/mockery/cmd/mockery
 go install github.com/weaveworks/github-release
 go install golang.org/x/tools/cmd/stringer
