@@ -30,7 +30,7 @@ With `eksctl` you can deploy either version by passing `--version`.
 
 ```
 
-eksctl create cluster --version=1.13
+eksctl create cluster --version=1.14
 
 ```
 
