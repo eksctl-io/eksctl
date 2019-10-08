@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -45,12 +46,34 @@ func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 	return counter, nil
 }
 
-// SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
-func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
-	return hasWindowsNodes(nodeGroups) && hasAmazonLinux2Nodes(nodeGroups)
+// ValidateWindowsCompatibility validates windows compatibility
+func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersion string) error {
+	if !hasWindowsNode(nodeGroups) {
+		return nil
+	}
+
+	minRequiredVersion, err := semver.ParseTolerant(api.Version1_14)
+	if err != nil {
+		return err
+	}
+	targetVersion, err := semver.ParseTolerant(controlPlaneVersion)
+	if err != nil {
+		return err
+	}
+	if targetVersion.LT(minRequiredVersion) {
+		return errors.New("Windows nodes are only supported on Kubernetes 1.14 and above")
+	}
+	return nil
+
 }
 
-func hasWindowsNodes(nodeGroups []*api.NodeGroup) bool {
+// SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
+func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
+	return hasWindowsNode(nodeGroups) && hasAmazonLinux2Node(nodeGroups)
+}
+
+// hasWindowsNode reports whether there's at least one Windows node in nodeGroups
+func hasWindowsNode(nodeGroups []*api.NodeGroup) bool {
 	for _, ng := range nodeGroups {
 		if ng.IsWindows() {
 			return true
@@ -59,7 +82,8 @@ func hasWindowsNodes(nodeGroups []*api.NodeGroup) bool {
 	return false
 }
 
-func hasAmazonLinux2Nodes(nodeGroups []*api.NodeGroup) bool {
+// hasAmazonLinux2Node reports whether there's at least one Windows node in nodeGroups
+func hasAmazonLinux2Node(nodeGroups []*api.NodeGroup) bool {
 	for _, ng := range nodeGroups {
 		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
 			return true
@@ -70,8 +94,8 @@ func hasAmazonLinux2Nodes(nodeGroups []*api.NodeGroup) bool {
 
 // LogWindowsCompatibility logs Windows compatibility messages
 func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.ClusterMeta) {
-	if hasWindowsNodes(nodeGroups) {
-		if !hasAmazonLinux2Nodes(nodeGroups) {
+	if hasWindowsNode(nodeGroups) {
+		if !hasAmazonLinux2Node(nodeGroups) {
 			logger.Warning("a Linux node group is required to support Windows workloads")
 			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2)
 		}
