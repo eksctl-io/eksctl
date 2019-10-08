@@ -237,7 +237,7 @@ func assertValidFluxDeploymentManifest(fileName string) {
 			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
 			container := deployment.Spec.Template.Spec.Containers[0]
 			Expect(container.Name).To(Equal("flux"))
-			Expect(container.Image).To(Equal("docker.io/fluxcd/flux:1.13.3"))
+			Expect(container.Image).To(Equal("docker.io/fluxcd/flux:1.15.0"))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
@@ -411,7 +411,7 @@ func assertValidHelmOperatorDeployment(fileName string) {
 			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
 			container := deployment.Spec.Template.Spec.Containers[0]
 			Expect(container.Name).To(Equal("flux-helm-operator"))
-			Expect(container.Image).To(Equal("docker.io/fluxcd/helm-operator:1.0.0-rc1"))
+			Expect(container.Image).To(Equal("docker.io/fluxcd/helm-operator:1.0.0-rc2"))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
