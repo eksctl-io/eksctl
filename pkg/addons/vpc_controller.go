@@ -75,11 +75,26 @@ func (t *typeAssertionError) Error() string {
 }
 
 func (v *VPCController) generateCert() error {
-	skipCSRGeneration, err := v.hasApprovedCert()
+	var (
+		csrName      = fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace)
+		csrClientSet = v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
+	)
+
+	hasApprovedCert, err := v.hasApprovedCert()
 	if err != nil {
 		return err
 	}
-	if skipCSRGeneration {
+	if hasApprovedCert {
+		// Delete existing CSR if the secret is missing
+		_, err := v.rawClient.ClientSet().CoreV1().Secrets(vpcControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
+		if err != nil {
+			if !apierrors.IsNotFound(err) {
+				return err
+			}
+			if err := csrClientSet.Delete(csrName, &metav1.DeleteOptions{}); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -100,7 +115,7 @@ func (v *VPCController) generateCert() error {
 	}
 
 	certificateSigningRequest.Spec.Request = csrPEM
-	certificateSigningRequest.ObjectMeta.Name = fmt.Sprintf("%s.%s", webhookServiceName, vpcControllerNamespace)
+	certificateSigningRequest.Name = csrName
 
 	if err := v.applyRawResource(certificateSigningRequest); err != nil {
 		return errors.Wrap(err, "creating CertificateSigningRequest")
@@ -114,8 +129,6 @@ func (v *VPCController) generateCert() error {
 			Reason:         "eksctl-approve",
 		},
 	}
-
-	csrClientSet := v.rawClient.ClientSet().CertificatesV1beta1().CertificateSigningRequests()
 
 	if _, err := csrClientSet.UpdateApproval(certificateSigningRequest); err != nil {
 		return errors.Wrap(err, "updating approval")
@@ -199,13 +212,6 @@ func (v *VPCController) hasApprovedCert() (bool, error) {
 	switch len(conditions) {
 	case 1:
 		if conditions[0].Type == certsv1beta1.CertificateApproved {
-			_, err := v.rawClient.ClientSet().CoreV1().Secrets(vpcControllerNamespace).Get("vpc-admission-webhook-certs", metav1.GetOptions{})
-			if err != nil {
-				if !apierrors.IsNotFound(err) {
-					return false, err
-				}
-				return false, nil
-			}
 			return true, nil
 		}
 		return false, fmt.Errorf("expected certificate to be approved; got %q", conditions[0].Type)
