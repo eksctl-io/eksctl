@@ -902,6 +902,17 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"appmesh:*",
+				"servicediscovery:CreateService",
+				"servicediscovery:GetService",
+				"servicediscovery:RegisterInstance",
+				"servicediscovery:DeregisterInstance",
+				"servicediscovery:ListInstances",
+				"servicediscovery:ListNamespaces",
+				"route53:GetHealthCheck",
+				"route53:CreateHealthCheck",
+				"route53:UpdateHealthCheck",
+				"route53:ChangeResourceRecordSets",
+				"route53:DeleteHealthCheck",
 			}))
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
