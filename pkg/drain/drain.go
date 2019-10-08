@@ -32,6 +32,8 @@ const (
 	EvictionKind = "Eviction"
 	// EvictionSubresource represents the kind of evictions object as pod's subresource
 	EvictionSubresource = "pods/eviction"
+	// retryDelay is how long is slept before retry after an error occurs during drainage
+	retryDelay = 5 * time.Second
 )
 
 // Helper contains the parameters to control the behaviour of drainer

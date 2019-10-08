@@ -57,6 +57,7 @@ Tak Noguchi             @tnir
 Theo Salvo              @buzzsurfr
 Hidde Beydals           @hiddeco
 Cedric Kring            @cedrickring
+Leigh Capili            @stealthybox
 
 /* Thanks */
 
