@@ -12,21 +12,21 @@ Create a simple cluster with the following command:
 eksctl create cluster
 ```
 
-That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one 
+That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one
 nodegroup containing 2 m5.large nodes.
 
-After the cluster has been created, the appropriate kubernetes configuration will be added to your kubeconfig file. 
-This is, the file that you have configured in the environment variable `KUBECONFIG` or `~/.kube/config` by default. 
+After the cluster has been created, the appropriate kubernetes configuration will be added to your kubeconfig file.
+This is, the file that you have configured in the environment variable `KUBECONFIG` or `~/.kube/config` by default.
 The path to the kubeconfig file can be overridden using the `--kubeconfig` flag.
 
 Other flags that can change how the kubeconfig file is written:
 
-| flag                     | type   | use                                                                                                             | default value                |
-|--------------------------|--------|-----------------------------------------------------------------------------------------------------------------|------------------------------|
-| --kubeconfig             | string | path to write kubeconfig (incompatible with --auto-kubeconfig) (default "/home/martina/.kube/config")           | KUBECONFIG or ~/.kube/config |
-| --set-kubeconfig-context | bool   | if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten | true                         |
-| --auto-kubeconfig        | bool   | save kubeconfig file by cluster name                                                                            | true                         |
-| --write-kubeconfig       | bool   | toggle writing of kubeconfig                                                                                    | true                         |
+| flag                     | type   | use                                                                                                             | default value                 |
+|--------------------------|--------|-----------------------------------------------------------------------------------------------------------------|-------------------------------|
+| --kubeconfig             | string | path to write kubeconfig (incompatible with –auto-kubeconfig)                                                   | $KUBECONFIG or ~/.kube/config |
+| --set-kubeconfig-context | bool   | if true then current-context will be set in kubeconfig; if a context is already set then it will be overwritten | true                          |
+| --auto-kubeconfig        | bool   | save kubeconfig file by cluster name                                                                            | true                          |
+| --write-kubeconfig       | bool   | toggle writing of kubeconfig                                                                                    | true                          |
 
 ## Using Config Files
 
