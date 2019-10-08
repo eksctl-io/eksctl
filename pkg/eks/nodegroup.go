@@ -46,7 +46,7 @@ func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 	return counter, nil
 }
 
-// ValidateWindowsCompatibility validates windows compatibility
+// ValidateWindowsCompatibility validates Windows compatibility
 func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersion string) error {
 	if !hasWindowsNode(nodeGroups) {
 		return nil
