@@ -73,5 +73,9 @@ To ensure workloads are scheduled on the right OS, they must have a `nodeSelecto
     beta.kubernetes.io/os: linux
     beta.kubernetes.io/arch: amd64
 ```
+### Further information
+
+- [EKS Windows Support][eks-user-guide]
 
 [eks-user-guide]: https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html
+
