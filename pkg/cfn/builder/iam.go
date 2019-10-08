@@ -158,7 +158,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	}
 
 	role := gfn.AWSIAMRole{
-		Path: gfn.NewString("/"),
+		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(n.spec.IAM.AttachPolicyARNs...),
 	}
@@ -225,6 +225,17 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",
 			[]string{
 				"appmesh:*",
+				"servicediscovery:CreateService",
+				"servicediscovery:GetService",
+				"servicediscovery:RegisterInstance",
+				"servicediscovery:DeregisterInstance",
+				"servicediscovery:ListInstances",
+				"servicediscovery:ListNamespaces",
+				"route53:GetHealthCheck",
+				"route53:CreateHealthCheck",
+				"route53:UpdateHealthCheck",
+				"route53:ChangeResourceRecordSets",
+				"route53:DeleteHealthCheck",
 			},
 		)
 	}
