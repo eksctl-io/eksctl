@@ -124,7 +124,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and enabling a gitops repo", func() {
+		Context("and enabling gitops on the configured repo", func() {
 			It("should not return an error", func() {
 				// Use a random branch to ensure test runs don't step on each others.
 				branch := namer.RandomName()
