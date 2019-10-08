@@ -1,4 +1,4 @@
-package install
+package enable
 
 import (
 	"context"
@@ -15,11 +15,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func installFluxCmd(cmd *cmdutils.Cmd) {
+func enableRepo(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
-		"flux",
-		"Bootstrap Flux, installing it in the cluster and initializing its manifests in the specified Git repository",
+		"repo",
+		"Set up a repo for gitops, installing Flux in the cluster and initializing its manifests in the specified Git repository",
 		"",
 	)
 	var opts flux.InstallOpts
