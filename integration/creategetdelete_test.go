@@ -124,7 +124,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and configuring Flux for gitops", func() {
+		Context("and enabling gitops on the configured repo", func() {
 			It("should not return an error", func() {
 				// Use a random branch to ensure test runs don't step on each others.
 				branch := namer.RandomName()
@@ -136,7 +136,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
 
 				cmd := eksctlExperimentalCmd.WithArgs(
-					"install", "flux",
+					"enable", "repo",
 					"--git-url", Repository,
 					"--git-email", Email,
 					"--git-private-ssh-key-path", privateSSHKeyPath,
