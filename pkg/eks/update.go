@@ -91,6 +91,37 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 	return nil
 }
 
+// GetCurrentClusterConfigForEndpoints fetches current cluster endpoint configuration for public and private access types
+func (c *ClusterProvider) GetCurrentClusterConfigForEndpoints(spec *api.ClusterConfig) (bool, bool, error) {
+	if ok, err := c.CanOperate(spec); !ok {
+		return false, false, errors.Wrap(err, "unable to retrieve current cluster endpoint access configuration")
+	}
+
+	private := *c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPrivateAccess
+	public := *c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPublicAccess
+
+	return private, public, nil
+}
+
+// UpdateClusterConfigForEndpoints calls eks.UpdateClusterConfig and updates access to API endpoints
+func (c *ClusterProvider) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig) error {
+
+	input := &awseks.UpdateClusterConfigInput{
+		Name: &cfg.Metadata.Name,
+		ResourcesVpcConfig: &awseks.VpcConfigRequest{
+			EndpointPrivateAccess: cfg.VPC.ClusterEndpoints.PrivateAccess,
+			EndpointPublicAccess:  cfg.VPC.ClusterEndpoints.PublicAccess,
+		},
+	}
+
+	output, err := c.Provider.EKS().UpdateClusterConfig(input)
+	if err != nil {
+		return err
+	}
+
+	return c.waitForUpdateToSucceed(cfg.Metadata.Name, output.Update)
+}
+
 // UpdateClusterVersion calls eks.UpdateClusterVersion and updates to cfg.Metadata.Version,
 // it will return update ID along with an error (if it occurs)
 func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*awseks.Update, error) {

@@ -4,7 +4,23 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"k8s.io/apimachinery/pkg/util/validation"
+)
+
+var (
+	// ErrClusterEndpointNoAccess indicates the config prevents API access
+	ErrClusterEndpointNoAccess = errors.New("Kubernetes API access must have one of public or private clusterEndpoints enabled")
+
+	// ErrClusterEndpointPrivateOnly warns private-only access requires changes
+	// to AWS resource configuration in order to effectively use clients in the VPC
+	ErrClusterEndpointPrivateOnly = errors.New("warning, having public access disallowed will subsequently interfere with some " +
+		"features of eksctl. This will require running subsequent eksctl (and Kubernetes) " +
+		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
+		"updates to some AWS resources.  See: " +
+		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
+		"for more details")
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
@@ -63,7 +79,32 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	if !cfg.HasClusterEndpointAccess() {
+		return ErrClusterEndpointNoAccess
+	}
 	return nil
+}
+
+// ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
+func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
+	endpts := c.VPC.ClusterEndpoints
+	if NoAccess(endpts) {
+		return ErrClusterEndpointNoAccess
+	}
+	if PrivateOnly(endpts) {
+		return ErrClusterEndpointPrivateOnly
+	}
+	return nil
+}
+
+// NoAccess returns true if neither public are private cluster endpoint access is enabled and false otherwise
+func NoAccess(ces *ClusterEndpoints) bool {
+	return !(*ces.PublicAccess || *ces.PrivateAccess)
+}
+
+// PrivateOnly returns true if public cluster endpoint access is disabled and private cluster endpoint access is enabled, and false otherwise
+func PrivateOnly(ces *ClusterEndpoints) bool {
+	return !*ces.PublicAccess && *ces.PrivateAccess
 }
 
 // ValidateNodeGroup checks compatible fields of a given nodegroup

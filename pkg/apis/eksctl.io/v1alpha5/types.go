@@ -401,6 +401,7 @@ func NewClusterVPC() *ClusterVPC {
 		},
 		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
+		ClusterEndpoints: ClusterEndpointAccessDefaults(),
 	}
 }
 

@@ -123,3 +123,11 @@ func DefaultClusterNAT() *ClusterNAT {
 		Gateway: &single,
 	}
 }
+
+// ClusterEndpointAccessDefaults returns a ClusterEndpoints pointer with default values set.
+func ClusterEndpointAccessDefaults() *ClusterEndpoints {
+	return &ClusterEndpoints{
+		PrivateAccess: Disabled(),
+		PublicAccess:  Enabled(),
+	}
+}

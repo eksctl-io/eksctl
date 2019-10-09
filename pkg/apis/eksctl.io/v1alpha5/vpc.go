@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 
@@ -28,6 +29,8 @@ type (
 		AutoAllocateIPv6 *bool `json:"autoAllocateIPv6,omitempty"`
 		// +optional
 		NAT *ClusterNAT `json:"nat,omitempty"`
+		// +optional
+		ClusterEndpoints *ClusterEndpoints `json:"clusterEndpoints,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {
@@ -46,6 +49,12 @@ type (
 	// ClusterNAT holds NAT gateway configuration options
 	ClusterNAT struct {
 		Gateway *string `json:"gateway,omitempty"`
+	}
+
+	// ClusterEndpoints holds cluster api server endpoint access information
+	ClusterEndpoints struct {
+		PrivateAccess *bool `json:"privateAccess,omitempty,false"`
+		PublicAccess  *bool `json:"publicAccess,omitempty,true"`
 	}
 )
 
@@ -185,4 +194,47 @@ func (c *ClusterConfig) HasSufficientSubnets() error {
 	}
 
 	return nil
+}
+
+//DefaultEndpointsMsg returns a message that the EndpointAccess is the same as the default
+func (c *ClusterConfig) DefaultEndpointsMsg() string {
+	return fmt.Sprintf(
+		"Kubernetes API endpoint access will use default of {publicAccess=true, privateAccess=false} for cluster %q in %q", c.Metadata.Name, c.Metadata.Region)
+}
+
+//CustomEndpointsMsg returns a message indicating the EndpointAccess given by the user
+func (c *ClusterConfig) CustomEndpointsMsg() string {
+	return fmt.Sprintf(
+		"Kubernetes API endpoint access will use provided values {publicAccess=%v, privateAccess=%v} for cluster %q in %q", *c.VPC.ClusterEndpoints.PublicAccess, *c.VPC.ClusterEndpoints.PrivateAccess, c.Metadata.Name, c.Metadata.Region)
+}
+
+//UpdateEndpointsMsg gives message indicating that they need to use eksctl utils to make this config
+func (c *ClusterConfig) UpdateEndpointsMsg() string {
+	return fmt.Sprintf(
+		"you can update Kubernetes API endpoint access with `eksctl utils update-cluster-endpoints --region=%s --name=%s --private-access=bool --public-access=bool`", c.Metadata.Region, c.Metadata.Name)
+}
+
+// EndpointsEqual returns true of two endpoints have same values after dereferencing any pointers
+func EndpointsEqual(a, b ClusterEndpoints) bool {
+	ajson, err := json.Marshal(a)
+	if err != nil {
+		return false
+	}
+	bjson, err := json.Marshal(b)
+	if err != nil {
+		return false
+	}
+	return string(ajson) == string(bjson)
+}
+
+//HasClusterEndpointAccess determines if endpoint access was configured in config file or not
+func (c *ClusterConfig) HasClusterEndpointAccess() bool {
+	if c.VPC != nil && c.VPC.ClusterEndpoints != nil {
+		pubAccess := c.VPC.ClusterEndpoints.PublicAccess
+		privAccess := c.VPC.ClusterEndpoints.PrivateAccess
+		hasPublicAccess := pubAccess != nil && *pubAccess
+		hasPrivateAccess := privAccess != nil && *privAccess
+		return hasPublicAccess || hasPrivateAccess
+	}
+	return true
 }
