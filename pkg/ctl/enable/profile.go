@@ -3,31 +3,25 @@ package enable
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	kubeclient "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
-	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 type options struct {
 	gitOptions           git.Options
 	quickstartNameArg    string
+	profilePath          string
 	gitPrivateSSHKeyPath string
 }
 
@@ -62,20 +56,13 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
+		fs.StringVarP(&opts.profilePath, "profile-path", "", "./", "Path to generate the profile in")
 		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
 
-		requiredFlags := []string{"git-url", "git-email"}
-		for _, f := range requiredFlags {
-			if err := cobra.MarkFlagRequired(fs, f); err != nil {
-				logger.Critical("unexpected error: %v", err)
-				os.Exit(1)
-			}
-		}
+		_ = cobra.MarkFlagRequired(fs, "git-url")
+		_ = cobra.MarkFlagRequired(fs, "git-email")
 
-		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 20*time.Second)
 	})
 
@@ -101,60 +88,14 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
 	if err := cmdutils.NewEnableProfileLoader(cmd).Load(); err != nil {
 		return err
 	}
-	cfg := cmd.ClusterConfig
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
-
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-	if ok, err := ctl.CanOperate(cfg); !ok {
-		return err
-	}
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
-	if err != nil {
-		return err
-	}
-	k8sConfig := kubernetesClientConfigs.Config
-
-	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return errors.Wrap(err, "cannot create Kubernetes client configuration")
-	}
-	k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
-	if err != nil {
-		return errors.Errorf("cannot create Kubernetes client set: %s", err)
-	}
-
-	// Create the flux installer. It will clone the user's repository in a temporary directory.
-	fluxOpts := flux.InstallOpts{
-		GitOptions:  opts.gitOptions,
-		Namespace:   "flux",
-		GitFluxPath: "flux/",
-		WithHelm:    true,
-		Timeout:     cmd.ProviderConfig.WaitTimeout,
-	}
-	fluxInstaller := flux.NewInstaller(k8sRestConfig, k8sClientSet, &fluxOpts)
 
 	processor := &fileprocessor.GoTemplateProcessor{
 		Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
 	}
 
-	// Create the profile generator. It will output the processed templates into a new "/base" directory into the user's repo
-	usersRepoName, err := git.RepoName(opts.gitOptions.URL)
-	if err != nil {
-		return err
-	}
-	dir, err := ioutil.TempDir("", usersRepoName)
-	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", dir)
-	usersRepoDir := filepath.Join(dir, usersRepoName)
-	profileOutputPath := filepath.Join(usersRepoDir, "base")
-
 	profile := &gitops.Profile{
 		Processor: processor,
-		Path:      profileOutputPath,
+		Path:      opts.profilePath,
 		GitOpts: git.Options{
 			URL:    quickstartRepoURL,
 			Branch: "master",
@@ -164,25 +105,30 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
 		IO:        afero.Afero{Fs: afero.NewOsFs()},
 	}
 
-	// A git client that operates in the user's repo
+	err = profile.Generate(context.Background())
+	if err != nil {
+		return errors.Wrap(err, "error generating profile")
+	}
+
+	// Git add, commit and push component files in the user's repo
 	gitClient := git.NewGitClient(git.ClientParams{
 		PrivateSSHKeyPath: opts.gitPrivateSSHKeyPath,
 	})
 
-	gitOps := gitops.Applier{
-		UserRepoPath:     usersRepoDir,
-		UsersRepoOpts:    opts.gitOptions,
-		GitClient:        gitClient,
-		ProfileGenerator: profile,
-		FluxInstaller:    fluxInstaller,
-		ClusterConfig:    cmd.ClusterConfig,
-		QuickstartName:   opts.quickstartNameArg,
-	}
-
-	if err = gitOps.Run(context.Background()); err != nil {
+	if err = gitClient.Add("."); err != nil {
 		return err
 	}
-	os.RemoveAll(dir) // Only clean up if the command completely successfully, for more convenient debugging.
+
+	commitMsg := fmt.Sprintf("Add %s quickstart components", opts.quickstartNameArg)
+	if err = gitClient.Commit(commitMsg, opts.gitOptions.User, opts.gitOptions.Email); err != nil {
+		return err
+	}
+
+	if err = gitClient.Push(); err != nil {
+		return err
+	}
+
+	profile.DeleteClonedDirectory()
 	return nil
 }
 

@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+data:
+  cluster.name: 
+  logs.region: 
+  # The below configuration file is in JSON format.
+  # Please ensure you keep it well-formed if you modify it.
+  cluster-info.json: |
+    {
+      "cluster": {
+        "name": ""
+      },
+      "logs": {
+        "region": ""
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: cluster-info
+  namespace: amazon-cloudwatch
