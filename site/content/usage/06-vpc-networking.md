@@ -183,9 +183,10 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
    enabled.
 1. EKS does allow creating a configuration which allows only private access to be enabled, but eksctl doesn't
    support it during cluster creation as it prevents eksctl from being able to join the worker nodes to the cluster.
-1. To create private-only Kubernetes API endpoint access, one must first create the cluster *with* public Kubernetes API
-   endpoint access, and then use `/eksctl utils update-cluster-endpoints` to change it after the cluster is finished
-   creating.
+1. To create private-only Kubernetes API endpoint access, one must also specify a VPC security group. This group
+   should contain rules allowing access to the Control Plane from your bastion host or via some other method.
+   See:
+   [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
 1. Updating a cluster to have private only Kubernetes API endpoint access means that Kubernetes commands
    (e.g. `kubectl`) as well as `eksctl delete cluster`, `eksctl utils write-kubeconfig`, and possibly the command
    `eksctl utils update-kube-proxy` must be run within the cluster VPC.  This requires some changes to various AWS

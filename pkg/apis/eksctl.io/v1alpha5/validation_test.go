@@ -318,7 +318,14 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should error on private=true, public=false", func() {
+		It("should not error on private=true, public=false when a security group is specified", func() {
+			cfg.VPC.SecurityGroup = "test-sg"
+			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should error on private=true, public=false when no security group is specified", func() {
 			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
 			Expect(err).To(BeIdenticalTo(ErrClusterEndpointPrivateOnly))

@@ -20,7 +20,9 @@ var (
 		"commands/API calls from within the VPC.  Running these in the VPC requires making " +
 		"updates to some AWS resources.  See: " +
 		"https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html#private-access " +
-		"for more details")
+		"for more details. Specifying a SecurityGroup under the VPC configuration will suppress " +
+		"this error; the specified SecurityGroup can be used to allow eksctl traffic from a " +
+		"bastion host, for example.")
 )
 
 // NOTE: we don't use k8s.io/apimachinery/pkg/util/sets here to keep API package free of dependencies
@@ -91,7 +93,7 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
 	}
-	if PrivateOnly(endpts) {
+	if PrivateOnly(endpts) && c.VPC.SecurityGroup == "" {
 		return ErrClusterEndpointPrivateOnly
 	}
 	return nil
