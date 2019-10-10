@@ -27,13 +27,14 @@ import (
 
 type options struct {
 	gitOptions           git.Options
-	quickstartNameArg    string
+	profileNameArg       string
+	profileRevision      string
 	gitPrivateSSHKeyPath string
 }
 
 func (opts options) validate() error {
-	if opts.quickstartNameArg == "" {
-		return errors.New("please supply a valid gitops Quick Start URL or name")
+	if opts.profileNameArg == "" {
+		return errors.New("please supply a valid Quick Start profile URL or name")
 	}
 	if err := opts.gitOptions.ValidateURL(); err != nil {
 		return errors.Wrap(err, "please supply a valid --git-url argument")
@@ -57,14 +58,15 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&opts.quickstartNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
+		fs.StringVarP(&opts.profileNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
+		fs.StringVarP(&opts.profileRevision, "revision", "", "master", "revision of the Quick Start profile.")
 		fs.StringVarP(&opts.gitOptions.URL, "git-url", "", "", "SSH URL of the Git repository that will contain the cluster components, e.g. git@github.com:<github_org>/<repo_name>")
 		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
 		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
+		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
 
 		requiredFlags := []string{"git-url", "git-email"}
 		for _, f := range requiredFlags {
@@ -83,19 +85,19 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 }
 
 func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
-	if cmd.NameArg != "" && opts.quickstartNameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cmd.NameArg, opts.quickstartNameArg)
+	if cmd.NameArg != "" && opts.profileNameArg != "" {
+		return cmdutils.ErrNameFlagAndArg(cmd.NameArg, opts.profileNameArg)
 	}
 	if cmd.NameArg != "" {
-		opts.quickstartNameArg = cmd.NameArg
+		opts.profileNameArg = cmd.NameArg
 	}
 	if err := opts.validate(); err != nil {
 		return err
 	}
 
-	quickstartRepoURL, err := repoURLForQuickstart(opts.quickstartNameArg)
+	profileRepoURL, err := repoURLForQuickstart(opts.profileNameArg)
 	if err != nil {
-		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
+		return errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
 	}
 
 	if err := cmdutils.NewEnableProfileLoader(cmd).Load(); err != nil {
@@ -156,8 +158,8 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
 		Processor: processor,
 		Path:      profileOutputPath,
 		GitOpts: git.Options{
-			URL:    quickstartRepoURL,
-			Branch: "master",
+			URL:    profileRepoURL,
+			Branch: opts.profileRevision,
 		},
 		GitCloner: git.NewGitClient(git.ClientParams{}),
 		FS:        afero.NewOsFs(),
@@ -176,7 +178,7 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
 		ProfileGenerator: profile,
 		FluxInstaller:    fluxInstaller,
 		ClusterConfig:    cmd.ClusterConfig,
-		QuickstartName:   opts.quickstartNameArg,
+		QuickstartName:   opts.profileNameArg,
 	}
 
 	if err = gitOps.Run(context.Background()); err != nil {
@@ -196,5 +198,5 @@ func repoURLForQuickstart(quickstartArgument string) (string, error) {
 	if quickstartArgument == "appmesh" {
 		return "https://github.com/weaveworks/eks-appmesh-profile", nil
 	}
-	return "", fmt.Errorf("invalid URL or unknown Quick Start %s ", quickstartArgument)
+	return "", fmt.Errorf("invalid URL or unknown Quick Start profile %s ", quickstartArgument)
 }
