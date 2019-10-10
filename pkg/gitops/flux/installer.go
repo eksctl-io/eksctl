@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"time"
 
+	fluxinstall "github.com/fluxcd/flux/pkg/install"
 	helmopinstall "github.com/fluxcd/helm-operator/pkg/install"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/riywo/loginshell"
-	fluxinstall "github.com/fluxcd/flux/pkg/install"
 	corev1 "k8s.io/api/core/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -32,6 +32,7 @@ const (
 	tillerManifestPrefix        = "tiller-"
 	tillerServiceName           = "tiller-deploy" // do not change at will, hardcoded in Tiller's manifest generation API
 	tillerServiceAccountName    = "tiller"
+	tillerImageSpec             = "gcr.io/kubernetes-helm/tiller:v2.14.3"
 	tillerRBACTemplate          = `apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -484,6 +485,7 @@ func getTillerManifestsAndSecrets(namespace string, cs kubeclient.Interface,
 		TLSCertFile:                  pkiPaths.serverCertificate,
 		TLSCaCertFile:                pkiPaths.caCertificate,
 		UseCanary:                    false,
+		ImageSpec:                    tillerImageSpec,
 	}
 	tillerDeployment, err := tillerinstall.Deployment(tillerOptions)
 	if err != nil {
