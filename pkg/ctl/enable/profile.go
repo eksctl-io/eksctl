@@ -193,5 +193,8 @@ func repoURLForQuickstart(quickstartArgument string) (string, error) {
 	if quickstartArgument == "app-dev" {
 		return "git@github.com:weaveworks/eks-quickstart-app-dev.git", nil
 	}
+	if quickstartArgument == "appmesh" {
+		return "git@github.com:weaveworks/eks-appmesh-profile.git", nil
+	}
 	return "", fmt.Errorf("invalid URL or unknown Quick Start %s ", quickstartArgument)
 }
