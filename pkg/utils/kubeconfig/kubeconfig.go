@@ -137,7 +137,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
-		return "", errors.Wrapf(err, "enable to read existing kubeconfig file %q", path)
+		return "", errors.Wrapf(err, "unable to read existing kubeconfig file %q", path)
 	}
 
 	logger.Debug("merging kubeconfig files")
@@ -149,7 +149,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 	}
 
 	if err := clientcmd.ModifyConfig(configAccess, *merged, true); err != nil {
-		return "", err
+		return "", errors.Wrapf(err, "unable to modify the write kubeconfig %s", path)
 	}
 
 	return configAccess.GetDefaultFilename(), nil
