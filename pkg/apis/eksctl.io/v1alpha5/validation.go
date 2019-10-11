@@ -156,7 +156,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 
 		if err := validateNodeGroupSSH(ng.SSH); err != nil {
-			return fmt.Errorf("only one ssh public key can be specified per node-group")
+			return err
 		}
 	}
 
