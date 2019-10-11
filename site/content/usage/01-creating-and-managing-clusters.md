@@ -102,4 +102,9 @@ To delete this cluster, run:
 eksctl delete cluster -f cluster.yaml
 ```
 
+> NOTE: without the `--wait` flag, this will only issue a delete operation to the cluster's CloudFormation
+> stack and won't wait for its deletion.
+> In some cases, AWS resources using the cluster or its VPC may cause cluster deletion to fail. To ensure any deletion
+> errors are propagated in `eksctl delete cluster`, the `--wait` flag must be used.
+
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
