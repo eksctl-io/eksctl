@@ -78,7 +78,7 @@ type RawClient struct {
 // RawClientInterface defines high level abstraction for RawClient for testing
 type RawClientInterface interface {
 	ClientSet() Interface
-	NewRawResource(runtime.RawExtension) (*RawResource, error)
+	NewRawResource(runtime.Object) (*RawResource, error)
 }
 
 // RawResource holds info about a resource along with a type-specific raw client instance
@@ -168,19 +168,19 @@ func (c *RawClient) NewHelperFor(gvk schema.GroupVersionKind) (*resource.Helper,
 	return resource.NewHelper(client, mapping), nil
 }
 
-// NewRawResource constructs a type-specific instance or RawClient for rawObj
-func (c *RawClient) NewRawResource(rawObj runtime.RawExtension) (*RawResource, error) {
-	gvk := rawObj.Object.GetObjectKind().GroupVersionKind()
+// NewRawResource constructs a type-specific instance or RawClient for object
+func (c *RawClient) NewRawResource(object runtime.Object) (*RawResource, error) {
+	gvk := object.GetObjectKind().GroupVersionKind()
 
-	obj, ok := rawObj.Object.(metav1.Object)
+	metaObj, ok := object.(metav1.Object)
 	if !ok {
-		return nil, fmt.Errorf("cannot conver object of type %T to metav1.Object", rawObj.Object)
+		return nil, fmt.Errorf("cannot convert object of type %T to metav1.Object", object)
 	}
 
 	info := &resource.Info{
-		Name:      obj.GetName(),
-		Namespace: obj.GetNamespace(),
-		Object:    rawObj.Object,
+		Name:      metaObj.GetName(),
+		Namespace: metaObj.GetNamespace(),
+		Object:    object,
 	}
 
 	helper, err := c.NewHelperFor(gvk)
@@ -213,7 +213,7 @@ func (c *RawClient) CreateOrReplace(manifest []byte, plan bool) error {
 }
 
 func (c *RawClient) createOrReplaceObject(object runtime.RawExtension, plan bool) error {
-	resource, err := c.NewRawResource(object)
+	resource, err := c.NewRawResource(object.Object)
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func (c *RawClient) Delete(manifest []byte) error {
 }
 
 func (c *RawClient) deleteObject(object runtime.RawExtension) error {
-	resource, err := c.NewRawResource(object)
+	resource, err := c.NewRawResource(object.Object)
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (c *RawClient) Exists(manifest []byte) (map[string]map[string]bool, error) 
 	}
 	existence := map[string]map[string]bool{}
 	for _, object := range objects {
-		resource, err := c.NewRawResource(object)
+		resource, err := c.NewRawResource(object.Object)
 		if err != nil {
 			return nil, err
 		}
@@ -305,7 +305,7 @@ func (r *RawResource) LogAction(plan bool, verb string) string {
 
 // CreateOrReplace will check if the given resource exists, and create or update it as needed
 func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
-	exists, _, err := r.exists()
+	_, exists, err := r.Get()
 	if err != nil {
 		return "", errors.Wrap(err, "unexpected non-404 error")
 	}
@@ -348,7 +348,7 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 func (r *RawResource) CreatePatchOrReplace() error {
 	msg := func(verb string) { logger.Info("%s %q", verb, r) }
 
-	exists, oldObj, err := r.exists()
+	oldObj, exists, err := r.Get()
 	if err != nil {
 		return err
 	}
@@ -413,7 +413,7 @@ func (r *RawResource) CreatePatchOrReplace() error {
 // DeleteSync attempts to delete this Kubernetes resource, or returns doing
 // nothing if it does not exist. It blocks until the resource has been deleted.
 func (r *RawResource) DeleteSync() (string, error) {
-	exists, _, err := r.exists()
+	_, exists, err := r.Get()
 	if err != nil {
 		return "", err
 	}
@@ -441,7 +441,7 @@ func (r *RawResource) waitForDeletion() error {
 	waitingTime := maxWaitingTime
 	checkInterval := 1 * time.Second
 	for waitingTime > 0 {
-		exists, _, err := r.exists()
+		_, exists, err := r.Get()
 		if err != nil {
 			return err
 		}
@@ -458,17 +458,18 @@ func (r *RawResource) waitForDeletion() error {
 // Exists checks if this Kubernetes resource exists or not, and returns true if
 // so, or false otherwise.
 func (r *RawResource) Exists() (bool, error) {
-	exists, _, err := r.exists()
+	_, exists, err := r.Get()
 	return exists, err
 }
 
-func (r *RawResource) exists() (bool, runtime.Object, error) {
+// Get returns the Kubernetes resource from the server
+func (r *RawResource) Get() (runtime.Object, bool, error) {
 	obj, err := r.Helper.Get(r.Info.Namespace, r.Info.Name, false)
 	if err != nil {
 		if apierrs.IsNotFound(err) {
-			return false, nil, nil
+			return nil, false, nil
 		}
-		return false, nil, err
+		return nil, false, err
 	}
-	return true, obj, nil
+	return obj, true, nil
 }

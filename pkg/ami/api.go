@@ -14,20 +14,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-const (
-	// ImageFamilyAmazonLinux2 represents Amazon Linux 2 family
-	ImageFamilyAmazonLinux2 = api.NodeImageFamilyAmazonLinux2 // Owner by EKS(depends on aws partition and opt-in region)
-
-	// ImageFamilyUbuntu1804 represents Ubuntu 18.04 family
-	ImageFamilyUbuntu1804 = api.NodeImageFamilyUbuntu1804 // Owner 099720109477
-
-	// ResolverStatic is used to indicate that the static (i.e. compiled into eksctl) AMIs should be used
-	ResolverStatic = api.NodeImageResolverStatic
-	// ResolverAuto is used to indicate that the latest EKS AMIs should be used for the nodes. This implies
-	// that automatic resolution of AMI will occur.
-	ResolverAuto = api.NodeImageResolverAuto
-)
-
 // Variations of image classes
 const (
 	ImageClassGeneral = iota

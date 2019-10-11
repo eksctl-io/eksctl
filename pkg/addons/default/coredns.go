@@ -52,7 +52,7 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 	}
 
 	for _, rawObj := range list.Items {
-		resource, err := rawClient.NewRawResource(rawObj)
+		resource, err := rawClient.NewRawResource(rawObj.Object)
 		if err != nil {
 			return false, err
 		}

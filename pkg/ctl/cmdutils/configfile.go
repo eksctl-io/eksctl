@@ -196,6 +196,8 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 		"vpc-from-kops-cluster",
 	)
 
+	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
+
 	l.validateWithConfigFile = func() error {
 		if l.ClusterConfig.VPC == nil {
 			l.ClusterConfig.VPC = api.NewClusterVPC()
@@ -207,6 +209,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 
 		if !api.IsSetAndNonEmptyString(l.ClusterConfig.VPC.NAT.Gateway) {
 			*l.ClusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
+		}
+
+		if l.ClusterConfig.VPC.ClusterEndpoints == nil {
+			l.ClusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
 		}
 
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
@@ -356,6 +362,20 @@ func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"enable-types",
 		"disable-types",
+	)
+
+	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
+
+	return l
+}
+
+// NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils vpc-cluster-api-access
+func NewUtilsEnableEndpointAccessLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.flagsIncompatibleWithConfigFile.Insert(
+		"private-access",
+		"public-access",
 	)
 
 	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile

@@ -175,6 +175,13 @@
                   "successThreshold": 1,
                   "timeoutSeconds": 5
                 },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 8080,
+                    "scheme": "HTTP"
+                  }
+                },
                 "name": "coredns",
                 "ports": [
                   {

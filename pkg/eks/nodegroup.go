@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -43,6 +44,64 @@ func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 		logger.Info("node %q is %s", node.ObjectMeta.Name, ready)
 	}
 	return counter, nil
+}
+
+// ValidateWindowsCompatibility validates Windows compatibility
+func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersion string) error {
+	if !hasWindowsNode(nodeGroups) {
+		return nil
+	}
+
+	minRequiredVersion, err := semver.ParseTolerant(api.Version1_14)
+	if err != nil {
+		return err
+	}
+	targetVersion, err := semver.ParseTolerant(controlPlaneVersion)
+	if err != nil {
+		return err
+	}
+	if targetVersion.LT(minRequiredVersion) {
+		return errors.New("Windows nodes are only supported on Kubernetes 1.14 and above")
+	}
+	return nil
+
+}
+
+// SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
+func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
+	return hasWindowsNode(nodeGroups) && hasAmazonLinux2Node(nodeGroups)
+}
+
+// hasWindowsNode reports whether there's at least one Windows node in nodeGroups
+func hasWindowsNode(nodeGroups []*api.NodeGroup) bool {
+	for _, ng := range nodeGroups {
+		if ng.IsWindows() {
+			return true
+		}
+	}
+	return false
+}
+
+// hasAmazonLinux2Node reports whether there's at least one Windows node in nodeGroups
+func hasAmazonLinux2Node(nodeGroups []*api.NodeGroup) bool {
+	for _, ng := range nodeGroups {
+		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+			return true
+		}
+	}
+	return false
+}
+
+// LogWindowsCompatibility logs Windows compatibility messages
+func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.ClusterMeta) {
+	if hasWindowsNode(nodeGroups) {
+		if !hasAmazonLinux2Node(nodeGroups) {
+			logger.Warning("a Linux node group is required to support Windows workloads")
+			logger.Warning("add it using 'eksctl create nodegroup --cluster=%s --node-ami-family=%s'", clusterMeta.Name, api.NodeImageFamilyAmazonLinux2)
+		}
+		logger.Warning("Windows VPC resource controller is required to run Windows workloads")
+		logger.Warning("install it using 'eksctl utils install-vpc-controllers --name=%s --region=%s --approve'", clusterMeta.Name, clusterMeta.Region)
+	}
 }
 
 // WaitForNodes waits till the nodes are ready

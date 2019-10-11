@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpc-admission-webhook
+  namespace: kube-system
+  labels:
+    app: vpc-admission-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vpc-admission-webhook
+  template:
+    metadata:
+      labels:
+        app: vpc-admission-webhook
+    spec:
+      containers:
+        - name: vpc-admission-webhook
+          args:
+            - -tlsCertFile=/etc/webhook/certs/cert.pem
+            - -tlsKeyFile=/etc/webhook/certs/key.pem
+            - -OSLabelSelectorOverride=windows
+            - -alsologtostderr
+            - -v=4
+            - 2>&1
+          image: '%s.dkr.ecr.%s.amazonaws.com/eks/vpc-admission-webhook:0.2.1'
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+      hostNetwork: true
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+        beta.kubernetes.io/arch: amd64
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: vpc-admission-webhook-certs

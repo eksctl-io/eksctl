@@ -260,10 +260,10 @@ func (c *ClusterProvider) CheckAuth() error {
 
 // EnsureAMI ensures that the node AMI is set and is available
 func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
-	if ng.AMI == ami.ResolverAuto {
+	if ng.AMI == api.NodeImageResolverAuto {
 		ami.DefaultResolvers = []ami.Resolver{ami.NewAutoResolver(c.Provider.EC2())}
 	}
-	if ng.AMI == ami.ResolverStatic || ng.AMI == ami.ResolverAuto {
+	if ng.AMI == api.NodeImageResolverStatic || ng.AMI == api.NodeImageResolverAuto {
 		instanceType := selectInstanceType(ng)
 		id, err := ami.Resolve(c.Provider.Region(), version, instanceType, ng.AMIFamily)
 		if err != nil {

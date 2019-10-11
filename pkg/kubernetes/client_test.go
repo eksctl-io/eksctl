@@ -105,7 +105,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			rawClient.UseUnionTracker = true
 
 			for _, item := range sampleAddons {
-				rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: item})
+				rc, err := rawClient.NewRawResource(item)
 				Expect(err).ToNot(HaveOccurred())
 				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
@@ -164,7 +164,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			}
 
 			for _, item := range []runtime.Object{saTest1, saTest2a, saTest2b} {
-				rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: item})
+				rc, err := rawClient.NewRawResource(item)
 				Expect(err).ToNot(HaveOccurred())
 				_, err = rc.CreateOrReplace(false)
 				Expect(err).ToNot(HaveOccurred())
@@ -198,7 +198,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			Expect(err).To(HaveOccurred())
 
 			// however deletions of raw resources are trackable
-			rc, err := rawClient.NewRawResource(runtime.RawExtension{Object: saTest1})
+			rc, err := rawClient.NewRawResource(saTest1)
 			_, err = rc.Helper.Delete(rc.Info.Namespace, rc.Info.Name)
 			Expect(err).ToNot(HaveOccurred())
 			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get("test1", metav1.GetOptions{})

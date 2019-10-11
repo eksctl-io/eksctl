@@ -114,7 +114,7 @@ var _ = Describe("eksctl API", func() {
 			err := ctl.EnsureAMI("1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-0c9156d7fcd3c2948"))
+			Expect(ng.AMI).To(Equal("ami-02710837090d86ecc"))
 		})
 		It("should pick a valid AMI for normal instances when AMI is static", func() {
 			ng.AMI = "static"
@@ -123,7 +123,7 @@ var _ = Describe("eksctl API", func() {
 			err := ctl.EnsureAMI("1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-0b520e822d42998c1"))
+			Expect(ng.AMI).To(Equal("ami-0a9b7c77bf7da9837"))
 		})
 		It("should pick a valid AMI for mixed normal instances", func() {
 			ng.AMI = "static"
@@ -135,7 +135,7 @@ var _ = Describe("eksctl API", func() {
 			err := ctl.EnsureAMI("1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-0b520e822d42998c1"))
+			Expect(ng.AMI).To(Equal("ami-0a9b7c77bf7da9837"))
 		})
 		It("should pick a GPU AMI for mixed instances with GPU instance types", func() {
 			ng.AMI = "static"
@@ -147,7 +147,7 @@ var _ = Describe("eksctl API", func() {
 			err := ctl.EnsureAMI("1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-0c9156d7fcd3c2948"))
+			Expect(ng.AMI).To(Equal("ami-02710837090d86ecc"))
 		})
 	})
 })

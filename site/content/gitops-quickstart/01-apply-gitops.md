@@ -246,7 +246,7 @@ Congratulations to your gitopsed cluster on EKS!
 
 `eksctl enable profile` can largely be decomposed into
 
-1. `eksctl install flux`
+1. `eksctl enable repo`
 1. `eksctl generate profile`
 
 So for more complex use cases, you will want to run these steps
@@ -261,19 +261,19 @@ Here we will install [Flux](https://fluxcd.io), the Kubernetes gitops
 operator in your cluster. It will take care of deployments for you.
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl install flux \
+EKSCTL_EXPERIMENTAL=true eksctl enable repo \
     --git-url <git-url> \
     --git-email <email-of-committer> \
     --name <cluster-name>
 ```
 
 Additional options to the command are explained in our docs on
-[`install flux`](/usage/experimental/gitops-flux/).
+[`enable repo`](/usage/experimental/gitops-flux/).
 
 Now we run e.g.:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl install flux \
+EKSCTL_EXPERIMENTAL=true eksctl enable repo \
     --git-url git@github.com:YOURUSER/flux-get-started \
     --git-email your@email.org \
     --name wonderful-wardrobe-1565767990
@@ -324,14 +324,14 @@ podinfo-5f4bd464b4-hkgzt   1/1     Running   0          58m
 ```
 
 Remember that you can further tweak the installation of Flux as
-discussed in our [`install flux` docs](/usage/experimental/gitops-flux/).
+discussed in our [`enable repo` docs](/usage/experimental/gitops-flux/).
 
 ### Handcrafting your configuration
 
 In this second step we will use `eksctl generate profile`, so you can
 easily handcraft your workloads' configuration and maintain it in Git.
 
-During the previous call (`eksctl install flux`), we instructed Flux
+During the previous call (`eksctl enable repo`), we instructed Flux
 to watch a repository and deploy changes to the cluster. This
 repository is where the workloads are defined. Now we will add
 the config of the infrastructure tooling as well.
