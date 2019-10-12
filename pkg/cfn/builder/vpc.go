@@ -93,7 +93,7 @@ func (c *ClusterResourceSet) addResourcesForVPC() error {
 
 	if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
 		c.newResource("AutoAllocatedCIDRv6", &gfn.AWSEC2VPCCidrBlock{
-			VpcId: c.vpc,
+			VpcId:                       c.vpc,
 			AmazonProvidedIpv6CidrBlock: gfn.True(),
 		})
 	}

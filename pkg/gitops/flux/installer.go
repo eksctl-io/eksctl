@@ -317,7 +317,7 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 		manifestValues = append(manifestValues, manifest)
 	}
 	manifests := kubernetes.ConcatManifests(manifestValues...)
-	client.Delete(manifests)
+	_ = client.Delete(manifests)
 	return client.CreateOrReplace(manifests, false)
 }
 

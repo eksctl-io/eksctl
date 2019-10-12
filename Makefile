@@ -77,7 +77,9 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	time "$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
+	#  Install golangci-lint here till the build docker image is updated
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	time "$(GOBIN)/golangci-lint" run
 
 .PHONY: test
 test:
