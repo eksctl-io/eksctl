@@ -34,9 +34,9 @@ img[src$="#inline-ww"] {
 
 #github {
   position: absolute;
-  right: 0px;
-  top: 0px;
-  z-index: -1;
+  right: 10px;
+  top: 10px;
+  z-index: 1;
 }
 
 #github-section {
@@ -45,7 +45,7 @@ img[src$="#inline-ww"] {
 }
 
 // Responsive styles
-@media screen and (max-width: $md-breakpoint + $toc-width) {
+@media screen and (max-width: $md-breakpoint + 16rem) {
   #github-section {
     padding-left: 0px;
     display: block;

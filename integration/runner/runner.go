@@ -46,6 +46,26 @@ func (c Cmd) WithArgs(args ...string) Cmd {
 	return c
 }
 
+// WithoutArg removes an existing argument
+func (c Cmd) WithoutArg(arg, val string) Cmd {
+	var argIdx int
+	var found bool
+	for i, earg := range c.args {
+		if arg == earg {
+			argIdx = i
+			found = true
+		}
+	}
+	if found {
+		endIdx := argIdx + 1
+		if val != "" {
+			endIdx = argIdx + 2
+		}
+		c.args = append(c.args[:argIdx], c.args[endIdx:]...)
+	}
+	return c
+}
+
 // WithEnv returns a copy of the command with new environment variables
 func (c Cmd) WithEnv(env ...string) Cmd {
 	c.env = append(c.env, env...)

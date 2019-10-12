@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 
@@ -56,8 +57,20 @@ func NewList(data []byte) (*metav1.List, error) {
 	}
 }
 
-// AppendFlattened will appaned newItem to list; making sure that raw newItem is decoded
-// and flattended when its another list
+// NewRawExtension decodes the provided manifest into runtime.RawExtension
+func NewRawExtension(manifest []byte) (runtime.RawExtension, error) {
+	list, err := NewList(manifest)
+	if err != nil {
+		return runtime.RawExtension{}, err
+	}
+	if len(list.Items) != 1 {
+		return runtime.RawExtension{}, fmt.Errorf("expected to decode a single item; got %d items", len(list.Items))
+	}
+	return list.Items[0], nil
+}
+
+// AppendFlattened will append newItem to list; making sure that raw newItem is decoded
+// and flattened with another list
 func AppendFlattened(components *metav1.List, component runtime.RawExtension) error {
 	if component.Object != nil {
 		gvk := component.Object.GetObjectKind().GroupVersionKind()

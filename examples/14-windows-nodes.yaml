@@ -1,0 +1,19 @@
+# An example of ClusterConfig containing Windows and Linux node groups to support Windows workloads
+# This example should be run with `eksctl create cluster -f 14-windows-nodes.yaml --install-vpc-controllers`
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-14
+  region: us-west-2
+
+nodeGroups:
+  - name: windows-ng
+    amiFamily: WindowsServer2019FullContainer
+    minSize: 2
+    maxSize: 3
+  - name: linux-ng
+    instanceType: t2.large
+    minSize: 2
+    maxSize: 3

@@ -2,10 +2,12 @@ package eks
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/addons"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -23,8 +25,29 @@ func (t *clusterConfigTask) Do(errs chan error) error {
 	return err
 }
 
+type vpcControllerTask struct {
+	info            string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (v *vpcControllerTask) Describe() string { return v.info }
+
+func (v *vpcControllerTask) Do(errCh chan error) error {
+	defer close(errCh)
+	rawClient, err := v.clusterProvider.NewRawClient(v.spec)
+	if err != nil {
+		return err
+	}
+	vpcController := addons.NewVPCController(rawClient, v.spec.Status, v.clusterProvider.Provider.Region(), false)
+	if err := vpcController.Deploy(); err != nil {
+		return errors.Wrap(err, "error installing VPC controller")
+	}
+	return nil
+}
+
 // AppendExtraClusterConfigTasks returns all tasks for updating cluster configuration or nil if there are no tasks
-func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, tasks *manager.TaskTree) {
+func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool, tasks *manager.TaskTree) {
 	newTasks := &manager.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -42,6 +65,14 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	}
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
+	}
+	c.maybeAppendTasksForEndpointAccessUpdates(cfg, newTasks)
+	if installVPCController {
+		newTasks.Append(&vpcControllerTask{
+			info:            "install Windows VPC controller",
+			spec:            cfg,
+			clusterProvider: c,
+		})
 	}
 	if newTasks.Len() > 0 {
 		tasks.Append(newTasks)
@@ -86,4 +117,24 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 	newTasks := c.NewStackManager(cfg).NewTasksToCreateIAMServiceAccounts(cfg.IAM.ServiceAccounts, eatlyOIDC, clientSet)
 	newTasks.IsSubTask = true
 	tasks.Append(newTasks)
+}
+
+func (c *ClusterProvider) maybeAppendTasksForEndpointAccessUpdates(cfg *api.ClusterConfig, tasks *manager.TaskTree) {
+	// if a cluster config doesn't have the default api endpoint access, append a new task
+	// so that we update the cluster with the new access configuration.  This is a
+	// non-CloudFormation context, so we create a task to send it through the EKS API.
+	// A caveat is that sending the default endpoint parameters for a cluster as an update will
+	// return an error from the EKS API, so we must check for this before sending the request.
+	if cfg.HasClusterEndpointAccess() && api.EndpointsEqual(*cfg.VPC.ClusterEndpoints, *api.ClusterEndpointAccessDefaults()) {
+		// No tasks to append here as there's no updates to make.
+		logger.Info(cfg.DefaultEndpointsMsg())
+	} else {
+		logger.Info(cfg.CustomEndpointsMsg())
+
+		tasks.Append(&clusterConfigTask{
+			info: "update cluster VPC endpoint access configuration",
+			spec: cfg,
+			call: c.UpdateClusterConfigForEndpoints,
+		})
+	}
 }

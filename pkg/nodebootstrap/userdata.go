@@ -10,7 +10,6 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -70,7 +69,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
 	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
 	authenticator := kubeconfig.AWSIAMAuthenticator
-	if ng.AMIFamily == ami.ImageFamilyUbuntu1804 {
+	if ng.AMIFamily == api.NodeImageFamilyUbuntu1804 {
 		authenticator = kubeconfig.HeptioAuthenticatorAWS
 	}
 	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator, "", "")
@@ -130,15 +129,15 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 	return data, nil
 }
 
-func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
-	kvs := func(kv map[string]string) string {
-		var params []string
-		for k, v := range kv {
-			params = append(params, fmt.Sprintf("%s=%s", k, v))
-		}
-		return strings.Join(params, ",")
+func kvs(kv map[string]string) string {
+	var params []string
+	for k, v := range kv {
+		params = append(params, fmt.Sprintf("%s=%s", k, v))
 	}
+	return strings.Join(params, ",")
+}
 
+func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
 	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
 		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),
@@ -170,10 +169,12 @@ func makeMaxPodsMapping() string {
 // NewUserData creates new user data for a given node image family
 func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	switch ng.AMIFamily {
-	case ami.ImageFamilyAmazonLinux2:
+	case api.NodeImageFamilyAmazonLinux2:
 		return NewUserDataForAmazonLinux2(spec, ng)
-	case ami.ImageFamilyUbuntu1804:
+	case api.NodeImageFamilyUbuntu1804:
 		return NewUserDataForUbuntu1804(spec, ng)
+	case api.NodeImageFamilyWindowsServer2019FullContainer, api.NodeImageFamilyWindowsServer2019CoreContainer:
+		return newUserDataForWindows(spec, ng)
 	default:
 		return "", nil
 	}

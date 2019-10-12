@@ -54,6 +54,14 @@ ClusterConfig:
   - TypeMeta
   - metadata
   type: object
+ClusterEndpoints:
+  additionalProperties: false
+  properties:
+    privateAccess:
+      type: boolean
+    publicAccess:
+      type: boolean
+  type: object
 ClusterIAM:
   additionalProperties: false
   properties:
@@ -153,6 +161,9 @@ ClusterVPC:
       $schema: http://json-schema.org/draft-04/schema#
     autoAllocateIPv6:
       type: boolean
+    clusterEndpoints:
+      $ref: '#/definitions/ClusterEndpoints'
+      $schema: http://json-schema.org/draft-04/schema#
     extraCIDRs:
       items:
         $ref: '#/definitions/IPNet'

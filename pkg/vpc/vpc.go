@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	awseks "github.com/aws/aws-sdk-go/service/eks"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -73,11 +74,11 @@ func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.
 	return output.Subnets, nil
 }
 
-func describe(povider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
+func describe(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []*string{aws.String(vpcID)},
 	}
-	output, err := povider.EC2().DescribeVpcs(input)
+	output, err := provider.EC2().DescribeVpcs(input)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +96,12 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 	// this call is authoritative, and we can safely override the
 	// CIDR, as it can only be set to anything due to defaulting
 	spec.VPC.CIDR = nil
+
+	// Cluster Endpoint Access isn't part of the EKS CloudFormation Cluster stack at this point
+	// Retrieve the current confiugration via the SDK
+	if err := UseEndpointAccessFromCluster(provider, spec); err != nil {
+		return err
+	}
 
 	requiredCollectors := map[string]outputs.Collector{
 		outputs.ClusterVPC: func(v string) error {
@@ -173,7 +180,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 			Gateway: &disable,
 		}
 
-		// ensure VPC gets imported and validated firt, if it's already set
+		// ensure VPC gets imported and validated first, if it's already set
 		if err := Import(provider, spec, spec.VPC.ID); err != nil {
 			return err
 		}
@@ -218,7 +225,7 @@ func ImportSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig
 // there is a mismatch of local vs remote states
 func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	if spec.VPC.ID != "" {
-		// ensure VPC gets imported and validated firt, if it's already set
+		// ensure VPC gets imported and validated first, if it's already set
 		if err := Import(provider, spec, spec.VPC.ID); err != nil {
 			return err
 		}
@@ -230,5 +237,23 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 		return err
 	}
 
+	return nil
+}
+
+//UseEndpointAccessFromCluster retrieves the Cluster's endpoint access configuration via the SDK
+// as the CloudFormation Stack doesn't support that configuration currently
+func UseEndpointAccessFromCluster(provider api.ClusterProvider, spec *api.ClusterConfig) error {
+	input := &awseks.DescribeClusterInput{
+		Name: &spec.Metadata.Name,
+	}
+	output, err := provider.EKS().DescribeCluster(input)
+	if err != nil {
+		return err
+	}
+	if spec.VPC.ClusterEndpoints == nil {
+		spec.VPC.ClusterEndpoints = &api.ClusterEndpoints{}
+	}
+	spec.VPC.ClusterEndpoints.PublicAccess = output.Cluster.ResourcesVpcConfig.EndpointPublicAccess
+	spec.VPC.ClusterEndpoints.PrivateAccess = output.Cluster.ResourcesVpcConfig.EndpointPrivateAccess
 	return nil
 }

@@ -74,7 +74,7 @@ func (t *TaskTree) Describe() string {
 	return msg
 }
 
-// Do will run through the set in the backround, it may return an error immediately,
+// Do will run through the set in the background, it may return an error immediately,
 // or eventually write to the errs channel; it will close the channel once all tasks
 // are completed
 func (t *TaskTree) Do(allErrs chan error) error {

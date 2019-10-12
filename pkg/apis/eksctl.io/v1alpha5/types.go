@@ -68,6 +68,9 @@ const (
 	// RegionMESouth1 represents the Middle East Region Bahrain
 	RegionMESouth1 = "me-south-1"
 
+	// RegionSAEast1 represents the South America Region Sao Paulo
+	RegionSAEast1 = "sa-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -113,6 +116,13 @@ const (
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
 	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
+
+	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
+	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
+
+	// NodeImageFamilyWindowsServer2019FullContainer represents Windows 2019 full container family
+	NodeImageFamilyWindowsServer2019FullContainer = "WindowsServer2019FullContainer"
+
 	// NodeImageResolverStatic represents static AMI resolver (see ami package)
 	NodeImageResolverStatic = "static"
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
@@ -218,6 +228,7 @@ func SupportedRegions() []string {
 		RegionAPSouth1,
 		RegionAPEast1,
 		RegionMESouth1,
+		RegionSAEast1,
 	}
 }
 
@@ -390,6 +401,7 @@ func NewClusterVPC() *ClusterVPC {
 		},
 		NAT:              DefaultClusterNAT(),
 		AutoAllocateIPv6: Disabled(),
+		ClusterEndpoints: ClusterEndpointAccessDefaults(),
 	}
 }
 
@@ -533,6 +545,11 @@ func (n *NodeGroup) ListOptions() metav1.ListOptions {
 // NameString returns common name string
 func (n *NodeGroup) NameString() string {
 	return n.Name
+}
+
+// IsWindows reports whether the AMI family is for Windows
+func (n *NodeGroup) IsWindows() bool {
+	return n.AMIFamily == NodeImageFamilyWindowsServer2019CoreContainer || n.AMIFamily == NodeImageFamilyWindowsServer2019FullContainer
 }
 
 type (
