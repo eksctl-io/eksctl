@@ -1,6 +1,7 @@
 #!/bin/sh -eux
 
-# Make sure to bump the version of EKSCTL_DEPENDENCIES_IMAGE if you make any changes here
+# Make sure to run the following commands after changes to this file are made:
+# `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 
 if [ -z "${GOBIN+x}" ]; then
  GOBIN="$(go env GOPATH)/bin"
@@ -14,10 +15,17 @@ fi
 
 env CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo
 
-go install github.com/kevinburke/go-bindata/go-bindata
-go install github.com/vektra/mockery/cmd/mockery
-go install github.com/weaveworks/github-release
-go install golang.org/x/tools/cmd/stringer
+go install \
+  github.com/goreleaser/goreleaser \
+  github.com/kevinburke/go-bindata/go-bindata \
+  github.com/vektra/mockery/cmd/mockery \
+  github.com/weaveworks/github-release \
+  golang.org/x/tools/cmd/stringer \
+  k8s.io/code-generator/cmd/client-gen \
+  k8s.io/code-generator/cmd/deepcopy-gen \
+  k8s.io/code-generator/cmd/defaulter-gen \
+  k8s.io/code-generator/cmd/informer-gen \
+  k8s.io/code-generator/cmd/lister-gen
 
 # TODO: metalinter is archived, we should switch to github.com/golangci/golangci-lint
 # Install metalinter

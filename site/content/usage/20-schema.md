@@ -326,7 +326,6 @@ NodeGroup:
   - volumeSize
   - volumeType
   - volumeIOPS
-  - ssh
   - iam
   type: object
 NodeGroupIAM:

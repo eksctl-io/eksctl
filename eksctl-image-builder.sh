@@ -1,9 +1,9 @@
 #!/bin/sh -eux
 
-export JUNIT_REPORT_DIR=/src/test-results/ginkgo
+export JUNIT_REPORT_DIR="${JUNIT_REPORT_DIR:-/src/test-results/ginkgo}"
 mkdir -p "${JUNIT_REPORT_DIR}"
 
-make $TEST_TARGET
+make test
 make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 make build-integration-test \

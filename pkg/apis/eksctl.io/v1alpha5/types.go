@@ -517,7 +517,8 @@ type NodeGroup struct {
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
-	SSH *NodeGroupSSH `json:"ssh"`
+	// +optional
+	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
