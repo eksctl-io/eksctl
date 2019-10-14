@@ -385,7 +385,7 @@ Once that is done, Flux will pick up the changes in the repository with the Quic
 
 
 ```
-$ kube get pods --all-namespaces
+$ kubectl get pods --all-namespaces
 NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
 amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0           4m28s
 amazon-cloudwatch      fluentd-cloudwatch-4rwwr                                  1/1     Running                      0           4m28s
