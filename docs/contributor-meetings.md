@@ -2,8 +2,18 @@
 
 ## Weekly meetings
 
-- 08:00 - 09:00 UTC (Europe & Asia)
-- _TBC_ (Americas & Europe)
+- 1st/3rd Wednesday of the month: 09:00-09:30 UK time
+- 2nd/4th Wednesday of the month: 16:00-16:30 UK time
+
+### Meeting notes & agenda moved
+
+To make it easier for the whole team to take notes, we moved the
+[meeting notes](https://docs.google.com/document/d/1wHfEw7PAUDIFKuqEr7OwkpjgUUYlIDBHFj3I323vLUA/edit).
+
+Please join our [Google
+group](https://groups.google.com/forum/#!forum/eksctl)
+to get write access to the doc and/or the meeting invite into
+your calendar.
 
 ### 06/02/2019
 
