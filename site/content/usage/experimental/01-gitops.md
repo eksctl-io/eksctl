@@ -237,7 +237,7 @@ This command will clone the specified repository in your current working directo
 Example:
 
 ```
-$ EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes --output-path=/tmp/gitops-repos/  app-dev
+$ EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes app-dev
 [ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
 [ℹ]    this may take up to a minute, please be patient
 [!]  Public key infrastructure files were written into directory "/tmp/eksctl-helm-pki786744152"
@@ -325,7 +325,7 @@ Resolving deltas: 100% (37/37), done.
 [ℹ]  cloning repository "git@github.com:weaveworks/eks-quickstart-app-dev.git":master
 Cloning into '/tmp/quickstart-365477450'...
 remote: Enumerating objects: 127, done.
-remote: Counting objects: 100% (127/127), done.                                         
+remote: Counting objects: 100% (127/127), done.
 remote: Compressing objects: 100% (95/95), done.
 remote: Total 127 (delta 53), reused 92 (delta 30), pack-reused 0
 Receiving objects: 100% (127/127), 30.20 KiB | 351.00 KiB/s, done.
@@ -382,10 +382,10 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAdDG4LAEiEOTbT3XVL5sYf0Hy7T30PG2sFReIwryl
 needs to be added as a deploy key to the chosen Github repository, in this case `github.com:myorg/production-kubernetes`.
 Once that is done, Flux will pick up the changes in the repository with the Quick Start components and deploy them to the
  cluster. After a couple of minutes the pods should appear in the cluster:
- 
+
 
 ```
-$ kube get pods --all-namespaces 
+$ kube get pods --all-namespaces
 NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
 amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0           4m28s
 amazon-cloudwatch      fluentd-cloudwatch-4rwwr                                  1/1     Running                      0           4m28s
@@ -495,10 +495,10 @@ git push origin master
 Now that the templates are in the remote repository, the Quick Start is ready to be used with `eksctl enable profile`:
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster team1 --region eu-west-1 --git-url git@github.com:my-org/team1-cluster --git-email alice@my-org.com git@github.com:my-org/production-infra 
+EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster team1 --region eu-west-1 --git-url git@github.com:my-org/team1-cluster --git-email alice@my-org.com git@github.com:my-org/production-infra
 ```
 
-In this example we provide `github.com:my-org/production-infra` as the Quick Start profile and 
+In this example we provide `github.com:my-org/production-infra` as the Quick Start profile and
 `github.com:my-org/team1-cluster` as the gitops repository that is connected to the Flux instance in the cluster named
 `cluster1`.
 
