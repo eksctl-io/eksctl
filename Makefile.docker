@@ -1,0 +1,75 @@
+include Makefile.common
+
+build_image_input := Dockerfile install-build-deps.sh go.mod go.sum
+
+# We use git object hashes for determining the input files used for any given build image
+# E.g. given `weaveworks/eksctl-build:e6e8800773d3adf8e7999a23dcdb07414c66a4da` one can
+# run `git show e6e8800773d3adf8e7999a23dcdb07414c66a4da` to get contents of `.build_image_manifest`,
+# and `git show <hash>` for each of the hashes in the manifest to determine contents of each of the
+# files used in `$(build_image_input)` at the time.
+build_image_tag = $(shell git ls-tree --full-tree @ -- .build_image_manifest | awk '{ print $$3 }')
+
+build_image_name = weaveworks/eksctl-build:$(build_image_tag)
+
+intermidiate_container_name = eksctl-build-$(unique_tag)
+
+docker_build := time docker build
+# We should eventually switch to buildkit, as it has a many feature and cleaner output with timing info,
+# but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
+# docker_build := env DOCKER_BUILDKIT=1 $(docker_build)
+
+update_build_image_manifest = git ls-tree --full-tree @ -- $(build_image_input) > .build_image_manifest
+
+.PHONY: check-build-image-manifest-up-to-date
+check-build-image-manifest-up-to-date: ## Update build image manifest and commits the changes
+	git diff --quiet -- $(build_image_input) || (git --no-pager diff $(build_image_input); exit 1)
+	$(update_build_image_manifest)
+	git diff --quiet -- .build_image_manifest || (git --no-pager diff .build_image_manifest; echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-manifest'"; exit 1)
+
+.PHONY: update-build-image-manifest
+update-build-image-manifest: ## Update build image manifest and commits the changes
+	$(update_build_image_manifest)
+	@# There is no portable way of using sed -i on BSD and GNU, so we use temporary files instead
+	for i in .github/workflows/commit.yaml .circleci/config.yml ; do \
+	  sed "s|\(weaveworks/eksctl-build\):.*$$|\1:$(build_image_tag)|" "$${i}" > "$${i}.sedtmp" && mv "$${i}.sedtmp" "$${i}" ; \
+	done
+	git commit --quiet .build_image_manifest .github/workflows/commit.yaml .circleci/config.yml --message 'Update build image'
+	$(info build image name is $(build_image_name))
+
+.PHONY: build-image
+build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
+	-docker pull $(build_image_name)
+	rm -rf .build_image_context
+	mkdir .build_image_context
+	cp $(build_image_input) .build_image_context/
+	@# git only ensures owner's perssions are set, it ignores group and other's permissions,
+	@# we need to force permissions here to avoid cache misses
+	chmod go-wrx .build_image_context/*
+	$(docker_build) \
+	  --iidfile=.build_image.iid \
+	  --cache-from=$(build_image_name) \
+	  --tag=$(build_image_name) \
+	  .build_image_context/
+
+.PHONY: push-build-image
+push-build-image: build-image ## Push the build image to the registry
+	docker push $(build_image_name)
+
+.PHONY: intermediate-image
+intermediate-image: build-image ## Build the intermediate image that has all artefacts
+	time docker run \
+	  --tty \
+	  --name=$(intermidiate_container_name) \
+	  --volume=$(git_toplevel):/src \
+	    $(build_image_name) /src/eksctl-image-builder.sh \
+	  || (docker rm $(intermidiate_container_name) ; exit 1)
+	time docker commit $(intermidiate_container_name) $(intermediate_image_name) \
+	  && docker rm $(intermidiate_container_name)
+
+.PHONY: eksctl-image
+eksctl-image: intermediate-image ## Build the eksctl image that has release artefacts and no build dependencies
+	printf 'FROM scratch\nCMD eksctl\nCOPY --from=%s /out /' $(intermediate_image_name) \
+	  | $(docker_build) \
+	      --iidfile=.eksctl_image.iid \
+	      --tag="$(eksctl_image_name)" -
+

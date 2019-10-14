@@ -1,14 +1,11 @@
-built_at := $(shell date +%s)
-git_commit := $(shell git describe --dirty --always)
-git_toplevel := $(shell git rev-parse --show-toplevel)
+include Makefile.common
+
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
-# The dependencies version should be bumped every time the build dependencies are updated
-EKSCTL_DEPENDENCIES_IMAGE ?= weaveworks/eksctl-build:deps-0.17
-EKSCTL_BUILDER_IMAGE ?= weaveworks/eksctl-builder:latest
-EKSCTL_IMAGE ?= weaveworks/eksctl:latest
+gopath := $(shell go env GOPATH)
+gocache := $(shell go env GOCACHE)
 
-GOBIN ?= $(shell echo `go env GOPATH`/bin)
+GOBIN ?= $(gopath)/bin
 
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
@@ -102,7 +99,7 @@ integration-test-container-pre-built: ## Run the integration tests inside a Dock
 	  --volume=$(HOME)/.aws:/root/.aws \
 	  --volume=$(HOME)/.ssh:/root/.ssh \
 	  --workdir=/usr/local/share/eksctl \
-	    $(EKSCTL_IMAGE) \
+	    $(eksctl_image_name) \
 		  eksctl-integration-test \
 		    -eksctl.path=/usr/local/bin/eksctl \
 			-eksctl.kubeconfig=/tmp/kubeconfig \
@@ -136,7 +133,7 @@ generate-all: $(all_generated_files) # generate-ami ## Re-generate all the autom
 
 .PHONY: check-all-generated-files-up-to-date
 check-all-generated-files-up-to-date: generate-all
-	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); exit 1)
+	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
 pkg/addons/default/assets.go: pkg/addons/default/assets/*
 	env GOBIN=$(GOBIN) time go generate ./$(@D)
@@ -155,12 +152,11 @@ pkg/nodebootstrap/maxpods.go:
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-deep_copy_helper_input := $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
+deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
-	time go mod download k8s.io/code-generator # make sure the code-generator is present
-	time env GOPATH="$$(go env GOPATH)" bash "$$(go env GOPATH)/pkg/mod/k8s.io/code-generator@v0.0.0-20190808180452-d0071a119380/generate-groups.sh" \
+	time env GOPATH="$(gopath)" bash "$(gopath)/pkg/mod/k8s.io/code-generator@v0.0.0-20190831074504-732c9ca86353/generate-groups.sh" \
 	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$(git_toplevel)" \
-	  || (cat codegenheader.txt ; cat $(generated_code_deep_copy_helper); exit 1)
+	  || (cat .license-header ; cat $(generated_code_deep_copy_helper); exit 1)
 
 # static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
 # so we need to forcibly generate it
@@ -174,34 +170,14 @@ site/content/usage/20-schema.md: $(call godeps,cmd/schema/generate.go)
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$$(go env GOPATH)/pkg/mod/github.com/aws/aws-sdk-go@v1.23.15" vendor/github.com/aws/aws-sdk-go
+	ln -sfn "$(gopath)/pkg/mod/github.com/aws/aws-sdk-go@v1.23.15" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
 ##@ Docker
 
-ifeq ($(OS),Windows_NT)
-TEST_TARGET=unit-test
-else
-TEST_TARGET=test
-endif
-
-.PHONY: eksctl-deps-image
-eksctl-deps-image: ## Create a cache image with dependencies
-	-time docker pull $(EKSCTL_DEPENDENCIES_IMAGE)
-	@# Pin dependency file permissions.
-	@# Docker uses the file permissions as part of the COPY hash, which can lead to cache misses
-	@# in hosts with different default file permissions (umask).
-	chmod 0700 install-build-deps.sh
-	chmod 0600 go.mod go.sum
-	time docker build --cache-from=$(EKSCTL_DEPENDENCIES_IMAGE) --tag=$(EKSCTL_DEPENDENCIES_IMAGE) -f Dockerfile.deps .
-
 .PHONY: eksctl-image
-eksctl-image: eksctl-deps-image## Create the eksctl image
-	time docker run -t --name eksctl-builder -e TEST_TARGET=$(TEST_TARGET) \
-	  -v "$(git_toplevel)":/src -v "$$(go env GOCACHE):/root/.cache/go-build" -v "$$(go env GOPATH)/pkg/mod:/go/pkg/mod" \
-          $(EKSCTL_DEPENDENCIES_IMAGE) /src/eksctl-image-builder.sh || ( docker rm eksctl-builder; exit 1 )
-	time docker commit eksctl-builder $(EKSCTL_BUILDER_IMAGE) && docker rm eksctl-builder
-	docker build --tag $(EKSCTL_IMAGE) .
+eksctl-image: intermediate-image ## Build the eksctl image that has release artefacts and no build dependencies
+	$(MAKE) -f Makefile.docker $@
 
 ##@ Release
 
@@ -209,9 +185,9 @@ docker_run_release_script = docker run \
   --env=GITHUB_TOKEN \
   --env=CIRCLE_TAG \
   --env=CIRCLE_PROJECT_USERNAME \
-  --volume=$(CURDIR):/src \
+  --volume=$(git_toplevel):/src \
   --workdir=/src \
-    $(EKSCTL_BUILDER_IMAGE)
+    $(intermediate_image_name)
 
 .PHONY: release-candidate
 release-candidate: eksctl-image ## Create a new eksctl release candidate
@@ -238,4 +214,8 @@ build-pages: ## Generate the site
 
 .PHONY: help
 help:  ## Display this help. Thanks to https://suva.sh/posts/well-documented-makefiles/
-	@awk 'BEGIN {FS = ":.*##"; printf "Usage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+ifeq ($(OS),Windows_NT)
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make <target>\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-40s %s\n", $$1, $$2 } /^##@/ { printf "\n%s\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+else
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+endif

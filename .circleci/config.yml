@@ -1,122 +1,77 @@
 version: 2
 jobs:
-  make-eksctl-image:
-    # use machine build, as otherwise we cannot use make and have to duplicate makefile
+  test-and-build:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-        GO_VERSION: 1.12.6
-        GOCACHE: /home/circleci/.cache/go-build/
-        GOPATH: /home/circleci/go
+      BUILD_IMAGE: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     steps:
       - checkout
-      - restore_cache:
-            keys:
-                - go-cache-{{ .Branch }}-{{ .Revision }}
-                - go-cache-{{ .Branch }}-
-                - go-cache-
+      # enabling docker executor will require to use large resource class, which
+      # implies extra cost - we don't really have to do that, we can just run the
+      # image this way
+      - run: docker pull $BUILD_IMAGE
       - run:
-            name: Install Golang (needed for dependency calculation)
-            command: |
-                curl -OL https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
-                tar -xf go${GO_VERSION}.linux-amd64.tar.gz
-                sudo rm -rf /usr/local/go
-                sudo mv go /usr/local
-                mkdir -p "$HOME/go/bin"
-                go version
-      - run: mkdir -p ./test-results/ginkgo
-      - run: make eksctl-image
-      - run: sudo chown -R circleci.circleci /home/circleci/.cache/go-build/ /home/circleci/go/pkg/mod/
-      - save_cache:
-            key: go-cache-{{ .Branch }}-{{ .Revision }}
-            paths:
-                - "/home/circleci/.cache/go-build/"
-                - "/home/circleci/go/pkg/mod/"
+          name: Test & Build
+          command: |
+            docker run \
+              --env=JUNIT_REPORT_DIR=/src/test-results \
+              --volume=$(pwd):/src \
+                $BUILD_IMAGE make test build
       - store_test_results:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
-  make-release-candidate:
+  release-candidate:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-        GO_VERSION: 1.12.6
-        GOCACHE: /home/circleci/.cache/go-build/
-        GOPATH: /home/circleci/go
+      BUILD_IMAGE: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     steps:
       - checkout
-      - restore_cache:
-            keys:
-                - go-cache-{{ .Branch }}-{{ .Revision }}
-                - go-cache-{{ .Branch }}-
-                - go-cache-
+      - run: docker pull $BUILD_IMAGE
       - run:
-            name: Install Golang (needed for dependency calculation)
-            command: |
-                curl -OL https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
-                tar -xf go${GO_VERSION}.linux-amd64.tar.gz
-                sudo rm -rf /usr/local/go
-                sudo mv go /usr/local
-                mkdir -p "$HOME/go/bin"
-                go version
-      - run:
-            name: Create release candidate binaries for all plaforms and upload to GitHub
-            command: make release-candidate
-            no_output_timeout: 21m
-
-  make-release:
+          name: Create release candidate binaries for all plaforms and upload to GitHub
+          command: make release-candidate
+          no_output_timeout: 21m
+  release:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-        GO_VERSION: 1.12.6
-        GOCACHE: /home/circleci/.cache/go-build/
-        GOPATH: /home/circleci/go
+      BUILD_IMAGE: weaveworks/eksctl-build:19ff80e010d2fdb7be3c44fc6491e13395a682ad
     steps:
       - checkout
-      - restore_cache:
-            keys:
-                - go-cache-{{ .Branch }}-{{ .Revision }}
-                - go-cache-{{ .Branch }}-
-                - go-cache-
+      - run: docker pull $BUILD_IMAGE
       - run:
-            name: Install Golang (needed for dependency calculation)
-            command: |
-                curl -OL https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
-                tar -xf go${GO_VERSION}.linux-amd64.tar.gz
-                sudo rm -rf /usr/local/go
-                sudo mv go /usr/local
-                mkdir -p "$HOME/go/bin"
-                go version
-      - run:
-            name: Create release binaries for all plaforms and upload to GitHub
-            command: make release
-            no_output_timeout: 21m
+          name: Create release binaries for all plaforms and upload to GitHub
+          command: make release
+          no_output_timeout: 21m
 
 workflows:
   version: 2
   any-commit:
     jobs:
-      - make-eksctl-image:
+      - test-and-build:
           filters:
             tags:
               ignore: /.*/
   release:
     jobs:
-      - make-eksctl-image:
+      - test-and-build:
           filters:
             branches:
               ignore: /.*/
             tags:
               ignore: /^latest_release$/
-      - make-release-candidate:
-          requires: [make-eksctl-image]
+      - release-candidate:
+          requires: [test-and-build]
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
-      - make-release:
-          requires: [make-eksctl-image]
+      - release:
+          requires: [test-and-build]
           filters:
             branches:
               ignore: /.*/
