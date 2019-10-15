@@ -78,8 +78,3 @@ func (r *AutoResolver) Resolve(region, version, instanceType, imageFamily string
 
 	return id, nil
 }
-
-// NewAutoResolver creates a new AutoResolver
-func NewAutoResolver(api ec2iface.EC2API) *AutoResolver {
-	return &AutoResolver{api: api}
-}

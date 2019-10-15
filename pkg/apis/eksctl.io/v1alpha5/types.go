@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -11,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -127,6 +129,9 @@ const (
 	NodeImageResolverStatic = "static"
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
+	// NodeImageResolverAutoSSM is used to indicate that the latest EKS AMIs should be used for the nodes. The AMI is selected
+	// using an SSM GetParameter query
+	NodeImageResolverAutoSSM = "auto-ssm"
 
 	// ClusterNameTag defines the tag of the cluster name
 	ClusterNameTag = "alpha.eksctl.io/cluster-name"
@@ -311,6 +316,7 @@ type ClusterProvider interface {
 	ELB() elbiface.ELBAPI
 	ELBV2() elbv2iface.ELBV2API
 	STS() stsiface.STSAPI
+	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
 	Region() string
@@ -551,11 +557,6 @@ func (n *NodeGroup) NameString() string {
 	return n.Name
 }
 
-// IsWindows reports whether the AMI family is for Windows
-func (n *NodeGroup) IsWindows() bool {
-	return n.AMIFamily == NodeImageFamilyWindowsServer2019CoreContainer || n.AMIFamily == NodeImageFamilyWindowsServer2019FullContainer
-}
-
 type (
 	// NodeGroupSGs holds all SG attributes of a NodeGroup
 	NodeGroupSGs struct {
@@ -694,4 +695,9 @@ func (in *InlineDocument) DeepCopy() *InlineDocument {
 // HasMixedInstances checks if a nodegroup has mixed instances option declared
 func HasMixedInstances(ng *NodeGroup) bool {
 	return ng.InstancesDistribution != nil && ng.InstancesDistribution.InstanceTypes != nil && len(ng.InstancesDistribution.InstanceTypes) != 0
+}
+
+// IsAMI returns true if the argument is an AMI id
+func IsAMI(amiFlag string) bool {
+	return strings.HasPrefix(amiFlag, "ami-")
 }

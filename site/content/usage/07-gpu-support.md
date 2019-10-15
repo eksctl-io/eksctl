@@ -14,7 +14,7 @@ After subscribing to the AMI you can create a cluster specifying the GPU instanc
 eksctl create cluster --node-type=p2.xlarge
 ```
 
-The AMI resolvers (both static and auto) will see that you want to use a GPU instance type (p2 or p3 only) and they will select the correct AMI.
+The AMI resolvers (`static`, `auto` and `auto-ssm`) will see that you want to use a GPU instance type (p2 or p3 only) and they will select the correct AMI.
 
 Once the cluster is created you will need to install the [NVIDIA Kubernetes device plugin](https://github.com/NVIDIA/k8s-device-plugin). Check the repo for the most up to date instructions but you should be able to run this:
 
