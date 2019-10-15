@@ -25,7 +25,7 @@ func fmtDeprecatedStacksRegexForCluster(name string) string {
 
 // DeleteTasksForDeprecatedStacks all deprecated stacks
 func (c *StackCollection) DeleteTasksForDeprecatedStacks() (*TaskTree, error) {
-	stacks, err := c.ListStacks(fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
+	stacks, err := c.listStacks(fmtDeprecatedStacksRegexForCluster(c.spec.Metadata.Name))
 	if err != nil {
 		return nil, errors.Wrapf(err, "describing deprecated CloudFormation stacks for %q", c.spec.Metadata.Name)
 	}
