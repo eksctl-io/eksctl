@@ -352,6 +352,9 @@ type ClusterConfig struct {
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
 
 	Status *ClusterStatus `json:"status,omitempty"`
+
+	// +optional
+	Git *Git `json:"git,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -628,6 +631,52 @@ type (
 		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
 	}
 )
+
+// Git groups all configuration options related to enabling GitOps on a
+// cluster and linking it to a Git repository.
+type Git struct {
+	Repo *Repo `json:"repo,omitempty"`
+	// +optional
+	Operator *Operator `json:"operator,omitempty"`
+	// +optional
+	Profiles []*Profile `json:"profiles,omitempty"` // one or many profiles to enable on this cluster
+}
+
+// Repo groups all configuration options related to a Git repository used for
+// GitOps.
+type Repo struct {
+	URL string `json:"url,omitempty"` // the Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// +optional
+	Branch string `json:"branch,omitempty"` // the branch under which cluster configuration files will be committed & pushed, e.g. master
+	// +optional
+	Paths []string `json:"paths,omitempty"` // relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	// +optional
+	FluxPath string `json:"fluxPath,omitempty"` // the directory under which Flux configuration files will be written, e.g. flux/
+	// +optional
+	User  string `json:"user,omitempty"`  // Git user which will be used to commit changes
+	Email string `json:"email,omitempty"` // Git email which will be used to commit changes
+	// +optional
+	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"` // path to the private SSH key to use to authenticate
+}
+
+// Operator groups all configuration options related to the operator used to
+// keep the cluster and the Git repository in sync.
+type Operator struct {
+	// +optional
+	Label string `json:"label,omitempty"` // e.g. flux
+	// +optional
+	Namespace string `json:"namespace,omitempty"` // e.g. flux
+	// +optional
+	WithHelm bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+}
+
+// Profile groups all details on a quickstart profile to enable on the cluster
+// and add to the Git repository.
+type Profile struct {
+	Source string `json:"source,omitempty"` // e.g. app-dev
+	// +optional
+	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+}
 
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies
 type InlineDocument map[string]interface{}
