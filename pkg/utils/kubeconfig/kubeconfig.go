@@ -149,7 +149,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 	}
 
 	if err := clientcmd.ModifyConfig(configAccess, *merged, true); err != nil {
-		return "", errors.Wrapf(err, "unable to modify the write kubeconfig %s", path)
+		return "", errors.Wrapf(err, "unable to modify kubeconfig %s", path)
 	}
 
 	return configAccess.GetDefaultFilename(), nil
