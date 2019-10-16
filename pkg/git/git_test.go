@@ -148,6 +148,25 @@ var _ = Describe("git", func() {
 		})
 	})
 
+	Describe("ValidateURL", func() {
+		It("returns an error on empty Git URL", func() {
+			Expect(git.ValidateURL("")).To(MatchError("empty Git URL"))
+		})
+
+		It("returns an error on invalid Git URL", func() {
+			Expect(git.ValidateURL("https://")).To(MatchError("invalid Git URL"))
+		})
+
+		It("returns an error on HTTPS Git URL", func() {
+			Expect(git.ValidateURL("https://github.com/eksctl-bot/my-gitops-repo.git")).
+				To(MatchError("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs"))
+		})
+
+		It("succeeds when a SSH Git URL is provided", func() {
+			Expect(git.ValidateURL("git@github.com:eksctl-bot/my-gitops-repo.git")).NotTo(HaveOccurred())
+		})
+	})
+
 	Describe("Options", func() {
 		Describe("ValidateURL", func() {
 			It("returns an error on empty Git URL", func() {

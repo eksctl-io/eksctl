@@ -42,21 +42,7 @@ type Options struct {
 // ValidateURL validates the URL field of this Options object, returning an
 // error should the current value not be valid.
 func (o Options) ValidateURL() error {
-	if o.URL == "" {
-		return errors.New("empty Git URL")
-	}
-	if !IsGitURL(o.URL) {
-		return errors.New("invalid Git URL")
-	}
-	if !o.isSSHURL() {
-		return errors.New("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs")
-	}
-	return nil
-}
-
-func (o Options) isSSHURL() bool {
-	url, err := giturls.Parse(o.URL)
-	return err == nil && (url.Scheme == "git" || url.Scheme == "ssh")
+	return ValidateURL(o.URL)
 }
 
 // NewGitClient returns a client that can perform git operations
@@ -230,6 +216,20 @@ func RepoName(repoURL string) (string, error) {
 	return strings.TrimRight(lastPathSegment, ".git"), nil
 }
 
+// ValidateURL validates the provided Git URL.
+func ValidateURL(url string) error {
+	if url == "" {
+		return errors.New("empty Git URL")
+	}
+	if !IsGitURL(url) {
+		return errors.New("invalid Git URL")
+	}
+	if !isSSHURL(url) {
+		return errors.New("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs")
+	}
+	return nil
+}
+
 // IsGitURL returns true if the argument matches the git url format
 func IsGitURL(rawURL string) bool {
 	parsedURL, err := giturls.Parse(rawURL)
@@ -237,4 +237,9 @@ func IsGitURL(rawURL string) bool {
 		return true
 	}
 	return false
+}
+
+func isSSHURL(rawURL string) bool {
+	url, err := giturls.Parse(rawURL)
+	return err == nil && (url.Scheme == "git" || url.Scheme == "ssh")
 }
