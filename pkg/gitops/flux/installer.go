@@ -14,14 +14,14 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/riywo/loginshell"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	tillerinstall "k8s.io/helm/cmd/helm/installer"
 	"sigs.k8s.io/yaml"
-
-	"github.com/weaveworks/eksctl/pkg/git"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 const (
@@ -104,8 +104,38 @@ type InstallOpts struct {
 	GitPrivateSSHKeyPath string
 	Namespace            string
 	Timeout              time.Duration
-	Amend                bool
+	Amend                bool // TODO: remove, as we eventually no longer want to support this mode?
 	WithHelm             bool
+}
+
+// NewInstallOptsFrom creates a new InstallOpts struct from the provided GitOps
+// configuration object, and timeout for I/O operations.
+func NewInstallOptsFrom(gitConfig *api.Git, timeout time.Duration) (*InstallOpts, error) {
+	if gitConfig == nil {
+		return nil, errors.New("failed to generate Flux installation options: nil GitOps configuration object")
+	}
+	if gitConfig.Repo == nil {
+		return nil, errors.New("failed to generate Flux installation options: nil GitOps repository configuration object")
+	}
+	if gitConfig.Operator == nil {
+		return nil, errors.New("failed to generate Flux installation options: nil GitOps operator configuration object")
+	}
+	return &InstallOpts{
+		GitOptions: git.Options{
+			URL:    gitConfig.Repo.URL,
+			Branch: gitConfig.Repo.Branch,
+			User:   gitConfig.Repo.User,
+			Email:  gitConfig.Repo.Email,
+		},
+		GitPaths:             gitConfig.Repo.Paths,
+		GitFluxPath:          gitConfig.Repo.FluxPath,
+		GitPrivateSSHKeyPath: gitConfig.Repo.PrivateSSHKeyPath,
+		GitLabel:             gitConfig.Operator.Label,
+		Namespace:            gitConfig.Operator.Namespace,
+		WithHelm:             gitConfig.Operator.WithHelm,
+		Amend:                false, // TODO: remove, as we eventually no longer want to support this mode?
+		Timeout:              timeout,
+	}, nil
 }
 
 // Installer installs Flux
