@@ -2,6 +2,7 @@ package enable
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -15,6 +16,19 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+	gitURL               = "git-url"
+	gitBranch            = "git-branch"
+	gitUser              = "git-user"
+	gitEmail             = "git-email"
+	gitPaths             = "git-paths"
+	gitFluxPath          = "git-flux-subdir"
+	gitLabel             = "git-label"
+	gitPrivateSSHKeyPath = "git-private-ssh-key-path"
+	namespace            = "namespace"
+	withHelm             = "with-helm"
+)
+
 func enableRepo(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
@@ -25,13 +39,13 @@ func enableRepo(cmd *cmdutils.Cmd) {
 	var opts flux.InstallOpts
 	cmd.SetRunFuncWithNameArg(func() error {
 		if err := opts.GitOptions.ValidateURL(); err != nil {
-			return errors.Wrap(err, "please supply a valid --git-url argument")
+			return errors.Wrapf(err, "please supply a valid --%s argument", gitURL)
 		}
 		if opts.GitOptions.Email == "" {
-			return errors.New("please supply a valid --git-email argument")
+			return fmt.Errorf("please supply a valid --%s argument", gitEmail)
 		}
 		if opts.GitPrivateSSHKeyPath != "" && !file.Exists(opts.GitPrivateSSHKeyPath) {
-			return errors.New("please supply a valid --git-private-ssh-key-path argument")
+			return fmt.Errorf("please supply a valid --%s argument", gitPrivateSSHKeyPath)
 		}
 
 		if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
@@ -71,25 +85,25 @@ func enableRepo(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
-		fs.StringVar(&opts.GitOptions.URL, "git-url", "",
+		fs.StringVar(&opts.GitOptions.URL, gitURL, "",
 			"SSH URL of the Git repository to be used by Flux, e.g. git@github.com:<github_org>/<repo_name>")
-		fs.StringVar(&opts.GitOptions.Branch, "git-branch", "master",
+		fs.StringVar(&opts.GitOptions.Branch, gitBranch, "master",
 			"Git branch to be used by Flux")
-		fs.StringSliceVar(&opts.GitPaths, "git-paths", []string{},
+		fs.StringSliceVar(&opts.GitPaths, gitPaths, []string{},
 			"Relative paths within the Git repo for Flux to locate Kubernetes manifests")
-		fs.StringVar(&opts.GitLabel, "git-label", "flux",
+		fs.StringVar(&opts.GitLabel, gitLabel, "flux",
 			"Git label to keep track of Flux's sync progress; overrides both --git-sync-tag and --git-notes-ref")
-		fs.StringVar(&opts.GitOptions.User, "git-user", "Flux",
+		fs.StringVar(&opts.GitOptions.User, gitUser, "Flux",
 			"Username to use as Git committer")
-		fs.StringVar(&opts.GitOptions.Email, "git-email", "",
+		fs.StringVar(&opts.GitOptions.Email, gitEmail, "",
 			"Email to use as Git committer")
-		fs.StringVar(&opts.GitFluxPath, "git-flux-subdir", "flux/",
+		fs.StringVar(&opts.GitFluxPath, gitFluxPath, "flux/",
 			"Directory within the Git repository where to commit the Flux manifests")
-		fs.StringVar(&opts.GitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
+		fs.StringVar(&opts.GitPrivateSSHKeyPath, gitPrivateSSHKeyPath, "",
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
-		fs.StringVar(&opts.Namespace, "namespace", "flux",
+		fs.StringVar(&opts.Namespace, namespace, "flux",
 			"Cluster namespace where to install Flux, the Helm Operator and Tiller")
-		fs.BoolVar(&opts.WithHelm, "with-helm", true,
+		fs.BoolVar(&opts.WithHelm, withHelm, true,
 			"Install the Helm Operator and Tiller")
 		fs.BoolVar(&opts.Amend, "amend", false,
 			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
