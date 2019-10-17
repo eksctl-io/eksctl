@@ -28,7 +28,7 @@ var _ = Describe("(Integration) generate profile", func() {
 			cmd := eksctlExperimentalCmd.WithArgs(
 				"generate", "profile",
 				"--verbose", "4",
-				"--name", clusterName,
+				"--cluster", clusterName,
 				"--git-url", "git@github.com:eksctl-bot/eksctl-profile-integration-tests.git",
 				"--profile-path", testDirectory,
 			)

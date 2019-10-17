@@ -23,7 +23,7 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
@@ -31,7 +31,7 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddApproveFlag(fs, cmd)
 		fs.BoolVar(&cmd.Plan, "dry-run", cmd.Plan, "")
-		_ = fs.MarkDeprecated("dry-run", "see --aprove")
+		_ = fs.MarkDeprecated("dry-run", "see --approve")
 
 		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "all update operations to complete")

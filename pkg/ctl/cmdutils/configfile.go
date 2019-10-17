@@ -107,7 +107,7 @@ func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 	meta := l.ClusterConfig.Metadata
 
 	if meta.Name != "" && l.NameArg != "" {
-		return ErrNameFlagAndArg(meta.Name, l.NameArg)
+		return ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg)
 	}
 
 	if l.NameArg != "" {
@@ -115,7 +115,7 @@ func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 	}
 
 	if meta.Name == "" {
-		return ErrMustBeSet("--name")
+		return ErrMustBeSet(ClusterNameFlag(l.Cmd))
 	}
 
 	return nil
@@ -227,7 +227,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 
 		// generate cluster name or use either flag or argument
 		if ClusterName(meta.Name, l.NameArg) == "" {
-			return ErrNameFlagAndArg(meta.Name, l.NameArg)
+			return ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg)
 		}
 		meta.Name = ClusterName(meta.Name, l.NameArg)
 
@@ -289,7 +289,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfig
 			// generate nodegroup name or use either flag or argument
 			ngName := NodeGroupName(ng.Name, l.NameArg)
 			if ngName == "" {
-				return ErrNameFlagAndArg(ng.Name, l.NameArg)
+				return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
 			}
 			ng.Name = ngName
 			return normalizeNodeGroup(ng, l)
@@ -334,7 +334,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
-			return ErrNameFlagAndArg(ng.Name, l.NameArg)
+			return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {
@@ -342,7 +342,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name == "" {
-			return ErrMustBeSet("--name")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
@@ -426,7 +426,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
 
 		if serviceAccount.Name == "" {
-			return ErrMustBeSet("--name")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if len(serviceAccount.AttachPolicyARNs) == 0 {
@@ -496,7 +496,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
-			return ErrNameFlagAndArg(sa.Name, l.NameArg)
+			return ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {
@@ -504,7 +504,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name == "" {
-			return ErrMustBeSet("--name")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		l.Plan = false

@@ -349,7 +349,7 @@ Now please run:
 
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl generate profile \
-        --name wonderful-wardrobe-1565767990 \
+        --cluster wonderful-wardrobe-1565767990 \
         --git-url git@github.com:weaveworks/eks-quickstart-app-dev.git \
         --profile-path ~/dev/flux-get-started/cluster-config
 ```
@@ -357,7 +357,7 @@ EKSCTL_EXPERIMENTAL=true eksctl generate profile \
 Let's break this down here. `eksctl generate profile` at the very
 least wants:
 
-- `--name`: the name of the cluster - check `eksctl get cluster`
+- `--cluster`: the name of the cluster - check `eksctl get cluster`
   to see what the name of yours is
 - `--git-url`: the Git URL of the Quick Start profile to deploy to the cluster
 - `--profile-path`: a local path: this is an empty new directory

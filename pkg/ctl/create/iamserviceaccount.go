@@ -91,7 +91,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 	}
 
 	if !providerExists {
-		logger.Warning("no IAM OIDC provider associated with cluster, try 'eksctl utils associate-iam-oidc-provider --region=%s --name=%s'", meta.Region, meta.Name)
+		logger.Warning("no IAM OIDC provider associated with cluster, try 'eksctl utils associate-iam-oidc-provider --region=%s --cluster=%s'", meta.Region, meta.Name)
 		return errors.New("unable to create iamserviceaccount(s) without IAM OIDC provider enabled")
 	}
 

@@ -17,5 +17,5 @@ func AddIAMServiceAccountFilterFlags(fs *pflag.FlagSet, includeGlobs, excludeGlo
 func AddIAMIdentityMappingARNFlags(fs *pflag.FlagSet, cmd *Cmd, arn *string) {
 	fs.StringVar(arn, "arn", "", "ARN of the IAM role or user to create")
 	fs.StringVar(arn, "role", "", "")
-	_ = fs.MarkDeprecated("role", "use --arn instead")
+	_ = fs.MarkDeprecated("role", "use --arn")
 }
