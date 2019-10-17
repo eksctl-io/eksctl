@@ -136,7 +136,7 @@ func (v *VPCController) generateCert() error {
 		return errors.Wrap(err, "updating approval")
 	}
 
-	logger.Info("waiting for certificate to be approved")
+	logger.Info("waiting for certificate to be available")
 
 	watchTimeout := 45 * time.Second
 	cert, err := watchCSRApproval(csrClientSet, csrName, watchTimeout)
@@ -173,9 +173,10 @@ func watchCSRApproval(csrClientSet v1beta1.CertificateSigningRequestInterface, c
 				if cert := req.Status.Certificate; cert != nil {
 					return cert, nil
 				}
+				logger.Warning("certificate not yet available (event: %s)", event.Type)
 			}
 		case <-timer.C:
-			return nil, fmt.Errorf("timed out waiting for certificate approval after %v", timeout)
+			return nil, fmt.Errorf("timed out (after %v) waiting for certificate", timeout)
 		}
 
 	}
