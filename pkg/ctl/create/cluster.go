@@ -319,9 +319,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 
 			params.kubeconfigPath, err = kubeconfig.Write(params.kubeconfigPath, *kubectlConfig, params.setContext)
 			if err != nil {
-				return errors.Wrap(err, "writing kubeconfig")
+				logger.Warning("unable to write kubeconfig %s, please retry with 'eksctl utils write-kubeconfig -n %s': %v", params.kubeconfigPath, meta.Name, err)
+			} else {
+				logger.Success("saved kubeconfig as %q", params.kubeconfigPath)
 			}
-			logger.Success("saved kubeconfig as %q", params.kubeconfigPath)
 		} else {
 			params.kubeconfigPath = ""
 		}
