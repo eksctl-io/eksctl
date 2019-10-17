@@ -21,6 +21,10 @@ img[src$="#inline-ww"] {
   height: 20px;
 }
 
+img[src$="#content"] {
+  max-width: $md-breakpoint;
+}
+
 #intro-code {
   text-align: center;
   line-height: 200px;
