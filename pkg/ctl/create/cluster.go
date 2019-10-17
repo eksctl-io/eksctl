@@ -291,7 +291,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			ngFilter.LogInfo(cfg.NodeGroups)
 			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(filteredNodeGroups))
 		}
-		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
+		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups)
 		ctl.AppendExtraClusterConfigTasks(cfg, params.installWindowsVPCController, tasks)
 

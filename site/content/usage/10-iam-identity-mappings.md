@@ -12,25 +12,25 @@ called `aws-auth`. `eksctl` provides commands to read and edit this config map.
 Get all identity mappings:
 
 ```bash
-eksctl get iamidentitymapping --name my-cluster-1
+eksctl get iamidentitymapping --cluster my-cluster-1
 ```
 
 Get all identity mappings matching an arn:
 
 ```bash
-eksctl get iamidentitymapping --name my-cluster-1 --arn arn:aws:iam::123456:role/testing-role
+eksctl get iamidentitymapping --cluster my-cluster-1 --arn arn:aws:iam::123456:role/testing-role
 ```
 
 Create an identity mapping:
 
 ```bash
- eksctl create iamidentitymapping --name  my-cluster-1 --arn arn:aws:iam::123456:role/testing --group system:masters --username admin
+ eksctl create iamidentitymapping --cluster  my-cluster-1 --arn arn:aws:iam::123456:role/testing --group system:masters --username admin
 ```
 
 Delete a mapping:
 
 ```bash
-eksctl delete iamidentitymapping --name  my-cluster-1 --arn arn:aws:iam::123456:role/testing
+eksctl delete iamidentitymapping --cluster  my-cluster-1 --arn arn:aws:iam::123456:role/testing
 ```
 
 _Note_: this deletes a single mapping FIFO unless `--all`is given in which case it removes all matching. Will warn if

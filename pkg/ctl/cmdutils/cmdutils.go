@@ -124,9 +124,28 @@ func AddTimeoutFlag(fs *pflag.FlagSet, p *time.Duration) {
 	AddTimeoutFlagWithValue(fs, p, api.DefaultWaitTimeout)
 }
 
-// AddNameFlag adds common --name flag for cluster
-func AddNameFlag(fs *pflag.FlagSet, meta *api.ClusterMeta) {
+// AddClusterFlag adds a common --cluster flag for cluster name.
+// Use this for commands whose principal resource is *not* a cluster.
+func AddClusterFlag(fs *pflag.FlagSet, meta *api.ClusterMeta) {
+	fs.StringVarP(&meta.Name, "cluster", "c", "", "EKS cluster name")
+}
+
+// AddClusterFlagWithDeprecated adds a common --cluster flag for
+// cluster name as well as a deprecated --name flag.
+// Use AddClusterFlag() for new commands.
+func AddClusterFlagWithDeprecated(fs *pflag.FlagSet, meta *api.ClusterMeta) {
+	AddClusterFlag(fs, meta)
 	fs.StringVarP(&meta.Name, "name", "n", "", "EKS cluster name")
+	_ = fs.MarkDeprecated("name", "use --cluster")
+}
+
+// ClusterNameFlag returns the flag to use for the cluster name
+// taking the principal resource into account.
+func ClusterNameFlag(cmd *Cmd) string {
+	if cmd.CobraCommand.Use == "cluster" {
+		return "--name"
+	}
+	return "--cluster"
 }
 
 // AddRegionFlag adds common --region flag
@@ -172,9 +191,10 @@ func ErrUnsupportedRegion(provider *api.ProviderConfig) error {
 	return fmt.Errorf("--region=%s is not supported - use one of: %s", provider.Region, strings.Join(api.SupportedRegions(), ", "))
 }
 
-// ErrNameFlagAndArg is a common error message
-func ErrNameFlagAndArg(nameFlag, nameArg string) error {
-	return ErrFlagAndArg("--name", nameFlag, nameArg)
+// ErrClusterFlagAndArg wraps ErrFlagAndArg() by passing in the
+// proper flag name.
+func ErrClusterFlagAndArg(cmd *Cmd, nameFlag, nameArg string) error {
+	return ErrFlagAndArg(ClusterNameFlag(cmd),  nameFlag, nameArg)
 }
 
 // ErrFlagAndArg may be used to err for options that can be given

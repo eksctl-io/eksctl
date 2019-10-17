@@ -33,7 +33,7 @@ func deleteClusterCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 
 		cmd.Wait = false

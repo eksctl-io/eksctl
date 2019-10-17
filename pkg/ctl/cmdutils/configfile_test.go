@@ -48,7 +48,7 @@ var _ = Describe("cmdutils configfile", func() {
 
 				err := NewMetadataLoader(cmd).Load()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("--name=foo-1 and argument foo-2 cannot be used at the same time"))
+				Expect(err.Error()).To(Equal("--cluster=foo-1 and argument foo-2 cannot be used at the same time"))
 			}
 
 			{
@@ -65,15 +65,15 @@ var _ = Describe("cmdutils configfile", func() {
 
 				fs := cmd.CobraCommand.Flags()
 
-				fs.StringVar(&cfg.Metadata.Name, "name", "", "")
-				cmd.CobraCommand.Flag("name").Changed = true
+				fs.StringVar(&cfg.Metadata.Name, "cluster", "", "")
+				cmd.CobraCommand.Flag("cluster").Changed = true
 
-				Expect(cmd.CobraCommand.Flag("name").Changed).To(BeTrue())
+				Expect(cmd.CobraCommand.Flag("cluster").Changed).To(BeTrue())
 
 				err = NewMetadataLoader(cmd).Load()
 
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal(ErrCannotUseWithConfigFile("--name").Error()))
+				Expect(err.Error()).To(Equal(ErrCannotUseWithConfigFile("--cluster").Error()))
 			}
 		})
 

@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/spf13/pflag"
@@ -24,7 +22,7 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		fs.BoolVar(&all, "all", false, "include deleted stacks")
 		fs.BoolVar(&events, "events", false, "include stack events")
@@ -49,7 +47,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool) error {
 	}
 
 	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
-		return fmt.Errorf("--name=%s and argument %s cannot be used at the same time", cfg.Metadata.Name, cmd.NameArg)
+		return cmdutils.ErrFlagAndArg(cmdutils.ClusterNameFlag(cmd), cfg.Metadata.Name, cmd.NameArg)
 	}
 
 	if cmd.NameArg != "" {
@@ -57,7 +55,7 @@ func doDescribeStacksCmd(cmd *cmdutils.Cmd, all, events, trail bool) error {
 	}
 
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--name")
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
