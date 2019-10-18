@@ -24,6 +24,8 @@ import (
 const (
 	vpcControllerNamespace = metav1.NamespaceSystem
 	webhookServiceName     = "vpc-admission-webhook"
+
+	certWaitTimeout = 45 * time.Second
 )
 
 // NewVPCController creates a new VPCController
@@ -138,8 +140,7 @@ func (v *VPCController) generateCert() error {
 
 	logger.Info("waiting for certificate to be available")
 
-	watchTimeout := 45 * time.Second
-	cert, err := watchCSRApproval(csrClientSet, csrName, watchTimeout)
+	cert, err := watchCSRApproval(csrClientSet, csrName, certWaitTimeout)
 	if err != nil {
 		return err
 	}
@@ -165,7 +166,7 @@ func watchCSRApproval(csrClientSet v1beta1.CertificateSigningRequestInterface, c
 		select {
 		case event, ok := <-watcher.ResultChan():
 			if !ok {
-				return nil, errors.New("unexpected close of ResultChan")
+				return nil, errors.New("failed waiting for certificate: unexpected close of ResultChan")
 			}
 			switch event.Type {
 			case watch.Added, watch.Modified:
