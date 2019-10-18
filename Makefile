@@ -37,7 +37,7 @@ godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFi
 godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
-build: $(all_generated_code) ## Build main binary
+build: print-go-bindata-version $(all_generated_code) ## Build main binary
 	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
@@ -127,9 +127,14 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
+.PHONY: print-go-bindata-version
+# In order to help debug issues & discrepancies when building:
+print-go-bindata-version:
+	go-bindata --version
+
 .PHONY: generate-all
 # TODO: generate-ami is broken (see https://github.com/weaveworks/eksctl/issues/949 ), include it when fixed
-generate-all: $(all_generated_files) # generate-ami ## Re-generate all the automatically-generated source files
+generate-all: print-go-bindata-version $(all_generated_files) # generate-ami ## Re-generate all the automatically-generated source files
 
 .PHONY: check-all-generated-files-up-to-date
 check-all-generated-files-up-to-date: generate-all
