@@ -33,10 +33,10 @@ update-build-image-manifest: ## Update build image manifest and commits the chan
 	for i in .github/workflows/commit.yaml .circleci/config.yml ; do \
 	  sed "s|\(weaveworks/eksctl-build\):.*$$|\1:$(build_image_tag)|" "$${i}" > "$${i}.sedtmp" && mv "$${i}.sedtmp" "$${i}" ; \
 	done
-	git config --local user.email "action@github.com"
-    git config --local user.name "GitHub Action"
-    git commit --quiet .build_image_manifest .github/workflows/commit.yaml .circleci/config.yml --message 'Update build image'
-    $(info build image name is $(build_image_name))
+	git config --local user.email 'action@github.com'
+	git config --local user-name "Github Action"
+	git commit --quiet .build_image_manifest .github/workflows/commit.yaml .circleci/config.yml --message 'Update build image'
+	$(info build image name is $(build_image_name))
 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
