@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -82,8 +81,6 @@ var _ = Describe("eksctl API", func() {
 			p   *mockprovider.MockProvider
 		)
 		BeforeEach(func() {
-			ami.DefaultResolvers = []ami.Resolver{&ami.StaticGPUResolver{}, &ami.StaticDefaultResolver{}}
-
 			cfg = &api.ClusterConfig{}
 			ng = cfg.NewNodeGroup()
 			ng.AMIFamily = api.DefaultNodeImageFamily

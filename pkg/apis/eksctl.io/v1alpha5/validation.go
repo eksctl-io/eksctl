@@ -160,7 +160,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if ng.IsWindows() {
+	if IsWindowsImage(ng.AMIFamily) {
 		fieldNotSupported := func(field string) error {
 			return fmt.Errorf("%s is not supported for Windows node groups (path=%s.%s)", field, path, field)
 		}
@@ -388,4 +388,9 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 		}
 	}
 	return nil
+}
+
+// IsWindowsImage reports whether the AMI family is for Windows
+func IsWindowsImage(imageFamily string) bool {
+	return imageFamily == NodeImageFamilyWindowsServer2019CoreContainer || imageFamily == NodeImageFamilyWindowsServer2019FullContainer
 }

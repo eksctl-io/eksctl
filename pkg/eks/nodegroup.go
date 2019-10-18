@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/iam"
+	"github.com/weaveworks/eksctl/pkg/utils"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
@@ -52,19 +53,14 @@ func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersi
 		return nil
 	}
 
-	minRequiredVersion, err := semver.ParseTolerant(api.Version1_14)
+	supportsWindows, err := utils.IsMinVersion(api.Version1_14, controlPlaneVersion)
 	if err != nil {
 		return err
 	}
-	targetVersion, err := semver.ParseTolerant(controlPlaneVersion)
-	if err != nil {
-		return err
-	}
-	if targetVersion.LT(minRequiredVersion) {
+	if !supportsWindows {
 		return errors.New("Windows nodes are only supported on Kubernetes 1.14 and above")
 	}
 	return nil
-
 }
 
 // SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
@@ -75,7 +71,7 @@ func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
 // hasWindowsNode reports whether there's at least one Windows node in nodeGroups
 func hasWindowsNode(nodeGroups []*api.NodeGroup) bool {
 	for _, ng := range nodeGroups {
-		if ng.IsWindows() {
+		if api.IsWindowsImage(ng.AMIFamily) {
 			return true
 		}
 	}
