@@ -84,6 +84,20 @@ make integration-test-container TEST_V=1
 > go test .\pkg\...
 > ```
 
+If you prefer to use Docker, the same way it is used in CI, you can use the
+following comands:
+
+```
+make -f Makefile.docker test
+make -f Makefile.docker build
+```
+
+> NOTE: It is not the most convenient way of working on the project, as
+> binaries are built inside the container and cannot be tested manually,
+> also majority of end-users consume binaries and not Docker images.
+> It is recommended to use `make build` etc, unless there is an issue in CI
+> that need troubleshooting.
+
 #### 4. Write your feature
 
 - Find an [issue](https://github.com/weaveworks/eksctl/issues) to work on or

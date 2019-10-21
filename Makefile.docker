@@ -73,3 +73,11 @@ eksctl-image: intermediate-image ## Build the eksctl image that has release arte
 	      --iidfile=.eksctl_image.iid \
 	      --tag="$(eksctl_image_name)" -
 
+.PHONY: build test
+build test: ## Run targets from Makefile using the build image
+	time docker run \
+	  --tty \
+	  --rm \
+	  --volume=$(git_toplevel):/src \
+	    $(build_image_name) make $@
+
