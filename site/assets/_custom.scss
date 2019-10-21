@@ -22,7 +22,7 @@ img[src$="#inline-ww"] {
 }
 
 img[src$="#content"] {
-  max-width: $md-breakpoint;
+  max-width: $sm-breakpoint;
 }
 
 #intro-code {
@@ -70,5 +70,8 @@ img[src$="#content"] {
     text-align: center;
     font-size: 20px;
     line-height: 200px;
+  }
+  img[src$="#content"] {
+    max-width: $body-min-width;
   }
 }
