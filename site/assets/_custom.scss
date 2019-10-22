@@ -22,7 +22,8 @@ img[src$="#inline-ww"] {
 }
 
 img[src$="#content"] {
-  max-width: $sm-breakpoint;
+  width: $content-img;
+  height: auto;
 }
 
 #intro-code {
