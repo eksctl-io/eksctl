@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/cloudformation/cloudformationiface"
@@ -11,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elb/elbiface"
 	"github.com/aws/aws-sdk-go/service/elbv2/elbv2iface"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -127,6 +129,9 @@ const (
 	NodeImageResolverStatic = "static"
 	// NodeImageResolverAuto represents auto AMI resolver (see ami package)
 	NodeImageResolverAuto = "auto"
+	// NodeImageResolverAutoSSM is used to indicate that the latest EKS AMIs should be used for the nodes. The AMI is selected
+	// using an SSM GetParameter query
+	NodeImageResolverAutoSSM = "auto-ssm"
 
 	// ClusterNameTag defines the tag of the cluster name
 	ClusterNameTag = "alpha.eksctl.io/cluster-name"
@@ -311,6 +316,7 @@ type ClusterProvider interface {
 	ELB() elbiface.ELBAPI
 	ELBV2() elbv2iface.ELBV2API
 	STS() stsiface.STSAPI
+	SSM() ssmiface.SSMAPI
 	IAM() iamiface.IAMAPI
 	CloudTrail() cloudtrailiface.CloudTrailAPI
 	Region() string
@@ -352,6 +358,9 @@ type ClusterConfig struct {
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
 
 	Status *ClusterStatus `json:"status,omitempty"`
+
+	// +optional
+	Git *Git `json:"git,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -517,7 +526,8 @@ type NodeGroup struct {
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
-	SSH *NodeGroupSSH `json:"ssh"`
+	// +optional
+	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
@@ -545,11 +555,6 @@ func (n *NodeGroup) ListOptions() metav1.ListOptions {
 // NameString returns common name string
 func (n *NodeGroup) NameString() string {
 	return n.Name
-}
-
-// IsWindows reports whether the AMI family is for Windows
-func (n *NodeGroup) IsWindows() bool {
-	return n.AMIFamily == NodeImageFamilyWindowsServer2019CoreContainer || n.AMIFamily == NodeImageFamilyWindowsServer2019FullContainer
 }
 
 type (
@@ -628,6 +633,52 @@ type (
 	}
 )
 
+// Git groups all configuration options related to enabling GitOps on a
+// cluster and linking it to a Git repository.
+type Git struct {
+	Repo *Repo `json:"repo,omitempty"`
+	// +optional
+	Operator *Operator `json:"operator,omitempty"`
+	// +optional
+	Profiles []*Profile `json:"profiles,omitempty"` // one or many profiles to enable on this cluster
+}
+
+// Repo groups all configuration options related to a Git repository used for
+// GitOps.
+type Repo struct {
+	URL string `json:"url,omitempty"` // the Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// +optional
+	Branch string `json:"branch,omitempty"` // the branch under which cluster configuration files will be committed & pushed, e.g. master
+	// +optional
+	Paths []string `json:"paths,omitempty"` // relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	// +optional
+	FluxPath string `json:"fluxPath,omitempty"` // the directory under which Flux configuration files will be written, e.g. flux/
+	// +optional
+	User  string `json:"user,omitempty"`  // Git user which will be used to commit changes
+	Email string `json:"email,omitempty"` // Git email which will be used to commit changes
+	// +optional
+	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"` // path to the private SSH key to use to authenticate
+}
+
+// Operator groups all configuration options related to the operator used to
+// keep the cluster and the Git repository in sync.
+type Operator struct {
+	// +optional
+	Label string `json:"label,omitempty"` // e.g. flux
+	// +optional
+	Namespace string `json:"namespace,omitempty"` // e.g. flux
+	// +optional
+	WithHelm bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+}
+
+// Profile groups all details on a quickstart profile to enable on the cluster
+// and add to the Git repository.
+type Profile struct {
+	Source string `json:"source,omitempty"` // e.g. app-dev
+	// +optional
+	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+}
+
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies
 type InlineDocument map[string]interface{}
 
@@ -644,4 +695,9 @@ func (in *InlineDocument) DeepCopy() *InlineDocument {
 // HasMixedInstances checks if a nodegroup has mixed instances option declared
 func HasMixedInstances(ng *NodeGroup) bool {
 	return ng.InstancesDistribution != nil && ng.InstancesDistribution.InstanceTypes != nil && len(ng.InstancesDistribution.InstanceTypes) != 0
+}
+
+// IsAMI returns true if the argument is an AMI id
+func IsAMI(amiFlag string) bool {
+	return strings.HasPrefix(amiFlag, "ami-")
 }

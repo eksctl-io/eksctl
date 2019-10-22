@@ -63,6 +63,12 @@ var _ = Describe("Kubeconfig", func() {
 		Expect(readConfig.Contexts["test-context"].Namespace).To(Equal(testConfig.Contexts["test-context"].Namespace))
 	})
 
+	It("creating new Kubeconfig with directory", func() {
+		filename, err := kubeconfig.Write("/", testConfig, false)
+		Expect(err).NotTo(BeNil())
+		Expect(filename).To(BeEmpty())
+	})
+
 	It("sets new Kubeconfig context", func() {
 		testConfigContext := testConfig
 		testConfigContext.CurrentContext = "test-context"

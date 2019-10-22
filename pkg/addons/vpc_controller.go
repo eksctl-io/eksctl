@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
+	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
 
 	admv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -22,6 +24,8 @@ import (
 const (
 	vpcControllerNamespace = metav1.NamespaceSystem
 	webhookServiceName     = "vpc-admission-webhook"
+
+	certWaitTimeout = 45 * time.Second
 )
 
 // NewVPCController creates a new VPCController
@@ -134,15 +138,52 @@ func (v *VPCController) generateCert() error {
 		return errors.Wrap(err, "updating approval")
 	}
 
-	approvedCSR, err := csrClientSet.Get(certificateSigningRequest.Name, metav1.GetOptions{})
+	logger.Info("waiting for certificate to be available")
+
+	cert, err := watchCSRApproval(csrClientSet, csrName, certWaitTimeout)
 	if err != nil {
 		return err
 	}
 
-	if approvedCSR.Status.Certificate == nil {
-		return errors.New("failed to find certificate after approval")
+	return v.createCertSecrets(privateKey, cert)
+}
+
+func watchCSRApproval(csrClientSet v1beta1.CertificateSigningRequestInterface, csrName string, timeout time.Duration) ([]byte, error) {
+	watcher, err := csrClientSet.Watch(metav1.ListOptions{
+		FieldSelector: fmt.Sprintf("metadata.name=%s", csrName),
+	})
+
+	if err != nil {
+		return nil, err
 	}
-	return v.createCertSecrets(privateKey, approvedCSR.Status.Certificate)
+
+	defer watcher.Stop()
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case event, ok := <-watcher.ResultChan():
+			if !ok {
+				return nil, errors.New("failed waiting for certificate: unexpected close of ResultChan")
+			}
+			switch event.Type {
+			case watch.Added, watch.Modified:
+				req := event.Object.(*certsv1beta1.CertificateSigningRequest)
+				if cert := req.Status.Certificate; cert != nil {
+					return cert, nil
+				}
+				logger.Warning("certificate not yet available (event: %s)", event.Type)
+			}
+		case <-timer.C:
+			return nil, fmt.Errorf("timed out (after %v) waiting for certificate", timeout)
+		}
+
+	}
+
+	return nil, errors.New("unexpected termination of loop")
+
 }
 
 func (v *VPCController) createCertSecrets(key, cert []byte) error {

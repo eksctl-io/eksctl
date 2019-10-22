@@ -50,7 +50,7 @@ Next, you will have to have the following tools installed:
 The main point of gitops is to keep everything (config, alerts, dashboards,
 apps, literally everything) in Git and use it as a single source of truth.
 To keep your cluster configuration in Git, please go ahead and create an
-_empty_ repository. On Github, for example, follow [these steps][github-repo].
+_empty_ repository. On GitHub, for example, follow [these steps][github-repo].
 
 [github-repo]: https://help.github.com/articles/create-a-repo
 
@@ -78,7 +78,7 @@ ip-192-168-64-189.eu-central-1.compute.internal   Ready    <none>   38s   v1.13.
 ```
 
 ```console
-$ kubectl get pods --all-namespaces 
+$ kubectl get pods --all-namespaces
 NAMESPACE     NAME                       READY   STATUS    RESTARTS   AGE
 kube-system   aws-node-l8mk7             1/1     Running   0          45s
 kube-system   aws-node-s2p2c             1/1     Running   0          45s
@@ -103,7 +103,7 @@ in the configuration they will be reflected on your cluster.
 > Experimental features are not stable and their command name and flags
 > may change.
 
-The most important ingredient using `gitops enable profile` is your config
+The most important ingredient using `eksctl enable profile` is your config
 repository (which includes your workload manifests, etc). You can start with
 an empty repository and push that to Git, or use the one you intend to
 deploy to the cluster.
@@ -116,8 +116,8 @@ What will happen during the following command is:
   which comes with a lot of very useful services and config. It is how
   we feel EKS `app-dev` clusters are best run.
 
-Run this command from any folder in your file system or tweak 
-`output-path` accordingly. That's where `eksctl` will clone your repository.
+Run this command from any directory in your file system. `eksctl` will clone your repository in a temporary directory
+that'll be removed later.
 
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl \
@@ -138,7 +138,7 @@ Let us go through the specified arguments one by one:
   workloads and infrastructure later on.
 - `--git-email`: the email used to commit changes to your config
   repository.
-- `cluster`: the name of your cluster. Use `eksctl get cluster`
+- `--cluster`: the name of your cluster. Use `eksctl get cluster`
   to see all clusters in your default region.
 
 There are more arguments and options, please refer to the
@@ -162,7 +162,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8msUDG9tEEWHKKJw1o8BpwfMkCvCepeUSMa9iTVK6
 ```
 
 Copy the lines starting with `ssh-rsa` and give it read/write access to your
-repository. For example, in Github, by adding it as a deploy key. There you
+repository. For example, in GitHub, by adding it as a deploy key. There you
 can easily do this in the `Settings > Deploy keys > Add deploy key`. Just
 make sure you check `Allow write access` as well.
 
@@ -175,7 +175,7 @@ config repository already.
 In our case we are going to see these new arrivals in the cluster:
 
 ```
-$ kube get pods --all-namespaces 
+$ kubectl get pods --all-namespaces
 NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
 amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0           4m28s
 amazon-cloudwatch      fluentd-cloudwatch-4rwwr                                  1/1     Running                      0           4m28s
@@ -264,7 +264,7 @@ operator in your cluster. It will take care of deployments for you.
 EKSCTL_EXPERIMENTAL=true eksctl enable repo \
     --git-url <git-url> \
     --git-email <email-of-committer> \
-    --name <cluster-name>
+    --cluster <cluster-name>
 ```
 
 Additional options to the command are explained in our docs on
@@ -276,14 +276,14 @@ Now we run e.g.:
 EKSCTL_EXPERIMENTAL=true eksctl enable repo \
     --git-url git@github.com:YOURUSER/flux-get-started \
     --git-email your@email.org \
-    --name wonderful-wardrobe-1565767990
+    --cluster wonderful-wardrobe-1565767990
 ```
 
 After about a minute your cluster will have `flux`, the
 [Flux Helm Operator](https://github.com/fluxcd/helm-operator) and Tiller running.
 
 ```console
-$ kube get pods --namespace flux
+$ kubectl get pods --namespace flux
 NAME                                  READY   STATUS    RESTARTS   AGE
 flux-7975d44685-57lk8                 1/1     Running   0          10m
 flux-helm-operator-6bc7c85bb5-ws7rm   1/1     Running   0          10m
@@ -291,7 +291,7 @@ memcached-958f745c-225xv              1/1     Running   0          10m
 tiller-deploy-7ccc4b4d45-mhlcf        1/1     Running   0          10m
 ```
 
-Flux will monitor your git repository once you added an SSH key to e.g. Github deploy keys.
+Flux will monitor your git repository once you added an SSH key to e.g. GitHub deploy keys.
 
 This key can be found at the end of the output of the command, this
 might for example be:
@@ -304,7 +304,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt8no0/F3+kD1YukH6sVIv1ONcy9+01G2/AQe1CQA+
 ```
 
 Copy the lines starting with `ssh-rsa` and add it as a deploy key, to
-e.g. Github. There you can easily do this in the
+e.g. GitHub. There you can easily do this in the
 `Settings > Deploy keys > Add deploy key`. Just make sure you check
 `Allow write access` as well.
 
@@ -337,8 +337,8 @@ repository is where the workloads are defined. Now we will add
 the config of the infrastructure tooling as well.
 
 `eksctl` has the ability to use a base config for for the
-infrastructure tooling, also known as a Quick Star profile. So if your 
-organisation has already experience in setting up clusters and use the
+infrastructure tooling, also known as a Quick Start profile. So if your
+organisation already has experience in setting up clusters and use the
 same defaults, it makes sense to use those as a profile. You could
 be entirely starting from scratch here too. What we will do in this part
 of the tutorial is using `weaveworks/eks-quickstart-app-dev`, which is
@@ -349,7 +349,7 @@ Now please run:
 
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl generate profile \
-        --name wonderful-wardrobe-1565767990 \
+        --cluster wonderful-wardrobe-1565767990 \
         --git-url git@github.com:weaveworks/eks-quickstart-app-dev.git \
         --profile-path ~/dev/flux-get-started/cluster-config
 ```
@@ -357,7 +357,7 @@ EKSCTL_EXPERIMENTAL=true eksctl generate profile \
 Let's break this down here. `eksctl generate profile` at the very
 least wants:
 
-- `--name`: the name of the cluster - check `eksctl get cluster`
+- `--cluster`: the name of the cluster - check `eksctl get cluster`
   to see what the name of yours is
 - `--git-url`: the Git URL of the Quick Start profile to deploy to the cluster
 - `--profile-path`: a local path: this is an empty new directory

@@ -31,3 +31,7 @@ integration/kubeconfig-*
 
 # Generated header file
 .license-header
+
+# Build image context and Docker Image ID file
+.build_image_context
+*.iid

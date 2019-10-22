@@ -24,7 +24,7 @@ func getClusterCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")
 		fs.BoolVarP(&listAllRegions, "all-regions", "A", false, "List clusters across all supported regions")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
@@ -48,7 +48,7 @@ func doGetCluster(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) 
 	}
 
 	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, cmd.NameArg)
+		return cmdutils.ErrClusterFlagAndArg(cmd, cfg.Metadata.Name, cmd.NameArg)
 	}
 
 	if cmd.NameArg != "" {

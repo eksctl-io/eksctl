@@ -31,7 +31,7 @@ In `eksctl` the name of the resource is _iamserviceaccount_, which represents an
 The IAM OIDC Provider is not enabled by default, you can use the following command to enable it, or use config file (see below):
 
 ```console
-eksctl utils associate-iam-oidc-provider --name=<clusterName>
+eksctl utils associate-iam-oidc-provider --cluster=<clusterName>
 ```
 
 Once you have the IAM OIDC Provider associated with the cluster, to create a IAM role bound to a service account, run:

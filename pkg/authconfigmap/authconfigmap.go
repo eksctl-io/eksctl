@@ -269,7 +269,7 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 	}
 
 	nodeGroupRoles := RoleNodeGroupGroups
-	if ng.IsWindows() {
+	if api.IsWindowsImage(ng.AMIFamily) {
 		nodeGroupRoles = append([]string{roleNodeGroupWindows}, nodeGroupRoles...)
 	}
 

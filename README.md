@@ -75,7 +75,7 @@ $ eksctl create cluster
 [ℹ]  nodegroup "ng-98b3b83a" will use "ami-05ecac759c81e0b0c" [AmazonLinux2/1.11]
 [ℹ]  creating EKS cluster "floral-unicorn-1540567338" in "us-west-2" region
 [ℹ]  will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup
-[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --name=floral-unicorn-1540567338'
+[ℹ]  if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=us-west-2 --cluster=floral-unicorn-1540567338'
 [ℹ]  2 sequential tasks: { create cluster control plane "floral-unicorn-1540567338", create nodegroup "ng-98b3b83a" }
 [ℹ]  building cluster stack "eksctl-floral-unicorn-1540567338-cluster"
 [ℹ]  deploying stack "eksctl-floral-unicorn-1540567338-cluster"

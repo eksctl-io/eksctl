@@ -62,7 +62,7 @@ To obtain cluster credentials at any point in time, run:
 
 ```
 
-eksctl utils write-kubeconfig --name=<name> [--kubeconfig=<path>][--set-kubeconfig-context=<bool>]
+eksctl utils write-kubeconfig --cluster=<name> [--kubeconfig=<path>][--set-kubeconfig-context=<bool>]
 
 ```
 

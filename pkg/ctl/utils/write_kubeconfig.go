@@ -29,7 +29,7 @@ func writeKubeconfigCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
@@ -46,7 +46,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 
 	// TODO: move this into a loader when --config-file gets added to this command
 	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(cfg.Metadata.Name, cmd.NameArg)
+		return cmdutils.ErrClusterFlagAndArg(cmd, cfg.Metadata.Name, cmd.NameArg)
 	}
 
 	if cmd.NameArg != "" {
@@ -54,7 +54,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 	}
 
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--name")
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
 	if autoPath {

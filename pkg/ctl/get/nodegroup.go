@@ -43,11 +43,11 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 
 	// TODO: move this into a loader when --config-file gets added to this command
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--cluster")
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
 	if ng.Name != "" && cmd.NameArg != "" {
-		return cmdutils.ErrNameFlagAndArg(ng.Name, cmd.NameArg)
+		return cmdutils.ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
 	}
 
 	if cmd.NameArg != "" {

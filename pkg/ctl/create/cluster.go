@@ -291,7 +291,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			ngFilter.LogInfo(cfg.NodeGroups)
 			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(filteredNodeGroups))
 		}
-		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --name=%s'", meta.Region, meta.Name)
+		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups)
 		ctl.AppendExtraClusterConfigTasks(cfg, params.installWindowsVPCController, tasks)
 
@@ -319,9 +319,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 
 			params.kubeconfigPath, err = kubeconfig.Write(params.kubeconfigPath, *kubectlConfig, params.setContext)
 			if err != nil {
-				return errors.Wrap(err, "writing kubeconfig")
+				logger.Warning("unable to write kubeconfig %s, please retry with 'eksctl utils write-kubeconfig -n %s': %v", params.kubeconfigPath, meta.Name, err)
+			} else {
+				logger.Success("saved kubeconfig as %q", params.kubeconfigPath)
 			}
-			logger.Success("saved kubeconfig as %q", params.kubeconfigPath)
 		} else {
 			params.kubeconfigPath = ""
 		}

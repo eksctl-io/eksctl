@@ -39,7 +39,7 @@ func generateProfileCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&o.ProfilePath, "profile-path", "", "./", "Path to generate the profile in")
 		_ = cobra.MarkFlagRequired(fs, "git-url")
 
-		cmdutils.AddNameFlag(fs, cfg.Metadata)
+		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 	})

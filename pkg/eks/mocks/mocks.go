@@ -21,3 +21,4 @@ import (
 //go:generate "${GOBIN}/mockery" -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/sts/stsiface -name=STSAPI -output=./
 //go:generate "${GOBIN}/mockery" -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/iam/iamiface -name=IAMAPI -output=./
 //go:generate "${GOBIN}/mockery" -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/cloudtrail/cloudtrailiface -name=CloudTrailAPI -output=./
+//go:generate "${GOBIN}/mockery" -tags netgo -dir=../../../vendor/github.com/aws/aws-sdk-go/service/ssm/ssmiface -name=SSMAPI -output=./

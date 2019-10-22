@@ -54,7 +54,7 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	}
 	if !cfg.HasClusterCloudWatchLogging() {
 		logger.Info("CloudWatch logging will not be enabled for cluster %q in %q", cfg.Metadata.Name, cfg.Metadata.Region)
-		logger.Info("you can enable it with 'eksctl utils update-cluster-logging --region=%s --name=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
+		logger.Info("you can enable it with 'eksctl utils update-cluster-logging --region=%s --cluster=%s'", cfg.Metadata.Region, cfg.Metadata.Name)
 
 	} else {
 		newTasks.Append(&clusterConfigTask{
