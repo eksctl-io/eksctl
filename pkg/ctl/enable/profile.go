@@ -22,14 +22,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 type options struct {
-	gitOptions           git.Options
-	profileNameArg       string
-	profileRevision      string
-	gitPrivateSSHKeyPath string
+	gitOptions      git.Options
+	profileNameArg  string
+	profileRevision string
 }
 
 func (opts options) validate() error {
@@ -39,8 +37,8 @@ func (opts options) validate() error {
 	if err := opts.gitOptions.ValidateURL(); err != nil {
 		return errors.Wrap(err, "please supply a valid --git-url argument")
 	}
-	if opts.gitPrivateSSHKeyPath != "" && !file.Exists(opts.gitPrivateSSHKeyPath) {
-		return errors.New("please supply a valid --git-private-ssh-key-path argument")
+	if err := opts.gitOptions.ValidatePrivateSSHKeyPath(); err != nil {
+		return errors.Wrap(err, "please supply a valid --git-private-ssh-key-path argument")
 	}
 	return nil
 }
@@ -64,7 +62,7 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
 		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
-		fs.StringVar(&opts.gitPrivateSSHKeyPath, "git-private-ssh-key-path", "",
+		fs.StringVar(&opts.gitOptions.PrivateSSHKeyPath, "git-private-ssh-key-path", "",
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
 
@@ -168,7 +166,7 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
 
 	// A git client that operates in the user's repo
 	gitClient := git.NewGitClient(git.ClientParams{
-		PrivateSSHKeyPath: opts.gitPrivateSSHKeyPath,
+		PrivateSSHKeyPath: opts.gitOptions.PrivateSSHKeyPath,
 	})
 
 	gitOps := gitops.Applier{

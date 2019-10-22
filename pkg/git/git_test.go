@@ -1,10 +1,12 @@
 package git_test
 
 import (
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -168,6 +170,48 @@ var _ = Describe("git", func() {
 	})
 
 	Describe("Options", func() {
+		Describe("Validate", func() {
+			It("returns an error on empty Git URL", func() {
+				Expect(git.Options{}.Validate()).To(MatchError("empty Git URL"))
+			})
+
+			It("returns an error on invalid Git URL", func() {
+				Expect(git.Options{
+					URL: "https://",
+				}.Validate()).To(MatchError("invalid Git URL"))
+			})
+
+			It("returns an error on HTTPS Git URL", func() {
+				Expect(git.Options{
+					URL: "https://github.com/eksctl-bot/my-gitops-repo.git",
+				}.Validate()).To(MatchError("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs"))
+			})
+
+			It("succeeds when a SSH Git URL is provided", func() {
+				Expect(git.Options{
+					URL: "git@github.com:eksctl-bot/my-gitops-repo.git",
+				}.Validate()).NotTo(HaveOccurred())
+			})
+
+			It("returns an error on non-existing file path", func() {
+				Expect(git.Options{
+					URL:               "git@github.com:eksctl-bot/my-gitops-repo.git",
+					PrivateSSHKeyPath: "/path/to/non/existing/file/id_rsa",
+				}.ValidatePrivateSSHKeyPath()).To(MatchError("invalid path to private SSH key: /path/to/non/existing/file/id_rsa"))
+			})
+
+			It("succeeds when a valid path is provided", func() {
+				privateSSHKey, err := ioutil.TempFile("", "fake_id_rsa")
+				Expect(err).To(Not(HaveOccurred()))
+				defer os.Remove(privateSSHKey.Name()) // clean up
+
+				Expect(git.Options{
+					URL:               "git@github.com:eksctl-bot/my-gitops-repo.git",
+					PrivateSSHKeyPath: privateSSHKey.Name(),
+				}.ValidatePrivateSSHKeyPath()).To(Not(HaveOccurred()))
+			})
+		})
+
 		Describe("ValidateURL", func() {
 			It("returns an error on empty Git URL", func() {
 				Expect(git.Options{}.ValidateURL()).To(MatchError("empty Git URL"))
@@ -189,6 +233,35 @@ var _ = Describe("git", func() {
 				Expect(git.Options{
 					URL: "git@github.com:eksctl-bot/my-gitops-repo.git",
 				}.ValidateURL()).NotTo(HaveOccurred())
+			})
+		})
+
+		Describe("ValidatePrivateSSHKeyPath", func() {
+			It("returns an error on non-existing file path", func() {
+				Expect(git.Options{
+					PrivateSSHKeyPath: "/path/to/non/existing/file/id_rsa",
+				}.ValidatePrivateSSHKeyPath()).To(MatchError("invalid path to private SSH key: /path/to/non/existing/file/id_rsa"))
+			})
+
+			It("succeeds when a valid path is provided", func() {
+				privateSSHKey, err := ioutil.TempFile("", "fake_id_rsa")
+				Expect(err).To(Not(HaveOccurred()))
+				defer os.Remove(privateSSHKey.Name()) // clean up
+
+				Expect(git.Options{
+					PrivateSSHKeyPath: privateSSHKey.Name(),
+				}.ValidatePrivateSSHKeyPath()).To(Not(HaveOccurred()))
+			})
+		})
+
+		Describe("CopyFrom", func() {
+			It("copies values from the provided Options", func() {
+				this := git.Options{}
+				that := git.Options{}
+				faker.FakeData(&that)
+				Expect(this).NotTo(Equal(that))
+				this.CopyFrom(&that)
+				Expect(this).To(Equal(that))
 			})
 		})
 	})

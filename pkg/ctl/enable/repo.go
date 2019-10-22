@@ -11,7 +11,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -54,10 +53,10 @@ func enableRepo(cmd *cmdutils.Cmd) {
 			"Username to use as Git committer")
 		fs.StringVar(&opts.GitOptions.Email, gitEmail, "",
 			"Email to use as Git committer")
+		fs.StringVar(&opts.GitOptions.PrivateSSHKeyPath, gitPrivateSSHKeyPath, "",
+			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&opts.GitFluxPath, gitFluxPath, "flux/",
 			"Directory within the Git repository where to commit the Flux manifests")
-		fs.StringVar(&opts.GitPrivateSSHKeyPath, gitPrivateSSHKeyPath, "",
-			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&opts.Namespace, namespace, "flux",
 			"Cluster namespace where to install Flux, the Helm Operator and Tiller")
 		fs.BoolVar(&opts.WithHelm, withHelm, true,
@@ -97,7 +96,7 @@ func validateGitOpsOptions(cfg *api.ClusterConfig, opts *flux.InstallOpts) error
 	if opts.GitLabel != "" && cfg.Git.Operator.Label != "" {
 		return cmdutils.ErrCannotUseWithConfigFile(gitLabel)
 	}
-	if opts.GitPrivateSSHKeyPath != "" && cfg.Git.Repo.PrivateSSHKeyPath != "" {
+	if opts.GitOptions.PrivateSSHKeyPath != "" && cfg.Git.Repo.PrivateSSHKeyPath != "" {
 		return cmdutils.ErrCannotUseWithConfigFile(gitPrivateSSHKeyPath)
 	}
 	if opts.Namespace != "" && cfg.Git.Operator.Namespace != "" {
@@ -119,8 +118,8 @@ func validateInstallOpts(opts *flux.InstallOpts) error {
 	if opts.GitOptions.Email == "" {
 		return fmt.Errorf("please supply a valid --%s argument", gitEmail)
 	}
-	if opts.GitPrivateSSHKeyPath != "" && !file.Exists(opts.GitPrivateSSHKeyPath) {
-		return fmt.Errorf("please supply a valid --%s argument", gitPrivateSSHKeyPath)
+	if err := opts.GitOptions.ValidatePrivateSSHKeyPath(); err != nil {
+		return errors.Wrapf(err, "please supply a valid --%s argument", gitPrivateSSHKeyPath)
 	}
 	return nil
 }

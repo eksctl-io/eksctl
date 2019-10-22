@@ -97,15 +97,29 @@ subjects:
 
 // InstallOpts are the installation options for Flux
 type InstallOpts struct {
-	GitOptions           git.Options
-	GitPaths             []string
-	GitLabel             string
-	GitFluxPath          string
-	GitPrivateSSHKeyPath string
-	Namespace            string
-	Timeout              time.Duration
-	Amend                bool // TODO: remove, as we eventually no longer want to support this mode?
-	WithHelm             bool
+	GitOptions  git.Options
+	GitPaths    []string
+	GitLabel    string
+	GitFluxPath string
+	Namespace   string
+	Timeout     time.Duration
+	Amend       bool // TODO: remove, as we eventually no longer want to support this mode?
+	WithHelm    bool
+}
+
+// CopyFrom copies the values from the provided InstallOpts into this InstallOpts.
+func (o *InstallOpts) CopyFrom(that *InstallOpts) {
+	o.GitOptions.CopyFrom(&that.GitOptions)
+	if o.GitPaths == nil && that.GitPaths != nil {
+		o.GitPaths = make([]string, len(that.GitPaths))
+	}
+	copy(o.GitPaths, that.GitPaths)
+	o.GitLabel = that.GitLabel
+	o.GitFluxPath = that.GitFluxPath
+	o.Namespace = that.Namespace
+	o.Timeout = that.Timeout
+	o.Amend = that.Amend
+	o.WithHelm = that.WithHelm
 }
 
 // NewInstallOptsFrom creates a new InstallOpts struct from the provided GitOps
@@ -122,19 +136,19 @@ func NewInstallOptsFrom(gitConfig *api.Git, timeout time.Duration) (*InstallOpts
 	}
 	return &InstallOpts{
 		GitOptions: git.Options{
-			URL:    gitConfig.Repo.URL,
-			Branch: gitConfig.Repo.Branch,
-			User:   gitConfig.Repo.User,
-			Email:  gitConfig.Repo.Email,
+			URL:               gitConfig.Repo.URL,
+			Branch:            gitConfig.Repo.Branch,
+			User:              gitConfig.Repo.User,
+			Email:             gitConfig.Repo.Email,
+			PrivateSSHKeyPath: gitConfig.Repo.PrivateSSHKeyPath,
 		},
-		GitPaths:             gitConfig.Repo.Paths,
-		GitFluxPath:          gitConfig.Repo.FluxPath,
-		GitPrivateSSHKeyPath: gitConfig.Repo.PrivateSSHKeyPath,
-		GitLabel:             gitConfig.Operator.Label,
-		Namespace:            gitConfig.Operator.Namespace,
-		WithHelm:             gitConfig.Operator.WithHelm,
-		Amend:                false, // TODO: remove, as we eventually no longer want to support this mode?
-		Timeout:              timeout,
+		GitPaths:    gitConfig.Repo.Paths,
+		GitFluxPath: gitConfig.Repo.FluxPath,
+		GitLabel:    gitConfig.Operator.Label,
+		Namespace:   gitConfig.Operator.Namespace,
+		WithHelm:    gitConfig.Operator.WithHelm,
+		Amend:       false, // TODO: remove, as we eventually no longer want to support this mode?
+		Timeout:     timeout,
 	}, nil
 }
 
@@ -149,7 +163,7 @@ type Installer struct {
 // NewInstaller creates a new Flux installer
 func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
 	gitClient := git.NewGitClient(git.ClientParams{
-		PrivateSSHKeyPath: opts.GitPrivateSSHKeyPath,
+		PrivateSSHKeyPath: opts.GitOptions.PrivateSSHKeyPath,
 	})
 	fi := &Installer{
 		opts:          opts,
