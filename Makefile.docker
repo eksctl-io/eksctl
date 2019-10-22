@@ -7,7 +7,8 @@ build_image_input := Dockerfile install-build-deps.sh go.mod go.sum
 # run `git show e6e8800773d3adf8e7999a23dcdb07414c66a4da` to get contents of `.build_image_manifest`,
 # and `git show <hash>` for each of the hashes in the manifest to determine contents of each of the
 # files used in `$(build_image_input)` at the time.
-build_image_tag = $(shell git ls-tree --full-tree @ -- .build_image_manifest | awk '{ print $$3 }')
+build_image_tag_cmd = git ls-tree --full-tree @ -- .build_image_manifest | awk '{ print $$3 }'
+build_image_tag = $(shell $(build_image_tag_cmd))
 
 build_image_name = weaveworks/eksctl-build:$(build_image_tag)
 
@@ -22,19 +23,23 @@ update_build_image_manifest = git ls-tree --full-tree @ -- $(build_image_input) 
 
 .PHONY: check-build-image-manifest-up-to-date
 check-build-image-manifest-up-to-date: ## Update build image manifest and commits the changes
-	git diff --quiet -- $(build_image_input) || (git --no-pager diff $(build_image_input); exit 1)
+	git diff --quiet -- $(build_image_input) \
+	  || (git --no-pager diff $(build_image_input); exit 1)
 	$(update_build_image_manifest)
-	git diff --quiet -- .build_image_manifest || (git --no-pager diff .build_image_manifest; echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-manifest'"; exit 1)
+	git diff --quiet -- .build_image_manifest \
+	  || (git --no-pager diff .build_image_manifest; echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-manifest'"; exit 1)
 
 .PHONY: update-build-image-manifest
 update-build-image-manifest: ## Update build image manifest and commits the changes
 	$(update_build_image_manifest)
+	git diff --quiet -- .build_image_manifest \
+	  || git commit --quiet .build_image_manifest --message 'Update build image manifest'
 	@# There is no portable way of using sed -i on BSD and GNU, so we use temporary files instead
 	for i in .github/workflows/commit.yaml .circleci/config.yml ; do \
-	  sed "s|\(weaveworks/eksctl-build\):.*$$|\1:$(build_image_tag)|" "$${i}" > "$${i}.sedtmp" && mv "$${i}.sedtmp" "$${i}" ; \
+	  sed "s|\(weaveworks/eksctl-build\):.*$$|\1:$$($(build_image_tag_cmd))|" "$${i}" > "$${i}.sedtmp" && mv "$${i}.sedtmp" "$${i}" ; \
 	done
-	git commit --quiet .build_image_manifest .github/workflows/commit.yaml .circleci/config.yml --message 'Update build image'
-	$(info build image name is $(build_image_name))
+	git diff --quiet -- .github/workflows/commit.yaml .circleci/config.yml \
+	  || git commit --quiet .github/workflows/commit.yaml .circleci/config.yml --message 'Update build image in CI'
 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
