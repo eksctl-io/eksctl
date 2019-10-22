@@ -167,7 +167,8 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 	return resp.Stacks[0], nil
 }
 
-func (c *StackCollection) listStacks(nameRegex string, statusFilters ...string) ([]*Stack, error) {
+// ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex.
+func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...string) ([]*Stack, error) {
 	var (
 		subErr error
 		stack  *Stack
@@ -208,7 +209,7 @@ func (c *StackCollection) listStacks(nameRegex string, statusFilters ...string) 
 
 // ListStacks gets all of CloudFormation stacks
 func (c *StackCollection) ListStacks(statusFilters ...string) ([]*Stack, error) {
-	return c.listStacks(fmtStacksRegexForCluster(c.spec.Metadata.Name))
+	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name))
 }
 
 // StackStatusIsNotTransitional will return true when stack statate is non-transitional
@@ -288,7 +289,7 @@ func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
 	s, err := c.DescribeStack(i)
 	if err != nil {
 		err = errors.Wrapf(err, "not able to get stack %q for deletion", name)
-		stacks, newErr := c.listStacks(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
+		stacks, newErr := c.ListStacksMatching(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
 		if newErr != nil {
 			logger.Critical("not able double-check if stack was already deleted: %s", newErr.Error())
 		}
