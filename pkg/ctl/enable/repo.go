@@ -38,54 +38,7 @@ func enableRepo(cmd *cmdutils.Cmd) {
 	)
 	var opts flux.InstallOpts
 	cmd.SetRunFuncWithNameArg(func() error {
-		if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
-			return err
-		}
-		cfg := cmd.ClusterConfig
-
-		if cfg.HasGitOpsOptions() {
-			if err := validateGitOpsOptions(cfg, &opts); err != nil {
-				return err
-			}
-			optsFromCfg, err := flux.NewInstallOptsFrom(cfg.Git, opts.Timeout)
-			if err != nil {
-				return err
-			}
-			opts.CopyFrom(optsFromCfg)
-		} else {
-			validateInstallOpts(&opts)
-		}
-
-		ctl, err := cmd.NewCtl()
-		if err != nil {
-			return err
-		}
-
-		if err := ctl.CheckAuth(); err != nil {
-			return err
-		}
-		if ok, err := ctl.CanOperate(cfg); !ok {
-			return err
-		}
-		kubernetesClientConfigs, err := ctl.NewClient(cfg)
-		if err != nil {
-			return err
-		}
-		k8sConfig := kubernetesClientConfigs.Config
-
-		k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-		if err != nil {
-			return errors.Wrap(err, "cannot create Kubernetes client configuration")
-		}
-		k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
-		if err != nil {
-			return errors.Errorf("cannot create Kubernetes client set: %s", err)
-		}
-
-		installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts)
-		userInstructions, err := installer.Run(context.Background())
-		logger.Info(userInstructions)
-		return err
+		return doEnableRepository(cmd, opts)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
@@ -170,4 +123,55 @@ func validateInstallOpts(opts *flux.InstallOpts) error {
 		return fmt.Errorf("please supply a valid --%s argument", gitPrivateSSHKeyPath)
 	}
 	return nil
+}
+
+func doEnableRepository(cmd *cmdutils.Cmd, opts flux.InstallOpts) error {
+	if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
+		return err
+	}
+	cfg := cmd.ClusterConfig
+
+	if cfg.HasGitOpsOptions() {
+		if err := validateGitOpsOptions(cfg, &opts); err != nil {
+			return err
+		}
+		optsFromCfg, err := flux.NewInstallOptsFrom(cfg.Git, opts.Timeout)
+		if err != nil {
+			return err
+		}
+		opts.CopyFrom(optsFromCfg)
+	} else {
+		validateInstallOpts(&opts)
+	}
+
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
+
+	if err := ctl.CheckAuth(); err != nil {
+		return err
+	}
+	if ok, err := ctl.CanOperate(cfg); !ok {
+		return err
+	}
+	kubernetesClientConfigs, err := ctl.NewClient(cfg)
+	if err != nil {
+		return err
+	}
+	k8sConfig := kubernetesClientConfigs.Config
+
+	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
+	if err != nil {
+		return errors.Wrap(err, "cannot create Kubernetes client configuration")
+	}
+	k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
+	if err != nil {
+		return errors.Errorf("cannot create Kubernetes client set: %s", err)
+	}
+
+	installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts)
+	userInstructions, err := installer.Run(context.Background())
+	logger.Info(userInstructions)
+	return err
 }
