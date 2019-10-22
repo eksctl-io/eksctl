@@ -187,15 +187,23 @@ var _ = Describe("git", func() {
 				}.Validate()).To(MatchError("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs"))
 			})
 
-			It("succeeds when a SSH Git URL is provided", func() {
+			It("succeeds when a SSH Git URL and an email address is provided", func() {
+				Expect(git.Options{
+					URL:   "git@github.com:eksctl-bot/my-gitops-repo.git",
+					Email: "eksctl-bot@weave.works",
+				}.Validate()).NotTo(HaveOccurred())
+			})
+
+			It("returns an error on empty email address", func() {
 				Expect(git.Options{
 					URL: "git@github.com:eksctl-bot/my-gitops-repo.git",
-				}.Validate()).NotTo(HaveOccurred())
+				}.Validate()).To(MatchError("empty email address"))
 			})
 
 			It("returns an error on non-existing file path", func() {
 				Expect(git.Options{
 					URL:               "git@github.com:eksctl-bot/my-gitops-repo.git",
+					Email:             "eksctl-bot@weave.works",
 					PrivateSSHKeyPath: "/path/to/non/existing/file/id_rsa",
 				}.ValidatePrivateSSHKeyPath()).To(MatchError("invalid path to private SSH key: /path/to/non/existing/file/id_rsa"))
 			})
@@ -207,6 +215,7 @@ var _ = Describe("git", func() {
 
 				Expect(git.Options{
 					URL:               "git@github.com:eksctl-bot/my-gitops-repo.git",
+					Email:             "eksctl-bot@weave.works",
 					PrivateSSHKeyPath: privateSSHKey.Name(),
 				}.ValidatePrivateSSHKeyPath()).To(Not(HaveOccurred()))
 			})
@@ -233,6 +242,18 @@ var _ = Describe("git", func() {
 				Expect(git.Options{
 					URL: "git@github.com:eksctl-bot/my-gitops-repo.git",
 				}.ValidateURL()).NotTo(HaveOccurred())
+			})
+		})
+
+		Describe("ValidateEmail", func() {
+			It("returns an error on empty email addressL", func() {
+				Expect(git.Options{}.ValidateEmail()).To(MatchError("empty email address"))
+			})
+
+			It("succeeds when an email is provided", func() {
+				Expect(git.Options{
+					Email: "eksctl-bot@weave.works",
+				}.ValidateEmail()).NotTo(HaveOccurred())
 			})
 		})
 

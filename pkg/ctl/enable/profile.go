@@ -37,6 +37,9 @@ func (opts options) validate() error {
 	if err := opts.gitOptions.ValidateURL(); err != nil {
 		return errors.Wrap(err, "please supply a valid --git-url argument")
 	}
+	if err := opts.gitOptions.ValidateEmail(); err != nil {
+		return errors.Wrap(err, "please supply a valid --git-email argument")
+	}
 	if err := opts.gitOptions.ValidatePrivateSSHKeyPath(); err != nil {
 		return errors.Wrap(err, "please supply a valid --git-private-ssh-key-path argument")
 	}

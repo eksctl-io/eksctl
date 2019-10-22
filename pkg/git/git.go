@@ -46,6 +46,9 @@ func (o Options) Validate() error {
 	if err := o.ValidateURL(); err != nil {
 		return err
 	}
+	if err := o.ValidateEmail(); err != nil {
+		return err
+	}
 	if err := o.ValidatePrivateSSHKeyPath(); err != nil {
 		return err
 	}
@@ -56,6 +59,15 @@ func (o Options) Validate() error {
 // error should the current value not be valid.
 func (o Options) ValidateURL() error {
 	return ValidateURL(o.URL)
+}
+
+// ValidateEmail validates the email field of this Options object, return an
+// error should the current value not be valid.
+func (o Options) ValidateEmail() error {
+	if o.Email == "" {
+		return errors.New("empty email address")
+	}
+	return nil
 }
 
 // ValidatePrivateSSHKeyPath validates the path to the (optional) private SSH

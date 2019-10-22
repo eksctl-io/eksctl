@@ -115,7 +115,7 @@ func validateInstallOpts(opts *flux.InstallOpts) error {
 	if err := opts.GitOptions.ValidateURL(); err != nil {
 		return errors.Wrapf(err, "please supply a valid --%s argument", gitURL)
 	}
-	if opts.GitOptions.Email == "" {
+	if err := opts.GitOptions.ValidateEmail(); err != nil {
 		return fmt.Errorf("please supply a valid --%s argument", gitEmail)
 	}
 	if err := opts.GitOptions.ValidatePrivateSSHKeyPath(); err != nil {
