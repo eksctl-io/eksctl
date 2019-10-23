@@ -37,4 +37,5 @@ $menu-width: 16rem;
 $toc-width: 14rem;
 
 $sm-breakpoint: $menu-width + $body-min-width + 5;
+$content-img: 768px;
 $md-breakpoint: $sm-breakpoint + $toc-width;
