@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"k8s.io/kops/util/pkg/slice"
+
 	"github.com/kris-nova/logger"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -185,21 +187,22 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 			return err
 		}
 	}
-	for _, subnet := range subnets {
+
+	for _, sn := range subnets {
 		if spec.VPC.ID == "" {
 			// if VPC wasn't defined, import it based on VPC of the first
-			// subnet that we have
-			if err := Import(provider, spec, *subnet.VpcId); err != nil {
+			// sn that we have
+			if err := Import(provider, spec, *sn.VpcId); err != nil {
 				return err
 			}
-		} else if spec.VPC.ID != *subnet.VpcId { // be sure to use the same VPC
-			return fmt.Errorf("given %s is in %s, not in %s", *subnet.SubnetId, *subnet.VpcId, spec.VPC.ID)
+		} else if spec.VPC.ID != *sn.VpcId { // be sure to use the same VPC
+			return fmt.Errorf("given %s is in %s, not in %s", *sn.SubnetId, *sn.VpcId, spec.VPC.ID)
 		}
 
-		if err := spec.ImportSubnet(topology, *subnet.AvailabilityZone, *subnet.SubnetId, *subnet.CidrBlock); err != nil {
+		if err := spec.ImportSubnet(topology, *sn.AvailabilityZone, *sn.SubnetId, *sn.CidrBlock); err != nil {
 			return err
 		}
-		spec.AppendAvailabilityZone(*subnet.AvailabilityZone)
+		spec.AppendAvailabilityZone(*sn.AvailabilityZone)
 	}
 	return nil
 }
@@ -236,7 +239,7 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 	if err := ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, spec.PublicSubnetIDs()); err != nil {
 		return err
 	}
-
+	cleanupSubnets(spec)
 	return nil
 }
 
@@ -256,4 +259,19 @@ func UseEndpointAccessFromCluster(provider api.ClusterProvider, spec *api.Cluste
 	spec.VPC.ClusterEndpoints.PublicAccess = output.Cluster.ResourcesVpcConfig.EndpointPublicAccess
 	spec.VPC.ClusterEndpoints.PrivateAccess = output.Cluster.ResourcesVpcConfig.EndpointPrivateAccess
 	return nil
+}
+
+// cleanupSubnets clean up subnet entries having invalid AZ
+func cleanupSubnets(spec *api.ClusterConfig) {
+	for id := range spec.VPC.Subnets.Private {
+		if !slice.Contains(spec.AvailabilityZones, id) {
+			delete(spec.VPC.Subnets.Private, id)
+		}
+	}
+
+	for id := range spec.VPC.Subnets.Public {
+		if !slice.Contains(spec.AvailabilityZones, id) {
+			delete(spec.VPC.Subnets.Public, id)
+		}
+	}
 }
