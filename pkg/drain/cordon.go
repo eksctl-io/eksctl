@@ -31,32 +31,21 @@ import (
 
 // CordonHelper wraps functionality to cordon/uncordon nodes
 type CordonHelper struct {
-	node   *corev1.Node
-	status DesiredCordonStatus
-}
-
-type DesiredCordonStatus string
-
-const (
-	CordonNode   DesiredCordonStatus = "cordon"
-	UncordonNode DesiredCordonStatus = "uncordon"
-)
-
-func (n DesiredCordonStatus) String() string {
-	return string(n)
+	node    *corev1.Node
+	desired bool
 }
 
 // NewCordonHelper returns a new CordonHelper
-func NewCordonHelper(node *corev1.Node, desired DesiredCordonStatus) *CordonHelper {
+func NewCordonHelper(node *corev1.Node, desired bool) *CordonHelper {
 	return &CordonHelper{
-		node:   node,
-		status: desired,
+		node:    node,
+		desired: desired,
 	}
 }
 
 // NewCordonHelperFromRuntimeObject returns a new CordonHelper, or an error if given object is not a
 // node or cannot be encoded as JSON
-func NewCordonHelperFromRuntimeObject(nodeObject runtime.Object, scheme *runtime.Scheme, gvk schema.GroupVersionKind, desired DesiredCordonStatus) (*CordonHelper, error) {
+func NewCordonHelperFromRuntimeObject(nodeObject runtime.Object, scheme *runtime.Scheme, gvk schema.GroupVersionKind, desired bool) (*CordonHelper, error) {
 	nodeObject, err := scheme.ConvertToVersion(nodeObject, gvk.GroupVersion())
 	if err != nil {
 		return nil, err
@@ -73,11 +62,7 @@ func NewCordonHelperFromRuntimeObject(nodeObject runtime.Object, scheme *runtime
 // IsUpdateRequired returns true if c.node.Spec.Unschedulable matches desired state,
 // or false when it is
 func (c *CordonHelper) IsUpdateRequired() bool {
-	mustCordon := !c.node.Spec.Unschedulable && c.status == CordonNode
-
-	mustUncordon := c.node.Spec.Unschedulable && c.status == UncordonNode
-
-	return mustCordon || mustUncordon
+	return c.node.Spec.Unschedulable != c.desired
 }
 
 // PatchOrReplace uses given clientset to update the node status, either by patching or
@@ -92,12 +77,7 @@ func (c *CordonHelper) PatchOrReplace(clientset kubernetes.Interface) (error, er
 		return err, nil
 	}
 
-	switch c.status {
-	case CordonNode:
-		c.node.Spec.Unschedulable = true
-	case UncordonNode:
-		c.node.Spec.Unschedulable = false
-	}
+	c.node.Spec.Unschedulable = c.desired
 
 	newData, err := json.Marshal(c.node)
 	if err != nil {

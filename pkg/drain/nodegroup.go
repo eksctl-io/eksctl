@@ -112,10 +112,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 					continue // already drained, get next one
 				}
 				newPendingNodes.Insert(node.Name)
-				desired := CordonNode
-				if undo {
-					desired = UncordonNode
-				}
+				desired := !undo
 				c := NewCordonHelper(&node, desired)
 				if c.IsUpdateRequired() {
 					err, patchErr := c.PatchOrReplace(clientSet)
@@ -125,9 +122,9 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 					if err != nil {
 						logger.Critical(err.Error())
 					}
-					logger.Info("%s node %q", desired, node.Name)
+					logger.Info("%s node %q", cordonStatus(desired), node.Name)
 				} else {
-					logger.Debug("no need to %s node %q", desired, node.Name)
+					logger.Debug("no need to %s node %q", cordonStatus(desired), node.Name)
 				}
 			}
 
@@ -168,4 +165,11 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 	}
 
 	return nil
+}
+
+func cordonStatus(desired bool) string {
+	if desired {
+		return "cordon"
+	}
+	return "uncordon"
 }
