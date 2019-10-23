@@ -116,6 +116,10 @@ What will happen during the following command is:
   which comes with a lot of very useful services and config. It is how
   we feel EKS `app-dev` clusters are best run.
 
+![Install Flux](../images/gitops-diagram1.svg#content)
+![Deploying with gitops](../images/gitops-diagram2.svg#content)
+![Enabling a profile](../images/gitops-diagram3.svg#content)
+
 Run this command from any directory in your file system. `eksctl` will clone your repository in a temporary directory
 that'll be removed later.
 
