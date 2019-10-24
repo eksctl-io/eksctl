@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
+	"github.com/weaveworks/eksctl/pkg/gitops/profile"
 )
 
 const (
@@ -21,6 +22,9 @@ const (
 	gitLabel    = "git-label"
 	namespace   = "namespace"
 	withHelm    = "with-helm"
+
+	profileName     = "name"
+	profileRevision = "revision"
 )
 
 // AddCommonFlagsForFlux configures the flags required to install Flux on an
@@ -69,4 +73,11 @@ func ValidateGitOptions(opts *git.Options) error {
 		return errors.Wrapf(err, "please supply a valid --%s argument", gitPrivateSSHKeyPath)
 	}
 	return nil
+}
+
+// AddCommonFlagsForProfile configures the flags required to enable a Quick
+// Start profile.
+func AddCommonFlagsForProfile(fs *pflag.FlagSet, opts *profile.Options) {
+	fs.StringVarP(&opts.Name, profileName, "", "", "name or URL of the Quick Start profile. For example, app-dev.")
+	fs.StringVarP(&opts.Revision, profileRevision, "", "master", "revision of the Quick Start profile.")
 }

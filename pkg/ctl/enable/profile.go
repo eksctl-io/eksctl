@@ -54,8 +54,7 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	var opts ProfileOptions
 	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&opts.profileOptions.Name, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
-		fs.StringVarP(&opts.profileOptions.Revision, "revision", "", "master", "revision of the Quick Start profile.")
+		cmdutils.AddCommonFlagsForProfile(fs, &opts.profileOptions)
 		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
 
 		requiredFlags := []string{"git-url", "git-email"}
