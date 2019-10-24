@@ -35,11 +35,17 @@ func enableRepo(cmd *cmdutils.Cmd) {
 		"Set up a repo for gitops, installing Flux in the cluster and initializing its manifests in the specified Git repository",
 		"",
 	)
-	var opts flux.InstallOpts
+	opts := ConfigureRepositoryCmd(cmd)
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doEnableRepository(cmd, opts)
+		return Repository(cmd, opts)
 	})
+}
 
+// ConfigureRepositoryCmd configures the provided command object so that it can
+// process CLI options and ClusterConfig file, to prepare for the "enablement"
+// of the configured repository & cluster.
+func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
+	var opts flux.InstallOpts
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
 		fs.StringVar(&opts.GitOptions.URL, gitURL, "",
 			"SSH URL of the Git repository to be used by Flux, e.g. git@github.com:<github_org>/<repo_name>")
@@ -72,6 +78,7 @@ func enableRepo(cmd *cmdutils.Cmd) {
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 	cmd.ProviderConfig.WaitTimeout = opts.Timeout
+	return &opts
 }
 
 func validateGitOpsOptions(cfg *api.ClusterConfig, opts *flux.InstallOpts) error {
@@ -124,14 +131,15 @@ func validateInstallOpts(opts *flux.InstallOpts) error {
 	return nil
 }
 
-func doEnableRepository(cmd *cmdutils.Cmd, opts flux.InstallOpts) error {
+// Repository enables GitOps on the configured repository.
+func Repository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
 	if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig
 
 	if cfg.HasGitOpsOptions() {
-		if err := validateGitOpsOptions(cfg, &opts); err != nil {
+		if err := validateGitOpsOptions(cfg, opts); err != nil {
 			return err
 		}
 		optsFromCfg, err := flux.NewInstallOptsFrom(cfg.Git, opts.Timeout)
@@ -140,7 +148,7 @@ func doEnableRepository(cmd *cmdutils.Cmd, opts flux.InstallOpts) error {
 		}
 		opts.CopyFrom(optsFromCfg)
 	} else {
-		validateInstallOpts(&opts)
+		validateInstallOpts(opts)
 	}
 
 	ctl, err := cmd.NewCtl()
@@ -169,7 +177,7 @@ func doEnableRepository(cmd *cmdutils.Cmd, opts flux.InstallOpts) error {
 		return errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 
-	installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts)
+	installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, opts)
 	userInstructions, err := installer.Run(context.Background())
 	logger.Info(userInstructions)
 	return err
