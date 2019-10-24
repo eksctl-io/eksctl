@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
 const (
@@ -14,7 +15,32 @@ const (
 	gitUser              = "git-user"
 	gitEmail             = "git-email"
 	gitPrivateSSHKeyPath = "git-private-ssh-key-path"
+
+	gitPaths    = "git-paths"
+	gitFluxPath = "git-flux-subdir"
+	gitLabel    = "git-label"
+	namespace   = "namespace"
+	withHelm    = "with-helm"
 )
+
+// AddCommonFlagsForFlux configures the flags required to install Flux on an
+// EKS cluster and have it point to the specified Git repository.
+func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *flux.InstallOpts) {
+	AddCommonFlagsForGit(fs, &opts.GitOptions)
+
+	fs.StringSliceVar(&opts.GitPaths, gitPaths, []string{},
+		"Relative paths within the Git repo for Flux to locate Kubernetes manifests")
+	fs.StringVar(&opts.GitLabel, gitLabel, "flux",
+		"Git label to keep track of Flux's sync progress; overrides both --git-sync-tag and --git-notes-ref")
+	fs.StringVar(&opts.GitFluxPath, gitFluxPath, "flux/",
+		"Directory within the Git repository where to commit the Flux manifests")
+	fs.StringVar(&opts.Namespace, namespace, "flux",
+		"Cluster namespace where to install Flux, the Helm Operator and Tiller")
+	fs.BoolVar(&opts.WithHelm, withHelm, true,
+		"Install the Helm Operator and Tiller")
+	fs.BoolVar(&opts.Amend, "amend", false,
+		"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
+}
 
 // AddCommonFlagsForGit configures the flags required to interact with a Git
 // repository.

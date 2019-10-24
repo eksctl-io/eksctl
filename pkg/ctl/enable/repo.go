@@ -11,19 +11,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
-const (
-	gitURL               = "git-url"
-	gitBranch            = "git-branch"
-	gitUser              = "git-user"
-	gitEmail             = "git-email"
-	gitPaths             = "git-paths"
-	gitFluxPath          = "git-flux-subdir"
-	gitLabel             = "git-label"
-	gitPrivateSSHKeyPath = "git-private-ssh-key-path"
-	namespace            = "namespace"
-	withHelm             = "with-helm"
-)
-
 func enableRepo(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
@@ -43,20 +30,7 @@ func enableRepo(cmd *cmdutils.Cmd) {
 func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 	var opts flux.InstallOpts
 	cmd.FlagSetGroup.InFlagSet("Enable repository", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForGit(fs, &opts.GitOptions)
-
-		fs.StringSliceVar(&opts.GitPaths, gitPaths, []string{},
-			"Relative paths within the Git repo for Flux to locate Kubernetes manifests")
-		fs.StringVar(&opts.GitLabel, gitLabel, "flux",
-			"Git label to keep track of Flux's sync progress; overrides both --git-sync-tag and --git-notes-ref")
-		fs.StringVar(&opts.GitFluxPath, gitFluxPath, "flux/",
-			"Directory within the Git repository where to commit the Flux manifests")
-		fs.StringVar(&opts.Namespace, namespace, "flux",
-			"Cluster namespace where to install Flux, the Helm Operator and Tiller")
-		fs.BoolVar(&opts.WithHelm, withHelm, true,
-			"Install the Helm Operator and Tiller")
-		fs.BoolVar(&opts.Amend, "amend", false,
-			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
+		cmdutils.AddCommonFlagsForFlux(fs, &opts)
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable gitops on")
