@@ -58,10 +58,10 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	var opts ProfileOptions
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
 		fs.StringVarP(&opts.profileNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
 		fs.StringVarP(&opts.profileRevision, "revision", "", "master", "revision of the Quick Start profile.")
 		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
-		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
 
 		requiredFlags := []string{"git-url", "git-email"}
 		for _, f := range requiredFlags {
