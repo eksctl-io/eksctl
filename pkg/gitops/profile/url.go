@@ -1,4 +1,4 @@
-package quickstart
+package profile
 
 import (
 	"fmt"

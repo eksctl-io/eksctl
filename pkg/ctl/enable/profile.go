@@ -19,7 +19,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
-	"github.com/weaveworks/eksctl/pkg/quickstart"
+	"github.com/weaveworks/eksctl/pkg/gitops/profile"
 )
 
 // ProfileOptions groups input for the "enable profile" command.
@@ -90,7 +90,7 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		return err
 	}
 
-	profileRepoURL, err := quickstart.RepositoryURL(opts.profileNameArg)
+	profileRepoURL, err := profile.RepositoryURL(opts.profileNameArg)
 	if err != nil {
 		return errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
 	}
