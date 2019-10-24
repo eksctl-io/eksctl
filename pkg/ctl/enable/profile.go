@@ -24,13 +24,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
-type options struct {
+// ProfileOptions groups input for the "enable profile" command.
+type ProfileOptions struct {
 	gitOptions      git.Options
 	profileNameArg  string
 	profileRevision string
 }
 
-func (opts options) validate() error {
+func (opts ProfileOptions) validate() error {
 	if opts.profileNameArg == "" {
 		return errors.New("please supply a valid Quick Start profile URL or name")
 	}
@@ -47,17 +48,24 @@ func (opts options) validate() error {
 }
 
 func enableProfileCmd(cmd *cmdutils.Cmd) {
-	cfg := api.NewClusterConfig()
-	cmd.ClusterConfig = cfg
-
-	cmd.SetDescription("profile", "Set up Flux and deploy the components from the selected Quick Start profile.", "")
-
-	var opts options
-
+	cmd.ClusterConfig = api.NewClusterConfig()
+	cmd.SetDescription(
+		"profile",
+		"Set up Flux and deploy the components from the selected Quick Start profile.",
+		"",
+	)
+	opts := ConfigureProfileCmd(cmd)
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doEnableProfile(cmd, opts)
+		return Profile(cmd, opts)
 	})
 
+}
+
+// ConfigureProfileCmd configures the provided command object so that it can
+// process CLI options and ClusterConfig file, to prepare for the "enablement"
+// of the configured profile on the configured repository & cluster.
+func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
+	var opts ProfileOptions
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&opts.profileNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
 		fs.StringVarP(&opts.profileRevision, "revision", "", "master", "revision of the Quick Start profile.")
@@ -67,7 +75,7 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
 		fs.StringVar(&opts.gitOptions.PrivateSSHKeyPath, "git-private-ssh-key-path", "",
 			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
-		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
+		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
 
 		requiredFlags := []string{"git-url", "git-email"}
 		for _, f := range requiredFlags {
@@ -83,9 +91,11 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
+	return &opts
 }
 
-func doEnableProfile(cmd *cmdutils.Cmd, opts options) error {
+// Profile enables the configured profile on the configured repository.
+func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	if cmd.NameArg != "" && opts.profileNameArg != "" {
 		return cmdutils.ErrClusterFlagAndArg(cmd, cmd.NameArg, opts.profileNameArg)
 	}
