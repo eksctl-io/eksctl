@@ -35,16 +35,7 @@ func (opts ProfileOptions) validate() error {
 	if opts.profileNameArg == "" {
 		return errors.New("please supply a valid Quick Start profile URL or name")
 	}
-	if err := opts.gitOptions.ValidateURL(); err != nil {
-		return errors.Wrap(err, "please supply a valid --git-url argument")
-	}
-	if err := opts.gitOptions.ValidateEmail(); err != nil {
-		return errors.Wrap(err, "please supply a valid --git-email argument")
-	}
-	if err := opts.gitOptions.ValidatePrivateSSHKeyPath(); err != nil {
-		return errors.Wrap(err, "please supply a valid --git-private-ssh-key-path argument")
-	}
-	return nil
+	return cmdutils.ValidateGitOptions(&opts.gitOptions)
 }
 
 func enableProfileCmd(cmd *cmdutils.Cmd) {
@@ -69,12 +60,7 @@ func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&opts.profileNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
 		fs.StringVarP(&opts.profileRevision, "revision", "", "master", "revision of the Quick Start profile.")
-		fs.StringVarP(&opts.gitOptions.URL, "git-url", "", "", "SSH URL of the Git repository that will contain the cluster components, e.g. git@github.com:<github_org>/<repo_name>")
-		fs.StringVarP(&opts.gitOptions.Branch, "git-branch", "", "master", "Git branch")
-		fs.StringVar(&opts.gitOptions.User, "git-user", "Flux", "Username to use as Git committer")
-		fs.StringVar(&opts.gitOptions.Email, "git-email", "", "Email to use as Git committer")
-		fs.StringVar(&opts.gitOptions.PrivateSSHKeyPath, "git-private-ssh-key-path", "",
-			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
+		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
 		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
 
 		requiredFlags := []string{"git-url", "git-email"}

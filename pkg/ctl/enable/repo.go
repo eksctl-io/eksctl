@@ -2,7 +2,6 @@ package enable
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/kris-nova/logger"
@@ -47,20 +46,12 @@ func enableRepo(cmd *cmdutils.Cmd) {
 func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 	var opts flux.InstallOpts
 	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
-		fs.StringVar(&opts.GitOptions.URL, gitURL, "",
-			"SSH URL of the Git repository to be used by Flux, e.g. git@github.com:<github_org>/<repo_name>")
-		fs.StringVar(&opts.GitOptions.Branch, gitBranch, "master",
-			"Git branch to be used by Flux")
+		cmdutils.AddCommonFlagsForGit(fs, &opts.GitOptions)
+
 		fs.StringSliceVar(&opts.GitPaths, gitPaths, []string{},
 			"Relative paths within the Git repo for Flux to locate Kubernetes manifests")
 		fs.StringVar(&opts.GitLabel, gitLabel, "flux",
 			"Git label to keep track of Flux's sync progress; overrides both --git-sync-tag and --git-notes-ref")
-		fs.StringVar(&opts.GitOptions.User, gitUser, "Flux",
-			"Username to use as Git committer")
-		fs.StringVar(&opts.GitOptions.Email, gitEmail, "",
-			"Email to use as Git committer")
-		fs.StringVar(&opts.GitOptions.PrivateSSHKeyPath, gitPrivateSSHKeyPath, "",
-			"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 		fs.StringVar(&opts.GitFluxPath, gitFluxPath, "flux/",
 			"Directory within the Git repository where to commit the Flux manifests")
 		fs.StringVar(&opts.Namespace, namespace, "flux",
@@ -118,19 +109,6 @@ func validateGitOpsOptions(cfg *api.ClusterConfig, opts *flux.InstallOpts) error
 	return nil
 }
 
-func validateInstallOpts(opts *flux.InstallOpts) error {
-	if err := opts.GitOptions.ValidateURL(); err != nil {
-		return errors.Wrapf(err, "please supply a valid --%s argument", gitURL)
-	}
-	if err := opts.GitOptions.ValidateEmail(); err != nil {
-		return fmt.Errorf("please supply a valid --%s argument", gitEmail)
-	}
-	if err := opts.GitOptions.ValidatePrivateSSHKeyPath(); err != nil {
-		return errors.Wrapf(err, "please supply a valid --%s argument", gitPrivateSSHKeyPath)
-	}
-	return nil
-}
-
 // Repository enables GitOps on the configured repository.
 func Repository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
 	if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
@@ -148,7 +126,7 @@ func Repository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
 		}
 		opts.CopyFrom(optsFromCfg)
 	} else {
-		validateInstallOpts(opts)
+		cmdutils.ValidateGitOptions(&opts.GitOptions)
 	}
 
 	ctl, err := cmd.NewCtl()
