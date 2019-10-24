@@ -5,13 +5,10 @@ import (
 	"time"
 
 	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
-	kubeclient "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -129,30 +126,9 @@ func Repository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
 		cmdutils.ValidateGitOptions(&opts.GitOptions)
 	}
 
-	ctl, err := cmd.NewCtl()
+	k8sClientSet, k8sRestConfig, err := KubernetesClientAndConfigFrom(cmd)
 	if err != nil {
 		return err
-	}
-
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-	if ok, err := ctl.CanOperate(cfg); !ok {
-		return err
-	}
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
-	if err != nil {
-		return err
-	}
-	k8sConfig := kubernetesClientConfigs.Config
-
-	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return errors.Wrap(err, "cannot create Kubernetes client configuration")
-	}
-	k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
-	if err != nil {
-		return errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 
 	installer := flux.NewInstaller(k8sRestConfig, k8sClientSet, opts)

@@ -12,8 +12,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	kubeclient "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -100,31 +98,10 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	if err := cmdutils.NewEnableProfileLoader(cmd).Load(); err != nil {
 		return err
 	}
-	cfg := cmd.ClusterConfig
-	ctl, err := cmd.NewCtl()
-	if err != nil {
-		return err
-	}
 
-	if err := ctl.CheckAuth(); err != nil {
-		return err
-	}
-	if ok, err := ctl.CanOperate(cfg); !ok {
-		return err
-	}
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
+	k8sClientSet, k8sRestConfig, err := KubernetesClientAndConfigFrom(cmd)
 	if err != nil {
 		return err
-	}
-	k8sConfig := kubernetesClientConfigs.Config
-
-	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
-	if err != nil {
-		return errors.Wrap(err, "cannot create Kubernetes client configuration")
-	}
-	k8sClientSet, err := kubeclient.NewForConfig(k8sRestConfig)
-	if err != nil {
-		return errors.Errorf("cannot create Kubernetes client set: %s", err)
 	}
 
 	// Create the flux installer. It will clone the user's repository in a temporary directory.
