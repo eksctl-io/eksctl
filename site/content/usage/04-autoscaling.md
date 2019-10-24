@@ -15,6 +15,43 @@ eksctl create cluster --asg-access
 Once cluster is running, you will need to install [cluster autoscaler][] itself. This flag also sets `k8s.io/cluster-autoscaler/enabled`
 and `k8s.io/cluster-autoscaler/<clusterName>` tags, so nodegroup discovery should work.
 
+### Scaling up from 0
+
+If you'd like to be able to scale your node group up from 0 and you have
+labels and/or taints defined on your nodegroups you'll need corresponding
+tags on your ASGs.  You can do this with the `tags` key on your node group
+definitions.  For example, given a node group with the following labels and
+taints:
+
+```yaml
+nodeGroups:
+  - name: ng1-public
+    ...
+    labels:
+      my-cool-label: pizza
+    taints:
+      feaster: "true:NoSchedule"
+```
+
+You would need to add the following ASG tags:
+
+```yaml
+nodeGroups:
+  - name: ng1-public
+    ...
+    labels:
+      my-cool-label: pizza
+    taints:
+      feaster: "true:NoSchedule"
+    tags:
+      k8s.io/cluster-autoscaler/node-template/label/my-cool-label: pizza
+      k8s.io/cluster-autoscaler/node-template/taint/feaster: "true:NoSchedule"
+```
+
+You can read more about this
+[here](https://github.com/weaveworks/eksctl/issues/1066) and
+[here](https://github.com/kubernetes/autoscaler/issues/2418).
+
 [cluster autoscaler]: https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 
 ### Zone-aware Auto Scaling
