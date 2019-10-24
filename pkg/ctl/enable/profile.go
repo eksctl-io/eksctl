@@ -2,7 +2,6 @@ package enable
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,6 +21,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
+	"github.com/weaveworks/eksctl/pkg/quickstart"
 )
 
 // ProfileOptions groups input for the "enable profile" command.
@@ -92,7 +92,7 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		return err
 	}
 
-	profileRepoURL, err := repoURLForQuickstart(opts.profileNameArg)
+	profileRepoURL, err := quickstart.RepositoryURL(opts.profileNameArg)
 	if err != nil {
 		return errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
 	}
@@ -183,17 +183,4 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	}
 	os.RemoveAll(dir) // Only clean up if the command completely successfully, for more convenient debugging.
 	return nil
-}
-
-func repoURLForQuickstart(quickstartArgument string) (string, error) {
-	if git.IsGitURL(quickstartArgument) {
-		return quickstartArgument, nil
-	}
-	if quickstartArgument == "app-dev" {
-		return "https://github.com/weaveworks/eks-quickstart-app-dev", nil
-	}
-	if quickstartArgument == "appmesh" {
-		return "https://github.com/weaveworks/eks-appmesh-profile", nil
-	}
-	return "", fmt.Errorf("invalid URL or unknown Quick Start profile %s ", quickstartArgument)
 }
