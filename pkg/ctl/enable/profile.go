@@ -55,8 +55,7 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 // of the configured profile on the configured repository & cluster.
 func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	var opts ProfileOptions
-	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to add the Quick Start profile to")
+	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&opts.profileNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
 		fs.StringVarP(&opts.profileRevision, "revision", "", "master", "revision of the Quick Start profile.")
 		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
@@ -68,12 +67,13 @@ func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 				os.Exit(1)
 			}
 		}
-
+	})
+	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable this Quick Start profile on")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 20*time.Second)
 	})
-
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 	return &opts
 }

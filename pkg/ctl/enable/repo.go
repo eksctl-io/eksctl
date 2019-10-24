@@ -42,7 +42,7 @@ func enableRepo(cmd *cmdutils.Cmd) {
 // of the configured repository & cluster.
 func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 	var opts flux.InstallOpts
-	cmd.FlagSetGroup.InFlagSet("Flux installation", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Enable repository", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForGit(fs, &opts.GitOptions)
 
 		fs.StringSliceVar(&opts.GitPaths, gitPaths, []string{},
@@ -59,7 +59,7 @@ func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 			"Stop to manually tweak the Flux manifests before pushing them to the Git repository")
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "EKS cluster name")
+		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable gitops on")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlagWithValue(fs, &opts.Timeout, 20*time.Second)
