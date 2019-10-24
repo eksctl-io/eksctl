@@ -24,14 +24,13 @@ import (
 
 // ProfileOptions groups input for the "enable profile" command.
 type ProfileOptions struct {
-	gitOptions      git.Options
-	profileNameArg  string
-	profileRevision string
+	gitOptions     git.Options
+	profileOptions profile.Options
 }
 
 func (opts ProfileOptions) validate() error {
-	if opts.profileNameArg == "" {
-		return errors.New("please supply a valid Quick Start profile URL or name")
+	if err := opts.profileOptions.Validate(); err != nil {
+		return err
 	}
 	return cmdutils.ValidateGitOptions(&opts.gitOptions)
 }
@@ -47,7 +46,6 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 	cmd.SetRunFuncWithNameArg(func() error {
 		return Profile(cmd, opts)
 	})
-
 }
 
 // ConfigureProfileCmd configures the provided command object so that it can
@@ -56,8 +54,8 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	var opts ProfileOptions
 	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
-		fs.StringVarP(&opts.profileNameArg, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
-		fs.StringVarP(&opts.profileRevision, "revision", "", "master", "revision of the Quick Start profile.")
+		fs.StringVarP(&opts.profileOptions.Name, "name", "", "", "name or URL of the Quick Start profile. For example, app-dev.")
+		fs.StringVarP(&opts.profileOptions.Revision, "revision", "", "master", "revision of the Quick Start profile.")
 		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
 
 		requiredFlags := []string{"git-url", "git-email"}
@@ -80,17 +78,17 @@ func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 
 // Profile enables the configured profile on the configured repository.
 func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
-	if cmd.NameArg != "" && opts.profileNameArg != "" {
-		return cmdutils.ErrClusterFlagAndArg(cmd, cmd.NameArg, opts.profileNameArg)
+	if cmd.NameArg != "" && opts.profileOptions.Name != "" {
+		return cmdutils.ErrClusterFlagAndArg(cmd, cmd.NameArg, opts.profileOptions.Name)
 	}
 	if cmd.NameArg != "" {
-		opts.profileNameArg = cmd.NameArg
+		opts.profileOptions.Name = cmd.NameArg
 	}
 	if err := opts.validate(); err != nil {
 		return err
 	}
 
-	profileRepoURL, err := profile.RepositoryURL(opts.profileNameArg)
+	profileRepoURL, err := profile.RepositoryURL(opts.profileOptions.Name)
 	if err != nil {
 		return errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
 	}
@@ -133,7 +131,7 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		Path:      profileOutputPath,
 		GitOpts: git.Options{
 			URL:    profileRepoURL,
-			Branch: opts.profileRevision,
+			Branch: opts.profileOptions.Revision,
 		},
 		GitCloner: git.NewGitClient(git.ClientParams{}),
 		FS:        afero.NewOsFs(),
@@ -152,7 +150,7 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		ProfileGenerator: profile,
 		FluxInstaller:    fluxInstaller,
 		ClusterConfig:    cmd.ClusterConfig,
-		QuickstartName:   opts.profileNameArg,
+		QuickstartName:   opts.profileOptions.Name,
 	}
 
 	if err = gitOps.Run(context.Background()); err != nil {
