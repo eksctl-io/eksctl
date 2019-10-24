@@ -29,7 +29,7 @@ func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
 	pods := list.Pods()
 	pending := len(pods)
 	for _, pod := range pods {
-		// TODO: handle API rate limitter error
+		// TODO: handle API rate limiter error
 		if err := drainer.EvictOrDeletePod(pod); err != nil {
 			return pending, err
 		}
@@ -43,7 +43,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 		Client: clientSet,
 
 		// TODO: Force, DeleteLocalData & IgnoreAllDaemonSets shouldn't
-		// be enabled by default, we need flags to control thes, but that
+		// be enabled by default, we need flags to control these, but that
 		// requires more improvements in the underlying drain package,
 		// as it currently produces errors and warnings with references
 		// to kubectl flags
@@ -81,18 +81,19 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 	}
 
 	if err := drainer.CanUseEvictions(); err != nil {
-		return errors.Wrapf(err, "checking if cluster implements policy API")
+		return errors.Wrap(err, "checking if cluster implements policy API")
 	}
 
 	drainedNodes := sets.NewString()
 	// loop until all nodes are drained to handle accidental scale-up
 	// or any other changes in the ASG
-	timer := time.After(waitTimeout)
-	timeout := false
-	for !timeout {
+	timer := time.NewTimer(waitTimeout)
+	defer timer.Stop()
+
+	for {
 		select {
-		case <-timer:
-			timeout = true
+		case <-timer.C:
+			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", waitTimeout, ng.Name)
 		default:
 			nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 			if err != nil {
@@ -111,10 +112,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 					continue // already drained, get next one
 				}
 				newPendingNodes.Insert(node.Name)
-				desired := CordonNode
-				if undo {
-					desired = UncordonNode
-				}
+				desired := !undo
 				c := NewCordonHelper(&node, desired)
 				if c.IsUpdateRequired() {
 					err, patchErr := c.PatchOrReplace(clientSet)
@@ -124,9 +122,9 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 					if err != nil {
 						logger.Critical(err.Error())
 					}
-					logger.Info("%s node %q", desired, node.Name)
+					logger.Info("%s node %q", cordonStatus(desired), node.Name)
 				} else {
-					logger.Debug("no need to %s node %q", desired, node.Name)
+					logger.Debug("no need to %s node %q", cordonStatus(desired), node.Name)
 				}
 			}
 
@@ -142,12 +140,19 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 			logger.Debug("already drained: %v", drainedNodes.List())
 			logger.Debug("will drain: %v", newPendingNodes.List())
 
+		evict_loop:
 			for _, node := range nodes.Items {
 				if newPendingNodes.Has(node.Name) {
 					pending, err := evictPods(drainer, &node)
 					if err != nil {
 						logger.Warning("pod eviction error (%q) on node %s – will retry after delay of %s", err, node.Name, retryDelay)
-						time.Sleep(retryDelay)
+						retryTimer := time.NewTimer(retryDelay)
+						select {
+						case <-retryTimer.C:
+						case <-timer.C:
+							retryTimer.Stop()
+							break evict_loop
+						}
 						continue
 					}
 					logger.Debug("%d pods to be evicted from %s", pending, node.Name)
@@ -158,9 +163,13 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 			}
 		}
 	}
-	if timeout {
-		return fmt.Errorf("timed out (after %s) waiting for nodedroup %q to be drain", waitTimeout, ng.Name)
-	}
 
 	return nil
+}
+
+func cordonStatus(desired bool) string {
+	if desired {
+		return "cordon"
+	}
+	return "uncordon"
 }
