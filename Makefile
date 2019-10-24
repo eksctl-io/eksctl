@@ -7,21 +7,25 @@ gocache := $(shell go env GOCACHE)
 
 GOBIN ?= $(gopath)/bin
 
-generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
+
+always_generate_in_packages := ./pkg/nodebootstrap ./pkg/addons/default ./pkg/addons
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
-all_generated_code := \
-  pkg/addons/default/assets.go \
-  pkg/nodebootstrap/assets.go \
-  pkg/nodebootstrap/maxpods.go \
-  pkg/addons/default/assets/aws-node.yaml \
-  pkg/ami/static_resolver_ami.go \
+generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
+
+conditionally_generated_files := \
+  site/content/usage/20-schema.md \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
-  site/content/usage/20-schema.md \
-  $(all_generated_code)
+  pkg/nodebootstrap/assets.go \
+  pkg/nodebootstrap/maxpods.go \
+  pkg/addons/default/assets.go \
+  pkg/addons/default/assets/aws-node.yaml \
+  pkg/addons/assets.go \
+  pkg/ami/static_resolver_ami.go \
+  $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help
 
@@ -37,7 +41,7 @@ godeps_cmd = go list -deps -f '{{if not .Standard}}{{ $$dep := . }}{{range .GoFi
 godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
-build: print-go-bindata-version $(all_generated_code) ## Build main binary
+build: generate-always ## Build main binary
 	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
 
 ##@ Testing & CI
@@ -127,50 +131,37 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
-.PHONY: print-go-bindata-version
-# In order to help debug issues & discrepancies when building:
-print-go-bindata-version:
-	go-bindata --version
+.PHONY: generate-always
+generate-always: ## Generate code (required for every build)
+	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
+	@# - deleting an asset is breaks the dependencies
+	@# - different version of go-bindata generate different code
+	@$(GOBIN)/go-bindata -v
+	env GOBIN=$(GOBIN) time go generate $(always_generate_in_packages)
 
 .PHONY: generate-all
-# TODO: generate-ami is broken (see https://github.com/weaveworks/eksctl/issues/949 ), include it when fixed
-generate-all: print-go-bindata-version $(all_generated_files) # generate-ami ## Re-generate all the automatically-generated source files
+generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
 
 .PHONY: check-all-generated-files-up-to-date
 check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
-pkg/addons/default/assets.go: pkg/addons/default/assets/*
-	env GOBIN=$(GOBIN) time go generate ./$(@D)
-
-pkg/addons/default/assets/aws-node.yaml:
-	env GOBIN=$(GOBIN) go generate ./pkg/addons/default
-
-pkg/nodebootstrap/assets.go: pkg/nodebootstrap/assets/*
-	env GOBIN=$(GOBIN) time go generate ./$(@D)
-
-.PHONY: pkg/nodebootstrap/maxpods.go
-pkg/nodebootstrap/maxpods.go:
-	env GOBIN=$(GOBIN) time go generate ./$(@D)
-
 .license-header: LICENSE
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
-$(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
-	time env GOPATH="$(gopath)" bash "$(gopath)/pkg/mod/k8s.io/code-generator@v0.0.0-20190831074504-732c9ca86353/generate-groups.sh" \
-	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$(git_toplevel)" \
-	  || (cat .license-header ; cat $(generated_code_deep_copy_helper); exit 1)
-
-# static_resolver_ami.go doesn't only depend on files (it should be refreshed whenever a release is made in AWS)
-# so we need to forcibly generate it
 .PHONY: generate-ami
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
 	time go generate ./pkg/ami
 
 site/content/usage/20-schema.md: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
+
+deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
+$(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
+	time env GOPATH="$(gopath)" bash "$(gopath)/pkg/mod/k8s.io/code-generator@v0.0.0-20190831074504-732c9ca86353/generate-groups.sh" \
+	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$(git_toplevel)" \
+	  || (cat .license-header ; cat $(generated_code_deep_copy_helper); exit 1)
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
