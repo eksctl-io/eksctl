@@ -23,7 +23,7 @@ import (
 
 // ProfileOptions groups input for the "enable profile" command.
 type ProfileOptions struct {
-	gitOptions     git.Options
+	fluxOptions    flux.InstallOpts
 	profileOptions profile.Options
 }
 
@@ -31,7 +31,7 @@ func (opts ProfileOptions) validate() error {
 	if err := opts.profileOptions.Validate(); err != nil {
 		return err
 	}
-	return cmdutils.ValidateGitOptions(&opts.gitOptions)
+	return cmdutils.ValidateGitOptions(&opts.fluxOptions.GitOptions)
 }
 
 func enableProfileCmd(cmd *cmdutils.Cmd) {
@@ -54,7 +54,7 @@ func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	var opts ProfileOptions
 	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForProfile(fs, &opts.profileOptions)
-		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
+		cmdutils.AddCommonFlagsForFlux(fs, &opts.fluxOptions)
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable this Quick Start profile on")
@@ -92,22 +92,14 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		return err
 	}
 
-	// Create the flux installer. It will clone the user's repository in a temporary directory.
-	fluxOpts := flux.InstallOpts{
-		GitOptions:  opts.gitOptions,
-		Namespace:   "flux",
-		GitFluxPath: "flux/",
-		WithHelm:    true,
-		Timeout:     cmd.ProviderConfig.WaitTimeout,
-	}
-	fluxInstaller := flux.NewInstaller(k8sRestConfig, k8sClientSet, &fluxOpts)
+	fluxInstaller := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts.fluxOptions)
 
 	processor := &fileprocessor.GoTemplateProcessor{
 		Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
 	}
 
 	// Create the profile generator. It will output the processed templates into a new "/base" directory into the user's repo
-	usersRepoName, err := git.RepoName(opts.gitOptions.URL)
+	usersRepoName, err := git.RepoName(opts.fluxOptions.GitOptions.URL)
 	if err != nil {
 		return err
 	}
@@ -130,12 +122,12 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 
 	// A git client that operates in the user's repo
 	gitClient := git.NewGitClient(git.ClientParams{
-		PrivateSSHKeyPath: opts.gitOptions.PrivateSSHKeyPath,
+		PrivateSSHKeyPath: opts.fluxOptions.GitOptions.PrivateSSHKeyPath,
 	})
 
 	gitOps := gitops.Applier{
 		UserRepoPath:     usersRepoDir,
-		UsersRepoOpts:    opts.gitOptions,
+		UsersRepoOpts:    opts.fluxOptions.GitOptions,
 		GitClient:        gitClient,
 		ProfileGenerator: profile,
 		FluxInstaller:    fluxInstaller,
