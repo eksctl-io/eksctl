@@ -23,7 +23,7 @@ import (
 func bindataRead(data []byte, name string) ([]byte, error) {
 	gz, err := gzip.NewReader(bytes.NewBuffer(data))
 	if err != nil {
-		return nil, fmt.Errorf("Read %q: %v", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 
 	var buf bytes.Buffer
@@ -31,7 +31,7 @@ func bindataRead(data []byte, name string) ([]byte, error) {
 	clErr := gz.Close()
 
 	if err != nil {
-		return nil, fmt.Errorf("Read %q: %v", name, err)
+		return nil, fmt.Errorf("read %q: %v", name, err)
 	}
 	if clErr != nil {
 		return nil, err
@@ -243,13 +243,10 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"10-eksclt.al2.conf": _10EkscltAl2Conf,
-
-	"bootstrap.al2.sh": bootstrapAl2Sh,
-
+	"10-eksclt.al2.conf":  _10EkscltAl2Conf,
+	"bootstrap.al2.sh":    bootstrapAl2Sh,
 	"bootstrap.ubuntu.sh": bootstrapUbuntuSh,
-
-	"kubelet.yaml": kubeletYaml,
+	"kubelet.yaml":        kubeletYaml,
 }
 
 // AssetDir returns the file names below a certain
