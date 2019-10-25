@@ -1,4 +1,7 @@
-// Make sure to run the following commands after changes to this file are made:
+// Changes to this file will require new build image, which will be published by GitHub Actions
+// workflow (see `.github/workflows/image-update.yaml`), it pushes an image and creates a PR to
+// update config files in the repo.
+// You can update the image manually by running the following commands:
 // `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 module github.com/weaveworks/eksctl
 
