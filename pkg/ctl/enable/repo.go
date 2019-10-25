@@ -82,7 +82,7 @@ func validateGitOpsOptions(cfg *api.ClusterConfig, opts *flux.InstallOpts) error
 
 // Repository enables GitOps on the configured repository.
 func Repository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
-	if err := cmdutils.NewInstallFluxLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewGitOpsConfigLoader(cmd).Load(); err != nil {
 		return err
 	}
 	cfg := cmd.ClusterConfig

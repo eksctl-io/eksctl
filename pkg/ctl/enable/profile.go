@@ -83,7 +83,7 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		return errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
 	}
 
-	if err := cmdutils.NewEnableProfileLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewGitOpsConfigLoader(cmd).Load(); err != nil {
 		return err
 	}
 
