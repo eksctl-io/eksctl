@@ -10,15 +10,50 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      - run: make -f Makefile.docker build-image
+      # Login to both registries
       - run: echo ${DOCKER_HUB_PASSWORD} | docker login --username weaveworkseksctlci --password-stdin
         env:
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - run: make -f Makefile.docker push-build-image
+      - name: Update the build image, push it Docker Hub and update manifest in the repo
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        run: |
+          set -x
+
+          set -o errexit
+          set -o pipefail
+          set -o nounset
+
+          # Update image manifest and push new image to registry only when needed
+          if ! make -f Makefile.docker check-build-image-manifest-up-to-date ; then
+            # Commit changes to the manifest
+            git config --local user.email "weaveworksbot@users.noreply.github.com"
+            git config --local user.name "Weaveworks Bot"
+            make -f Makefile.docker update-build-image-manifest
+
+            # Build the image and push it to Docker Hub registry
+            make -f Makefile.docker build-image
+            make -f Makefile.docker push-build-image
+
+            # Configure private key
+            mkdir -p "${HOME}/.ssh"
+            ssh-keyscan -t rsa github.com > "${HOME}/.ssh/known_hosts"
+            echo "${DEPLOY_KEY}" > "${HOME}/.ssh/id_rsa"
+            chmod 400 "${HOME}/.ssh/id_rsa"
+            # Now push commits updated manifest and CI configs to a new branch and create a PR
+            new_branch="update-build-image-manifest-$(date +%s)"
+            git push "git@github.com:${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${new_branch}"
+            curl \
+              --fail \
+              --request POST \
+              --header "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              --data-binary "{ \"title\": \"Update build image manifest\", \"head\": \"${new_branch}\", \"base\": \"master\" }" \
+                https://api.github.com/repos/weaveworks/eksctl/pulls
+          fi
+
+      # Also push image to GitHub registry (we want to benchmarking if it's faster, as it's logically local)
       - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com --username ${{ github.actor }} --password-stdin
       - run: make -f Makefile.docker push-build-image-github || true # GitHub registry is experimental, it often fails so we ignore the errors
-      #- run: make -f Makefile.docker check-build-image-manifest-up-to-date || (make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image)
-      # TODO update image used for commit workflow actions
-      # TODO push a commit back to the repo
+
       - run: make -f Makefile.docker eksctl-image
       # TODO: push the image to Docker Hub
