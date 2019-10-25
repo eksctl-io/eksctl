@@ -10,7 +10,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -56,14 +55,6 @@ func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForProfile(fs, &opts.profileOptions)
 		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
-
-		requiredFlags := []string{"git-url", "git-email"}
-		for _, f := range requiredFlags {
-			if err := cobra.MarkFlagRequired(fs, f); err != nil {
-				logger.Critical("unexpected error: %v", err)
-				os.Exit(1)
-			}
-		}
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable this Quick Start profile on")

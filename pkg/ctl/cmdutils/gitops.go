@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
@@ -59,6 +60,8 @@ func AddCommonFlagsForGit(fs *pflag.FlagSet, opts *git.Options) {
 		"Email to use as Git committer")
 	fs.StringVar(&opts.PrivateSSHKeyPath, gitPrivateSSHKeyPath, "",
 		"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
+	_ = cobra.MarkFlagRequired(fs, gitURL)
+	_ = cobra.MarkFlagRequired(fs, gitEmail)
 }
 
 // ValidateGitOptions validates the provided Git options.
