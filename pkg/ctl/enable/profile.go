@@ -78,39 +78,38 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		return err
 	}
 
-	profileRepoURL, err := profile.RepositoryURL(opts.profileOptions.Name)
-	if err != nil {
-		return errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
-	}
-
 	if err := cmdutils.NewGitOpsConfigLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	k8sClientSet, k8sRestConfig, err := KubernetesClientAndConfigFrom(cmd)
-	if err != nil {
+	gitOpsApplier, tempDir, err := newGitOpsApplier(cmd, opts)
+	if err = gitOpsApplier.Run(context.Background()); err != nil {
 		return err
 	}
+	os.RemoveAll(tempDir) // Only clean up if the command completely successfully, for more convenient debugging.
+	return nil
+}
 
-	fluxInstaller := flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts.fluxOptions)
-
-	processor := &fileprocessor.GoTemplateProcessor{
-		Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
-	}
-
+func newGitOpsApplier(cmd *cmdutils.Cmd, opts *ProfileOptions) (*gitops.Applier, string, error) {
 	// Create the profile generator. It will output the processed templates into a new "/base" directory into the user's repo
 	usersRepoName, err := git.RepoName(opts.fluxOptions.GitOptions.URL)
 	if err != nil {
-		return err
+		return nil, "", err
 	}
 	dir, err := ioutil.TempDir("", usersRepoName)
 	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", dir)
 	usersRepoDir := filepath.Join(dir, usersRepoName)
 	profileOutputPath := filepath.Join(usersRepoDir, "base")
 
+	profileRepoURL, err := profile.RepositoryURL(opts.profileOptions.Name)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
+	}
 	profile := &gitops.Profile{
-		Processor: processor,
-		Path:      profileOutputPath,
+		Processor: &fileprocessor.GoTemplateProcessor{
+			Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
+		},
+		Path: profileOutputPath,
 		GitOpts: git.Options{
 			URL:    profileRepoURL,
 			Branch: opts.profileOptions.Revision,
@@ -120,24 +119,20 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		IO:        afero.Afero{Fs: afero.NewOsFs()},
 	}
 
-	// A git client that operates in the user's repo
-	gitClient := git.NewGitClient(git.ClientParams{
-		PrivateSSHKeyPath: opts.fluxOptions.GitOptions.PrivateSSHKeyPath,
-	})
-
+	k8sClientSet, k8sRestConfig, err := KubernetesClientAndConfigFrom(cmd)
+	if err != nil {
+		return nil, "", err
+	}
 	gitOps := gitops.Applier{
-		UserRepoPath:     usersRepoDir,
-		UsersRepoOpts:    opts.fluxOptions.GitOptions,
-		GitClient:        gitClient,
+		UserRepoPath:  usersRepoDir,
+		UsersRepoOpts: opts.fluxOptions.GitOptions,
+		GitClient: git.NewGitClient(git.ClientParams{
+			PrivateSSHKeyPath: opts.fluxOptions.GitOptions.PrivateSSHKeyPath,
+		}),
 		ProfileGenerator: profile,
-		FluxInstaller:    fluxInstaller,
+		FluxInstaller:    flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts.fluxOptions),
 		ClusterConfig:    cmd.ClusterConfig,
 		QuickstartName:   opts.profileOptions.Name,
 	}
-
-	if err = gitOps.Run(context.Background()); err != nil {
-		return err
-	}
-	os.RemoveAll(dir) // Only clean up if the command completely successfully, for more convenient debugging.
-	return nil
+	return &gitOps, dir, nil
 }
