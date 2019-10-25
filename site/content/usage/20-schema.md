@@ -33,9 +33,6 @@ ClusterConfig:
     cloudWatch:
       $ref: '#/definitions/ClusterCloudWatch'
       $schema: http://json-schema.org/draft-04/schema#
-    git:
-      $ref: '#/definitions/Git'
-      $schema: http://json-schema.org/draft-04/schema#
     iam:
       $ref: '#/definitions/ClusterIAM'
       $schema: http://json-schema.org/draft-04/schema#
@@ -183,21 +180,6 @@ ClusterVPC:
       $schema: http://json-schema.org/draft-04/schema#
   required:
   - Network
-  type: object
-Git:
-  additionalProperties: false
-  properties:
-    operator:
-      $ref: '#/definitions/Operator'
-      $schema: http://json-schema.org/draft-04/schema#
-    profiles:
-      items:
-        $ref: '#/definitions/Profile'
-        $schema: http://json-schema.org/draft-04/schema#
-      type: array
-    repo:
-      $ref: '#/definitions/Repo'
-      $schema: http://json-schema.org/draft-04/schema#
   type: object
 IPNet:
   additionalProperties: false
@@ -500,16 +482,6 @@ ObjectMeta:
     uid:
       type: string
   type: object
-Operator:
-  additionalProperties: false
-  properties:
-    label:
-      type: string
-    namespace:
-      type: string
-    withHelm:
-      type: boolean
-  type: object
 OwnerReference:
   additionalProperties: false
   properties:
@@ -530,34 +502,6 @@ OwnerReference:
   - kind
   - name
   - uid
-  type: object
-Profile:
-  additionalProperties: false
-  properties:
-    revision:
-      type: string
-    source:
-      type: string
-  type: object
-Repo:
-  additionalProperties: false
-  properties:
-    branch:
-      type: string
-    email:
-      type: string
-    fluxPath:
-      type: string
-    paths:
-      items:
-        type: string
-      type: array
-    privateSSHKeyPath:
-      type: string
-    url:
-      type: string
-    user:
-      type: string
   type: object
 Status:
   additionalProperties: false
