@@ -1,16 +1,21 @@
 name: Image Update Workflow
-on: [push] # TODO make it post-merge
+on:
+  push:
+    branches: [master]
 
 jobs:
   build:
     name: Build All Images
     runs-on: ubuntu-18.04
     steps:
+      - run: echo ${{ secrets.DOCKER_HUB_PASSWORD }} | wc # debug
+      - run: echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username weaveworkseksctlci --password-stdin
       - uses: actions/checkout@v1
-      - run: make -f Makefile.docker eksctl-image
-      - run: make -f Makefile.docker check-build-image-manifest-up-to-date || (make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image)
+      - run: make -f Makefile.docker build-image
+      - run: make -f Makefile.docker push-build-image
+      - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com --username ${{ github.actor }} --password-stdin
+      - run: make -f Makefile.docker push-build-image-github
+      #- run: make -f Makefile.docker check-build-image-manifest-up-to-date || (make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image)
       # TODO update image used for commit workflow actions
       # TODO push a commit back to the repo
-      # TODO push a image to the registry
-      # TODO try github registry
 
