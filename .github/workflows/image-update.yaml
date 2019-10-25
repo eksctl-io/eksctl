@@ -1,7 +1,7 @@
 name: Image Update Workflow
-on:
-  push:
-    branches: [master]
+on: [push]
+#  push:
+#    branches: [master]
 
 jobs:
   # This has to be done in one job, as images are not shared between jobs, so any gain in performance will get compromised by having to pull the images again
