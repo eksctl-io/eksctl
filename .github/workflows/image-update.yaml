@@ -4,18 +4,21 @@ on:
     branches: [master]
 
 jobs:
-  build:
-    name: Build All Images
+  # This has to be done in one job, as images are not shared between jobs, so any gain in performance will get compromised by having to pull the images again
+  image-update:
+    name: Build and Push All Image
     runs-on: ubuntu-18.04
     steps:
-      - run: echo ${{ secrets.DOCKER_HUB_PASSWORD }} | wc # debug
-      - run: echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login --username weaveworkseksctlci --password-stdin
       - uses: actions/checkout@v1
       - run: make -f Makefile.docker build-image
+      - run: echo ${DOCKER_HUB_PASSWORD} | docker login --username weaveworkseksctlci --password-stdin
+        env:
+          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - run: make -f Makefile.docker push-build-image
       - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com --username ${{ github.actor }} --password-stdin
-      - run: make -f Makefile.docker push-build-image-github
+      - run: make -f Makefile.docker push-build-image-github || true # GitHub registry is experimental, it often fails so we ignore the errors
       #- run: make -f Makefile.docker check-build-image-manifest-up-to-date || (make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image)
       # TODO update image used for commit workflow actions
       # TODO push a commit back to the repo
-
+      - run: make -f Makefile.docker eksctl-image
+      # TODO: push the image to Docker Hub
