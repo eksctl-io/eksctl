@@ -4,7 +4,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
+      BUILD_IMAGE: weaveworks/eksctl-build:a9e83cf0ed04ff2fa26ea235f3ca82e1ca6df20c
     steps:
       - checkout
       # enabling docker executor will require to use large resource class, which
@@ -26,7 +26,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
+      BUILD_IMAGE: weaveworks/eksctl-build:a9e83cf0ed04ff2fa26ea235f3ca82e1ca6df20c
     steps:
       - checkout
       - run: docker pull $BUILD_IMAGE
@@ -38,7 +38,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
+      BUILD_IMAGE: weaveworks/eksctl-build:a9e83cf0ed04ff2fa26ea235f3ca82e1ca6df20c
     steps:
       - checkout
       - run: docker pull $BUILD_IMAGE
