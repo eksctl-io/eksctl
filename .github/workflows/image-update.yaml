@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      # Always make build image, it won't take long whenever there are no changes
-      - run: make -f Makefile.docker build-image
       # Login to both registries
       - run: echo ${DOCKER_HUB_PASSWORD} | docker login --username weaveworkseksctlci --password-stdin
         env:
@@ -23,15 +21,20 @@ jobs:
 
           # Update image manifest and push new image to registry only when needed
           if ! make -f Makefile.docker check-build-image-manifest-up-to-date ; then
-            # First push updated image
-            make -f Makefile.docker push-build-image
-            # Now update the manifest and push new commits to master
+            # Commit changes to the manifest
             git config --local user.email "weaveworksbot@users.noreply.github.com"
             git config --local user.name "Weaveworks Bot"
             make -f Makefile.docker update-build-image-manifest
+
+            # Build the image and push it to Docker Hub registry
+            make -f Makefile.docker build-image
+            make -f Makefile.docker push-build-image
+
+            # Now push commits updating the manifest and CI config to master
             git push
           fi
 
+      # Also push image to GitHub registry (we want to benchmarking if it's faster, as it's logically local)
       - run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com --username ${{ github.actor }} --password-stdin
       - run: make -f Makefile.docker push-build-image-github || true # GitHub registry is experimental, it often fails so we ignore the errors
 
