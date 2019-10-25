@@ -31,8 +31,8 @@ jobs:
             make -f Makefile.docker build-image
             make -f Makefile.docker push-build-image
 
-            # Now push commits updated manifest and CI configs to master
-            git push "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:master
+            # Now push commits updated manifest and CI configs to a new branch
+            git push "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/update-build-image-manifest-$(date +%s)"
           fi
 
       # Also push image to GitHub registry (we want to benchmarking if it's faster, as it's logically local)
