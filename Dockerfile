@@ -1,4 +1,6 @@
-# Make sure to run the following commands after changes to this file are made:
+# Changes to this file will require new build image, which will be published by GitHub Actions
+# workflow (see `.github/workflows/image-update.yaml`).
+# You can update the image manually by running the following commands:
 # `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 
 # This digest corresponds to golang:1.12.9-alpine3.10
