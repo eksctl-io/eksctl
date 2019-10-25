@@ -14,7 +14,8 @@ jobs:
       - run: echo ${DOCKER_HUB_PASSWORD} | docker login --username weaveworkseksctlci --password-stdin
         env:
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - run: |
+      - name: Update the build image, push it Docker Hub and update manifest in the repo
+        run: |
           set -o errexit
           set -o pipefail
           set -o nounset
