@@ -7,27 +7,27 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      - uses: docker://weaveworks/eksctl-build:add513e71ee89417a9f3dccc46d116ed3c3b02d8
+      - uses: docker://weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
         name: Run make lint
         with:
           entrypoint: make
           args: lint
-      - uses: docker://weaveworks/eksctl-build:add513e71ee89417a9f3dccc46d116ed3c3b02d8
+      - uses: docker://weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
         name: Run make check-all-generated-files-up-to-date
         with:
           entrypoint: make
           args: check-all-generated-files-up-to-date
-      - uses: docker://weaveworks/eksctl-build:add513e71ee89417a9f3dccc46d116ed3c3b02d8
+      - uses: docker://weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
         name: Run make unit-test
         with:
           entrypoint: make
           args: unit-test
-      - uses: docker://weaveworks/eksctl-build:add513e71ee89417a9f3dccc46d116ed3c3b02d8
+      - uses: docker://weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
         name: Run make build-integration-test
         with:
           entrypoint: make
           args: build-integration-test
-      - uses: docker://weaveworks/eksctl-build:add513e71ee89417a9f3dccc46d116ed3c3b02d8
+      - uses: docker://weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
         name: Run make build
         with:
           entrypoint: make
