@@ -7,4 +7,4 @@ package version
 // Values of builtAt and gitCommit will be set by the linker.
 var builtAt = ""
 var gitCommit = ""
-var gitTag = "0.8.0-rc.0"
+var gitTag = "0.2.0"
