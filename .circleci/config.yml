@@ -32,7 +32,7 @@ jobs:
       - run: docker pull $BUILD_IMAGE
       - run:
           name: Create release candidate binaries for all plaforms and upload to GitHub
-          command: make release-candidate
+          command: make -f Makefile.docker release-candidate
           no_output_timeout: 21m
   release:
     machine:
@@ -44,7 +44,7 @@ jobs:
       - run: docker pull $BUILD_IMAGE
       - run:
           name: Create release binaries for all plaforms and upload to GitHub
-          command: make release
+          command: make -f Makefile.docker release
           no_output_timeout: 21m
 
 workflows:
