@@ -43,61 +43,11 @@ func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 	return &opts
 }
 
-func validateGitOpsOptions(cfg *api.ClusterConfig, opts *flux.InstallOpts) error {
-	if opts.GitOptions.URL != "" && cfg.Git.Repo.URL != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(gitURL)
-	}
-	if opts.GitOptions.Branch != "" && cfg.Git.Repo.Branch != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(gitBranch)
-	}
-	if opts.GitOptions.User != "" && cfg.Git.Repo.User != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(gitUser)
-	}
-	if opts.GitOptions.Email != "" && cfg.Git.Repo.Email != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(gitEmail)
-	}
-	if len(opts.GitPaths) > 0 && len(cfg.Git.Repo.Paths) > 0 {
-		return cmdutils.ErrCannotUseWithConfigFile(gitPaths)
-	}
-	if opts.GitFluxPath != "" && cfg.Git.Repo.FluxPath != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(gitFluxPath)
-	}
-	if opts.GitLabel != "" && cfg.Git.Operator.Label != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(gitLabel)
-	}
-	if opts.GitOptions.PrivateSSHKeyPath != "" && cfg.Git.Repo.PrivateSSHKeyPath != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(gitPrivateSSHKeyPath)
-	}
-	if opts.Namespace != "" && cfg.Git.Operator.Namespace != "" {
-		return cmdutils.ErrCannotUseWithConfigFile(namespace)
-	}
-	if opts.WithHelm && !cfg.Git.Operator.WithHelm {
-		return cmdutils.ErrCannotUseWithConfigFile(withHelm)
-	}
-	if err := api.ValidateGit(cfg.Git); err != nil {
-		return err
-	}
-	return nil
-}
-
 // Repository enables GitOps on the configured repository.
 func Repository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
+	cmdutils.ValidateGitOptions(&opts.GitOptions)
 	if err := cmdutils.NewGitOpsConfigLoader(cmd).Load(); err != nil {
 		return err
-	}
-	cfg := cmd.ClusterConfig
-
-	if cfg.HasGitOpsOptions() {
-		if err := validateGitOpsOptions(cfg, opts); err != nil {
-			return err
-		}
-		optsFromCfg, err := flux.NewInstallOptsFrom(cfg.Git, opts.Timeout)
-		if err != nil {
-			return err
-		}
-		opts.CopyFrom(optsFromCfg)
-	} else {
-		cmdutils.ValidateGitOptions(&opts.GitOptions)
 	}
 
 	k8sClientSet, k8sRestConfig, err := KubernetesClientAndConfigFrom(cmd)

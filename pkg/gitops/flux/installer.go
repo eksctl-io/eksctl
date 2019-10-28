@@ -14,7 +14,6 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/riywo/loginshell"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	corev1 "k8s.io/api/core/v1"
@@ -120,36 +119,6 @@ func (o *InstallOpts) CopyFrom(that *InstallOpts) {
 	o.Timeout = that.Timeout
 	o.Amend = that.Amend
 	o.WithHelm = that.WithHelm
-}
-
-// NewInstallOptsFrom creates a new InstallOpts struct from the provided GitOps
-// configuration object, and timeout for I/O operations.
-func NewInstallOptsFrom(gitConfig *api.Git, timeout time.Duration) (*InstallOpts, error) {
-	if gitConfig == nil {
-		return nil, errors.New("failed to generate Flux installation options: nil GitOps configuration object")
-	}
-	if gitConfig.Repo == nil {
-		return nil, errors.New("failed to generate Flux installation options: nil GitOps repository configuration object")
-	}
-	if gitConfig.Operator == nil {
-		return nil, errors.New("failed to generate Flux installation options: nil GitOps operator configuration object")
-	}
-	return &InstallOpts{
-		GitOptions: git.Options{
-			URL:               gitConfig.Repo.URL,
-			Branch:            gitConfig.Repo.Branch,
-			User:              gitConfig.Repo.User,
-			Email:             gitConfig.Repo.Email,
-			PrivateSSHKeyPath: gitConfig.Repo.PrivateSSHKeyPath,
-		},
-		GitPaths:    gitConfig.Repo.Paths,
-		GitFluxPath: gitConfig.Repo.FluxPath,
-		GitLabel:    gitConfig.Operator.Label,
-		Namespace:   gitConfig.Operator.Namespace,
-		WithHelm:    gitConfig.Operator.WithHelm,
-		Amend:       false, // TODO: remove, as we eventually no longer want to support this mode?
-		Timeout:     timeout,
-	}, nil
 }
 
 // Installer installs Flux
