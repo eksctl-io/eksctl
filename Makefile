@@ -172,7 +172,7 @@ $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 ##@ Docker
 
 .PHONY: eksctl-image
-eksctl-image: intermediate-image ## Build the eksctl image that has release artefacts and no build dependencies
+eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
 	$(MAKE) -f Makefile.docker $@
 
 ##@ Release
