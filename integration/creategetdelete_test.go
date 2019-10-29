@@ -189,20 +189,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
-
-			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total", func() {
-				test, err := newKubeTest()
-				Expect(err).ShouldNot(HaveOccurred())
-				defer test.Close()
-
-				test.WaitForNodesReady(4, commonTimeout)
-
-				nodes := test.ListNodes((metav1.ListOptions{
-					LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
-				}))
-
-				Expect(len(nodes.Items)).To(Equal(4))
-			})
 		})
 
 		Context("and add the second nodegroup", func() {
@@ -250,18 +236,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						ContainElement(ContainSubstring(initNG)),
 					))
 				}
-			})
-
-			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 8 nodes total", func() {
-				test, err := newKubeTest()
-				Expect(err).ShouldNot(HaveOccurred())
-				defer test.Close()
-
-				test.WaitForNodesReady(8, commonTimeout)
-
-				nodes := test.ListNodes(metav1.ListOptions{})
-
-				Expect(len(nodes.Items)).To(Equal(8))
 			})
 
 			Context("toggle CloudWatch logging", func() {
@@ -888,21 +862,6 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 				})
-
-				It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total", func() {
-					test, err := newKubeTest()
-					Expect(err).ShouldNot(HaveOccurred())
-					defer test.Close()
-
-					test.WaitForNodesReady(4, commonTimeout)
-
-					nodes := test.ListNodes(metav1.ListOptions{
-						LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
-					})
-					allNodes := test.ListNodes(metav1.ListOptions{})
-					Expect(len(nodes.Items)).To(Equal(4))
-					Expect(len(allNodes.Items)).To(Equal(4))
-				})
 			})
 		})
 
@@ -915,47 +874,18 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
-
-			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 1 nodes total", func() {
-				test, err := newKubeTest()
-				Expect(err).ShouldNot(HaveOccurred())
-				defer test.Close()
-
-				test.WaitForNodesReady(1, commonTimeout)
-
-				nodes := test.ListNodes(metav1.ListOptions{
-					LabelSelector: api.NodeGroupNameLabel + "=" + initNG,
-				})
-
-				Expect(len(nodes.Items)).To(Equal(1))
-			})
 		})
 
 		Context("and deleting the cluster", func() {
-
-			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should not return an error", func() {
+			It("should not return an error", func() {
 				if !doDelete {
 					Skip("will not delete cluster " + clusterName)
 				}
 
 				cmd := eksctlDeleteClusterCmd.WithArgs(
 					"--name", clusterName,
-					"--wait",
 				)
 				Expect(cmd).To(RunSuccessfully())
-			})
-
-			It("{FLAKY: https://github.com/weaveworks/eksctl/issues/536} should have deleted the EKS cluster and both CloudFormation stacks", func() {
-				if !doDelete {
-					Skip("will not delete cluster " + clusterName)
-				}
-
-				awsSession := NewSession(region)
-
-				Expect(awsSession).ToNot(HaveExistingCluster(clusterName, awseks.ClusterStatusActive, version))
-
-				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", clusterName)))
-				Expect(awsSession).ToNot(HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-ng-%d", clusterName, 0)))
 			})
 		})
 	})

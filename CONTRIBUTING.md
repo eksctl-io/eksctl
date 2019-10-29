@@ -235,24 +235,6 @@ It's recommended to run containerised tests with `make integration-test-containe
 - Access to an AWS account. If there is an issue with access (e.g. expired MFA token), you will see all tests failing (albeit the error message may be slightly unclear).
 - Access to the private SSH key for the Git repository to use for testing gitops-related operations. It is recommended to extract the private SSH key available [here](https://weaveworks.1password.com/vaults/all/allitems/kuxa5ujn7424jzkqqk7qtngovi) into `~/.ssh/eksctl-bot_id_rsa`, and then let the integration tests mount this path and use this key.
 
-At present we ignore flaky tests, so if you see output like show below, you don't need to worry about this for the purpose of the release. However, you might consider reviewing the issues in question after you made the release.
-
-```console
-$ make integration-test-container TEST_V=1 AWS_PROFILE="default-mfa"
-[...]
-Summarizing 2 Failures:
-
-[Fail] (Integration) Create, Get, Scale & Delete when creating a cluster with 1 node and add the second nodegroup and delete the second nodegroup [It] {FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 4 nodes total
-/go/src/github.com/weaveworks/eksctl/integration/creategetdelete_test.go:376
-
-[Fail] (Integration) Create, Get, Scale & Delete when creating a cluster with 1 node and scale the initial nodegroup back to 1 node [It] {FLAKY: https://github.com/weaveworks/eksctl/issues/717} should make it 1 nodes total
-/go/src/github.com/weaveworks/eksctl/integration/creategetdelete_test.go:403
-
-Ran 26 of 26 Specs in 2556.238 seconds
-FAIL! -- 24 Passed | 2 Failed | 0 Pending | 0 Skipped
---- FAIL: TestSuite (2556.25s)
-```
-
 ### Notes on Automation
 
 When you run `./tag-release.sh <tag>` it will push a commit to master and a tag, which will trigger [release workflow](https://github.com/weaveworks/eksctl/blob/38364943776230bcc9ad57a9f8a423c7ec3fb7fe/.circleci/config.yml#L28-L42) in Circle CI. This runs `make eksctl-image` followed by `make release`. Most of the logic is defined in [`do-release.sh`](https://github.com/weaveworks/eksctl/blob/master/do-release.sh).
