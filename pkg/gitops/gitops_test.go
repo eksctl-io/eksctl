@@ -87,6 +87,9 @@ var _ = Describe("gitops profile", func() {
 		})
 
 		It("can load files and ignore .git/ files", func() {
+			err := profile.ignoreFiles(testDir)
+			Expect(err).ToNot(HaveOccurred())
+
 			files, err := profile.loadFiles(testDir)
 
 			Expect(err).ToNot(HaveOccurred())
@@ -183,6 +186,9 @@ func createTestFiles(testDir string, memFs afero.Fs) {
 	createFile(memFs, filepath.Join(testDir, ".git/some-git-file"), "this is a git file and should be ignored")
 	createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml"), "this is a git file and should be ignored")
 	createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml.tmpl"), "this is a git file and should be ignored")
+
+	createFile(memFs, filepath.Join(testDir, ".eksctlignore"), "path/to/ignore")
+	createFile(memFs, filepath.Join(testDir, "path/to/ignore"), "this file should be ignored")
 }
 
 func createFile(memFs afero.Fs, path string, content string) error {
