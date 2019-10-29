@@ -15,6 +15,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 const (
@@ -27,15 +28,16 @@ const (
 
 // NodeGroupSummary represents a summary of a nodegroup stack
 type NodeGroupSummary struct {
-	StackName       string
-	Cluster         string
-	Name            string
-	MaxSize         int
-	MinSize         int
-	DesiredCapacity int
-	InstanceType    string
-	ImageID         string
-	CreationTime    *time.Time
+	StackName           string
+	Cluster             string
+	Name                string
+	MaxSize             int
+	MinSize             int
+	DesiredCapacity     int
+	InstanceType        string
+	ImageID             string
+	CreationTime        *time.Time
+	NodeInstanceRoleARN string
 }
 
 // makeNodeGroupStackName generates the name of the nodegroup stack identified by its name, isolated by the cluster this StackCollection operates on
@@ -213,29 +215,43 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 }
 
 func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSummary, error) {
+	cluster := getClusterNameTag(stack)
+	name := c.GetNodeGroupName(stack)
+
 	template, err := c.GetStackTemplate(*stack.StackName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
 	}
-
-	cluster := getClusterNameTag(stack)
-	name := c.GetNodeGroupName(stack)
 	maxSize := gjson.Get(template, maxSizePath)
 	minSize := gjson.Get(template, minSizePath)
 	desired := gjson.Get(template, desiredCapacityPath)
 	instanceType := gjson.Get(template, instanceTypePath)
 	imageID := gjson.Get(template, imageIDPath)
 
+	var nodeInstanceRoleARN string
+	nodeInstanceRoleARNCollector := func(s string) error {
+		nodeInstanceRoleARN = s
+		return nil
+	}
+	collectors := map[string]outputs.Collector{
+		outputs.NodeGroupInstanceRoleARN: nodeInstanceRoleARNCollector,
+	}
+	collectorSet := outputs.NewCollectorSet(collectors)
+	if err := collectorSet.MustCollect(*stack); err != nil {
+		return nil, errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName)
+	}
+
 	summary := &NodeGroupSummary{
-		StackName:       *stack.StackName,
-		Cluster:         cluster,
-		Name:            name,
-		MaxSize:         int(maxSize.Int()),
-		MinSize:         int(minSize.Int()),
-		DesiredCapacity: int(desired.Int()),
-		InstanceType:    instanceType.String(),
-		ImageID:         imageID.String(),
-		CreationTime:    stack.CreationTime,
+		StackName:           *stack.StackName,
+		Cluster:             cluster,
+		Name:                name,
+		MaxSize:             int(maxSize.Int()),
+		MinSize:             int(minSize.Int()),
+		DesiredCapacity:     int(desired.Int()),
+		InstanceType:        instanceType.String(),
+		ImageID:             imageID.String(),
+		CreationTime:        stack.CreationTime,
+		NodeInstanceRoleARN: nodeInstanceRoleARN,
 	}
 
 	return summary, nil

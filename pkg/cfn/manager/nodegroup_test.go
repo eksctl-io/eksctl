@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	. "github.com/onsi/ginkgo"
@@ -139,6 +140,12 @@ var _ = Describe("StackCollection NodeGroup", func() {
 									Value: aws.String("12345"),
 								},
 							},
+							Outputs: []*cfn.Output{
+								&cfn.Output{
+									OutputKey:   aws.String("InstanceRoleARN"),
+									OutputValue: aws.String("arn:aws:iam::1111:role/eks-nodes-base-role"),
+								},
+							},
 						},
 					},
 				}, nil)
@@ -193,6 +200,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				It("the output should equal the expectation", func() {
 					Expect(out).To(HaveLen(1))
 					Expect(out[0].StackName).To(Equal("eksctl-test-cluster-nodegroup-12345"))
+					Expect(out[0].NodeInstanceRoleARN).To(Equal("arn:aws:iam::1111:role/eks-nodes-base-role"))
 				})
 			})
 		})
