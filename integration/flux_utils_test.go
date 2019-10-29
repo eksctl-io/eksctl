@@ -462,7 +462,7 @@ func assertValidTillerDep(fileName string) {
 			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
 			container := deployment.Spec.Template.Spec.Containers[0]
 			Expect(container.Name).To(Equal("tiller"))
-			Expect(container.Image).To(Equal("gcr.io/kubernetes-helm/tiller:canary"))
+			Expect(container.Image).To(Equal("gcr.io/kubernetes-helm/tiller:v2.14.3"))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
