@@ -2,8 +2,8 @@ package enable
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -17,21 +17,21 @@ import (
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
-	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 	"github.com/weaveworks/eksctl/pkg/gitops/profile"
 )
 
 // ProfileOptions groups input for the "enable profile" command.
 type ProfileOptions struct {
-	fluxOptions    flux.InstallOpts
+	gitOptions     git.Options
 	profileOptions profile.Options
 }
 
-func (opts ProfileOptions) validate() error {
-	if err := opts.profileOptions.Validate(); err != nil {
+// Validate validates this ProfileOptions object.
+func (opts ProfileOptions) Validate() error {
+	if err := opts.gitOptions.Validate(); err != nil {
 		return err
 	}
-	return cmdutils.ValidateGitOptions(&opts.fluxOptions.GitOptions)
+	return opts.profileOptions.Validate()
 }
 
 func enableProfileCmd(cmd *cmdutils.Cmd) {
@@ -54,7 +54,7 @@ func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	var opts ProfileOptions
 	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForProfile(fs, &opts.profileOptions)
-		cmdutils.AddCommonFlagsForFlux(fs, &opts.fluxOptions)
+		cmdutils.AddCommonFlagsForGit(fs, &opts.gitOptions)
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable this Quick Start profile on")
@@ -74,37 +74,45 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	if cmd.NameArg != "" {
 		opts.profileOptions.Name = cmd.NameArg
 	}
-	if err := opts.validate(); err != nil {
+	if err := opts.Validate(); err != nil {
 		return err
 	}
-
+	// TODO move the load of the region outside of the creation of the EKS client
+	// currently that is done inside cmd.NewCtl() but we don't need EKS here
+	cmd.ClusterConfig.Metadata.Region = cmd.ProviderConfig.Region
+	profileRepoURL, err := profile.RepositoryURL(opts.profileOptions.Name)
+	if err != nil {
+		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
+	}
 	if err := cmdutils.NewGitOpsConfigLoader(cmd).Load(); err != nil {
 		return err
 	}
 
-	gitOpsApplier, tempDir, err := newGitOpsApplier(cmd, opts)
-	if err = gitOpsApplier.Run(context.Background()); err != nil {
+	// Clone user's repo to apply Quick Start profile
+	usersRepoName, err := git.RepoName(opts.gitOptions.URL)
+	if err != nil {
 		return err
 	}
-	os.RemoveAll(tempDir) // Only clean up if the command completely successfully, for more convenient debugging.
-	return nil
-}
-
-func newGitOpsApplier(cmd *cmdutils.Cmd, opts *ProfileOptions) (*gitops.Applier, string, error) {
-	// Create the profile generator. It will output the processed templates into a new "/base" directory into the user's repo
-	usersRepoName, err := git.RepoName(opts.fluxOptions.GitOptions.URL)
-	if err != nil {
-		return nil, "", err
-	}
-	dir, err := ioutil.TempDir("", usersRepoName)
-	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", dir)
-	usersRepoDir := filepath.Join(dir, usersRepoName)
+	usersRepoDir, err := ioutil.TempDir("", usersRepoName+"-")
+	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", usersRepoDir)
 	profileOutputPath := filepath.Join(usersRepoDir, "base")
 
-	profileRepoURL, err := profile.RepositoryURL(opts.profileOptions.Name)
+	gitClient := git.NewGitClient(git.ClientParams{
+		PrivateSSHKeyPath: opts.gitOptions.PrivateSSHKeyPath,
+	})
+
+	err = gitClient.CloneRepoInPath(
+		usersRepoDir,
+		git.CloneOptions{
+			URL:       opts.gitOptions.URL,
+			Branch:    opts.gitOptions.Branch,
+			Bootstrap: true,
+		},
+	)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "please supply a valid Quick Start profile name or URL")
+		return err
 	}
+
 	profile := &gitops.Profile{
 		Processor: &fileprocessor.GoTemplateProcessor{
 			Params: fileprocessor.NewTemplateParameters(cmd.ClusterConfig),
@@ -114,25 +122,28 @@ func newGitOpsApplier(cmd *cmdutils.Cmd, opts *ProfileOptions) (*gitops.Applier,
 			URL:    profileRepoURL,
 			Branch: opts.profileOptions.Revision,
 		},
-		GitCloner: git.NewGitClient(git.ClientParams{}),
+		GitCloner: gitClient,
 		FS:        afero.NewOsFs(),
 		IO:        afero.Afero{Fs: afero.NewOsFs()},
 	}
 
-	k8sClientSet, k8sRestConfig, err := KubernetesClientAndConfigFrom(cmd)
+	err = profile.Generate(context.Background())
 	if err != nil {
-		return nil, "", err
+		return errors.Wrap(err, "error generating profile")
 	}
-	gitOps := gitops.Applier{
-		UserRepoPath:  usersRepoDir,
-		UsersRepoOpts: opts.fluxOptions.GitOptions,
-		GitClient: git.NewGitClient(git.ClientParams{
-			PrivateSSHKeyPath: opts.fluxOptions.GitOptions.PrivateSSHKeyPath,
-		}),
-		ProfileGenerator: profile,
-		FluxInstaller:    flux.NewInstaller(k8sRestConfig, k8sClientSet, &opts.fluxOptions),
-		ClusterConfig:    cmd.ClusterConfig,
-		QuickstartName:   opts.profileOptions.Name,
+
+	// Git add, commit and push component files in the user's repo
+	if err = gitClient.Add("."); err != nil {
+		return err
 	}
-	return &gitOps, dir, nil
+	commitMsg := fmt.Sprintf("Add %s quickstart components", opts.profileOptions.Name)
+	if err = gitClient.Commit(commitMsg, opts.gitOptions.User, opts.gitOptions.Email); err != nil {
+		return err
+	}
+	if err = gitClient.Push(); err != nil {
+		return err
+	}
+
+	profile.DeleteClonedDirectory()
+	return nil
 }
