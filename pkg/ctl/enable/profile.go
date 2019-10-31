@@ -77,9 +77,6 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	if err := opts.Validate(); err != nil {
 		return err
 	}
-	// TODO move the load of the region outside of the creation of the EKS client
-	// currently that is done inside cmd.NewCtl() but we don't need EKS here
-	cmd.ClusterConfig.Metadata.Region = cmd.ProviderConfig.Region
 	profileRepoURL, err := profile.RepositoryURL(opts.profileOptions.Name)
 	if err != nil {
 		return errors.Wrap(err, "please supply a valid Quick Start name or URL")

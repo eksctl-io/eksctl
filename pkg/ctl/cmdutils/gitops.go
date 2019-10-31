@@ -145,6 +145,7 @@ func (l *gitOpsConfigLoader) Load() error {
 	}
 
 	if l.cmd.ClusterConfigFile == "" {
+		l.cmd.ClusterConfig.Metadata.Region = l.cmd.ProviderConfig.Region
 		for f := range l.flagsIncompatibleWithoutConfigFile {
 			if flag := l.cmd.CobraCommand.Flag(f); flag != nil && flag.Changed {
 				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
