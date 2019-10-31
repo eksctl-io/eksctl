@@ -167,7 +167,7 @@ The default creation of an EKS cluster exposes the Kubernetes API server publicl
 VPC subnets (public=true, private=false). Traffic destined for the API server from within the VPC must first exit the
 VPC networks (but not Amazon's network) and then re-enter to reach the API server.
 
-The Kubernetes API server endpoint access for a cluster can be cofigured for public and private access when creating
+The Kubernetes API server endpoint access for a cluster can be configured for public and private access when creating
 the cluster using the cluster config file. Example below:
 
 ```yaml
@@ -184,7 +184,7 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
 1. EKS does allow creating a configuration which allows only private access to be enabled, but eksctl doesn't
    support it during cluster creation as it prevents eksctl from being able to join the worker nodes to the cluster.
 1. To create private-only Kubernetes API endpoint access, one must first create the cluster *with* public Kubernetes API
-   endpoint access, and then use `/eksctl utils update-cluster-endpoints` to change it after the cluster is finished
+   endpoint access, and then use `eksctl utils update-cluster-endpoints` to change it after the cluster is finished
    creating.
 1. Updating a cluster to have private only Kubernetes API endpoint access means that Kubernetes commands
    (e.g. `kubectl`) as well as `eksctl delete cluster`, `eksctl utils write-kubeconfig`, and possibly the command
@@ -192,11 +192,11 @@ There are some additional caveats when configuring Kubernetes API endpoint acces
    resources.  See:
    [EKS user guide](https://docs.aws.amazon.com/en_pv/eks/latest/userguide/cluster-endpoint#private-access)
 
-The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` subcommand:
+The following is an example of how one could configure the Kubernetes API endpoint access using the `utils` sub-command:
 
 ```
 eksctl utils update-cluster-endpoints --name=<clustername> --private-access=true --public-access=false
 ```
 
-Note that if you don't pass a flag in it will keep the current value. Once you're satisfied with the proposed changed,
+Note that if you don't pass a flag in it will keep the current value. Once you are satisfied with the proposed changes,
 add the `approve` flag to make the change to the running cluster.
