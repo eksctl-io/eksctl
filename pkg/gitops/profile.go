@@ -1,9 +1,13 @@
 package gitops
 
 import (
+	"bufio"
 	"context"
+	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -16,6 +20,8 @@ import (
 
 const (
 	cloneDirPrefix = "quickstart-"
+
+	eksctlIgnoreFilename = ".eksctlignore"
 )
 
 // Profile represents a gitops profile
@@ -42,6 +48,10 @@ func (p *Profile) Generate(ctx context.Context) error {
 		return errors.Wrapf(err, "error cloning repository %s", p.GitOpts.URL)
 	}
 	p.clonedDir = clonedDir
+
+	if err := p.ignoreFiles(clonedDir); err != nil {
+		return errors.Wrapf(err, "error ignoring files of repository %s", p.GitOpts.URL)
+	}
 
 	allManifests, err := p.loadFiles(clonedDir)
 	if err != nil {
@@ -108,6 +118,37 @@ func (p *Profile) loadFiles(directory string) ([]fileprocessor.File, error) {
 	return files, nil
 }
 
+func (p *Profile) ignoreFiles(baseDir string) error {
+	ignoreFilePath := path.Join(baseDir, eksctlIgnoreFilename)
+	if exists, _ := p.IO.Exists(ignoreFilePath); exists {
+		logger.Info("ignoring files declared in %s", eksctlIgnoreFilename)
+		file, err := p.IO.Open(ignoreFilePath)
+		if err != nil {
+			return err
+		}
+		pathsToIgnores, err := parseDotIgnorefile(file)
+		// Need to close the ignore file here as it is also deleted
+		file.Close()
+		if err != nil {
+			return err
+		}
+
+		for _, pathToIgnore := range pathsToIgnores {
+			err := p.IO.RemoveAll(path.Join(baseDir, pathToIgnore))
+			if err != nil {
+				return err
+			}
+			logger.Info("ignored %q", pathToIgnore)
+		}
+
+		// Remove the ignore file after finish
+		if err := p.IO.Remove(ignoreFilePath); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (p *Profile) processFiles(files []fileprocessor.File, baseDir string) ([]fileprocessor.File, error) {
 	outputFiles := make([]fileprocessor.File, 0, len(files))
 	for _, file := range files {
@@ -147,4 +188,19 @@ func (p *Profile) writeFiles(manifests []fileprocessor.File, outputPath string) 
 
 func isGitFile(baseDir string, path string) bool {
 	return strings.HasPrefix(path, filepath.Join(baseDir, ".git"))
+}
+
+func parseDotIgnorefile(reader io.Reader) ([]string, error) {
+	result := []string{}
+	scanner := bufio.NewScanner(reader)
+	re := regexp.MustCompile(`(?ms)^\s*(?P<pathToIgnore>[^\s#]+).*$`)
+	for scanner.Scan() {
+		groups := re.FindStringSubmatch(scanner.Text())
+		if len(groups) != 2 {
+			continue
+		}
+		pathToIgnore := groups[1]
+		result = append(result, pathToIgnore)
+	}
+	return result, nil
 }
