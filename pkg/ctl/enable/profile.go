@@ -119,9 +119,11 @@ func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 			URL:    profileRepoURL,
 			Branch: opts.profileOptions.Revision,
 		},
-		GitCloner: gitClient,
-		FS:        afero.NewOsFs(),
-		IO:        afero.Afero{Fs: afero.NewOsFs()},
+		GitCloner: git.NewGitClient(git.ClientParams{
+			PrivateSSHKeyPath: opts.gitOptions.PrivateSSHKeyPath,
+		}),
+		FS: afero.NewOsFs(),
+		IO: afero.Afero{Fs: afero.NewOsFs()},
 	}
 
 	err = profile.Generate(context.Background())
