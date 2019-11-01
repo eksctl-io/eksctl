@@ -54,6 +54,7 @@ jobs:
     steps:
       - run: echo "starting fake integration tests job"
       - run: 'echo ${TEST_SECRET}'
+      - run: echo ${CIRCLE_BRANCH}
 
 workflows:
   version: 2
