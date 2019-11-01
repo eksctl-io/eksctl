@@ -46,6 +46,14 @@ jobs:
           name: Create release binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release
           no_output_timeout: 21m
+  integration-tests:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BUILD_IMAGE: weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
+    steps:
+      - checkout
+      - run: echo "starting fake integration tests job"
 
 workflows:
   version: 2
@@ -77,3 +85,13 @@ workflows:
               ignore: /.*/
             tags:
               only: /[0-9]+\.[0-9]+\.[0-9]+/
+  scheduled-integration-tests:
+    triggers:
+      - schedule:
+          cron: "*/5 * * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      -
