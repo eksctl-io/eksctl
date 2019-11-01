@@ -52,8 +52,8 @@ jobs:
     environment:
       BUILD_IMAGE: weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
     steps:
-      - checkout
       - run: echo "starting fake integration tests job"
+      - run: echo $TEST_SECRET
 
 workflows:
   version: 2
