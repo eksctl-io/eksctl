@@ -172,26 +172,8 @@ $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 ##@ Docker
 
 .PHONY: eksctl-image
-eksctl-image: intermediate-image ## Build the eksctl image that has release artefacts and no build dependencies
+eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
 	$(MAKE) -f Makefile.docker $@
-
-##@ Release
-
-docker_run_release_script = docker run \
-  --env=GITHUB_TOKEN \
-  --env=CIRCLE_TAG \
-  --env=CIRCLE_PROJECT_USERNAME \
-  --volume=$(git_toplevel):/src \
-  --workdir=/src \
-    $(intermediate_image_name)
-
-.PHONY: release-candidate
-release-candidate: eksctl-image ## Create a new eksctl release candidate
-	$(call docker_run_release_script) ./do-release-candidate.sh
-
-.PHONY: release
-release: eksctl-image ## Create a new eksctl release
-	$(call docker_run_release_script) ./do-release.sh
 
 ##@ Site
 
