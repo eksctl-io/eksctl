@@ -1,3 +1,7 @@
+---
+labels: version/0.8.0
+---
+
 ### Description
 
 <!-- Please explain the changes you made here. -->
