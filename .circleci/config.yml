@@ -89,9 +89,9 @@ workflows:
     triggers:
       - schedule:
           cron: "*/30 * * * *"
-          filters:
-            branches:
-              only:
-                - master
+#          filters:
+#            branches:
+#              only:
+#                - master
     jobs:
       - integration-tests
