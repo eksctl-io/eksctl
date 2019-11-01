@@ -2,7 +2,7 @@
 # `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 
 # This digest corresponds to golang:1.13.3-alpine3.10
-FROM golang@sha256:dd3b3676fd9c1e0983ade68242b9b9ac5c477f3e4bfc97c2e78fd5db93a441c9 AS base
+FROM golang@sha256:40278d43a27b6e0563fcc4dd52c991a25741b1a775402aea342ab9a80158e69e AS base
 
 # Build-time dependencies
 RUN apk add --no-cache \
