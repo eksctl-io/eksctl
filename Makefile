@@ -65,6 +65,11 @@ INTEGRATION_TEST_ARGS += -eksctl.version=$(INTEGRATION_TEST_VERSION)
 $(info will launch integration tests for Kubernetes version $(INTEGRATION_TEST_VERSION))
 endif
 
+ifneq ($(SSH_KEY_PATH),)
+INTEGRATION_TEST_ARGS += -eksctl.git.sshkeypath=$(SSH_KEY_PATH)
+$(info will launch integration tests with ssh key path $(SSH_KEY_PATH))
+endif
+
 .PHONY: lint
 lint: ## Run linter over the codebase
 	time "$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...

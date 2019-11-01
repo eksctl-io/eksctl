@@ -46,6 +46,41 @@ jobs:
           name: Create release binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release
           no_output_timeout: 21m
+  integration-tests:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BUILD_IMAGE: weaveworks/eksctl-build:33809a72f41297a01f023976c418ea6360e6800d
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "82:cb:ed:40:f3:27:05:e6:16:9d:68:25:40:7d:83:07"
+      - checkout
+      - run: docker pull $BUILD_IMAGE
+      - run:
+          name: Prepare SSH keys to be mounted with the right permissions
+          command: |
+              cp -r $HOME/.ssh $HOME/project/.ssh
+              sudo echo "Host github.com" > $HOME/project/.ssh/config
+              sudo echo "  IdentityFile /root/.ssh/id_rsa_82cbed40f32705e6169d6825407d8307" >> $HOME/project/.ssh/config
+              sudo chmod 600 $HOME/project/.ssh/config
+              sudo chmod 600 $HOME/project/.ssh/id_rsa_82cbed40f32705e6169d6825407d8307
+              sudo chown -R root:root $HOME/project/.ssh
+      - run:
+          name: Run Integration Tests
+          command: |
+            docker run \
+            --env=JUNIT_REPORT_DIR=/src/test-results \
+            --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+            --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+            --volume=$(pwd):/src \
+            --volume=$HOME/project/.ssh:/root/.ssh \
+            $BUILD_IMAGE make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/id_rsa_82cbed40f32705e6169d6825407d8307"
+            - store_test_results:
+                path: ./test-results
+            - store_artifacts:
+                path: ./test-results
+          no_output_timeout: 120m
 
 workflows:
   version: 2
@@ -77,3 +112,13 @@ workflows:
               ignore: /.*/
             tags:
               only: /[0-9]+\.[0-9]+\.[0-9]+/
+  scheduled-integration-tests:
+    triggers:
+      - schedule:
+          cron: "0 3 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - integration-tests
