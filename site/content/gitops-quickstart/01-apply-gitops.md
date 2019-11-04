@@ -88,14 +88,23 @@ kube-system   kube-proxy-kg57w           1/1     Running   0          45s
 kube-system   kube-proxy-qzcmk           1/1     Running   0          45s
 ```
 
+## Enabling a gitops operator
 
-## Enabling a Quick Start profile
+The following command will set up your cluster with:
 
-The following command will set up your cluster with the `app-dev` profile,
-the first gitops Quick Start. All of the config files you need for a
-production-ready cluster will be in the git repo you have provided and
-those components will be deployed to your cluster. When you make changes
-in the configuration they will be reflected on your cluster.
+- a gitops operator, [Flux](https://fluxcd.io),
+- [Helm](https://helm.sh/),
+
+and add their manifests to Git, so you can configure them through pull
+requests.
+
+The most important ingredient using `eksctl enable repo` is your config
+repository (which will includes your workload manifests, etc). You can start
+with an empty repository and push that to Git, or use the one you intend to
+deploy to the cluster.
+
+![Install Flux](../images/gitops-diagram1.svg#content)
+![Deploying with gitops](../images/gitops-diagram2.svg#content)
 
 > This is an experimental feature. To enable it, set the environment
 > variable `EKSCTL_EXPERIMENTAL=true`.
@@ -103,40 +112,20 @@ in the configuration they will be reflected on your cluster.
 > Experimental features are not stable and their command name and flags
 > may change.
 
-The most important ingredient using `eksctl enable profile` is your config
-repository (which includes your workload manifests, etc). You can start with
-an empty repository and push that to Git, or use the one you intend to
-deploy to the cluster.
-
-What will happen during the following command is:
-
-- `eksctl` will add install [Flux](https://fluxcd.io) and Helm in your cluster, and add their
-  manifest to Git, so you can configure them through pull requests.
-- It will also add the `app-dev` gitops Quick Start profile to it,
-  which comes with a lot of very useful services and config. It is how
-  we feel EKS `app-dev` clusters are best run.
-
-![Install Flux](../images/gitops-diagram1.svg#content)
-![Deploying with gitops](../images/gitops-diagram2.svg#content)
-![Enabling a profile](../images/gitops-diagram3.svg#content)
-
-Run this command from any directory in your file system. `eksctl` will clone your repository in a temporary directory
-that'll be removed later.
+Run this command from any directory in your file system. `eksctl` will clone
+your repository in a temporary directory that'll be removed later.
 
 ```console
-EKSCTL_EXPERIMENTAL=true eksctl \
-        enable profile \
+EKSCTL_EXPERIMENTAL=true \
+        eksctl enable repo \
         --git-url git@github.com:example/my-eks-config \
         --git-email your@email.com \
         --cluster your-cluster-name \
-        app-dev
+        --region your-cluster-region
 ```
 
 Let us go through the specified arguments one by one:
 
-- `--quickstart-profile`: this is the name of one of the profiles we
-  put together, so you can easily pick and choose and will not have
-  to start from scratch every time. We use `app-dev` here.
 - `--git-url`: this points to a Git URL where the configuration for
   your cluster will be stored. This will contain config for the
   workloads and infrastructure later on.
@@ -144,15 +133,11 @@ Let us go through the specified arguments one by one:
   repository.
 - `--cluster`: the name of your cluster. Use `eksctl get cluster`
   to see all clusters in your default region.
+- `--region`: the region of your cluster.
 
 There are more arguments and options, please refer to the
 [gitops reference of eksctl](/usage/experimental/gitops-flux/)
 which details all the flags and resulting directory structure.
-
-This will set up Flux on your cluster and load gitops
-Quick Start manifests into your repo. It will use templating to add your
-cluster name and region to the configuration so that cluster components
-that need those values can work (e.g. `alb-ingress`).
 
 The command will take a while to run and it's a good idea to scan
 the output. You will note a similar bit of information in the log
@@ -178,7 +163,82 @@ config repository already.
 
 In our case we are going to see these new arrivals in the cluster:
 
+- `flux`,
+- the [Flux Helm Operator](https://github.com/fluxcd/helm-operator), and
+- Tiller,
+
+running:
+
+```console
+$ kubectl get pods --all-namespaces
+NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
+flux                   flux-56b5664cdd-nfzx2                                     1/1     Running                      0          11m
+flux                   flux-helm-operator-6bc7c85bb5-l2nzn                       1/1     Running                      0          11m
+flux                   memcached-958f745c-dqllc                                  1/1     Running                      0          11m
+flux                   tiller-deploy-7ccc4b4d45-w2mrt                            1/1     Running                      0          11m
+kube-system            aws-node-l49ct                                            1/1     Running                      0          14m
+kube-system            coredns-7d7755744b-4jkp6                                  1/1     Running                      0          21m
+kube-system            coredns-7d7755744b-ls5d9                                  1/1     Running                      0          21m
+kube-system            kube-proxy-wllff                                          1/1     Running                      0          14m
 ```
+
+All of the cluster configuration can be easily edited in Git now.
+Welcome to a fully gitopsed world!
+
+## Enabling a Quick Start profile
+
+The following command will set up your cluster with the `app-dev` profile,
+the first gitops Quick Start. All of the config files you need for a
+production-ready cluster will be in the git repo you have provided and
+those components will be deployed to your cluster. When you make changes
+in the configuration they will be reflected on your cluster.
+
+![Enabling a profile](../images/gitops-diagram3.svg#content)
+
+> This is an experimental feature. To enable it, set the environment
+> variable `EKSCTL_EXPERIMENTAL=true`.
+>
+> Experimental features are not stable and their command name and flags
+> may change.
+
+Run this command from any directory in your file system. `eksctl` will clone
+your repository in a temporary directory that'll be removed later.
+
+```console
+EKSCTL_EXPERIMENTAL=true eksctl \
+        enable profile \
+        --git-url git@github.com:example/my-eks-config \
+        --git-email your@email.com \
+        --cluster your-cluster-name \
+        --region your-cluster-region \
+        app-dev
+```
+
+Let us go through the specified arguments one by one:
+
+- `--git-url`: this points to a Git URL where the configuration for
+  your cluster will be stored. This will contain config for the
+  workloads and infrastructure later on.
+- `--git-email`: the email used to commit changes to your config
+  repository.
+- `--cluster`: the name of your cluster. Use `eksctl get cluster`
+  to see all clusters in your default region.
+- `--region`: the region of your cluster.
+- positional argument: this is the name of one of the profiles we
+  put together, so you can easily pick and choose and will not have
+  to start from scratch every time. We use `app-dev` here.
+
+There are more arguments and options, please refer to the
+[gitops reference of eksctl](/usage/experimental/gitops-flux/)
+which details all the flags and resulting directory structure.
+
+This will load gitops Quick Start manifests into your repo. It will use
+templating to add your cluster name and region to the configuration so that
+cluster components that need those values can work (e.g. `alb-ingress`).
+
+In our case we are going to see these new arrivals in the cluster:
+
+```console
 $ kubectl get pods --all-namespaces
 NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
 amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0           4m28s
@@ -204,9 +264,6 @@ monitoring             prometheus-operator-operator-58fcb66576-6dwpg            
 monitoring             prometheus-operator-prometheus-node-exporter-tllwl        1/1     Running                      0          89s
 monitoring             prometheus-prometheus-operator-prometheus-0               3/3     Running                      1          72s
 ```
-
-All of the cluster configuration can be easily edited in Git now.
-Welcome to a fully gitopsed world!
 
 ## Your gitops cluster
 
@@ -248,92 +305,17 @@ Congratulations to your gitopsed cluster on EKS!
 
 ## Advanced setups
 
-`eksctl enable profile` can largely be decomposed into
-
-1. `eksctl enable repo`
-1. `eksctl generate profile`
-
-So for more complex use cases, you will want to run these steps
-separately on your own and adjust flags and options as necessary. The
-first command installs Flux and links it to a Git repo that you provide.
-The second generates the manifest files from the gitops Quick Start profile
-locally, so that you can edit them before pushing to your Git repo.
-
-### Configuring Flux
-
-Here we will install [Flux](https://fluxcd.io), the Kubernetes gitops
-operator in your cluster. It will take care of deployments for you.
-
-```console
-EKSCTL_EXPERIMENTAL=true eksctl enable repo \
-    --git-url <git-url> \
-    --git-email <email-of-committer> \
-    --cluster <cluster-name>
-```
-
-Additional options to the command are explained in our docs on
-[`enable repo`](/usage/experimental/gitops-flux/).
-
-Now we run e.g.:
-
-```console
-EKSCTL_EXPERIMENTAL=true eksctl enable repo \
-    --git-url git@github.com:YOURUSER/flux-get-started \
-    --git-email your@email.org \
-    --cluster wonderful-wardrobe-1565767990
-```
-
-After about a minute your cluster will have `flux`, the
-[Flux Helm Operator](https://github.com/fluxcd/helm-operator) and Tiller running.
-
-```console
-$ kubectl get pods --namespace flux
-NAME                                  READY   STATUS    RESTARTS   AGE
-flux-7975d44685-57lk8                 1/1     Running   0          10m
-flux-helm-operator-6bc7c85bb5-ws7rm   1/1     Running   0          10m
-memcached-958f745c-225xv              1/1     Running   0          10m
-tiller-deploy-7ccc4b4d45-mhlcf        1/1     Running   0          10m
-```
-
-Flux will monitor your git repository once you added an SSH key to e.g. GitHub deploy keys.
-
-This key can be found at the end of the output of the command, this
-might for example be:
-
-```console
-[...]
-[ℹ]  Flux will only operate properly once it has write-access to the Git repository
-[ℹ]  please configure git@github.com:YOURUSER/flux-get-started so that the following Flux SSH public key has write access to it
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCt8no0/F3+kD1YukH6sVIv1ONcy9+01G2/AQe1CQA+uRHaioep41U3ghROU7CoM1yTjG+eLYgu26UMvkXVbOmEm+1697adh4qz/yCF0E7JtCIIXGn/1XrLb6OxgtlGKdJ4fTUdxtQSyTvWqjxQhC4ute9hnHWU8oiSrNaq5D20P5x8sgPf4V0A5YWD5S4YliJcIupTzrD7zjhh6TyP5fqhPLHPBZFHStHq0DSD+Gi6vXZz1s9UmuAnxP8pkIlrW22xJyFbsmcjJuks5FvmLo8uJMeWTx5t+3WKWp8ZKrbDJFUWQ8aVMByHYq1c3doevM28CHwz/
-```
-
-Copy the lines starting with `ssh-rsa` and add it as a deploy key, to
-e.g. GitHub. There you can easily do this in the
-`Settings > Deploy keys > Add deploy key`. Just make sure you check
-`Allow write access` as well.
-
-The next time Flux syncs from Git, it will start updating the cluster
-and actively deploying. If you use the [`flux-get-started`
-repo](https://github.com/fluxcd/flux-get-started) from above, here's
-what you will see in your cluster:
-
-```console
-kubectl get pods --namespace demo
-```
-
-```console
-NAME                       READY   STATUS    RESTARTS   AGE
-podinfo-5f4bd464b4-4vf7k   1/1     Running   0          58m
-podinfo-5f4bd464b4-hkgzt   1/1     Running   0          58m
-```
-
-Remember that you can further tweak the installation of Flux as
-discussed in our [`enable repo` docs](/usage/experimental/gitops-flux/).
-
 ### Handcrafting your configuration
 
-In this second step we will use `eksctl generate profile`, so you can
-easily handcraft your workloads' configuration and maintain it in Git.
+`eksctl enable profile` can largely be decomposed into
+
+1. `eksctl generate profile`
+2. `git commit`
+3. `git push`
+
+In this section we will use `eksctl generate profile`, so you can easily
+handcraft your workloads' configuration locally, before pushing these to manage
+them in Git.
 
 During the previous call (`eksctl enable repo`), we instructed Flux
 to watch a repository and deploy changes to the cluster. This
@@ -372,7 +354,6 @@ The Quick Start profile can be something you and your organisation
 tailored to your needs, but can be something like our [app-dev
 Quick Start profile][eks-quickstart-app-dev] as well. It is meant
 to be a starting point for clusters you can iterate over.
-
 
 So after all this preface, what happens when we run the command?
 `eksctl` will check out the Quick Start profile (here we use
