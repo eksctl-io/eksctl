@@ -102,10 +102,6 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 
-		if err := ctl.SetNodeLabels(ng, meta); err != nil {
-			return err
-		}
-
 		// load or use SSH key - name includes cluster name and the
 		// fingerprint, so if unique keys provided, each will get
 		// loaded and used as intended and there is no need to have
