@@ -6,6 +6,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/ssh"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -106,9 +107,11 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		// fingerprint, so if unique keys provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		if err := loadSSHKey(ng, meta.Name, ctl.Provider); err != nil {
+		publicKeyName, err := ssh.LoadKey(ng.SSH, meta.Name, ng.Name, ctl.Provider.EC2())
+		if err != nil {
 			return err
 		}
+		ng.SSH.PublicKeyName = &publicKeyName
 	}
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {

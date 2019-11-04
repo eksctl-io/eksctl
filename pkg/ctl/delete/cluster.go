@@ -123,7 +123,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	ssh.DeleteKeys(meta.Name, ctl.Provider)
+	ssh.DeleteKeys(meta.Name, ctl.Provider.EC2())
 
 	kubeconfig.MaybeDeleteConfig(meta)
 
