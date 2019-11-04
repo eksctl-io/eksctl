@@ -106,21 +106,6 @@ type InstallOpts struct {
 	WithHelm    bool
 }
 
-// CopyFrom copies the values from the provided InstallOpts into this InstallOpts.
-func (o *InstallOpts) CopyFrom(that *InstallOpts) {
-	o.GitOptions.CopyFrom(&that.GitOptions)
-	if o.GitPaths == nil && that.GitPaths != nil {
-		o.GitPaths = make([]string, len(that.GitPaths))
-	}
-	copy(o.GitPaths, that.GitPaths)
-	o.GitLabel = that.GitLabel
-	o.GitFluxPath = that.GitFluxPath
-	o.Namespace = that.Namespace
-	o.Timeout = that.Timeout
-	o.Amend = that.Amend
-	o.WithHelm = that.WithHelm
-}
-
 // Installer installs Flux
 type Installer struct {
 	opts          *InstallOpts

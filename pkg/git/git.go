@@ -79,15 +79,6 @@ func (o Options) ValidatePrivateSSHKeyPath() error {
 	return nil
 }
 
-// CopyFrom copies the values from the provided Options into this Options.
-func (o *Options) CopyFrom(that *Options) {
-	o.URL = that.URL
-	o.Branch = that.Branch
-	o.User = that.User
-	o.Email = that.Email
-	o.PrivateSSHKeyPath = that.PrivateSSHKeyPath
-}
-
 // NewGitClient returns a client that can perform git operations
 func NewGitClient(params ClientParams) *Client {
 	return &Client{

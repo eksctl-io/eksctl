@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -272,17 +271,6 @@ var _ = Describe("git", func() {
 				Expect(git.Options{
 					PrivateSSHKeyPath: privateSSHKey.Name(),
 				}.ValidatePrivateSSHKeyPath()).To(Not(HaveOccurred()))
-			})
-		})
-
-		Describe("CopyFrom", func() {
-			It("copies values from the provided Options", func() {
-				this := git.Options{}
-				that := git.Options{}
-				faker.FakeData(&that)
-				Expect(this).NotTo(Equal(that))
-				this.CopyFrom(&that)
-				Expect(this).To(Equal(that))
 			})
 		})
 	})
