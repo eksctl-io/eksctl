@@ -66,7 +66,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(0, &testNodeGroup)
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeTrue())
 		})
@@ -79,7 +79,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				},
 			}
 
-			SetNodeGroupDefaults(0, &testNodeGroup)
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo("~/.ssh/id_rsa.pub"))
 		})

@@ -29,7 +29,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
-func SetNodeGroupDefaults(_ int, ng *NodeGroup, meta *ClusterMeta) {
+func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.InstanceType == "" {
 		if HasMixedInstances(ng) {
 			ng.InstanceType = "mixed"

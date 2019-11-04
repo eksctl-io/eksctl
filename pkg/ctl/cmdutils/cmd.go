@@ -50,7 +50,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		}
 		// defaulting of nodegroup currently depends on validation;
 		// that may change, but at present that's how it's meant to work
-		api.SetNodeGroupDefaults(i, ng)
+		api.SetNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
 	}
 
 	ctl := eks.New(c.ProviderConfig, c.ClusterConfig)
