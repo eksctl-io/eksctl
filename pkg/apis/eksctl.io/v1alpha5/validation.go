@@ -150,11 +150,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
 		}
+	}
 
-		if err := ValidateNodeGroupLabels(ng); err != nil {
-			return err
-		}
+	if err := ValidateNodeGroupLabels(ng.Labels); err != nil {
+		return err
+	}
 
+	if ng.SSH != nil {
 		if err := validateNodeGroupSSH(ng.SSH); err != nil {
 			return err
 		}
@@ -188,7 +190,7 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 // ValidateNodeGroupLabels uses proper Kubernetes label validation,
 // it's designed to make sure users don't pass weird labels to the
 // nodes, which would prevent kubelets to startup properly
-func ValidateNodeGroupLabels(ng *NodeGroup) error {
+func ValidateNodeGroupLabels(labels map[string]string) error {
 	// compact version based on:
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/cmd/kubelet/app/options/options.go#L257-L267
 	// - https://github.com/kubernetes/kubernetes/blob/v1.13.2/pkg/kubelet/apis/well_known_labels.go
@@ -196,7 +198,7 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 
 	unknownKubernetesLabels := []string{}
 
-	for l := range ng.Labels {
+	for l := range labels {
 		labelParts := strings.Split(l, "/")
 
 		if len(labelParts) > 2 {
@@ -206,8 +208,8 @@ func ValidateNodeGroupLabels(ng *NodeGroup) error {
 		if errs := validation.IsQualifiedName(l); len(errs) > 0 {
 			return fmt.Errorf("label %q is invalid - %v", l, errs)
 		}
-		if errs := validation.IsValidLabelValue(ng.Labels[l]); len(errs) > 0 {
-			return fmt.Errorf("label %q has invalid value %q - %v", l, ng.Labels[l], errs)
+		if errs := validation.IsValidLabelValue(labels[l]); len(errs) > 0 {
+			return fmt.Errorf("label %q has invalid value %q - %v", l, labels[l], errs)
 		}
 
 		isKubernetesLabel := false
@@ -343,16 +345,13 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 }
 
 func validateNodeGroupSSH(SSH *NodeGroupSSH) error {
-	if SSH == nil {
-		return nil
-	}
 	numSSHFlagsEnabled := countEnabledFields(
 		SSH.PublicKeyPath,
 		SSH.PublicKey,
 		SSH.PublicKeyName)
 
 	if numSSHFlagsEnabled > 1 {
-		return fmt.Errorf("only one ssh public key can be specified per node-group")
+		return errors.New("only one SSH public key can be specified per node-group")
 	}
 	return nil
 }
