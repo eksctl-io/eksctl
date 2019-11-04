@@ -95,8 +95,8 @@ It should be possible to provide simple command under utils for each of these.
 At the time of writing of this proposal version downgrades were not supported by EKS.
 It's trusted that upgrades will work as expected with EKS SLA.
 
-More specifically, an `eks.UpdateClusterVersion` call for cluster running 1.11 trying
-to go back to 1.10 results in the following error:
+More specifically, an `eks.UpdateClusterVersion` call for cluster running 1.12+ trying
+to go back to 1.10 or 1.11 results in the following error:
 ```
 An error occurred (InvalidParameterException) when calling the UpdateClusterVersion operation: unsupported Kubernetes version update from the current version, 1.11, to 1.10
 ```
