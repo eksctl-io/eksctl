@@ -39,7 +39,7 @@ func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *flux.InstallOpts) {
 	fs.StringSliceVar(&opts.GitPaths, gitPaths, []string{},
 		"Relative paths within the Git repo for Flux to locate Kubernetes manifests")
 	fs.StringVar(&opts.GitLabel, gitLabel, "flux",
-		"Git label to keep track of Flux's sync progress; overrides both --git-sync-tag and --git-notes-ref")
+		"Git label to keep track of Flux's sync progress; this is equivalent to overriding --git-sync-tag and --git-notes-ref in Flux")
 	fs.StringVar(&opts.GitFluxPath, gitFluxPath, "flux/",
 		"Directory within the Git repository where to commit the Flux manifests")
 	fs.StringVar(&opts.Namespace, namespace, "flux",
