@@ -124,59 +124,67 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			})
 		})
 
-		Context("and enabling gitops on the configured repo", func() {
-			It("should not return an error", func() {
-				// Use a random branch to ensure test runs don't step on each others.
-				branch := namer.RandomName()
-				cloneDir, err := createBranch(branch)
-				Expect(err).ShouldNot(HaveOccurred())
-				defer deleteBranch(branch, cloneDir)
+		Context("gitops", func() {
+			var (
+				branch   string
+				cloneDir string
+				err      error
+			)
 
-				assertFluxManifestsAbsentInGit(branch)
-				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
-
-				cmd := eksctlExperimentalCmd.WithArgs(
-					"enable", "repo",
-					"--git-url", Repository,
-					"--git-email", Email,
-					"--git-private-ssh-key-path", privateSSHKeyPath,
-					"--git-branch", branch,
-					"--cluster", clusterName,
-				)
-				Expect(cmd).To(RunSuccessfully())
-
-				assertFluxManifestsPresentInGit(branch)
-				assertFluxPodsPresentInKubernetes(kubeconfigPath)
+			BeforeEach(func() {
+				if branch == "" {
+					branch = namer.RandomName()
+					cloneDir, err = createBranch(branch)
+				}
 			})
-		})
 
-		Context("enable profile", func() {
-			It("should add quickstart to the repo and the cluster", func() {
-				// Use a random branch to ensure test runs don't step on each others.
-				branch := namer.RandomName()
-				cloneDir, err := createBranch(branch)
-				Expect(err).ShouldNot(HaveOccurred())
-				defer deleteBranch(branch, cloneDir)
+			Context("enable repo", func() {
+				It("should add Flux to the repo and the cluster", func() {
+					Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
+					assertFluxManifestsAbsentInGit(branch)
+					assertFluxPodsAbsentInKubernetes(kubeconfigPath)
 
-				assertFluxManifestsAbsentInGit(branch)
+					cmd := eksctlExperimentalCmd.WithArgs(
+						"enable", "repo",
+						"--git-url", Repository,
+						"--git-email", Email,
+						"--git-private-ssh-key-path", privateSSHKeyPath,
+						"--git-branch", branch,
+						"--cluster", clusterName,
+					)
+					Expect(cmd).To(RunSuccessfully())
 
-				deleteFluxInstallation(kubeconfigPath)
-				assertFluxPodsAbsentInKubernetes(kubeconfigPath)
+					assertFluxManifestsPresentInGit(branch)
+					assertFluxPodsPresentInKubernetes(kubeconfigPath)
+				})
+			})
 
-				cmd := eksctlExperimentalCmd.WithArgs(
-					"enable", "profile",
-					"--git-url", Repository,
-					"--git-email", Email,
-					"--git-branch", branch,
-					"--git-private-ssh-key-path", privateSSHKeyPath,
-					"--cluster", clusterName,
-					"app-dev",
-				)
-				Expect(cmd).To(RunSuccessfully())
+			Context("enable profile", func() {
+				It("should add the configured quickstart profile to the repo and the cluster", func() {
+					Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
+					// Flux should have been installed by the previously run "enable repo" command:
+					assertFluxManifestsPresentInGit(branch)
+					assertFluxPodsPresentInKubernetes(kubeconfigPath)
 
-				assertQuickStartComponentsPresentInGit(branch)
-				assertFluxManifestsPresentInGit(branch)
-				assertFluxPodsPresentInKubernetes(kubeconfigPath)
+					cmd := eksctlExperimentalCmd.WithArgs(
+						"enable", "profile",
+						"--git-url", Repository,
+						"--git-email", Email,
+						"--git-branch", branch,
+						"--git-private-ssh-key-path", privateSSHKeyPath,
+						"--cluster", clusterName,
+						"app-dev",
+					)
+					Expect(cmd).To(RunSuccessfully())
+
+					assertQuickStartComponentsPresentInGit(branch)
+					// Flux should still be present:
+					assertFluxManifestsPresentInGit(branch)
+					assertFluxPodsPresentInKubernetes(kubeconfigPath)
+					// Clean-up:
+					err := deleteBranch(branch, cloneDir)
+					Expect(err).NotTo(HaveOccurred()) // Deleting the branch should have succeeded.
+				})
 			})
 		})
 
