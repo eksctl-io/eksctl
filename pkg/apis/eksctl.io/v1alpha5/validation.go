@@ -144,10 +144,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if ng.IAM != nil {
-		if err := validateNodeGroupIAM(ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
+		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
 			return err
 		}
-		if err := validateNodeGroupIAM(ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
+		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
 		}
 	}
@@ -256,50 +256,50 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 	return nil
 }
 
-func validateNodeGroupIAM(ng *NodeGroup, value, fieldName, path string) error {
+func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) error {
 	if value != "" {
 		fmtFieldConflictErr := func(conflictingField string) error {
 			return fmt.Errorf("%s.iam.%s and %s.iam.%s cannot be set at the same time", path, fieldName, path, conflictingField)
 		}
 
-		if ng.IAM.InstanceRoleName != "" {
+		if iam.InstanceRoleName != "" {
 			return fmtFieldConflictErr("instanceRoleName")
 		}
-		if len(ng.IAM.AttachPolicyARNs) != 0 {
+		if len(iam.AttachPolicyARNs) != 0 {
 			return fmtFieldConflictErr("attachPolicyARNs")
 		}
 		prefix := "withAddonPolicies."
-		if IsEnabled(ng.IAM.WithAddonPolicies.AutoScaler) {
+		if IsEnabled(iam.WithAddonPolicies.AutoScaler) {
 			return fmtFieldConflictErr(prefix + "autoScaler")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.ExternalDNS) {
+		if IsEnabled(iam.WithAddonPolicies.ExternalDNS) {
 			return fmtFieldConflictErr(prefix + "externalDNS")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.CertManager) {
+		if IsEnabled(iam.WithAddonPolicies.CertManager) {
 			return fmtFieldConflictErr(prefix + "certManager")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.ImageBuilder) {
+		if IsEnabled(iam.WithAddonPolicies.ImageBuilder) {
 			return fmtFieldConflictErr(prefix + "imageBuilder")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.AppMesh) {
+		if IsEnabled(iam.WithAddonPolicies.AppMesh) {
 			return fmtFieldConflictErr(prefix + "appMesh")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.EBS) {
+		if IsEnabled(iam.WithAddonPolicies.EBS) {
 			return fmtFieldConflictErr(prefix + "ebs")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.FSX) {
+		if IsEnabled(iam.WithAddonPolicies.FSX) {
 			return fmtFieldConflictErr(prefix + "fsx")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.EFS) {
+		if IsEnabled(iam.WithAddonPolicies.EFS) {
 			return fmtFieldConflictErr(prefix + "efs")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.ALBIngress) {
+		if IsEnabled(iam.WithAddonPolicies.ALBIngress) {
 			return fmtFieldConflictErr(prefix + "albIngress")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.XRay) {
+		if IsEnabled(iam.WithAddonPolicies.XRay) {
 			return fmtFieldConflictErr(prefix + "xRay")
 		}
-		if IsEnabled(ng.IAM.WithAddonPolicies.CloudWatch) {
+		if IsEnabled(iam.WithAddonPolicies.CloudWatch) {
 			return fmtFieldConflictErr(prefix + "cloudWatch")
 		}
 	}
