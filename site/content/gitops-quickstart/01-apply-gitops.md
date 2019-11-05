@@ -113,7 +113,7 @@ deploy to the cluster.
 > may change.
 
 Run this command from any directory in your file system. `eksctl` will clone
-your repository in a temporary directory that'll be removed later.
+your repository in a temporary directory that will be removed later.
 
 ```console
 EKSCTL_EXPERIMENTAL=true \
