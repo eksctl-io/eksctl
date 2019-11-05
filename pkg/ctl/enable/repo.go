@@ -18,16 +18,16 @@ func enableRepo(cmd *cmdutils.Cmd) {
 		"Set up a repo for gitops, installing Flux in the cluster and initializing its manifests in the specified Git repository",
 		"",
 	)
-	opts := ConfigureRepositoryCmd(cmd)
+	opts := configureRepositoryCmd(cmd)
 	cmd.SetRunFuncWithNameArg(func() error {
-		return Repository(cmd, opts)
+		return doEnableRepository(cmd, opts)
 	})
 }
 
-// ConfigureRepositoryCmd configures the provided command object so that it can
+// configureRepositoryCmd configures the provided command object so that it can
 // process CLI options and ClusterConfig file, to prepare for the "enablement"
 // of the configured repository & cluster.
-func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
+func configureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 	var opts flux.InstallOpts
 	cmd.FlagSetGroup.InFlagSet("Enable repository", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForFlux(fs, &opts)
@@ -43,8 +43,8 @@ func ConfigureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 	return &opts
 }
 
-// Repository enables GitOps on the configured repository.
-func Repository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
+// doEnableRepository enables GitOps on the configured repository.
+func doEnableRepository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
 	cmdutils.ValidateGitOptions(&opts.GitOptions)
 	if err := cmdutils.NewGitOpsConfigLoader(cmd).Load(); err != nil {
 		return err

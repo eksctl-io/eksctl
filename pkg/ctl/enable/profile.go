@@ -41,16 +41,16 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 		"Set up Flux and deploy the components from the selected Quick Start profile.",
 		"",
 	)
-	opts := ConfigureProfileCmd(cmd)
+	opts := configureProfileCmd(cmd)
 	cmd.SetRunFuncWithNameArg(func() error {
-		return Profile(cmd, opts)
+		return doEnableProfile(cmd, opts)
 	})
 }
 
-// ConfigureProfileCmd configures the provided command object so that it can
+// configureProfileCmd configures the provided command object so that it can
 // process CLI options and ClusterConfig file, to prepare for the "enablement"
 // of the configured profile on the configured repository & cluster.
-func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
+func configureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	var opts ProfileOptions
 	cmd.FlagSetGroup.InFlagSet("Enable profile", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonFlagsForProfile(fs, &opts.profileOptions)
@@ -66,8 +66,8 @@ func ConfigureProfileCmd(cmd *cmdutils.Cmd) *ProfileOptions {
 	return &opts
 }
 
-// Profile enables the configured profile on the configured repository.
-func Profile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
+// doEnableProfile enables the configured profile on the configured repository.
+func doEnableProfile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	if cmd.NameArg != "" && opts.profileOptions.Name != "" {
 		return cmdutils.ErrClusterFlagAndArg(cmd, cmd.NameArg, opts.profileOptions.Name)
 	}
