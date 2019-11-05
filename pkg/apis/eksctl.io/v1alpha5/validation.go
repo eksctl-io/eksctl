@@ -144,10 +144,10 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if ng.IAM != nil {
-		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
+		if err := validateNodeGroupIAM(ng, ng.IAM.InstanceProfileARN, "instanceProfileARN", path); err != nil {
 			return err
 		}
-		if err := validateNodeGroupIAM(i, ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
+		if err := validateNodeGroupIAM(ng, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
 		}
 	}
@@ -256,7 +256,7 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 	return nil
 }
 
-func validateNodeGroupIAM(i int, ng *NodeGroup, value, fieldName, path string) error {
+func validateNodeGroupIAM(ng *NodeGroup, value, fieldName, path string) error {
 	if value != "" {
 		fmtFieldConflictErr := func(conflictingField string) error {
 			return fmt.Errorf("%s.iam.%s and %s.iam.%s cannot be set at the same time", path, fieldName, path, conflictingField)
