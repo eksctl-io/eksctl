@@ -14,14 +14,13 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/riywo/loginshell"
+	"github.com/weaveworks/eksctl/pkg/git"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	tillerinstall "k8s.io/helm/cmd/helm/installer"
 	"sigs.k8s.io/yaml"
-
-	"github.com/weaveworks/eksctl/pkg/git"
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 const (
@@ -97,15 +96,14 @@ subjects:
 
 // InstallOpts are the installation options for Flux
 type InstallOpts struct {
-	GitOptions           git.Options
-	GitPaths             []string
-	GitLabel             string
-	GitFluxPath          string
-	GitPrivateSSHKeyPath string
-	Namespace            string
-	Timeout              time.Duration
-	Amend                bool
-	WithHelm             bool
+	GitOptions  git.Options
+	GitPaths    []string
+	GitLabel    string
+	GitFluxPath string
+	Namespace   string
+	Timeout     time.Duration
+	Amend       bool // TODO: remove, as we eventually no longer want to support this mode?
+	WithHelm    bool
 }
 
 // Installer installs Flux
@@ -119,7 +117,7 @@ type Installer struct {
 // NewInstaller creates a new Flux installer
 func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, opts *InstallOpts) *Installer {
 	gitClient := git.NewGitClient(git.ClientParams{
-		PrivateSSHKeyPath: opts.GitPrivateSSHKeyPath,
+		PrivateSSHKeyPath: opts.GitOptions.PrivateSSHKeyPath,
 	})
 	fi := &Installer{
 		opts:          opts,
