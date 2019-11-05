@@ -13,6 +13,7 @@ import (
 	giturls "github.com/whilp/git-urls"
 
 	"github.com/weaveworks/eksctl/pkg/git/executor"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 // TmpCloner can clone git repositories in temporary directories
@@ -31,32 +32,51 @@ type ClientParams struct {
 	PrivateSSHKeyPath string
 }
 
-// Options holds options for cloning a git repository
+// Options holds options to interact with a Git repository.
 type Options struct {
-	URL    string
-	Branch string
-	User   string
-	Email  string
+	URL               string
+	Branch            string
+	User              string
+	Email             string
+	PrivateSSHKeyPath string
+}
+
+// Validate validates this Options object.
+func (o Options) Validate() error {
+	if err := o.ValidateURL(); err != nil {
+		return err
+	}
+	if err := o.ValidateEmail(); err != nil {
+		return err
+	}
+	if err := o.ValidatePrivateSSHKeyPath(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // ValidateURL validates the URL field of this Options object, returning an
 // error should the current value not be valid.
 func (o Options) ValidateURL() error {
-	if o.URL == "" {
-		return errors.New("empty Git URL")
-	}
-	if !IsGitURL(o.URL) {
-		return errors.New("invalid Git URL")
-	}
-	if !o.isSSHURL() {
-		return errors.New("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs")
+	return ValidateURL(o.URL)
+}
+
+// ValidateEmail validates the email field of this Options object, return an
+// error should the current value not be valid.
+func (o Options) ValidateEmail() error {
+	if o.Email == "" {
+		return errors.New("empty email address")
 	}
 	return nil
 }
 
-func (o Options) isSSHURL() bool {
-	url, err := giturls.Parse(o.URL)
-	return err == nil && (url.Scheme == "git" || url.Scheme == "ssh")
+// ValidatePrivateSSHKeyPath validates the path to the (optional) private SSH
+// key used to interact with the Git repository configured in this object.
+func (o Options) ValidatePrivateSSHKeyPath() error {
+	if o.PrivateSSHKeyPath != "" && !file.Exists(o.PrivateSSHKeyPath) {
+		return fmt.Errorf("invalid path to private SSH key: %s", o.PrivateSSHKeyPath)
+	}
+	return nil
 }
 
 // NewGitClient returns a client that can perform git operations
@@ -230,6 +250,20 @@ func RepoName(repoURL string) (string, error) {
 	return strings.TrimRight(lastPathSegment, ".git"), nil
 }
 
+// ValidateURL validates the provided Git URL.
+func ValidateURL(url string) error {
+	if url == "" {
+		return errors.New("empty Git URL")
+	}
+	if !IsGitURL(url) {
+		return errors.New("invalid Git URL")
+	}
+	if !isSSHURL(url) {
+		return errors.New("got a HTTP(S) Git URL, but eksctl currently only supports SSH Git URLs")
+	}
+	return nil
+}
+
 // IsGitURL returns true if the argument matches the git url format
 func IsGitURL(rawURL string) bool {
 	parsedURL, err := giturls.Parse(rawURL)
@@ -237,4 +271,9 @@ func IsGitURL(rawURL string) bool {
 		return true
 	}
 	return false
+}
+
+func isSSHURL(rawURL string) bool {
+	url, err := giturls.Parse(rawURL)
+	return err == nil && (url.Scheme == "git" || url.Scheme == "ssh")
 }

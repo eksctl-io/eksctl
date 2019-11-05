@@ -533,10 +533,6 @@ func fluxPods(kubeconfigPath string) *corev1.PodList {
 	return &pods
 }
 
-func deleteFluxInstallation(kubeconfigPath string) {
-	kubectl("delete", "namespace", "--kubeconfig", kubeconfigPath, "flux")
-}
-
 func kubectl(args ...string) ([]byte, error) {
 	kubectlCmd := exec.Command("kubectl", args...)
 	return kubectlCmd.CombinedOutput()
