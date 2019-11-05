@@ -23,7 +23,7 @@ func deleteIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	var onlyMissing bool
 
-	cmd.SetDescription("iamserviceaccount", "Create an iamserviceaccount - AWS IAM role bound to a Kubernetes service account", "")
+	cmd.SetDescription("iamserviceaccount", "Delete an iamserviceaccount", "")
 
 	cmd.SetRunFunc(func() error {
 		return doDeleteIAMServiceAccount(cmd, serviceAccount, onlyMissing)
