@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -144,5 +145,6 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	}
 
 	profile.DeleteClonedDirectory()
+	os.RemoveAll(usersRepoDir)
 	return nil
 }
