@@ -99,7 +99,7 @@ and add their manifests to Git, so you can configure them through pull
 requests.
 
 The most important ingredient using `eksctl enable repo` is your config
-repository (which will includes your workload manifests, etc). You can start
+repository (which will include your workload manifests, etc). You can start
 with an empty repository and push that to Git, or use the one you intend to
 deploy to the cluster.
 
