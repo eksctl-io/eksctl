@@ -352,6 +352,8 @@ const expected = `
 			  "volumeType": "io1",
 			  "volumeIOPS": 200,
 			  "labels": {
+				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+				"alpha.eksctl.io/nodegroup-name": "test-ng1a",
 			    "group": "a",
 			    "seq": "1"
 			  },
@@ -391,6 +393,8 @@ const expected = `
 			  "volumeType": "gp2",
 			  "volumeIOPS": null,
 			  "labels": {
+				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+				"alpha.eksctl.io/nodegroup-name": "test-ng2a",
 			    "group": "a",
 			    "seq": "2"
 			  },
@@ -430,6 +434,8 @@ const expected = `
 			  "volumeType": "gp2",
 			  "volumeIOPS": null,
 			  "labels": {
+				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+				"alpha.eksctl.io/nodegroup-name": "test-ng3a",
 			    "group": "a",
 			    "seq": "3"
 			  },
@@ -468,6 +474,8 @@ const expected = `
 			  "volumeType": "gp2",
 			  "volumeIOPS": null,
 			  "labels": {
+				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+				"alpha.eksctl.io/nodegroup-name": "test-ng1b",
 			    "group": "b",
 			    "seq": "1"
 			  },
@@ -509,6 +517,8 @@ const expected = `
 			  "volumeType": "gp2",
 			  "volumeIOPS": null,
 			  "labels": {
+				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+				"alpha.eksctl.io/nodegroup-name": "test-ng2b",
 			    "group": "b",
 			    "seq": "1"
 			  },
@@ -550,6 +560,8 @@ const expected = `
 			  "volumeType": "gp2",
 			  "volumeIOPS": null,
 			  "labels": {
+				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
+				"alpha.eksctl.io/nodegroup-name": "test-ng3b",
 			    "group": "b",
 			    "seq": "1"
 			  },
