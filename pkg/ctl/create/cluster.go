@@ -264,11 +264,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		// fingerprint, so if unique keys provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		sshKey, err := ssh.LoadKey(ng.SSH, meta.Name, ng.Name, ctl.Provider.EC2())
+		publicKeyName, err := ssh.LoadKey(ng.SSH, meta.Name, ng.Name, ctl.Provider.EC2())
 		if err != nil {
 			return err
 		}
-		ng.SSH.PublicKeyName = &sshKey
+		if publicKeyName != "" {
+			ng.SSH.PublicKeyName = &publicKeyName
+		}
 	}
 
 	logger.Info("using Kubernetes version %s", meta.Version)

@@ -111,7 +111,9 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		if err != nil {
 			return err
 		}
-		ng.SSH.PublicKeyName = &publicKeyName
+		if publicKeyName != "" {
+			ng.SSH.PublicKeyName = &publicKeyName
+		}
 	}
 
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
