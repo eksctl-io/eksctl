@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -10,7 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/iam"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
 const (
@@ -22,6 +23,11 @@ const (
 	iamPolicyAmazonEC2ContainerRegistryPowerUserARN = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 	iamPolicyAmazonEC2ContainerRegistryReadOnlyARN  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 	iamPolicyCloudWatchAgentServerPolicyARN         = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+)
+
+const (
+	cfnIAMInstanceRoleName    = "NodeInstanceRole"
+	cfnIAMInstanceProfileName = "NodeInstanceProfile"
 )
 
 var (
@@ -53,6 +59,170 @@ func (c *ClusterResourceSet) WithNamedIAM() bool {
 	return c.rs.withNamedIAM
 }
 
+const awsEKSNodegroupPolicies = `{
+"Version": "2012-10-17",
+"Statement": [
+	{
+		"Condition": {
+			"ForAnyValue:StringLike": {
+				"ec2:ResourceTag/eks": "*"
+			}
+		},
+		"Action": [
+			"ec2:RevokeSecurityGroupIngress",
+			"ec2:AuthorizeSecurityGroupEgress",
+			"ec2:AuthorizeSecurityGroupIngress",
+			"ec2:DescribeInstances",
+			"ec2:RevokeSecurityGroupEgress"
+		],
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"ForAnyValue:StringLike": {
+				"ec2:ResourceTag/eks:nodegroup-name": "*"
+			}
+		},
+		"Action": [
+			"ec2:RevokeSecurityGroupIngress",
+			"ec2:AuthorizeSecurityGroupEgress",
+			"ec2:AuthorizeSecurityGroupIngress",
+			"ec2:DescribeInstances",
+			"ec2:RevokeSecurityGroupEgress"
+		],
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"StringLike": {
+				"ec2:ResourceTag/eks:nodegroup-name": "*"
+			}
+		},
+		"Action": [
+			"ec2:DeleteLaunchTemplate",
+			"ec2:CreateLaunchTemplateVersion"
+		],
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Action": [
+			"autoscaling:UpdateAutoScalingGroup",
+			"autoscaling:DeleteAutoScalingGroup",
+			"autoscaling:TerminateInstanceInAutoScalingGroup",
+			"autoscaling:CompleteLifecycleAction",
+			"autoscaling:PutLifecycleHook",
+			"autoscaling:PutNotificationConfiguration"
+		],
+		"Resource": "arn:aws:autoscaling:*:*:*:autoScalingGroupName/eks-*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"StringEquals": {
+				"iam:AWSServiceName": "autoscaling.amazonaws.com"
+			}
+		},
+		"Action": "iam:CreateServiceLinkedRole",
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"ForAnyValue:StringEquals": {
+				"aws:TagKeys": [
+					"eks",
+					"eks:cluster-name",
+					"eks:nodegroup-name"
+				]
+			}
+		},
+		"Action": [
+			"autoscaling:CreateOrUpdateTags",
+			"autoscaling:CreateAutoScalingGroup"
+		],
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"StringEqualsIfExists": {
+				"iam:PassedToService": "iam.amazonaws.com"
+			}
+		},
+		"Action": "iam:PassRole",
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"StringEqualsIfExists": {
+				"iam:PassedToService": "autoscaling.amazonaws.com"
+			}
+		},
+		"Action": "iam:PassRole",
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"StringEqualsIfExists": {
+				"iam:PassedToService": "ec2.amazonaws.com"
+			}
+		},
+		"Action": "iam:PassRole",
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Action": [
+			"iam:GetRole",
+			"iam:GetInstanceProfile",
+			"autoscaling:DescribeAutoScalingGroups",
+			"ec2:CreateLaunchTemplate",
+			"ec2:DescribeLaunchTemplates",
+			"ec2:DescribeInstances",
+			"ec2:CreateSecurityGroup",
+			"ec2:DeleteSecurityGroup",
+			"ec2:DescribeLaunchTemplateVersions",
+			"ec2:RunInstances",
+			"ec2:DescribeSecurityGroups",
+			"ec2:GetConsoleOutput"
+		],
+		"Resource": "*",
+		"Effect": "Allow"
+	},
+	{
+		"Action": [
+			"iam:CreateInstanceProfile",
+			"iam:DeleteInstanceProfile",
+			"iam:RemoveRoleFromInstanceProfile",
+			"iam:AddRoleToInstanceProfile"
+		],
+		"Resource": "arn:aws:iam::*:instance-profile/eks-*",
+		"Effect": "Allow"
+	},
+	{
+		"Condition": {
+			"ForAnyValue:StringLike": {
+				"aws:TagKeys": [
+					"eks",
+					"eks:cluster-name",
+					"eks:nodegroup-name",
+					"kubernetes.io/cluster/*"
+				]
+			}
+		},
+		"Action": "ec2:CreateTags",
+		"Resource": "*",
+		"Effect": "Allow"
+	}
+]
+}
+`
+
 func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withNamedIAM = false
 
@@ -65,7 +235,12 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("eks.amazonaws.com"),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+			"eks.amazonaws.com",
+			// TODO remove beta policies before releasing
+			"eks-beta-pdx.aws.internal",
+			"us-west-2.eks-managed-nodes-beta.aws.internal",
+		),
 		ManagedPolicyArns: makeStringSlice(
 			iamPolicyAmazonEKSServicePolicyARN,
 			iamPolicyAmazonEKSClusterPolicyARN,
@@ -78,6 +253,13 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	})
 	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, "*", []string{
 		"cloudwatch:PutMetricData",
+	})
+
+	c.rs.newResource("ServiceRolePolicies", &gfn.AWSIAMPolicy{
+		PolicyName:     gfn.NewString("AWSServiceRoleForAmazonEKSNodeGroupPolicy"),
+		PolicyDocument: json.RawMessage(awsEKSNodegroupPolicies),
+
+		Roles: makeSlice(refSR),
 	})
 	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole.Arn", true, func(v string) error {
 		c.spec.IAM.ServiceRoleARN = &v
@@ -96,10 +278,6 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 }
 
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
-	if n.spec.IAM == nil {
-		n.spec.IAM = &api.NodeGroupIAM{}
-	}
-
 	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
@@ -124,7 +302,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 
 	if n.spec.IAM.InstanceRoleARN != "" {
 		// if role is set, but profile isn't - create profile
-		n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+		n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
 		})
@@ -137,243 +315,21 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		return
 	}
 
-	// if neither role nor profile are given - create both
+	// if neither role nor profile is given - create both
 
 	if n.spec.IAM.InstanceRoleName != "" {
 		// setting role name requires additional capabilities
 		n.rs.withNamedIAM = true
 	}
 
-	if len(n.spec.IAM.AttachPolicyARNs) == 0 {
-		n.spec.IAM.AttachPolicyARNs = iamDefaultNodePolicyARNs
-	}
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ImageBuilder) {
-		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
-	} else {
-		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.CloudWatch) {
-		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyCloudWatchAgentServerPolicyARN)
-	}
-
-	role := gfn.AWSIAMRole{
-		Path:                     gfn.NewString("/"),
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
-		ManagedPolicyArns:        makeStringSlice(n.spec.IAM.AttachPolicyARNs...),
-	}
-
-	if n.spec.IAM.InstanceRoleName != "" {
-		role.RoleName = gfn.NewString(n.spec.IAM.InstanceRoleName)
-	}
-
-	refIR := n.newResource("NodeInstanceRole", &role)
+	iamHelper := NewIAMHelper(n.rs, n.spec.IAM)
+	iamHelper.CreateRole()
 
 	n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),
-		Roles: makeSlice(refIR),
+		Roles: makeSlice(gfn.MakeRef(cfnIAMInstanceRoleName)),
 	})
 	n.instanceProfileARN = gfn.MakeFnGetAttString("NodeInstanceProfile.Arn")
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
-		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
-			[]string{
-				"autoscaling:DescribeAutoScalingGroups",
-				"autoscaling:DescribeAutoScalingInstances",
-				"autoscaling:DescribeLaunchConfigurations",
-				"autoscaling:DescribeTags",
-				"autoscaling:SetDesiredCapacity",
-				"autoscaling:TerminateInstanceInAutoScalingGroup",
-				"ec2:DescribeLaunchTemplateVersions",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.CertManager) {
-		n.rs.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
-			[]string{
-				"route53:ChangeResourceRecordSets",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*",
-			[]string{
-				"route53:ListHostedZones",
-				"route53:ListResourceRecordSets",
-				"route53:ListHostedZonesByName",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyCertManagerGetChange", refIR, "arn:aws:route53:::change/*",
-			[]string{
-				"route53:GetChange",
-			},
-		)
-	} else if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ExternalDNS) {
-		n.rs.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
-			[]string{
-				"route53:ChangeResourceRecordSets",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, "*",
-			[]string{
-				"route53:ListHostedZones",
-				"route53:ListResourceRecordSets",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AppMesh) {
-		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",
-			[]string{
-				"appmesh:*",
-				"servicediscovery:CreateService",
-				"servicediscovery:GetService",
-				"servicediscovery:RegisterInstance",
-				"servicediscovery:DeregisterInstance",
-				"servicediscovery:ListInstances",
-				"servicediscovery:ListNamespaces",
-				"route53:GetHealthCheck",
-				"route53:CreateHealthCheck",
-				"route53:UpdateHealthCheck",
-				"route53:ChangeResourceRecordSets",
-				"route53:DeleteHealthCheck",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.EBS) {
-		n.rs.attachAllowPolicy("PolicyEBS", refIR, "*",
-			[]string{
-				"ec2:AttachVolume",
-				"ec2:CreateSnapshot",
-				"ec2:CreateTags",
-				"ec2:CreateVolume",
-				"ec2:DeleteSnapshot",
-				"ec2:DeleteTags",
-				"ec2:DeleteVolume",
-				"ec2:DescribeInstances",
-				"ec2:DescribeSnapshots",
-				"ec2:DescribeTags",
-				"ec2:DescribeVolumes",
-				"ec2:DetachVolume",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.FSX) {
-		n.rs.attachAllowPolicy("PolicyFSX", refIR, "*",
-			[]string{
-				"fsx:*",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
-			[]string{
-				"iam:CreateServiceLinkedRole",
-				"iam:AttachRolePolicy",
-				"iam:PutRolePolicy",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.EFS) {
-		n.rs.attachAllowPolicy("PolicyEFS", refIR, "*",
-			[]string{
-				"elasticfilesystem:*",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyEFSEC2", refIR, "*",
-			[]string{
-				"ec2:DescribeSubnets",
-				"ec2:CreateNetworkInterface",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:DeleteNetworkInterface",
-				"ec2:ModifyNetworkInterfaceAttribute",
-				"ec2:DescribeNetworkInterfaceAttribute",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ALBIngress) {
-		n.rs.attachAllowPolicy("PolicyALBIngress", refIR, "*",
-			[]string{
-				"acm:DescribeCertificate",
-				"acm:ListCertificates",
-				"acm:GetCertificate",
-				"ec2:AuthorizeSecurityGroupIngress",
-				"ec2:CreateSecurityGroup",
-				"ec2:CreateTags",
-				"ec2:DeleteTags",
-				"ec2:DeleteSecurityGroup",
-				"ec2:DescribeAccountAttributes",
-				"ec2:DescribeAddresses",
-				"ec2:DescribeInstances",
-				"ec2:DescribeInstanceStatus",
-				"ec2:DescribeInternetGateways",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:DescribeSecurityGroups",
-				"ec2:DescribeSubnets",
-				"ec2:DescribeTags",
-				"ec2:DescribeVpcs",
-				"ec2:ModifyInstanceAttribute",
-				"ec2:ModifyNetworkInterfaceAttribute",
-				"ec2:RevokeSecurityGroupIngress",
-				"elasticloadbalancing:AddListenerCertificates",
-				"elasticloadbalancing:AddTags",
-				"elasticloadbalancing:CreateListener",
-				"elasticloadbalancing:CreateLoadBalancer",
-				"elasticloadbalancing:CreateRule",
-				"elasticloadbalancing:CreateTargetGroup",
-				"elasticloadbalancing:DeleteListener",
-				"elasticloadbalancing:DeleteLoadBalancer",
-				"elasticloadbalancing:DeleteRule",
-				"elasticloadbalancing:DeleteTargetGroup",
-				"elasticloadbalancing:DeregisterTargets",
-				"elasticloadbalancing:DescribeListenerCertificates",
-				"elasticloadbalancing:DescribeListeners",
-				"elasticloadbalancing:DescribeLoadBalancers",
-				"elasticloadbalancing:DescribeLoadBalancerAttributes",
-				"elasticloadbalancing:DescribeRules",
-				"elasticloadbalancing:DescribeSSLPolicies",
-				"elasticloadbalancing:DescribeTags",
-				"elasticloadbalancing:DescribeTargetGroups",
-				"elasticloadbalancing:DescribeTargetGroupAttributes",
-				"elasticloadbalancing:DescribeTargetHealth",
-				"elasticloadbalancing:ModifyListener",
-				"elasticloadbalancing:ModifyLoadBalancerAttributes",
-				"elasticloadbalancing:ModifyRule",
-				"elasticloadbalancing:ModifyTargetGroup",
-				"elasticloadbalancing:ModifyTargetGroupAttributes",
-				"elasticloadbalancing:RegisterTargets",
-				"elasticloadbalancing:RemoveListenerCertificates",
-				"elasticloadbalancing:RemoveTags",
-				"elasticloadbalancing:SetIpAddressType",
-				"elasticloadbalancing:SetSecurityGroups",
-				"elasticloadbalancing:SetSubnets",
-				"elasticloadbalancing:SetWebACL",
-				"iam:CreateServiceLinkedRole",
-				"iam:GetServerCertificate",
-				"iam:ListServerCertificates",
-				"waf-regional:GetWebACLForResource",
-				"waf-regional:GetWebACL",
-				"waf-regional:AssociateWebACL",
-				"waf-regional:DisassociateWebACL",
-				"tag:GetResources",
-				"tag:TagResources",
-				"waf:GetWebACL",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.XRay) {
-		n.rs.attachAllowPolicy("PolicyXRay", refIR, "*",
-			[]string{
-				"xray:PutTraceSegments",
-				"xray:PutTelemetryRecords",
-				"xray:GetSamplingRules",
-				"xray:GetSamplingTargets",
-				"xray:GetSamplingStatisticSummaries",
-			},
-		)
-	}
 
 	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
 		n.spec.IAM.InstanceProfileARN = v
