@@ -306,8 +306,8 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
 		})
-		n.instanceProfileARN = gfn.MakeFnGetAttString("NodeInstanceProfile.Arn")
-		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
+		n.instanceProfileARN = gfn.MakeFnGetAttString(makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"))
+		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"), true, func(v string) error {
 			n.spec.IAM.InstanceProfileARN = v
 			return nil
 		})
@@ -325,17 +325,17 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 	iamHelper := NewIAMHelper(n.rs, n.spec.IAM)
 	iamHelper.CreateRole()
 
-	n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+	n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),
 		Roles: makeSlice(gfn.MakeRef(cfnIAMInstanceRoleName)),
 	})
-	n.instanceProfileARN = gfn.MakeFnGetAttString("NodeInstanceProfile.Arn")
+	n.instanceProfileARN = gfn.MakeFnGetAttString(makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"))
 
-	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"), true, func(v string) error {
 		n.spec.IAM.InstanceProfileARN = v
 		return nil
 	})
-	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true, func(v string) error {
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, makeAttrAccessor(cfnIAMInstanceRoleName, "Arn"), true, func(v string) error {
 		n.spec.IAM.InstanceRoleARN = v
 		return nil
 	})
