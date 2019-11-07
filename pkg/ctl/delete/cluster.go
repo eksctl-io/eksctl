@@ -17,7 +17,7 @@ import (
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/ssh"
+	ssh "github.com/weaveworks/eksctl/pkg/ssh/client"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
