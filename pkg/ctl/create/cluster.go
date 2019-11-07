@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/ssh"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -259,16 +260,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 
-		if err := ctl.SetNodeLabels(ng, meta); err != nil {
-			return err
-		}
-
 		// load or use SSH key - name includes cluster name and the
 		// fingerprint, so if unique keys provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
-		if err := loadSSHKey(ng, meta.Name, ctl.Provider); err != nil {
+		publicKeyName, err := ssh.LoadKey(ng.SSH, meta.Name, ng.Name, ctl.Provider.EC2())
+		if err != nil {
 			return err
+		}
+		if publicKeyName != "" {
+			ng.SSH.PublicKeyName = &publicKeyName
 		}
 	}
 
