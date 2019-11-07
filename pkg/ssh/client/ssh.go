@@ -1,11 +1,13 @@
-package ssh
+package client
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"io/ioutil"
 	"strings"
+
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -14,13 +16,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"k8s.io/kops/pkg/pki"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // LoadKeyFromFile loads and imports a public SSH key from a file provided a path to that file.
 // returns the name of the key
-func LoadKeyFromFile(filePath, clusterName, ngName string, provider api.ClusterProvider) (string, error) {
+func LoadKeyFromFile(filePath, clusterName, ngName string, ec2API ec2iface.EC2API) (string, error) {
 	if !file.Exists(filePath) {
 		return "", fmt.Errorf("SSH public key file %q not found", filePath)
 	}
@@ -42,14 +42,14 @@ func LoadKeyFromFile(filePath, clusterName, ngName string, provider api.ClusterP
 	logger.Info("using SSH public key %q as %q ", expandedPath, keyName)
 
 	// Import SSH key in EC2
-	if err := importKey(keyName, fingerprint, &key, provider); err != nil {
+	if err := importKey(keyName, fingerprint, &key, ec2API); err != nil {
 		return "", err
 	}
 	return keyName, nil
 }
 
 // LoadKeyByContent loads and imports an SSH public key into EC2 if it doesn't exist
-func LoadKeyByContent(key *string, clusterName, ngName string, provider api.ClusterProvider) (string, error) {
+func LoadKeyByContent(key *string, clusterName, ngName string, ec2API ec2iface.EC2API) (string, error) {
 	fingerprint, err := pki.ComputeAWSKeyFingerprint(*key)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("computing fingerprint for key %q", *key))
@@ -59,15 +59,15 @@ func LoadKeyByContent(key *string, clusterName, ngName string, provider api.Clus
 	logger.Info("using SSH public key %q ", *key)
 
 	// Import SSH key in EC2
-	if err := importKey(keyName, fingerprint, key, provider); err != nil {
+	if err := importKey(keyName, fingerprint, key, ec2API); err != nil {
 		return "", err
 	}
 	return keyName, nil
 }
 
 // DeleteKeys will delete the public SSH key, if it exists
-func DeleteKeys(clusterName string, provider api.ClusterProvider) {
-	existing, err := provider.EC2().DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
+func DeleteKeys(clusterName string, ec2API ec2iface.EC2API) {
+	existing, err := ec2API.DescribeKeyPairs(&ec2.DescribeKeyPairsInput{})
 	if err != nil {
 		logger.Debug("cannot describe keys: %v", err)
 		return
@@ -91,15 +91,15 @@ func DeleteKeys(clusterName string, provider api.ClusterProvider) {
 			KeyName: matching[i],
 		}
 		logger.Debug("deleting key %q", *matching[i])
-		if _, err := provider.EC2().DeleteKeyPair(input); err != nil {
+		if _, err := ec2API.DeleteKeyPair(input); err != nil {
 			logger.Debug("key pair couldn't be deleted: %v", err)
 		}
 	}
 }
 
 // CheckKeyExistsInEC2 returns whether a public ssh key already exists in EC2 or error if it couldn't be checked
-func CheckKeyExistsInEC2(sshKeyName string, provider api.ClusterProvider) error {
-	existing, err := findKeyInEc2(sshKeyName, provider)
+func CheckKeyExistsInEC2(sshKeyName string, ec2API ec2iface.EC2API) error {
+	existing, err := findKeyInEc2(sshKeyName, ec2API)
 	if err != nil {
 		return errors.Wrap(err, "checking existing key pair")
 	}
@@ -111,8 +111,8 @@ func CheckKeyExistsInEC2(sshKeyName string, provider api.ClusterProvider) error 
 	return nil
 }
 
-func importKey(keyName, fingerprint string, keyContent *string, provider api.ClusterProvider) error {
-	if existing, err := findKeyInEc2(keyName, provider); err != nil {
+func importKey(keyName, fingerprint string, keyContent *string, ec2API ec2iface.EC2API) error {
+	if existing, err := findKeyInEc2(keyName, ec2API); err != nil {
 		return err
 	} else if existing != nil {
 		if *existing.KeyFingerprint != fingerprint {
@@ -130,7 +130,7 @@ func importKey(keyName, fingerprint string, keyContent *string, provider api.Clu
 	}
 	logger.Debug("importing SSH public key %q", keyName)
 
-	if _, err := provider.EC2().ImportKeyPair(input); err != nil {
+	if _, err := ec2API.ImportKeyPair(input); err != nil {
 		return errors.Wrap(err, "importing SSH public key")
 	}
 	return nil
@@ -151,11 +151,11 @@ func getKeyName(clusterName, nodeGroupName, fingerprint string) string {
 	return strings.Join(keyNameParts, "-")
 }
 
-func findKeyInEc2(name string, provider api.ClusterProvider) (*ec2.KeyPairInfo, error) {
+func findKeyInEc2(name string, ec2API ec2iface.EC2API) (*ec2.KeyPairInfo, error) {
 	input := &ec2.DescribeKeyPairsInput{
 		KeyNames: aws.StringSlice([]string{name}),
 	}
-	output, err := provider.EC2().DescribeKeyPairs(input)
+	output, err := ec2API.DescribeKeyPairs(input)
 
 	if err != nil {
 		awsError := err.(awserr.Error)
