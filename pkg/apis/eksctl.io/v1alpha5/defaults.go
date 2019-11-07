@@ -29,7 +29,7 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup
-func SetNodeGroupDefaults(_ int, ng *NodeGroup) {
+func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.InstanceType == "" {
 		if HasMixedInstances(ng) {
 			ng.InstanceType = "mixed"
@@ -114,6 +114,16 @@ func SetNodeGroupDefaults(_ int, ng *NodeGroup) {
 	if ng.IAM.WithAddonPolicies.EFS == nil {
 		ng.IAM.WithAddonPolicies.EFS = Disabled()
 	}
+
+	if ng.Labels == nil {
+		ng.Labels = make(map[string]string)
+	}
+	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+}
+
+func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName string) {
+	labels[ClusterNameLabel] = clusterName
+	labels[NodeGroupNameLabel] = nodeGroupName
 }
 
 // DefaultClusterNAT will set the default value for Cluster NAT mode

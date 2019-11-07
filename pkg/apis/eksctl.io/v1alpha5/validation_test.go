@@ -368,11 +368,6 @@ var _ = Describe("ClusterConfig validation", func() {
 			checkItDetectsError(SSHConfig)
 		})
 
-		It("It doesn't panic when SSH is not enabled", func() {
-			err := validateNodeGroupSSH(nil)
-			Expect(err).ToNot(HaveOccurred())
-		})
-
 		Context("Instances distribution", func() {
 
 			var ng *NodeGroup
