@@ -550,20 +550,17 @@ func (n *NodeGroup) ListOptions() metav1.ListOptions {
 	return makeListOptions(n.Name)
 }
 
-// ListOptions returns metav1.ListOptions with label selector for the managed nodegroup
-func (n *ManagedNodeGroup) ListOptions() metav1.ListOptions {
-	return makeListOptions(n.Name)
-}
-
 // NameString returns common name string
 func (n *NodeGroup) NameString() string {
 	return n.Name
 }
 
-func makeListOptions(nodeGroupName string) metav1.ListOptions {
-	return metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, nodeGroupName),
+// Size returns the minimum nodegroup size
+func (n *NodeGroup) Size() int {
+	if n.MinSize == nil {
+		return 0
 	}
+	return *n.MinSize
 }
 
 type (
@@ -679,6 +676,30 @@ type ManagedNodeGroup struct {
 
 	// TODO skip including this field in API docs
 	AMIType string `json:"-"`
+}
+
+// ListOptions returns metav1.ListOptions with label selector for the managed nodegroup
+func (n *ManagedNodeGroup) ListOptions() metav1.ListOptions {
+	return makeListOptions(n.Name)
+}
+
+// NameString returns the nodegroup name
+func (n *ManagedNodeGroup) NameString() string {
+	return n.Name
+}
+
+// Size returns the minimum nodegroup size
+func (n *ManagedNodeGroup) Size() int {
+	if n.MinSize == nil {
+		return 0
+	}
+	return *n.MinSize
+}
+
+func makeListOptions(nodeGroupName string) metav1.ListOptions {
+	return metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, nodeGroupName),
+	}
 }
 
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies

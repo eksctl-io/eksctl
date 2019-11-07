@@ -3,10 +3,10 @@ package builder
 import (
 	"fmt"
 
-	"github.com/kris-nova/logger"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
+
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -144,35 +144,8 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
-	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
-	var vpcZoneIdentifier interface{}
-	if numNodeGroupsAZs := len(n.spec.AvailabilityZones); numNodeGroupsAZs > 0 {
-		subnets := n.clusterSpec.VPC.Subnets.Private
-		if !n.spec.PrivateNetworking {
-			subnets = n.clusterSpec.VPC.Subnets.Public
-		}
-		errorDesc := fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, n.spec.AvailabilityZones)
-		if len(subnets) < numNodeGroupsAZs {
-			return fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", errorDesc)
-		}
-		vpcZoneIdentifier = make([]interface{}, numNodeGroupsAZs)
-		for i, az := range n.spec.AvailabilityZones {
-			subnet, ok := subnets[az]
-			if !ok {
-				return fmt.Errorf("VPC doesn't have subnets in %s %s", az, errorDesc)
-			}
-			vpcZoneIdentifier.([]interface{})[i] = subnet.ID
-		}
-	} else {
-		subnets := makeImportValue(n.clusterStackName, outputs.ClusterSubnetsPrivate)
-		if !n.spec.PrivateNetworking {
-			subnets = makeImportValue(n.clusterStackName, outputs.ClusterSubnetsPublic)
-		}
-		vpcZoneIdentifier = map[string][]interface{}{
-			gfn.FnSplit: {",", subnets},
-		}
-	}
+	vpcZoneIdentifier := AssignSubnets(n.spec.AvailabilityZones, n.clusterStackName, n.clusterSpec, n.spec.PrivateNetworking)
+
 	tags := []map[string]interface{}{
 		{
 			"Key":               "Name",
@@ -200,10 +173,47 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		)
 	}
 
-	asg := nodeGroupResource(launchTemplateName, &vpcZoneIdentifier, tags, n.spec)
+	asg := nodeGroupResource(launchTemplateName, vpcZoneIdentifier, tags, n.spec)
 	n.newResource("NodeGroup", asg)
 
 	return nil
+}
+
+func AssignSubnets(availabilityZones []string, clusterStackName string, clusterSpec *api.ClusterConfig, privateNetworking bool) interface{} {
+	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
+	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
+
+	var vpcZoneIdentifier interface{}
+	if numNodeGroupsAZs := len(availabilityZones); numNodeGroupsAZs > 0 {
+		subnets := clusterSpec.VPC.Subnets.Private
+		if !privateNetworking {
+			subnets = clusterSpec.VPC.Subnets.Public
+		}
+		makeErrorDesc := func() string {
+			return fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, availabilityZones)
+		}
+		if len(subnets) < numNodeGroupsAZs {
+			return fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", makeErrorDesc())
+		}
+		vpcZoneIdentifier = make([]interface{}, numNodeGroupsAZs)
+		for i, az := range availabilityZones {
+			subnet, ok := subnets[az]
+			if !ok {
+				return fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
+			}
+
+			vpcZoneIdentifier.([]interface{})[i] = subnet.ID
+		}
+	} else {
+		subnets := makeImportValue(clusterStackName, outputs.ClusterSubnetsPrivate)
+		if !privateNetworking {
+			subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPublic)
+		}
+		vpcZoneIdentifier = map[string][]interface{}{
+			gfn.FnSplit: {",", subnets},
+		}
+	}
+	return vpcZoneIdentifier
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
@@ -236,9 +246,9 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 	return launchTemplateData
 }
 
-func nodeGroupResource(launchTemplateName *gfn.Value, vpcZoneIdentifier *interface{}, tags []map[string]interface{}, ng *api.NodeGroup) *awsCloudFormationResource {
+func nodeGroupResource(launchTemplateName *gfn.Value, vpcZoneIdentifier interface{}, tags []map[string]interface{}, ng *api.NodeGroup) *awsCloudFormationResource {
 	ngProps := map[string]interface{}{
-		"VPCZoneIdentifier": *vpcZoneIdentifier,
+		"VPCZoneIdentifier": vpcZoneIdentifier,
 		"Tags":              tags,
 	}
 	if ng.DesiredCapacity != nil {

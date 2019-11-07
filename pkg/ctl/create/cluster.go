@@ -273,6 +273,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 	}
 
+	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
+	if err := nodeGroupService.NormalizeManaged(cfg.ManagedNodeGroups); err != nil {
+		return err
+	}
+
 	logger.Info("using Kubernetes version %s", meta.Version)
 	logger.Info("creating %s", meta.LogString())
 
@@ -293,7 +298,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(filteredNodeGroups))
 		}
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
-		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups)
+		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups, cfg.ManagedNodeGroups)
 		ctl.AppendExtraClusterConfigTasks(cfg, params.installWindowsVPCController, tasks)
 
 		logger.Info(tasks.Describe())
@@ -355,6 +360,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 			}
 
+		}
+
+		for _, ng := range cfg.ManagedNodeGroups {
+			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
+				return err
+			}
 		}
 
 		// check kubectl version, and offer install instructions if missing or old

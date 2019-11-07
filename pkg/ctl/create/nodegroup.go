@@ -6,6 +6,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -95,6 +96,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 	}
 
 	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
+	managedNodeGroups := ngFilter.FilterMatchingManaged(cfg.ManagedNodeGroups)
 
 	for _, ng := range filteredNodeGroups {
 		// resolve AMI
@@ -116,6 +118,11 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		}
 	}
 
+	managedService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
+	if err := managedService.NormalizeManaged(managedNodeGroups); err != nil {
+		return err
+	}
+
 	if err := printer.LogObj(logger.Debug, "cfg.json = \\\n%s\n", cfg); err != nil {
 		return err
 	}
@@ -126,11 +133,14 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 
 	{
 		ngFilter.LogInfo(cfg.NodeGroups)
+		allNodeGroupsCount := len(filteredNodeGroups) + len(managedNodeGroups)
 		if len(filteredNodeGroups) > 0 {
-			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
+			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", allNodeGroupsCount, cfg.Metadata.Name)
 		}
 
 		tasks := stackManager.NewTasksToCreateNodeGroups(filteredNodeGroups)
+		managedTasks := stackManager.NewManagedNodeGroupTask(managedNodeGroups)
+		tasks.Append(managedTasks)
 		logger.Info(tasks.Describe())
 		errs := tasks.DoAllSync()
 		if len(errs) > 0 {
@@ -143,6 +153,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 			}
 			return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
 		}
+
 	}
 
 	{ // post-creation action

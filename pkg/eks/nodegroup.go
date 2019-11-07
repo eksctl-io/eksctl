@@ -14,6 +14,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
@@ -28,12 +29,12 @@ func isNodeReady(node *corev1.Node) bool {
 	return false
 }
 
-func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
+func getNodes(clientSet kubernetes.Interface, ng nodeGroup) (int, error) {
 	nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 	if err != nil {
 		return 0, err
 	}
-	logger.Info("nodegroup %q has %d node(s)", ng.Name, len(nodes.Items))
+	logger.Info("nodegroup %q has %d node(s)", ng.NameString(), len(nodes.Items))
 	counter := 0
 	for _, node := range nodes.Items {
 		// logger.Debug("node[%d]=%#v", n, node)
@@ -100,9 +101,16 @@ func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.Clust
 	}
 }
 
+type nodeGroup interface {
+	NameString() string
+	Size() int
+	ListOptions() metav1.ListOptions
+}
+
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	if ng.MinSize == nil || *ng.MinSize == 0 {
+func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng nodeGroup) error {
+	minSize := ng.Size()
+	if minSize == 0 {
 		return nil
 	}
 	timer := time.After(c.Provider.WaitTimeout())
@@ -118,8 +126,8 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.N
 		return errors.Wrap(err, "listing nodes")
 	}
 
-	logger.Info("waiting for at least %d node(s) to become ready in %q", *ng.MinSize, ng.Name)
-	for !timeout && counter < *ng.MinSize {
+	logger.Info("waiting for at least %d node(s) to become ready in %q", minSize, ng.NameString())
+	for !timeout && counter < minSize {
 		select {
 		case event := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
@@ -128,9 +136,9 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.N
 					if isNodeReady(node) {
 						readyNodes.Insert(node.Name)
 						counter = readyNodes.Len()
-						logger.Debug("node %q is ready in %q", node.Name, ng.Name)
+						logger.Debug("node %q is ready in %q", node.Name, ng.NameString())
 					} else {
-						logger.Debug("node %q seen in %q, but not ready yet", node.Name, ng.Name)
+						logger.Debug("node %q seen in %q, but not ready yet", node.Name, ng.NameString())
 						logger.Debug("node = %#v", *node)
 					}
 				}
@@ -141,7 +149,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.N
 	}
 	watcher.Stop()
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), *ng.MinSize, ng.Name)
+		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
 	}
 
 	if _, err = getNodes(clientSet, ng); err != nil {

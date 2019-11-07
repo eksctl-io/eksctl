@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
-	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 type ManagedNodeGroupResourceSet struct {
-	clusterConfig    *v1alpha5.ClusterConfig
+	clusterConfig    *api.ClusterConfig
 	clusterStackName string
-	nodeGroup        *v1alpha5.ManagedNodeGroup
+	nodeGroup        *api.ManagedNodeGroup
 	*resourceSet
 }
 
@@ -59,7 +59,7 @@ func (e *managedNodeGroup) MarshalJSON() ([]byte, error) {
 }
 
 // NewManagedNodeGroup creates a new ManagedNodeGroupResourceSet
-func NewManagedNodeGroup(cluster *v1alpha5.ClusterConfig, nodeGroup *v1alpha5.ManagedNodeGroup, clusterStackName string) *ManagedNodeGroupResourceSet {
+func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeGroup, clusterStackName string) *ManagedNodeGroupResourceSet {
 	return &ManagedNodeGroupResourceSet{
 		clusterConfig:    cluster,
 		clusterStackName: clusterStackName,
@@ -73,7 +73,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	iamHelper.CreateRole()
 
 	var remoteAccess *remoteAccessConfig
-	if v1alpha5.IsEnabled(m.nodeGroup.SSH.Allow) {
+	if api.IsEnabled(m.nodeGroup.SSH.Allow) {
 		remoteAccess = &remoteAccessConfig{
 			Ec2SshKey: m.nodeGroup.SSH.PublicKeyName,
 			// FIXME

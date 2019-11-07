@@ -63,6 +63,15 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
 
+func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
+	name := c.makeNodeGroupStackName(ng.Name)
+	stack := builder.NewManagedNodeGroup(c.spec, ng, c.makeClusterStackName())
+	if err := stack.AddAllResources(); err != nil {
+		return err
+	}
+	return c.CreateStack(name, stack, ng.Tags, nil, errorCh)
+}
+
 // DescribeNodeGroupStacks calls DescribeStacks and filters out nodegroups
 func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	stacks, err := c.DescribeStacks()

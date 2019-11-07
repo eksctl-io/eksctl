@@ -89,7 +89,7 @@ func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
 	return nil
 }
 
-// Exists check if the stack has give output key
+// Exists checks if the stack has given output key
 func Exists(stack cfn.Stack, key string) bool {
 	return get(stack, key) != nil
 }
