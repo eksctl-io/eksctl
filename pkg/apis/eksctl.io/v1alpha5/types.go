@@ -352,6 +352,9 @@ type ClusterConfig struct {
 	NodeGroups []*NodeGroup `json:"nodeGroups,omitempty"`
 
 	// +optional
+	ManagedNodeGroups []*ManagedNodeGroup `json:"managedNodeGroups,omitempty"`
+
+	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
 	// +optional
@@ -544,14 +547,23 @@ type NodeGroup struct {
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
 func (n *NodeGroup) ListOptions() metav1.ListOptions {
-	return metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, n.Name),
-	}
+	return makeListOptions(n.Name)
+}
+
+// ListOptions returns metav1.ListOptions with label selector for the managed nodegroup
+func (n *ManagedNodeGroup) ListOptions() metav1.ListOptions {
+	return makeListOptions(n.Name)
 }
 
 // NameString returns common name string
 func (n *NodeGroup) NameString() string {
 	return n.Name
+}
+
+func makeListOptions(nodeGroupName string) metav1.ListOptions {
+	return metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, nodeGroupName),
+	}
 }
 
 type (
@@ -630,6 +642,45 @@ type (
 	}
 )
 
+// ScalingConfig defines the scaling config
+type ScalingConfig struct {
+	// +optional
+	DesiredCapacity *int `json:"desiredCapacity,omitempty"`
+	// +optional
+	MinSize *int `json:"minSize,omitempty"`
+	// +optional
+	MaxSize *int `json:"maxSize,omitempty"`
+}
+
+// TODO Validate for unmapped fields and throw an error
+// ManagedNodeGroup defines an EKS-managed nodegroup
+type ManagedNodeGroup struct {
+	Name string `json:"name"`
+
+	// +optional
+	AMIFamily string `json:"amiFamily,omitempty"`
+	// +optional
+	InstanceType string `json:"instanceType,omitempty"`
+	// +optional
+	ScalingConfig `json:",inline"`
+	// +optional
+	VolumeSize *int64 `json:"volumeSize,omitempty"`
+	// +optional
+	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	// +optional
+	SSH *NodeGroupSSH `json:"ssh,omitempty"`
+
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
+	// +optional
+	IAM *NodeGroupIAM `json:"iam,omitempty"`
+
+	// TODO skip including this field in API docs
+	AMIType string `json:"-"`
+}
+
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies
 type InlineDocument map[string]interface{}
 
@@ -645,7 +696,7 @@ func (in *InlineDocument) DeepCopy() *InlineDocument {
 
 // HasMixedInstances checks if a nodegroup has mixed instances option declared
 func HasMixedInstances(ng *NodeGroup) bool {
-	return ng.InstancesDistribution != nil && ng.InstancesDistribution.InstanceTypes != nil && len(ng.InstancesDistribution.InstanceTypes) != 0
+	return ng.InstancesDistribution != nil && len(ng.InstancesDistribution.InstanceTypes) > 0
 }
 
 // IsAMI returns true if the argument is an AMI id
