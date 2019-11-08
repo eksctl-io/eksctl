@@ -54,13 +54,27 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	validateNg := func(name, path string, set nameSet) error {
+		if name == "" {
+			return fmt.Errorf("%s.name must be set", path)
+		}
+		if _, err := set.checkUnique(path+".name", name); err != nil {
+			return err
+		}
+		return nil
+	}
 	ngNames := nameSet{}
 	for i, ng := range cfg.NodeGroups {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
-		if ng.Name == "" {
-			return fmt.Errorf("%s.name must be set", path)
+		if err := validateNg(ng.NameString(), path, ngNames); err != nil {
+			return err
 		}
-		if ok, err := ngNames.checkUnique(path+".name", ng.NameString()); !ok {
+	}
+
+	managedNgNames := nameSet{}
+	for i, ng := range cfg.ManagedNodeGroups {
+		path := fmt.Sprintf("managedNodeGroups[%d]", i)
+		if err := validateNg(ng.NameString(), path, managedNgNames); err != nil {
 			return err
 		}
 	}
@@ -308,6 +322,9 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 
 // ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
 func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
+	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+		return fmt.Errorf("only %s is supported for Managed Nodegroups", NodeImageFamilyAmazonLinux2)
+	}
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 	if ng.IAM != nil {
 		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleArn", path); err != nil {

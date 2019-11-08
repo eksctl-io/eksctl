@@ -16,19 +16,24 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
+type createNodeGroupParams struct {
+	updateAuthConfigMap bool
+	managed             bool
+}
+
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var updateAuthConfigMap bool
+	var params createNodeGroupParams
 
 	cfg.Metadata.Version = "auto"
 
 	cmd.SetDescription("nodegroup", "Create a nodegroup", "", "ng")
 
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doCreateNodeGroups(cmd, updateAuthConfigMap)
+		return doCreateNodeGroups(cmd, ng, params)
 	})
 
 	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
@@ -39,13 +44,14 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
-		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddUpdateAuthConfigMap(fs, &params.updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&ng.Name, "name", "n", "", fmt.Sprintf("name of the new nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng)
+		fs.BoolVarP(&params.managed, "managed", "", false, "Create EKS-managed nodegroup")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
@@ -55,10 +61,10 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
-func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
+func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	if err := cmdutils.NewCreateNodeGroupLoader(cmd, ngFilter).Load(); err != nil {
+	if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, params.managed).Load(); err != nil {
 		return err
 	}
 
@@ -95,10 +101,9 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 		return err
 	}
 
-	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
-	managedNodeGroups := ngFilter.FilterMatchingManaged(cfg.ManagedNodeGroups)
+	logFiltered, logFilteredManaged := cmdutils.ApplyFilter(cfg, ngFilter)
 
-	for _, ng := range filteredNodeGroups {
+	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -119,7 +124,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 	}
 
 	managedService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
-	if err := managedService.NormalizeManaged(managedNodeGroups); err != nil {
+	if err := managedService.NormalizeManaged(cfg.ManagedNodeGroups); err != nil {
 		return err
 	}
 
@@ -132,14 +137,21 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 	}
 
 	{
-		ngFilter.LogInfo(cfg.NodeGroups)
-		allNodeGroupsCount := len(filteredNodeGroups) + len(managedNodeGroups)
-		if len(filteredNodeGroups) > 0 {
-			logger.Info("will create a CloudFormation stack for each of %d nodegroups in cluster %q", allNodeGroupsCount, cfg.Metadata.Name)
+		logFiltered()
+		logMsg := func(resource string, count int) {
+			logger.Info("will create a CloudFormation stack for each of %d %s in cluster %q", count, resource, cfg.Metadata.Name)
+		}
+		if len(cfg.NodeGroups) > 0 {
+			logMsg("nodegroups", len(cfg.NodeGroups))
 		}
 
-		tasks := stackManager.NewTasksToCreateNodeGroups(filteredNodeGroups)
-		managedTasks := stackManager.NewManagedNodeGroupTask(managedNodeGroups)
+		logFilteredManaged()
+		if len(cfg.ManagedNodeGroups) > 0 {
+			logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
+		}
+
+		tasks := stackManager.NewTasksToCreateNodeGroups(cfg.NodeGroups)
+		managedTasks := stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups)
 		tasks.Append(managedTasks)
 		logger.Info(tasks.Describe())
 		errs := tasks.DoAllSync()
@@ -162,8 +174,8 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 			return err
 		}
 
-		for _, ng := range filteredNodeGroups {
-			if updateAuthConfigMap {
+		for _, ng := range cfg.NodeGroups {
+			if params.updateAuthConfigMap {
 				// authorise nodes to join
 				if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 					return err
@@ -181,8 +193,15 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, updateAuthConfigMap bool) error {
 				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 			}
 		}
+		logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
-		logger.Success("created %d nodegroup(s) in cluster %q", len(filteredNodeGroups), cfg.Metadata.Name)
+		for _, ng := range cfg.ManagedNodeGroups {
+			if err := ctl.WaitForNodes(clientSet, ng); err != nil {
+				return err
+			}
+		}
+
+		logger.Success("created %d managed nodegroup(s) in cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
 	}
 
 	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {

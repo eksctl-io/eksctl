@@ -87,6 +87,9 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	if ng.InstanceType == "" {
 		ng.InstanceType = DefaultNodeType
 	}
+	if ng.ScalingConfig == nil {
+		ng.ScalingConfig = &ScalingConfig{}
+	}
 	if ng.SSH == nil {
 		ng.SSH = &NodeGroupSSH{
 			Allow: Disabled(),

@@ -22,7 +22,7 @@ type managedNodeGroup struct {
 	ClusterName   string              `json:"ClusterName"`
 	NodegroupName string              `json:"NodegroupName"`
 	ScalingConfig *scalingConfig      `json:"ScalingConfig,omitempty"`
-	DiskSize      *int64              `json:"DiskSize,omitempty"`
+	DiskSize      *int                `json:"DiskSize,omitempty"`
 	Subnets       interface{}         `json:"Subnets"`
 	InstanceTypes []string            `json:"InstanceTypes"`
 	AmiType       string              `json:"AmiType,omitempty"`
@@ -76,8 +76,6 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	if api.IsEnabled(m.nodeGroup.SSH.Allow) {
 		remoteAccess = &remoteAccessConfig{
 			Ec2SshKey: m.nodeGroup.SSH.PublicKeyName,
-			// FIXME
-			SourceSecurityGroups: []*gfn.Value{sgSourceAnywhereIPv4, sgSourceAnywhereIPv6},
 		}
 	}
 

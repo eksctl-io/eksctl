@@ -29,7 +29,7 @@ func isNodeReady(node *corev1.Node) bool {
 	return false
 }
 
-func getNodes(clientSet kubernetes.Interface, ng nodeGroup) (int, error) {
+func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 	nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 	if err != nil {
 		return 0, err
@@ -101,14 +101,15 @@ func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.Clust
 	}
 }
 
-type nodeGroup interface {
+// KubeNodeGroup defines a set of Kubernetes Nodes
+type KubeNodeGroup interface {
 	NameString() string
 	Size() int
 	ListOptions() metav1.ListOptions
 }
 
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng nodeGroup) error {
+func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
 	minSize := ng.Size()
 	if minSize == 0 {
 		return nil

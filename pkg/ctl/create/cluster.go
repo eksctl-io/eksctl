@@ -31,6 +31,7 @@ type createClusterCmdParams struct {
 	kopsClusterNameForVPC       string
 	subnets                     map[api.SubnetTopology]*[]string
 	withoutNodeGroup            bool
+	managed                     bool
 }
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
@@ -58,6 +59,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.BoolVarP(&params.installWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
+		fs.BoolVarP(&params.managed, "managed", "", false, "Create EKS-managed nodegroup")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -91,7 +93,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
-	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params.withoutNodeGroup).Load(); err != nil {
+	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params.withoutNodeGroup, params.managed).Load(); err != nil {
 		return err
 	}
 
@@ -145,17 +147,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			}
 		}
 	}
-	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
+	logFiltered, logFilteredManaged := cmdutils.ApplyFilter(cfg, ngFilter)
 
-	if err := eks.ValidateWindowsCompatibility(filteredNodeGroups, cfg.Metadata.Version); err != nil {
+	if err := eks.ValidateWindowsCompatibility(cfg.NodeGroups, cfg.Metadata.Version); err != nil {
 		return err
 	}
 	if params.installWindowsVPCController {
-		if !eks.SupportsWindowsWorkloads(filteredNodeGroups) {
+		if !eks.SupportsWindowsWorkloads(cfg.NodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}
 	} else {
-		eks.LogWindowsCompatibility(filteredNodeGroups, cfg.Metadata)
+		eks.LogWindowsCompatibility(cfg.NodeGroups, cfg.Metadata)
 	}
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
@@ -209,7 +211,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 				return err
 			}
 
-			for _, ng := range filteredNodeGroups {
+			for _, ng := range cfg.NodeGroups {
 				if err := canUseForPrivateNodeGroups(ng); err != nil {
 					return err
 				}
@@ -238,7 +240,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			return err
 		}
 
-		for _, ng := range filteredNodeGroups {
+		for _, ng := range cfg.NodeGroups {
 			if err := canUseForPrivateNodeGroups(ng); err != nil {
 				return err
 			}
@@ -253,7 +255,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		return err
 	}
 
-	for _, ng := range filteredNodeGroups {
+	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
 			return err
@@ -291,14 +293,28 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 
 	{ // core action
 		stackManager := ctl.NewStackManager(cfg)
-		if len(filteredNodeGroups) == 1 && cmd.ClusterConfigFile == "" {
-			logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial nodegroup")
+		if cmd.ClusterConfigFile == "" {
+			logMsg := func(resource string) {
+				logger.Info("will create 2 separate CloudFormation stacks for cluster itself and the initial %s", resource)
+			}
+			if len(cfg.NodeGroups) == 1 {
+				logMsg("nodegroup")
+			} else if len(cfg.ManagedNodeGroups) == 1 {
+				logMsg("managed nodegroup")
+			}
 		} else {
-			ngFilter.LogInfo(cfg.NodeGroups)
-			logger.Info("will create a CloudFormation stack for cluster itself and %d nodegroup stack(s)", len(filteredNodeGroups))
+			logMsg := func(resource string, count int) {
+				logger.Info("will create a CloudFormation stack for cluster itself and %d %s stack(s)", count, resource)
+			}
+			logFiltered()
+			logMsg("nodegroup", len(cfg.NodeGroups))
+
+			logFilteredManaged()
+			logMsg("managed nodegroup", len(cfg.ManagedNodeGroups))
 		}
+
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
-		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(filteredNodeGroups, cfg.ManagedNodeGroups)
+		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups)
 		ctl.AppendExtraClusterConfigTasks(cfg, params.installWindowsVPCController, tasks)
 
 		logger.Info(tasks.Describe())
@@ -343,7 +359,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			return err
 		}
 
-		for _, ng := range filteredNodeGroups {
+		for _, ng := range cfg.NodeGroups {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
 				return err

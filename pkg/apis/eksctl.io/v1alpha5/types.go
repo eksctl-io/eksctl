@@ -659,9 +659,9 @@ type ManagedNodeGroup struct {
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
-	ScalingConfig `json:",inline"`
+	*ScalingConfig `json:",inline"`
 	// +optional
-	VolumeSize *int64 `json:"volumeSize,omitempty"`
+	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 	// +optional
