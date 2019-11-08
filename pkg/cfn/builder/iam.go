@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"encoding/json"
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -59,170 +58,6 @@ func (c *ClusterResourceSet) WithNamedIAM() bool {
 	return c.rs.withNamedIAM
 }
 
-const awsEKSNodegroupPolicies = `{
-"Version": "2012-10-17",
-"Statement": [
-	{
-		"Condition": {
-			"ForAnyValue:StringLike": {
-				"ec2:ResourceTag/eks": "*"
-			}
-		},
-		"Action": [
-			"ec2:RevokeSecurityGroupIngress",
-			"ec2:AuthorizeSecurityGroupEgress",
-			"ec2:AuthorizeSecurityGroupIngress",
-			"ec2:DescribeInstances",
-			"ec2:RevokeSecurityGroupEgress"
-		],
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"ForAnyValue:StringLike": {
-				"ec2:ResourceTag/eks:nodegroup-name": "*"
-			}
-		},
-		"Action": [
-			"ec2:RevokeSecurityGroupIngress",
-			"ec2:AuthorizeSecurityGroupEgress",
-			"ec2:AuthorizeSecurityGroupIngress",
-			"ec2:DescribeInstances",
-			"ec2:RevokeSecurityGroupEgress"
-		],
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"StringLike": {
-				"ec2:ResourceTag/eks:nodegroup-name": "*"
-			}
-		},
-		"Action": [
-			"ec2:DeleteLaunchTemplate",
-			"ec2:CreateLaunchTemplateVersion"
-		],
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Action": [
-			"autoscaling:UpdateAutoScalingGroup",
-			"autoscaling:DeleteAutoScalingGroup",
-			"autoscaling:TerminateInstanceInAutoScalingGroup",
-			"autoscaling:CompleteLifecycleAction",
-			"autoscaling:PutLifecycleHook",
-			"autoscaling:PutNotificationConfiguration"
-		],
-		"Resource": "arn:aws:autoscaling:*:*:*:autoScalingGroupName/eks-*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"StringEquals": {
-				"iam:AWSServiceName": "autoscaling.amazonaws.com"
-			}
-		},
-		"Action": "iam:CreateServiceLinkedRole",
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"ForAnyValue:StringEquals": {
-				"aws:TagKeys": [
-					"eks",
-					"eks:cluster-name",
-					"eks:nodegroup-name"
-				]
-			}
-		},
-		"Action": [
-			"autoscaling:CreateOrUpdateTags",
-			"autoscaling:CreateAutoScalingGroup"
-		],
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"StringEqualsIfExists": {
-				"iam:PassedToService": "iam.amazonaws.com"
-			}
-		},
-		"Action": "iam:PassRole",
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"StringEqualsIfExists": {
-				"iam:PassedToService": "autoscaling.amazonaws.com"
-			}
-		},
-		"Action": "iam:PassRole",
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"StringEqualsIfExists": {
-				"iam:PassedToService": "ec2.amazonaws.com"
-			}
-		},
-		"Action": "iam:PassRole",
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Action": [
-			"iam:GetRole",
-			"iam:GetInstanceProfile",
-			"autoscaling:DescribeAutoScalingGroups",
-			"ec2:CreateLaunchTemplate",
-			"ec2:DescribeLaunchTemplates",
-			"ec2:DescribeInstances",
-			"ec2:CreateSecurityGroup",
-			"ec2:DeleteSecurityGroup",
-			"ec2:DescribeLaunchTemplateVersions",
-			"ec2:RunInstances",
-			"ec2:DescribeSecurityGroups",
-			"ec2:GetConsoleOutput"
-		],
-		"Resource": "*",
-		"Effect": "Allow"
-	},
-	{
-		"Action": [
-			"iam:CreateInstanceProfile",
-			"iam:DeleteInstanceProfile",
-			"iam:RemoveRoleFromInstanceProfile",
-			"iam:AddRoleToInstanceProfile"
-		],
-		"Resource": "arn:aws:iam::*:instance-profile/eks-*",
-		"Effect": "Allow"
-	},
-	{
-		"Condition": {
-			"ForAnyValue:StringLike": {
-				"aws:TagKeys": [
-					"eks",
-					"eks:cluster-name",
-					"eks:nodegroup-name",
-					"kubernetes.io/cluster/*"
-				]
-			}
-		},
-		"Action": "ec2:CreateTags",
-		"Resource": "*",
-		"Effect": "Allow"
-	}
-]
-}
-`
-
 func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withNamedIAM = false
 
@@ -255,12 +90,6 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 		"cloudwatch:PutMetricData",
 	})
 
-	c.rs.newResource("ServiceRolePolicies", &gfn.AWSIAMPolicy{
-		PolicyName:     gfn.NewString("AWSServiceRoleForAmazonEKSNodeGroupPolicy"),
-		PolicyDocument: json.RawMessage(awsEKSNodegroupPolicies),
-
-		Roles: makeSlice(refSR),
-	})
 	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole.Arn", true, func(v string) error {
 		c.spec.IAM.ServiceRoleARN = &v
 		return nil
