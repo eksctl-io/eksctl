@@ -12,6 +12,7 @@
     "Name": "test-cluster",
     "PlatformVersion": null,
     "ResourcesVpcConfig": {
+      "ClusterSecurityGroupId": null,
       "EndpointPrivateAccess": null,
       "EndpointPublicAccess": null,
       "SecurityGroupIds": null,
@@ -23,6 +24,7 @@
     },
     "RoleArn": null,
     "Status": "DELETING",
+    "Tags": null,
     "Version": null
   }
 ]

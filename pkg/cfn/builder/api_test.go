@@ -238,7 +238,7 @@ func testVPC() *api.ClusterVPC {
 				},
 			},
 		},
-		ClusterEndpoints: &api.ClusterEndpoints {
+		ClusterEndpoints: &api.ClusterEndpoints{
 			PrivateAccess: api.Disabled(),
 			PublicAccess:  api.Enabled(),
 		},
@@ -391,7 +391,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN:                      arn,
+				ARN: arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -453,11 +453,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                      arn,
-			"ClusterStackName":         "",
-			"SharedNodeSecurityGroup":  "sg-shared",
-			"ServiceRoleARN":           arn,
-			"FeatureNATMode":           "Single",
+			"ARN":                     arn,
+			"ClusterStackName":        "",
+			"SharedNodeSecurityGroup": "sg-shared",
+			"ServiceRoleARN":          arn,
+			"FeatureNATMode":          "Single",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -767,7 +767,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(role.ManagedPolicyArns[1]).To(Equal("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
 			Expect(role.ManagedPolicyArns[2]).To(Equal("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
 
-			checkARPD("ec2.amazonaws.com", role.AssumeRolePolicyDocument)
+			checkARPD([]string{"ec2.amazonaws.com"}, role.AssumeRolePolicyDocument)
 
 			Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceProfile"))
 
@@ -2188,7 +2188,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
 			}))
 
-			checkARPD("eks.amazonaws.com", clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
+			// TODO remove beta services before merging
+			checkARPD([]string{"eks.amazonaws.com", "eks-beta-pdx.aws.internal", "us-west-2.eks-managed-nodes-beta.aws.internal"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
 
 			policy1 := clusterTemplate.Resources["PolicyNLB"].Properties
 
@@ -2642,14 +2643,17 @@ func getLaunchTemplateData(obj *Template) LaunchTemplateData {
 	return obj.Resources["NodeGroupLaunchTemplate"].Properties.LaunchTemplateData
 }
 
-func checkARPD(service string, arpd interface{}) {
+func checkARPD(services []string, arpd interface{}) {
+	servicesJSON, err := json.Marshal(services)
+	Expect(err).ToNot(HaveOccurred())
+
 	expectedARPD := `{
 		"Version": "2012-10-17",
 		"Statement": [{
 						"Action": ["sts:AssumeRole"],
 						"Effect": "Allow",
 						"Principal": {
-								"Service": ["` + service + `"]
+								"Service": ` + string(servicesJSON) + `
 						}
 		}]
 	}`
