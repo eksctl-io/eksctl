@@ -459,6 +459,37 @@ func NewNodeGroup() *NodeGroup {
 	}
 }
 
+// NewNodeGroup creates a new ManagedNodeGroup
+func NewManagedNodeGroup() *ManagedNodeGroup {
+	var (
+		publicKey  = DefaultNodeSSHPublicKeyPath
+		volumeSize = DefaultNodeVolumeSize
+	)
+	return &ManagedNodeGroup{
+		VolumeSize:    &volumeSize,
+		ScalingConfig: &ScalingConfig{},
+		SSH: &NodeGroupSSH{
+			Allow:         Disabled(),
+			PublicKeyName: &publicKey,
+		},
+		IAM: &NodeGroupIAM{
+			WithAddonPolicies: NodeGroupIAMAddonPolicies{
+				ImageBuilder: Disabled(),
+				AutoScaler:   Disabled(),
+				ExternalDNS:  Disabled(),
+				CertManager:  Disabled(),
+				AppMesh:      Disabled(),
+				EBS:          Disabled(),
+				FSX:          Disabled(),
+				EFS:          Disabled(),
+				ALBIngress:   Disabled(),
+				XRay:         Disabled(),
+				CloudWatch:   Disabled(),
+			},
+		},
+	}
+}
+
 // NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {

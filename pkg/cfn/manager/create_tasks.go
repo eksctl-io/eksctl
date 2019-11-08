@@ -24,8 +24,7 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 
 	managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups)
 	if managedNodeGroupTasks.Len() > 0 {
-		managedNodeGroupTasks.IsSubTask = true
-		nodeGroupTasks.Append(managedNodeGroupTasks)
+		nodeGroupTasks.Append(managedNodeGroupTasks.tasks...)
 	}
 
 	if nodeGroupTasks.Len() > 0 {
