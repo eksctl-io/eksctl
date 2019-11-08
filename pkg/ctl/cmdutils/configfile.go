@@ -133,7 +133,7 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
-func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, withoutNodeGroup, managedNodeGroup bool) ClusterConfigLoader {
+func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, withoutNodeGroup, managedFlag bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	ngFilter.ExcludeAll = withoutNodeGroup
@@ -206,7 +206,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			return fmt.Errorf("status fields are read-only")
 		}
 
-		if managedNodeGroup {
+		if managedFlag {
 			for _, f := range incompatibleManagedNodesFlags() {
 				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
 					return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
@@ -217,7 +217,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 		// prevent creation of invalid config object with irrelevant nodegroup
 		// that may or may not be constructed correctly
 		if !withoutNodeGroup {
-			if managedNodeGroup {
+			if managedFlag {
 				l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng)}
 			} else {
 				l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
