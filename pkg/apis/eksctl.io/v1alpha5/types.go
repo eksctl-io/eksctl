@@ -704,9 +704,6 @@ type ManagedNodeGroup struct {
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
 	IAM *NodeGroupIAM `json:"iam,omitempty"`
-
-	// TODO skip including this field in API docs
-	AMIType string `json:"-"`
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the managed nodegroup

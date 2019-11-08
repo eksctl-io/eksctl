@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/service/eks"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 type ManagedNodeGroupResourceSet struct {
@@ -92,7 +94,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		Subnets: AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false),
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: []string{m.nodeGroup.InstanceType},
-		AmiType:       m.nodeGroup.AMIType,
+		AmiType:       getAMIType(m.nodeGroup.AMIFamily),
 		RemoteAccess:  remoteAccess,
 		// ManagedNodeGroup.IAM.InstanceRoleARN is not supported, so this field is always retrieved from the
 		// CFN resource
@@ -102,6 +104,13 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	})
 
 	return nil
+}
+
+func getAMIType(amiFamily string) string {
+	if utils.IsGPUInstanceType(amiFamily) {
+		return eks.AMITypesAl2X8664Gpu
+	}
+	return eks.AMITypesAl2X8664
 }
 
 // RenderJSON implements the ResourceSet interface
