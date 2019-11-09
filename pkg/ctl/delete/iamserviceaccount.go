@@ -23,7 +23,7 @@ func deleteIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	var onlyMissing bool
 
-	cmd.SetDescription("iamserviceaccount", "Delete an iamserviceaccount", "")
+	cmd.SetDescription("iamserviceaccount", "Delete an IAM service account", "")
 
 	cmd.SetRunFunc(func() error {
 		return doDeleteIAMServiceAccount(cmd, serviceAccount, onlyMissing)
