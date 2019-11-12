@@ -111,7 +111,7 @@ func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 		ng.Tags = make(map[string]string)
 	}
 	ng.Tags[NodeGroupNameTag] = ng.Name
-	ng.Tags[OldNodeGroupNameTag] = ng.Name
+	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
 }
 
 func setIAMDefaults(iamConfig *NodeGroupIAM) {

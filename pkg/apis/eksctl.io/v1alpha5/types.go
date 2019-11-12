@@ -142,8 +142,8 @@ const (
 	// NodeGroupNameTag defines the tag of the nodegroup name
 	NodeGroupNameTag = "alpha.eksctl.io/nodegroup-name"
 
-	// ManagedNodeGroupNameTag defines the tag of the managed nodegroup name
-	ManagedNodeGroupNameTag = "alpha.eksctl.io/managed-nodegroup-name"
+	// NodeGroupTypeTag defines the nodegroup type as managed or unmanaged
+	NodeGroupTypeTag = "alpha.eksctl.io/nodegroup-type"
 
 	// OldNodeGroupNameTag defines the tag of the nodegroup name
 	OldNodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
@@ -178,6 +178,16 @@ const (
 
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
+)
+
+// NodeGroupType defines the nodegroup type
+type NodeGroupType string
+
+const (
+	// NodeGroupTypeManaged defines a managed nodegroup
+	NodeGroupTypeManaged NodeGroupType = "managed"
+	// NodeGroupTypeUnmanaged defines an unmanaged nodegroup
+	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
 )
 
 var (

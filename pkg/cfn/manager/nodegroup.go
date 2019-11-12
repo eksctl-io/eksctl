@@ -56,6 +56,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 	}
 	ng.Tags[api.NodeGroupNameTag] = ng.Name
 	ng.Tags[api.OldNodeGroupNameTag] = ng.Name
+	ng.Tags[api.NodeGroupTypeTag] = string(api.NodeGroupTypeUnmanaged)
 
 	return c.CreateStack(name, stack, ng.Tags, nil, errs)
 }
@@ -248,29 +249,49 @@ type scalingConfigPaths struct {
 }
 
 func getScalingConfigPaths(tags []*cfn.Tag) (*scalingConfigPaths, error) {
+	var (
+		foundNodeGroupTag bool
+		nodeGroupType     string
+	)
 	for _, tag := range tags {
 		switch *tag.Key {
 		case api.NodeGroupNameTag:
-			makePath := func(field string) string {
-				return fmt.Sprintf("%s.NodeGroup.Properties.%s", resourcesRootPath, field)
-			}
-			return &scalingConfigPaths{
-				DesiredCapacity: makePath("DesiredCapacity"),
-				MinSize:         makePath("MaxSize"),
-				MaxSize:         makePath("MinSize"),
-			}, nil
-		case api.ManagedNodeGroupNameTag:
-			makePath := func(field string) string {
-				return fmt.Sprintf("%s.ManagedNodeGroup.Properties.ScalingConfig.%s", resourcesRootPath, field)
-			}
-			return &scalingConfigPaths{
-				DesiredCapacity: makePath("DesiredSize"),
-				MinSize:         makePath("MinSize"),
-				MaxSize:         makePath("MaxSize"),
-			}, nil
+			foundNodeGroupTag = true
+		case api.NodeGroupTypeTag:
+			nodeGroupType = *tag.Value
 		}
 	}
-	return nil, errors.New("failed to find a nodegroup identifier tag")
+
+	if !foundNodeGroupTag {
+		return nil, fmt.Errorf("failed to find a nodegroup tag (%s)", api.NodeGroupNameTag)
+	}
+
+	switch api.NodeGroupType(nodeGroupType) {
+	case api.NodeGroupTypeManaged:
+		makePath := func(field string) string {
+			return fmt.Sprintf("%s.ManagedNodeGroup.Properties.ScalingConfig.%s", resourcesRootPath, field)
+		}
+		return &scalingConfigPaths{
+			DesiredCapacity: makePath("DesiredSize"),
+			MinSize:         makePath("MinSize"),
+			MaxSize:         makePath("MaxSize"),
+		}, nil
+
+		// Tag may not exist for existing nodegroups
+	case api.NodeGroupTypeUnmanaged, "":
+		makePath := func(field string) string {
+			return fmt.Sprintf("%s.NodeGroup.Properties.%s", resourcesRootPath, field)
+		}
+		return &scalingConfigPaths{
+			DesiredCapacity: makePath("DesiredCapacity"),
+			MinSize:         makePath("MaxSize"),
+			MaxSize:         makePath("MinSize"),
+		}, nil
+
+	default:
+		return nil, fmt.Errorf("unexpected nodegroup type tag: %q", nodeGroupType)
+	}
+
 }
 
 func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, scalingPaths *scalingConfigPaths) (*NodeGroupSummary, error) {
@@ -320,11 +341,9 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, scalingPaths 
 // GetNodeGroupName will return nodegroup name based on tags
 func (*StackCollection) GetNodeGroupName(s *Stack) string {
 	for _, tag := range s.Tags {
-		value := *tag.Value
-
 		switch *tag.Key {
-		case api.NodeGroupNameTag, api.ManagedNodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:
-			return value
+		case api.NodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:
+			return *tag.Value
 		}
 	}
 	if strings.HasSuffix(*s.StackName, "-nodegroup-0") {
