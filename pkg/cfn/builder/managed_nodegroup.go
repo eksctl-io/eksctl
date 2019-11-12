@@ -71,6 +71,12 @@ func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeG
 }
 
 func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
+	m.resourceSet.template.Description = fmt.Sprintf(
+		"%s (SSH access: %v) %s",
+		"EKS Managed Nodes",
+		api.IsEnabled(m.nodeGroup.SSH.Allow),
+		"[created by eksctl]")
+
 	iamHelper := NewIAMHelper(m.resourceSet, m.nodeGroup.IAM)
 	iamHelper.CreateRole()
 
