@@ -139,6 +139,9 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		c.spec.Status.ARN = v
 		return nil
 	})
+	c.rs.defineOutputFromAtt("ClusterSecurityGroupId", "ControlPlane.ClusterSecurityGroupId", true, func(s string) error {
+		return nil
+	})
 }
 
 // GetAllOutputs collects all outputs of the cluster
