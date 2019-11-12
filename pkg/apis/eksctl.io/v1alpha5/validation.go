@@ -54,27 +54,28 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	validateNg := func(name, path string, set nameSet) error {
+	// names must be unique across both managed and unmanaged nodegroups
+	ngNames := nameSet{}
+	validateNg := func(name, path string) error {
 		if name == "" {
 			return fmt.Errorf("%s.name must be set", path)
 		}
-		if _, err := set.checkUnique(path+".name", name); err != nil {
+		if _, err := ngNames.checkUnique(path+".name", name); err != nil {
 			return err
 		}
 		return nil
 	}
-	ngNames := nameSet{}
+
 	for i, ng := range cfg.NodeGroups {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
-		if err := validateNg(ng.NameString(), path, ngNames); err != nil {
+		if err := validateNg(ng.NameString(), path); err != nil {
 			return err
 		}
 	}
 
-	managedNgNames := nameSet{}
 	for i, ng := range cfg.ManagedNodeGroups {
 		path := fmt.Sprintf("managedNodeGroups[%d]", i)
-		if err := validateNg(ng.NameString(), path, managedNgNames); err != nil {
+		if err := validateNg(ng.NameString(), path); err != nil {
 			return err
 		}
 	}
