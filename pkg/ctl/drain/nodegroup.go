@@ -73,23 +73,30 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, &cfg.NodeGroups); err != nil {
 			return err
 		}
+		// TODO support filter for managed nodegroups
 	}
+	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
-	filteredNodeGroups := ngFilter.FilterMatching(cfg.NodeGroups)
-
-	ngFilter.LogInfo(cfg.NodeGroups)
 	verb := "drain"
 	if undo {
 		verb = "uncordon"
 	}
-	cmdutils.LogIntendedAction(cmd.Plan, "%s %d nodegroups in cluster %q", verb, len(filteredNodeGroups), cfg.Metadata.Name)
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && len(filteredNodeGroups) > 0)
+	logAction := func(resource string, count int) {
+		cmdutils.LogIntendedAction(cmd.Plan, "%s %d %s in cluster %q", verb, count, resource, cfg.Metadata.Name)
+	}
+	logFiltered()
+
+	logAction("nodegroup(s)", len(cfg.NodeGroups))
+	logAction("managed nodegroup(s)", len(cfg.ManagedNodeGroups))
+
+	cmdutils.LogPlanModeWarning(cmd.Plan && (len(cfg.NodeGroups) > 0 || len(cfg.ManagedNodeGroups) > 0))
 
 	if cmd.Plan {
 		return nil
 	}
-	for _, ng := range filteredNodeGroups {
+	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+	for _, ng := range allNodeGroups {
 		if err := drain.NodeGroup(clientSet, ng, ctl.Provider.WaitTimeout(), undo); err != nil {
 			return err
 		}
