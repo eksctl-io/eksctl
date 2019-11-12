@@ -101,7 +101,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		return err
 	}
 
-	logFiltered, logFilteredManaged := cmdutils.ApplyFilter(cfg, ngFilter)
+	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
 	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
@@ -132,6 +132,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		return err
 	}
 
+	// TODO
 	if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
 		return errors.Wrap(err, "cluster compatibility check failed")
 	}
@@ -145,7 +146,6 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 			logMsg("nodegroups", len(cfg.NodeGroups))
 		}
 
-		logFilteredManaged()
 		if len(cfg.ManagedNodeGroups) > 0 {
 			logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
 		}

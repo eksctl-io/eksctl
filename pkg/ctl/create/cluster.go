@@ -147,7 +147,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			}
 		}
 	}
-	logFiltered, logFilteredManaged := cmdutils.ApplyFilter(cfg, ngFilter)
+	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
 	if err := eks.ValidateWindowsCompatibility(cfg.NodeGroups, cfg.Metadata.Version); err != nil {
 		return err
@@ -307,9 +307,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 				logger.Info("will create a CloudFormation stack for cluster itself and %d %s stack(s)", count, resource)
 			}
 			logFiltered()
-			logMsg("nodegroup", len(cfg.NodeGroups))
 
-			logFilteredManaged()
+			logMsg("nodegroup", len(cfg.NodeGroups))
 			logMsg("managed nodegroup", len(cfg.ManagedNodeGroups))
 		}
 

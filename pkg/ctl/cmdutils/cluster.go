@@ -2,11 +2,11 @@ package cmdutils
 
 import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-type FilterLogFunc func()
-
-func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *NodeGroupFilter) (FilterLogFunc, FilterLogFunc) {
+// ApplyFilter applies nodegroup filters and returns a log function
+func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *NodeGroupFilter) func() {
 	var (
 		filteredNodeGroups        []*api.NodeGroup
 		filteredManagedNodeGroups []*api.ManagedNodeGroup
@@ -24,28 +24,31 @@ func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *NodeGroupFilter) (F
 		}
 	}
 
+	nodeGroups, managedNodeGroups := clusterConfig.NodeGroups, clusterConfig.ManagedNodeGroups
+
 	clusterConfig.NodeGroups, clusterConfig.ManagedNodeGroups = filteredNodeGroups, filteredManagedNodeGroups
 
-	return makeLogFunc(ngFilter, filteredNodeGroups, filteredManagedNodeGroups)
+	return func() {
+		var allNames []string
+		for _, ng := range nodeGroups {
+			allNames = append(allNames, ng.Name)
+		}
+		for _, ng := range managedNodeGroups {
+			allNames = append(allNames, ng.Name)
+		}
+		ngFilter.doLogInfo("nodegroup", allNames)
+	}
 }
 
-func makeLogFunc(ngFilter *NodeGroupFilter, nodeGroups []*api.NodeGroup, managedNodeGroups []*api.ManagedNodeGroup) (FilterLogFunc, FilterLogFunc) {
-
-	ngLog := func() {
-		var names []string
-		for _, ng := range nodeGroups {
-			names = append(names, ng.NameString())
-		}
-		ngFilter.doLogInfo("nodegroups", names)
-
+// ToKubeNodeGroups combines managed and unmanaged nodegroups and returns a slice of eks.KubeNodeGroup containing
+// both types of nodegroups
+func ToKubeNodeGroups(clusterConfig *api.ClusterConfig) []eks.KubeNodeGroup {
+	var kubeNodeGroups []eks.KubeNodeGroup
+	for _, ng := range clusterConfig.NodeGroups {
+		kubeNodeGroups = append(kubeNodeGroups, ng)
 	}
-	mNgLog := func() {
-		var names []string
-		for _, ng := range managedNodeGroups {
-			names = append(names, ng.NameString())
-		}
-		ngFilter.doLogInfo("managed nodegroups", names)
+	for _, ng := range clusterConfig.ManagedNodeGroups {
+		kubeNodeGroups = append(kubeNodeGroups, ng)
 	}
-
-	return ngLog, mNgLog
+	return kubeNodeGroups
 }
