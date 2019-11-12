@@ -19,11 +19,8 @@ import (
 )
 
 const (
-	desiredCapacityPath = resourcesRootPath + ".NodeGroup.Properties.DesiredCapacity"
-	maxSizePath         = resourcesRootPath + ".NodeGroup.Properties.MaxSize"
-	minSizePath         = resourcesRootPath + ".NodeGroup.Properties.MinSize"
-	instanceTypePath    = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType"
-	imageIDPath         = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.ImageId"
+	instanceTypePath = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType"
+	imageIDPath      = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.ImageId"
 )
 
 // NodeGroupSummary represents a summary of a nodegroup stack
@@ -145,6 +142,11 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	name := c.makeNodeGroupStackName(ng.Name)
 	logger.Info("scaling nodegroup stack %q in cluster %s", name, clusterName)
 
+	stack, err := c.DescribeStack(&Stack{StackName: &name})
+	if err != nil {
+		return errors.Wrapf(err, "error describing nodegroup stack %s", name)
+	}
+
 	// Get current stack
 	template, err := c.GetStackTemplate(name)
 	if err != nil {
@@ -158,6 +160,17 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	var descriptionBuffer bytes.Buffer
 	descriptionBuffer.WriteString("scaling nodegroup, ")
 
+	scalingPaths, err := getScalingConfigPaths(stack.Tags)
+	if err != nil {
+		return err
+	}
+	var (
+		desiredCapacityPath = scalingPaths.DesiredCapacity
+		maxSizePath         = scalingPaths.MaxSize
+		minSizePath         = scalingPaths.MinSize
+	)
+
+	// TODO rewrite this using types
 	// Get the current values
 	currentCapacity := gjson.Get(template, desiredCapacityPath)
 	currentMaxSize := gjson.Get(template, maxSizePath)
@@ -208,7 +221,12 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 
 	summaries := []*NodeGroupSummary{}
 	for _, s := range stacks {
-		summary, err := c.mapStackToNodeGroupSummary(s)
+		scalingPaths, err := getScalingConfigPaths(s.Tags)
+		if err != nil {
+			return nil, err
+		}
+
+		summary, err := c.mapStackToNodeGroupSummary(s, scalingPaths)
 		if err != nil {
 			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
@@ -223,17 +241,50 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	return summaries, nil
 }
 
-func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSummary, error) {
-	cluster := getClusterNameTag(stack)
-	name := c.GetNodeGroupName(stack)
+type scalingConfigPaths struct {
+	DesiredCapacity string
+	MinSize         string
+	MaxSize         string
+}
 
+func getScalingConfigPaths(tags []*cfn.Tag) (*scalingConfigPaths, error) {
+	for _, tag := range tags {
+		switch *tag.Key {
+		case api.NodeGroupNameTag:
+			makePath := func(field string) string {
+				return fmt.Sprintf("%s.NodeGroup.Properties.%s", resourcesRootPath, field)
+			}
+			return &scalingConfigPaths{
+				DesiredCapacity: makePath("DesiredCapacity"),
+				MinSize:         makePath("MaxSize"),
+				MaxSize:         makePath("MinSize"),
+			}, nil
+		case api.ManagedNodeGroupNameTag:
+			makePath := func(field string) string {
+				return fmt.Sprintf("%s.ManagedNodeGroup.Properties.ScalingConfig.%s", resourcesRootPath, field)
+			}
+			return &scalingConfigPaths{
+				DesiredCapacity: makePath("DesiredSize"),
+				MinSize:         makePath("MinSize"),
+				MaxSize:         makePath("MaxSize"),
+			}, nil
+		}
+	}
+	return nil, errors.New("failed to find a nodegroup identifier tag")
+}
+
+func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, scalingPaths *scalingConfigPaths) (*NodeGroupSummary, error) {
 	template, err := c.GetStackTemplate(*stack.StackName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error getting Cloudformation template for stack %s", *stack.StackName)
+		return nil, errors.Wrapf(err, "error getting CloudFormation template for stack %s", *stack.StackName)
 	}
-	maxSize := gjson.Get(template, maxSizePath)
-	minSize := gjson.Get(template, minSizePath)
-	desired := gjson.Get(template, desiredCapacityPath)
+
+	cluster := getClusterNameTag(stack)
+	name := c.GetNodeGroupName(stack)
+	maxSize := gjson.Get(template, scalingPaths.MaxSize)
+	minSize := gjson.Get(template, scalingPaths.MinSize)
+	desired := gjson.Get(template, scalingPaths.DesiredCapacity)
+	// FIXME for managed nodes
 	instanceType := gjson.Get(template, instanceTypePath)
 	imageID := gjson.Get(template, imageIDPath)
 
@@ -269,14 +320,11 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack) (*NodeGroupSu
 // GetNodeGroupName will return nodegroup name based on tags
 func (*StackCollection) GetNodeGroupName(s *Stack) string {
 	for _, tag := range s.Tags {
-		if *tag.Key == api.NodeGroupNameTag {
-			return *tag.Value
-		}
-		if *tag.Key == api.OldNodeGroupNameTag {
-			return *tag.Value
-		}
-		if *tag.Key == api.OldNodeGroupIDTag {
-			return *tag.Value
+		value := *tag.Value
+
+		switch *tag.Key {
+		case api.NodeGroupNameTag, api.ManagedNodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:
+			return value
 		}
 	}
 	if strings.HasSuffix(*s.StackName, "-nodegroup-0") {

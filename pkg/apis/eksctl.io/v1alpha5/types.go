@@ -142,6 +142,9 @@ const (
 	// NodeGroupNameTag defines the tag of the nodegroup name
 	NodeGroupNameTag = "alpha.eksctl.io/nodegroup-name"
 
+	// ManagedNodeGroupNameTag defines the tag of the managed nodegroup name
+	ManagedNodeGroupNameTag = "alpha.eksctl.io/managed-nodegroup-name"
+
 	// OldNodeGroupNameTag defines the tag of the nodegroup name
 	OldNodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
 
