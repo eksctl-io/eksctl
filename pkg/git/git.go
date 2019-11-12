@@ -87,7 +87,9 @@ func NewGitClient(params ClientParams) *Client {
 }
 
 func envVars(params ClientParams) []string {
-	envVars := []string{}
+	envVars := []string{
+		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+	}
 	if params.PrivateSSHKeyPath != "" {
 		envVars = append(envVars, fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", params.PrivateSSHKeyPath))
 	}
