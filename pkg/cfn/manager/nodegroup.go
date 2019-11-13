@@ -19,8 +19,7 @@ import (
 )
 
 const (
-	instanceTypePath = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType"
-	imageIDPath      = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.ImageId"
+	imageIDPath = resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.ImageId"
 )
 
 // NodeGroupSummary represents a summary of a nodegroup stack
@@ -161,14 +160,14 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	var descriptionBuffer bytes.Buffer
 	descriptionBuffer.WriteString("scaling nodegroup, ")
 
-	scalingPaths, err := getScalingConfigPaths(stack.Tags)
+	ngPaths, err := getNodeGroupPaths(stack.Tags)
 	if err != nil {
 		return err
 	}
 	var (
-		desiredCapacityPath = scalingPaths.DesiredCapacity
-		maxSizePath         = scalingPaths.MaxSize
-		minSizePath         = scalingPaths.MinSize
+		desiredCapacityPath = ngPaths.DesiredCapacity
+		maxSizePath         = ngPaths.MaxSize
+		minSizePath         = ngPaths.MinSize
 	)
 
 	// TODO rewrite this using types
@@ -188,7 +187,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	if err != nil {
 		return errors.Wrap(err, "setting desired capacity")
 	}
-	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Str, *ng.DesiredCapacity))
+	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Raw, *ng.DesiredCapacity))
 
 	// If the desired number of nodes is less than the min then update the min
 	if int64(*ng.DesiredCapacity) < currentMinSize.Int() {
@@ -197,7 +196,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 		if err != nil {
 			return errors.Wrap(err, "setting min size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Str, *ng.DesiredCapacity))
+		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Raw, *ng.DesiredCapacity))
 	}
 	// If the desired number of nodes is greater than the max then update the max
 	if int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
@@ -206,7 +205,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 		if err != nil {
 			return errors.Wrap(err, "setting max size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Str, *ng.DesiredCapacity))
+		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Raw, *ng.DesiredCapacity))
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
 
@@ -222,12 +221,12 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 
 	summaries := []*NodeGroupSummary{}
 	for _, s := range stacks {
-		scalingPaths, err := getScalingConfigPaths(s.Tags)
+		ngPaths, err := getNodeGroupPaths(s.Tags)
 		if err != nil {
 			return nil, err
 		}
 
-		summary, err := c.mapStackToNodeGroupSummary(s, scalingPaths)
+		summary, err := c.mapStackToNodeGroupSummary(s, ngPaths)
 		if err != nil {
 			return nil, errors.Wrap(err, "mapping stack to nodegroup summary")
 		}
@@ -242,39 +241,68 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	return summaries, nil
 }
 
-type scalingConfigPaths struct {
-	DesiredCapacity string
-	MinSize         string
-	MaxSize         string
+func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType, error) {
+	stackName := c.makeNodeGroupStackName(name)
+	stack, err := c.DescribeStack(&Stack{StackName: &stackName})
+	if err != nil {
+		return "", err
+	}
+	return GetNodeGroupType(stack.Tags)
 }
 
-func getScalingConfigPaths(tags []*cfn.Tag) (*scalingConfigPaths, error) {
+// GetNodeGroupStackType returns the nodegroup type
+func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	var (
 		foundNodeGroupTag bool
-		nodeGroupType     string
+		nodeGroupType     api.NodeGroupType
 	)
 	for _, tag := range tags {
 		switch *tag.Key {
 		case api.NodeGroupNameTag:
 			foundNodeGroupTag = true
 		case api.NodeGroupTypeTag:
-			nodeGroupType = *tag.Value
+			nodeGroupType = api.NodeGroupType(*tag.Value)
 		}
 	}
 
 	if !foundNodeGroupTag {
-		return nil, fmt.Errorf("failed to find a nodegroup tag (%s)", api.NodeGroupNameTag)
+		return "", fmt.Errorf("failed to find a nodegroup tag (%s)", api.NodeGroupNameTag)
 	}
 
-	switch api.NodeGroupType(nodeGroupType) {
+	if nodeGroupType == "" {
+		nodeGroupType = api.NodeGroupTypeUnmanaged
+	}
+
+	return nodeGroupType, nil
+}
+
+type nodeGroupPaths struct {
+	InstanceType    string
+	DesiredCapacity string
+	MinSize         string
+	MaxSize         string
+}
+
+func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
+	nodeGroupType, err := GetNodeGroupType(tags)
+	if err != nil {
+		return nil, err
+	}
+
+	switch nodeGroupType {
 	case api.NodeGroupTypeManaged:
-		makePath := func(field string) string {
-			return fmt.Sprintf("%s.ManagedNodeGroup.Properties.ScalingConfig.%s", resourcesRootPath, field)
+		makePath := func(fieldPath string) string {
+			return fmt.Sprintf("%s.ManagedNodeGroup.Properties.%s", resourcesRootPath, fieldPath)
 		}
-		return &scalingConfigPaths{
-			DesiredCapacity: makePath("DesiredSize"),
-			MinSize:         makePath("MinSize"),
-			MaxSize:         makePath("MaxSize"),
+		makeScalingPath := func(field string) string {
+			return makePath(fmt.Sprintf("ScalingConfig.%s", field))
+
+		}
+		return &nodeGroupPaths{
+			InstanceType:    makePath("InstanceTypes.0"),
+			DesiredCapacity: makeScalingPath("DesiredSize"),
+			MinSize:         makeScalingPath("MinSize"),
+			MaxSize:         makeScalingPath("MaxSize"),
 		}, nil
 
 		// Tag may not exist for existing nodegroups
@@ -282,7 +310,8 @@ func getScalingConfigPaths(tags []*cfn.Tag) (*scalingConfigPaths, error) {
 		makePath := func(field string) string {
 			return fmt.Sprintf("%s.NodeGroup.Properties.%s", resourcesRootPath, field)
 		}
-		return &scalingConfigPaths{
+		return &nodeGroupPaths{
+			InstanceType:    resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType",
 			DesiredCapacity: makePath("DesiredCapacity"),
 			MinSize:         makePath("MaxSize"),
 			MaxSize:         makePath("MinSize"),
@@ -294,7 +323,7 @@ func getScalingConfigPaths(tags []*cfn.Tag) (*scalingConfigPaths, error) {
 
 }
 
-func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, scalingPaths *scalingConfigPaths) (*NodeGroupSummary, error) {
+func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *nodeGroupPaths) (*NodeGroupSummary, error) {
 	template, err := c.GetStackTemplate(*stack.StackName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error getting CloudFormation template for stack %s", *stack.StackName)
@@ -302,11 +331,10 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, scalingPaths 
 
 	cluster := getClusterNameTag(stack)
 	name := c.GetNodeGroupName(stack)
-	maxSize := gjson.Get(template, scalingPaths.MaxSize)
-	minSize := gjson.Get(template, scalingPaths.MinSize)
-	desired := gjson.Get(template, scalingPaths.DesiredCapacity)
-	// FIXME for managed nodes
-	instanceType := gjson.Get(template, instanceTypePath)
+	maxSize := gjson.Get(template, ngPaths.MaxSize)
+	minSize := gjson.Get(template, ngPaths.MinSize)
+	desired := gjson.Get(template, ngPaths.DesiredCapacity)
+	instanceType := gjson.Get(template, ngPaths.InstanceType)
 	imageID := gjson.Get(template, imageIDPath)
 
 	var nodeInstanceRoleARN string
