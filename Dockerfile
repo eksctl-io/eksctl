@@ -48,3 +48,6 @@ RUN go mod download
 # The authenticator is a runtime dependency, so it needs to be in /out
 RUN go install github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
     && mv $GOPATH/bin/aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
+
+# Add kubectl and aws-iam-authenticator to the PATH
+ENV PATH="${PATH}:/out/usr/bin:/out/usr/local/bin"
