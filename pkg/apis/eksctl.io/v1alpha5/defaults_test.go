@@ -55,13 +55,12 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	Context("SSH settings", func() {
 
-		It("Providing an SSH key enables SSH", func() {
+		It("Providing an SSH key enables SSH when SSH.Allow not set", func() {
 			testKeyPath := "some/path/to/file.pub"
 
 			testNodeGroup := NodeGroup{
 				VolumeSize: &DefaultNodeVolumeSize,
 				SSH: &NodeGroupSSH{
-					Allow:         Disabled(),
 					PublicKeyPath: &testKeyPath,
 				},
 			}
@@ -82,6 +81,22 @@ var _ = Describe("ClusterConfig validation", func() {
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
 			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo("~/.ssh/id_rsa.pub"))
+		})
+
+		It("Providing an SSH key and explicitly disabling SSH keeps SSH disabled", func() {
+			testKeyPath := "some/path/to/file.pub"
+
+			testNodeGroup := NodeGroup{
+				VolumeSize: &DefaultNodeVolumeSize,
+				SSH: &NodeGroupSSH{
+					Allow:         Disabled(),
+					PublicKeyPath: &testKeyPath,
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+
+			Expect(*testNodeGroup.SSH.Allow).To(BeFalse())
 		})
 	})
 
