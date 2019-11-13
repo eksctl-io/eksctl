@@ -77,14 +77,19 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		api.IsEnabled(m.nodeGroup.SSH.Allow),
 		"[created by eksctl]")
 
-	iamHelper := NewIAMHelper(m.resourceSet, m.nodeGroup.IAM)
-	iamHelper.CreateRole()
+	createRole(m.resourceSet, m.nodeGroup.IAM)
 
 	var remoteAccess *remoteAccessConfig
 	if api.IsEnabled(m.nodeGroup.SSH.Allow) {
 		remoteAccess = &remoteAccessConfig{
 			Ec2SshKey: m.nodeGroup.SSH.PublicKeyName,
 		}
+	}
+
+	diskSize := m.nodeGroup.VolumeSize
+	if diskSize != nil && *diskSize == 0 {
+		// zero is not a valid value for Managed Nodes
+		diskSize = nil
 	}
 
 	m.newResource("ManagedNodeGroup", &managedNodeGroup{
@@ -95,7 +100,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			MaxSize:     m.nodeGroup.MaxSize,
 			DesiredSize: m.nodeGroup.DesiredCapacity,
 		},
-		DiskSize: m.nodeGroup.VolumeSize,
+		DiskSize: diskSize,
 		// Only public subnets are supported at launch
 		Subnets: AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false),
 		// Currently the API supports specifying only one instance type

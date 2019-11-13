@@ -11,18 +11,8 @@ type cfnTemplate interface {
 	newResource(name string, resource interface{}) *gfn.Value
 }
 
-type IAMHelper struct {
-	cfnTemplate cfnTemplate
-	iamConfig   *api.NodeGroupIAM
-}
-
-func NewIAMHelper(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM) *IAMHelper {
-	return &IAMHelper{cfnTemplate: cfnTemplate, iamConfig: iamConfig}
-}
-
-// CreateRole creates an IAM role with policies required for the worker nodes and addons
-func (h *IAMHelper) CreateRole() {
-	iamConfig := h.iamConfig
+// createRole creates an IAM role with policies required for the worker nodes and addons
+func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM) {
 	attachPolicyARNs := iamConfig.AttachPolicyARNs
 	if len(attachPolicyARNs) == 0 {
 		attachPolicyARNs = iamDefaultNodePolicyARNs
@@ -48,10 +38,10 @@ func (h *IAMHelper) CreateRole() {
 		role.RoleName = gfn.NewString(iamConfig.InstanceRoleName)
 	}
 
-	refIR := h.cfnTemplate.newResource(cfnIAMInstanceRoleName, &role)
+	refIR := cfnTemplate.newResource(cfnIAMInstanceRoleName, &role)
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.AutoScaler) {
-		h.cfnTemplate.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
 			[]string{
 				"autoscaling:DescribeAutoScalingGroups",
 				"autoscaling:DescribeAutoScalingInstances",
@@ -65,30 +55,30 @@ func (h *IAMHelper) CreateRole() {
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CertManager) {
-		h.cfnTemplate.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
 			[]string{
 				"route53:ChangeResourceRecordSets",
 			},
 		)
-		h.cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*",
 			[]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 				"route53:ListHostedZonesByName",
 			},
 		)
-		h.cfnTemplate.attachAllowPolicy("PolicyCertManagerGetChange", refIR, "arn:aws:route53:::change/*",
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerGetChange", refIR, "arn:aws:route53:::change/*",
 			[]string{
 				"route53:GetChange",
 			},
 		)
 	} else if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
-		h.cfnTemplate.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
+		cfnTemplate.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
 			[]string{
 				"route53:ChangeResourceRecordSets",
 			},
 		)
-		h.cfnTemplate.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, "*",
 			[]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
@@ -97,7 +87,7 @@ func (h *IAMHelper) CreateRole() {
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.AppMesh) {
-		h.cfnTemplate.attachAllowPolicy("PolicyAppMesh", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyAppMesh", refIR, "*",
 			[]string{
 				"appmesh:*",
 				"servicediscovery:CreateService",
@@ -116,7 +106,7 @@ func (h *IAMHelper) CreateRole() {
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.EBS) {
-		h.cfnTemplate.attachAllowPolicy("PolicyEBS", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyEBS", refIR, "*",
 			[]string{
 				"ec2:AttachVolume",
 				"ec2:CreateSnapshot",
@@ -135,12 +125,12 @@ func (h *IAMHelper) CreateRole() {
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.FSX) {
-		h.cfnTemplate.attachAllowPolicy("PolicyFSX", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyFSX", refIR, "*",
 			[]string{
 				"fsx:*",
 			},
 		)
-		h.cfnTemplate.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
+		cfnTemplate.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
 			[]string{
 				"iam:CreateServiceLinkedRole",
 				"iam:AttachRolePolicy",
@@ -150,12 +140,12 @@ func (h *IAMHelper) CreateRole() {
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.EFS) {
-		h.cfnTemplate.attachAllowPolicy("PolicyEFS", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyEFS", refIR, "*",
 			[]string{
 				"elasticfilesystem:*",
 			},
 		)
-		h.cfnTemplate.attachAllowPolicy("PolicyEFSEC2", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyEFSEC2", refIR, "*",
 			[]string{
 				"ec2:DescribeSubnets",
 				"ec2:CreateNetworkInterface",
@@ -168,7 +158,7 @@ func (h *IAMHelper) CreateRole() {
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.ALBIngress) {
-		h.cfnTemplate.attachAllowPolicy("PolicyALBIngress", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyALBIngress", refIR, "*",
 			[]string{
 				"acm:DescribeCertificate",
 				"acm:ListCertificates",
@@ -239,7 +229,7 @@ func (h *IAMHelper) CreateRole() {
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.XRay) {
-		h.cfnTemplate.attachAllowPolicy("PolicyXRay", refIR, "*",
+		cfnTemplate.attachAllowPolicy("PolicyXRay", refIR, "*",
 			[]string{
 				"xray:PutTraceSegments",
 				"xray:PutTelemetryRecords",
