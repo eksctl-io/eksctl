@@ -12,7 +12,7 @@ import (
 
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
-	ng := cfg.NewNodeGroup()
+	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
 	var updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool
@@ -78,6 +78,21 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			return err
 		}
 		// TODO apply filters to managed nodegroups
+	} else {
+		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
+		if err != nil {
+			return err
+		}
+		switch nodeGroupType {
+		case api.NodeGroupTypeUnmanaged:
+			cfg.NodeGroups = []*api.NodeGroup{ng}
+		case api.NodeGroupTypeManaged:
+			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
+				{
+					Name: ng.Name,
+				},
+			}
+		}
 	}
 
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
@@ -104,11 +119,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
 	if deleteNodeGroupDrain {
-		logMsg := func(resource string, count int) {
-			cmdutils.LogIntendedAction(cmd.Plan, "drain %d %s in cluster %q", count, resource, cfg.Metadata.Name)
-		}
-		logMsg("nodegroup(s)", len(cfg.NodeGroups))
-		logMsg("managed nodegroup(s)", len(cfg.ManagedNodeGroups))
+		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 		if !cmd.Plan {
 			for _, ng := range allNodeGroups {
@@ -119,8 +130,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		}
 	}
 
-	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-	cmdutils.LogIntendedAction(cmd.Plan, "delete %d managed nodegroups from cluster %q", len(cfg.ManagedNodeGroups), cfg.Metadata.Name)
+	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 	{
 		shouldDelete := func(ngName string) bool {
@@ -141,10 +151,10 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
 			return handleErrors(errs, "nodegroup(s)")
 		}
-		cmdutils.LogCompletedAction(cmd.Plan, "deleted %d nodegroups from cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
+		cmdutils.LogCompletedAction(cmd.Plan, "deleted %d nodegroup(s) from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 	}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && len(cfg.NodeGroups) > 0 && len(cfg.ManagedNodeGroups) > 0)
+	cmdutils.LogPlanModeWarning(cmd.Plan && len(allNodeGroups) > 0)
 
 	return nil
 }
