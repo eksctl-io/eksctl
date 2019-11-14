@@ -9,6 +9,7 @@
 - `eksctl` now leverages `cobra` to print all errors in a more standardised way (#1664)
 - `eksctl` now no longer print usage/help on invalid user input (#1677)
 - Improved Fargate documentation & example `ClusterConfig` manifest (#1666)
+- upgrade CNI plugin to version 1.5.5 (#1554)
 
 ## Bug fixes
 
