@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -366,6 +367,9 @@ type ClusterConfig struct {
 
 	// +optional
 	ManagedNodeGroups []*ManagedNodeGroup `json:"managedNodeGroups,omitempty"`
+
+	// +optional
+	FargateProfiles []*FargateProfile `json:"fargateProfiles,omitempty"`
 
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
@@ -776,4 +780,51 @@ func HasMixedInstances(ng *NodeGroup) bool {
 // IsAMI returns true if the argument is an AMI id
 func IsAMI(amiFlag string) bool {
 	return strings.HasPrefix(amiFlag, "ami-")
+}
+
+// FargateProfile defines the settings used to schedule workload onto Fargate.
+type FargateProfile struct {
+	// Name of the Fargate profile.
+	Name string `json:"name"`
+	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
+	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
+	// Selectors define the rules to select workload to schedule onto Fargate.
+	Selectors []FargateProfileSelector `json:"selectors"`
+	// +optional
+	// Subnets which Fargate should use to do network placement of the selected workload.
+	// If none provided, all subnets for the cluster will be used.
+	Subnets []string `json:"subnets,omitempty"`
+}
+
+// Validate validates this FargateProfile object.
+func (fp FargateProfile) Validate() error {
+	if fp.Name == "" {
+		return errors.New("invalid Fargate profile: empty name")
+	}
+	if len(fp.Selectors) == 0 {
+		return fmt.Errorf("invalid Fargate profile \"%s\": no profile selector", fp.Name)
+	}
+	for i, selector := range fp.Selectors {
+		if err := selector.Validate(); err != nil {
+			return errors.Wrapf(err, "invalid Fargate profile \"%s\": invalid profile selector at index #%v", fp.Name, i)
+		}
+	}
+	return nil
+}
+
+// FargateProfileSelector defines rules to select workload to schedule onto Fargate.
+type FargateProfileSelector struct {
+	// Namespace is the Kubernetes namespace from which to select workload.
+	Namespace string `json:"namespace"`
+	// +optional
+	// Labels are the Kubernetes label selectors to use to select workload.
+	Labels map[string]string `json:"labels,omitempty"`
+}
+
+// Validate validates this FargateProfileSelector object.
+func (fps FargateProfileSelector) Validate() error {
+	if fps.Namespace == "" {
+		return errors.New("empty namespace")
+	}
+	return nil
 }
