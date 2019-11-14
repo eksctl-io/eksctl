@@ -67,14 +67,15 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.SSH.PublicKeyPath,
 		ng.SSH.PublicKey)
 
-	if numSSHFlagsEnabled > 0 {
-		ng.SSH.Allow = Enabled()
-	} else {
+	if numSSHFlagsEnabled == 0 {
 		if IsEnabled(ng.SSH.Allow) {
 			ng.SSH.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
 		} else {
 			ng.SSH.Allow = Disabled()
 		}
+	} else if !IsDisabled(ng.SSH.Allow) {
+		// Enable SSH if not explicitly disabled when passing an SSH key
+		ng.SSH.Allow = Enabled()
 	}
 
 	if !IsSetAndNonEmptyString(ng.VolumeType) {
