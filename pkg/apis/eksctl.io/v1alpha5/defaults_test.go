@@ -97,6 +97,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeFalse())
+			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo(testKeyPath))
 		})
 	})
 
