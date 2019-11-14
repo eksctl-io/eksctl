@@ -68,6 +68,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
 
 			Expect(*testNodeGroup.SSH.Allow).To(BeTrue())
+			Expect(*testNodeGroup.SSH.PublicKeyPath).To(BeIdenticalTo(testKeyPath))
 		})
 
 		It("Enabling SSH without a key uses default key", func() {
