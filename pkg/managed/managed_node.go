@@ -41,7 +41,7 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 	if err != nil {
 		awsError, ok := err.(awserr.Error)
 		if ok && awsError.Code() == eks.ErrCodeResourceNotFoundException {
-			return nil, errors.Wrap(err, "nodegroup-health is only supported for Managed Nodegroups")
+			return nil, errors.Wrapf(err, "could not find a managed nodegroup with name %q", nodeGroupName)
 		}
 		return nil, err
 	}
