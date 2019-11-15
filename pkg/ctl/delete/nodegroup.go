@@ -74,10 +74,10 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
-		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, &cfg.NodeGroups); err != nil {
+		allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
+		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, allNodeGroups); err != nil {
 			return err
 		}
-		// TODO apply filters to managed nodegroups
 	} else {
 		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
 		if err != nil {
