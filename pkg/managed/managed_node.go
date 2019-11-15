@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
+	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -117,7 +118,7 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion, amiReleaseV
 			return errors.Wrap(err, "must supply full Kubernetes version when AMI release version is set")
 		}
 
-		return m.updateNodeGroupVersion(nodeGroupName, kubernetesVersion, amiReleaseVersion)
+		return m.updateNodeGroupVersion(nodeGroupName, makeReleaseVersion(kubernetesVersion, amiReleaseVersion))
 	}
 
 	// Use the latest AMI release version
@@ -134,12 +135,14 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion, amiReleaseV
 		return err
 	}
 
+	nodeGroup := output.Nodegroup
+
 	if kubernetesVersion == "" {
 		// Use the current Kubernetes version
-		kubernetesVersion = *output.Nodegroup.Version
+		kubernetesVersion = *nodeGroup.Version
 	}
 
-	instanceType := output.Nodegroup.InstanceTypes[0]
+	instanceType := nodeGroup.InstanceTypes[0]
 	ssmParameterName, err := ami.MakeSSMParameterName(kubernetesVersion, *instanceType, v1alpha5.NodeImageFamilyAmazonLinux2)
 	if err != nil {
 		return err
@@ -177,16 +180,20 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion, amiReleaseV
 	if err != nil {
 		return errors.Wrap(err, "error extracting Kubernetes version")
 	}
-	return m.updateNodeGroupVersion(nodeGroupName, kubernetesVersion, amiReleaseVersion)
+	releaseVersion := makeReleaseVersion(kubernetesVersion, amiReleaseVersion)
+	if releaseVersion == *nodeGroup.ReleaseVersion {
+		logger.Info("nodegroup %q is already up-to-date", nodeGroupName)
+		return nil
+	}
+	return m.updateNodeGroupVersion(nodeGroupName, releaseVersion)
 }
 
-func (m *Service) updateNodeGroupVersion(nodeGroupName, kubernetesVersion, amiVersion string) error {
+func (m *Service) updateNodeGroupVersion(nodeGroupName, releaseVersion string) error {
 	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
 	if err != nil {
 		return err
 	}
 
-	releaseVersion := fmt.Sprintf("%s-%s", kubernetesVersion, amiVersion)
 	template, err = sjson.Set(template, releaseVersionPath, releaseVersion)
 	if err != nil {
 		return err
@@ -246,4 +253,8 @@ func extractLabels(template string) (map[string]string, error) {
 	}
 
 	return labels, nil
+}
+
+func makeReleaseVersion(kubernetesVersion, amiVersion string) string {
+	return fmt.Sprintf("%s-%s", kubernetesVersion, amiVersion)
 }
