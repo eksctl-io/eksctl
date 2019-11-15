@@ -167,6 +167,30 @@ func (c *StackCollection) DescribeStack(i *Stack) (*Stack, error) {
 	return resp.Stacks[0], nil
 }
 
+func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (string, error) {
+	nodeGroupType, err := c.GetNodeGroupStackType(nodeGroupName)
+	if err != nil {
+		return "", err
+	}
+
+	if nodeGroupType != api.NodeGroupTypeManaged {
+		return "", fmt.Errorf("%q is not a managed nodegroup", nodeGroupName)
+	}
+
+	stackName := c.makeNodeGroupStackName(nodeGroupName)
+	templateBody, err := c.GetStackTemplate(stackName)
+	if err != nil {
+		return "", err
+	}
+
+	return templateBody, nil
+}
+
+func (c *StackCollection) UpdateNodeGroupStack(nodeGroupName, template string) error {
+	stackName := c.makeNodeGroupStackName(nodeGroupName)
+	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "Update nodegroup stack", []byte(template), nil)
+}
+
 // ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex.
 func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...string) ([]*Stack, error) {
 	var (
