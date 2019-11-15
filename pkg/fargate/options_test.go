@@ -1,18 +1,11 @@
 package fargate_test
 
 import (
-	"testing"
-
 	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/fargate"
-	"github.com/weaveworks/eksctl/pkg/testutils"
 )
-
-func TestSuite(t *testing.T) {
-	testutils.RegisterAndRun(t)
-}
 
 var _ = Describe("fargate", func() {
 	Describe("Options", func() {
