@@ -2,7 +2,6 @@ package vpc
 
 import (
 	"errors"
-
 	"github.com/aws/aws-sdk-go/service/eks"
 
 	. "github.com/onsi/ginkgo"
@@ -56,14 +55,12 @@ var _ = Describe("VPC Endpoints", func() {
 				return input != nil
 			})).Return(mockResultFn, e.Error)
 
-			err := UseEndpointAccessFromCluster(p, cfg)
-			if err != nil {
-				Expect(err.Error() == eks.ErrCodeResourceNotFoundException)
+			if err := UseEndpointAccessFromCluster(p, cfg); err != nil {
+				Expect(err.Error()).To(Equal(eks.ErrCodeResourceNotFoundException))
+			} else {
+				Expect(cfg.VPC.ClusterEndpoints.PrivateAccess).To(Equal(&e.Private))
+				Expect(cfg.VPC.ClusterEndpoints.PublicAccess).To(Equal(&e.Public))
 			}
-
-			Expect(err == nil)
-			Expect(cfg.VPC.ClusterEndpoints.PrivateAccess == &e.Private)
-			Expect(cfg.VPC.ClusterEndpoints.PublicAccess == &e.Public)
 		},
 		Entry("Private=false, Public=true", endpointAccessCase{
 			ClusterName: "false-true-cluster",
@@ -87,7 +84,7 @@ var _ = Describe("VPC Endpoints", func() {
 			Error:       nil,
 		}),
 		Entry("Private=false, Public=false", endpointAccessCase{
-			ClusterName: "notFouncCluster",
+			ClusterName: "notFoundCluster",
 			Private:     false,
 			Public:      false,
 			DCOutput:    nil,
