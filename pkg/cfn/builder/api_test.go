@@ -458,6 +458,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"SharedNodeSecurityGroup": "sg-shared",
 			"ServiceRoleARN":          arn,
 			"FeatureNATMode":          "Single",
+			"ClusterSecurityGroupId":  "sg-09ef4509a37f28b4c",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {

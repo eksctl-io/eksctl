@@ -57,9 +57,24 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				ng = newNodeGroup(cc)
 				sc = NewStackCollection(p, cc)
 
-				p.MockCloudFormation().On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
-					return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
-				})).Return(&cfn.GetTemplateOutput{
+				p.MockCloudFormation().
+					On("DescribeStacks", mock.MatchedBy(func(input *cfn.DescribeStacksInput) bool {
+						return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
+					})).Return(&cfn.DescribeStacksOutput{
+					Stacks: []*Stack{
+						{
+							Tags: []*cfn.Tag{
+								{
+									Key:   aws.String(api.NodeGroupNameTag),
+									Value: aws.String("12345"),
+								},
+							},
+						},
+					},
+				}, nil).
+					On("GetTemplate", mock.MatchedBy(func(input *cfn.GetTemplateInput) bool {
+						return input.StackName != nil && *input.StackName == "eksctl-test-cluster-nodegroup-12345"
+					})).Return(&cfn.GetTemplateOutput{
 					TemplateBody: aws.String(`{
 						"Resources": {
 							"NodeGroup": {
