@@ -103,8 +103,11 @@ func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.Clust
 
 // KubeNodeGroup defines a set of Kubernetes Nodes
 type KubeNodeGroup interface {
+	// NameString returns the name
 	NameString() string
+	// Size returns the number of the nodes (desired capacity)
 	Size() int
+	// ListOptions returns the selector for listing nodes in this nodegroup
 	ListOptions() metav1.ListOptions
 }
 

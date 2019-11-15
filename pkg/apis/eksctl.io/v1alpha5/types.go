@@ -666,6 +666,8 @@ type (
 		PublicKey *string `json:"publicKey,omitempty"`
 		// +optional
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
+		// +optional
+		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
 	}
 
 	// NodeGroupInstancesDistribution holds the configuration for spot instances

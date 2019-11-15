@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/eks"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -24,7 +25,7 @@ type managedNodeGroup struct {
 	ClusterName   string              `json:"ClusterName"`
 	NodegroupName string              `json:"NodegroupName"`
 	ScalingConfig *scalingConfig      `json:"ScalingConfig,omitempty"`
-	DiskSize      *int                `json:"DiskSize,omitempty"`
+	DiskSize      int                 `json:"DiskSize,omitempty"` // 0 is not a valid value
 	Subnets       interface{}         `json:"Subnets"`
 	InstanceTypes []string            `json:"InstanceTypes"`
 	AmiType       string              `json:"AmiType,omitempty"`
@@ -41,8 +42,8 @@ type scalingConfig struct {
 }
 
 type remoteAccessConfig struct {
-	Ec2SshKey            *string      `json:"Ec2SshKey,omitempty"`
-	SourceSecurityGroups []*gfn.Value `json:"SourceSecurityGroups,omitempty"`
+	Ec2SshKey            *string   `json:"Ec2SshKey,omitempty"`
+	SourceSecurityGroups []*string `json:"SourceSecurityGroups,omitempty"`
 }
 
 // TODO consider using the Template.Resource interface
@@ -79,20 +80,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 
 	createRole(m.resourceSet, m.nodeGroup.IAM)
 
-	var remoteAccess *remoteAccessConfig
-	if api.IsEnabled(m.nodeGroup.SSH.Allow) {
-		remoteAccess = &remoteAccessConfig{
-			Ec2SshKey: m.nodeGroup.SSH.PublicKeyName,
-		}
-	}
-
-	diskSize := m.nodeGroup.VolumeSize
-	if diskSize != nil && *diskSize == 0 {
-		// zero is not a valid value for Managed Nodes
-		diskSize = nil
-	}
-
-	m.newResource("ManagedNodeGroup", &managedNodeGroup{
+	managedResource := &managedNodeGroup{
 		ClusterName:   m.clusterConfig.Metadata.Name,
 		NodegroupName: m.nodeGroup.Name,
 		ScalingConfig: &scalingConfig{
@@ -100,19 +88,29 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			MaxSize:     m.nodeGroup.MaxSize,
 			DesiredSize: m.nodeGroup.DesiredCapacity,
 		},
-		DiskSize: diskSize,
 		// Only public subnets are supported at launch
 		Subnets: AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false),
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: []string{m.nodeGroup.InstanceType},
 		AmiType:       getAMIType(m.nodeGroup.AMIFamily),
-		RemoteAccess:  remoteAccess,
 		// ManagedNodeGroup.IAM.InstanceRoleARN is not supported, so this field is always retrieved from the
 		// CFN resource
 		NodeRole: gfn.MakeFnGetAttString(fmt.Sprintf("%s.%s", cfnIAMInstanceRoleName, "Arn")),
 		Labels:   m.nodeGroup.Labels,
 		Tags:     m.nodeGroup.Tags,
-	})
+	}
+
+	if api.IsEnabled(m.nodeGroup.SSH.Allow) {
+		managedResource.RemoteAccess = &remoteAccessConfig{
+			Ec2SshKey:            m.nodeGroup.SSH.PublicKeyName,
+			SourceSecurityGroups: aws.StringSlice(m.nodeGroup.SSH.SourceSecurityGroupIDs),
+		}
+	}
+	if m.nodeGroup.VolumeSize != nil {
+		managedResource.DiskSize = *m.nodeGroup.VolumeSize
+	}
+
+	m.newResource("ManagedNodeGroup", managedResource)
 
 	return nil
 }
