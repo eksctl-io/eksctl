@@ -49,8 +49,8 @@ func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 }
 
 // ValidateWindowsCompatibility validates Windows compatibility
-func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersion string) error {
-	if !hasWindowsNode(nodeGroups) {
+func ValidateWindowsCompatibility(kubeNodeGroups []KubeNodeGroup, controlPlaneVersion string) error {
+	if !hasWindowsNode(kubeNodeGroups) {
 		return nil
 	}
 
@@ -65,14 +65,14 @@ func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersi
 }
 
 // SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
-func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
+func SupportsWindowsWorkloads(nodeGroups []KubeNodeGroup) bool {
 	return hasWindowsNode(nodeGroups) && hasAmazonLinux2Node(nodeGroups)
 }
 
 // hasWindowsNode reports whether there's at least one Windows node in nodeGroups
-func hasWindowsNode(nodeGroups []*api.NodeGroup) bool {
+func hasWindowsNode(nodeGroups []KubeNodeGroup) bool {
 	for _, ng := range nodeGroups {
-		if api.IsWindowsImage(ng.AMIFamily) {
+		if api.IsWindowsImage(ng.GetAMIFamily()) {
 			return true
 		}
 	}
@@ -80,9 +80,9 @@ func hasWindowsNode(nodeGroups []*api.NodeGroup) bool {
 }
 
 // hasAmazonLinux2Node reports whether there's at least one Windows node in nodeGroups
-func hasAmazonLinux2Node(nodeGroups []*api.NodeGroup) bool {
+func hasAmazonLinux2Node(nodeGroups []KubeNodeGroup) bool {
 	for _, ng := range nodeGroups {
-		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+		if ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 {
 			return true
 		}
 	}
@@ -90,7 +90,7 @@ func hasAmazonLinux2Node(nodeGroups []*api.NodeGroup) bool {
 }
 
 // LogWindowsCompatibility logs Windows compatibility messages
-func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.ClusterMeta) {
+func LogWindowsCompatibility(nodeGroups []KubeNodeGroup, clusterMeta *api.ClusterMeta) {
 	if hasWindowsNode(nodeGroups) {
 		if !hasAmazonLinux2Node(nodeGroups) {
 			logger.Warning("a Linux node group is required to support Windows workloads")
@@ -109,6 +109,8 @@ type KubeNodeGroup interface {
 	Size() int
 	// ListOptions returns the selector for listing nodes in this nodegroup
 	ListOptions() metav1.ListOptions
+	// GetAMIFamily returns the AMI family
+	GetAMIFamily() string
 }
 
 // WaitForNodes waits till the nodes are ready

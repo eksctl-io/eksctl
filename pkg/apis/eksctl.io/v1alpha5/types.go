@@ -607,6 +607,11 @@ func (n *NodeGroup) Size() int {
 	return *n.MinSize
 }
 
+// GetAMIFamily returns the AMI family
+func (n *NodeGroup) GetAMIFamily() string {
+	return n.AMIFamily
+}
+
 type (
 	// NodeGroupSGs holds all SG attributes of a NodeGroup
 	NodeGroupSGs struct {
@@ -737,6 +742,11 @@ func (n *ManagedNodeGroup) Size() int {
 		return 0
 	}
 	return *n.MinSize
+}
+
+// GetAMIFamily returns the AMI family
+func (n *ManagedNodeGroup) GetAMIFamily() string {
+	return n.AMIFamily
 }
 
 func makeListOptions(nodeGroupName string) metav1.ListOptions {

@@ -148,16 +148,17 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 	}
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
+	kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	if err := eks.ValidateWindowsCompatibility(cfg.NodeGroups, cfg.Metadata.Version); err != nil {
+	if err := eks.ValidateWindowsCompatibility(kubeNodeGroups, cfg.Metadata.Version); err != nil {
 		return err
 	}
 	if params.installWindowsVPCController {
-		if !eks.SupportsWindowsWorkloads(cfg.NodeGroups) {
+		if !eks.SupportsWindowsWorkloads(kubeNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}
 	} else {
-		eks.LogWindowsCompatibility(cfg.NodeGroups, cfg.Metadata)
+		eks.LogWindowsCompatibility(kubeNodeGroups, cfg.Metadata)
 	}
 
 	subnetsGiven := cfg.HasAnySubnets() // this will be false when neither flags nor config has any subnets
