@@ -219,7 +219,7 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
 
-	summaries := []*NodeGroupSummary{}
+	var summaries []*NodeGroupSummary
 	for _, s := range stacks {
 		ngPaths, err := getNodeGroupPaths(s.Tags)
 		if err != nil {
@@ -241,6 +241,7 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	return summaries, nil
 }
 
+// GetNodeGroupStackType returns the nodegroup stack type
 func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType, error) {
 	stackName := c.makeNodeGroupStackName(name)
 	stack, err := c.DescribeStack(&Stack{StackName: &stackName})
@@ -250,7 +251,7 @@ func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType,
 	return GetNodeGroupType(stack.Tags)
 }
 
-// GetNodeGroupStackType returns the nodegroup type
+// GetNodeGroupType returns the nodegroup type
 func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	var (
 		foundNodeGroupTag bool
@@ -313,8 +314,8 @@ func getNodeGroupPaths(tags []*cfn.Tag) (*nodeGroupPaths, error) {
 		return &nodeGroupPaths{
 			InstanceType:    resourcesRootPath + ".NodeGroupLaunchTemplate.Properties.LaunchTemplateData.InstanceType",
 			DesiredCapacity: makePath("DesiredCapacity"),
-			MinSize:         makePath("MaxSize"),
-			MaxSize:         makePath("MinSize"),
+			MinSize:         makePath("MinSize"),
+			MaxSize:         makePath("MaxSize"),
 		}, nil
 
 	default:
@@ -337,17 +338,24 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 	instanceType := gjson.Get(template, ngPaths.InstanceType)
 	imageID := gjson.Get(template, imageIDPath)
 
+	nodeGroupType, err := GetNodeGroupType(stack.Tags)
+	if err != nil {
+		return nil, err
+	}
+
 	var nodeInstanceRoleARN string
-	nodeInstanceRoleARNCollector := func(s string) error {
-		nodeInstanceRoleARN = s
-		return nil
-	}
-	collectors := map[string]outputs.Collector{
-		outputs.NodeGroupInstanceRoleARN: nodeInstanceRoleARNCollector,
-	}
-	collectorSet := outputs.NewCollectorSet(collectors)
-	if err := collectorSet.MustCollect(*stack); err != nil {
-		return nil, errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName)
+	if nodeGroupType == api.NodeGroupTypeUnmanaged {
+		nodeInstanceRoleARNCollector := func(s string) error {
+			nodeInstanceRoleARN = s
+			return nil
+		}
+		collectors := map[string]outputs.Collector{
+			outputs.NodeGroupInstanceRoleARN: nodeInstanceRoleARNCollector,
+		}
+		collectorSet := outputs.NewCollectorSet(collectors)
+		if err := collectorSet.MustCollect(*stack); err != nil {
+			return nil, errors.Wrapf(err, "error collecting Cloudformation outputs for stack %s", *stack.StackName)
+		}
 	}
 
 	summary := &NodeGroupSummary{
