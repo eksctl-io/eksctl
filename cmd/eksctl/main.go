@@ -6,6 +6,8 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/eksctl/pkg/ctl/set"
+	"github.com/weaveworks/eksctl/pkg/ctl/unset"
 	"github.com/weaveworks/eksctl/pkg/ctl/upgrade"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -27,6 +29,8 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(update.Command(flagGrouping))
 	rootCmd.AddCommand(upgrade.Command(flagGrouping))
 	rootCmd.AddCommand(delete.Command(flagGrouping))
+	rootCmd.AddCommand(set.Command(flagGrouping))
+	rootCmd.AddCommand(unset.Command(flagGrouping))
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
 	if os.Getenv("EKSCTL_EXPERIMENTAL") == "true" {

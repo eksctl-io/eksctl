@@ -1,4 +1,4 @@
-package delete
+package set
 
 import (
 	"github.com/spf13/cobra"
@@ -11,25 +11,26 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func deleteLabelsCmd(cmd *cmdutils.Cmd) {
+type labelOptions struct {
+	nodeGroupName string
+	labels        map[string]string
+}
+
+func setLabelsCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("labels", "Create removeLabels", "")
+	cmd.SetDescription("labels", "Create or overwrite labels", "")
 
-	var (
-		nodeGroupName string
-		removeLabels  []string
-	)
+	var options labelOptions
 	cmd.SetRunFuncWithNameArg(func() error {
-		return deleteLabels(cmd, nodeGroupName, removeLabels)
+		return setLabels(cmd, options)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
-		fs.StringVarP(&nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
-		fs.StringSliceVarP(&removeLabels, "labels", "l", nil, "List of labels to remove")
-
+		fs.StringVarP(&options.nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
+		fs.StringToStringVarP(&options.labels, "labels", "l", nil, "Create Labels")
 		_ = cobra.MarkFlagRequired(fs, "labels")
 
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
@@ -40,7 +41,7 @@ func deleteLabelsCmd(cmd *cmdutils.Cmd) {
 
 }
 
-func deleteLabels(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string) error {
+func setLabels(cmd *cmdutils.Cmd, options labelOptions) error {
 	cfg := cmd.ClusterConfig
 	if cfg.Metadata.Name == "" {
 		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
@@ -58,5 +59,5 @@ func deleteLabels(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string
 
 	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
 	managedService := managed.NewService(ctl.Provider, stackCollection, cfg.Metadata.Name)
-	return managedService.UpdateLabels(nodeGroupName, nil, removeLabels)
+	return managedService.UpdateLabels(options.nodeGroupName, options.labels, nil)
 }
