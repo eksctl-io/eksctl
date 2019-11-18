@@ -1,6 +1,6 @@
 include Makefile.common
 
-build_image_input := Dockerfile install-build-deps.sh go.mod go.sum
+build_image_input := Dockerfile install-build-deps.sh go.mod go.sum lib
 
 # We use git object hashes for determining the input files used for any given build image
 # E.g. given `weaveworks/eksctl-build:e6e8800773d3adf8e7999a23dcdb07414c66a4da` one can
@@ -46,7 +46,7 @@ build-image: check-build-image-manifest-up-to-date ## Build the build image that
 	-docker pull $(build_image_name)
 	rm -rf .build_image_context
 	mkdir .build_image_context
-	cp $(build_image_input) .build_image_context/
+	cp -a $(build_image_input) .build_image_context/
 	@# git only ensures owner's perssions are set, it ignores group and other's permissions,
 	@# we need to force permissions here to avoid cache misses
 	chmod go-wrx .build_image_context/*

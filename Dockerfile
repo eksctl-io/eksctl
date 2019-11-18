@@ -38,6 +38,7 @@ WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org
 
 COPY install-build-deps.sh go.mod go.sum /src/
+COPY lib /src/lib
 
 # Install all build tools dependencies
 RUN ./install-build-deps.sh
