@@ -62,6 +62,7 @@ func (c *StackCollection) createNodeGroupTask(errs chan error, ng *api.NodeGroup
 
 func (c *StackCollection) createManagedNodeGroupTask(errorCh chan error, ng *api.ManagedNodeGroup) error {
 	name := c.makeNodeGroupStackName(ng.Name)
+	logger.Info("building managed nodegroup stack %q", name)
 	stack := builder.NewManagedNodeGroup(c.spec, ng, c.makeClusterStackName())
 	if err := stack.AddAllResources(); err != nil {
 		return err
