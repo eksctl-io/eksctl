@@ -220,8 +220,8 @@ var _ = Describe("cmdutils configfile", func() {
 				{"05-advanced-nodegroups.yaml", 3, false, false},
 				{"07-ssh-keys.yaml", 6, true, false},
 				{"07-ssh-keys.yaml", 6, false, false},
-				{"15-managed-nodes.yaml", 2, true, true},
-				{"15-managed-nodes.yaml", 2, false, true},
+				{"15-managed-nodes.yaml", 1, true, true},
+				{"15-managed-nodes.yaml", 1, false, true},
 			}
 
 			for _, loaderTest := range loaderParams {
