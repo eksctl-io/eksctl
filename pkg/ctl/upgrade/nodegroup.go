@@ -13,7 +13,6 @@ import (
 type upgradeOptions struct {
 	nodeGroupName     string
 	kubernetesVersion string
-	releaseVersion    string
 }
 
 func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -31,7 +30,6 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&cfg.Metadata.Name, "cluster", "", "", "EKS cluster name")
 		fs.StringVarP(&options.nodeGroupName, "name", "", "", "Nodegroup name")
 		fs.StringVarP(&options.kubernetesVersion, "kubernetes-version", "", "", "Kubernetes version")
-		fs.StringVarP(&options.releaseVersion, "ami-release-version", "", "", "AMI release version")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
@@ -68,5 +66,5 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options upgradeOptions) error {
 
 	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
 	managedService := managed.NewService(ctl.Provider, stackCollection, cfg.Metadata.Name)
-	return managedService.UpgradeNodeGroup(options.nodeGroupName, options.kubernetesVersion, options.releaseVersion)
+	return managedService.UpgradeNodeGroup(options.nodeGroupName, options.kubernetesVersion)
 }

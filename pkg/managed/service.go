@@ -106,21 +106,9 @@ func (m *Service) GetLabels(nodeGroupName string) (map[string]string, error) {
 	return extractLabels(template)
 }
 
-// UpgradeNodeGroup upgrades nodegroup to the specified versions, or the latest available release if the
-// versions aren't specified.
-// if the amiReleaseVersion is supplied, the full Kubernetes version must also be supplied
-func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion, amiReleaseVersion string) error {
-	if amiReleaseVersion != "" {
-		if kubernetesVersion == "" {
-			return errors.New("Kubernetes version must also be supplied if AMI release version is set")
-		}
-		if _, err := semver.Parse(kubernetesVersion); err != nil {
-			return errors.Wrap(err, "must supply full Kubernetes version when AMI release version is set")
-		}
-
-		return m.updateNodeGroupVersion(nodeGroupName, makeReleaseVersion(kubernetesVersion, amiReleaseVersion))
-	}
-
+// UpgradeNodeGroup upgrades nodegroup to the latest AMI release for the specified Kubernetes version, or
+// the current Kubernetes version if the version isn't specified
+func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string) error {
 	// Use the latest AMI release version
 	output, err := m.provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
 		ClusterName:   &m.clusterName,
@@ -140,6 +128,8 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion, amiReleaseV
 	if kubernetesVersion == "" {
 		// Use the current Kubernetes version
 		kubernetesVersion = *nodeGroup.Version
+	} else if _, err := semver.ParseTolerant(kubernetesVersion); err != nil {
+		return errors.Wrap(err, "invalid Kubernetes version")
 	}
 
 	instanceType := nodeGroup.InstanceTypes[0]
@@ -171,7 +161,7 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion, amiReleaseV
 	}
 
 	image := *imagesOutput.Images[0]
-	amiReleaseVersion, err = extractAMIReleaseVersion(*image.Name)
+	amiReleaseVersion, err := extractAMIReleaseVersion(*image.Name)
 	if err != nil {
 		return errors.Wrap(err, "error extracting AMI release version")
 	}
