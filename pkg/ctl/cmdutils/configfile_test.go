@@ -145,7 +145,7 @@ var _ = Describe("cmdutils configfile", func() {
 				{unnamedNG, false, false},
 				{unnamedNG, true, false},
 				{namedNG, false, false},
-				{namedNG, false, false},
+				{namedNG, true, false},
 				{unnamedNG, false, true},
 				{unnamedNG, true, true},
 				{namedNG, false, true},
@@ -220,7 +220,7 @@ var _ = Describe("cmdutils configfile", func() {
 				{"05-advanced-nodegroups.yaml", 3, false, false},
 				{"07-ssh-keys.yaml", 6, true, false},
 				{"07-ssh-keys.yaml", 6, false, false},
-				{"15-managed-nodes.yaml", 2, false, true},
+				{"15-managed-nodes.yaml", 2, true, true},
 				{"15-managed-nodes.yaml", 2, false, true},
 			}
 
