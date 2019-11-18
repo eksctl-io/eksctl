@@ -93,7 +93,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error)
 	newResources := gjson.Get(string(newTemplate), resourcesRootPath)
 	newOutputs := gjson.Get(string(newTemplate), outputsRootPath)
 	if !newResources.IsObject() || !newOutputs.IsObject() {
-		return false, fmt.Errorf("unexpected template format of the new version of the stack ")
+		return false, errors.New("unexpected template format of the new version of the stack")
 	}
 
 	logger.Debug("currentTemplate = %s", currentTemplate)

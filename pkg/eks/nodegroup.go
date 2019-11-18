@@ -14,6 +14,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
@@ -28,12 +29,12 @@ func isNodeReady(node *corev1.Node) bool {
 	return false
 }
 
-func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
+func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 	nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 	if err != nil {
 		return 0, err
 	}
-	logger.Info("nodegroup %q has %d node(s)", ng.Name, len(nodes.Items))
+	logger.Info("nodegroup %q has %d node(s)", ng.NameString(), len(nodes.Items))
 	counter := 0
 	for _, node := range nodes.Items {
 		// logger.Debug("node[%d]=%#v", n, node)
@@ -48,8 +49,8 @@ func getNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) (int, error) {
 }
 
 // ValidateWindowsCompatibility validates Windows compatibility
-func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersion string) error {
-	if !hasWindowsNode(nodeGroups) {
+func ValidateWindowsCompatibility(kubeNodeGroups []KubeNodeGroup, controlPlaneVersion string) error {
+	if !hasWindowsNode(kubeNodeGroups) {
 		return nil
 	}
 
@@ -64,14 +65,14 @@ func ValidateWindowsCompatibility(nodeGroups []*api.NodeGroup, controlPlaneVersi
 }
 
 // SupportsWindowsWorkloads reports whether nodeGroups can support running Windows workloads
-func SupportsWindowsWorkloads(nodeGroups []*api.NodeGroup) bool {
+func SupportsWindowsWorkloads(nodeGroups []KubeNodeGroup) bool {
 	return hasWindowsNode(nodeGroups) && hasAmazonLinux2Node(nodeGroups)
 }
 
 // hasWindowsNode reports whether there's at least one Windows node in nodeGroups
-func hasWindowsNode(nodeGroups []*api.NodeGroup) bool {
+func hasWindowsNode(nodeGroups []KubeNodeGroup) bool {
 	for _, ng := range nodeGroups {
-		if api.IsWindowsImage(ng.AMIFamily) {
+		if api.IsWindowsImage(ng.GetAMIFamily()) {
 			return true
 		}
 	}
@@ -79,9 +80,9 @@ func hasWindowsNode(nodeGroups []*api.NodeGroup) bool {
 }
 
 // hasAmazonLinux2Node reports whether there's at least one Windows node in nodeGroups
-func hasAmazonLinux2Node(nodeGroups []*api.NodeGroup) bool {
+func hasAmazonLinux2Node(nodeGroups []KubeNodeGroup) bool {
 	for _, ng := range nodeGroups {
-		if ng.AMIFamily == api.NodeImageFamilyAmazonLinux2 {
+		if ng.GetAMIFamily() == api.NodeImageFamilyAmazonLinux2 {
 			return true
 		}
 	}
@@ -89,7 +90,7 @@ func hasAmazonLinux2Node(nodeGroups []*api.NodeGroup) bool {
 }
 
 // LogWindowsCompatibility logs Windows compatibility messages
-func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.ClusterMeta) {
+func LogWindowsCompatibility(nodeGroups []KubeNodeGroup, clusterMeta *api.ClusterMeta) {
 	if hasWindowsNode(nodeGroups) {
 		if !hasAmazonLinux2Node(nodeGroups) {
 			logger.Warning("a Linux node group is required to support Windows workloads")
@@ -100,9 +101,22 @@ func LogWindowsCompatibility(nodeGroups []*api.NodeGroup, clusterMeta *api.Clust
 	}
 }
 
+// KubeNodeGroup defines a set of Kubernetes Nodes
+type KubeNodeGroup interface {
+	// NameString returns the name
+	NameString() string
+	// Size returns the number of the nodes (desired capacity)
+	Size() int
+	// ListOptions returns the selector for listing nodes in this nodegroup
+	ListOptions() metav1.ListOptions
+	// GetAMIFamily returns the AMI family
+	GetAMIFamily() string
+}
+
 // WaitForNodes waits till the nodes are ready
-func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	if ng.MinSize == nil || *ng.MinSize == 0 {
+func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) error {
+	minSize := ng.Size()
+	if minSize == 0 {
 		return nil
 	}
 	timer := time.After(c.Provider.WaitTimeout())
@@ -118,8 +132,8 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.N
 		return errors.Wrap(err, "listing nodes")
 	}
 
-	logger.Info("waiting for at least %d node(s) to become ready in %q", *ng.MinSize, ng.Name)
-	for !timeout && counter < *ng.MinSize {
+	logger.Info("waiting for at least %d node(s) to become ready in %q", minSize, ng.NameString())
+	for !timeout && counter < minSize {
 		select {
 		case event := <-watcher.ResultChan():
 			logger.Debug("event = %#v", event)
@@ -128,9 +142,9 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.N
 					if isNodeReady(node) {
 						readyNodes.Insert(node.Name)
 						counter = readyNodes.Len()
-						logger.Debug("node %q is ready in %q", node.Name, ng.Name)
+						logger.Debug("node %q is ready in %q", node.Name, ng.NameString())
 					} else {
-						logger.Debug("node %q seen in %q, but not ready yet", node.Name, ng.Name)
+						logger.Debug("node %q seen in %q, but not ready yet", node.Name, ng.NameString())
 						logger.Debug("node = %#v", *node)
 					}
 				}
@@ -141,7 +155,7 @@ func (c *ClusterProvider) WaitForNodes(clientSet kubernetes.Interface, ng *api.N
 	}
 	watcher.Stop()
 	if timeout {
-		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), *ng.MinSize, ng.Name)
+		return fmt.Errorf("timed out (after %s) waiting for at least %d nodes to join the cluster and become ready in %q", c.Provider.WaitTimeout(), minSize, ng.NameString())
 	}
 
 	if _, err = getNodes(clientSet, ng); err != nil {

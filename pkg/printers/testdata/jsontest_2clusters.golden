@@ -10,6 +10,7 @@
     "Name": "test-cluster-1",
     "PlatformVersion": null,
     "ResourcesVpcConfig": {
+      "ClusterSecurityGroupId": null,
       "EndpointPrivateAccess": null,
       "EndpointPublicAccess": null,
       "SecurityGroupIds": null,
@@ -21,6 +22,7 @@
     },
     "RoleArn": null,
     "Status": "ACTIVE",
+    "Tags": null,
     "Version": null
   },
   {
@@ -34,6 +36,7 @@
     "Name": "test-cluster-2",
     "PlatformVersion": null,
     "ResourcesVpcConfig": {
+      "ClusterSecurityGroupId": null,
       "EndpointPrivateAccess": null,
       "EndpointPublicAccess": null,
       "SecurityGroupIds": null,
@@ -45,6 +48,7 @@
     },
     "RoleArn": null,
     "Status": "ACTIVE",
+    "Tags": null,
     "Version": null
   }
 ]

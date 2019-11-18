@@ -53,6 +53,13 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 		api.SetNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
 	}
 
+	for i, ng := range c.ClusterConfig.ManagedNodeGroups {
+		api.SetManagedNodeGroupDefaults(ng, c.ClusterConfig.Metadata)
+		if err := api.ValidateManagedNodeGroup(ng, i); err != nil {
+			return nil, err
+		}
+	}
+
 	ctl := eks.New(c.ProviderConfig, c.ClusterConfig)
 
 	if !ctl.IsSupportedRegion() {

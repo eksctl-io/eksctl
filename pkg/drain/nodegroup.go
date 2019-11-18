@@ -6,13 +6,12 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/eks"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // this is our custom addition, it's not part of the package
@@ -38,7 +37,7 @@ func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
 }
 
 // NodeGroup drains a nodegroup
-func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout time.Duration, undo bool) error {
+func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout time.Duration, undo bool) error {
 	drainer := &Helper{
 		Client: clientSet,
 
@@ -93,7 +92,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 	for {
 		select {
 		case <-timer.C:
-			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", waitTimeout, ng.Name)
+			return fmt.Errorf("timed out (after %s) waiting for nodegroup %q to be drained", waitTimeout, ng.NameString())
 		default:
 			nodes, err := clientSet.CoreV1().Nodes().List(ng.ListOptions())
 			if err != nil {
@@ -101,7 +100,7 @@ func NodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup, waitTimeout ti
 			}
 
 			if len(nodes.Items) == 0 {
-				logger.Warning("no nodes found in nodegroup %q (label selector: %q)", ng.Name, ng.ListOptions().LabelSelector)
+				logger.Warning("no nodes found in nodegroup %q (label selector: %q)", ng.NameString(), ng.ListOptions().LabelSelector)
 				return nil
 			}
 

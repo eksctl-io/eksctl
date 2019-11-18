@@ -25,7 +25,7 @@ type SSMResolver struct {
 func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string) (string, error) {
 	logger.Debug("resolving AMI using SSM Parameter resolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
-	parameterName, err := makeParameterName(version, instanceType, imageFamily)
+	parameterName, err := MakeSSMParameterName(version, instanceType, imageFamily)
 	if err != nil {
 		return "", err
 	}
@@ -44,7 +44,8 @@ func (r *SSMResolver) Resolve(region, version, instanceType, imageFamily string)
 	return *output.Parameter.Value, nil
 }
 
-func makeParameterName(version, instanceType, imageFamily string) (string, error) {
+// MakeSSMParameterName creates an SSM parameter name
+func MakeSSMParameterName(version, instanceType, imageFamily string) (string, error) {
 	if api.IsWindowsImage(imageFamily) {
 		if supportsWindows, err := utils.IsMinVersion(api.Version1_14, version); err != nil {
 			return "", err

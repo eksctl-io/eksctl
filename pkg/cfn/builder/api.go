@@ -74,6 +74,10 @@ func makeAutoNameTag(suffix string) gfn.Tag {
 	}
 }
 
+func makeAttrAccessor(resource, attr string) string {
+	return fmt.Sprintf("%s.%s", resource, attr)
+}
+
 // maybeSetNameTag adds a Name tag to any resource that supports tags
 // it calls makeAutoNameTag to format the tag value
 func maybeSetNameTag(name string, resource interface{}) {

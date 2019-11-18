@@ -49,6 +49,16 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
 }
 
+func incompatibleManagedNodesFlags() []string {
+	return []string{
+		"node-volume-type",
+		"max-pods-per-node",
+		"node-ami",
+		"node-private-networking",
+		"node-security-groups",
+	}
+}
+
 // AddCommonCreateNodeGroupIAMAddonsFlags adds flags to set ng.IAM.WithAddonPolicies
 func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup) {
 	ng.IAM.WithAddonPolicies.AutoScaler = new(bool)

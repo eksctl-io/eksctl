@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/request"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -36,7 +37,7 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 		return req
 	}
 
-	troubleshoot := func(desiredStatus string) {
+	troubleshoot := func(desiredStatus string) error {
 		s, err := c.DescribeStack(i)
 		if err != nil {
 			logger.Debug("describeErr=%v", err)
@@ -44,9 +45,18 @@ func (c *StackCollection) waitWithAcceptors(i *Stack, acceptors []request.Waiter
 			logger.Critical("unexpected status %q while %s", *s.StackStatus, msg)
 			c.troubleshootStackFailureCause(i, desiredStatus)
 		}
+		return nil
 	}
 
 	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.provider.WaitTimeout(), troubleshoot)
+}
+
+type noChangeError struct {
+	msg string
+}
+
+func (e *noChangeError) Error() string {
+	return e.msg
 }
 
 func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName string, acceptors []request.WaiterAcceptor) error {
@@ -61,13 +71,19 @@ func (c *StackCollection) waitWithAcceptorsChangeSet(i *Stack, changesetName str
 		return req
 	}
 
-	troubleshoot := func(desiredStatus string) {
+	troubleshoot := func(desiredStatus string) error {
 		s, err := c.DescribeStackChangeSet(i, changesetName)
 		if err != nil {
 			logger.Debug("describeChangeSetErr=%v", err)
 		} else {
+			if strings.Contains(*s.StatusReason, "The submitted information didn't contain changes") {
+				// ignore this error
+				logger.Info("nothing to update")
+				return &noChangeError{*s.StatusReason}
+			}
 			logger.Critical("unexpected status %q while %s, reason: %s", *s.Status, msg, *s.StatusReason)
 		}
+		return nil
 	}
 
 	return waiters.Wait(*i.StackName, msg, acceptors, newRequest, c.provider.WaitTimeout(), troubleshoot)

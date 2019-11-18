@@ -153,6 +153,18 @@ func (t *taskWithNodeGroupSpec) Do(errs chan error) error {
 	return t.call(errs, t.nodeGroup)
 }
 
+type managedNodeGroupTask struct {
+	info            string
+	nodeGroup       *api.ManagedNodeGroup
+	stackCollection *StackCollection
+}
+
+func (t *managedNodeGroupTask) Describe() string { return t.info }
+
+func (t *managedNodeGroupTask) Do(errorCh chan error) error {
+	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup)
+}
+
 type taskWithClusterIAMServiceAccountSpec struct {
 	info           string
 	serviceAccount *api.ClusterIAMServiceAccount

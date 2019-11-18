@@ -43,7 +43,7 @@ type (
 	}
 )
 
-// Resource defines the interface that every resource should implements
+// Resource defines the interface that every resource should implement
 type Resource interface {
 	Type() string
 	Properties() interface{}

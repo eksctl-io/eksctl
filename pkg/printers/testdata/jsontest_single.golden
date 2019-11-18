@@ -10,6 +10,7 @@
     "Name": "test-cluster",
     "PlatformVersion": null,
     "ResourcesVpcConfig": {
+      "ClusterSecurityGroupId": null,
       "EndpointPrivateAccess": null,
       "EndpointPublicAccess": null,
       "SecurityGroupIds": null,
@@ -21,6 +22,7 @@
     },
     "RoleArn": null,
     "Status": "ACTIVE",
+    "Tags": null,
     "Version": null
   }
 ]

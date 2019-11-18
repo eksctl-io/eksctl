@@ -8,6 +8,7 @@
   Name: test-cluster-1
   PlatformVersion: null
   ResourcesVpcConfig:
+    ClusterSecurityGroupId: null
     EndpointPrivateAccess: null
     EndpointPublicAccess: null
     SecurityGroupIds: null
@@ -17,6 +18,7 @@
     VpcId: vpc-1234
   RoleArn: null
   Status: ACTIVE
+  Tags: null
   Version: null
 - Arn: arn-87654321
   CertificateAuthority: null
@@ -28,6 +30,7 @@
   Name: test-cluster-2
   PlatformVersion: null
   ResourcesVpcConfig:
+    ClusterSecurityGroupId: null
     EndpointPrivateAccess: null
     EndpointPublicAccess: null
     SecurityGroupIds: null
@@ -37,4 +40,5 @@
     VpcId: vpc-1234
   RoleArn: null
   Status: ACTIVE
+  Tags: null
   Version: null

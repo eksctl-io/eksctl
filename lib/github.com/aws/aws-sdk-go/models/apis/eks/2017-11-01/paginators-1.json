@@ -1,0 +1,22 @@
+{
+  "pagination": {
+    "ListClusters": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "clusters"
+    },
+    "ListNodegroups": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "nodegroups"
+    },
+    "ListUpdates": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "updateIds"
+    }
+  }
+}
