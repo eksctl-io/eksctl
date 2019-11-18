@@ -80,6 +80,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
 }
 
+// SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
 func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = NodeImageFamilyAmazonLinux2

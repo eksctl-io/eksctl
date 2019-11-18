@@ -19,12 +19,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
 
+// A Service provides methods for managing managed nodegroups
 type Service struct {
 	provider        v1alpha5.ClusterProvider
 	clusterName     string
 	stackCollection *manager.StackCollection
 }
 
+// HealthIssue represents a health issue with a managed nodegroup
 type HealthIssue struct {
 	Message string
 	Code    string
@@ -36,10 +38,12 @@ const (
 	releaseVersionPath = "Resources.ManagedNodeGroup.Properties.ReleaseVersion"
 )
 
+// NewService creates a new Service
 func NewService(provider v1alpha5.ClusterProvider, stackCollection *manager.StackCollection, clusterName string) *Service {
 	return &Service{provider: provider, stackCollection: stackCollection, clusterName: clusterName}
 }
 
+// GetHealth fetches the health status for a nodegroup
 func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 	input := &eks.DescribeNodegroupInput{
 		ClusterName:   &m.clusterName,
@@ -71,6 +75,7 @@ func (m *Service) GetHealth(nodeGroupName string) ([]HealthIssue, error) {
 	return healthIssues, nil
 }
 
+// UpdateLabels adds or removes labels for a nodegroup
 func (m *Service) UpdateLabels(nodeGroupName string, labelsToAdd map[string]string, labelsToRemove []string) error {
 	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
 	if err != nil {
@@ -98,6 +103,7 @@ func (m *Service) UpdateLabels(nodeGroupName string, labelsToAdd map[string]stri
 	return m.stackCollection.UpdateNodeGroupStack(nodeGroupName, template)
 }
 
+// GetLabels fetches the labels for a nodegroup
 func (m *Service) GetLabels(nodeGroupName string) (map[string]string, error) {
 	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
 	if err != nil {

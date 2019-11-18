@@ -51,6 +51,7 @@ func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup
 	return tasks
 }
 
+// NewManagedNodeGroupTask defines tasks required to create managed nodegroups
 func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 	for _, ng := range nodeGroups {

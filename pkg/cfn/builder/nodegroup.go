@@ -179,6 +179,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	return nil
 }
 
+// AssignSubnets subnets based on the specified availability zones
 func AssignSubnets(availabilityZones []string, clusterStackName string, clusterSpec *api.ClusterConfig, privateNetworking bool) interface{} {
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved

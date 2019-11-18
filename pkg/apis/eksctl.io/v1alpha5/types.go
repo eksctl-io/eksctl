@@ -472,7 +472,7 @@ func NewNodeGroup() *NodeGroup {
 	}
 }
 
-// NewNodeGroup creates a new ManagedNodeGroup
+// NewManagedNodeGroup creates a new ManagedNodeGroup
 func NewManagedNodeGroup() *ManagedNodeGroup {
 	var (
 		publicKey  = DefaultNodeSSHPublicKeyPath
@@ -700,8 +700,8 @@ type ScalingConfig struct {
 	MaxSize *int `json:"maxSize,omitempty"`
 }
 
-// TODO Validate for unmapped fields and throw an error
 // ManagedNodeGroup defines an EKS-managed nodegroup
+// TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
 	Name string `json:"name"`
 

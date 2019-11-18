@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
+// ManagedNodeGroupResourceSet defines the CloudFormation resources required for a managed nodegroup
 type ManagedNodeGroupResourceSet struct {
 	clusterConfig    *api.ClusterConfig
 	clusterStackName string
@@ -71,6 +72,7 @@ func NewManagedNodeGroup(cluster *api.ClusterConfig, nodeGroup *api.ManagedNodeG
 	}
 }
 
+// AddAllResources adds all required CloudFormation resources
 func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	m.resourceSet.template.Description = fmt.Sprintf(
 		"%s (SSH access: %v) %s",
