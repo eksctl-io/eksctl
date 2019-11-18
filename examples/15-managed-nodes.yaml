@@ -1,0 +1,29 @@
+# An example of ClusterConfig object using Managed Nodes
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-15
+  region: us-west-2
+
+managedNodeGroups:
+  - name: managed-1
+    instanceType: m5.large
+    minSize: 2
+    desiredCapacity: 3
+    maxSize: 4
+    availabilityZones: ["us-west-2a", "us-west-2b"]
+    volumeSize: 20
+    ssh:
+      allow: true
+      publicKeyPath: ~/.ssh/ec2_id_rsa.pub
+      # new feature for restricting SSH access to certain AWS security group IDs
+      sourceSecurityGroupIds: ["sg-00241fbb12c607007"]
+    labels: {role: worker}
+    tags:
+      nodegroup-role: worker
+    iam:
+      withAddonPolicies:
+        externalDNS: true
+        certManager: true
