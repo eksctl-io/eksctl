@@ -2,7 +2,6 @@ package builder
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -84,21 +83,6 @@ func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn
 	return c.rs.newResource(name, resource)
 }
 
-// Workaround to support creation of beta EKS clusters
-// TODO remove this before merging
-type awsEKSBeta gfn.AWSEKSCluster
-
-func (e *awsEKSBeta) MarshalJSON() ([]byte, error) {
-	type Properties awsEKSBeta
-	return json.Marshal(&struct {
-		Type       string
-		Properties Properties
-	}{
-		Type:       "Dev::EKS::Cluster",
-		Properties: Properties(*e),
-	})
-}
-
 func (c *ClusterResourceSet) addResourcesForControlPlane() {
 	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
 		SecurityGroupIds: c.securityGroups,
@@ -112,7 +96,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		serviceRoleARN = gfn.NewString(*c.spec.IAM.ServiceRoleARN)
 	}
 
-	c.newResource("ControlPlane", &awsEKSBeta{
+	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
 		Name:               gfn.NewString(c.spec.Metadata.Name),
 		RoleArn:            serviceRoleARN,
 		Version:            gfn.NewString(c.spec.Metadata.Version),

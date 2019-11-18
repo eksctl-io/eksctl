@@ -70,12 +70,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			"eks.amazonaws.com",
-			// TODO remove beta policies before releasing
-			"eks-beta-pdx.aws.internal",
-			"us-west-2.eks-managed-nodes-beta.aws.internal",
-		),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("eks.amazonaws.com"),
 		ManagedPolicyArns: makeStringSlice(
 			iamPolicyAmazonEKSServicePolicyARN,
 			iamPolicyAmazonEKSClusterPolicyARN,

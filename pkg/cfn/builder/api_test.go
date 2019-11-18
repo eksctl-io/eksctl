@@ -2189,8 +2189,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
 			}))
 
-			// TODO remove beta services before merging
-			checkARPD([]string{"eks.amazonaws.com", "eks-beta-pdx.aws.internal", "us-west-2.eks-managed-nodes-beta.aws.internal"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
+			checkARPD([]string{"eks.amazonaws.com"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
 
 			policy1 := clusterTemplate.Resources["PolicyNLB"].Properties
 
