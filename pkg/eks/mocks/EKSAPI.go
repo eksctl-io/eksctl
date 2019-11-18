@@ -91,6 +91,162 @@ func (_m *EKSAPI) CreateClusterWithContext(_a0 context.Context, _a1 *eks.CreateC
 	return r0, r1
 }
 
+// CreateFargateProfile provides a mock function with given fields: _a0
+func (_m *EKSAPI) CreateFargateProfile(_a0 *eks.CreateFargateProfileInput) (*eks.CreateFargateProfileOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.CreateFargateProfileOutput
+	if rf, ok := ret.Get(0).(func(*eks.CreateFargateProfileInput) *eks.CreateFargateProfileOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateFargateProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.CreateFargateProfileInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateFargateProfileRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) CreateFargateProfileRequest(_a0 *eks.CreateFargateProfileInput) (*request.Request, *eks.CreateFargateProfileOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.CreateFargateProfileInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.CreateFargateProfileOutput
+	if rf, ok := ret.Get(1).(func(*eks.CreateFargateProfileInput) *eks.CreateFargateProfileOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.CreateFargateProfileOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateFargateProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) CreateFargateProfileWithContext(_a0 context.Context, _a1 *eks.CreateFargateProfileInput, _a2 ...request.Option) (*eks.CreateFargateProfileOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.CreateFargateProfileOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateFargateProfileInput, ...request.Option) *eks.CreateFargateProfileOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateFargateProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateFargateProfileInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateNodegroup provides a mock function with given fields: _a0
+func (_m *EKSAPI) CreateNodegroup(_a0 *eks.CreateNodegroupInput) (*eks.CreateNodegroupOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.CreateNodegroupOutput
+	if rf, ok := ret.Get(0).(func(*eks.CreateNodegroupInput) *eks.CreateNodegroupOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateNodegroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.CreateNodegroupInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateNodegroupRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) CreateNodegroupRequest(_a0 *eks.CreateNodegroupInput) (*request.Request, *eks.CreateNodegroupOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.CreateNodegroupInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.CreateNodegroupOutput
+	if rf, ok := ret.Get(1).(func(*eks.CreateNodegroupInput) *eks.CreateNodegroupOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.CreateNodegroupOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// CreateNodegroupWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) CreateNodegroupWithContext(_a0 context.Context, _a1 *eks.CreateNodegroupInput, _a2 ...request.Option) (*eks.CreateNodegroupOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.CreateNodegroupOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.CreateNodegroupInput, ...request.Option) *eks.CreateNodegroupOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.CreateNodegroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.CreateNodegroupInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteCluster provides a mock function with given fields: _a0
 func (_m *EKSAPI) DeleteCluster(_a0 *eks.DeleteClusterInput) (*eks.DeleteClusterOutput, error) {
 	ret := _m.Called(_a0)
@@ -169,6 +325,162 @@ func (_m *EKSAPI) DeleteClusterWithContext(_a0 context.Context, _a1 *eks.DeleteC
 	return r0, r1
 }
 
+// DeleteFargateProfile provides a mock function with given fields: _a0
+func (_m *EKSAPI) DeleteFargateProfile(_a0 *eks.DeleteFargateProfileInput) (*eks.DeleteFargateProfileOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.DeleteFargateProfileOutput
+	if rf, ok := ret.Get(0).(func(*eks.DeleteFargateProfileInput) *eks.DeleteFargateProfileOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteFargateProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DeleteFargateProfileInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteFargateProfileRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) DeleteFargateProfileRequest(_a0 *eks.DeleteFargateProfileInput) (*request.Request, *eks.DeleteFargateProfileOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DeleteFargateProfileInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DeleteFargateProfileOutput
+	if rf, ok := ret.Get(1).(func(*eks.DeleteFargateProfileInput) *eks.DeleteFargateProfileOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DeleteFargateProfileOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteFargateProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) DeleteFargateProfileWithContext(_a0 context.Context, _a1 *eks.DeleteFargateProfileInput, _a2 ...request.Option) (*eks.DeleteFargateProfileOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DeleteFargateProfileOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteFargateProfileInput, ...request.Option) *eks.DeleteFargateProfileOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteFargateProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteFargateProfileInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteNodegroup provides a mock function with given fields: _a0
+func (_m *EKSAPI) DeleteNodegroup(_a0 *eks.DeleteNodegroupInput) (*eks.DeleteNodegroupOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.DeleteNodegroupOutput
+	if rf, ok := ret.Get(0).(func(*eks.DeleteNodegroupInput) *eks.DeleteNodegroupOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteNodegroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DeleteNodegroupInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteNodegroupRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) DeleteNodegroupRequest(_a0 *eks.DeleteNodegroupInput) (*request.Request, *eks.DeleteNodegroupOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DeleteNodegroupInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DeleteNodegroupOutput
+	if rf, ok := ret.Get(1).(func(*eks.DeleteNodegroupInput) *eks.DeleteNodegroupOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DeleteNodegroupOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeleteNodegroupWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) DeleteNodegroupWithContext(_a0 context.Context, _a1 *eks.DeleteNodegroupInput, _a2 ...request.Option) (*eks.DeleteNodegroupOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DeleteNodegroupOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DeleteNodegroupInput, ...request.Option) *eks.DeleteNodegroupOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DeleteNodegroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DeleteNodegroupInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeCluster provides a mock function with given fields: _a0
 func (_m *EKSAPI) DescribeCluster(_a0 *eks.DescribeClusterInput) (*eks.DescribeClusterOutput, error) {
 	ret := _m.Called(_a0)
@@ -239,6 +551,162 @@ func (_m *EKSAPI) DescribeClusterWithContext(_a0 context.Context, _a1 *eks.Descr
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeClusterInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeFargateProfile provides a mock function with given fields: _a0
+func (_m *EKSAPI) DescribeFargateProfile(_a0 *eks.DescribeFargateProfileInput) (*eks.DescribeFargateProfileOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.DescribeFargateProfileOutput
+	if rf, ok := ret.Get(0).(func(*eks.DescribeFargateProfileInput) *eks.DescribeFargateProfileOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeFargateProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DescribeFargateProfileInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeFargateProfileRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) DescribeFargateProfileRequest(_a0 *eks.DescribeFargateProfileInput) (*request.Request, *eks.DescribeFargateProfileOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DescribeFargateProfileInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DescribeFargateProfileOutput
+	if rf, ok := ret.Get(1).(func(*eks.DescribeFargateProfileInput) *eks.DescribeFargateProfileOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DescribeFargateProfileOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeFargateProfileWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) DescribeFargateProfileWithContext(_a0 context.Context, _a1 *eks.DescribeFargateProfileInput, _a2 ...request.Option) (*eks.DescribeFargateProfileOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DescribeFargateProfileOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeFargateProfileInput, ...request.Option) *eks.DescribeFargateProfileOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeFargateProfileOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeFargateProfileInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeNodegroup provides a mock function with given fields: _a0
+func (_m *EKSAPI) DescribeNodegroup(_a0 *eks.DescribeNodegroupInput) (*eks.DescribeNodegroupOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.DescribeNodegroupOutput
+	if rf, ok := ret.Get(0).(func(*eks.DescribeNodegroupInput) *eks.DescribeNodegroupOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeNodegroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.DescribeNodegroupInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeNodegroupRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) DescribeNodegroupRequest(_a0 *eks.DescribeNodegroupInput) (*request.Request, *eks.DescribeNodegroupOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.DescribeNodegroupInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.DescribeNodegroupOutput
+	if rf, ok := ret.Get(1).(func(*eks.DescribeNodegroupInput) *eks.DescribeNodegroupOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.DescribeNodegroupOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeNodegroupWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) DescribeNodegroupWithContext(_a0 context.Context, _a1 *eks.DescribeNodegroupInput, _a2 ...request.Option) (*eks.DescribeNodegroupOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.DescribeNodegroupOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeNodegroupInput, ...request.Option) *eks.DescribeNodegroupOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.DescribeNodegroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.DescribeNodegroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -438,6 +906,275 @@ func (_m *EKSAPI) ListClustersWithContext(_a0 context.Context, _a1 *eks.ListClus
 	return r0, r1
 }
 
+// ListFargateProfiles provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListFargateProfiles(_a0 *eks.ListFargateProfilesInput) (*eks.ListFargateProfilesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.ListFargateProfilesOutput
+	if rf, ok := ret.Get(0).(func(*eks.ListFargateProfilesInput) *eks.ListFargateProfilesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListFargateProfilesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.ListFargateProfilesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListFargateProfilesRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListFargateProfilesRequest(_a0 *eks.ListFargateProfilesInput) (*request.Request, *eks.ListFargateProfilesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.ListFargateProfilesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.ListFargateProfilesOutput
+	if rf, ok := ret.Get(1).(func(*eks.ListFargateProfilesInput) *eks.ListFargateProfilesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.ListFargateProfilesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListFargateProfilesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) ListFargateProfilesWithContext(_a0 context.Context, _a1 *eks.ListFargateProfilesInput, _a2 ...request.Option) (*eks.ListFargateProfilesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.ListFargateProfilesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListFargateProfilesInput, ...request.Option) *eks.ListFargateProfilesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListFargateProfilesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListFargateProfilesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListNodegroups provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListNodegroups(_a0 *eks.ListNodegroupsInput) (*eks.ListNodegroupsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.ListNodegroupsOutput
+	if rf, ok := ret.Get(0).(func(*eks.ListNodegroupsInput) *eks.ListNodegroupsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListNodegroupsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.ListNodegroupsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListNodegroupsPages provides a mock function with given fields: _a0, _a1
+func (_m *EKSAPI) ListNodegroupsPages(_a0 *eks.ListNodegroupsInput, _a1 func(*eks.ListNodegroupsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.ListNodegroupsInput, func(*eks.ListNodegroupsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListNodegroupsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EKSAPI) ListNodegroupsPagesWithContext(_a0 context.Context, _a1 *eks.ListNodegroupsInput, _a2 func(*eks.ListNodegroupsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListNodegroupsInput, func(*eks.ListNodegroupsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListNodegroupsRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListNodegroupsRequest(_a0 *eks.ListNodegroupsInput) (*request.Request, *eks.ListNodegroupsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.ListNodegroupsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.ListNodegroupsOutput
+	if rf, ok := ret.Get(1).(func(*eks.ListNodegroupsInput) *eks.ListNodegroupsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.ListNodegroupsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListNodegroupsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) ListNodegroupsWithContext(_a0 context.Context, _a1 *eks.ListNodegroupsInput, _a2 ...request.Option) (*eks.ListNodegroupsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.ListNodegroupsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListNodegroupsInput, ...request.Option) *eks.ListNodegroupsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListNodegroupsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListNodegroupsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListTagsForResource provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListTagsForResource(_a0 *eks.ListTagsForResourceInput) (*eks.ListTagsForResourceOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.ListTagsForResourceOutput
+	if rf, ok := ret.Get(0).(func(*eks.ListTagsForResourceInput) *eks.ListTagsForResourceOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListTagsForResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.ListTagsForResourceInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListTagsForResourceRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) ListTagsForResourceRequest(_a0 *eks.ListTagsForResourceInput) (*request.Request, *eks.ListTagsForResourceOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.ListTagsForResourceInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.ListTagsForResourceOutput
+	if rf, ok := ret.Get(1).(func(*eks.ListTagsForResourceInput) *eks.ListTagsForResourceOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.ListTagsForResourceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListTagsForResourceWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) ListTagsForResourceWithContext(_a0 context.Context, _a1 *eks.ListTagsForResourceInput, _a2 ...request.Option) (*eks.ListTagsForResourceOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.ListTagsForResourceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListTagsForResourceInput, ...request.Option) *eks.ListTagsForResourceOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.ListTagsForResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListTagsForResourceInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListUpdates provides a mock function with given fields: _a0
 func (_m *EKSAPI) ListUpdates(_a0 *eks.ListUpdatesInput) (*eks.ListUpdatesOutput, error) {
 	ret := _m.Called(_a0)
@@ -543,6 +1280,162 @@ func (_m *EKSAPI) ListUpdatesWithContext(_a0 context.Context, _a1 *eks.ListUpdat
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *eks.ListUpdatesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagResource provides a mock function with given fields: _a0
+func (_m *EKSAPI) TagResource(_a0 *eks.TagResourceInput) (*eks.TagResourceOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.TagResourceOutput
+	if rf, ok := ret.Get(0).(func(*eks.TagResourceInput) *eks.TagResourceOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.TagResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.TagResourceInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagResourceRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) TagResourceRequest(_a0 *eks.TagResourceInput) (*request.Request, *eks.TagResourceOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.TagResourceInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.TagResourceOutput
+	if rf, ok := ret.Get(1).(func(*eks.TagResourceInput) *eks.TagResourceOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.TagResourceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// TagResourceWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) TagResourceWithContext(_a0 context.Context, _a1 *eks.TagResourceInput, _a2 ...request.Option) (*eks.TagResourceOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.TagResourceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.TagResourceInput, ...request.Option) *eks.TagResourceOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.TagResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.TagResourceInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagResource provides a mock function with given fields: _a0
+func (_m *EKSAPI) UntagResource(_a0 *eks.UntagResourceInput) (*eks.UntagResourceOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.UntagResourceOutput
+	if rf, ok := ret.Get(0).(func(*eks.UntagResourceInput) *eks.UntagResourceOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UntagResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.UntagResourceInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UntagResourceRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) UntagResourceRequest(_a0 *eks.UntagResourceInput) (*request.Request, *eks.UntagResourceOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.UntagResourceInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.UntagResourceOutput
+	if rf, ok := ret.Get(1).(func(*eks.UntagResourceInput) *eks.UntagResourceOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.UntagResourceOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UntagResourceWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) UntagResourceWithContext(_a0 context.Context, _a1 *eks.UntagResourceInput, _a2 ...request.Option) (*eks.UntagResourceOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.UntagResourceOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UntagResourceInput, ...request.Option) *eks.UntagResourceOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UntagResourceOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UntagResourceInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -707,6 +1600,162 @@ func (_m *EKSAPI) UpdateClusterVersionWithContext(_a0 context.Context, _a1 *eks.
 	return r0, r1
 }
 
+// UpdateNodegroupConfig provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateNodegroupConfig(_a0 *eks.UpdateNodegroupConfigInput) (*eks.UpdateNodegroupConfigOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.UpdateNodegroupConfigOutput
+	if rf, ok := ret.Get(0).(func(*eks.UpdateNodegroupConfigInput) *eks.UpdateNodegroupConfigOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateNodegroupConfigOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.UpdateNodegroupConfigInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateNodegroupConfigRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateNodegroupConfigRequest(_a0 *eks.UpdateNodegroupConfigInput) (*request.Request, *eks.UpdateNodegroupConfigOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.UpdateNodegroupConfigInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.UpdateNodegroupConfigOutput
+	if rf, ok := ret.Get(1).(func(*eks.UpdateNodegroupConfigInput) *eks.UpdateNodegroupConfigOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.UpdateNodegroupConfigOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateNodegroupConfigWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) UpdateNodegroupConfigWithContext(_a0 context.Context, _a1 *eks.UpdateNodegroupConfigInput, _a2 ...request.Option) (*eks.UpdateNodegroupConfigOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.UpdateNodegroupConfigOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateNodegroupConfigInput, ...request.Option) *eks.UpdateNodegroupConfigOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateNodegroupConfigOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateNodegroupConfigInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateNodegroupVersion provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateNodegroupVersion(_a0 *eks.UpdateNodegroupVersionInput) (*eks.UpdateNodegroupVersionOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *eks.UpdateNodegroupVersionOutput
+	if rf, ok := ret.Get(0).(func(*eks.UpdateNodegroupVersionInput) *eks.UpdateNodegroupVersionOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateNodegroupVersionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*eks.UpdateNodegroupVersionInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateNodegroupVersionRequest provides a mock function with given fields: _a0
+func (_m *EKSAPI) UpdateNodegroupVersionRequest(_a0 *eks.UpdateNodegroupVersionInput) (*request.Request, *eks.UpdateNodegroupVersionOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*eks.UpdateNodegroupVersionInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *eks.UpdateNodegroupVersionOutput
+	if rf, ok := ret.Get(1).(func(*eks.UpdateNodegroupVersionInput) *eks.UpdateNodegroupVersionOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*eks.UpdateNodegroupVersionOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateNodegroupVersionWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) UpdateNodegroupVersionWithContext(_a0 context.Context, _a1 *eks.UpdateNodegroupVersionInput, _a2 ...request.Option) (*eks.UpdateNodegroupVersionOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *eks.UpdateNodegroupVersionOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.UpdateNodegroupVersionInput, ...request.Option) *eks.UpdateNodegroupVersionOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*eks.UpdateNodegroupVersionOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *eks.UpdateNodegroupVersionInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // WaitUntilClusterActive provides a mock function with given fields: _a0
 func (_m *EKSAPI) WaitUntilClusterActive(_a0 *eks.DescribeClusterInput) error {
 	ret := _m.Called(_a0)
@@ -769,6 +1818,76 @@ func (_m *EKSAPI) WaitUntilClusterDeletedWithContext(_a0 context.Context, _a1 *e
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeClusterInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilNodegroupActive provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilNodegroupActive(_a0 *eks.DescribeNodegroupInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeNodegroupInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilNodegroupActiveWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilNodegroupActiveWithContext(_a0 context.Context, _a1 *eks.DescribeNodegroupInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeNodegroupInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilNodegroupDeleted provides a mock function with given fields: _a0
+func (_m *EKSAPI) WaitUntilNodegroupDeleted(_a0 *eks.DescribeNodegroupInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.DescribeNodegroupInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilNodegroupDeletedWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EKSAPI) WaitUntilNodegroupDeletedWithContext(_a0 context.Context, _a1 *eks.DescribeNodegroupInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.DescribeNodegroupInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
