@@ -11,9 +11,9 @@ url: usage/eks-managed-nodegroups
 An EKS managed node group is an autoscaling group and associated EC2 instances that are managed by AWS for an Amazon EKS cluster. Each node group uses the Amazon EKS-optimized Amazon Linux 2 AMI. Amazon EKS makes it easy to apply bug fixes and security patches to nodes, as well as update them to the latest Kubernetes versions. Each node group launches an autoscaling group for your cluster, which can span multiple AWS VPC availability zones and subnets for high-availability.
 
 
->NOTE: The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the beginning
-and is used by default. The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged nodegroups,
-and a new field `managedNodeGroups` has been added for defining managed nodegroups.
+>NOTE: The term "unmanaged nodegroups" has been used to refer to nodegroups that eksctl has supported since the
+beginning and uses by default. The `ClusterConfig` file continues to use the `nodeGroups` field for defining unmanaged
+nodegroups, and a new field `managedNodeGroups` has been added for defining managed nodegroups.
 
 
 ### Creating a cluster with Managed Nodegroups
@@ -175,16 +175,16 @@ eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4
 EKS Managed Nodegroups are managed by AWS EKS and do not offer the same level of configuration as unmanaged nodegroups.
 The unsupported options are noted below.
 
-- No support for `nodeGroups[*].privateNetworking`
-- Tags (`managedNodeGroups[*].tags`) in managed nodegroups apply to the EKS Nodegroup resource and do not propagate to the provisioned
-Autoscaling Group like in unmanaged nodegroups.
-- iam.instanceProfileARN` and `iam.instanceRoleARN` are not supported for managed nodegroups.
+- No support for private networking (`nodeGroups[*].privateNetworking`).
+- Tags (`managedNodeGroups[*].tags`) in managed nodegroups apply to the EKS Nodegroup resource and do not propagate to
+the provisioned Autoscaling Group like in unmanaged nodegroups.
+- `iam.instanceProfileARN` and `iam.instanceRoleARN` are not supported for managed nodegroups.
 - The `amiFamily` field supports only `AmazonLinux2`
 - `instancesDistribution` field is not supported
 - `volumeSize` is the only field supported for configuring volumes
 - Control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
-following fields: `maxPodsPerNode`, ``taints`, `targetGroupARNs`, `preBootstrapCommands`, `overrideBootstrapCommand`, `clusterDNS` and
-`kubeletExtraConfig`.
+following fields: `maxPodsPerNode`, `taints`, `targetGroupARNs`, `preBootstrapCommands`, `overrideBootstrapCommand`,
+`clusterDNS` and `kubeletExtraConfig`.
 
 
 ### Further information
