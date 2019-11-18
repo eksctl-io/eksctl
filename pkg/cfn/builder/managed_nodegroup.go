@@ -56,7 +56,7 @@ func (e *managedNodeGroup) MarshalJSON() ([]byte, error) {
 		Type       string
 		Properties Properties
 	}{
-		Type:       "Dev::EKS::Nodegroup",
+		Type:       "AWS::EKS::Nodegroup",
 		Properties: Properties(*e),
 	})
 
