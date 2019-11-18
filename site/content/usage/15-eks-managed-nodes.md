@@ -191,5 +191,5 @@ following fields: `maxPodsPerNode`, `taints`, `targetGroupARNs`, `preBootstrapCo
 
 - [EKS Managed Nodegroups][eks-user-guide]
 
-[eks-user-guide]: <TODO>
+[eks-user-guide]: https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html
 
