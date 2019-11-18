@@ -25,4 +25,15 @@ var _ = Describe("fargate", func() {
 			})
 		})
 	})
+
+	Describe("GetOrDefaultProfileName", func() {
+		It("returns the provided name if non-empty", func() {
+			name := fargate.GetOrDefaultProfileName("my-favourite-name")
+			Expect(name).To(Equal("my-favourite-name"))
+		})
+		It("generates a random name otherwise", func() {
+			name := fargate.GetOrDefaultProfileName("")
+			Expect(name).To(MatchRegexp("fp-[abcdef0123456789]{8}"))
+		})
+	})
 })
