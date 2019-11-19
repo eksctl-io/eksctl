@@ -169,9 +169,7 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ##
 	  || (cat .license-header ; cat $(generated_code_deep_copy_helper); exit 1)
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
-	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$(gopath)/pkg/mod/github.com/aws/aws-sdk-go@v1.23.15" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
 ##@ Docker
