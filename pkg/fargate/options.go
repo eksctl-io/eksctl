@@ -20,6 +20,22 @@ func (o *Options) Validate() error {
 	return nil
 }
 
+// CreateOptions groups the parameters required to create a Fargate profile.
+type CreateOptions struct {
+	Options
+	ProfileSelectorNamespace string
+	// +optional
+	ProfileSelectorLabels map[string]string
+}
+
+// Validate validates this Options object's fields.
+func (o *CreateOptions) Validate() error {
+	if o.ProfileSelectorNamespace == "" {
+		return errors.New("invalid Fargate profile: empty selector namespace")
+	}
+	return nil
+}
+
 var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // GetOrDefaultProfileName returns the provided name if non-empty, or else

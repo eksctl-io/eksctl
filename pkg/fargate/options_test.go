@@ -10,14 +10,50 @@ import (
 var _ = Describe("fargate", func() {
 	Describe("Options", func() {
 		Describe("Validate", func() {
-			It("fails when profile name is empty", func() {
+			It("fails when the profile's name is empty", func() {
 				options := fargate.Options{}
 				err := options.Validate()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("invalid Fargate profile: empty name"))
 			})
-			It("passes when profile name is not empty", func() {
+
+			It("passes when the profile's name is not empty", func() {
+				options := fargate.Options{
+					ProfileName: "default",
+				}
+				err := options.Validate()
+				Expect(err).To(Not(HaveOccurred()))
+			})
+
+			It("passes on randomly generated input", func() {
 				options := fargate.Options{}
+				err := faker.FakeData(&options)
+				Expect(err).To(Not(HaveOccurred()))
+				err = options.Validate()
+				Expect(err).To(Not(HaveOccurred()))
+			})
+		})
+	})
+
+	Describe("CreateOptions", func() {
+		Describe("Validate", func() {
+			It("fails when the profile's selector namespace is empty", func() {
+				options := fargate.CreateOptions{}
+				err := options.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile: empty selector namespace"))
+			})
+
+			It("passes when the profile's selector namespace is not empty", func() {
+				options := fargate.CreateOptions{
+					ProfileSelectorNamespace: "default",
+				}
+				err := options.Validate()
+				Expect(err).To(Not(HaveOccurred()))
+			})
+
+			It("passes on randomly generated input", func() {
+				options := fargate.CreateOptions{}
 				err := faker.FakeData(&options)
 				Expect(err).To(Not(HaveOccurred()))
 				err = options.Validate()
