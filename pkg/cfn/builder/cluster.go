@@ -14,20 +14,22 @@ import (
 
 // ClusterResourceSet stores the resource information of the cluster
 type ClusterResourceSet struct {
-	rs             *resourceSet
-	spec           *api.ClusterConfig
-	provider       api.ClusterProvider
-	vpc            *gfn.Value
-	subnets        map[api.SubnetTopology][]*gfn.Value
-	securityGroups []*gfn.Value
+	rs                   *resourceSet
+	spec                 *api.ClusterConfig
+	provider             api.ClusterProvider
+	supportsManagedNodes bool
+	vpc                  *gfn.Value
+	subnets              map[api.SubnetTopology][]*gfn.Value
+	securityGroups       []*gfn.Value
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
-func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig) *ClusterResourceSet {
+func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, supportsManagedNodes bool) *ClusterResourceSet {
 	return &ClusterResourceSet{
-		rs:       newResourceSet(),
-		spec:     spec,
-		provider: provider,
+		rs:                   newResourceSet(),
+		spec:                 spec,
+		provider:             provider,
+		supportsManagedNodes: supportsManagedNodes,
 	}
 }
 
@@ -123,13 +125,17 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		c.spec.Status.ARN = v
 		return nil
 	})
-	// This exports the cluster security group ID that EKS creates by default. To enable communication between both
-	// managed and unmanaged nodegroups, they must share a security group.
-	// EKS attaches this to Managed Nodegroups by default, but we need to add this for unmanaged nodegroups.
-	// This exported value is imported in the CloudFormation resource for unmanaged nodegroups
-	c.rs.defineOutputFromAtt("ClusterSecurityGroupId", "ControlPlane.ClusterSecurityGroupId", true, func(s string) error {
-		return nil
-	})
+
+	if c.supportsManagedNodes {
+		// This exports the cluster security group ID that EKS creates by default. To enable communication between both
+		// managed and unmanaged nodegroups, they must share a security group.
+		// EKS attaches this to Managed Nodegroups by default, but we need to add this for unmanaged nodegroups.
+		// This exported value is imported in the CloudFormation resource for unmanaged nodegroups
+		c.rs.defineOutputFromAtt(outputs.ClusterDefaultSecurityGroup, "ControlPlane.ClusterSecurityGroupId",
+			true, func(s string) error {
+				return nil
+			})
+	}
 }
 
 // GetAllOutputs collects all outputs of the cluster

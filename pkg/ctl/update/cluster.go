@@ -100,7 +100,11 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan)
+	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
+	if err != nil {
+		return err
+	}
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
 	if err != nil {
 		return err
 	}

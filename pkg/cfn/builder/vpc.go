@@ -255,8 +255,11 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 		}},
 	})
 
-	defaultClusterSharedSecurityGroup := makeImportValue(n.clusterStackName, "ClusterSecurityGroupId")
-	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG, defaultClusterSharedSecurityGroup)
+	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
+	if n.supportsManagedNodes {
+		defaultClusterSharedSecurityGroup := makeImportValue(n.clusterStackName, outputs.ClusterDefaultSecurityGroup)
+		n.securityGroups = append(n.securityGroups, defaultClusterSharedSecurityGroup)
+	}
 
 	n.newResource("IngressInterCluster", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refNodeGroupLocalSG,
