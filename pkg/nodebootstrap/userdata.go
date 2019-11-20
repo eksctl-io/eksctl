@@ -72,6 +72,10 @@ func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, e
 	if ng.AMIFamily == api.NodeImageFamilyUbuntu1804 {
 		authenticator = kubeconfig.HeptioAuthenticatorAWS
 	}
+	if ng.AMIFamily == api.NodeImageFamilyFlatcarStable {
+		// What is that?
+		authenticator = kubeconfig.HeptioAuthenticatorAWS
+	}
 	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator, "", "")
 	clientConfigData, err := clientcmd.Write(*clientConfig)
 	if err != nil {
@@ -173,6 +177,8 @@ func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 		return NewUserDataForAmazonLinux2(spec, ng)
 	case api.NodeImageFamilyUbuntu1804:
 		return NewUserDataForUbuntu1804(spec, ng)
+	case api.NodeImageFamilyFlatcarStable:
+		return NewUserDataForFlatcar(spec, ng)
 	case api.NodeImageFamilyWindowsServer2019FullContainer, api.NodeImageFamilyWindowsServer2019CoreContainer:
 		return newUserDataForWindows(spec, ng)
 	default:

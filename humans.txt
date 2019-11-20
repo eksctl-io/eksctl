@@ -62,6 +62,7 @@ Leigh Capili            @stealthybox
 Miguel Pereira          @onemorepereira
 Pedro Tôrres            @t0rr3sp3dr0
 Michael Treacher        @treacher
+Alban Crequy            @alban
 
 /* Thanks */
 
