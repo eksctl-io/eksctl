@@ -10,4 +10,4 @@
 
 ## Bug fixes
 
-- Fix `update cluster` for EKS clusters below platform version `eks.3` (#1583)
+- lowercased, user-focused description of the improvement (#0)
