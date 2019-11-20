@@ -314,7 +314,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
-		supportsManagedNodes, err := eks.SupportsManagedNodes(cfg.Metadata.Version)
+		supportsManagedNodes, err := eks.VersionSupportsManagedNodes(cfg.Metadata.Version)
 		if err != nil {
 			return err
 		}

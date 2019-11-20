@@ -62,7 +62,7 @@ func ValidateFeatureCompatibility(clusterConfig *api.ClusterConfig, kubeNodeGrou
 func ValidateManagedNodesSupport(clusterConfig *api.ClusterConfig) error {
 	if len(clusterConfig.ManagedNodeGroups) > 0 {
 		minRequiredVersion := api.Version1_14
-		supportsManagedNodes, err := SupportsManagedNodes(clusterConfig.Metadata.Version)
+		supportsManagedNodes, err := VersionSupportsManagedNodes(clusterConfig.Metadata.Version)
 		if err != nil {
 			return err
 		}
@@ -73,8 +73,8 @@ func ValidateManagedNodesSupport(clusterConfig *api.ClusterConfig) error {
 	return nil
 }
 
-// SupportsManagedNodes reports whether the control plane version can support Managed Nodes
-func SupportsManagedNodes(controlPlaneVersion string) (bool, error) {
+// VersionSupportsManagedNodes reports whether the control plane version can support Managed Nodes
+func VersionSupportsManagedNodes(controlPlaneVersion string) (bool, error) {
 	minRequiredVersion := api.Version1_14
 	supportsManagedNodes, err := utils.IsMinVersion(minRequiredVersion, controlPlaneVersion)
 	if err != nil {
