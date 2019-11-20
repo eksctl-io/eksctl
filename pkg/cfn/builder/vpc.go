@@ -209,6 +209,27 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 			FromPort:              sgPortZero,
 			ToPort:                sgMaxNodePort,
 		})
+		if c.supportsManagedNodes {
+			// To enable communication between both managed and unmanaged nodegroups, this allows ingress traffic from
+			// the default cluster security group ID that EKS creates by default
+			// EKS attaches this to Managed Nodegroups by default, but we need to handle this for unmanaged nodegroups
+			c.newResource("IngressDefaultClusterToNodeSG", &gfn.AWSEC2SecurityGroupIngress{
+				GroupId:               refClusterSharedNodeSG,
+				SourceSecurityGroupId: gfn.MakeFnGetAttString(makeAttrAccessor("ControlPlane", outputs.ClusterDefaultSecurityGroup)),
+				Description:           gfn.NewString("Allow managed and unmanaged nodes to communicate with each other (all ports)"),
+				IpProtocol:            gfn.NewString("-1"),
+				FromPort:              sgPortZero,
+				ToPort:                sgMaxNodePort,
+			})
+			c.newResource("IngressNodeToDefaultClusterSG", &gfn.AWSEC2SecurityGroupIngress{
+				GroupId:               gfn.MakeFnGetAttString(makeAttrAccessor("ControlPlane", outputs.ClusterDefaultSecurityGroup)),
+				SourceSecurityGroupId: refClusterSharedNodeSG,
+				Description:           gfn.NewString("Allow unmanaged nodes to communicate with control plane (all ports)"),
+				IpProtocol:            gfn.NewString("-1"),
+				FromPort:              sgPortZero,
+				ToPort:                sgMaxNodePort,
+			})
+		}
 	} else {
 		refClusterSharedNodeSG = gfn.NewString(c.spec.VPC.SharedNodeSecurityGroup)
 	}
@@ -256,10 +277,6 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	})
 
 	n.securityGroups = append(n.securityGroups, refNodeGroupLocalSG)
-	if n.supportsManagedNodes {
-		defaultClusterSharedSecurityGroup := makeImportValue(n.clusterStackName, outputs.ClusterDefaultSecurityGroup)
-		n.securityGroups = append(n.securityGroups, defaultClusterSharedSecurityGroup)
-	}
 
 	n.newResource("IngressInterCluster", &gfn.AWSEC2SecurityGroupIngress{
 		GroupId:               refNodeGroupLocalSG,
