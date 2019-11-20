@@ -20,6 +20,12 @@ brew tap weaveworks/tap
 brew install weaveworks/tap/eksctl
 ```
 
+or [MacPorts](https://www.macports.org):
+
+```
+port install eksctl
+```
+
 and Windows users can use [chocolatey](https://chocolatey.org):
 
 ```
