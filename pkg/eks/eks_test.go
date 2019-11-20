@@ -12,6 +12,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
@@ -329,4 +330,83 @@ var _ = Describe("EKS API wrapper", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
+
+	type managedNodesSupportCase struct {
+		platformVersion   string
+		kubernetesVersion string
+
+		expectError bool
+		supports    bool
+	}
+
+	DescribeTable("EKS managed nodes support", func(m *managedNodesSupportCase) {
+		var platform *string
+		if m.platformVersion != "" {
+			platform = aws.String(m.platformVersion)
+		}
+		cluster := &awseks.Cluster{
+			Version:         aws.String(m.kubernetesVersion),
+			PlatformVersion: platform,
+		}
+
+		supportsManagedNodes, err := ClusterSupportsManagedNodes(cluster)
+		if m.expectError {
+			Expect(err).To(HaveOccurred())
+		}
+		Expect(supportsManagedNodes).To(Equal(m.supports))
+	},
+		Entry("with minimum required versions", &managedNodesSupportCase{
+			platformVersion:   "eks.3",
+			kubernetesVersion: "1.14",
+			expectError:       false,
+			supports:          true,
+		}),
+		Entry("with newer version", &managedNodesSupportCase{
+			platformVersion:   "eks.6",
+			kubernetesVersion: "1.14",
+			expectError:       false,
+			supports:          true,
+		}),
+		Entry("with unsupported platform version", &managedNodesSupportCase{
+			platformVersion:   "eks.2",
+			kubernetesVersion: "1.14",
+			expectError:       false,
+			supports:          false,
+		}),
+		Entry("with unsupported Kubernetes version", &managedNodesSupportCase{
+			platformVersion:   "eks.3",
+			kubernetesVersion: "1.13",
+			expectError:       false,
+			supports:          false,
+		}),
+		Entry("with unsupported Kubernetes version", &managedNodesSupportCase{
+			platformVersion:   "eks.6",
+			kubernetesVersion: "1.13",
+			expectError:       false,
+			supports:          false,
+		}),
+		Entry("with invalid platform version", &managedNodesSupportCase{
+			platformVersion:   "eks.invalid",
+			kubernetesVersion: "1.14",
+			expectError:       true,
+			supports:          false,
+		}),
+		Entry("with invalid platform version", &managedNodesSupportCase{
+			platformVersion:   " eks.3",
+			kubernetesVersion: "1.14",
+			expectError:       true,
+			supports:          false,
+		}),
+		Entry("with invalid Kubernetes version", &managedNodesSupportCase{
+			platformVersion:   "eks.5",
+			kubernetesVersion: "1.",
+			expectError:       true,
+			supports:          false,
+		}),
+		Entry("with non-existent platform version", &managedNodesSupportCase{
+			kubernetesVersion: "1.",
+			expectError:       false,
+			supports:          false,
+		}),
+	)
 })

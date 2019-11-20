@@ -68,7 +68,7 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 	}
 }
 
-// VersionSupportsManagedNodes reports whether an existing cluster supports Managed Nodes
+// SupportsManagedNodes reports whether an existing cluster supports Managed Nodes
 // The minimum required control plane version and platform version are 1.14 and eks.3 respectively
 func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error) {
 	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
