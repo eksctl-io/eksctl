@@ -115,7 +115,7 @@ func NewGitOpsConfigLoader(cmd *Cmd) ClusterConfigLoader {
 	l.validateWithoutConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
 		if meta.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 		if meta.Region == "" {
 			return ErrMustBeSet("--region")
