@@ -79,7 +79,7 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 }
 
 var (
-	platformVersionRegex = regexp.MustCompile(`^eks\.(\d+)`)
+	platformVersionRegex = regexp.MustCompile(`^eks\.(\d+)$`)
 )
 
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
