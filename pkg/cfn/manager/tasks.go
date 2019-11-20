@@ -142,15 +142,28 @@ type taskWithNameParam struct {
 func (t *taskWithNameParam) Describe() string         { return t.info }
 func (t *taskWithNameParam) Do(errs chan error) error { return t.call(errs, t.name) }
 
-type taskWithNodeGroupSpec struct {
-	info      string
-	nodeGroup *api.NodeGroup
-	call      func(chan error, *api.NodeGroup) error
+type createClusterTask struct {
+	info                 string
+	stackCollection      *StackCollection
+	supportsManagedNodes bool
 }
 
-func (t *taskWithNodeGroupSpec) Describe() string { return t.info }
-func (t *taskWithNodeGroupSpec) Do(errs chan error) error {
-	return t.call(errs, t.nodeGroup)
+func (t *createClusterTask) Describe() string { return t.info }
+
+func (t *createClusterTask) Do(errorCh chan error) error {
+	return t.stackCollection.createClusterTask(errorCh, t.supportsManagedNodes)
+}
+
+type nodeGroupTask struct {
+	info                 string
+	nodeGroup            *api.NodeGroup
+	supportsManagedNodes bool
+	stackCollection      *StackCollection
+}
+
+func (t *nodeGroupTask) Describe() string { return t.info }
+func (t *nodeGroupTask) Do(errs chan error) error {
+	return t.stackCollection.createNodeGroupTask(errs, t.nodeGroup, t.supportsManagedNodes)
 }
 
 type managedNodeGroupTask struct {

@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -64,6 +66,49 @@ func (c *ClusterProvider) RefreshClusterStatus(spec *api.ClusterConfig) error {
 		spec.Status.ARN = *cluster.Arn
 		return nil
 	}
+}
+
+// SupportsManagedNodes reports whether an existing cluster supports Managed Nodes
+// The minimum required control plane version and platform version are 1.14 and eks.3 respectively
+func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig) (bool, error) {
+	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
+		return false, err
+	}
+
+	return ClusterSupportsManagedNodes(c.Status.clusterInfo.cluster)
+}
+
+var (
+	platformVersionRegex = regexp.MustCompile(`^eks\.(\d+)`)
+)
+
+// ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
+func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
+	versionSupportsManagedNodes, err := VersionSupportsManagedNodes(*cluster.Version)
+	if err != nil {
+		return false, err
+	}
+
+	if !versionSupportsManagedNodes {
+		return false, nil
+	}
+
+	if cluster.PlatformVersion == nil {
+		logger.Warning("could not find cluster's platform version")
+		return false, nil
+	}
+
+	match := platformVersionRegex.FindStringSubmatch(*cluster.PlatformVersion)
+	if len(match) != 2 {
+		return false, fmt.Errorf("failed to parse cluster's platform version: %q", *cluster.PlatformVersion)
+	}
+	versionStr := match[1]
+	minSupportedVersion := 3
+	version, err := strconv.Atoi(versionStr)
+	if err != nil {
+		return false, err
+	}
+	return version >= minSupportedVersion, nil
 }
 
 func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) error {

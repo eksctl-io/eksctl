@@ -12,10 +12,11 @@ import (
 // Stack output names
 const (
 	// outputs from cluster stack
-	ClusterVPC            = "VPC"
-	ClusterSecurityGroup  = "SecurityGroup"
-	ClusterSubnetsPrivate = string("Subnets" + api.SubnetTopologyPrivate)
-	ClusterSubnetsPublic  = string("Subnets" + api.SubnetTopologyPublic)
+	ClusterVPC                  = "VPC"
+	ClusterDefaultSecurityGroup = "ClusterSecurityGroupId"
+	ClusterSecurityGroup        = "SecurityGroup"
+	ClusterSubnetsPrivate       = string("Subnets" + api.SubnetTopologyPrivate)
+	ClusterSubnetsPublic        = string("Subnets" + api.SubnetTopologyPublic)
 
 	ClusterSubnetsPublicLegacy = "Subnets"
 

@@ -26,10 +26,10 @@ func (c *StackCollection) makeClusterStackName() string {
 }
 
 // createClusterTask creates the cluster
-func (c *StackCollection) createClusterTask(errs chan error) error {
+func (c *StackCollection) createClusterTask(errs chan error, supportsManagedNodes bool) error {
 	name := c.makeClusterStackName()
 	logger.Info("building cluster stack %q", name)
-	stack := builder.NewClusterResourceSet(c.provider, c.spec)
+	stack := builder.NewClusterResourceSet(c.provider, c.spec, supportsManagedNodes)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 
 // AppendNewClusterStackResource will update cluster
 // stack with new resources in append-only way
-func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error) {
+func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNodes bool) (bool, error) {
 	name := c.makeClusterStackName()
 
 	// NOTE: currently we can only append new resources to the stack,
@@ -79,7 +79,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan bool) (bool, error)
 	}
 
 	logger.Info("re-building cluster stack %q", name)
-	newStack := builder.NewClusterResourceSet(c.provider, c.spec)
+	newStack := builder.NewClusterResourceSet(c.provider, c.spec, supportsManagedNodes)
 	if err := newStack.AddAllResources(); err != nil {
 		return false, err
 	}

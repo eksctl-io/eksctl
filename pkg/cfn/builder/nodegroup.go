@@ -15,27 +15,30 @@ import (
 
 // NodeGroupResourceSet stores the resource information of the nodegroup
 type NodeGroupResourceSet struct {
-	rs                 *resourceSet
-	clusterSpec        *api.ClusterConfig
-	spec               *api.NodeGroup
-	provider           api.ClusterProvider
-	clusterStackName   string
-	nodeGroupName      string
-	instanceProfileARN *gfn.Value
-	securityGroups     []*gfn.Value
-	vpc                *gfn.Value
-	userData           *gfn.Value
+	rs                   *resourceSet
+	clusterSpec          *api.ClusterConfig
+	spec                 *api.NodeGroup
+	supportsManagedNodes bool
+	provider             api.ClusterProvider
+	clusterStackName     string
+	nodeGroupName        string
+	instanceProfileARN   *gfn.Value
+	securityGroups       []*gfn.Value
+	vpc                  *gfn.Value
+	userData             *gfn.Value
 }
 
 // NewNodeGroupResourceSet returns a resource set for a nodegroup embedded in a cluster config
-func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup) *NodeGroupResourceSet {
+func NewNodeGroupResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup,
+	supportsManagedNodes bool) *NodeGroupResourceSet {
 	return &NodeGroupResourceSet{
-		rs:               newResourceSet(),
-		clusterStackName: clusterStackName,
-		nodeGroupName:    ng.Name,
-		clusterSpec:      spec,
-		spec:             ng,
-		provider:         provider,
+		rs:                   newResourceSet(),
+		clusterStackName:     clusterStackName,
+		nodeGroupName:        ng.Name,
+		supportsManagedNodes: supportsManagedNodes,
+		clusterSpec:          spec,
+		spec:                 ng,
+		provider:             provider,
 	}
 }
 

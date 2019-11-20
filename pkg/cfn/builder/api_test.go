@@ -462,7 +462,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
-			crs = NewClusterResourceSet(p, cfg)
+			crs = NewClusterResourceSet(p, cfg, false)
 			err := crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 			sampleStack := newStackWithOutputs(sampleOutputs)
@@ -479,13 +479,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
-	build := func(cfg *api.ClusterConfig, name string, ng *api.NodeGroup) {
+	assertBuildChecks := func(cfg *api.ClusterConfig, clusterStackName string, ng *api.NodeGroup, managedNodesSupport bool) {
 		It("should add all resources without errors", func() {
-			crs = NewClusterResourceSet(p, cfg)
+			crs = NewClusterResourceSet(p, cfg, managedNodesSupport)
 			err = crs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			ngrs = NewNodeGroupResourceSet(p, cfg, name, ng)
+			ngrs = NewNodeGroupResourceSet(p, cfg, clusterStackName, ng, managedNodesSupport)
 			err = ngrs.AddAllResources()
 			Expect(err).ShouldNot(HaveOccurred())
 
@@ -495,7 +495,16 @@ var _ = Describe("CloudFormation template builder API", func() {
 			templateBody, err := t.JSON()
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(templateBody).ShouldNot(BeEmpty())
+
+			outputs := crs.Template().Outputs
+			_, hasClusterSG := outputs["ClusterSecurityGroupId"]
+
+			Expect(hasClusterSG).To(Equal(managedNodesSupport))
 		})
+	}
+
+	build := func(cfg *api.ClusterConfig, name string, ng *api.NodeGroup) {
+		assertBuildChecks(cfg, name, ng, false)
 	}
 
 	roundtrip := func() {
@@ -526,6 +535,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		})
 	}
+
+	Context("Security group for managed nodes", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+		assertBuildChecks(cfg, "managed-cluster", ng, true)
+	})
 
 	Context("AutoNameTag", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)

@@ -103,6 +103,16 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
+	// EKS 1.14 clusters created with prior versions of eksctl may not support Managed Nodes
+	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
+	if err != nil {
+		return err
+	}
+
+	if len(cfg.ManagedNodeGroups) > 0 && !supportsManagedNodes {
+		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
+	}
+
 	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
 		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
@@ -150,7 +160,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 			logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
 		}
 
-		tasks := stackManager.NewTasksToCreateNodeGroups(cfg.NodeGroups)
+		tasks := stackManager.NewTasksToCreateNodeGroups(cfg.NodeGroups, supportsManagedNodes)
 		managedTasks := stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups)
 		tasks.Append(managedTasks)
 		logger.Info(tasks.Describe())

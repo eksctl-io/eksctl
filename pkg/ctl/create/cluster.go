@@ -150,7 +150,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 	kubeNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	if err := eks.ValidateWindowsCompatibility(kubeNodeGroups, cfg.Metadata.Version); err != nil {
+	if err := eks.ValidateFeatureCompatibility(cfg, kubeNodeGroups); err != nil {
 		return err
 	}
 	if params.installWindowsVPCController {
@@ -314,7 +314,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		}
 
 		logger.Info("if you encounter any issues, check CloudFormation console or try 'eksctl utils describe-stacks --region=%s --cluster=%s'", meta.Region, meta.Name)
-		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups)
+		supportsManagedNodes, err := eks.VersionSupportsManagedNodes(cfg.Metadata.Version)
+		if err != nil {
+			return err
+		}
+		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes)
 		ctl.AppendExtraClusterConfigTasks(cfg, params.installWindowsVPCController, tasks)
 
 		logger.Info(tasks.Describe())

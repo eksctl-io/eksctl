@@ -48,6 +48,41 @@ func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 	return counter, nil
 }
 
+// ValidateFeatureCompatibility validates whether the cluster version supports the features specified in the
+// ClusterConfig. Support for Managed Nodegroups or Windows requires the EKS cluster version to be 1.14 and above.
+// If the version requirement isn't met, an error is returned
+func ValidateFeatureCompatibility(clusterConfig *api.ClusterConfig, kubeNodeGroups []KubeNodeGroup) error {
+	if err := ValidateManagedNodesSupport(clusterConfig); err != nil {
+		return err
+	}
+	return ValidateWindowsCompatibility(kubeNodeGroups, clusterConfig.Metadata.Version)
+}
+
+// ValidateManagedNodesSupport validates support for Managed Nodegroups
+func ValidateManagedNodesSupport(clusterConfig *api.ClusterConfig) error {
+	if len(clusterConfig.ManagedNodeGroups) > 0 {
+		minRequiredVersion := api.Version1_14
+		supportsManagedNodes, err := VersionSupportsManagedNodes(clusterConfig.Metadata.Version)
+		if err != nil {
+			return err
+		}
+		if !supportsManagedNodes {
+			return fmt.Errorf("Managed Nodegroups are only supported on EKS version %s and above", minRequiredVersion)
+		}
+	}
+	return nil
+}
+
+// VersionSupportsManagedNodes reports whether the control plane version can support Managed Nodes
+func VersionSupportsManagedNodes(controlPlaneVersion string) (bool, error) {
+	minRequiredVersion := api.Version1_14
+	supportsManagedNodes, err := utils.IsMinVersion(minRequiredVersion, controlPlaneVersion)
+	if err != nil {
+		return false, err
+	}
+	return supportsManagedNodes, nil
+}
+
 // ValidateWindowsCompatibility validates Windows compatibility
 func ValidateWindowsCompatibility(kubeNodeGroups []KubeNodeGroup, controlPlaneVersion string) error {
 	if !hasWindowsNode(kubeNodeGroups) {
