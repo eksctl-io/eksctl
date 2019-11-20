@@ -377,7 +377,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
@@ -539,7 +539,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		l.Plan = false
