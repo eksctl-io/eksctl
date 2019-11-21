@@ -391,7 +391,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -453,12 +453,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                     arn,
-			"ClusterStackName":        "",
-			"SharedNodeSecurityGroup": "sg-shared",
-			"ServiceRoleARN":          arn,
-			"FeatureNATMode":          "Single",
-			"ClusterSecurityGroupId":  "sg-09ef4509a37f28b4c",
+			"ARN":                      arn,
+			"ClusterStackName":         "",
+			"SharedNodeSecurityGroup":  "sg-shared",
+			"ServiceRoleARN":           arn,
+			"FeatureNATMode":           "Single",
+			"ClusterSecurityGroupId":   "sg-09ef4509a37f28b4c",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -1679,6 +1679,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"KUBELET_VERSION=1.14",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1744,6 +1745,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"KUBELET_VERSION=1.14",
 				"MAX_PODS=55",
 			}))
 
@@ -1804,6 +1806,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=al2",
 				"NODE_TAINTS=key1=value1:NoSchedule",
+				"KUBELET_VERSION=1.14",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1861,6 +1864,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=al2",
 				"NODE_TAINTS=",
+				"KUBELET_VERSION=1.14",
 			}))
 
 			kubeletDropInUnit := getFile(cc, "/etc/systemd/system/kubelet.service.d/10-eksclt.al2.conf")
@@ -1925,6 +1929,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"KUBELET_VERSION=1.14",
 				"CLUSTER_DNS=172.20.0.10",
 			}))
 
@@ -1987,6 +1992,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=",
 				"NODE_TAINTS=",
+				"KUBELET_VERSION=1.14",
 				"CLUSTER_DNS=172.20.0.10",
 			}))
 
@@ -2051,6 +2057,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=ubuntu",
 				"NODE_TAINTS=key1=value1:NoSchedule",
+				"KUBELET_VERSION=1.14",
 				"MAX_PODS=66",
 				"CLUSTER_DNS=169.254.20.10",
 			}))
@@ -2113,6 +2120,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(strings.Split(kubeletEnv.Content, "\n")).To(Equal([]string{
 				"NODE_LABELS=os=ubuntu",
 				"NODE_TAINTS=",
+				"KUBELET_VERSION=1.14",
 				"CLUSTER_DNS=169.254.20.10",
 			}))
 
