@@ -75,8 +75,7 @@ func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, e
 		authenticator = kubeconfig.HeptioAuthenticatorAWS
 	}
 	if ng.AMIFamily == api.NodeImageFamilyFlatcarStable {
-		// What is that?
-		authenticator = kubeconfig.HeptioAuthenticatorAWS
+		authenticator = filepath.Join("/opt/bin", kubeconfig.AWSIAMAuthenticator)
 	}
 	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator, "", "")
 	clientConfigData, err := clientcmd.Write(*clientConfig)
