@@ -60,6 +60,29 @@ var _ = Describe("fargate", func() {
 				Expect(err).To(Not(HaveOccurred()))
 			})
 		})
+
+		Describe("ToFargateProfile", func() {
+			It("creates a FargateProfile DTO object from this CreateOptions object's values", func() {
+				options := fargate.CreateOptions{
+					Options: fargate.Options{
+						ProfileName: "default",
+					},
+					ProfileSelectorNamespace: "development",
+					ProfileSelectorLabels: map[string]string{
+						"env": "dev",
+					},
+				}
+				profile := options.ToFargateProfile()
+				Expect(profile).To(Not(BeNil()))
+				Expect(profile.Validate()).To(Not(HaveOccurred()))
+				Expect(profile.Name).To(Equal("default"))
+				Expect(profile.Selectors).To(HaveLen(1))
+				selector := profile.Selectors[0]
+				Expect(selector.Namespace).To(Equal("development"))
+				Expect(selector.Labels).To(HaveLen(1))
+				Expect(selector.Labels).To(HaveKeyWithValue("env", "dev"))
+			})
+		})
 	})
 
 	Describe("GetOrDefaultProfileName", func() {

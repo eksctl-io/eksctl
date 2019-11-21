@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 // Options groups the parameters required to interact with Fargate.
@@ -34,6 +36,19 @@ func (o *CreateOptions) Validate() error {
 		return errors.New("invalid Fargate profile: empty selector namespace")
 	}
 	return nil
+}
+
+// ToFargateProfile creates a FargateProfile object from this Options object.
+func (o CreateOptions) ToFargateProfile() *api.FargateProfile {
+	return &api.FargateProfile{
+		Name: GetOrDefaultProfileName(o.ProfileName),
+		Selectors: []api.FargateProfileSelector{
+			api.FargateProfileSelector{
+				Namespace: o.ProfileSelectorNamespace,
+				Labels:    o.ProfileSelectorLabels,
+			},
+		},
+	}
 }
 
 var r = rand.New(rand.NewSource(time.Now().UnixNano()))
