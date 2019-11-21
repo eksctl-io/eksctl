@@ -14,6 +14,7 @@ jobs:
       - run:
           name: Test & Build
           command: |
+            mkdir test-results; \
             docker run \
               --env=JUNIT_REPORT_DIR=/src/test-results \
               --volume=$(pwd):/src \
@@ -69,6 +70,7 @@ jobs:
       - run:
           name: Run Integration Tests
           command: |
+            mkdir test-results; \
             docker run \
             --env=JUNIT_REPORT_DIR=/src/test-results \
             --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
