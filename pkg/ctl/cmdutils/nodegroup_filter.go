@@ -25,7 +25,7 @@ func NewNodeGroupFilter() *NodeGroupFilter {
 }
 
 // AppendGlobs appends globs for inclusion and exclusion rules
-func (f *NodeGroupFilter) AppendGlobs(includeGlobExprs, excludeGlobExprs []string, ngNames []string) error {
+func (f *NodeGroupFilter) AppendGlobs(includeGlobExprs, excludeGlobExprs, ngNames []string) error {
 	if err := f.AppendIncludeGlobs(ngNames, includeGlobExprs...); err != nil {
 		return err
 	}
