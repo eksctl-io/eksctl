@@ -36,6 +36,12 @@ type NodeGroupSummary struct {
 	NodeInstanceRoleARN string
 }
 
+// NodeGroupStack represents a nodegroup and its type
+type NodeGroupStack struct {
+	NodeGroupName string
+	Type          api.NodeGroupType
+}
+
 // makeNodeGroupStackName generates the name of the nodegroup stack identified by its name, isolated by the cluster this StackCollection operates on
 func (c *StackCollection) makeNodeGroupStackName(name string) string {
 	return fmt.Sprintf("eksctl-%s-nodegroup-%s", c.spec.Metadata.Name, name)
@@ -90,18 +96,24 @@ func (c *StackCollection) DescribeNodeGroupStacks() ([]*Stack, error) {
 	return nodeGroupStacks, nil
 }
 
-// ListNodeGroupStacks calls DescribeNodeGroupStacks and returns only nodegroup names
-func (c *StackCollection) ListNodeGroupStacks() ([]string, error) {
+// ListNodeGroupStacks returns a list of NodeGroupStacks
+func (c *StackCollection) ListNodeGroupStacks() ([]NodeGroupStack, error) {
 	stacks, err := c.DescribeNodeGroupStacks()
 	if err != nil {
 		return nil, err
 	}
-
-	names := []string{}
-	for _, s := range stacks {
-		names = append(names, c.GetNodeGroupName(s))
+	var nodeGroupStacks []NodeGroupStack
+	for _, stack := range stacks {
+		nodeGroupType, err := GetNodeGroupType(stack.Tags)
+		if err != nil {
+			return nil, err
+		}
+		nodeGroupStacks = append(nodeGroupStacks, NodeGroupStack{
+			NodeGroupName: c.GetNodeGroupName(stack),
+			Type:          nodeGroupType,
+		})
 	}
-	return names, nil
+	return nodeGroupStacks, nil
 }
 
 // DescribeNodeGroupStacksAndResources calls DescribeNodeGroupStacks and fetches all resources,
