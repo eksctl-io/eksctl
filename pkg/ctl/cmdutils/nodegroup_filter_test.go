@@ -14,6 +14,14 @@ import (
 
 var _ = Describe("nodegroup filter", func() {
 
+	getNodeGroupNames := func(clusterConfig *api.ClusterConfig) []string {
+		var ngNames []string
+		for _, ng := range clusterConfig.NodeGroups {
+			ngNames = append(ngNames, ng.NameString())
+		}
+		return ngNames
+	}
+
 	Context("Match", func() {
 		var (
 			filter *NodeGroupFilter
@@ -64,7 +72,7 @@ var _ = Describe("nodegroup filter", func() {
 
 		It("should match include filter", func() {
 			filter.AppendIncludeNames("test-ng3b")
-			err := filter.AppendIncludeGlobs(cfg.NodeGroups, "test-ng1?", "x*")
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?", "x*")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(filter.Match("test-ng3x")).To(BeFalse())
@@ -84,7 +92,7 @@ var _ = Describe("nodegroup filter", func() {
 
 		It("should match non-overlapping exclude and include filters with explicit inclusion", func() {
 			filter.AppendIncludeNames("test-ng1a", "test-ng2b")
-			err := filter.AppendIncludeGlobs(cfg.NodeGroups, "test-ng?a", "*-ng3?")
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a", "*-ng3?")
 			Expect(err).ToNot(HaveOccurred())
 
 			filter.AppendExcludeNames("test-ng1b")
@@ -99,7 +107,7 @@ var _ = Describe("nodegroup filter", func() {
 
 		It("should match non-overlapping exclude and include filters with fallback inclusion", func() {
 			filter.AppendIncludeNames("test-ng1X")
-			err := filter.AppendIncludeGlobs(cfg.NodeGroups, "test-ng?a")
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a")
 			Expect(err).ToNot(HaveOccurred())
 
 			filter.AppendExcludeNames("test-ng1b")
@@ -113,7 +121,7 @@ var _ = Describe("nodegroup filter", func() {
 		})
 
 		It("should match overlapping exclude and include filters", func() {
-			err := filter.AppendIncludeGlobs(cfg.NodeGroups, "test-ng?a", "test-?g2b")
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a", "test-?g2b")
 			Expect(err).ToNot(HaveOccurred())
 
 			filter.AppendExcludeNames("test-ng1b", "test-ng2a")
@@ -226,11 +234,11 @@ var _ = Describe("nodegroup filter", func() {
 
 			names = []string{}
 
-			err := filter.AppendIncludeGlobs(cfg.NodeGroups, "t?xyz?", "ab*z123?")
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "t?xyz?", "ab*z123?")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(`no nodegroups match include glob filter specification: "t?xyz?,ab*z123?"`))
 
-			err = filter.AppendIncludeGlobs(cfg.NodeGroups, "test-ng1?", "te*-ng3?")
+			err = filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?", "te*-ng3?")
 			Expect(err).ToNot(HaveOccurred())
 			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))

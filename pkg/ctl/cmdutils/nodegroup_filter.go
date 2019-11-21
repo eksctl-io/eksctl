@@ -62,7 +62,7 @@ func (f *NodeGroupFilter) SetExcludeExistingFilter(lister stackLister) error {
 	return f.doSetExcludeExistingFilter(ngNames, "nodegroup")
 }
 
-// SetIncludeOrExcludeMissingFilter uses stackManager to list existing nodegroup stacks and configures
+// SetIncludeOrExcludeMissingFilter uses stackLister to list existing nodegroup stacks and configures
 // the filter to either explicitly exclude or include nodegroups that are missing from given nodeGroups
 func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(lister stackLister, includeOnlyMissing bool, clusterConfig *api.ClusterConfig) error {
 	stacks, err := lister.ListNodeGroupStacks()
