@@ -1,0 +1,66 @@
+# Inspired from:
+# https://github.com/kinvolk/lokomotive-kubernetes/blob/4754b5b3256b069b2651c03c536e7823423005d8/aws/flatcar-linux/kubernetes/workers/cl/worker.yaml.tmpl
+
+
+[Unit]
+Description=Kubelet via Hyperkube
+Wants=rpc-statd.service
+
+[Service]
+# Local metadata parameters: REGION, AWS_DEFAULT_REGION
+EnvironmentFile=/etc/eksctl/metadata.env
+# Global and static parameters: CLUSTER_DNS, NODE_LABELS, NODE_TAINTS, KUBELET_VERSION
+EnvironmentFile=/etc/eksctl/kubelet.env
+# Local non-static parameters: NODE_IP, INSTANCE_ID
+EnvironmentFile=/etc/eksctl/kubelet.local.env
+
+Environment="KUBELET_IMAGE_URL=docker://k8s.gcr.io/hyperkube"
+Environment="KUBELET_IMAGE_TAG=v1.14.9"
+
+Environment="RKT_RUN_ARGS=--uuid-file-save=/var/cache/kubelet-pod.uuid \
+  --volume=resolv,kind=host,source=/etc/resolv.conf \
+  --mount volume=resolv,target=/etc/resolv.conf \
+  --volume=eksctlconfig,kind=host,source=/etc/eksctl \
+  --mount volume=eksctlconfig,target=/etc/eksctl \
+  --volume opt-bin,kind=host,source=/opt/bin \
+  --mount volume=opt-bin,target=/opt/bin \
+  --volume=cniconfig,kind=host,source=/etc/cni \
+  --mount volume=cniconfig,target=/etc/cni \
+  --volume var-lib-cni,kind=host,source=/var/lib/cni \
+  --mount volume=var-lib-cni,target=/var/lib/cni \
+  --volume var-lib-calico,kind=host,source=/var/lib/calico \
+  --mount volume=var-lib-calico,target=/var/lib/calico \
+  --volume opt-cni-bin,kind=host,source=/opt/cni/bin \
+  --mount volume=opt-cni-bin,target=/opt/cni/bin \
+  --volume var-log,kind=host,source=/var/log \
+  --mount volume=var-log,target=/var/log \
+  --volume iscsiadm,kind=host,source=/usr/sbin/iscsiadm \
+  --mount volume=iscsiadm,target=/usr/sbin/iscsiadm \
+  --insecure-options=image"
+ExecStartPre=/bin/mkdir -p /opt/bin
+ExecStartPre=/bin/mkdir -p /etc/cni/net.d
+ExecStartPre=/bin/mkdir -p /opt/cni/bin
+ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
+ExecStartPre=/bin/mkdir -p /etc/kubernetes/cni/net.d
+ExecStartPre=/bin/mkdir -p /var/lib/cni
+ExecStartPre=/bin/mkdir -p /var/lib/calico
+ExecStartPre=/bin/mkdir -p /var/lib/kubelet/volumeplugins
+ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/cache/kubelet-pod.uuid
+ExecStart=/usr/lib/coreos/kubelet-wrapper \
+  --node-ip=${NODE_IP} \
+  --node-labels=${NODE_LABELS},alpha.eksctl.io/instance-id=${INSTANCE_ID} \
+  --max-pods=${MAX_PODS} \
+  --register-node=true --register-with-taints=${NODE_TAINTS} \
+  --allow-privileged=true \
+  --cloud-provider=aws \
+  --container-runtime=docker \
+  --network-plugin=cni \
+  --cni-conf-dir=/etc/cni/net.d \
+  --pod-infra-container-image=${AWS_EKS_ECR_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/eks/pause-amd64:3.1 \
+  --kubeconfig=/etc/eksctl/kubeconfig.yaml \
+  --config=/etc/eksctl/kubelet.yaml
+ExecStop=-/usr/bin/rkt stop --uuid-file=/var/cache/kubelet-pod.uuid
+Restart=always
+RestartSec=5
+[Install]
+WantedBy=multi-user.target

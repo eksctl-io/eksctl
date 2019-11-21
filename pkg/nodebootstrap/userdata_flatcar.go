@@ -25,8 +25,8 @@ func makeFlatcarConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles,
 	}
 
 	files := configFiles{
-		kubeletDropInUnitDir: {
-			"10-eksclt.flatcar.conf": {isAsset: true},
+		systemdUnitDir: {
+			"flatcar/kubelet.service": {isAsset: true},
 		},
 		configDir: {
 			"metadata.env": {content: strings.Join(makeMetadata(spec), "\n")},

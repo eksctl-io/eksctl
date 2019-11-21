@@ -2,6 +2,7 @@ package nodebootstrap
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -15,11 +16,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
-//go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -nometadata -o assets.go assets
+//go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -nometadata -ignore .*\.swp -o assets.go assets/...
 //go:generate go run ./maxpods_generate.go
 
 const (
 	configDir            = "/etc/eksctl/"
+	systemdUnitDir       = "/etc/systemd/system/"
 	kubeletDropInUnitDir = "/etc/systemd/system/kubelet.service.d/"
 )
 
@@ -42,7 +44,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	for dir, fileNames := range files {
 		for fileName, file := range fileNames {
 			f := cloudconfig.File{
-				Path: dir + fileName,
+				Path: filepath.Join(dir, filepath.Base(fileName)),
 			}
 			if file.isAsset {
 				data, err := getAsset(fileName)
