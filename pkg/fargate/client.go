@@ -28,6 +28,7 @@ func (c Client) CreateProfile(profile *api.FargateProfile) error {
 	if profile == nil {
 		return errors.New("invalid Fargate profile: nil")
 	}
+	logger.Debug("Fargate profile: create request input: %#v", profile)
 	out, err := c.api.CreateFargateProfile(createRequest(c.clusterName, profile))
 	if err != nil {
 		return errors.Wrapf(err, "failed to create Fargate profile \"%v\" in cluster \"%v\"", profile.Name, c.clusterName)
@@ -80,6 +81,8 @@ func createRequest(clusterName string, profile *api.FargateProfile) *eks.CreateF
 		PodExecutionRoleARN: strings.NilIfEmpty(profile.PodExecutionRoleARN),
 		Subnets:             strings.NilPointersArrayIfEmpty(strings.ToPointersArray(profile.Subnets)),
 	}
+	logger.Debug("Fargate profile: create request: %#v", request)
+	return request
 }
 
 func toFargateProfiles(in []*eks.FargateProfile) []*api.FargateProfile {

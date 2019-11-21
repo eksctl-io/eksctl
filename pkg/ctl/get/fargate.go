@@ -24,7 +24,7 @@ func getFargateProfile(cmd *cmdutils.Cmd) {
 func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 	var opts fargate.Options
 	cmd.FlagSetGroup.InFlagSet("Fargate", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForFargate(fs, &opts)
+		cmdutils.AddFlagsForFargate(fs, &opts)
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
