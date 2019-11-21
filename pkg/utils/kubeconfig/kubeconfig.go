@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/weaveworks/eksctl/pkg/utils/file"
@@ -93,7 +94,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 		roleARNFlag string
 	)
 
-	switch authenticatorCMD {
+	switch filepath.Base(authenticatorCMD) {
 	case AWSIAMAuthenticator, HeptioAuthenticatorAWS:
 		args = []string{"token", "-i", spec.Metadata.Name}
 		roleARNFlag = "-r"
