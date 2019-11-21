@@ -145,6 +145,7 @@ func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []st
 	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
 		fmt.Sprintf("NODE_TAINTS=%s", kvs(ng.Taints)),
+		fmt.Sprintf("KUBELET_VERSION=%s", spec.Metadata.Version),
 	}
 
 	if ng.MaxPodsPerNode != 0 {
