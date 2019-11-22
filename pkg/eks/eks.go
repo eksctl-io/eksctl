@@ -208,7 +208,7 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output string, eachRegion bool) error {
+func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output printers.Type, eachRegion bool) error {
 	// NOTE: this needs to be reworked in the future so that the functionality
 	// is combined. This require the ability to return details of all clusters
 	// in a single call.

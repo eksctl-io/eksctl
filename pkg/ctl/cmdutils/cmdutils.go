@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -182,7 +183,7 @@ func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath, authenticatorRol
 }
 
 // AddCommonFlagsForGetCmd adds common flafs for get commands
-func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *string) {
+func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *printers.Type) {
 	fs.IntVar(chunkSize, "chunk-size", 100, "return large lists in chunks rather than all at once, pass 0 to disable")
 	fs.StringVarP(outputMode, "output", "o", "table", "specifies the output format (valid option: table, json, yaml)")
 }
