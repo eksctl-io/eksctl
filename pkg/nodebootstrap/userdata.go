@@ -55,6 +55,9 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 			} else {
 				f.Content = file.content
 			}
+			if strings.HasSuffix(f.Path, ".sh") {
+				f.Permissions = "0755"
+			}
 			config.AddFile(f)
 		}
 	}

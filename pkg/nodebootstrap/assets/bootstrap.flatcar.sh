@@ -16,7 +16,7 @@ function get_max_pods() {
 function install_kubernetes() {
   echo "Installing Kubernetes"
 
-  cd
+  cd /root
   mkdir -p /opt/cni/bin
   CNI_VERSION="v0.6.0"
   CNI_PLUGIN_VERSION="v0.7.5"
@@ -38,6 +38,7 @@ function install_kubernetes() {
   wget -O /opt/bin/aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.4.0/aws-iam-authenticator_0.4.0_linux_amd64
   chmod +x /opt/bin/aws-iam-authenticator
 }
+
 
 NODE_IP="$(curl --silent http://169.254.169.254/latest/meta-data/local-ipv4)"
 INSTANCE_ID="$(curl --silent http://169.254.169.254/latest/meta-data/instance-id)"

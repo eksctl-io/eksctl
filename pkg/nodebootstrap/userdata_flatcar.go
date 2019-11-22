@@ -67,7 +67,7 @@ func NewUserDataForFlatcar(spec *api.ClusterConfig, ng *api.NodeGroup) (string, 
 	if err = addFilesAndScripts(config, files, scripts); err != nil {
 		return "", err
 	}
-	config.AddSystemdUnit("kubelet-first-time.service", true, "start", `[Unit]\nConditionPathExists=!/etc/eksctl/done\n\n[Service]\nType=oneshot\nExecStart=/etc/eksctl/bootstrap.flatcar.sh\n\n[Install]\nWantedBy=multi-user.target`)
+	config.AddSystemdUnit("kubelet-first-time.service", true, "start", "[Unit]\nConditionPathExists=!/etc/eksctl/done\n\n[Service]\nType=oneshot\nExecStart=/etc/eksctl/bootstrap.flatcar.sh\n\n[Install]\nWantedBy=multi-user.target")
 
 	body, err := config.Encode()
 	if err != nil {
