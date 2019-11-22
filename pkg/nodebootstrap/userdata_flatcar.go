@@ -33,9 +33,10 @@ func makeFlatcarConfig(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles,
 			"kubelet.env":  {content: strings.Join(makeCommonKubeletEnvParams(spec, ng), "\n")},
 			"kubelet.yaml": {content: string(kubeletConfigData)},
 			// TODO: https://github.com/weaveworks/eksctl/issues/161
-			"ca.crt":          {content: string(spec.Status.CertificateAuthorityData)},
-			"kubeconfig.yaml": {content: string(clientConfigData)},
-			"max_pods.map":    {content: makeMaxPodsMapping()},
+			"ca.crt":               {content: string(spec.Status.CertificateAuthorityData)},
+			"kubeconfig.yaml":      {content: string(clientConfigData)},
+			"max_pods.map":         {content: makeMaxPodsMapping()},
+			"bootstrap.flatcar.sh": {isAsset: true},
 		},
 	}
 
@@ -66,6 +67,7 @@ func NewUserDataForFlatcar(spec *api.ClusterConfig, ng *api.NodeGroup) (string, 
 	if err = addFilesAndScripts(config, files, scripts); err != nil {
 		return "", err
 	}
+	config.AddSystemdUnit("kubelet-first-time.service", true, "start", `[Unit]\nConditionPathExists=!/etc/eksctl/done\n\n[Service]\nType=oneshot\nExecStart=/etc/eksctl/bootstrap.flatcar.sh\n\n[Install]\nWantedBy=multi-user.target`)
 
 	body, err := config.Encode()
 	if err != nil {

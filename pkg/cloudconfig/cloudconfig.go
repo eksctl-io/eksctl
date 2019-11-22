@@ -31,6 +31,10 @@ type CloudConfig struct {
 	Commands   []interface{} `json:"runcmd"`
 	Packages   []string      `json:"packages"`
 	WriteFiles []File        `json:"write_files"`
+
+	// The coreos field is documented on:
+	// https://github.com/coreos/coreos-cloudinit/blob/f1f0405491dfd073bbf074f7e374c9ef85600691/Documentation/cloud-config.md
+	Coreos Coreos `json:"coreos,omitempty"`
 }
 
 // File stores information about the file
@@ -39,6 +43,17 @@ type File struct {
 	Owner       string `json:"owner"`
 	Path        string `json:"path"`
 	Permissions string `json:"permissions"`
+}
+
+type Coreos struct {
+	Units []SystemdUnit `json:"units,omitempty"`
+}
+
+type SystemdUnit struct {
+	Name    string `json:"name"`
+	Enable  bool   `json:"enable,omitempty"`
+	Command string `json:"command,omitempty"`
+	Content string `json:"content,omitempty"`
 }
 
 // New creates a new cloud config
@@ -66,6 +81,11 @@ func (c *CloudConfig) AddCommand(cmd ...string) {
 // AddShellCommand adds a shell comannd, which will be run on node start up
 func (c *CloudConfig) AddShellCommand(cmd string) {
 	c.Commands = append(c.Commands, []string{Shell, "-c", cmd})
+}
+
+// AddSystemdUnit adds a systemd unit
+func (c *CloudConfig) AddSystemdUnit(name string, enable bool, command, content string) {
+	c.Coreos.Units = append(c.Coreos.Units, SystemdUnit{name, enable, command, content})
 }
 
 // AddFile adds a file, which will be placed on the node

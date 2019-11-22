@@ -55,6 +55,8 @@ EOF
 # Install Kubernetes
 install_kubernetes
 
+touch /etc/eksctl/done
+
 systemctl daemon-reload
 systemctl enable kubelet
 systemctl start kubelet
