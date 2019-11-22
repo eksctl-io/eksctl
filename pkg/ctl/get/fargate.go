@@ -1,12 +1,19 @@
 package get
 
 import (
+	"os"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 )
+
+type options struct {
+	fargate.Options
+	getCmdParams
+}
 
 func getFargateProfile(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
@@ -15,31 +22,53 @@ func getFargateProfile(cmd *cmdutils.Cmd) {
 		"Get Fargate profile(s)",
 		"",
 	)
-	opts := configureGetFargateProfileCmd(cmd)
+	options := configureGetFargateProfileCmd(cmd)
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doGetFargateProfile(cmd, opts)
+		return doGetFargateProfile(cmd, options)
 	})
 }
 
-func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
-	var opts fargate.Options
+func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
+	var options options
 	cmd.FlagSetGroup.InFlagSet("Fargate", func(fs *pflag.FlagSet) {
-		cmdutils.AddFlagsForFargate(fs, &opts)
+		cmdutils.AddFlagsForFargate(fs, &options.Options)
 	})
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
-		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddCommonFlagsForGetCmd(fs, &options.chunkSize, &options.output)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
-	return &opts
+	return &options
 }
 
-func doGetFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
-	if err := opts.Validate(); err != nil {
+func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
+	ctl, err := cmd.NewCtl()
+	if err != nil {
 		return err
 	}
-	logger.Info("getting Fargate profile \"%s\"", opts.ProfileName)
-	return nil
+	if err := ctl.CheckAuth(); err != nil {
+		return err
+	}
+	clusterName := cmd.ClusterConfig.Metadata.Name
+	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
+
+	logger.Debug("getting EKS cluster \"%s\"'s Fargate profile(s)", clusterName)
+	profiles, err := getProfiles(awsClient, options.ProfileName)
+	if err != nil {
+		return err
+	}
+	return fargate.PrintProfiles(profiles, os.Stdout, options.output)
+}
+
+func getProfiles(awsClient *fargate.Client, name string) ([]*api.FargateProfile, error) {
+	if name == "" {
+		return awsClient.ReadProfiles()
+	}
+	profile, err := awsClient.ReadProfile(name)
+	if err != nil {
+		return nil, err
+	}
+	return []*api.FargateProfile{profile}, nil
 }
