@@ -274,7 +274,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 		if managedNodeGroup {
 			for _, f := range incompatibleManagedNodesFlags() {
@@ -365,7 +365,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
@@ -377,7 +377,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
@@ -451,7 +451,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if len(l.ClusterConfig.IAM.ServiceAccounts) != 1 {
@@ -489,7 +489,7 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if l.NameArg != "" {
@@ -527,7 +527,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
@@ -539,7 +539,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		l.Plan = false
