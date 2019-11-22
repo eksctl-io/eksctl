@@ -54,13 +54,28 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	// names must be unique across both managed and unmanaged nodegroups
 	ngNames := nameSet{}
-	for i, ng := range cfg.NodeGroups {
-		path := fmt.Sprintf("nodeGroups[%d]", i)
-		if ng.Name == "" {
+	validateNg := func(name, path string) error {
+		if name == "" {
 			return fmt.Errorf("%s.name must be set", path)
 		}
-		if ok, err := ngNames.checkUnique(path+".name", ng.NameString()); !ok {
+		if _, err := ngNames.checkUnique(path+".name", name); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	for i, ng := range cfg.NodeGroups {
+		path := fmt.Sprintf("nodeGroups[%d]", i)
+		if err := validateNg(ng.NameString(), path); err != nil {
+			return err
+		}
+	}
+
+	for i, ng := range cfg.ManagedNodeGroups {
+		path := fmt.Sprintf("managedNodeGroups[%d]", i)
+		if err := validateNg(ng.NameString(), path); err != nil {
 			return err
 		}
 	}
@@ -159,6 +174,9 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	if ng.SSH != nil {
 		if err := validateNodeGroupSSH(ng.SSH); err != nil {
 			return err
+		}
+		if len(ng.SSH.SourceSecurityGroupIDs) > 0 {
+			return fmt.Errorf("%s.sourceSecurityGroupIds is not supported for unmanaged nodegroups", path)
 		}
 	}
 
@@ -302,6 +320,61 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 		if IsEnabled(iam.WithAddonPolicies.CloudWatch) {
 			return fmtFieldConflictErr(prefix + "cloudWatch")
 		}
+	}
+	return nil
+}
+
+// ValidateManagedNodeGroup validates a ManagedNodeGroup and sets some defaults
+func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
+	if ng.AMIFamily != NodeImageFamilyAmazonLinux2 {
+		return fmt.Errorf("only %s is supported for Managed Nodegroups", NodeImageFamilyAmazonLinux2)
+	}
+	path := fmt.Sprintf("managedNodeGroups[%d]", index)
+	if ng.IAM != nil {
+		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleArn", path); err != nil {
+			return err
+		}
+
+		errNotSupported := func(field string) error {
+			return fmt.Errorf("%s is not supported for Managed Nodes (%s.%s)", field, path, field)
+		}
+
+		if ng.IAM.InstanceProfileARN != "" {
+			return errNotSupported("instanceProfileARN")
+		}
+
+		if ng.IAM.InstanceRoleARN != "" {
+			return errNotSupported("instanceRoleARN")
+		}
+	}
+
+	// TODO fix error messages to not use CLI flags
+	if ng.MinSize == nil {
+		if ng.DesiredCapacity == nil {
+			defaultNodeCount := DefaultNodeCount
+			ng.MinSize = &defaultNodeCount
+		} else {
+			ng.MinSize = ng.DesiredCapacity
+		}
+	} else if ng.DesiredCapacity != nil && *ng.DesiredCapacity < *ng.MinSize {
+		return fmt.Errorf("cannot use --nodes-min=%d and --nodes=%d at the same time", *ng.MinSize, *ng.DesiredCapacity)
+	}
+
+	// Ensure MaxSize is set, as it is required by the ASG cfn resource
+	if ng.MaxSize == nil {
+		if ng.DesiredCapacity == nil {
+			ng.MaxSize = ng.MinSize
+		} else {
+			ng.MaxSize = ng.DesiredCapacity
+		}
+	} else if ng.DesiredCapacity != nil && *ng.DesiredCapacity > *ng.MaxSize {
+		return fmt.Errorf("cannot use --nodes-max=%d and --nodes=%d at the same time", *ng.MaxSize, *ng.DesiredCapacity)
+	} else if *ng.MaxSize < *ng.MinSize {
+		return fmt.Errorf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", *ng.MinSize, *ng.MaxSize)
+	}
+
+	if ng.DesiredCapacity == nil {
+		ng.DesiredCapacity = ng.MinSize
 	}
 	return nil
 }

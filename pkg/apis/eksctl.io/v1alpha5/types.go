@@ -142,6 +142,9 @@ const (
 	// NodeGroupNameTag defines the tag of the nodegroup name
 	NodeGroupNameTag = "alpha.eksctl.io/nodegroup-name"
 
+	// NodeGroupTypeTag defines the nodegroup type as managed or unmanaged
+	NodeGroupTypeTag = "alpha.eksctl.io/nodegroup-type"
+
 	// OldNodeGroupNameTag defines the tag of the nodegroup name
 	OldNodeGroupNameTag = "eksctl.io/v1alpha2/nodegroup-name"
 
@@ -175,6 +178,16 @@ const (
 
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
+)
+
+// NodeGroupType defines the nodegroup type
+type NodeGroupType string
+
+const (
+	// NodeGroupTypeManaged defines a managed nodegroup
+	NodeGroupTypeManaged NodeGroupType = "managed"
+	// NodeGroupTypeUnmanaged defines an unmanaged nodegroup
+	NodeGroupTypeUnmanaged NodeGroupType = "unmanaged"
 )
 
 var (
@@ -352,6 +365,9 @@ type ClusterConfig struct {
 	NodeGroups []*NodeGroup `json:"nodeGroups,omitempty"`
 
 	// +optional
+	ManagedNodeGroups []*ManagedNodeGroup `json:"managedNodeGroups,omitempty"`
+
+	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 
 	// +optional
@@ -456,6 +472,37 @@ func NewNodeGroup() *NodeGroup {
 	}
 }
 
+// NewManagedNodeGroup creates a new ManagedNodeGroup
+func NewManagedNodeGroup() *ManagedNodeGroup {
+	var (
+		publicKey  = DefaultNodeSSHPublicKeyPath
+		volumeSize = DefaultNodeVolumeSize
+	)
+	return &ManagedNodeGroup{
+		VolumeSize:    &volumeSize,
+		ScalingConfig: &ScalingConfig{},
+		SSH: &NodeGroupSSH{
+			Allow:         Disabled(),
+			PublicKeyName: &publicKey,
+		},
+		IAM: &NodeGroupIAM{
+			WithAddonPolicies: NodeGroupIAMAddonPolicies{
+				ImageBuilder: Disabled(),
+				AutoScaler:   Disabled(),
+				ExternalDNS:  Disabled(),
+				CertManager:  Disabled(),
+				AppMesh:      Disabled(),
+				EBS:          Disabled(),
+				FSX:          Disabled(),
+				EFS:          Disabled(),
+				ALBIngress:   Disabled(),
+				XRay:         Disabled(),
+				CloudWatch:   Disabled(),
+			},
+		},
+	}
+}
+
 // NewNodeGroup creates new nodegroup inside cluster config,
 // it returns pointer to the nodegroup for convenience
 func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
@@ -544,14 +591,25 @@ type NodeGroup struct {
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
 func (n *NodeGroup) ListOptions() metav1.ListOptions {
-	return metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, n.Name),
-	}
+	return makeListOptions(n.Name)
 }
 
 // NameString returns common name string
 func (n *NodeGroup) NameString() string {
 	return n.Name
+}
+
+// Size returns the minimum nodegroup size
+func (n *NodeGroup) Size() int {
+	if n.MinSize == nil {
+		return 0
+	}
+	return *n.MinSize
+}
+
+// GetAMIFamily returns the AMI family
+func (n *NodeGroup) GetAMIFamily() string {
+	return n.AMIFamily
 }
 
 type (
@@ -613,6 +671,8 @@ type (
 		PublicKey *string `json:"publicKey,omitempty"`
 		// +optional
 		PublicKeyName *string `json:"publicKeyName,omitempty"`
+		// +optional
+		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
 	}
 
 	// NodeGroupInstancesDistribution holds the configuration for spot instances
@@ -630,6 +690,71 @@ type (
 	}
 )
 
+// ScalingConfig defines the scaling config
+type ScalingConfig struct {
+	// +optional
+	DesiredCapacity *int `json:"desiredCapacity,omitempty"`
+	// +optional
+	MinSize *int `json:"minSize,omitempty"`
+	// +optional
+	MaxSize *int `json:"maxSize,omitempty"`
+}
+
+// ManagedNodeGroup defines an EKS-managed nodegroup
+// TODO Validate for unmapped fields and throw an error
+type ManagedNodeGroup struct {
+	Name string `json:"name"`
+
+	// +optional
+	AMIFamily string `json:"amiFamily,omitempty"`
+	// +optional
+	InstanceType string `json:"instanceType,omitempty"`
+	// +optional
+	*ScalingConfig `json:",inline"`
+	// +optional
+	VolumeSize *int `json:"volumeSize,omitempty"`
+	// +optional
+	AvailabilityZones []string `json:"availabilityZones,omitempty"`
+	// +optional
+	SSH *NodeGroupSSH `json:"ssh,omitempty"`
+
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
+	// +optional
+	IAM *NodeGroupIAM `json:"iam,omitempty"`
+}
+
+// ListOptions returns metav1.ListOptions with label selector for the managed nodegroup
+func (n *ManagedNodeGroup) ListOptions() metav1.ListOptions {
+	return makeListOptions(n.Name)
+}
+
+// NameString returns the nodegroup name
+func (n *ManagedNodeGroup) NameString() string {
+	return n.Name
+}
+
+// Size returns the minimum nodegroup size
+func (n *ManagedNodeGroup) Size() int {
+	if n.MinSize == nil {
+		return 0
+	}
+	return *n.MinSize
+}
+
+// GetAMIFamily returns the AMI family
+func (n *ManagedNodeGroup) GetAMIFamily() string {
+	return n.AMIFamily
+}
+
+func makeListOptions(nodeGroupName string) metav1.ListOptions {
+	return metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", NodeGroupNameLabel, nodeGroupName),
+	}
+}
+
 // InlineDocument holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies
 type InlineDocument map[string]interface{}
 
@@ -645,7 +770,7 @@ func (in *InlineDocument) DeepCopy() *InlineDocument {
 
 // HasMixedInstances checks if a nodegroup has mixed instances option declared
 func HasMixedInstances(ng *NodeGroup) bool {
-	return ng.InstancesDistribution != nil && ng.InstancesDistribution.InstanceTypes != nil && len(ng.InstancesDistribution.InstanceTypes) != 0
+	return ng.InstancesDistribution != nil && len(ng.InstancesDistribution.InstanceTypes) > 0
 }
 
 // IsAMI returns true if the argument is an AMI id

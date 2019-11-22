@@ -15,7 +15,7 @@ func AddConfigFileFlag(fs *pflag.FlagSet, path *string) {
 	fs.StringVarP(path, "config-file", "f", "", "load configuration from a file (or stdin if set to '-')")
 }
 
-// ClusterConfigLoader is an inteface that loaders should implement
+// ClusterConfigLoader is an interface that loaders should implement
 type ClusterConfigLoader interface {
 	Load() error
 }
@@ -133,7 +133,7 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
-func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, withoutNodeGroup bool) ClusterConfigLoader {
+func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, withoutNodeGroup, managedFlag bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	ngFilter.ExcludeAll = withoutNodeGroup
@@ -141,6 +141,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",
 		"zones",
+		"managed",
 		"nodes",
 		"nodes-min",
 		"nodes-max",
@@ -205,27 +206,48 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			return fmt.Errorf("status fields are read-only")
 		}
 
+		if managedFlag {
+			for _, f := range incompatibleManagedNodesFlags() {
+				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
+					return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
+				}
+			}
+		}
+
 		// prevent creation of invalid config object with irrelevant nodegroup
 		// that may or may not be constructed correctly
 		if !withoutNodeGroup {
-			l.ClusterConfig.NodeGroups = append(l.ClusterConfig.NodeGroups, ng)
+			if managedFlag {
+				l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng)}
+			} else {
+				l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
+			}
 		}
 
-		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
+		for _, ng := range l.ClusterConfig.NodeGroups {
 			// generate nodegroup name or use flag
 			ng.Name = NodeGroupName(ng.Name, "")
-			return normalizeNodeGroup(ng, l)
-		})
+			if err := normalizeNodeGroup(ng, l); err != nil {
+				return err
+			}
+		}
+
+		for _, ng := range l.ClusterConfig.ManagedNodeGroups {
+			ng.Name = NodeGroupName(ng.Name, "")
+		}
+
+		return nil
 	}
 
 	return l
 }
 
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
-func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfigLoader {
+func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter, managedNodeGroup bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
+		"managed",
 		"nodes",
 		"nodes-min",
 		"nodes-max",
@@ -252,21 +274,64 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ngFilter *NodeGroupFilter) ClusterConfig
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
+		}
+		if managedNodeGroup {
+			for _, f := range incompatibleManagedNodesFlags() {
+				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
+					return ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f))
+				}
+			}
+			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng)}
+		} else {
+			l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 		}
 
-		return ngFilter.ForEach(l.ClusterConfig.NodeGroups, func(i int, ng *api.NodeGroup) error {
-			// generate nodegroup name or use either flag or argument
-			ngName := NodeGroupName(ng.Name, l.NameArg)
-			if ngName == "" {
-				return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+		// Validate both filtered and unfiltered nodegroups
+		if managedNodeGroup {
+			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
+				ngName := NodeGroupName(ng.Name, l.NameArg)
+				if ngName == "" {
+					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+				}
+				ng.Name = ngName
 			}
-			ng.Name = ngName
-			return normalizeNodeGroup(ng, l)
-		})
+		} else {
+			for _, ng := range l.ClusterConfig.NodeGroups {
+				// generate nodegroup name or use either flag or argument
+				ngName := NodeGroupName(ng.Name, l.NameArg)
+				if ngName == "" {
+					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+				}
+				ng.Name = ngName
+				if err := normalizeNodeGroup(ng, l); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	}
 
 	return l
+}
+
+func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
+	return &api.ManagedNodeGroup{
+		AvailabilityZones: nodeGroup.AvailabilityZones,
+		Name:              nodeGroup.Name,
+		IAM:               nodeGroup.IAM,
+		SSH:               nodeGroup.SSH,
+		InstanceType:      nodeGroup.InstanceType,
+		Labels:            nodeGroup.Labels,
+		Tags:              nodeGroup.Tags,
+		AMIFamily:         nodeGroup.AMIFamily,
+		VolumeSize:        nodeGroup.VolumeSize,
+		ScalingConfig: &api.ScalingConfig{
+			MinSize:         nodeGroup.MinSize,
+			MaxSize:         nodeGroup.MaxSize,
+			DesiredCapacity: nodeGroup.DesiredCapacity,
+		},
+	}
 }
 
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
@@ -300,7 +365,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
@@ -312,7 +377,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
@@ -386,7 +451,7 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if len(l.ClusterConfig.IAM.ServiceAccounts) != 1 {
@@ -424,7 +489,7 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if l.NameArg != "" {
@@ -462,7 +527,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet("--cluster")
+			return ErrMustBeSet(ClusterNameFlag(cmd))
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
@@ -474,7 +539,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		l.Plan = false

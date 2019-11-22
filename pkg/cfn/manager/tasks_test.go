@@ -646,33 +646,54 @@ var _ = Describe("StackCollection Tasks", func() {
 					return nodeGroups
 				}
 
+				makeManagedNodeGroups := func(names ...string) []*api.ManagedNodeGroup {
+					var managedNodeGroups []*api.ManagedNodeGroup
+					for _, name := range names {
+						ng := api.NewManagedNodeGroup()
+						ng.Name = name
+						managedNodeGroups = append(managedNodeGroups, ng)
+					}
+					return managedNodeGroups
+				}
+				// TODO use DescribeTable
+
+				// The supportsManagedNodes argument has no effect on the Describe call, so the values are alternated
+				// in these tests
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar", "foo"))
+					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar", "foo"), true)
 					Expect(tasks.Describe()).To(Equal(`2 parallel tasks: { create nodegroup "bar", create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar"))
+					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("bar"), false)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("foo"))
+					tasks := stackManager.NewTasksToCreateNodeGroups(makeNodeGroups("foo"), true)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create nodegroup "foo" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateNodeGroups(nil)
+					tasks := stackManager.NewTasksToCreateNodeGroups(nil, false)
 					Expect(tasks.Describe()).To(Equal(`no tasks`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"))
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), nil, true)
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "bar", create nodegroup "foo" } }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"))
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false)
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", create nodegroup "bar" }`))
 				}
 				{
-					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil)
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(nil, nil, true)
 					Expect(tasks.Describe()).To(Equal(`1 task: { create cluster control plane "test-cluster" }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar", "foo"), makeManagedNodeGroups("m1", "m2"), false)
+					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 4 parallel sub-tasks: { create nodegroup "bar", create nodegroup "foo", create managed nodegroup "m1", create managed nodegroup "m2" } }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"), true)
+					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "foo", create managed nodegroup "m1" } }`))
 				}
 			})
 		})

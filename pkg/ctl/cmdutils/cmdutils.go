@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -194,7 +195,7 @@ func ErrUnsupportedRegion(provider *api.ProviderConfig) error {
 // ErrClusterFlagAndArg wraps ErrFlagAndArg() by passing in the
 // proper flag name.
 func ErrClusterFlagAndArg(cmd *Cmd, nameFlag, nameArg string) error {
-	return ErrFlagAndArg(ClusterNameFlag(cmd),  nameFlag, nameArg)
+	return ErrFlagAndArg(ClusterNameFlag(cmd), nameFlag, nameArg)
 }
 
 // ErrFlagAndArg may be used to err for options that can be given
@@ -211,4 +212,14 @@ func ErrMustBeSet(pathOrFlag string) error {
 // ErrCannotUseWithConfigFile is a common error message
 func ErrCannotUseWithConfigFile(what string) error {
 	return fmt.Errorf("cannot use %s when --config-file/-f is set", what)
+}
+
+// ErrUnsupportedManagedFlag reports unsupported flags for Managed Nodegroups
+func ErrUnsupportedManagedFlag(flag string) error {
+	return fmt.Errorf("%s is not supported for Managed Nodegroups (--managed=true)", flag)
+}
+
+// ErrUnsupportedNameArg reports unsupported usage of `name` argument
+func ErrUnsupportedNameArg() error {
+	return errors.New("name argument is not supported")
 }

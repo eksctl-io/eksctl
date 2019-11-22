@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/iam"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
 const (
@@ -22,6 +22,11 @@ const (
 	iamPolicyAmazonEC2ContainerRegistryPowerUserARN = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 	iamPolicyAmazonEC2ContainerRegistryReadOnlyARN  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 	iamPolicyCloudWatchAgentServerPolicyARN         = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+)
+
+const (
+	cfnIAMInstanceRoleName    = "NodeInstanceRole"
+	cfnIAMInstanceProfileName = "NodeInstanceProfile"
 )
 
 var (
@@ -79,6 +84,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.attachAllowPolicy("PolicyCloudWatchMetrics", refSR, "*", []string{
 		"cloudwatch:PutMetricData",
 	})
+
 	c.rs.defineOutputFromAtt(outputs.ClusterServiceRoleARN, "ServiceRole.Arn", true, func(v string) error {
 		c.spec.IAM.ServiceRoleARN = &v
 		return nil
@@ -96,10 +102,6 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 }
 
 func (n *NodeGroupResourceSet) addResourcesForIAM() {
-	if n.spec.IAM == nil {
-		n.spec.IAM = &api.NodeGroupIAM{}
-	}
-
 	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
@@ -124,12 +126,12 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 
 	if n.spec.IAM.InstanceRoleARN != "" {
 		// if role is set, but profile isn't - create profile
-		n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+		n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
 			Path:  gfn.NewString("/"),
 			Roles: makeStringSlice(n.spec.IAM.InstanceRoleARN),
 		})
-		n.instanceProfileARN = gfn.MakeFnGetAttString("NodeInstanceProfile.Arn")
-		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
+		n.instanceProfileARN = gfn.MakeFnGetAttString(makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"))
+		n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"), true, func(v string) error {
 			n.spec.IAM.InstanceProfileARN = v
 			return nil
 		})
@@ -137,249 +139,26 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		return
 	}
 
-	// if neither role nor profile are given - create both
+	// if neither role nor profile is given - create both
 
 	if n.spec.IAM.InstanceRoleName != "" {
 		// setting role name requires additional capabilities
 		n.rs.withNamedIAM = true
 	}
 
-	if len(n.spec.IAM.AttachPolicyARNs) == 0 {
-		n.spec.IAM.AttachPolicyARNs = iamDefaultNodePolicyARNs
-	}
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ImageBuilder) {
-		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
-	} else {
-		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
-	}
+	createRole(n.rs, n.spec.IAM)
 
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.CloudWatch) {
-		n.spec.IAM.AttachPolicyARNs = append(n.spec.IAM.AttachPolicyARNs, iamPolicyCloudWatchAgentServerPolicyARN)
-	}
-
-	role := gfn.AWSIAMRole{
-		Path:                     gfn.NewString("/"),
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
-		ManagedPolicyArns:        makeStringSlice(n.spec.IAM.AttachPolicyARNs...),
-	}
-
-	if n.spec.IAM.InstanceRoleName != "" {
-		role.RoleName = gfn.NewString(n.spec.IAM.InstanceRoleName)
-	}
-
-	refIR := n.newResource("NodeInstanceRole", &role)
-
-	n.newResource("NodeInstanceProfile", &gfn.AWSIAMInstanceProfile{
+	n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),
-		Roles: makeSlice(refIR),
+		Roles: makeSlice(gfn.MakeRef(cfnIAMInstanceRoleName)),
 	})
-	n.instanceProfileARN = gfn.MakeFnGetAttString("NodeInstanceProfile.Arn")
+	n.instanceProfileARN = gfn.MakeFnGetAttString(makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"))
 
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AutoScaler) {
-		n.rs.attachAllowPolicy("PolicyAutoScaling", refIR, "*",
-			[]string{
-				"autoscaling:DescribeAutoScalingGroups",
-				"autoscaling:DescribeAutoScalingInstances",
-				"autoscaling:DescribeLaunchConfigurations",
-				"autoscaling:DescribeTags",
-				"autoscaling:SetDesiredCapacity",
-				"autoscaling:TerminateInstanceInAutoScalingGroup",
-				"ec2:DescribeLaunchTemplateVersions",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.CertManager) {
-		n.rs.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
-			[]string{
-				"route53:ChangeResourceRecordSets",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*",
-			[]string{
-				"route53:ListHostedZones",
-				"route53:ListResourceRecordSets",
-				"route53:ListHostedZonesByName",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyCertManagerGetChange", refIR, "arn:aws:route53:::change/*",
-			[]string{
-				"route53:GetChange",
-			},
-		)
-	} else if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ExternalDNS) {
-		n.rs.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
-			[]string{
-				"route53:ChangeResourceRecordSets",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyExternalDNSHostedZones", refIR, "*",
-			[]string{
-				"route53:ListHostedZones",
-				"route53:ListResourceRecordSets",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.AppMesh) {
-		n.rs.attachAllowPolicy("PolicyAppMesh", refIR, "*",
-			[]string{
-				"appmesh:*",
-				"servicediscovery:CreateService",
-				"servicediscovery:GetService",
-				"servicediscovery:RegisterInstance",
-				"servicediscovery:DeregisterInstance",
-				"servicediscovery:ListInstances",
-				"servicediscovery:ListNamespaces",
-				"route53:GetHealthCheck",
-				"route53:CreateHealthCheck",
-				"route53:UpdateHealthCheck",
-				"route53:ChangeResourceRecordSets",
-				"route53:DeleteHealthCheck",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.EBS) {
-		n.rs.attachAllowPolicy("PolicyEBS", refIR, "*",
-			[]string{
-				"ec2:AttachVolume",
-				"ec2:CreateSnapshot",
-				"ec2:CreateTags",
-				"ec2:CreateVolume",
-				"ec2:DeleteSnapshot",
-				"ec2:DeleteTags",
-				"ec2:DeleteVolume",
-				"ec2:DescribeInstances",
-				"ec2:DescribeSnapshots",
-				"ec2:DescribeTags",
-				"ec2:DescribeVolumes",
-				"ec2:DetachVolume",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.FSX) {
-		n.rs.attachAllowPolicy("PolicyFSX", refIR, "*",
-			[]string{
-				"fsx:*",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
-			[]string{
-				"iam:CreateServiceLinkedRole",
-				"iam:AttachRolePolicy",
-				"iam:PutRolePolicy",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.EFS) {
-		n.rs.attachAllowPolicy("PolicyEFS", refIR, "*",
-			[]string{
-				"elasticfilesystem:*",
-			},
-		)
-		n.rs.attachAllowPolicy("PolicyEFSEC2", refIR, "*",
-			[]string{
-				"ec2:DescribeSubnets",
-				"ec2:CreateNetworkInterface",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:DeleteNetworkInterface",
-				"ec2:ModifyNetworkInterfaceAttribute",
-				"ec2:DescribeNetworkInterfaceAttribute",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.ALBIngress) {
-		n.rs.attachAllowPolicy("PolicyALBIngress", refIR, "*",
-			[]string{
-				"acm:DescribeCertificate",
-				"acm:ListCertificates",
-				"acm:GetCertificate",
-				"ec2:AuthorizeSecurityGroupIngress",
-				"ec2:CreateSecurityGroup",
-				"ec2:CreateTags",
-				"ec2:DeleteTags",
-				"ec2:DeleteSecurityGroup",
-				"ec2:DescribeAccountAttributes",
-				"ec2:DescribeAddresses",
-				"ec2:DescribeInstances",
-				"ec2:DescribeInstanceStatus",
-				"ec2:DescribeInternetGateways",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:DescribeSecurityGroups",
-				"ec2:DescribeSubnets",
-				"ec2:DescribeTags",
-				"ec2:DescribeVpcs",
-				"ec2:ModifyInstanceAttribute",
-				"ec2:ModifyNetworkInterfaceAttribute",
-				"ec2:RevokeSecurityGroupIngress",
-				"elasticloadbalancing:AddListenerCertificates",
-				"elasticloadbalancing:AddTags",
-				"elasticloadbalancing:CreateListener",
-				"elasticloadbalancing:CreateLoadBalancer",
-				"elasticloadbalancing:CreateRule",
-				"elasticloadbalancing:CreateTargetGroup",
-				"elasticloadbalancing:DeleteListener",
-				"elasticloadbalancing:DeleteLoadBalancer",
-				"elasticloadbalancing:DeleteRule",
-				"elasticloadbalancing:DeleteTargetGroup",
-				"elasticloadbalancing:DeregisterTargets",
-				"elasticloadbalancing:DescribeListenerCertificates",
-				"elasticloadbalancing:DescribeListeners",
-				"elasticloadbalancing:DescribeLoadBalancers",
-				"elasticloadbalancing:DescribeLoadBalancerAttributes",
-				"elasticloadbalancing:DescribeRules",
-				"elasticloadbalancing:DescribeSSLPolicies",
-				"elasticloadbalancing:DescribeTags",
-				"elasticloadbalancing:DescribeTargetGroups",
-				"elasticloadbalancing:DescribeTargetGroupAttributes",
-				"elasticloadbalancing:DescribeTargetHealth",
-				"elasticloadbalancing:ModifyListener",
-				"elasticloadbalancing:ModifyLoadBalancerAttributes",
-				"elasticloadbalancing:ModifyRule",
-				"elasticloadbalancing:ModifyTargetGroup",
-				"elasticloadbalancing:ModifyTargetGroupAttributes",
-				"elasticloadbalancing:RegisterTargets",
-				"elasticloadbalancing:RemoveListenerCertificates",
-				"elasticloadbalancing:RemoveTags",
-				"elasticloadbalancing:SetIpAddressType",
-				"elasticloadbalancing:SetSecurityGroups",
-				"elasticloadbalancing:SetSubnets",
-				"elasticloadbalancing:SetWebACL",
-				"iam:CreateServiceLinkedRole",
-				"iam:GetServerCertificate",
-				"iam:ListServerCertificates",
-				"waf-regional:GetWebACLForResource",
-				"waf-regional:GetWebACL",
-				"waf-regional:AssociateWebACL",
-				"waf-regional:DisassociateWebACL",
-				"tag:GetResources",
-				"tag:TagResources",
-				"waf:GetWebACL",
-			},
-		)
-	}
-
-	if api.IsEnabled(n.spec.IAM.WithAddonPolicies.XRay) {
-		n.rs.attachAllowPolicy("PolicyXRay", refIR, "*",
-			[]string{
-				"xray:PutTraceSegments",
-				"xray:PutTelemetryRecords",
-				"xray:GetSamplingRules",
-				"xray:GetSamplingTargets",
-				"xray:GetSamplingStatisticSummaries",
-			},
-		)
-	}
-
-	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, "NodeInstanceProfile.Arn", true, func(v string) error {
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceProfileARN, makeAttrAccessor(cfnIAMInstanceProfileName, "Arn"), true, func(v string) error {
 		n.spec.IAM.InstanceProfileARN = v
 		return nil
 	})
-	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, "NodeInstanceRole.Arn", true, func(v string) error {
+	n.rs.defineOutputFromAtt(outputs.NodeGroupInstanceRoleARN, makeAttrAccessor(cfnIAMInstanceRoleName, "Arn"), true, func(v string) error {
 		n.spec.IAM.InstanceRoleARN = v
 		return nil
 	})

@@ -81,7 +81,7 @@ var _ = Describe("cmdutils configfile", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(examples).To(HaveLen(14))
+			Expect(examples).To(HaveLen(15))
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),
@@ -124,7 +124,7 @@ var _ = Describe("cmdutils configfile", func() {
 					ProviderConfig:    &api.ProviderConfig{},
 				}
 
-				Expect(NewCreateClusterLoader(cmd, NewNodeGroupFilter(), nil, true).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, NewNodeGroupFilter(), nil, true, false).Load()).To(Succeed())
 				cfg := cmd.ClusterConfig
 				Expect(cfg.VPC.NAT.Gateway).To(Not(BeNil()))
 				Expect(*cfg.VPC.NAT.Gateway).To(Equal(natTest.expectedGateway))
@@ -140,11 +140,30 @@ var _ = Describe("cmdutils configfile", func() {
 			loaderParams := []struct {
 				ng               *api.NodeGroup
 				withoutNodeGroup bool
+				managed          bool
 			}{
-				{unnamedNG, false},
-				{unnamedNG, true},
-				{namedNG, false},
-				{namedNG, false},
+				{unnamedNG, false, false},
+				{unnamedNG, true, false},
+				{namedNG, false, false},
+				{namedNG, true, false},
+				{unnamedNG, false, true},
+				{unnamedNG, true, true},
+				{namedNG, false, true},
+			}
+
+			assertMatchesNg := func(ng *api.NodeGroup, mNg *api.ManagedNodeGroup) {
+				Expect(ng.Name).To(Equal(mNg.Name))
+				Expect(ng.IAM).To(Equal(mNg.IAM))
+				Expect(ng.VolumeSize).To(Equal(mNg.VolumeSize))
+				Expect(ng.MinSize).To(Equal(mNg.MinSize))
+				Expect(ng.MaxSize).To(Equal(mNg.MaxSize))
+				Expect(ng.DesiredCapacity).To(Equal(mNg.DesiredCapacity))
+				Expect(ng.AMIFamily).To(Equal(mNg.AMIFamily))
+				Expect(ng.InstanceType).To(Equal(mNg.InstanceType))
+				Expect(ng.Tags).To(Equal(mNg.Tags))
+				Expect(ng.Labels).To(Equal(mNg.Labels))
+				Expect(ng.AvailabilityZones).To(Equal(mNg.AvailabilityZones))
+				Expect(ng.SSH).To(Equal(mNg.SSH))
 			}
 
 			for _, loaderTest := range loaderParams {
@@ -158,16 +177,23 @@ var _ = Describe("cmdutils configfile", func() {
 
 				Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(0))
 
-				Expect(NewCreateClusterLoader(cmd, ngFilter, loaderTest.ng, loaderTest.withoutNodeGroup).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, ngFilter, loaderTest.ng, loaderTest.withoutNodeGroup, loaderTest.managed).Load()).To(Succeed())
 
 				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
 
 				if loaderTest.withoutNodeGroup {
 					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(0))
-				}
-				if !loaderTest.withoutNodeGroup {
-					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(1))
-					Expect(cmd.ClusterConfig.NodeGroups[0]).To(Equal(loaderTest.ng))
+				} else {
+					if loaderTest.managed {
+						Expect(cmd.ClusterConfig.NodeGroups).To(BeEmpty())
+						Expect(cmd.ClusterConfig.ManagedNodeGroups).To(HaveLen(1))
+						assertMatchesNg(loaderTest.ng, cmd.ClusterConfig.ManagedNodeGroups[0])
+						Expect(cmd.ClusterConfig.ManagedNodeGroups[0].Name).To(Equal(loaderTest.ng.Name))
+					} else {
+						Expect(cmd.ClusterConfig.ManagedNodeGroups).To(BeEmpty())
+						Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(1))
+						Expect(cmd.ClusterConfig.NodeGroups[0]).To(Equal(loaderTest.ng))
+					}
 				}
 
 				_, err := cmd.NewCtl()
@@ -180,17 +206,22 @@ var _ = Describe("cmdutils configfile", func() {
 				configFile       string
 				nodeGroupCount   int
 				withoutNodeGroup bool
+				// determines whether this ClusterConfig contains managed nodegroups and not the managedFlag argument
+				// which is not used when using a config file
+				managed bool
 			}{
-				{"01-simple-cluster.yaml", 1, true},
-				{"01-simple-cluster.yaml", 1, false},
-				{"02-custom-vpc-cidr-no-nodes.yaml", 0, true},
-				{"02-custom-vpc-cidr-no-nodes.yaml", 0, true},
-				{"03-two-nodegroups.yaml", 2, true},
-				{"03-two-nodegroups.yaml", 2, false},
-				{"05-advanced-nodegroups.yaml", 3, true},
-				{"05-advanced-nodegroups.yaml", 3, false},
-				{"07-ssh-keys.yaml", 5, true},
-				{"07-ssh-keys.yaml", 5, false},
+				{"01-simple-cluster.yaml", 1, true, false},
+				{"01-simple-cluster.yaml", 1, false, false},
+				{"02-custom-vpc-cidr-no-nodes.yaml", 0, true, false},
+				{"02-custom-vpc-cidr-no-nodes.yaml", 0, true, false},
+				{"03-two-nodegroups.yaml", 2, true, false},
+				{"03-two-nodegroups.yaml", 2, false, false},
+				{"05-advanced-nodegroups.yaml", 3, true, false},
+				{"05-advanced-nodegroups.yaml", 3, false, false},
+				{"07-ssh-keys.yaml", 6, true, false},
+				{"07-ssh-keys.yaml", 6, false, false},
+				{"15-managed-nodes.yaml", 1, true, true},
+				{"15-managed-nodes.yaml", 1, false, true},
 			}
 
 			for _, loaderTest := range loaderParams {
@@ -203,11 +234,17 @@ var _ = Describe("cmdutils configfile", func() {
 
 				ngFilter := NewNodeGroupFilter()
 
-				Expect(NewCreateClusterLoader(cmd, ngFilter, nil, loaderTest.withoutNodeGroup).Load()).To(Succeed())
+				Expect(NewCreateClusterLoader(cmd, ngFilter, nil, loaderTest.withoutNodeGroup, false).Load()).To(Succeed())
 
 				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
 
-				Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(loaderTest.nodeGroupCount))
+				if loaderTest.managed {
+					Expect(cmd.ClusterConfig.ManagedNodeGroups).To(HaveLen(loaderTest.nodeGroupCount))
+					Expect(cmd.ClusterConfig.NodeGroups).To(BeEmpty())
+				} else {
+					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(loaderTest.nodeGroupCount))
+					Expect(cmd.ClusterConfig.ManagedNodeGroups).To(BeEmpty())
+				}
 
 				_, err := cmd.NewCtl()
 				Expect(err).ToNot(HaveOccurred())

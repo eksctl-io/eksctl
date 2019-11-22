@@ -42,7 +42,16 @@ func (c *ClusterProvider) ValidateClusterForCompatibility(cfg *api.ClusterConfig
 	return nil
 }
 
-func isNodeGroupCompatible(name string, info manager.StackInfo) bool {
+func isNodeGroupCompatible(name string, info manager.StackInfo) (bool, error) {
+	nodeGroupType, err := manager.GetNodeGroupType(info.Stack.Tags)
+	if err != nil {
+		return false, err
+	}
+	if nodeGroupType == api.NodeGroupTypeManaged {
+		// Managed Nodegroups have a cluster security group attached by default
+		return true, nil
+	}
+
 	hasSharedSecurityGroupFlag := false
 	usesSharedSecurityGroup := false
 	hasLocalSecurityGroupFlag := false
@@ -70,7 +79,7 @@ func isNodeGroupCompatible(name string, info manager.StackInfo) bool {
 	if !hasSharedSecurityGroupFlag {
 		// if it doesn't have `outputs.NodeGroupFeatureSharedSecurityGroup` flags at all,
 		// it must be incompatible
-		return false
+		return false, nil
 	}
 
 	if !hasLocalSecurityGroupFlag && !usesSharedSecurityGroup {
@@ -84,7 +93,7 @@ func isNodeGroupCompatible(name string, info manager.StackInfo) bool {
 		logger.Warning("then you should replace nodegroup %q or patch the configuration", name)
 	}
 
-	return true
+	return true, nil
 }
 
 // ValidateExistingNodeGroupsForCompatibility looks at each of the existing nodegroups and
@@ -102,7 +111,11 @@ func (c *ClusterProvider) ValidateExistingNodeGroupsForCompatibility(cfg *api.Cl
 	incompatibleNodeGroups := []string{}
 	for ng, info := range infoByNodeGroup {
 		if stackManager.StackStatusIsNotTransitional(info.Stack) {
-			if isNodeGroupCompatible(ng, info) {
+			isCompatible, err := isNodeGroupCompatible(ng, info)
+			if err != nil {
+				return err
+			}
+			if isCompatible {
 				logger.Debug("nodegroup %q is compatible", ng)
 			} else {
 				logger.Debug("nodegroup %q is incompatible", ng)

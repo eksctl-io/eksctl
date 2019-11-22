@@ -2,6 +2,7 @@ package cmdutils
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/weaveworks/eksctl/pkg/eks"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -54,7 +55,7 @@ func (f *NodeGroupFilter) SetExcludeExistingFilter(stackManager *manager.StackCo
 
 // SetIncludeOrExcludeMissingFilter uses stackManager to list existing nodegroup stacks and configures
 // the filter to either explicitly exclude or include nodegroups that are missing from given nodeGroups
-func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager.StackCollection, includeOnlyMissing bool, nodeGroups *[]*api.NodeGroup) error {
+func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager.StackCollection, includeOnlyMissing bool, nodeGroups []eks.KubeNodeGroup) error {
 	existing, err := stackManager.ListNodeGroupStacks()
 	if err != nil {
 		return err
@@ -63,13 +64,13 @@ func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager
 	remote := sets.NewString(existing...)
 	local := sets.NewString()
 
-	for _, localNodeGroup := range *nodeGroups {
-		local.Insert(localNodeGroup.Name)
-		if !remote.Has(localNodeGroup.Name) {
+	for _, localNodeGroup := range nodeGroups {
+		local.Insert(localNodeGroup.NameString())
+		if !remote.Has(localNodeGroup.NameString()) {
 			logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup.NameString())
-			f.AppendExcludeNames(localNodeGroup.Name)
+			f.AppendExcludeNames(localNodeGroup.NameString())
 		} else if includeOnlyMissing {
-			f.AppendExcludeNames(localNodeGroup.Name)
+			f.AppendExcludeNames(localNodeGroup.NameString())
 		}
 	}
 
@@ -77,8 +78,6 @@ func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager
 		if !local.Has(remoteNodeGroupName) {
 			logger.Info("nodegroup %q present in the cluster, but missing from the given config", remoteNodeGroupName)
 			if includeOnlyMissing {
-				// append it to the config object, so that `ngFilter.ForEach` knows about it
-				*nodeGroups = append(*nodeGroups, &api.NodeGroup{Name: remoteNodeGroupName})
 				// make sure it passes it through the filter, so that one can use `--only-missing` along with `--exclude`
 				if f.Match(remoteNodeGroupName) {
 					f.AppendIncludeNames(remoteNodeGroupName)

@@ -36,6 +36,11 @@ ClusterConfig:
     iam:
       $ref: '#/definitions/ClusterIAM'
       $schema: http://json-schema.org/draft-04/schema#
+    managedNodeGroups:
+      items:
+        $ref: '#/definitions/ManagedNodeGroup'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
     metadata:
       $ref: '#/definitions/ClusterMeta'
       $schema: http://json-schema.org/draft-04/schema#
@@ -226,6 +231,42 @@ ListMeta:
       type: string
     selfLink:
       type: string
+  type: object
+ManagedNodeGroup:
+  additionalProperties: false
+  properties:
+    ScalingConfig:
+      $ref: '#/definitions/ScalingConfig'
+      $schema: http://json-schema.org/draft-04/schema#
+    amiFamily:
+      type: string
+    availabilityZones:
+      items:
+        type: string
+      type: array
+    iam:
+      $ref: '#/definitions/NodeGroupIAM'
+    instanceType:
+      type: string
+    labels:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    name:
+      type: string
+    ssh:
+      $ref: '#/definitions/NodeGroupSSH'
+    tags:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    volumeSize:
+      type: integer
+  required:
+  - name
+  - ScalingConfig
   type: object
 Network:
   additionalProperties: false
@@ -430,6 +471,10 @@ NodeGroupSSH:
       type: string
     publicKeyPath:
       type: string
+    sourceSecurityGroupIds:
+      items:
+        type: string
+      type: array
   required:
   - allow
   type: object
@@ -502,6 +547,16 @@ OwnerReference:
   - kind
   - name
   - uid
+  type: object
+ScalingConfig:
+  additionalProperties: false
+  properties:
+    desiredCapacity:
+      type: integer
+    maxSize:
+      type: integer
+    minSize:
+      type: integer
   type: object
 Status:
   additionalProperties: false

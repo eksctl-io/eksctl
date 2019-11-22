@@ -31,4 +31,10 @@ nodeGroups:
   - name: ng-5
     instanceType: m5.large
     desiredCapacity: 1
+    ssh: # use existing EC2 key but don't allow SSH access to nodegroup.
+      publicKeyName: ec2_dev_key
+      allow: false
+  - name: ng-6
+    instanceType: m5.large
+    desiredCapacity: 1
     # no SSH

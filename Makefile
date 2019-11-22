@@ -65,6 +65,11 @@ INTEGRATION_TEST_ARGS += -eksctl.version=$(INTEGRATION_TEST_VERSION)
 $(info will launch integration tests for Kubernetes version $(INTEGRATION_TEST_VERSION))
 endif
 
+ifneq ($(SSH_KEY_PATH),)
+INTEGRATION_TEST_ARGS += -eksctl.git.sshkeypath=$(SSH_KEY_PATH)
+$(info will launch integration tests with ssh key path $(SSH_KEY_PATH))
+endif
+
 .PHONY: lint
 lint: ## Run linter over the codebase
 	time "$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
@@ -166,7 +171,7 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ##
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$(gopath)/pkg/mod/github.com/aws/aws-sdk-go@v1.23.15" vendor/github.com/aws/aws-sdk-go
+	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks-experiments/aws-sdk-go@v1.25.14-0.20191118174145-b6a927b24aa9" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
 ##@ Docker

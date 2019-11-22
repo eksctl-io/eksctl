@@ -62,20 +62,7 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		}
 	}
 
-	numSSHFlagsEnabled := countEnabledFields(
-		ng.SSH.PublicKeyName,
-		ng.SSH.PublicKeyPath,
-		ng.SSH.PublicKey)
-
-	if numSSHFlagsEnabled > 0 {
-		ng.SSH.Allow = Enabled()
-	} else {
-		if IsEnabled(ng.SSH.Allow) {
-			ng.SSH.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
-		} else {
-			ng.SSH.Allow = Disabled()
-		}
-	}
+	setSSHDefaults(ng.SSH)
 
 	if !IsSetAndNonEmptyString(ng.VolumeType) {
 		ng.VolumeType = &DefaultNodeVolumeType
@@ -84,41 +71,100 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.IAM == nil {
 		ng.IAM = &NodeGroupIAM{}
 	}
-	if ng.IAM.WithAddonPolicies.ImageBuilder == nil {
-		ng.IAM.WithAddonPolicies.ImageBuilder = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.AutoScaler == nil {
-		ng.IAM.WithAddonPolicies.AutoScaler = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.ExternalDNS == nil {
-		ng.IAM.WithAddonPolicies.ExternalDNS = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.CertManager == nil {
-		ng.IAM.WithAddonPolicies.CertManager = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.ALBIngress == nil {
-		ng.IAM.WithAddonPolicies.ALBIngress = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.XRay == nil {
-		ng.IAM.WithAddonPolicies.XRay = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.CloudWatch == nil {
-		ng.IAM.WithAddonPolicies.CloudWatch = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.EBS == nil {
-		ng.IAM.WithAddonPolicies.EBS = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.FSX == nil {
-		ng.IAM.WithAddonPolicies.FSX = Disabled()
-	}
-	if ng.IAM.WithAddonPolicies.EFS == nil {
-		ng.IAM.WithAddonPolicies.EFS = Disabled()
-	}
+
+	setIAMDefaults(ng.IAM)
 
 	if ng.Labels == nil {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+}
+
+// SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
+func SetManagedNodeGroupDefaults(ng *ManagedNodeGroup, meta *ClusterMeta) {
+	if ng.AMIFamily == "" {
+		ng.AMIFamily = NodeImageFamilyAmazonLinux2
+	}
+	if ng.InstanceType == "" {
+		ng.InstanceType = DefaultNodeType
+	}
+	if ng.ScalingConfig == nil {
+		ng.ScalingConfig = &ScalingConfig{}
+	}
+	if ng.SSH == nil {
+		ng.SSH = &NodeGroupSSH{
+			Allow: Disabled(),
+		}
+	}
+	setSSHDefaults(ng.SSH)
+
+	if ng.IAM == nil {
+		ng.IAM = &NodeGroupIAM{}
+	}
+	setIAMDefaults(ng.IAM)
+
+	if ng.Labels == nil {
+		ng.Labels = make(map[string]string)
+	}
+	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+
+	if ng.Tags == nil {
+		ng.Tags = make(map[string]string)
+	}
+	ng.Tags[NodeGroupNameTag] = ng.Name
+	ng.Tags[NodeGroupTypeTag] = string(NodeGroupTypeManaged)
+}
+
+func setIAMDefaults(iamConfig *NodeGroupIAM) {
+	if iamConfig.WithAddonPolicies.ImageBuilder == nil {
+		iamConfig.WithAddonPolicies.ImageBuilder = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.AutoScaler == nil {
+		iamConfig.WithAddonPolicies.AutoScaler = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.ExternalDNS == nil {
+		iamConfig.WithAddonPolicies.ExternalDNS = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.CertManager == nil {
+		iamConfig.WithAddonPolicies.CertManager = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.ALBIngress == nil {
+		iamConfig.WithAddonPolicies.ALBIngress = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.XRay == nil {
+		iamConfig.WithAddonPolicies.XRay = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.CloudWatch == nil {
+		iamConfig.WithAddonPolicies.CloudWatch = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.EBS == nil {
+		iamConfig.WithAddonPolicies.EBS = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.FSX == nil {
+		iamConfig.WithAddonPolicies.FSX = Disabled()
+	}
+	if iamConfig.WithAddonPolicies.EFS == nil {
+		iamConfig.WithAddonPolicies.EFS = Disabled()
+	}
+}
+
+func setSSHDefaults(sshConfig *NodeGroupSSH) {
+	numSSHFlagsEnabled := countEnabledFields(
+		sshConfig.PublicKeyName,
+		sshConfig.PublicKeyPath,
+		sshConfig.PublicKey)
+
+	if numSSHFlagsEnabled == 0 {
+		if IsEnabled(sshConfig.Allow) {
+			sshConfig.PublicKeyPath = &DefaultNodeSSHPublicKeyPath
+		} else {
+			sshConfig.Allow = Disabled()
+		}
+	} else if !IsDisabled(sshConfig.Allow) {
+		// Enable SSH if not explicitly disabled when passing an SSH key
+		sshConfig.Allow = Enabled()
+	}
+
 }
 
 func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName string) {

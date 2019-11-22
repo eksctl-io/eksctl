@@ -12,10 +12,11 @@ import (
 // Stack output names
 const (
 	// outputs from cluster stack
-	ClusterVPC            = "VPC"
-	ClusterSecurityGroup  = "SecurityGroup"
-	ClusterSubnetsPrivate = string("Subnets" + api.SubnetTopologyPrivate)
-	ClusterSubnetsPublic  = string("Subnets" + api.SubnetTopologyPublic)
+	ClusterVPC                  = "VPC"
+	ClusterDefaultSecurityGroup = "ClusterSecurityGroupId"
+	ClusterSecurityGroup        = "SecurityGroup"
+	ClusterSubnetsPrivate       = string("Subnets" + api.SubnetTopologyPrivate)
+	ClusterSubnetsPublic        = string("Subnets" + api.SubnetTopologyPublic)
 
 	ClusterSubnetsPublicLegacy = "Subnets"
 
@@ -89,7 +90,7 @@ func (c *CollectorSet) doCollect(must bool, stack cfn.Stack) error {
 	return nil
 }
 
-// Exists check if the stack has give output key
+// Exists checks if the stack has given output key
 func Exists(stack cfn.Stack, key string) bool {
 	return get(stack, key) != nil
 }

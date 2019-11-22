@@ -10,17 +10,26 @@ import (
 
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
-func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup) *TaskTree {
+func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup,
+	managedNodeGroups []*api.ManagedNodeGroup, supportsManagedNodes bool) *TaskTree {
+
 	tasks := &TaskTree{Parallel: false}
 
 	tasks.Append(
-		&taskWithoutParams{
-			info: fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
-			call: c.createClusterTask,
+		&createClusterTask{
+			info:                 fmt.Sprintf("create cluster control plane %q", c.spec.Metadata.Name),
+			stackCollection:      c,
+			supportsManagedNodes: supportsManagedNodes,
 		},
 	)
 
-	nodeGroupTasks := c.NewTasksToCreateNodeGroups(nodeGroups)
+	nodeGroupTasks := c.NewTasksToCreateNodeGroups(nodeGroups, supportsManagedNodes)
+
+	managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups)
+	if managedNodeGroupTasks.Len() > 0 {
+		nodeGroupTasks.Append(managedNodeGroupTasks.tasks...)
+	}
+
 	if nodeGroupTasks.Len() > 0 {
 		nodeGroupTasks.IsSubTask = true
 		tasks.Append(nodeGroupTasks)
@@ -30,18 +39,32 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 }
 
 // NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups
-func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup) *TaskTree {
+func (c *StackCollection) NewTasksToCreateNodeGroups(nodeGroups []*api.NodeGroup, supportsManagedNodes bool) *TaskTree {
 	tasks := &TaskTree{Parallel: true}
 
 	for _, ng := range nodeGroups {
-		tasks.Append(&taskWithNodeGroupSpec{
-			info:      fmt.Sprintf("create nodegroup %q", ng.NameString()),
-			nodeGroup: ng,
-			call:      c.createNodeGroupTask,
+		tasks.Append(&nodeGroupTask{
+			info:                 fmt.Sprintf("create nodegroup %q", ng.NameString()),
+			nodeGroup:            ng,
+			stackCollection:      c,
+			supportsManagedNodes: supportsManagedNodes,
 		})
 		// TODO: move authconfigmap tasks here using kubernetesTask and kubernetes.CallbackClientSet
 	}
 
+	return tasks
+}
+
+// NewManagedNodeGroupTask defines tasks required to create managed nodegroups
+func (c *StackCollection) NewManagedNodeGroupTask(nodeGroups []*api.ManagedNodeGroup) *TaskTree {
+	tasks := &TaskTree{Parallel: true}
+	for _, ng := range nodeGroups {
+		tasks.Append(&managedNodeGroupTask{
+			stackCollection: c,
+			nodeGroup:       ng,
+			info:            fmt.Sprintf("create managed nodegroup %q", ng.Name),
+		})
+	}
 	return tasks
 }
 

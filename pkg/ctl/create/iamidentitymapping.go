@@ -68,7 +68,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, 
 	}
 
 	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet("--cluster")
+		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
 	}
 
 	if ok, err := ctl.CanOperate(cfg); !ok {

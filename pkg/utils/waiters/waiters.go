@@ -15,9 +15,8 @@ import (
 // Wait for something with a name to reach status that is expressed by acceptors using newRequest
 // until we hit waitTimeout, on unexpected status troubleshoot will be called with the desired
 // status as an argument, so that it can find what migth have gone wrong
-func Wait(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string)) error {
+func Wait(name, msg string, acceptors []request.WaiterAcceptor, newRequest func() *request.Request, waitTimeout time.Duration, troubleshoot func(string) error) error {
 	desiredStatus := fmt.Sprintf("%v", acceptors[0].Expected)
-	msg = fmt.Sprintf("%s to reach %q status", msg, desiredStatus)
 	name = strings.Join([]string{"wait", name, desiredStatus}, "_")
 
 	ctx, cancel := context.WithTimeout(context.Background(), waitTimeout)
@@ -27,7 +26,9 @@ func Wait(name, msg string, acceptors []request.WaiterAcceptor, newRequest func(
 	logger.Debug("start %s", msg)
 	if waitErr := w.WaitWithContext(ctx); waitErr != nil {
 		if troubleshoot != nil {
-			troubleshoot(desiredStatus)
+			if wrappedErr := troubleshoot(desiredStatus); wrappedErr != nil {
+				return wrappedErr
+			}
 		}
 		return errors.Wrap(waitErr, msg)
 	}
