@@ -1,6 +1,8 @@
 package fargate
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/kris-nova/logger"
@@ -37,23 +39,54 @@ func (c Client) CreateProfile(profile *api.FargateProfile) error {
 	return nil
 }
 
-// ReadProfiles reads and returns all existing Fargate profiles.
+// ReadProfile reads the Fargate profile corresponding to the provided name if
+// it exists.
+func (c Client) ReadProfile(name string) (*api.FargateProfile, error) {
+	profiles, err := c.readProfiles(name)
+	if err != nil {
+		return nil, err
+	}
+	switch len(profiles) {
+	case 0:
+		return nil, fmt.Errorf("no Fargate profile with name \"%s\" could be found", name)
+	case 1:
+		return profiles[0], nil
+	default: // This should never happen, but just in case:
+		return nil, fmt.Errorf("multiple Fargate profiles with name \"%s\" could be found", name)
+	}
+}
+
+// ReadProfiles reads all existing Fargate profiles.
 func (c Client) ReadProfiles() ([]*api.FargateProfile, error) {
+	return c.readProfiles("")
+}
+
+func (c Client) readProfiles(name string) ([]*api.FargateProfile, error) {
 	profiles := []*api.FargateProfile{}
 	var nextToken *string // used for "pagination" of the retrieval.
 	for {
+		logger.Debug("getting Fargate profiles from token %v", nextToken)
 		out, err := c.api.ListFargateProfiles(&eks.ListFargateProfilesInput{
 			ClusterName: &c.clusterName,
 			NextToken:   nextToken,
 		})
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile(s) (current token: %v)", c.clusterName, nextToken)
+			return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile(s)", c.clusterName)
 		}
 		nextToken = out.NextToken
+		logger.Debug("got %v Fargate profile(s) from token %v", len(out.FargateProfiles), nextToken)
 		if out.FargateProfiles == nil || len(out.FargateProfiles) == 0 {
 			break
 		}
-		profiles = append(profiles, toFargateProfiles(out.FargateProfiles)...)
+		if name == "" {
+			profiles = append(profiles, toFargateProfiles(out.FargateProfiles)...)
+		} else {
+			for _, profile := range out.FargateProfiles {
+				if *profile.FargateProfileName == name {
+					return []*api.FargateProfile{toFargateProfile(profile)}, nil
+				}
+			}
+		}
 	}
 	return profiles, nil
 }
