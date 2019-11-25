@@ -1,6 +1,8 @@
 package fargate_test
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -44,6 +46,8 @@ var _ = Describe("fargate", func() {
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(out).To(Not(BeNil()))
 				Expect(out).To(HaveLen(2))
+				Expect(out[0]).To(Equal(apiFargateProfile(testBlue)))
+				Expect(out[1]).To(Equal(apiFargateProfile(testGreen)))
 			})
 
 			It("returns an empty array if no Fargate profile exists", func() {
@@ -65,26 +69,17 @@ var _ = Describe("fargate", func() {
 
 		Describe("ReadProfile", func() {
 			It("returns the Fargate profile matching the provided name, if any", func() {
-				client := fargate.NewClient(clusterName, mockForReadProfiles())
-				out, err := client.ReadProfile("test-green")
+				client := fargate.NewClient(clusterName, mockForReadProfile())
+				out, err := client.ReadProfile(testGreen)
 				Expect(err).To(Not(HaveOccurred()))
-				Expect(*out).To(Equal(api.FargateProfile{
-					Name: "test-green",
-					Selectors: []api.FargateProfileSelector{
-						api.FargateProfileSelector{
-							Namespace: "test-green",
-							Labels:    map[string]string{},
-						},
-					},
-					Subnets: []string{},
-				}))
+				Expect(out).To(Equal(apiFargateProfile(testGreen)))
 			})
 
 			It("returns a 'not found' error if no Fargate profile matched the provided name", func() {
-				client := fargate.NewClient(clusterName, mockForEmptyReadProfiles())
-				out, err := client.ReadProfile("test-red")
+				client := fargate.NewClient(clusterName, mockForEmptyReadProfile())
+				out, err := client.ReadProfile(testRed)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("no Fargate profile with name \"test-red\" could be found"))
+				Expect(err.Error()).To(Equal("failed to get EKS cluster \"non-existing-test-cluster\"'s Fargate profile \"test-red\": ResourceNotFoundException: No Fargate Profile found with name: test-red."))
 				Expect(out).To(BeNil())
 			})
 		})
@@ -160,35 +155,40 @@ func testCreateFargateProfileInput() *eks.CreateFargateProfileInput {
 	}
 }
 
+const (
+	testBlue  = "test-blue"
+	testGreen = "test-green"
+	testRed   = "test-red"
+)
+
 func mockForReadProfiles() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
-
-	// First "page" of Fargate profiles (of size 1):
 	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
 		ClusterName: strings.Pointer(clusterName),
 	}).Return(&eks.ListFargateProfilesOutput{
-		FargateProfiles: []*eks.FargateProfile{eksFargateProfile("test-blue")},
-		NextToken:       strings.Pointer("1"), // all items after item #1
+		FargateProfileNames: []*string{
+			strings.Pointer(testBlue),
+			strings.Pointer(testGreen),
+		},
 	}, nil)
-
-	// Second "page" of Fargate profiles (of size 1):
-	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
-		ClusterName: strings.Pointer(clusterName),
-		NextToken:   strings.Pointer("1"), // all items after item #1
-	}).Return(&eks.ListFargateProfilesOutput{
-		FargateProfiles: []*eks.FargateProfile{eksFargateProfile("test-green")},
-		NextToken:       strings.Pointer("2"), // all items after item #2
-	}, nil)
-
-	// No more Fargate profile to read:
-	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
-		ClusterName: strings.Pointer(clusterName),
-		NextToken:   strings.Pointer("2"), // all items after item #2
-	}).Return(&eks.ListFargateProfilesOutput{
-		FargateProfiles: []*eks.FargateProfile{},
-	}, nil)
-
+	mockDescribeFargateProfile(&mockClient, testBlue)
+	mockDescribeFargateProfile(&mockClient, testGreen)
 	return &mockClient
+}
+
+func mockForReadProfile() *mocks.EKSAPI {
+	mockClient := &mocks.EKSAPI{}
+	mockDescribeFargateProfile(mockClient, testGreen)
+	return mockClient
+}
+
+func mockDescribeFargateProfile(mockClient *mocks.EKSAPI, name string) {
+	mockClient.Mock.On("DescribeFargateProfile", &eks.DescribeFargateProfileInput{
+		ClusterName:        strings.Pointer(clusterName),
+		FargateProfileName: strings.Pointer(name),
+	}).Return(&eks.DescribeFargateProfileOutput{
+		FargateProfile: eksFargateProfile(name),
+	}, nil)
 }
 
 func eksFargateProfile(name string) *eks.FargateProfile {
@@ -203,11 +203,33 @@ func eksFargateProfile(name string) *eks.FargateProfile {
 	}
 }
 
+func apiFargateProfile(name string) *api.FargateProfile {
+	return &api.FargateProfile{
+		Name: name,
+		Selectors: []api.FargateProfileSelector{
+			api.FargateProfileSelector{
+				Namespace: name,
+				Labels:    map[string]string{},
+			},
+		},
+		Subnets: []string{},
+	}
+}
+
 func mockForEmptyReadProfiles() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
 	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
 		ClusterName: strings.Pointer(clusterName),
 	}).Return(&eks.ListFargateProfilesOutput{}, nil)
+	return &mockClient
+}
+
+func mockForEmptyReadProfile() *mocks.EKSAPI {
+	mockClient := mocks.EKSAPI{}
+	mockClient.Mock.On("DescribeFargateProfile", &eks.DescribeFargateProfileInput{
+		ClusterName:        strings.Pointer(clusterName),
+		FargateProfileName: strings.Pointer(testRed),
+	}).Return(nil, fmt.Errorf("ResourceNotFoundException: No Fargate Profile found with name: %s.", testRed))
 	return &mockClient
 }
 

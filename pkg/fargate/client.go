@@ -1,8 +1,6 @@
 package fargate
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/kris-nova/logger"
@@ -42,47 +40,27 @@ func (c Client) CreateProfile(profile *api.FargateProfile) error {
 // ReadProfile reads the Fargate profile corresponding to the provided name if
 // it exists.
 func (c Client) ReadProfile(name string) (*api.FargateProfile, error) {
-	profiles, err := c.readProfiles(name)
+	out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile \"%s\"", c.clusterName, name)
 	}
-	switch len(profiles) {
-	case 0:
-		return nil, fmt.Errorf("no Fargate profile with name \"%s\" could be found", name)
-	case 1:
-		return profiles[0], nil
-	default: // This should never happen, but just in case:
-		return nil, fmt.Errorf("multiple Fargate profiles with name \"%s\" could be found", name)
-	}
+	return toFargateProfile(out.FargateProfile), nil
 }
 
 // ReadProfiles reads all existing Fargate profiles.
 func (c Client) ReadProfiles() ([]*api.FargateProfile, error) {
-	return c.readProfiles("")
-}
-
-func (c Client) readProfiles(name string) ([]*api.FargateProfile, error) {
 	profiles := []*api.FargateProfile{}
-	var nextToken *string // used for "pagination" of the retrieval.
-	for {
-		out, err := c.api.ListFargateProfiles(listRequest(c.clusterName, nextToken))
+	out, err := c.api.ListFargateProfiles(listRequest(c.clusterName))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile(s)", c.clusterName)
+	}
+	logger.Debug("Fargate profile: list request: got %v profile(s): %#v", len(out.FargateProfileNames), out)
+	for _, name := range out.FargateProfileNames {
+		profile, err := c.ReadProfile(*name)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile(s)", c.clusterName)
+			return nil, err
 		}
-		logger.Debug("got %v Fargate profile(s) from token %v", len(out.FargateProfiles), nextToken)
-		if !hasProfiles(out) {
-			break
-		}
-		nextToken = out.NextToken
-		if name == "" {
-			profiles = append(profiles, toFargateProfiles(out.FargateProfiles)...)
-		} else {
-			for _, profile := range out.FargateProfiles {
-				if *profile.FargateProfileName == name {
-					return []*api.FargateProfile{toFargateProfile(profile)}, nil
-				}
-			}
-		}
+		profiles = append(profiles, profile)
 	}
 	return profiles, nil
 }
@@ -107,35 +85,35 @@ func createRequest(clusterName string, profile *api.FargateProfile) *eks.CreateF
 		ClusterName:         &clusterName,
 		FargateProfileName:  &profile.Name,
 		Selectors:           toSelectorPointers(profile.Selectors),
-		PodExecutionRoleARN: strings.NilIfEmpty(profile.PodExecutionRoleARN),
+		PodExecutionRoleArn: strings.NilIfEmpty(profile.PodExecutionRoleARN),
 		Subnets:             strings.NilPointersArrayIfEmpty(strings.ToPointersArray(profile.Subnets)),
 	}
-	logger.Debug("Fargate profile: create request: %#v", request)
+	logger.Debug("Fargate profile: create request: sending: %#v", request)
 	return request
 }
 
-func listRequest(clusterName string, nextToken *string) *eks.ListFargateProfilesInput {
+func describeRequest(clusterName string, profileName string) *eks.DescribeFargateProfileInput {
+	request := &eks.DescribeFargateProfileInput{
+		ClusterName:        &clusterName,
+		FargateProfileName: &profileName,
+	}
+	logger.Debug("Fargate profile: describe request: sending: %#v", request)
+	return request
+}
+
+func listRequest(clusterName string) *eks.ListFargateProfilesInput {
 	request := &eks.ListFargateProfilesInput{
 		ClusterName: &clusterName,
-		NextToken:   nextToken,
 	}
-	logger.Debug("Fargate profile: get request: %#v", request)
+	logger.Debug("Fargate profile: list request: sending: %#v", request)
 	return request
-}
-
-func toFargateProfiles(in []*eks.FargateProfile) []*api.FargateProfile {
-	out := make([]*api.FargateProfile, len(in))
-	for i := range in {
-		out[i] = toFargateProfile(in[i])
-	}
-	return out
 }
 
 func toFargateProfile(in *eks.FargateProfile) *api.FargateProfile {
 	return &api.FargateProfile{
 		Name:                *in.FargateProfileName,
 		Selectors:           toSelectors(in.Selectors),
-		PodExecutionRoleARN: strings.EmptyIfNil(in.PodExecutionRoleARN),
+		PodExecutionRoleARN: strings.EmptyIfNil(in.PodExecutionRoleArn),
 		Subnets:             strings.ToValuesArray(in.Subnets),
 	}
 }
@@ -160,8 +138,4 @@ func toSelectors(in []*eks.FargateProfileSelector) []api.FargateProfileSelector 
 		}
 	}
 	return out
-}
-
-func hasProfiles(out *eks.ListFargateProfilesOutput) bool {
-	return out.FargateProfiles != nil && len(out.FargateProfiles) > 0
 }
