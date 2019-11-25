@@ -181,6 +181,8 @@ func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 		return NewUserDataForAmazonLinux2(spec, ng)
 	case api.NodeImageFamilyUbuntu1804:
 		return NewUserDataForUbuntu1804(spec, ng)
+	case api.NodeImageFamilyBottlerocket:
+		return NewUserDataForBottlerocket(spec, ng)
 	case api.NodeImageFamilyWindowsServer2019FullContainer, api.NodeImageFamilyWindowsServer2019CoreContainer:
 		return newUserDataForWindows(spec, ng)
 	default:
