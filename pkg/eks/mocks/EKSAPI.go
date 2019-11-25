@@ -929,6 +929,41 @@ func (_m *EKSAPI) ListFargateProfiles(_a0 *eks.ListFargateProfilesInput) (*eks.L
 	return r0, r1
 }
 
+// ListFargateProfilesPages provides a mock function with given fields: _a0, _a1
+func (_m *EKSAPI) ListFargateProfilesPages(_a0 *eks.ListFargateProfilesInput, _a1 func(*eks.ListFargateProfilesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*eks.ListFargateProfilesInput, func(*eks.ListFargateProfilesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListFargateProfilesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EKSAPI) ListFargateProfilesPagesWithContext(_a0 context.Context, _a1 *eks.ListFargateProfilesInput, _a2 func(*eks.ListFargateProfilesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *eks.ListFargateProfilesInput, func(*eks.ListFargateProfilesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListFargateProfilesRequest provides a mock function with given fields: _a0
 func (_m *EKSAPI) ListFargateProfilesRequest(_a0 *eks.ListFargateProfilesInput) (*request.Request, *eks.ListFargateProfilesOutput) {
 	ret := _m.Called(_a0)

@@ -403,6 +403,132 @@ func (_m *CloudTrailAPI) GetEventSelectorsWithContext(_a0 context.Context, _a1 *
 	return r0, r1
 }
 
+// GetInsightSelectors provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetInsightSelectors(_a0 *cloudtrail.GetInsightSelectorsInput) (*cloudtrail.GetInsightSelectorsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.GetInsightSelectorsOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetInsightSelectorsInput) *cloudtrail.GetInsightSelectorsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetInsightSelectorsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetInsightSelectorsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetInsightSelectorsRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetInsightSelectorsRequest(_a0 *cloudtrail.GetInsightSelectorsInput) (*request.Request, *cloudtrail.GetInsightSelectorsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetInsightSelectorsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.GetInsightSelectorsOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetInsightSelectorsInput) *cloudtrail.GetInsightSelectorsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.GetInsightSelectorsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetInsightSelectorsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) GetInsightSelectorsWithContext(_a0 context.Context, _a1 *cloudtrail.GetInsightSelectorsInput, _a2 ...request.Option) (*cloudtrail.GetInsightSelectorsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.GetInsightSelectorsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetInsightSelectorsInput, ...request.Option) *cloudtrail.GetInsightSelectorsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetInsightSelectorsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetInsightSelectorsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTrail provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetTrail(_a0 *cloudtrail.GetTrailInput) (*cloudtrail.GetTrailOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.GetTrailOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetTrailInput) *cloudtrail.GetTrailOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetTrailOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetTrailInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTrailRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) GetTrailRequest(_a0 *cloudtrail.GetTrailInput) (*request.Request, *cloudtrail.GetTrailOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.GetTrailInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.GetTrailOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.GetTrailInput) *cloudtrail.GetTrailOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.GetTrailOutput)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetTrailStatus provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) GetTrailStatus(_a0 *cloudtrail.GetTrailStatusInput) (*cloudtrail.GetTrailStatusOutput, error) {
 	ret := _m.Called(_a0)
@@ -481,6 +607,36 @@ func (_m *CloudTrailAPI) GetTrailStatusWithContext(_a0 context.Context, _a1 *clo
 	return r0, r1
 }
 
+// GetTrailWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) GetTrailWithContext(_a0 context.Context, _a1 *cloudtrail.GetTrailInput, _a2 ...request.Option) (*cloudtrail.GetTrailOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.GetTrailOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.GetTrailInput, ...request.Option) *cloudtrail.GetTrailOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.GetTrailOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.GetTrailInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListPublicKeys provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) ListPublicKeys(_a0 *cloudtrail.ListPublicKeysInput) (*cloudtrail.ListPublicKeysOutput, error) {
 	ret := _m.Called(_a0)
@@ -502,6 +658,41 @@ func (_m *CloudTrailAPI) ListPublicKeys(_a0 *cloudtrail.ListPublicKeysInput) (*c
 	}
 
 	return r0, r1
+}
+
+// ListPublicKeysPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudTrailAPI) ListPublicKeysPages(_a0 *cloudtrail.ListPublicKeysInput, _a1 func(*cloudtrail.ListPublicKeysOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListPublicKeysInput, func(*cloudtrail.ListPublicKeysOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListPublicKeysPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudTrailAPI) ListPublicKeysPagesWithContext(_a0 context.Context, _a1 *cloudtrail.ListPublicKeysInput, _a2 func(*cloudtrail.ListPublicKeysOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListPublicKeysInput, func(*cloudtrail.ListPublicKeysOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // ListPublicKeysRequest provides a mock function with given fields: _a0
@@ -582,6 +773,41 @@ func (_m *CloudTrailAPI) ListTags(_a0 *cloudtrail.ListTagsInput) (*cloudtrail.Li
 	return r0, r1
 }
 
+// ListTagsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudTrailAPI) ListTagsPages(_a0 *cloudtrail.ListTagsInput, _a1 func(*cloudtrail.ListTagsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListTagsInput, func(*cloudtrail.ListTagsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListTagsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudTrailAPI) ListTagsPagesWithContext(_a0 context.Context, _a1 *cloudtrail.ListTagsInput, _a2 func(*cloudtrail.ListTagsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListTagsInput, func(*cloudtrail.ListTagsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ListTagsRequest provides a mock function with given fields: _a0
 func (_m *CloudTrailAPI) ListTagsRequest(_a0 *cloudtrail.ListTagsInput) (*request.Request, *cloudtrail.ListTagsOutput) {
 	ret := _m.Called(_a0)
@@ -629,6 +855,119 @@ func (_m *CloudTrailAPI) ListTagsWithContext(_a0 context.Context, _a1 *cloudtrai
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListTagsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListTrails provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) ListTrails(_a0 *cloudtrail.ListTrailsInput) (*cloudtrail.ListTrailsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.ListTrailsOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListTrailsInput) *cloudtrail.ListTrailsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListTrailsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.ListTrailsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListTrailsPages provides a mock function with given fields: _a0, _a1
+func (_m *CloudTrailAPI) ListTrailsPages(_a0 *cloudtrail.ListTrailsInput, _a1 func(*cloudtrail.ListTrailsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListTrailsInput, func(*cloudtrail.ListTrailsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListTrailsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *CloudTrailAPI) ListTrailsPagesWithContext(_a0 context.Context, _a1 *cloudtrail.ListTrailsInput, _a2 func(*cloudtrail.ListTrailsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListTrailsInput, func(*cloudtrail.ListTrailsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListTrailsRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) ListTrailsRequest(_a0 *cloudtrail.ListTrailsInput) (*request.Request, *cloudtrail.ListTrailsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.ListTrailsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.ListTrailsOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.ListTrailsInput) *cloudtrail.ListTrailsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.ListTrailsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ListTrailsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) ListTrailsWithContext(_a0 context.Context, _a1 *cloudtrail.ListTrailsInput, _a2 ...request.Option) (*cloudtrail.ListTrailsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.ListTrailsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.ListTrailsInput, ...request.Option) *cloudtrail.ListTrailsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.ListTrailsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.ListTrailsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -820,6 +1159,84 @@ func (_m *CloudTrailAPI) PutEventSelectorsWithContext(_a0 context.Context, _a1 *
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.PutEventSelectorsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutInsightSelectors provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) PutInsightSelectors(_a0 *cloudtrail.PutInsightSelectorsInput) (*cloudtrail.PutInsightSelectorsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *cloudtrail.PutInsightSelectorsOutput
+	if rf, ok := ret.Get(0).(func(*cloudtrail.PutInsightSelectorsInput) *cloudtrail.PutInsightSelectorsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.PutInsightSelectorsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*cloudtrail.PutInsightSelectorsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PutInsightSelectorsRequest provides a mock function with given fields: _a0
+func (_m *CloudTrailAPI) PutInsightSelectorsRequest(_a0 *cloudtrail.PutInsightSelectorsInput) (*request.Request, *cloudtrail.PutInsightSelectorsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*cloudtrail.PutInsightSelectorsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *cloudtrail.PutInsightSelectorsOutput
+	if rf, ok := ret.Get(1).(func(*cloudtrail.PutInsightSelectorsInput) *cloudtrail.PutInsightSelectorsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*cloudtrail.PutInsightSelectorsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// PutInsightSelectorsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudTrailAPI) PutInsightSelectorsWithContext(_a0 context.Context, _a1 *cloudtrail.PutInsightSelectorsInput, _a2 ...request.Option) (*cloudtrail.PutInsightSelectorsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *cloudtrail.PutInsightSelectorsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *cloudtrail.PutInsightSelectorsInput, ...request.Option) *cloudtrail.PutInsightSelectorsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cloudtrail.PutInsightSelectorsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *cloudtrail.PutInsightSelectorsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)

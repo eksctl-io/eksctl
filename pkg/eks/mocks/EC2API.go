@@ -12164,6 +12164,41 @@ func (_m *EC2API) DescribeExportImageTasks(_a0 *ec2.DescribeExportImageTasksInpu
 	return r0, r1
 }
 
+// DescribeExportImageTasksPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeExportImageTasksPages(_a0 *ec2.DescribeExportImageTasksInput, _a1 func(*ec2.DescribeExportImageTasksOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeExportImageTasksInput, func(*ec2.DescribeExportImageTasksOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeExportImageTasksPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeExportImageTasksPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeExportImageTasksInput, _a2 func(*ec2.DescribeExportImageTasksOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeExportImageTasksInput, func(*ec2.DescribeExportImageTasksOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeExportImageTasksRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeExportImageTasksRequest(_a0 *ec2.DescribeExportImageTasksInput) (*request.Request, *ec2.DescribeExportImageTasksOutput) {
 	ret := _m.Called(_a0)
@@ -12289,6 +12324,119 @@ func (_m *EC2API) DescribeExportTasksWithContext(_a0 context.Context, _a1 *ec2.D
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeExportTasksInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeFastSnapshotRestores provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeFastSnapshotRestores(_a0 *ec2.DescribeFastSnapshotRestoresInput) (*ec2.DescribeFastSnapshotRestoresOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeFastSnapshotRestoresInput) *ec2.DescribeFastSnapshotRestoresOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeFastSnapshotRestoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeFastSnapshotRestoresInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeFastSnapshotRestoresPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeFastSnapshotRestoresPages(_a0 *ec2.DescribeFastSnapshotRestoresInput, _a1 func(*ec2.DescribeFastSnapshotRestoresOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeFastSnapshotRestoresInput, func(*ec2.DescribeFastSnapshotRestoresOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeFastSnapshotRestoresPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeFastSnapshotRestoresPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeFastSnapshotRestoresInput, _a2 func(*ec2.DescribeFastSnapshotRestoresOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFastSnapshotRestoresInput, func(*ec2.DescribeFastSnapshotRestoresOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeFastSnapshotRestoresRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeFastSnapshotRestoresRequest(_a0 *ec2.DescribeFastSnapshotRestoresInput) (*request.Request, *ec2.DescribeFastSnapshotRestoresOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeFastSnapshotRestoresInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeFastSnapshotRestoresInput) *ec2.DescribeFastSnapshotRestoresOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeFastSnapshotRestoresOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeFastSnapshotRestoresWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeFastSnapshotRestoresWithContext(_a0 context.Context, _a1 *ec2.DescribeFastSnapshotRestoresInput, _a2 ...request.Option) (*ec2.DescribeFastSnapshotRestoresOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeFastSnapshotRestoresInput, ...request.Option) *ec2.DescribeFastSnapshotRestoresOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeFastSnapshotRestoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeFastSnapshotRestoresInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -14156,6 +14304,162 @@ func (_m *EC2API) DescribeInstanceStatusWithContext(_a0 context.Context, _a1 *ec
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstanceStatusInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceTypeOfferings provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeInstanceTypeOfferings(_a0 *ec2.DescribeInstanceTypeOfferingsInput) (*ec2.DescribeInstanceTypeOfferingsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeInstanceTypeOfferingsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceTypeOfferingsInput) *ec2.DescribeInstanceTypeOfferingsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeInstanceTypeOfferingsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeInstanceTypeOfferingsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceTypeOfferingsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeInstanceTypeOfferingsRequest(_a0 *ec2.DescribeInstanceTypeOfferingsInput) (*request.Request, *ec2.DescribeInstanceTypeOfferingsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceTypeOfferingsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeInstanceTypeOfferingsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeInstanceTypeOfferingsInput) *ec2.DescribeInstanceTypeOfferingsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeInstanceTypeOfferingsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceTypeOfferingsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeInstanceTypeOfferingsWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceTypeOfferingsInput, _a2 ...request.Option) (*ec2.DescribeInstanceTypeOfferingsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeInstanceTypeOfferingsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceTypeOfferingsInput, ...request.Option) *ec2.DescribeInstanceTypeOfferingsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeInstanceTypeOfferingsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstanceTypeOfferingsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceTypes provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeInstanceTypes(_a0 *ec2.DescribeInstanceTypesInput) (*ec2.DescribeInstanceTypesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeInstanceTypesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceTypesInput) *ec2.DescribeInstanceTypesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeInstanceTypesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeInstanceTypesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceTypesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeInstanceTypesRequest(_a0 *ec2.DescribeInstanceTypesInput) (*request.Request, *ec2.DescribeInstanceTypesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceTypesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeInstanceTypesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeInstanceTypesInput) *ec2.DescribeInstanceTypesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeInstanceTypesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceTypesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeInstanceTypesWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceTypesInput, _a2 ...request.Option) (*ec2.DescribeInstanceTypesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeInstanceTypesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceTypesInput, ...request.Option) *ec2.DescribeInstanceTypesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeInstanceTypesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstanceTypesInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -20817,6 +21121,84 @@ func (_m *EC2API) DisableEbsEncryptionByDefaultWithContext(_a0 context.Context, 
 	return r0, r1
 }
 
+// DisableFastSnapshotRestores provides a mock function with given fields: _a0
+func (_m *EC2API) DisableFastSnapshotRestores(_a0 *ec2.DisableFastSnapshotRestoresInput) (*ec2.DisableFastSnapshotRestoresOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DisableFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DisableFastSnapshotRestoresInput) *ec2.DisableFastSnapshotRestoresOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableFastSnapshotRestoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DisableFastSnapshotRestoresInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DisableFastSnapshotRestoresRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DisableFastSnapshotRestoresRequest(_a0 *ec2.DisableFastSnapshotRestoresInput) (*request.Request, *ec2.DisableFastSnapshotRestoresOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DisableFastSnapshotRestoresInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DisableFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DisableFastSnapshotRestoresInput) *ec2.DisableFastSnapshotRestoresOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DisableFastSnapshotRestoresOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DisableFastSnapshotRestoresWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DisableFastSnapshotRestoresWithContext(_a0 context.Context, _a1 *ec2.DisableFastSnapshotRestoresInput, _a2 ...request.Option) (*ec2.DisableFastSnapshotRestoresOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DisableFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DisableFastSnapshotRestoresInput, ...request.Option) *ec2.DisableFastSnapshotRestoresOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DisableFastSnapshotRestoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DisableFastSnapshotRestoresInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DisableTransitGatewayRouteTablePropagation provides a mock function with given fields: _a0
 func (_m *EC2API) DisableTransitGatewayRouteTablePropagation(_a0 *ec2.DisableTransitGatewayRouteTablePropagationInput) (*ec2.DisableTransitGatewayRouteTablePropagationOutput, error) {
 	ret := _m.Called(_a0)
@@ -21753,6 +22135,84 @@ func (_m *EC2API) EnableEbsEncryptionByDefaultWithContext(_a0 context.Context, _
 	return r0, r1
 }
 
+// EnableFastSnapshotRestores provides a mock function with given fields: _a0
+func (_m *EC2API) EnableFastSnapshotRestores(_a0 *ec2.EnableFastSnapshotRestoresInput) (*ec2.EnableFastSnapshotRestoresOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.EnableFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(0).(func(*ec2.EnableFastSnapshotRestoresInput) *ec2.EnableFastSnapshotRestoresOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableFastSnapshotRestoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.EnableFastSnapshotRestoresInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnableFastSnapshotRestoresRequest provides a mock function with given fields: _a0
+func (_m *EC2API) EnableFastSnapshotRestoresRequest(_a0 *ec2.EnableFastSnapshotRestoresInput) (*request.Request, *ec2.EnableFastSnapshotRestoresOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.EnableFastSnapshotRestoresInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.EnableFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(1).(func(*ec2.EnableFastSnapshotRestoresInput) *ec2.EnableFastSnapshotRestoresOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.EnableFastSnapshotRestoresOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// EnableFastSnapshotRestoresWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) EnableFastSnapshotRestoresWithContext(_a0 context.Context, _a1 *ec2.EnableFastSnapshotRestoresInput, _a2 ...request.Option) (*ec2.EnableFastSnapshotRestoresOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.EnableFastSnapshotRestoresOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.EnableFastSnapshotRestoresInput, ...request.Option) *ec2.EnableFastSnapshotRestoresOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.EnableFastSnapshotRestoresOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.EnableFastSnapshotRestoresInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // EnableTransitGatewayRouteTablePropagation provides a mock function with given fields: _a0
 func (_m *EC2API) EnableTransitGatewayRouteTablePropagation(_a0 *ec2.EnableTransitGatewayRouteTablePropagationInput) (*ec2.EnableTransitGatewayRouteTablePropagationOutput, error) {
 	ret := _m.Called(_a0)
@@ -22681,6 +23141,84 @@ func (_m *EC2API) GetConsoleScreenshotWithContext(_a0 context.Context, _a1 *ec2.
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetConsoleScreenshotInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetDefaultCreditSpecification provides a mock function with given fields: _a0
+func (_m *EC2API) GetDefaultCreditSpecification(_a0 *ec2.GetDefaultCreditSpecificationInput) (*ec2.GetDefaultCreditSpecificationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.GetDefaultCreditSpecificationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetDefaultCreditSpecificationInput) *ec2.GetDefaultCreditSpecificationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetDefaultCreditSpecificationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetDefaultCreditSpecificationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetDefaultCreditSpecificationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) GetDefaultCreditSpecificationRequest(_a0 *ec2.GetDefaultCreditSpecificationInput) (*request.Request, *ec2.GetDefaultCreditSpecificationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetDefaultCreditSpecificationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetDefaultCreditSpecificationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetDefaultCreditSpecificationInput) *ec2.GetDefaultCreditSpecificationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetDefaultCreditSpecificationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetDefaultCreditSpecificationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) GetDefaultCreditSpecificationWithContext(_a0 context.Context, _a1 *ec2.GetDefaultCreditSpecificationInput, _a2 ...request.Option) (*ec2.GetDefaultCreditSpecificationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetDefaultCreditSpecificationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetDefaultCreditSpecificationInput, ...request.Option) *ec2.GetDefaultCreditSpecificationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetDefaultCreditSpecificationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetDefaultCreditSpecificationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -24120,6 +24658,84 @@ func (_m *EC2API) ModifyClientVpnEndpointWithContext(_a0 context.Context, _a1 *e
 	return r0, r1
 }
 
+// ModifyDefaultCreditSpecification provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyDefaultCreditSpecification(_a0 *ec2.ModifyDefaultCreditSpecificationInput) (*ec2.ModifyDefaultCreditSpecificationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyDefaultCreditSpecificationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyDefaultCreditSpecificationInput) *ec2.ModifyDefaultCreditSpecificationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyDefaultCreditSpecificationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyDefaultCreditSpecificationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyDefaultCreditSpecificationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyDefaultCreditSpecificationRequest(_a0 *ec2.ModifyDefaultCreditSpecificationInput) (*request.Request, *ec2.ModifyDefaultCreditSpecificationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyDefaultCreditSpecificationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyDefaultCreditSpecificationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyDefaultCreditSpecificationInput) *ec2.ModifyDefaultCreditSpecificationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyDefaultCreditSpecificationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyDefaultCreditSpecificationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyDefaultCreditSpecificationWithContext(_a0 context.Context, _a1 *ec2.ModifyDefaultCreditSpecificationInput, _a2 ...request.Option) (*ec2.ModifyDefaultCreditSpecificationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyDefaultCreditSpecificationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyDefaultCreditSpecificationInput, ...request.Option) *ec2.ModifyDefaultCreditSpecificationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyDefaultCreditSpecificationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyDefaultCreditSpecificationInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ModifyEbsDefaultKmsKeyId provides a mock function with given fields: _a0
 func (_m *EC2API) ModifyEbsDefaultKmsKeyId(_a0 *ec2.ModifyEbsDefaultKmsKeyIdInput) (*ec2.ModifyEbsDefaultKmsKeyIdOutput, error) {
 	ret := _m.Called(_a0)
@@ -24970,6 +25586,84 @@ func (_m *EC2API) ModifyInstanceEventStartTimeWithContext(_a0 context.Context, _
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstanceEventStartTimeInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceMetadataOptions provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyInstanceMetadataOptions(_a0 *ec2.ModifyInstanceMetadataOptionsInput) (*ec2.ModifyInstanceMetadataOptionsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyInstanceMetadataOptionsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyInstanceMetadataOptionsInput) *ec2.ModifyInstanceMetadataOptionsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyInstanceMetadataOptionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyInstanceMetadataOptionsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceMetadataOptionsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyInstanceMetadataOptionsRequest(_a0 *ec2.ModifyInstanceMetadataOptionsInput) (*request.Request, *ec2.ModifyInstanceMetadataOptionsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyInstanceMetadataOptionsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyInstanceMetadataOptionsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyInstanceMetadataOptionsInput) *ec2.ModifyInstanceMetadataOptionsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyInstanceMetadataOptionsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyInstanceMetadataOptionsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyInstanceMetadataOptionsWithContext(_a0 context.Context, _a1 *ec2.ModifyInstanceMetadataOptionsInput, _a2 ...request.Option) (*ec2.ModifyInstanceMetadataOptionsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyInstanceMetadataOptionsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyInstanceMetadataOptionsInput, ...request.Option) *ec2.ModifyInstanceMetadataOptionsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyInstanceMetadataOptionsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyInstanceMetadataOptionsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -30904,6 +31598,41 @@ func (_m *EC2API) WaitUntilPasswordDataAvailableWithContext(_a0 context.Context,
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetPasswordDataInput, ...request.WaiterOption) error); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilSecurityGroupExists provides a mock function with given fields: _a0
+func (_m *EC2API) WaitUntilSecurityGroupExists(_a0 *ec2.DescribeSecurityGroupsInput) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeSecurityGroupsInput) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// WaitUntilSecurityGroupExistsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) WaitUntilSecurityGroupExistsWithContext(_a0 context.Context, _a1 *ec2.DescribeSecurityGroupsInput, _a2 ...request.WaiterOption) error {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeSecurityGroupsInput, ...request.WaiterOption) error); ok {
 		r0 = rf(_a0, _a1, _a2...)
 	} else {
 		r0 = ret.Error(0)
