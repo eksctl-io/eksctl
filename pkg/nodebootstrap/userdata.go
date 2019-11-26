@@ -137,6 +137,14 @@ func kvs(kv map[string]string) string {
 	return strings.Join(params, ",")
 }
 
+func toCLIArgs(values map[string]string) string {
+	var args []string
+	for k, v := range values {
+		args = append(args, fmt.Sprintf("--%s=%s", k, v))
+	}
+	return strings.Join(args, " ")
+}
+
 func makeCommonKubeletEnvParams(spec *api.ClusterConfig, ng *api.NodeGroup) []string {
 	variables := []string{
 		fmt.Sprintf("NODE_LABELS=%s", kvs(ng.Labels)),
