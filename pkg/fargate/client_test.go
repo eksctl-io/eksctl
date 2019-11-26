@@ -2,6 +2,7 @@ package fargate_test
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
@@ -10,6 +11,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks/mocks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
@@ -87,7 +89,8 @@ var _ = Describe("fargate", func() {
 		Describe("DeleteProfile", func() {
 			It("fails fast if the provided profile name is empty", func() {
 				client := fargate.NewClient(clusterName, &mocks.EKSAPI{})
-				err := client.DeleteProfile("")
+				waitForDeletion := false
+				err := client.DeleteProfile("", waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("invalid Fargate profile name: empty"))
 			})
@@ -95,16 +98,45 @@ var _ = Describe("fargate", func() {
 			It("deletes the profile corresponding to the provided name", func() {
 				profileName := "test-green"
 				client := fargate.NewClient(clusterName, mockForDeleteFargateProfile(profileName))
-				err := client.DeleteProfile(profileName)
+				waitForDeletion := false
+				err := client.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
 			It("fails by wrapping the root error with some additional context for clarity", func() {
 				profileName := "test-green"
 				client := fargate.NewClient(clusterName, mockForFailureOnDeleteFargateProfile(profileName))
-				err := client.DeleteProfile(profileName)
+				waitForDeletion := false
+				err := client.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to delete Fargate profile \"test-green\" from cluster \"non-existing-test-cluster\": the Internet broke down!"))
+			})
+
+			It("waits for the full deletion of the profile when configured to do so", func() {
+				profileName := "test-green"
+				retryPolicy := &retry.ConstantBackoff{
+					// Retry up to 5 times, not waiting at all, in order to speed tests up.
+					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
+				}
+				numRetriesBeforeDeletion := 3 // < MaxRetries
+				client := fargate.NewClientWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy)
+				waitForDeletion := true
+				err := client.DeleteProfile(profileName, waitForDeletion)
+				Expect(err).To(Not(HaveOccurred()))
+			})
+
+			It("returns an error when waiting for the full deletion of the profile times out", func() {
+				profileName := "test-green"
+				retryPolicy := &retry.ConstantBackoff{
+					// Retry up to 5 times, not waiting at all, in order to speed tests up.
+					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
+				}
+				numRetriesBeforeDeletion := 5 // == MaxRetries, i.e. we will time out.
+				client := fargate.NewClientWithRetryPolicy(clusterName, mockForDeleteFargateProfileWithWait(profileName, numRetriesBeforeDeletion), retryPolicy)
+				waitForDeletion := true
+				err := client.DeleteProfile(profileName, waitForDeletion)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("deleting of Fargate profile \"test-green\" timed out"))
 			})
 		})
 	})
@@ -163,17 +195,22 @@ const (
 
 func mockForReadProfiles() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
-	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
-		ClusterName: strings.Pointer(clusterName),
-	}).Return(&eks.ListFargateProfilesOutput{
-		FargateProfileNames: []*string{
-			strings.Pointer(testBlue),
-			strings.Pointer(testGreen),
-		},
-	}, nil)
+	mockListFargateProfiles(&mockClient, testBlue, testGreen)
 	mockDescribeFargateProfile(&mockClient, testBlue)
 	mockDescribeFargateProfile(&mockClient, testGreen)
 	return &mockClient
+}
+
+func mockListFargateProfiles(mockClient *mocks.EKSAPI, names ...string) {
+	profileNames := make([]*string, len(names))
+	for i, name := range names {
+		profileNames[i] = strings.Pointer(name)
+	}
+	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
+		ClusterName: strings.Pointer(clusterName),
+	}).Once().Return(&eks.ListFargateProfilesOutput{
+		FargateProfileNames: profileNames,
+	}, nil)
 }
 
 func mockForReadProfile() *mocks.EKSAPI {
@@ -218,9 +255,7 @@ func apiFargateProfile(name string) *api.FargateProfile {
 
 func mockForEmptyReadProfiles() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
-	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
-		ClusterName: strings.Pointer(clusterName),
-	}).Return(&eks.ListFargateProfilesOutput{}, nil)
+	mockListFargateProfiles(&mockClient)
 	return &mockClient
 }
 
@@ -243,11 +278,31 @@ func mockForFailureOnReadProfiles() *mocks.EKSAPI {
 
 func mockForDeleteFargateProfile(name string) *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
+	mockDeleteFargateProfile(&mockClient, name)
+	return &mockClient
+}
+
+func mockForDeleteFargateProfileWithWait(name string, numRetries int) *mocks.EKSAPI {
+	mockClient := mocks.EKSAPI{}
+	mockDeleteFargateProfile(&mockClient, name)
+	// Simulate a couple calls to AWS' API before the profile actually gets deleted:
+	for i := 0; i < numRetries; i++ {
+		mockListFargateProfiles(&mockClient, name)
+	}
+	mockListFargateProfiles(&mockClient) // At this point, the profile has been deleted.
+	return &mockClient
+}
+
+func mockDeleteFargateProfile(mockClient *mocks.EKSAPI, name string) {
 	mockClient.Mock.On("DeleteFargateProfile", &eks.DeleteFargateProfileInput{
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: &name,
-	}).Return(&eks.DeleteFargateProfileOutput{}, nil)
-	return &mockClient
+	}).Return(&eks.DeleteFargateProfileOutput{
+		FargateProfile: &eks.FargateProfile{
+			FargateProfileName: &name,
+			Status:             strings.Pointer("DELETING"),
+		},
+	}, nil)
 }
 
 func mockForFailureOnDeleteFargateProfile(name string) *mocks.EKSAPI {

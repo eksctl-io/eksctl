@@ -1,19 +1,43 @@
 package fargate
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/aws/aws-sdk-go/service/eks/eksiface"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
+// DefaultWaitTimeout is the default maximum time to wait for long running
+// operations.
+const DefaultWaitTimeout = 5 * time.Minute
+
 // NewClient returns a new Fargate client.
 func NewClient(clusterName string, api eksiface.EKSAPI) *Client {
+	return NewClientWithWaitTimeout(clusterName, api, DefaultWaitTimeout)
+}
+
+// NewClientWithWaitTimeout returns a new Fargate client configured with the
+// provided wait timeout for blocking/waiting operations.
+func NewClientWithWaitTimeout(clusterName string, api eksiface.EKSAPI, waitTimeout time.Duration) *Client {
+	return NewClientWithRetryPolicy(clusterName, api, &retry.TimingOutExponentialBackoff{
+		Timeout:  waitTimeout,
+		TimeUnit: time.Second,
+	})
+}
+
+// NewClientWithRetryPolicy returns a new Fargate client configured with the
+// provided retry policy for blocking/waiting operations.
+func NewClientWithRetryPolicy(clusterName string, api eksiface.EKSAPI, retryPolicy retry.Policy) *Client {
 	return &Client{
 		clusterName: clusterName,
 		api:         api,
+		retryPolicy: retryPolicy,
 	}
 }
 
@@ -21,6 +45,7 @@ func NewClient(clusterName string, api eksiface.EKSAPI) *Client {
 type Client struct {
 	clusterName string
 	api         eksiface.EKSAPI
+	retryPolicy retry.Policy
 }
 
 // CreateProfile creates the provided Fargate profile.
@@ -49,13 +74,12 @@ func (c Client) ReadProfile(name string) (*api.FargateProfile, error) {
 
 // ReadProfiles reads all existing Fargate profiles.
 func (c Client) ReadProfiles() ([]*api.FargateProfile, error) {
-	profiles := []*api.FargateProfile{}
-	out, err := c.api.ListFargateProfiles(listRequest(c.clusterName))
+	names, err := c.ListProfiles()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile(s)", c.clusterName)
+		return nil, err
 	}
-	logger.Debug("Fargate profile: list request: got %v profile(s): %#v", len(out.FargateProfileNames), out)
-	for _, name := range out.FargateProfileNames {
+	profiles := []*api.FargateProfile{}
+	for _, name := range names {
 		profile, err := c.ReadProfile(*name)
 		if err != nil {
 			return nil, err
@@ -65,19 +89,55 @@ func (c Client) ReadProfiles() ([]*api.FargateProfile, error) {
 	return profiles, nil
 }
 
+// ListProfiles lists all existing Fargate profiles.
+func (c Client) ListProfiles() ([]*string, error) {
+	out, err := c.api.ListFargateProfiles(listRequest(c.clusterName))
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile(s)", c.clusterName)
+	}
+	logger.Debug("Fargate profile: list request: got %v profile(s): %#v", len(out.FargateProfileNames), out)
+	return out.FargateProfileNames, nil
+}
+
 // DeleteProfile drains and delete the Fargate profile with the provided name.
-func (c Client) DeleteProfile(name string) error {
+func (c Client) DeleteProfile(name string, waitForDeletion bool) error {
 	if name == "" {
 		return errors.New("invalid Fargate profile name: empty")
 	}
-	_, err := c.api.DeleteFargateProfile(&eks.DeleteFargateProfileInput{
-		ClusterName:        &c.clusterName,
-		FargateProfileName: &name,
-	})
+	out, err := c.api.DeleteFargateProfile(deleteRequest(c.clusterName, name))
+	logger.Debug("Fargate profile: delete request: received: %#v", out)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Fargate profile \"%v\" from cluster \"%v\"", name, c.clusterName)
 	}
+	if waitForDeletion {
+		return c.waitForDeletion(name)
+	}
 	return nil
+}
+
+func (c Client) waitForDeletion(name string) error {
+	// Clone this client's policy to ensure this method is re-entrant/thread-safe:
+	retryPolicy := c.retryPolicy.Clone()
+	for !retryPolicy.Done() {
+		names, err := c.ListProfiles()
+		if err != nil {
+			return err
+		}
+		if !contains(names, name) {
+			return nil
+		}
+		time.Sleep(retryPolicy.Duration())
+	}
+	return fmt.Errorf("deleting of Fargate profile \"%v\" timed out", name)
+}
+
+func contains(array []*string, target string) bool {
+	for _, value := range array {
+		if value != nil && *value == target {
+			return true
+		}
+	}
+	return false
 }
 
 func createRequest(clusterName string, profile *api.FargateProfile) *eks.CreateFargateProfileInput {
@@ -106,6 +166,15 @@ func listRequest(clusterName string) *eks.ListFargateProfilesInput {
 		ClusterName: &clusterName,
 	}
 	logger.Debug("Fargate profile: list request: sending: %#v", request)
+	return request
+}
+
+func deleteRequest(clusterName string, profileName string) *eks.DeleteFargateProfileInput {
+	request := &eks.DeleteFargateProfileInput{
+		ClusterName:        &clusterName,
+		FargateProfileName: &profileName,
+	}
+	logger.Debug("Fargate profile: delete request: sending: %#v", request)
 	return request
 }
 
