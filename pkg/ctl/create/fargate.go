@@ -32,6 +32,7 @@ func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions 
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for the creation of the Fargate profile, which may take from a couple seconds to a couple minutes.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
@@ -54,7 +55,7 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 	if err != nil {
 		return err
 	}
-	return doCreateFargateProfiles(cmd, ctl, roleARN)
+	return doCreateFargateProfiles(cmd, ctl, roleARN, cmd.Wait)
 }
 
 func getClusterRoleARN(ctl *eks.ClusterProvider, meta *api.ClusterMeta) (string, error) {
@@ -67,7 +68,7 @@ func getClusterRoleARN(ctl *eks.ClusterProvider, meta *api.ClusterMeta) (string,
 	return roleARN, nil
 }
 
-func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaultPodExecRoleARN string) error {
+func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaultPodExecRoleARN string, wait bool) error {
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
 	for _, profile := range cmd.ClusterConfig.FargateProfiles {
@@ -77,7 +78,7 @@ func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaul
 		if profile.PodExecutionRoleARN == "" {
 			profile.PodExecutionRoleARN = defaultPodExecRoleARN
 		}
-		if err := awsClient.CreateProfile(profile); err != nil {
+		if err := awsClient.CreateProfile(profile, wait); err != nil {
 			return errors.Wrapf(err, "failed to create Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
 		}
 		logger.Info("created Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)

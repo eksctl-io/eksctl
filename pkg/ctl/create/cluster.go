@@ -411,7 +411,13 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 					return err
 				}
 			} else {
-				if err := doCreateFargateProfiles(cmd, ctl, podExecutionRoleARN); err != nil {
+				// Linearise the creation of Fargate profiles by passing
+				// wait = true, as the API otherwise errors out with:
+				//   ResourceInUseException: Cannot create Fargate Profile
+				//   ${name2} because cluster ${clusterName} currently has
+				//   Fargate profile ${name1} in status CREATING
+				wait := true
+				if err := doCreateFargateProfiles(cmd, ctl, podExecutionRoleARN, wait); err != nil {
 					return err
 				}
 			}
@@ -451,7 +457,7 @@ func createDefaultFargateProfile(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, po
 		},
 	}
 	logger.Info("creating Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
-	if err := awsClient.CreateProfile(profile); err != nil {
+	if err := awsClient.CreateProfile(profile, cmd.Wait); err != nil {
 		return errors.Wrapf(err, "failed to create Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
 	}
 	logger.Info("created Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
