@@ -586,6 +586,18 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err.Error()).To(Equal("invalid Fargate profile \"default\": invalid profile selector at index #0: empty namespace"))
 			})
 
+			It("returns an error when the profile's name starts with eks-", func() {
+				profile := FargateProfile{
+					Name: "eks-foo",
+					Selectors: []FargateProfileSelector{
+						FargateProfileSelector{Namespace: "default"},
+					},
+				}
+				err := profile.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile \"eks-foo\": name should NOT start with \"eks-\""))
+			})
+
 			It("passes when a name and at least one selector with a namespace is defined", func() {
 				profile := FargateProfile{
 					Name: "default",

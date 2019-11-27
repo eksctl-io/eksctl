@@ -52,6 +52,18 @@ var _ = Describe("fargate", func() {
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
+			It("fails when the profile's name starts with eks-", func() {
+				options := fargate.CreateOptions{
+					Options: fargate.Options{
+						ProfileName: "eks-foo",
+					},
+					ProfileSelectorNamespace: "default",
+				}
+				err := options.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile: name should NOT start with \"eks-\""))
+			})
+
 			It("passes on randomly generated input", func() {
 				options := fargate.CreateOptions{}
 				err := faker.FakeData(&options)

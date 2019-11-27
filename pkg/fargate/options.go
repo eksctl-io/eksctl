@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -32,6 +33,9 @@ type CreateOptions struct {
 
 // Validate validates this Options object's fields.
 func (o *CreateOptions) Validate() error {
+	if strings.HasPrefix(o.ProfileName, api.ReservedProfileNamePrefix) {
+		return fmt.Errorf("invalid Fargate profile: name should NOT start with \"%s\"", api.ReservedProfileNamePrefix)
+	}
 	if o.ProfileSelectorNamespace == "" {
 		return errors.New("invalid Fargate profile: empty selector namespace")
 	}
