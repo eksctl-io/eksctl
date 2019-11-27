@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -388,6 +389,22 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			}
 		}
 
+		if params.fargate || len(cmd.ClusterConfig.FargateProfiles) > 0 {
+			podExecutionRoleARN, err := getClusterRoleARN(ctl, cfg.Metadata)
+			if err != nil {
+				return err
+			}
+			if params.fargate {
+				if err := createDefaultFargateProfile(cmd, ctl, podExecutionRoleARN); err != nil {
+					return err
+				}
+			} else {
+				if err := doCreateFargateProfiles(cmd, ctl, podExecutionRoleARN); err != nil {
+					return err
+				}
+			}
+		}
+
 		// check kubectl version, and offer install instructions if missing or old
 		// also check heptio-authenticator
 		// TODO: https://github.com/weaveworks/eksctl/issues/30
@@ -407,5 +424,24 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		return err
 	}
 
+	return nil
+}
+
+func createDefaultFargateProfile(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, podExecutionRoleARN string) error {
+	clusterName := cmd.ClusterConfig.Metadata.Name
+	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
+	profile := &api.FargateProfile{
+		Name:                "default",
+		PodExecutionRoleARN: podExecutionRoleARN,
+		Selectors: []api.FargateProfileSelector{
+			api.FargateProfileSelector{Namespace: "default"},
+			api.FargateProfileSelector{Namespace: "kube-system"},
+		},
+	}
+	logger.Info("creating Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+	if err := awsClient.CreateProfile(profile); err != nil {
+		return errors.Wrapf(err, "failed to create Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+	}
+	logger.Info("created Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
 	return nil
 }
