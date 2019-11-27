@@ -33,6 +33,14 @@ type createClusterCmdParams struct {
 	subnets                     map[api.SubnetTopology]*[]string
 	withoutNodeGroup            bool
 	managed                     bool
+	fargate                     bool
+}
+
+func (p createClusterCmdParams) Validate() error {
+	if p.managed && p.fargate {
+		return errors.New("--managed and --fargate are mutually exclusive: please provide either one of these flags, but not both")
+	}
+	return nil
 }
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
@@ -61,6 +69,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.BoolVarP(&params.installWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
 		fs.BoolVarP(&params.managed, "managed", "", false, "Create EKS-managed nodegroup")
+		fs.BoolVarP(&params.fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
@@ -94,6 +103,9 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
+	if err := params.Validate(); err != nil {
+		return err
+	}
 	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params.withoutNodeGroup, params.managed).Load(); err != nil {
 		return err
 	}
