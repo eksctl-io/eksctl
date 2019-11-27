@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -123,6 +124,10 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
+	if err := deleteFargateProfiles(cmd, ctl); err != nil {
+		return err
+	}
+
 	ssh.DeleteKeys(meta.Name, ctl.Provider.EC2())
 
 	kubeconfig.MaybeDeleteConfig(meta)
@@ -177,5 +182,28 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 		logger.Success("all cluster resources were deleted")
 	}
 
+	return nil
+}
+
+func deleteFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
+	awsClient := fargate.NewClientWithWaitTimeout(
+		cmd.ClusterConfig.Metadata.Name,
+		ctl.Provider.EKS(),
+		cmd.ProviderConfig.WaitTimeout,
+	)
+	profileNames, err := awsClient.ListProfiles()
+	if err != nil {
+		return err
+	}
+	if len(profileNames) > 0 {
+		for _, profileName := range profileNames {
+			logger.Info("deleting Fargate profile \"%s\"", *profileName)
+			if err := awsClient.DeleteProfile(*profileName, true); err != nil {
+				return err
+			}
+			logger.Info("deleted Fargate profile \"%s\"", *profileName)
+		}
+	}
+	logger.Info("deleted %v Fargate profile(s)", len(profileNames))
 	return nil
 }
