@@ -30,6 +30,7 @@ func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for the deletion of the Fargate profile, which may take from a couple seconds to a couple minutes.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
@@ -40,6 +41,15 @@ func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
 	if err := opts.Validate(); err != nil {
 		return err
 	}
+	ctl, err := cmd.NewCtl()
+	if err != nil {
+		return err
+	}
+	if err := ctl.CheckAuth(); err != nil {
+		return err
+	}
+	clusterName := cmd.ClusterConfig.Metadata.Name
+	awsClient := fargate.NewClientWithWaitTimeout(clusterName, ctl.Provider.EKS(), cmd.ProviderConfig.WaitTimeout)
 	logger.Info("deleting Fargate profile \"%s\"", opts.ProfileName)
-	return nil
+	return awsClient.DeleteProfile(opts.ProfileName, cmd.Wait)
 }
