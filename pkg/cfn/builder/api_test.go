@@ -2204,7 +2204,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
 			}))
 
-			checkARPD([]string{"eks.amazonaws.com"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
+			checkARPD([]string{"eks.amazonaws.com", "eks-fargate-pods.amazonaws.com"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
 
 			policy1 := clusterTemplate.Resources["PolicyNLB"].Properties
 

@@ -70,7 +70,12 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("eks.amazonaws.com"),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+			"eks.amazonaws.com",
+			// Ensure that EKS can schedule pods onto Fargate, should the user
+			// define so-called "Fargate profiles" in order to do so:
+			"eks-fargate-pods.amazonaws.com",
+		),
 		ManagedPolicyArns: makeStringSlice(
 			iamPolicyAmazonEKSServicePolicyARN,
 			iamPolicyAmazonEKSClusterPolicyARN,
