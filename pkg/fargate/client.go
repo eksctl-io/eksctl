@@ -49,16 +49,19 @@ type Client struct {
 }
 
 // CreateProfile creates the provided Fargate profile.
-func (c Client) CreateProfile(profile *api.FargateProfile) error {
+func (c Client) CreateProfile(profile *api.FargateProfile, waitForCreation bool) error {
 	if profile == nil {
 		return errors.New("invalid Fargate profile: nil")
 	}
 	logger.Debug("Fargate profile: create request input: %#v", profile)
 	out, err := c.api.CreateFargateProfile(createRequest(c.clusterName, profile))
+	logger.Debug("Fargate profile: create request: received: %#v", out)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create Fargate profile \"%v\" in cluster \"%v\"", profile.Name, c.clusterName)
 	}
-	logger.Debug("successfully created Fargate profile: %s", out)
+	if waitForCreation {
+		return c.waitForCreation(profile.Name)
+	}
 	return nil
 }
 
@@ -69,6 +72,7 @@ func (c Client) ReadProfile(name string) (*api.FargateProfile, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile \"%s\"", c.clusterName, name)
 	}
+	logger.Debug("Fargate profile: describe request: received: %#v", out)
 	return toFargateProfile(out.FargateProfile), nil
 }
 
@@ -113,6 +117,30 @@ func (c Client) DeleteProfile(name string, waitForDeletion bool) error {
 		return c.waitForDeletion(name)
 	}
 	return nil
+}
+
+func (c Client) waitForCreation(name string) error {
+	// Clone this client's policy to ensure this method is re-entrant/thread-safe:
+	retryPolicy := c.retryPolicy.Clone()
+	for !retryPolicy.Done() {
+		out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
+		if err != nil {
+			return errors.Wrapf(err, "failed while waiting for Fargate profile \"%s\"'s creation", name)
+		}
+		logger.Debug("Fargate profile: describe request: received: %#v", out)
+		if created(out) {
+			return nil
+		}
+		time.Sleep(retryPolicy.Duration())
+	}
+	return fmt.Errorf("timed out while waiting for Fargate profile \"%v\"'s creation", name)
+}
+
+func created(out *eks.DescribeFargateProfileOutput) bool {
+	return out != nil &&
+		out.FargateProfile != nil &&
+		out.FargateProfile.Status != nil &&
+		*out.FargateProfile.Status == eks.FargateProfileStatusActive
 }
 
 func (c Client) waitForDeletion(name string) error {

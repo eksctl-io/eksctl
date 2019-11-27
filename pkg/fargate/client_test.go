@@ -22,22 +22,50 @@ var _ = Describe("fargate", func() {
 		Describe("CreateProfile", func() {
 			It("fails fast if the provided profile is nil", func() {
 				client := fargate.NewClient(clusterName, &mocks.EKSAPI{})
-				err := client.CreateProfile(nil)
+				waitForCreation := false
+				err := client.CreateProfile(nil, waitForCreation)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("invalid Fargate profile: nil"))
 			})
 
 			It("creates the provided profile", func() {
 				client := fargate.NewClient(clusterName, mockForCreateFargateProfile())
-				err := client.CreateProfile(testFargateProfile())
+				waitForCreation := false
+				err := client.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
 			It("fails by wrapping the root error with some additional context for clarity", func() {
 				client := fargate.NewClient(clusterName, mockForFailureOnCreateFargateProfile())
-				err := client.CreateProfile(testFargateProfile())
+				waitForCreation := false
+				err := client.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to create Fargate profile \"default\" in cluster \"non-existing-test-cluster\": the Internet broke down!"))
+			})
+
+			It("waits for the full creation of the profile when configured to do so", func() {
+				retryPolicy := &retry.ConstantBackoff{
+					// Retry up to 5 times, not waiting at all, in order to speed tests up.
+					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
+				}
+				numRetriesAfterCreation := 3 // < MaxRetries
+				client := fargate.NewClientWithRetryPolicy(clusterName, mockForCreateFargateProfileWithWait(numRetriesAfterCreation), retryPolicy)
+				waitForCreation := true
+				err := client.CreateProfile(testFargateProfile(), waitForCreation)
+				Expect(err).To(Not(HaveOccurred()))
+			})
+
+			It("returns an error when waiting for the creation of the profile times out", func() {
+				retryPolicy := &retry.ConstantBackoff{
+					// Retry up to 5 times, not waiting at all, in order to speed tests up.
+					Time: 0, TimeUnit: time.Second, MaxRetries: 5,
+				}
+				numRetriesAfterCreation := 5 // == MaxRetries, i.e. we will time out.
+				client := fargate.NewClientWithRetryPolicy(clusterName, mockForCreateFargateProfileWithWait(numRetriesAfterCreation), retryPolicy)
+				waitForCreation := true
+				err := client.CreateProfile(testFargateProfile(), waitForCreation)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("timed out while waiting for Fargate profile \"default\"'s creation"))
 			})
 		})
 
@@ -144,9 +172,24 @@ var _ = Describe("fargate", func() {
 
 func mockForCreateFargateProfile() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
+	mockCreateFargateProfile(&mockClient)
+	return &mockClient
+}
+
+func mockForCreateFargateProfileWithWait(numRetries int) *mocks.EKSAPI {
+	mockClient := mocks.EKSAPI{}
+	mockCreateFargateProfile(&mockClient)
+	// Simulate a couple calls to AWS' API before the profile actually gets created:
+	for i := 0; i < numRetries; i++ {
+		mockDescribeFargateProfile(&mockClient, "default", "CREATING")
+	}
+	mockDescribeFargateProfile(&mockClient, "default", "ACTIVE") // At this point, the profile has been created.
+	return &mockClient
+}
+
+func mockCreateFargateProfile(mockClient *mocks.EKSAPI) {
 	mockClient.Mock.On("CreateFargateProfile", testCreateFargateProfileInput()).
 		Return(&eks.CreateFargateProfileOutput{}, nil)
-	return &mockClient
 }
 
 func mockForFailureOnCreateFargateProfile() *mocks.EKSAPI {
@@ -196,8 +239,8 @@ const (
 func mockForReadProfiles() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
 	mockListFargateProfiles(&mockClient, testBlue, testGreen)
-	mockDescribeFargateProfile(&mockClient, testBlue)
-	mockDescribeFargateProfile(&mockClient, testGreen)
+	mockDescribeFargateProfile(&mockClient, testBlue, "ACTIVE")
+	mockDescribeFargateProfile(&mockClient, testGreen, "ACTIVE")
 	return &mockClient
 }
 
@@ -215,20 +258,20 @@ func mockListFargateProfiles(mockClient *mocks.EKSAPI, names ...string) {
 
 func mockForReadProfile() *mocks.EKSAPI {
 	mockClient := &mocks.EKSAPI{}
-	mockDescribeFargateProfile(mockClient, testGreen)
+	mockDescribeFargateProfile(mockClient, testGreen, "ACTIVE")
 	return mockClient
 }
 
-func mockDescribeFargateProfile(mockClient *mocks.EKSAPI, name string) {
+func mockDescribeFargateProfile(mockClient *mocks.EKSAPI, name, status string) {
 	mockClient.Mock.On("DescribeFargateProfile", &eks.DescribeFargateProfileInput{
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: strings.Pointer(name),
-	}).Return(&eks.DescribeFargateProfileOutput{
-		FargateProfile: eksFargateProfile(name),
+	}).Once().Return(&eks.DescribeFargateProfileOutput{
+		FargateProfile: eksFargateProfile(name, status),
 	}, nil)
 }
 
-func eksFargateProfile(name string) *eks.FargateProfile {
+func eksFargateProfile(name, status string) *eks.FargateProfile {
 	return &eks.FargateProfile{
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: strings.Pointer(name),
@@ -237,6 +280,7 @@ func eksFargateProfile(name string) *eks.FargateProfile {
 				Namespace: strings.Pointer(name),
 			},
 		},
+		Status: strings.Pointer(status),
 	}
 }
 
