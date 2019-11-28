@@ -21,34 +21,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
-type createClusterCmdParams struct {
-	writeKubeconfig             bool
-	kubeconfigPath              string
-	autoKubeconfigPath          bool
-	authenticatorRoleARN        string
-	setContext                  bool
-	availabilityZones           []string
-	installWindowsVPCController bool
-	kopsClusterNameForVPC       string
-	subnets                     map[api.SubnetTopology]*[]string
-	withoutNodeGroup            bool
-	managed                     bool
-	fargate                     bool
-}
-
-func (p createClusterCmdParams) Validate() error {
-	if p.managed && p.fargate {
-		return errors.New("--managed and --fargate are mutually exclusive: please provide either one of these flags, but not both")
-	}
-	return nil
-}
-
 func createClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	params := &createClusterCmdParams{}
+	params := &cmdutils.CreateClusterCmdParams{}
 
 	cmd.SetDescription("cluster", "Create a cluster", "")
 
@@ -63,18 +41,18 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
 		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
-		fs.StringSliceVar(&params.availabilityZones, "zones", nil, "(auto-select if unspecified)")
+		fs.StringSliceVar(&params.AvailabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
-		fs.BoolVarP(&params.installWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
-		fs.BoolVarP(&params.managed, "managed", "", false, "Create EKS-managed nodegroup")
-		fs.BoolVarP(&params.fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
+		fs.BoolVarP(&params.InstallWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
+		fs.BoolVarP(&params.Managed, "managed", "", false, "Create EKS-managed nodegroup")
+		fs.BoolVarP(&params.Fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Initial nodegroup", func(fs *pflag.FlagSet) {
 		fs.StringVar(&ng.Name, "nodegroup-name", "", fmt.Sprintf("name of the nodegroup (generated if unspecified, e.g. %q)", exampleNodeGroupName))
-		fs.BoolVar(&params.withoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
+		fs.BoolVar(&params.WithoutNodeGroup, "without-nodegroup", false, "if set, initial nodegroup will not be created")
 		cmdutils.AddCommonCreateNodeGroupFlags(fs, cmd, ng)
 	})
 
@@ -84,29 +62,29 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("VPC networking", func(fs *pflag.FlagSet) {
 		fs.IPNetVar(&cfg.VPC.CIDR.IPNet, "vpc-cidr", cfg.VPC.CIDR.IPNet, "global CIDR to use for VPC")
-		params.subnets = map[api.SubnetTopology]*[]string{
+		params.Subnets = map[api.SubnetTopology]*[]string{
 			api.SubnetTopologyPrivate: fs.StringSlice("vpc-private-subnets", nil, "re-use private subnets of an existing VPC"),
 			api.SubnetTopologyPublic:  fs.StringSlice("vpc-public-subnets", nil, "re-use public subnets of an existing VPC"),
 		}
-		fs.StringVar(&params.kopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
+		fs.StringVar(&params.KopsClusterNameForVPC, "vpc-from-kops-cluster", "", "re-use VPC from a given kops cluster")
 		fs.StringVar(cfg.VPC.NAT.Gateway, "vpc-nat-mode", api.ClusterSingleNAT, "VPC NAT mode, valid options: HighlyAvailable, Single, Disable")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 
 	cmd.FlagSetGroup.InFlagSet("Output kubeconfig", func(fs *pflag.FlagSet) {
-		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.kubeconfigPath, &params.authenticatorRoleARN, &params.setContext, &params.autoKubeconfigPath, exampleClusterName)
-		fs.BoolVar(&params.writeKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
+		cmdutils.AddCommonFlagsForKubeconfig(fs, &params.KubeconfigPath, &params.AuthenticatorRoleARN, &params.SetContext, &params.AutoKubeconfigPath, exampleClusterName)
+		fs.BoolVar(&params.WriteKubeconfig, "write-kubeconfig", true, "toggle writing of kubeconfig")
 	})
 }
 
-func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createClusterCmdParams) error {
+func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
 	if err := params.Validate(); err != nil {
 		return err
 	}
-	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params.withoutNodeGroup, params.managed).Load(); err != nil {
+	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params).Load(); err != nil {
 		return err
 	}
 
@@ -141,11 +119,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		return err
 	}
 
-	if params.autoKubeconfigPath {
-		if params.kubeconfigPath != kubeconfig.DefaultPath {
+	if params.AutoKubeconfigPath {
+		if params.KubeconfigPath != kubeconfig.DefaultPath {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
-		params.kubeconfigPath = kubeconfig.AutoPath(meta.Name)
+		params.KubeconfigPath = kubeconfig.AutoPath(meta.Name)
 	}
 
 	if checkSubnetsGivenAsFlags(params) {
@@ -154,8 +132,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		// treat remote state as authority over local state
 		cfg.VPC.CIDR = nil
 		// load subnets from local map created from flags, into the config
-		for topology := range params.subnets {
-			if err := vpc.ImportSubnetsFromList(ctl.Provider, cfg, topology, *params.subnets[topology]); err != nil {
+		for topology := range params.Subnets {
+			if err := vpc.ImportSubnetsFromList(ctl.Provider, cfg, topology, *params.Subnets[topology]); err != nil {
 				return err
 			}
 		}
@@ -166,7 +144,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 	if err := eks.ValidateFeatureCompatibility(cfg, kubeNodeGroups); err != nil {
 		return err
 	}
-	if params.installWindowsVPCController {
+	if params.InstallWindowsVPCController {
 		if !eks.SupportsWindowsWorkloads(kubeNodeGroups) {
 			return errors.New("running Windows workloads requires having both Windows and Linux (AmazonLinux2) node groups")
 		}
@@ -192,9 +170,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			return nil
 		}
 
-		if !subnetsGiven && params.kopsClusterNameForVPC == "" {
+		if !subnetsGiven && params.KopsClusterNameForVPC == "" {
 			// default: create dedicated VPC
-			if err := ctl.SetAvailabilityZones(cfg, params.availabilityZones); err != nil {
+			if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
 				return err
 			}
 			if err := vpc.SetSubnets(cfg); err != nil {
@@ -203,9 +181,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			return nil
 		}
 
-		if params.kopsClusterNameForVPC != "" {
+		if params.KopsClusterNameForVPC != "" {
 			// import VPC from a given kops cluster
-			if len(params.availabilityZones) != 0 {
+			if len(params.AvailabilityZones) != 0 {
 				return fmt.Errorf("--vpc-from-kops-cluster and --zones %s", cmdutils.IncompatibleFlags)
 			}
 			if cmd.CobraCommand.Flag("vpc-cidr").Changed {
@@ -216,7 +194,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 				return fmt.Errorf("--vpc-from-kops-cluster and --vpc-private-subnets/--vpc-public-subnets %s", cmdutils.IncompatibleFlags)
 			}
 
-			kw, err := kops.NewWrapper(cmd.ProviderConfig.Region, params.kopsClusterNameForVPC)
+			kw, err := kops.NewWrapper(cmd.ProviderConfig.Region, params.KopsClusterNameForVPC)
 			if err != nil {
 				return err
 			}
@@ -231,14 +209,14 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 				}
 			}
 
-			logger.Success("using %s from kops cluster %q", subnetInfo(), params.kopsClusterNameForVPC)
+			logger.Success("using %s from kops cluster %q", subnetInfo(), params.KopsClusterNameForVPC)
 			logger.Warning(customNetworkingNotice)
 			return nil
 		}
 
 		// use subnets as specified by --vpc-{private,public}-subnets flags
 
-		if len(params.availabilityZones) != 0 {
+		if len(params.AvailabilityZones) != 0 {
 			return fmt.Errorf("--vpc-private-subnets/--vpc-public-subnets and --zones %s", cmdutils.IncompatibleFlags)
 		}
 		if cmd.CobraCommand.Flag("vpc-cidr").Changed {
@@ -332,7 +310,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			return err
 		}
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes)
-		ctl.AppendExtraClusterConfigTasks(cfg, params.installWindowsVPCController, tasks)
+		ctl.AppendExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController, tasks)
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
@@ -352,18 +330,18 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 	{ // post-creation action
 		var kubeconfigContextName string
 
-		if params.writeKubeconfig {
-			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.authenticatorRoleARN, ctl.Provider.Profile())
+		if params.WriteKubeconfig {
+			kubectlConfig := kubeconfig.NewForKubectl(cfg, ctl.GetUsername(), params.AuthenticatorRoleARN, ctl.Provider.Profile())
 			kubeconfigContextName = kubectlConfig.CurrentContext
 
-			params.kubeconfigPath, err = kubeconfig.Write(params.kubeconfigPath, *kubectlConfig, params.setContext)
+			params.KubeconfigPath, err = kubeconfig.Write(params.KubeconfigPath, *kubectlConfig, params.SetContext)
 			if err != nil {
-				logger.Warning("unable to write kubeconfig %s, please retry with 'eksctl utils write-kubeconfig -n %s': %v", params.kubeconfigPath, meta.Name, err)
+				logger.Warning("unable to write kubeconfig %s, please retry with 'eksctl utils write-kubeconfig -n %s': %v", params.KubeconfigPath, meta.Name, err)
 			} else {
-				logger.Success("saved kubeconfig as %q", params.kubeconfigPath)
+				logger.Success("saved kubeconfig as %q", params.KubeconfigPath)
 			}
 		} else {
-			params.kubeconfigPath = ""
+			params.KubeconfigPath = ""
 		}
 
 		// create Kubernetes client
@@ -401,12 +379,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 			}
 		}
 
-		if params.fargate || len(cmd.ClusterConfig.FargateProfiles) > 0 {
+		if params.Fargate || len(cmd.ClusterConfig.FargateProfiles) > 0 {
 			podExecutionRoleARN, err := getClusterRoleARN(ctl, cfg.Metadata)
 			if err != nil {
 				return err
 			}
-			if params.fargate {
+			if params.Fargate {
 				if err := createDefaultFargateProfile(cmd, ctl, podExecutionRoleARN); err != nil {
 					return err
 				}
@@ -430,7 +408,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createCluster
 		if err != nil {
 			return err
 		}
-		if err := utils.CheckAllCommands(params.kubeconfigPath, params.setContext, kubeconfigContextName, env); err != nil {
+		if err := utils.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}

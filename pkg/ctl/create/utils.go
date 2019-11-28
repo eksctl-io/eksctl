@@ -11,8 +11,8 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
-func checkSubnetsGivenAsFlags(params *createClusterCmdParams) bool {
-	return len(*params.subnets[api.SubnetTopologyPrivate])+len(*params.subnets[api.SubnetTopologyPublic]) != 0
+func checkSubnetsGivenAsFlags(params *cmdutils.CreateClusterCmdParams) bool {
+	return len(*params.Subnets[api.SubnetTopologyPrivate])+len(*params.Subnets[api.SubnetTopologyPublic]) != 0
 }
 
 func checkVersion(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, meta *api.ClusterMeta) error {
