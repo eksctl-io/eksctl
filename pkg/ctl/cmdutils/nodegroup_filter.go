@@ -70,19 +70,11 @@ func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(lister stackLister, i
 		return err
 	}
 
-	stackExists := func(name string) bool {
-		for _, s := range stacks {
-			if s.NodeGroupName == name {
-				return true
-			}
-		}
-		return false
-	}
 	local := sets.NewString()
 
 	for _, localNodeGroup := range getAllNodeGroupNames(clusterConfig) {
 		local.Insert(localNodeGroup)
-		if !stackExists(localNodeGroup) {
+		if !stackExists(stacks, localNodeGroup) {
 			logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup)
 			f.AppendExcludeNames(localNodeGroup)
 		} else if includeOnlyMissing {
@@ -109,6 +101,15 @@ func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(lister stackLister, i
 	}
 
 	return nil
+}
+
+func stackExists(stacks []manager.NodeGroupStack, stackName string) bool {
+	for _, s := range stacks {
+		if s.NodeGroupName == stackName {
+			return true
+		}
+	}
+	return false
 }
 
 // LogInfo prints out a user-friendly message about how filter was applied
