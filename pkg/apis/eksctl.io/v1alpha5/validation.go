@@ -466,3 +466,36 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 func IsWindowsImage(imageFamily string) bool {
 	return imageFamily == NodeImageFamilyWindowsServer2019CoreContainer || imageFamily == NodeImageFamilyWindowsServer2019FullContainer
 }
+
+// ReservedProfileNamePrefix defines the Fargate profile name prefix reserved
+// for AWS, and which therefore, cannot be used by users. AWS' API should
+// reject the creation of profiles starting with this prefix, but we eagerly
+// validate this client-side.
+const ReservedProfileNamePrefix = "eks-"
+
+// Validate validates this FargateProfile object.
+func (fp FargateProfile) Validate() error {
+	if fp.Name == "" {
+		return errors.New("invalid Fargate profile: empty name")
+	}
+	if strings.HasPrefix(fp.Name, ReservedProfileNamePrefix) {
+		return fmt.Errorf("invalid Fargate profile \"%s\": name should NOT start with \"%s\"", fp.Name, ReservedProfileNamePrefix)
+	}
+	if len(fp.Selectors) == 0 {
+		return fmt.Errorf("invalid Fargate profile \"%s\": no profile selector", fp.Name)
+	}
+	for i, selector := range fp.Selectors {
+		if err := selector.Validate(); err != nil {
+			return errors.Wrapf(err, "invalid Fargate profile \"%s\": invalid profile selector at index #%v", fp.Name, i)
+		}
+	}
+	return nil
+}
+
+// Validate validates this FargateProfileSelector object.
+func (fps FargateProfileSelector) Validate() error {
+	if fps.Namespace == "" {
+		return errors.New("empty namespace")
+	}
+	return nil
+}
