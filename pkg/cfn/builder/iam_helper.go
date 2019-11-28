@@ -29,7 +29,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM) {
 	}
 
 	role := gfn.AWSIAMRole{
-		Path: gfn.NewString("/"),
+		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(attachPolicyARNs...),
 	}
@@ -96,6 +96,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM) {
 				"servicediscovery:DeregisterInstance",
 				"servicediscovery:ListInstances",
 				"servicediscovery:ListNamespaces",
+				"servicediscovery:ListServices",
 				"route53:GetHealthCheck",
 				"route53:CreateHealthCheck",
 				"route53:UpdateHealthCheck",

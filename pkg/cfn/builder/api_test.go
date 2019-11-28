@@ -391,7 +391,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -453,12 +453,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			"VPC":                      vpcID,
 			"Endpoint":                 endpoint,
 			"CertificateAuthorityData": caCert,
-			"ARN":                     arn,
-			"ClusterStackName":        "",
-			"SharedNodeSecurityGroup": "sg-shared",
-			"ServiceRoleARN":          arn,
-			"FeatureNATMode":          "Single",
-			"ClusterSecurityGroupId":  "sg-09ef4509a37f28b4c",
+			"ARN":                      arn,
+			"ClusterStackName":         "",
+			"SharedNodeSecurityGroup":  "sg-shared",
+			"ServiceRoleARN":           arn,
+			"FeatureNATMode":           "Single",
+			"ClusterSecurityGroupId":   "sg-09ef4509a37f28b4c",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -927,6 +927,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"servicediscovery:DeregisterInstance",
 				"servicediscovery:ListInstances",
 				"servicediscovery:ListNamespaces",
+				"servicediscovery:ListServices",
 				"route53:GetHealthCheck",
 				"route53:CreateHealthCheck",
 				"route53:UpdateHealthCheck",
