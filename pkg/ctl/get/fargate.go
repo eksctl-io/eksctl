@@ -54,7 +54,7 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
 
-	logger.Debug("getting EKS cluster \"%s\"'s Fargate profile(s)", clusterName)
+	logger.Debug("getting EKS cluster %q's Fargate profile(s)", clusterName)
 	profiles, err := getProfiles(awsClient, options.ProfileName)
 	if err != nil {
 		return err

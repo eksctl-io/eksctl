@@ -197,11 +197,11 @@ func deleteFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
 	}
 	if len(profileNames) > 0 {
 		for _, profileName := range profileNames {
-			logger.Info("deleting Fargate profile \"%s\"", *profileName)
+			logger.Info("deleting Fargate profile %q", *profileName)
 			if err := awsClient.DeleteProfile(*profileName, true); err != nil {
 				return err
 			}
-			logger.Info("deleted Fargate profile \"%s\"", *profileName)
+			logger.Info("deleted Fargate profile %q", *profileName)
 		}
 	}
 	logger.Info("deleted %v Fargate profile(s)", len(profileNames))

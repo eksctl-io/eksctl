@@ -456,10 +456,10 @@ func createDefaultFargateProfile(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, po
 			api.FargateProfileSelector{Namespace: "kube-system"},
 		},
 	}
-	logger.Info("creating Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+	logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 	if err := awsClient.CreateProfile(profile, cmd.Wait); err != nil {
-		return errors.Wrapf(err, "failed to create Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+		return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 	}
-	logger.Info("created Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+	logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 	return nil
 }

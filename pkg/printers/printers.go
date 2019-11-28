@@ -46,5 +46,5 @@ func NewPrinter(printerType Type) (OutputPrinter, error) {
 }
 
 func errInvalidPrinterType(printerType Type) error {
-	return fmt.Errorf("unknown output printer type: expected {\"%s\",\"%s\",\"%s\"} but got \"%s\"", YAMLType, JSONType, TableType, printerType)
+	return fmt.Errorf("unknown output printer type: expected {%q,%q,%q} but got %q", YAMLType, JSONType, TableType, printerType)
 }

@@ -34,7 +34,7 @@ type CreateOptions struct {
 // Validate validates this Options object's fields.
 func (o *CreateOptions) Validate() error {
 	if strings.HasPrefix(o.ProfileName, api.ReservedProfileNamePrefix) {
-		return fmt.Errorf("invalid Fargate profile: name should NOT start with \"%s\"", api.ReservedProfileNamePrefix)
+		return fmt.Errorf("invalid Fargate profile: name should NOT start with %q", api.ReservedProfileNamePrefix)
 	}
 	if o.ProfileSelectorNamespace == "" {
 		return errors.New("invalid Fargate profile: empty selector namespace")

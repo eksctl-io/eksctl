@@ -479,14 +479,14 @@ func (fp FargateProfile) Validate() error {
 		return errors.New("invalid Fargate profile: empty name")
 	}
 	if strings.HasPrefix(fp.Name, ReservedProfileNamePrefix) {
-		return fmt.Errorf("invalid Fargate profile \"%s\": name should NOT start with \"%s\"", fp.Name, ReservedProfileNamePrefix)
+		return fmt.Errorf("invalid Fargate profile %q: name should NOT start with %q", fp.Name, ReservedProfileNamePrefix)
 	}
 	if len(fp.Selectors) == 0 {
-		return fmt.Errorf("invalid Fargate profile \"%s\": no profile selector", fp.Name)
+		return fmt.Errorf("invalid Fargate profile %q: no profile selector", fp.Name)
 	}
 	for i, selector := range fp.Selectors {
 		if err := selector.Validate(); err != nil {
-			return errors.Wrapf(err, "invalid Fargate profile \"%s\": invalid profile selector at index #%v", fp.Name, i)
+			return errors.Wrapf(err, "invalid Fargate profile %q: invalid profile selector at index #%v", fp.Name, i)
 		}
 	}
 	return nil

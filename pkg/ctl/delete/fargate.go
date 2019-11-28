@@ -50,6 +50,6 @@ func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
 	}
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClientWithWaitTimeout(clusterName, ctl.Provider.EKS(), cmd.ProviderConfig.WaitTimeout)
-	logger.Info("deleting Fargate profile \"%s\"", opts.ProfileName)
+	logger.Info("deleting Fargate profile %q", opts.ProfileName)
 	return awsClient.DeleteProfile(opts.ProfileName, cmd.Wait)
 }

@@ -57,7 +57,7 @@ func (c Client) CreateProfile(profile *api.FargateProfile, waitForCreation bool)
 	out, err := c.api.CreateFargateProfile(createRequest(c.clusterName, profile))
 	logger.Debug("Fargate profile: create request: received: %#v", out)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create Fargate profile \"%v\" in cluster \"%v\"", profile.Name, c.clusterName)
+		return errors.Wrapf(err, "failed to create Fargate profile %q in cluster %q", profile.Name, c.clusterName)
 	}
 	if waitForCreation {
 		return c.waitForCreation(profile.Name)
@@ -70,7 +70,7 @@ func (c Client) CreateProfile(profile *api.FargateProfile, waitForCreation bool)
 func (c Client) ReadProfile(name string) (*api.FargateProfile, error) {
 	out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile \"%s\"", c.clusterName, name)
+		return nil, errors.Wrapf(err, "failed to get EKS cluster %q's Fargate profile %q", c.clusterName, name)
 	}
 	logger.Debug("Fargate profile: describe request: received: %#v", out)
 	return toFargateProfile(out.FargateProfile), nil
@@ -97,7 +97,7 @@ func (c Client) ReadProfiles() ([]*api.FargateProfile, error) {
 func (c Client) ListProfiles() ([]*string, error) {
 	out, err := c.api.ListFargateProfiles(listRequest(c.clusterName))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get EKS cluster \"%s\"'s Fargate profile(s)", c.clusterName)
+		return nil, errors.Wrapf(err, "failed to get EKS cluster %q's Fargate profile(s)", c.clusterName)
 	}
 	logger.Debug("Fargate profile: list request: got %v profile(s): %#v", len(out.FargateProfileNames), out)
 	return out.FargateProfileNames, nil
@@ -111,7 +111,7 @@ func (c Client) DeleteProfile(name string, waitForDeletion bool) error {
 	out, err := c.api.DeleteFargateProfile(deleteRequest(c.clusterName, name))
 	logger.Debug("Fargate profile: delete request: received: %#v", out)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete Fargate profile \"%v\" from cluster \"%v\"", name, c.clusterName)
+		return errors.Wrapf(err, "failed to delete Fargate profile %q from cluster %q", name, c.clusterName)
 	}
 	if waitForDeletion {
 		return c.waitForDeletion(name)
@@ -125,7 +125,7 @@ func (c Client) waitForCreation(name string) error {
 	for !retryPolicy.Done() {
 		out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
 		if err != nil {
-			return errors.Wrapf(err, "failed while waiting for Fargate profile \"%s\"'s creation", name)
+			return errors.Wrapf(err, "failed while waiting for Fargate profile %q's creation", name)
 		}
 		logger.Debug("Fargate profile: describe request: received: %#v", out)
 		if created(out) {
@@ -133,7 +133,7 @@ func (c Client) waitForCreation(name string) error {
 		}
 		time.Sleep(retryPolicy.Duration())
 	}
-	return fmt.Errorf("timed out while waiting for Fargate profile \"%v\"'s creation", name)
+	return fmt.Errorf("timed out while waiting for Fargate profile %q's creation", name)
 }
 
 func created(out *eks.DescribeFargateProfileOutput) bool {
@@ -156,7 +156,7 @@ func (c Client) waitForDeletion(name string) error {
 		}
 		time.Sleep(retryPolicy.Duration())
 	}
-	return fmt.Errorf("deleting of Fargate profile \"%v\" timed out", name)
+	return fmt.Errorf("deleting of Fargate profile %q timed out", name)
 }
 
 func contains(array []*string, target string) bool {

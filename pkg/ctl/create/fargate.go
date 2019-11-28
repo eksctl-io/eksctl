@@ -61,7 +61,7 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 func getClusterRoleARN(ctl *eks.ClusterProvider, meta *api.ClusterMeta) (string, error) {
 	eksCluster, err := ctl.DescribeControlPlane(meta)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to retrieve EKS cluster role ARN for \"%v\"", meta.Name)
+		return "", errors.Wrapf(err, "failed to retrieve EKS cluster role ARN for %q", meta.Name)
 	}
 	roleARN := *eksCluster.RoleArn
 	logger.Debug("default Fargate profile pod execution role ARN: %v", roleARN)
@@ -72,16 +72,16 @@ func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaul
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
 	for _, profile := range cmd.ClusterConfig.FargateProfiles {
-		logger.Info("creating Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		// Default the pod execution role ARN to be the same as the cluster
 		// role defined in CloudFormation:
 		if profile.PodExecutionRoleARN == "" {
 			profile.PodExecutionRoleARN = defaultPodExecRoleARN
 		}
 		if err := awsClient.CreateProfile(profile, wait); err != nil {
-			return errors.Wrapf(err, "failed to create Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		}
-		logger.Info("created Fargate profile \"%s\" on EKS cluster \"%s\"", profile.Name, clusterName)
+		logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 	}
 	return nil
 }
