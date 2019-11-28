@@ -114,4 +114,26 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	})
 
+	Describe("ClusterConfig", func() {
+		var cfg *ClusterConfig
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+		})
+
+		Describe("SetDefaultFargateProfile", func() {
+			It("should create a default Fargate profile with two selectors matching default and kube-system w/o any label", func() {
+				Expect(cfg.FargateProfiles).To(HaveLen(0))
+				cfg.SetDefaultFargateProfile()
+				Expect(cfg.FargateProfiles).To(HaveLen(1))
+				profile := cfg.FargateProfiles[0]
+				Expect(profile.Name).To(Equal("default"))
+				Expect(profile.Selectors).To(HaveLen(2))
+				Expect(profile.Selectors[0].Namespace).To(Equal("default"))
+				Expect(profile.Selectors[0].Labels).To(HaveLen(0))
+				Expect(profile.Selectors[1].Namespace).To(Equal("kube-system"))
+				Expect(profile.Selectors[1].Labels).To(HaveLen(0))
+			})
+		})
+	})
 })
