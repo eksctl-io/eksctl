@@ -52,3 +52,15 @@ func ToKubeNodeGroups(clusterConfig *api.ClusterConfig) []eks.KubeNodeGroup {
 	}
 	return kubeNodeGroups
 }
+
+// getAllNodeGroupNames collects and returns names for both managed and unmanaged nodegroups
+func getAllNodeGroupNames(clusterConfig *api.ClusterConfig) []string {
+	var ngNames []string
+	for _, ng := range clusterConfig.NodeGroups {
+		ngNames = append(ngNames, ng.NameString())
+	}
+	for _, ng := range clusterConfig.ManagedNodeGroups {
+		ngNames = append(ngNames, ng.NameString())
+	}
+	return ngNames
+}

@@ -269,7 +269,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 	)
 
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.NodeGroups)
+		return ngFilter.AppendGlobs(l.Include, l.Exclude, getAllNodeGroupNames(l.ClusterConfig))
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -356,7 +356,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithConfigFile = func() error {
-		return ngFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.NodeGroups)
+		return ngFilter.AppendGlobs(l.Include, l.Exclude, getAllNodeGroupNames(l.ClusterConfig))
 	}
 
 	l.flagsIncompatibleWithoutConfigFile.Insert(
