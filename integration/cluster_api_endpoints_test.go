@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
@@ -92,15 +93,17 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				}
 				Expect(cmd).Should(RunSuccessfully())
 				awsSession := NewSession(region)
-				Eventually(awsSession, timeOut, pollInterval).Should(
+				Eventually(awsSession, timeOutSeconds, pollInterval).Should(
 					HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
 			} else if e.Type == updateCluster {
-				utilsCmd := eksctlUtilsCmd.WithArgs(
-					"update-cluster-endpoints",
-					"--name", clName,
-					fmt.Sprintf("--private-access=%v", e.Private),
-					fmt.Sprintf("--public-access=%v", e.Public),
-					"--approve")
+				utilsCmd := eksctlUtilsCmd.
+					WithTimeout(timeOutSeconds*time.Second).
+					WithArgs(
+						"update-cluster-endpoints",
+						"--name", clName,
+						fmt.Sprintf("--private-access=%v", e.Private),
+						fmt.Sprintf("--public-access=%v", e.Public),
+						"--approve")
 				if e.Fails {
 					Expect(utilsCmd).ShouldNot(RunSuccessfully())
 					return
@@ -119,7 +122,8 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			if e.Type == deleteCluster {
 				// nned to update public access to allow access to delete when it isn't allowed
 				if e.Public == false {
-					utilsCmd := eksctlUtilsCmd.WithArgs(
+					utilsCmd := eksctlUtilsCmd.
+						WithTimeout(timeOutSeconds*time.Second).WithArgs(
 						"update-cluster-endpoints",
 						"--name", clName,
 						fmt.Sprintf("--public-access=%v", true),
@@ -133,7 +137,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				)
 				Expect(deleteCmd).Should(RunSuccessfully())
 				awsSession := NewSession(region)
-				Eventually(awsSession, timeOut, pollInterval).
+				Eventually(awsSession, timeOutSeconds, pollInterval).
 					ShouldNot(HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
 			}
 		},

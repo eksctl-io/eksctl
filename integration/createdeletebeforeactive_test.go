@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	pollInterval = 15   //seconds
-	timeOut      = 1200 //seconds = 20 minutes
+	pollInterval   = 15   //seconds
+	timeOutSeconds = 1200 // 20 minutes
 )
 
 var _ = Describe("(Integration) Create & Delete before Active", func() {
@@ -44,7 +44,7 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 			)
 			cmd.Start()
 			awsSession := NewSession(region)
-			Eventually(awsSession, timeOut, pollInterval).Should(
+			Eventually(awsSession, timeOutSeconds, pollInterval).Should(
 				HaveExistingCluster(delBeforeActiveName, awseks.ClusterStatusCreating, version))
 		})
 	})
@@ -61,11 +61,11 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 	Context("after the delete of the cluster in progress has been initiated", func() {
 		It("should eventually delete the EKS cluster and both CloudFormation stacks", func() {
 			awsSession := NewSession(region)
-			Eventually(awsSession, timeOut, pollInterval).ShouldNot(
+			Eventually(awsSession, timeOutSeconds, pollInterval).ShouldNot(
 				HaveExistingCluster(delBeforeActiveName, awseks.ClusterStatusActive, version))
-			Eventually(awsSession, timeOut, pollInterval).ShouldNot(
+			Eventually(awsSession, timeOutSeconds, pollInterval).ShouldNot(
 				HaveExistingStack(fmt.Sprintf("eksctl-%s-cluster", delBeforeActiveName)))
-			Eventually(awsSession, timeOut, pollInterval).ShouldNot(
+			Eventually(awsSession, timeOutSeconds, pollInterval).ShouldNot(
 				HaveExistingStack(fmt.Sprintf("eksctl-%s-nodegroup-%s", delBeforeActiveName, initNG)))
 		})
 	})
