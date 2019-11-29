@@ -8,6 +8,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
 // AddConfigFileFlag adds common --config-file flag
@@ -206,10 +207,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 		meta := l.ClusterConfig.Metadata
 
 		// generate cluster name or use either flag or argument
-		if ClusterName(meta.Name, l.NameArg) == "" {
+		if names.ForCluster(meta.Name, l.NameArg) == "" {
 			return ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg)
 		}
-		meta.Name = ClusterName(meta.Name, l.NameArg)
+		meta.Name = names.ForCluster(meta.Name, l.NameArg)
 
 		if l.ClusterConfig.Status != nil {
 			return fmt.Errorf("status fields are read-only")
@@ -239,14 +240,14 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 
 		for _, ng := range l.ClusterConfig.NodeGroups {
 			// generate nodegroup name or use flag
-			ng.Name = NodeGroupName(ng.Name, "")
+			ng.Name = names.ForNodeGroup(ng.Name, "")
 			if err := normalizeNodeGroup(ng, l); err != nil {
 				return err
 			}
 		}
 
 		for _, ng := range l.ClusterConfig.ManagedNodeGroups {
-			ng.Name = NodeGroupName(ng.Name, "")
+			ng.Name = names.ForNodeGroup(ng.Name, "")
 		}
 
 		return nil
@@ -303,7 +304,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		// Validate both filtered and unfiltered nodegroups
 		if managedNodeGroup {
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
-				ngName := NodeGroupName(ng.Name, l.NameArg)
+				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
 					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
 				}
@@ -312,7 +313,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		} else {
 			for _, ng := range l.ClusterConfig.NodeGroups {
 				// generate nodegroup name or use either flag or argument
-				ngName := NodeGroupName(ng.Name, l.NameArg)
+				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
 					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
 				}

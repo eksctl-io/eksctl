@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -34,8 +35,8 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 		return doCreateCluster(cmd, ng, params)
 	})
 
-	exampleClusterName := cmdutils.ClusterName("", "")
-	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
+	exampleClusterName := names.ForCluster("", "")
+	exampleNodeGroupName := names.ForNodeGroup("", "")
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))

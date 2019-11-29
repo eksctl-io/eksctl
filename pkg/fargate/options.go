@@ -3,11 +3,10 @@ package fargate
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
-	"time"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
 // Options groups the parameters required to interact with Fargate.
@@ -45,7 +44,7 @@ func (o *CreateOptions) Validate() error {
 // ToFargateProfile creates a FargateProfile object from this Options object.
 func (o CreateOptions) ToFargateProfile() *api.FargateProfile {
 	return &api.FargateProfile{
-		Name: GetOrDefaultProfileName(o.ProfileName),
+		Name: names.ForFargateProfile(o.ProfileName),
 		Selectors: []api.FargateProfileSelector{
 			api.FargateProfileSelector{
 				Namespace: o.ProfileSelectorNamespace,
@@ -53,21 +52,4 @@ func (o CreateOptions) ToFargateProfile() *api.FargateProfile {
 			},
 		},
 	}
-}
-
-var r = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-// GetOrDefaultProfileName returns the provided name if non-empty, or else
-// generates a random name matching: fp-[abcdef0123456789]{8}
-func GetOrDefaultProfileName(name string) string {
-	if name != "" {
-		return name
-	}
-	length := 8                 // Length of automatically generated Fargate profile names.
-	chars := "abcdef0123456789" // Characters used to generate Fargate profile names.
-	randomName := make([]byte, length)
-	for i := 0; i < length; i++ {
-		randomName[i] = chars[r.Intn(len(chars))]
-	}
-	return fmt.Sprintf("fp-%s", string(randomName))
 }
