@@ -32,5 +32,9 @@ func String() string {
 
 // GetVersion return the exact version of this build
 func GetVersion() string {
+	// GitTag may not be present for local builds
+	if info.GitTag == "" {
+		return info.GitCommit
+	}
 	return info.GitTag
 }
