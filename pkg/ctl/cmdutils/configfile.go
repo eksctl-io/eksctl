@@ -142,6 +142,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 		"tags",
 		"zones",
 		"managed",
+		"fargate",
 		"nodes",
 		"nodes-min",
 		"nodes-max",
