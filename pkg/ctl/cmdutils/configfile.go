@@ -215,6 +215,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			return fmt.Errorf("status fields are read-only")
 		}
 
+		if params.Fargate {
+			l.ClusterConfig.SetDefaultFargateProfile()
+		}
+
 		if params.Managed {
 			for _, f := range incompatibleManagedNodesFlags() {
 				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
