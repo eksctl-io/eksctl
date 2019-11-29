@@ -80,10 +80,6 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 
 func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
-
-	if err := params.Validate(); err != nil {
-		return err
-	}
 	if err := cmdutils.NewCreateClusterLoader(cmd, ngFilter, ng, params).Load(); err != nil {
 		return err
 	}

@@ -170,6 +170,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
 
 	l.validateWithConfigFile = func() error {
+		if err := params.Validate(); err != nil {
+			return err
+		}
+
 		if l.ClusterConfig.VPC == nil {
 			l.ClusterConfig.VPC = api.NewClusterVPC()
 		}
@@ -194,6 +198,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 	}
 
 	l.validateWithoutConfigFile = func() error {
+		if err := params.Validate(); err != nil {
+			return err
+		}
+
 		meta := l.ClusterConfig.Metadata
 
 		// generate cluster name or use either flag or argument
