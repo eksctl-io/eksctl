@@ -40,7 +40,7 @@ var _ = Describe("fargate", func() {
 				waitForCreation := false
 				err := client.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to create Fargate profile \"default\" in cluster \"non-existing-test-cluster\": the Internet broke down!"))
+				Expect(err.Error()).To(Equal("failed to create Fargate profile \"default\": the Internet broke down!"))
 			})
 
 			It("waits for the full creation of the profile when configured to do so", func() {
@@ -92,7 +92,7 @@ var _ = Describe("fargate", func() {
 				client := fargate.NewClient(clusterName, mockForFailureOnReadProfiles())
 				out, err := client.ReadProfiles()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to get EKS cluster \"non-existing-test-cluster\"'s Fargate profile(s): the Internet broke down!"))
+				Expect(err.Error()).To(Equal("failed to get Fargate profile(s) for cluster \"non-existing-test-cluster\": the Internet broke down!"))
 				Expect(out).To(BeNil())
 			})
 		})
@@ -109,7 +109,7 @@ var _ = Describe("fargate", func() {
 				client := fargate.NewClient(clusterName, mockForEmptyReadProfile())
 				out, err := client.ReadProfile(testRed)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to get EKS cluster \"non-existing-test-cluster\"'s Fargate profile \"test-red\": ResourceNotFoundException: No Fargate Profile found with name: test-red."))
+				Expect(err.Error()).To(Equal("failed to get Fargate profile \"test-red\": ResourceNotFoundException: No Fargate Profile found with name: test-red."))
 				Expect(out).To(BeNil())
 			})
 		})
@@ -137,7 +137,7 @@ var _ = Describe("fargate", func() {
 				waitForDeletion := false
 				err := client.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to delete Fargate profile \"test-green\" from cluster \"non-existing-test-cluster\": the Internet broke down!"))
+				Expect(err.Error()).To(Equal("failed to delete Fargate profile \"test-green\": the Internet broke down!"))
 			})
 
 			It("waits for the full deletion of the profile when configured to do so", func() {

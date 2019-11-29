@@ -57,7 +57,7 @@ func (c Client) CreateProfile(profile *api.FargateProfile, waitForCreation bool)
 	out, err := c.api.CreateFargateProfile(createRequest(c.clusterName, profile))
 	logger.Debug("Fargate profile: create request: received: %#v", out)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create Fargate profile %q in cluster %q", profile.Name, c.clusterName)
+		return errors.Wrapf(err, "failed to create Fargate profile %q", profile.Name)
 	}
 	if waitForCreation {
 		return c.waitForCreation(profile.Name)
@@ -70,7 +70,7 @@ func (c Client) CreateProfile(profile *api.FargateProfile, waitForCreation bool)
 func (c Client) ReadProfile(name string) (*api.FargateProfile, error) {
 	out, err := c.api.DescribeFargateProfile(describeRequest(c.clusterName, name))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get EKS cluster %q's Fargate profile %q", c.clusterName, name)
+		return nil, errors.Wrapf(err, "failed to get Fargate profile %q", name)
 	}
 	logger.Debug("Fargate profile: describe request: received: %#v", out)
 	return toFargateProfile(out.FargateProfile), nil
@@ -97,7 +97,7 @@ func (c Client) ReadProfiles() ([]*api.FargateProfile, error) {
 func (c Client) ListProfiles() ([]*string, error) {
 	out, err := c.api.ListFargateProfiles(listRequest(c.clusterName))
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get EKS cluster %q's Fargate profile(s)", c.clusterName)
+		return nil, errors.Wrapf(err, "failed to get Fargate profile(s) for cluster %q", c.clusterName)
 	}
 	logger.Debug("Fargate profile: list request: got %v profile(s): %#v", len(out.FargateProfileNames), out)
 	return out.FargateProfileNames, nil
@@ -111,7 +111,7 @@ func (c Client) DeleteProfile(name string, waitForDeletion bool) error {
 	out, err := c.api.DeleteFargateProfile(deleteRequest(c.clusterName, name))
 	logger.Debug("Fargate profile: delete request: received: %#v", out)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete Fargate profile %q from cluster %q", name, c.clusterName)
+		return errors.Wrapf(err, "failed to delete Fargate profile %q", name)
 	}
 	if waitForDeletion {
 		return c.waitForDeletion(name)
