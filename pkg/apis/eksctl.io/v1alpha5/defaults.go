@@ -194,7 +194,7 @@ func ClusterEndpointAccessDefaults() *ClusterEndpoints {
 func (c *ClusterConfig) SetDefaultFargateProfile() {
 	c.FargateProfiles = []*FargateProfile{
 		&FargateProfile{
-			Name: "default",
+			Name: "fp-default",
 			Selectors: []FargateProfileSelector{
 				FargateProfileSelector{Namespace: "default"},
 				FargateProfileSelector{Namespace: "kube-system"},

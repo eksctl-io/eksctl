@@ -127,7 +127,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				cfg.SetDefaultFargateProfile()
 				Expect(cfg.FargateProfiles).To(HaveLen(1))
 				profile := cfg.FargateProfiles[0]
-				Expect(profile.Name).To(Equal("default"))
+				Expect(profile.Name).To(Equal("fp-default"))
 				Expect(profile.Selectors).To(HaveLen(2))
 				Expect(profile.Selectors[0].Namespace).To(Equal("default"))
 				Expect(profile.Selectors[0].Labels).To(HaveLen(0))
