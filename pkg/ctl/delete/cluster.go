@@ -195,10 +195,16 @@ func deleteFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
 	if err != nil {
 		return err
 	}
+	// Linearise the deleting of Fargate profiles by passing as the API
+	// otherwise errors out with:
+	//   ResourceInUseException: Cannot delete Fargate Profile ${name2} because
+	//   cluster ${clusterName} currently has Fargate profile ${name1} in
+	//   status DELETING
+	waitForDeletion := cmd.Wait || len(profileNames) > 1
 	if len(profileNames) > 0 {
 		for _, profileName := range profileNames {
 			logger.Info("deleting Fargate profile %q", *profileName)
-			if err := awsClient.DeleteProfile(*profileName, true); err != nil {
+			if err := awsClient.DeleteProfile(*profileName, waitForDeletion); err != nil {
 				return err
 			}
 			logger.Info("deleted Fargate profile %q", *profileName)
