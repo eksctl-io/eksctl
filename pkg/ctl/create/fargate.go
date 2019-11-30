@@ -32,7 +32,7 @@ func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions 
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
-		cmdutils.AddWaitFlag(fs, &cmd.Wait, "wait for the creation of the Fargate profile, which may take from a couple seconds to a couple minutes.")
+		cmdutils.AddWaitFlagWithFullDescription(fs, &cmd.Wait, "wait for the creation of the Fargate profile before exiting. Profile creation may take a few seconds to a couple of minutes.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)

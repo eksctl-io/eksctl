@@ -118,7 +118,7 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRo
 
 // AddTimeoutFlagWithValue configures the timeout flag with the provided value.
 func AddTimeoutFlagWithValue(fs *pflag.FlagSet, p *time.Duration, value time.Duration) {
-	fs.DurationVar(p, "timeout", value, "Maximum waiting time for any long-running operation")
+	fs.DurationVar(p, "timeout", value, "maximum waiting time for any long-running operation")
 }
 
 // AddTimeoutFlag configures the timeout flag.
@@ -166,7 +166,12 @@ func AddVersionFlag(fs *pflag.FlagSet, meta *api.ClusterMeta, extraUsageInfo str
 
 // AddWaitFlag adds common --wait flag
 func AddWaitFlag(fs *pflag.FlagSet, wait *bool, description string) {
-	fs.BoolVarP(wait, "wait", "w", *wait, fmt.Sprintf("wait for %s before exiting", description))
+	AddWaitFlagWithFullDescription(fs, wait, fmt.Sprintf("wait for %s before exiting", description))
+}
+
+// AddWaitFlagWithFullDescription adds common --wait flag
+func AddWaitFlagWithFullDescription(fs *pflag.FlagSet, wait *bool, description string) {
+	fs.BoolVarP(wait, "wait", "w", *wait, description)
 }
 
 // AddUpdateAuthConfigMap adds common --update-auth-configmap flag

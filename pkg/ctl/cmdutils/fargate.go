@@ -23,10 +23,10 @@ func AddFlagsForFargateProfileCreation(fs *pflag.FlagSet, options *fargate.Creat
 	addFargateProfileName(fs, &options.ProfileName)
 
 	fs.StringVar(&options.ProfileSelectorNamespace, fargateProfileSelectorNamespace, "",
-		"Kubernetes namespace from which workloads should be selected to be scheduled on Fargate.")
+		"Kubernetes namespace of the workloads to schedule on Fargate")
 
 	fs.StringToStringVarP(&options.ProfileSelectorLabels, fargateProfileSelectorLabels, "l", nil,
-		"Kubernetes selector labels to match in order to select workloads to schedule on Fargate")
+		"Kubernetes selector labels of the workloads to schedule on Fargate, e.g. k1=v1,k2=v2")
 }
 
 func addFargateProfileName(fs *pflag.FlagSet, profileName *string) {
