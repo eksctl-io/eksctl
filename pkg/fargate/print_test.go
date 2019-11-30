@@ -45,13 +45,13 @@ var _ = Describe("fargate", func() {
 	})
 })
 
-const expectedTable = `NAME	POD_EXECUTION_ROLE_ARN		SUBNETS	SELECTOR_NAMESPACE	SELECTOR_LABELS
-default	arn:aws:iam::123:role/root	<none>	default			<none>
-default	arn:aws:iam::123:role/root	<none>	kube-system		app=my-app,env=test
-prod	arn:aws:iam::123:role/root	prod	prod			env=prod
+const expectedTable = `NAME	SELECTOR_NAMESPACE	SELECTOR_LABELS		POD_EXECUTION_ROLE_ARN		SUBNETS
+fp-prod	prod			env=prod		arn:aws:iam::123:role/root	subnet-prod,subnet-d34dc0w
+fp-test	default			<none>			arn:aws:iam::123:role/root	<none>
+fp-test	kube-system		app=my-app,env=test	arn:aws:iam::123:role/root	<none>
 `
 
-const expectedYAML = `- name: default
+const expectedYAML = `- name: fp-test
   podExecutionRoleARN: arn:aws:iam::123:role/root
   selectors:
   - labels:
@@ -59,19 +59,20 @@ const expectedYAML = `- name: default
       env: test
     namespace: kube-system
   - namespace: default
-- name: prod
+- name: fp-prod
   podExecutionRoleARN: arn:aws:iam::123:role/root
   selectors:
   - labels:
       env: prod
     namespace: prod
   subnets:
-  - prod
+  - subnet-prod
+  - subnet-d34dc0w
 `
 
 const expectedJSON = `[
     {
-        "name": "default",
+        "name": "fp-test",
         "podExecutionRoleARN": "arn:aws:iam::123:role/root",
         "selectors": [
             {
@@ -87,7 +88,7 @@ const expectedJSON = `[
         ]
     },
     {
-        "name": "prod",
+        "name": "fp-prod",
         "podExecutionRoleARN": "arn:aws:iam::123:role/root",
         "selectors": [
             {
@@ -98,7 +99,8 @@ const expectedJSON = `[
             }
         ],
         "subnets": [
-            "prod"
+            "subnet-prod",
+            "subnet-d34dc0w"
         ]
     }
 ]`
@@ -106,7 +108,7 @@ const expectedJSON = `[
 func sampleProfiles() []*api.FargateProfile {
 	return []*api.FargateProfile{
 		&api.FargateProfile{
-			Name:                "default",
+			Name:                "fp-test",
 			PodExecutionRoleARN: "arn:aws:iam::123:role/root",
 			Selectors: []api.FargateProfileSelector{
 				api.FargateProfileSelector{
@@ -122,8 +124,8 @@ func sampleProfiles() []*api.FargateProfile {
 			},
 		},
 		&api.FargateProfile{
-			Name:    "prod",
-			Subnets: []string{"prod"},
+			Name:    "fp-prod",
+			Subnets: []string{"subnet-prod", "subnet-d34dc0w"},
 			Selectors: []api.FargateProfileSelector{
 				api.FargateProfileSelector{
 					Namespace: "prod",

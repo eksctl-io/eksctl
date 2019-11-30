@@ -55,6 +55,12 @@ func addFargateProfileColumns(printer *printers.TablePrinter) {
 	printer.AddColumn("NAME", func(r *row) string {
 		return r.Name
 	})
+	printer.AddColumn("SELECTOR_NAMESPACE", func(r *row) string {
+		return r.Selector.Namespace
+	})
+	printer.AddColumn("SELECTOR_LABELS", func(r *row) string {
+		return labels.FormatLabels(r.Selector.Labels)
+	})
 	printer.AddColumn("POD_EXECUTION_ROLE_ARN", func(r *row) string {
 		return r.PodExecutionRoleARN
 	})
@@ -63,11 +69,5 @@ func addFargateProfileColumns(printer *printers.TablePrinter) {
 			return "<none>"
 		}
 		return strings.Join(r.Subnets, ",")
-	})
-	printer.AddColumn("SELECTOR_NAMESPACE", func(r *row) string {
-		return r.Selector.Namespace
-	})
-	printer.AddColumn("SELECTOR_LABELS", func(r *row) string {
-		return labels.FormatLabels(r.Selector.Labels)
 	})
 }
