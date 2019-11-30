@@ -164,7 +164,7 @@ var _ = Describe("fargate", func() {
 				waitForDeletion := true
 				err := client.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("deleting of Fargate profile \"test-green\" timed out"))
+				Expect(err.Error()).To(Equal("timed out while waiting for Fargate profile \"test-green\"'s deletion"))
 			})
 		})
 	})

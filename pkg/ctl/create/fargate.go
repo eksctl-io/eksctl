@@ -1,6 +1,8 @@
 package create
 
 import (
+	"fmt"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -73,7 +75,12 @@ func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaul
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
 	for _, profile := range cmd.ClusterConfig.FargateProfiles {
-		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
+		if wait {
+			logger.Info(creatingFargateProfileMsg(clusterName, profile.Name))
+		} else {
+			logger.Debug(creatingFargateProfileMsg(clusterName, profile.Name))
+		}
+
 		// Default the pod execution role ARN to be the same as the cluster
 		// role defined in CloudFormation:
 		if profile.PodExecutionRoleARN == "" {
@@ -85,4 +92,8 @@ func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaul
 		logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 	}
 	return nil
+}
+
+func creatingFargateProfileMsg(clusterName, profileName string) string {
+	return fmt.Sprintf("creating Fargate profile %q on EKS cluster %q", profileName, clusterName)
 }

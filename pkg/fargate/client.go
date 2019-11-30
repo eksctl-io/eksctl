@@ -99,7 +99,7 @@ func (c Client) ListProfiles() ([]*string, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get Fargate profile(s) for cluster %q", c.clusterName)
 	}
-	logger.Debug("Fargate profile: list request: got %v profile(s): %#v", len(out.FargateProfileNames), out)
+	logger.Debug("Fargate profile: list request: received %v profile(s): %#v", len(out.FargateProfileNames), out)
 	return out.FargateProfileNames, nil
 }
 
@@ -156,7 +156,7 @@ func (c Client) waitForDeletion(name string) error {
 		}
 		time.Sleep(retryPolicy.Duration())
 	}
-	return fmt.Errorf("deleting of Fargate profile %q timed out", name)
+	return fmt.Errorf("timed out while waiting for Fargate profile %q's deletion", name)
 }
 
 func contains(array []*string, target string) bool {
