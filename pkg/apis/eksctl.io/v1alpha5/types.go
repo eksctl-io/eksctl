@@ -323,7 +323,7 @@ func (c *ClusterMeta) LogString() string {
 // LogString returns representation of ClusterConfig for logs
 func (c ClusterConfig) LogString() string {
 	modes := []string{}
-	if len(c.FargateProfiles) > 0 {
+	if c.IsFargateEnabled() {
 		modes = append(modes, "Fargate profile")
 	}
 	if len(c.ManagedNodeGroups) > 0 {
@@ -333,6 +333,12 @@ func (c ClusterConfig) LogString() string {
 		modes = append(modes, "un-managed nodes")
 	}
 	return fmt.Sprintf("%s with %s", c.Metadata.LogString(), strings.Join(modes, " and "))
+}
+
+// IsFargateEnabled returns true if Fargate is enabled in this ClusterConfig,
+// or false otherwise.
+func (c ClusterConfig) IsFargateEnabled() bool {
+	return len(c.FargateProfiles) > 0
 }
 
 // ClusterProvider is the interface to AWS APIs

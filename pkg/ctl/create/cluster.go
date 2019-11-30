@@ -376,9 +376,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			}
 		}
 
-		profiles := cmd.ClusterConfig.FargateProfiles
-		if len(profiles) > 0 {
-			if coredns.IsSchedulableOnFargate(profiles) {
+		if cfg.IsFargateEnabled() {
+			if coredns.IsSchedulableOnFargate(cfg.FargateProfiles) {
 				if err := coredns.ScheduleOnFargate(clientSet); err != nil {
 					return err
 				}
