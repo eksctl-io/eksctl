@@ -320,6 +320,21 @@ func (c *ClusterMeta) LogString() string {
 	return fmt.Sprintf("EKS cluster %q in %q region", c.Name, c.Region)
 }
 
+// LogString returns representation of ClusterConfig for logs
+func (c ClusterConfig) LogString() string {
+	modes := []string{}
+	if len(c.FargateProfiles) > 0 {
+		modes = append(modes, "Fargate profile")
+	}
+	if len(c.ManagedNodeGroups) > 0 {
+		modes = append(modes, "managed nodes")
+	}
+	if len(c.NodeGroups) > 0 {
+		modes = append(modes, "un-managed nodes")
+	}
+	return fmt.Sprintf("%s with %s", c.Metadata.LogString(), strings.Join(modes, " and "))
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI

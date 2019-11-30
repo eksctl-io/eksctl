@@ -270,7 +270,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 	}
 
 	logger.Info("using Kubernetes version %s", meta.Version)
-	logger.Info("creating %s", meta.LogString())
+	logger.Info("creating %s", cfg.LogString())
 
 	// TODO dry-run mode should provide a way to render config with all defaults set
 	// we should also make a call to resolve the AMI and write the result, similarly
