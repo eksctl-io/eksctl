@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -377,11 +376,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 
 		if cfg.IsFargateEnabled() {
-			if coredns.IsSchedulableOnFargate(cfg.FargateProfiles) {
-				if err := coredns.ScheduleOnFargate(clientSet); err != nil {
-					return err
-				}
-			}
 			podExecutionRoleARN, err := getClusterRoleARN(ctl, cfg.Metadata)
 			if err != nil {
 				return err
@@ -393,6 +387,9 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			//   Fargate profile ${name1} in status CREATING
 			wait := true
 			if err := doCreateFargateProfiles(cmd, ctl, podExecutionRoleARN, wait); err != nil {
+				return err
+			}
+			if err := scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet); err != nil {
 				return err
 			}
 		}

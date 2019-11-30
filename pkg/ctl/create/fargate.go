@@ -2,6 +2,7 @@ package create
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -10,6 +11,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
+	"github.com/weaveworks/eksctl/pkg/utils/retry"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func createFargateProfile(cmd *cmdutils.Cmd) {
@@ -54,11 +59,39 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 		return err
 	}
 	cfg := cmd.ClusterConfig
+	if ok, err := ctl.CanOperate(cfg); !ok {
+		return err
+	}
+
 	roleARN, err := getClusterRoleARN(ctl, cfg.Metadata)
 	if err != nil {
 		return err
 	}
-	return doCreateFargateProfiles(cmd, ctl, roleARN, cmd.Wait)
+	if err := doCreateFargateProfiles(cmd, ctl, roleARN, cmd.Wait); err != nil {
+		return err
+	}
+	clientSet, err := clientSet(cfg, ctl)
+	if err != nil {
+		return err
+	}
+	return scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet)
+}
+
+func clientSet(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (kubernetes.Interface, error) {
+	kubernetesClientConfigs, err := ctl.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	k8sConfig := kubernetesClientConfigs.Config
+	k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
+	if err != nil {
+		return nil, err
+	}
+	k8sClientSet, err := kubernetes.NewForConfig(k8sRestConfig)
+	if err != nil {
+		return nil, err
+	}
+	return k8sClientSet, nil
 }
 
 func getClusterRoleARN(ctl *eks.ClusterProvider, meta *api.ClusterMeta) (string, error) {
@@ -96,4 +129,26 @@ func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaul
 
 func creatingFargateProfileMsg(clusterName, profileName string) string {
 	return fmt.Sprintf("creating Fargate profile %q on EKS cluster %q", profileName, clusterName)
+}
+
+func scheduleCoreDNSOnFargateIfRelevant(cmd *cmdutils.Cmd, clientSet kubernetes.Interface) error {
+	if coredns.IsSchedulableOnFargate(cmd.ClusterConfig.FargateProfiles) {
+		scheduled, err := coredns.IsScheduledOnFargate(clientSet)
+		if err != nil {
+			return err
+		}
+		if !scheduled {
+			if err := coredns.ScheduleOnFargate(clientSet); err != nil {
+				return err
+			}
+			retryPolicy := &retry.TimingOutExponentialBackoff{
+				Timeout:  cmd.ProviderConfig.WaitTimeout,
+				TimeUnit: time.Second,
+			}
+			if err := coredns.WaitForScheduleOnFargate(clientSet, retryPolicy); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

@@ -33,7 +33,7 @@ func ForCluster(a, b string) string {
 // easily distinguish a cluster name from nodegroup name.
 func ForNodeGroup(a, b string) string {
 	return useNameOrGenerate(a, b, func() string {
-		return fmt.Sprintf("ng-%s", randomName(randNodeGroupNameLength, randNodeGroupNameComponents))
+		return fmt.Sprintf("ng-%s", RandomName(randNodeGroupNameLength, randNodeGroupNameComponents))
 	})
 }
 
@@ -45,7 +45,7 @@ func ForFargateProfile(name string) string {
 	}
 	length := 8                 // Length of automatically generated Fargate profile names.
 	chars := "abcdef0123456789" // Characters used to generate Fargate profile names.
-	return fmt.Sprintf("fp-%s", randomName(length, chars))
+	return fmt.Sprintf("fp-%s", RandomName(length, chars))
 }
 
 // useNameOrGenerate picks one of the provided strings or generates a
@@ -63,7 +63,9 @@ func useNameOrGenerate(a, b string, generate func() string) string {
 	return generate()
 }
 
-func randomName(length int, chars string) string {
+// RandomName generates a string of the provided length by randomly selecting
+// characters in the provided set.
+func RandomName(length int, chars string) string {
 	randomName := make([]byte, length)
 	for i := 0; i < length; i++ {
 		randomName[i] = chars[r.Intn(len(chars))]
