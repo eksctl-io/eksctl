@@ -73,7 +73,7 @@ func getClusterRoleARN(ctl *eks.ClusterProvider, meta *api.ClusterMeta) (string,
 
 func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaultPodExecRoleARN string, wait bool) error {
 	clusterName := cmd.ClusterConfig.Metadata.Name
-	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
+	awsClient := fargate.NewClientWithWaitTimeout(clusterName, ctl.Provider.EKS(), cmd.ProviderConfig.WaitTimeout)
 	for _, profile := range cmd.ClusterConfig.FargateProfiles {
 		if wait {
 			logger.Info(creatingFargateProfileMsg(clusterName, profile.Name))
