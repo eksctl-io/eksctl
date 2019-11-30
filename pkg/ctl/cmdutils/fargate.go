@@ -77,3 +77,18 @@ func validateFargateProfiles(l *commonClusterConfigLoader) error {
 	}
 	return nil
 }
+
+// NewDeleteFargateProfileLoader will load config or use flags for
+// 'eksctl delete fargateprofile'
+func NewDeleteFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.flagsIncompatibleWithConfigFile.Insert(fargateProfileFlagsIncompatibleWithConfigFile...)
+	l.flagsIncompatibleWithoutConfigFile.Insert(fargateProfileFlagsIncompatibleWithoutConfigFile...)
+	l.validateWithoutConfigFile = func() error {
+		if err := l.validateMetadataWithoutConfigFile(); err != nil {
+			return err
+		}
+		return options.Validate()
+	}
+	return l
+}

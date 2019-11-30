@@ -38,7 +38,8 @@ func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 }
 
 func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
-	if err := opts.Validate(); err != nil {
+	if err := cmdutils.NewDeleteFargateProfileLoader(cmd, opts).Load(); err != nil {
+		cmd.CobraCommand.Help()
 		return err
 	}
 	ctl, err := cmd.NewCtl()

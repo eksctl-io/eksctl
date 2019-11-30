@@ -44,6 +44,11 @@ func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
 }
 
 func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
+	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
+		cmd.CobraCommand.Help()
+		return err
+	}
+
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err

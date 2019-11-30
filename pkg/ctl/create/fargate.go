@@ -41,6 +41,7 @@ func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions 
 
 func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) error {
 	if err := cmdutils.NewCreateFargateProfileLoader(cmd, options).Load(); err != nil {
+		cmd.CobraCommand.Help()
 		return err
 	}
 	ctl, err := cmd.NewCtl()
