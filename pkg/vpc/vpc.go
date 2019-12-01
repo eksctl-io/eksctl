@@ -98,7 +98,7 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 	spec.VPC.CIDR = nil
 
 	// Cluster Endpoint Access isn't part of the EKS CloudFormation Cluster stack at this point
-	// Retrieve the current confiugration via the SDK
+	// Retrieve the current configuration via the SDK
 	if err := UseEndpointAccessFromCluster(provider, spec); err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func Import(provider api.ClusterProvider, spec *api.ClusterConfig, id string) er
 	if spec.VPC.ID == "" {
 		spec.VPC.ID = *vpc.VpcId
 	} else if spec.VPC.ID != *vpc.VpcId {
-		return fmt.Errorf("VPC ID %q is the same as not %q", spec.VPC.ID, *vpc.VpcId)
+		return fmt.Errorf("VPC ID %q is not the same as %q", spec.VPC.ID, *vpc.VpcId)
 	}
 	if spec.VPC.CIDR == nil {
 		spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
