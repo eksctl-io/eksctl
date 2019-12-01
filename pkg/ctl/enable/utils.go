@@ -22,7 +22,7 @@ func KubernetesClientAndConfigFrom(cmd *cmdutils.Cmd) (*kubernetes.Clientset, *r
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return nil, nil, err
 	}
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
+	kubernetesClientConfigs, err := ctl.NewClient(cfg, "")
 	if err != nil {
 		return nil, nil, err
 	}

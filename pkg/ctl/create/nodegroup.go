@@ -17,9 +17,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
-type createNodeGroupParams struct {
+type createNodeGroupCmdParams struct {
 	updateAuthConfigMap bool
 	managed             bool
+	clusterEndpoint     string
 }
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -27,7 +28,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var params createNodeGroupParams
+	params := &createNodeGroupCmdParams{}
 
 	cfg.Metadata.Version = "auto"
 
@@ -47,6 +48,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddUpdateAuthConfigMap(fs, &params.updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddClusterEndpointOverrideFlag(fs, &params.clusterEndpoint)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("New nodegroup", func(fs *pflag.FlagSet) {
@@ -62,7 +64,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
-func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *createNodeGroupCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
 	if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, params.managed).Load(); err != nil {
@@ -180,7 +182,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 	}
 
 	{ // post-creation action
-		clientSet, err := ctl.NewStdClientSet(cfg)
+		clientSet, err := ctl.NewStdClientSet(cfg, params.clusterEndpoint)
 		if err != nil {
 			return err
 		}

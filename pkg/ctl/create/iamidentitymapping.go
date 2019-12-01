@@ -11,9 +11,18 @@ import (
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
 
+type createIAMIdentityMappingCmdParams struct {
+	clusterEndpoint string
+	arn             string
+	username        string
+	groups          []string
+}
+
 func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
+
+	params := &createIAMIdentityMappingCmdParams{}
 
 	cmd.SetDescription("iamidentitymapping", "Create an IAM identity mapping",
 		dedent.Dedent(`Creates a mapping from IAM role or user to Kubernetes user and groups.
@@ -24,29 +33,29 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 		`),
 	)
 
-	var arn string
-	var username string
-	var groups []string
-
 	cmd.SetRunFunc(func() error {
-		return doCreateIAMIdentityMapping(cmd, arn, username, groups)
+		return doCreateIAMIdentityMapping(cmd, params)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		fs.StringVar(&username, "username", "", "User name within Kubernetes to map to IAM role")
-		fs.StringArrayVar(&groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddClusterEndpointOverrideFlag(fs, &params.clusterEndpoint)
+	})
+
+	cmd.FlagSetGroup.InFlagSet("Create IAM Identity Mapping", func(fs *pflag.FlagSet) {
+		fs.StringVar(&params.username, "username", "", "User name within Kubernetes to map to IAM role")
+		fs.StringArrayVar(&params.groups, "group", []string{}, "Group within Kubernetes to which IAM role is mapped")
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &params.arn)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, groups []string) error {
-	id, err := iam.NewIdentity(arn, username, groups)
+func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, params *createIAMIdentityMappingCmdParams) error {
+	id, err := iam.NewIdentity(params.arn, params.username, params.groups)
 	if err != nil {
 		return err
 	}
@@ -74,7 +83,7 @@ func doCreateIAMIdentityMapping(cmd *cmdutils.Cmd, arn string, username string, 
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg, params.clusterEndpoint)
 	if err != nil {
 		return err
 	}

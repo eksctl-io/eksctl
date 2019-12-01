@@ -23,14 +23,20 @@ import (
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
+type deleteClusterCmdParams struct {
+	clusterEndpoint string
+}
+
 func deleteClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
+	params := &deleteClusterCmdParams{}
+
 	cmd.SetDescription("cluster", "Delete a cluster", "")
 
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doDeleteCluster(cmd)
+		return doDeleteCluster(cmd, params)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -42,6 +48,7 @@ func deleteClusterCmd(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddClusterEndpointOverrideFlag(fs, &params.clusterEndpoint)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
@@ -71,7 +78,7 @@ func deleteDeprecatedStacks(stackManager *manager.StackCollection) (bool, error)
 	return false, nil
 }
 
-func doDeleteCluster(cmd *cmdutils.Cmd) error {
+func doDeleteCluster(cmd *cmdutils.Cmd, params *deleteClusterCmdParams) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -108,7 +115,7 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 	clusterOperable, _ := ctl.CanOperate(cfg)
 	oidcSupported := true
 	if clusterOperable {
-		clientSet, err = ctl.NewStdClientSet(cfg)
+		clientSet, err = ctl.NewStdClientSet(cfg, params.clusterEndpoint)
 		if err != nil {
 			return err
 		}

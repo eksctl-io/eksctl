@@ -14,33 +14,42 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
+type getIAMIdentityMappingCmdParams struct {
+	clusterEndpoint string
+	arn             string
+}
+
 func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	var arn string
+	params := &getIAMIdentityMappingCmdParams{}
 
-	params := &getCmdParams{}
+	getCmdParams := &getCmdParams{}
 
 	cmd.SetDescription("iamidentitymapping", "Get IAM identity mapping(s)", "")
 
 	cmd.SetRunFunc(func() error {
-		return doGetIAMIdentityMapping(cmd, params, arn)
+		return doGetIAMIdentityMapping(cmd, getCmdParams, params)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
-		cmdutils.AddCommonFlagsForGetCmd(fs, &params.chunkSize, &params.output)
+		cmdutils.AddCommonFlagsForGetCmd(fs, &getCmdParams.chunkSize, &getCmdParams.output)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddClusterEndpointOverrideFlag(fs, &params.clusterEndpoint)
+	})
+
+	cmd.FlagSetGroup.InFlagSet("Get IAM Identity Mapping", func(fs *pflag.FlagSet) {
+		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &params.arn)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string) error {
+func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, getCmdParams *getCmdParams, params *getIAMIdentityMappingCmdParams) error {
 	if err := cmdutils.NewMetadataLoader(cmd).Load(); err != nil {
 		return err
 	}
@@ -63,7 +72,7 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg, params.clusterEndpoint)
 	if err != nil {
 		return err
 	}
@@ -76,11 +85,11 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		return err
 	}
 
-	if arn != "" {
+	if params.arn != "" {
 		selectedIdentities := []iam.Identity{}
 
 		for _, identity := range identities {
-			if identity.ARN() == arn {
+			if identity.ARN() == params.arn {
 				selectedIdentities = append(selectedIdentities, identity)
 			}
 		}
@@ -88,15 +97,15 @@ func doGetIAMIdentityMapping(cmd *cmdutils.Cmd, params *getCmdParams, arn string
 		identities = selectedIdentities
 		// If a filter was given, we error if none was found
 		if len(identities) == 0 {
-			return fmt.Errorf("no iamidentitymapping with arn %q found", arn)
+			return fmt.Errorf("no iamidentitymapping with arn %q found", params.arn)
 		}
 	}
 
-	printer, err := printers.NewPrinter(params.output)
+	printer, err := printers.NewPrinter(getCmdParams.output)
 	if err != nil {
 		return err
 	}
-	if params.output == "table" {
+	if getCmdParams.output == "table" {
 		addIAMIdentityMappingTableColumns(printer.(*printers.TablePrinter))
 	}
 

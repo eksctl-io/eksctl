@@ -10,17 +10,24 @@ import (
 	"github.com/weaveworks/eksctl/pkg/drain"
 )
 
+type deleteNodeGroupCmdParams struct {
+	clusterEndpoint      string
+	updateAuthConfigMap  bool
+	deleteNodeGroupDrain bool
+	onlyMissing          bool
+}
+
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
 
-	var updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool
+	params := &deleteNodeGroupCmdParams{}
 
 	cmd.SetDescription("nodegroup", "Delete a nodegroup", "", "ng")
 
 	cmd.SetRunFuncWithNameArg(func() error {
-		return doDeleteNodeGroup(cmd, ng, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing)
+		return doDeleteNodeGroup(cmd, ng, params)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -30,19 +37,23 @@ func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
-		fs.BoolVar(&onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
-		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
-		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
+		cmdutils.AddUpdateAuthConfigMap(fs, &params.updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddClusterEndpointOverrideFlag(fs, &params.clusterEndpoint)
 
 		cmd.Wait = false
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
+	cmd.FlagSetGroup.InFlagSet("Delete nodegroup", func(fs *pflag.FlagSet) {
+		fs.BoolVar(&params.deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
+		fs.BoolVar(&params.onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
+	})
+
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
-func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap, deleteNodeGroupDrain, onlyMissing bool) error {
+func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *deleteNodeGroupCmdParams) error {
 	ngFilter := cmdutils.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
@@ -65,7 +76,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		return err
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg, params.clusterEndpoint)
 	if err != nil {
 		return err
 	}
@@ -74,7 +85,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
-		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, cfg); err != nil {
+		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, params.onlyMissing, cfg); err != nil {
 			return err
 		}
 	} else {
@@ -98,7 +109,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	logFiltered()
 
-	if updateAuthConfigMap {
+	if params.updateAuthConfigMap {
 		cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from auth ConfigMap in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 		if !cmd.Plan {
 			for _, ng := range cfg.NodeGroups {
@@ -117,7 +128,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
-	if deleteNodeGroupDrain {
+	if params.deleteNodeGroupDrain {
 		cmdutils.LogIntendedAction(cmd.Plan, "drain %d nodegroup(s) in cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 		if !cmd.Plan {

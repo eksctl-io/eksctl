@@ -12,47 +12,55 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
+type createNodeGroupCmdParams struct {
+	onlyMissing     bool
+	clusterEndpoint string
+	serviceAccount  *api.ClusterIAMServiceAccount
+}
+
 func deleteIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	serviceAccount := &api.ClusterIAMServiceAccount{}
+	params := &createNodeGroupCmdParams{}
+	params.serviceAccount = &api.ClusterIAMServiceAccount{}
 
 	cfg.IAM.WithOIDC = api.Enabled()
-	cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, serviceAccount)
-
-	var onlyMissing bool
+	cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, params.serviceAccount)
 
 	cmd.SetDescription("iamserviceaccount", "Delete an IAM service account", "")
 
 	cmd.SetRunFunc(func() error {
-		return doDeleteIAMServiceAccount(cmd, serviceAccount, onlyMissing)
+		return doDeleteIAMServiceAccount(cmd, params)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to delete the iamserviceaccount from")
 
-		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to delete")
-		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to delete the iamserviceaccount")
-
 		cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
-		fs.BoolVar(&onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmdutils.AddClusterEndpointOverrideFlag(fs, &params.clusterEndpoint)
 
 		cmd.Wait = false
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "deletion of all resources")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
+	cmd.FlagSetGroup.InFlagSet("Delete IAM service Account", func(fs *pflag.FlagSet) {
+		fs.StringVar(&params.serviceAccount.Name, "name", "", "name of the iamserviceaccount to delete")
+		fs.StringVar(&params.serviceAccount.Namespace, "namespace", "default", "namespace where to delete the iamserviceaccount")
+		fs.BoolVar(&params.onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
+	})
+
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
-func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
+func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, params *createNodeGroupCmdParams) error {
 	saFilter := cmdutils.NewIAMServiceAccountFilter()
 
-	if err := cmdutils.NewDeleteIAMServiceAccountLoader(cmd, serviceAccount, saFilter).Load(); err != nil {
+	if err := cmdutils.NewDeleteIAMServiceAccountLoader(cmd, params.serviceAccount, saFilter).Load(); err != nil {
 		return err
 	}
 
@@ -75,7 +83,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 		return err
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg, params.clusterEndpoint)
 	if err != nil {
 		return err
 	}
@@ -98,7 +106,7 @@ func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAM
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d iamserviceaccounts defined in the given config (%q) against remote state", len(cfg.IAM.ServiceAccounts), cmd.ClusterConfigFile)
-		if err := saFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, &cfg.IAM.ServiceAccounts); err != nil {
+		if err := saFilter.SetIncludeOrExcludeMissingFilter(stackManager, params.onlyMissing, &cfg.IAM.ServiceAccounts); err != nil {
 			return err
 		}
 	}

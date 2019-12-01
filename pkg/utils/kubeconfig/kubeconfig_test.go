@@ -137,6 +137,55 @@ var _ = Describe("Kubeconfig", func() {
 		Expect(readConfig.CurrentContext).To(Equal("minikube"))
 	})
 
+	Context("passing a value for the EKS Endpoint override", func() {
+		var clusterConfig = eksctlapi.ClusterConfig{
+			Metadata: &eksctlapi.ClusterMeta{
+				Region: "us-west-2",
+				Name:   "foo",
+				Tags:   map[string]string{},
+			},
+			Status: &eksctlapi.ClusterStatus{
+				Endpoint: "https://eks-endpoint.com",
+			},
+		}
+
+		var expectedClusterName = "foo.us-west-2.eksctl.io"
+		var expectedContextName = "test-user@foo.us-west-2.eksctl.io"
+		var eksEndpoint = "http://my-eks-endpoint.com:8000"
+
+		It("sets the EKS Endpoint to be the value passed via the override", func() {
+			config, clusterName, contextName := kubeconfig.New(&clusterConfig, "test-user", "", eksEndpoint)
+
+			Expect(clusterName).To(Equal(expectedClusterName))
+			Expect(contextName).To(Equal(expectedContextName))
+			Expect(config.Clusters[expectedClusterName].Server).To(Equal(eksEndpoint))
+		})
+	})
+
+	Context("passing an empty string for the EKS Endpoint Override", func() {
+		var clusterConfig = eksctlapi.ClusterConfig{
+			Metadata: &eksctlapi.ClusterMeta{
+				Region: "us-west-2",
+				Name:   "foo",
+				Tags:   map[string]string{},
+			},
+			Status: &eksctlapi.ClusterStatus{
+				Endpoint: "https://eks-endpoint.com",
+			},
+		}
+
+		var expectedClusterName = "foo.us-west-2.eksctl.io"
+		var expectedContextName = "test-user@foo.us-west-2.eksctl.io"
+
+		It("it uses the Status.Endpoint value from the cluster config for the EKS Endpoint", func() {
+			config, clusterName, contextName := kubeconfig.New(&clusterConfig, "test-user", "", "")
+
+			Expect(clusterName).To(Equal(expectedClusterName))
+			Expect(contextName).To(Equal(expectedContextName))
+			Expect(config.Clusters[expectedClusterName].Server).To(Equal("https://eks-endpoint.com"))
+		})
+	})
+
 	Context("delete config", func() {
 		// Default cluster name is 'foo' and region is 'us-west-2'
 		var apiClusterConfigSample = eksctlapi.ClusterConfig{

@@ -341,7 +341,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 
 		// create Kubernetes client
-		clientSet, err := ctl.NewStdClientSet(cfg)
+		clientSet, err := ctl.NewStdClientSet(cfg, "")
 		if err != nil {
 			return err
 		}

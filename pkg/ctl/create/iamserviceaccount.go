@@ -13,6 +13,11 @@ import (
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
+type createIAMServiceAccountCmdParams struct {
+	clusterEndpoint                 string
+	overrideExistingServiceAccounts bool
+}
+
 func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
@@ -22,34 +27,36 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cfg.IAM.WithOIDC = api.Enabled()
 	cfg.IAM.ServiceAccounts = append(cfg.IAM.ServiceAccounts, serviceAccount)
 
-	var overrideExistingServiceAccounts bool
+	params := &createIAMServiceAccountCmdParams{}
 
 	cmd.SetDescription("iamserviceaccount", "Create an iamserviceaccount - AWS IAM role bound to a Kubernetes service account", "")
 
 	cmd.SetRunFunc(func() error {
-		return doCreateIAMServiceAccount(cmd, overrideExistingServiceAccounts)
+		return doCreateIAMServiceAccount(cmd, params)
 	})
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the iamserviceaccount to")
-
-		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to create")
-		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
-		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
-
-		fs.BoolVar(&overrideExistingServiceAccounts, "override-existing-serviceaccounts", false, "create IAM roles for existing serviceaccounts and update the serviceaccount")
 
 		cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddClusterEndpointOverrideFlag(fs, &params.clusterEndpoint)
+	})
+
+	cmd.FlagSetGroup.InFlagSet("Create IAM service Account", func(fs *pflag.FlagSet) {
+		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to create")
+		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
+		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
+		fs.BoolVar(&params.overrideExistingServiceAccounts, "override-existing-serviceaccounts", false, "create IAM roles for existing serviceaccounts and update the serviceaccount")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
 }
 
-func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
+func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, params *createIAMServiceAccountCmdParams) error {
 	saFilter := cmdutils.NewIAMServiceAccountFilter()
 
 	if err := cmdutils.NewCreateIAMServiceAccountLoader(cmd, saFilter).Load(); err != nil {
@@ -75,7 +82,7 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 		return err
 	}
 
-	clientSet, err := ctl.NewStdClientSet(cfg)
+	clientSet, err := ctl.NewStdClientSet(cfg, params.clusterEndpoint)
 	if err != nil {
 		return err
 	}
@@ -97,13 +104,13 @@ func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccount
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := saFilter.SetExcludeExistingFilter(stackManager, clientSet, cfg.IAM.ServiceAccounts, overrideExistingServiceAccounts); err != nil {
+	if err := saFilter.SetExcludeExistingFilter(stackManager, clientSet, cfg.IAM.ServiceAccounts, params.overrideExistingServiceAccounts); err != nil {
 		return err
 	}
 
 	filteredServiceAccounts := saFilter.FilterMatching(cfg.IAM.ServiceAccounts)
 	saFilter.LogInfo(cfg.IAM.ServiceAccounts)
-	if !overrideExistingServiceAccounts {
+	if !params.overrideExistingServiceAccounts {
 		logger.Warning("serviceaccounts that exists in Kubernetes will be excluded, use --override-existing-serviceaccounts to override")
 	} else {
 		logger.Warning("metadata of serviceaccounts that exist in Kubernetes will be updated, as --override-existing-serviceaccounts was set")

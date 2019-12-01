@@ -107,7 +107,7 @@ func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.Cluste
 
 	clientSet := &kubernetes.CallbackClientSet{
 		Callback: func() (kubernetes.Interface, error) {
-			return c.NewStdClientSet(cfg)
+			return c.NewStdClientSet(cfg, "")
 		},
 	}
 

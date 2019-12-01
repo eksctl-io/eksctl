@@ -438,7 +438,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "default-s3-read-only"))
 					Expect(awsSession).To(HaveExistingStack(stackNamePrefix + "app1-app-cache-access"))
 
-					clientSet, err := ctl.NewStdClientSet(cfg)
+					clientSet, err := ctl.NewStdClientSet(cfg, "")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					{

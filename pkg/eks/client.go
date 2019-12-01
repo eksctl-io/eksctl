@@ -28,8 +28,8 @@ type Client struct {
 }
 
 // NewClient creates a new client config by embedding the STS token
-func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
-	clientConfig, _, contextName := kubeconfig.New(spec, c.GetUsername(), "")
+func (c *ClusterProvider) NewClient(spec *api.ClusterConfig, clusterEndpoint string) (*Client, error) {
+	clientConfig, _, contextName := kubeconfig.New(spec, c.GetUsername(), "", clusterEndpoint)
 
 	config := &Client{
 		Config:      clientConfig,
@@ -87,8 +87,8 @@ func (c *Client) NewClientSet() (*kubernetes.Clientset, error) {
 }
 
 // NewStdClientSet creates a new API client in one go with an embedded STS token, this is most commonly used option
-func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.Clientset, error) {
-	_, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
+func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig, clusterEndpoint string) (*kubernetes.Clientset, error) {
+	_, clientSet, err := c.newClientSetWithEmbeddedToken(spec, clusterEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +96,8 @@ func (c *ClusterProvider) NewStdClientSet(spec *api.ClusterConfig) (*kubernetes.
 	return clientSet, nil
 }
 
-func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig) (*Client, *kubernetes.Clientset, error) {
-	client, err := c.NewClient(spec)
+func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig, clusterEndpoint string) (*Client, *kubernetes.Clientset, error) {
+	client, err := c.NewClient(spec, clusterEndpoint)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "creating Kubernetes client config with embedded token")
 	}
@@ -112,7 +112,7 @@ func (c *ClusterProvider) newClientSetWithEmbeddedToken(spec *api.ClusterConfig)
 
 // NewRawClient creates a new raw REST client in one go with an embedded STS token
 func (c *ClusterProvider) NewRawClient(spec *api.ClusterConfig) (*kubewrapper.RawClient, error) {
-	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec)
+	client, clientSet, err := c.newClientSetWithEmbeddedToken(spec, "")
 	if err != nil {
 		return nil, err
 	}

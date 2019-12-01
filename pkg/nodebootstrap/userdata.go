@@ -67,7 +67,7 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 }
 
 func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
-	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
+	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt", "")
 	authenticator := kubeconfig.AWSIAMAuthenticator
 	if ng.AMIFamily == api.NodeImageFamilyUbuntu1804 {
 		authenticator = kubeconfig.HeptioAuthenticatorAWS

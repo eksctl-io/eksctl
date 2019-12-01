@@ -41,7 +41,7 @@ func AuthenticatorCommands() []string {
 // New creates Kubernetes client configuration for a given username
 // if certificateAuthorityPath is not empty, it is used instead of
 // embedded certificate-authority-data
-func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
+func New(spec *api.ClusterConfig, username, certificateAuthorityPath, eksEndpoint string) (*clientcmdapi.Config, string, string) {
 	clusterName := spec.Metadata.String()
 	contextName := fmt.Sprintf("%s@%s", username, clusterName)
 
@@ -69,12 +69,16 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 		c.Clusters[clusterName].CertificateAuthority = certificateAuthorityPath
 	}
 
+	if eksEndpoint != "" {
+		c.Clusters[clusterName].Server = eksEndpoint
+	}
+
 	return c, clusterName, contextName
 }
 
 // NewForKubectl creates configuration for kubectl using a suitable authenticator
 func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *clientcmdapi.Config {
-	config, _, _ := New(spec, username, "")
+	config, _, _ := New(spec, username, "", "")
 	authenticator, found := LookupAuthenticator()
 	if !found {
 		// fall back to aws-iam-authenticator
