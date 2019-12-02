@@ -18,6 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -99,6 +100,27 @@ func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 	}
 	minSupportedVersion := 3
 	return version >= minSupportedVersion, nil
+}
+
+// SupportsFargate reports whether an existing cluster supports Fargate.
+func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (bool, error) {
+	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
+		return false, err
+	}
+	return ClusterSupportsFargate(c.Status.clusterInfo.cluster)
+}
+
+// ClusterSupportsFargate reports whether an existing cluster supports Fargate.
+func ClusterSupportsFargate(cluster *awseks.Cluster) (bool, error) {
+	if cluster.PlatformVersion == nil {
+		logger.Warning("could not find cluster's platform version")
+		return false, nil
+	}
+	version, err := PlatformVersion(*cluster.PlatformVersion)
+	if err != nil {
+		return false, err
+	}
+	return version >= fargate.MinPlatformVersion, nil
 }
 
 var (

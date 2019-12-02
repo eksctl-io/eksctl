@@ -410,6 +410,51 @@ var _ = Describe("EKS API wrapper", func() {
 		}),
 	)
 
+	type fargateSupportCase struct {
+		platformVersion string
+		supportsFargate bool
+		expectError     bool
+	}
+
+	DescribeTable("ClusterSupportsFargate", func(m *fargateSupportCase) {
+		cluster := &awseks.Cluster{
+			PlatformVersion: aws.String(m.platformVersion),
+		}
+		supportsFargate, err := ClusterSupportsFargate(cluster)
+		if m.expectError {
+			Expect(err).To(HaveOccurred())
+		}
+		Expect(supportsFargate).To(Equal(m.supportsFargate))
+	},
+		Entry("eks.1 does NOT support Fargate", &fargateSupportCase{
+			platformVersion: "eks.1", supportsFargate: false, expectError: false,
+		}),
+		Entry("eks.2 does NOT support Fargate", &fargateSupportCase{
+			platformVersion: "eks.2", supportsFargate: false, expectError: false,
+		}),
+		Entry("eks.3 does NOT support Fargate", &fargateSupportCase{
+			platformVersion: "eks.3", supportsFargate: false, expectError: false,
+		}),
+		Entry("eks.4 does NOT support Fargate", &fargateSupportCase{
+			platformVersion: "eks.4", supportsFargate: false, expectError: false,
+		}),
+		Entry("eks.5 is the minimum version which supports Fargate", &fargateSupportCase{
+			platformVersion: "eks.5", supportsFargate: true, expectError: false,
+		}),
+		Entry("eks.6 supports Fargate", &fargateSupportCase{
+			platformVersion: "eks.6", supportsFargate: true, expectError: false,
+		}),
+		Entry("eks.7 supports Fargate", &fargateSupportCase{
+			platformVersion: "eks.7", supportsFargate: true, expectError: false,
+		}),
+		Entry("eks. should raise an error", &fargateSupportCase{
+			platformVersion: "eks.", supportsFargate: false, expectError: true,
+		}),
+		Entry("eks.invalid should raise an error", &fargateSupportCase{
+			platformVersion: "eks.invalid", supportsFargate: false, expectError: true,
+		}),
+	)
+
 	type platformVersionCase struct {
 		platformVersion string
 		expectedVersion int
