@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/iam/oidc"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
 const (
@@ -22,6 +22,8 @@ const (
 	iamPolicyAmazonEC2ContainerRegistryPowerUserARN = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 	iamPolicyAmazonEC2ContainerRegistryReadOnlyARN  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 	iamPolicyCloudWatchAgentServerPolicyARN         = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+
+	iamPolicyAmazonEKSFargatePodExecutionRolePolicyARN = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
 )
 
 const (

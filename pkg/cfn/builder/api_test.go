@@ -34,6 +34,8 @@ const (
 	caCert      = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN5RENDQWJDZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRFNE1EWXdOekExTlRBMU5Wb1hEVEk0TURZd05EQTFOVEExTlZvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTWJoCnpvZElYR0drckNSZE1jUmVEN0YvMnB1NFZweTdvd3FEVDgrdk9zeGs2bXFMNWxQd3ZicFhmYkE3R0xzMDVHa0wKaDdqL0ZjcU91cnMwUFZSK3N5REtuQXltdDFORWxGNllGQktSV1dUQ1hNd2lwN1pweW9XMXdoYTlJYUlPUGxCTQpPTEVlckRabFVrVDFVV0dWeVdsMmxPeFgxa2JhV2gvakptWWdkeW5jMXhZZ3kxa2JybmVMSkkwLzVUVTRCajJxClB1emtrYW5Xd3lKbGdXQzhBSXlpWW82WFh2UVZmRzYrM3RISE5XM1F1b3ZoRng2MTFOYnl6RUI3QTdtZGNiNmgKR0ZpWjdOeThHZnFzdjJJSmI2Nk9FVzBSdW9oY1k3UDZPdnZmYnlKREhaU2hqTStRWFkxQXN5b3g4Ri9UelhHSgpQUWpoWUZWWEVhZU1wQmJqNmNFQ0F3RUFBYU1qTUNFd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCa2hKRVd4MHk1LzlMSklWdXJ1c1hZbjN6Z2EKRkZ6V0JsQU44WTlqUHB3S2t0Vy9JNFYyUGg3bWY2Z3ZwZ3Jhc2t1Slk1aHZPcDdBQmcxSTFhaHUxNUFpMUI0ZApuMllRaDlOaHdXM2pKMmhuRXk0VElpb0gza2JFdHRnUVB2bWhUQzNEYUJreEpkbmZJSEJCV1RFTTU1czRwRmxUClpzQVJ3aDc1Q3hYbjdScVU0akpKcWNPaTRjeU5qeFVpRDBqR1FaTmNiZWEyMkRCeTJXaEEzUWZnbGNScGtDVGUKRDVPS3NOWlF4MW9MZFAwci9TSmtPT1NPeUdnbVJURTIrODQxN21PRW02Z3RPMCszdWJkbXQ0aENsWEtFTTZYdwpuQWNlK0JxVUNYblVIN2ZNS3p2TDE5UExvMm5KbFU1TnlCbU1nL1pNVHVlUy80eFZmKy94WnpsQ0Q1WT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
 	arn         = "arn:aws:eks:us-west-2:122333:cluster/" + clusterName
 
+	fargatePodExecutionRoleARN = "arn:aws:iam::123:role/" + clusterName + "-FargatePodExecutionRole-XYZ"
+
 	vpcID          = "vpc-0e265ad953062b94b"
 	subnetsPublic  = "subnet-0f98135715dfcf55f,subnet-0ade11bad78dced9e,subnet-0e2e63ff1712bf6ef"
 	subnetsPrivate = "subnet-0f98135715dfcf55a,subnet-0ade11bad78dced9f,subnet-0e2e63ff1712bf6ea"
@@ -396,7 +398,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
 			IAM: &api.ClusterIAM{
-				ServiceRoleARN: aws.String(arn),
+				ServiceRoleARN:             aws.String(arn),
+				FargatePodExecutionRoleARN: aws.String(fargatePodExecutionRoleARN),
 			},
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
@@ -447,18 +450,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 		setSubnets(cfg)
 
 		sampleOutputs := map[string]string{
-			"SecurityGroup":            "sg-0b44c48bcba5b7362",
-			"SubnetsPublic":            subnetsPublic,
-			"SubnetsPrivate":           subnetsPrivate,
-			"VPC":                      vpcID,
-			"Endpoint":                 endpoint,
-			"CertificateAuthorityData": caCert,
-			"ARN":                      arn,
-			"ClusterStackName":         "",
-			"SharedNodeSecurityGroup":  "sg-shared",
-			"ServiceRoleARN":           arn,
-			"FeatureNATMode":           "Single",
-			"ClusterSecurityGroupId":   "sg-09ef4509a37f28b4c",
+			"SecurityGroup":              "sg-0b44c48bcba5b7362",
+			"SubnetsPublic":              subnetsPublic,
+			"SubnetsPrivate":             subnetsPrivate,
+			"VPC":                        vpcID,
+			"Endpoint":                   endpoint,
+			"CertificateAuthorityData":   caCert,
+			"ARN":                        arn,
+			"ClusterStackName":           "",
+			"SharedNodeSecurityGroup":    "sg-shared",
+			"ServiceRoleARN":             arn,
+			"FargatePodExecutionRoleARN": fargatePodExecutionRoleARN,
+			"FeatureNATMode":             "Single",
+			"ClusterSecurityGroupId":     "sg-09ef4509a37f28b4c",
 		}
 
 		It("should add all resources and collect outputs without errors", func() {
@@ -2162,9 +2166,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtrip()
 
-		It("should only have EKS resource", func() {
+		It("should only have EKS and Fargate resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
-			Expect(clusterTemplate.Resources).To(HaveLen(1))
+			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
+			Expect(clusterTemplate.Resources).To(HaveLen(2))
 
 			cp := clusterTemplate.Resources["ControlPlane"].Properties
 
@@ -2192,9 +2197,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have EKS and IAM resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
+			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
-			Expect(clusterTemplate.Resources).To(HaveLen(4))
+			Expect(clusterTemplate.Resources).To(HaveLen(5))
 		})
 
 		It("should have correct own IAM resources", func() {
@@ -2290,7 +2296,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(32))
+			Expect(len(clusterTemplate.Resources)).To(Equal(33))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2385,7 +2391,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(39))
+			Expect(len(clusterTemplate.Resources)).To(Equal(40))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2462,7 +2468,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(36))
+			Expect(len(clusterTemplate.Resources)).To(Equal(37))
 		})
 
 		It("should route Internet traffic from private subnets through their corresponding NAT gateways", func() {
@@ -2508,7 +2514,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(32))
+			Expect(len(clusterTemplate.Resources)).To(Equal(33))
 		})
 
 		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
@@ -2551,7 +2557,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(27))
+			Expect(len(clusterTemplate.Resources)).To(Equal(28))
 
 		})
 

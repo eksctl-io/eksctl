@@ -2,8 +2,6 @@ package create
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -13,8 +11,10 @@ import (
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"time"
 )
 
 func createFargateProfile(cmd *cmdutils.Cmd) {
@@ -62,12 +62,7 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
-
-	roleARN, err := getClusterRoleARN(ctl, cfg.Metadata)
-	if err != nil {
-		return err
-	}
-	if err := doCreateFargateProfiles(cmd, ctl, roleARN, cmd.Wait); err != nil {
+	if err := doCreateFargateProfiles(cmd, ctl, cmd.Wait); err != nil {
 		return err
 	}
 	clientSet, err := clientSet(cfg, ctl)
@@ -94,17 +89,7 @@ func clientSet(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (kubernetes.Int
 	return k8sClientSet, nil
 }
 
-func getClusterRoleARN(ctl *eks.ClusterProvider, meta *api.ClusterMeta) (string, error) {
-	eksCluster, err := ctl.DescribeControlPlane(meta)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to retrieve EKS cluster role ARN for %q", meta.Name)
-	}
-	roleARN := *eksCluster.RoleArn
-	logger.Debug("default Fargate profile pod execution role ARN: %v", roleARN)
-	return roleARN, nil
-}
-
-func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaultPodExecRoleARN string, wait bool) error {
+func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, wait bool) error {
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClientWithWaitTimeout(clusterName, ctl.Provider.EKS(), cmd.ProviderConfig.WaitTimeout)
 	for _, profile := range cmd.ClusterConfig.FargateProfiles {
@@ -117,7 +102,7 @@ func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, defaul
 		// Default the pod execution role ARN to be the same as the cluster
 		// role defined in CloudFormation:
 		if profile.PodExecutionRoleARN == "" {
-			profile.PodExecutionRoleARN = defaultPodExecRoleARN
+			profile.PodExecutionRoleARN = strings.EmptyIfNil(cmd.ClusterConfig.IAM.FargatePodExecutionRoleARN)
 		}
 		if err := awsClient.CreateProfile(profile, wait); err != nil {
 			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)

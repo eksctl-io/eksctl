@@ -75,6 +75,8 @@ ClusterEndpoints:
 ClusterIAM:
   additionalProperties: false
   properties:
+    fargatePodExecutionRoleARN:
+      type: string
     serviceAccounts:
       items:
         $ref: '#/definitions/ClusterIAMServiceAccount'
