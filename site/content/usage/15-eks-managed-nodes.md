@@ -1,6 +1,6 @@
 ---
 title: "EKS Managed Nodegroups"
-weight: 140
+weight: 150
 url: usage/eks-managed-nodegroups
 ---
 
