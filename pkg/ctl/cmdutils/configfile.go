@@ -137,7 +137,7 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, params *CreateClusterCmdParams) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	ngFilter.ExcludeAll = params.WithoutNodeGroup || params.Fargate
+	ngFilter.ExcludeAll = params.WithoutNodeGroup
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",
@@ -172,10 +172,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
 
 	l.validateWithConfigFile = func() error {
-		if err := params.Validate(); err != nil {
-			return err
-		}
-
 		if l.ClusterConfig.VPC == nil {
 			l.ClusterConfig.VPC = api.NewClusterVPC()
 		}
@@ -200,10 +196,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 	}
 
 	l.validateWithoutConfigFile = func() error {
-		if err := params.Validate(); err != nil {
-			return err
-		}
-
 		meta := l.ClusterConfig.Metadata
 
 		// generate cluster name or use either flag or argument
@@ -214,10 +206,6 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 
 		if l.ClusterConfig.Status != nil {
 			return fmt.Errorf("status fields are read-only")
-		}
-
-		if params.Fargate {
-			l.ClusterConfig.SetDefaultFargateProfile()
 		}
 
 		if params.Managed {
@@ -236,6 +224,12 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			} else {
 				l.ClusterConfig.NodeGroups = []*api.NodeGroup{ng}
 			}
+		}
+
+		if params.Fargate {
+			l.ClusterConfig.SetDefaultFargateProfile()
+			// A Fargate-only cluster should NOT have any un-managed node group:
+			l.ClusterConfig.NodeGroups = []*api.NodeGroup{}
 		}
 
 		for _, ng := range l.ClusterConfig.NodeGroups {

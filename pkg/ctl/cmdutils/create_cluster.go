@@ -1,7 +1,6 @@
 package cmdutils
 
 import (
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -19,12 +18,4 @@ type CreateClusterCmdParams struct {
 	WithoutNodeGroup            bool
 	Managed                     bool
 	Fargate                     bool
-}
-
-// Validate validates this CreateClusterCmdParams.
-func (p CreateClusterCmdParams) Validate() error {
-	if p.Managed && p.Fargate {
-		return errors.New("--managed and --fargate are mutually exclusive: please provide either one of these flags, but not both")
-	}
-	return nil
 }
