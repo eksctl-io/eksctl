@@ -78,10 +78,6 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 	return ClusterSupportsManagedNodes(c.Status.clusterInfo.cluster)
 }
 
-var (
-	platformVersionRegex = regexp.MustCompile(`^eks\.(\d+)$`)
-)
-
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
 func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 	versionSupportsManagedNodes, err := VersionSupportsManagedNodes(*cluster.Version)
@@ -97,18 +93,30 @@ func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 		logger.Warning("could not find cluster's platform version")
 		return false, nil
 	}
-
-	match := platformVersionRegex.FindStringSubmatch(*cluster.PlatformVersion)
-	if len(match) != 2 {
-		return false, fmt.Errorf("failed to parse cluster's platform version: %q", *cluster.PlatformVersion)
-	}
-	versionStr := match[1]
-	minSupportedVersion := 3
-	version, err := strconv.Atoi(versionStr)
+	version, err := PlatformVersion(*cluster.PlatformVersion)
 	if err != nil {
 		return false, err
 	}
+	minSupportedVersion := 3
 	return version >= minSupportedVersion, nil
+}
+
+var (
+	platformVersionRegex = regexp.MustCompile(`^eks\.(\d+)$`)
+)
+
+// PlatformVersion extracts the digit X in the provided platform version eks.X
+func PlatformVersion(platformVersion string) (int, error) {
+	match := platformVersionRegex.FindStringSubmatch(platformVersion)
+	if len(match) != 2 {
+		return -1, fmt.Errorf("failed to parse cluster's platform version: %q", platformVersion)
+	}
+	versionStr := match[1]
+	version, err := strconv.Atoi(versionStr)
+	if err != nil {
+		return -1, err
+	}
+	return version, nil
 }
 
 func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) error {

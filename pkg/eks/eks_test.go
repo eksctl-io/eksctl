@@ -409,4 +409,46 @@ var _ = Describe("EKS API wrapper", func() {
 			supports:          false,
 		}),
 	)
+
+	type platformVersionCase struct {
+		platformVersion string
+		expectedVersion int
+		expectError     bool
+	}
+
+	DescribeTable("PlatformVersion", func(m *platformVersionCase) {
+		actualVersion, err := PlatformVersion(m.platformVersion)
+		if m.expectError {
+			Expect(err).To(HaveOccurred())
+		}
+		Expect(actualVersion).To(Equal(m.expectedVersion))
+	},
+		Entry("eks.1", &platformVersionCase{
+			platformVersion: "eks.1", expectedVersion: 1, expectError: false,
+		}),
+		Entry("eks.2", &platformVersionCase{
+			platformVersion: "eks.2", expectedVersion: 2, expectError: false,
+		}),
+		Entry("eks.3", &platformVersionCase{
+			platformVersion: "eks.3", expectedVersion: 3, expectError: false,
+		}),
+		Entry("eks.4", &platformVersionCase{
+			platformVersion: "eks.4", expectedVersion: 4, expectError: false,
+		}),
+		Entry("eks.5", &platformVersionCase{
+			platformVersion: "eks.5", expectedVersion: 5, expectError: false,
+		}),
+		Entry("eks.6", &platformVersionCase{
+			platformVersion: "eks.6", expectedVersion: 6, expectError: false,
+		}),
+		Entry("eks.7", &platformVersionCase{
+			platformVersion: "eks.7", expectedVersion: 7, expectError: false,
+		}),
+		Entry("eks. should raise an error", &platformVersionCase{
+			platformVersion: "eks.", expectedVersion: -1, expectError: true,
+		}),
+		Entry("eks.invalid should raise an error", &platformVersionCase{
+			platformVersion: "eks.invalid", expectedVersion: -1, expectError: true,
+		}),
+	)
 })
