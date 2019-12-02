@@ -62,6 +62,15 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 	if ok, err := ctl.CanOperate(cfg); !ok {
 		return err
 	}
+
+	supportsFargate, err := ctl.SupportsFargate(cfg)
+	if err != nil {
+		return err
+	}
+	if !supportsFargate {
+		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
+	}
+
 	if err := doCreateFargateProfiles(cmd, ctl, cmd.Wait); err != nil {
 		return err
 	}

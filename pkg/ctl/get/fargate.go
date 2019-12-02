@@ -1,6 +1,7 @@
 package get
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -56,6 +57,15 @@ func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
+
+	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
+	if err != nil {
+		return err
+	}
+	if !supportsFargate {
+		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
+	}
+
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClient(clusterName, ctl.Provider.EKS())
 

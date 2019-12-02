@@ -51,6 +51,15 @@ func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
+
+	supportsFargate, err := ctl.SupportsFargate(cmd.ClusterConfig)
+	if err != nil {
+		return err
+	}
+	if !supportsFargate {
+		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
+	}
+
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClientWithWaitTimeout(clusterName, ctl.Provider.EKS(), cmd.ProviderConfig.WaitTimeout)
 	if cmd.Wait {
