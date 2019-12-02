@@ -411,13 +411,15 @@ var _ = Describe("EKS API wrapper", func() {
 	)
 
 	type fargateSupportCase struct {
-		platformVersion string
-		supportsFargate bool
-		expectError     bool
+		platformVersion   string
+		kubernetesVersion string
+		supportsFargate   bool
+		expectError       bool
 	}
 
 	DescribeTable("ClusterSupportsFargate", func(m *fargateSupportCase) {
 		cluster := &awseks.Cluster{
+			Version:         aws.String(m.kubernetesVersion),
 			PlatformVersion: aws.String(m.platformVersion),
 		}
 		supportsFargate, err := ClusterSupportsFargate(cluster)
@@ -427,31 +429,37 @@ var _ = Describe("EKS API wrapper", func() {
 		Expect(supportsFargate).To(Equal(m.supportsFargate))
 	},
 		Entry("eks.1 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.1", supportsFargate: false, expectError: false,
+			platformVersion: "eks.1", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
 		}),
 		Entry("eks.2 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.2", supportsFargate: false, expectError: false,
+			platformVersion: "eks.2", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
 		}),
 		Entry("eks.3 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.3", supportsFargate: false, expectError: false,
+			platformVersion: "eks.3", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
 		}),
 		Entry("eks.4 does NOT support Fargate", &fargateSupportCase{
-			platformVersion: "eks.4", supportsFargate: false, expectError: false,
+			platformVersion: "eks.4", kubernetesVersion: "1.14", supportsFargate: false, expectError: false,
 		}),
 		Entry("eks.5 is the minimum version which supports Fargate", &fargateSupportCase{
-			platformVersion: "eks.5", supportsFargate: true, expectError: false,
+			platformVersion: "eks.5", kubernetesVersion: "1.14", supportsFargate: true, expectError: false,
+		}),
+		Entry("1.14 is the minimum version which supports Fargate", &fargateSupportCase{
+			platformVersion: "eks.5", kubernetesVersion: "1.13", supportsFargate: false, expectError: false,
 		}),
 		Entry("eks.6 supports Fargate", &fargateSupportCase{
-			platformVersion: "eks.6", supportsFargate: true, expectError: false,
+			platformVersion: "eks.6", kubernetesVersion: "1.14", supportsFargate: true, expectError: false,
 		}),
 		Entry("eks.7 supports Fargate", &fargateSupportCase{
-			platformVersion: "eks.7", supportsFargate: true, expectError: false,
+			platformVersion: "eks.7", kubernetesVersion: "1.14", supportsFargate: true, expectError: false,
 		}),
 		Entry("eks. should raise an error", &fargateSupportCase{
-			platformVersion: "eks.", supportsFargate: false, expectError: true,
+			platformVersion: "eks.", kubernetesVersion: "1.14", supportsFargate: false, expectError: true,
 		}),
 		Entry("eks.invalid should raise an error", &fargateSupportCase{
-			platformVersion: "eks.invalid", supportsFargate: false, expectError: true,
+			platformVersion: "eks.invalid", kubernetesVersion: "1.14", supportsFargate: false, expectError: true,
+		}),
+		Entry("invalid Kubernetes version should raise an error", &fargateSupportCase{
+			platformVersion: "eks.5", kubernetesVersion: "1.", supportsFargate: false, expectError: true,
 		}),
 	)
 
