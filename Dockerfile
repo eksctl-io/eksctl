@@ -27,6 +27,7 @@ RUN apk add --no-cache --initdb --root /out \
     git \
     libc6-compat \
     openssh \
+    groff \
     && true
 
 ENV KUBECTL_VERSION v1.11.5
