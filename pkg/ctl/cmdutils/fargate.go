@@ -1,6 +1,8 @@
 package cmdutils
 
 import (
+	"fmt"
+
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate"
@@ -74,6 +76,45 @@ func validateFargateProfiles(l *commonClusterConfigLoader) error {
 		if err := profile.Validate(); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// NewGetFargateProfileLoader will load config or use flags for
+// 'eksctl get fargateprofile'
+func NewGetFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+	l.flagsIncompatibleWithConfigFile.Insert(fargateProfileFlagsIncompatibleWithConfigFile...)
+	l.flagsIncompatibleWithoutConfigFile.Insert(fargateProfileFlagsIncompatibleWithoutConfigFile...)
+	l.validateWithoutConfigFile = func() error {
+		return validate(cmd, options)
+	}
+	l.validateWithConfigFile = func() error {
+		return validate(cmd, options)
+	}
+	return l
+}
+
+func validate(cmd *Cmd, options *fargate.Options) error {
+	if err := validateCluster(cmd); err != nil {
+		return err
+	}
+	return validateNameFlagAndArg(cmd, options)
+}
+
+func validateCluster(cmd *Cmd) error {
+	if cmd.ClusterConfig.Metadata.Name == "" {
+		return ErrMustBeSet(ClusterNameFlag(cmd))
+	}
+	return nil
+}
+
+func validateNameFlagAndArg(cmd *Cmd, options *fargate.Options) error {
+	if options.ProfileName != "" && cmd.NameArg != "" {
+		return ErrFlagAndArg(fmt.Sprintf("--%s", fargateProfileName), options.ProfileName, cmd.NameArg)
+	}
+	if options.ProfileName == "" && cmd.NameArg != "" {
+		options.ProfileName = cmd.NameArg
 	}
 	return nil
 }
