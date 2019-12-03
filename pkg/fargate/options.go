@@ -24,7 +24,7 @@ func (o *Options) Validate() error {
 
 // CreateOptions groups the parameters required to create a Fargate profile.
 type CreateOptions struct {
-	Options
+	ProfileName              string
 	ProfileSelectorNamespace string
 	// +optional
 	ProfileSelectorLabels map[string]string

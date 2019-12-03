@@ -54,9 +54,7 @@ var _ = Describe("fargate", func() {
 
 			It("fails when the profile's name starts with eks-", func() {
 				options := fargate.CreateOptions{
-					Options: fargate.Options{
-						ProfileName: "eks-foo",
-					},
+					ProfileName:              "eks-foo",
 					ProfileSelectorNamespace: "default",
 				}
 				err := options.Validate()
@@ -76,9 +74,7 @@ var _ = Describe("fargate", func() {
 		Describe("ToFargateProfile", func() {
 			It("creates a FargateProfile DTO object from this CreateOptions object's values", func() {
 				options := fargate.CreateOptions{
-					Options: fargate.Options{
-						ProfileName: "default",
-					},
+					ProfileName:              "default",
 					ProfileSelectorNamespace: "development",
 					ProfileSelectorLabels: map[string]string{
 						"env": "dev",
