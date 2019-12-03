@@ -8,12 +8,11 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 
 	"github.com/spf13/afero"
 
 	. "github.com/weaveworks/eksctl/integration/runner"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-
 )
 
 var _ = Describe("(Integration) generate profile", func() {
@@ -22,7 +21,7 @@ var _ = Describe("(Integration) generate profile", func() {
 		It("should write the processed repo files in the supplied directory", func() {
 
 			if clusterName == "" {
-				clusterName = cmdutils.ClusterName("", "")
+				clusterName = names.ForCluster("", "")
 			}
 
 			cmd := eksctlExperimentalCmd.WithArgs(
