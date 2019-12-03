@@ -2,6 +2,8 @@ package create
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -14,7 +16,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"time"
 )
 
 func createFargateProfile(cmd *cmdutils.Cmd) {
@@ -39,7 +40,6 @@ func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions 
 		cmdutils.AddClusterFlag(fs, cmd.ClusterConfig.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
-		cmdutils.AddWaitFlagWithFullDescription(fs, &cmd.Wait, "wait for the creation of the Fargate profile before exiting. Profile creation may take a few seconds to a couple of minutes.")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
@@ -76,7 +76,7 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 		return err
 	}
 
-	if err := doCreateFargateProfiles(cmd, ctl, cmd.Wait); err != nil {
+	if err := doCreateFargateProfiles(cmd, ctl); err != nil {
 		return err
 	}
 	clientSet, err := clientSet(cfg, ctl)
@@ -103,31 +103,28 @@ func clientSet(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (kubernetes.Int
 	return k8sClientSet, nil
 }
 
-func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, wait bool) error {
+func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
 	clusterName := cmd.ClusterConfig.Metadata.Name
 	awsClient := fargate.NewClientWithWaitTimeout(clusterName, ctl.Provider.EKS(), cmd.ProviderConfig.WaitTimeout)
 	for _, profile := range cmd.ClusterConfig.FargateProfiles {
-		if wait {
-			logger.Info(creatingFargateProfileMsg(clusterName, profile.Name))
-		} else {
-			logger.Debug(creatingFargateProfileMsg(clusterName, profile.Name))
-		}
+		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 
 		// Default the pod execution role ARN to be the same as the cluster
 		// role defined in CloudFormation:
 		if profile.PodExecutionRoleARN == "" {
 			profile.PodExecutionRoleARN = strings.EmptyIfNil(cmd.ClusterConfig.IAM.FargatePodExecutionRoleARN)
 		}
-		if err := awsClient.CreateProfile(profile, wait); err != nil {
+		// Linearise the creation of Fargate profiles by passing
+		// wait = true, as the API otherwise errors out with:
+		//   ResourceInUseException: Cannot create Fargate Profile
+		//   ${name2} because cluster ${clusterName} currently has
+		//   Fargate profile ${name1} in status CREATING
+		if err := awsClient.CreateProfile(profile, true); err != nil {
 			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 		}
 		logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
 	}
 	return nil
-}
-
-func creatingFargateProfileMsg(clusterName, profileName string) string {
-	return fmt.Sprintf("creating Fargate profile %q on EKS cluster %q", profileName, clusterName)
 }
 
 func scheduleCoreDNSOnFargateIfRelevant(cmd *cmdutils.Cmd, clientSet kubernetes.Interface) error {
