@@ -9,7 +9,7 @@ url: usage/fargate
 [AWS Fargate][fargate] is a managed compute engine for Amazon ECS that can run containers. In Fargate you don't need to
 manage servers or clusters.
 
-Amazon EKS can now launch pods onto AWS Fargate. This removes the need to worry about how you provision or manage
+[Amazon EKS can now launch pods onto AWS Fargate][eks-fargate]. This removes the need to worry about how you provision or manage
 infrastructure for pods and makes it easier to build and run performant, highly-available Kubernetes applications on AWS.
 
 ### Creating a cluster with Fargate support
@@ -295,7 +295,8 @@ Note that the profile deletion is a process that can take up to a few minutes. W
 
 ### Further reading
 
-#<!-- TODO: Add link to AWS EKS Fargate docs -->
 - [Fargate][fargate]
+- [Fargate from EKS][eks-fargate]
 
 [fargate]: https://aws.amazon.com/fargate/
+[eks-fargate]: https://docs.aws.amazon.com/eks/latest/userguide/fargate.html
