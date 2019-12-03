@@ -376,13 +376,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 
 		if cfg.IsFargateEnabled() {
-			// Linearise the creation of Fargate profiles by passing
-			// wait = true, as the API otherwise errors out with:
-			//   ResourceInUseException: Cannot create Fargate Profile
-			//   ${name2} because cluster ${clusterName} currently has
-			//   Fargate profile ${name1} in status CREATING
-			wait := true
-			if err := doCreateFargateProfiles(cmd, ctl, wait); err != nil {
+			if err := doCreateFargateProfiles(cmd, ctl); err != nil {
 				return err
 			}
 			if err := scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet); err != nil {
