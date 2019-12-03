@@ -105,7 +105,7 @@ replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v10.14.0+incompatible
 	// Needed due to to Sirupsen/sirupsen case clash
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
-	github.com/aws/aws-sdk-go => github.com/weaveworks-aws/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f
+	github.com/aws/aws-sdk-go => github.com/weaveworks-experiments/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
 	// Override version since auto-detected one fails with GOPROXY
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
