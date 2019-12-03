@@ -8,11 +8,10 @@ import (
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
-
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 const (
@@ -26,7 +25,7 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 
 	// initialize delBeforeActiveName (and possibly clusterName) for this test suite
 	if clusterName == "" {
-		clusterName = cmdutils.ClusterName("", "")
+		clusterName = names.ForCluster("", "")
 	}
 	if delBeforeActiveName == "" {
 		delBeforeActiveName = clusterName + "-delb4active"

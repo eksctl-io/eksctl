@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 	"github.com/weaveworks/eksctl/pkg/iam"
-	"github.com/weaveworks/eksctl/pkg/iam/oidc"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 )
 
 const (
@@ -22,6 +22,8 @@ const (
 	iamPolicyAmazonEC2ContainerRegistryPowerUserARN = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 	iamPolicyAmazonEC2ContainerRegistryReadOnlyARN  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 	iamPolicyCloudWatchAgentServerPolicyARN         = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+
+	iamPolicyAmazonEKSFargatePodExecutionRolePolicyARN = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
 )
 
 const (
@@ -70,7 +72,12 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 	c.rs.withIAM = true
 
 	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("eks.amazonaws.com"),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
+			"eks.amazonaws.com",
+			// Ensure that EKS can schedule pods onto Fargate, should the user
+			// define so-called "Fargate profiles" in order to do so:
+			"eks-fargate-pods.amazonaws.com",
+		),
 		ManagedPolicyArns: makeStringSlice(
 			iamPolicyAmazonEKSServicePolicyARN,
 			iamPolicyAmazonEKSClusterPolicyARN,

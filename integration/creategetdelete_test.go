@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
@@ -24,7 +25,6 @@ import (
 	. "github.com/weaveworks/eksctl/integration/runner"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/iam"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
@@ -79,7 +79,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", kubeconfigPath)
 
 			if clusterName == "" {
-				clusterName = cmdutils.ClusterName("", "")
+				clusterName = names.ForCluster("", "")
 			}
 
 			cmd := eksctlCreateCmd.WithArgs(

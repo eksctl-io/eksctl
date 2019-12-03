@@ -4,11 +4,12 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/printers"
 )
 
 type getCmdParams struct {
 	chunkSize int
-	output    string
+	output    printers.Type
 }
 
 // Command will create the `get` commands
@@ -20,6 +21,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getIAMServiceAccountCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getIAMIdentityMappingCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getLabelsCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, getFargateProfile)
 
 	return verbCmd
 }

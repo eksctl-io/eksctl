@@ -187,3 +187,18 @@ func ClusterEndpointAccessDefaults() *ClusterEndpoints {
 		PublicAccess:  Enabled(),
 	}
 }
+
+// SetDefaultFargateProfile configures this ClusterConfig to have a single
+// Fargate profile called "default", with two selectors matching respectively
+// the "default" and "kube-system" Kubernetes namespaces.
+func (c *ClusterConfig) SetDefaultFargateProfile() {
+	c.FargateProfiles = []*FargateProfile{
+		&FargateProfile{
+			Name: "fp-default",
+			Selectors: []FargateProfileSelector{
+				FargateProfileSelector{Namespace: "default"},
+				FargateProfileSelector{Namespace: "kube-system"},
+			},
+		},
+	}
+}

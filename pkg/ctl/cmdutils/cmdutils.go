@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -117,7 +118,7 @@ func AddCommonFlagsForAWS(group *NamedFlagSetGroup, p *api.ProviderConfig, cfnRo
 
 // AddTimeoutFlagWithValue configures the timeout flag with the provided value.
 func AddTimeoutFlagWithValue(fs *pflag.FlagSet, p *time.Duration, value time.Duration) {
-	fs.DurationVar(p, "timeout", value, "Maximum waiting time for any long-running operation")
+	fs.DurationVar(p, "timeout", value, "maximum waiting time for any long-running operation")
 }
 
 // AddTimeoutFlag configures the timeout flag.
@@ -165,7 +166,12 @@ func AddVersionFlag(fs *pflag.FlagSet, meta *api.ClusterMeta, extraUsageInfo str
 
 // AddWaitFlag adds common --wait flag
 func AddWaitFlag(fs *pflag.FlagSet, wait *bool, description string) {
-	fs.BoolVarP(wait, "wait", "w", *wait, fmt.Sprintf("wait for %s before exiting", description))
+	AddWaitFlagWithFullDescription(fs, wait, fmt.Sprintf("wait for %s before exiting", description))
+}
+
+// AddWaitFlagWithFullDescription adds common --wait flag
+func AddWaitFlagWithFullDescription(fs *pflag.FlagSet, wait *bool, description string) {
+	fs.BoolVarP(wait, "wait", "w", *wait, description)
 }
 
 // AddUpdateAuthConfigMap adds common --update-auth-configmap flag
@@ -182,7 +188,7 @@ func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath, authenticatorRol
 }
 
 // AddCommonFlagsForGetCmd adds common flafs for get commands
-func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *string) {
+func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *printers.Type) {
 	fs.IntVar(chunkSize, "chunk-size", 100, "return large lists in chunks rather than all at once, pass 0 to disable")
 	fs.StringVarP(outputMode, "output", "o", "table", "specifies the output format (valid option: table, json, yaml)")
 }

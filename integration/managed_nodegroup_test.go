@@ -10,13 +10,12 @@ import (
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
-
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
@@ -30,7 +29,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	Describe("when creating a cluster with 1 managed nodegroup", func() {
 		// always generate a unique name
-		managedClusterName := "managed-" + cmdutils.ClusterName("", "")
+		managedClusterName := "managed-" + names.ForCluster("", "")
 
 		It("should not return an error", func() {
 			fmt.Fprintf(GinkgoWriter, "Using kubeconfig: %s\n", kubeconfigPath)

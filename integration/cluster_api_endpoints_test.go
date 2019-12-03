@@ -13,11 +13,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 
 	. "github.com/weaveworks/eksctl/integration/matchers"
 	. "github.com/weaveworks/eksctl/integration/runner"
-
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -37,7 +36,7 @@ func setEndpointConfig(cfg *api.ClusterConfig, privateAccess, publicAccess bool)
 
 func generateName(prefix string) string {
 	if clusterName == "" {
-		clusterName = cmdutils.ClusterName("", "")
+		clusterName = names.ForCluster("", "")
 	}
 	return fmt.Sprintf("%v-%v", prefix, clusterName)
 }

@@ -40,6 +40,9 @@ const (
 	NodeGroupFeatureSharedSecurityGroup   = "FeatureSharedSecurityGroup"
 	NodeGroupFeatureLocalSecurityGroup    = "FeatureLocalSecurityGroup"
 	NodeGroupFeaturePrivateEndpointAccess = "FeaturePrivateEndointAccess"
+
+	// outputs from Fargate stack:
+	FargatePodExecutionRoleARN = "FargatePodExecutionRoleARN"
 )
 
 type (

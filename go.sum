@@ -140,6 +140,8 @@ github.com/bshuster-repo/logrus-logstash-hook v0.0.0-20170517171303-d2c0ecc1836d
 github.com/bugsnag/bugsnag-go v0.0.0-20141110184014-b1d153021fcd/go.mod h1:2oa8nejYd4cQ/b0hMIopN0lCRxU0bueqREvZLWFrtK8=
 github.com/bugsnag/osext v0.0.0-20130617224835-0dd3f918b21b/go.mod h1:obH5gd0BsqsP2LwDJ9aOkm/6J86V6lyAXCoQWGw3K50=
 github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0/go.mod h1:D/8v3kj0zr8ZAKg1AQ6crr+5VwKN5eIywRkfhyM/+dE=
+github.com/bxcodec/faker v2.0.1+incompatible h1:P0KUpUw5w6WJXwrPfv35oc91i4d8nf40Nwln+M/+faA=
+github.com/bxcodec/faker v2.0.1+incompatible/go.mod h1:BNzfpVdTwnFJ6GtfYTcQu6l6rHShT+veBxNCnjCx5XM=
 github.com/c-bata/go-prompt v0.2.2/go.mod h1:VzqtzE2ksDBcdln8G7mk2RX9QyGjH+OVqOCSiVIqS34=
 github.com/caarlos0/ctrlc v1.0.0 h1:2DtF8GSIcajgffDFJzyG15vO+1PuBWOMUdFut7NnXhw=
 github.com/caarlos0/ctrlc v1.0.0/go.mod h1:CdXpj4rmq0q/1Eb44M9zi2nKB0QraNKuRGYGrrHhcQw=
@@ -949,10 +951,8 @@ github.com/vmware/govmomi v0.19.0 h1:CR6tEByWCPOnRoRyhLzuHaU+6o2ybF3qufNRWS/MGrY
 github.com/vmware/govmomi v0.19.0/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
-github.com/weaveworks-experiments/aws-sdk-go v1.25.14-0.20191118174145-b6a927b24aa9 h1:oyzm6gjN3z7DvWz0aRwdmJLSRHK2aHchUjlb2HOcBdc=
-github.com/weaveworks-experiments/aws-sdk-go v1.25.14-0.20191118174145-b6a927b24aa9/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
-github.com/weaveworks-experiments/aws-sdk-go v1.25.36 h1:7iw00AOQcA+NXuPenBlBfcpgFoPCTyzouHyjLRLHcgo=
-github.com/weaveworks-experiments/aws-sdk-go v1.25.36/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
+github.com/weaveworks-experiments/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f h1:mfgf9Q8ERQpAVlJHQJSQ2lmH5yIoG9KZeBj+S4EebLw=
+github.com/weaveworks-experiments/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
 github.com/weaveworks/flux v0.0.0-20190729133003-c78ccd3706b5 h1:NAlFNFqpgBqufg0m/FCVmnsQxXVH5gO/Efxi/Hbdiiw=
 github.com/weaveworks/flux v0.0.0-20190729133003-c78ccd3706b5/go.mod h1:ZKP5adRfgMH9xY8/nG+Z+Z+fylHgimnL6/+/wzfQJr8=

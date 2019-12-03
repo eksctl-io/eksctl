@@ -4,7 +4,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:75a9fae92548feec145767fe51526b0a8287ef63
+      BUILD_IMAGE: weaveworks/eksctl-build:b42bade104d69192f89e2fba53f6d612d33a0549
     steps:
       - checkout
       # enabling docker executor will require to use large resource class, which
@@ -27,7 +27,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:75a9fae92548feec145767fe51526b0a8287ef63
+      BUILD_IMAGE: weaveworks/eksctl-build:b42bade104d69192f89e2fba53f6d612d33a0549
     steps:
       - checkout
       - run: docker pull $BUILD_IMAGE
@@ -39,7 +39,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:75a9fae92548feec145767fe51526b0a8287ef63
+      BUILD_IMAGE: weaveworks/eksctl-build:b42bade104d69192f89e2fba53f6d612d33a0549
     steps:
       - checkout
       - run: docker pull $BUILD_IMAGE
@@ -51,7 +51,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:75a9fae92548feec145767fe51526b0a8287ef63
+      BUILD_IMAGE: weaveworks/eksctl-build:b42bade104d69192f89e2fba53f6d612d33a0549
     steps:
       - add_ssh_keys:
           fingerprints:

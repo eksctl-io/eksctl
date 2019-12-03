@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -36,7 +37,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		return doCreateNodeGroups(cmd, ng, params)
 	})
 
-	exampleNodeGroupName := cmdutils.NodeGroupName("", "")
+	exampleNodeGroupName := names.ForNodeGroup("", "")
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")

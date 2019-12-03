@@ -18,6 +18,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/vpc"
@@ -78,10 +79,6 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 	return ClusterSupportsManagedNodes(c.Status.clusterInfo.cluster)
 }
 
-var (
-	platformVersionRegex = regexp.MustCompile(`^eks\.(\d+)$`)
-)
-
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
 func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 	versionSupportsManagedNodes, err := VersionSupportsManagedNodes(*cluster.Version)
@@ -97,18 +94,59 @@ func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
 		logger.Warning("could not find cluster's platform version")
 		return false, nil
 	}
-
-	match := platformVersionRegex.FindStringSubmatch(*cluster.PlatformVersion)
-	if len(match) != 2 {
-		return false, fmt.Errorf("failed to parse cluster's platform version: %q", *cluster.PlatformVersion)
-	}
-	versionStr := match[1]
-	minSupportedVersion := 3
-	version, err := strconv.Atoi(versionStr)
+	version, err := PlatformVersion(*cluster.PlatformVersion)
 	if err != nil {
 		return false, err
 	}
+	minSupportedVersion := 3
 	return version >= minSupportedVersion, nil
+}
+
+// SupportsFargate reports whether an existing cluster supports Fargate.
+func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (bool, error) {
+	if err := c.maybeRefreshClusterStatus(clusterConfig); err != nil {
+		return false, err
+	}
+	return ClusterSupportsFargate(c.Status.clusterInfo.cluster)
+}
+
+// ClusterSupportsFargate reports whether an existing cluster supports Fargate.
+func ClusterSupportsFargate(cluster *awseks.Cluster) (bool, error) {
+	versionSupportsFargate, err := fargate.IsSupportedBy(*cluster.Version)
+	if err != nil {
+		return false, err
+	}
+	if !versionSupportsFargate {
+		return false, nil
+	}
+
+	if cluster.PlatformVersion == nil {
+		logger.Warning("could not find cluster's platform version")
+		return false, nil
+	}
+	version, err := PlatformVersion(*cluster.PlatformVersion)
+	if err != nil {
+		return false, err
+	}
+	return version >= fargate.MinPlatformVersion, nil
+}
+
+var (
+	platformVersionRegex = regexp.MustCompile(`^eks\.(\d+)$`)
+)
+
+// PlatformVersion extracts the digit X in the provided platform version eks.X
+func PlatformVersion(platformVersion string) (int, error) {
+	match := platformVersionRegex.FindStringSubmatch(platformVersion)
+	if len(match) != 2 {
+		return -1, fmt.Errorf("failed to parse cluster's platform version: %q", platformVersion)
+	}
+	versionStr := match[1]
+	version, err := strconv.Atoi(versionStr)
+	if err != nil {
+		return -1, err
+	}
+	return version, nil
 }
 
 func (c *ClusterProvider) maybeRefreshClusterStatus(spec *api.ClusterConfig) error {
@@ -208,7 +246,7 @@ func (c *ClusterProvider) LoadClusterVPC(spec *api.ClusterConfig) error {
 }
 
 // ListClusters display details of all the EKS cluster in your account
-func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output string, eachRegion bool) error {
+func (c *ClusterProvider) ListClusters(clusterName string, chunkSize int, output printers.Type, eachRegion bool) error {
 	// NOTE: this needs to be reworked in the future so that the functionality
 	// is combined. This require the ability to return details of all clusters
 	// in a single call.

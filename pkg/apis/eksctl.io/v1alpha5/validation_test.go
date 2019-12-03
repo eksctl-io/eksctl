@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -541,6 +542,82 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Describe("FargateProfile", func() {
+		Describe("Validate", func() {
+			It("returns an error when the profile's name is empty", func() {
+				profile := FargateProfile{
+					Selectors: []FargateProfileSelector{
+						FargateProfileSelector{Namespace: "default"},
+					},
+				}
+				err := profile.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile: empty name"))
+			})
+
+			It("returns an error when the profile has a nil selectors array", func() {
+				profile := FargateProfile{
+					Name: "default",
+				}
+				err := profile.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile \"default\": no profile selector"))
+			})
+
+			It("returns an error when the profile has an empty selectors array", func() {
+				profile := FargateProfile{
+					Name:      "default",
+					Selectors: []FargateProfileSelector{},
+				}
+				err := profile.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile \"default\": no profile selector"))
+			})
+
+			It("returns an error when the profile's selectors do not have any namespace defined", func() {
+				profile := FargateProfile{
+					Name: "default",
+					Selectors: []FargateProfileSelector{
+						FargateProfileSelector{},
+					},
+				}
+				err := profile.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile \"default\": invalid profile selector at index #0: empty namespace"))
+			})
+
+			It("returns an error when the profile's name starts with eks-", func() {
+				profile := FargateProfile{
+					Name: "eks-foo",
+					Selectors: []FargateProfileSelector{
+						FargateProfileSelector{Namespace: "default"},
+					},
+				}
+				err := profile.Validate()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("invalid Fargate profile \"eks-foo\": name should NOT start with \"eks-\""))
+			})
+
+			It("passes when a name and at least one selector with a namespace is defined", func() {
+				profile := FargateProfile{
+					Name: "default",
+					Selectors: []FargateProfileSelector{
+						FargateProfileSelector{Namespace: "default"},
+					},
+				}
+				err := profile.Validate()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("passes on randomly generated fields", func() {
+				profile := FargateProfile{}
+				err := faker.FakeData(&profile)
+				Expect(err).ToNot(HaveOccurred())
+				err = profile.Validate()
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+	})
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {

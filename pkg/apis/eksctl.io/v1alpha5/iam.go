@@ -17,6 +17,8 @@ type ClusterIAM struct {
 	// +optional
 	ServiceRoleARN *string `json:"serviceRoleARN,omitempty"`
 	// +optional
+	FargatePodExecutionRoleARN *string `json:"fargatePodExecutionRoleARN,omitempty"`
+	// +optional
 	WithOIDC *bool `json:"withOIDC,omitempty"`
 	// +optional
 	ServiceAccounts []*ClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`

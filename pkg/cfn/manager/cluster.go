@@ -14,6 +14,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
+	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 )
 
 // MakeChangeSetName builds a consistent name for a changeset.
@@ -54,6 +55,25 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 		}
 	}
 	return nil, c.errStackNotFound()
+}
+
+// RefreshFargatePodExecutionRoleARN reads the CloudFormation stacks and
+// their output values, and set the Fargate pod execution role ARN to
+// the ClusterConfig.
+func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
+	stack, err := c.DescribeClusterStack()
+	if err != nil {
+		return err
+	}
+	return outputs.Collect(*stack,
+		map[string]outputs.Collector{
+			outputs.FargatePodExecutionRoleARN: func(v string) error {
+				c.spec.IAM.FargatePodExecutionRoleARN = &v
+				return nil
+			},
+		},
+		nil,
+	)
 }
 
 // AppendNewClusterStackResource will update cluster

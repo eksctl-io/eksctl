@@ -320,6 +320,27 @@ func (c *ClusterMeta) LogString() string {
 	return fmt.Sprintf("EKS cluster %q in %q region", c.Name, c.Region)
 }
 
+// LogString returns representation of ClusterConfig for logs
+func (c ClusterConfig) LogString() string {
+	modes := []string{}
+	if c.IsFargateEnabled() {
+		modes = append(modes, "Fargate profile")
+	}
+	if len(c.ManagedNodeGroups) > 0 {
+		modes = append(modes, "managed nodes")
+	}
+	if len(c.NodeGroups) > 0 {
+		modes = append(modes, "un-managed nodes")
+	}
+	return fmt.Sprintf("%s with %s", c.Metadata.LogString(), strings.Join(modes, " and "))
+}
+
+// IsFargateEnabled returns true if Fargate is enabled in this ClusterConfig,
+// or false otherwise.
+func (c ClusterConfig) IsFargateEnabled() bool {
+	return len(c.FargateProfiles) > 0
+}
+
 // ClusterProvider is the interface to AWS APIs
 type ClusterProvider interface {
 	CloudFormation() cloudformationiface.CloudFormationAPI
@@ -366,6 +387,9 @@ type ClusterConfig struct {
 
 	// +optional
 	ManagedNodeGroups []*ManagedNodeGroup `json:"managedNodeGroups,omitempty"`
+
+	// +optional
+	FargateProfiles []*FargateProfile `json:"fargateProfiles,omitempty"`
 
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
@@ -776,4 +800,27 @@ func HasMixedInstances(ng *NodeGroup) bool {
 // IsAMI returns true if the argument is an AMI id
 func IsAMI(amiFlag string) bool {
 	return strings.HasPrefix(amiFlag, "ami-")
+}
+
+// FargateProfile defines the settings used to schedule workload onto Fargate.
+type FargateProfile struct {
+	// Name of the Fargate profile.
+	Name string `json:"name"`
+	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
+	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
+	// Selectors define the rules to select workload to schedule onto Fargate.
+	Selectors []FargateProfileSelector `json:"selectors"`
+	// +optional
+	// Subnets which Fargate should use to do network placement of the selected workload.
+	// If none provided, all subnets for the cluster will be used.
+	Subnets []string `json:"subnets,omitempty"`
+}
+
+// FargateProfileSelector defines rules to select workload to schedule onto Fargate.
+type FargateProfileSelector struct {
+	// Namespace is the Kubernetes namespace from which to select workload.
+	Namespace string `json:"namespace"`
+	// +optional
+	// Labels are the Kubernetes label selectors to use to select workload.
+	Labels map[string]string `json:"labels,omitempty"`
 }

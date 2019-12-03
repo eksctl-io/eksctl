@@ -53,6 +53,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.addResourcesForSecurityGroups()
 	c.addResourcesForIAM()
 	c.addResourcesForControlPlane()
+	c.addResourcesForFargate()
 
 	c.rs.defineOutput(outputs.ClusterStackName, gfn.RefStackName, false, func(v string) error {
 		if c.spec.Status == nil {
@@ -136,6 +137,10 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 				return nil
 			})
 	}
+}
+
+func (c *ClusterResourceSet) addResourcesForFargate() {
+	AddResourcesForFargate(c.rs, c.spec)
 }
 
 // GetAllOutputs collects all outputs of the cluster

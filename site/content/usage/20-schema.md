@@ -33,6 +33,11 @@ ClusterConfig:
     cloudWatch:
       $ref: '#/definitions/ClusterCloudWatch'
       $schema: http://json-schema.org/draft-04/schema#
+    fargateProfiles:
+      items:
+        $ref: '#/definitions/FargateProfile'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
     iam:
       $ref: '#/definitions/ClusterIAM'
       $schema: http://json-schema.org/draft-04/schema#
@@ -70,6 +75,8 @@ ClusterEndpoints:
 ClusterIAM:
   additionalProperties: false
   properties:
+    fargatePodExecutionRoleARN:
+      type: string
     serviceAccounts:
       items:
         $ref: '#/definitions/ClusterIAMServiceAccount'
@@ -185,6 +192,39 @@ ClusterVPC:
       $schema: http://json-schema.org/draft-04/schema#
   required:
   - Network
+  type: object
+FargateProfile:
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    podExecutionRoleARN:
+      type: string
+    selectors:
+      items:
+        $ref: '#/definitions/FargateProfileSelector'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
+    subnets:
+      items:
+        type: string
+      type: array
+  required:
+  - name
+  - selectors
+  type: object
+FargateProfileSelector:
+  additionalProperties: false
+  properties:
+    labels:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    namespace:
+      type: string
+  required:
+  - namespace
   type: object
 IPNet:
   additionalProperties: false

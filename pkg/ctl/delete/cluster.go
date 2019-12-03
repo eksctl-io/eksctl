@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/fargate"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -123,6 +124,10 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
+	if err := deleteFargateProfiles(cmd, ctl); err != nil {
+		return err
+	}
+
 	ssh.DeleteKeys(meta.Name, ctl.Provider.EC2())
 
 	kubeconfig.MaybeDeleteConfig(meta)
@@ -177,5 +182,35 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 		logger.Success("all cluster resources were deleted")
 	}
 
+	return nil
+}
+
+func deleteFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
+	awsClient := fargate.NewClientWithWaitTimeout(
+		cmd.ClusterConfig.Metadata.Name,
+		ctl.Provider.EKS(),
+		cmd.ProviderConfig.WaitTimeout,
+	)
+	profileNames, err := awsClient.ListProfiles()
+	if err != nil {
+		return err
+	}
+	// Linearise the deleting of Fargate profiles by passing as the API
+	// otherwise errors out with:
+	//   ResourceInUseException: Cannot delete Fargate Profile ${name2} because
+	//   cluster ${clusterName} currently has Fargate profile ${name1} in
+	//   status DELETING
+
+	for _, profileName := range profileNames {
+		logger.Info("deleting Fargate profile %q", *profileName)
+		// All Fargate profiles must be completely deleted by waiting for the deletion to complete, before deleting
+		// the cluster itself, otherwise it can result in this error:
+		//   Cannot delete because cluster <cluster> currently has Fargate profile <profile> in status DELETING
+		if err := awsClient.DeleteProfile(*profileName, true); err != nil {
+			return err
+		}
+		logger.Info("deleted Fargate profile %q", *profileName)
+	}
+	logger.Info("deleted %v Fargate profile(s)", len(profileNames))
 	return nil
 }
