@@ -139,7 +139,7 @@ func NewDeleteFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterCo
 	l.flagsIncompatibleWithConfigFile.Insert(fargateProfileFlagsIncompatibleWithConfigFile...)
 	l.flagsIncompatibleWithoutConfigFile.Insert(fargateProfileFlagsIncompatibleWithoutConfigFile...)
 	l.validateWithoutConfigFile = func() error {
-		if err := l.validateMetadataWithoutConfigFile(); err != nil {
+		if err := validate(cmd, options); err != nil {
 			return err
 		}
 		return options.Validate()
