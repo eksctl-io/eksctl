@@ -57,7 +57,10 @@ func NewCreateFargateProfileLoader(cmd *Cmd, options *fargate.CreateOptions) Clu
 		return validateFargateProfiles(l)
 	}
 	l.validateWithoutConfigFile = func() error {
-		if err := l.validateMetadataWithoutConfigFile(); err != nil {
+		if err := validateCluster(cmd); err != nil {
+			return err
+		}
+		if err := validateNameFlagAndArgCreate(cmd, options); err != nil {
 			return err
 		}
 		if err := options.Validate(); err != nil {
@@ -76,6 +79,16 @@ func validateFargateProfiles(l *commonClusterConfigLoader) error {
 		if err := profile.Validate(); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func validateNameFlagAndArgCreate(cmd *Cmd, options *fargate.CreateOptions) error {
+	if options.ProfileName != "" && cmd.NameArg != "" {
+		return ErrFlagAndArg(fmt.Sprintf("--%s", fargateProfileName), options.ProfileName, cmd.NameArg)
+	}
+	if options.ProfileName == "" && cmd.NameArg != "" {
+		options.ProfileName = cmd.NameArg
 	}
 	return nil
 }
