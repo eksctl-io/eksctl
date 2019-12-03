@@ -200,15 +200,16 @@ func deleteFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
 	//   ResourceInUseException: Cannot delete Fargate Profile ${name2} because
 	//   cluster ${clusterName} currently has Fargate profile ${name1} in
 	//   status DELETING
-	waitForDeletion := cmd.Wait || len(profileNames) > 1
-	if len(profileNames) > 0 {
-		for _, profileName := range profileNames {
-			logger.Info("deleting Fargate profile %q", *profileName)
-			if err := awsClient.DeleteProfile(*profileName, waitForDeletion); err != nil {
-				return err
-			}
-			logger.Info("deleted Fargate profile %q", *profileName)
+
+	for _, profileName := range profileNames {
+		logger.Info("deleting Fargate profile %q", *profileName)
+		// All Fargate profiles must be completely deleted by waiting for the deletion to complete, before deleting
+		// the cluster itself, otherwise it can result in this error:
+		//   Cannot delete because cluster <cluster> currently has Fargate profile <profile> in status DELETING
+		if err := awsClient.DeleteProfile(*profileName, true); err != nil {
+			return err
 		}
+		logger.Info("deleted Fargate profile %q", *profileName)
 	}
 	logger.Info("deleted %v Fargate profile(s)", len(profileNames))
 	return nil
