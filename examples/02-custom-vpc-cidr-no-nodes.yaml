@@ -1,5 +1,5 @@
 # An example of ClusterConfig object with custom VPC IPv4 CIDR,
-# and auto-allocated IPv6 CDIRs for all subnets; also without
+# and auto-allocated IPv6 CIDRs for all subnets; also without
 # any nodegroups:
 --- 
 apiVersion: eksctl.io/v1alpha5
