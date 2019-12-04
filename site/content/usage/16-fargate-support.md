@@ -234,7 +234,7 @@ $ eksctl create fargateprofile --name eks-dev --namespace dev --cluster fargate-
 [ℹ]  created Fargate profile "fp-development" on EKS cluster "fargate-example-cluster"
 ```
 
-Using this command with CLI flags eksctl can only create a single fargate profile with a simple selector. For more
+Using this command with CLI flags eksctl can only create a single Fargate profile with a simple selector. For more
 complex selectors, for example with more namespaces, eksctl supports using a config file:
 
 ```yaml
