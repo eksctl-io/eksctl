@@ -65,8 +65,6 @@ When the profile is not specified but support for Fargate is enabled with `--far
 created. This profile targets the `default` and the `kube-system` namespaces so pods in those namespaces will run on
 Fargate.
  
-#<!-- TODO: say "see more about selectors in section XXX -->
-
 The Fargate profile that was created can be checked with the following command:
 
 ```console
@@ -81,6 +79,8 @@ $ eksctl get fargateprofile --cluster ridiculous-painting-1574859263 -o yaml
   - subnet-0c35f1497067363f3
   - subnet-0a29aa00b25082021
 ```
+
+To learn more about selectors see [Designing Fargate profiles](#designing-fargate-profiles).
 
 ### Creating a cluster with Fargate support using a config file
 
@@ -227,13 +227,54 @@ $ eksctl create fargateprofile --namespace dev --cluster fargate-example-cluster
 [ℹ]  created Fargate profile "fp-9bfc77ad" on EKS cluster "fargate-example-cluster"
 ```
 
-
 You can also specify the name of the Fargate profile to be created. This name must not start with the prefix `eks-`.
 
 ```console
 $ eksctl create fargateprofile --name eks-dev --namespace dev --cluster fargate-example-cluster --name fp-development
 [ℹ]  created Fargate profile "fp-development" on EKS cluster "fargate-example-cluster"
 ```
+
+Using this command with CLI flags eksctl can only create a single fargate profile with a simple selector. For more
+complex selectors, for example with more namespaces, eksctl supports using a config file:
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: fargate-example-cluster
+  region: ap-northeast-1
+
+fargateProfiles:
+  - name: default
+    selectors:
+      # All workloads in the "default" Kubernetes namespace will be
+      # scheduled onto Fargate:
+      - namespace: default
+      # All workloads in the "kube-system" Kubernetes namespace will be
+      # scheduled onto Fargate:
+      - namespace: kube-system
+  - name: dev
+    selectors:
+      # All workloads in the "dev" Kubernetes namespace matching the following
+      # label selectors will be scheduled onto Fargate:
+      - namespace: dev
+        labels:
+          env: dev
+          checks: passed
+
+```
+
+```console
+$ eksctl create fargateprofile -f fargate-example-cluster.yaml 
+[ℹ]  creating Fargate profile "default" on EKS cluster "fargate-example-cluster"
+[ℹ]  created Fargate profile "default" on EKS cluster "fargate-example-cluster"
+[ℹ]  creating Fargate profile "dev" on EKS cluster "fargate-example-cluster"
+[ℹ]  created Fargate profile "dev" on EKS cluster "fargate-example-cluster"
+[ℹ]  "coredns" is now scheduled onto Fargate
+[ℹ]  "coredns" pods are now scheduled onto Fargate
+``` 
+
 To see existing Fargate profiles in a cluster:
 
 ```console
