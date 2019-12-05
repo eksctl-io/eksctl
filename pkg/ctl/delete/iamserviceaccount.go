@@ -48,7 +48,7 @@ func deleteIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmd.FlagSetGroup.InFlagSet("Delete IAM service Account", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Delete IAM service account", func(fs *pflag.FlagSet) {
 		fs.StringVar(&params.serviceAccount.Name, "name", "", "name of the iamserviceaccount to delete")
 		fs.StringVar(&params.serviceAccount.Namespace, "namespace", "default", "namespace where to delete the iamserviceaccount")
 		fs.BoolVar(&params.onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
