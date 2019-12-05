@@ -193,8 +193,14 @@ func deleteFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
 	)
 	profileNames, err := awsClient.ListProfiles()
 	if err != nil {
+		if fargate.IsUnauthorizedError(err) {
+			logger.Debug("Fargate: unauthorized error: %v", err)
+			logger.Info("account is not authorized to use Fargate. Ignoring error")
+			return nil
+		}
 		return err
 	}
+
 	// Linearise the deleting of Fargate profiles by passing as the API
 	// otherwise errors out with:
 	//   ResourceInUseException: Cannot delete Fargate Profile ${name2} because
