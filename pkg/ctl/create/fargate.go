@@ -87,7 +87,7 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 }
 
 func clientSet(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (kubernetes.Interface, error) {
-	kubernetesClientConfigs, err := ctl.NewClient(cfg)
+	kubernetesClientConfigs, err := ctl.NewClient(cfg, "")
 	if err != nil {
 		return nil, err
 	}
