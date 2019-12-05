@@ -227,6 +227,11 @@ func (in *ClusterIAM) DeepCopyInto(out *ClusterIAM) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.ServiceRolePermissionsBoundary != nil {
+		in, out := &in.ServiceRolePermissionsBoundary, &out.ServiceRolePermissionsBoundary
+		*out = new(string)
+		**out = **in
+	}
 	if in.WithOIDC != nil {
 		in, out := &in.WithOIDC, &out.WithOIDC
 		*out = new(bool)

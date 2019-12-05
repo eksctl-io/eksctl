@@ -113,6 +113,24 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceProfileARN and nodeGroups[1].iam.instanceRoleName cannot be set at the same time"))
 		})
 
+		It("should not allow setting instanceProfileARN and instanceRolePermissionsBoundary", func() {
+			ng1.IAM.InstanceProfileARN = "p1"
+			ng1.IAM.InstanceRolePermissionsBoundary = "aPolicy"
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceProfileARN and nodeGroups[1].iam.instanceRolePermissionsBoundary cannot be set at the same time"))
+		})
+
+		It("should not allow setting instanceRoleARN and instanceRolePermissionsBoundary", func() {
+			ng1.IAM.InstanceRoleARN = "r1"
+			ng1.IAM.InstanceRolePermissionsBoundary = "p1"
+
+			err = ValidateNodeGroup(1, ng1)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("nodeGroups[1].iam.instanceRoleARN and nodeGroups[1].iam.instanceRolePermissionsBoundary cannot be set at the same time"))
+		})
+
 		It("should not allow setting instanceRoleARN and instanceRoleName", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 			ng1.IAM.InstanceRoleName = "aRole"

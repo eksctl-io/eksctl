@@ -77,12 +77,16 @@ ClusterIAM:
   properties:
     fargatePodExecutionRoleARN:
       type: string
+    fargatePodExecutionRolePermissionsBoundary:
+      type: string
     serviceAccounts:
       items:
         $ref: '#/definitions/ClusterIAMServiceAccount'
         $schema: http://json-schema.org/draft-04/schema#
       type: array
     serviceRoleARN:
+      type: string
+    serviceRolePermissionsBoundary:
       type: string
     withOIDC:
       type: boolean
@@ -103,6 +107,8 @@ ClusterIAMServiceAccount:
     metadata:
       $ref: '#/definitions/ObjectMeta'
       $schema: http://json-schema.org/draft-04/schema#
+    permissionsBoundary:
+      type: string
     status:
       $ref: '#/definitions/ClusterIAMServiceAccountStatus'
       $schema: http://json-schema.org/draft-04/schema#
@@ -425,6 +431,8 @@ NodeGroupIAM:
     instanceRoleARN:
       type: string
     instanceRoleName:
+      type: string
+    instanceRolePermissionsBoundary:
       type: string
     withAddonPolicies:
       $ref: '#/definitions/NodeGroupIAMAddonPolicies'
