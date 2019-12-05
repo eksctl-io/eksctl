@@ -179,9 +179,9 @@ func AddUpdateAuthConfigMap(fs *pflag.FlagSet, updateAuthConfigMap *bool, descri
 	fs.BoolVar(updateAuthConfigMap, "update-auth-configmap", true, description)
 }
 
-// AddClusterEndpointOverrideFlag adds common cluster-endpoint-override flag
+// AddClusterEndpointOverrideFlag adds common cluster-endpoint flag
 func AddClusterEndpointOverrideFlag(fs *pflag.FlagSet, clusterEndpoint *string) {
-	fs.StringVar(clusterEndpoint, "cluster-endpoint-override", "", "cluster endpoint to use instead of the eks cluster endpoint provided by Cloudformation")
+	fs.StringVar(clusterEndpoint, "cluster-endpoint", "", "cluster endpoint to use instead of the eks cluster endpoint provided by Cloudformation")
 }
 
 // AddCommonFlagsForKubeconfig adds common flags for controlling how output kubeconfig is written
