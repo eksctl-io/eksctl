@@ -222,13 +222,18 @@ func (in *ClusterIAM) DeepCopyInto(out *ClusterIAM) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.ServiceRolePermissionsBoundary != nil {
+		in, out := &in.ServiceRolePermissionsBoundary, &out.ServiceRolePermissionsBoundary
+		*out = new(string)
+		**out = **in
+	}
 	if in.FargatePodExecutionRoleARN != nil {
 		in, out := &in.FargatePodExecutionRoleARN, &out.FargatePodExecutionRoleARN
 		*out = new(string)
 		**out = **in
 	}
-	if in.ServiceRolePermissionsBoundary != nil {
-		in, out := &in.ServiceRolePermissionsBoundary, &out.ServiceRolePermissionsBoundary
+	if in.FargatePodExecutionRolePermissionsBoundary != nil {
+		in, out := &in.FargatePodExecutionRolePermissionsBoundary, &out.FargatePodExecutionRolePermissionsBoundary
 		*out = new(string)
 		**out = **in
 	}
