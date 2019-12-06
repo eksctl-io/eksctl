@@ -4,7 +4,7 @@
 # `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 
 if [ -z "${GOBIN+x}" ]; then
- GOBIN="${GOPATH%:*}/bin"
+ GOBIN="${GOPATH%%:*}/bin"
 fi
 
 if [ "$(uname)" = "Darwin" ] ; then
