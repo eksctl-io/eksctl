@@ -82,7 +82,7 @@ jobs:
                 path: ./test-results
             - store_artifacts:
                 path: ./test-results
-          no_output_timeout: 120m
+          no_output_timeout: 140m
 
 workflows:
   version: 2
