@@ -94,7 +94,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		Subnets: AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false),
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: []string{m.nodeGroup.InstanceType},
-		AmiType:       getAMIType(m.nodeGroup.AMIFamily),
+		AmiType:       getAMIType(m.nodeGroup.InstanceType),
 		// ManagedNodeGroup.IAM.InstanceRoleARN is not supported, so this field is always retrieved from the
 		// CFN resource
 		NodeRole: gfn.MakeFnGetAttString(fmt.Sprintf("%s.%s", cfnIAMInstanceRoleName, "Arn")),
@@ -117,8 +117,8 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	return nil
 }
 
-func getAMIType(amiFamily string) string {
-	if utils.IsGPUInstanceType(amiFamily) {
+func getAMIType(instanceType string) string {
+	if utils.IsGPUInstanceType(instanceType) {
 		return eks.AMITypesAl2X8664Gpu
 	}
 	return eks.AMITypesAl2X8664
