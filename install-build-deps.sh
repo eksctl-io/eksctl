@@ -4,7 +4,7 @@
 # `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 
 if [ -z "${GOBIN+x}" ]; then
- GOBIN="$(go env GOPATH)/bin"
+ GOBIN="${GOPATH%:*}/bin"
 fi
 
 if [ "$(uname)" = "Darwin" ] ; then
@@ -33,4 +33,4 @@ go install \
 # a lot of work, so we install all of those from the release tarball
 METALINTER_VERSION="3.0.0"
 curl --silent --location "https://github.com/alecthomas/gometalinter/releases/download/v${METALINTER_VERSION}/gometalinter-${METALINTER_VERSION}-${OSARCH}.tar.gz" \
-  | tar -x -z -C "${GOBIN%%:*}" --strip-components 1
+  | tar -x -z -C "${GOBIN}" --strip-components 1
