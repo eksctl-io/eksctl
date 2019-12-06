@@ -2,7 +2,7 @@
 // `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 module github.com/weaveworks/eksctl
 
-go 1.12
+go 1.13
 
 require (
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
