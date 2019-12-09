@@ -53,7 +53,15 @@ func init() {
 	flag.BoolVar(&doDelete, "eksctl.delete", true, "Skip the cleanup after the tests have run")
 	flag.StringVar(&kubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create it a temporary file)")
 	flag.StringVar(&privateSSHKeyPath, "eksctl.git.sshkeypath", defaultPrivateSSHKeyPath, fmt.Sprintf("Path to the SSH key to use for Git operations (default: %s)", defaultPrivateSSHKeyPath))
+}
 
+func TestSuite(t *testing.T) {
+	parseTestArgs()
+	testutils.RegisterAndRun(t)
+}
+
+func parseTestArgs() {
+	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
 
 	eksctlCmd = runner.NewCmd(eksctlPath).
@@ -85,9 +93,4 @@ func init() {
 
 	eksctlExperimentalCmd = eksctlCmd.
 		WithEnv("EKSCTL_EXPERIMENTAL=true")
-
-}
-
-func TestSuite(t *testing.T) {
-	testutils.RegisterAndRun(t)
 }
