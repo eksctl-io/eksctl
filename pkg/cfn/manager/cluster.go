@@ -30,7 +30,7 @@ func (c *StackCollection) makeClusterStackName() string {
 func (c *StackCollection) createClusterTask(errs chan error, supportsManagedNodes bool) error {
 	name := c.makeClusterStackName()
 	logger.Info("building cluster stack %q", name)
-	stack := builder.NewClusterResourceSet(c.provider, c.spec, supportsManagedNodes)
+	stack := builder.NewClusterResourceSet(c.provider, c.spec, supportsManagedNodes, nil)
 	if err := stack.AddAllResources(); err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 	}
 
 	logger.Info("re-building cluster stack %q", name)
-	newStack := builder.NewClusterResourceSet(c.provider, c.spec, supportsManagedNodes)
+	newStack := builder.NewClusterResourceSet(c.provider, c.spec, supportsManagedNodes, &currentResources)
 	if err := newStack.AddAllResources(); err != nil {
 		return false, err
 	}

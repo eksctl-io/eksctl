@@ -13,6 +13,11 @@ import (
 
 var internetCIDR = gfn.NewString("0.0.0.0/0")
 
+const (
+	cfnControlPlaneSGResource = "ControlPlaneSecurityGroup"
+	cfnSharedNodeSGResource   = "ClusterSharedNodeSecurityGroup"
+)
+
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
 	var subnetIndexForIPv6 int
 	if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
@@ -187,7 +192,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 	var refControlPlaneSG, refClusterSharedNodeSG *gfn.Value
 
 	if c.spec.VPC.SecurityGroup == "" {
-		refControlPlaneSG = c.newResource("ControlPlaneSecurityGroup", &gfn.AWSEC2SecurityGroup{
+		refControlPlaneSG = c.newResource(cfnControlPlaneSGResource, &gfn.AWSEC2SecurityGroup{
 			GroupDescription: gfn.NewString("Communication between the control plane and worker nodegroups"),
 			VpcId:            c.vpc,
 		})
@@ -197,7 +202,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 	c.securityGroups = []*gfn.Value{refControlPlaneSG} // only this one SG is passed to EKS API, nodes are isolated
 
 	if c.spec.VPC.SharedNodeSecurityGroup == "" {
-		refClusterSharedNodeSG = c.newResource("ClusterSharedNodeSecurityGroup", &gfn.AWSEC2SecurityGroup{
+		refClusterSharedNodeSG = c.newResource(cfnSharedNodeSGResource, &gfn.AWSEC2SecurityGroup{
 			GroupDescription: gfn.NewString("Communication between all nodes in the cluster"),
 			VpcId:            c.vpc,
 		})
