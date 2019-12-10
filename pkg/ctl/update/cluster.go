@@ -100,19 +100,6 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
-	if err != nil {
-		return err
-	}
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
-	if err != nil {
-		return err
-	}
-
-	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
-		logger.Critical("failed checking nodegroups", err.Error())
-	}
-
 	if versionUpdateRequired {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
 		cmdutils.LogIntendedAction(cmd.Plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
@@ -131,6 +118,24 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 				logger.Info("once it has been updated, %s", cfg.Metadata.Name, msgNodeGroupsAndAddons)
 			}
 		}
+	}
+
+	if err := ctl.RefreshClusterStatus(cfg); err != nil {
+		return err
+	}
+
+	supportsManagedNodes, err := ctl.SupportsManagedNodes(cfg)
+	if err != nil {
+		return err
+	}
+
+	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
+	if err != nil {
+		return err
+	}
+
+	if err := ctl.ValidateExistingNodeGroupsForCompatibility(cfg, stackManager); err != nil {
+		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
 	cmdutils.LogPlanModeWarning(cmd.Plan && (stackUpdateRequired || versionUpdateRequired))
