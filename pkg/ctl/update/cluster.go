@@ -33,7 +33,6 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 		fs.BoolVar(&cmd.Plan, "dry-run", cmd.Plan, "")
 		_ = fs.MarkDeprecated("dry-run", "see --approve")
 
-		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "all update operations to complete")
 		_ = fs.MarkDeprecated("wait", "--wait is no longer respected; the cluster update always waits to complete")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
@@ -105,19 +104,11 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 		msgNodeGroupsAndAddons := "you will need to follow the upgrade procedure for all of nodegroups and add-ons"
 		cmdutils.LogIntendedAction(cmd.Plan, "upgrade cluster %q control plane from current version %q to %q", cfg.Metadata.Name, currentVersion, cfg.Metadata.Version)
 		if !cmd.Plan {
-			if cmd.Wait {
-				if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
-					return err
-				}
-				logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
-				logger.Info(msgNodeGroupsAndAddons)
-			} else {
-				if _, err := ctl.UpdateClusterVersion(cfg); err != nil {
-					return err
-				}
-				logger.Success("a version update operation has been requested for cluster %q", cfg.Metadata.Name)
-				logger.Info("once it has been updated, %s", cfg.Metadata.Name, msgNodeGroupsAndAddons)
+			if err := ctl.UpdateClusterVersionBlocking(cfg); err != nil {
+				return err
 			}
+			logger.Success("cluster %q control plane has been upgraded to version %q", cfg.Metadata.Name, cfg.Metadata.Version)
+			logger.Info(msgNodeGroupsAndAddons)
 		}
 	}
 
