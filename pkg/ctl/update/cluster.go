@@ -35,6 +35,7 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 
 		cmd.Wait = true
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "all update operations to complete")
+		_ = fs.MarkDeprecated("wait", "--wait is no longer respected; the cluster update always waits to complete")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
