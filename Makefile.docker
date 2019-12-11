@@ -54,6 +54,7 @@ build-image: check-build-image-manifest-up-to-date ## Build the build image that
 	  --iidfile=.build_image.iid \
 	  --cache-from=$(build_image_name) \
 	  --tag=$(build_image_name) \
+	  --build-arg=GITHUB_TOKEN=${GITHUB_TOKEN} \
 	  .build_image_context/
 
 .PHONY: push-build-image
