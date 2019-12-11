@@ -7,6 +7,7 @@ import (
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -24,12 +25,28 @@ type ClusterResourceSet struct {
 }
 
 // NewClusterResourceSet returns a resource set for the new cluster
-func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, supportsManagedNodes bool) *ClusterResourceSet {
+func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig, supportsManagedNodes bool, existingStack *gjson.Result) *ClusterResourceSet {
+	if existingStack != nil {
+		unsetExistingResources(existingStack, spec)
+	}
 	return &ClusterResourceSet{
 		rs:                   newResourceSet(),
 		spec:                 spec,
 		provider:             provider,
 		supportsManagedNodes: supportsManagedNodes,
+	}
+}
+
+// unsetExistingResources unsets fields for CloudFormation resources that were created by eksctl (and not user-supplied)
+// in order to trigger execution of code that relies on these fields
+func unsetExistingResources(existingStack *gjson.Result, clusterConfig *api.ClusterConfig) {
+	controlPlaneSG := existingStack.Get(cfnControlPlaneSGResource)
+	if controlPlaneSG.Exists() {
+		clusterConfig.VPC.SecurityGroup = ""
+	}
+	sharedNodeSG := existingStack.Get(cfnSharedNodeSGResource)
+	if sharedNodeSG.Exists() {
+		clusterConfig.VPC.SharedNodeSecurityGroup = ""
 	}
 }
 
