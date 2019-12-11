@@ -26,13 +26,13 @@ jobs:
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
                 $BUILD_IMAGE go mod download
       - run:
-          name: Download Go dependencies not cached
+          name: Download some extra deps...
           command: |
             docker run \
               --volume=$(pwd):/src \
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
-                $BUILD_IMAGE make generate-always
+                $BUILD_IMAGE make check-all-generated-files-up-to-date
       # Now build eksctl with the Go cache in RO so it compiles faster
       - run:
           name: Test & Build
