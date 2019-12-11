@@ -29,19 +29,13 @@ RUN apk add --no-cache --initdb --root /out \
     openssh \
     && true
 
-ARG GITHUB_TOKEN
-RUN if [[ -n "${GITHUB_TOKEN}" ]] ; then echo "using GITHUB_TOKEN";  git config --global url."https://${GITHUB_TOKEN}:@github.com/".insteadOf "https://github.com/"; fi
-
 ENV KUBECTL_VERSION v1.11.5
 RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
     && chmod +x /out/usr/local/bin/kubectl
 
 # Remaining dependencies are controlled by go.mod
 WORKDIR /src
-ENV CGO_ENABLED=0
-ENV GOPROXY=https://proxy.golang.org,direct
-ENV GOPRIVATE=github.com/weaveworks/aws-sdk-go-private
-
+ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org
 
 COPY install-build-deps.sh go.mod go.sum /src/
 
