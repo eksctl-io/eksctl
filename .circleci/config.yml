@@ -4,7 +4,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
       - checkout
       - restore_cache:
@@ -49,7 +49,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
       - checkout
       - run: docker pull $BUILD_IMAGE
@@ -61,7 +61,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
       - checkout
       - run: docker pull $BUILD_IMAGE
@@ -73,7 +73,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
       - add_ssh_keys:
           fingerprints:
