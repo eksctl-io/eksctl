@@ -7,10 +7,25 @@ jobs:
       BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-cache-{{ .Branch }}-{{ .Revision }}
+            - go-cache-{{ .Branch }}-
+            - go-cache-
       # enabling docker executor will require to use large resource class, which
       # implies extra cost - we don't really have to do that, we can just run the
       # image this way
       - run: docker pull $BUILD_IMAGE
+      # First download new un-cached Go dependencies
+      - run:
+          name: Download Go dependencies not cached
+          command: |
+            docker run \
+              --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+                $BUILD_IMAGE go mod download
+      # Now build eksctl with the Go cache in RO so it compiles faster
       - run:
           name: Test & Build
           command: |
@@ -18,7 +33,14 @@ jobs:
             docker run \
               --env=JUNIT_REPORT_DIR=/src/test-results \
               --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build:ro \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod:ro \
                 $BUILD_IMAGE make test build
+      - save_cache:
+          key: go-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+              - "/home/circleci/.cache/go-build/"
+              - "/home/circleci/go/pkg/mod/"
       - store_test_results:
           path: ./test-results
       - store_artifacts:

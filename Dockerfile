@@ -42,9 +42,6 @@ COPY install-build-deps.sh go.mod go.sum /src/
 # Install all build tools dependencies
 RUN ./install-build-deps.sh
 
-# Download and cache all of the modules
-RUN go mod download
-
 # The authenticator is a runtime dependency, so it needs to be in /out
 RUN go install github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \
     && mv $GOPATH/bin/aws-iam-authenticator /out/usr/local/bin/aws-iam-authenticator
