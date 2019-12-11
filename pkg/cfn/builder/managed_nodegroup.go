@@ -82,6 +82,11 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 
 	createRole(m.resourceSet, m.nodeGroup.IAM)
 
+	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false)
+	if err != nil {
+		return err
+	}
+
 	managedResource := &managedNodeGroup{
 		ClusterName:   m.clusterConfig.Metadata.Name,
 		NodegroupName: m.nodeGroup.Name,
@@ -91,7 +96,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			DesiredSize: m.nodeGroup.DesiredCapacity,
 		},
 		// Only public subnets are supported at launch
-		Subnets: AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false),
+		Subnets: subnets,
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: []string{m.nodeGroup.InstanceType},
 		AmiType:       getAMIType(m.nodeGroup.InstanceType),

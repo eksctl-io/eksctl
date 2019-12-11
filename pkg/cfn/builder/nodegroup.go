@@ -147,7 +147,10 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier := AssignSubnets(n.spec.AvailabilityZones, n.clusterStackName, n.clusterSpec, n.spec.PrivateNetworking)
+	vpcZoneIdentifier, err := AssignSubnets(n.spec.AvailabilityZones, n.clusterStackName, n.clusterSpec, n.spec.PrivateNetworking)
+	if err != nil {
+		return err
+	}
 
 	tags := []map[string]interface{}{
 		{
@@ -183,11 +186,10 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 }
 
 // AssignSubnets subnets based on the specified availability zones
-func AssignSubnets(availabilityZones []string, clusterStackName string, clusterSpec *api.ClusterConfig, privateNetworking bool) interface{} {
+func AssignSubnets(availabilityZones []string, clusterStackName string, clusterSpec *api.ClusterConfig, privateNetworking bool) (interface{}, error) {
 	// currently goformation type system doesn't allow specifying `VPCZoneIdentifier: { "Fn::ImportValue": ... }`,
 	// and tags don't have `PropagateAtLaunch` field, so we have a custom method here until this gets resolved
 
-	var vpcZoneIdentifier interface{}
 	if numNodeGroupsAZs := len(availabilityZones); numNodeGroupsAZs > 0 {
 		subnets := clusterSpec.VPC.Subnets.Private
 		if !privateNetworking {
@@ -197,27 +199,30 @@ func AssignSubnets(availabilityZones []string, clusterStackName string, clusterS
 			return fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, availabilityZones)
 		}
 		if len(subnets) < numNodeGroupsAZs {
-			return fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", makeErrorDesc())
+			return nil, fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", makeErrorDesc())
 		}
-		vpcZoneIdentifier = make([]interface{}, numNodeGroupsAZs)
+		subnetIDs := make([]string, numNodeGroupsAZs)
 		for i, az := range availabilityZones {
 			subnet, ok := subnets[az]
 			if !ok {
-				return fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
+				return nil, fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
 			}
 
-			vpcZoneIdentifier.([]interface{})[i] = subnet.ID
+			subnetIDs[i] = subnet.ID
 		}
-	} else {
-		subnets := makeImportValue(clusterStackName, outputs.ClusterSubnetsPrivate)
-		if !privateNetworking {
-			subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPublic)
-		}
-		vpcZoneIdentifier = map[string][]interface{}{
-			gfn.FnSplit: {",", subnets},
-		}
+		return subnetIDs, nil
 	}
-	return vpcZoneIdentifier
+
+	var subnets *gfn.Value
+	if privateNetworking {
+		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPrivate)
+	} else {
+		subnets = makeImportValue(clusterStackName, outputs.ClusterSubnetsPublic)
+	}
+
+	return map[string][]interface{}{
+		gfn.FnSplit: {",", subnets},
+	}, nil
 }
 
 // GetAllOutputs collects all outputs of the nodegroup
