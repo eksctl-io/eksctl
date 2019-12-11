@@ -44,6 +44,8 @@ jobs:
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build:ro \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod:ro \
                 $BUILD_IMAGE make test build
+            sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
+            sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
       - save_cache:
           key: go-cache-{{ .Branch }}-{{ .Revision }}
           paths:
