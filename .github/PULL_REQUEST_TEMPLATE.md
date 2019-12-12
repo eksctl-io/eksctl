@@ -10,3 +10,4 @@
 - [ ] Added note in `docs/release_notes/draft.md` (or relevant release note)
 
 <!-- If you haven't done so already, you can add your name to the humans.txt file -->
+<!-- If you need the attention of the maintainers ping @weaveworks/eksctl -->

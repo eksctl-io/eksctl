@@ -78,11 +78,11 @@ jobs:
             --volume=$(pwd):/src \
             --volume=$HOME/project/.ssh:/root/.ssh \
             $BUILD_IMAGE make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/id_rsa_82cbed40f32705e6169d6825407d8307"
-            - store_test_results:
-                path: ./test-results
-            - store_artifacts:
-                path: ./test-results
-          no_output_timeout: 120m
+          no_output_timeout: 35m
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
 
 workflows:
   version: 2
