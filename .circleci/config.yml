@@ -1,5 +1,69 @@
 version: 2
 jobs:
+  set-up-environment:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-cache-{{ .Branch }}-{{ .Revision }}
+            - go-cache-{{ .Branch }}-
+            - go-cache-
+      # enabling docker executor will require to use large resource class, which
+      # implies extra cost - we don't really have to do that, we can just run the
+      # image this way
+      - run: docker pull $BUILD_IMAGE
+  test:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
+    steps:
+      - run:
+          name: Test
+          command: |
+            mkdir test-results; \
+            docker run \
+              --env=JUNIT_REPORT_DIR=/src/test-results \
+              --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+                $BUILD_IMAGE make test
+  build:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
+    steps:
+      - run:
+          name: Test
+          command: |
+            mkdir test-results; \
+            docker run \
+              --env=JUNIT_REPORT_DIR=/src/test-results \
+              --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+                $BUILD_IMAGE make build
+  save-cache:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
+    steps:
+      - run:
+          name: Fix cache permissions
+          command: |
+            sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
+            sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
+      - save_cache:
+          key: go-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - "/home/circleci/.cache/go-build/"
+            - "/home/circleci/go/pkg/mod/"
   test-and-build:
     machine:
       image: ubuntu-1604:201903-01
@@ -135,6 +199,31 @@ workflows:
   any-commit:
     jobs:
       - test-and-build:
+          filters:
+            tags:
+              ignore: /.*/
+  parallel:
+    jobs:
+      - set-up-environment:
+          filters:
+            tags:
+              ignore: /.*/
+      - test:
+          requires:
+            - set-up-environment
+          filters:
+            tags:
+              ignore: /.*/
+      - build:
+          requires:
+            - set-up-environment
+          filters:
+            tags:
+              ignore: /.*/
+      - save-cache:
+          requires:
+            - build
+            - test
           filters:
             tags:
               ignore: /.*/
