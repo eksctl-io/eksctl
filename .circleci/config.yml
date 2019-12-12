@@ -23,6 +23,14 @@ jobs:
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
                 $BUILD_IMAGE make test
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
+          # taken to be the root directory of the workspace.
+          root: /home/circleci
+          # Must be relative path from root
+          paths:
+            - .cache/go-build/
+            - go/pkg/mod/
   build:
     machine:
       image: ubuntu-1604:201903-01
@@ -46,12 +54,22 @@ jobs:
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
                 $BUILD_IMAGE make build
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
+          # taken to be the root directory of the workspace.
+          root: /home/circleci
+          # Must be relative path from root
+          paths:
+            - .cache/go-build/
+            - go/pkg/mod/
   save-cache:
     machine:
       image: ubuntu-1604:201903-01
     environment:
       BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - run:
           name: Fix cache permissions
           command: |
