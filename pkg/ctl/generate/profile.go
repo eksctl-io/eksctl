@@ -29,9 +29,10 @@ func generateProfileCmd(cmd *cmdutils.Cmd) {
 
 	var o options
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doGenerateProfile(cmd, o)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&o.GitOptions.URL, "git-url", "", "", "URL for the quickstart base repository")

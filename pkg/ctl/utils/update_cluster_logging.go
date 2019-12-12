@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -22,9 +23,10 @@ func enableLoggingCmd(cmd *cmdutils.Cmd) {
 
 	var typesEnabled []string
 	var typesDisabled []string
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doEnableLogging(cmd, typesEnabled, typesDisabled)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

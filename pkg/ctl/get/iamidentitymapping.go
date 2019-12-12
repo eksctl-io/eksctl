@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -24,9 +25,10 @@ func getIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("iamidentitymapping", "Get IAM identity mapping(s)", "")
 
-	cmd.SetRunFunc(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doGetIAMIdentityMapping(cmd, params, arn)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddIAMIdentityMappingARNFlags(fs, cmd, &arn)

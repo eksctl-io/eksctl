@@ -6,6 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
@@ -30,9 +31,10 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("cluster", "Create a cluster", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doCreateCluster(cmd, ng, params)
-	})
+	}
 
 	exampleClusterName := names.ForCluster("", "")
 	exampleNodeGroupName := names.ForNodeGroup("", "")

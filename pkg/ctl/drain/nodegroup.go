@@ -2,6 +2,7 @@ package drain
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -19,9 +20,10 @@ func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("nodegroup", "Cordon and drain a nodegroup", "", "ng")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doDrainNodeGroup(cmd, ng, undo, onlyMissing)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")

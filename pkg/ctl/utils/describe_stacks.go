@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -17,9 +18,10 @@ func describeStacksCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("describe-stacks", "Describe CloudFormation stack for a given cluster", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doDescribeStacksCmd(cmd, all, events, trail)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

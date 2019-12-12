@@ -1,8 +1,6 @@
 package cmdutils
 
 import (
-	"os"
-
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 
@@ -91,26 +89,4 @@ func (c *Cmd) SetDescription(use, short, long string, aliases ...string) {
 	c.CobraCommand.Short = short
 	c.CobraCommand.Long = long
 	c.CobraCommand.Aliases = aliases
-}
-
-// SetRunFunc registers a command function
-func (c *Cmd) SetRunFunc(cmd func() error) {
-	c.CobraCommand.Run = func(_ *cobra.Command, _ []string) {
-		run(cmd)
-	}
-}
-
-// SetRunFuncWithNameArg registers a command function with an optional name argument
-func (c *Cmd) SetRunFuncWithNameArg(cmd func() error) {
-	c.CobraCommand.Run = func(_ *cobra.Command, args []string) {
-		c.NameArg = GetNameArg(args)
-		run(cmd)
-	}
-}
-
-func run(cmd func() error) {
-	if err := cmd(); err != nil {
-		logger.Critical("%s\n", err.Error())
-		os.Exit(1)
-	}
 }

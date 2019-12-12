@@ -11,6 +11,7 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -43,9 +44,10 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 		"",
 	)
 	opts := configureProfileCmd(cmd)
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doEnableProfile(cmd, opts)
-	})
+	}
 }
 
 // configureProfileCmd configures the provided command object so that it can

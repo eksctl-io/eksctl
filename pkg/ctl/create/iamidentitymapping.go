@@ -3,6 +3,7 @@ package create
 import (
 	"github.com/kris-nova/logger"
 	"github.com/lithammer/dedent"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -28,9 +29,10 @@ func createIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	var username string
 	var groups []string
 
-	cmd.SetRunFunc(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doCreateIAMIdentityMapping(cmd, arn, username, groups)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&username, "username", "", "User name within Kubernetes to map to IAM role")

@@ -5,6 +5,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -24,9 +25,10 @@ func writeKubeconfigCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("write-kubeconfig", "Write kubeconfig file for a given cluster", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doWriteKubeconfigCmd(cmd, outputPath, authenticatorRoleARN, setContext, autoPath)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

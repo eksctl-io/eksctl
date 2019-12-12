@@ -5,6 +5,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
@@ -33,9 +34,10 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("nodegroup", "Create a nodegroup", "", "ng")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doCreateNodeGroups(cmd, ng, params)
-	})
+	}
 
 	exampleNodeGroupName := names.ForNodeGroup("", "")
 

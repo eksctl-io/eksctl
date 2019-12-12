@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -24,9 +25,10 @@ func getFargateProfile(cmd *cmdutils.Cmd) {
 		"",
 	)
 	options := configureGetFargateProfileCmd(cmd)
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doGetFargateProfile(cmd, options)
-	})
+	}
 }
 
 func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
@@ -46,7 +48,6 @@ func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
 
 func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
 	if err := cmdutils.NewGetFargateProfileLoader(cmd, &options.Options).Load(); err != nil {
-		cmd.CobraCommand.Help()
 		return err
 	}
 
