@@ -37,6 +37,7 @@ integration/kubeconfig-*
 .docker/install-build-deps.sh
 .docker/go.sum
 .docker/go.mod
+.docker/.requirements
 
 # direnv's files:
 .envrc

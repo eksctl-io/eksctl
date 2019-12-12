@@ -37,7 +37,7 @@ RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd
 WORKDIR /src
 ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org
 
-COPY install-build-deps.sh go.mod go.sum /src/
+COPY .requirements install-build-deps.sh go.mod go.sum /src/
 
 # Install all build tools dependencies
 RUN ./install-build-deps.sh
