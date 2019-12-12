@@ -13,8 +13,7 @@ jobs:
       # enabling docker executor will require to use large resource class, which
       # implies extra cost - we don't really have to do that, we can just run the
       # image this way
-      - run: echo "Pulling image $(cat .image-tag)"
-      - run: docker pull $(cat .image-tag)
+      - run: docker pull $(cat .docker/image_tag)
       # Now build eksctl with the Go cache in RO so it compiles faster
       - run:
           name: Test & Build
@@ -25,7 +24,7 @@ jobs:
               --volume=$(pwd):/src \
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
-                $(cat .image-tag) make test build
+                $(cat .docker/image_tag) make test build
             sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
             sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
       - save_cache:
