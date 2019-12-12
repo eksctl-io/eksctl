@@ -178,6 +178,18 @@ func (t *managedNodeGroupTask) Do(errorCh chan error) error {
 	return t.stackCollection.createManagedNodeGroupTask(errorCh, t.nodeGroup)
 }
 
+type clusterCompatTask struct {
+	info            string
+	stackCollection *StackCollection
+}
+
+func (t *clusterCompatTask) Describe() string { return t.info }
+
+func (t *clusterCompatTask) Do(errorCh chan error) error {
+	defer close(errorCh)
+	return t.stackCollection.FixClusterCompatibility()
+}
+
 type taskWithClusterIAMServiceAccountSpec struct {
 	info           string
 	serviceAccount *api.ClusterIAMServiceAccount
