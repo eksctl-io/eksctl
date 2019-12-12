@@ -3,8 +3,6 @@ jobs:
   test-and-build:
     machine:
       image: ubuntu-1604:201903-01
-    environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
       - checkout
       - restore_cache:
@@ -15,7 +13,8 @@ jobs:
       # enabling docker executor will require to use large resource class, which
       # implies extra cost - we don't really have to do that, we can just run the
       # image this way
-      - run: docker pull $BUILD_IMAGE
+      - run: echo "Pulling image $(cat .image-tag)"
+      - run: docker pull $(cat .image-tag)
       # Now build eksctl with the Go cache in RO so it compiles faster
       - run:
           name: Test & Build
@@ -26,7 +25,7 @@ jobs:
               --volume=$(pwd):/src \
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
-                $BUILD_IMAGE make test build
+                $(cat .image-tag) make test build
             sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
             sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
       - save_cache:
