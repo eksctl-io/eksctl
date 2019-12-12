@@ -38,6 +38,37 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
+  test-and-build-locally:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      GO_VERSION: 1.12.6
+      GOCACHE: /home/circleci/.cache/go-build/
+      GOPATH: /home/circleci/go
+    steps:
+      - checkout
+      # enabling docker executor will require to use large resource class, which
+      # implies extra cost - we don't really have to do that, we can just run the
+      # image this way
+      - run:
+          name: Install Environment
+          command: |
+            curl -OL https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz
+            tar -xf go${GO_VERSION}.linux-amd64.tar.gz
+            sudo rm -rf /usr/local/go
+            sudo mv go /usr/local
+            mkdir -p "$HOME/go/bin"
+            go version
+            ./install-build-deps.sh
+      - run:
+          name: Test & Build
+          command: |
+            mkdir test-results; \
+            make test build
+      - store_test_results:
+          path: ./test-results
+      - store_artifacts:
+          path: ./test-results
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
@@ -104,6 +135,12 @@ workflows:
   any-commit:
     jobs:
       - test-and-build:
+          filters:
+            tags:
+              ignore: /.*/
+  any-commit-no-docker:
+    jobs:
+      - test-and-build-locally:
           filters:
             tags:
               ignore: /.*/
