@@ -13,7 +13,7 @@ jobs:
       # enabling docker executor will require to use large resource class, which
       # implies extra cost - we don't really have to do that, we can just run the
       # image this way
-      - run: docker pull $(cat .docker/image_tag)
+      - run: docker pull "weaveworks/eksctl-build:$(cat .docker/image_tag)"
       # Now build eksctl with the Go cache in RO so it compiles faster
       - run:
           name: Test & Build
