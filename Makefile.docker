@@ -8,7 +8,7 @@ image_manifest_file = .docker/build_image_manifest
 # and `git show <hash>` for each of the hashes in the manifest to determine contents of each of the
 # files used in `$(build_image_input)` at the time.
 build_image_tag_file = .docker/image_tag
-build_image_tag = $(cat $(image_manifest_file))
+build_image_tag = $(shell cat $(build_image_tag_file))
 
 build_image_name = weaveworks/eksctl-build:$(build_image_tag)
 
@@ -36,10 +36,12 @@ commit-new-image-tag: update-build-image-tag ## Update build image manifest and 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
 	-docker pull $(build_image_name)
+	cp install-build-deps.sh go.mod go.sum .docker/
 	$(docker_build) \
 	  --iidfile=.build_image.iid \
 	  --cache-from=$(build_image_name) \
 	  --tag=$(build_image_name) \
+	  --file Dockerfile \
 	  .docker/
 
 .PHONY: push-build-image
