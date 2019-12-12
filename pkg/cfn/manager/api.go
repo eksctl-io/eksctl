@@ -131,7 +131,7 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 }
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
-func (c *StackCollection) UpdateStack(stackName string, changeSetName string, description string, template []byte, parameters map[string]string) error {
+func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, template []byte, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
 	if err := c.doCreateChangeSetRequest(i, changeSetName, description, template, parameters, true); err != nil {
