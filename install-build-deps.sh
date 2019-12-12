@@ -15,17 +15,10 @@ fi
 
 env CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo
 
-go install \
-  github.com/goreleaser/goreleaser \
-  github.com/kevinburke/go-bindata/go-bindata \
-  github.com/vektra/mockery/cmd/mockery \
-  github.com/weaveworks/github-release \
-  golang.org/x/tools/cmd/stringer \
-  k8s.io/code-generator/cmd/client-gen \
-  k8s.io/code-generator/cmd/deepcopy-gen \
-  k8s.io/code-generator/cmd/defaulter-gen \
-  k8s.io/code-generator/cmd/informer-gen \
-  k8s.io/code-generator/cmd/lister-gen
+# Install all other Go build requirements
+while IFS= read -r req; do
+  go install "${req}"
+done < .requirements
 
 # TODO: metalinter is archived, we should switch to github.com/golangci/golangci-lint
 # Install metalinter
