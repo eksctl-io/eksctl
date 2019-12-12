@@ -6,6 +6,7 @@ jobs:
     environment:
       BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
+      - checkout
       - restore_cache:
           keys:
             - go-cache-{{ .Branch }}-{{ .Revision }}
@@ -28,6 +29,7 @@ jobs:
     environment:
       BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
+      - checkout
       - restore_cache:
           keys:
             - go-cache-{{ .Branch }}-{{ .Revision }}
