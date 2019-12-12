@@ -15,10 +15,18 @@ fi
 
 env CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo
 
+REQUIREMENTS_FILE=.requirements
+
+if [ ! -f "$REQUIREMENTS_FILE" ]
+then
+	echo "Requirements file $REQUIREMENTS_FILE not found. Exiting..."
+	exit 1
+fi
+
 # Install all other Go build requirements
 while IFS= read -r req; do
   go install "${req}"
-done < .requirements
+done < ${REQUIREMENTS_FILE}
 
 # TODO: metalinter is archived, we should switch to github.com/golangci/golangci-lint
 # Install metalinter
