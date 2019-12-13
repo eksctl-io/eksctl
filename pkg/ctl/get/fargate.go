@@ -17,7 +17,7 @@ type options struct {
 	getCmdParams
 }
 
-func getFargateProfile(cmd *cmdutils.Cmd) {
+func getFargateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, options *options) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"fargateprofile",
@@ -27,8 +27,17 @@ func getFargateProfile(cmd *cmdutils.Cmd) {
 	options := configureGetFargateProfileCmd(cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doGetFargateProfile(cmd, options)
+		if err := cmdutils.NewGetFargateProfileLoader(cmd, &options.Options).Load(); err != nil {
+			return err
+		}
+		return runFunc(cmd, options)
 	}
+}
+
+func getFargateProfile(cmd *cmdutils.Cmd) {
+	getFargateProfileWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options *options) error {
+		return doGetFargateProfile(cmd, options)
+	})
 }
 
 func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
@@ -47,10 +56,6 @@ func configureGetFargateProfileCmd(cmd *cmdutils.Cmd) *options {
 }
 
 func doGetFargateProfile(cmd *cmdutils.Cmd, options *options) error {
-	if err := cmdutils.NewGetFargateProfileLoader(cmd, &options.Options).Load(); err != nil {
-		return err
-	}
-
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
