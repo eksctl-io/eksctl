@@ -5,6 +5,7 @@ commands:
     description: Prepare SSH keys to be mounted with the right permissions for Git
     steps:
       - run:
+          name: Prepare SSH keys to be mounted with the right permissions for Git
           command: |
             if [ ! -z "$SSH_KEY_NAME" ]; then
               cp -r $HOME/.ssh $HOME/project/.ssh
@@ -17,10 +18,11 @@ commands:
   docker-run:
     description: Run docker command
     parameters:
-      command:
+      cmd:
         type: string
     steps:
       - run:
+          name: docker run << parameters.cmd >>
           command: |
             docker run \
               --env=JUNIT_REPORT_DIR=/src/test-results \
@@ -29,7 +31,7 @@ commands:
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
               --volume=$HOME/project/.ssh:/root/.ssh \
-              weaveworks/eksctl-build:$(cat .docker/image_tag)
+              weaveworks/eksctl-build:$(cat .docker/image_tag) << parameters.cmd >>
   docker-pull-build-image:
     description: Docker pull image
     steps:
@@ -58,7 +60,7 @@ jobs:
             - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
       - prepare-ssh-keys
       - docker-run:
-          command: make test build
+          cmd: make test build
       - run:
           name: Prepare cache to be saved
           command: |
