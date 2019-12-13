@@ -3,6 +3,8 @@ jobs:
   test-and-build:
     machine:
       image: ubuntu-1604:201903-01
+    environment:
+      GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
     steps:
       - checkout
       - restore_cache:
@@ -15,15 +17,31 @@ jobs:
       # image this way
       - run: docker pull "weaveworks/eksctl-build:$(cat .docker/image_tag)"
       # Now build eksctl with the Go cache in RO so it compiles faster
+      - add_ssh_keys:
+          fingerprints:
+            - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
+      - run:
+          name: Prepare SSH keys to be mounted with the right permissions for Git
+          command: |
+              cp -r $HOME/.ssh $HOME/project/.ssh
+              sudo echo "Host github.com" > $HOME/project/.ssh/config
+              sudo echo "  IdentityFile /root/.ssh/id_rsa_81df392989d634ed2e4e7071f1f3f60c" >> $HOME/project/.ssh/config
+              sudo chmod 600 $HOME/project/.ssh/config
+              sudo chmod 600 $HOME/project/.ssh/id_rsa_81df392989d634ed2e4e7071f1f3f60c
+              sudo chown -R root:root $HOME/project/.ssh
+              printf '[url "git@github.com:"]\n  insteadOf = https://github.com/' > .gitconfig
       - run:
           name: Test & Build
           command: |
             mkdir test-results; \
             docker run \
               --env=JUNIT_REPORT_DIR=/src/test-results \
+              --env=GOPRIVATE \
               --volume=$(pwd):/src \
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              --volume=$HOME/project/.ssh:/root/.ssh \
+              --volume=$(pwd)/.gitconfig:/root/.gitconfig \
                 weaveworks/eksctl-build:$(cat .docker/image_tag) make test build
             sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
             sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
