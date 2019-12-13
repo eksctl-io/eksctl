@@ -60,6 +60,14 @@ var _ = Describe("delete", func() {
 			Expect(out).To(ContainSubstring("Error: invalid Fargate profile: empty name"))
 			Expect(out).To(ContainSubstring("Usage:"))
 		})
+
+		It("supports the cluster name to be provided by a ClusterConfig file, and requires a profile name provided via the --name flag", func() {
+			cmd := newMockDeleteFargateProfileCmd("fargateprofile", "-f", "../../../examples/01-simple-cluster.yaml", "--name", "fp-default")
+			_, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(cmd.cmd.ClusterConfig.Metadata.Name).To(Equal("cluster-1"))
+			Expect(cmd.options.ProfileName).To(Equal("fp-default"))
+		})
 	})
 })
 
