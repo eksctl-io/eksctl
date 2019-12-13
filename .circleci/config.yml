@@ -1,14 +1,6 @@
 version: 2.1
 
 commands:
-  sayhello:
-    description: "A very simple command for demonstration purposes"
-    parameters:
-      to:
-        type: string
-        default: "Hello World"
-    steps:
-      - run: echo << parameters.to >>
   prepare-ssh-keys:
     description: Prepare SSH keys to be mounted with the right permissions for Git
     steps:
@@ -29,8 +21,6 @@ commands:
       cmd:
         type: string
     steps:
-      - sayhello:
-          to: "Lev"
       - run:
           name: docker run << parameters.cmd >>
           command: |
