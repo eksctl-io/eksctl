@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -14,9 +15,10 @@ func updateCoreDNSCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("update-coredns", "Update coredns add-on to ensure image matches the standard Amazon EKS version", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doUpdateCoreDNS(cmd)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

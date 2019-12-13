@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -19,9 +20,10 @@ func getClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("cluster", "Get cluster(s)", "", "clusters")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doGetCluster(cmd, params, listAllRegions)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", "EKS cluster name")

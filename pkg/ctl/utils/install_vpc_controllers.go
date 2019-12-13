@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/addons"
 
@@ -16,9 +17,10 @@ func installWindowsVPCController(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("install-vpc-controllers", "Install Windows VPC controller to support running Windows workloads", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doInstallWindowsVPCController(cmd)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

@@ -3,6 +3,7 @@ package get
 import (
 	"os"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
@@ -21,9 +22,10 @@ func getLabelsCmd(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("labels", "Get nodegroup labels", "")
 
 	var nodeGroupName string
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return getLabels(cmd, nodeGroupName)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")

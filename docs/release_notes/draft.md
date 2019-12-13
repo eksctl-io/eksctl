@@ -6,7 +6,7 @@
 
 ## Improvements
 
-- lowercased, user-focused description of the improvement (#0)
+- `eksctl` now leverages `cobra` to print all errors in a more standardised way (#1664)
 
 ## Bug fixes
 

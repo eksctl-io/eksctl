@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -25,9 +26,9 @@ func deleteIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("iamserviceaccount", "Delete an IAM service account", "")
 
-	cmd.SetRunFunc(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		return doDeleteIAMServiceAccount(cmd, serviceAccount, onlyMissing)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to delete the iamserviceaccount from")

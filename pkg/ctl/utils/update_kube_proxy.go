@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -14,9 +15,10 @@ func updateKubeProxyCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("update-kube-proxy", "Update kube-proxy add-on to ensure image matches Kubernetes control plane version", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doUpdateKubeProxy(cmd)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

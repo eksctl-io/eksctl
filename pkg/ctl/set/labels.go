@@ -23,9 +23,10 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("labels", "Create or overwrite labels", "")
 
 	var options labelOptions
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return setLabels(cmd, options)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")

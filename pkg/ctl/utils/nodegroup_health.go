@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
@@ -19,9 +20,10 @@ func nodeGroupHealthCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("nodegroup-health", "Get nodegroup health for a managed node", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return getNodeGroupHealth(cmd, nodeGroupName)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")

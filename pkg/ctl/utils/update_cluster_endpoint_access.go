@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -19,9 +20,9 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("update-cluster-endpoints", "Update Kubernetes API endpoint access configuration", "")
 
-	cmd.SetRunFunc(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, _ []string) error {
 		return doUpdateClusterEndpoints(cmd, private, public)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

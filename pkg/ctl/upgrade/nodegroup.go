@@ -1,6 +1,7 @@
 package upgrade
 
 import (
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/managed"
@@ -22,9 +23,10 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("nodegroup", "Upgrade nodegroup", "")
 
 	var options upgradeOptions
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return upgradeNodeGroup(cmd, options)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "cluster", "", "", "EKS cluster name")

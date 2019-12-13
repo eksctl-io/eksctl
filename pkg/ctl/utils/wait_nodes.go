@@ -19,9 +19,10 @@ func waitNodesCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("wait-nodes", "Wait for nodes", "")
 
-	cmd.SetRunFunc(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doWaitNodes(cmd, ng, kubeconfigPath)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&kubeconfigPath, "kubeconfig", "kubeconfig", "path to read kubeconfig")

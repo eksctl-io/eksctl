@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	defaultaddons "github.com/weaveworks/eksctl/pkg/addons/default"
@@ -14,9 +15,10 @@ func updateAWSNodeCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("update-aws-node", "Update aws-node add-on to latest released version", "")
 
-	cmd.SetRunFuncWithNameArg(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
 		return doUpdateAWSNode(cmd)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)

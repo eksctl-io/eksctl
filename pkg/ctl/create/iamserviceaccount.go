@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -26,9 +27,9 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("iamserviceaccount", "Create an iamserviceaccount - AWS IAM role bound to a Kubernetes service account", "")
 
-	cmd.SetRunFunc(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, _ []string) error {
 		return doCreateIAMServiceAccount(cmd, overrideExistingServiceAccounts)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the iamserviceaccount to")

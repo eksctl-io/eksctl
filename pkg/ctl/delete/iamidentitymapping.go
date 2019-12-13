@@ -2,6 +2,7 @@ package delete
 
 import (
 	"github.com/kris-nova/logger"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -20,9 +21,9 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
 
-	cmd.SetRunFunc(func() error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		return doDeleteIAMIdentityMapping(cmd, arn, all)
-	})
+	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.BoolVar(&all, "all", false, "Delete all matching mappings instead of just one")
