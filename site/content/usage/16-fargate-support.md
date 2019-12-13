@@ -56,15 +56,17 @@ $ eksctl create cluster --fargate
 This command will have created a cluster and a Fargate profile. This profile contains certain information needed by AWS to instantiate
 pods in Fargate. These are:
 
-  - pod execution role to define the permissions required to run the pod and the networking location (subnet) to run the
-  pod. This allows the same networking and security permissions to be applied to multiple Fargate pods and makes
-it easier to migrate existing pods on a cluster to Fargate.
-  - Selector to define which pods should run on Fargate. This is composed by a `namespace` and `labels`.
+- pod execution role to define the permissions required to run the pod and the
+  networking location (subnet) to run the pod. This allows the same networking
+  and security permissions to be applied to multiple Fargate pods and makes it
+  easier to migrate existing pods on a cluster to Fargate.
+- Selector to define which pods should run on Fargate. This is composed by a
+  `namespace` and `labels`.
 
 When the profile is not specified but support for Fargate is enabled with `--fargate` a default Fargate profile is
 created. This profile targets the `default` and the `kube-system` namespaces so pods in those namespaces will run on
 Fargate.
- 
+
 The Fargate profile that was created can be checked with the following command:
 
 ```console
@@ -123,9 +125,8 @@ fargateProfiles:
           checks: passed
 ```
 
-
 ```console
-$ eksctl create cluster -f cluster-fargate.yaml 
+$ eksctl create cluster -f cluster-fargate.yaml
 [ℹ]  eksctl version 0.11.0
 [ℹ]  using region ap-northeast-1
 [ℹ]  setting availability zones to [ap-northeast-1c ap-northeast-1a ap-northeast-1d]
@@ -181,8 +182,8 @@ state, as they were not authorized to run on Fargate.
 
 Profiles must meet the following requirements:
 
-  - One selector is mandatory per profile
-  - Each selector must include a namespace; labels are optional
+- One selector is mandatory per profile
+- Each selector must include a namespace; labels are optional
 
 #### Example: scheduling workload in Fargate
 
@@ -217,7 +218,7 @@ above, `eksctl` takes care of this by creating a default profile. Given an alrea
 create a Fargate profile with the `eksctl create fargateprofile` command:
 
 > NOTE: This operation is only supported on clusters that run on the EKS platform version `eks.5` or higher.
-
+>
 > NOTE: If the existing was created with a version of `eksctl` prior to 0.11.0, you will  need to run `eksctl update
 > cluster` before creating the Fargate profile.
 
@@ -266,22 +267,23 @@ fargateProfiles:
 ```
 
 ```console
-$ eksctl create fargateprofile -f fargate-example-cluster.yaml 
+$ eksctl create fargateprofile -f fargate-example-cluster.yaml
 [ℹ]  creating Fargate profile "default" on EKS cluster "fargate-example-cluster"
 [ℹ]  created Fargate profile "default" on EKS cluster "fargate-example-cluster"
 [ℹ]  creating Fargate profile "dev" on EKS cluster "fargate-example-cluster"
 [ℹ]  created Fargate profile "dev" on EKS cluster "fargate-example-cluster"
 [ℹ]  "coredns" is now scheduled onto Fargate
 [ℹ]  "coredns" pods are now scheduled onto Fargate
-``` 
+```
 
 To see existing Fargate profiles in a cluster:
 
 ```console
 $ eksctl get fargateprofile --cluster fargate-example-cluster
-NAME		POD_EXECUTION_ROLE_ARN										SUBNETS										SELECTOR_NAMESPACE	SELECTOR_LABELS
-fp-9bfc77ad	arn:aws:iam::123456789012:role/eksctl-fargate-example-cluster-ServiceRole-1T5F78E5FSH79	subnet-00adf1d8c99f83381,subnet-04affb163ffab17d4,subnet-035b34379d5ef5473	dev		<none>
+NAME         POD_EXECUTION_ROLE_ARN                                                                   SUBNETS                                                                     SELECTOR_NAMESPACE  SELECTOR_LABELS
+fp-9bfc77ad  arn:aws:iam::123456789012:role/eksctl-fargate-example-cluster-ServiceRole-1T5F78E5FSH79  subnet-00adf1d8c99f83381,subnet-04affb163ffab17d4,subnet-035b34379d5ef5473  dev                 <none>
 ```
+
 And to see them in `yaml` format:
 
 ```console
@@ -320,7 +322,6 @@ $ eksctl get fargateprofile --cluster fargate-example-cluster -o json
 
 Fargate profiles are immutable by design. To change something, create a new Fargate profile with the desired changes and
 delete the old one with the `eksctl delete fargateprofile` command like in the following example:
-
 
 ```console
 $ eksctl delete fargateprofile --cluster fargate-example-cluster --name fp-9bfc77ad --wait
