@@ -19,7 +19,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func createFargateProfile(cmd *cmdutils.Cmd) {
+func createFargateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, options *fargate.CreateOptions) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"fargateprofile",
@@ -29,8 +29,17 @@ func createFargateProfile(cmd *cmdutils.Cmd) {
 	options := configureCreateFargateProfileCmd(cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateFargateProfile(cmd, options)
+		if err := cmdutils.NewCreateFargateProfileLoader(cmd, options).Load(); err != nil {
+			return err
+		}
+		return runFunc(cmd, options)
 	}
+}
+
+func createFargateProfile(cmd *cmdutils.Cmd) {
+	createFargateProfileWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options *fargate.CreateOptions) error {
+		return doCreateFargateProfile(cmd, options)
+	})
 }
 
 func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions {
@@ -49,9 +58,6 @@ func configureCreateFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.CreateOptions 
 }
 
 func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) error {
-	if err := cmdutils.NewCreateFargateProfileLoader(cmd, options).Load(); err != nil {
-		return err
-	}
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
