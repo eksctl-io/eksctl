@@ -23,13 +23,14 @@ jobs:
       - run:
           name: Prepare SSH keys to be mounted with the right permissions for Git
           command: |
-              cp -r $HOME/.ssh $HOME/project/.ssh
-              sudo echo "Host github.com" > $HOME/project/.ssh/config
-              sudo echo "  IdentityFile /root/.ssh/id_rsa_81df392989d634ed2e4e7071f1f3f60c" >> $HOME/project/.ssh/config
-              sudo chmod 600 $HOME/project/.ssh/config
-              sudo chmod 600 $HOME/project/.ssh/id_rsa_81df392989d634ed2e4e7071f1f3f60c
-              sudo chown -R root:root $HOME/project/.ssh
-              printf '[url "git@github.com:"]\n  insteadOf = https://github.com/' > .gitconfig
+              if [ ! -z "$SSH_KEY_NAME" ]; then
+                cp -r $HOME/.ssh $HOME/project/.ssh
+                sudo printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" > $HOME/project/.ssh/config
+                sudo chmod -R 600 $HOME/project/.ssh
+                sudo chown -R root:root $HOME/project/.ssh
+              else
+                echo "No SSH key found. Skipping mounting it in docker container"
+              fi
       - run:
           name: Test & Build
           command: |
@@ -41,7 +42,6 @@ jobs:
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
               --volume=$HOME/project/.ssh:/root/.ssh \
-              --volume=$(pwd)/.gitconfig:/root/.gitconfig \
                 weaveworks/eksctl-build:$(cat .docker/image_tag) make test build
       - run:
           name: Prepare cache to be saved
