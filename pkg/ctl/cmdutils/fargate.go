@@ -148,5 +148,11 @@ func NewDeleteFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterCo
 		}
 		return options.Validate()
 	}
+	l.validateWithConfigFile = func() error {
+		if err := validate(cmd, options); err != nil {
+			return err
+		}
+		return options.Validate()
+	}
 	return l
 }
