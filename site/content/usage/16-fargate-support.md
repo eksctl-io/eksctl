@@ -280,8 +280,8 @@ To see existing Fargate profiles in a cluster:
 
 ```console
 $ eksctl get fargateprofile --cluster fargate-example-cluster
-NAME         POD_EXECUTION_ROLE_ARN                                                                   SUBNETS                                                                     SELECTOR_NAMESPACE  SELECTOR_LABELS
-fp-9bfc77ad  arn:aws:iam::123456789012:role/eksctl-fargate-example-cluster-ServiceRole-1T5F78E5FSH79  subnet-00adf1d8c99f83381,subnet-04affb163ffab17d4,subnet-035b34379d5ef5473  dev                 <none>
+NAME         SELECTOR_NAMESPACE  SELECTOR_LABELS  POD_EXECUTION_ROLE_ARN                                                                   SUBNETS
+fp-9bfc77ad  dev                 <none>           arn:aws:iam::123456789012:role/eksctl-fargate-example-cluster-ServiceRole-1T5F78E5FSH79  subnet-00adf1d8c99f83381,subnet-04affb163ffab17d4,subnet-035b34379d5ef5473
 ```
 
 And to see them in `yaml` format:
