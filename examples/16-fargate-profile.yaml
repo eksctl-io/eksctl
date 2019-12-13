@@ -13,7 +13,7 @@ nodeGroups:
     desiredCapacity: 1
 
 fargateProfiles:
-  - name: default
+  - name: fp-default
     selectors:
       # All workloads in the "default" Kubernetes namespace will be
       # scheduled onto Fargate:
@@ -21,7 +21,7 @@ fargateProfiles:
       # All workloads in the "kube-system" Kubernetes namespace will be
       # scheduled onto Fargate:
       - namespace: kube-system
-  - name: dev
+  - name: fp-dev
     selectors:
       # All workloads in the "dev" Kubernetes namespace matching the following
       # label selectors will be scheduled onto Fargate:
