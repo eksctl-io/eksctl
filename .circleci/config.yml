@@ -1,4 +1,40 @@
-version: 2
+version: 2.1
+
+commands:
+  prepare-ssh-keys:
+    description: Prepare SSH keys to be mounted with the right permissions for Git
+    steps:
+      - run:
+          command: |
+            if [ ! -z "$SSH_KEY_NAME" ]; then
+              cp -r $HOME/.ssh $HOME/project/.ssh
+              sudo printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" > $HOME/project/.ssh/config
+              sudo chmod -R 600 $HOME/project/.ssh
+              sudo chown -R root:root $HOME/project/.ssh
+            else
+              echo "No SSH key found. Skipping..."
+            fi
+  docker-run:
+    description: Run docker command
+    parameters:
+      command:
+        type: string
+    steps:
+      - run:
+          command: |
+            docker run \
+              --env=JUNIT_REPORT_DIR=/src/test-results \
+              --env=GOPRIVATE \
+              --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              --volume=$HOME/project/.ssh:/root/.ssh \
+              weaveworks/eksctl-build:$(cat .docker/image_tag)
+  docker-pull-build-image:
+    description: Docker pull image
+    steps:
+      - run: docker pull "weaveworks/eksctl-build:$(cat .docker/image_tag)"
+
 jobs:
   test-and-build:
     machine:
@@ -15,34 +51,14 @@ jobs:
       # enabling docker executor will require to use large resource class, which
       # implies extra cost - we don't really have to do that, we can just run the
       # image this way
-      - run: docker pull "weaveworks/eksctl-build:$(cat .docker/image_tag)"
+      - docker-pull-build-image
       # Now build eksctl with the Go cache in RO so it compiles faster
       - add_ssh_keys:
           fingerprints:
             - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
-      - run:
-          name: Prepare SSH keys to be mounted with the right permissions for Git
-          command: |
-              if [ ! -z "$SSH_KEY_NAME" ]; then
-                cp -r $HOME/.ssh $HOME/project/.ssh
-                sudo printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" > $HOME/project/.ssh/config
-                sudo chmod -R 600 $HOME/project/.ssh
-                sudo chown -R root:root $HOME/project/.ssh
-              else
-                echo "No SSH key found. Skipping..."
-              fi
-      - run:
-          name: Test & Build
-          command: |
-            mkdir test-results; \
-            docker run \
-              --env=JUNIT_REPORT_DIR=/src/test-results \
-              --env=GOPRIVATE \
-              --volume=$(pwd):/src \
-              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
-              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
-              --volume=$HOME/project/.ssh:/root/.ssh \
-                weaveworks/eksctl-build:$(cat .docker/image_tag) make test build
+      - prepare-ssh-keys
+      - docker-run:
+          command: make test build
       - run:
           name: Prepare cache to be saved
           command: |
