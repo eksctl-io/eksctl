@@ -40,14 +40,12 @@ jobs:
               --env=GOPRIVATE \
               --volume=$(pwd):/src \
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
-#              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
               --volume=$HOME/project/.ssh:/root/.ssh \
                 weaveworks/eksctl-build:$(cat .docker/image_tag) make test build
       - run:
           name: Prepare cache to be saved
           command: |
             sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
-            sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
       - save_cache:
           key: go-cache-{{ .Branch }}-{{ .Revision }}
           paths:
