@@ -29,7 +29,7 @@ jobs:
                 sudo chmod -R 600 $HOME/project/.ssh
                 sudo chown -R root:root $HOME/project/.ssh
               else
-                echo "No SSH key found. Skipping mounting it in docker container"
+                echo "No SSH key found. Skipping..."
               fi
       - run:
           name: Test & Build
