@@ -40,7 +40,7 @@ jobs:
               --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
               --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
               --volume=$HOME/project/.ssh:/root/.ssh \
-                weaveworks/eksctl-build:$(cat .docker/image_tag) go download
+                weaveworks/eksctl-build:$(cat .docker/image_tag) go mod download
       - run:
           name: Test & Build
           command: |
