@@ -7,11 +7,11 @@ jobs:
       GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - go-cache-{{ .Branch }}-{{ .Revision }}
-            - go-cache-{{ .Branch }}-
-            - go-cache-
+#      - restore_cache:
+#          keys:
+#            - go-cache-{{ .Branch }}-{{ .Revision }}
+#            - go-cache-{{ .Branch }}-
+#            - go-cache-
       # enabling docker executor will require to use large resource class, which
       # implies extra cost - we don't really have to do that, we can just run the
       # image this way
