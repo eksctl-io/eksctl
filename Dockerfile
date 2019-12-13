@@ -35,7 +35,9 @@ RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd
 
 # Remaining dependencies are controlled by go.mod
 WORKDIR /src
-ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org
+ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
+
+RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
 
 COPY .requirements install-build-deps.sh go.mod go.sum /src/
 
