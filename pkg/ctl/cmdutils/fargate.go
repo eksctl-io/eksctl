@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
@@ -97,7 +98,10 @@ func validateNameFlagAndArgCreate(cmd *Cmd, options *fargate.CreateOptions) erro
 // 'eksctl get fargateprofile'
 func NewGetFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-	l.flagsIncompatibleWithConfigFile.Insert(fargateProfileFlagsIncompatibleWithConfigFile...)
+	flagsIncompatibleWithConfigFile := sets.NewString(fargateProfileFlagsIncompatibleWithConfigFile...).Union(defaultFlagsIncompatibleWithConfigFile)
+	// We optionally want to be able to filter profiles by name:
+	flagsIncompatibleWithConfigFile.Delete(fargateProfileName)
+	l.flagsIncompatibleWithConfigFile = flagsIncompatibleWithConfigFile
 	l.flagsIncompatibleWithoutConfigFile.Insert(fargateProfileFlagsIncompatibleWithoutConfigFile...)
 	l.validateWithoutConfigFile = func() error {
 		return validate(cmd, options)

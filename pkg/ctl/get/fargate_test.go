@@ -48,6 +48,22 @@ var _ = Describe("get", func() {
 			Expect(cmd.cmd.ClusterConfig.Metadata.Name).To(Equal("foo"))
 			Expect(cmd.options.ProfileName).To(Equal("fp-default"))
 		})
+
+		It("supports the cluster name to be provided by a ClusterConfig file", func() {
+			cmd := newMockGetFargateProfileCmd("fargateprofile", "-f", "../../../examples/01-simple-cluster.yaml")
+			_, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(cmd.cmd.ClusterConfig.Metadata.Name).To(Equal("cluster-1"))
+			Expect(cmd.options.ProfileName).To(Equal(""))
+		})
+
+		It("supports the cluster name to be provided by a ClusterConfig file, and an optional profile name provided via the --name flag", func() {
+			cmd := newMockGetFargateProfileCmd("fargateprofile", "-f", "../../../examples/01-simple-cluster.yaml", "--name", "fp-default")
+			_, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(cmd.cmd.ClusterConfig.Metadata.Name).To(Equal("cluster-1"))
+			Expect(cmd.options.ProfileName).To(Equal("fp-default"))
+		})
 	})
 })
 
