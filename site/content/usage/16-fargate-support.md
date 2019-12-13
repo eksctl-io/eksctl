@@ -71,7 +71,7 @@ The Fargate profile that was created can be checked with the following command:
 
 ```console
 $ eksctl get fargateprofile --cluster ridiculous-painting-1574859263 -o yaml
-- name: default
+- name: fp-default
   podExecutionRoleARN: arn:aws:iam::123456789012:role/eksctl-ridiculous-painting-1574859263-ServiceRole-EIFQOH0S1GE7
   selectors:
   - namespace: default
@@ -107,7 +107,7 @@ nodeGroups:
     desiredCapacity: 1
 
 fargateProfiles:
-  - name: default
+  - name: fp-default
     selectors:
       # All workloads in the "default" Kubernetes namespace will be
       # scheduled onto Fargate:
@@ -115,7 +115,7 @@ fargateProfiles:
       # All workloads in the "kube-system" Kubernetes namespace will be
       # scheduled onto Fargate:
       - namespace: kube-system
-  - name: dev
+  - name: fp-dev
     selectors:
       # All workloads in the "dev" Kubernetes namespace matching the following
       # label selectors will be scheduled onto Fargate:
@@ -157,10 +157,10 @@ $ eksctl create cluster -f cluster-fargate.yaml
 [ℹ]  waiting for at least 1 node(s) to become ready in "ng-1"
 [ℹ]  nodegroup "ng-1" has 1 node(s)
 [ℹ]  node "ip-192-168-71-83.ap-northeast-1.compute.internal" is ready
-[ℹ]  creating Fargate profile "default" on EKS cluster "fargate-cluster"
-[ℹ]  created Fargate profile "default" on EKS cluster "fargate-cluster"
-[ℹ]  creating Fargate profile "dev" on EKS cluster "fargate-cluster"
-[ℹ]  created Fargate profile "dev" on EKS cluster "fargate-cluster"
+[ℹ]  creating Fargate profile "fp-default" on EKS cluster "fargate-cluster"
+[ℹ]  created Fargate profile "fp-default" on EKS cluster "fargate-cluster"
+[ℹ]  creating Fargate profile "fp-dev" on EKS cluster "fargate-cluster"
+[ℹ]  created Fargate profile "fp-dev" on EKS cluster "fargate-cluster"
 [ℹ]  "coredns" is now schedulable onto Fargate
 [ℹ]  "coredns" is now scheduled onto Fargate
 [ℹ]  "coredns" is now scheduled onto Fargate
@@ -247,7 +247,7 @@ metadata:
   region: ap-northeast-1
 
 fargateProfiles:
-  - name: default
+  - name: fp-default
     selectors:
       # All workloads in the "default" Kubernetes namespace will be
       # scheduled onto Fargate:
@@ -255,7 +255,7 @@ fargateProfiles:
       # All workloads in the "kube-system" Kubernetes namespace will be
       # scheduled onto Fargate:
       - namespace: kube-system
-  - name: dev
+  - name: fp-dev
     selectors:
       # All workloads in the "dev" Kubernetes namespace matching the following
       # label selectors will be scheduled onto Fargate:
@@ -268,10 +268,10 @@ fargateProfiles:
 
 ```console
 $ eksctl create fargateprofile -f fargate-example-cluster.yaml
-[ℹ]  creating Fargate profile "default" on EKS cluster "fargate-example-cluster"
-[ℹ]  created Fargate profile "default" on EKS cluster "fargate-example-cluster"
-[ℹ]  creating Fargate profile "dev" on EKS cluster "fargate-example-cluster"
-[ℹ]  created Fargate profile "dev" on EKS cluster "fargate-example-cluster"
+[ℹ]  creating Fargate profile "fp-default" on EKS cluster "fargate-example-cluster"
+[ℹ]  created Fargate profile "fp-default" on EKS cluster "fargate-example-cluster"
+[ℹ]  creating Fargate profile "fp-dev" on EKS cluster "fargate-example-cluster"
+[ℹ]  created Fargate profile "fp-dev" on EKS cluster "fargate-example-cluster"
 [ℹ]  "coredns" is now scheduled onto Fargate
 [ℹ]  "coredns" pods are now scheduled onto Fargate
 ```
