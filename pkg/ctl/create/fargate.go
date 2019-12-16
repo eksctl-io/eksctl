@@ -78,6 +78,10 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd, options *fargate.CreateOptions) e
 		return fmt.Errorf("Fargate is not supported for this cluster version. Please update the cluster to be at least eks.%d", fargate.MinPlatformVersion)
 	}
 
+	if err := ctl.LoadClusterVPC(cfg); err != nil {
+		return err
+	}
+
 	// Read back the default Fargate pod execution role ARN from CloudFormation:
 	if err := ctl.NewStackManager(cfg).RefreshFargatePodExecutionRoleARN(); err != nil {
 		return err
