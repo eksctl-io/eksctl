@@ -59,11 +59,32 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 
 			err = oidc.getIssuerCAThumbprint()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix("connecting to issuer OIDC (https://localhost:10020/): dial tcp"))
+			Expect(err.Error()).To(HavePrefix("connecting to issuer OIDC: Get https://localhost:10020/: dial tcp 127.0.0.1:10020: connect: connection refused"))
 		})
 
 		It("should get OIDC issuer's CA fingerprint", func() {
 			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/")
+			Expect(err).NotTo(HaveOccurred())
+
+			srv, err := newServer(oidc.issuerURL.Host)
+			Expect(err).NotTo(HaveOccurred())
+
+			go srv.serve()
+
+			oidc.insecureSkipVerify = true
+
+			err = oidc.getIssuerCAThumbprint()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(oidc.issuerCAThumbprint).ToNot(BeEmpty())
+
+			Expect(oidc.issuerCAThumbprint).To(Equal("8b453cc675feb77c65163b7a9907d77994386664"))
+
+			Expect(srv.close()).To(Succeed())
+		})
+
+		It("should get OIDC issuer's CA fingerprint for a URL that returns 403", func() {
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10029/fake_eks")
 			Expect(err).NotTo(HaveOccurred())
 
 			srv, err := newServer(oidc.issuerURL.Host)
@@ -227,6 +248,12 @@ type testServer struct {
 func newServer(host string) (*testServer, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { fmt.Fprintf(w, "ok.") })
+
+	mux.HandleFunc("/fake_eks", func(w http.ResponseWriter, r *http.Request) {
+		// this is what EKS normally returns to us, as we are an unauthenticated client
+		w.WriteHeader(403)
+		fmt.Fprintf(w, `{"message":"Missing Authentication Token"}`)
+	})
 
 	fmt.Fprintf(GinkgoWriter, "\nserver will listen on %q\n", host)
 

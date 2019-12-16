@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"crypto/tls"
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -115,19 +116,26 @@ func (m *OpenIDConnectManager) DeleteProvider() error {
 // getIssuerCAThumbprint obtains thumbprint of root CA by connecting to the
 // OIDC issuer and parsing certificates
 func (m *OpenIDConnectManager) getIssuerCAThumbprint() error {
-	config := &tls.Config{InsecureSkipVerify: m.insecureSkipVerify}
-
-	conn, err := tls.Dial("tcp", m.issuerURL.Host, config)
-	if err != nil {
-		return errors.Wrapf(err, "connecting to issuer OIDC (%s)", m.issuerURL)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: m.insecureSkipVerify,
+			},
+			Proxy: http.ProxyFromEnvironment,
+		},
 	}
-	defer conn.Close()
 
-	cs := conn.ConnectionState()
-	if numCerts := len(cs.PeerCertificates); numCerts >= 1 {
-		root := cs.PeerCertificates[numCerts-1]
-		m.issuerCAThumbprint = fmt.Sprintf("%x", sha1.Sum(root.Raw))
-		return nil
+	response, err := client.Get(m.issuerURL.String())
+	if err != nil {
+		return errors.Wrap(err, "connecting to issuer OIDC")
+	}
+
+	if response.TLS != nil {
+		if numCerts := len(response.TLS.PeerCertificates); numCerts >= 1 {
+			root := response.TLS.PeerCertificates[numCerts-1]
+			m.issuerCAThumbprint = fmt.Sprintf("%x", sha1.Sum(root.Raw))
+			return nil
+		}
 	}
 	return fmt.Errorf("unable to get OIDC issuer's certificate")
 }
