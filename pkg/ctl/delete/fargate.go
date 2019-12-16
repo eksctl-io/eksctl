@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/fargate"
 )
 
-func deleteFargateProfile(cmd *cmdutils.Cmd) {
+func deleteFargateProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, opts *fargate.Options) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"fargateprofile",
@@ -21,8 +21,17 @@ func deleteFargateProfile(cmd *cmdutils.Cmd) {
 	opts := configureDeleteFargateProfileCmd(cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDeleteFargateProfile(cmd, opts)
+		if err := cmdutils.NewDeleteFargateProfileLoader(cmd, opts).Load(); err != nil {
+			return err
+		}
+		return runFunc(cmd, opts)
 	}
+}
+
+func deleteFargateProfile(cmd *cmdutils.Cmd) {
+	deleteFargateProfileWithRunFunc(cmd, func(cmd *cmdutils.Cmd, opts *fargate.Options) error {
+		return doDeleteFargateProfile(cmd, opts)
+	})
 }
 
 func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
@@ -42,9 +51,6 @@ func configureDeleteFargateProfileCmd(cmd *cmdutils.Cmd) *fargate.Options {
 }
 
 func doDeleteFargateProfile(cmd *cmdutils.Cmd, opts *fargate.Options) error {
-	if err := cmdutils.NewDeleteFargateProfileLoader(cmd, opts).Load(); err != nil {
-		return err
-	}
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err

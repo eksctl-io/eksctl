@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
@@ -97,7 +98,8 @@ func validateNameFlagAndArgCreate(cmd *Cmd, options *fargate.CreateOptions) erro
 // 'eksctl get fargateprofile'
 func NewGetFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-	l.flagsIncompatibleWithConfigFile.Insert(fargateProfileFlagsIncompatibleWithConfigFile...)
+	// We optionally want to be able to filter profiles by name:
+	l.flagsIncompatibleWithConfigFile = flagsIncompatibleWithConfigFileExcept(fargateProfileName)
 	l.flagsIncompatibleWithoutConfigFile.Insert(fargateProfileFlagsIncompatibleWithoutConfigFile...)
 	l.validateWithoutConfigFile = func() error {
 		return validate(cmd, options)
@@ -106,6 +108,13 @@ func NewGetFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterConfi
 		return validate(cmd, options)
 	}
 	return l
+}
+
+func flagsIncompatibleWithConfigFileExcept(items ...string) sets.String {
+	set := sets.NewString(fargateProfileFlagsIncompatibleWithConfigFile...)
+	set = set.Union(defaultFlagsIncompatibleWithConfigFile)
+	set.Delete(items...)
+	return set
 }
 
 func validate(cmd *Cmd, options *fargate.Options) error {
@@ -136,9 +145,17 @@ func validateNameFlagAndArg(cmd *Cmd, options *fargate.Options) error {
 // 'eksctl delete fargateprofile'
 func NewDeleteFargateProfileLoader(cmd *Cmd, options *fargate.Options) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-	l.flagsIncompatibleWithConfigFile.Insert(fargateProfileFlagsIncompatibleWithConfigFile...)
+	// We want to be able to pass the name of the profile to delete, even if we
+	// use a ClusterConfig file to set metadata (cluster name, region, etc.):
+	l.flagsIncompatibleWithConfigFile = flagsIncompatibleWithConfigFileExcept(fargateProfileName)
 	l.flagsIncompatibleWithoutConfigFile.Insert(fargateProfileFlagsIncompatibleWithoutConfigFile...)
 	l.validateWithoutConfigFile = func() error {
+		if err := validate(cmd, options); err != nil {
+			return err
+		}
+		return options.Validate()
+	}
+	l.validateWithConfigFile = func() error {
 		if err := validate(cmd, options); err != nil {
 			return err
 		}

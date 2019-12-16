@@ -29,27 +29,32 @@ type commonClusterConfigLoader struct {
 	validateWithConfigFile, validateWithoutConfigFile func() error
 }
 
+var (
+	defaultFlagsIncompatibleWithConfigFile = sets.NewString(
+		"name",
+		"region",
+		"version",
+		"cluster",
+		"namepace",
+	)
+	defaultFlagsIncompatibleWithoutConfigFile = sets.NewString(
+		"only",
+		"include",
+		"exclude",
+		"only-missing",
+	)
+)
+
 func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 	nilValidatorFunc := func() error { return nil }
 
 	return &commonClusterConfigLoader{
 		Cmd: cmd,
 
-		validateWithConfigFile: nilValidatorFunc,
-		flagsIncompatibleWithConfigFile: sets.NewString(
-			"name",
-			"region",
-			"version",
-			"cluster",
-			"namepace",
-		),
-		validateWithoutConfigFile: nilValidatorFunc,
-		flagsIncompatibleWithoutConfigFile: sets.NewString(
-			"only",
-			"include",
-			"exclude",
-			"only-missing",
-		),
+		validateWithConfigFile:             nilValidatorFunc,
+		flagsIncompatibleWithConfigFile:    defaultFlagsIncompatibleWithConfigFile,
+		validateWithoutConfigFile:          nilValidatorFunc,
+		flagsIncompatibleWithoutConfigFile: defaultFlagsIncompatibleWithoutConfigFile,
 	}
 }
 

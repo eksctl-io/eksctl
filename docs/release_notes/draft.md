@@ -2,7 +2,7 @@
 
 ## Features
 
-- lowercased, user-focused description of the new feature (#0)
+- `eksctl {get,delete} fargateprofile` can now read the cluster name & region from a `ClusterConfig` file (#1667)
 
 ## Improvements
 
