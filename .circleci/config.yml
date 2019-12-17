@@ -67,11 +67,11 @@ jobs:
             - go-cache-{{ .Branch }}-
             - go-cache-
 
-      - docker-pull-build-image
       - add_ssh_keys:
           fingerprints:
             - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
       - prepare-ssh-keys
+      - docker-pull-build-image
       - run: mkdir test-results
       - docker-run:
           cmd: go mod download
@@ -82,6 +82,8 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
+      - store_artifacts:
+          path: ./eksctl
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
