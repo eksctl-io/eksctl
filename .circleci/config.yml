@@ -84,11 +84,9 @@ jobs:
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
-    environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
       - checkout
-      - run: docker pull $BUILD_IMAGE
+      - docker-pull-build-image
       - run:
           name: Create release candidate binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release-candidate
@@ -96,11 +94,9 @@ jobs:
   release:
     machine:
       image: ubuntu-1604:201903-01
-    environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
       - checkout
-      - run: docker pull $BUILD_IMAGE
+      - docker-pull-build-image
       - run:
           name: Create release binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release

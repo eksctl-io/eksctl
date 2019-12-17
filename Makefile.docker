@@ -83,6 +83,7 @@ docker_run_release_script = docker run \
   --env=GITHUB_TOKEN \
   --env=CIRCLE_TAG \
   --env=CIRCLE_PROJECT_USERNAME \
+  --env=CIRCLE_PROJECT_REPONAME \
   --volume=$(git_toplevel):/src \
   --workdir=/src \
     $(intermediate_image_name)
