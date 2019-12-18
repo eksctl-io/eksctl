@@ -88,6 +88,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
+	cfg.CloudWatch.ClusterLogging.EnableTypes=api.SupportedCloudWatchClusterLogTypes()
+	logger.Warning("Enabling all logging options for the EKS Cluster")
 
 	printer := printers.NewJSONPrinter()
 
