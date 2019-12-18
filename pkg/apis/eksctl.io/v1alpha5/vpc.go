@@ -31,6 +31,8 @@ type (
 		NAT *ClusterNAT `json:"nat,omitempty"`
 		// +optional
 		ClusterEndpoints *ClusterEndpoints `json:"clusterEndpoints,omitempty"`
+		// +optional
+		PublicAccessCIDRs []string `json:"publicAccessCidrs,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {

@@ -67,6 +67,15 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
 	}
 	c.maybeAppendTasksForEndpointAccessUpdates(cfg, newTasks)
+
+	if len(cfg.VPC.PublicAccessCIDRs) > 0 {
+		newTasks.Append(&clusterConfigTask{
+			info: "update public access CIDRs",
+			spec: cfg,
+			call: c.UpdatePublicAccessCIDRs,
+		})
+	}
+
 	if installVPCController {
 		newTasks.Append(&vpcControllerTask{
 			info:            "install Windows VPC controller",

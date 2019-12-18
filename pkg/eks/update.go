@@ -15,6 +15,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
+// ClusterVPCConfig represents a cluster's VPC configuration
+type ClusterVPCConfig struct {
+	ClusterEndpoints  *api.ClusterEndpoints
+	PublicAccessCIDRs []string
+}
+
 // GetCurrentClusterConfigForLogging fetches current cluster logging configuration as two sets - enabled and disabled types
 func (c *ClusterProvider) GetCurrentClusterConfigForLogging(spec *api.ClusterConfig) (sets.String, sets.String, error) {
 	enabled := sets.NewString()
@@ -91,16 +97,21 @@ func (c *ClusterProvider) UpdateClusterConfigForLogging(cfg *api.ClusterConfig) 
 	return nil
 }
 
-// GetCurrentClusterConfigForEndpoints fetches current cluster endpoint configuration for public and private access types
-func (c *ClusterProvider) GetCurrentClusterConfigForEndpoints(spec *api.ClusterConfig) (bool, bool, error) {
+// GetCurrentClusterVPCConfig fetches current cluster endpoint configuration for public and private access types
+func (c *ClusterProvider) GetCurrentClusterVPCConfig(spec *api.ClusterConfig) (*ClusterVPCConfig, error) {
 	if ok, err := c.CanOperate(spec); !ok {
-		return false, false, errors.Wrap(err, "unable to retrieve current cluster endpoint access configuration")
+		return nil, errors.Wrap(err, "unable to retrieve current cluster VPC configuration")
 	}
 
-	private := *c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPrivateAccess
-	public := *c.Status.clusterInfo.cluster.ResourcesVpcConfig.EndpointPublicAccess
+	vpcConfig := c.Status.clusterInfo.cluster.ResourcesVpcConfig
 
-	return private, public, nil
+	return &ClusterVPCConfig{
+		ClusterEndpoints: &api.ClusterEndpoints{
+			PrivateAccess: vpcConfig.EndpointPrivateAccess,
+			PublicAccess:  vpcConfig.EndpointPublicAccess,
+		},
+		PublicAccessCIDRs: aws.StringValueSlice(vpcConfig.PublicAccessCidrs),
+	}, nil
 }
 
 // UpdateClusterConfigForEndpoints calls eks.UpdateClusterConfig and updates access to API endpoints
@@ -120,6 +131,21 @@ func (c *ClusterProvider) UpdateClusterConfigForEndpoints(cfg *api.ClusterConfig
 	}
 
 	return c.waitForUpdateToSucceed(cfg.Metadata.Name, output.Update)
+}
+
+// UpdatePublicAccessCIDRs calls eks.UpdateClusterConfig and updates the CIDRs for public access
+func (c *ClusterProvider) UpdatePublicAccessCIDRs(clusterConfig *api.ClusterConfig) error {
+	input := &awseks.UpdateClusterConfigInput{
+		Name: &clusterConfig.Metadata.Name,
+		ResourcesVpcConfig: &awseks.VpcConfigRequest{
+			PublicAccessCidrs: aws.StringSlice(clusterConfig.VPC.PublicAccessCIDRs),
+		},
+	}
+	output, err := c.Provider.EKS().UpdateClusterConfig(input)
+	if err != nil {
+		return err
+	}
+	return c.waitForUpdateToSucceed(clusterConfig.Metadata.Name, output.Update)
 }
 
 // UpdateClusterVersion calls eks.UpdateClusterVersion and updates to cfg.Metadata.Version,
