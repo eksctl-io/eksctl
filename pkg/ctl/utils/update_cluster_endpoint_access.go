@@ -75,10 +75,12 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		return err
 	}
 
-	curPrivate, curPublic, err := ctl.GetCurrentClusterConfigForEndpoints(cfg)
+	clusterVPCConfig, err := ctl.GetCurrentClusterVPCConfig(cfg)
 	if err != nil {
 		return err
 	}
+
+	curPrivate, curPublic := *clusterVPCConfig.ClusterEndpoints.PrivateAccess, *clusterVPCConfig.ClusterEndpoints.PublicAccess
 
 	logger.Info("current Kubernetes API endpoint access: privateAccess=%v, publicAccess=%v",
 		curPrivate, curPublic)
