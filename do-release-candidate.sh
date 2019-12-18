@@ -6,7 +6,7 @@ if [ -z "${CIRCLE_PULL_REQUEST}" ] && [ -n "${CIRCLE_TAG}" ] && [ "${CIRCLE_PROJ
 
   if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
     echo "Release notes ${RELEASE_NOTES_FILE} not found. Exiting..."
-    return
+    exit 1
   fi
 
   goreleaser release --skip-validate --config=./.goreleaser.yml --release-notes="${RELEASE_NOTES_FILE}"

@@ -1,0 +1,13 @@
+"github.com/goreleaser/goreleaser v0.110.0"
+"github.com/kevinburke/go-bindata v3.15.0+incompatible"
+"github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5"
+"github.com/weaveworks/github-release v0.6.2"
+"golang.org/x/tools v0.0.0-20190621195816-6e04913cbbac"
+"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
+"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
+"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
+"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
+"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
+100644 blob 7fc306774178c7defec505ff02ff11c2353f5202	Dockerfile
+100644 blob 5377f63387890fa432473075d18c2a9cd23fcbd9	.requirements
+100755 blob 91607b66c2296ac64e09c773a981488cc76f544d	install-build-deps.sh

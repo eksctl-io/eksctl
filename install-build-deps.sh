@@ -4,7 +4,7 @@
 # `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
 
 if [ -z "${GOBIN+x}" ]; then
- GOBIN="${GOPATH%%:*}/bin"
+ GOBIN="$(go env GOPATH)/bin"
 fi
 
 if [ "$(uname)" = "Darwin" ] ; then
@@ -15,17 +15,18 @@ fi
 
 env CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo
 
-go install \
-  github.com/goreleaser/goreleaser \
-  github.com/kevinburke/go-bindata/go-bindata \
-  github.com/vektra/mockery/cmd/mockery \
-  github.com/weaveworks/github-release \
-  golang.org/x/tools/cmd/stringer \
-  k8s.io/code-generator/cmd/client-gen \
-  k8s.io/code-generator/cmd/deepcopy-gen \
-  k8s.io/code-generator/cmd/defaulter-gen \
-  k8s.io/code-generator/cmd/informer-gen \
-  k8s.io/code-generator/cmd/lister-gen
+REQUIREMENTS_FILE=.requirements
+
+if [ ! -f "$REQUIREMENTS_FILE" ]
+then
+	echo "Requirements file $REQUIREMENTS_FILE not found. Exiting..."
+	exit 1
+fi
+
+# Install all other Go build requirements
+while IFS= read -r req; do
+  go install "${req}"
+done < ${REQUIREMENTS_FILE}
 
 # TODO: metalinter is archived, we should switch to github.com/golangci/golangci-lint
 # Install metalinter
