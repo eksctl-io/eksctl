@@ -14,8 +14,9 @@ import (
 var internetCIDR = gfn.NewString("0.0.0.0/0")
 
 const (
-	cfnControlPlaneSGResource = "ControlPlaneSecurityGroup"
-	cfnSharedNodeSGResource   = "ClusterSharedNodeSecurityGroup"
+	cfnControlPlaneSGResource         = "ControlPlaneSecurityGroup"
+	cfnSharedNodeSGResource           = "ClusterSharedNodeSecurityGroup"
+	cfnIngressClusterToNodeSGResource = "IngressDefaultClusterToNodeSG"
 )
 
 func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
@@ -218,7 +219,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 			// To enable communication between both managed and unmanaged nodegroups, this allows ingress traffic from
 			// the default cluster security group ID that EKS creates by default
 			// EKS attaches this to Managed Nodegroups by default, but we need to handle this for unmanaged nodegroups
-			c.newResource("IngressDefaultClusterToNodeSG", &gfn.AWSEC2SecurityGroupIngress{
+			c.newResource(cfnIngressClusterToNodeSGResource, &gfn.AWSEC2SecurityGroupIngress{
 				GroupId:               refClusterSharedNodeSG,
 				SourceSecurityGroupId: gfn.MakeFnGetAttString(makeAttrAccessor("ControlPlane", outputs.ClusterDefaultSecurityGroup)),
 				Description:           gfn.NewString("Allow managed and unmanaged nodes to communicate with each other (all ports)"),

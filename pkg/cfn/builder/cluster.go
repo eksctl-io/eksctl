@@ -99,6 +99,12 @@ func (c *ClusterResourceSet) Template() gfn.Template {
 	return *c.rs.template
 }
 
+// HasManagedNodesSG reports whether the stack has the security group required for communication between
+// managed and unmanaged nodegroups
+func HasManagedNodesSG(stackResources *gjson.Result) bool {
+	return stackResources.Get(cfnIngressClusterToNodeSGResource).Exists()
+}
+
 func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn.Value {
 	return c.rs.newResource(name, resource)
 }

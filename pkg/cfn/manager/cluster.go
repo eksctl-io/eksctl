@@ -58,22 +58,35 @@ func (c *StackCollection) DescribeClusterStack() (*Stack, error) {
 }
 
 // RefreshFargatePodExecutionRoleARN reads the CloudFormation stacks and
-// their output values, and set the Fargate pod execution role ARN to
+// their output values, and sets the Fargate pod execution role ARN to
 // the ClusterConfig.
 func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
+	fargateOutputs := map[string]outputs.Collector{
+		outputs.FargatePodExecutionRoleARN: func(v string) error {
+			c.spec.IAM.FargatePodExecutionRoleARN = &v
+			return nil
+		},
+	}
 	stack, err := c.DescribeClusterStack()
 	if err != nil {
 		return err
 	}
-	return outputs.Collect(*stack,
-		map[string]outputs.Collector{
-			outputs.FargatePodExecutionRoleARN: func(v string) error {
-				c.spec.IAM.FargatePodExecutionRoleARN = &v
-				return nil
-			},
-		},
-		nil,
-	)
+	if err := outputs.Collect(*stack, nil, fargateOutputs); err != nil {
+		return err
+	}
+
+	if c.spec.IAM.FargatePodExecutionRoleARN == nil {
+		logger.Info("Fargate pod execution role is missing, fixing cluster stack to add Fargate resources")
+		if err := c.FixClusterCompatibility(); err != nil {
+			return errors.Wrap(err, "error fixing cluster compatibility")
+		}
+	}
+
+	stack, err = c.DescribeClusterStack()
+	if err != nil {
+		return err
+	}
+	return outputs.Collect(*stack, fargateOutputs, nil)
 }
 
 // AppendNewClusterStackResource will update cluster

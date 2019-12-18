@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -163,9 +164,26 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 			logMsg("managed nodegroups", len(cfg.ManagedNodeGroups))
 		}
 
-		tasks := stackManager.NewTasksToCreateNodeGroups(cfg.NodeGroups, supportsManagedNodes)
+		tasks := &manager.TaskTree{
+			Parallel: false,
+		}
+		if supportsManagedNodes {
+			tasks.Append(stackManager.NewClusterCompatTask())
+		}
+
+		allNodeGroupTasks := &manager.TaskTree{
+			Parallel: true,
+		}
+		nodeGroupTasks := stackManager.NewTasksToCreateNodeGroups(cfg.NodeGroups, supportsManagedNodes)
+		if nodeGroupTasks.Len() > 0 {
+			allNodeGroupTasks.Append(nodeGroupTasks)
+		}
 		managedTasks := stackManager.NewManagedNodeGroupTask(cfg.ManagedNodeGroups)
-		tasks.Append(managedTasks)
+		if managedTasks.Len() > 0 {
+			allNodeGroupTasks.Append(managedTasks)
+		}
+
+		tasks.Append(allNodeGroupTasks)
 		logger.Info(tasks.Describe())
 		errs := tasks.DoAllSync()
 		if len(errs) > 0 {
@@ -178,7 +196,6 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 			}
 			return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
 		}
-
 	}
 
 	{ // post-creation action
