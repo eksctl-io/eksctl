@@ -39,3 +39,4 @@ integration/kubeconfig-*
 # direnv's files:
 .envrc
 .DS_Store
+/site/site
