@@ -52,6 +52,7 @@ func main() {
 				logger.Debug("ignoring cobra error %q", err.Error())
 			}
 		},
+		SilenceUsage: true,
 	}
 
 	flagGrouping := cmdutils.NewGrouping()
