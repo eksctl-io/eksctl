@@ -76,6 +76,7 @@ func (c *StackCollection) RefreshFargatePodExecutionRoleARN() error {
 	}
 
 	if c.spec.IAM.FargatePodExecutionRoleARN == nil {
+		logger.Info("Fargate pod execution role is missing, fixing cluster stack to add Fargate resources")
 		if err := c.FixClusterCompatibility(); err != nil {
 			return errors.Wrap(err, "error fixing cluster compatibility")
 		}
