@@ -951,8 +951,6 @@ github.com/vmware/govmomi v0.19.0 h1:CR6tEByWCPOnRoRyhLzuHaU+6o2ybF3qufNRWS/MGrY
 github.com/vmware/govmomi v0.19.0/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
-github.com/weaveworks-experiments/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f h1:mfgf9Q8ERQpAVlJHQJSQ2lmH5yIoG9KZeBj+S4EebLw=
-github.com/weaveworks-experiments/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/weaveworks/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f h1:fer1sbNWB5v7KKDq7fzdLeTtRMbg1fNjIY6nrWw1plc=
 github.com/weaveworks/aws-sdk-go v1.25.14-0.20191128064856-d39dadebcc3f/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/weaveworks/common v0.0.0-20190410110702-87611edc252e/go.mod h1:pSm+0KR57BG3pvGoJWFXJSAC7+sEPewcvdt5StevL3A=
