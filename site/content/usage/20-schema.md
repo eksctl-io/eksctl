@@ -183,6 +183,10 @@ ClusterVPC:
     nat:
       $ref: '#/definitions/ClusterNAT'
       $schema: http://json-schema.org/draft-04/schema#
+    publicAccessCidrs:
+      items:
+        type: string
+      type: array
     securityGroup:
       type: string
     sharedNodeSecurityGroup:
