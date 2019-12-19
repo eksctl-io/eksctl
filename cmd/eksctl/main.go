@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/delete"
 	"github.com/weaveworks/eksctl/pkg/ctl/drain"
 	"github.com/weaveworks/eksctl/pkg/ctl/enable"
-	"github.com/weaveworks/eksctl/pkg/ctl/generate"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
 	"github.com/weaveworks/eksctl/pkg/ctl/update"
@@ -33,7 +32,6 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
 	if os.Getenv("EKSCTL_EXPERIMENTAL") == "true" {
-		rootCmd.AddCommand(generate.Command(flagGrouping))
 		rootCmd.AddCommand(enable.Command(flagGrouping))
 	}
 	rootCmd.AddCommand(utils.Command(flagGrouping))
