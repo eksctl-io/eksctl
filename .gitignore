@@ -32,9 +32,11 @@ integration/kubeconfig-*
 # Generated header file
 .license-header
 
+# Docker Image ID file and docker intermediate files
 # Build image context and Docker Image ID file
 .build_image_context
 *.iid
+.docker/
 
 # direnv's files:
 .envrc

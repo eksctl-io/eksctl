@@ -1,36 +1,102 @@
-version: 2
+version: 2.1
+
+commands:
+  prepare-ssh-keys:
+    description: Prepare SSH keys to be mounted with the right permissions for Git
+    steps:
+      - run:
+          name: Prepare SSH keys to be mounted with the right permissions for Git
+          command: |
+            if [ ! -z "$SSH_KEY_NAME" ]; then
+              cp -r $HOME/.ssh $HOME/project/.ssh
+              sudo printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" > $HOME/project/.ssh/config
+              sudo chmod -R 600 $HOME/project/.ssh
+              sudo chown -R root:root $HOME/project/.ssh
+            else
+              echo "No SSH key found. Skipping..."
+            fi
+  docker-run:
+    # enabling docker executor will require to use large resource class, which
+    # implies extra cost - we don't really have to do that, we can just run the
+    # image this way
+    description: Run docker command
+    parameters:
+      cmd:
+        type: string
+      timeout:
+        type: string
+        default: 30m
+    steps:
+      - run:
+          name: docker run << parameters.cmd >>
+          command: |
+            docker run \
+              --env=JUNIT_REPORT_DIR=/src/test-results \
+              --env=GOPRIVATE \
+              --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              --volume=$HOME/project/.ssh:/root/.ssh \
+              weaveworks/eksctl-build:$(cat .docker/image_tag) << parameters.cmd >>
+          no_output_timeout: << parameters.timeout >>
+  docker-pull-build-image:
+    description: Docker pull image
+    steps:
+      - run: docker pull "weaveworks/eksctl-build:$(cat .docker/image_tag)"
+  restore-cache:
+    description: Restore cache
+    steps:
+      - restore_cache:
+          keys:
+            - go-cache-{{ .Branch }}-{{ .Revision }}
+            - go-cache-{{ .Branch }}-
+            - go-cache-
+  save-cache:
+    description: Save cache
+    steps:
+      - run:
+          name: Prepare cache to be saved
+          command: |
+            sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
+            sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
+      - save_cache:
+          key: go-cache-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - "/home/circleci/.cache/go-build/"
+            - "/home/circleci/go/pkg/mod/"
+
 jobs:
   test-and-build:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
+      GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
     steps:
       - checkout
-      # enabling docker executor will require to use large resource class, which
-      # implies extra cost - we don't really have to do that, we can just run the
-      # image this way
-      - run: docker pull $BUILD_IMAGE
-      - run:
-          name: Test & Build
-          command: |
-            mkdir test-results; \
-            docker run \
-              --env=JUNIT_REPORT_DIR=/src/test-results \
-              --volume=$(pwd):/src \
-                $BUILD_IMAGE make test build
+      - add_ssh_keys:
+          fingerprints:
+            - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
+      - prepare-ssh-keys
+      - restore-cache
+      - docker-pull-build-image
+      - run: mkdir test-results
+      - docker-run:
+          cmd: go mod download
+      - docker-run:
+          cmd: make test build
+      - save-cache
       - store_test_results:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
+      - store_artifacts:
+          path: ./eksctl
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
-    environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
     steps:
       - checkout
-      - run: docker pull $BUILD_IMAGE
+      - docker-pull-build-image
       - run:
           name: Create release candidate binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release-candidate
@@ -38,11 +104,9 @@ jobs:
   release:
     machine:
       image: ubuntu-1604:201903-01
-    environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
     steps:
       - checkout
-      - run: docker pull $BUILD_IMAGE
+      - docker-pull-build-image
       - run:
           name: Create release binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release
@@ -51,33 +115,27 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BUILD_IMAGE: weaveworks/eksctl-build:536359212e93e01ba0f15f01a35bed08676bddf1
+      BUILD_IMAGE: weaveworks/eksctl-build:242d3cf855385c4cb174cd0fadf6dc7ac4f76a55
     steps:
+      - checkout
       - add_ssh_keys:
           fingerprints:
             - "82:cb:ed:40:f3:27:05:e6:16:9d:68:25:40:7d:83:07"
-      - checkout
-      - run: docker pull $BUILD_IMAGE
+            - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
+      - prepare-ssh-keys
+      - restore-cache
+      - docker-pull-build-image
+      - run: mkdir test-results
       - run:
-          name: Prepare SSH keys to be mounted with the right permissions
+          name: Run integration tests
           command: |
-              cp -r $HOME/.ssh $HOME/project/.ssh
-              sudo echo "Host github.com" > $HOME/project/.ssh/config
-              sudo echo "  IdentityFile /root/.ssh/id_rsa_82cbed40f32705e6169d6825407d8307" >> $HOME/project/.ssh/config
-              sudo chmod 600 $HOME/project/.ssh/config
-              sudo chmod 600 $HOME/project/.ssh/id_rsa_82cbed40f32705e6169d6825407d8307
-              sudo chown -R root:root $HOME/project/.ssh
-      - run:
-          name: Run Integration Tests
-          command: |
-            mkdir test-results; \
             docker run \
-            --env=JUNIT_REPORT_DIR=/src/test-results \
-            --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-            --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-            --volume=$(pwd):/src \
-            --volume=$HOME/project/.ssh:/root/.ssh \
-            $BUILD_IMAGE make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/id_rsa_82cbed40f32705e6169d6825407d8307"
+                --env=JUNIT_REPORT_DIR=/src/test-results \
+                --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+                --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+                --volume=$(pwd):/src \
+                --volume=$HOME/project/.ssh:/root/.ssh \
+                weaveworks/eksctl-build:$(cat .docker/image_tag) make integration-test TEST_V=1 SSH_KEY_PATH="${SSH_KEY_NAME}"
           no_output_timeout: 35m
       - store_test_results:
           path: ./test-results

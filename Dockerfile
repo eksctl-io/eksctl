@@ -35,15 +35,14 @@ RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd
 
 # Remaining dependencies are controlled by go.mod
 WORKDIR /src
-ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org
+ENV CGO_ENABLED=0 GOPROXY=https://proxy.golang.org,direct
 
-COPY install-build-deps.sh go.mod go.sum /src/
+RUN git config --global url."git@github.com:".insteadOf "https://github.com/"
+
+COPY .requirements install-build-deps.sh go.mod go.sum /src/
 
 # Install all build tools dependencies
 RUN ./install-build-deps.sh
-
-# Download and cache all of the modules
-RUN go mod download
 
 # The authenticator is a runtime dependency, so it needs to be in /out
 RUN go install github.com/kubernetes-sigs/aws-iam-authenticator/cmd/aws-iam-authenticator \

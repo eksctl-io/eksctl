@@ -1,14 +1,14 @@
 include Makefile.common
 
-build_image_input := Dockerfile install-build-deps.sh go.mod go.sum
+image_manifest_file = .docker/build_image_manifest
 
 # We use git object hashes for determining the input files used for any given build image
 # E.g. given `weaveworks/eksctl-build:e6e8800773d3adf8e7999a23dcdb07414c66a4da` one can
 # run `git show e6e8800773d3adf8e7999a23dcdb07414c66a4da` to get contents of `.build_image_manifest`,
 # and `git show <hash>` for each of the hashes in the manifest to determine contents of each of the
 # files used in `$(build_image_input)` at the time.
-build_image_tag_cmd = git ls-tree --full-tree @ -- .build_image_manifest | awk '{ print $$3 }'
-build_image_tag = $(shell $(build_image_tag_cmd))
+build_image_tag_file = .docker/image_tag
+build_image_tag = $(shell cat $(build_image_tag_file))
 
 build_image_name = weaveworks/eksctl-build:$(build_image_tag)
 
@@ -19,46 +19,35 @@ docker_build := time docker build
 # but right now 'docker build' doesn't allow us to export build cache images, so we cannot use it yet
 # docker_build := env DOCKER_BUILDKIT=1 $(docker_build)
 
-update_build_image_manifest = git ls-tree --full-tree @ -- $(build_image_input) > .build_image_manifest
+.PHONY: update-build-image-tag
+update-build-image-tag:
+	./build-image-manifest.sh > $(image_manifest_file)
+	git hash-object $(image_manifest_file) > $(build_image_tag_file)
 
 .PHONY: check-build-image-manifest-up-to-date
-check-build-image-manifest-up-to-date: ## Update build image manifest and commits the changes
-	git diff --quiet -- $(build_image_input) \
-	  || (git --no-pager diff $(build_image_input); exit 1)
-	$(update_build_image_manifest)
+check-build-image-manifest-up-to-date: update-build-image-tag ## Update build image manifest and commits the changes
 	git diff --quiet -- .build_image_manifest \
-	  || (git --no-pager diff .build_image_manifest; echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-manifest'"; exit 1)
+	  || (git --no-pager diff .build_image_manifest; echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-tag'"; exit 1)
 
-.PHONY: update-build-image-manifest
-update-build-image-manifest: ## Update build image manifest and commits the changes
-	$(update_build_image_manifest)
-	git diff --quiet -- .build_image_manifest \
-	  || git commit --quiet .build_image_manifest --message 'Update build image manifest'
-	@# There is no portable way of using sed -i on BSD and GNU, so we use temporary files instead
-	for i in .github/workflows/commit.yaml .circleci/config.yml ; do \
-	  sed "s|\(weaveworks/eksctl-build\):.*$$|\1:$$($(build_image_tag_cmd))|" "$${i}" > "$${i}.sedtmp" && mv "$${i}.sedtmp" "$${i}" ; \
-	done
-	git diff --quiet -- .github/workflows/commit.yaml .circleci/config.yml \
-	  || git commit --quiet .github/workflows/commit.yaml .circleci/config.yml --message 'Update build image in CI'
+.PHONY: commit-new-image-tag
+commit-new-image-tag: update-build-image-tag ## Update build image manifest and commits the changes
+	git commit --quiet $(image_manifest_file) $(build_image_tag_file) --message 'Update build image manifest and tag file'
 
 .PHONY: build-image
 build-image: check-build-image-manifest-up-to-date ## Build the build image that has all of external dependencies
 	-docker pull $(build_image_name)
-	rm -rf .build_image_context
-	mkdir .build_image_context
-	cp $(build_image_input) .build_image_context/
-	@# git only ensures owner's perssions are set, it ignores group and other's permissions,
-	@# we need to force permissions here to avoid cache misses
-	chmod go-wrx .build_image_context/*
+	cp .requirements install-build-deps.sh go.mod go.sum .docker/
 	$(docker_build) \
 	  --iidfile=.build_image.iid \
 	  --cache-from=$(build_image_name) \
 	  --tag=$(build_image_name) \
-	  .build_image_context/
+	  --file Dockerfile \
+	  .docker/
 
 .PHONY: push-build-image
 push-build-image: build-image ## Push the build image to the Docker Hub registry
 	docker push $(build_image_name)
+	echo "Remember to commit the image_tag and build_image_manifest files"
 
 .PHONY: push-build-image-github
 push-build-image-github: build-image ## Push the build image to the GitHub registry
@@ -95,6 +84,7 @@ docker_run_release_script = docker run \
   --env=GITHUB_TOKEN \
   --env=CIRCLE_TAG \
   --env=CIRCLE_PROJECT_USERNAME \
+  --env=CIRCLE_PROJECT_REPONAME \
   --volume=$(git_toplevel):/src \
   --workdir=/src \
     $(intermediate_image_name)
