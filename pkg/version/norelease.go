@@ -3,5 +3,5 @@
 package version
 
 var (
-	builtAt, gitCommit, gitTag string
+	version, preReleaseId, gitCommit string
 )
