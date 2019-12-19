@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateLoggingFlags(t *testing.T) {
@@ -97,4 +99,56 @@ func TestValidateLoggingFlags(t *testing.T) {
 		})
 	}
 
+}
+
+func TestParseCIDRs(t *testing.T) {
+	cidrTests := []struct {
+		input       string
+		expected    []string
+		shouldError bool
+	}{
+		{
+			input:    "192.168.0.1/32,192.168.0.2/32,192.168.0.3/32",
+			expected: []string{"192.168.0.1/32", "192.168.0.2/32", "192.168.0.3/32"},
+		},
+		{
+			input:    "192.168.0.1/32",
+			expected: []string{"192.168.0.1/32"},
+		},
+		{
+			input:       "fail",
+			shouldError: true,
+		},
+		{
+			input:       "256.0.0.0/32",
+			shouldError: true,
+		},
+		{
+			input:       "192.168.0.1/32,192.168.0.2/33",
+			shouldError: true,
+		},
+		{
+			input:    "192.168.0.0/24,192.168.32.0/19,192.168.64.0/19",
+			expected: []string{"192.168.0.0/24", "192.168.32.0/19", "192.168.64.0/19"},
+		},
+		{
+			input:       "192.168.0.1/32, 192.168.0.2/32, 192.168.0.3/32",
+			shouldError: true, // space after comma
+		},
+	}
+
+	for i, tt := range cidrTests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			cidrs, err := parseCIDRs(tt.input)
+			if err != nil {
+				if tt.shouldError {
+					return
+				}
+				t.Errorf("expected %v; got %v", tt.expected, err)
+				return
+			}
+			assert.Equal(t, cidrs, tt.expected)
+
+		})
+	}
 }

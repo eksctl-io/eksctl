@@ -22,16 +22,12 @@ func setPublicAccessCIDRsCmd(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("set-public-access-cidrs", "Update public access CIDRs", "CIDR blocks that EKS uses to create a security group on the public endpoint")
 
 	cmd.CobraCommand.Args = cobra.ExactArgs(1)
-	cmd.CobraCommand.RunE = func(c *cobra.Command, args []string) error {
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cidrs, err := parseCIDRs(args[0])
 		if err != nil {
 			return err
 		}
-		validCIDRs, err := validateCIDRs(cidrs)
-		if err != nil {
-			return err
-		}
-		cmd.ClusterConfig.VPC.PublicAccessCIDRs = validCIDRs
+		cmd.ClusterConfig.VPC.PublicAccessCIDRs = cidrs
 		return doUpdatePublicAccessCIDRs(cmd)
 	}
 
@@ -49,7 +45,11 @@ func setPublicAccessCIDRsCmd(cmd *cmdutils.Cmd) {
 func parseCIDRs(arg string) ([]string, error) {
 	reader := strings.NewReader(arg)
 	csvReader := csv.NewReader(reader)
-	return csvReader.Read()
+	cidrs, err := csvReader.Read()
+	if err != nil {
+		return nil, err
+	}
+	return validateCIDRs(cidrs)
 }
 
 func validateCIDRs(cidrs []string) ([]string, error) {
