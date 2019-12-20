@@ -15,6 +15,7 @@ RUN apk add --no-cache \
     libsass-dev \
     make \
     musl-dev \
+    jq \
     && true
 
 # Runtime dependencies. Build the root filesystem of the eksctl image at /out

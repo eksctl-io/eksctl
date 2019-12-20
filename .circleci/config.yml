@@ -83,7 +83,13 @@ jobs:
       - docker-run:
           cmd: go mod download
       - docker-run:
+          cmd: make check-all-generated-files-up-to-date
+      - docker-run:
           cmd: make test build
+      - docker-run:
+          cmd: make build-integration-test
+      - docker-run:
+          cmd: make -f Makefile.docker check-build-image-manifest-up-to-date
       - save-cache
       - store_test_results:
           path: ./test-results
