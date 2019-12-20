@@ -183,7 +183,7 @@ ClusterVPC:
     nat:
       $ref: '#/definitions/ClusterNAT'
       $schema: http://json-schema.org/draft-04/schema#
-    publicAccessCidrs:
+    publicAccessCIDRs:
       items:
         type: string
       type: array
