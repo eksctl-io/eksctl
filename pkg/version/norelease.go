@@ -3,5 +3,8 @@
 package version
 
 var (
-	version, preReleaseId, gitCommit string
+	version      = "0.12.0"
+	preReleaseId = ""
+	gitCommit    string
+	buildDate    string
 )

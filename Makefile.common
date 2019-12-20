@@ -1,6 +1,5 @@
-built_at := $(shell date +%s)
-
-git_commit = $(shell git describe --dirty --always)
+build_date := $(shell date +%Y%m%dT%H%M%S)
+git_commit = $(shell git rev-parse --short HEAD)
 git_toplevel := $(shell git rev-parse --show-toplevel)
 
 unique_tag = $(shell printf "%s-%s-%s" `git rev-parse @` $(build_image_tag) $(built_at))

@@ -42,7 +42,7 @@ godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
 build: generate-always ## Build main binary
-	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
 
 # Build binaries for Linux, Windows and Mac and place them in dist/
 .PHONY: build-all

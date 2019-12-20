@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 )
 
 //go:generate go run ./release_generate.go
@@ -23,14 +22,14 @@ type BuildMetadata struct {
 	GitCommit string
 }
 
-// Get return version Info struct
+// GetVersionInfo returns version Info struct
 func GetVersionInfo() Info {
 	return Info{
 		Version:      version,
 		PreReleaseId: preReleaseId,
 		Metadata: BuildMetadata{
 			GitCommit: gitCommit,
-			BuildDate: getBuildDate(),
+			BuildDate: buildDate,
 		},
 	}
 }
@@ -58,14 +57,10 @@ func GetVersion() string {
 		version,
 		preReleaseId,
 		gitCommit,
-		getBuildDate(),
+		buildDate,
 	)
 }
 
 func isReleaseCandidate(preReleaseId string) bool {
 	return strings.HasPrefix(preReleaseId, "rc.")
-}
-
-func getBuildDate() string {
-	return time.Now().UTC().Format("20060102T150405")
 }
