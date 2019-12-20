@@ -434,6 +434,11 @@ func (in *ClusterVPC) DeepCopyInto(out *ClusterVPC) {
 		*out = new(ClusterEndpoints)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.PublicAccessCIDRs != nil {
+		in, out := &in.PublicAccessCIDRs, &out.PublicAccessCIDRs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
