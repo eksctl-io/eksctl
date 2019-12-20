@@ -96,7 +96,10 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
+      - restore-cache
       - docker-pull-build-image
+      - docker-run:
+          cmd: go mod download
       - run:
           name: Create release candidate binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release-candidate
@@ -106,7 +109,10 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
+      - restore-cache
       - docker-pull-build-image
+      - docker-run:
+          cmd: go mod download
       - run:
           name: Create release binaries for all plaforms and upload to GitHub
           command: make -f Makefile.docker release
