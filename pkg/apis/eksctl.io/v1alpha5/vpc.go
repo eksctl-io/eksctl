@@ -32,7 +32,7 @@ type (
 		// +optional
 		ClusterEndpoints *ClusterEndpoints `json:"clusterEndpoints,omitempty"`
 		// +optional
-		PublicAccessCIDRs []string `json:"publicAccessCidrs,omitempty"`
+		PublicAccessCIDRs []string `json:"publicAccessCIDRs,omitempty"`
 	}
 	// ClusterSubnets holds private and public subnets
 	ClusterSubnets struct {

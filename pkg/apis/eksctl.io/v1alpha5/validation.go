@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -96,6 +97,14 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 	if !cfg.HasClusterEndpointAccess() {
 		return ErrClusterEndpointNoAccess
+	}
+
+	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
+		cidrs, err := validateCIDRs(cfg.VPC.PublicAccessCIDRs)
+		if err != nil {
+			return err
+		}
+		cfg.VPC.PublicAccessCIDRs = cidrs
 	}
 	return nil
 }
@@ -465,6 +474,18 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 // IsWindowsImage reports whether the AMI family is for Windows
 func IsWindowsImage(imageFamily string) bool {
 	return imageFamily == NodeImageFamilyWindowsServer2019CoreContainer || imageFamily == NodeImageFamilyWindowsServer2019FullContainer
+}
+
+func validateCIDRs(cidrs []string) ([]string, error) {
+	var validCIDRs []string
+	for _, cidr := range cidrs {
+		_, ipNet, err := net.ParseCIDR(cidr)
+		if err != nil {
+			return nil, err
+		}
+		validCIDRs = append(validCIDRs, ipNet.String())
+	}
+	return validCIDRs, nil
 }
 
 // ReservedProfileNamePrefix defines the Fargate profile name prefix reserved

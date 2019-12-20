@@ -1,8 +1,11 @@
 package cmdutils
 
 import (
+	"encoding/csv"
 	"fmt"
+	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -448,6 +451,41 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 	}
 
 	return l
+}
+
+// NewUtilsPublicAccessCIDRsLoader loads config or uses flags for `eksctl utils set-public-access-cidrs <cidrs>`
+func NewUtilsPublicAccessCIDRsLoader(cmd *Cmd) ClusterConfigLoader {
+	l := newCommonClusterConfigLoader(cmd)
+
+	l.validateWithConfigFile = func() error {
+		if cmd.NameArg != "" {
+			return fmt.Errorf("config file and CIDR list argument %s", IncompatibleFlags)
+		}
+		if l.ClusterConfig.VPC == nil || l.ClusterConfig.VPC.PublicAccessCIDRs == nil {
+			return errors.New("field vpc.publicAccessCIDRs is required")
+		}
+		return nil
+	}
+
+	l.validateWithoutConfigFile = func() error {
+		if cmd.NameArg == "" {
+			return errors.New("a comma-separated CIDR list is required")
+		}
+
+		cidrs, err := parseCIDRs(cmd.NameArg)
+		if err != nil {
+			return err
+		}
+		l.ClusterConfig.VPC.PublicAccessCIDRs = cidrs
+		return nil
+	}
+	return l
+}
+
+func parseCIDRs(arg string) ([]string, error) {
+	reader := strings.NewReader(arg)
+	csvReader := csv.NewReader(reader)
+	return csvReader.Read()
 }
 
 // NewCreateIAMServiceAccountLoader will laod config or use flags for 'eksctl create iamserviceaccount'

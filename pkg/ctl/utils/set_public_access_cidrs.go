@@ -1,10 +1,6 @@
 package utils
 
 import (
-	"encoding/csv"
-	"net"
-	"strings"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -15,24 +11,22 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-func setPublicAccessCIDRsCmd(cmd *cmdutils.Cmd) {
+func publicAccessCIDRsCmdWithHandler(cmd *cmdutils.Cmd, handler func(cmd *cmdutils.Cmd) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
 	cmd.SetDescription("set-public-access-cidrs", "Update public access CIDRs", "CIDR blocks that EKS uses to create a security group on the public endpoint")
 
-	cmd.CobraCommand.Args = cobra.ExactArgs(1)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
-		cidrs, err := parseCIDRs(args[0])
-		if err != nil {
+		cmd.NameArg = cmdutils.GetNameArg(args)
+		if err := cmdutils.NewUtilsPublicAccessCIDRsLoader(cmd).Load(); err != nil {
 			return err
 		}
-		cmd.ClusterConfig.VPC.PublicAccessCIDRs = cidrs
-		return doUpdatePublicAccessCIDRs(cmd)
+		return handler(cmd)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
-		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
+		cmdutils.AddClusterFlag(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddApproveFlag(fs, cmd)
@@ -42,33 +36,11 @@ func setPublicAccessCIDRsCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func parseCIDRs(arg string) ([]string, error) {
-	reader := strings.NewReader(arg)
-	csvReader := csv.NewReader(reader)
-	cidrs, err := csvReader.Read()
-	if err != nil {
-		return nil, err
-	}
-	return validateCIDRs(cidrs)
-}
-
-func validateCIDRs(cidrs []string) ([]string, error) {
-	var validCIDRs []string
-	for _, cidr := range cidrs {
-		_, ipNet, err := net.ParseCIDR(cidr)
-		if err != nil {
-			return nil, err
-		}
-		validCIDRs = append(validCIDRs, ipNet.String())
-	}
-	return validCIDRs, nil
+func publicAccessCIDRsCmd(cmd *cmdutils.Cmd) {
+	publicAccessCIDRsCmdWithHandler(cmd, doUpdatePublicAccessCIDRs)
 }
 
 func doUpdatePublicAccessCIDRs(cmd *cmdutils.Cmd) error {
-	if err := cmdutils.NewUtilsEnableEndpointAccessLoader(cmd).Load(); err != nil {
-		return err
-	}
-
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
