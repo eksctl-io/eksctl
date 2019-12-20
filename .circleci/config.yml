@@ -102,7 +102,17 @@ jobs:
           cmd: go mod download
       - run:
           name: Create release candidate binaries for all plaforms and upload to GitHub
-          command: make -f Makefile.docker release-candidate
+          command: |
+            docker run \
+              --env=GITHUB_TOKEN \
+              --env=CIRCLE_TAG \
+              --env=CIRCLE_PROJECT_USERNAME \
+              --env=CIRCLE_PROJECT_REPONAME \
+              --env=GOPRIVATE \
+              --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release-candidate.sh
           no_output_timeout: 21m
   release:
     machine:
@@ -115,7 +125,17 @@ jobs:
           cmd: go mod download
       - run:
           name: Create release binaries for all plaforms and upload to GitHub
-          command: make -f Makefile.docker release
+          command: |
+            docker run \
+              --env=GITHUB_TOKEN \
+              --env=CIRCLE_TAG \
+              --env=CIRCLE_PROJECT_USERNAME \
+              --env=CIRCLE_PROJECT_REPONAME \
+              --env=GOPRIVATE \
+              --volume=$(pwd):/src \
+              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
+              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release.sh
           no_output_timeout: 21m
   integration-tests:
     machine:

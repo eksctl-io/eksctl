@@ -90,9 +90,9 @@ docker_run_release_script = docker run \
     $(build_image_name)
 
 .PHONY: release-candidate
-release-candidate: build test ## Create a new eksctl release candidate
+release-candidate: ## Create a new eksctl release candidate
 	$(call docker_run_release_script) ./do-release-candidate.sh
 
 .PHONY: release
-release: build test ## Create a new eksctl release
+release: ## Create a new eksctl release
 	$(call docker_run_release_script) ./do-release.sh
