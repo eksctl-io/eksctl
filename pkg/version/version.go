@@ -24,7 +24,7 @@ type BuildMetadata struct {
 }
 
 // Get return version Info struct
-func Get() Info {
+func GetVersionInfo() Info {
 	return Info{
 		Version:      version,
 		PreReleaseId: preReleaseId,
@@ -37,7 +37,7 @@ func Get() Info {
 
 // String return version info as JSON
 func String() string {
-	if data, err := json.Marshal(Get()); err == nil {
+	if data, err := json.Marshal(GetVersionInfo()); err == nil {
 		return string(data)
 	}
 	return ""
