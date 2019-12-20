@@ -4563,6 +4563,84 @@ func (_m *SSMAPI) GetAutomationExecutionWithContext(_a0 context.Context, _a1 *ss
 	return r0, r1
 }
 
+// GetCalendarState provides a mock function with given fields: _a0
+func (_m *SSMAPI) GetCalendarState(_a0 *ssm.GetCalendarStateInput) (*ssm.GetCalendarStateOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ssm.GetCalendarStateOutput
+	if rf, ok := ret.Get(0).(func(*ssm.GetCalendarStateInput) *ssm.GetCalendarStateOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetCalendarStateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ssm.GetCalendarStateInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCalendarStateRequest provides a mock function with given fields: _a0
+func (_m *SSMAPI) GetCalendarStateRequest(_a0 *ssm.GetCalendarStateInput) (*request.Request, *ssm.GetCalendarStateOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ssm.GetCalendarStateInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ssm.GetCalendarStateOutput
+	if rf, ok := ret.Get(1).(func(*ssm.GetCalendarStateInput) *ssm.GetCalendarStateOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ssm.GetCalendarStateOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetCalendarStateWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *SSMAPI) GetCalendarStateWithContext(_a0 context.Context, _a1 *ssm.GetCalendarStateInput, _a2 ...request.Option) (*ssm.GetCalendarStateOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ssm.GetCalendarStateOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ssm.GetCalendarStateInput, ...request.Option) *ssm.GetCalendarStateOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ssm.GetCalendarStateOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ssm.GetCalendarStateInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCommandInvocation provides a mock function with given fields: _a0
 func (_m *SSMAPI) GetCommandInvocation(_a0 *ssm.GetCommandInvocationInput) (*ssm.GetCommandInvocationOutput, error) {
 	ret := _m.Called(_a0)

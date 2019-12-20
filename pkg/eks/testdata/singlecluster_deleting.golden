@@ -15,6 +15,7 @@
       "ClusterSecurityGroupId": null,
       "EndpointPrivateAccess": null,
       "EndpointPublicAccess": null,
+      "PublicAccessCidrs": null,
       "SecurityGroupIds": null,
       "SubnetIds": [
         "sub1",

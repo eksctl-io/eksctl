@@ -200,3 +200,32 @@ eksctl utils update-cluster-endpoints --name=<clustername> --private-access=true
 
 Note that if you don't pass a flag in it will keep the current value. Once you are satisfied with the proposed changes,
 add the `approve` flag to make the change to the running cluster.
+
+### Restricting Access to the EKS Kubernetes Public API endpoint
+
+The default creation of an EKS cluster exposes the Kubernetes API server publicly. To restrict access to the public API
+endpoint to a set of CIDRs when creating a cluster, set the `publicAccessCIDRs` field:
+
+```yaml
+vpc:
+  publicAccessCIDRs: ["1.1.1.1/32", "2.2.2.0/24"]
+```
+
+To update the restrictions on an existing cluster, use:
+
+```console
+eksctl utils set-public-access-cidrs --cluster=<cluster> 1.1.1.1/32,2.2.2.0/24
+```
+
+To update the restrictions using a `ClusterConfig` file, set the new CIDRs in `vpc.publicAccessCIDRs` and run:
+
+```console
+eksctl utils set-public-access-cidrs -f config.yaml
+```
+
+**Note**: This feature only applies to the public endpoint. The
+[API server endpoint access configuration options](https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html)
+won't change, and you will still have the option to disable the public endpoint so your cluster is not accessible from
+the internet. (Source: https://github.com/aws/containers-roadmap/issues/108#issuecomment-552766489)
+
+Implementation notes: https://github.com/aws/containers-roadmap/issues/108#issuecomment-552698875
