@@ -25,8 +25,8 @@ type BuildMetadata struct {
 // GetVersionInfo returns version Info struct
 func GetVersionInfo() Info {
 	return Info{
-		Version:      version,
-		PreReleaseId: preReleaseId,
+		Version:      Version,
+		PreReleaseId: PreReleaseId,
 		Metadata: BuildMetadata{
 			GitCommit: gitCommit,
 			BuildDate: buildDate,
@@ -44,18 +44,18 @@ func String() string {
 
 // GetVersion return the exact version of this build
 func GetVersion() string {
-	if preReleaseId == "" {
-		return version
+	if PreReleaseId == "" {
+		return Version
 	}
 
-	if isReleaseCandidate(preReleaseId) {
-		return fmt.Sprintf("%s-%s", version, preReleaseId)
+	if isReleaseCandidate(PreReleaseId) {
+		return fmt.Sprintf("%s-%s", Version, PreReleaseId)
 	}
 
 	//  Include build metadata
 	return fmt.Sprintf("%s-%s+%s.%s",
-		version,
-		preReleaseId,
+		Version,
+		PreReleaseId,
 		gitCommit,
 		buildDate,
 	)
