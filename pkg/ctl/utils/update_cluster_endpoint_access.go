@@ -85,12 +85,17 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	logger.Info("current Kubernetes API endpoint access: privateAccess=%v, publicAccess=%v",
 		curPrivate, curPublic)
 
-	privateSet, publicSet := accessFlagsSet(cmd)
-	if !privateSet {
-		newPrivate = curPrivate
-	}
-	if !publicSet {
-		newPublic = curPublic
+	if cfg.VPC.ClusterEndpoints.PublicAccess != nil && cfg.VPC.ClusterEndpoints.PrivateAccess != nil {
+		newPublic = *cfg.VPC.ClusterEndpoints.PublicAccess
+		newPrivate = *cfg.VPC.ClusterEndpoints.PrivateAccess
+	}else{
+		privateSet, publicSet := accessFlagsSet(cmd)
+		if !privateSet {
+			newPrivate = curPrivate
+		}
+		if !publicSet {
+			newPublic = curPublic
+		}
 	}
 
 	// Nothing changed?
