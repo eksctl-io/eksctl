@@ -27,7 +27,7 @@ func CheckKubectlVersion(env []string) error {
 	ktl := &kubectl.LocalClient{Env: env}
 	kubectlPath, err := ktl.LookPath()
 	if err != nil {
-		return fmt.Errorf("kubectl not found, v1.10.0 or newever is required")
+		return fmt.Errorf("kubectl not found, v1.10.0 or newer is required")
 	}
 	logger.Debug("kubectl: %q", kubectlPath)
 
