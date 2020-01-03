@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/pkg/errors"
+	"github.com/kris-nova/logger"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
@@ -95,7 +96,7 @@ type AvailabilityZoneSelector struct {
 func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
 	avoidZones := map[string]bool{
 		// well-known over-populated zones
-		"us-east1-e": true,
+		"us-east-1e": true,
 	}
 
 	return &AvailabilityZoneSelector{
@@ -110,7 +111,7 @@ func NewSelectorWithDefaults(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
 func NewSelectorWithMinRequired(ec2api ec2iface.EC2API) *AvailabilityZoneSelector {
 	avoidZones := map[string]bool{
 		// well-known over-populated zones
-		"us-east1-e": true,
+		"us-east-1e": true,
 	}
 
 	return &AvailabilityZoneSelector{
@@ -141,6 +142,10 @@ func (a *AvailabilityZoneSelector) getUsableZones(availableZones []*ec2.Availabi
 				zoneUsable = false
 				break
 			}
+		}
+		if *zone.ZoneName == "us-east-1e" {
+			logger.Warning("Ignoring zone 'us-east-1e' as hardcoded by andreas")
+			zoneUsable = false
 		}
 		if zoneUsable {
 			usableZones = append(usableZones, *zone.ZoneName)
