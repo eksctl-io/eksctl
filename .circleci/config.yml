@@ -34,8 +34,8 @@ commands:
               --env=JUNIT_REPORT_DIR=/src/test-results \
               --env=GOPRIVATE \
               --volume=$(pwd):/src \
-              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
-              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
+              --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
               --volume=$HOME/project/.ssh:/root/.ssh \
               weaveworks/eksctl-build:$(cat .docker/image_tag) << parameters.cmd >>
           no_output_timeout: << parameters.timeout >>
@@ -57,8 +57,8 @@ commands:
       - run:
           name: Prepare cache to be saved
           command: |
-            sudo chown -R circleci.circleci /home/circleci/.cache/go-build/
-            sudo chown -R circleci.circleci /home/circleci/go/pkg/mod/
+            sudo chown -R circleci.circleci $HOME/.cache/go-build/
+            sudo chown -R circleci.circleci $HOME/go/pkg/mod/
       - save_cache:
           key: go-cache-{{ .Branch }}-{{ .Revision }}
           paths:
@@ -116,8 +116,8 @@ jobs:
               --env=CIRCLE_PROJECT_REPONAME \
               --env=GOPRIVATE \
               --volume=$(pwd):/src \
-              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
-              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
+              --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
               weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release-candidate.sh
           no_output_timeout: 21m
   release:
@@ -139,8 +139,8 @@ jobs:
               --env=CIRCLE_PROJECT_REPONAME \
               --env=GOPRIVATE \
               --volume=$(pwd):/src \
-              --volume=/home/circleci/.cache/go-build/:/root/.cache/go-build \
-              --volume=/home/circleci/go/pkg/mod/:/go/pkg/mod \
+              --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
+              --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
               weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release.sh
           no_output_timeout: 21m
   integration-tests:
