@@ -1,3 +1,4 @@
+github.com/golangci/golangci-lint/cmd/golangci-lint
 github.com/goreleaser/goreleaser
 github.com/kevinburke/go-bindata/go-bindata
 github.com/vektra/mockery/cmd/mockery
@@ -8,4 +9,3 @@ k8s.io/code-generator/cmd/deepcopy-gen
 k8s.io/code-generator/cmd/defaulter-gen
 k8s.io/code-generator/cmd/informer-gen
 k8s.io/code-generator/cmd/lister-gen
-github.com/golangci/golangci-lint/cmd/golangci-lint
