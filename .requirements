@@ -1,6 +1,7 @@
 github.com/golangci/golangci-lint/cmd/golangci-lint
 github.com/goreleaser/goreleaser
 github.com/kevinburke/go-bindata/go-bindata
+github.com/onsi/ginkgo/ginkgo
 github.com/vektra/mockery/cmd/mockery
 github.com/weaveworks/github-release
 golang.org/x/tools/cmd/stringer
