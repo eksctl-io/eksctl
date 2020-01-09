@@ -153,7 +153,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.rs.withNamedIAM = true
 	}
 
-	createRole(n.rs, n.spec.IAM)
+	createRole(n.rs, n.spec.IAM, false)
 
 	n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),

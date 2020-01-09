@@ -4,6 +4,7 @@ import (
 	gfn "github.com/awslabs/goformation/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type cfnTemplate interface {
@@ -12,26 +13,36 @@ type cfnTemplate interface {
 }
 
 // createRole creates an IAM role with policies required for the worker nodes and addons
-func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM) {
-	attachPolicyARNs := iamConfig.AttachPolicyARNs
-	if len(attachPolicyARNs) == 0 {
-		attachPolicyARNs = iamDefaultNodePolicyARNs
+func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bool) {
+	attachPolicyARNs := sets.NewString()
+	if len(iamConfig.AttachPolicyARNs) > 0 {
+		attachPolicyARNs.Insert(iamConfig.AttachPolicyARNs...)
+	} else {
+		attachPolicyARNs.Insert(iamDefaultNodePolicyARNs...)
+		if managed {
+			// The Managed Nodegroup API requires this managed policy to be present, even though
+			// AmazonEC2ContainerRegistryPowerUser (attached if imageBuilder is enabled) contains a superset of the
+			// actions allowed by this managed policy
+			attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
+		}
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.ImageBuilder) {
-		attachPolicyARNs = append(attachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
-	} else {
-		attachPolicyARNs = append(attachPolicyARNs, iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
+		attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
+	} else if !managed {
+		// attach this policy even if `AttachPolicyARNs` is specified to preserve existing behaviour for unmanaged
+		// nodegroups
+		attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CloudWatch) {
-		attachPolicyARNs = append(attachPolicyARNs, iamPolicyCloudWatchAgentServerPolicyARN)
+		attachPolicyARNs.Insert(iamPolicyCloudWatchAgentServerPolicyARN)
 	}
 
 	role := gfn.AWSIAMRole{
-		Path:                     gfn.NewString("/"),
+		Path: gfn.NewString("/"),
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
-		ManagedPolicyArns:        makeStringSlice(attachPolicyARNs...),
+		ManagedPolicyArns:        makeStringSlice(attachPolicyARNs.List()...),
 	}
 
 	if iamConfig.InstanceRoleName != "" {
