@@ -24,12 +24,10 @@ run:
   skip-dirs:
     - ^vendor$
     - ^build$
-    - ^eks\/mocks$
     - ^pkg\/eks\/mocks$
     - \/usr\/local\/go
     - ^pkg\/testutils
     - ^pkg\/drain
-    - ^vendor/github.com/awslabs/goformation
 
   # which files to skip: they will be analyzed, but issues from them
   # won't be reported. Default value is empty list, but there is
