@@ -77,7 +77,7 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	time "$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
+	time "$(GOBIN)/golangci-lint" run
 
 .PHONY: test
 test:

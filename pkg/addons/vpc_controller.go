@@ -181,9 +181,6 @@ func watchCSRApproval(csrClientSet v1beta1.CertificateSigningRequestInterface, c
 		}
 
 	}
-
-	return nil, errors.New("unexpected termination of loop")
-
 }
 
 func (v *VPCController) createCertSecrets(key, cert []byte) error {

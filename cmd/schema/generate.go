@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/alecthomas/jsonschema"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"io/ioutil"
 	"os"
-	"sigs.k8s.io/yaml"
 	"strings"
+
+	"github.com/alecthomas/jsonschema"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"sigs.k8s.io/yaml"
 )
 
 func main() {
