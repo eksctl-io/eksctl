@@ -16,10 +16,44 @@ func TestManagedResources(t *testing.T) {
 		expectedManagedPolicies []string
 	}{
 		{
+			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly"},
+		},
+		{
 			addons: api.NodeGroupIAMAddonPolicies{
 				ImageBuilder: api.Enabled(),
 			},
 			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonEC2ContainerRegistryPowerUser"},
+		},
+		{
+			addons: api.NodeGroupIAMAddonPolicies{
+				CloudWatch: api.Enabled(),
+			},
+			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "CloudWatchAgentServerPolicy"},
+		},
+		{
+			attachPolicyARNs:        []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy"},
+			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy"},
+		},
+		// should not attach any additional policies
+		{
+			attachPolicyARNs:        []string{"CloudWatchAgentServerPolicy"},
+			expectedManagedPolicies: []string{"CloudWatchAgentServerPolicy"},
+		},
+		// no duplicate values
+		{
+			attachPolicyARNs: []string{"AmazonEC2ContainerRegistryPowerUser"},
+			addons: api.NodeGroupIAMAddonPolicies{
+				ImageBuilder: api.Enabled(),
+			},
+			expectedManagedPolicies: []string{"AmazonEC2ContainerRegistryPowerUser"},
+		},
+		{
+			attachPolicyARNs: []string{"CloudWatchAgentServerPolicy", "AmazonEC2ContainerRegistryPowerUser"},
+			addons: api.NodeGroupIAMAddonPolicies{
+				ImageBuilder: api.Enabled(),
+				CloudWatch:   api.Enabled(),
+			},
+			expectedManagedPolicies: []string{"CloudWatchAgentServerPolicy", "AmazonEC2ContainerRegistryPowerUser"},
 		},
 	}
 
