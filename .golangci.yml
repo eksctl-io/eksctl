@@ -4,7 +4,7 @@ run:
   concurrency: 4
 
   # timeout for analysis, e.g. 30s, 5m, default is 1m
-  deadline: 5m
+  timeout: 5m
 
   # exit code when at least one issue was found, default is 1
   issues-exit-code: 1
@@ -27,6 +27,7 @@ run:
     - ^pkg\/eks\/mocks$
     - \/usr\/local\/go
     - ^pkg\/testutils
+    - ^pkg\/drain
 
   # which files to skip: they will be analyzed, but issues from them
   # won't be reported. Default value is empty list, but there is
@@ -35,7 +36,12 @@ run:
   skip-files:
   #  - ".*\\.my\\.go$"
   #  - lib/bad.go
-    - pkg/nodebootstrap/assets.go
+    - ^pkg\/nodebootstrap\/assets.go
+    - ^pkg\/testutils\/(ginkgo|client).go
+    - ^pkg\/testutils\/mockprovider\/mock_provider.go
+    - ^pkg\/cfn\/template\/matchers\/matchers.go
+    - ^integration\/matchers\/matchers.go
+    - ^integration\/runner\/runner.go
 
 
 # output configuration options
@@ -62,7 +68,7 @@ linters-settings:
     check-blank: false
   govet:
     # report about shadowed variables
-    check-shadowing: true
+    check-shadowing: false
 
     # Obtain type information from installed (to $GOPATH/pkg) package files:
     # golangci-lint will execute `go install -i` and `go test -i` for analyzed packages
@@ -106,7 +112,7 @@ linters-settings:
     # Correct spellings using locale preferences for US or UK.
     # Default is to use a neutral variety of English.
     # Setting locale to US will correct the British spelling of 'colour' to 'color'.
-    locale: UK
+    locale: default
   lll:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
@@ -144,11 +150,19 @@ linters-settings:
 
 
 linters:
-  enable-all: true
-  disable:
+  disable-all: true
+  enable:
+    - gofmt
+    - unused
+    - govet
+    - golint
+    - errcheck
+    - deadcode
+    - misspell
     - goimports
-    - maligned
-    - prealloc
-    - gocyclo # TODO: enable this in the future
-    - lll #TODO: enable this in the future
-    - gosec #TODO: enable this in the future
+    # TODO: enable the below linter in the future
+#    - maligned
+#    - prealloc
+#    - gocyclo
+#    - lll
+#    - gosec

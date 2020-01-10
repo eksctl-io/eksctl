@@ -75,7 +75,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 		return errors.Wrap(err, "getting iamserviceaccounts")
 	}
 	// we will show user the object based on given config file,
-	// and what we have learned avout the iamserviceaccounts;
+	// and what we have learned about the iamserviceaccounts;
 	// that is not ideal, but we don't have a better option yet
 	cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{}
 
@@ -92,7 +92,10 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 			saFilter.AppendIncludeNames(serviceAccount.NameString())
 		} else if cmd.CobraCommand.Flag("namespace").Changed { // only namespace was given
 			notFoundErr = fmt.Errorf("no iamserviceaccounts found in namespace %q", serviceAccount.Namespace)
-			saFilter.AppendIncludeGlobs(remoteServiceAccounts, serviceAccount.Namespace+"/*")
+			err = saFilter.AppendIncludeGlobs(remoteServiceAccounts, serviceAccount.Namespace+"/*")
+			if err != nil {
+				return fmt.Errorf("unable to append include globs in namespace %q", serviceAccount.Namespace)
+			}
 		}
 		saSubset, _ := saFilter.MatchAll(remoteServiceAccounts)
 		if saSubset.Len() == 0 {

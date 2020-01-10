@@ -47,7 +47,10 @@ func configureRepositoryCmd(cmd *cmdutils.Cmd) *flux.InstallOpts {
 
 // doEnableRepository enables GitOps on the configured repository.
 func doEnableRepository(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
-	cmdutils.ValidateGitOptions(&opts.GitOptions)
+	err := cmdutils.ValidateGitOptions(&opts.GitOptions)
+	if err != nil {
+		return err
+	}
 	if err := cmdutils.NewGitOpsConfigLoader(cmd).Load(); err != nil {
 		return err
 	}

@@ -26,8 +26,8 @@ update-build-image-tag:
 
 .PHONY: check-build-image-manifest-up-to-date
 check-build-image-manifest-up-to-date: update-build-image-tag ## Update build image manifest and commits the changes
-	git diff --quiet -- .build_image_manifest \
-	  || (git --no-pager diff .build_image_manifest; echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-tag'"; exit 1)
+	git diff --quiet -- $(image_manifest_file) \
+	  || (git --no-pager diff $(image_manifest_file); echo "HINT: to fix this, run 'make -f Makefile.docker update-build-image-tag'"; exit 1)
 
 .PHONY: commit-new-image-tag
 commit-new-image-tag: update-build-image-tag ## Update build image manifest and commits the changes

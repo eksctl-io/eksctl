@@ -77,7 +77,7 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	time "$(GOBIN)/gometalinter" ./pkg/... ./cmd/... ./integration/...
+	time "$(GOBIN)/golangci-lint" run
 
 .PHONY: test
 test:
@@ -176,7 +176,7 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ##
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191128064856-d39dadebcc3f" vendor/github.com/aws/aws-sdk-go
+	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191218135223-757eeed07291" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
 ##@ Docker
