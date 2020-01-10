@@ -201,7 +201,7 @@ eksctl utils update-cluster-endpoints --name=<clustername> --private-access=true
 To update the setting using a `ClusterConfig` file, use:
 
 ```console
-eksctl utils update-cluster-endpoints -f config.yaml
+eksctl utils update-cluster-endpoints -f config.yaml --approve
 ```
 
 Note that if you don't pass a flag in it will keep the current value. Once you are satisfied with the proposed changes,
