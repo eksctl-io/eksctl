@@ -88,7 +88,7 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	if cfg.VPC.ClusterEndpoints.PublicAccess != nil && cfg.VPC.ClusterEndpoints.PrivateAccess != nil {
 		newPublic = *cfg.VPC.ClusterEndpoints.PublicAccess
 		newPrivate = *cfg.VPC.ClusterEndpoints.PrivateAccess
-	}else{
+	} else {
 		privateSet, publicSet := accessFlagsSet(cmd)
 		if !privateSet {
 			newPrivate = curPrivate
