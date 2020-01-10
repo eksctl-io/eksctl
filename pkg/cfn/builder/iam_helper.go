@@ -40,7 +40,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 	}
 
 	role := gfn.AWSIAMRole{
-		Path: gfn.NewString("/"),
+		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
 		ManagedPolicyArns:        makeStringSlice(attachPolicyARNs.List()...),
 	}
