@@ -40,6 +40,8 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 		fs.BoolVar(&overrideExistingServiceAccounts, "override-existing-serviceaccounts", false, "create IAM roles for existing serviceaccounts and update the serviceaccount")
 
+		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
+
 		cmdutils.AddIAMServiceAccountFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
