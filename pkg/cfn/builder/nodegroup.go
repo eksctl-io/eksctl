@@ -269,6 +269,9 @@ func nodeGroupResource(launchTemplateName *gfn.Value, vpcZoneIdentifier interfac
 	if ng.MaxSize != nil {
 		ngProps["MaxSize"] = fmt.Sprintf("%d", *ng.MaxSize)
 	}
+	if len(ng.LoadBalancerNames) > 0 {
+		ngProps["LoadBalancerNames"] = ng.LoadBalancerNames
+	}
 	if len(ng.TargetGroupARNs) > 0 {
 		ngProps["TargetGroupARNs"] = ng.TargetGroupARNs
 	}

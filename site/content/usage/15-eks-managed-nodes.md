@@ -183,7 +183,7 @@ the provisioned Autoscaling Group like in unmanaged nodegroups.
 - `instancesDistribution` field is not supported
 - `volumeSize` is the only field supported for configuring volumes
 - Control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
-following fields: `maxPodsPerNode`, `taints`, `targetGroupARNs`, `preBootstrapCommands`, `overrideBootstrapCommand`,
+following fields: `loadBalancerNames`, `maxPodsPerNode`, `taints`, `targetGroupARNs`, `preBootstrapCommands`, `overrideBootstrapCommand`,
 `clusterDNS` and `kubeletExtraConfig`.
 
 ### Note for eksctl versions below 0.12.0

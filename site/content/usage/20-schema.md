@@ -363,6 +363,10 @@ NodeGroup:
         .*:
           type: string
       type: object
+    loadBalancerNames:
+      items:
+        type: string
+      type: array
     maxPodsPerNode:
       type: integer
     maxSize:

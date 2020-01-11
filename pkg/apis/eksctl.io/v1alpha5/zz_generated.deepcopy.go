@@ -687,6 +687,11 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 			(*out)[key] = val
 		}
 	}
+	if in.LoadBalancerNames != nil {
+		in, out := &in.LoadBalancerNames, &out.LoadBalancerNames
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.TargetGroupARNs != nil {
 		in, out := &in.TargetGroupARNs, &out.TargetGroupARNs
 		*out = make([]string, len(*in))
