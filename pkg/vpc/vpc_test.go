@@ -2,6 +2,9 @@ package vpc
 
 import (
 	"errors"
+	"fmt"
+	"github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/aws/aws-sdk-go/service/eks"
 
 	. "github.com/onsi/ginkgo"
@@ -22,6 +25,14 @@ type endpointAccessCase struct {
 	Error       error
 }
 
+type importVPCCase struct {
+	Cfg               *api.ClusterConfig
+	ID                string
+	DescribeVPCOutput *ec2.DescribeVpcsOutput
+	DescribeVPCError  error
+	Error             error
+}
+
 var (
 	cluster *eks.Cluster
 	cfg     *api.ClusterConfig
@@ -36,7 +47,7 @@ func NewFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster
 	return cluster
 }
 
-var _ = Describe("VPC Endpoints", func() {
+var _ = Describe("VPC Endpoints - Cluster Endpoints", func() {
 
 	BeforeEach(func() {
 		cfg = api.NewClusterConfig()
@@ -92,3 +103,142 @@ var _ = Describe("VPC Endpoints", func() {
 		}),
 	)
 })
+
+var _ = Describe("VPC Endpoints - Import VPC", func() {
+	BeforeEach(func() {
+		p = mockprovider.NewMockProvider()
+	})
+
+	DescribeTable("can import VPC",
+		func(vpcCase importVPCCase) {
+			p.MockEC2()
+
+			mockResultFn := func(_ *ec2.DescribeVpcsInput) *ec2.DescribeVpcsOutput {
+				return vpcCase.DescribeVPCOutput
+			}
+
+			p.MockEC2().On("DescribeVpcs", MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
+				return input != nil
+			})).Return(mockResultFn, vpcCase.DescribeVPCError)
+
+			if err := Import(p, vpcCase.Cfg, vpcCase.ID); err != nil {
+				Expect(err.Error()).To(Equal(vpcCase.Error.Error()))
+			} else {
+				Expect(vpcCase.Cfg.VPC.ID == vpcCase.ID)
+			}
+		},
+		Entry("VPC with valid details", importVPCCase{
+			Cfg: api.NewClusterConfig(),
+			ID:  "validID",
+			DescribeVPCOutput: &ec2.DescribeVpcsOutput{
+				Vpcs: []*ec2.Vpc{
+					{
+						CidrBlock: stringPointer("192.168.0.0/16"),
+						VpcId:     stringPointer("validID"),
+					},
+				},
+			},
+			DescribeVPCError: nil,
+			Error:            nil,
+		}),
+		Entry("VPC with invalid id", importVPCCase{
+			Cfg:              api.NewClusterConfig(),
+			ID:               "invalidID",
+			DescribeVPCError: errors.New("unable to describe vpc"),
+			Error:            errors.New("unable to describe vpc"),
+		}),
+		Entry("VPC with ID mismatch", importVPCCase{
+			Cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "anotherID",
+					},
+				},
+			},
+			ID: "validID",
+			DescribeVPCOutput: &ec2.DescribeVpcsOutput{
+				Vpcs: []*ec2.Vpc{
+					{
+						VpcId: stringPointer("validID"),
+					},
+				},
+			},
+			DescribeVPCError: nil,
+			Error:            fmt.Errorf("VPC ID %q is not the same as %q", "anotherID", "validID"),
+		}),
+		Entry("VPC with CIDR mismatch", importVPCCase{
+			Cfg: api.NewClusterConfig(),
+			ID:  "validID",
+			DescribeVPCOutput: &ec2.DescribeVpcsOutput{
+				Vpcs: []*ec2.Vpc{
+					{
+						CidrBlock: stringPointer("10.168.0.0/16"),
+						VpcId:     stringPointer("validID"),
+					},
+				},
+			},
+			DescribeVPCError: nil,
+			Error:            fmt.Errorf("VPC CIDR block %q is not the same as %q", "192.168.0.0/16", "10.168.0.0/16"),
+		}),
+		Entry("VPC with nil CIDR", importVPCCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						CIDR: nil,
+					},
+				},
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+			},
+			ID: "validID",
+			DescribeVPCOutput: &ec2.DescribeVpcsOutput{
+				Vpcs: []*ec2.Vpc{
+					{
+						CidrBlock: stringPointer("10.168.0.0/16"),
+						VpcId:     stringPointer("validID"),
+					},
+				},
+			},
+			DescribeVPCError: nil,
+			Error:            fmt.Errorf("VPC CIDR block %q is not the same as %q", "192.168.0.0/16", "10.168.0.0/16"),
+		}),
+		Entry("VPC with nil CIDR and invalid CIDR", importVPCCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						CIDR: nil,
+					},
+				},
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+			},
+			ID: "validID",
+			DescribeVPCOutput: &ec2.DescribeVpcsOutput{
+				Vpcs: []*ec2.Vpc{
+					{
+						CidrBlock: stringPointer("*"),
+						VpcId:     stringPointer("validID"),
+					},
+				},
+			},
+			DescribeVPCError: nil,
+			Error:            fmt.Errorf("invalid CIDR address: *"),
+		}),
+	)
+})
+
+func stringPointer(s string) *string {
+	return &s
+}
