@@ -58,9 +58,9 @@ var _ = Describe("VPC - Set Subnets", func() {
 	DescribeTable("Set subnets",
 		func(subnetsCase setSubnetsCase) {
 			if err := SetSubnets(subnetsCase.Cfg); err != nil {
-				fmt.Printf("+%v\n", err.Error())
 				Expect(err).To(Equal(subnetsCase.Error))
 			} else {
+				// make sure that expected error is nil as well
 				Expect(subnetsCase.Error).Should(BeNil())
 			}
 		},
