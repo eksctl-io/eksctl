@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"net"
 
 	"github.com/aws/aws-sdk-go/service/eks"
 
@@ -16,6 +18,11 @@ import (
 	. "github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
+
+type setSubnetsCase struct {
+	Cfg   *api.ClusterConfig
+	Error error
+}
 
 type importVPCCase struct {
 	Cfg               *api.ClusterConfig
@@ -47,7 +54,116 @@ func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster
 	return cluster
 }
 
-var _ = Describe("VPC Endpoints - Import VPC", func() {
+var _ = Describe("VPC - Set Subnets", func() {
+	DescribeTable("Set subnets",
+		func(subnetsCase setSubnetsCase) {
+			if err := SetSubnets(subnetsCase.Cfg); err != nil {
+				fmt.Printf("+%v\n", err.Error())
+				Expect(err).To(Equal(subnetsCase.Error))
+			} else {
+				Expect(subnetsCase.Error).Should(BeNil())
+			}
+		},
+		Entry("VPC with valid details", setSubnetsCase{
+			Cfg: api.NewClusterConfig(),
+		}),
+		Entry("VPC with nil CIDR", setSubnetsCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						CIDR: nil,
+					},
+				},
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+			},
+		}),
+		Entry("VPC with invalid CIDR prefix", setSubnetsCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						CIDR: &ipnet.IPNet{
+							IPNet: net.IPNet{
+								IP:   []byte{192, 168, 0, 0},
+								Mask: []byte{255, 255, 255, 255}, // invalid mask
+							},
+						},
+					},
+				},
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+			},
+			Error: fmt.Errorf("VPC CIDR prefix must be between /16 and /24"),
+		}),
+		Entry("VPC with invalid CIDR", setSubnetsCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						CIDR: &ipnet.IPNet{
+							IPNet: net.IPNet{
+								IP:   []byte{}, // invalid IP
+								Mask: []byte{255, 255, 0, 0},
+							},
+						},
+					},
+				},
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+			},
+			Error: fmt.Errorf("Unexpected IP address type: <nil>"),
+		}),
+
+		Entry("VPC with invalid number of subnets", setSubnetsCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: api.NewClusterVPC(),
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+				AvailabilityZones: []string{"1", "2", "3", "4", "5"}, // more AZ than required
+			},
+			Error: fmt.Errorf("insufficient number of subnets (have 8, but need 10) for 5 availability zones"),
+		}),
+		Entry("VPC with multiple AZs", setSubnetsCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: api.NewClusterVPC(),
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+				AvailabilityZones: []string{"1", "2", "3"},
+			},
+		}),
+	)
+})
+
+var _ = Describe("VPC - Import VPC", func() {
 	BeforeEach(func() {
 		p = mockprovider.NewMockProvider()
 	})
@@ -182,7 +298,7 @@ var _ = Describe("VPC Endpoints - Import VPC", func() {
 	)
 })
 
-var _ = Describe("VPC Endpoints - Cluster Endpoints", func() {
+var _ = Describe("VPC - Cluster Endpoints", func() {
 	BeforeEach(func() {
 		p = mockprovider.NewMockProvider()
 	})
