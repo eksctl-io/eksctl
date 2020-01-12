@@ -3,11 +3,11 @@ package vpc
 import (
 	"errors"
 	"fmt"
+	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"net"
-
-	"github.com/aws/aws-sdk-go/service/eks"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -30,6 +30,12 @@ type importVPCCase struct {
 	DescribeVPCOutput *ec2.DescribeVpcsOutput
 	DescribeVPCError  error
 	Error             error
+}
+
+type useFromClusterCase struct {
+	Cfg   *api.ClusterConfig
+	Stack *cfn.Stack
+	Error error
 }
 
 type endpointAccessCase struct {
@@ -159,6 +165,37 @@ var _ = Describe("VPC - Set Subnets", func() {
 				},
 				AvailabilityZones: []string{"1", "2", "3"},
 			},
+		}),
+	)
+})
+
+var _ = Describe("VPC - Use From Cluster", func() {
+	BeforeEach(func() {
+		p = mockprovider.NewMockProvider()
+	})
+
+	DescribeTable("Use from Cluster",
+		func(clusterCase useFromClusterCase) {
+			cluster = newFakeClusterWithEndpoints(true, true, "dummy cluster")
+			mockResultFn := func(_ *eks.DescribeClusterInput) *eks.DescribeClusterOutput {
+				return &eks.DescribeClusterOutput{Cluster: cluster}
+			}
+
+			p.MockEKS().On("DescribeCluster", MatchedBy(func(input *eks.DescribeClusterInput) bool {
+				return input != nil
+			})).Return(mockResultFn, nil)
+
+			if err := UseFromCluster(p, clusterCase.Stack, clusterCase.Cfg); err != nil {
+				Expect(err).To(Equal(clusterCase.Error))
+			} else {
+				// make sure that expected error is nil as well
+				Expect(clusterCase.Error).Should(BeNil())
+			}
+		},
+		Entry("No output", useFromClusterCase{
+			Cfg:   api.NewClusterConfig(),
+			Stack: &cfn.Stack{},
+			Error: fmt.Errorf("no output \"VPC\""),
 		}),
 	)
 })
