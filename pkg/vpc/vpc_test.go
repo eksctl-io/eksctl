@@ -18,6 +18,7 @@ import (
 )
 
 type endpointAccessCase struct {
+	Cfg         *api.ClusterConfig
 	ClusterName string
 	Private     bool
 	Public      bool
@@ -35,7 +36,6 @@ type importVPCCase struct {
 
 var (
 	cluster *eks.Cluster
-	cfg     *api.ClusterConfig
 	p       *mockprovider.MockProvider
 )
 
@@ -48,9 +48,7 @@ func NewFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster
 }
 
 var _ = Describe("VPC Endpoints - Cluster Endpoints", func() {
-
 	BeforeEach(func() {
-		cfg = api.NewClusterConfig()
 		p = mockprovider.NewMockProvider()
 	})
 
@@ -66,14 +64,15 @@ var _ = Describe("VPC Endpoints - Cluster Endpoints", func() {
 				return input != nil
 			})).Return(mockResultFn, e.Error)
 
-			if err := UseEndpointAccessFromCluster(p, cfg); err != nil {
+			if err := UseEndpointAccessFromCluster(p, e.Cfg); err != nil {
 				Expect(err.Error()).To(Equal(eks.ErrCodeResourceNotFoundException))
 			} else {
-				Expect(cfg.VPC.ClusterEndpoints.PrivateAccess).To(Equal(&e.Private))
-				Expect(cfg.VPC.ClusterEndpoints.PublicAccess).To(Equal(&e.Public))
+				Expect(e.Cfg.VPC.ClusterEndpoints.PrivateAccess).To(Equal(&e.Private))
+				Expect(e.Cfg.VPC.ClusterEndpoints.PublicAccess).To(Equal(&e.Public))
 			}
 		},
 		Entry("Private=false, Public=true", endpointAccessCase{
+			Cfg:         api.NewClusterConfig(),
 			ClusterName: "false-true-cluster",
 			Private:     false,
 			Public:      true,
@@ -81,6 +80,7 @@ var _ = Describe("VPC Endpoints - Cluster Endpoints", func() {
 			Error:       nil,
 		}),
 		Entry("Private=true, Public=false", endpointAccessCase{
+			Cfg:         api.NewClusterConfig(),
 			ClusterName: "true-false-cluster",
 			Private:     true,
 			Public:      false,
@@ -88,6 +88,7 @@ var _ = Describe("VPC Endpoints - Cluster Endpoints", func() {
 			Error:       nil,
 		}),
 		Entry("Private=true, Public=true", endpointAccessCase{
+			Cfg:         api.NewClusterConfig(),
 			ClusterName: "true-true-cluster",
 			Private:     true,
 			Public:      true,
@@ -95,11 +96,32 @@ var _ = Describe("VPC Endpoints - Cluster Endpoints", func() {
 			Error:       nil,
 		}),
 		Entry("Private=false, Public=false", endpointAccessCase{
+			Cfg:         api.NewClusterConfig(),
 			ClusterName: "notFoundCluster",
 			Private:     false,
 			Public:      false,
 			DCOutput:    nil,
 			Error:       errors.New(eks.ErrCodeResourceNotFoundException),
+		}),
+		Entry("Nil Cluster endpoint from config", endpointAccessCase{
+			Cfg: &api.ClusterConfig{
+				TypeMeta: api.ClusterConfigTypeMeta(),
+				Metadata: &api.ClusterMeta{
+					Version: api.DefaultVersion,
+				},
+				IAM: &api.ClusterIAM{},
+				VPC: &api.ClusterVPC{
+					ClusterEndpoints: nil,
+				},
+				CloudWatch: &api.ClusterCloudWatch{
+					ClusterLogging: &api.ClusterCloudWatchLogging{},
+				},
+			},
+			ClusterName: "notFoundCluster",
+			Private:     false,
+			Public:      false,
+			DCOutput:    nil,
+			Error:       nil,
 		}),
 	)
 })
