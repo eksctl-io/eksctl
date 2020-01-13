@@ -112,27 +112,28 @@ func NewGitOpsConfigLoader(cmd *Cmd) ClusterConfigLoader {
 		flagsIncompatibleWithoutConfigFile: sets.NewString(),
 	}
 
+	validateErrs := errors.New("")
+
 	l.validateWithoutConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
 		if meta.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet(ClusterNameFlag(cmd)).Error())
 		}
 		if meta.Region == "" {
-			return ErrMustBeSet("--region")
+			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet("--region").Error())
 		}
-		return nil
+		return validateErrs
 	}
 
 	l.validateWithConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
 		if meta.Name == "" {
-			return ErrMustBeSet("metadata.name")
+			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet("metadata.name").Error())
 		}
-
 		if meta.Region == "" {
-			return ErrMustBeSet("metadata.region")
+			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet("metadata.region").Error())
 		}
-		return nil
+		return validateErrs
 	}
 
 	return l
