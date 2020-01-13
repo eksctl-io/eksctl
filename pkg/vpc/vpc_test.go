@@ -187,7 +187,7 @@ var _ = Describe("VPC - Use From Cluster", func() {
 			})).Return(mockResultFn, nil)
 
 			if err := UseFromCluster(p, clusterCase.stack, clusterCase.cfg); err != nil {
-				Expect(err).To(Equal(clusterCase.error))
+				Expect(err.Error()).To(ContainSubstring(clusterCase.error.Error()))
 			} else {
 				// make sure that expected error is nil as well
 				Expect(clusterCase.error).Should(BeNil())
@@ -196,7 +196,7 @@ var _ = Describe("VPC - Use From Cluster", func() {
 		Entry("No output", useFromClusterCase{
 			cfg:   api.NewClusterConfig(),
 			stack: &cfn.Stack{},
-			error: fmt.Errorf("no output \"VPC\""),
+			error: fmt.Errorf("no output"),
 		}),
 	)
 })
