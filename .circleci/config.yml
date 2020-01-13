@@ -167,7 +167,7 @@ jobs:
                 --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
                 --volume=$(pwd):/src \
                 --volume=$HOME/project/.ssh:/root/.ssh \
-                weaveworks/eksctl-build:$(cat .docker/image_tag) make integration-test TEST_V=1 SSH_KEY_PATH="${SSH_KEY_NAME}"
+                weaveworks/eksctl-build:$(cat .docker/image_tag) make integration-test TEST_V=1 SSH_KEY_PATH="/root/.ssh/${SSH_KEY_NAME}"
           no_output_timeout: 35m
       - store_test_results:
           path: ./test-results
