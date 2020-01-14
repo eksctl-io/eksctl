@@ -40,3 +40,6 @@ integration/kubeconfig-*
 
 # direnv's files:
 .envrc
+
+#vscode
+.vscode/launch.json
