@@ -15,7 +15,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
-const versionFilename = "release.go"
+const versionFilename = "../release.go"
 const defaultPreReleaseId = "dev"
 const defaultReleaseCandidate = "rc.0"
 
@@ -25,16 +25,23 @@ func main() {
 		return
 	}
 
+	command := os.Args[1]
+	rc := ""
+	if len(os.Args) > 2 {
+		rc = os.Args[2]
+	}
+
 	var newVersion, newPreRelease string
-	switch os.Args[1] {
+	switch command {
 	case "release":
 		newVersion, newPreRelease = prepareRelease()
 	case "release-candidate":
-		newVersion, newPreRelease = prepareReleaseCandidate()
+		// TODO fix args
+		newVersion, newPreRelease = prepareReleaseCandidate(rc)
 	case "development":
 		newVersion, newPreRelease = nextDevelopmentIteration()
 	default:
-		log.Fatal("unknown option %q. Expected 'release', 'release-candidate' or 'development'")
+		log.Fatalf("unknown option %q. Expected 'release', 'release-candidate' or 'development'", command)
 		return
 	}
 
@@ -46,12 +53,11 @@ func prepareRelease() (string, string) {
 	return version.Version, ""
 }
 
-func prepareReleaseCandidate() (string, string) {
-	if len(os.Args) > 2 {
-		return version.Version, os.Args[2]
-	} else {
+func prepareReleaseCandidate(rc string) (string, string) {
+	if rc == "" {
 		return version.Version, defaultReleaseCandidate
 	}
+	return version.Version, rc
 }
 
 func nextDevelopmentIteration() (string, string) {
@@ -72,8 +78,8 @@ func writeVersionToFile(version, preReleaseId, fileName string) error {
 	f.Comment("Version is the version number in semver format X.Y.Z")
 	f.Var().Id("Version").Op("=").Lit(version)
 
-	f.Comment("PreReleaseId can be empty for releases, \"rc.X\" for release candidates and \"dev\" for snapshots")
-	f.Var().Id("PreReleaseId").Op("=").Lit(preReleaseId)
+	f.Comment("PreReleaseID can be empty for releases, \"rc.X\" for release candidates and \"dev\" for snapshots")
+	f.Var().Id("PreReleaseID").Op("=").Lit(preReleaseId)
 
 	f.Comment("gitCommit is the short commit hash. It will be set by the linker.")
 	f.Var().Id("gitCommit").Op("=").Lit("")

@@ -88,7 +88,7 @@ test:
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	CGO_ENABLED=0 time go test ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=0 time go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
 unit-test-race: ## Run unit test with race detection

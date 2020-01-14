@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 //go:generate go run ./release_generate.go
@@ -13,7 +11,7 @@ import (
 // Info holds version information
 type Info struct {
 	Version      string
-	PreReleaseId string
+	PreReleaseID string
 	Metadata     BuildMetadata
 }
 
@@ -28,7 +26,7 @@ type BuildMetadata struct {
 func GetVersionInfo() Info {
 	return Info{
 		Version:      Version,
-		PreReleaseId: PreReleaseId,
+		PreReleaseID: PreReleaseID,
 		Metadata: BuildMetadata{
 			GitCommit: gitCommit,
 			BuildDate: buildDate,
@@ -45,28 +43,28 @@ func String() string {
 }
 
 // GetVersion return the exact version of this build
-func GetVersion() (string, error) {
-	if PreReleaseId == "" {
-		return Version, nil
+func GetVersion() string {
+	if PreReleaseID == "" {
+		return Version
 	}
 
-	if isReleaseCandidate(PreReleaseId) {
-		return fmt.Sprintf("%s-%s", Version, PreReleaseId), nil
+	if isReleaseCandidate(PreReleaseID) {
+		return fmt.Sprintf("%s-%s", Version, PreReleaseID)
 	}
 
-	if gitCommit == "" || buildDate == "" {
-		return "", errors.New("missing gitCommit or buildDate")
+	if gitCommit != "" && buildDate != "" {
+		//  Include build metadata
+		return fmt.Sprintf("%s-%s+%s.%s",
+			Version,
+			PreReleaseID,
+			gitCommit,
+			buildDate,
+		)
 	}
+	return fmt.Sprintf("%s-%s", Version, PreReleaseID)
 
-	//  Include build metadata
-	return fmt.Sprintf("%s-%s+%s.%s",
-		Version,
-		PreReleaseId,
-		gitCommit,
-		buildDate,
-	), nil
 }
 
-func isReleaseCandidate(preReleaseId string) bool {
-	return strings.HasPrefix(preReleaseId, "rc.")
+func isReleaseCandidate(preReleaseID string) bool {
+	return strings.HasPrefix(preReleaseID, "rc.")
 }
