@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 //go:generate go run ./release_generate.go
@@ -43,13 +45,17 @@ func String() string {
 }
 
 // GetVersion return the exact version of this build
-func GetVersion() string {
+func GetVersion() (string, error) {
 	if PreReleaseId == "" {
-		return Version
+		return Version, nil
 	}
 
 	if isReleaseCandidate(PreReleaseId) {
-		return fmt.Sprintf("%s-%s", Version, PreReleaseId)
+		return fmt.Sprintf("%s-%s", Version, PreReleaseId), nil
+	}
+
+	if gitCommit == "" || buildDate == "" {
+		return "", errors.New("missing gitCommit or buildDate")
 	}
 
 	//  Include build metadata
@@ -58,7 +64,7 @@ func GetVersion() string {
 		PreReleaseId,
 		gitCommit,
 		buildDate,
-	)
+	), nil
 }
 
 func isReleaseCandidate(preReleaseId string) bool {
