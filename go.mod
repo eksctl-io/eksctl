@@ -35,6 +35,7 @@ require (
 	github.com/goreleaser/goreleaser v0.110.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
+	github.com/hashicorp/go-multierror v1.0.0
 	github.com/instrumenta/kubeval v0.0.0-20190804145309-805845b47dfc
 	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20190722134107-d79fe1b9d79d
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51

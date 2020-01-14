@@ -3,6 +3,7 @@ package cmdutils
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -112,28 +113,28 @@ func NewGitOpsConfigLoader(cmd *Cmd) ClusterConfigLoader {
 		flagsIncompatibleWithoutConfigFile: sets.NewString(),
 	}
 
-	validateErrs := errors.New("")
+	var validateErrs *multierror.Error
 
 	l.validateWithoutConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
 		if meta.Name == "" {
-			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet(ClusterNameFlag(cmd)).Error())
+			validateErrs = multierror.Append(validateErrs, ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 		if meta.Region == "" {
-			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet("--region").Error())
+			validateErrs = multierror.Append(validateErrs, ErrMustBeSet("--region"))
 		}
-		return validateErrs
+		return validateErrs.ErrorOrNil()
 	}
 
 	l.validateWithConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
 		if meta.Name == "" {
-			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet("metadata.name").Error())
+			validateErrs = multierror.Append(validateErrs, ErrMustBeSet("metadata.name"))
 		}
 		if meta.Region == "" {
-			validateErrs = errors.Wrap(validateErrs, ErrMustBeSet("metadata.region").Error())
+			validateErrs = multierror.Append(validateErrs, ErrMustBeSet("metadata.region"))
 		}
-		return validateErrs
+		return validateErrs.ErrorOrNil()
 	}
 
 	return l
