@@ -36,7 +36,6 @@ func main() {
 	case "release":
 		newVersion, newPreRelease = prepareRelease()
 	case "release-candidate":
-		// TODO fix args
 		newVersion, newPreRelease = prepareReleaseCandidate(rc)
 	case "development":
 		newVersion, newPreRelease = nextDevelopmentIteration()
@@ -84,7 +83,7 @@ func writeVersionToFile(version, preReleaseId, fileName string) error {
 	f.Comment("gitCommit is the short commit hash. It will be set by the linker.")
 	f.Var().Id("gitCommit").Op("=").Lit("")
 
-	f.Comment("buildDate is the time of the build with format yyyymmddThhmmss. It will be set by the linker.")
+	f.Comment("buildDate is the time of the build with format yyyy-mm-ddThh:mm:ssZ. It will be set by the linker.")
 	f.Var().Id("buildDate").Op("=").Lit("")
 
 	buf := &bytes.Buffer{}

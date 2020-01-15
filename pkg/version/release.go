@@ -11,5 +11,5 @@ var PreReleaseID = "dev"
 // gitCommit is the short commit hash. It will be set by the linker.
 var gitCommit = ""
 
-// buildDate is the time of the build with format yyyymmddThhmmss. It will be set by the linker.
+// buildDate is the time of the build with format yyyy-mm-ddThh:mm:ssZ. It will be set by the linker.
 var buildDate = ""
