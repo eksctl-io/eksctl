@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -19,9 +18,9 @@ func versionCmd(_ *cmdutils.FlagGrouping) *cobra.Command {
 		RunE: func(_ *cobra.Command, _ []string) error {
 			switch output {
 			case "":
-				logger.Info("%#v", version.GetVersion())
+				fmt.Printf("%s\n", version.GetVersion())
 			case "json":
-				logger.Info("%#v", version.GetVersionInfo())
+				fmt.Printf("%#v\n", version.GetVersionInfo())
 			default:
 				return fmt.Errorf("unknown output: %s", output)
 			}
