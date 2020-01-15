@@ -40,3 +40,6 @@ integration/kubeconfig-*
 
 # direnv's files:
 .envrc
+
+# Snaps
+eksctl_*_*.snap
