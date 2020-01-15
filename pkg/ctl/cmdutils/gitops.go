@@ -68,6 +68,8 @@ func AddCommonFlagsForGit(fs *pflag.FlagSet, opts *git.Options) {
 	_ = cobra.MarkFlagRequired(fs, gitEmail)
 }
 
+var validateErrs *multierror.Error
+
 // ValidateGitOptions validates the provided Git options.
 func ValidateGitOptions(opts *git.Options) error {
 	if err := opts.ValidateURL(); err != nil {
@@ -112,8 +114,6 @@ func NewGitOpsConfigLoader(cmd *Cmd) ClusterConfigLoader {
 		),
 		flagsIncompatibleWithoutConfigFile: sets.NewString(),
 	}
-
-	var validateErrs *multierror.Error
 
 	l.validateWithoutConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
