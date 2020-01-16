@@ -191,7 +191,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 	for _, sn := range subnets {
 		if spec.VPC.ID == "" {
 			// if VPC wasn't defined, import it based on VPC of the first
-			// sn that we have
+			// subnet that we have
 			if err := Import(provider, spec, *sn.VpcId); err != nil {
 				return err
 			}
@@ -239,6 +239,7 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 	if err := ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, spec.PublicSubnetIDs()); err != nil {
 		return err
 	}
+	// to clean up invalid subnets based on AZ after imported both private and public subnets
 	cleanupSubnets(spec)
 	return nil
 }
