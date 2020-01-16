@@ -72,7 +72,8 @@ master_version=$(go run pkg/version/generate/release_generate.go print-version)
 
 # Increase next development iteration if needed
 if [ "${master_version}" == "${v}" ]; then
-  go run pkg/version/generate/release_generate.go print-version
+  echo "Preparing for next development iteration"
+  go run pkg/version/generate/release_generate.go development
   git add ./pkg/version/release.go
   git commit --message "Prepare for next development iteration"
   git push origin master:master
