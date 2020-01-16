@@ -22,10 +22,10 @@ if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
   exit 3
 fi
 
-if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\.git)?$ ]] ; then
-  echo "Invalid origin: $(git remote get-url origin)"
-  exit 3
-fi
+#if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\.git)?$ ]] ; then
+#  echo "Invalid origin: $(git remote get-url origin)"
+#  exit 3
+#fi
 
 function branch_exists() {
   git ls-remote --heads origin "${1}" | grep -q "${1}"
