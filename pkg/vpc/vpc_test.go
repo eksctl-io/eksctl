@@ -65,6 +65,13 @@ type importSubnetsFromListCase struct {
 	error                 error
 }
 
+type importAllSubnetsCase struct {
+	cfg                   *api.ClusterConfig
+	importVPCMockFn       func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error
+	describeSubnetsMockFn func(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error)
+	error                 error
+}
+
 var (
 	cluster *eks.Cluster
 	p       *mockprovider.MockProvider
@@ -433,7 +440,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 })
 
 var _ = Describe("VPC - Import Subnets", func() {
-	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
+	DescribeTable("can import EC2 subnets from into spec",
 		func(e importSubnetsCase) {
 			// dependency inject for function
 			origImportVPCFn := importVPCFn
@@ -545,7 +552,7 @@ var _ = Describe("VPC - Import Subnets", func() {
 })
 
 var _ = Describe("VPC - Import Subnets from list", func() {
-	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
+	DescribeTable("can import subnets from list of subnet ids",
 		func(e importSubnetsFromListCase) {
 			// dependency inject for function
 			origImportVPCFn, origDescribeVPCFn := importVPCFn, describeSubnetsFn
@@ -608,6 +615,69 @@ var _ = Describe("VPC - Import Subnets from list", func() {
 				return nil, fmt.Errorf("invalid subnet")
 			},
 			error: fmt.Errorf("invalid subnet"),
+		}),
+	)
+})
+
+var _ = Describe(" VPC - Import All subnets", func() {
+	DescribeTable("can import subnets from list of subnet ids",
+		func(e importAllSubnetsCase) {
+			// dependency inject for function
+			origImportVPCFn, origDescribeVPCFn := importVPCFn, describeSubnetsFn
+			importVPCFn, describeSubnetsFn = e.importVPCMockFn, e.describeSubnetsMockFn
+			defer func() {
+				importVPCFn, describeSubnetsFn = origImportVPCFn, origDescribeVPCFn
+			}()
+
+			if err := ImportAllSubnets(p, e.cfg); err != nil {
+				Expect(err.Error()).To(Equal(e.error.Error()))
+			} else {
+				// make sure that expected error is nil as well
+				Expect(e.error).Should(BeNil())
+			}
+		},
+
+		Entry("Failed to import VPC for given ID", importAllSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					ClusterEndpoints: nil,
+					Network: api.Network{
+						ID: "vpc1",
+					},
+				},
+			},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				if id == "vpc1" {
+					return fmt.Errorf("unable to import vpc")
+				}
+				return nil
+			},
+			error: fmt.Errorf("unable to import vpc"),
+		}),
+		Entry("Failed to import private subnets", importAllSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					ClusterEndpoints: nil,
+					Network: api.Network{
+						ID: "vpc1",
+					},
+				},
+			},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				Expect(id).To(Equal("vpc1"))
+				return nil
+			},
+			describeSubnetsMockFn: func(provider api.ClusterProvider, subnetIDs ...string) (subnets []*ec2.Subnet, err error) {
+				return []*ec2.Subnet{
+					{
+						VpcId:            strings.Pointer("vpc1"),
+						SubnetId:         strings.Pointer("subnet1"),
+						AvailabilityZone: strings.Pointer("az1"),
+						CidrBlock:        strings.Pointer("192.168.0.1/24"),
+					},
+				}, nil
+			},
+			error: nil,
 		}),
 	)
 })
