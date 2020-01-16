@@ -92,34 +92,6 @@ func describeVPC(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	return output.Vpcs[0], nil
 }
 
-// importVPC will update spec with VPC ID/CIDR
-// NOTE: it does respect all fields set in spec.VPC, and will error if
-// there is a mismatch of local vs remote states
-func importVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
-	vpc, err := describeVPCFn(provider, id)
-	if err != nil {
-		return err
-	}
-	if spec.VPC.ID == "" {
-		spec.VPC.ID = *vpc.VpcId
-	} else if spec.VPC.ID != *vpc.VpcId {
-		return fmt.Errorf("VPC ID %q is not the same as %q", spec.VPC.ID, *vpc.VpcId)
-	}
-	if spec.VPC.CIDR == nil {
-		spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
-		if err != nil {
-			return err
-		}
-	} else if cidr := spec.VPC.CIDR.String(); cidr != *vpc.CidrBlock {
-		return fmt.Errorf("VPC CIDR block %q is not the same as %q",
-			cidr,
-			*vpc.CidrBlock,
-		)
-	}
-
-	return nil
-}
-
 // UseFromCluster retrieves the VPC configuration from an existing cluster
 // based on stack outputs
 // NOTE: it doesn't expect any fields in spec.VPC to be set, the remote state
@@ -170,6 +142,34 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 	}
 
 	return outputs.Collect(*stack, requiredCollectors, optionalCollectors)
+}
+
+// importVPC will update spec with VPC ID/CIDR
+// NOTE: it does respect all fields set in spec.VPC, and will error if
+// there is a mismatch of local vs remote states
+func importVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+	vpc, err := describeVPCFn(provider, id)
+	if err != nil {
+		return err
+	}
+	if spec.VPC.ID == "" {
+		spec.VPC.ID = *vpc.VpcId
+	} else if spec.VPC.ID != *vpc.VpcId {
+		return fmt.Errorf("VPC ID %q is not the same as %q", spec.VPC.ID, *vpc.VpcId)
+	}
+	if spec.VPC.CIDR == nil {
+		spec.VPC.CIDR, err = ipnet.ParseCIDR(*vpc.CidrBlock)
+		if err != nil {
+			return err
+		}
+	} else if cidr := spec.VPC.CIDR.String(); cidr != *vpc.CidrBlock {
+		return fmt.Errorf("VPC CIDR block %q is not the same as %q",
+			cidr,
+			*vpc.CidrBlock,
+		)
+	}
+
+	return nil
 }
 
 // ImportSubnets will update spec with subnets, if VPC ID/CIDR is unknown
