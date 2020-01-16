@@ -9,6 +9,7 @@ require (
 	github.com/alecthomas/jsonschema v0.0.0-20190530235721-fd8d96416671
 	github.com/aws/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
+	github.com/awslabs/goformation/v4 v4.1.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
 	github.com/christopherhein/go-version v0.0.0-20180807222509-fee8dd1f7c24

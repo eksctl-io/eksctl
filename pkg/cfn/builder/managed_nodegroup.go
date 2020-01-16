@@ -80,7 +80,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		api.IsEnabled(m.nodeGroup.SSH.Allow),
 		"[created by eksctl]")
 
-	createRole(m.resourceSet, m.nodeGroup.IAM)
+	createRole(m.resourceSet, m.nodeGroup.IAM, true)
 
 	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false)
 	if err != nil {

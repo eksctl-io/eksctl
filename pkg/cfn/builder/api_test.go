@@ -781,10 +781,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(role.Path).To(Equal("/"))
 			Expect(role.RoleName).To(Equal("a-named-role"))
-			Expect(role.ManagedPolicyArns).To(HaveLen(3))
-			Expect(role.ManagedPolicyArns[0]).To(Equal("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"))
-			Expect(role.ManagedPolicyArns[1]).To(Equal("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
-			Expect(role.ManagedPolicyArns[2]).To(Equal("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
+			Expect(role.ManagedPolicyArns).To(ConsistOf("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+				"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
 
 			checkARPD([]string{"ec2.amazonaws.com"}, role.AssumeRolePolicyDocument)
 
@@ -1143,11 +1141,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			role := ngTemplate.Resources["NodeInstanceRole"].Properties
 
-			Expect(role.ManagedPolicyArns).To(HaveLen(4))
-			Expect(role.ManagedPolicyArns[0]).To(Equal("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"))
-			Expect(role.ManagedPolicyArns[1]).To(Equal("arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"))
-			Expect(role.ManagedPolicyArns[2]).To(Equal("arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
-			Expect(role.ManagedPolicyArns[3]).To(Equal("arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"))
+			Expect(role.ManagedPolicyArns).To(ConsistOf("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+				"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+				"arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"))
 		})
 	})
 
