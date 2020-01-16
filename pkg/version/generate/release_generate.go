@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/blang/semver"
 	. "github.com/dave/jennifer/jen"
@@ -25,17 +27,13 @@ func main() {
 	}
 
 	command := os.Args[1]
-	rc := ""
-	if len(os.Args) > 2 {
-		rc = os.Args[2]
-	}
 
 	var newVersion, newPreRelease string
 	switch command {
 	case "release":
 		newVersion, newPreRelease = prepareRelease()
 	case "release-candidate":
-		newVersion, newPreRelease = prepareReleaseCandidate(rc)
+		newVersion, newPreRelease = prepareReleaseCandidate()
 	case "development":
 		newVersion, newPreRelease = nextDevelopmentIteration()
 	case "print-version":
@@ -46,6 +44,7 @@ func main() {
 		return
 	}
 
+	fmt.Println(version.GetVersion())
 	if err := writeVersionToFile(newVersion, newPreRelease, versionFilename); err != nil {
 		log.Fatalf("unable to write file: %s", err.Error())
 	}
@@ -57,11 +56,17 @@ func prepareRelease() (string, string) {
 	return version.Version, ""
 }
 
-func prepareReleaseCandidate(rc string) (string, string) {
-	if rc == "" {
-		return version.Version, defaultReleaseCandidate
+func prepareReleaseCandidate() (string, string) {
+	if strings.HasPrefix(version.PreReleaseID, "rc.") {
+		// Next RC
+		rcNumber, err := strconv.Atoi(strings.TrimPrefix(version.PreReleaseID, "rc."))
+		if err != nil {
+			log.Fatalf("cannot parse rc version from pre-release id %s", version.PreReleaseID)
+		}
+		newRC :=  rcNumber + 1
+		return version.Version, fmt.Sprintf("rc.%d", newRC)
 	}
-	return version.Version, rc
+	return version.Version, defaultReleaseCandidate
 }
 
 func nextDevelopmentIteration() (string, string) {
