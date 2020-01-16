@@ -37,6 +37,7 @@ func main() {
 	case "development":
 		newVersion, newPreRelease = nextDevelopmentIteration()
 	case "print-version":
+		// Print simplified version X.Y.Z
 		fmt.Println(version.Version)
 		return
 	default:
@@ -44,12 +45,13 @@ func main() {
 		return
 	}
 
-	version.Version = newVersion
-	version.PreReleaseID = newPreRelease
-	fmt.Println(version.GetVersion())
 	if err := writeVersionToFile(newVersion, newPreRelease, versionFilename); err != nil {
 		log.Fatalf("unable to write file: %s", err.Error())
 	}
+
+	version.Version = newVersion
+	version.PreReleaseID = newPreRelease
+	fmt.Println(version.GetVersion())
 
 	return
 }
