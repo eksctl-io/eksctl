@@ -90,13 +90,14 @@ jobs:
           cmd: make build-integration-test
       - docker-run:
           cmd: make -f Makefile.docker check-build-image-manifest-up-to-date
+      - run: mkdir bin; mv eksctl "bin/eksctl-$(./eksctl version)"
       - save-cache
       - store_test_results:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
       - store_artifacts:
-          path: ./eksctl
+          path: ./bin
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
