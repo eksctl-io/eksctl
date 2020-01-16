@@ -22,7 +22,7 @@ import (
 
 var importVPCFn func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error = importVPC
 var describeSubnetsFn func(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) = describeSubnets
-var describeVPCFn func(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) = describe
+var describeVPCFn func(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) = describeVPC
 var cleanupSubnetsFn func(spec *api.ClusterConfig) = cleanupSubnets
 
 // SetSubnets defines CIDRs for each of the subnets,
@@ -81,7 +81,7 @@ func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.
 	return output.Subnets, nil
 }
 
-func describe(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
+func describeVPC(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) {
 	input := &ec2.DescribeVpcsInput{
 		VpcIds: []*string{aws.String(vpcID)},
 	}
