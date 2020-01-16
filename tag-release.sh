@@ -32,7 +32,7 @@ fi
 
 # Ensure local release branch is up-to-date by pulling its latest version from
 # origin and fast-forwarding the local branch:
-git pull --ff-only origin "${release_branch}"
+git pull --ff-only origin "${release_branch}" || echo "${release_branch} not found in origin. Will push new branch upstream"
 
 RELEASE_NOTES_FILE="docs/release_notes/${v}.md"
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
@@ -50,39 +50,31 @@ git add "${RELEASE_NOTES_FILE}"
 m="Release ${v}"
 
 git commit --message "${m}"
-echo git push origin "${release_branch}"
+git push origin "${release_branch}"
 
 # Create the release tag and push it to start release process
 git tag --annotate --message "${m}" --force "latest_release"
 git tag --annotate --message "${m}" "${v}"
-echo git push origin "${v}"
+git push origin "${v}"
 
 # Update the site by putting everything from master into the docs branch
-echo git push --force origin "${release_branch}":docs
+git push --force origin "${release_branch}":docs
 
 ### TODO if master is not dev then next dev iteration
-#if ! branch_exists "${release_branch}" ; then
-#  git checkout master
-#  if [ ! "$(current_branch)" = master ] ; then
-#    echo "Must be on master branch"
-#    exit 7
-#  fi
-#  # Ensure local master is up-to-date by pulling its latest version from origin
-#  # and fast-forwarding local master:
-#  git fetch origin master
-#  git merge --ff-only origin/master
-#
-#  if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
-#    echo "Must have release notes ${RELEASE_NOTES_FILE}"
-#    exit 6
-# fi
-#
-#  # Create the release branch:
-#  git push origin master:"${release_branch}"
-#
-#  # Prepare next development iteration in master
-#  go run pkg/version/generate/release_generate.go development
-#  git add ./pkg/version/release.go
-#  git commit --message "Prepare for next development iteration"
-#  git push origin master:master
-#fi
+git checkout master
+if [ ! "$(current_branch)" = master ] ; then
+  echo "Must be on master branch"
+  exit 7
+fi
+git pull --ff-only origin master
+
+master_version=$(go run pkg/version/generate/release_generate.go print-version)
+
+# Increase next development iteration if needed
+if [ "${master_version}" == "${v}" ]; then
+  go run pkg/version/generate/release_generate.go print-version
+  git add ./pkg/version/release.go
+  git commit --message "Prepare for next development iteration"
+  git push origin master:master
+fi
+
