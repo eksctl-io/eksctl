@@ -219,7 +219,7 @@ var _ = Describe("VPC - Import VPC", func() {
 				return input != nil
 			})).Return(mockResultFn, vpcCase.describeVPCError)
 
-			if err := Import(p, vpcCase.cfg, vpcCase.id); err != nil {
+			if err := importVPC(p, vpcCase.cfg, vpcCase.id); err != nil {
 				Expect(err.Error()).To(Equal(vpcCase.error.Error()))
 			} else {
 				Expect(vpcCase.cfg.VPC.ID == vpcCase.id)
