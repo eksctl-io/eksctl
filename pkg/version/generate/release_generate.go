@@ -39,7 +39,7 @@ func main() {
 	case "development":
 		newVersion, newPreRelease = nextDevelopmentIteration()
 	case "print-version":
-		fmt.Println(version.GetVersion())
+		fmt.Println(version.Version)
 		return
 	default:
 		log.Fatalf("unknown option %q. Expected 'release', 'release-candidate', 'development' or 'print-version'", command)
