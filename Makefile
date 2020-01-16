@@ -182,7 +182,7 @@ $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 ##@ Release
 .PHONY: prepare-release
 prepare-release:
-	./tag-release.sh
+	./tag-release.sh $@
 
 .PHONY: prepare-release-candidate
 prepare-release-candidate:
