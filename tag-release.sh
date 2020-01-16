@@ -27,6 +27,8 @@ fi
 #  exit 3
 #fi
 
+RELEASE_NOTES_FILE="docs/release_notes/${v}.md"
+
 function branch_exists() {
   git ls-remote --heads origin "${1}" | grep -q "${1}"
 }
@@ -45,6 +47,12 @@ if ! branch_exists "${release_branch}" ; then
   # and fast-forwarding local master:
   git fetch origin master
   git merge --ff-only origin/master
+
+  if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
+    echo "Must have release notes ${RELEASE_NOTES_FILE}"
+    exit 6
+ fi
+
   # Create the release branch:
   git push origin master:"${release_branch}"
 
@@ -64,8 +72,6 @@ if [ ! "$(current_branch)" = "${release_branch}" ] ; then
   exit 5
 fi
 git merge --ff-only origin/"${release_branch}"
-
-RELEASE_NOTES_FILE="docs/release_notes/${v}.md"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
   echo "Must have release notes ${RELEASE_NOTES_FILE}"
