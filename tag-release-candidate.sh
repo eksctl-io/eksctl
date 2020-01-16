@@ -4,12 +4,11 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-if [ "$#" -ne 1 ] ; then
-  echo "Usage: ${0} <tag>"
+if [ "$#" -ne 0 ] ; then
+  echo "Usage: ${0}. Got at least one extra argument"
   exit 1
 fi
 
-v="${1}"
 candidate_for="${v/-rc.*}"
 release_branch="release-${candidate_for%.*}"  # e.g.: 0.2.0-rc.0 -> release-0.2
 
@@ -23,10 +22,10 @@ if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
   exit 3
 fi
 
-if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\.git)?$ ]] ; then
-  echo "Invalid origin: $(git remote get-url origin)"
-  exit 3
-fi
+#if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\.git)?$ ]] ; then
+#  echo "Invalid origin: $(git remote get-url origin)"
+#  exit 3
+#fi
 
 function branch_exists() {
   git ls-remote --heads origin "${1}" | grep -q "${1}"
@@ -48,6 +47,12 @@ if ! branch_exists "${release_branch}" ; then
   git merge --ff-only origin/master
   # Create the release branch:
   git push origin master:"${release_branch}"
+
+  # Prepare next development iteration in master
+  go run pkg/version/generate/release_generate.go development
+  git add ./pkg/version/release.go
+  git commit --message "Prepare for next development iteration"
+  git push origin master:master
 fi
 
 # Ensure local release branch is up-to-date by pulling its latest version from
@@ -69,8 +74,9 @@ fi
 
 export RELEASE_GIT_TAG="${v}"
 
-go generate ./pkg/version
-
+# Update eksctl version
+go run pkg/version/generate/release_generate.go release-candidate
+v=$(go run pkg/version/generate/release_generate.go print-version)
 git add ./pkg/version/release.go
 git add "${RELEASE_NOTES_FILE}"
 
