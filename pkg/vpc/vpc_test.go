@@ -3,13 +3,9 @@ package vpc
 import (
 	"errors"
 	"fmt"
-	"net"
-
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -19,6 +15,9 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
+	"net"
 )
 
 type setSubnetsCase struct {
@@ -46,6 +45,23 @@ type endpointAccessCase struct {
 	private               bool
 	public                bool
 	describeClusterOutput *eks.DescribeClusterOutput
+	error                 error
+}
+
+type importSubnetsCase struct {
+	cfg             *api.ClusterConfig
+	topology        api.SubnetTopology
+	subnets         []*ec2.Subnet
+	importVPCMockFn func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error
+	error           error
+}
+
+type importSubnetsFromListCase struct {
+	cfg                   *api.ClusterConfig
+	topology              api.SubnetTopology
+	subnetIDs             []string
+	importVPCMockFn       func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error
+	describeSubnetsMockFn func(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error)
 	error                 error
 }
 
@@ -412,6 +428,186 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			public:                false,
 			describeClusterOutput: nil,
 			error:                 nil,
+		}),
+	)
+})
+
+var _ = Describe("VPC - Import Subnets", func() {
+	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
+		func(e importSubnetsCase) {
+			// dependency inject for function
+			origImportVPCFn := importVPCFn
+			importVPCFn = e.importVPCMockFn
+			defer func() {
+				importVPCFn = origImportVPCFn
+			}()
+
+			if err := ImportSubnets(p, e.cfg, e.topology, e.subnets); err != nil {
+				Expect(err.Error()).To(Equal(e.error.Error()))
+			} else {
+				// make sure that expected error is nil as well
+				Expect(e.error).Should(BeNil())
+				Expect(e.cfg.AvailabilityZones).Should(ContainElement(*e.subnets[0].AvailabilityZone))
+			}
+		},
+
+		Entry("VPC with valid details", importSubnetsCase{
+			cfg:      api.NewClusterConfig(),
+			topology: api.SubnetTopologyPrivate,
+			subnets: []*ec2.Subnet{
+				{
+					VpcId:            strings.Pointer("vpc1"),
+					SubnetId:         strings.Pointer("subnet1"),
+					AvailabilityZone: strings.Pointer("az1"),
+					CidrBlock:        strings.Pointer("192.168.0.1/24"),
+				},
+			},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				Expect(id).To(Equal("vpc1"))
+				return nil
+			},
+			error: nil,
+		}),
+
+		Entry("VPC ID is specified in spec and match subnets", importSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					ClusterEndpoints: nil,
+					Network: api.Network{
+						ID: "vpc1",
+					},
+				},
+			},
+			topology: api.SubnetTopologyPrivate,
+			subnets: []*ec2.Subnet{
+				{
+					VpcId:            strings.Pointer("vpc1"),
+					SubnetId:         strings.Pointer("subnet1"),
+					AvailabilityZone: strings.Pointer("az1"),
+					CidrBlock:        strings.Pointer("192.168.0.1/24"),
+				},
+			},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				Expect(id).To(Equal("vpc1"))
+				return nil
+			},
+			error: nil,
+		}),
+
+		Entry("VPC IDs is specified in spec and not matched subnets", importSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					ClusterEndpoints: nil,
+					Network: api.Network{
+						ID: "vpc1",
+					},
+				},
+			},
+			topology: api.SubnetTopologyPrivate,
+			subnets: []*ec2.Subnet{
+				{
+					VpcId:            strings.Pointer("vpc2"),
+					SubnetId:         strings.Pointer("subnet1"),
+					AvailabilityZone: strings.Pointer("az1"),
+					CidrBlock:        strings.Pointer("192.168.0.1/24"),
+				},
+			},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				return nil
+			},
+			error: fmt.Errorf("given subnet1 is in vpc2, not in vpc1"),
+		}),
+
+		Entry("Unable to import VPC", importSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					ClusterEndpoints: nil,
+					Network: api.Network{
+						ID: "vpc1",
+					},
+				},
+			},
+			topology: api.SubnetTopologyPrivate,
+			subnets: []*ec2.Subnet{
+				{
+					VpcId:            strings.Pointer("vpc2"),
+					SubnetId:         strings.Pointer("subnet1"),
+					AvailabilityZone: strings.Pointer("az1"),
+					CidrBlock:        strings.Pointer("192.168.0.1/24"),
+				},
+			},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				return fmt.Errorf("unable to import")
+			},
+			error: fmt.Errorf("unable to import"),
+		}),
+	)
+})
+
+var _ = Describe("VPC - Import Subnets from list", func() {
+	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
+		func(e importSubnetsFromListCase) {
+			// dependency inject for function
+			origImportVPCFn, origDescribeVPCFn := importVPCFn, describeSubnetsFn
+			importVPCFn, describeSubnetsFn = e.importVPCMockFn, e.describeSubnetsMockFn
+			defer func() {
+				importVPCFn, describeSubnetsFn = origImportVPCFn, origDescribeVPCFn
+			}()
+
+			if err := ImportSubnetsFromList(p, e.cfg, e.topology, e.subnetIDs); err != nil {
+				Expect(err.Error()).To(Equal(e.error.Error()))
+			} else {
+				// make sure that expected error is nil as well
+				Expect(e.error).Should(BeNil())
+			}
+		},
+
+		Entry("VPC with valid details", importSubnetsFromListCase{
+			cfg:       api.NewClusterConfig(),
+			topology:  api.SubnetTopologyPrivate,
+			subnetIDs: []string{"subnet1"},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				Expect(id).To(Equal("vpc1"))
+				return nil
+			},
+			describeSubnetsMockFn: func(provider api.ClusterProvider, subnetIDs ...string) (subnets []*ec2.Subnet, err error) {
+				return []*ec2.Subnet{
+					{
+						VpcId:            strings.Pointer("vpc1"),
+						SubnetId:         strings.Pointer("subnet1"),
+						AvailabilityZone: strings.Pointer("az1"),
+						CidrBlock:        strings.Pointer("192.168.0.1/24"),
+					},
+				}, nil
+			},
+			error: nil,
+		}),
+
+		Entry("VPC with empty subnet details", importSubnetsFromListCase{
+			cfg:       api.NewClusterConfig(),
+			topology:  api.SubnetTopologyPrivate,
+			subnetIDs: []string{},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				return nil
+			},
+			describeSubnetsMockFn: func(provider api.ClusterProvider, subnetIDs ...string) (subnets []*ec2.Subnet, err error) {
+				return nil, nil
+			},
+			error: nil,
+		}),
+
+		Entry("Invalid subnet", importSubnetsFromListCase{
+			cfg:       api.NewClusterConfig(),
+			topology:  api.SubnetTopologyPrivate,
+			subnetIDs: []string{"invalid_subnet"},
+			importVPCMockFn: func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
+				Expect(id).To(Equal("vpc1"))
+				return nil
+			},
+			describeSubnetsMockFn: func(provider api.ClusterProvider, subnetIDs ...string) (subnets []*ec2.Subnet, err error) {
+				return nil, fmt.Errorf("invalid subnet")
+			},
+			error: fmt.Errorf("invalid subnet"),
 		}),
 	)
 })
