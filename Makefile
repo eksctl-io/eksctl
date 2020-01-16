@@ -190,7 +190,7 @@ prepare-release-candidate:
 
 .PHONY: print-version
 print-version:
-	go run pkg/version/generate/release_generate.go print-version
+	@go run pkg/version/generate/release_generate.go print-version
 
 ##@ Docker
 
