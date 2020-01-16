@@ -179,6 +179,19 @@ $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191218135223-757eeed07291" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
+##@ Release
+.PHONY: prepare-release
+prepare-release:
+	./tag-release.sh
+
+.PHONY: prepare-release-candidate
+prepare-release-candidate:
+	./tag-release-candidate.sh
+
+.PHONY: print-version
+print-version:
+	@go run pkg/version/generate/release_generate.go print-version
+
 ##@ Docker
 
 .PHONY: eksctl-image
