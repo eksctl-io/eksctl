@@ -51,11 +51,25 @@ git add "${RELEASE_NOTES_FILE}"
 m="Tag ${full_version} release candidate"
 
 git commit --message "${m}"
-
-git fetch --force --tags origin
-
 git push origin "${release_branch}"
-
 git tag --annotate --message "${m}" "${full_version}"
+git push origin "${full_version}"
 
-git push --force --tags origin
+# Check if we need to bump version in master
+git checkout master
+if [ ! "$(current_branch)" = master ] ; then
+  echo "Must be on master branch"
+  exit 7
+fi
+git pull --ff-only origin master
+
+master_version=$(go run pkg/version/generate/release_generate.go print-version)
+
+# Increase next development iteration if needed
+if [ "${master_version}" == "${candidate_for}" ]; then
+  echo "Preparing for next development iteration"
+  go run pkg/version/generate/release_generate.go development
+  git add ./pkg/version/release.go
+  git commit --message "Prepare for next development iteration"
+  git push origin master:master
+fi

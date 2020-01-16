@@ -60,7 +60,7 @@ git push origin "${v}"
 # Update the site by putting everything from master into the docs branch
 git push --force origin "${release_branch}":docs
 
-### TODO if master is not dev then next dev iteration
+# Check if need to bump version in master
 git checkout master
 if [ ! "$(current_branch)" = master ] ; then
   echo "Must be on master branch"
