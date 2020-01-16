@@ -19,7 +19,7 @@ function current_branch() {
 
 candidate_for=$(go run pkg/version/generate/release_generate.go print-version)
 
-release_branch="release-${candidate_for}"  # e.g.: 0.2.0-rc.0 -> release-0.2.0
+release_branch="release-${candidate_for%.*}"  # e.g.: 0.2.0-rc.0 -> release-0.2
 if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
   echo "Invalid release branch: ${release_branch}"
   exit 3
