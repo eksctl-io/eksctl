@@ -47,6 +47,12 @@ if ! branch_exists "${release_branch}" ; then
   git merge --ff-only origin/master
   # Create the release branch:
   git push origin master:"${release_branch}"
+
+  # Prepare next development iteration in master
+  go run pkg/version/generate/release_generate.go development
+  git add ./pkg/version/release.go
+  git commit --message "Prepare for next development iteration"
+  git push origin master:master
 fi
 
 # Ensure local release branch is up-to-date by pulling its latest version from
@@ -68,12 +74,19 @@ fi
 
 export RELEASE_GIT_TAG="${v}"
 
-go generate ./pkg/version
+# Update eksctl version by removing the pre-release id
+go run pkg/version/generate/release_generate.go release
+code_version=$(go run pkg/version/generate/release_generate.go print-version)
+
+if [ "${v}" != "${code_version}" ]; then
+  echo "Version mismatch: eksctl version ${code_version}, branch version ${v}"
+  exit 7
+fi
 
 git add ./pkg/version/release.go
 git add "${RELEASE_NOTES_FILE}"
 
-m="Tag ${v} release"
+m="Release ${v}"
 
 git commit --message "${m}"
 
@@ -81,11 +94,11 @@ git fetch --force --tags origin
 
 git push origin "${release_branch}"
 
-# Update the site by putting everything from master into the docs branch
-git push --force origin "${release_branch}":docs
-
 # Create the release tag and push it to start release process
 git tag --annotate --message "${m}" --force "latest_release"
 git tag --annotate --message "${m}" "${v}"
+git push origin "${v}"
 
-git push --force --tags origin
+# Update the site by putting everything from master into the docs branch
+git push --force origin "${release_branch}":docs
+
