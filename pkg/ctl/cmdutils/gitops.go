@@ -150,7 +150,8 @@ func (l *gitOpsConfigLoader) Load() error {
 		l.cmd.ClusterConfig.Metadata.Region = l.cmd.ProviderConfig.Region
 		for f := range l.flagsIncompatibleWithoutConfigFile {
 			if flag := l.cmd.CobraCommand.Flag(f); flag != nil && flag.Changed {
-				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
+				multiErr = multierror.Append(fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f))
+				return multiErr.ErrorOrNil()
 			}
 		}
 		return l.validateWithoutConfigFile()
@@ -167,17 +168,21 @@ func (l *gitOpsConfigLoader) Load() error {
 	meta := l.cmd.ClusterConfig.Metadata
 
 	if meta == nil {
-		return ErrMustBeSet("metadata")
+		multiErr = multierror.Append(ErrMustBeSet("metadata"))
 	}
 
 	for f := range l.flagsIncompatibleWithConfigFile {
 		if flag := l.cmd.CobraCommand.Flag(f); flag != nil && flag.Changed {
-			return ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f))
+			multiErr = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f)))
 		}
 	}
 
 	if meta.Region != "" {
 		l.cmd.ProviderConfig.Region = meta.Region
+	}
+
+	if multiErr != nil {
+		return multiErr
 	}
 
 	return l.validateWithConfigFile()

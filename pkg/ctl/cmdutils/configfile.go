@@ -36,7 +36,7 @@ var (
 		"region",
 		"version",
 		"cluster",
-		"namepace",
+		"namespace",
 	)
 	defaultFlagsIncompatibleWithoutConfigFile = sets.NewString(
 		"only",
@@ -70,7 +70,8 @@ func (l *commonClusterConfigLoader) Load() error {
 	if l.ClusterConfigFile == "" {
 		for f := range l.flagsIncompatibleWithoutConfigFile {
 			if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-				return fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f)
+				multiErr = multierror.Append(fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f))
+				return multiErr.ErrorOrNil()
 			}
 		}
 		return l.validateWithoutConfigFile()
@@ -88,30 +89,30 @@ func (l *commonClusterConfigLoader) Load() error {
 
 	if meta == nil {
 		multiErr = multierror.Append(ErrMustBeSet("metadata"))
-		return multiErr.ErrorOrNil()
 	}
 
 	for f := range l.flagsIncompatibleWithConfigFile {
 		if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
 			multiErr = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f)))
-			return multiErr.ErrorOrNil()
 		}
 	}
 
 	if l.NameArg != "" {
 		multiErr = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg)))
-		return multiErr.ErrorOrNil()
 	}
 
 	if meta.Name == "" {
 		multiErr = multierror.Append(ErrMustBeSet("metadata.name"))
-		return multiErr.ErrorOrNil()
 	}
 
 	if meta.Region == "" {
 		multiErr = multierror.Append(ErrMustBeSet("metadata.region"))
-		return multiErr.ErrorOrNil()
 	}
+
+	if multiErr != nil {
+		return multiErr
+	}
+
 	l.ProviderConfig.Region = meta.Region
 
 	return l.validateWithConfigFile()
@@ -122,7 +123,6 @@ func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 
 	if meta.Name != "" && l.NameArg != "" {
 		multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg))
-		return multiErr.ErrorOrNil()
 	}
 
 	if l.NameArg != "" {
@@ -131,10 +131,9 @@ func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 
 	if meta.Name == "" {
 		multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(l.Cmd)))
-		return multiErr.ErrorOrNil()
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 // NewMetadataLoader handles loading of clusterConfigFile vs using flags for all commands that require only
@@ -205,10 +204,9 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
 			multiErr = multierror.Append(fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time"))
-			return multiErr.ErrorOrNil()
 		}
 
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -217,19 +215,17 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 		// generate cluster name or use either flag or argument
 		if names.ForCluster(meta.Name, l.NameArg) == "" {
 			multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg))
-			return multiErr.ErrorOrNil()
 		}
 		meta.Name = names.ForCluster(meta.Name, l.NameArg)
 
 		if l.ClusterConfig.Status != nil {
-			return fmt.Errorf("status fields are read-only")
+			multiErr = multierror.Append(fmt.Errorf("status fields are read-only"))
 		}
 
 		if params.Managed {
 			for _, f := range incompatibleManagedNodesFlags() {
 				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
 					multiErr = multierror.Append(ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f)))
-					return multiErr.ErrorOrNil()
 				}
 			}
 		}
@@ -262,7 +258,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			ng.Name = names.ForNodeGroup(ng.Name, "")
 		}
 
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	return l
@@ -301,13 +297,11 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
 			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
-			return multiErr.ErrorOrNil()
 		}
 		if managedNodeGroup {
 			for _, f := range incompatibleManagedNodesFlags() {
 				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
 					multiErr = multierror.Append(ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f)))
-					return multiErr.ErrorOrNil()
 				}
 			}
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng)}
@@ -321,7 +315,6 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
 					multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
-					return multiErr.ErrorOrNil()
 				}
 				ng.Name = ngName
 			}
@@ -331,7 +324,6 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
 					multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
-					return multiErr.ErrorOrNil()
 				}
 				ng.Name = ngName
 				if err := normalizeNodeGroup(ng, l); err != nil {
@@ -339,7 +331,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				}
 			}
 		}
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	return l
@@ -367,7 +359,7 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 	if flag := l.CobraCommand.Flag("ssh-public-key"); flag != nil && flag.Changed {
 		if *ng.SSH.PublicKeyPath == "" {
-			return fmt.Errorf("--ssh-public-key must be non-empty string")
+			multiErr = multierror.Append(fmt.Errorf("--ssh-public-key must be non-empty string"))
 		}
 		ng.SSH.Allow = api.Enabled()
 	} else {
@@ -375,10 +367,10 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 	}
 
 	if *ng.VolumeType == api.NodeVolumeTypeIO1 {
-		return fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1)
+		multiErr = multierror.Append(fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1))
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 // NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
@@ -396,11 +388,10 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
 			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
-			return multiErr
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+			multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
 		}
 
 		if l.NameArg != "" {
@@ -409,14 +400,13 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 
 		if ng.Name == "" {
 			multiErr = multierror.Append(ErrMustBeSet("--name"))
-
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
 
 		l.Plan = false
 
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	return l
@@ -462,9 +452,8 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 	l.validateWithConfigFile = func() error {
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
 			multiErr = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
-			return multiErr.ErrorOrNil()
 		}
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	return l
@@ -485,27 +474,23 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
 			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
-			return multiErr.ErrorOrNil()
 		}
 
 		if len(l.ClusterConfig.IAM.ServiceAccounts) != 1 {
 			multiErr = multierror.Append(fmt.Errorf("unexpected number of service accounts"))
-			return multiErr.ErrorOrNil()
 		}
 
 		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
 
 		if serviceAccount.Name == "" {
 			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
-			return multiErr.ErrorOrNil()
 		}
 
 		if len(serviceAccount.AttachPolicyARNs) == 0 {
 			multiErr = multierror.Append(ErrMustBeSet("--attach-policy-arn"))
-			return multiErr.ErrorOrNil()
 		}
 
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	return l
@@ -517,7 +502,8 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 
 	l.validateWithConfigFile = func() error {
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
-			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
+			multiErr = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
+			return multiErr.ErrorOrNil()
 		}
 		return nil
 	}
@@ -526,7 +512,7 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 
 		if l.NameArg != "" {
@@ -539,7 +525,7 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 
 		l.Plan = false
 
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	return l
@@ -551,7 +537,8 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 
 	l.validateWithConfigFile = func() error {
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
-			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
+			multiErr = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
+			return multiErr.ErrorOrNil()
 		}
 		return saFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.IAM.ServiceAccounts)
 	}
@@ -564,11 +551,11 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg)
+			multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg))
 		}
 
 		if l.NameArg != "" {
@@ -576,12 +563,12 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name == "" {
-			return ErrMustBeSet("--name")
+			multiErr = multierror.Append(ErrMustBeSet("--name"))
 		}
 
 		l.Plan = false
 
-		return nil
+		return multiErr.ErrorOrNil()
 	}
 
 	return l
