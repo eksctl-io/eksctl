@@ -3,12 +3,13 @@ package vpc
 import (
 	"errors"
 	"fmt"
+	"net"
+
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
-	"net"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
