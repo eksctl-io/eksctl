@@ -23,6 +23,9 @@ type Cmd struct {
 	ProviderConfig *api.ProviderConfig
 	ClusterConfig  *api.ClusterConfig
 
+	KubeconfigContext string
+	KubeconfigPath    string
+
 	Include, Exclude []string
 }
 

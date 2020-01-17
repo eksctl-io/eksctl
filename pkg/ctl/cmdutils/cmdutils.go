@@ -187,7 +187,18 @@ func AddCommonFlagsForKubeconfig(fs *pflag.FlagSet, outputPath, authenticatorRol
 	fs.BoolVar(autoPath, "auto-kubeconfig", false, fmt.Sprintf("save kubeconfig file by cluster name, e.g. %q", kubeconfig.AutoPath(exampleName)))
 }
 
-// AddCommonFlagsForGetCmd adds common flafs for get commands
+// AddCommonFlagsForKubeconfigContext adds flags for selecting the kubeconfig context
+func AddCommonFlagsForKubeconfigContext(fs *pflag.FlagSet, kubeconfigPath, context *string) {
+	fs.StringVar(kubeconfigPath, "kubeconfig-path", kubeconfig.DefaultPath, "specifies the path of the kubeconfig")
+	fs.StringVar(context, "use-kubeconfig-context", "", "specifies the kubeconfig context")
+}
+
+// KubeconfigContextFlag returns the flag to use for the kubeconfig context.
+func KubeconfigContextFlag(cmd *Cmd) string {
+	return "--use-kubeconfig-context"
+}
+
+// AddCommonFlagsForGetCmd adds common flags for get commands
 func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *printers.Type) {
 	fs.IntVar(chunkSize, "chunk-size", 100, "return large lists in chunks rather than all at once, pass 0 to disable")
 	fs.StringVarP(outputMode, "output", "o", "table", "specifies the output format (valid option: table, json, yaml)")
@@ -213,6 +224,11 @@ func ErrFlagAndArg(kind, flag, arg string) error {
 // ErrMustBeSet is a common error message
 func ErrMustBeSet(pathOrFlag string) error {
 	return fmt.Errorf("%s must be set", pathOrFlag)
+}
+
+// ErrAtLeastOneMustBeSet is a common error message
+func ErrAtLeastOneMustBeSet(pathsOrFlags ...string) error {
+	return fmt.Errorf("One of %s must be set", pathsOrFlags)
 }
 
 // ErrCannotUseWithConfigFile is a common error message

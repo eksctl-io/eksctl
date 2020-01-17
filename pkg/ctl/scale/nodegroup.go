@@ -8,6 +8,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 func scaleNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -38,14 +39,29 @@ func scaleNodeGroupCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
+
+	cmd.FlagSetGroup.InFlagSet("Kubeconfig context", func(fs *pflag.FlagSet) {
+		cmd.KubeconfigPath = ""
+		cmd.KubeconfigContext = ""
+		cmdutils.AddCommonFlagsForKubeconfigContext(fs, &cmd.KubeconfigPath, &cmd.KubeconfigContext)
+	})
 }
 
 func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
 	cfg := cmd.ClusterConfig
 
 	// TODO: move this into a loader when --config-file gets added to this command
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
+	if cfg.Metadata.Name == "" && cmd.KubeconfigContext == "" {
+		return cmdutils.ErrAtLeastOneMustBeSet(cmdutils.ClusterNameFlag(cmd),
+			cmdutils.KubeconfigContextFlag(cmd))
+	}
+
+	if cmd.KubeconfigContext != "" {
+		clusterName, err := kubeconfig.GetClusterNameFromContext(cmd.KubeconfigPath, cmd.KubeconfigContext)
+		if err != nil {
+			return err
+		}
+		cfg.Metadata.Name = clusterName
 	}
 
 	if ng.Name != "" && cmd.NameArg != "" {

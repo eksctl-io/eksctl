@@ -297,3 +297,29 @@ func LookupAuthenticator() (string, bool) {
 	}
 	return "", false
 }
+
+// GetClusterNameFromContext will return the cluster name of a given context
+// from the Kubernetes client configuration file.
+// If path isn't specified then the path will be determined by client-go.
+// If file pointed to by path doesn't exist an error is raised.
+func GetClusterNameFromContext(path string, contextName string) (string, error) {
+	configAccess := getConfigAccess(path)
+
+	config, err := configAccess.GetStartingConfig()
+	if err != nil {
+		return "", errors.Wrapf(err, "unable to read existing kubeconfig file %q", path)
+	}
+
+	context, ok := config.Contexts[contextName]
+	if !ok {
+		return "", fmt.Errorf("context %s not found in kubeconfig at %q", contextName, path)
+	}
+	logger.Debug("using cluster %s from context %s in kubeconfig at %q", context.Cluster, context, path)
+
+	clusterName := context.Cluster
+	if strings.HasSuffix(clusterName, ".eksctl.io") {
+		clusterName = strings.Split(clusterName, ".")[0]
+	}
+
+	return clusterName, err
+}
