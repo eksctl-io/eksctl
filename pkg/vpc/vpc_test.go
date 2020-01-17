@@ -25,6 +25,12 @@ type setSubnetsCase struct {
 	error error
 }
 
+type describeSubnetsCase struct {
+	subnetIDs             []string
+	describeSubnetsOutput *ec2.DescribeSubnetsOutput
+	error                 error
+}
+
 type importVPCCase struct {
 	cfg               *api.ClusterConfig
 	id                string
@@ -190,6 +196,63 @@ var _ = Describe("VPC - Set Subnets", func() {
 				},
 				AvailabilityZones: []string{"1", "2", "3"},
 			},
+		}),
+	)
+})
+
+var _ = Describe("VPC - Describe Subnets", func() {
+	BeforeEach(func() {
+		p = mockprovider.NewMockProvider()
+	})
+
+	DescribeTable("can describe subnets from give set of IDs",
+
+		func(e describeSubnetsCase) {
+			mockResultFn := func(_ *ec2.DescribeSubnetsInput) *ec2.DescribeSubnetsOutput {
+				return e.describeSubnetsOutput
+			}
+
+			p.MockEC2().On("DescribeSubnets", MatchedBy(func(input *ec2.DescribeSubnetsInput) bool {
+				return input != nil
+			})).Return(mockResultFn, e.error)
+
+			if subnets, err := describeSubnets(p, e.subnetIDs...); err != nil {
+				Expect(err).To(Equal(e.error))
+			} else {
+				// make sure that expected error is nil as well
+				Expect(e.error).Should(BeNil())
+				Expect(len(subnets)).Should(Equal(len(e.subnetIDs)))
+			}
+		},
+		Entry("Single valid subnet id", describeSubnetsCase{
+			subnetIDs: []string{"subnet1"},
+			describeSubnetsOutput: &ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						SubnetId: strings.Pointer("subnet1"),
+					},
+				},
+			},
+		}),
+
+		Entry("Multiple valid Subnet Ids", describeSubnetsCase{
+			subnetIDs: []string{"subnet1", "subnet2"},
+			describeSubnetsOutput: &ec2.DescribeSubnetsOutput{
+				Subnets: []*ec2.Subnet{
+					{
+						SubnetId: strings.Pointer("subnet1"),
+					},
+					{
+						SubnetId: strings.Pointer("subnet2"),
+					},
+				},
+			},
+		}),
+
+		Entry("Invalid subnet ID", describeSubnetsCase{
+			subnetIDs:             []string{"subnet1"},
+			describeSubnetsOutput: nil,
+			error:                 fmt.Errorf("invalid subnet id"),
 		}),
 	)
 })
