@@ -54,12 +54,13 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		It("should get cluster, and fail to connect to fake issue URL", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://127.0.0.1:10020/")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10020/")
 			Expect(err).NotTo(HaveOccurred())
 
 			err = oidc.getIssuerCAThumbprint()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix("connecting to issuer OIDC: Get https://127.0.0.1:10020/: dial tcp 127.0.0.1:10020: connect: connection refused"))
+			Expect(err.Error()).To(HavePrefix("connecting to issuer OIDC: Get https://localhost:10020/"))
+			Expect(err.Error()).To(HaveSuffix("connect: connection refused"))
 		})
 
 		It("should get OIDC issuer's CA fingerprint", func() {
