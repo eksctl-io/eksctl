@@ -138,6 +138,31 @@ jobs:
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
               weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release-candidate.sh
           no_output_timeout: 21m
+  prepare-release:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - restore-cache
+      - docker-pull-build-image
+      - docker-run:
+          cmd: go mod download
+      - run:
+          name: Create release binaries for all plaforms and upload to GitHub
+          command: |
+            docker run \
+              --env=GITHUB_TOKEN \
+              --env=CIRCLE_TAG \
+              --env=CIRCLE_PROJECT_USERNAME \
+              --env=CIRCLE_PROJECT_REPONAME \
+              --env=GOPRIVATE \
+              --volume=$(pwd):/src \
+              --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
+              --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
+              weaveworks/eksctl-build:$(cat .docker/image_tag) make build-all
+          no_output_timeout: 21m
+      - store_artifacts:
+          path: dist/
   release:
     machine:
       image: ubuntu-1604:201903-01
@@ -222,8 +247,18 @@ workflows:
               ignore: /.*/
             tags:
               only: /[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+/
+# Uncomment these lines and the "type: approval" below to split the release in two parts: build and publish
+#      - prepare-release:
+#          requires: [test-and-build]
+#          filters:
+#            branches:
+#              ignore: /.*/
+#            tags:
+#              only: /[0-9]+\.[0-9]+\.[0-9]+/
       - release:
           requires: [test-and-build]
+#          requires: [prepare-release]
+#          type: approval
           filters:
             branches:
               ignore: /.*/
