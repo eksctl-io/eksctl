@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@3.4.2
+
 commands:
   prepare-ssh-keys:
     description: Prepare SSH keys to be mounted with the right permissions for Git
@@ -64,6 +67,14 @@ commands:
           paths:
             - "/home/circleci/.cache/go-build/"
             - "/home/circleci/go/pkg/mod/"
+  notify-slack:
+    description: Notify failures via Slack
+    steps:
+      - run: exit 0
+      - slack/status:
+          fail_only: true
+          mentions: 'team-aws'
+          only_for_branches: master
 
 jobs:
   test-and-build:
@@ -191,6 +202,7 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
+      - notify-slack
 
 workflows:
   version: 2
