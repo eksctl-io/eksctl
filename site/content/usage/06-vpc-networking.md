@@ -198,6 +198,12 @@ The following is an example of how one could configure the Kubernetes API endpoi
 eksctl utils update-cluster-endpoints --name=<clustername> --private-access=true --public-access=false
 ```
 
+To update the setting using a `ClusterConfig` file, use:
+
+```console
+eksctl utils update-cluster-endpoints -f config.yaml --approve
+```
+
 Note that if you don't pass a flag in it will keep the current value. Once you are satisfied with the proposed changes,
 add the `approve` flag to make the change to the running cluster.
 
