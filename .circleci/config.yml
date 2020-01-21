@@ -11,8 +11,8 @@ commands:
           name: Prepare SSH keys to be mounted with the right permissions for Git
           command: |
             if [ ! -z "$SSH_KEY_NAME" ]; then
-              cp -r $HOME/.ssh $HOME/project/.ssh
-              sudo printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" > $HOME/project/.ssh/config
+              sudo cp -r $HOME/.ssh $HOME/project/
+              printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" | sudo tee $HOME/project/.ssh/config
               sudo chmod -R 600 $HOME/project/.ssh
               sudo chown -R root:root $HOME/project/.ssh
             else
