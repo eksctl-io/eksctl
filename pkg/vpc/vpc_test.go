@@ -49,6 +49,17 @@ type endpointAccessCase struct {
 	error                 error
 }
 
+type importAllSubnetsCase struct {
+	cfg                   *api.ClusterConfig
+	describeSubnetsOutput *ec2.DescribeSubnetsOutput
+	error                 error
+}
+
+type cleanupSubnetsCase struct {
+	cfg  *api.ClusterConfig
+	want *api.ClusterConfig
+}
+
 var (
 	cluster *eks.Cluster
 	p       *mockprovider.MockProvider
@@ -219,7 +230,7 @@ var _ = Describe("VPC - Import VPC", func() {
 				return input != nil
 			})).Return(mockResultFn, vpcCase.describeVPCError)
 
-			if err := Import(p, vpcCase.cfg, vpcCase.id); err != nil {
+			if err := importVPC(p, vpcCase.cfg, vpcCase.id); err != nil {
 				Expect(err.Error()).To(Equal(vpcCase.error.Error()))
 			} else {
 				Expect(vpcCase.cfg.VPC.ID == vpcCase.id)
@@ -412,6 +423,284 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			public:                false,
 			describeClusterOutput: nil,
 			error:                 nil,
+		}),
+	)
+})
+
+var _ = Describe("VPC - Clean up subnets", func() {
+	cfgWithAllAZ := &api.ClusterConfig{
+		VPC: &api.ClusterVPC{
+			Subnets: &api.ClusterSubnets{
+				Private: map[string]api.Network{
+					"az1": {
+						ID: "private1",
+					},
+					"az2": {
+						ID: "private2",
+					},
+					"az3": {
+						ID: "private3",
+					},
+				},
+				Public: map[string]api.Network{
+					"az1": {
+						ID: "public1",
+					},
+					"az2": {
+						ID: "public2",
+					},
+					"az3": {
+						ID: "public3",
+					},
+				},
+			},
+		},
+		AvailabilityZones: []string{"az1", "az2", "az3"},
+	}
+
+	DescribeTable("clean up the subnets details in spec if given AZ is invalid",
+		func(e cleanupSubnetsCase) {
+			cleanupSubnets(e.cfg)
+			Expect(e.cfg).To(Equal(cfgWithAllAZ))
+		},
+
+		Entry("All AZs are valid", cleanupSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+							"az2": {
+								ID: "private2",
+							},
+							"az3": {
+								ID: "private3",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+							"az2": {
+								ID: "public2",
+							},
+							"az3": {
+								ID: "public3",
+							},
+						},
+					},
+				},
+				AvailabilityZones: []string{"az1", "az2", "az3"},
+			},
+		}),
+
+		Entry("Private subnet with invalid AZ", cleanupSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+							"az2": {
+								ID: "private2",
+							},
+							"az3": {
+								ID: "private3",
+							},
+							"invalid AZ": {
+								ID: "invalid private id",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+							"az2": {
+								ID: "public2",
+							},
+							"az3": {
+								ID: "public3",
+							},
+						},
+					},
+				},
+				AvailabilityZones: []string{"az1", "az2", "az3"},
+			},
+			want: cfgWithAllAZ,
+		}),
+		Entry("Public subnet with invalid AZ", cleanupSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+							"az2": {
+								ID: "private2",
+							},
+							"az3": {
+								ID: "private3",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+							"az2": {
+								ID: "public2",
+							},
+							"az3": {
+								ID: "public3",
+							},
+							"invalid AZ": {
+								ID: "invalid public id",
+							},
+						},
+					},
+				},
+				AvailabilityZones: []string{"az1", "az2", "az3"},
+			},
+			want: cfgWithAllAZ,
+		}),
+	)
+})
+
+var _ = Describe("VPC - Import all subnets", func() {
+	BeforeEach(func() {
+		p = mockprovider.NewMockProvider()
+	})
+
+	DescribeTable("Can import all subnets",
+		func(e importAllSubnetsCase) {
+			p.MockEC2()
+
+			mockResultFn := func(input *ec2.DescribeSubnetsInput) *ec2.DescribeSubnetsOutput {
+				if *input.SubnetIds[0] == "private1" {
+					return &ec2.DescribeSubnetsOutput{
+						Subnets: []*ec2.Subnet{
+							{
+								AvailabilityZone: strings.Pointer("az1"),
+								CidrBlock:        strings.Pointer("192.168.0.0/20"),
+								SubnetId:         strings.Pointer("private1"),
+								VpcId:            strings.Pointer("vpc1"),
+							},
+						},
+					}
+				}
+				return &ec2.DescribeSubnetsOutput{
+					Subnets: []*ec2.Subnet{
+						{
+							AvailabilityZone: strings.Pointer("az1"),
+							CidrBlock:        strings.Pointer("192.168.1.0/20"),
+							SubnetId:         strings.Pointer("public1"),
+							VpcId:            strings.Pointer("vpc1"),
+						},
+					},
+				}
+			}
+
+			mockVpcResultFn := func(_ *ec2.DescribeVpcsInput) *ec2.DescribeVpcsOutput {
+				return &ec2.DescribeVpcsOutput{
+					NextToken: nil,
+					Vpcs: []*ec2.Vpc{
+						{
+							CidrBlock: strings.Pointer("192.168.0.0/16"),
+							VpcId:     strings.Pointer("vpc1"),
+						},
+					},
+				}
+			}
+
+			p.MockEC2().On("DescribeVpcs", MatchedBy(func(input *ec2.DescribeVpcsInput) bool {
+				return input != nil
+			})).Return(mockVpcResultFn, nil)
+
+			p.MockEC2().On("DescribeSubnets", MatchedBy(func(input *ec2.DescribeSubnetsInput) bool {
+				return input != nil
+			})).Return(mockResultFn, nil)
+
+			if err := ImportAllSubnets(p, e.cfg, ); err != nil {
+				Expect(err.Error()).To(Equal(e.error.Error()))
+			} else {
+				Expect(e.cfg.VPC.Subnets.Private).Should(HaveKey("az1"))
+				Expect(e.cfg.VPC.Subnets.Private).Should(HaveLen(1))
+				Expect(e.cfg.VPC.Subnets.Private).Should(Not(HaveKey("invalidAZ")))
+				Expect(e.cfg.VPC.Subnets.Public).Should(HaveKey("az1"))
+				Expect(e.cfg.VPC.Subnets.Public).Should(HaveLen(1))
+				Expect(e.cfg.VPC.Subnets.Public).Should(Not(HaveKey("invalidAZ")))
+			}
+		},
+
+		Entry("Subnet are matching with AZs", importAllSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+						},
+					},
+				},
+			},
+			error: nil,
+		}),
+
+		Entry("Private subnet is not matching with AZ", importAllSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"invalidAZ": {
+								ID: "private1",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+						},
+					},
+				},
+			},
+			error: nil,
+		}),
+		Entry("Public subnet is not matching with AZ", importAllSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Network: api.Network{
+						ID: "vpc1",
+					},
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+						},
+						Public: map[string]api.Network{
+							"invalidAZ": {
+								ID: "public1",
+							},
+						},
+					},
+				},
+			},
+			error: nil,
 		}),
 	)
 })
