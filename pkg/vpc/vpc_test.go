@@ -452,7 +452,7 @@ var _ = Describe("VPC - Clean up subnets", func() {
 		AvailabilityZones: []string{"az1", "az2", "az3"},
 	}
 
-	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
+	DescribeTable("clean up the subnets details in spec if given AZ is invalid",
 		func(e cleanupSubnetsCase) {
 			cleanupSubnets(e.cfg)
 			Expect(e.cfg).To(Equal(cfgWithAllAZ))
