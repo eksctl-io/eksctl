@@ -12,12 +12,16 @@ function current_branch() {
   git rev-parse --abbrev-ref @
 }
 
-#if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\.git)?$ ]] ; then
-#  echo "Invalid origin: $(git remote get-url origin)"
-#  exit 3
-#fi
+function release_generate() {
+  go run pkg/version/generate/release_generate.go ${1}
+}
 
-v=$(go run pkg/version/generate/release_generate.go print-version)
+if [[ ! "$(git remote get-url origin)" =~ ^git@github.com:weaveworks/eksctl(\-private)?(\.git)?$ ]] ; then
+  echo "Invalid origin: $(git remote get-url origin)"
+  exit 3
+fi
+
+v=$(release_generate print-version)
 
 release_branch="release-${v%.*}"  # e.g.: 0.2.0 -> release-0.2
 if ! [[ "${release_branch}" =~ ^release-[0-9]+\.[0-9]+$ ]] ; then
@@ -43,7 +47,7 @@ fi
 export RELEASE_GIT_TAG="${v}"
 
 # Update eksctl version by removing the pre-release id
-go run pkg/version/generate/release_generate.go release
+release_generate release
 git add ./pkg/version/release.go
 git add "${RELEASE_NOTES_FILE}"
 
@@ -68,12 +72,12 @@ if [ ! "$(current_branch)" = master ] ; then
 fi
 git pull --ff-only origin master
 
-master_version=$(go run pkg/version/generate/release_generate.go print-version)
+master_version=$(release_generate print-version)
 
 # Increase next development iteration if needed
 if [ "${master_version}" == "${v}" ]; then
   echo "Preparing for next development iteration"
-  go run pkg/version/generate/release_generate.go development
+  release_generate development
   git add ./pkg/version/release.go
   git commit --message "Prepare for next development iteration"
   git push origin master:master

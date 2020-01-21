@@ -11,7 +11,6 @@ import (
 
 	"github.com/blang/semver"
 	. "github.com/dave/jennifer/jen"
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/eksctl/pkg/version"
 )
@@ -23,7 +22,6 @@ const defaultReleaseCandidate = "rc.0"
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("missing argument")
-		return
 	}
 
 	command := os.Args[1]
@@ -42,7 +40,6 @@ func main() {
 		return
 	default:
 		log.Fatalf("unknown option %q. Expected 'release', 'release-candidate', 'development' or 'print-version'", command)
-		return
 	}
 
 	if err := writeVersionToFile(newVersion, newPreRelease, versionFilename); err != nil {
@@ -52,8 +49,6 @@ func main() {
 	version.Version = newVersion
 	version.PreReleaseID = newPreRelease
 	fmt.Println(version.GetVersion())
-
-	return
 }
 
 func prepareRelease() (string, string) {
@@ -67,17 +62,14 @@ func prepareReleaseCandidate() (string, string) {
 		if err != nil {
 			log.Fatalf("cannot parse rc version from pre-release id %s", version.PreReleaseID)
 		}
-		newRC :=  rcNumber + 1
+		newRC := rcNumber + 1
 		return version.Version, fmt.Sprintf("rc.%d", newRC)
 	}
 	return version.Version, defaultReleaseCandidate
 }
 
 func nextDevelopmentIteration() (string, string) {
-	ver, err := semver.Make(version.Version)
-	if err != nil {
-		log.Fatal(errors.Wrapf(err, "could not parse version %q", version.Version))
-	}
+	ver := semver.MustParse(version.Version)
 	ver.Minor += 1
 	return ver.String(), defaultPreReleaseId
 }
