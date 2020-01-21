@@ -23,23 +23,23 @@ Using gitops Quick Starts will get you set up in next to no time. You
 will benefit from a setup that is based on the experience of companies
 who run workloads at scale.
 
-## Prerequisites
+### Prerequisites
 
 To use EKS, you need to have your [AWS account][aws-account] set up.
 
 Next, you will have to have the following tools installed:
 
-- [AWS CLI][aws-cli]: at least `1.16.156` - older versions will require
-  [AWS IAM Authenticator][aws-iam-authenticator] to be installed too
-- a specific version of [kubectl][aws-kubectl] which works with
-  EKS
+-   [AWS CLI][aws-cli]: at least `1.16.156` - older versions will require
+    [AWS IAM Authenticator][aws-iam-authenticator] to be installed too
+-   a specific version of [kubectl][aws-kubectl] which works with
+    EKS
 
 [aws-account]: https://aws.amazon.com/account/
 [aws-cli]: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html
 [aws-iam-authenticator]: https://github.com/kubernetes-sigs/aws-iam-authenticator
 [aws-kubectl]: https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html
 
-### Getting ready for gitops
+#### Getting ready for gitops
 
 The main point of gitops is to keep everything (config, alerts, dashboards,
 apps, literally everything) in Git and use it as a single source of truth.
@@ -48,7 +48,7 @@ _empty_ repository. On GitHub, for example, follow [these steps][github-repo].
 
 [github-repo]: https://help.github.com/articles/create-a-repo
 
-## Standing up your cluster
+### Standing up your cluster
 
 First we follow the [usual steps](/introduction/getting-started/) to stand
 up a cluster on EKS. Please review the list of flags to see if you need to
@@ -79,12 +79,12 @@ kube-system   kube-proxy-kg57w           1/1     Running   0          45s
 kube-system   kube-proxy-qzcmk           1/1     Running   0          45s
 ```
 
-## Enabling a gitops operator
+### Enabling a gitops operator
 
 The following command will set up your cluster with:
 
-- a gitops operator, [Flux](https://fluxcd.io)
-- [Helm](https://helm.sh/)
+-   a gitops operator, [Flux](https://fluxcd.io)
+-   [Helm](https://helm.sh/)
 
 and add their manifests to Git, so you can configure them through pull
 requests.
@@ -97,9 +97,8 @@ deploy to the cluster.
 ![Install Flux](img/gitops-diagram1.svg#content)
 ![Deploying with gitops](img/gitops-diagram2.svg#content)
 
-
 !!!warning
-        This is an experimental feature. To enable it, set the environment variable `EKSCTL_EXPERIMENTAL=true`.
+This is an experimental feature. To enable it, set the environment variable `EKSCTL_EXPERIMENTAL=true`.
 
         Experimental features are not stable and their command name and flags may change.
 
@@ -117,14 +116,14 @@ EKSCTL_EXPERIMENTAL=true \
 
 Let us go through the specified arguments one by one:
 
-- `--git-url`: this points to a Git URL where the configuration for
-  your cluster will be stored. This will contain config for the
-  workloads and infrastructure later on.
-- `--git-email`: the email used to commit changes to your config
-  repository.
-- `--cluster`: the name of your cluster. Use `eksctl get cluster`
-  to see all clusters in your default region.
-- `--region`: the region of your cluster.
+-   `--git-url`: this points to a Git URL where the configuration for
+    your cluster will be stored. This will contain config for the
+    workloads and infrastructure later on.
+-   `--git-email`: the email used to commit changes to your config
+    repository.
+-   `--cluster`: the name of your cluster. Use `eksctl get cluster`
+    to see all clusters in your default region.
+-   `--region`: the region of your cluster.
 
 There are more arguments and options, please refer to the
 [gitops reference of eksctl](/usage/experimental/gitops-flux/)
@@ -154,9 +153,9 @@ config repository already.
 
 In our case we are going to see these new arrivals in the cluster:
 
-- `flux`,
-- the [Flux Helm Operator](https://github.com/fluxcd/helm-operator), and
-- Tiller,
+-   `flux`,
+-   the [Flux Helm Operator](https://github.com/fluxcd/helm-operator), and
+-   Tiller,
 
 running:
 
@@ -176,7 +175,7 @@ kube-system            kube-proxy-wllff                                         
 All of the cluster configuration can be easily edited in Git now.
 Welcome to a fully gitopsed world!
 
-## Enabling a Quick Start profile
+### Enabling a Quick Start profile
 
 The following command will set up your cluster with the `app-dev` profile,
 the first gitops Quick Start. All of the config files you need for a
@@ -187,9 +186,9 @@ in the configuration they will be reflected on your cluster.
 ![Enabling a profile](img/gitops-diagram3.svg#content)
 
 !!!warning
-        This is an experimental feature. To enable it, set the environment variable `EKSCTL_EXPERIMENTAL=true`.
-        
-        Experimental features are not stable and their command name and flags may change.
+This is an experimental feature. To enable it, set the environment variable `EKSCTL_EXPERIMENTAL=true`.
+  
+ Experimental features are not stable and their command name and flags may change.
 
 Run this command from any directory in your file system. `eksctl` will clone
 your repository in a temporary directory that will be removed later.
@@ -206,17 +205,17 @@ EKSCTL_EXPERIMENTAL=true eksctl \
 
 Let us go through the specified arguments one by one:
 
-- `--git-url`: this points to a Git URL where the configuration for
-  your cluster will be stored. This will contain config for the
-  workloads and infrastructure later on.
-- `--git-email`: the email used to commit changes to your config
-  repository.
-- `--cluster`: the name of your cluster. Use `eksctl get cluster`
-  to see all clusters in your default region.
-- `--region`: the region of your cluster.
-- positional argument: this is the name of one of the profiles we
-  put together, so you can easily pick and choose and will not have
-  to start from scratch every time. We use `app-dev` here.
+-   `--git-url`: this points to a Git URL where the configuration for
+    your cluster will be stored. This will contain config for the
+    workloads and infrastructure later on.
+-   `--git-email`: the email used to commit changes to your config
+    repository.
+-   `--cluster`: the name of your cluster. Use `eksctl get cluster`
+    to see all clusters in your default region.
+-   `--region`: the region of your cluster.
+-   positional argument: this is the name of one of the profiles we
+    put together, so you can easily pick and choose and will not have
+    to start from scratch every time. We use `app-dev` here.
 
 There are more arguments and options, please refer to the
 [gitops reference of eksctl](/usage/experimental/gitops-flux/)
@@ -255,19 +254,19 @@ monitoring             prometheus-operator-prometheus-node-exporter-tllwl       
 monitoring             prometheus-prometheus-operator-prometheus-0               3/3     Running                      1          72s
 ```
 
-## Your gitops cluster
+### Your gitops cluster
 
 Welcome to your fully gitopsed cluster. By choosing the `app-dev` Quick
 Start profile, you will now also have the following components running
 in your cluster:
 
-- ALB ingress controller -- to easily expose services to the World.
-- [Cluster autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler) -- to [automatically add/remove nodes](https://aws.amazon.com/premiumsupport/knowledge-center/eks-cluster-autoscaler-setup/) to/from your cluster based on its usage.
-- [Prometheus](https://prometheus.io/) (its [Alertmanager](https://prometheus.io/docs/alerting/alertmanager/), its [operator](https://github.com/coreos/prometheus-operator), its [`node-exporter`](https://github.com/prometheus/node_exporter), [`kube-state-metrics`](https://github.com/kubernetes/kube-state-metrics), and [`metrics-server`](https://github.com/kubernetes-incubator/metrics-server)) -- for powerful metrics & alerts.
-- [Grafana](https://grafana.com) -- for a rich way to visualize metrics via dashboards you can create, explore, and share.
-- [Kubernetes dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) -- Kubernetes' standard dashboard.
-- [Fluentd](https://www.fluentd.org/) & Amazon's [CloudWatch agent](https://aws.amazon.com/cloudwatch/) -- for cluster & containers' [log collection, aggregation & analytics in CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs.html).
-- [podinfo](https://github.com/stefanprodan/podinfo) --  a toy demo application.
+-   ALB ingress controller -- to easily expose services to the World.
+-   [Cluster autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler) -- to [automatically add/remove nodes](https://aws.amazon.com/premiumsupport/knowledge-center/eks-cluster-autoscaler-setup/) to/from your cluster based on its usage.
+-   [Prometheus](https://prometheus.io/) (its [Alertmanager](https://prometheus.io/docs/alerting/alertmanager/), its [operator](https://github.com/coreos/prometheus-operator), its [`node-exporter`](https://github.com/prometheus/node_exporter), [`kube-state-metrics`](https://github.com/kubernetes/kube-state-metrics), and [`metrics-server`](https://github.com/kubernetes-incubator/metrics-server)) -- for powerful metrics & alerts.
+-   [Grafana](https://grafana.com) -- for a rich way to visualize metrics via dashboards you can create, explore, and share.
+-   [Kubernetes dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) -- Kubernetes' standard dashboard.
+-   [Fluentd](https://www.fluentd.org/) & Amazon's [CloudWatch agent](https://aws.amazon.com/cloudwatch/) -- for cluster & containers' [log collection, aggregation & analytics in CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs.html).
+-   [podinfo](https://github.com/stefanprodan/podinfo) -- a toy demo application.
 
 It's easy to confirm if all of this is up and running for you. Let's
 check `podinfo` and see if it's up.
@@ -290,9 +289,9 @@ If you open `localhost:9898` in your browser, you will see
 
 Congratulations to your gitopsed cluster on EKS!
 
-## Advanced setups
+### Advanced setups
 
-### Handcrafting your configuration
+#### Handcrafting your configuration
 
 `eksctl enable profile` can largely be decomposed into
 
@@ -330,12 +329,12 @@ EKSCTL_EXPERIMENTAL=true eksctl generate profile \
 Let's break this down here. `eksctl generate profile` at the very
 least wants:
 
-- `--cluster`: the name of the cluster - check `eksctl get cluster`
-  to see what the name of yours is
-- `--git-url`: the Git URL of the Quick Start profile to deploy to the cluster
-- `--profile-path`: a local path: this is an empty new directory
-  (here `cluster-config`) you create in your local checkout of
-  the config repository, which we used in the previous command
+-   `--cluster`: the name of the cluster - check `eksctl get cluster`
+    to see what the name of yours is
+-   `--git-url`: the Git URL of the Quick Start profile to deploy to the cluster
+-   `--profile-path`: a local path: this is an empty new directory
+    (here `cluster-config`) you create in your local checkout of
+    the config repository, which we used in the previous command
 
 The Quick Start profile can be something you and your organisation
 tailored to your needs, but can be something like our [app-dev
@@ -373,7 +372,7 @@ kubernetes-dashboard   kubernetes-dashboard-7447f48f55-2pl66       1/1     Runni
 All of the cluster configuration can be easily edited in Git now.
 Welcome to a fully gitopsed world!
 
-## Conclusion
+### Conclusion
 
 We look forward to hearing your thoughts and feedback. Please [get
 in touch](/community/get-in-touch/) and let us know how things
