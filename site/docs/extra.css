@@ -1,0 +1,9 @@
+img[src$="#inline"] {
+    height: 27px;
+    vertical-align: middle;
+}
+
+img[src$="#inline-ww"] {
+    height: 22px;
+    vertical-align: middle;
+}

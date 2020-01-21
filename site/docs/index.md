@@ -1,6 +1,6 @@
 # `eksctl` - The official CLI for Amazon EKS
 
-sponsored by [![Weaveworks](img/weaveworks.svg)](https://www.weave.works/) and built by [![Contributors](img/gophers.png)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](img/octocat.svg)](https://github.com/weaveworks/eksctl)
+sponsored by [![Weaveworks](img/weaveworks.svg#inline-ww)](https://www.weave.works/) and built by [![Contributors](img/gophers.png#inline)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](img/octocat.svg#inline)](https://github.com/weaveworks/eksctl)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes
@@ -12,12 +12,12 @@ eksctl create cluster
 
 A cluster will be created with default parameters:
 
-- exciting auto-generated name, e.g., `fabulous-mushroom-1527688624`
-- two `m5.large` worker nodes—this instance type suits most common use-cases, and is good value for money
-- use the official AWS [EKS AMI](https://github.com/awslabs/amazon-eks-ami)
-- `us-west-2` region
-- a dedicated VPC (check your quotas)
-- using static AMI resolver
+-   exciting auto-generated name, e.g., `fabulous-mushroom-1527688624`
+-   two `m5.large` worker nodes—this instance type suits most common use-cases, and is good value for money
+-   use the official AWS [EKS AMI](https://github.com/awslabs/amazon-eks-ami)
+-   `us-west-2` region
+-   a dedicated VPC (check your quotas)
+-   using static AMI resolver
 
 Example output:
 
@@ -68,16 +68,16 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: basic-cluster
-  region: eu-north-1
+    name: basic-cluster
+    region: eu-north-1
 
 nodeGroups:
-  - name: ng-1
-    instanceType: m5.large
-    desiredCapacity: 10
-  - name: ng-2
-    instanceType: m5.xlarge
-    desiredCapacity: 2
+    - name: ng-1
+      instanceType: m5.large
+      desiredCapacity: 10
+    - name: ng-2
+      instanceType: m5.xlarge
+      desiredCapacity: 2
 ```
 
 Once you have created a cluster, you will find that cluster credentials were added in `~/.kube/config`. If you have
