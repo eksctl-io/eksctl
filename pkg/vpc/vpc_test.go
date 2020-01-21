@@ -49,6 +49,11 @@ type endpointAccessCase struct {
 	error                 error
 }
 
+type cleanupSubnetsCase struct {
+	cfg  *api.ClusterConfig
+	want *api.ClusterConfig
+}
+
 var (
 	cluster *eks.Cluster
 	p       *mockprovider.MockProvider
@@ -412,6 +417,148 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			public:                false,
 			describeClusterOutput: nil,
 			error:                 nil,
+		}),
+	)
+})
+
+var _ = Describe("VPC - Clean up subnets", func() {
+	cfgWithAllAZ := &api.ClusterConfig{
+		VPC: &api.ClusterVPC{
+			Subnets: &api.ClusterSubnets{
+				Private: map[string]api.Network{
+					"az1": {
+						ID: "private1",
+					},
+					"az2": {
+						ID: "private2",
+					},
+					"az3": {
+						ID: "private3",
+					},
+				},
+				Public: map[string]api.Network{
+					"az1": {
+						ID: "public1",
+					},
+					"az2": {
+						ID: "public2",
+					},
+					"az3": {
+						ID: "public3",
+					},
+				},
+			},
+		},
+		AvailabilityZones: []string{"az1", "az2", "az3"},
+	}
+
+	DescribeTable("can set cluster endpoint configuration on VPC from running Cluster",
+		func(e cleanupSubnetsCase) {
+			cleanupSubnets(e.cfg)
+			Expect(e.cfg).To(Equal(cfgWithAllAZ))
+		},
+
+		Entry("All AZs are valid", cleanupSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+							"az2": {
+								ID: "private2",
+							},
+							"az3": {
+								ID: "private3",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+							"az2": {
+								ID: "public2",
+							},
+							"az3": {
+								ID: "public3",
+							},
+						},
+					},
+				},
+				AvailabilityZones: []string{"az1", "az2", "az3"},
+			},
+		}),
+
+		Entry("Private subnet with invalid AZ", cleanupSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+							"az2": {
+								ID: "private2",
+							},
+							"az3": {
+								ID: "private3",
+							},
+							"invalid AZ": {
+								ID: "invalid private id",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+							"az2": {
+								ID: "public2",
+							},
+							"az3": {
+								ID: "public3",
+							},
+						},
+					},
+				},
+				AvailabilityZones: []string{"az1", "az2", "az3"},
+			},
+			want: cfgWithAllAZ,
+		}),
+		Entry("Public subnet with invalid AZ", cleanupSubnetsCase{
+			cfg: &api.ClusterConfig{
+				VPC: &api.ClusterVPC{
+					Subnets: &api.ClusterSubnets{
+						Private: map[string]api.Network{
+							"az1": {
+								ID: "private1",
+							},
+							"az2": {
+								ID: "private2",
+							},
+							"az3": {
+								ID: "private3",
+							},
+						},
+						Public: map[string]api.Network{
+							"az1": {
+								ID: "public1",
+							},
+							"az2": {
+								ID: "public2",
+							},
+							"az3": {
+								ID: "public3",
+							},
+							"invalid AZ": {
+								ID: "invalid public id",
+							},
+						},
+					},
+				},
+				AvailabilityZones: []string{"az1", "az2", "az3"},
+			},
+			want: cfgWithAllAZ,
 		}),
 	)
 })

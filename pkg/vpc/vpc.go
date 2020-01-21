@@ -20,11 +20,6 @@ import (
 	"k8s.io/kops/pkg/util/subnet"
 )
 
-var importVPCFn func(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error = importVPC
-var describeSubnetsFn func(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) = describeSubnets
-var describeVPCFn func(provider api.ClusterProvider, vpcID string) (*ec2.Vpc, error) = describeVPC
-var cleanupSubnetsFn func(spec *api.ClusterConfig) = cleanupSubnets
-
 // SetSubnets defines CIDRs for each of the subnets,
 // it must be called after SetAvailabilityZones
 func SetSubnets(spec *api.ClusterConfig) error {
@@ -148,7 +143,7 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 // NOTE: it does respect all fields set in spec.VPC, and will error if
 // there is a mismatch of local vs remote states
 func importVPC(provider api.ClusterProvider, spec *api.ClusterConfig, id string) error {
-	vpc, err := describeVPCFn(provider, id)
+	vpc, err := describeVPC(provider, id)
 	if err != nil {
 		return err
 	}
@@ -188,7 +183,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 		}
 
 		// ensure VPC gets imported and validated first, if it's already set
-		if err := importVPCFn(provider, spec, spec.VPC.ID); err != nil {
+		if err := importVPC(provider, spec, spec.VPC.ID); err != nil {
 			return err
 		}
 	}
@@ -197,7 +192,7 @@ func ImportSubnets(provider api.ClusterProvider, spec *api.ClusterConfig, topolo
 		if spec.VPC.ID == "" {
 			// if VPC wasn't defined, import it based on VPC of the first
 			// subnet that we have
-			if err := importVPCFn(provider, spec, *sn.VpcId); err != nil {
+			if err := importVPC(provider, spec, *sn.VpcId); err != nil {
 				return err
 			}
 		} else if spec.VPC.ID != *sn.VpcId { // be sure to use the same VPC
@@ -220,7 +215,7 @@ func ImportSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig
 	if len(subnetIDs) == 0 {
 		return nil
 	}
-	subnets, err := describeSubnetsFn(provider, subnetIDs...)
+	subnets, err := describeSubnets(provider, subnetIDs...)
 	if err != nil {
 		return err
 	}
@@ -234,7 +229,7 @@ func ImportSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig
 func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) error {
 	if spec.VPC.ID != "" {
 		// ensure VPC gets imported and validated first, if it's already set
-		if err := importVPCFn(provider, spec, spec.VPC.ID); err != nil {
+		if err := importVPC(provider, spec, spec.VPC.ID); err != nil {
 			return err
 		}
 	}
@@ -245,7 +240,7 @@ func ImportAllSubnets(provider api.ClusterProvider, spec *api.ClusterConfig) err
 		return err
 	}
 	// to clean up invalid subnets based on AZ after imported both private and public subnets
-	cleanupSubnetsFn(spec)
+	cleanupSubnets(spec)
 	return nil
 }
 
