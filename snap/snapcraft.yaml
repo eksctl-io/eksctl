@@ -25,7 +25,7 @@ parts:
     artifacts: [ eksctl ]
     override-pull: |
       snapcraftctl pull
-      EKSCTL_TAG="$(git tag -l | egrep -v '^(latest_release)' | sort --version-sort | tail -n1)"
+      EKSCTL_TAG="$(git tag --sort=taggerdate | egrep -v '^(latest_release)' | tail -n 1)"
       set +e
       git describe --exact-match --tags $(git log -n1 --pretty='%h')
       retVal=$?
