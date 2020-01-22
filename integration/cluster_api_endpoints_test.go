@@ -9,16 +9,15 @@ import (
 	"os"
 	"time"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
-
-	. "github.com/weaveworks/eksctl/integration/matchers"
-	. "github.com/weaveworks/eksctl/integration/runner"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 const (

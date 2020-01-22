@@ -5,13 +5,13 @@ package integration_test
 import (
 	"fmt"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
-
-	. "github.com/weaveworks/eksctl/integration/matchers"
-	. "github.com/weaveworks/eksctl/integration/runner"
 )
 
 const (
