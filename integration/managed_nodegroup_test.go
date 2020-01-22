@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"time"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+	"github.com/weaveworks/eksctl/integration/utilities/kube"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
-
-	. "github.com/weaveworks/eksctl/integration/matchers"
-	. "github.com/weaveworks/eksctl/integration/runner"
 )
 
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
@@ -106,7 +107,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				)
 
 				BeforeEach(func() {
-					test, err = newKubeTest()
+					test, err = kube.NewTest(kubeconfigPath)
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 
@@ -118,7 +119,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 
 				It("should deploy podinfo service to the cluster and access it via proxy", func() {
-					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
+					d := test.CreateDeploymentFromFile(test.Namespace, "data/podinfo.yaml")
 					test.WaitForDeploymentReady(d, defaultTimeout)
 
 					pods := test.ListPodsFromDeployment(d)
@@ -140,7 +141,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 
 				It("should have functional DNS", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-dns.yaml")
 
 					test.WaitForDaemonSetReady(d, defaultTimeout)
 
@@ -152,7 +153,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 
 				It("should have access to HTTP(S) sites", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-http.yaml")
 
 					test.WaitForDaemonSetReady(d, defaultTimeout)
 

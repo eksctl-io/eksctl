@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/weaveworks/eksctl/integration/runner"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
-
-	. "github.com/weaveworks/eksctl/integration/runner"
 )
 
 var _ = Describe("(Integration) generate profile", func() {

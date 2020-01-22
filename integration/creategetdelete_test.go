@@ -10,25 +10,26 @@ import (
 	"strings"
 	"time"
 
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+	"github.com/weaveworks/eksctl/integration/utilities/git"
+	"github.com/weaveworks/eksctl/integration/utilities/kube"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/iam"
+	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
+
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	harness "github.com/dlespiau/kube-test-harness"
 	"github.com/kubicorn/kubicorn/pkg/namer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
-
-	. "github.com/weaveworks/eksctl/integration/matchers"
-	. "github.com/weaveworks/eksctl/integration/runner"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/iam"
-	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 )
 
 var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
@@ -134,28 +135,28 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			BeforeEach(func() {
 				if branch == "" {
 					branch = namer.RandomName()
-					cloneDir, err = createBranch(branch)
+					cloneDir, err = git.CreateBranch(branch, privateSSHKeyPath)
 				}
 			})
 
 			Context("enable repo", func() {
 				It("should add Flux to the repo and the cluster", func() {
 					Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
-					assertFluxManifestsAbsentInGit(branch)
-					assertFluxPodsAbsentInKubernetes(kubeconfigPath)
+					AssertFluxManifestsAbsentInGit(branch, privateSSHKeyPath)
+					AssertFluxPodsAbsentInKubernetes(kubeconfigPath)
 
 					cmd := eksctlExperimentalCmd.WithArgs(
 						"enable", "repo",
-						"--git-url", Repository,
-						"--git-email", Email,
+						"--git-url", git.Repository,
+						"--git-email", git.Email,
 						"--git-private-ssh-key-path", privateSSHKeyPath,
 						"--git-branch", branch,
 						"--cluster", clusterName,
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					assertFluxManifestsPresentInGit(branch)
-					assertFluxPodsPresentInKubernetes(kubeconfigPath)
+					AssertFluxManifestsPresentInGit(branch, privateSSHKeyPath)
+					AssertFluxPodsPresentInKubernetes(kubeconfigPath)
 				})
 			})
 
@@ -163,13 +164,13 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				It("should add the configured quickstart profile to the repo and the cluster", func() {
 					Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
 					// Flux should have been installed by the previously run "enable repo" command:
-					assertFluxManifestsPresentInGit(branch)
-					assertFluxPodsPresentInKubernetes(kubeconfigPath)
+					AssertFluxManifestsPresentInGit(branch, privateSSHKeyPath)
+					AssertFluxPodsPresentInKubernetes(kubeconfigPath)
 
 					cmd := eksctlExperimentalCmd.WithArgs(
 						"enable", "profile",
-						"--git-url", Repository,
-						"--git-email", Email,
+						"--git-url", git.Repository,
+						"--git-email", git.Email,
 						"--git-branch", branch,
 						"--git-private-ssh-key-path", privateSSHKeyPath,
 						"--cluster", clusterName,
@@ -177,12 +178,12 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					)
 					Expect(cmd).To(RunSuccessfully())
 
-					assertQuickStartComponentsPresentInGit(branch)
+					AssertQuickStartComponentsPresentInGit(branch, privateSSHKeyPath)
 					// Flux should still be present:
-					assertFluxManifestsPresentInGit(branch)
-					assertFluxPodsPresentInKubernetes(kubeconfigPath)
+					AssertFluxManifestsPresentInGit(branch, privateSSHKeyPath)
+					AssertFluxPodsPresentInKubernetes(kubeconfigPath)
 					// Clean-up:
-					err := deleteBranch(branch, cloneDir)
+					err := git.DeleteBranch(branch, cloneDir, privateSSHKeyPath)
 					Expect(err).NotTo(HaveOccurred()) // Deleting the branch should have succeeded.
 				})
 			})
@@ -507,7 +508,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				)
 
 				BeforeEach(func() {
-					test, err = newKubeTest()
+					test, err = kube.NewTest(kubeconfigPath)
 					Expect(err).ShouldNot(HaveOccurred())
 				})
 
@@ -519,7 +520,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should deploy podinfo service to the cluster and access it via proxy", func() {
-					d := test.CreateDeploymentFromFile(test.Namespace, "podinfo.yaml")
+					d := test.CreateDeploymentFromFile(test.Namespace, "data/podinfo.yaml")
 					test.WaitForDeploymentReady(d, commonTimeout)
 
 					pods := test.ListPodsFromDeployment(d)
@@ -541,7 +542,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have functional DNS", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "test-dns.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-dns.yaml")
 
 					test.WaitForDaemonSetReady(d, commonTimeout)
 
@@ -553,7 +554,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have access to HTTP(S) sites", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "test-http.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-http.yaml")
 
 					test.WaitForDaemonSetReady(d, commonTimeout)
 
@@ -576,7 +577,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 					Expect(createCmd).To(RunSuccessfully())
 
-					d := test.CreateDeploymentFromFile(test.Namespace, "iamserviceaccount-checker.yaml")
+					d := test.CreateDeploymentFromFile(test.Namespace, "data/iamserviceaccount-checker.yaml")
 					test.WaitForDeploymentReady(d, commonTimeout)
 
 					pods := test.ListPodsFromDeployment(d)

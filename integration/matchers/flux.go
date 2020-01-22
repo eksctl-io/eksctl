@@ -1,6 +1,6 @@
 // +build integration
 
-package integration_test
+package matchers
 
 import (
 	"fmt"
@@ -8,106 +8,33 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-
+	"github.com/weaveworks/eksctl/integration/utilities/git"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"sigs.k8s.io/yaml"
-
-	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 const (
 	// Namespace is the default Kubernetes namespace under which to install Flux.
 	Namespace = "flux"
-	// Repository is the default testing Git repository.
-	Repository = "git@github.com:eksctl-bot/my-gitops-repo.git"
-	// Email is the default testing Git email.
-	Email = "eksctl-bot@weave.works"
-	// Name is the default cluster name to test against.
-	Name = "autoscaler"
-	// Region is the default region to test against.
-	Region = "ap-northeast-1"
 )
 
-func createBranch(branch string) (string, error) {
-	cloneDir, err := ioutil.TempDir(os.TempDir(), "eksctl-install-flux-test-clone-")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temporary directory: %s", err)
-	}
-	if err := gitWith(gitParams{Args: []string{"clone", "-b", "master", Repository, cloneDir}, Dir: cloneDir, Env: gitSSHCommand()}); err != nil {
-		return "", err
-	}
-	if err := gitWith(gitParams{Args: []string{"checkout", "-b", branch}, Dir: cloneDir, Env: gitSSHCommand()}); err != nil {
-		return "", err
-	}
-	if err := gitWith(gitParams{Args: []string{"push", "origin", branch}, Dir: cloneDir, Env: gitSSHCommand()}); err != nil {
-		return "", err
-	}
-	return cloneDir, nil
-}
-
-func deleteBranch(branch, cloneDir string) error {
-	defer os.RemoveAll(cloneDir)
-	return gitWith(gitParams{Args: []string{"push", "origin", "--delete", branch}, Dir: cloneDir, Env: gitSSHCommand()})
-}
-
-func getBranch(branch string) (string, error) {
-	cloneDir, err := ioutil.TempDir(os.TempDir(), "eksctl-install-flux-test-branch-")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temporary directory: %s", err)
-	}
-	if err := gitWith(gitParams{Args: []string{"clone", "-b", branch, Repository, cloneDir}, Dir: cloneDir, Env: gitSSHCommand()}); err != nil {
-		return "", err
-	}
-	return cloneDir, nil
-}
-
-func git(args ...string) error {
-	return gitWith(gitParams{
-		Args: args,
-		Env:  gitSSHCommand(),
-	})
-}
-
-type gitParams struct {
-	Args []string
-	Env  []string
-	Dir  string
-}
-
-func gitWith(params gitParams) error {
-	gitCmd := exec.Command("git", params.Args...)
-	if params.Env != nil {
-		gitCmd.Env = params.Env
-	}
-	gitCmd.Stdout = os.Stdout
-	gitCmd.Stderr = os.Stderr
-	if params.Dir != "" {
-		gitCmd.Dir = params.Dir
-	}
-	return gitCmd.Run()
-}
-
-func gitSSHCommand() []string {
-	return []string{
-		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
-		fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", privateSSHKeyPath),
-	}
-}
-
-func assertFluxManifestsAbsentInGit(branch string) {
-	dir, err := getBranch(branch)
+// AssertFluxManifestsAbsentInGit asserts expected Flux manifests are not present in Git.
+func AssertFluxManifestsAbsentInGit(branch, privateSSHKeyPath string) {
+	dir, err := git.GetBranch(branch, privateSSHKeyPath)
 	defer os.RemoveAll(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	assertDoesNotContainFluxDir(dir)
 }
 
-func assertFluxManifestsPresentInGit(branch string) {
-	dir, err := getBranch(branch)
+// AssertFluxManifestsPresentInGit asserts expected Flux manifests are present in Git.
+func AssertFluxManifestsPresentInGit(branch, privateSSHKeyPath string) {
+	dir, err := git.GetBranch(branch, privateSSHKeyPath)
 	defer os.RemoveAll(dir)
 	Expect(err).ShouldNot(HaveOccurred())
 	assertContainsFluxDir(dir)
@@ -414,12 +341,12 @@ func assertValidHelmOperatorDeployment(fileName string) {
 	}
 }
 
-func assertFluxPodsAbsentInKubernetes(kubeconfigPath string) {
+func AssertFluxPodsAbsentInKubernetes(kubeconfigPath string) {
 	pods := fluxPods(kubeconfigPath)
 	Expect(pods.Items).To(HaveLen(0))
 }
 
-func assertFluxPodsPresentInKubernetes(kubeconfigPath string) {
+func AssertFluxPodsPresentInKubernetes(kubeconfigPath string) {
 	pods := fluxPods(kubeconfigPath)
 	Expect(pods.Items).To(HaveLen(3))
 	Expect(pods.Items[0].Labels["name"]).To(Equal("flux"))
