@@ -98,6 +98,23 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./bin
+  build-all-distros:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
+      - prepare-ssh-keys
+      - restore-cache
+      - docker-pull-build-image
+      - docker-run:
+          cmd: make build-all
+      - store_artifacts:
+          path: dist/
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
@@ -183,6 +200,13 @@ workflows:
           filters:
             tags:
               ignore: /.*/
+  # Uncomment this to create binaries for all distros in a PR
+#  build-all:
+#    jobs:
+#      - build-all-distros: # Build locally with gorelease
+#          filters:
+#            tags:
+#              ignore: /.*/
   release:
     jobs:
       - test-and-build:
