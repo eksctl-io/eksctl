@@ -47,7 +47,7 @@ build: generate-always ## Build main binary
 # Build binaries for Linux, Windows and Mac and place them in dist/
 .PHONY: build-all
 build-all: generate-always
-	goreleaser --config=goreleaser-local.yaml --snapshot --skip-publish --rm-dist
+	goreleaser --config=.goreleaser-local.yaml --snapshot --skip-publish --rm-dist
 
 ##@ Testing & CI
 

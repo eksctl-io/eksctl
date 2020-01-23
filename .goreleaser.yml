@@ -9,6 +9,7 @@ builds:
     flags:
       - -tags
       - netgo release
+      - -trimpath
     env:
       - CGO_ENABLED=0
     ldflags:
