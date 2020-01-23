@@ -243,6 +243,6 @@ override the cluster endpoint that's generated when running eksctl commands.
 
 This can be achieved by setting the following environment variable `KUBECONFIG_CLUSTER_ENDPOINT` when running eksctl commands:
 ```
-export KUBECONFIG_CLUSTER_ENDPOINT=https://$KUBERNETES_API_ENDPOINT:8001
+export KUBECONFIG_CLUSTER_ENDPOINT=https://<local-url-for-cluster>:<port>
 eksctl get iamidentitymapping --cluster <cluster-name>
 ```
