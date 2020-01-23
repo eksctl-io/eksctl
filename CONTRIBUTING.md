@@ -303,3 +303,7 @@ That means you will see two entries on [the release page](https://github.com/wea
 
 - [**eksctl 0.4.0 (permalink)**](https://github.com/weaveworks/eksctl/releases/tag/0.4.0)
 - [**eksctl 0.4.0**](https://github.com/weaveworks/eksctl/releases/tag/latest_release)
+
+
+
+
