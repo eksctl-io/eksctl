@@ -70,7 +70,10 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	c.addResourcesForSecurityGroups()
 	c.addResourcesForIAM()
 	c.addResourcesForControlPlane()
-	c.addResourcesForFargate()
+
+	if len(c.spec.FargateProfiles) > 0 {
+		c.addResourcesForFargate()
+	}
 
 	c.rs.defineOutput(outputs.ClusterStackName, gfn.RefStackName, false, func(v string) error {
 		if c.spec.Status == nil {
