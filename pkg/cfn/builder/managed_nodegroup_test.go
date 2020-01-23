@@ -9,7 +9,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func TestManagedResources(t *testing.T) {
+func TestManagedPolicyResources(t *testing.T) {
 	iamRoleTests := []struct {
 		addons                  api.NodeGroupIAMAddonPolicies
 		attachPolicyARNs        []string
@@ -92,6 +92,55 @@ func TestManagedResources(t *testing.T) {
 		})
 	}
 
+}
+
+func TestManagedNodeRole(t *testing.T) {
+	nodeRoleTests := []struct {
+		description      string
+		nodeGroup        *api.ManagedNodeGroup
+		expectedNodeRole string
+	}{
+		{
+			description: "InstanceRoleARN is not provided",
+			nodeGroup: &api.ManagedNodeGroup{
+				ScalingConfig: &api.ScalingConfig{},
+				SSH: &api.NodeGroupSSH{
+					Allow: api.Disabled(),
+				},
+				IAM: &api.NodeGroupIAM{
+				},
+			},
+			expectedNodeRole: "NodeInstanceRole", // creating new role
+		},
+		{
+			description: "InstanceRoleARN is provided",
+			nodeGroup: &api.ManagedNodeGroup{
+				ScalingConfig: &api.ScalingConfig{},
+				SSH: &api.NodeGroupSSH{
+					Allow: api.Disabled(),
+				},
+				IAM: &api.NodeGroupIAM{
+					InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
+				},
+			},
+			expectedNodeRole: "arn::DUMMY::DUMMYROLE", // using the provided role
+		},
+	}
+
+	for i, tt := range nodeRoleTests {
+		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
+			stack := NewManagedNodeGroup(api.NewClusterConfig(), tt.nodeGroup, "iam-test")
+			err := stack.AddAllResources()
+			assert.NoError(t, err)
+
+			bytes, err := stack.RenderJSON()
+			assert.NoError(t, err)
+
+			_, err = goformation.ParseJSON(bytes)
+			assert.NoError(t, err)
+			assert.Contains(t, string(bytes), tt.expectedNodeRole)
+		})
+	}
 }
 
 func prefixPolicies(policies []string) []string {

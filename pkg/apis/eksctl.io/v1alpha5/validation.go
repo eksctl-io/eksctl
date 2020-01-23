@@ -354,10 +354,6 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		if ng.IAM.InstanceProfileARN != "" {
 			return errNotSupported("instanceProfileARN")
 		}
-
-		if ng.IAM.InstanceRoleARN != "" {
-			return errNotSupported("instanceRoleARN")
-		}
 	}
 
 	// TODO fix error messages to not use CLI flags
