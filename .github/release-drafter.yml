@@ -1,4 +1,17 @@
+categories:
+  - title: '## Features'
+    labels:
+      - 'kind/feature'
+  - title: '## Improvements'
+  - title: '## Bug Fixes'
+    labels:
+      - 'kind/bug'
+change-template: '- $TITLE (#$NUMBER)'
 template: |
-    ## What’s Changed
-    #
-    #  $CHANGES
+  # $NEXT_MINOR_VERSION
+
+  $CHANGES
+
+  ## Acknowledgments
+  Weaveworks would like to sincerely thank:
+  $CONTRIBUTORS
