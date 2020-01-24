@@ -26,9 +26,12 @@ func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api
 		return err
 	}
 
-	tags := map[string]string{api.IAMServiceAccountNameTag: spec.NameString()}
+	if spec.Tags == nil {
+		spec.Tags = make(map[string]string)
+	}
+	spec.Tags[api.IAMServiceAccountNameTag] = spec.NameString()
 
-	return c.CreateStack(name, stack, tags, nil, errs)
+	return c.CreateStack(name, stack, spec.Tags, nil, errs)
 }
 
 // DescribeIAMServiceAccountStacks calls DescribeStacks and filters out iamserviceaccounts

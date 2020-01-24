@@ -106,6 +106,11 @@ ClusterIAMServiceAccount:
     status:
       $ref: '#/definitions/ClusterIAMServiceAccountStatus'
       $schema: http://json-schema.org/draft-04/schema#
+    tags:
+      patternProperties:
+        .*:
+          type: string
+      type: object
   type: object
 ClusterIAMServiceAccountStatus:
   additionalProperties: false

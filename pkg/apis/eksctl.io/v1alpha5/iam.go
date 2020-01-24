@@ -33,6 +33,8 @@ type ClusterIAMServiceAccount struct {
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
 	// +optional
 	Status *ClusterIAMServiceAccountStatus `json:"status,omitempty"`
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // ClusterIAMServiceAccountStatus holds status of iamserviceaccount
