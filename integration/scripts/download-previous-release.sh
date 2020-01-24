@@ -9,7 +9,7 @@ download_previous_release() {
         | tail -n "+${GO_BACK_VERSIONS}" | head -1)
 
     download_url=$(printf "$RELEASE_URL_FORMAT" "$previous_tag")
-    curl -sL "${download_url}" | tar -xz -C "${DOWNLOAD_DIR}"
+    wget -q -O - "${download_url}" | tar -xz -C "${DOWNLOAD_DIR}"
 }
 
 download_previous_release
