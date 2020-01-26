@@ -2,8 +2,9 @@ package manager
 
 import (
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/version"
 	"regexp"
+
+	"github.com/weaveworks/eksctl/pkg/version"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
