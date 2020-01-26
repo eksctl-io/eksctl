@@ -244,7 +244,7 @@ func (c *StackCollection) ListStacks(statusFilters ...string) ([]*Stack, error) 
 	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name))
 }
 
-// StackStatusIsNotTransitional will return true when stack statate is non-transitional
+// StackStatusIsNotTransitional will return true when stack status is non-transitional
 func (*StackCollection) StackStatusIsNotTransitional(s *Stack) bool {
 	for _, state := range nonTransitionalReadyStackStatuses() {
 		if *s.StackStatus == state {
@@ -475,6 +475,12 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
+		Tags: []*cloudformation.Tag{
+			{
+				Key:   aws.String(api.EksctlVersionTag),
+				Value: aws.String(version.GetVersionInfo().Version),
+			},
+		},
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
