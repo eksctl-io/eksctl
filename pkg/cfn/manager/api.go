@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/version"
 	"regexp"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -53,6 +54,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
+		newTag(api.EksctlVersionTag, version.GetVersionInfo().Version),
 	}
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
