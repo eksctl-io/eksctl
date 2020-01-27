@@ -74,7 +74,6 @@ commands:
       - slack/status:
           fail_only: true
           mentions: 'aws-team'
-          only_for_branches: master
 
 jobs:
   test-and-build:
@@ -109,6 +108,7 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./bin
+      - notify-slack
   build-all-distros:
     machine:
       image: ubuntu-1604:201903-01

@@ -88,6 +88,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			err = ValidateNodeGroup(1, ng1)
 			Expect(err).ToNot(HaveOccurred())
 		})
+		It("this test should be removed. Only for testing failures in circleci", func() {
+			Expect(2).To(Equal(1))
+		})
 
 		It("should allow setting only instanceRoleARN", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
