@@ -16,82 +16,15 @@ import (
 	"github.com/riywo/loginshell"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-	corev1 "k8s.io/api/core/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	tillerinstall "k8s.io/helm/cmd/helm/installer"
-	"sigs.k8s.io/yaml"
 )
 
 const (
 	fluxNamespaceFileName       = "flux-namespace.yaml"
 	fluxPrivateSSHKeyFileName   = "flux-secret.yaml"
 	fluxPrivateSSHKeySecretName = "flux-git-deploy"
-	helmTLSValidFor             = 5 * 365 * 24 * time.Hour // 5 years
-	tillerManifestPrefix        = "tiller-"
-	tillerServiceName           = "tiller-deploy" // do not change at will, hardcoded in Tiller's manifest generation API
-	tillerServiceAccountName    = "tiller"
-	tillerImageSpec             = "gcr.io/kubernetes-helm/tiller:v2.14.3"
-	tillerRBACTemplate          = `apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: %[1]s
-  namespace: %[2]s
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: tiller
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-  - kind: ServiceAccount
-    name: %[1]s
-    namespace: %[2]s
-
----
-# Helm client serviceaccount
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: helm
-  namespace: %[2]s
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: Role
-metadata:
-  name: tiller-user
-  namespace: %[2]s
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods/portforward
-  verbs:
-  - create
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - list
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: RoleBinding
-metadata:
-  name: tiller-user-binding
-  namespace: kube-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: tiller-user
-subjects:
-- kind: ServiceAccount
-  name: helm
-  namespace: %[2]s
-`
+	fluxHelmVersions            = "v3"
 )
 
 // InstallOpts are the installation options for Flux
@@ -130,13 +63,9 @@ func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface,
 
 // Run runs the Flux installer
 func (fi *Installer) Run(ctx context.Context) (string, error) {
-	pki, pkiPaths, err := fi.setupPKI()
-	if err != nil {
-		return "", err
-	}
 
 	logger.Info("Generating manifests")
-	manifests, secrets, err := fi.getManifestsAndSecrets(pki, pkiPaths)
+	manifests, err := fi.getManifests()
 	if err != nil {
 		return "", err
 	}
@@ -183,14 +112,6 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	if len(secrets) > 0 {
-		logger.Info("Applying Helm TLS Secret(s)")
-		if err := fi.applySecrets(secrets); err != nil {
-			return "", err
-		}
-		logger.Warning("Note: certificate secrets aren't added to the Git repository for security reasons")
-	}
-
 	logger.Info("Applying manifests")
 	if err := fi.applyManifests(manifests); err != nil {
 		return "", err
@@ -223,38 +144,6 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	instruction := fmt.Sprintf("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.GitOptions.URL, fluxSSHKey.Key)
 	return instruction, nil
-}
-
-func (fi *Installer) setupPKI() (*publicKeyInfrastructure, *publicKeyInfrastructurePaths, error) {
-	if !fi.opts.WithHelm {
-		return nil, nil, nil
-	}
-
-	logger.Info("Generating public key infrastructure for the Helm Operator and Tiller")
-	logger.Info("  this may take up to a minute, please be patient")
-	tillerHost := tillerServiceName + "." + fi.opts.Namespace
-	pki, err := newPKI(tillerHost, helmTLSValidFor, 4096)
-	if err != nil {
-		return nil, nil, err
-	}
-	baseDir, err := ioutil.TempDir(os.TempDir(), "eksctl-helm-pki")
-	if err != nil {
-		return nil, nil, errors.Errorf("cannot create temporary directory %q to output PKI files", baseDir)
-	}
-	pkiPaths := &publicKeyInfrastructurePaths{
-		caKey:             filepath.Join(baseDir, "ca-key.pem"),
-		caCertificate:     filepath.Join(baseDir, "ca.pem"),
-		serverKey:         filepath.Join(baseDir, "key.pem"),
-		serverCertificate: filepath.Join(baseDir, "cert.pem"),
-		clientKey:         filepath.Join(baseDir, "client-key.pem"),
-		clientCertificate: filepath.Join(baseDir, "client-cert.pem"),
-	}
-	if err = pki.saveTo(pkiPaths); err != nil {
-		return nil, nil, err
-	}
-	logger.Warning("Public key infrastructure files were written into directory %q", baseDir)
-	logger.Warning("please move the files into a safe place or delete them")
-	return pki, pkiPaths, nil
 }
 
 func (fi *Installer) addFilesToRepo(ctx context.Context, cloneDir string) error {
@@ -320,19 +209,6 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 	return client.CreateOrReplace(manifests, false)
 }
 
-func (fi *Installer) applySecrets(secrets []*corev1.Secret) error {
-	secretMap := map[string][]byte{}
-	for _, secret := range secrets {
-		id := fmt.Sprintf("secret/%s/%s", secret.Namespace, secret.Name)
-		secretBytes, err := yaml.Marshal(secret)
-		if err != nil {
-			return errors.Wrapf(err, "cannot serialize secret %s", id)
-		}
-		secretMap[id] = secretBytes
-	}
-	return fi.applyManifests(secretMap)
-}
-
 func writeFluxManifests(baseDir string, manifests map[string][]byte) error {
 	if err := os.MkdirAll(baseDir, 0700); err != nil {
 		return errors.Wrapf(err, "cannot create Flux manifests directory (%s)", baseDir)
@@ -377,37 +253,26 @@ func runShell(workDir string) error {
 	return shellCmd.Run()
 }
 
-func (fi *Installer) getManifestsAndSecrets(pki *publicKeyInfrastructure,
-	pkiPaths *publicKeyInfrastructurePaths) (map[string][]byte, []*corev1.Secret, error) {
+func (fi *Installer) getManifests() (map[string][]byte, error) {
 	manifests := map[string][]byte{}
-	secrets := []*corev1.Secret{}
 
 	// Flux
 	var err error
 	if manifests, err = getFluxManifests(fi.opts, fi.k8sClientSet); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// Helm Operator
 	if !fi.opts.WithHelm {
-		return manifests, secrets, nil
+		return manifests, nil
 	}
-	helmOpManifests, helmOpSecrets, err := getHelmOpManifestsAndSecrets(fi.opts.Namespace, pki)
+	helmOpManifests, err := getHelmOpManifests(fi.opts.Namespace)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	manifests = mergeMaps(manifests, helmOpManifests)
-	secrets = append(secrets, helmOpSecrets...)
 
-	// Tiller
-	tillerManifests, tillerSecrets, err := getTillerManifestsAndSecrets(fi.opts.Namespace, fi.k8sClientSet, pkiPaths)
-	if err != nil {
-		return nil, nil, err
-	}
-	manifests = mergeMaps(manifests, tillerManifests)
-	secrets = append(secrets, tillerSecrets...)
-
-	return manifests, secrets, nil
+	return manifests, nil
 }
 
 func getFluxManifests(opts *InstallOpts, cs kubeclient.Interface) (map[string][]byte, error) {
@@ -439,76 +304,17 @@ func getFluxManifests(opts *InstallOpts, cs kubeclient.Interface) (map[string][]
 	return mergeMaps(manifests, fluxManifests), nil
 }
 
-func getHelmOpManifestsAndSecrets(namespace string, pki *publicKeyInfrastructure) (map[string][]byte, []*corev1.Secret, error) {
-	var secrets []*corev1.Secret
+func getHelmOpManifests(namespace string) (map[string][]byte, error) {
 	helmOpParameters := helmopinstall.TemplateParameters{
-		Namespace:       namespace,
-		TillerNamespace: namespace,
-		SSHSecretName:   "flux-git-deploy", // determined by the generated Flux manifests
-	}
-	if pki != nil {
-		helmOpParameters.EnableTillerTLS = true
-		helmOpParameters.TillerTLSCACertContent = string(pki.caCertificate)
-		helmOpTLSSecretName := "flux-helm-tls-cert"
-		helmOpParameters.TillerTLSCertSecretName = helmOpTLSSecretName
-		tlsSecret := &corev1.Secret{
-			Type: corev1.SecretTypeTLS,
-			Data: map[string][]byte{
-				corev1.TLSCertKey:       pki.clientCertificate,
-				corev1.TLSPrivateKeyKey: pki.clientKey,
-			},
-		}
-		tlsSecret.Kind = "Secret"
-		tlsSecret.APIVersion = "v1"
-		tlsSecret.Name = helmOpTLSSecretName
-		tlsSecret.Namespace = namespace
-		secrets = append(secrets, tlsSecret)
+		Namespace:     namespace,
+		HelmVersions:  fluxHelmVersions,
+		SSHSecretName: fluxPrivateSSHKeySecretName,
 	}
 	manifests, err := helmopinstall.FillInTemplates(helmOpParameters)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create Helm Operator Manifests")
+		return nil, errors.Wrap(err, "failed to create Helm Operator Manifests")
 	}
-	return manifests, secrets, nil
-}
-
-func getTillerManifestsAndSecrets(namespace string, cs kubeclient.Interface,
-	pkiPaths *publicKeyInfrastructurePaths) (map[string][]byte, []*corev1.Secret, error) {
-	manifests := map[string][]byte{}
-	tillerOptions := &tillerinstall.Options{
-		Namespace:                    namespace,
-		ServiceAccount:               tillerServiceAccountName,
-		AutoMountServiceAccountToken: true,
-		MaxHistory:                   10,
-		EnableTLS:                    true,
-		VerifyTLS:                    true,
-		TLSKeyFile:                   pkiPaths.serverKey,
-		TLSCertFile:                  pkiPaths.serverCertificate,
-		TLSCaCertFile:                pkiPaths.caCertificate,
-		UseCanary:                    false,
-		ImageSpec:                    tillerImageSpec,
-	}
-	tillerDeployment, err := tillerinstall.Deployment(tillerOptions)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to generate Tiller's Deployment")
-	}
-	tillerDeploymentBytes, err := yaml.Marshal(tillerDeployment)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to serialize Tiller's Deployment")
-	}
-	manifests[tillerManifestPrefix+"dep.yaml"] = tillerDeploymentBytes
-	tillerService := tillerinstall.Service(namespace)
-	tillerServiceBytes, err := yaml.Marshal(tillerService)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to serialize Tiller's Deployment")
-	}
-	manifests[tillerManifestPrefix+"svc.yaml"] = tillerServiceBytes
-	tillerRBACManifests := fmt.Sprintf(tillerRBACTemplate, tillerServiceAccountName, namespace)
-	manifests[tillerManifestPrefix+"rbac.yaml"] = []byte(tillerRBACManifests)
-	tillerSecret, err := tillerinstall.Secret(tillerOptions)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to generate Tiller's Secret")
-	}
-	return manifests, []*corev1.Secret{tillerSecret}, nil
+	return manifests, nil
 }
 
 func mergeMaps(m1 map[string][]byte, m2 map[string][]byte) map[string][]byte {

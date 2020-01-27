@@ -1,5 +1,5 @@
 // Make sure to run the following commands after changes to this file are made:
-// `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
+// ` make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 module github.com/weaveworks/eksctl
 
 go 1.13
@@ -19,7 +19,6 @@ require (
 	github.com/coreos/etcd v3.3.13+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a // indirect
-	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/dave/jennifer v1.3.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20190110151726-c51c87635b61
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -58,11 +57,8 @@ require (
 	github.com/pkg/sftp v1.8.3 // indirect
 	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/sanathkr/yaml v1.0.0 // indirect
-
 	github.com/spf13/afero v1.2.2
-
 	github.com/spf13/cobra v0.0.5
-
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
 	github.com/spotinst/spotinst-sdk-go v0.0.0-20181012192533-fed4677dbf8f // indirect
@@ -76,7 +72,6 @@ require (
 	github.com/weaveworks/github-release v0.6.2
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
-	github.com/zmap/zlint v0.0.0-20190806182416-88c3f6b6f2f5 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	golang.org/x/tools v0.0.0-20200121210457-b3205ff6fffe
 	google.golang.org/grpc v1.21.1 // indirect
@@ -90,7 +85,6 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353
 	k8s.io/csi-api v0.0.0-20190301175547-a37926bd2215 // indirect
-	k8s.io/helm v2.13.1+incompatible
 	k8s.io/kops v0.0.0-20190222135932-278e6606534e
 	k8s.io/kubelet v0.0.0-20190313123811-3556bcde9670
 	k8s.io/kubernetes v1.12.6
