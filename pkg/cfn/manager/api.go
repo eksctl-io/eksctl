@@ -463,7 +463,7 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 		return true
 	}
 	if err := c.provider.CloudTrail().LookupEventsPages(input, pager); err != nil {
-		return nil, errors.Wrapf(err, "looking up CloduTrail events for stack %q", *i.StackName)
+		return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
 	}
 
 	return events, nil
