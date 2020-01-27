@@ -368,7 +368,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 				}
 				p.MockEC2().On("DescribeSubnets", mock.MatchedBy(func(input *ec2.DescribeSubnetsInput) bool {
-					fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
+					_, _ = fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
 					return joinCompare(input, list)
 				})).Return(output, nil)
 			}
@@ -393,12 +393,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
 			IAM: &api.ClusterIAM{
-				ServiceRoleARN:             aws.String(arn),
+				ServiceRoleARN: aws.String(arn),
 			},
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
@@ -449,12 +449,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		setSubnets(cfg)
 
 		sampleOutputs := map[string]string{
-			"SecurityGroup":            "sg-0b44c48bcba5b7362",
-			"SubnetsPublic":            subnetsPublic,
-			"SubnetsPrivate":           subnetsPrivate,
-			"VPC":                      vpcID,
-			"Endpoint":                 endpoint,
-			"CertificateAuthorityData": caCert,
+			"SecurityGroup":              "sg-0b44c48bcba5b7362",
+			"SubnetsPublic":              subnetsPublic,
+			"SubnetsPrivate":             subnetsPrivate,
+			"VPC":                        vpcID,
+			"Endpoint":                   endpoint,
+			"CertificateAuthorityData":   caCert,
 			"ARN":                        arn,
 			"ClusterStackName":           "",
 			"SharedNodeSecurityGroup":    "sg-shared",
@@ -2143,6 +2143,31 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(c3[0]).To(Equal("/bin/bash"))
 			Expect(c3[1]).To(Equal("-c"))
 			Expect(c3[2]).To(Equal(overrideBootstrapCommand))
+		})
+	})
+
+	Context("with Fargate profiles", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+		name := "test-fargate-profile"
+		cfg.Metadata.Name = name
+		cfg.FargateProfiles = []*api.FargateProfile{
+			{
+				Name: "fp-dev",
+				Selectors: []api.FargateProfileSelector{
+					{Namespace: "dev"},
+				},
+			},
+		}
+		build(cfg, fmt.Sprintf("eksctl-%s-cluster", name), ng)
+		roundtrip()
+
+		It("should have the Fargate pod execution role", func() {
+			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
+			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
+			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
+			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
+			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
+			Expect(clusterTemplate.Resources).To(HaveLen(5))
 		})
 	})
 
