@@ -193,11 +193,11 @@ func ClusterEndpointAccessDefaults() *ClusterEndpoints {
 // the "default" and "kube-system" Kubernetes namespaces.
 func (c *ClusterConfig) SetDefaultFargateProfile() {
 	c.FargateProfiles = []*FargateProfile{
-		&FargateProfile{
+		{
 			Name: "fp-default",
 			Selectors: []FargateProfileSelector{
-				FargateProfileSelector{Namespace: "default"},
-				FargateProfileSelector{Namespace: "kube-system"},
+				{Namespace: "default"},
+				{Namespace: "kube-system"},
 			},
 		},
 	}
