@@ -55,7 +55,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
-		newTag(api.EksctlVersionTag, version.GetVersionInfo().Version),
+		newTag(api.EksctlVersionTag, version.GetVersion()),
 	}
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
@@ -476,7 +476,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		ChangeSetName: &changeSetName,
 		Description:   &description,
 		Tags: []*cloudformation.Tag{
-			newTag(api.EksctlVersionTag, version.GetVersionInfo().Version),
+			newTag(api.EksctlVersionTag, version.GetVersion()),
 		},
 	}
 
