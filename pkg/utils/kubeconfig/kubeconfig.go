@@ -17,9 +17,6 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-// DefaultPath defines the default path
-var DefaultPath = clientcmd.RecommendedHomeFile
-
 const (
 	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
 	AWSIAMAuthenticator = "aws-iam-authenticator"
@@ -27,7 +24,17 @@ const (
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
+	// Shadowing the default kubeconfig path environment variable
+	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
 )
+
+// DefaultPath defines the default path
+func DefaultPath() string {
+	if env := os.Getenv(RecommendedConfigPathEnvVar); len(env) > 0 {
+		return env
+	}
+	return clientcmd.RecommendedHomeFile
+}
 
 // AuthenticatorCommands returns all of authenticator commands
 func AuthenticatorCommands() []string {
@@ -199,7 +206,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 	pathOptions := clientcmd.NewDefaultPathOptions()
-	if explicitPath != "" && explicitPath != DefaultPath {
+	if explicitPath != "" && explicitPath != DefaultPath() {
 		pathOptions.LoadingRules.ExplicitPath = explicitPath
 	}
 
@@ -275,7 +282,7 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 		return
 	}
 
-	configAccess := getConfigAccess(DefaultPath)
+	configAccess := getConfigAccess(DefaultPath())
 	defaultFilename := configAccess.GetDefaultFilename()
 	err := lockConfigFile(defaultFilename)
 	if err != nil {
@@ -290,7 +297,7 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
-		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath, err.Error())
+		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath(), err.Error())
 		return
 	}
 
@@ -299,7 +306,7 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	}
 
 	if err := clientcmd.ModifyConfig(configAccess, *config, true); err != nil {
-		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath, err.Error())
+		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath(), err.Error())
 	} else {
 		logger.Success("kubeconfig has been updated")
 	}
