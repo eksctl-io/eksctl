@@ -133,7 +133,7 @@ const (
 	// using an SSM GetParameter query
 	NodeImageResolverAutoSSM = "auto-ssm"
 
-	// EksctlVersionTag defines the tag of the cluster name
+	// EksctlVersionTag defines the version of eksctl which is used to provision or update EKS cluster
 	EksctlVersionTag = "alpha.eksctl.io/eksctl-version"
 
 	// ClusterNameTag defines the tag of the cluster name
