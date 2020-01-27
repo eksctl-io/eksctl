@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	fluxinstall "github.com/fluxcd/flux/pkg/install"
@@ -198,6 +199,21 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 		// again in their Git repository, which is not very "friendly".
 		if existence[fi.opts.Namespace][fluxPrivateSSHKeySecretName] {
 			delete(manifestsMap, fluxPrivateSSHKeyFileName)
+		}
+	}
+
+	// do not recreate Flux's cache if exists
+	for m, r := range manifestsMap {
+		if strings.Contains(m, "memcache") {
+			existence, err := client.Exists(r)
+			if err != nil {
+				return err
+			}
+			for _, found := range existence[fi.opts.Namespace] {
+				if found {
+					delete(manifestsMap, m)
+				}
+			}
 		}
 	}
 
