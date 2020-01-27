@@ -295,6 +295,9 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 		if len(iam.AttachPolicyARNs) != 0 {
 			return fmtFieldConflictErr("attachPolicyARNs")
 		}
+		if iam.InstanceRolePermissionsBoundary != "" {
+			return fmtFieldConflictErr("instanceRolePermissionsBoundary")
+		}
 		prefix := "withAddonPolicies."
 		if IsEnabled(iam.WithAddonPolicies.AutoScaler) {
 			return fmtFieldConflictErr(prefix + "autoScaler")

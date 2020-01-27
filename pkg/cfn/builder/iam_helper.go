@@ -49,6 +49,10 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 		role.RoleName = gfn.NewString(iamConfig.InstanceRoleName)
 	}
 
+	if iamConfig.InstanceRolePermissionsBoundary != "" {
+		role.PermissionsBoundary = gfn.NewString(iamConfig.InstanceRolePermissionsBoundary)
+	}
+
 	refIR := cfnTemplate.newResource(cfnIAMInstanceRoleName, &role)
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.AutoScaler) {

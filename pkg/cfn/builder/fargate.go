@@ -26,7 +26,7 @@ func AddResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 	rs.withIAM = true
 
 	rs.template.Description = fargateRoleDescription
-	rs.newResource(fargateRoleName, &gfn.AWSIAMRole{
+	role := &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 			"eks.amazonaws.com",
 			"eks-fargate-pods.amazonaws.com", // Ensure that EKS can schedule pods onto Fargate.
@@ -34,7 +34,13 @@ func AddResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 		ManagedPolicyArns: makeStringSlice(
 			iamPolicyAmazonEKSFargatePodExecutionRolePolicyARN,
 		),
-	})
+	}
+
+	if api.IsSetAndNonEmptyString(cfg.IAM.FargatePodExecutionRolePermissionsBoundary) {
+		role.PermissionsBoundary = gfn.NewString(*cfg.IAM.FargatePodExecutionRolePermissionsBoundary)
+	}
+
+	rs.newResource(fargateRoleName, role)
 	rs.defineOutputFromAtt(outputs.FargatePodExecutionRoleARN, fmt.Sprintf("%s.Arn", fargateRoleName), true, func(v string) error {
 		cfg.IAM.FargatePodExecutionRoleARN = &v
 		return nil

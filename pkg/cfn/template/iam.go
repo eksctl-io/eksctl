@@ -26,6 +26,7 @@ type IAMRole struct {
 
 	AssumeRolePolicyDocument MapOfInterfaces `json:",omitempty"`
 	ManagedPolicyArns        []string        `json:",omitempty"`
+	PermissionsBoundary      string          `json:",omitempty"`
 }
 
 // Type will return the full type name for the resource
