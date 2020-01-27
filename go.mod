@@ -19,13 +19,14 @@ require (
 	github.com/coreos/etcd v3.3.13+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190620071333-e64a0ec8b42a // indirect
+	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/dave/jennifer v1.3.0
 	github.com/dlespiau/kube-test-harness v0.0.0-20190110151726-c51c87635b61
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/evanphx/json-patch v4.2.0+incompatible
-	github.com/fluxcd/flux v1.15.0
-	github.com/fluxcd/helm-operator v1.0.0-rc2
+	github.com/fluxcd/flux/pkg/install v0.0.0-20200126205110-c4ca972b2393 // flux 1.17.1
+	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200126164214-63f9ace7bf06 // helm-operator 1.0.0-rc8
 	github.com/go-ini/ini v1.37.0 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3
@@ -36,7 +37,7 @@ require (
 	github.com/goreleaser/goreleaser v0.110.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
-	github.com/instrumenta/kubeval v0.0.0-20190804145309-805845b47dfc
+	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.4-0.20190722134107-d79fe1b9d79d
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kevinburke/go-bindata v3.15.0+incompatible
@@ -77,7 +78,7 @@ require (
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	github.com/zmap/zlint v0.0.0-20190806182416-88c3f6b6f2f5 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
-	golang.org/x/tools v0.0.0-20191010075000-0337d82405ff
+	golang.org/x/tools v0.0.0-20200121210457-b3205ff6fffe
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect

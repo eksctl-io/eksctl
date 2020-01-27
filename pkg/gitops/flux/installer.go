@@ -317,7 +317,6 @@ func (fi *Installer) applyManifests(manifestsMap map[string][]byte) error {
 		manifestValues = append(manifestValues, manifest)
 	}
 	manifests := kubernetes.ConcatManifests(manifestValues...)
-	_ = client.Delete(manifests)
 	return client.CreateOrReplace(manifests, false)
 }
 
@@ -427,8 +426,11 @@ func getFluxManifests(opts *InstallOpts, cs kubeclient.Interface) (map[string][]
 		GitLabel:           opts.GitLabel,
 		GitUser:            opts.GitOptions.User,
 		GitEmail:           opts.GitOptions.Email,
+		GitReadOnly:        false,
+		RegistryScanning:   true,
 		Namespace:          opts.Namespace,
-		AdditionalFluxArgs: []string{"--sync-garbage-collection", "--manifest-generation"},
+		ManifestGeneration: true,
+		AdditionalFluxArgs: []string{"--sync-garbage-collection"},
 	}
 	fluxManifests, err := fluxinstall.FillInTemplates(fluxParameters)
 	if err != nil {
