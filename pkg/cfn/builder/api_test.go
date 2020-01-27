@@ -2151,10 +2151,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		name := "test-fargate-profile"
 		cfg.Metadata.Name = name
 		cfg.FargateProfiles = []*api.FargateProfile{
+			// default fargate profile
 			{
-				Name: "fp-dev",
+				Name: "fp-default",
 				Selectors: []api.FargateProfileSelector{
-					{Namespace: "dev"},
+					{Namespace: "default"},
+					{Namespace: "kube-system"},
 				},
 			},
 		}
