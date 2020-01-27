@@ -276,7 +276,7 @@ func deleteClusterInfo(existing *clientcmdapi.Config, meta *api.ClusterMeta) boo
 
 	if existing.CurrentContext == currentContextName {
 		existing.CurrentContext = ""
-		logger.Debug("reset current-context in kubeconfig", currentContextName)
+		logger.Debug("reset current-context in kubeconfig to %q", currentContextName)
 		isChanged = true
 	}
 
