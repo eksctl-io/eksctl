@@ -565,7 +565,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			It("returns an error when the profile's name is empty", func() {
 				profile := FargateProfile{
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{Namespace: "default"},
+						{Namespace: "default"},
 					},
 				}
 				err := profile.Validate()
@@ -596,7 +596,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				profile := FargateProfile{
 					Name: "default",
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{},
+						{},
 					},
 				}
 				err := profile.Validate()
@@ -608,7 +608,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				profile := FargateProfile{
 					Name: "eks-foo",
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{Namespace: "default"},
+						{Namespace: "default"},
 					},
 				}
 				err := profile.Validate()
@@ -620,7 +620,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				profile := FargateProfile{
 					Name: "default",
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{Namespace: "default"},
+						{Namespace: "default"},
 					},
 				}
 				err := profile.Validate()

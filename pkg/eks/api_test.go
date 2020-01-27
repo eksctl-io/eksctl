@@ -156,7 +156,7 @@ func mockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string
 		})).
 		Return(&ec2.DescribeImagesOutput{
 			Images: []*ec2.Image{
-				&ec2.Image{
+				{
 					ImageId:        aws.String(amiId),
 					State:          aws.String("available"),
 					OwnerId:        aws.String("123"),

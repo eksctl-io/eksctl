@@ -34,12 +34,12 @@ const (
 	NodeGroupInstanceProfileARN = "InstanceProfileARN"
 
 	// outputs to indicate configuration attributes that may have critical effect
-	// on critical effect on forward-compatibility with respect to overal functionality
+	// on critical effect on forward-compatibility with respect to overall functionality
 	// and integrity, e.g. networking
 	NodeGroupFeaturePrivateNetworking     = "FeaturePrivateNetworking"
 	NodeGroupFeatureSharedSecurityGroup   = "FeatureSharedSecurityGroup"
 	NodeGroupFeatureLocalSecurityGroup    = "FeatureLocalSecurityGroup"
-	NodeGroupFeaturePrivateEndpointAccess = "FeaturePrivateEndointAccess"
+	NodeGroupFeaturePrivateEndpointAccess = "FeaturePrivateEndpointAccess"
 
 	// outputs from Fargate stack:
 	FargatePodExecutionRoleARN = "FargatePodExecutionRoleARN"

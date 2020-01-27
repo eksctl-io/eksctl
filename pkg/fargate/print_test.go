@@ -38,7 +38,7 @@ var _ = Describe("fargate", func() {
 		It("returns an error for unsupported printer type", func() {
 			profiles := sampleProfiles()
 			out := bytes.NewBufferString("")
-			err := fargate.PrintProfiles(profiles, out, printers.Type("foo"))
+			err := fargate.PrintProfiles(profiles, out, "foo")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown output printer type: expected {\"yaml\",\"json\",\"table\"} but got \"foo\""))
 		})
@@ -107,27 +107,27 @@ const expectedJSON = `[
 
 func sampleProfiles() []*api.FargateProfile {
 	return []*api.FargateProfile{
-		&api.FargateProfile{
+		{
 			Name:                "fp-test",
 			PodExecutionRoleARN: "arn:aws:iam::123:role/root",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{
+				{
 					Namespace: "kube-system",
 					Labels: map[string]string{
 						"app": "my-app",
 						"env": "test",
 					},
 				},
-				api.FargateProfileSelector{
+				{
 					Namespace: "default",
 				},
 			},
 		},
-		&api.FargateProfile{
+		{
 			Name:    "fp-prod",
 			Subnets: []string{"subnet-prod", "subnet-d34dc0w"},
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{
+				{
 					Namespace: "prod",
 					Labels: map[string]string{
 						"env": "prod",

@@ -152,12 +152,12 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 						_, p = createProviders()
 						images := []returnAmi{
-							returnAmi{
+							{
 								createdDate: "2018-08-20T23:25:53.000Z",
 								imageId:     "ami-1234",
 								state:       "available",
 							},
-							returnAmi{
+							{
 								createdDate: "2018-09-12T22:21:11.000Z",
 								imageId:     expectedAmi,
 								state:       "available",
@@ -242,7 +242,7 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 		}),
 	).Return(&ec2.DescribeImagesOutput{
 		Images: []*ec2.Image{
-			&ec2.Image{
+			{
 				ImageId: aws.String(amiId),
 				State:   aws.String(amiState),
 			},

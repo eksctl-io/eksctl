@@ -203,7 +203,7 @@ func (m *runCmdOutputMatcher) Match(actual interface{}) (bool, error) {
 	if m.splitLines {
 		output = strings.Split(outputString, "\n")
 	} else {
-		output = string(outputString)
+		output = outputString
 	}
 
 	for _, outputMatcher := range m.outputMatchers {

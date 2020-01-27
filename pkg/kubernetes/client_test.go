@@ -199,6 +199,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 
 			// however deletions of raw resources are trackable
 			rc, err := rawClient.NewRawResource(saTest1)
+			Expect(err).ToNot(HaveOccurred())
 			_, err = rc.Helper.Delete(rc.Info.Namespace, rc.Info.Name)
 			Expect(err).ToNot(HaveOccurred())
 			_, err = rawClient.ClientSet().CoreV1().ServiceAccounts(metav1.NamespaceDefault).Get("test1", metav1.GetOptions{})
