@@ -414,15 +414,15 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(HaveOccurred())
 			})
 
-			It("It fails when the instance distribution doesn't have at least 2 different instance types", func() {
+			It("It fails when the instance distribution doesn't have any instance type", func() {
 				ng.InstanceType = "mixed"
-				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium", "t3.medium"}
+				ng.InstancesDistribution.InstanceTypes = []string{}
 
 				err := validateInstancesDistribution(ng)
 				Expect(err).To(HaveOccurred())
 
 				ng.InstanceType = "mixed"
-				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium", "t3.small"}
+				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium"}
 
 				err = validateInstancesDistribution(ng)
 				Expect(err).ToNot(HaveOccurred())
