@@ -368,7 +368,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 				}
 				p.MockEC2().On("DescribeSubnets", mock.MatchedBy(func(input *ec2.DescribeSubnetsInput) bool {
-					fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
+					_, _ = fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
 					return joinCompare(input, list)
 				})).Return(output, nil)
 			}
@@ -393,13 +393,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
 			IAM: &api.ClusterIAM{
-				ServiceRoleARN:             aws.String(arn),
-				FargatePodExecutionRoleARN: aws.String(fargatePodExecutionRoleARN),
+				ServiceRoleARN: aws.String(arn),
 			},
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
@@ -450,12 +449,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		setSubnets(cfg)
 
 		sampleOutputs := map[string]string{
-			"SecurityGroup":            "sg-0b44c48bcba5b7362",
-			"SubnetsPublic":            subnetsPublic,
-			"SubnetsPrivate":           subnetsPrivate,
-			"VPC":                      vpcID,
-			"Endpoint":                 endpoint,
-			"CertificateAuthorityData": caCert,
+			"SecurityGroup":              "sg-0b44c48bcba5b7362",
+			"SubnetsPublic":              subnetsPublic,
+			"SubnetsPrivate":             subnetsPrivate,
+			"VPC":                        vpcID,
+			"Endpoint":                   endpoint,
+			"CertificateAuthorityData":   caCert,
 			"ARN":                        arn,
 			"ClusterStackName":           "",
 			"SharedNodeSecurityGroup":    "sg-shared",
@@ -2147,6 +2146,33 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	Context("with Fargate profiles", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+		name := "test-fargate-profile"
+		cfg.Metadata.Name = name
+		cfg.FargateProfiles = []*api.FargateProfile{
+			// default fargate profile
+			{
+				Name: "fp-default",
+				Selectors: []api.FargateProfileSelector{
+					{Namespace: "default"},
+					{Namespace: "kube-system"},
+				},
+			},
+		}
+		build(cfg, fmt.Sprintf("eksctl-%s-cluster", name), ng)
+		roundtrip()
+
+		It("should have the Fargate pod execution role", func() {
+			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
+			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
+			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
+			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
+			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
+			Expect(clusterTemplate.Resources).To(HaveLen(5))
+		})
+	})
+
 	Context("without VPC and IAM", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
@@ -2162,10 +2188,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtrip()
 
-		It("should only have EKS and Fargate resources", func() {
+		It("should only have EKS resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
-			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
-			Expect(clusterTemplate.Resources).To(HaveLen(2))
+			Expect(clusterTemplate.Resources).To(HaveLen(1))
 
 			cp := clusterTemplate.Resources["ControlPlane"].Properties
 
@@ -2193,10 +2218,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have EKS and IAM resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
-			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
-			Expect(clusterTemplate.Resources).To(HaveLen(5))
+			Expect(clusterTemplate.Resources).To(HaveLen(4))
 		})
 
 		It("should have correct own IAM resources", func() {
@@ -2292,7 +2316,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(33))
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2387,7 +2411,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(40))
+			Expect(len(clusterTemplate.Resources)).To(Equal(39))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2464,7 +2488,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(37))
+			Expect(len(clusterTemplate.Resources)).To(Equal(36))
 		})
 
 		It("should route Internet traffic from private subnets through their corresponding NAT gateways", func() {
@@ -2510,7 +2534,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(33))
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
 		})
 
 		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
@@ -2553,7 +2577,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(28))
+			Expect(len(clusterTemplate.Resources)).To(Equal(27))
 
 		})
 

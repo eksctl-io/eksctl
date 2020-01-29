@@ -2,29 +2,41 @@ package version
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
 //go:generate go run ./release_generate.go
 
-// Info hold version information
+// Info holds version information
 type Info struct {
-	BuiltAt   string
-	GitCommit string `json:",omitempty"`
-	GitTag    string `json:",omitempty"`
+	Version      string
+	PreReleaseID string
+	Metadata     BuildMetadata
 }
 
-var info = Info{
-	BuiltAt:   builtAt,
-	GitCommit: gitCommit,
-	GitTag:    gitTag,
+// BuildMetadata contains the semver build metadata:
+// short commit hash and date in format YYYYMMDDTHHmmSS
+type BuildMetadata struct {
+	BuildDate string
+	GitCommit string
 }
 
-// Get return version Info struct
-func Get() Info { return info }
+// GetVersionInfo returns version Info struct
+func GetVersionInfo() Info {
+	return Info{
+		Version:      Version,
+		PreReleaseID: PreReleaseID,
+		Metadata: BuildMetadata{
+			GitCommit: gitCommit,
+			BuildDate: buildDate,
+		},
+	}
+}
 
 // String return version info as JSON
 func String() string {
-	if data, err := json.Marshal(info); err == nil {
+	if data, err := json.Marshal(GetVersionInfo()); err == nil {
 		return string(data)
 	}
 	return ""
@@ -32,9 +44,27 @@ func String() string {
 
 // GetVersion return the exact version of this build
 func GetVersion() string {
-	// GitTag may not be present for local builds
-	if info.GitTag == "" {
-		return info.GitCommit
+	if PreReleaseID == "" {
+		return Version
 	}
-	return info.GitTag
+
+	if isReleaseCandidate(PreReleaseID) {
+		return fmt.Sprintf("%s-%s", Version, PreReleaseID)
+	}
+
+	if gitCommit != "" && buildDate != "" {
+		//  Include build metadata
+		return fmt.Sprintf("%s-%s+%s.%s",
+			Version,
+			PreReleaseID,
+			gitCommit,
+			buildDate,
+		)
+	}
+	return fmt.Sprintf("%s-%s", Version, PreReleaseID)
+
+}
+
+func isReleaseCandidate(preReleaseID string) bool {
+	return strings.HasPrefix(preReleaseID, "rc.")
 }

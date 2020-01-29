@@ -42,12 +42,12 @@ godeps = $(shell $(call godeps_cmd,$(1)))
 
 .PHONY: build
 build: generate-always ## Build main binary
-	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).builtAt=$(built_at)" ./cmd/eksctl
+	CGO_ENABLED=0 time go build -ldflags "-X $(version_pkg).gitCommit=$(git_commit) -X $(version_pkg).buildDate=$(build_date)" ./cmd/eksctl
 
 # Build binaries for Linux, Windows and Mac and place them in dist/
 .PHONY: build-all
 build-all: generate-always
-	goreleaser --config=goreleaser-local.yaml --snapshot --skip-publish --rm-dist
+	goreleaser --config=.goreleaser-local.yaml --snapshot --skip-publish --rm-dist
 
 ##@ Testing & CI
 
@@ -88,7 +88,7 @@ test:
 
 .PHONY: unit-test
 unit-test: ## Run unit test only
-	CGO_ENABLED=0 time go test ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
+	CGO_ENABLED=0 time go test  -tags=release ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: unit-test-race
 unit-test-race: ## Run unit test with race detection
@@ -178,6 +178,19 @@ $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	@# Hack for Mockery to find the dependencies handled by `go mod`
 	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191218135223-757eeed07291" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
+
+##@ Release
+.PHONY: prepare-release
+prepare-release:
+	./tag-release.sh
+
+.PHONY: prepare-release-candidate
+prepare-release-candidate:
+	./tag-release-candidate.sh
+
+.PHONY: print-version
+print-version:
+	@go run pkg/version/generate/release_generate.go print-version
 
 ##@ Docker
 

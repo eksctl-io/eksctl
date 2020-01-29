@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@3.4.2
+
 commands:
   prepare-ssh-keys:
     description: Prepare SSH keys to be mounted with the right permissions for Git
@@ -8,8 +11,8 @@ commands:
           name: Prepare SSH keys to be mounted with the right permissions for Git
           command: |
             if [ ! -z "$SSH_KEY_NAME" ]; then
-              cp -r $HOME/.ssh $HOME/project/.ssh
-              sudo printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" > $HOME/project/.ssh/config
+              sudo cp -r $HOME/.ssh $HOME/project/
+              printf "Host github.com\n  IdentityFile /root/.ssh/$SSH_KEY_NAME\n" | sudo tee $HOME/project/.ssh/config
               sudo chmod -R 600 $HOME/project/.ssh
               sudo chown -R root:root $HOME/project/.ssh
             else
@@ -64,6 +67,14 @@ commands:
           paths:
             - "/home/circleci/.cache/go-build/"
             - "/home/circleci/go/pkg/mod/"
+  notify-slack:
+    description: Notify failures via Slack
+    steps:
+      - run: exit 0
+      - slack/status:
+          fail_only: true
+          mentions: 'team-aws'
+          only_for_branches: master
 
 jobs:
   test-and-build:
@@ -90,13 +101,31 @@ jobs:
           cmd: make build-integration-test
       - docker-run:
           cmd: make -f Makefile.docker check-build-image-manifest-up-to-date
+      - run: mkdir bin; mv eksctl "bin/eksctl-$(./eksctl version)"
       - save-cache
       - store_test_results:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
       - store_artifacts:
-          path: ./eksctl
+          path: ./bin
+  build-all-distros:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
+      - prepare-ssh-keys
+      - restore-cache
+      - docker-pull-build-image
+      - docker-run:
+          cmd: make build-all
+      - store_artifacts:
+          path: dist/
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
@@ -173,6 +202,7 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
+      - notify-slack
 
 workflows:
   version: 2
@@ -182,6 +212,13 @@ workflows:
           filters:
             tags:
               ignore: /.*/
+  # Uncomment this to create binaries for all distros in a PR
+#  build-all:
+#    jobs:
+#      - build-all-distros: # Build locally with gorelease
+#          filters:
+#            tags:
+#              ignore: /.*/
   release:
     jobs:
       - test-and-build:

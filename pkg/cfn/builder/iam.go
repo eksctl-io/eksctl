@@ -71,7 +71,7 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	c.rs.withIAM = true
 
-	refSR := c.newResource("ServiceRole", &gfn.AWSIAMRole{
+	role := &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
 			"eks.amazonaws.com",
 			// Ensure that EKS can schedule pods onto Fargate, should the user
@@ -82,7 +82,11 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 			iamPolicyAmazonEKSServicePolicyARN,
 			iamPolicyAmazonEKSClusterPolicyARN,
 		),
-	})
+	}
+	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
+		role.PermissionsBoundary = gfn.NewString(*c.spec.IAM.ServiceRolePermissionsBoundary)
+	}
+	refSR := c.newResource("ServiceRole", role)
 	c.rs.attachAllowPolicy("PolicyNLB", refSR, "*", []string{
 		"elasticloadbalancing:*",
 		"ec2:CreateSecurityGroup",
@@ -208,6 +212,7 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 	// testing and potentially a better stack mutation strategy
 	role := &cft.IAMRole{
 		AssumeRolePolicyDocument: rs.oidc.MakeAssumeRolePolicyDocument(rs.spec.Namespace, rs.spec.Name),
+		PermissionsBoundary:      rs.spec.PermissionsBoundary,
 	}
 	role.ManagedPolicyArns = append(role.ManagedPolicyArns, rs.spec.AttachPolicyARNs...)
 

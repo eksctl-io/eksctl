@@ -184,6 +184,43 @@ var _ = Describe("template builder for IAM", func() {
 		Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
 	})
 
+	It("can construct an iamserviceaccount addon template with one managed policy and a permissions boundary", func() {
+		serviceAccount := &api.ClusterIAMServiceAccount{}
+
+		serviceAccount.Name = "sa-1"
+
+		serviceAccount.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"}
+
+		serviceAccount.PermissionsBoundary = "arn:aws:iam::aws:policy/policy/boundary"
+
+		appendServiceAccountToClusterConfig(cfg, serviceAccount)
+
+		rs := NewIAMServiceAccountResourceSet(serviceAccount, oidc)
+
+		templateBody := []byte{}
+
+		Expect(rs).To(RenderWithoutErrors(&templateBody))
+
+		t := cft.NewTemplate()
+
+		Expect(t).To(LoadBytesWithoutErrors(templateBody))
+
+		Expect(t.Description).To(Equal("IAM role for serviceaccount \"default/sa-1\" [created and managed by eksctl]"))
+
+		Expect(t.Resources).To(HaveLen(1))
+		Expect(t.Outputs).To(HaveLen(1))
+
+		Expect(t).To(HaveResource("Role1", "AWS::IAM::Role"))
+
+		Expect(t).To(HaveResourceWithPropertyValue("Role1", "AssumeRolePolicyDocument", expectedAssumeRolePolicyDocument))
+		Expect(t).To(HaveResourceWithPropertyValue("Role1", "ManagedPolicyArns", `[
+			"arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+		]`))
+		Expect(t).To(HaveResourceWithPropertyValue("Role1", "PermissionsBoundary", `"arn:aws:iam::aws:policy/policy/boundary"`))
+
+		Expect(t).To(HaveOutputWithValue("Role1", `{ "Fn::GetAtt": "Role1.Arn" }`))
+	})
+
 	It("can parse an iamserviceaccount addon template", func() {
 		t := cft.NewTemplate()
 

@@ -235,3 +235,14 @@ won't change, and you will still have the option to disable the public endpoint 
 the internet. (Source: https://github.com/aws/containers-roadmap/issues/108#issuecomment-552766489)
 
 Implementation notes: https://github.com/aws/containers-roadmap/issues/108#issuecomment-552698875
+
+**Note for using port forwarding with eksctl commands:**
+
+If you access your private cluster locally using port forwarding you'll need to
+override the cluster endpoint that's generated when running eksctl commands.
+
+This can be achieved by setting the following environment variable `KUBECONFIG_CLUSTER_ENDPOINT` when running eksctl commands:
+```
+export KUBECONFIG_CLUSTER_ENDPOINT=https://<local-url-for-cluster>:<port>
+eksctl get iamidentitymapping --cluster <cluster-name>
+```
