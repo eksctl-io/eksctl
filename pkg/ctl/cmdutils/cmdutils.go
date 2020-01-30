@@ -95,7 +95,7 @@ func GetNameArg(args []string) string {
 		os.Exit(1)
 	}
 	if len(args) == 1 {
-		return (strings.TrimSpace(args[0]))
+		return strings.TrimSpace(args[0])
 	}
 	return ""
 }

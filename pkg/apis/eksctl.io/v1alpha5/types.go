@@ -790,7 +790,7 @@ func (in *InlineDocument) DeepCopy() *InlineDocument {
 		return nil
 	}
 	out := new(InlineDocument)
-	*out = InlineDocument(runtime.DeepCopyJSON(*in))
+	*out = runtime.DeepCopyJSON(*in)
 	return out
 }
 

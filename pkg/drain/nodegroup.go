@@ -162,8 +162,6 @@ func NodeGroup(clientSet kubernetes.Interface, ng eks.KubeNodeGroup, waitTimeout
 			}
 		}
 	}
-
-	return nil
 }
 
 func cordonStatus(desired bool) string {

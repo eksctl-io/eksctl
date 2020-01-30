@@ -46,7 +46,7 @@ func (o CreateOptions) ToFargateProfile() *api.FargateProfile {
 	return &api.FargateProfile{
 		Name: names.ForFargateProfile(o.ProfileName),
 		Selectors: []api.FargateProfileSelector{
-			api.FargateProfileSelector{
+			{
 				Namespace: o.ProfileSelectorNamespace,
 				Labels:    o.ProfileSelectorLabels,
 			},

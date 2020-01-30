@@ -23,7 +23,7 @@ func waitForFluxToStart(ctx context.Context, namespace string, timeout time.Dura
 	var fluxGitConfig fluxapi.GitConfig
 	try := func(rootURL string) error {
 		fluxURL := rootURL + "api/flux"
-		fluxClient := client.New(http.DefaultClient, transport.NewAPIRouter(), fluxURL, client.Token(""))
+		fluxClient := client.New(http.DefaultClient, transport.NewAPIRouter(), fluxURL, "")
 		repoCtx, repoCtxCancel := context.WithTimeout(ctx, timeout)
 		defer repoCtxCancel()
 		var err error
