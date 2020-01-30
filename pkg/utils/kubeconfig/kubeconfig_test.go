@@ -43,7 +43,7 @@ var _ = Describe("Kubeconfig", func() {
 			GinkgoT().Fatalf("failed reading .golden: %s", err)
 		}
 
-		return ioutil.WriteFile(filename, []byte(minikubeSample), os.FileMode(0755))
+		return ioutil.WriteFile(filename, minikubeSample, os.FileMode(0755))
 	}
 
 	It("creating new Kubeconfig", func() {

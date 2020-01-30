@@ -119,7 +119,7 @@ type mockCreateFargateProfileCmd struct {
 
 func (c mockCreateFargateProfileCmd) execute() (string, error) {
 	buf := new(bytes.Buffer)
-	c.parentCmd.SetOutput(buf)
+	c.parentCmd.SetOut(buf)
 	err := c.parentCmd.Execute()
 	return buf.String(), err
 }

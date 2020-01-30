@@ -91,8 +91,8 @@ var _ = Describe("StackCollection NodeGroup", func() {
 
 			It("should be a no-op if attempting to scale to the existing desired capacity", func() {
 				ng.Name = "12345"
-				cap := 2
-				ng.DesiredCapacity = &cap
+				capacity := 2
+				ng.DesiredCapacity = &capacity
 
 				err := sc.ScaleNodeGroup(ng)
 
@@ -150,13 +150,13 @@ var _ = Describe("StackCollection NodeGroup", func() {
 							StackId:     aws.String("eksctl-test-cluster-nodegroup-12345-id"),
 							StackStatus: aws.String("CREATE_COMPLETE"),
 							Tags: []*cfn.Tag{
-								&cfn.Tag{
+								{
 									Key:   aws.String(api.NodeGroupNameTag),
 									Value: aws.String("12345"),
 								},
 							},
 							Outputs: []*cfn.Output{
-								&cfn.Output{
+								{
 									OutputKey:   aws.String("InstanceRoleARN"),
 									OutputValue: aws.String("arn:aws:iam::1111:role/eks-nodes-base-role"),
 								},

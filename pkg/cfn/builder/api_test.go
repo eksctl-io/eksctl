@@ -1564,7 +1564,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			refSubnets := []interface{}{
 				cfg.VPC.Subnets.Public["us-west-2a"].ID,
 			}
-			Expect(x).To((Equal(refSubnets)))
+			Expect(x).To(Equal(refSubnets))
 
 			ltd := getLaunchTemplateData(ngTemplate)
 

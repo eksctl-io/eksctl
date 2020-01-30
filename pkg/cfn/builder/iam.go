@@ -232,7 +232,7 @@ func (rs *IAMServiceAccountResourceSet) AddAllResources() error {
 	})
 
 	if len(rs.spec.AttachPolicy) != 0 {
-		rs.template.AttachPolicy("Policy1", roleRef, cft.MapOfInterfaces(rs.spec.AttachPolicy))
+		rs.template.AttachPolicy("Policy1", roleRef, rs.spec.AttachPolicy)
 	}
 
 	return nil

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	shellquote "github.com/kballard/go-shellquote"
+	"github.com/kballard/go-shellquote"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 

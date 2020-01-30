@@ -161,7 +161,7 @@ var _ = Describe("Table Printer", func() {
 			BeforeEach(func() {
 				created := &time.Time{}
 				clusters = []*awseks.Cluster{
-					&awseks.Cluster{
+					{
 						Name:      aws.String("test-cluster-1"),
 						Status:    aws.String(awseks.ClusterStatusActive),
 						Arn:       aws.String("arn-12345678"),
@@ -171,7 +171,7 @@ var _ = Describe("Table Printer", func() {
 							SubnetIds: []*string{aws.String("sub1"), aws.String("sub2")},
 						},
 					},
-					&awseks.Cluster{
+					{
 						Name:      aws.String("test-cluster-2"),
 						Status:    aws.String(awseks.ClusterStatusActive),
 						Arn:       aws.String("arn-87654321"),
