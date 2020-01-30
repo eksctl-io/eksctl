@@ -231,7 +231,7 @@ $ eksctl create fargateprofile --namespace dev --cluster fargate-example-cluster
 You can also specify the name of the Fargate profile to be created. This name must not start with the prefix `eks-`.
 
 ```console
-$ eksctl create fargateprofile --name eks-dev --namespace dev --cluster fargate-example-cluster --name fp-development
+$ eksctl create fargateprofile --namespace dev --cluster fargate-example-cluster --name fp-development
 [ℹ]  created Fargate profile "fp-development" on EKS cluster "fargate-example-cluster"
 ```
 
@@ -332,8 +332,8 @@ $ eksctl delete fargateprofile --cluster fargate-example-cluster --name fp-9bfc7
 ```
 
 Note that the profile deletion is a process that can take up to a few minutes. When the `--wait` flag is not specified,
-`eksctl` optimistically expects the profile to be deleted and returns as soon as the aws request has been sent. To make
-`eksctl` wait until it has been successfully deleted use `--wait` like in the example above.
+`eksctl` optimistically expects the profile to be deleted and returns as soon as the AWS API request has been sent. To make
+`eksctl` wait until the profile has been successfully deleted, use `--wait` like in the example above.
 
 ### Further reading
 
