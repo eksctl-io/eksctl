@@ -46,7 +46,6 @@ parts:
       - g++
       - gcc
       - git
-      - go-bindata
       - time
     build-environment:
       - GOBIN: '$SNAPCRAFT_PART_INSTALL/bin'
