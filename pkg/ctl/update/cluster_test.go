@@ -1,4 +1,4 @@
-package get
+package update
 
 import (
 	"fmt"
@@ -7,13 +7,13 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-var _ = Describe("get", func() {
+var _ = Describe("update", func() {
 	Describe("cluster", func() {
 		It("without cluster name", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster")
+			cmd := newMockEmptyUpdateCmd("cluster")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+				updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
 					count++
 					return nil
 				})
@@ -25,9 +25,9 @@ var _ = Describe("get", func() {
 
 		It("with cluster name as flag", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster", "--name", "clusterName")
+			cmd := newMockEmptyUpdateCmd("cluster", "--name", "clusterName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+				updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
 					count++
 					return nil
 				})
@@ -39,9 +39,9 @@ var _ = Describe("get", func() {
 
 		It("with cluster name as argument", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster", "clusterName")
+			cmd := newMockEmptyUpdateCmd("cluster", "clusterName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+				updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
 					count++
 					return nil
 				})
@@ -52,17 +52,17 @@ var _ = Describe("get", func() {
 		})
 
 		It("with cluster name as argument and flag", func() {
-			cmd := newMockDefaultGetCmd("cluster", "clusterName", "--name", "clusterName")
+			cmd := newMockDefaultUpdateCmd("cluster", "clusterName", "--name", "clusterName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--name=clusterName and argument clusterName cannot be used at the same time"))
 		})
 
-		It("with all-regions flags", func() {
+		It("with config file flag", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster", "--all-regions")
+			cmd := newMockEmptyUpdateCmd("cluster", "--config-file", "../../../examples/01-simple-cluster.yaml")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+				updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
 					count++
 					return nil
 				})
@@ -72,31 +72,47 @@ var _ = Describe("get", func() {
 			Expect(count).To(Equal(1))
 		})
 
-		It("with both cluster name argument and --all-regions flag", func() {
-			cmd := newMockDefaultGetCmd("cluster", "clusterName", "--all-regions")
-			_, err := cmd.execute()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--all-regions is for listing all clusters, it must be used without cluster name flag/argument"))
+		It("with cluster name and deprecated dry-run flag", func() {
+			count := 0
+			cmd := newMockEmptyUpdateCmd("cluster", "clusterName", "--dry-run")
+			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
+				updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
+					count++
+					return nil
+				})
+			})
+			out, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(count).To(Equal(1))
+			Expect(out).To(ContainSubstring("Flag --dry-run has been deprecated, see --approve"))
 		})
 
-		It("with both cluster name and --all-regions flags", func() {
-			cmd := newMockDefaultGetCmd("cluster", "--name", "clusterName", "--all-regions")
-			_, err := cmd.execute()
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--all-regions is for listing all clusters, it must be used without cluster name flag/argument"))
+		It("with cluster name and deprecated wait flag", func() {
+			count := 0
+			cmd := newMockEmptyUpdateCmd("cluster", "clusterName", "--wait")
+			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
+				updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
+					count++
+					return nil
+				})
+			})
+			out, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(count).To(Equal(1))
+			Expect(out).To(ContainSubstring("Flag --wait has been deprecated, --wait is no longer respected; the cluster update always waits to complete"))
 		})
 
 		It("with invalid flags", func() {
-			cmd := newMockDefaultGetCmd("cluster", "--invalid", "dummy")
+			cmd := newMockDefaultUpdateCmd("cluster", "--invalid", "dummy")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown flag: --invalid"))
 		})
 
 		It("failed due to any reason", func() {
-			cmd := newMockEmptyGetCmd("cluster")
+			cmd := newMockEmptyUpdateCmd("cluster")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+				updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
 					return fmt.Errorf("unable to fetch the cluster")
 				})
 			})
@@ -106,3 +122,4 @@ var _ = Describe("get", func() {
 		})
 	})
 })
+

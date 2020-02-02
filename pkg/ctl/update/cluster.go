@@ -14,6 +14,12 @@ import (
 )
 
 func updateClusterCmd(cmd *cmdutils.Cmd) {
+	updateClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
+		return doUpdateClusterCmd(cmd)
+	})
+}
+
+func updateClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -21,7 +27,7 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doUpdateClusterCmd(cmd)
+		return runFunc(cmd)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -59,6 +65,10 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 		return err
 	}
 	cmdutils.LogRegionAndVersionInfo(meta)
+
+	if cfg.Metadata.Name != "" && cmd.NameArg != "" {
+		return cmdutils.ErrClusterFlagAndArg(cmd, cfg.Metadata.Name, cmd.NameArg)
+	}
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
