@@ -16,6 +16,12 @@ import (
 )
 
 func getLabelsCmd(cmd *cmdutils.Cmd) {
+	getLabelsWithRunFunc(cmd, func(cmd *cmdutils.Cmd, nodeGroupName string) error {
+		return getLabels(cmd, nodeGroupName)
+	})
+}
+
+func getLabelsWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, nodeGroupName string) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -24,7 +30,7 @@ func getLabelsCmd(cmd *cmdutils.Cmd) {
 	var nodeGroupName string
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return getLabels(cmd, nodeGroupName)
+		return runFunc(cmd, nodeGroupName)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

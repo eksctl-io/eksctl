@@ -11,21 +11,21 @@ import (
 var _ = Describe("get", func() {
 	Describe("invalid-resource", func() {
 		It("with no flag", func() {
-			cmd := newMockCmd("invalid-resource")
+			cmd := newMockDefaultGetCmd("invalid-resource")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"get\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and some flag", func() {
-			cmd := newMockCmd("invalid-resource", "--invalid-flag", "foo")
+			cmd := newMockDefaultGetCmd("invalid-resource", "--invalid-flag", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"get\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and additional argument", func() {
-			cmd := newMockCmd("invalid-resource", "foo")
+			cmd := newMockDefaultGetCmd("invalid-resource", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"get\""))
@@ -34,8 +34,18 @@ var _ = Describe("get", func() {
 	})
 })
 
-func newMockCmd(args ...string) *mockVerbCmd {
+// newMockDefaultGetCmd instantiates mock GET command with all the resource commands
+func newMockDefaultGetCmd(args ...string) *mockVerbCmd {
 	cmd := Command(cmdutils.NewGrouping())
+	cmd.SetArgs(args)
+	return &mockVerbCmd{
+		parentCmd: cmd,
+	}
+}
+
+// newMockEmptyGetCmd instantiates mock GET command without any resource command
+func newMockEmptyGetCmd(args ...string) *mockVerbCmd {
+	cmd := cmdutils.NewVerbCmd("get", "Get resource(s)", "")
 	cmd.SetArgs(args)
 	return &mockVerbCmd{
 		parentCmd: cmd,

@@ -11,6 +11,12 @@ import (
 )
 
 func getClusterCmd(cmd *cmdutils.Cmd) {
+	getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
+		return doGetCluster(cmd, params, listAllRegions)
+	})
+}
+
+func getClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -22,7 +28,7 @@ func getClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doGetCluster(cmd, params, listAllRegions)
+		return runFunc(cmd, params, listAllRegions)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

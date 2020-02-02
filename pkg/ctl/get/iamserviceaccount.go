@@ -15,6 +15,12 @@ import (
 )
 
 func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
+	getIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error {
+		return doGetIAMServiceAccount(cmd, serviceAccount, params)
+	})
+}
+
+func getIAMServiceAccountWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -29,14 +35,14 @@ func getIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doGetIAMServiceAccount(cmd, serviceAccount, params)
+		return runFunc(cmd, serviceAccount, params)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 
-		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to delete")
-		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to delete the iamserviceaccount")
+		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount")
+		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to retrieve the iamserviceaccount")
 
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)

@@ -16,6 +16,12 @@ import (
 )
 
 func getNodeGroupCmd(cmd *cmdutils.Cmd) {
+	getNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) error {
+		return doGetNodeGroup(cmd, ng, params)
+	})
+}
+
+func getNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -26,7 +32,7 @@ func getNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doGetNodeGroup(cmd, ng, params)
+		return runFunc(cmd, ng, params)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -70,8 +76,8 @@ func doGetNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *getCmdParams) 
 		return err
 	}
 
-	manager := ctl.NewStackManager(cfg)
-	summaries, err := manager.GetNodeGroupSummaries(ng.Name)
+	mng := ctl.NewStackManager(cfg)
+	summaries, err := mng.GetNodeGroupSummaries(ng.Name)
 	if err != nil {
 		return errors.Wrap(err, "getting nodegroup stack summaries")
 	}
