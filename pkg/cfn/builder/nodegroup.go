@@ -147,9 +147,15 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 		LaunchTemplateData: launchTemplateData,
 	})
 
-	vpcZoneIdentifier, err := AssignSubnets(n.spec.AvailabilityZones, n.clusterStackName, n.clusterSpec, n.spec.PrivateNetworking)
-	if err != nil {
-		return err
+	var vpcZoneIdentifier interface{}
+	if numSubnets := len(n.spec.Subnets); numSubnets > 0 {
+		vpcZoneIdentifier = n.spec.Subnets
+	} else {
+		var err error
+		vpcZoneIdentifier, err = AssignSubnets(n.spec.AvailabilityZones, n.clusterStackName, n.clusterSpec, n.spec.PrivateNetworking)
+		if err != nil {
+			return err
+		}
 	}
 
 	tags := []map[string]interface{}{
