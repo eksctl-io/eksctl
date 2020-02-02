@@ -17,6 +17,12 @@ type upgradeOptions struct {
 }
 
 func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
+	upgradeNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options upgradeOptions) error {
+		return upgradeNodeGroup(cmd, options)
+	})
+}
+
+func upgradeNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, options upgradeOptions) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -25,7 +31,7 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 	var options upgradeOptions
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return upgradeNodeGroup(cmd, options)
+		return runFunc(cmd, options)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

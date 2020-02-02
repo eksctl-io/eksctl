@@ -11,21 +11,21 @@ import (
 var _ = Describe("upgrade", func() {
 	Describe("invalid-resource", func() {
 		It("with no flag", func() {
-			cmd := newMockCmd("invalid-resource")
+			cmd := newMockDefaultUpgradeCmd("invalid-resource")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and some flag", func() {
-			cmd := newMockCmd("invalid-resource", "--invalid-flag", "foo")
+			cmd := newMockDefaultUpgradeCmd("invalid-resource", "--invalid-flag", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and additional argument", func() {
-			cmd := newMockCmd("invalid-resource", "foo")
+			cmd := newMockDefaultUpgradeCmd("invalid-resource", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
@@ -34,7 +34,8 @@ var _ = Describe("upgrade", func() {
 	})
 })
 
-func newMockCmd(args ...string) *mockVerbCmd {
+// newMockDefaultUpgradeCmd instantiates mock UPGRADE command with all the resource commands
+func newMockDefaultUpgradeCmd(args ...string) *mockVerbCmd {
 	flagGrouping := cmdutils.NewGrouping()
 	cmd := Command(flagGrouping)
 	cmd.SetArgs(args)
@@ -42,6 +43,16 @@ func newMockCmd(args ...string) *mockVerbCmd {
 		parentCmd: cmd,
 	}
 }
+
+// newMockEmptyUpgradeCmd instantiates mock UPGRADE command without any resource command
+func newMockEmptyUpgradeCmd(args ...string) *mockVerbCmd {
+	cmd := cmdutils.NewVerbCmd("update", "Get resource(s)", "")
+	cmd.SetArgs(args)
+	return &mockVerbCmd{
+		parentCmd: cmd,
+	}
+}
+
 
 type mockVerbCmd struct {
 	parentCmd *cobra.Command

@@ -44,7 +44,7 @@ func newMockDefaultUpdateCmd(args ...string) *mockVerbCmd {
 	}
 }
 
-// newMockEmptyGetCmd instantiates mock GET command without any resource command
+// newMockEmptyUpdateCmd instantiates mock UPDATE command without any resource command
 func newMockEmptyUpdateCmd(args ...string) *mockVerbCmd {
 	cmd := cmdutils.NewVerbCmd("update", "Get resource(s)", "")
 	cmd.SetArgs(args)
