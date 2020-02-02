@@ -12,10 +12,16 @@ import (
 )
 
 func unsetLabelsCmd(cmd *cmdutils.Cmd) {
+	unsetLabelsWithRunFunc(cmd, func(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string) error {
+		return unsetLabels(cmd, nodeGroupName, removeLabels)
+	})
+}
+
+func unsetLabelsWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, nodeGroupName string, removeLabels []string) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("labels", "Create removeLabels", "")
+	cmd.SetDescription("labels", "Remove Labels", "")
 
 	var (
 		nodeGroupName string
@@ -23,7 +29,7 @@ func unsetLabelsCmd(cmd *cmdutils.Cmd) {
 	)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return unsetLabels(cmd, nodeGroupName, removeLabels)
+		return runFunc(cmd, nodeGroupName, removeLabels)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
