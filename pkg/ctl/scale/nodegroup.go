@@ -11,6 +11,12 @@ import (
 )
 
 func scaleNodeGroupCmd(cmd *cmdutils.Cmd) {
+	scaleNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
+		return doScaleNodeGroup(cmd, ng)
+	})
+}
+
+func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup) error ) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -19,7 +25,7 @@ func scaleNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doScaleNodeGroup(cmd, ng)
+		return runFunc(cmd, ng)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

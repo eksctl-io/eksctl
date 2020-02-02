@@ -11,7 +11,7 @@ var _ = Describe("get", func() {
 	Describe("cluster", func() {
 		It("without cluster name", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster")
+			cmd := newMockEmptyCmd("cluster")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
 					count++
@@ -25,7 +25,7 @@ var _ = Describe("get", func() {
 
 		It("with cluster name as flag", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster", "--name", "clusterName")
+			cmd := newMockEmptyCmd("cluster", "--name", "clusterName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
 					count++
@@ -39,7 +39,7 @@ var _ = Describe("get", func() {
 
 		It("with cluster name as argument", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster", "clusterName")
+			cmd := newMockEmptyCmd("cluster", "clusterName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
 					count++
@@ -52,7 +52,7 @@ var _ = Describe("get", func() {
 		})
 
 		It("with cluster name as argument and flag", func() {
-			cmd := newMockDefaultGetCmd("cluster", "clusterName", "--name", "clusterName")
+			cmd := newMockDefaultCmd("cluster", "clusterName", "--name", "clusterName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--name=clusterName and argument clusterName cannot be used at the same time"))
@@ -60,7 +60,7 @@ var _ = Describe("get", func() {
 
 		It("with all-regions flags", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("cluster", "--all-regions")
+			cmd := newMockEmptyCmd("cluster", "--all-regions")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
 					count++
@@ -73,28 +73,28 @@ var _ = Describe("get", func() {
 		})
 
 		It("with both cluster name argument and --all-regions flag", func() {
-			cmd := newMockDefaultGetCmd("cluster", "clusterName", "--all-regions")
+			cmd := newMockDefaultCmd("cluster", "clusterName", "--all-regions")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--all-regions is for listing all clusters, it must be used without cluster name flag/argument"))
 		})
 
 		It("with both cluster name and --all-regions flags", func() {
-			cmd := newMockDefaultGetCmd("cluster", "--name", "clusterName", "--all-regions")
+			cmd := newMockDefaultCmd("cluster", "--name", "clusterName", "--all-regions")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--all-regions is for listing all clusters, it must be used without cluster name flag/argument"))
 		})
 
 		It("with invalid flags", func() {
-			cmd := newMockDefaultGetCmd("cluster", "--invalid", "dummy")
+			cmd := newMockDefaultCmd("cluster", "--invalid", "dummy")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown flag: --invalid"))
 		})
 
 		It("failed due to any reason", func() {
-			cmd := newMockEmptyGetCmd("cluster")
+			cmd := newMockEmptyCmd("cluster")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, listAllRegions bool) error {
 					return fmt.Errorf("unable to fetch the cluster")

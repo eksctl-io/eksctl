@@ -10,7 +10,7 @@ var _ = Describe("get", func() {
 	Describe("labels", func() {
 		It("with cluster name as flag", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("labels", "--cluster", "clusterName")
+			cmd := newMockEmptyCmd("labels", "--cluster", "clusterName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getLabelsWithRunFunc(cmd, func(cmd *cmdutils.Cmd, nodeGroupName string) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
@@ -25,7 +25,7 @@ var _ = Describe("get", func() {
 
 		It("with cluster name and node group flags", func() {
 			count := 0
-			cmd := newMockEmptyGetCmd("labels", "--cluster", "clusterName", "--nodegroup", "nodeGroup")
+			cmd := newMockEmptyCmd("labels", "--cluster", "clusterName", "--nodegroup", "nodeGroup")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getLabelsWithRunFunc(cmd, func(cmd *cmdutils.Cmd, nodeGroupName string) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
@@ -40,28 +40,28 @@ var _ = Describe("get", func() {
 		})
 
 		It("with one name argument", func() {
-			cmd := newMockDefaultGetCmd("labels", "clusterName", "--cluster", "dummyName")
+			cmd := newMockDefaultCmd("labels", "clusterName", "--cluster", "dummyName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("name argument is not supported"))
 		})
 
 		It("missing required flag --cluster", func() {
-			cmd := newMockDefaultGetCmd( "labels")
+			cmd := newMockDefaultCmd( "labels")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--cluster must be set"))
 		})
 
 		It("missing required flag --cluster, but with --nodegroup", func() {
-			cmd := newMockDefaultGetCmd( "labels", "--nodegroup", "dummyNodeGroup")
+			cmd := newMockDefaultCmd( "labels", "--nodegroup", "dummyNodeGroup")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--cluster must be set"))
 		})
 
 		It("setting name argument", func() {
-			cmd := newMockDefaultGetCmd("labels", "--cluster", "dummy", "dummyName")
+			cmd := newMockDefaultCmd("labels", "--cluster", "dummy", "dummyName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("name argument is not supported"))

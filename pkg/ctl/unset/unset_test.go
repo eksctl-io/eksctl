@@ -11,21 +11,21 @@ import (
 var _ = Describe("unset", func() {
 	Describe("invalid-resource", func() {
 		It("with no flag", func() {
-			cmd := newMockDefaultUnsetCmd("invalid-resource")
+			cmd := newMockDefaultCmd("invalid-resource")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"unset\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and some flag", func() {
-			cmd := newMockDefaultUnsetCmd("invalid-resource", "--invalid-flag", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "--invalid-flag", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"unset\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and additional argument", func() {
-			cmd := newMockDefaultUnsetCmd("invalid-resource", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"unset\""))
@@ -34,7 +34,7 @@ var _ = Describe("unset", func() {
 	})
 })
 
-func newMockDefaultUnsetCmd(args ...string) *mockVerbCmd {
+func newMockDefaultCmd(args ...string) *mockVerbCmd {
 	flagGrouping := cmdutils.NewGrouping()
 	cmd := Command(flagGrouping)
 	cmd.SetArgs(args)
@@ -43,7 +43,7 @@ func newMockDefaultUnsetCmd(args ...string) *mockVerbCmd {
 	}
 }
 
-func newMockEmptyUnsetCmd(args ...string) *mockVerbCmd {
+func newMockEmptyCmd(args ...string) *mockVerbCmd {
 	cmd := cmdutils.NewVerbCmd("unset", "Unset values", "")
 	cmd.SetArgs(args)
 	return &mockVerbCmd{

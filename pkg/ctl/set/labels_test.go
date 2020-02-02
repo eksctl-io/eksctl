@@ -10,7 +10,7 @@ var _ = Describe("set", func() {
 	Describe("labels", func() {
 		It("with valid details", func() {
 			count := 0
-			cmd := newMockEmptySetCmd("labels", "--cluster", "clusterName", "--labels", "testLabel=testValue")
+			cmd := newMockEmptyCmd("labels", "--cluster", "clusterName", "--labels", "testLabel=testValue")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				setLabelsWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options labelOptions) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
@@ -27,7 +27,7 @@ var _ = Describe("set", func() {
 		})
 
 		It("with invalid label format", func() {
-			cmd := newMockDefaultSetCmd("labels", "--cluster", "clusterName", "--labels", "testLabel")
+			cmd := newMockDefaultCmd("labels", "--cluster", "clusterName", "--labels", "testLabel")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("invalid argument \"testLabel\" for \"-l, --labels\" flag: testLabel must be formatted as key=value"))
@@ -35,7 +35,7 @@ var _ = Describe("set", func() {
 
 		It("with cluster name and node group flags", func() {
 			count := 0
-			cmd := newMockEmptySetCmd("labels", "--cluster", "clusterName", "--nodegroup", "nodeGroup", "--labels", "testLabel=testValue")
+			cmd := newMockEmptyCmd("labels", "--cluster", "clusterName", "--nodegroup", "nodeGroup", "--labels", "testLabel=testValue")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				setLabelsWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options labelOptions) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
@@ -50,28 +50,28 @@ var _ = Describe("set", func() {
 		})
 
 		It("with one name argument", func() {
-			cmd := newMockDefaultSetCmd("labels", "clusterName", "--cluster", "dummyName", "--labels", "testLabel=testValue")
+			cmd := newMockDefaultCmd("labels", "clusterName", "--cluster", "dummyName", "--labels", "testLabel=testValue")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("name argument is not supported"))
 		})
 
 		It("missing required flag --labels", func() {
-			cmd := newMockDefaultSetCmd("labels")
+			cmd := newMockDefaultCmd("labels")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("required flag(s) \"labels\" not set"))
 		})
 
 		It("missing required flag --labels", func() {
-			cmd := newMockDefaultSetCmd("labels", "--cluster", "dummyName")
+			cmd := newMockDefaultCmd("labels", "--cluster", "dummyName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("required flag(s) \"labels\" not set"))
 		})
 
 		It("setting name argument", func() {
-			cmd := newMockDefaultSetCmd("labels", "--cluster", "dummy", "dummyName", "--labels", "testLabel=testValue")
+			cmd := newMockDefaultCmd("labels", "--cluster", "dummy", "dummyName", "--labels", "testLabel=testValue")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("name argument is not supported"))

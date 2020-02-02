@@ -10,7 +10,7 @@ var _ = Describe("upgrade", func() {
 	Describe("nodegroup", func() {
 		It("with cluster name as flag", func() {
 			count := 0
-			cmd := newMockEmptyUpgradeCmd("nodegroup", "--cluster", "clusterName")
+			cmd := newMockEmptyCmd("nodegroup", "--cluster", "clusterName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				upgradeNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options upgradeOptions) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
@@ -25,7 +25,7 @@ var _ = Describe("upgrade", func() {
 
 		It("with cluster name and node group flags", func() {
 			count := 0
-			cmd := newMockEmptyUpgradeCmd("nodegroup", "--cluster", "clusterName", "--name", "nodeGroup")
+			cmd := newMockEmptyCmd("nodegroup", "--cluster", "clusterName", "--name", "nodeGroup")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				upgradeNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options upgradeOptions) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
@@ -41,7 +41,7 @@ var _ = Describe("upgrade", func() {
 
 		It("with cluster name, node group and kube version flags", func() {
 			count := 0
-			cmd := newMockEmptyUpgradeCmd("nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--kubernetes-version", "1.14")
+			cmd := newMockEmptyCmd("nodegroup", "--cluster", "clusterName", "--name", "nodeGroup", "--kubernetes-version", "1.14")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				upgradeNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options upgradeOptions) error {
 					Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
@@ -57,28 +57,28 @@ var _ = Describe("upgrade", func() {
 		})
 
 		It("missing required flag --cluster", func() {
-			cmd := newMockDefaultUpgradeCmd("nodegroup")
+			cmd := newMockDefaultCmd("nodegroup")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--cluster must be set"))
 		})
 
 		It("missing required node group name", func() {
-			cmd := newMockDefaultUpgradeCmd("nodegroup", "--cluster", "clusterName")
+			cmd := newMockDefaultCmd("nodegroup", "--cluster", "clusterName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("name must be set"))
 		})
 
 		It("setting --name and argument at the same time", func() {
-			cmd := newMockDefaultUpgradeCmd("nodegroup", "ng", "--cluster", "dummy", "--name", "ng")
+			cmd := newMockDefaultCmd("nodegroup", "ng", "--cluster", "dummy", "--name", "ng")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--name=ng and argument ng cannot be used at the same time"))
 		})
 
 		It("invalid flag", func() {
-			cmd := newMockDefaultUpgradeCmd("nodegroup", "--invalid", "dummy")
+			cmd := newMockDefaultCmd("nodegroup", "--invalid", "dummy")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown flag: --invalid"))

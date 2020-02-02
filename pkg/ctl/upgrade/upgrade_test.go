@@ -11,21 +11,21 @@ import (
 var _ = Describe("upgrade", func() {
 	Describe("invalid-resource", func() {
 		It("with no flag", func() {
-			cmd := newMockDefaultUpgradeCmd("invalid-resource")
+			cmd := newMockDefaultCmd("invalid-resource")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and some flag", func() {
-			cmd := newMockDefaultUpgradeCmd("invalid-resource", "--invalid-flag", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "--invalid-flag", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and additional argument", func() {
-			cmd := newMockDefaultUpgradeCmd("invalid-resource", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"upgrade\""))
@@ -34,8 +34,8 @@ var _ = Describe("upgrade", func() {
 	})
 })
 
-// newMockDefaultUpgradeCmd instantiates mock UPGRADE command with all the resource commands
-func newMockDefaultUpgradeCmd(args ...string) *mockVerbCmd {
+// newMockDefaultCmd instantiates mock UPGRADE command with all the resource commands
+func newMockDefaultCmd(args ...string) *mockVerbCmd {
 	flagGrouping := cmdutils.NewGrouping()
 	cmd := Command(flagGrouping)
 	cmd.SetArgs(args)
@@ -44,8 +44,8 @@ func newMockDefaultUpgradeCmd(args ...string) *mockVerbCmd {
 	}
 }
 
-// newMockEmptyUpgradeCmd instantiates mock UPGRADE command without any resource command
-func newMockEmptyUpgradeCmd(args ...string) *mockVerbCmd {
+// newMockEmptyCmd instantiates mock UPGRADE command without any resource command
+func newMockEmptyCmd(args ...string) *mockVerbCmd {
 	cmd := cmdutils.NewVerbCmd("upgrade", "Upgrade resource(s)", "")
 	cmd.SetArgs(args)
 	return &mockVerbCmd{

@@ -11,21 +11,21 @@ import (
 var _ = Describe("get", func() {
 	Describe("invalid-resource", func() {
 		It("with no flag", func() {
-			cmd := newMockDefaultGetCmd("invalid-resource")
+			cmd := newMockDefaultCmd("invalid-resource")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"get\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and some flag", func() {
-			cmd := newMockDefaultGetCmd("invalid-resource", "--invalid-flag", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "--invalid-flag", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"get\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and additional argument", func() {
-			cmd := newMockDefaultGetCmd("invalid-resource", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"get\""))
@@ -34,8 +34,8 @@ var _ = Describe("get", func() {
 	})
 })
 
-// newMockDefaultGetCmd instantiates mock GET command with all the resource commands
-func newMockDefaultGetCmd(args ...string) *mockVerbCmd {
+// newMockDefaultCmd instantiates mock GET command with all the resource commands
+func newMockDefaultCmd(args ...string) *mockVerbCmd {
 	cmd := Command(cmdutils.NewGrouping())
 	cmd.SetArgs(args)
 	return &mockVerbCmd{
@@ -43,8 +43,8 @@ func newMockDefaultGetCmd(args ...string) *mockVerbCmd {
 	}
 }
 
-// newMockEmptyGetCmd instantiates mock GET command without any resource command
-func newMockEmptyGetCmd(args ...string) *mockVerbCmd {
+// newMockEmptyCmd instantiates mock GET command without any resource command
+func newMockEmptyCmd(args ...string) *mockVerbCmd {
 	cmd := cmdutils.NewVerbCmd("get", "Get resource(s)", "")
 	cmd.SetArgs(args)
 	return &mockVerbCmd{
