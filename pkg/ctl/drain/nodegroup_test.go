@@ -65,10 +65,10 @@ var _ = Describe("drain", func() {
 		})
 
 		It("setting --name and argument at the same time", func() {
-			cmd := newMockDefaultCmd("nodegroup", "ng", "--cluster", "dummy", "--name", "dummy")
+			cmd := newMockDefaultCmd("nodegroup", "ng", "--cluster", "dummy", "--name", "ng")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("--cluster=dummy and argument ng cannot be used at the same time"))
+			Expect(err.Error()).To(Equal("--name=ng and argument ng cannot be used at the same time"))
 		})
 
 		It("invalid flag", func() {

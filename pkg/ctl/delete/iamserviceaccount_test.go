@@ -1,4 +1,4 @@
-package get
+package delete
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -13,7 +13,7 @@ var _ = Describe("get", func() {
 			count := 0
 			cmd := newMockEmptyCmd("iamserviceaccount", "--cluster", "dummyName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error {
+				deleteIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
 					Expect(cmd.NameArg).To(Equal(""))
 					count++
 					return nil
@@ -28,8 +28,7 @@ var _ = Describe("get", func() {
 			count := 0
 			cmd := newMockEmptyCmd("iamserviceaccount", "dummyName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error {
-					Expect(cmd.NameArg).To(Equal("dummyName"))
+				deleteIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
 					count++
 					return nil
 				})
@@ -41,10 +40,9 @@ var _ = Describe("get", func() {
 
 		It("with cluster and name flag", func() {
 			count := 0
-			cmd := newMockEmptyCmd("iamserviceaccount", "dummyName", "--name", "serviceAccount")
+			cmd := newMockEmptyCmd("iamserviceaccount", "--name", "serviceAccount")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error {
-					Expect(cmd.NameArg).To(Equal("dummyName"))
+				deleteIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
 					Expect(serviceAccount.Name).To(Equal("serviceAccount"))
 					Expect(serviceAccount.Namespace).To(Equal("default"))
 					count++
@@ -58,10 +56,9 @@ var _ = Describe("get", func() {
 
 		It("with cluster and namespace flag", func() {
 			count := 0
-			cmd := newMockEmptyCmd("iamserviceaccount", "dummyName", "--namespace", "dummyNS")
+			cmd := newMockEmptyCmd("iamserviceaccount", "--namespace", "dummyNS")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error {
-					Expect(cmd.NameArg).To(Equal("dummyName"))
+				deleteIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
 					Expect(serviceAccount.Namespace).To(Equal("dummyNS"))
 					count++
 					return nil
@@ -75,7 +72,7 @@ var _ = Describe("get", func() {
 		It("missing required flag --cluster", func() {
 			cmd := newMockDefaultCmd("iamserviceaccount")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-				getIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, params *getCmdParams) error {
+				deleteIAMServiceAccountWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
 					return nil
 				})
 			})

@@ -11,21 +11,21 @@ import (
 var _ = Describe("delete", func() {
 	Describe("invalid-resource", func() {
 		It("with no flag", func() {
-			cmd := newMockVerbCmd("invalid-resource")
+			cmd := newMockDefaultCmd("invalid-resource")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"delete\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and some flag", func() {
-			cmd := newMockVerbCmd("invalid-resource", "--invalid-flag", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "--invalid-flag", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"delete\""))
 			Expect(out).To(ContainSubstring("usage"))
 		})
 		It("with invalid-resource and additional argument", func() {
-			cmd := newMockVerbCmd("invalid-resource", "foo")
+			cmd := newMockDefaultCmd("invalid-resource", "foo")
 			out, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown command \"invalid-resource\" for \"delete\""))
@@ -34,9 +34,17 @@ var _ = Describe("delete", func() {
 	})
 })
 
-func newMockVerbCmd(args ...string) *mockVerbCmd {
+func newMockDefaultCmd(args ...string) *mockVerbCmd {
 	flagGrouping := cmdutils.NewGrouping()
 	cmd := Command(flagGrouping)
+	cmd.SetArgs(args)
+	return &mockVerbCmd{
+		parentCmd: cmd,
+	}
+}
+
+func newMockEmptyCmd(args ...string) *mockVerbCmd {
+	cmd := cmdutils.NewVerbCmd("delete", "Delete resource(s)", "")
 	cmd.SetArgs(args)
 	return &mockVerbCmd{
 		parentCmd: cmd,

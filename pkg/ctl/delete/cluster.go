@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+
+	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/elb"
@@ -25,6 +26,12 @@ import (
 )
 
 func deleteClusterCmd(cmd *cmdutils.Cmd) {
+	deleteClusterWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
+		return doDeleteCluster(cmd)
+	})
+}
+
+func deleteClusterWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -32,7 +39,7 @@ func deleteClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDeleteCluster(cmd)
+		return runFunc(cmd)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

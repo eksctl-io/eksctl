@@ -9,9 +9,9 @@ import (
 var _ = Describe("get", func() {
 	Describe("iamidentitymapping", func() {
 
-		It("with cluster name argument", func() {
+		It("with name argument", func() {
 			count := 0
-			cmd := newMockEmptyCmd( "iamidentitymapping", "dummyName")
+			cmd := newMockEmptyCmd("iamidentitymapping", "dummyName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getIAMIdentityMappingWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, arn string) error {
 					Expect(cmd.NameArg).To(Equal("dummyName"))
@@ -26,7 +26,7 @@ var _ = Describe("get", func() {
 
 		It("with cluster name flag (--cluster)", func() {
 			count := 0
-			cmd := newMockEmptyCmd( "iamidentitymapping", "--cluster", "dummyName")
+			cmd := newMockEmptyCmd("iamidentitymapping", "--cluster", "dummyName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getIAMIdentityMappingWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, arn string) error {
 					Expect(cmd.NameArg).To(Equal(""))
@@ -42,7 +42,7 @@ var _ = Describe("get", func() {
 
 		It("with cluster name flag (--name) (deprecated)", func() {
 			count := 0
-			cmd := newMockEmptyCmd( "iamidentitymapping", "--name", "dummyName")
+			cmd := newMockEmptyCmd("iamidentitymapping", "--name", "dummyName")
 			cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
 				getIAMIdentityMappingWithRunFunc(cmd, func(cmd *cmdutils.Cmd, params *getCmdParams, arn string) error {
 					count++
@@ -56,14 +56,14 @@ var _ = Describe("get", func() {
 		})
 
 		It("cluster name argument and --cluster flag", func() {
-			cmd := newMockDefaultCmd( "iamidentitymapping", "dummyName", "--cluster", "dummyName")
+			cmd := newMockDefaultCmd("iamidentitymapping", "dummyName", "--cluster", "dummyName")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--cluster=dummyName and argument dummyName cannot be used at the same time"))
 		})
 
 		It("no cluster name argument or flag", func() {
-			cmd := newMockDefaultCmd( "iamidentitymapping")
+			cmd := newMockDefaultCmd("iamidentitymapping")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--cluster must be set"))

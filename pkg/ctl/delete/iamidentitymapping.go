@@ -11,6 +11,12 @@ import (
 )
 
 func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
+	deleteIAMIdentityMappingWithRunFunc(cmd, func(cmd *cmdutils.Cmd, arn string, all bool) error {
+		return doDeleteIAMIdentityMapping(cmd, arn, all)
+	})
+}
+
+func deleteIAMIdentityMappingWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, arn string, all bool) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -22,7 +28,7 @@ func deleteIAMIdentityMappingCmd(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("iamidentitymapping", "Delete a IAM identity mapping", "")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
-		return doDeleteIAMIdentityMapping(cmd, arn, all)
+		return runFunc(cmd, arn, all)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
