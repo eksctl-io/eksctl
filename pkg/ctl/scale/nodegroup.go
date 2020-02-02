@@ -16,7 +16,7 @@ func scaleNodeGroupCmd(cmd *cmdutils.Cmd) {
 	})
 }
 
-func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup) error ) {
+func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup) error) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -66,6 +66,10 @@ func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
 		return cmdutils.ErrMustBeSet("--name")
 	}
 
+	if ng.DesiredCapacity == nil || *ng.DesiredCapacity < 0 {
+		return fmt.Errorf("number of nodes must be 0 or greater. Use the --nodes/-N flag")
+	}
+
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
@@ -73,10 +77,6 @@ func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
 
 	if err := ctl.CheckAuth(); err != nil {
 		return err
-	}
-
-	if ng.DesiredCapacity == nil || *ng.DesiredCapacity < 0 {
-		return fmt.Errorf("number of nodes must be 0 or greater. Use the --nodes/-N flag")
 	}
 
 	stackManager := ctl.NewStackManager(cfg)
