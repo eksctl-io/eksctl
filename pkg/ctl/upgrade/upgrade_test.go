@@ -46,7 +46,7 @@ func newMockDefaultUpgradeCmd(args ...string) *mockVerbCmd {
 
 // newMockEmptyUpgradeCmd instantiates mock UPGRADE command without any resource command
 func newMockEmptyUpgradeCmd(args ...string) *mockVerbCmd {
-	cmd := cmdutils.NewVerbCmd("update", "Get resource(s)", "")
+	cmd := cmdutils.NewVerbCmd("upgrade", "Upgrade resource(s)", "")
 	cmd.SetArgs(args)
 	return &mockVerbCmd{
 		parentCmd: cmd,
