@@ -13,6 +13,12 @@ import (
 )
 
 func enableRepo(cmd *cmdutils.Cmd) {
+	enableRepoWithRunFunc(cmd, func(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error {
+		return doEnableRepository(cmd, opts)
+	})
+}
+
+func enableRepoWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, opts *flux.InstallOpts) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"repo",
@@ -22,7 +28,7 @@ func enableRepo(cmd *cmdutils.Cmd) {
 	opts := configureRepositoryCmd(cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doEnableRepository(cmd, opts)
+		return runFunc(cmd, opts)
 	}
 }
 

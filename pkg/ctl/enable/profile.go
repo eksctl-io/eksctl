@@ -37,6 +37,12 @@ func (opts ProfileOptions) Validate() error {
 }
 
 func enableProfileCmd(cmd *cmdutils.Cmd) {
+	enableProfileWithRunFunc(cmd, func(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
+		return doEnableProfile(cmd, opts)
+	})
+}
+
+func enableProfileWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, opts *ProfileOptions) error) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"profile",
@@ -46,7 +52,7 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 	opts := configureProfileCmd(cmd)
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doEnableProfile(cmd, opts)
+		return runFunc(cmd, opts)
 	}
 }
 
