@@ -17,7 +17,7 @@ nodeGroups:
     maxSize: 5
     instancesDistribution:
       maxPrice: 0.017
-      instanceTypes: ["t3.small", "t3.medium"] # At least two instance types should be specified
+      instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
       onDemandBaseCapacity: 0
       onDemandPercentageAboveBaseCapacity: 50
       spotInstancePools: 2
@@ -46,7 +46,7 @@ Here is a minimal example:
 nodeGroups:
   - name: ng-1
     instancesDistribution:
-      instanceTypes: ["t3.small", "t3.medium"] # At least two instance types should be specified
+      instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
 ```
 
 ### Parameters in instancesDistribution
