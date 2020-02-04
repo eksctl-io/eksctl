@@ -81,7 +81,7 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		"[created by eksctl]")
 
 	var nodeRole *gfn.Value
-	if !api.IsSetAndNonEmptyString(&m.nodeGroup.IAM.InstanceRoleARN) {
+	if m.nodeGroup.IAM.InstanceRoleARN == "" {
 		createRole(m.resourceSet, m.nodeGroup.IAM, true)
 		nodeRole = gfn.MakeFnGetAttString(fmt.Sprintf("%s.%s", cfnIAMInstanceRoleName, "Arn"))
 	} else {

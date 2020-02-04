@@ -96,9 +96,10 @@ func TestManagedPolicyResources(t *testing.T) {
 
 func TestManagedNodeRole(t *testing.T) {
 	nodeRoleTests := []struct {
-		description      string
-		nodeGroup        *api.ManagedNodeGroup
-		expectedNodeRole string
+		description         string
+		nodeGroup           *api.ManagedNodeGroup
+		expectedNewRole     bool
+		expectedNodeRoleARN string
 	}{
 		{
 			description: "InstanceRoleARN is not provided",
@@ -107,10 +108,10 @@ func TestManagedNodeRole(t *testing.T) {
 				SSH: &api.NodeGroupSSH{
 					Allow: api.Disabled(),
 				},
-				IAM: &api.NodeGroupIAM{
-				},
+				IAM: &api.NodeGroupIAM{},
 			},
-			expectedNodeRole: "NodeInstanceRole", // creating new role
+			expectedNewRole:     true,
+			expectedNodeRoleARN: fmt.Sprintf("\"Fn::GetAtt\":\"%s.Arn\"", cfnIAMInstanceRoleName), // creating new role
 		},
 		{
 			description: "InstanceRoleARN is provided",
@@ -123,7 +124,8 @@ func TestManagedNodeRole(t *testing.T) {
 					InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
 				},
 			},
-			expectedNodeRole: "arn::DUMMY::DUMMYROLE", // using the provided role
+			expectedNewRole:     false,
+			expectedNodeRoleARN: "arn::DUMMY::DUMMYROLE", // using the provided role
 		},
 	}
 
@@ -136,9 +138,11 @@ func TestManagedNodeRole(t *testing.T) {
 			bytes, err := stack.RenderJSON()
 			assert.NoError(t, err)
 
-			_, err = goformation.ParseJSON(bytes)
+			template, err := goformation.ParseJSON(bytes)
+			assert.Contains(t, string(bytes), tt.expectedNodeRoleARN)
 			assert.NoError(t, err)
-			assert.Contains(t, string(bytes), tt.expectedNodeRole)
+			_, ok := template.GetAllIAMRoleResources()[cfnIAMInstanceRoleName]
+			assert.Equal(t, tt.expectedNewRole, ok)
 		})
 	}
 }
