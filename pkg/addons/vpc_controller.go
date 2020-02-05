@@ -291,6 +291,9 @@ func (v *VPCController) applyDeployment(manifests []byte) error {
 
 func (v *VPCController) applyRawResource(object runtime.Object) error {
 	rawResource, err := v.rawClient.NewRawResource(object)
+	if err != nil {
+		return err
+	}
 
 	switch newObject := object.(type) {
 	case *corev1.Service:
@@ -318,10 +321,6 @@ func (v *VPCController) applyRawResource(object runtime.Object) error {
 			}
 			newObject.SetResourceVersion(mwc.GetResourceVersion())
 		}
-	}
-
-	if err != nil {
-		return err
 	}
 
 	msg, err := rawResource.CreateOrReplace(v.planMode)

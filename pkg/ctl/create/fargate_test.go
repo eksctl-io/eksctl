@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/fargate"
 )
 
 var _ = Describe("create", func() {
@@ -100,9 +99,8 @@ func newMockCreateFargateProfileCmd(args ...string) *mockCreateFargateProfileCmd
 	grouping := cmdutils.NewGrouping()
 	parentCmd := cmdutils.NewVerbCmd("create", "", "")
 	cmdutils.AddResourceCmd(grouping, parentCmd, func(cmd *cmdutils.Cmd) {
-		createFargateProfileWithRunFunc(cmd, func(cmd *cmdutils.Cmd, options *fargate.CreateOptions) error {
+		createFargateProfileWithRunFunc(cmd, func(cmd *cmdutils.Cmd) error {
 			mockCmd.cmd = cmd
-			mockCmd.options = options
 			return nil // no-op, to only test input aggregation & validation.
 		})
 	})
@@ -114,12 +112,11 @@ func newMockCreateFargateProfileCmd(args ...string) *mockCreateFargateProfileCmd
 type mockCreateFargateProfileCmd struct {
 	parentCmd *cobra.Command
 	cmd       *cmdutils.Cmd
-	options   *fargate.CreateOptions
 }
 
 func (c mockCreateFargateProfileCmd) execute() (string, error) {
 	buf := new(bytes.Buffer)
-	c.parentCmd.SetOutput(buf)
+	c.parentCmd.SetOut(buf)
 	err := c.parentCmd.Execute()
 	return buf.String(), err
 }

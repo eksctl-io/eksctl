@@ -58,7 +58,7 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 			},
 		},
 		AuthInfos: map[string]*clientcmdapi.AuthInfo{
-			contextName: &clientcmdapi.AuthInfo{},
+			contextName: {},
 		},
 		CurrentContext: contextName,
 	}

@@ -414,15 +414,15 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).To(HaveOccurred())
 			})
 
-			It("It fails when the instance distribution doesn't have at least 2 different instance types", func() {
+			It("It fails when the instance distribution doesn't have any instance type", func() {
 				ng.InstanceType = "mixed"
-				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium", "t3.medium"}
+				ng.InstancesDistribution.InstanceTypes = []string{}
 
 				err := validateInstancesDistribution(ng)
 				Expect(err).To(HaveOccurred())
 
 				ng.InstanceType = "mixed"
-				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium", "t3.small"}
+				ng.InstancesDistribution.InstanceTypes = []string{"t3.medium"}
 
 				err = validateInstancesDistribution(ng)
 				Expect(err).ToNot(HaveOccurred())
@@ -565,7 +565,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			It("returns an error when the profile's name is empty", func() {
 				profile := FargateProfile{
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{Namespace: "default"},
+						{Namespace: "default"},
 					},
 				}
 				err := profile.Validate()
@@ -596,7 +596,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				profile := FargateProfile{
 					Name: "default",
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{},
+						{},
 					},
 				}
 				err := profile.Validate()
@@ -608,7 +608,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				profile := FargateProfile{
 					Name: "eks-foo",
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{Namespace: "default"},
+						{Namespace: "default"},
 					},
 				}
 				err := profile.Validate()
@@ -620,7 +620,7 @@ var _ = Describe("ClusterConfig validation", func() {
 				profile := FargateProfile{
 					Name: "default",
 					Selectors: []FargateProfileSelector{
-						FargateProfileSelector{Namespace: "default"},
+						{Namespace: "default"},
 					},
 				}
 				err := profile.Validate()

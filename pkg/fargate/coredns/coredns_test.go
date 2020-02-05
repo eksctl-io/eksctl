@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	v1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -26,42 +26,42 @@ func TestSuite(t *testing.T) {
 
 var (
 	minimumProfileSelectingCoreDNS = []*api.FargateProfile{
-		&api.FargateProfile{
+		{
 			Name: "min-selecting-coredns",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{Namespace: "kube-system"},
+				{Namespace: "kube-system"},
 			},
 		},
 	}
 
 	multipleProfilesWithOneSelectingCoreDNS = []*api.FargateProfile{
-		&api.FargateProfile{
+		{
 			Name: "foo",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{Namespace: "foo"},
+				{Namespace: "foo"},
 			},
 		},
-		&api.FargateProfile{
+		{
 			Name: "selecting-coredns",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{Namespace: "fooo"},
-				api.FargateProfileSelector{Namespace: "kube-system"},
-				api.FargateProfileSelector{Namespace: "baar"},
+				{Namespace: "fooo"},
+				{Namespace: "kube-system"},
+				{Namespace: "baar"},
 			},
 		},
-		&api.FargateProfile{
+		{
 			Name: "bar",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{Namespace: "bar"},
+				{Namespace: "bar"},
 			},
 		},
 	}
 
 	profileNotSelectingCoreDNSBecauseOfLabels = []*api.FargateProfile{
-		&api.FargateProfile{
+		{
 			Name: "not-selecting-coredns-because-of-labels",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{
+				{
 					Namespace: "kube-system",
 					Labels: map[string]string{
 						"foo": "bar",
@@ -72,10 +72,10 @@ var (
 	}
 
 	profileNotSelectingCoreDNSBecauseOfNamespace = []*api.FargateProfile{
-		&api.FargateProfile{
+		{
 			Name: "not-selecting-coredns-because-of-namespace",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{
+				{
 					Namespace: "default",
 				},
 			},
@@ -145,13 +145,13 @@ var _ = Describe("coredns", func() {
 
 		It("should time out if coredns cannot be scheduled within the allotted time", func() {
 			failureCases := [][]runtime.Object{
-				[]runtime.Object{deployment("ec2", 2, 2), pod("ec2", v1.PodRunning), pod("ec2", v1.PodRunning)},
-				[]runtime.Object{deployment("ec2", 0, 2), pod("ec2", v1.PodPending), pod("ec2", v1.PodPending)},
-				[]runtime.Object{deployment("fargate", 0, 2), pod("fargate", v1.PodPending), pod("fargate", v1.PodPending)},
-				[]runtime.Object{deployment("fargate", 0, 2), pod("fargate", v1.PodFailed), pod("fargate", v1.PodFailed)},
-				[]runtime.Object{deployment("fargate", 0, 2), pod("fargate", v1.PodPending), pod("fargate", v1.PodFailed)},
-				[]runtime.Object{deployment("fargate", 1, 2), pod("fargate", v1.PodRunning), pod("fargate", v1.PodPending)},
-				[]runtime.Object{deployment("fargate", 1, 2), pod("fargate", v1.PodRunning), pod("fargate", v1.PodFailed)},
+				{deployment("ec2", 2, 2), pod("ec2", v1.PodRunning), pod("ec2", v1.PodRunning)},
+				{deployment("ec2", 0, 2), pod("ec2", v1.PodPending), pod("ec2", v1.PodPending)},
+				{deployment("fargate", 0, 2), pod("fargate", v1.PodPending), pod("fargate", v1.PodPending)},
+				{deployment("fargate", 0, 2), pod("fargate", v1.PodFailed), pod("fargate", v1.PodFailed)},
+				{deployment("fargate", 0, 2), pod("fargate", v1.PodPending), pod("fargate", v1.PodFailed)},
+				{deployment("fargate", 1, 2), pod("fargate", v1.PodRunning), pod("fargate", v1.PodPending)},
+				{deployment("fargate", 1, 2), pod("fargate", v1.PodRunning), pod("fargate", v1.PodFailed)},
 			}
 			for _, failureCase := range failureCases {
 				// Given:
