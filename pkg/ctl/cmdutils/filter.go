@@ -59,7 +59,7 @@ func (f *Filter) hasIncludeRules() bool {
 
 func (f *Filter) describeIncludeRules() string {
 	rules := append(f.includeNames.List(), f.rawIncludeGlobs...)
-	return fmt.Sprintf("%s", strings.Join(rules, ","))
+	return strings.Join(rules, ",")
 }
 
 func (f *Filter) hasExcludeRules() bool {
@@ -68,7 +68,7 @@ func (f *Filter) hasExcludeRules() bool {
 
 func (f *Filter) describeExcludeRules() string {
 	rules := append(f.excludeNames.List(), f.rawExcludeGlobs...)
-	return fmt.Sprintf("%s", strings.Join(rules, ","))
+	return strings.Join(rules, ",")
 }
 
 // Match given name against the filter and returns

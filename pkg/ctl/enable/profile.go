@@ -94,6 +94,9 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		return err
 	}
 	usersRepoDir, err := ioutil.TempDir("", usersRepoName+"-")
+	if err != nil {
+		return err
+	}
 	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", usersRepoDir)
 	profileOutputPath := filepath.Join(usersRepoDir, "base")
 

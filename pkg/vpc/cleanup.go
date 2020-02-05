@@ -75,6 +75,8 @@ func CleanupNetworkInterfaces(ec2API ec2iface.EC2API, spec *api.ClusterConfig) e
 			return errors.Wrapf(err, "unable to delete network interface %q", eniID)
 		}
 		logger.Debug("deleted network interface %q", eniID)
+		// why we are removing only the first eni id
+		// nolint:staticcheck
 		return nil
 	}
 	return nil
