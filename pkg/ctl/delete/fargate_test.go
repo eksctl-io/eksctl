@@ -2,19 +2,12 @@ package delete
 
 import (
 	"bytes"
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/fargate"
-	"github.com/weaveworks/eksctl/pkg/testutils"
 )
-
-func TestSuite(t *testing.T) {
-	testutils.RegisterAndRun(t)
-}
 
 var _ = Describe("delete", func() {
 	Describe("delete fargateprofile", func() {
