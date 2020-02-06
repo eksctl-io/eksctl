@@ -18,6 +18,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateCoreDNSCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableLoggingCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, associateIAMOIDCProviderCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, deleteIAMOIDCProviderCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, installWindowsVPCController)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterEndpointsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, publicAccessCIDRsCmd)
