@@ -79,6 +79,10 @@ ClusterIAM:
       type: string
     fargatePodExecutionRolePermissionsBoundary:
       type: string
+    oidcClientIdList:
+      items:
+        type: string
+      type: array
     serviceAccounts:
       items:
         $ref: '#/definitions/ClusterIAMServiceAccount'

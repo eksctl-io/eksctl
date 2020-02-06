@@ -22,6 +22,9 @@ func associateIAMOIDCProviderCmd(cmd *cmdutils.Cmd) {
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
+
+		fs.StringSliceVar(&cfg.IAM.OIDCClientIDList, "oidc-client-id-list", []string{}, "List of Client ID for OIDC provider (audience)")
+
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
