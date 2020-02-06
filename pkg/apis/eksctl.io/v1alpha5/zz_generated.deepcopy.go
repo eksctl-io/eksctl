@@ -242,6 +242,11 @@ func (in *ClusterIAM) DeepCopyInto(out *ClusterIAM) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.OIDCClientIDList != nil {
+		in, out := &in.OIDCClientIDList, &out.OIDCClientIDList
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.ServiceAccounts != nil {
 		in, out := &in.ServiceAccounts, &out.ServiceAccounts
 		*out = make([]*ClusterIAMServiceAccount, len(*in))
