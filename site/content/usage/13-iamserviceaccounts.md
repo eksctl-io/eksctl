@@ -83,7 +83,7 @@ metadata:
 
 iam:
   withOIDC: true
-  # override default value `sts.amazonaws.com` if needed
+  # override default value "sts.amazonaws.com" if needed
   oidcClientIDList:
   - sts.us-east-1.amazonaws.com
   - sts.eu-west-1.amazonaws.com

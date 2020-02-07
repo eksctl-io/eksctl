@@ -49,6 +49,10 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer string, a
 		issuerURL.Host += ":443"
 	}
 
+	if len(audience) == 0 {
+		audience = []string{defaultAudience}
+	}
+
 	m := &OpenIDConnectManager{
 		iam:       iamapi,
 		accountID: accountID,
@@ -85,14 +89,8 @@ func (m *OpenIDConnectManager) CreateProvider() error {
 	if err := m.getIssuerCAThumbprint(); err != nil {
 		return err
 	}
-	var clientIDList []*string
-	if len(m.Audience) > 0 {
-		clientIDList = aws.StringSlice(m.Audience)
-	} else {
-		clientIDList = aws.StringSlice([]string{defaultAudience})
-	}
 	input := &awsiam.CreateOpenIDConnectProviderInput{
-		ClientIDList:   clientIDList,
+		ClientIDList:   aws.StringSlice(m.Audience),
 		ThumbprintList: []*string{&m.issuerCAThumbprint},
 		// It has no name or tags, it's keyed to the URL
 		Url: aws.String(m.issuerURL.String()),
