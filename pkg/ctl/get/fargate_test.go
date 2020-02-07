@@ -6,13 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/testutils"
-	"testing"
 )
-
-func TestSuite(t *testing.T) {
-	testutils.RegisterAndRun(t)
-}
 
 var _ = Describe("get", func() {
 	Describe("get fargateprofile", func() {
