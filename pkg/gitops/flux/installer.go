@@ -308,7 +308,6 @@ func getFluxManifests(opts *InstallOpts, cs kubeclient.Interface) (map[string][]
 		GitUser:            opts.GitOptions.User,
 		GitEmail:           opts.GitOptions.Email,
 		GitReadOnly:        false,
-		RegistryScanning:   true,
 		Namespace:          opts.Namespace,
 		ManifestGeneration: true,
 		AdditionalFluxArgs: []string{"--sync-garbage-collection"},
