@@ -130,7 +130,7 @@ func (m *runCmdMatcher) run(cmd Cmd) bool {
 	return false
 }
 
-// RunSuccessfully matches successful excution of a command
+// RunSuccessfully matches successful execution of a command
 func RunSuccessfully() types.GomegaMatcher {
 	return &runCmdMatcher{}
 }

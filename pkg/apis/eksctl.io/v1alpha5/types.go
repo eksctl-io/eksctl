@@ -802,7 +802,7 @@ func HasMixedInstances(ng *NodeGroup) bool {
 	return ng.InstancesDistribution != nil && len(ng.InstancesDistribution.InstanceTypes) > 0
 }
 
-// IsAMI returns true if the argument is an AMI id
+// IsAMI returns true if the argument is an AMI ID
 func IsAMI(amiFlag string) bool {
 	return strings.HasPrefix(amiFlag, "ami-")
 }
