@@ -87,7 +87,7 @@ func (m *OpenIDConnectManager) CreateProvider() error {
 	}
 	var clientIDList []*string
 	if len(m.Audience) > 0 {
-		aws.StringSlice(m.Audience)
+		clientIDList = aws.StringSlice(m.Audience)
 	} else {
 		clientIDList = aws.StringSlice([]string{defaultAudience})
 	}
