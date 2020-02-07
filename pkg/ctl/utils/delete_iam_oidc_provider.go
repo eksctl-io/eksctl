@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -34,10 +36,6 @@ func deleteIAMOIDCProviderCmd(cmd *cmdutils.Cmd) {
 }
 
 func doDeleteIAMOIDCProvider(cmd *cmdutils.Cmd) error {
-	if err := cmdutils.NewUtilsDeleteIAMOIDCProviderLoader(cmd).Load(); err != nil {
-		return err
-	}
-
 	cfg := cmd.ClusterConfig
 	meta := cmd.ClusterConfig.Metadata
 
@@ -72,6 +70,19 @@ func doDeleteIAMOIDCProvider(cmd *cmdutils.Cmd) error {
 	}
 
 	if providerExists {
+
+		stackManager := ctl.NewStackManager(cfg)
+
+		existing, err := stackManager.ListIAMServiceAccountStacks()
+		if err != nil {
+			return err
+		}
+
+		if len(existing) > 0 {
+			logger.Warning("found existing iamserviceaccount(s); can't delete IAM OIDC provider associated with cluster %q in %q", meta.Name, meta.Region)
+			return errors.New("unable to delete IAM OIDC provider with existing iamserviceaccount(s)")
+		}
+
 		cmdutils.LogIntendedAction(cmd.Plan, "delete IAM Open ID Connect provider for cluster %q in %q", meta.Name, meta.Region)
 		if !cmd.Plan {
 			if err := oidc.DeleteProvider(); err != nil {

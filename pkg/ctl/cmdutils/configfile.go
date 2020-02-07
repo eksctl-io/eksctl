@@ -453,32 +453,6 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-// NewUtilsDeleteIAMOIDCProviderLoader will load config or use flags for 'eksctl utils delete-iam-oidc-provider'
-func NewUtilsDeleteIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
-	l := newCommonClusterConfigLoader(cmd)
-
-	l.validateWithoutConfigFile = func() error {
-		l.ClusterConfig.IAM.WithOIDC = api.Disabled()
-		return l.validateMetadataWithoutConfigFile()
-	}
-
-	l.validateWithConfigFile = func() error {
-		if api.IsEnabled(l.ClusterConfig.IAM.WithOIDC) {
-			return fmt.Errorf("'iam.withOIDC' is enabled in %q", l.ClusterConfigFile)
-		}
-		return nil
-	}
-
-	l.validateWithConfigFile = func() error {
-		if len(l.ClusterConfig.IAM.ServiceAccounts) > 0 {
-			return fmt.Errorf("'iam.serviceAccounts' is configured in %q", l.ClusterConfigFile)
-		}
-		return nil
-	}
-
-	return l
-}
-
 // NewUtilsPublicAccessCIDRsLoader loads config or uses flags for `eksctl utils set-public-access-cidrs <cidrs>`
 func NewUtilsPublicAccessCIDRsLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)

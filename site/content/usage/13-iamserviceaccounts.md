@@ -59,6 +59,11 @@ If you have service account already created in the cluster (without an IAM Role)
 
 Currently, to update a role you will need to re-create, run `eksctl delete iamserviceaccount` followed by `eksctl create iamserviceaccount` to achieve that.
 
+To delete the IAM OIDC Provider, run:
+```console
+eksctl utils delete-iam-oidc-provider --cluster=<clusterName>
+```
+
 ### Usage with config files
 
 To manage `iamserviceaccounts` using config file, you will be looking to set `iam.withOIDC: true` and list account you want under `iam.serviceAccount`.
