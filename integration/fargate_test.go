@@ -137,6 +137,23 @@ var _ = Describe("(Integration) Fargate", func() {
 		})
 	})
 
+	Context("Creating a cluster with --fargate and --managed", func() {
+		ft := &fargateTest{}
+
+		BeforeEach(func() {
+			setup(ft, "--fargate", "--managed")
+		})
+
+		It("should support Fargate", func() {
+			assertFargateDefaultProfile(ft.clusterName, ft.kubeTest)
+			assertFargateNewProfile(ft.clusterName, ft.kubeTest)
+		})
+
+		AfterEach(func() {
+			deleteCluster(ft.clusterName)
+		})
+	})
+
 	Context("Creating a cluster without --fargate", func() {
 		ft := &fargateTest{}
 
