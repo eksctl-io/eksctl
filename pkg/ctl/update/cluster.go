@@ -132,7 +132,7 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && (stackUpdateRequired || versionUpdateRequired))
+	cmdutils.LogPlanModeWarning(cmd.Plan)
 
 	return nil
 }
