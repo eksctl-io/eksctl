@@ -2,15 +2,12 @@ package flux
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
-	fluxapi "github.com/fluxcd/flux/pkg/api/v6"
-	transport "github.com/fluxcd/flux/pkg/http"
-	"github.com/fluxcd/flux/pkg/http/client"
-	"github.com/fluxcd/flux/pkg/ssh"
 	portforward "github.com/justinbarrick/go-k8s-portforward"
 	"github.com/kris-nova/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,20 +15,43 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+type PublicKey struct {
+	Key string `json:"key"`
+}
+
 func waitForFluxToStart(ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
-	cs kubeclient.Interface) (ssh.PublicKey, error) {
-	var fluxGitConfig fluxapi.GitConfig
+	cs kubeclient.Interface) (PublicKey, error) {
+	var deployKey PublicKey
 	try := func(rootURL string) error {
-		fluxURL := rootURL + "api/flux"
-		fluxClient := client.New(http.DefaultClient, transport.NewAPIRouter(), fluxURL, "")
+		fluxURL := rootURL + "api/flux/v6/identity.pub"
+		req, reqErr := http.NewRequest("GET", fluxURL, nil)
+		if reqErr != nil {
+			return fmt.Errorf("failed to create request: %s", reqErr)
+		}
 		repoCtx, repoCtxCancel := context.WithTimeout(ctx, timeout)
 		defer repoCtxCancel()
-		var err error
-		fluxGitConfig, err = fluxClient.GitRepoConfig(repoCtx, false)
-		return err
+		req = req.WithContext(repoCtx)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("failed to query Flux API: %s", err)
+		}
+		if resp.Body == nil {
+			return fmt.Errorf("failed to fetch Flux deploy key from: %s", fluxURL)
+		}
+		defer resp.Body.Close()
+
+		jsonErr := json.NewDecoder(resp.Body).Decode(&deployKey)
+		if jsonErr != nil {
+			return fmt.Errorf("failed to decode Flux API response: %s", jsonErr)
+		}
+
+		if deployKey.Key == "" {
+			return fmt.Errorf("failed to fetch Flux deploy key from: %s", fluxURL)
+		}
+		return nil
 	}
 	err := waitForPodToStart(namespace, "flux", 3030, "Flux", restConfig, cs, try)
-	return fluxGitConfig.PublicSSHKey, err
+	return deployKey, err
 }
 
 func waitForHelmOpToStart(ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
