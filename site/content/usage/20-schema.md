@@ -347,6 +347,10 @@ NodeGroup:
     iam:
       $ref: '#/definitions/NodeGroupIAM'
       $schema: http://json-schema.org/draft-04/schema#
+    instanceName:
+      type: string
+    instancePrefix:
+      type: string
     instanceType:
       type: string
     instancesDistribution:
