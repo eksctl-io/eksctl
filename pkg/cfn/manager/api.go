@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/weaveworks/eksctl/pkg/version"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -53,6 +55,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
+		newTag(api.EksctlVersionTag, version.GetVersion()),
 	}
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
@@ -241,7 +244,7 @@ func (c *StackCollection) ListStacks(statusFilters ...string) ([]*Stack, error) 
 	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name))
 }
 
-// StackStatusIsNotTransitional will return true when stack statate is non-transitional
+// StackStatusIsNotTransitional will return true when stack status is non-transitional
 func (*StackCollection) StackStatusIsNotTransitional(s *Stack) bool {
 	for _, state := range nonTransitionalReadyStackStatuses() {
 		if *s.StackStatus == state {
@@ -460,7 +463,7 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 		return true
 	}
 	if err := c.provider.CloudTrail().LookupEventsPages(input, pager); err != nil {
-		return nil, errors.Wrapf(err, "looking up CloduTrail events for stack %q", *i.StackName)
+		return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
 	}
 
 	return events, nil
@@ -472,6 +475,9 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
+		Tags: []*cloudformation.Tag{
+			newTag(api.EksctlVersionTag, version.GetVersion()),
+		},
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
