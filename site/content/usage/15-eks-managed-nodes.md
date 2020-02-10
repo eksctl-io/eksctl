@@ -178,7 +178,7 @@ The unsupported options are noted below.
 - No support for private networking (`nodeGroups[*].privateNetworking`).
 - Tags (`managedNodeGroups[*].tags`) in managed nodegroups apply to the EKS Nodegroup resource and do not propagate to
 the provisioned Autoscaling Group like in unmanaged nodegroups.
-- `iam.instanceProfileARN` and `iam.instanceRoleARN` are not supported for managed nodegroups.
+- `iam.instanceProfileARN` is not supported for managed nodegroups.
 - The `amiFamily` field supports only `AmazonLinux2`
 - `instancesDistribution` field is not supported
 - `volumeSize` is the only field supported for configuring volumes
