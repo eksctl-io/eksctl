@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/kris-nova/logger"
@@ -58,6 +59,7 @@ func main() {
 	flagGrouping := cmdutils.NewGrouping()
 
 	addCommands(rootCmd, flagGrouping)
+	checkCommand(rootCmd)
 
 	rootCmd.PersistentFlags().BoolP("help", "h", false, "help for this command")
 	rootCmd.PersistentFlags().IntVarP(&logger.Level, "verbose", "v", 3, "set log level, use 0 to silence, 4 for debugging and 5 for debugging with AWS debug logging")
@@ -76,5 +78,28 @@ func main() {
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
+	}
+}
+
+func checkCommand(rootCmd *cobra.Command) {
+	for _, cmd := range rootCmd.Commands() {
+		// just a precaution as the verb command didn't have runE
+		if cmd.RunE != nil {
+			continue
+		}
+		cmd.RunE = func(c *cobra.Command, args []string) error {
+			var e error
+			if len(args) == 0 {
+				e = fmt.Errorf("please provide a valid resource for \"%s\"", c.Name())
+			} else {
+				e = fmt.Errorf("unknown resource type \"%s\"", args[0])
+			}
+			fmt.Printf("Error: %s\n\n", e.Error())
+
+			if err := c.Help(); err != nil {
+				logger.Debug("ignoring cobra error %q", err.Error())
+			}
+			return e
+		}
 	}
 }

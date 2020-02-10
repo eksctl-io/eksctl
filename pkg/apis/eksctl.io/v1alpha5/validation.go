@@ -354,10 +354,6 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 		if ng.IAM.InstanceProfileARN != "" {
 			return errNotSupported("instanceProfileARN")
 		}
-
-		if ng.IAM.InstanceRoleARN != "" {
-			return errNotSupported("instanceRoleARN")
-		}
 	}
 
 	// TODO fix error messages to not use CLI flags
@@ -410,8 +406,8 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 		allInstanceTypes[instanceType] = true
 	}
 
-	if len(allInstanceTypes) < 2 || len(allInstanceTypes) > 20 {
-		return fmt.Errorf("mixed nodegroups should have between 2 and 20 different instance types")
+	if len(allInstanceTypes) < 1 || len(allInstanceTypes) > 20 {
+		return fmt.Errorf("mixed nodegroups should have between 1 and 20 different instance types")
 	}
 
 	if distribution.OnDemandBaseCapacity != nil && *distribution.OnDemandBaseCapacity < 0 {
