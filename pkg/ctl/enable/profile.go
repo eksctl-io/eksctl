@@ -95,7 +95,7 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 	}
 	usersRepoDir, err := ioutil.TempDir("", usersRepoName+"-")
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "unable to create temporary directory for %q", usersRepoName)
 	}
 	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", usersRepoDir)
 	profileOutputPath := filepath.Join(usersRepoDir, "base")
