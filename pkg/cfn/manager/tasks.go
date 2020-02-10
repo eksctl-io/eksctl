@@ -247,13 +247,29 @@ type kubernetesTask struct {
 func (t *kubernetesTask) Describe() string { return t.info }
 func (t *kubernetesTask) Do(errs chan error) error {
 	if t.kubernetes == nil {
-		return fmt.Errorf("cannot start task %q as Kubernetes client configurtaion wasn't provided", t.Describe())
+		return fmt.Errorf("cannot start task %q as Kubernetes client configuration wasn't provided", t.Describe())
 	}
 	clientSet, err := t.kubernetes.ClientSet()
 	if err != nil {
 		return err
 	}
 	err = t.call(clientSet)
+	close(errs)
+	return err
+}
+
+type authConfigMapTask struct {
+	info      string
+	clientSet kubernetes.Interface
+	call      func(k kubernetes.Interface) error
+}
+
+func (t *authConfigMapTask) Describe() string { return t.info }
+func (t *authConfigMapTask) Do(errs chan error) error {
+	if t.clientSet == nil {
+		return fmt.Errorf("cannot start task %q as Kubernetes clientset wasn't provided", t.Describe())
+	}
+	err := t.call(t.clientSet)
 	close(errs)
 	return err
 }

@@ -360,7 +360,6 @@ func (c *StackCollection) DeleteStackBySpec(s *Stack) (*Stack, error) {
 			if cfnRole := c.provider.CloudFormationRoleARN(); cfnRole != "" {
 				input = input.SetRoleARN(cfnRole)
 			}
-
 			if _, err := c.provider.CloudFormation().DeleteStack(input); err != nil {
 				return nil, errors.Wrapf(err, "not able to delete stack %q", *s.StackName)
 			}

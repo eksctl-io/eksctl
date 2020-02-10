@@ -8,7 +8,6 @@ package authconfigmap
 
 import (
 	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -182,6 +181,7 @@ func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
 	if !all {
 		return fmt.Errorf("instance identity ARN %q not found in auth ConfigMap", arnToDelete)
 	}
+
 	return a.setIdentities(newidentities)
 }
 
@@ -244,7 +244,6 @@ func (a *AuthConfigMap) Save() (err error) {
 		a.cm, err = a.client.Create(a.cm)
 		return err
 	}
-
 	a.cm, err = a.client.Update(a.cm)
 	return err
 }
@@ -299,5 +298,22 @@ func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return errors.Wrap(err, "updating auth ConfigMap after removing role")
 	}
 	logger.Debug("updated auth ConfigMap for %s", ng.Name)
+	return nil
+}
+
+// RemoveARNIdentity removes an ARN identity from the ConfigMap and
+// does a client update.
+func RemoveARNIdentity(clientSet kubernetes.Interface, arnToDelete string, all bool) error {
+	acm, err := NewFromClientSet(clientSet)
+	if err != nil {
+		return err
+	}
+	if err := acm.RemoveIdentity(arnToDelete, all); err != nil {
+		return errors.Wrap(err, "removing identity from auth ConfigMap")
+	}
+	if err := acm.Save(); err != nil {
+		return errors.Wrap(err, "updating auth ConfigMap after removing role")
+	}
+	logger.Debug("updated auth ConfigMap for %s", arnToDelete)
 	return nil
 }

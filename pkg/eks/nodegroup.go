@@ -206,7 +206,11 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 	if err != nil {
 		return err
 	}
+	return c.GetNodeGroupIAMFromCFNDescriptions(stackManager, spec, ng, stacks)
+}
 
+// GetNodeGroupIAMFromCFNDescriptions retrieves the IAM configuration of the given nodegroup from a list of cloudformation stack descriptions
+func (c *ClusterProvider) GetNodeGroupIAMFromCFNDescriptions(stackManager *manager.StackCollection, spec *api.ClusterConfig, ng *api.NodeGroup, stacks []*manager.Stack) error {
 	for _, s := range stacks {
 		if stackManager.GetNodeGroupName(s) == ng.Name {
 			if !stackManager.StackStatusIsNotTransitional(s) {
@@ -217,4 +221,27 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 	}
 
 	return fmt.Errorf("stack not found for nodegroup %q", ng.Name)
+}
+
+// GetManagedNodeGroupIAM retrieves the IAM configuration of the given nodegroup
+func (c *ClusterProvider) GetManagedNodeGroupIAM(stackManager *manager.StackCollection, spec *api.ClusterConfig, mng *api.ManagedNodeGroup) error {
+	stacks, err := stackManager.DescribeNodeGroupStacks()
+	if err != nil {
+		return err
+	}
+	return c.GetManagedNodeGroupIAMFromCFNDescriptions(stackManager, spec, mng, stacks)
+}
+
+// GetManagedNodeGroupIAMFromCFNDescriptions retrieves the IAM configuration of the given nodegroup list of cloudformation stack descriptions
+func (c *ClusterProvider) GetManagedNodeGroupIAMFromCFNDescriptions(stackManager *manager.StackCollection, spec *api.ClusterConfig, mng *api.ManagedNodeGroup, stacks []*manager.Stack) error {
+	for _, s := range stacks {
+		if stackManager.GetNodeGroupName(s) == mng.Name {
+			if !stackManager.StackStatusIsNotTransitional(s) {
+				return fmt.Errorf("managed nodegroup %q is in transitional state (%q)", mng.Name, *s.StackStatus)
+			}
+			return iam.UseFromManagedNodeGroup(c.Provider, s, mng)
+		}
+	}
+
+	return fmt.Errorf("stack not found for managed nodegroup %q", mng.Name)
 }

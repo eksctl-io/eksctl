@@ -102,6 +102,11 @@ func (c *StackCollection) ListNodeGroupStacks() ([]NodeGroupStack, error) {
 	if err != nil {
 		return nil, err
 	}
+	return c.ListNodeGroupStacksFromDescriptions(stacks)
+}
+
+// ListNodeGroupStacksFromDescriptions returns a list of NodeGroupStacks when passed in an existing list of stack descriptions
+func (c *StackCollection) ListNodeGroupStacksFromDescriptions(stacks []*Stack) ([]NodeGroupStack, error) {
 	var nodeGroupStacks []NodeGroupStack
 	for _, stack := range stacks {
 		nodeGroupType, err := GetNodeGroupType(stack.Tags)
@@ -231,7 +236,11 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
+	return c.GetNodeGroupStacksFromCFNDescriptions(name, stacks)
+}
 
+// GetNodeGroupStacksFromCFNDescriptions returns a list of summaries for the nodegroups of a cluster when passed in a list of cloudformation stack descriptions
+func (c *StackCollection) GetNodeGroupStacksFromCFNDescriptions(name string, stacks []*Stack) ([]*NodeGroupSummary, error) {
 	var summaries []*NodeGroupSummary
 	for _, s := range stacks {
 		ngPaths, err := getNodeGroupPaths(s.Tags)
@@ -350,7 +359,6 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 	desired := gjson.Get(template, ngPaths.DesiredCapacity)
 	instanceType := gjson.Get(template, ngPaths.InstanceType)
 	imageID := gjson.Get(template, imageIDPath)
-
 	nodeGroupType, err := GetNodeGroupType(stack.Tags)
 	if err != nil {
 		return nil, err

@@ -5,11 +5,14 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/fake"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	. "github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/iam"
 )
@@ -501,6 +504,91 @@ var _ = Describe("AuthConfigMap{}", func() {
 		It("should fail if account not found", func() {
 			err := acm.RemoveAccount(accountA)
 			Expect(err).To(HaveOccurred())
+		})
+	})
+	Describe("RemoveNodeGroup()", func() {
+		clientSet := fake.NewSimpleClientset()
+		var ng *api.NodeGroup
+
+		It("should add nodegroup to the auth configmap", func() {
+			ng = api.NewNodeGroup()
+			ng.Name = "RoleANodeGroup"
+			ng.IAM.InstanceRoleARN = roleA
+
+			err := AddNodeGroup(clientSet, ng)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should list identity in auth configmap", func() {
+			cm, err := clientSet.CoreV1().ConfigMaps(ObjectNamespace).Get(ObjectName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(makeExpectedRole(roleA, RoleNodeGroupGroups)))
+
+			// we have to add a UID since the fake clientset doesnt create one on the configmap
+			cm.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
+			_, err = clientSet.CoreV1().ConfigMaps(ObjectNamespace).Update(cm)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should remove role identity from auth configmap", func() {
+			err := RemoveNodeGroup(clientSet, ng)
+			Expect(err).NotTo(HaveOccurred())
+
+			cm, err := clientSet.CoreV1().ConfigMaps(ObjectNamespace).Get(ObjectName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data["mapRoles"]).To(Equal("[]\n"))
+		})
+	})
+	Describe("RemoveARNIdentity()", func() {
+		clientSet := fake.NewSimpleClientset()
+
+		It("should add nodegroup to the auth configmap", func() {
+			ng := api.NewNodeGroup()
+			ng.Name = "RoleANodeGroup"
+			ng.IAM.InstanceRoleARN = roleA
+
+			err := AddNodeGroup(clientSet, ng)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should list identity in auth configmap", func() {
+			cm, err := clientSet.CoreV1().ConfigMaps(ObjectNamespace).Get(ObjectName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data["mapRoles"]).To(MatchYAML(makeExpectedRole(roleA, RoleNodeGroupGroups)))
+
+			// we have to add a UID since the fake clientset doesnt create one on the configmap
+			cm.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
+			_, err = clientSet.CoreV1().ConfigMaps(ObjectNamespace).Update(cm)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should remove role identity from auth configmap", func() {
+			err := RemoveARNIdentity(clientSet, roleA, false)
+			Expect(err).NotTo(HaveOccurred())
+
+			cm, err := clientSet.CoreV1().ConfigMaps(ObjectNamespace).Get(ObjectName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data["mapRoles"]).To(Equal("[]\n"))
+		})
+
+		It("should remove all of a specific role identity from auth configmap", func() {
+			ng1 := api.NewNodeGroup()
+			ng1.Name = "NG1"
+			ng1.IAM.InstanceRoleARN = roleA
+			err := AddNodeGroup(clientSet, ng1)
+			Expect(err).NotTo(HaveOccurred())
+			ng2 := api.NewNodeGroup()
+			ng2.Name = "NG2"
+			ng2.IAM.InstanceRoleARN = roleA
+			err = AddNodeGroup(clientSet, ng2)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = RemoveARNIdentity(clientSet, roleA, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			cm, err := clientSet.CoreV1().ConfigMaps(ObjectNamespace).Get(ObjectName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data["mapRoles"]).To(Equal("[]\n"))
 		})
 	})
 })

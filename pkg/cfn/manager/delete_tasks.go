@@ -2,10 +2,9 @@ package manager
 
 import (
 	"fmt"
-
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
@@ -67,7 +66,11 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 	if err != nil {
 		return nil, err
 	}
+	return c.NewTasksToDeleteNodeGroupsFromCFNDescriptions(shouldDelete, wait, cleanup, nodeGroupStacks)
+}
 
+// NewTasksToDeleteNodeGroupsFromCFNDescriptions defines tasks required to delete all of the nodegroups from a list of cloudformation stack descriptions
+func (c *StackCollection) NewTasksToDeleteNodeGroupsFromCFNDescriptions(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error, nodeGroupStacks []*Stack) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: true}
 
 	for _, s := range nodeGroupStacks {
@@ -177,6 +180,33 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(s
 			},
 		})
 		tasks.Append(saTasks)
+	}
+
+	return tasks, nil
+}
+
+// NewTasksToDeleteIdentityRoleARNFromAuthConfigMap defines tasks required to delete identity role ARNs from the auth configmap
+// node groups in the cluster config must already be populated with IAM role ARNs
+func (c *StackCollection) NewTasksToDeleteIdentityRoleARNFromAuthConfigMap(cfgMarkedForDeletion *api.ClusterConfig, clientSet kubernetes.Interface) (*TaskTree, error) {
+	tasks := &TaskTree{Parallel: false}
+
+	for _, n := range cfgMarkedForDeletion.NodeGroups {
+		tasks.Append(&authConfigMapTask{
+			info:      fmt.Sprintf("remove identity role arn %q from auth configmap", n.IAM.InstanceRoleARN),
+			clientSet: clientSet,
+			call: func(clientSet kubernetes.Interface) error {
+				return authconfigmap.RemoveARNIdentity(clientSet, n.IAM.InstanceRoleARN, false)
+			},
+		})
+	}
+	for _, n := range cfgMarkedForDeletion.ManagedNodeGroups {
+		tasks.Append(&authConfigMapTask{
+			info:      fmt.Sprintf("remove identity role arn %q from auth configmap", n.IAM.InstanceRoleARN),
+			clientSet: clientSet,
+			call: func(clientSet kubernetes.Interface) error {
+				return authconfigmap.RemoveARNIdentity(clientSet, n.IAM.InstanceRoleARN, false)
+			},
+		})
 	}
 
 	return tasks, nil

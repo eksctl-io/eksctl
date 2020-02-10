@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
@@ -694,6 +695,26 @@ var _ = Describe("StackCollection Tasks", func() {
 				{
 					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"), true)
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "foo", create managed nodegroup "m1" } }`))
+				}
+				// delete tasks
+				{
+					cfg := &api.ClusterConfig{
+						NodeGroups: []*api.NodeGroup{
+							{IAM: &api.NodeGroupIAM{InstanceRoleARN: "role1arn"}},
+						},
+					}
+					tasks, _ := stackManager.NewTasksToDeleteIdentityRoleARNFromAuthConfigMap(cfg, nil)
+					Expect(tasks.Describe()).To(Equal(`1 task: { remove identity role arn "role1arn" from auth configmap }`))
+				}
+				{
+					cfg := &api.ClusterConfig{
+						NodeGroups: []*api.NodeGroup{
+							{IAM: &api.NodeGroupIAM{InstanceRoleARN: "role1arn"}},
+							{IAM: &api.NodeGroupIAM{InstanceRoleARN: "role2arn"}},
+						},
+					}
+					tasks, _ := stackManager.NewTasksToDeleteIdentityRoleARNFromAuthConfigMap(cfg, nil)
+					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { remove identity role arn "role1arn" from auth configmap, remove identity role arn "role2arn" from auth configmap }`))
 				}
 			})
 		})

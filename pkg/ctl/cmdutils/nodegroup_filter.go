@@ -69,7 +69,12 @@ func (f *NodeGroupFilter) SetIncludeOrExcludeMissingFilter(lister stackLister, i
 	if err != nil {
 		return err
 	}
+	return f.SetIncludeOrExcludeMissingStackFilter(stacks, includeOnlyMissing, clusterConfig)
+}
 
+// SetIncludeOrExcludeMissingStackFilter uses a list of existing nodegroup stacks and configures
+// the filter to either explicitly exclude or include nodegroups that are missing from given nodeGroups
+func (f *NodeGroupFilter) SetIncludeOrExcludeMissingStackFilter(stacks []manager.NodeGroupStack, includeOnlyMissing bool, clusterConfig *api.ClusterConfig) error {
 	local := sets.NewString()
 
 	for _, localNodeGroup := range getAllNodeGroupNames(clusterConfig) {

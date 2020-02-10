@@ -4,11 +4,13 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/drain"
+	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -33,7 +35,7 @@ func deleteNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddApproveFlag(fs, cmd)
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
 		fs.BoolVar(&onlyMissing, "only-missing", false, "Only delete nodegroups that are not defined in the given config file")
-		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddUpdateAuthConfigMap(fs, &updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap when appropriate after stack deletion; requires 'wait' to be set")
 		fs.BoolVar(&deleteNodeGroupDrain, "drain", true, "Drain and cordon all nodes in the nodegroup before deletion")
 
 		cmd.Wait = false
@@ -74,16 +76,32 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	stackManager := ctl.NewStackManager(cfg)
 
+	descriptions, err := stackManager.DescribeNodeGroupStacks()
+	stacks, err := stackManager.ListNodeGroupStacksFromDescriptions(descriptions)
+	if err != nil {
+		return err
+	}
+
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
-		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, cfg); err != nil {
+		if err := ngFilter.SetIncludeOrExcludeMissingStackFilter(stacks, onlyMissing, cfg); err != nil {
 			return err
 		}
 	} else {
-		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
-		if err != nil {
-			return err
+		var nodeGroupType api.NodeGroupType
+		for _, s := range stacks {
+			if s.NodeGroupName == ng.Name {
+				nodeGroupType = s.Type
+				break
+			}
 		}
+		if nodeGroupType == "" {
+			nodeGroupType, err = stackManager.GetNodeGroupStackType(ng.Name)
+			if err != nil {
+				return err
+			}
+		}
+
 		switch nodeGroupType {
 		case api.NodeGroupTypeUnmanaged:
 			cfg.NodeGroups = []*api.NodeGroup{ng}
@@ -99,23 +117,6 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
 
 	logFiltered()
-
-	if updateAuthConfigMap {
-		cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from auth ConfigMap in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-		if !cmd.Plan {
-			for _, ng := range cfg.NodeGroups {
-				if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
-					if err := ctl.GetNodeGroupIAM(stackManager, cfg, ng); err != nil {
-						logger.Warning("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
-						return nil
-					}
-				}
-				if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
-					logger.Warning(err.Error())
-				}
-			}
-		}
-	}
 
 	allNodeGroups := cmdutils.ToKubeNodeGroups(cfg)
 
@@ -143,7 +144,10 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			return false
 		}
 
-		tasks, err := stackManager.NewTasksToDeleteNodeGroups(shouldDelete, cmd.Wait, nil)
+		// NOTE: there is an issue in AWS where if a managed node group is using an IAM instance role also found in an
+		//   unmanaged node group, it will delete all identity entries in the auth configmap and possibly orphaning the
+		//   workers without having us call the removeARN function below to do so
+		tasks, err := stackManager.NewTasksToDeleteNodeGroupsFromCFNDescriptions(shouldDelete, cmd.Wait, nil, descriptions)
 		if err != nil {
 			return err
 		}
@@ -155,7 +159,59 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		cmdutils.LogCompletedAction(cmd.Plan, "deleted %d nodegroup(s) from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 	}
 
+	// needs to be ran after the nodegroup deletion, since it will mark them for deletion before we pass it to
+	// removeARN and once it reaches here it should have been deleted already so that its safe for us to delete
+	//
+	// if we did not add the wait check then nodegroups to be deleted can have their stacks fail to delete and we would
+	// prematurely remove the identity from the auth configmap
+	// this would lead to orphaned nodes until the auth is added back in
+	if updateAuthConfigMap && cmd.Wait {
+		if err := removeARN(descriptions, stackManager, cfg, ctl, cmd.Plan, clientSet); err != nil {
+			return err
+		}
+	}
+
 	cmdutils.LogPlanModeWarning(cmd.Plan && len(allNodeGroups) > 0)
+
+	return nil
+}
+
+// removeARN takes a look at what managed and unmanaged node groups were marked for deletion and removes their identity
+// from the auth configmap
+func removeARN(descriptions []*manager.Stack, stackManager *manager.StackCollection, cfgMarkedForDeletion *api.ClusterConfig,
+	ctl *eks.ClusterProvider, cmdPlan bool, clientSet kubernetes.Interface) error {
+
+	numToDelete := 0
+	for _, n := range cfgMarkedForDeletion.NodeGroups {
+		if n.IAM == nil || n.IAM.InstanceRoleARN == "" {
+			if err := ctl.GetNodeGroupIAMFromCFNDescriptions(stackManager, cfgMarkedForDeletion, n, descriptions); err != nil {
+				// we want to return the error instead of logging as we don't want to delete something prematurely
+				return err
+			}
+		}
+		numToDelete++
+	}
+	for _, n := range cfgMarkedForDeletion.ManagedNodeGroups {
+		if n.IAM == nil || n.IAM.InstanceRoleARN == "" {
+			if err := ctl.GetManagedNodeGroupIAMFromCFNDescriptions(stackManager, cfgMarkedForDeletion, n, descriptions); err != nil {
+				// we want to return the error instead of logging as we don't want to delete something prematurely
+				return err
+			}
+		}
+		numToDelete++
+	}
+
+	cmdutils.LogIntendedAction(cmdPlan, "delete %d identity role ARNs from auth ConfigMap in cluster %q", numToDelete, cfgMarkedForDeletion.Metadata.Name)
+
+	tasks, err := stackManager.NewTasksToDeleteIdentityRoleARNFromAuthConfigMap(cfgMarkedForDeletion, clientSet)
+	if err != nil {
+		return err
+	}
+	tasks.PlanMode = cmdPlan
+	logger.Info(tasks.Describe())
+	if errs := tasks.DoAllSync(); len(errs) > 0 {
+		return handleErrors(errs, "identities")
+	}
 
 	return nil
 }

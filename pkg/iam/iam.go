@@ -57,3 +57,19 @@ func UseFromNodeGroup(provider api.ClusterProvider, stack *cfn.Stack, ng *api.No
 	}
 	return outputs.Collect(*stack, requiredCollectors, nil)
 }
+
+// UseFromManagedNodeGroup retrieves the IAM configuration from an existing managed nodegroup
+// based on stack outputs
+func UseFromManagedNodeGroup(provider api.ClusterProvider, stack *cfn.Stack, mng *api.ManagedNodeGroup) error {
+	if mng.IAM == nil {
+		mng.IAM = &api.NodeGroupIAM{}
+	}
+
+	requiredCollectors := map[string]outputs.Collector{
+		outputs.NodeGroupInstanceRoleARN: func(v string) error {
+			mng.IAM.InstanceRoleARN = v
+			return nil
+		},
+	}
+	return outputs.Collect(*stack, requiredCollectors, nil)
+}
