@@ -47,6 +47,9 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 
 	fs.StringToStringVar(&ng.Labels, "node-labels", nil, `Extra labels to add when registering the nodes in the nodegroup, e.g. "partition=backend,nodeclass=hugememory"`)
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
+
+	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "Add a prefix value in front of the instance's name.")
+	fs.StringVar(&ng.InstanceName, "instance-name", "", "Overrides the default instance's name. It can be used in combination with the instance-prefix flag.")
 }
 
 func incompatibleManagedNodesFlags() []string {
