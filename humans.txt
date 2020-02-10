@@ -64,6 +64,7 @@ Pedro Tôrres            @t0rr3sp3dr0
 Michael Treacher        @treacher
 Ajay Kemparaj           @ajayk
 Ryota Arai              @ryotarai
+Allan Chua              @allanchua101
 
 /* Thanks */
 
