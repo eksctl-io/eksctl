@@ -32,27 +32,16 @@ Or use a config file:
 EKSCTL_EXPERIMENTAL=true eksctl enable repo -f examples/01-simple-cluster.yaml --git-url=git@github.com:weaveworks/cluster-1-gitops.git --git-email=johndoe+flux@weave.works
 ```
 
-Note that, by default, `eksctl enable repo` installs [Helm](https://helm.sh/) server components to the cluster (it
-installs [Tiller](https://helm.sh/docs/glossary/#tiller) and the [Flux Helm Operator](https://github.com/fluxcd/helm-operator)). To
-disable the installation of the Helm server components, pass the flag `--with-helm=false`.
+Note that, by default, `eksctl enable repo` installs [Flux Helm Operator](https://github.com/fluxcd/helm-operator) with Helm v3 support.
+To disable the installation of the Helm Operator, pass the flag `--with-helm=false`.
 
 Full example:
 
 ```console
 $ EKSCTL_EXPERIMENTAL=true ./eksctl enable repo --cluster=cluster-1 --region=eu-west-2  --git-url=git@github.com:weaveworks/cluster-1-gitops.git  --git-email=johndoe+flux@weave.works --namespace=flux
-[ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
-[ℹ]    this may take up to a minute, please be patient
-[!]  Public key infrastructure files were written into directory "/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-helm-pki330304977"
-[!]  please move the files into a safe place or delete them
 [ℹ]  Generating manifests
 [ℹ]  Cloning git@github.com:weaveworks/cluster-1-gitops.git
 Cloning into '/var/folders/zt/sh1tk7ts24sc6dybr5z9qtfh0000gn/T/eksctl-install-flux-clone-142184188'...
-remote: Enumerating objects: 74, done.
-remote: Counting objects: 100% (74/74), done.
-remote: Compressing objects: 100% (55/55), done.
-remote: Total 74 (delta 19), reused 69 (delta 17), pack-reused 0
-Receiving objects: 100% (74/74), 30.57 KiB | 381.00 KiB/s, done.
-Resolving deltas: 100% (19/19), done.
 [ℹ]  Writing Flux manifests
 [ℹ]  Applying manifests
 [ℹ]  created "Namespace/flux"
@@ -61,28 +50,14 @@ Resolving deltas: 100% (19/19), done.
 [ℹ]  created "flux:ServiceAccount/flux"
 [ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux"
 [ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux"
-[ℹ]  created "flux:ConfigMap/flux-helm-tls-ca-config"
-[ℹ]  created "flux:Deployment.extensions/tiller-deploy"
-[ℹ]  created "flux:Service/tiller-deploy"
 [ℹ]  created "CustomResourceDefinition.apiextensions.k8s.io/helmreleases.helm.fluxcd.io"
-[ℹ]  created "flux:ServiceAccount/tiller"
-[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/tiller"
-[ℹ]  created "flux:ServiceAccount/helm"
-[ℹ]  created "flux:Role.rbac.authorization.k8s.io/tiller-user"
-[ℹ]  created "kube-system:RoleBinding.rbac.authorization.k8s.io/tiller-user-binding"
 [ℹ]  created "flux:Deployment.apps/flux"
 [ℹ]  created "flux:Service/memcached"
 [ℹ]  created "flux:Deployment.apps/flux-helm-operator"
 [ℹ]  created "flux:ServiceAccount/flux-helm-operator"
 [ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux-helm-operator"
 [ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux-helm-operator"
-[ℹ]  Applying Helm TLS Secret(s)
-[ℹ]  created "flux:Secret/flux-helm-tls-cert"
-[ℹ]  created "flux:Secret/tiller-secret"
-[!]  Note: certificate secrets aren't added to the Git repository for security reasons
 [ℹ]  Waiting for Helm Operator to start
-ERROR: logging before flag.Parse: E0820 16:05:12.218007   98823 portforward.go:331] an error occurred forwarding 60356 -> 3030: error forwarding port 3030 to pod b1a872e7e6a7f86567488d66c1a880fcfa26179143115b102041e0ee77fe6f9e, uid : exit status 1: 2019/08/20 14:05:12 socat[2873] E connect(5, AF=2 127.0.0.1:3030, 16): Connection refused
-[!]  Helm Operator is not ready yet (Get http://127.0.0.1:60356/healthz: EOF), retrying ...
 [ℹ]  Helm Operator started successfully
 [ℹ]  Waiting for Flux to start
 [ℹ]  Flux started successfully
@@ -105,17 +80,17 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYYsPuHzo1L29u3zhr4uAOF29HNyMcS8zJmOTDNZC4
 
 ```
 
-At this point Flux and the Helm server components should be installed in the specified cluster. The only thing left to
+At this point Flux and the Helm Operator should be installed in the specified cluster. The only thing left to
 do is to give Flux write access to the repository. Configure your repository to allow write access to that ssh key,
 for example, through the Deploy keys if it lives in GitHub.
 
 ```console
 $ kubectl get pods --namespace flux
-NAME                       READY   STATUS    RESTARTS   AGE
-flux-699cc7f4cb-9qc45      1/1     Running   0          29m
-memcached-958f745c-qdfgz   1/1     Running   0          29m
+NAME
+flux-699cc7f4cb-9qc45
+memcached-958f745c-qdfgz
+flux-helm-operator-6bc7c85bb5-l2nzn
 ```
-
 
 #### Adding a workload
 
@@ -229,106 +204,18 @@ EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster <cluster-name> --region
 
 This command will clone the specified repository in your current working directory and then it will follow these steps:
 
-  1. install Flux, Helm and Tiller in the cluster and add the manifests of those components into the `flux/` folder in your repo
-  2. add the component manifests of the Quick Start profile to your repository inside the `base/` folder
-  3. commit the Quick Start files and push the changes to the origin remote
-  4. once you have given read and write access to your repository to the the SSH key printed by the command, Flux will install the components from the `base/` folder into your cluster
+  1. add the component manifests of the Quick Start profile to your repository inside the `base/` folder
+  2. commit the Quick Start files and push the changes to the origin remote
+  3. Flux will install the components from the `base/` folder into your cluster
 
 Example:
 
 ```
 $ EKSCTL_EXPERIMENTAL=true eksctl enable profile --cluster production-cluster --region eu-north-1 --git-url=git@github.com:myorg/production-kubernetes app-dev
-[ℹ]  Generating public key infrastructure for the Helm Operator and Tiller
-[ℹ]    this may take up to a minute, please be patient
-[!]  Public key infrastructure files were written into directory "/tmp/eksctl-helm-pki786744152"
-[!]  please move the files into a safe place or delete them
-[ℹ]  Generating manifests
-[ℹ]  Cloning git@github.com:myorg/production-kubernetes
-Cloning into '/tmp/eksctl-install-flux-clone-615092439'...
-remote: Enumerating objects: 114, done.
-remote: Counting objects: 100% (114/114), done.
-remote: Compressing objects: 100% (94/94), done.
-remote: Total 114 (delta 36), reused 93 (delta 17), pack-reused 0
-Receiving objects: 100% (114/114), 31.43 KiB | 4.49 MiB/s, done.
-Resolving deltas: 100% (36/36), done.
-[ℹ]  Writing Flux manifests
-[ℹ]  Applying manifests
-[ℹ]  created "Namespace/flux"
-[ℹ]  created "flux:Deployment.apps/flux-helm-operator"
-[ℹ]  created "flux:Deployment.apps/flux"
-[ℹ]  created "flux:Deployment.apps/memcached"
-[ℹ]  created "flux:ConfigMap/flux-helm-tls-ca-config"
-[ℹ]  created "flux:Deployment.extensions/tiller-deploy"
-[ℹ]  created "flux:Service/tiller-deploy"
-[ℹ]  created "CustomResourceDefinition.apiextensions.k8s.io/helmreleases.helm.fluxcd.io"
-[ℹ]  created "flux:Service/memcached"
-[ℹ]  created "flux:ServiceAccount/flux"
-[ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux"
-[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux"
-[ℹ]  created "flux:Secret/flux-git-deploy"
-[ℹ]  created "flux:ServiceAccount/flux-helm-operator"
-[ℹ]  created "ClusterRole.rbac.authorization.k8s.io/flux-helm-operator"
-[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/flux-helm-operator"
-[ℹ]  created "flux:ServiceAccount/tiller"
-[ℹ]  created "ClusterRoleBinding.rbac.authorization.k8s.io/tiller"
-[ℹ]  created "flux:ServiceAccount/helm"
-[ℹ]  created "flux:Role.rbac.authorization.k8s.io/tiller-user"
-[ℹ]  created "kube-system:RoleBinding.rbac.authorization.k8s.io/tiller-user-binding"
-[ℹ]  Applying Helm TLS Secret(s)
-[ℹ]  created "flux:Secret/flux-helm-tls-cert"
-[ℹ]  created "flux:Secret/tiller-secret"
-[!]  Note: certificate secrets aren't added to the Git repository for security reasons
-[ℹ]  Waiting for Helm Operator to start
-ERROR: logging before flag.Parse: E0822 14:45:28.440236   17028 portforward.go:331] an error occurred forwarding 44915 -> 3030: error forwarding port 3030 to pod 2f6282bf597b345b3ffad8a0447bdd8515d91060335456591d759ad87a976ed2, uid : exit status 1: 2019/08/22 12:45:28 socat[8131] E connect(5, AF=2 127.0.0.1:3030, 16): Connection refused
-[!]  Helm Operator is not ready yet (Get http://127.0.0.1:44915/healthz: EOF), retrying ...
-[!]  Helm Operator is not ready yet (Get http://127.0.0.1:44915/healthz: EOF), retrying ...
-[ℹ]  Helm Operator started successfully
-[ℹ]  see https://docs.fluxcd.io/projects/helm-operator for details on how to use the Helm Operator
-[ℹ]  Waiting for Flux to start
-[ℹ]  Flux started successfully
-[ℹ]  see https://docs.fluxcd.io/projects/flux for details on how to use Flux
-[ℹ]  Committing and pushing manifests to git@github.com:myorg/production-kubernetes
-[master 0985830] Add Initial Flux configuration
- Author: Flux <>
- 13 files changed, 727 insertions(+)
- create mode 100644 flux/flux-account.yaml
- create mode 100644 flux/flux-deployment.yaml
- create mode 100644 flux/flux-helm-operator-account.yaml
- create mode 100644 flux/flux-helm-release-crd.yaml
- create mode 100644 flux/flux-namespace.yaml
- create mode 100644 flux/flux-secret.yaml
- create mode 100644 flux/helm-operator-deployment.yaml
- create mode 100644 flux/memcache-dep.yaml
- create mode 100644 flux/memcache-svc.yaml
- create mode 100644 flux/tiller-ca-cert-configmap.yaml
- create mode 100644 flux/tiller-dep.yaml
- create mode 100644 flux/tiller-rbac.yaml
- create mode 100644 flux/tiller-svc.yaml
-Counting objects: 16, done.
-Delta compression using up to 4 threads.
-Compressing objects: 100% (15/15), done.
-Writing objects: 100% (16/16), 8.23 KiB | 8.23 MiB/s, done.
-Total 16 (delta 1), reused 12 (delta 1)
-remote: Resolving deltas: 100% (1/1), done.
-To github.com:myorg/production-kubernetes
-   3ea1fdc..0985830  master -> master
-[ℹ]  Flux will only operate properly once it has write-access to the Git repository
-[ℹ]  please configure git@github.com:myorg/production-kubernetes so that the following Flux SSH public key has write access to it
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAdDG4LAEiEOTbT3XVL5sYf0Hy7T30PG2sFReIwrylR7syA+IU9GPf7azgjjbzbQc/5BXTx2E0GotrzDkvCNScuYfw7wXKK87yr5jhPudpNubK9bFsKKwOj7wxO2XsUOceKVRhTKP7VJgpAliCCPK288HvQzIZfWEgbDQjhE0EnFgZVYXKkgye2Cc3MkwiYuZJtuynxipb5rPrY/3Kjywk/vWxLeZ/hvv58mZSdRQwX6zbGGW1h70QA47B+W2076MBQQ1t0H0KKctuS8A1/n+aKjpD4Ne6lXqHDhqi25SBhJxK3zEXhskS9DMW8DYi1xHT2MCjE8HhiVBMRIITyTox
 Cloning into '/tmp/gitops-repos/flux-test-3'...
-remote: Enumerating objects: 118, done.
-remote: Counting objects: 100% (118/118), done.
-remote: Compressing objects: 100% (98/98), done.
-remote: Total 118 (delta 37), reused 96 (delta 17), pack-reused 0
-Receiving objects: 100% (118/118), 33.15 KiB | 1.44 MiB/s, done.
 Resolving deltas: 100% (37/37), done.
 [ℹ]  cloning repository "git@github.com:weaveworks/eks-quickstart-app-dev.git":master
 Cloning into '/tmp/quickstart-365477450'...
-remote: Enumerating objects: 127, done.
-remote: Counting objects: 100% (127/127), done.
-remote: Compressing objects: 100% (95/95), done.
-remote: Total 127 (delta 53), reused 92 (delta 30), pack-reused 0
-Receiving objects: 100% (127/127), 30.20 KiB | 351.00 KiB/s, done.
 Resolving deltas: 100% (53/53), done.
 [ℹ]  processing template files in repository
 [ℹ]  writing new manifests to "/tmp/gitops-repos/flux-test-3/base"
@@ -373,16 +260,8 @@ To github.com:myorg/production-kubernetes
 
 ```
 
-Now the ssh key printed above:
-
-```
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAdDG4LAEiEOTbT3XVL5sYf0Hy7T30PG2sFReIwrylR7syA+IU9GPf7azgjjbzbQc/5BXTx2E0GotrzDkvCNScuYfw7wXKK87yr5jhPudpNubK9bFsKKwOj7wxO2XsUOceKVRhTKP7VJgpAliCCPK288HvQzIZfWEgbDQjhE0EnFgZVYXKkgye2Cc3MkwiYuZJtuynxipb5rPrY/3Kjywk/vWxLeZ/hvv58mZSdRQwX6zbGGW1h70QA47B+W2076MBQQ1t0H0KKctuS8A1/n+aKjpD4Ne6lXqHDhqi25SBhJxK3zEXhskS9DMW8DYi1xHT2MCjE8HhiVBMRIITyTox
-```
-
-needs to be added as a deploy key to the chosen Github repository, in this case `github.com:myorg/production-kubernetes`.
-Once that is done, Flux will pick up the changes in the repository with the Quick Start components and deploy them to the
- cluster. After a couple of minutes the pods should appear in the cluster:
-
+Flux will pick up the changes in the repository with the Quick Start components and deploy them to the cluster.
+After a couple of minutes the pods should appear in the cluster:
 
 ```
 $ kubectl get pods --all-namespaces
@@ -393,7 +272,6 @@ demo                   podinfo-75b8547f78-56dll                                 
 flux                   flux-56b5664cdd-nfzx2                                     1/1     Running                      0          11m
 flux                   flux-helm-operator-6bc7c85bb5-l2nzn                       1/1     Running                      0          11m
 flux                   memcached-958f745c-dqllc                                  1/1     Running                      0          11m
-flux                   tiller-deploy-7ccc4b4d45-w2mrt                            1/1     Running                      0          11m
 kube-system            alb-ingress-controller-6b64bcbbd8-6l7kf                   1/1     Running                      0          4m28s
 kube-system            aws-node-l49ct                                            1/1     Running                      0          14m
 kube-system            cluster-autoscaler-5b8c96cd98-26z5f                       1/1     Running                      0          4m28s
