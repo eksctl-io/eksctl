@@ -1,0 +1,33 @@
+# This example demonstrates how to force the spawning of 
+# certain pods to a desired node group.
+# 
+# Pre-requisites
+# In order for this sample to work, the pod's deployment file
+# should contain the following yaml property.
+# 
+# spec:
+#   containers:
+#     - ...omitted for brevity
+#   nodeSelector:
+#     node-class: "compute-intensive-node"
+#
+# Setting labels could be very useful as they allow you to
+# design an infrastructure that is suited for an app's use-case.
+--- 
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-18
+  region: ap-southeast-1
+
+nodeGroups:
+  - name: std-ng
+    instanceType: m5.xlarge
+    desiredCapacity: 8
+  - name: ci-ng
+    instanceType: c5.12xlarge
+    desiredCapacity: 8
+    labels:
+      node-class: "compute-intensive-node"
+
