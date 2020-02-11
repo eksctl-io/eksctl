@@ -1,13 +1,13 @@
 name-template: 'eksctl $NEXT_MINOR_VERSION'
 tag-template: '$NEXT_MINOR_VERSION'
 categories:
-  - title: '## Features'
+  - title: 'Features'
     labels:
       - 'kind/feature'
-  - title: '## Improvements'
+  - title: 'Improvements'
     labels:
       - 'kind/improvement'
-  - title: '## Bug Fixes'
+  - title: 'Bug Fixes'
     labels:
       - 'kind/bug'
 change-template: '- $TITLE (#$NUMBER)'
