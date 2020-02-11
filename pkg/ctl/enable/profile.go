@@ -40,7 +40,7 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"profile",
-		"Set up Flux and deploy the components from the selected Quick Start profile.",
+		"Commits the components from the selected Quick Start profile to the destination repository.",
 		"",
 	)
 	opts := configureProfileCmd(cmd)
