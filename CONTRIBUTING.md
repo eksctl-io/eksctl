@@ -293,11 +293,8 @@ When you run `make prepare-release` it will push a commit to master and a tag, w
 
 You want to keep an eye on Circle CI for the progress of the release ([0.3.1 example logs](https://circleci.com/workflow-run/02d8b5fb-bc7f-404c-9051-68307c124649)). It normally takes around 30 minutes.
 
-### Notes on Artifacts
+### Latest release
 
-We use `latest_release` floating tag, in order to enable static URLs for release artifacts, i.e. `latest_release` gets shifted on every release.
+To get the latest release you can use the link [https://github.com/weaveworks/eksctl/releases/latest]().
 
-That means you will see two entries on [the release page](https://github.com/weaveworks/eksctl/releases):
-
-- [**eksctl 0.4.0 (permalink)**](https://github.com/weaveworks/eksctl/releases/tag/0.4.0)
-- [**eksctl 0.4.0**](https://github.com/weaveworks/eksctl/releases/tag/latest_release)
+**Note** Previously, eksctl used a floating tag called `latest_release`. This is _deprecated_ and it will stop working after release `0.14.0`.
