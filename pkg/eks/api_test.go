@@ -92,7 +92,7 @@ var _ = Describe("eksctl API", func() {
 				Status:   &ProviderStatus{},
 			}
 
-			mockDescribeImages(p, "something", "abc123")
+			mockDescribeImages(p, "abc123")
 		})
 
 		It("should retrieve the AMI from EC2 when AMI is auto", func() {
@@ -149,7 +149,7 @@ var _ = Describe("eksctl API", func() {
 	})
 })
 
-func mockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiId string) {
+func mockDescribeImages(p *mockprovider.MockProvider, amiId string) {
 	p.MockEC2().On("DescribeImages",
 		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 			return true
