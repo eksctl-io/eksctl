@@ -40,9 +40,6 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
-	if ng.AMI == "" {
-		ng.AMI = "static"
-	}
 
 	if ng.SecurityGroups == nil {
 		ng.SecurityGroups = &NodeGroupSGs{
