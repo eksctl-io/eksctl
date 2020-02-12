@@ -99,7 +99,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "auto"
 			ng.InstanceType = "p2.xlarge"
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(ctl.Provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("abc123"))
@@ -108,7 +108,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "p2.xlarge"
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(ctl.Provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))
@@ -117,7 +117,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "m5.xlarge"
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(ctl.Provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
@@ -129,7 +129,7 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large"},
 			}
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(ctl.Provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
@@ -141,7 +141,7 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large", "p3.2xlarge"},
 			}
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(ctl.Provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))

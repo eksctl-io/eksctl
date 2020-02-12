@@ -19,9 +19,9 @@ var _ = Describe("AMI Static Resolution", func() {
 		ExpectError  bool
 	}
 
-	DescribeTable("When resolving an AMI using the default resolvers",
+	DescribeTable("When resolving an AMI using the static resolvers",
 		func(c ResolveCase) {
-			resolver := ami.NewDefaultResolver()
+			resolver := ami.NewStaticResolver()
 			actualAmi, err := resolver.Resolve(c.Region, c.Version, c.InstanceType, c.ImageFamily)
 			Expect(actualAmi).Should(Equal(c.ExpectedAMI))
 			if c.ExpectError {
