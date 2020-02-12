@@ -52,7 +52,7 @@ var _ = Describe("(Integration) Fargate", func() {
 		Expect(err).ToNot(HaveOccurred())
 	}
 
-	assertFargateDefaultProfile := func(clusterName string, kubeTest *harness.Test) {
+	testDefaultFargateProfile := func(clusterName string, kubeTest *harness.Test) {
 		By("having a default Fargate profile")
 		cmd := eksctlGetCmd.WithArgs(
 			"fargateprofile",
@@ -82,7 +82,7 @@ var _ = Describe("(Integration) Fargate", func() {
 		Expect(cmd).To(RunSuccessfully())
 	}
 
-	assertFargateNewProfile := func(clusterName string, kubeTest *harness.Test) {
+	testCreateFargateProfile := func(clusterName string, kubeTest *harness.Test) {
 		By("creating a new Fargate profile")
 		profileName := "profile-1"
 		cmd := eksctlCreateCmd.WithArgs(
@@ -128,8 +128,8 @@ var _ = Describe("(Integration) Fargate", func() {
 		})
 
 		It("should support Fargate", func() {
-			assertFargateDefaultProfile(ft.clusterName, ft.kubeTest)
-			assertFargateNewProfile(ft.clusterName, ft.kubeTest)
+			testDefaultFargateProfile(ft.clusterName, ft.kubeTest)
+			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
 		})
 
 		AfterEach(func() {
@@ -145,8 +145,8 @@ var _ = Describe("(Integration) Fargate", func() {
 		})
 
 		It("should support Fargate", func() {
-			assertFargateDefaultProfile(ft.clusterName, ft.kubeTest)
-			assertFargateNewProfile(ft.clusterName, ft.kubeTest)
+			testDefaultFargateProfile(ft.clusterName, ft.kubeTest)
+			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
 		})
 
 		AfterEach(func() {
@@ -162,7 +162,7 @@ var _ = Describe("(Integration) Fargate", func() {
 		})
 
 		It("should allow creation of new Fargate profiles", func() {
-			assertFargateNewProfile(ft.clusterName, ft.kubeTest)
+			testCreateFargateProfile(ft.clusterName, ft.kubeTest)
 		})
 
 		AfterEach(func() {
