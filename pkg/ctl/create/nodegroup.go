@@ -120,7 +120,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 
 	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
-		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
+		if err := eks.EnsureAMI(ctl.Provider, meta.Version, ng); err != nil {
 			return err
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
