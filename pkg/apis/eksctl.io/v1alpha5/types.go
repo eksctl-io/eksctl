@@ -707,15 +707,15 @@ type (
 	// NodeGroupInstancesDistribution holds the configuration for spot instances
 	NodeGroupInstancesDistribution struct {
 		//+required
-		InstanceTypes []string `json:"instanceTypes,omitEmpty"`
+		InstanceTypes []string `json:"instanceTypes,omitempty"`
 		// +optional
 		MaxPrice *float64 `json:"maxPrice,omitempty"`
 		//+optional
-		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitEmpty"`
+		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitempty"`
 		//+optional
-		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitEmpty"`
+		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
 		//+optional
-		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
+		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
 	}
 )
 

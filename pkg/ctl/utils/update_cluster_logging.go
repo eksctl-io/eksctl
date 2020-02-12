@@ -157,8 +157,8 @@ func validateLoggingFlags(toEnable []string, toDisable []string) error {
 }
 
 func processTypesToEnable(existingEnabled, toEnable, toDisable []string) sets.String {
-	emptyToEnable := toEnable == nil || len(toEnable) == 0
-	emptyToDisable := toDisable == nil || len(toDisable) == 0
+	emptyToEnable := len(toEnable) == 0
+	emptyToDisable := len(toDisable) == 0
 
 	isEnableAll := !emptyToEnable && toEnable[0] == "all"
 	isDisableAll := !emptyToDisable && toDisable[0] == "all"
