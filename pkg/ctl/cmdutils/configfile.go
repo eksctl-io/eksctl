@@ -46,8 +46,6 @@ var (
 	)
 )
 
-var multiErr *multierror.Error
-
 func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 	nilValidatorFunc := func() error { return nil }
 
@@ -63,6 +61,7 @@ func newCommonClusterConfigLoader(cmd *Cmd) *commonClusterConfigLoader {
 
 // Load ClusterConfig or use flags
 func (l *commonClusterConfigLoader) Load() error {
+	var multiErrs *multierror.Error
 	if err := api.Register(); err != nil {
 		return err
 	}
@@ -70,8 +69,8 @@ func (l *commonClusterConfigLoader) Load() error {
 	if l.ClusterConfigFile == "" {
 		for f := range l.flagsIncompatibleWithoutConfigFile {
 			if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-				multiErr = multierror.Append(fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f))
-				return multiErr.ErrorOrNil()
+				multiErrs = multierror.Append(fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f))
+				return multiErrs.ErrorOrNil()
 			}
 		}
 		return l.validateWithoutConfigFile()
@@ -88,29 +87,29 @@ func (l *commonClusterConfigLoader) Load() error {
 	meta := l.ClusterConfig.Metadata
 
 	if meta == nil {
-		multiErr = multierror.Append(ErrMustBeSet("metadata"))
+		multiErrs = multierror.Append(ErrMustBeSet("metadata"))
 	}
 
 	for f := range l.flagsIncompatibleWithConfigFile {
 		if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-			multiErr = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f)))
+			multiErrs = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f)))
 		}
 	}
 
 	if l.NameArg != "" {
-		multiErr = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg)))
+		multiErrs = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg)))
 	}
 
 	if meta.Name == "" {
-		multiErr = multierror.Append(ErrMustBeSet("metadata.name"))
+		multiErrs = multierror.Append(ErrMustBeSet("metadata.name"))
 	}
 
 	if meta.Region == "" {
-		multiErr = multierror.Append(ErrMustBeSet("metadata.region"))
+		multiErrs = multierror.Append(ErrMustBeSet("metadata.region"))
 	}
 
-	if multiErr != nil {
-		return multiErr
+	if multiErrs != nil {
+		return multiErrs
 	}
 
 	l.ProviderConfig.Region = meta.Region
@@ -120,9 +119,9 @@ func (l *commonClusterConfigLoader) Load() error {
 
 func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 	meta := l.ClusterConfig.Metadata
-
+	var multiErrs *multierror.Error
 	if meta.Name != "" && l.NameArg != "" {
-		multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg))
+		multiErrs = multierror.Append(ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg))
 	}
 
 	if l.NameArg != "" {
@@ -130,10 +129,10 @@ func (l *commonClusterConfigLoader) validateMetadataWithoutConfigFile() error {
 	}
 
 	if meta.Name == "" {
-		multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(l.Cmd)))
+		multiErrs = multierror.Append(ErrMustBeSet(ClusterNameFlag(l.Cmd)))
 	}
 
-	return multiErr.ErrorOrNil()
+	return multiErrs.ErrorOrNil()
 }
 
 // NewMetadataLoader handles loading of clusterConfigFile vs using flags for all commands that require only
@@ -150,7 +149,7 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 // NewCreateClusterLoader will load config or use flags for 'eksctl create cluster'
 func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, params *CreateClusterCmdParams) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-
+	var multiErrs *multierror.Error
 	ngFilter.ExcludeAll = params.WithoutNodeGroup
 
 	l.flagsIncompatibleWithConfigFile.Insert(
@@ -203,10 +202,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 		}
 
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
-			multiErr = multierror.Append(fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time"))
+			multiErrs = multierror.Append(fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time"))
 		}
 
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	l.validateWithoutConfigFile = func() error {
@@ -214,18 +213,18 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 
 		// generate cluster name or use either flag or argument
 		if names.ForCluster(meta.Name, l.NameArg) == "" {
-			multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg))
+			multiErrs = multierror.Append(ErrClusterFlagAndArg(l.Cmd, meta.Name, l.NameArg))
 		}
 		meta.Name = names.ForCluster(meta.Name, l.NameArg)
 
 		if l.ClusterConfig.Status != nil {
-			multiErr = multierror.Append(fmt.Errorf("status fields are read-only"))
+			multiErrs = multierror.Append(fmt.Errorf("status fields are read-only"))
 		}
 
 		if params.Managed {
 			for _, f := range incompatibleManagedNodesFlags() {
 				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-					multiErr = multierror.Append(ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f)))
+					multiErrs = multierror.Append(ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f)))
 				}
 			}
 		}
@@ -258,7 +257,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			ng.Name = names.ForNodeGroup(ng.Name, "")
 		}
 
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l
@@ -267,7 +266,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 // NewCreateNodeGroupLoader will load config or use flags for 'eksctl create nodegroup'
 func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter, managedNodeGroup bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-
+	var multiErrs *multierror.Error
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"managed",
 		"nodes",
@@ -296,12 +295,12 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
+			multiErrs = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 		if managedNodeGroup {
 			for _, f := range incompatibleManagedNodesFlags() {
 				if flag := l.CobraCommand.Flag(f); flag != nil && flag.Changed {
-					multiErr = multierror.Append(ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f)))
+					multiErrs = multierror.Append(ErrUnsupportedManagedFlag(fmt.Sprintf("--%s", f)))
 				}
 			}
 			l.ClusterConfig.ManagedNodeGroups = []*api.ManagedNodeGroup{makeManagedNodegroup(ng)}
@@ -314,7 +313,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
+					multiErrs = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
 				}
 				ng.Name = ngName
 			}
@@ -323,7 +322,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				// generate nodegroup name or use either flag or argument
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
+					multiErrs = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
 				}
 				ng.Name = ngName
 				if err := normalizeNodeGroup(ng, l); err != nil {
@@ -331,7 +330,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				}
 			}
 		}
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l
@@ -357,9 +356,10 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
 }
 
 func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
+	var multiErrs *multierror.Error
 	if flag := l.CobraCommand.Flag("ssh-public-key"); flag != nil && flag.Changed {
 		if *ng.SSH.PublicKeyPath == "" {
-			multiErr = multierror.Append(fmt.Errorf("--ssh-public-key must be non-empty string"))
+			multiErrs = multierror.Append(fmt.Errorf("--ssh-public-key must be non-empty string"))
 		}
 		ng.SSH.Allow = api.Enabled()
 	} else {
@@ -367,16 +367,16 @@ func normalizeNodeGroup(ng *api.NodeGroup, l *commonClusterConfigLoader) error {
 	}
 
 	if *ng.VolumeType == api.NodeVolumeTypeIO1 {
-		multiErr = multierror.Append(fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1))
+		multiErrs = multierror.Append(fmt.Errorf("%s volume type is not supported via flag --node-volume-type, please use a config file", api.NodeVolumeTypeIO1))
 	}
 
-	return multiErr.ErrorOrNil()
+	return multiErrs.ErrorOrNil()
 }
 
 // NewDeleteNodeGroupLoader will load config or use flags for 'eksctl delete nodegroup'
 func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-
+	var multiErrs *multierror.Error
 	l.validateWithConfigFile = func() error {
 		return ngFilter.AppendGlobs(l.Include, l.Exclude, getAllNodeGroupNames(l.ClusterConfig))
 	}
@@ -387,11 +387,11 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
+			multiErrs = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
-			multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
+			multiErrs = multierror.Append(ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg))
 		}
 
 		if l.NameArg != "" {
@@ -399,14 +399,14 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet("--name"))
+			multiErrs = multierror.Append(ErrMustBeSet("--name"))
 		}
 
 		ngFilter.AppendIncludeNames(ng.Name)
 
 		l.Plan = false
 
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l
@@ -443,7 +443,7 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd) ClusterConfigLoader {
 // NewUtilsAssociateIAMOIDCProviderLoader will load config or use flags for 'eksctl utils associal-iam-oidc-provider'
 func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-
+	var multiErrs *multierror.Error
 	l.validateWithoutConfigFile = func() error {
 		l.ClusterConfig.IAM.WithOIDC = api.Enabled()
 		return l.validateMetadataWithoutConfigFile()
@@ -451,9 +451,9 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 
 	l.validateWithConfigFile = func() error {
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
-			multiErr = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
+			multiErrs = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
 		}
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l
@@ -462,7 +462,7 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 // NewCreateIAMServiceAccountLoader will laod config or use flags for 'eksctl create iamserviceaccount'
 func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-
+	var multiErrs *multierror.Error
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"policy-arn",
 	)
@@ -473,24 +473,24 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 
 	l.validateWithoutConfigFile = func() error {
 		if l.ClusterConfig.Metadata.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
+			multiErrs = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 
 		if len(l.ClusterConfig.IAM.ServiceAccounts) != 1 {
-			multiErr = multierror.Append(fmt.Errorf("unexpected number of service accounts"))
+			multiErrs = multierror.Append(fmt.Errorf("unexpected number of service accounts"))
 		}
 
 		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
 
 		if serviceAccount.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
+			multiErrs = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 
 		if len(serviceAccount.AttachPolicyARNs) == 0 {
-			multiErr = multierror.Append(ErrMustBeSet("--attach-policy-arn"))
+			multiErrs = multierror.Append(ErrMustBeSet("--attach-policy-arn"))
 		}
 
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l
@@ -499,11 +499,11 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 // NewGetIAMServiceAccountLoader will load config or use flags for 'eksctl get iamserviceaccount'
 func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-
+	var multiErrs *multierror.Error
 	l.validateWithConfigFile = func() error {
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
-			multiErr = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
-			return multiErr.ErrorOrNil()
+			multiErrs = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
+			return multiErrs.ErrorOrNil()
 		}
 		return nil
 	}
@@ -512,7 +512,7 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
+			multiErrs = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 
 		if l.NameArg != "" {
@@ -525,7 +525,7 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 
 		l.Plan = false
 
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l
@@ -534,11 +534,11 @@ func NewGetIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount) C
 // NewDeleteIAMServiceAccountLoader will load config or use flags for 'eksctl delete iamserviceaccount'
 func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount, saFilter *IAMServiceAccountFilter) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
-
+	var multiErrs *multierror.Error
 	l.validateWithConfigFile = func() error {
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
-			multiErr = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
-			return multiErr.ErrorOrNil()
+			multiErrs = multierror.Append(fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile))
+			return multiErrs.ErrorOrNil()
 		}
 		return saFilter.AppendGlobs(l.Include, l.Exclude, l.ClusterConfig.IAM.ServiceAccounts)
 	}
@@ -551,11 +551,11 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		sa.AttachPolicyARNs = []string{""} // force to pass general validation
 
 		if l.ClusterConfig.Metadata.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
+			multiErrs = multierror.Append(ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
-			multiErr = multierror.Append(ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg))
+			multiErrs = multierror.Append(ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg))
 		}
 
 		if l.NameArg != "" {
@@ -563,12 +563,12 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name == "" {
-			multiErr = multierror.Append(ErrMustBeSet("--name"))
+			multiErrs = multierror.Append(ErrMustBeSet("--name"))
 		}
 
 		l.Plan = false
 
-		return multiErr.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l

@@ -68,8 +68,6 @@ func AddCommonFlagsForGit(fs *pflag.FlagSet, opts *git.Options) {
 	_ = cobra.MarkFlagRequired(fs, gitEmail)
 }
 
-var validateErrs *multierror.Error
-
 // ValidateGitOptions validates the provided Git options.
 func ValidateGitOptions(opts *git.Options) error {
 	if err := opts.ValidateURL(); err != nil {
@@ -105,6 +103,7 @@ type gitOpsConfigLoader struct {
 // loading of ClusterConfigFile v.s. using CLI flags for GitOps-related
 // commands.
 func NewGitOpsConfigLoader(cmd *Cmd) ClusterConfigLoader {
+	var multiErrs *multierror.Error
 	l := &gitOpsConfigLoader{
 		cmd: cmd,
 		flagsIncompatibleWithConfigFile: sets.NewString(
@@ -118,23 +117,23 @@ func NewGitOpsConfigLoader(cmd *Cmd) ClusterConfigLoader {
 	l.validateWithoutConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
 		if meta.Name == "" {
-			validateErrs = multierror.Append(validateErrs, ErrMustBeSet(ClusterNameFlag(cmd)))
+			multiErrs = multierror.Append(multiErrs, ErrMustBeSet(ClusterNameFlag(cmd)))
 		}
 		if meta.Region == "" {
-			validateErrs = multierror.Append(validateErrs, ErrMustBeSet("--region"))
+			multiErrs = multierror.Append(multiErrs, ErrMustBeSet("--region"))
 		}
-		return validateErrs.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	l.validateWithConfigFile = func() error {
 		meta := l.cmd.ClusterConfig.Metadata
 		if meta.Name == "" {
-			validateErrs = multierror.Append(validateErrs, ErrMustBeSet("metadata.name"))
+			multiErrs = multierror.Append(multiErrs, ErrMustBeSet("metadata.name"))
 		}
 		if meta.Region == "" {
-			validateErrs = multierror.Append(validateErrs, ErrMustBeSet("metadata.region"))
+			multiErrs = multierror.Append(multiErrs, ErrMustBeSet("metadata.region"))
 		}
-		return validateErrs.ErrorOrNil()
+		return multiErrs.ErrorOrNil()
 	}
 
 	return l
@@ -142,6 +141,7 @@ func NewGitOpsConfigLoader(cmd *Cmd) ClusterConfigLoader {
 
 // Load ClusterConfig or use CLI flags.
 func (l *gitOpsConfigLoader) Load() error {
+	var multiErrs *multierror.Error
 	if err := api.Register(); err != nil {
 		return err
 	}
@@ -150,8 +150,8 @@ func (l *gitOpsConfigLoader) Load() error {
 		l.cmd.ClusterConfig.Metadata.Region = l.cmd.ProviderConfig.Region
 		for f := range l.flagsIncompatibleWithoutConfigFile {
 			if flag := l.cmd.CobraCommand.Flag(f); flag != nil && flag.Changed {
-				multiErr = multierror.Append(fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f))
-				return multiErr.ErrorOrNil()
+				multiErrs = multierror.Append(fmt.Errorf("cannot use --%s unless a config file is specified via --config-file/-f", f))
+				return multiErrs.ErrorOrNil()
 			}
 		}
 		return l.validateWithoutConfigFile()
@@ -168,12 +168,12 @@ func (l *gitOpsConfigLoader) Load() error {
 	meta := l.cmd.ClusterConfig.Metadata
 
 	if meta == nil {
-		multiErr = multierror.Append(ErrMustBeSet("metadata"))
+		multiErrs = multierror.Append(ErrMustBeSet("metadata"))
 	}
 
 	for f := range l.flagsIncompatibleWithConfigFile {
 		if flag := l.cmd.CobraCommand.Flag(f); flag != nil && flag.Changed {
-			multiErr = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f)))
+			multiErrs = multierror.Append(ErrCannotUseWithConfigFile(fmt.Sprintf("--%s", f)))
 		}
 	}
 
@@ -181,8 +181,8 @@ func (l *gitOpsConfigLoader) Load() error {
 		l.cmd.ProviderConfig.Region = meta.Region
 	}
 
-	if multiErr != nil {
-		return multiErr
+	if multiErrs != nil {
+		return multiErrs
 	}
 
 	return l.validateWithConfigFile()
