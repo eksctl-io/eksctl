@@ -76,18 +76,16 @@ var _ = Describe("eksctl API", func() {
 
 	Context("Static AMI selection", func() {
 		var (
-			cfg *api.ClusterConfig
-			ng  *api.NodeGroup
-			p   *mockprovider.MockProvider
+			ng       *api.NodeGroup
+			provider *mockprovider.MockProvider
 		)
 		BeforeEach(func() {
-			cfg = &api.ClusterConfig{}
-			ng = cfg.NewNodeGroup()
+			ng = api.NewNodeGroup()
 			ng.AMIFamily = api.DefaultNodeImageFamily
 
-			p = mockprovider.NewMockProvider()
+			provider = mockprovider.NewMockProvider()
 
-			mockDescribeImages(p, "ami-123", func(input *ec2.DescribeImagesInput) bool {
+			mockDescribeImages(provider, "ami-123", func(input *ec2.DescribeImagesInput) bool {
 				return len(input.ImageIds) == 1
 			})
 		})
@@ -96,7 +94,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "p2.xlarge"
 
-			err := EnsureAMI(p, "1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))
@@ -105,7 +103,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "m5.xlarge"
 
-			err := EnsureAMI(p, "1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
@@ -117,7 +115,7 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large"},
 			}
 
-			err := EnsureAMI(p, "1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
@@ -129,7 +127,7 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large", "p3.2xlarge"},
 			}
 
-			err := EnsureAMI(p, "1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))
