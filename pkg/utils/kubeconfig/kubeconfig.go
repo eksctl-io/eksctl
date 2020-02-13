@@ -69,8 +69,14 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 		c.Clusters[clusterName].Server = clusterEndpoint
 	}
 
+	// Some companies require you to use system CA certs.
+	// https://github.com/kubernetes/client-go/issues/416 - To use system CA's dont set the CertificateAuthorityData
+	_, useSystemCA := os.LookupEnv("KUBECONFIG_USE_SYSTEM_CA")
+
 	if certificateAuthorityPath == "" {
-		c.Clusters[clusterName].CertificateAuthorityData = spec.Status.CertificateAuthorityData
+		if !useSystemCA {
+			c.Clusters[clusterName].CertificateAuthorityData = spec.Status.CertificateAuthorityData
+		}
 	} else {
 		c.Clusters[clusterName].CertificateAuthority = certificateAuthorityPath
 	}
