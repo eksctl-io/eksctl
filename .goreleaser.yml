@@ -25,8 +25,8 @@ builds:
 archives:
   - id: default
     builds:
-    - default
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+      - default
+    name_template: "eksctl_{{ .Os }}_{{ .Arch }}"
     replacements:
       darwin: Darwin
       linux: Linux
@@ -36,7 +36,7 @@ archives:
       - goos: windows
         format: zip
     files:
-    - none*
+      - none*
 
 checksum:
-  name_template: "{{ .ProjectName }}_checksums.txt"
+  name_template: "eksctl_checksums.txt"

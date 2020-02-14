@@ -1,6 +1,11 @@
 build_date := $(shell date +%Y-%m-%dT%H:%M:%SZ)
 git_commit = $(shell git rev-parse --short HEAD)
 git_toplevel := $(shell git rev-parse --show-toplevel)
+git_repo_url := $(shell git remote get-url origin)
+full_repo_name := $(shell echo $(git_repo_url) | sed 's/.*github.com[\/|:]//')
+git_repo := $(shell basename $(full_repo_name) .git)
+git_org := $(shell dirname $(full_repo_name))
+eksctl_version := $(shell go run pkg/version/generate/release_generate.go print-version)
 
 unique_tag = $(shell printf "%s-%s-%s" `git rev-parse @` $(build_image_tag) $(built_at))
 
