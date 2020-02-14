@@ -70,6 +70,16 @@ make test
 make build
 ```
 
+*Optional:* the following assets can be updated:
+- pkg/nodebootstrap/maxpods.go
+- pkg/addons/default/assets/aws-node.yaml
+by running:
+```bash
+make download-assets
+```
+If any of the files above are missing, then they will attempt to download when building.
+Note that when submitting a PR, you should run this so that you get the latest files.
+
 To run integration test you will need an AWS account.
 ```bash
 make integration-test-container TEST_V=1
@@ -209,15 +219,15 @@ This allows the message to be easier to read on GitHub as well as in various git
    git pull --ff-only origin master
    git checkout -b release-0.13
    ```
-   
+
 4b. If this is a subsequent release candidate or the release after an RC check out the existing release branch
 
    ```console
    git checkout release-0.13
    ```
-  
+
 6. Create the tags so that circleci can start the release process:
-  
+
    - for a release candidate: `make prepare-release-candidate`. If there was an existing RC it will increase it's number, e.g.: rc.0 -> rc.1
 
    - for a release: `make prepare-release`. Regardless of whether there was a previous RC or a development version it will create a normal release

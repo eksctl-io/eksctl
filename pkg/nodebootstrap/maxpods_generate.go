@@ -5,6 +5,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -16,6 +17,11 @@ import (
 const maxPodsPerNodeTypeSourceText = "https://raw.github.com/awslabs/amazon-eks-ami/master/files/eni-max-pods.txt"
 
 func main() {
+	if os.Getenv("EKSCTL_DOWNLOAD_ASSETS") != "true" {
+		if _, err := os.Stat("maxpods.go"); err == nil {
+			return
+		}
+	}
 	maxPodsMap := generateMap()
 	renderGoMap(maxPodsMap)
 }

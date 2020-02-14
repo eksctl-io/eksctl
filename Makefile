@@ -141,8 +141,17 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
+.PHONE: download-assets
+download-assets:
+	@# set environment variable in go:generate to signal that assets should be downloaded
+	export EKSCTL_DOWNLOAD_ASSETS = true
+
 .PHONY: generate-always
 generate-always: ## Generate code (required for every build)
+	@# download assets if any are missing
+	ifeq ($(filter "", "$(wildcard pkg/nodebootstrap/maxpods.go)" "$(wildcard pkg/addons/default/assets/aws-node.yaml)",)
+		export EKSCTL_DOWNLOAD_ASSETS = true
+	endif
 	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
