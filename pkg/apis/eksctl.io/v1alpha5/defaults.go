@@ -177,6 +177,21 @@ func DefaultClusterNAT() *ClusterNAT {
 	}
 }
 
+// SetClusterEndpointAccessDefaults sets the default values for cluster endpoint access
+func SetClusterEndpointAccessDefaults(endpoints *ClusterEndpoints) {
+	if endpoints == nil {
+		endpoints = ClusterEndpointAccessDefaults()
+	}
+
+	if endpoints.PublicAccess == nil {
+		endpoints.PublicAccess = Enabled()
+	}
+
+	if endpoints.PrivateAccess == nil {
+		endpoints.PrivateAccess = Disabled()
+	}
+}
+
 // ClusterEndpointAccessDefaults returns a ClusterEndpoints pointer with default values set.
 func ClusterEndpointAccessDefaults() *ClusterEndpoints {
 	return &ClusterEndpoints{
