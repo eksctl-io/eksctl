@@ -384,7 +384,14 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+              "kubeletExtraConfig": {
+                "kubeReserved": {
+                  "cpu": "100m",
+                  "ephemeral-storage": "1.25Gi",
+                  "memory": "1.8Mi"
+                }
+              }
 		  },
 		  {
 			  "name": "test-ng2a",
@@ -424,7 +431,14 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+              "kubeletExtraConfig": {
+                "kubeReserved": {
+                  "cpu": "100m",
+                  "ephemeral-storage": "1.25Gi",
+                  "memory": "1.8Mi"
+                }
+              }
 		  },
 		  {
 			  "name": "test-ng3a",
@@ -463,7 +477,14 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "clusterDNS": "1.2.3.4"
+			  "clusterDNS": "1.2.3.4",
+              "kubeletExtraConfig": {
+                "kubeReserved": {
+                  "cpu": "100m",
+                  "ephemeral-storage": "2Gi",
+                  "memory": "1.7Mi"
+                }
+              }
 		  },
 		  {
 			  "name": "test-ng1b",
@@ -501,7 +522,14 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+              "kubeletExtraConfig": {
+                "kubeReserved": {
+                  "cpu": "100m",
+                  "ephemeral-storage": "1.25Gi",
+                  "memory": "1.8Mi"
+                }
+              }
 		  },
 		  {
 			  "name": "test-ng2b",
@@ -543,7 +571,14 @@ const expected = `
 				  "cloudWatch": false
 			    }
 			  },
-			  "clusterDNS": "4.2.8.14"
+			  "clusterDNS": "4.2.8.14",
+              "kubeletExtraConfig": {
+                "kubeReserved": {
+                  "cpu": "140m",
+                  "ephemeral-storage": "1.25Gi",
+                  "memory": "2.6Mi"
+                }
+              }
 		  },
 		  {
 			  "name": "test-ng3b",
@@ -584,7 +619,14 @@ const expected = `
 				  "xRay": false,
 				  "cloudWatch": false
 			    }
-			  }
+			  },
+              "kubeletExtraConfig": {
+                "kubeReserved": {
+                  "cpu": "100m",
+                  "ephemeral-storage": "1.25Gi",
+                  "memory": "1.8Mi"
+                }
+              }
 		  }
 		]
   }

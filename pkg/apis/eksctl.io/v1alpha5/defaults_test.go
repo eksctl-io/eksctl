@@ -141,6 +141,46 @@ var _ = Describe("ClusterConfig validation", func() {
 
 	})
 
+	Context("KubletExtraConfigDefaults", func() {
+
+		It("Should calculate correct memory size and cpu cores for instance types", func() {
+
+			expRes := []map[string]string{
+				{"instType": "t3.nano", "expMemRes": "0.125", "expCpuRes": "100", "expEphStorRes": "1.25"},
+				{"instType": "t3a.micro", "expMemRes": "0.25", "expCpuRes": "100", "expEphStorRes": "1.25"},
+				{"instType": "t2.small", "expMemRes": "0.5", "expCpuRes": "60", "expEphStorRes": "1.25"},
+				{"instType": "t2.medium", "expMemRes": "1.0", "expCpuRes": "100", "expEphStorRes": "1.25"},
+				{"instType": "m3.large", "expMemRes": "1.7", "expCpuRes": "100", "expEphStorRes": "2"},
+				{"instType": "m5ad.large", "expMemRes": "1.8", "expCpuRes": "100", "expEphStorRes": "4.69"},
+				{"instType": "m5ad.xlarge", "expMemRes": "2.6", "expCpuRes": "140", "expEphStorRes": "9.38"},
+				{"instType": "m5ad.2xlarge", "expMemRes": "3.56", "expCpuRes": "180", "expEphStorRes": "15"},
+				{"instType": "m5ad.8xlarge", "expMemRes": "9.32", "expCpuRes": "420", "expEphStorRes": "15"},
+				{"instType": "m5ad.12xlarge", "expMemRes": "10.6", "expCpuRes": "580", "expEphStorRes": "15"},
+				{"instType": "m5ad.16xlarge", "expMemRes": "11.88", "expCpuRes": "740", "expEphStorRes": "15"},
+				{"instType": "m5ad.24xlarge", "expMemRes": "14.44", "expCpuRes": "1040", "expEphStorRes": "15"},
+			}
+
+			for _, m := range expRes {
+				it := m["instType"]
+				expMemRes := m["expMemRes"]
+				expCpuRes := m["expCpuRes"]
+				expEphStorRes := m["expEphStorRes"]
+
+				testNodeGroup := NodeGroup{
+					VolumeSize:         &DefaultNodeVolumeSize,
+					InstanceType:       it,
+					KubeletExtraConfig: &InlineDocument{"kubeReserved": make(map[string]interface{})},
+				}
+				SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+				KEC := *testNodeGroup.KubeletExtraConfig
+				kubeReserved := KEC["kubeReserved"].(map[string]interface{})
+				Expect(kubeReserved["memory"]).To(Equal(expMemRes + "Mi"))
+				Expect(kubeReserved["cpu"]).To(Equal(expCpuRes + "m"))
+				Expect(kubeReserved["ephemeral-storage"]).To(Equal(expEphStorRes + "Gi"))
+			}
+		})
+	})
+
 	Describe("ClusterConfig", func() {
 		var cfg *ClusterConfig
 

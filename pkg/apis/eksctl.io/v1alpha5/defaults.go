@@ -1,6 +1,16 @@
 package v1alpha5
 
 import (
+	"errors"
+	"fmt"
+	"math"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -80,6 +90,11 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	case NodeImageFamilyBottlerocket:
 		setBottlerocketNodeGroupDefaults(ng)
 	}
+	if ng.KubeletExtraConfig == nil {
+		ng.KubeletExtraConfig = &InlineDocument{}
+	}
+
+	SetKubeletExtraConfigDefaults(ng, meta)
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -172,6 +187,262 @@ func setSSHDefaults(sshConfig *NodeGroupSSH) {
 func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName string) {
 	labels[ClusterNameLabel] = clusterName
 	labels[NodeGroupNameLabel] = nodeGroupName
+}
+
+type getRscDefaultFunc func(string, *ClusterMeta) (string, error)
+type setRscDefaultFunc func(*NodeGroup, string, *ClusterMeta, getRscDefaultFunc) error
+
+type rscParamSet struct {
+	setFun  setRscDefaultFunc `json: "setFun,omitEmpty"`
+	getFun  getRscDefaultFunc `json: "getFun,omitEmpty"`
+	rscType string            `json: "rscType,omitEmpty"`
+}
+
+var rscParams = []rscParamSet{
+	{setFun: setCpuReservationsDefaults, getFun: getCpuReservations, rscType: "cpu"},
+	{setFun: setMemoryResevationDefaults, getFun: getMemReservations, rscType: "memory"},
+	{setFun: setEphemeralStorageDefaults, getFun: getEphemeralStorageReservations, rscType: "ephemeral-storage"},
+}
+
+// SetKubeletExtraConfigDefaults adds Kubelet CPU, Mem, and Storage Reservation default values for a nodegroup
+func SetKubeletExtraConfigDefaults(ng *NodeGroup, meta *ClusterMeta) error {
+	for _, pSet := range rscParams {
+		err := pSet.setFun(ng, pSet.rscType, meta, pSet.getFun)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func setCpuReservationsDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, gfn getRscDefaultFunc) error {
+	return setReservationDefault(ng, rscType, meta, gfn)
+}
+
+func setMemoryResevationDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, gfn getRscDefaultFunc) error {
+	return setReservationDefault(ng, rscType, meta, gfn)
+}
+
+func setEphemeralStorageDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, gfn getRscDefaultFunc) error {
+	return setReservationDefault(ng, rscType, meta, gfn)
+}
+
+func setReservationDefault(ng *NodeGroup, resType string, meta *ClusterMeta, fn getRscDefaultFunc) error {
+	kec := (*ng).KubeletExtraConfig
+	if kec == nil {
+		kec = &InlineDocument{}
+	}
+	rsrcRes, err := fn((*ng).InstanceType, meta)
+	if err != nil {
+		return err
+	}
+	kubeReserved := getKubeReserved(*kec)
+	// only set kubelet reservations for resource types that aren't already set in config
+	if _, ok := kubeReserved[resType]; !ok {
+		kubeReserved[resType] = rsrcRes
+	}
+	(*kec)["kubeReserved"] = kubeReserved
+	ng.KubeletExtraConfig = kec
+	return nil
+}
+
+func getKubeReserved(kec InlineDocument) map[string]interface{} {
+	kubeReserved, ok := kec["kubeReserved"].(map[string]interface{})
+	if !ok {
+		kubeReserved = make(map[string]interface{})
+	}
+	return kubeReserved
+}
+
+type cpuEntry struct {
+	cores int64
+	res   string
+}
+
+// See: https://docs.microsoft.com/en-us/azure/aks/concepts-clusters-workloads
+var cpuAllocations map[int64]string = map[int64]string{
+	1:  "60m",
+	2:  "100m",  //+40
+	4:  "140m",  //+40
+	8:  "180m",  //+40
+	16: "260m",  //+80
+	32: "420m",  //+160
+	48: "580m",  //+160
+	64: "740m",  //+320
+	96: "1040m", //+320
+}
+
+func getCpuReservations(it string, meta *ClusterMeta) (string, error) {
+	cores, err := getInstanceTypeCores(it, meta)
+	if err != nil {
+		return "", err
+	}
+
+	reservedCores := "0"
+	ok := false
+	if reservedCores, ok = cpuAllocations[cores]; !ok {
+		err = fmt.Errorf("Could not find suggested core reservation for instance type: %s\n", it)
+	}
+	if err != nil {
+		return "", err
+	}
+	return reservedCores, nil
+}
+
+func getInstanceTypeCores(it string, meta *ClusterMeta) (int64, error) {
+	instTypeInfos, err := getInstanceTypeInfo(it, meta)
+	if err != nil {
+		return 0, err
+	}
+	vCpuInfo := (*instTypeInfos).VCpuInfo
+	cpuCores := *vCpuInfo.DefaultVCpus
+	return cpuCores, nil
+}
+
+type memEntry struct {
+	max      float64
+	fraction float64
+}
+
+// See: https://docs.microsoft.com/en-us/azure/aks/concepts-clusters-workloads
+var memPercentages = []memEntry{
+	{max: 4, fraction: 0.25},
+	{max: 8, fraction: 0.20},
+	{max: 16, fraction: 0.10},
+	{max: 128, fraction: 0.06},
+	{max: 65535, fraction: 0.02},
+}
+
+func getMemReservations(it string, meta *ClusterMeta) (string, error) {
+	instMem, err := getInstanceTypeMem(it, meta)
+	if err != nil {
+		return "", err
+	}
+	var lower, reserved float64 = 0.0, 0.0
+	for _, memEnt := range memPercentages {
+		k, v := memEnt.max, memEnt.fraction
+		if instMem <= k {
+			reserved += v * (instMem - lower)
+			break
+		} else {
+			reserved += v * (k - lower)
+		}
+		lower = k
+	}
+	reservedStr := formatMem(reserved)
+	return reservedStr, nil
+}
+
+// formatFloat removes duplicate trailing zeros and ensures decimal format
+func formatMem(f float64) string {
+	ff := strconv.FormatFloat(f, 'f', -1, 32)
+	if !strings.Contains(ff, ".") {
+		ff += ".0"
+	}
+	return ff + "Mi"
+}
+
+func getInstanceTypeMem(it string, meta *ClusterMeta) (float64, error) {
+	instTypeInfo, err := getInstanceTypeInfo(it, meta)
+	if err != nil {
+		return 0, err
+	}
+	memInfo := (*instTypeInfo).MemoryInfo
+	memSize := float64(*memInfo.SizeInMiB)
+	memStr := fmt.Sprintf("%.2f", float64(memSize/1024.0))
+	return strconv.ParseFloat(memStr, 64)
+}
+
+func getEphemeralStorageReservations(it string, meta *ClusterMeta) (string, error) {
+	storageSize, err := getInstanceTypeStorage(it, meta)
+	if err != nil {
+		return "", err
+	}
+	// at least 1GB but no larger than 15GB
+	larger := math.Max(1.0, float64(storageSize)/16.0)
+	smaller := math.Min(15.0, larger)
+	storSize, storErr := formatStorageSize(smaller)
+	return storSize, storErr
+}
+
+func formatStorageSize(f float64) (string, error) {
+	// set precision to 2 decimal points
+	fstr := fmt.Sprintf("%.2f", f)
+	f64, err := strconv.ParseFloat(fstr, 64)
+	if err != nil {
+		return "", err
+	}
+	// remove any trailing zeros and convert to string
+	return strconv.FormatFloat(f64, 'f', -1, 64) + "Gi", nil
+}
+
+func getInstanceTypeStorage(it string, meta *ClusterMeta) (int64, error) {
+	defaultInstanceTypeStorage := int64(20) //GB
+	instTypeInfo, err := getInstanceTypeInfo(it, meta)
+	if err != nil {
+		return 0, err
+	}
+	// If no default instance storage defined in instance type
+	if !*instTypeInfo.InstanceStorageSupported {
+		return defaultInstanceTypeStorage, nil
+	}
+	storageSize := (*instTypeInfo).InstanceStorageInfo.TotalSizeInGB
+	return *storageSize, nil
+}
+
+func getInstanceTypeInfo(it string, meta *ClusterMeta) (*ec2.InstanceTypeInfo, error) {
+	descInstTypeOutput, err := getInstanceTypeOutput(it, meta)
+	if err != nil {
+		return nil, err
+	}
+	instTypeInfos := descInstTypeOutput.InstanceTypes
+	if len(instTypeInfos) == 0 {
+		return nil, errors.New("No info found for instance type: " + it)
+	}
+	return instTypeInfos[0], nil
+}
+
+func getInstanceTypeOutput(it string, meta *ClusterMeta) (*ec2.DescribeInstanceTypesOutput, error) {
+	sess, err := getSession(meta)
+	if err != nil {
+		return nil, err
+	}
+	svc := ec2.New(sess)
+	descInstanceTypesInput := &ec2.DescribeInstanceTypesInput{}
+	descInstanceTypesInput.SetInstanceTypes([]*string{&it})
+	descInstanceTypesOutput, err := svc.DescribeInstanceTypes(descInstanceTypesInput)
+	if err != nil {
+		return nil, err
+	}
+	return descInstanceTypesOutput, nil
+}
+
+func getRegion(meta *ClusterMeta) string {
+	region := ""
+	region = (*meta).Region
+	if region == "" {
+		region = os.Getenv("REGION")
+	}
+	return region
+}
+
+func getSession(meta *ClusterMeta) (*session.Session, error) {
+	region := getRegion(meta)
+	var sess *session.Session = nil
+	if region != "" {
+		sess = session.Must(session.NewSession(
+			&aws.Config{
+				Region: aws.String(region),
+			},
+		))
+	} else {
+		sess = session.Must(session.NewSession())
+	}
+	if sess == nil {
+		// returns session, error
+		return session.NewSession()
+	}
+	return sess, nil
 }
 
 func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {

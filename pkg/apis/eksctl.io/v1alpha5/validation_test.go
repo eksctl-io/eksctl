@@ -519,7 +519,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			It("Allows other kubelet options", func() {
 				ng.KubeletExtraConfig = &InlineDocument{
-					"kubeReserved": map[string]string{
+					"kubeReserved": map[string]interface{}{
 						"cpu":               "300m",
 						"memory":            "300Mi",
 						"ephemeral-storage": "1Gi",

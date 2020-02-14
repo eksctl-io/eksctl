@@ -203,6 +203,12 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 			ng.AMIFamily, path)
 	}
 
+	if ng.KubeletExtraConfig != nil {
+		if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
+			return err
+		}
+	}
+
 	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
 			return fmt.Errorf("%s is not supported for %s nodegroups (path=%s.%s)", field, ng.AMIFamily, path, field)
@@ -217,8 +223,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 			return fieldNotSupported("overrideBootstrapCommand")
 		}
 
-	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
-		return err
 	}
 
 	if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.Bottlerocket != nil {
@@ -478,8 +482,8 @@ func countEnabledFields(fields ...*string) int {
 	return count
 }
 
-func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
-	if kubeletConfig == nil {
+func validateNodeGroupKubeletExtraConfig(kubeletExtraConfig *InlineDocument) error {
+	if kubeletExtraConfig == nil {
 		return nil
 	}
 
@@ -493,9 +497,25 @@ func validateNodeGroupKubeletExtraConfig(kubeletConfig *InlineDocument) error {
 		"serverTLSBootstrap": {},
 	}
 
-	for k := range *kubeletConfig {
+	for k := range *kubeletExtraConfig {
 		if _, exists := kubeletForbiddenFields[k]; exists {
 			return fmt.Errorf("cannot override %q in kubelet config, as it's critical to eksctl functionality", k)
+		}
+	}
+	kReserved := getKubeReserved(*kubeletExtraConfig)
+	if len(kReserved) == 0 {
+		return errors.New(
+			"KubeletExtraConfig should have kubeReserved configuration for CPU/Mem/Storage")
+	}
+
+	var kubeReservedFields = []string{
+		"cpu",
+		"memory",
+		"ephemeral-storage",
+	}
+	for _, k := range kubeReservedFields {
+		if _, exists := kReserved[k]; !exists {
+			return fmt.Errorf("KubeletExtraConfig should have %s field set", k)
 		}
 	}
 	return nil

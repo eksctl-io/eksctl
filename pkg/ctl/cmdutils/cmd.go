@@ -31,7 +31,6 @@ type Cmd struct {
 // is invalid or region is not supported
 func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	api.SetClusterConfigDefaults(c.ClusterConfig)
-
 	if err := api.ValidateClusterConfig(c.ClusterConfig); err != nil {
 		if c.Validate {
 			return nil, err
@@ -40,6 +39,7 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	}
 
 	for i, ng := range c.ClusterConfig.NodeGroups {
+		api.SetKubeletExtraConfigDefaults(ng, c.ClusterConfig.Metadata)
 		if err := api.ValidateNodeGroup(i, ng); err != nil {
 			if c.Validate {
 				return nil, err
