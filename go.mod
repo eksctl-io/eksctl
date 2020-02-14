@@ -73,6 +73,7 @@ require (
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	go.etcd.io/bbolt v1.3.3 // indirect
+	golang.org/dl v0.0.0-20200205193131-62c734104014 // indirect
 	golang.org/x/tools v0.0.0-20200121210457-b3205ff6fffe
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
