@@ -69,7 +69,7 @@ type Properties struct {
 
 	VPCZoneIdentifier interface{}
 
-	ClassicLoadBalancerNames          []string
+	LoadBalancerNames                 []string
 	TargetGroupARNs                   []string
 	DesiredCapacity, MinSize, MaxSize string
 
@@ -857,7 +857,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng).ToNot(BeNil())
 			Expect(ng.Properties).ToNot(BeNil())
 
-			Expect(ng.Properties.ClassicLoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
+			Expect(ng.Properties.LoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
 		})
 
 		It("should have target groups ARNs set", func() {
