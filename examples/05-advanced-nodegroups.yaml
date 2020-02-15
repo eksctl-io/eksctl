@@ -40,7 +40,7 @@ nodeGroups:
     desiredCapacity: 4
     labels:
       nodegroup-type: very-special-science-workloads
-    loadBalancerNames:
+    classicLoadBalancerNames:
       - ng3-classic-load-balancer
     taints:
       special: "true:NoSchedule"

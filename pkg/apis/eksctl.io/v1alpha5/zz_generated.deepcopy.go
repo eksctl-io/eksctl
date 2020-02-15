@@ -687,8 +687,8 @@ func (in *NodeGroup) DeepCopyInto(out *NodeGroup) {
 			(*out)[key] = val
 		}
 	}
-	if in.LoadBalancerNames != nil {
-		in, out := &in.LoadBalancerNames, &out.LoadBalancerNames
+	if in.ClassicLoadBalancerNames != nil {
+		in, out := &in.ClassicLoadBalancerNames, &out.ClassicLoadBalancerNames
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}

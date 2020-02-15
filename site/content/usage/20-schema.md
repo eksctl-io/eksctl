@@ -338,6 +338,10 @@ NodeGroup:
       items:
         type: string
       type: array
+    classicLoadBalancerNames:
+      items:
+        type: string
+      type: array
     clusterDNS:
       type: string
     desiredCapacity:
@@ -363,10 +367,6 @@ NodeGroup:
         .*:
           type: string
       type: object
-    loadBalancerNames:
-      items:
-        type: string
-      type: array
     maxPodsPerNode:
       type: integer
     maxSize:

@@ -69,7 +69,7 @@ type Properties struct {
 
 	VPCZoneIdentifier interface{}
 
-	LoadBalancerNames                 []string
+	ClassicLoadBalancerNames          []string
 	TargetGroupARNs                   []string
 	DesiredCapacity, MinSize, MaxSize string
 
@@ -756,7 +756,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
-		ng.LoadBalancerNames = []string{"clb-1", "clb-2"}
+		ng.ClassicLoadBalancerNames = []string{"clb-1", "clb-2"}
 		ng.TargetGroupARNs = []string{"tg-arn-1", "tg-arn-2"}
 
 		ng.MinSize = new(int)
@@ -851,13 +851,13 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngProps.Tags).To(Equal(expectedTags))
 		})
 
-		It("should have load balancer names set", func() {
+		It("should have classic load balancer names set", func() {
 			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
 			ng := ngTemplate.Resources["NodeGroup"]
 			Expect(ng).ToNot(BeNil())
 			Expect(ng.Properties).ToNot(BeNil())
 
-			Expect(ng.Properties.LoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
+			Expect(ng.Properties.ClassicLoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
 		})
 
 		It("should have target groups ARNs set", func() {

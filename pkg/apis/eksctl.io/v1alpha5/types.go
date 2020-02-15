@@ -595,7 +595,7 @@ type NodeGroup struct {
 	Taints map[string]string `json:"taints,omitempty"`
 
 	// +optional
-	LoadBalancerNames []string `json:"loadBalancerNames,omitempty"`
+	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
 
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
