@@ -39,7 +39,9 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 	}
 
 	for i, ng := range c.ClusterConfig.NodeGroups {
-		api.SetKubeletExtraConfigDefaults(ng, c.ClusterConfig.Metadata)
+		if err := api.SetKubeletExtraConfigDefaults(ng, c.ClusterConfig.Metadata); err != nil {
+			return nil, err
+		}
 		if err := api.ValidateNodeGroup(i, ng); err != nil {
 			if c.Validate {
 				return nil, err

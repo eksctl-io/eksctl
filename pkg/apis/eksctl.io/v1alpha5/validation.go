@@ -68,6 +68,13 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return nil
 	}
 
+	if cfg.Metadata == nil {
+		cfg.Metadata = new(ClusterMeta)
+	}
+	if cfg.Metadata.Region == "" {
+		cfg.Metadata.Region = DefaultRegion
+	}
+
 	for i, ng := range cfg.NodeGroups {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
 		if err := validateNg(ng.NameString(), path); err != nil {
@@ -502,8 +509,8 @@ func validateNodeGroupKubeletExtraConfig(kubeletExtraConfig *InlineDocument) err
 			return fmt.Errorf("cannot override %q in kubelet config, as it's critical to eksctl functionality", k)
 		}
 	}
-	kReserved := getKubeReserved(*kubeletExtraConfig)
-	if len(kReserved) == 0 {
+	kubeReserved := getKubeReserved(*kubeletExtraConfig)
+	if len(kubeReserved) == 0 {
 		return errors.New(
 			"KubeletExtraConfig should have kubeReserved configuration for CPU/Mem/Storage")
 	}
@@ -514,7 +521,7 @@ func validateNodeGroupKubeletExtraConfig(kubeletExtraConfig *InlineDocument) err
 		"ephemeral-storage",
 	}
 	for _, k := range kubeReservedFields {
-		if _, exists := kReserved[k]; !exists {
+		if _, exists := kubeReserved[k]; !exists {
 			return fmt.Errorf("KubeletExtraConfig should have %s field set", k)
 		}
 	}

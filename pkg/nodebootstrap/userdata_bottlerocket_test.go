@@ -35,7 +35,8 @@ var _ = Describe("Bottlerocket", func() {
 			CertificateAuthorityData: []byte(`CertificateAuthorityData`),
 		}
 		clusterConfig.Metadata = &api.ClusterMeta{
-			Name: "unit-test",
+			Name:   "unit-test",
+			Region: api.DefaultRegion,
 		}
 		ng = &api.NodeGroup{
 			// SetNodeGroupDefaults ensures this is non-nil for Bottlerocket nodegroups

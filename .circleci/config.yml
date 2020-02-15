@@ -36,6 +36,8 @@ commands:
             docker run \
               --env=JUNIT_REPORT_DIR=/src/test-results \
               --env=GOPRIVATE \
+              --env=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              --env=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
               --volume=$(pwd):/src \
               --volume=$HOME/.cache/go-build/:/root/.cache/go-build \
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \

@@ -1,16 +1,13 @@
 package v1alpha5
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	inst_types "github.com/weaveworks/eksctl/pkg/insttypes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -94,7 +91,11 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.KubeletExtraConfig = &InlineDocument{}
 	}
 
-	SetKubeletExtraConfigDefaults(ng, meta)
+	err := SetKubeletExtraConfigDefaults(ng, meta)
+	if err != nil {
+		fmt.Printf("Encountered error when setting KubeletConfig defaults: %s\n", err.Error())
+		os.Exit(2)
+	}
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -192,22 +193,20 @@ func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName s
 type getRscDefaultFunc func(string, *ClusterMeta) (string, error)
 type setRscDefaultFunc func(*NodeGroup, string, *ClusterMeta, getRscDefaultFunc) error
 
-type rscParamSet struct {
-	setFun  setRscDefaultFunc `json: "setFun,omitEmpty"`
-	getFun  getRscDefaultFunc `json: "getFun,omitEmpty"`
-	rscType string            `json: "rscType,omitEmpty"`
-}
-
-var rscParams = []rscParamSet{
-	{setFun: setCpuReservationsDefaults, getFun: getCpuReservations, rscType: "cpu"},
-	{setFun: setMemoryResevationDefaults, getFun: getMemReservations, rscType: "memory"},
-	{setFun: setEphemeralStorageDefaults, getFun: getEphemeralStorageReservations, rscType: "ephemeral-storage"},
+var rscParams = []struct {
+	setFn   setRscDefaultFunc
+	getFn   getRscDefaultFunc
+	rscType string
+}{
+	{setCPUReservationDefaults, getCPUReservations, "cpu"},
+	{setMemoryResevationDefaults, getMemReservations, "memory"},
+	{setEphemeralStorageDefaults, getEphemeralStorageReservations, "ephemeral-storage"},
 }
 
 // SetKubeletExtraConfigDefaults adds Kubelet CPU, Mem, and Storage Reservation default values for a nodegroup
 func SetKubeletExtraConfigDefaults(ng *NodeGroup, meta *ClusterMeta) error {
 	for _, pSet := range rscParams {
-		err := pSet.setFun(ng, pSet.rscType, meta, pSet.getFun)
+		err := pSet.setFn(ng, pSet.rscType, meta, pSet.getFn)
 		if err != nil {
 			return err
 		}
@@ -215,24 +214,24 @@ func SetKubeletExtraConfigDefaults(ng *NodeGroup, meta *ClusterMeta) error {
 	return nil
 }
 
-func setCpuReservationsDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, gfn getRscDefaultFunc) error {
-	return setReservationDefault(ng, rscType, meta, gfn)
+func setCPUReservationDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, getFn getRscDefaultFunc) error {
+	return setReservationDefault(ng, rscType, meta, getFn)
 }
 
-func setMemoryResevationDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, gfn getRscDefaultFunc) error {
-	return setReservationDefault(ng, rscType, meta, gfn)
+func setMemoryResevationDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, getFn getRscDefaultFunc) error {
+	return setReservationDefault(ng, rscType, meta, getFn)
 }
 
-func setEphemeralStorageDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, gfn getRscDefaultFunc) error {
-	return setReservationDefault(ng, rscType, meta, gfn)
+func setEphemeralStorageDefaults(ng *NodeGroup, rscType string, meta *ClusterMeta, getFn getRscDefaultFunc) error {
+	return setReservationDefault(ng, rscType, meta, getFn)
 }
 
-func setReservationDefault(ng *NodeGroup, resType string, meta *ClusterMeta, fn getRscDefaultFunc) error {
+func setReservationDefault(ng *NodeGroup, resType string, meta *ClusterMeta, setFn getRscDefaultFunc) error {
 	kec := (*ng).KubeletExtraConfig
 	if kec == nil {
 		kec = &InlineDocument{}
 	}
-	rsrcRes, err := fn((*ng).InstanceType, meta)
+	rsrcRes, err := setFn((*ng).InstanceType, meta)
 	if err != nil {
 		return err
 	}
@@ -254,13 +253,8 @@ func getKubeReserved(kec InlineDocument) map[string]interface{} {
 	return kubeReserved
 }
 
-type cpuEntry struct {
-	cores int64
-	res   string
-}
-
 // See: https://docs.microsoft.com/en-us/azure/aks/concepts-clusters-workloads
-var cpuAllocations map[int64]string = map[int64]string{
+var cpuAllocations = map[int]string{
 	1:  "60m",
 	2:  "100m",  //+40
 	4:  "140m",  //+40
@@ -272,30 +266,26 @@ var cpuAllocations map[int64]string = map[int64]string{
 	96: "1040m", //+320
 }
 
-func getCpuReservations(it string, meta *ClusterMeta) (string, error) {
+func getCPUReservations(it string, meta *ClusterMeta) (string, error) {
 	cores, err := getInstanceTypeCores(it, meta)
 	if err != nil {
 		return "", err
 	}
 
-	reservedCores := "0"
-	ok := false
-	if reservedCores, ok = cpuAllocations[cores]; !ok {
-		err = fmt.Errorf("Could not find suggested core reservation for instance type: %s\n", it)
-	}
-	if err != nil {
-		return "", err
+	reservedCores, ok := cpuAllocations[cores]
+	if !ok {
+		return "", fmt.Errorf("could not find suggested core reservation for instance type: %s", it)
 	}
 	return reservedCores, nil
 }
 
-func getInstanceTypeCores(it string, meta *ClusterMeta) (int64, error) {
+func getInstanceTypeCores(it string, meta *ClusterMeta) (int, error) {
 	instTypeInfos, err := getInstanceTypeInfo(it, meta)
 	if err != nil {
 		return 0, err
 	}
-	vCpuInfo := (*instTypeInfos).VCpuInfo
-	cpuCores := *vCpuInfo.DefaultVCpus
+	vCPUInfo := (*instTypeInfos).VCpuInfo
+	cpuCores := vCPUInfo.DefaultVCpus
 	return cpuCores, nil
 }
 
@@ -348,7 +338,7 @@ func getInstanceTypeMem(it string, meta *ClusterMeta) (float64, error) {
 		return 0, err
 	}
 	memInfo := (*instTypeInfo).MemoryInfo
-	memSize := float64(*memInfo.SizeInMiB)
+	memSize := float64(memInfo.SizeInMiB)
 	memStr := fmt.Sprintf("%.2f", float64(memSize/1024.0))
 	return strconv.ParseFloat(memStr, 64)
 }
@@ -376,73 +366,36 @@ func formatStorageSize(f float64) (string, error) {
 	return strconv.FormatFloat(f64, 'f', -1, 64) + "Gi", nil
 }
 
-func getInstanceTypeStorage(it string, meta *ClusterMeta) (int64, error) {
-	defaultInstanceTypeStorage := int64(20) //GB
+func getInstanceTypeStorage(it string, meta *ClusterMeta) (int, error) {
+	defaultInstanceTypeStorage := 20 //GB
 	instTypeInfo, err := getInstanceTypeInfo(it, meta)
 	if err != nil {
 		return 0, err
 	}
 	// If no default instance storage defined in instance type
-	if !*instTypeInfo.InstanceStorageSupported {
+	if !instTypeInfo.InstanceStorageSupported {
 		return defaultInstanceTypeStorage, nil
 	}
 	storageSize := (*instTypeInfo).InstanceStorageInfo.TotalSizeInGB
-	return *storageSize, nil
+	return storageSize, nil
 }
 
-func getInstanceTypeInfo(it string, meta *ClusterMeta) (*ec2.InstanceTypeInfo, error) {
-	descInstTypeOutput, err := getInstanceTypeOutput(it, meta)
-	if err != nil {
-		return nil, err
+func getInstanceTypeInfo(it string, meta *ClusterMeta) (*inst_types.EC2InstanceTypeInfo, error) {
+	if meta == nil {
+		meta = &ClusterMeta{}
 	}
-	instTypeInfos := descInstTypeOutput.InstanceTypes
-	if len(instTypeInfos) == 0 {
-		return nil, errors.New("No info found for instance type: " + it)
+	if meta.Region == "" {
+		meta.Region = DefaultRegion
 	}
-	return instTypeInfos[0], nil
-}
-
-func getInstanceTypeOutput(it string, meta *ClusterMeta) (*ec2.DescribeInstanceTypesOutput, error) {
-	sess, err := getSession(meta)
-	if err != nil {
-		return nil, err
+	regionMap, ok := inst_types.StaticInstanceTypes[meta.Region]
+	if !ok {
+		return nil, fmt.Errorf("unable to find region \"%s\" in region map", meta.Region)
 	}
-	svc := ec2.New(sess)
-	descInstanceTypesInput := &ec2.DescribeInstanceTypesInput{}
-	descInstanceTypesInput.SetInstanceTypes([]*string{&it})
-	descInstanceTypesOutput, err := svc.DescribeInstanceTypes(descInstanceTypesInput)
-	if err != nil {
-		return nil, err
+	instTypeInfo, ok := regionMap[it]
+	if !ok {
+		return nil, fmt.Errorf("unable to find instance type: \"%s\" in region: \"%s\"", it, meta.Region)
 	}
-	return descInstanceTypesOutput, nil
-}
-
-func getRegion(meta *ClusterMeta) string {
-	region := ""
-	region = (*meta).Region
-	if region == "" {
-		region = os.Getenv("REGION")
-	}
-	return region
-}
-
-func getSession(meta *ClusterMeta) (*session.Session, error) {
-	region := getRegion(meta)
-	var sess *session.Session = nil
-	if region != "" {
-		sess = session.Must(session.NewSession(
-			&aws.Config{
-				Region: aws.String(region),
-			},
-		))
-	} else {
-		sess = session.Must(session.NewSession())
-	}
-	if sess == nil {
-		// returns session, error
-		return session.NewSession()
-	}
-	return sess, nil
+	return instTypeInfo, nil
 }
 
 func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {

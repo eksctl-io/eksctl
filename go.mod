@@ -30,8 +30,6 @@ require (
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fluxcd/flux/pkg/install v0.0.0-20200206191601-8b676b003ab0 // flux 1.18.0
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200213151218-f7e487142b46 // helm-operator 1.0.0-rc9
-	// github.com/fluxcd/flux v1.15.0
-	// github.com/fluxcd/helm-operator v1.0.0-rc2
 	github.com/go-ini/ini v1.37.0 // indirect
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1 // indirect
@@ -61,8 +59,8 @@ require (
 	github.com/miekg/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/miekg/dns v1.1.1 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.8.1
+	github.com/onsi/ginkgo v1.10.1
+	github.com/onsi/gomega v1.7.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/pelletier/go-toml v1.4.0
@@ -100,7 +98,6 @@ require (
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	golang.org/x/tools v0.0.0-20200207194234-112b90105c19 // indirect
-	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
