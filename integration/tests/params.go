@@ -9,6 +9,7 @@ import (
 
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/names"
 )
 
 // Params groups all test parameters.
@@ -41,7 +42,7 @@ const (
 )
 
 // NewParams creates a new Test instance from CLI args, grouping all test parameters.
-func NewParams() *Params {
+func NewParams(clusterNamePrefix string) *Params {
 	var params Params
 
 	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../eksctl", "Path to eksctl")
@@ -57,6 +58,10 @@ func NewParams() *Params {
 
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
+
+	if params.ClusterName == "" {
+		params.ClusterName = fmt.Sprintf("it-%s-%s", clusterNamePrefix, names.ForCluster("", ""))
+	}
 
 	params.EksctlCmd = runner.NewCmd(params.EksctlPath).
 		WithArgs("--region", params.Region).
