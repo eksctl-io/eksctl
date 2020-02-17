@@ -266,34 +266,38 @@ func (c *ClusterProvider) CheckAuth() error {
 }
 
 // EnsureAMI ensures that the node AMI is set and is available
-func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
+func EnsureAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) error {
 	if api.IsAMI(ng.AMI) {
-		return ami.Use(c.Provider.EC2(), ng)
+		return ami.Use(provider.EC2(), ng)
 	}
 
 	var resolver ami.Resolver
 	switch ng.AMI {
 	case api.NodeImageResolverAuto:
-		resolver = ami.NewAutoResolver(c.Provider.EC2())
+		resolver = ami.NewAutoResolver(provider.EC2())
 	case api.NodeImageResolverAutoSSM:
-		resolver = ami.NewSSMResolver(c.Provider.SSM())
+		resolver = ami.NewSSMResolver(provider.SSM())
+	case api.NodeImageResolverStatic:
+		resolver = ami.NewStaticResolver()
 	default:
-		resolver = ami.NewDefaultResolver()
+		resolver = ami.NewMultiResolver(
+			ami.NewSSMResolver(provider.SSM()),
+			ami.NewAutoResolver(provider.EC2()),
+		)
 	}
 
 	instanceType := selectInstanceType(ng)
-	id, err := resolver.Resolve(c.Provider.Region(), version, instanceType, ng.AMIFamily)
+	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
 	}
 	if id == "" {
-		return ami.NewErrFailedResolution(c.Provider.Region(), version, instanceType, ng.AMIFamily)
+		return ami.NewErrFailedResolution(provider.Region(), version, instanceType, ng.AMIFamily)
 	}
 	ng.AMI = id
 
 	// Check the AMI is available and populate RootDevice information
-	return ami.Use(c.Provider.EC2(), ng)
-
+	return ami.Use(provider.EC2(), ng)
 }
 
 // selectInstanceType determines which instanceType is relevant for selecting an AMI

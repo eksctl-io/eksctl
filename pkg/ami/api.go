@@ -42,17 +42,19 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 		return NewErrNotFound(ng.AMI)
 	}
 
-	// Instance-store AMIs cannot have their root volume size managed
-	if *output.Images[0].RootDeviceType == "instance-store" {
-		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings not supported for instance-store AMIs", ng.AMI)
-	}
+	image := output.Images[0]
 
-	if *output.Images[0].RootDeviceType == "ebs" {
+	switch *image.RootDeviceType {
+	// Instance-store AMIs cannot have their root volume size managed
+	case "instance-store":
+		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings are not supported for instance-store AMIs", ng.AMI)
+
+	case "ebs":
 		if !api.IsSetAndNonEmptyString(ng.VolumeName) {
-			ng.VolumeName = output.Images[0].RootDeviceName
+			ng.VolumeName = image.RootDeviceName
 		}
 
-		amiEncrypted := output.Images[0].BlockDeviceMappings[0].Ebs.Encrypted
+		amiEncrypted := image.BlockDeviceMappings[0].Ebs.Encrypted
 		if ng.VolumeEncrypted == nil {
 			ng.VolumeEncrypted = amiEncrypted
 		} else {
