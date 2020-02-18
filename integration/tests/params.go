@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -34,6 +35,34 @@ type Params struct {
 	EksctlScaleNodeGroupCmd runner.Cmd
 	EksctlUtilsCmd          runner.Cmd
 	EksctlExperimentalCmd   runner.Cmd
+	// Keep track of created clusters, for post-tests clean-up.
+	clustersToDelete []string
+}
+
+// NewClusterName generates a new cluster name using the provided prefix, and
+// adds the cluster to the list of clusters to eventually delete, once the test
+// suite has run.
+func (p *Params) NewClusterName(prefix string) string {
+	clusterName := fmt.Sprintf("it-%s-%s", prefix, names.ForCluster("", ""))
+	p.addToDeleteList(clusterName)
+	return clusterName
+}
+
+// addToDeleteList adds the provided cluster name to the list of clusters to eventually delete.
+func (p *Params) addToDeleteList(clusterName string) {
+	p.clustersToDelete = append(p.clustersToDelete, clusterName)
+}
+
+func (p Params) DeleteClusters() {
+	if !p.DoDelete {
+		return
+	}
+	for _, clusterName := range p.clustersToDelete {
+		cmd := p.EksctlDeleteClusterCmd.WithArgs(
+			"--name", clusterName,
+		)
+		Expect(cmd).To(runner.RunSuccessfully())
+	}
 }
 
 const (
@@ -45,7 +74,7 @@ const (
 func NewParams(clusterNamePrefix string) *Params {
 	var params Params
 
-	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../eksctl", "Path to eksctl")
+	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
 	flag.StringVar(&params.Region, "eksctl.region", api.DefaultRegion, "Region to use for the tests")
 	flag.StringVar(&params.Version, "eksctl.version", api.DefaultVersion, "Version of Kubernetes to test")
 	flag.StringVar(&params.TestDirectory, "eksctl.test.dir", defaultTestDirectory, "Test directory. Defaulted to: "+defaultTestDirectory)
@@ -60,7 +89,9 @@ func NewParams(clusterNamePrefix string) *Params {
 	flag.Parse()
 
 	if params.ClusterName == "" {
-		params.ClusterName = fmt.Sprintf("it-%s-%s", clusterNamePrefix, names.ForCluster("", ""))
+		params.ClusterName = params.NewClusterName(clusterNamePrefix)
+	} else {
+		params.addToDeleteList(params.ClusterName)
 	}
 
 	params.EksctlCmd = runner.NewCmd(params.EksctlPath).
