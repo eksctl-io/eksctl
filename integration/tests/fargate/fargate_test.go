@@ -38,7 +38,6 @@ var _ = Describe("(Integration) Fargate", func() {
 		cmd := params.EksctlDeleteCmd.WithArgs(
 			"cluster", clusterName,
 			"--verbose", "4",
-			"--region", params.Region,
 		)
 		Expect(cmd).To(RunSuccessfully())
 	}
@@ -54,7 +53,6 @@ var _ = Describe("(Integration) Fargate", func() {
 			"cluster",
 			"--name", ft.clusterName,
 			"--verbose", "4",
-			"--region", params.Region,
 			"--kubeconfig", params.KubeconfigPath,
 		}
 
@@ -73,7 +71,6 @@ var _ = Describe("(Integration) Fargate", func() {
 			"fargateprofile",
 			"--cluster", clusterName,
 			"--verbose", "4",
-			"--region", params.Region,
 		)
 		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("fp-default")))
 
@@ -90,7 +87,6 @@ var _ = Describe("(Integration) Fargate", func() {
 			"fargateprofile",
 			"--cluster", clusterName,
 			"--name", "fp-default",
-			"--region", params.Region,
 			"--wait",
 			"--verbose", "4",
 		)
@@ -107,7 +103,6 @@ var _ = Describe("(Integration) Fargate", func() {
 			"--namespace", kubeTest.Namespace,
 			"--labels", "run-on=fargate",
 			"--verbose", "4",
-			"--region", params.Region,
 		)
 		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(profileName)))
 
@@ -129,7 +124,6 @@ var _ = Describe("(Integration) Fargate", func() {
 			"--cluster", clusterName,
 			"--name", profileName,
 			"--wait",
-			"--region", params.Region,
 			"--verbose", "4",
 		)
 		Expect(cmd).To(RunSuccessfully())
