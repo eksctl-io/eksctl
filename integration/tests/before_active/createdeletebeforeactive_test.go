@@ -17,11 +17,13 @@ import (
 )
 
 var params *tests.Params
+var deleteAfterSuite bool
 
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
 	params = tests.NewParams("b4active")
+	deleteAfterSuite = true
 }
 
 func TestSuite(t *testing.T) {
@@ -59,6 +61,7 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 				"--name", params.ClusterName,
 			)
 			Expect(cmd).To(RunSuccessfully())
+			deleteAfterSuite = false
 		})
 	})
 
@@ -85,5 +88,7 @@ var _ = Describe("(Integration) Create & Delete before Active", func() {
 })
 
 var _ = AfterSuite(func() {
-	params.DeleteClusters()
+	if deleteAfterSuite {
+		params.DeleteClusters()
+	}
 })
