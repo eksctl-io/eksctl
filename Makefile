@@ -95,7 +95,11 @@ unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
-build-integration-test: $(all_generated_code) ## Build integration test binary
+build-integration-test: $(all_generated_code)
+	@# Compile integration test binary without running any.
+	@# Required as build failure aren't listed when running go build below. See also: https://github.com/golang/go/issues/15513
+	go test -tags integration -run=^$$ ./integration/...
+	@# Build integration test binary:
 	go build -tags integration -o ./eksctl-integration-test ./integration/main.go
 
 .PHONY: integration-test
