@@ -39,6 +39,47 @@ type Params struct {
 	clustersToDelete []string
 }
 
+// SetRegion sets the provided region and re-generates other fields depending
+// on the region field.
+func (p *Params) SetRegion(region string) {
+	p.Region = region
+	p.GenerateCommands()
+}
+
+// GenerateCommands generates eksctl commands with the various options & values
+// provided to this `Params` object.
+func (p *Params) GenerateCommands() {
+	p.EksctlCmd = runner.NewCmd(p.EksctlPath).
+		WithArgs("--region", p.Region).
+		WithTimeout(30 * time.Minute)
+
+	p.EksctlCreateCmd = p.EksctlCmd.
+		WithArgs("create").
+		WithTimeout(25 * time.Minute)
+
+	p.EksctlGetCmd = p.EksctlCmd.
+		WithArgs("get").
+		WithTimeout(1 * time.Minute)
+
+	p.EksctlDeleteCmd = p.EksctlCmd.
+		WithArgs("delete").
+		WithTimeout(15 * time.Minute)
+
+	p.EksctlDeleteClusterCmd = p.EksctlDeleteCmd.
+		WithArgs("cluster", "--verbose", "4")
+
+	p.EksctlScaleNodeGroupCmd = p.EksctlCmd.
+		WithArgs("scale", "nodegroup", "--verbose", "4").
+		WithTimeout(5 * time.Minute)
+
+	p.EksctlUtilsCmd = p.EksctlCmd.
+		WithArgs("utils").
+		WithTimeout(5 * time.Minute)
+
+	p.EksctlExperimentalCmd = p.EksctlCmd.
+		WithEnv("EKSCTL_EXPERIMENTAL=true")
+}
+
 // NewClusterName generates a new cluster name using the provided prefix, and
 // adds the cluster to the list of clusters to eventually delete, once the test
 // suite has run.
@@ -87,42 +128,11 @@ func NewParams(clusterNamePrefix string) *Params {
 
 	// go1.13+ testing flags regression fix: https://github.com/golang/go/issues/31859
 	flag.Parse()
-
 	if params.ClusterName == "" {
 		params.ClusterName = params.NewClusterName(clusterNamePrefix)
 	} else {
 		params.addToDeleteList(params.ClusterName)
 	}
-
-	params.EksctlCmd = runner.NewCmd(params.EksctlPath).
-		WithArgs("--region", params.Region).
-		WithTimeout(30 * time.Minute)
-
-	params.EksctlCreateCmd = params.EksctlCmd.
-		WithArgs("create").
-		WithTimeout(25 * time.Minute)
-
-	params.EksctlGetCmd = params.EksctlCmd.
-		WithArgs("get").
-		WithTimeout(1 * time.Minute)
-
-	params.EksctlDeleteCmd = params.EksctlCmd.
-		WithArgs("delete").
-		WithTimeout(15 * time.Minute)
-
-	params.EksctlDeleteClusterCmd = params.EksctlDeleteCmd.
-		WithArgs("cluster", "--verbose", "4")
-
-	params.EksctlScaleNodeGroupCmd = params.EksctlCmd.
-		WithArgs("scale", "nodegroup", "--verbose", "4").
-		WithTimeout(5 * time.Minute)
-
-	params.EksctlUtilsCmd = params.EksctlCmd.
-		WithArgs("utils").
-		WithTimeout(5 * time.Minute)
-
-	params.EksctlExperimentalCmd = params.EksctlCmd.
-		WithEnv("EKSCTL_EXPERIMENTAL=true")
-
+	params.GenerateCommands()
 	return &params
 }
