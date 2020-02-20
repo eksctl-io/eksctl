@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"path"
-	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -60,8 +59,7 @@ func handleInterruptSignals() (context.Context, chan os.Signal) {
 }
 
 func listModules() []string {
-	_, filename, _, _ := runtime.Caller(1)
-	testsDir := path.Join(path.Dir(filename), "tests")
+	testsDir := path.Join("integration", "tests")
 	files, err := ioutil.ReadDir(testsDir)
 	if err != nil {
 		log.Fatal(err)
