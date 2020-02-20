@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime"
 	"testing"
 	"time"
 
@@ -36,14 +37,21 @@ const (
 	goBackVersions = 2
 )
 
-var _ = Describe("(Integration) [Backwards compatibility test]", func() {
+func isTestSuiteRunnable() bool {
+	return runtime.GOOS != "darwin" && runtime.GOOS != "window"
+}
 
+var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 	var (
 		initialNgName = "ng-1"
 		newNgName     = "ng-2"
 	)
 
 	It("should support clusters created with a previous version of eksctl", func() {
+		if !isTestSuiteRunnable() {
+			Skip("Backwards compatibility tests only run on Linux")
+		}
+
 		By("downloading a previous release")
 		eksctlDir, err := ioutil.TempDir(os.TempDir(), "eksctl")
 		Expect(err).ToNot(HaveOccurred())
@@ -120,7 +128,9 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 })
 
 var _ = AfterSuite(func() {
-	params.DeleteClusters()
+	if isTestSuiteRunnable() {
+		params.DeleteClusters()
+	}
 })
 
 func downloadRelease(dir string) {
