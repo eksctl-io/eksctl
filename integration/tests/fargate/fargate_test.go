@@ -75,7 +75,7 @@ var _ = Describe("(Integration) Fargate", func() {
 		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("fp-default")))
 
 		By("scheduling pods matching the default profile onto Fargate")
-		d := kubeTest.CreateDeploymentFromFile("default", "podinfo.yaml")
+		d := kubeTest.CreateDeploymentFromFile("default", "../../data/podinfo.yaml")
 		kubeTest.WaitForDeploymentReady(d, 5*time.Minute)
 
 		pods := kubeTest.ListPodsFromDeployment(d)
@@ -107,7 +107,7 @@ var _ = Describe("(Integration) Fargate", func() {
 		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(profileName)))
 
 		By("scheduling pods matching the selector onto Fargate")
-		d := kubeTest.LoadDeployment("podinfo.yaml")
+		d := kubeTest.LoadDeployment("../../data/podinfo.yaml")
 		d.Spec.Template.Labels["run-on"] = "fargate"
 
 		kubeTest.CreateDeployment(kubeTest.Namespace, d)
