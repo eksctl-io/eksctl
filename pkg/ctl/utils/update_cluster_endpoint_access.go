@@ -32,7 +32,7 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
-	cmd.FlagSetGroup.InFlagSet("Update private/public Kubernetes API endpoint access configuration",
+	cmd.FlagSetGroup.InFlagSet("Endpoint Access",
 		func(fs *pflag.FlagSet) {
 			fs.BoolVar(&private, "private-access", false, "access for private (VPC) clients")
 			fs.BoolVar(&public, "public-access", false, "access for public clients")
@@ -40,21 +40,8 @@ func updateClusterEndpointsCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func accessFlagsSet(cmd *cmdutils.Cmd) (privateSet, publicSet bool) {
-	cmd.FlagSetGroup.InFlagSet("Update private/public Kubernetes API endpoint access configuration",
-		func(fs *pflag.FlagSet) {
-			if priv := fs.Lookup("private-access"); priv != nil {
-				privateSet = priv.Changed
-			}
-			if pub := fs.Lookup("public-access"); pub != nil {
-				publicSet = pub.Changed
-			}
-		})
-	return
-}
-
 func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool) error {
-	if err := cmdutils.NewUtilsEnableEndpointAccessLoader(cmd).Load(); err != nil {
+	if err := cmdutils.NewUtilsEnableEndpointAccessLoader(cmd, newPrivate, newPublic).Load(); err != nil {
 		return err
 	}
 
@@ -85,17 +72,15 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 	logger.Info("current Kubernetes API endpoint access: privateAccess=%v, publicAccess=%v",
 		curPrivate, curPublic)
 
-	if cfg.VPC.ClusterEndpoints.PublicAccess != nil && cfg.VPC.ClusterEndpoints.PrivateAccess != nil {
-		newPublic = *cfg.VPC.ClusterEndpoints.PublicAccess
-		newPrivate = *cfg.VPC.ClusterEndpoints.PrivateAccess
+	if cfg.VPC.ClusterEndpoints.PrivateAccess == nil {
+		newPrivate = curPrivate
 	} else {
-		privateSet, publicSet := accessFlagsSet(cmd)
-		if !privateSet {
-			newPrivate = curPrivate
-		}
-		if !publicSet {
-			newPublic = curPublic
-		}
+		newPrivate = *cfg.VPC.ClusterEndpoints.PrivateAccess
+	}
+	if cfg.VPC.ClusterEndpoints.PublicAccess == nil {
+		newPublic = curPublic
+	} else {
+		newPublic = *cfg.VPC.ClusterEndpoints.PublicAccess
 	}
 
 	// Nothing changed?
