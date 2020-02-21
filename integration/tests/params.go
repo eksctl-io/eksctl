@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
 	"github.com/weaveworks/eksctl/integration/runner"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
@@ -102,7 +102,10 @@ func (p Params) DeleteClusters() {
 		cmd := p.EksctlDeleteClusterCmd.WithArgs(
 			"--name", clusterName,
 		)
-		Expect(cmd).To(runner.RunSuccessfully())
+		session := cmd.Start()
+		if session.ExitCode() != 1 {
+			fmt.Fprintf(GinkgoWriter, "Warning: cluster %s's deletion failed", clusterName)
+		}
 	}
 }
 
