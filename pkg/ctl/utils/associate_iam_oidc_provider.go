@@ -16,14 +16,15 @@ func associateIAMOIDCProviderCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("associate-iam-oidc-provider", "Setup IAM OIDC provider for a cluster to enable IAM roles for pods", "")
 
+	var oidcClientIDs []string
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doAssociateIAMOIDCProvider(cmd)
+		return doAssociateIAMOIDCProvider(cmd, oidcClientIDs)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 
-		fs.StringSliceVar(&cfg.IAM.OIDCClientIDList, "oidc-client-id-list", []string{}, "List of Client ID for OIDC provider (audience)")
+		fs.StringSliceVar(&oidcClientIDs, "oidc-client-ids", []string{}, "List of Client ID for OIDC provider (audience)")
 
 		cmdutils.AddClusterFlagWithDeprecated(fs, cfg.Metadata)
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
@@ -34,8 +35,8 @@ func associateIAMOIDCProviderCmd(cmd *cmdutils.Cmd) {
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 }
 
-func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd) error {
-	if err := cmdutils.NewUtilsAssociateIAMOIDCProviderLoader(cmd).Load(); err != nil {
+func doAssociateIAMOIDCProvider(cmd *cmdutils.Cmd, oidcClientIDs []string) error {
+	if err := cmdutils.NewUtilsAssociateIAMOIDCProviderLoader(cmd, oidcClientIDs).Load(); err != nil {
 		return err
 	}
 

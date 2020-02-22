@@ -79,7 +79,7 @@ ClusterIAM:
       type: string
     fargatePodExecutionRolePermissionsBoundary:
       type: string
-    oidcClientIDList:
+    oidcClientIDs:
       items:
         type: string
       type: array

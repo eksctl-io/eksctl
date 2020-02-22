@@ -435,11 +435,12 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewUtilsAssociateIAMOIDCProviderLoader will load config or use flags for 'eksctl utils associal-iam-oidc-provider'
-func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
+func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd, oidcClientIDs []string) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.validateWithoutConfigFile = func() error {
 		l.ClusterConfig.IAM.WithOIDC = api.Enabled()
+		l.ClusterConfig.IAM.OIDCClientIDs = oidcClientIDs
 		return l.validateMetadataWithoutConfigFile()
 	}
 
@@ -447,6 +448,7 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
 			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
 		}
+		l.ClusterConfig.IAM.OIDCClientIDs = append(l.ClusterConfig.IAM.OIDCClientIDs, oidcClientIDs...)
 		return nil
 	}
 

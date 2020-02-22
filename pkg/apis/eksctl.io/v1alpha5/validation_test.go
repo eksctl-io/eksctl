@@ -222,20 +222,20 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("should fail when iam.withOIDC is disabled and some iam.oidcClientIDList are given", func() {
+		It("should fail when iam.withOIDC is disabled and some iam.oidcClientIDs are given", func() {
 			cfg.IAM.WithOIDC = Disabled()
 
-			cfg.IAM.OIDCClientIDList = []string{"sts.us-east-1.amazonaws.com", "sts.eu-west-1.amazonaws.com"}
+			cfg.IAM.OIDCClientIDs = []string{"sts.us-east-1.amazonaws.com", "sts.eu-west-1.amazonaws.com"}
 
 			err = ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("iam.withOIDC must be enabled explicitly"))
 		})
 
-		It("should pass when iam.withOIDC is enabled and some iam.oidcClientIDList are given", func() {
+		It("should pass when iam.withOIDC is enabled and some iam.oidcClientIDs are given", func() {
 			cfg.IAM.WithOIDC = Enabled()
 
-			cfg.IAM.OIDCClientIDList = []string{"sts.us-east-1.amazonaws.com", "sts.eu-west-1.amazonaws.com"}
+			cfg.IAM.OIDCClientIDs = []string{"sts.us-east-1.amazonaws.com", "sts.eu-west-1.amazonaws.com"}
 
 			err = ValidateClusterConfig(cfg)
 			Expect(err).NotTo(HaveOccurred())

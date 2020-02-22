@@ -34,7 +34,7 @@ The IAM OIDC Provider is not enabled by default, you can use the following comma
 eksctl utils associate-iam-oidc-provider --cluster=<clusterName>
 ```
 
-By default the Client ID list (audience) of IAM OIDC Provider will be set to `sts.amazonaws.com`. To override it you can specify `--oidc-client-id-list` multiple times.
+By default the Client ID list (audience) of IAM OIDC Provider will be set to `sts.amazonaws.com`. To override it you can specify `--oidc-client-ids` multiple times.
 
 Once you have the IAM OIDC Provider associated with the cluster, to create a IAM role bound to a service account, run:
 
@@ -84,7 +84,7 @@ metadata:
 iam:
   withOIDC: true
   # override default value "sts.amazonaws.com" if needed
-  oidcClientIDList:
+  oidcClientIDs:
   - sts.us-east-1.amazonaws.com
   - sts.eu-west-1.amazonaws.com
   serviceAccounts:

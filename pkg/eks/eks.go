@@ -232,7 +232,7 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 	accountID := strings.Split(spec.Status.ARN, ":")[4]
-	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), accountID, *c.Status.clusterInfo.cluster.Identity.Oidc.Issuer, spec.IAM.OIDCClientIDList)
+	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), accountID, *c.Status.clusterInfo.cluster.Identity.Oidc.Issuer, spec.IAM.OIDCClientIDs)
 }
 
 // LoadClusterVPC loads the VPC configuration

@@ -25,7 +25,7 @@ type ClusterIAM struct {
 	// +optional
 	WithOIDC *bool `json:"withOIDC,omitempty"`
 	// +optional
-	OIDCClientIDList []string `json:"oidcClientIDList,omitempty"`
+	OIDCClientIDs []string `json:"oidcClientIDs,omitempty"`
 	// +optional
 	ServiceAccounts []*ClusterIAMServiceAccount `json:"serviceAccounts,omitempty"`
 }
