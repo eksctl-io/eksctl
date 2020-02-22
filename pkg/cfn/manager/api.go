@@ -472,9 +472,6 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
-		Tags: []*cloudformation.Tag{
-			newTag(api.EksctlVersionTag, version.GetVersion()),
-		},
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
