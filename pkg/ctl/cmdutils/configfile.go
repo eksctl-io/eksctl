@@ -448,7 +448,21 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd, oidcClientIDs []string) Cl
 		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
 			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
 		}
-		l.ClusterConfig.IAM.OIDCClientIDs = append(l.ClusterConfig.IAM.OIDCClientIDs, oidcClientIDs...)
+
+		oidcClientIDs = append(oidcClientIDs, l.ClusterConfig.IAM.OIDCClientIDs...)
+
+		var uniqueOIDCClientIDs []string
+		oidcClientIDsMap := make(map[string]struct{})
+
+		for _, id := range oidcClientIDs {
+			if _, ok := oidcClientIDsMap[id]; ok {
+				continue
+			}
+			oidcClientIDsMap[id] = struct{}{}
+			uniqueOIDCClientIDs = append(uniqueOIDCClientIDs, id)
+		}
+
+		l.ClusterConfig.IAM.OIDCClientIDs = uniqueOIDCClientIDs
 		return nil
 	}
 

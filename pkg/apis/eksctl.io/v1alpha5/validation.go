@@ -41,6 +41,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return fmt.Errorf("iam.withOIDC must be enabled explicitly for iam.serviceAccounts to be created")
 	}
 
+	if IsDisabled(cfg.IAM.WithOIDC) && len(cfg.IAM.OIDCClientIDs) > 0 {
+		return fmt.Errorf("iam.withOIDC must be enabled explicitly if iam.oidcClientIDList is specified")
+	}
+
 	saNames := nameSet{}
 	for i, sa := range cfg.IAM.ServiceAccounts {
 		path := fmt.Sprintf("iam.serviceAccounts[%d]", i)
