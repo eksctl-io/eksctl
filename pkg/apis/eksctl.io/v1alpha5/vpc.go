@@ -55,8 +55,8 @@ type (
 
 	// ClusterEndpoints holds cluster api server endpoint access information
 	ClusterEndpoints struct {
-		PrivateAccess *bool `json:"privateAccess,omitempty,false"`
-		PublicAccess  *bool `json:"publicAccess,omitempty,true"`
+		PrivateAccess *bool `json:"privateAccess,omitempty"`
+		PublicAccess  *bool `json:"publicAccess,omitempty"`
 	}
 )
 

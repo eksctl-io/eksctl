@@ -25,7 +25,7 @@ require (
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/evanphx/json-patch v4.2.0+incompatible
 	github.com/fluxcd/flux/pkg/install v0.0.0-20200206191601-8b676b003ab0 // flux 1.18.0
-	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200126164214-63f9ace7bf06 // helm-operator 1.0.0-rc8
+	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200213151218-f7e487142b46 // helm-operator 1.0.0-rc9
 	github.com/go-ini/ini v1.37.0 // indirect
 	github.com/gobuffalo/envy v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3
@@ -69,7 +69,7 @@ require (
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/vmware/govmomi v0.19.0 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/weaveworks/github-release v0.6.2
+	github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	go.etcd.io/bbolt v1.3.3 // indirect

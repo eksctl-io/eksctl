@@ -3,6 +3,7 @@ package ami
 import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+	"github.com/kris-nova/logger"
 )
 
 // MultiResolver is a Resolver that delegates to one or more Resolvers.
@@ -18,6 +19,10 @@ func (r *MultiResolver) Resolve(region, version, instanceType, imageFamily strin
 	for _, resolver := range r.delegates {
 		ami, err := resolver.Resolve(region, version, instanceType, imageFamily)
 		if err != nil {
+			if _, ok := err.(*UnsupportedQueryError); ok {
+				logger.Debug(err.Error())
+				continue
+			}
 			return "", err
 		}
 		if ami != "" {
@@ -34,10 +39,17 @@ type Resolver interface {
 	Resolve(region, version, instanceType, imageFamily string) (string, error)
 }
 
-// NewDefaultResolver returns a static resolver that delegates on StaticGPUResolver and StaticDefaultResolver
-func NewDefaultResolver() Resolver {
+// NewStaticResolver returns a static resolver that delegates on StaticGPUResolver and StaticDefaultResolver
+func NewStaticResolver() Resolver {
 	return &MultiResolver{
 		delegates: []Resolver{&StaticGPUResolver{}, &StaticDefaultResolver{}},
+	}
+}
+
+// NewMultiResolver creates and returns a MultiResolver with the specified delegates
+func NewMultiResolver(delegates ...Resolver) *MultiResolver {
+	return &MultiResolver{
+		delegates: delegates,
 	}
 }
 
@@ -49,4 +61,14 @@ func NewAutoResolver(api ec2iface.EC2API) Resolver {
 // NewSSMResolver creates a new AutoResolver
 func NewSSMResolver(api ssmiface.SSMAPI) Resolver {
 	return &SSMResolver{ssmAPI: api}
+}
+
+// UnsupportedQueryError represents an unsupported AMI query error
+type UnsupportedQueryError struct {
+	msg string
+}
+
+// Error returns the error string
+func (ue *UnsupportedQueryError) Error() string {
+	return ue.msg
 }

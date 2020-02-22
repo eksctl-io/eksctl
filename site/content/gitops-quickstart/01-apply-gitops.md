@@ -92,16 +92,16 @@ kube-system   kube-proxy-qzcmk           1/1     Running   0          45s
 
 The following command will set up your cluster with:
 
-- a gitops operator, [Flux](https://fluxcd.io),
-- [Helm](https://helm.sh/),
+- [Flux](https://github.com/fluxcd/flux),
+- [Flux Helm Operator](https://github.com/fluxcd/helm-operator) with Helm v3 support,
 
 and add their manifests to Git, so you can configure them through pull
 requests.
 
 The most important ingredient using `eksctl enable repo` is your config
-repository (which will include your workload manifests, etc). You can start
-with an empty repository and push that to Git, or use the one you intend to
-deploy to the cluster.
+repository (which will include your workload manifests, HelmReleases, etc).
+You can start with an empty repository and push that to Git,
+or use the one you intend to deploy to the cluster.
 
 ![Install Flux](../images/gitops-diagram1.svg#content)
 ![Deploying with gitops](../images/gitops-diagram2.svg#content)
@@ -117,7 +117,7 @@ your repository in a temporary directory that will be removed later.
 
 ```console
 EKSCTL_EXPERIMENTAL=true \
-        eksctl enable repo \
+    eksctl enable repo \
         --git-url git@github.com:example/my-eks-config \
         --git-email your@email.com \
         --cluster your-cluster-name \
@@ -158,16 +158,10 @@ make sure you check `Allow write access` as well.
 The next time Flux syncs from Git, it will start updating the cluster
 and actively deploying.
 
-If you run `git pull` next, you will see that Flux has committed them to your
+If you run `git pull` next, you will see that eksctl has committed them to your
 config repository already.
 
-In our case we are going to see these new arrivals in the cluster:
-
-- `flux`,
-- the [Flux Helm Operator](https://github.com/fluxcd/helm-operator), and
-- Tiller,
-
-running:
+In our case we are going to see these new arrivals (flux and helm operator) running in the cluster:
 
 ```console
 $ kubectl get pods --all-namespaces
@@ -175,7 +169,6 @@ NAMESPACE              NAME                                                     
 flux                   flux-56b5664cdd-nfzx2                                     1/1     Running                      0          11m
 flux                   flux-helm-operator-6bc7c85bb5-l2nzn                       1/1     Running                      0          11m
 flux                   memcached-958f745c-dqllc                                  1/1     Running                      0          11m
-flux                   tiller-deploy-7ccc4b4d45-w2mrt                            1/1     Running                      0          11m
 kube-system            aws-node-l49ct                                            1/1     Running                      0          14m
 kube-system            coredns-7d7755744b-4jkp6                                  1/1     Running                      0          21m
 kube-system            coredns-7d7755744b-ls5d9                                  1/1     Running                      0          21m
@@ -206,12 +199,11 @@ your repository in a temporary directory that will be removed later.
 
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl \
-        enable profile \
+        enable profile app-dev \
         --git-url git@github.com:example/my-eks-config \
         --git-email your@email.com \
         --cluster your-cluster-name \
-        --region your-cluster-region \
-        app-dev
+        --region your-cluster-region
 ```
 
 Let us go through the specified arguments one by one:
@@ -241,13 +233,12 @@ In our case we are going to see these new arrivals in the cluster:
 ```console
 $ kubectl get pods --all-namespaces
 NAMESPACE              NAME                                                      READY   STATUS                       RESTARTS   AGE
-amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0           4m28s
-amazon-cloudwatch      fluentd-cloudwatch-4rwwr                                  1/1     Running                      0           4m28s
+amazon-cloudwatch      cloudwatch-agent-qtdmc                                    1/1     Running                      0          4m28s
+amazon-cloudwatch      fluentd-cloudwatch-4rwwr                                  1/1     Running                      0          4m28s
 demo                   podinfo-75b8547f78-56dll                                  1/1     Running                      0          103s
 flux                   flux-56b5664cdd-nfzx2                                     1/1     Running                      0          11m
 flux                   flux-helm-operator-6bc7c85bb5-l2nzn                       1/1     Running                      0          11m
 flux                   memcached-958f745c-dqllc                                  1/1     Running                      0          11m
-flux                   tiller-deploy-7ccc4b4d45-w2mrt                            1/1     Running                      0          11m
 kube-system            alb-ingress-controller-6b64bcbbd8-6l7kf                   1/1     Running                      0          4m28s
 kube-system            aws-node-l49ct                                            1/1     Running                      0          14m
 kube-system            cluster-autoscaler-5b8c96cd98-26z5f                       1/1     Running                      0          4m28s

@@ -13,7 +13,7 @@ import (
 // or by its contents (in the config-file). It also assumes that if ssh is enabled (SSH.Allow
 // == true) then one key was specified
 func LoadKey(sshConfig *api.NodeGroupSSH, clusterName, nodeGroupName string, ec2API ec2iface.EC2API) (string, error) {
-	if sshConfig.Allow == nil || *sshConfig.Allow == false {
+	if sshConfig.Allow == nil || !*sshConfig.Allow {
 		return "", nil
 	}
 

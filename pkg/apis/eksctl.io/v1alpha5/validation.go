@@ -99,10 +99,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	if !cfg.HasClusterEndpointAccess() {
-		return ErrClusterEndpointNoAccess
-	}
-
 	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
 		cidrs, err := validateCIDRs(cfg.VPC.PublicAccessCIDRs)
 		if err != nil {
@@ -115,6 +111,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
+	if !c.HasClusterEndpointAccess() {
+		return ErrClusterEndpointNoAccess
+	}
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
@@ -357,10 +356,6 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 		if ng.IAM.InstanceProfileARN != "" {
 			return errNotSupported("instanceProfileARN")
-		}
-
-		if ng.IAM.InstanceRoleARN != "" {
-			return errNotSupported("instanceRoleARN")
 		}
 	}
 

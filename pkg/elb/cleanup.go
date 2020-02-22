@@ -114,7 +114,7 @@ func getServiceLoadBalancer(ctx context.Context, ec2API ec2iface.EC2API, elbAPI 
 	}
 	name := cloudprovider.DefaultLoadBalancerName(service)
 	kind := getLoadBalancerKind(service)
-	ctx, cleanup := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cleanup := context.WithTimeout(ctx, 30*time.Second)
 	securityGroupIDs, err := getSecurityGroupsOwnedByLoadBalancer(ctx, ec2API, elbAPI, clusterName, name, kind)
 	cleanup()
 	if err != nil {

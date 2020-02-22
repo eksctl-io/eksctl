@@ -72,10 +72,7 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, ta
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
-
-	for _, t := range c.sharedTags {
-		input.Tags = append(input.Tags, t)
-	}
+	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {
 		input.Tags = append(input.Tags, newTag(k, v))
 	}
@@ -475,9 +472,6 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
-		Tags: []*cloudformation.Tag{
-			newTag(api.EksctlVersionTag, version.GetVersion()),
-		},
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)

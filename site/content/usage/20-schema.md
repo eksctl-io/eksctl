@@ -495,11 +495,6 @@ NodeGroupInstancesDistribution:
       type: integer
     spotInstancePools:
       type: integer
-  required:
-  - instanceTypes
-  - onDemandBaseCapacity
-  - onDemandPercentageAboveBaseCapacity
-  - spotInstancePools
   type: object
 NodeGroupSGs:
   additionalProperties: false

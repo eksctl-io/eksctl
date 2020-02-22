@@ -270,7 +270,7 @@ func runShell(workDir string) error {
 }
 
 func (fi *Installer) getManifests() (map[string][]byte, error) {
-	manifests := map[string][]byte{}
+	var manifests map[string][]byte
 
 	// Flux
 	var err error

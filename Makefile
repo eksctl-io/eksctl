@@ -192,6 +192,35 @@ prepare-release-candidate:
 print-version:
 	@go run pkg/version/generate/release_generate.go print-version
 
+.PHONY: upload-github
+upload-github:
+	@echo "Releasing version $(eksctl_version) in $(git_org)/$(git_repo)"
+	@echo "Check draft exists..." && github-release info --user $(git_org) --repo $(git_repo) --tag $(eksctl_version)
+	github-release upload --user $(git_org) --repo $(git_repo) --tag $(eksctl_version) --file dist/eksctl_Windows_amd64.zip --name eksctl_Windows_amd64.zip
+	github-release upload --user $(git_org) --repo $(git_repo) --tag $(eksctl_version) --file dist/eksctl_Darwin_amd64.tar.gz --name eksctl_Darwin_amd64.tar.gz
+	github-release upload --user $(git_org) --repo $(git_repo) --tag $(eksctl_version) --file dist/eksctl_Linux_amd64.tar.gz --name eksctl_Linux_amd64.tar.gz
+
+.PHONY: publish-github
+publish-github: upload-github
+	github-release publish --user $(git_org) --repo $(git_repo) --tag $(eksctl_version)
+
+.PHONY: publish-rc-github
+publish-rc-github: upload-github
+	github-release release --user $(git_org) --repo $(git_repo) --tag $(shell eksctl version) --pre-release
+
+.PHONY: publish-homebrew
+publish-homebrew:
+	@echo "Publishing to weaveworks/homebrew-tap"
+	git clone --depth 1 --branch master git@github.com:weaveworks/homebrew-tap.git
+	@go run tools/brew/update_formula.go \
+		-template tools/brew/formula.tmpl \
+		-outputPath homebrew-tap/Formula/$(git_repo).rb \
+		-version $(eksctl_version) \
+		-linux-url https://github.com/$(git_org)/$(git_repo)/releases/download/$(eksctl_version)/eksctl_Linux_amd64.tar.gz \
+		-mac-url https://github.com/$(git_org)/$(git_repo)/releases/download/$(eksctl_version)/eksctl_Darwin_amd64.tar.gz
+	cd homebrew-tap; git commit --message "Brew formula update for $(git_repo) version $(eksctl_version)" -- Formula/$(git_repo).rb
+	cd homebrew-tap; git push origin master
+
 ##@ Docker
 
 .PHONY: eksctl-image
