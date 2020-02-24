@@ -241,3 +241,13 @@ workflows:
               ignore: /.*/
             tags:
               only: /[0-9]+\.[0-9]+\.[0-9]+/
+  scheduled-integration-tests:
+    triggers:
+      - schedule:
+          cron: "0 3 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - integration-tests
