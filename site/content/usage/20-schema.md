@@ -338,6 +338,10 @@ NodeGroup:
       items:
         type: string
       type: array
+    classicLoadBalancerNames:
+      items:
+        type: string
+      type: array
     clusterDNS:
       type: string
     desiredCapacity:
