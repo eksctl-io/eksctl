@@ -206,11 +206,11 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 	if err != nil {
 		return err
 	}
-	return c.PopulateNodeGroupIAMFromDescriptions(stackManager, spec, ng, stacks)
+	return c.PopulateNodeGroupIAMFromStacks(stackManager, spec, ng, stacks)
 }
 
-// PopulateNodeGroupIAMFromDescriptions retrieves the IAM configuration from the list of cloudformation stack descriptions and populates nodegroup IAM configuration
-func (c *ClusterProvider) PopulateNodeGroupIAMFromDescriptions(stackManager *manager.StackCollection, spec *api.ClusterConfig, ng *api.NodeGroup, stacks []*manager.Stack) error {
+// PopulateNodeGroupIAMFromStacks retrieves the IAM configuration from the list of cloudformation stack descriptions and populates nodegroup IAM configuration
+func (c *ClusterProvider) PopulateNodeGroupIAMFromStacks(stackManager *manager.StackCollection, spec *api.ClusterConfig, ng *api.NodeGroup, stacks []*manager.Stack) error {
 	for _, s := range stacks {
 		if stackManager.GetNodeGroupName(s) == ng.Name {
 			if !stackManager.StackStatusIsNotTransitional(s) {
@@ -229,12 +229,12 @@ func (c *ClusterProvider) GetManagedNodeGroupIAM(stackManager *manager.StackColl
 	if err != nil {
 		return err
 	}
-	return c.PopulateManagedNodeGroupIAMFromDescriptions(stackManager, spec, mng, stacks)
+	return c.PopulateManagedNodeGroupIAMFromStacks(stackManager, spec, mng, stacks)
 }
 
-// PopulateManagedNodeGroupIAMFromDescriptions retrieves the IAM configuration of the given nodegroup from the list of
+// PopulateManagedNodeGroupIAMFromStacks retrieves the IAM configuration of the given nodegroup from the list of
 // cloudformation stack descriptions and populates the node group's IAM configuration
-func (c *ClusterProvider) PopulateManagedNodeGroupIAMFromDescriptions(stackManager *manager.StackCollection, spec *api.ClusterConfig, mng *api.ManagedNodeGroup, stacks []*manager.Stack) error {
+func (c *ClusterProvider) PopulateManagedNodeGroupIAMFromStacks(stackManager *manager.StackCollection, spec *api.ClusterConfig, mng *api.ManagedNodeGroup, stacks []*manager.Stack) error {
 	for _, s := range stacks {
 		if stackManager.GetNodeGroupName(s) == mng.Name {
 			if !stackManager.StackStatusIsNotTransitional(s) {

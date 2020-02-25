@@ -102,11 +102,11 @@ func (c *StackCollection) ListNodeGroupStacks() ([]NodeGroupStack, error) {
 	if err != nil {
 		return nil, err
 	}
-	return c.MakeNodeGroupStacksFromDescriptions(stacks)
+	return c.MakeNodeGroupStacksFromStacks(stacks)
 }
 
-// MakeNodeGroupStacksFromDescriptions creates a list of NodeGroupStacks when passed in a list of stack descriptions
-func (c *StackCollection) MakeNodeGroupStacksFromDescriptions(stacks []*Stack) ([]NodeGroupStack, error) {
+// MakeNodeGroupStacksFromStacks creates a list of NodeGroupStacks when passed in a list of stack descriptions
+func (c *StackCollection) MakeNodeGroupStacksFromStacks(stacks []*Stack) ([]NodeGroupStack, error) {
 	var nodeGroupStacks []NodeGroupStack
 	for _, stack := range stacks {
 		nodeGroupType, err := GetNodeGroupType(stack.Tags)
@@ -236,11 +236,11 @@ func (c *StackCollection) GetNodeGroupSummaries(name string) ([]*NodeGroupSummar
 	if err != nil {
 		return nil, errors.Wrap(err, "getting nodegroup stacks")
 	}
-	return c.MakeNodeGroupSummariesFromDescriptions(name, stacks)
+	return c.MakeNodeGroupSummariesFromStacks(name, stacks)
 }
 
-// MakeNodeGroupSummariesFromDescriptions creates summaries for the nodegroups given in the list of cloudformation stack descriptions
-func (c *StackCollection) MakeNodeGroupSummariesFromDescriptions(name string, stacks []*Stack) ([]*NodeGroupSummary, error) {
+// MakeNodeGroupSummariesFromStacks creates summaries for the nodegroups given in the list of cloudformation stack descriptions
+func (c *StackCollection) MakeNodeGroupSummariesFromStacks(name string, stacks []*Stack) ([]*NodeGroupSummary, error) {
 	var summaries []*NodeGroupSummary
 	for _, s := range stacks {
 		ngPaths, err := getNodeGroupPaths(s.Tags)

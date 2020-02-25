@@ -81,7 +81,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		return err
 	}
 
-	stacks, err := stackManager.MakeNodeGroupStacksFromDescriptions(descriptions)
+	stacks, err := stackManager.MakeNodeGroupStacksFromStacks(descriptions)
 	if err != nil {
 		return err
 	}
@@ -137,19 +137,22 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 	{
-		shouldDelete := func(ngName string) bool {
-			for _, ng := range allNodeGroups {
-				if ng.NameString() == ngName {
-					return true
-				}
+		ngToDelete := make(map[string]struct{}, 0)
+		for _, ng := range allNodeGroups {
+			ngToDelete[ng.NameString()] = struct{}{}
+		}
+
+		var stacksToDelete []*manager.Stack
+		for _, d := range descriptions {
+			if _, ok := ngToDelete[stackManager.GetNodeGroupName(d)]; ok {
+				stacksToDelete = append(stacksToDelete, d)
 			}
-			return false
 		}
 
 		// NOTE: there is an issue in AWS where if a managed node group is using an IAM instance role also found in an
 		//   unmanaged node group, it will delete all identity entries in the auth configmap and possibly orphaning the
 		//   workers without having us call the removeARN function below to do so
-		tasks, err := stackManager.MakeTasksToDeleteNodeGroupsFromDescriptions(shouldDelete, cmd.Wait, nil, descriptions)
+		tasks, err := stackManager.MakeTasksToDeleteNodeGroupsFromStacks(stacksToDelete, cmd.Wait, nil)
 		if err != nil {
 			return err
 		}
@@ -179,13 +182,13 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 // removeARN takes a look at what managed and unmanaged node groups were marked for deletion and removes their identity
 // from the auth configmap
-func removeARN(descriptions []*manager.Stack, stackManager *manager.StackCollection, cfgMarkedForDeletion *api.ClusterConfig,
+func removeARN(stacks []*manager.Stack, stackManager *manager.StackCollection, cfgMarkedForDeletion *api.ClusterConfig,
 	ctl *eks.ClusterProvider, cmdPlan bool, clientSet kubernetes.Interface) error {
 
 	numToDelete := 0
 	for _, n := range cfgMarkedForDeletion.NodeGroups {
 		if n.IAM == nil || n.IAM.InstanceRoleARN == "" {
-			if err := ctl.PopulateNodeGroupIAMFromDescriptions(stackManager, cfgMarkedForDeletion, n, descriptions); err != nil {
+			if err := ctl.PopulateNodeGroupIAMFromStacks(stackManager, cfgMarkedForDeletion, n, stacks); err != nil {
 				// we want to return the error instead of logging as we don't want to delete something prematurely
 				return err
 			}

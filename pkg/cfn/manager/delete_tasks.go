@@ -15,7 +15,12 @@ func deleteAll(_ string) bool { return true }
 func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvider bool, oidc *iamoidc.OpenIDConnectManager, clientSetGetter kubernetes.ClientSetGetter, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: false}
 
-	nodeGroupTasks, err := c.NewTasksToDeleteNodeGroups(deleteAll, true, cleanup)
+	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
+	if err != nil {
+		return nil, err
+	}
+
+	nodeGroupTasks, err := c.MakeTasksToDeleteNodeGroupsFromStacks(nodeGroupStacks,true, cleanup)
 
 	if err != nil {
 		return nil, err
@@ -60,25 +65,13 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 	return tasks, nil
 }
 
-// NewTasksToDeleteNodeGroups defines tasks required to delete all of the nodegroups
-func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
-	nodeGroupStacks, err := c.DescribeNodeGroupStacks()
-	if err != nil {
-		return nil, err
-	}
-	return c.MakeTasksToDeleteNodeGroupsFromDescriptions(shouldDelete, wait, cleanup, nodeGroupStacks)
-}
-
-// MakeTasksToDeleteNodeGroupsFromDescriptions creates tasks to delete the nodegroups given in a list of cloudformation stack descriptions
-func (c *StackCollection) MakeTasksToDeleteNodeGroupsFromDescriptions(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error, nodeGroupStacks []*Stack) (*TaskTree, error) {
+// MakeTasksToDeleteNodeGroupsFromStacks creates tasks to delete the nodegroups given in a list of cloudformation node group stack descriptions
+func (c *StackCollection) MakeTasksToDeleteNodeGroupsFromStacks(stacks []*Stack, wait bool, cleanup func(chan error, string) error) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: true}
 
-	for _, s := range nodeGroupStacks {
+	for _, s := range stacks {
 		name := c.GetNodeGroupName(s)
 
-		if !shouldDelete(name) {
-			continue
-		}
 		if *s.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
 			tasks.Append(&taskWithNameParam{
 				info: fmt.Sprintf("cleanup for nodegroup %q", name),

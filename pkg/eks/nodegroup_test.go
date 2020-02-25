@@ -77,14 +77,14 @@ var _ = Describe("Get IAM from Node Group", func() {
 
 	It("should return unmanaged node group IAM configuration", func() {
 		ng := &api.NodeGroup{Name: "ng1"}
-		err := ctl.PopulateNodeGroupIAMFromDescriptions(stackManager, cfg, ng, cfnDescriptions)
+		err := ctl.PopulateNodeGroupIAMFromStacks(stackManager, cfg, ng, cfnDescriptions)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(ng.IAM.InstanceRoleARN).To(Equal(ng1.IAM.InstanceRoleARN))
 	})
 
 	It("should return managed node group IAM configuration", func() {
 		mng := &api.ManagedNodeGroup{Name: "mng1"}
-		err := ctl.PopulateManagedNodeGroupIAMFromDescriptions(stackManager, cfg, mng, cfnDescriptions)
+		err := ctl.PopulateManagedNodeGroupIAMFromStacks(stackManager, cfg, mng, cfnDescriptions)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(mng.IAM.InstanceRoleARN).To(Equal(mng1.IAM.InstanceRoleARN))
 	})
