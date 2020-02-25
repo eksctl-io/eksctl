@@ -64,11 +64,6 @@ var (
 			InstanceProfileARN: "arn:aws:iam::122333:instance-profile/eksctl-cluster-mng1-instance-profile",
 		},
 	}
-
-	//fg1 = &api.FargateProfile{
-	//	Name:                "fg1",
-	//	PodExecutionRoleARN: "arn:aws:iam::122333:role/eksctl-cluster-ServiceRole-HELLOTHERE",
-	//}
 )
 
 const InstanceRoleFmt = `
@@ -179,16 +174,14 @@ func createTemplateBody(ngType api.NodeGroupType, stackName, clusterName, roleAR
 
 func createAuthConfigMap(resources ...interface{}) (kubernetes.Interface, *v1.ConfigMap) {
 	clientSet := fake.NewSimpleClientset()
-	mapRoles := []string{} // we use the literal declaration as we want "[]"
+	mapRoles := []string{} // we use the literal declaration as we want "[]" when marshaled
 	var mapRole string
 	for _, r := range resources {
-		switch r.(type) {
+		switch t := r.(type) {
 		case *api.NodeGroup:
-			mapRole = fmt.Sprintf(InstanceRoleFmt, r.(*api.NodeGroup).IAM.InstanceRoleARN)
+			mapRole = fmt.Sprintf(InstanceRoleFmt, t.IAM.InstanceRoleARN)
 		case *api.ManagedNodeGroup:
-			mapRole = fmt.Sprintf(InstanceRoleFmt, r.(*api.ManagedNodeGroup).IAM.InstanceRoleARN)
-		case *api.FargateProfile:
-			mapRole = fmt.Sprintf(InstanceRoleFmt, r.(*api.FargateProfile).PodExecutionRoleARN)
+			mapRole = fmt.Sprintf(InstanceRoleFmt, t.IAM.InstanceRoleARN)
 		default:
 			continue
 		}
@@ -206,8 +199,7 @@ func createAuthConfigMap(resources ...interface{}) (kubernetes.Interface, *v1.Co
 	return clientSet, acm
 }
 
-var _ = Describe("removeARN()", func() {
-
+func createNewMock() (*api.ClusterConfig, []*manager.Stack, *manager.StackCollection, *eks.ClusterProvider){
 	p := mockprovider.NewMockProvider()
 
 	mockCFN := p.MockCloudFormation()
@@ -305,7 +297,14 @@ var _ = Describe("removeARN()", func() {
 
 	stackManager := manager.NewStackCollection(p, cfg)
 
+	return cfg, cfnDescriptions, stackManager, ctl
+}
+
+var _ = Describe("removeARN()", func() {
+
 	It("should remove identity from auth configmap via name when removing only node group", func() {
+		cfg, cfnDescriptions, stackManager, ctl := createNewMock()
+
 		cfg.NodeGroups = []*api.NodeGroup{ng1} // to mark for deletion
 		clientSet, acm := createAuthConfigMap(ng1)
 		Expect(acm.Data["mapRoles"]).NotTo(BeEmpty())
@@ -318,6 +317,8 @@ var _ = Describe("removeARN()", func() {
 	})
 
 	It("should remove identity from auth configmap when no one else is using it", func() {
+		cfg, cfnDescriptions, stackManager, ctl := createNewMock()
+
 		cfg.NodeGroups = []*api.NodeGroup{ng1} // to mark for deletion
 		clientSet, acm := createAuthConfigMap(ng1, ng2)
 		Expect(acm.Data["mapRoles"]).NotTo(BeEmpty())
@@ -330,6 +331,8 @@ var _ = Describe("removeARN()", func() {
 	})
 
 	It("should only remove one identity entry from auth configmap", func() {
+		cfg, cfnDescriptions, stackManager, ctl := createNewMock()
+
 		cfg.NodeGroups = []*api.NodeGroup{ng1} // to mark for deletion
 		clientSet, acm := createAuthConfigMap(ng1, ng1b)
 		Expect(acm.Data["mapRoles"]).NotTo(BeEmpty())
@@ -341,24 +344,4 @@ var _ = Describe("removeARN()", func() {
 		Expect(acm.Data["mapRoles"]).NotTo(Equal("[]\n"))
 	})
 
-	It("should only remove one identity entry from auth configmap when deleting managed node group", func() {
-		cfg.NodeGroups = []*api.NodeGroup{}
-		cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{mng2} // to mark for deletion
-		clientSet, acm := createAuthConfigMap(mng2, mng1, ng1, ng1b, ng2)
-		Expect(acm.Data["mapRoles"]).NotTo(BeEmpty())
-
-		err := removeARN(cfnDescriptions, stackManager, cfg, ctl, false, clientSet)
-		Expect(err).NotTo(HaveOccurred())
-
-		acm, _ = clientSet.CoreV1().ConfigMaps("kube-system").Get("aws-auth", metav1.GetOptions{})
-
-		roles := []string{
-			fmt.Sprintf(InstanceRoleFmt, mng1.IAM.InstanceRoleARN),
-			fmt.Sprintf(InstanceRoleFmt, ng1.IAM.InstanceRoleARN),
-			fmt.Sprintf(InstanceRoleFmt, ng1b.IAM.InstanceRoleARN),
-			fmt.Sprintf(InstanceRoleFmt, ng2.IAM.InstanceRoleARN),
-		}
-
-		Expect(acm.Data["mapRoles"]).To(MatchYAML(strings.Join(roles, "\n")))
-	})
 })

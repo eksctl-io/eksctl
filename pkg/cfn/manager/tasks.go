@@ -2,6 +2,7 @@ package manager
 
 import (
 	"fmt"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"strings"
 	"sync"
 
@@ -258,20 +259,16 @@ func (t *kubernetesTask) Do(errs chan error) error {
 	return err
 }
 
-type authConfigMapTask struct {
-	info      string
-	clientSet kubernetes.Interface
-	call      func(k kubernetes.Interface) error
+type deleteFromAuthConfigMapTask struct {
+	info            string
+	clientSet       kubernetes.Interface
+	instanceRoleARN string
 }
 
-func (t *authConfigMapTask) Describe() string { return t.info }
-func (t *authConfigMapTask) Do(errs chan error) error {
-	if t.clientSet == nil {
-		return fmt.Errorf("cannot start task %q as Kubernetes clientset wasn't provided", t.Describe())
-	}
-	err := t.call(t.clientSet)
-	close(errs)
-	return err
+func (t *deleteFromAuthConfigMapTask) Describe() string { return t.info }
+func (t *deleteFromAuthConfigMapTask) Do(errs chan error) error {
+	defer close(errs)
+	return authconfigmap.RemoveARNIdentity(t.clientSet, t.instanceRoleARN, false)
 }
 
 func doSingleTask(allErrs chan error, task Task) bool {

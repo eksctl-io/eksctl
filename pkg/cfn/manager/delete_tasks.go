@@ -2,9 +2,9 @@ package manager
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
@@ -66,11 +66,11 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 	if err != nil {
 		return nil, err
 	}
-	return c.NewTasksToDeleteNodeGroupsFromCFNDescriptions(shouldDelete, wait, cleanup, nodeGroupStacks)
+	return c.MakeTasksToDeleteNodeGroupsFromDescriptions(shouldDelete, wait, cleanup, nodeGroupStacks)
 }
 
-// NewTasksToDeleteNodeGroupsFromCFNDescriptions defines tasks required to delete all of the nodegroups from a list of cloudformation stack descriptions
-func (c *StackCollection) NewTasksToDeleteNodeGroupsFromCFNDescriptions(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error, nodeGroupStacks []*Stack) (*TaskTree, error) {
+// MakeTasksToDeleteNodeGroupsFromDescriptions creates tasks to delete the nodegroups given in a list of cloudformation stack descriptions
+func (c *StackCollection) MakeTasksToDeleteNodeGroupsFromDescriptions(shouldDelete func(string) bool, wait bool, cleanup func(chan error, string) error, nodeGroupStacks []*Stack) (*TaskTree, error) {
 	tasks := &TaskTree{Parallel: true}
 
 	for _, s := range nodeGroupStacks {
@@ -191,23 +191,15 @@ func (c *StackCollection) NewTasksToDeleteIdentityRoleARNFromAuthConfigMap(cfgMa
 	tasks := &TaskTree{Parallel: false}
 
 	for _, n := range cfgMarkedForDeletion.NodeGroups {
-		tasks.Append(&authConfigMapTask{
-			info:      fmt.Sprintf("remove identity role arn %q from auth configmap", n.IAM.InstanceRoleARN),
-			clientSet: clientSet,
-			call: func(clientSet kubernetes.Interface) error {
-				return authconfigmap.RemoveARNIdentity(clientSet, n.IAM.InstanceRoleARN, false)
-			},
+		tasks.Append(&deleteFromAuthConfigMapTask{
+			info:            fmt.Sprintf("remove identity role arn %q from auth configmap", n.IAM.InstanceRoleARN),
+			clientSet:       clientSet,
+			instanceRoleARN: n.IAM.InstanceRoleARN,
 		})
 	}
-	for _, n := range cfgMarkedForDeletion.ManagedNodeGroups {
-		tasks.Append(&authConfigMapTask{
-			info:      fmt.Sprintf("remove identity role arn %q from auth configmap", n.IAM.InstanceRoleARN),
-			clientSet: clientSet,
-			call: func(clientSet kubernetes.Interface) error {
-				return authconfigmap.RemoveARNIdentity(clientSet, n.IAM.InstanceRoleARN, false)
-			},
-		})
-	}
+
+	// deletion of the identity role arn in the auth configmap for managed node groups are
+	// currently handled by AWS when deleting the managed node group
 
 	return tasks, nil
 }

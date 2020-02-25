@@ -8,6 +8,7 @@ package authconfigmap
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/awsutil"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -281,23 +282,6 @@ func AddNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
 		return errors.Wrap(err, "saving auth ConfigMap")
 	}
 	logger.Debug("saved auth ConfigMap for %q", ng.Name)
-	return nil
-}
-
-// RemoveNodeGroup removes a nodegroup from the ConfigMap and
-// does a client update.
-func RemoveNodeGroup(clientSet kubernetes.Interface, ng *api.NodeGroup) error {
-	acm, err := NewFromClientSet(clientSet)
-	if err != nil {
-		return err
-	}
-	if err := acm.RemoveIdentity(ng.IAM.InstanceRoleARN, false); err != nil {
-		return errors.Wrap(err, "removing nodegroup from auth ConfigMap")
-	}
-	if err := acm.Save(); err != nil {
-		return errors.Wrap(err, "updating auth ConfigMap after removing role")
-	}
-	logger.Debug("updated auth ConfigMap for %s", ng.Name)
 	return nil
 }
 

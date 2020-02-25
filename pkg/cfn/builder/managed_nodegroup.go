@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/eks"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
@@ -88,7 +87,6 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 	} else {
 		nodeRole = gfn.NewString(m.nodeGroup.IAM.InstanceRoleARN)
 	}
-	m.resourceSet.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, nodeRole, true)
 
 	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false)
 	if err != nil {

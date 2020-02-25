@@ -506,39 +506,6 @@ var _ = Describe("AuthConfigMap{}", func() {
 			Expect(err).To(HaveOccurred())
 		})
 	})
-	Describe("RemoveNodeGroup()", func() {
-		clientSet := fake.NewSimpleClientset()
-		var ng *api.NodeGroup
-
-		It("should add nodegroup to the auth configmap", func() {
-			ng = api.NewNodeGroup()
-			ng.Name = "RoleANodeGroup"
-			ng.IAM.InstanceRoleARN = roleA
-
-			err := AddNodeGroup(clientSet, ng)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("should list identity in auth configmap", func() {
-			cm, err := clientSet.CoreV1().ConfigMaps(ObjectNamespace).Get(ObjectName, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cm.Data["mapRoles"]).To(MatchYAML(makeExpectedRole(roleA, RoleNodeGroupGroups)))
-
-			// we have to add a UID since the fake clientset doesnt create one on the configmap
-			cm.UID = "18b9e60c-2057-11e7-8868-0eba8ef9df1a"
-			_, err = clientSet.CoreV1().ConfigMaps(ObjectNamespace).Update(cm)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		It("should remove role identity from auth configmap", func() {
-			err := RemoveNodeGroup(clientSet, ng)
-			Expect(err).NotTo(HaveOccurred())
-
-			cm, err := clientSet.CoreV1().ConfigMaps(ObjectNamespace).Get(ObjectName, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cm.Data["mapRoles"]).To(Equal("[]\n"))
-		})
-	})
 	Describe("RemoveARNIdentity()", func() {
 		clientSet := fake.NewSimpleClientset()
 
