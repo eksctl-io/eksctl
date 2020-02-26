@@ -130,7 +130,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 
 				It("should deploy podinfo service to the cluster and access it via proxy", func() {
-					d := test.CreateDeploymentFromFile(test.Namespace, "data/podinfo.yaml")
+					d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
 					test.WaitForDeploymentReady(d, defaultTimeout)
 
 					pods := test.ListPodsFromDeployment(d)
@@ -152,7 +152,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 
 				It("should have functional DNS", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-dns.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
 					test.WaitForDaemonSetReady(d, defaultTimeout)
 					{
 						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
@@ -162,7 +162,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				})
 
 				It("should have access to HTTP(S) sites", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-http.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-http.yaml")
 					test.WaitForDaemonSetReady(d, defaultTimeout)
 					{
 						ds, err := test.GetDaemonSet(test.Namespace, d.Name)
