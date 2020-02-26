@@ -23,7 +23,7 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("fargate")
+	params = tests.NewParams("fgate")
 	// Fargate is not supported in us-west-2 yet:
 	params.SetRegion("ap-northeast-1")
 }
@@ -48,7 +48,8 @@ var _ = Describe("(Integration) Fargate", func() {
 	}
 
 	setup := func(ft *fargateTest, createArgs ...string) {
-		ft.clusterName = params.NewClusterName("fargate-" + strings.ReplaceAll(strings.Join(createArgs, ""), "-", ""))
+		prefix := strings.ReplaceAll("fgate-"+strings.ReplaceAll(strings.Join(createArgs, ""), "-", ""), "--", "-")
+		ft.clusterName = params.NewClusterName(prefix)
 		args := []string{
 			"cluster",
 			"--name", ft.clusterName,
