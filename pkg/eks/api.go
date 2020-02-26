@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -356,13 +357,12 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 	// we might want to use bits from kops, although right now it seems like too many thing we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig()
+	config := aws.NewConfig().WithCredentialsChainVerboseErrors(true)
 
 	if c.Provider.Region() != "" {
-		config = config.WithRegion(c.Provider.Region())
+		config = config.WithRegion(c.Provider.Region()).WithSTSRegionalEndpoint(endpoints.RegionalSTSEndpoint)
 	}
 
-	config = config.WithCredentialsChainVerboseErrors(true)
 	config = request.WithRetryer(config, newLoggingRetryer())
 	if logger.Level >= api.AWSDebugLevel {
 		config = config.WithLogLevel(aws.LogDebug |
