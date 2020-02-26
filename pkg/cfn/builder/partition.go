@@ -29,6 +29,14 @@ func makeServiceRef(servicePrincipalName string) *gfn.Value {
 	return makeFnFindInMap(servicePrincipalPartitionMapName, gfn.RefPartition, gfn.NewString(servicePrincipalName))
 }
 
-func addARNPrefix(s string) *gfn.Value {
+func makePolicyARNs(policyNames ...string) []*gfn.Value {
+	policyARNs := make([]*gfn.Value, len(policyNames))
+	for i, policy := range policyNames {
+		policyARNs[i] = gfn.MakeFnSubString(fmt.Sprintf("arn:${%s}:iam::aws:policy/%s", gfn.Partition, policy))
+	}
+	return policyARNs
+}
+
+func addARNPartitionPrefix(s string) *gfn.Value {
 	return gfn.MakeFnSubString(fmt.Sprintf("arn:${%s}:%s", gfn.Partition, s))
 }

@@ -23,26 +23,26 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 			// The Managed Nodegroup API requires this managed policy to be present, even though
 			// AmazonEC2ContainerRegistryPowerUser (attached if imageBuilder is enabled) contains a superset of the
 			// actions allowed by this managed policy
-			attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
+			attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnly)
 		}
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.ImageBuilder) {
-		attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryPowerUserARN)
+		attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryPowerUser)
 	} else if !managed {
 		// attach this policy even if `AttachPolicyARNs` is specified to preserve existing behaviour for unmanaged
 		// nodegroups
-		attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnlyARN)
+		attachPolicyARNs.Insert(iamPolicyAmazonEC2ContainerRegistryReadOnly)
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CloudWatch) {
-		attachPolicyARNs.Insert(iamPolicyCloudWatchAgentServerPolicyARN)
+		attachPolicyARNs.Insert(iamPolicyCloudWatchAgentServerPolicy)
 	}
 
 	role := gfn.AWSIAMRole{
-		Path:                     gfn.NewString("/"),
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices("ec2.amazonaws.com"),
-		ManagedPolicyArns:        makeStringSlice(attachPolicyARNs.List()...),
+		Path: gfn.NewString("/"),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(makeServiceRef("EC2")),
+		ManagedPolicyArns:        makePolicyARNs(attachPolicyARNs.List()...),
 	}
 
 	if iamConfig.InstanceRoleName != "" {
@@ -70,7 +70,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 	}
 
 	if api.IsEnabled(iamConfig.WithAddonPolicies.CertManager) {
-		cfnTemplate.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerChangeSet", refIR, addARNPartitionPrefix("route53:::hostedzone/*"),
 			[]string{
 				"route53:ChangeResourceRecordSets",
 			},
@@ -82,13 +82,13 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 				"route53:ListHostedZonesByName",
 			},
 		)
-		cfnTemplate.attachAllowPolicy("PolicyCertManagerGetChange", refIR, "arn:aws:route53:::change/*",
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerGetChange", refIR, addARNPartitionPrefix("route53:::change/*"),
 			[]string{
 				"route53:GetChange",
 			},
 		)
 	} else if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
-		cfnTemplate.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, "arn:aws:route53:::hostedzone/*",
+		cfnTemplate.attachAllowPolicy("PolicyExternalDNSChangeSet", refIR, addARNPartitionPrefix("route53:::hostedzone/*"),
 			[]string{
 				"route53:ChangeResourceRecordSets",
 			},
@@ -146,7 +146,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 				"fsx:*",
 			},
 		)
-		cfnTemplate.attachAllowPolicy("PolicyServiceLinkRole", refIR, "arn:aws:iam::*:role/aws-service-role/*",
+		cfnTemplate.attachAllowPolicy("PolicyServiceLinkRole", refIR, addARNPartitionPrefix("iam::*:role/aws-service-role/*"),
 			[]string{
 				"iam:CreateServiceLinkedRole",
 				"iam:AttachRolePolicy",
