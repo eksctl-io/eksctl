@@ -999,8 +999,6 @@ github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
 github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291 h1:7NDMxQGP9dLyZtZIcTYgjGI/S++KYEvPusiS2FwA6O0=
 github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
-github.com/weaveworks/github-release v0.6.2 h1:cAn2DAjEoUugV+JY6VG4slDL0FZvQ/gNKVsAv3nezW0=
-github.com/weaveworks/github-release v0.6.2/go.mod h1:NhXnzaCgBhORf9yYJD1ddsxIxL8u/z7wdp8LGvco7aM=
 github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8 h1:VCjct7aExCi795Eq3YvxBod0aqEjeY/rcpNxdQYwdnk=
 github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8/go.mod h1:NhXnzaCgBhORf9yYJD1ddsxIxL8u/z7wdp8LGvco7aM=
 github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d h1:p52gB6rdtaV69CnprmY7UmhDF2tbf9ps7KNnovBzFhI=

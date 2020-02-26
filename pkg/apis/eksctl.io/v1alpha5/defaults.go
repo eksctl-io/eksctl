@@ -178,17 +178,18 @@ func DefaultClusterNAT() *ClusterNAT {
 }
 
 // SetClusterEndpointAccessDefaults sets the default values for cluster endpoint access
-func SetClusterEndpointAccessDefaults(endpoints *ClusterEndpoints) {
-	if endpoints == nil {
-		endpoints = ClusterEndpointAccessDefaults()
+func SetClusterEndpointAccessDefaults(cfg *ClusterConfig) {
+	if cfg.VPC.ClusterEndpoints == nil {
+		cfg.VPC.ClusterEndpoints = ClusterEndpointAccessDefaults()
+		return
 	}
 
-	if endpoints.PublicAccess == nil {
-		endpoints.PublicAccess = Enabled()
+	if cfg.VPC.ClusterEndpoints.PublicAccess == nil {
+		cfg.VPC.ClusterEndpoints.PublicAccess = Enabled()
 	}
 
-	if endpoints.PrivateAccess == nil {
-		endpoints.PrivateAccess = Disabled()
+	if cfg.VPC.ClusterEndpoints.PrivateAccess == nil {
+		cfg.VPC.ClusterEndpoints.PrivateAccess = Disabled()
 	}
 }
 
