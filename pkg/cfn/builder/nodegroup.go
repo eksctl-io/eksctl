@@ -50,6 +50,8 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		n.spec.AMIFamily, api.IsEnabled(n.spec.SSH.Allow), n.spec.PrivateNetworking,
 		templateDescriptionSuffix)
 
+	n.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SecurityGroups.WithShared, false)
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, n.spec.SecurityGroups.WithLocal, false)
