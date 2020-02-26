@@ -3,25 +3,23 @@
 package main
 
 import (
+	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
-	"net/http"
-
 	. "github.com/dave/jennifer/jen"
 )
 
-const maxPodsPerNodeTypeSourceText = "https://raw.github.com/awslabs/amazon-eks-ami/master/files/eni-max-pods.txt"
+const (
+	maxPodsLocalSourceText = "../addons/default/assets/eni-max-pods.txt"
+	maxPodsPerNodeTypeSourceText = "https://raw.github.com/awslabs/amazon-eks-ami/master/files/eni-max-pods.txt"
+)
 
 func main() {
-	if os.Getenv("EKSCTL_DOWNLOAD_ASSETS") != "true" {
-		if _, err := os.Stat("maxpods.go"); err == nil {
-			return
-		}
-	}
 	maxPodsMap := generateMap()
 	renderGoMap(maxPodsMap)
 }
@@ -29,14 +27,34 @@ func main() {
 func generateMap() map[string]int {
 	dict := make(map[string]int)
 
-	resp, err := http.Get(maxPodsPerNodeTypeSourceText)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err.Error())
+	var body []byte
+
+	if _, err := os.Stat(maxPodsLocalSourceText); err != nil {
+		resp, err := http.Get(maxPodsPerNodeTypeSourceText)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer resp.Body.Close()
+		body, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		out, err := os.Create(maxPodsLocalSourceText)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		defer out.Close()
+
+		_, err = io.Copy(out, resp.Body)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	} else {
+		body, err = ioutil.ReadFile(maxPodsLocalSourceText)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 	}
 
 	for _, line := range strings.Split(string(body), "\n") {

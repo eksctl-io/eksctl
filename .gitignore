@@ -8,6 +8,9 @@
 eksctl
 eksctl-integration-test
 
+# Downloaded assets (not to be included in code base)
+pkg/addons/default/assets/eni-max-pods.txt
+
 # Phony directory used to generate mocks
 vendor
 
