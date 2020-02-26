@@ -5,6 +5,8 @@ package tests
 import (
 	"flag"
 	"fmt"
+	"os"
+	"path"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -44,6 +46,11 @@ type Params struct {
 func (p *Params) SetRegion(region string) {
 	p.Region = region
 	p.GenerateCommands()
+}
+
+// GenerateKubeconfigPath generates a path in ${TEMP} based on these params' cluster name.
+func (p *Params) GenerateKubeconfigPath() {
+	p.KubeconfigPath = path.Join(os.TempDir(), fmt.Sprintf("%s.yaml", p.ClusterName))
 }
 
 // GenerateCommands generates eksctl commands with the various options & values
@@ -135,6 +142,9 @@ func NewParams(clusterNamePrefix string) *Params {
 		params.ClusterName = params.NewClusterName(clusterNamePrefix)
 	} else {
 		params.addToDeleteList(params.ClusterName)
+	}
+	if params.KubeconfigPath == "" {
+		params.GenerateKubeconfigPath()
 	}
 	params.GenerateCommands()
 	return &params
