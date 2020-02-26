@@ -73,10 +73,10 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	role := &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			makeServiceRef("EKS"),
+			MakeServiceRef("EKS"),
 			// Ensure that EKS can schedule pods onto Fargate, should the user
 			// define so-called "Fargate profiles" in order to do so:
-			makeServiceRef("EKSFargatePods"),
+			MakeServiceRef("EKSFargatePods"),
 		),
 		ManagedPolicyArns: makePolicyARNs(
 			iamPolicyAmazonEKSServicePolicy,

@@ -41,7 +41,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 
 	role := gfn.AWSIAMRole{
 		Path: gfn.NewString("/"),
-		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(makeServiceRef("EC2")),
+		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(MakeServiceRef("EC2")),
 		ManagedPolicyArns:        makePolicyARNs(attachPolicyARNs.List()...),
 	}
 

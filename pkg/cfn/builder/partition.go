@@ -25,7 +25,9 @@ func makeFnFindInMap(mapName string, args ...*gfn.Value) *gfn.Value {
 	return gfn.MakeIntrinsic(gfn.FnFindInMap, append([]*gfn.Value{gfn.NewString(mapName)}, args...))
 }
 
-func makeServiceRef(servicePrincipalName string) *gfn.Value {
+// MakeServiceRef returns a reference to an intrinsic map function that looks up the servicePrincipalName
+// in servicePrincipalPartitionMappings
+func MakeServiceRef(servicePrincipalName string) *gfn.Value {
 	return makeFnFindInMap(servicePrincipalPartitionMapName, gfn.RefPartition, gfn.NewString(servicePrincipalName))
 }
 

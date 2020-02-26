@@ -786,10 +786,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(role.Path).To(Equal("/"))
 			Expect(role.RoleName).To(Equal("a-named-role"))
-			Expect(role.ManagedPolicyArns).To(ConsistOf("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-				"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
+			Expect(role.ManagedPolicyArns).To(ConsistOf(makePolicyARNRef("AmazonEKSWorkerNodePolicy",
+				"AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly")...))
 
-			checkARPD([]string{"ec2.amazonaws.com"}, role.AssumeRolePolicyDocument)
+			checkARPD([]string{"EC2"}, role.AssumeRolePolicyDocument)
 
 			Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceProfile"))
 
@@ -905,7 +905,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::hostedzone/*",
+			}))
 			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ChangeResourceRecordSets",
 			}))
@@ -978,7 +980,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::hostedzone/*",
+			}))
 			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ChangeResourceRecordSets",
 			}))
@@ -1008,7 +1012,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::change/*"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::change/*",
+			}))
 			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:GetChange",
 			}))
@@ -1155,9 +1161,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			role := ngTemplate.Resources["NodeInstanceRole"].Properties
 
-			Expect(role.ManagedPolicyArns).To(ConsistOf("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-				"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-				"arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"))
+			Expect(role.ManagedPolicyArns).To(ConsistOf(makePolicyARNRef("AmazonEKSWorkerNodePolicy",
+				"AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "CloudWatchAgentServerPolicy")))
 		})
 	})
 
@@ -2240,12 +2245,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should have correct own IAM resources", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties).ToNot(BeNil())
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal([]interface{}{
-				"arn:aws:iam::aws:policy/AmazonEKSServicePolicy",
-				"arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
-			}))
 
-			checkARPD([]string{"eks.amazonaws.com", "eks-fargate-pods.amazonaws.com"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
+			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal(makePolicyARNRef(
+				"AmazonEKSServicePolicy", "AmazonEKSClusterPolicy",
+			)))
+
+			checkARPD([]string{"EKS", "EKSFargatePods"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
 
 			policy1 := clusterTemplate.Resources["PolicyNLB"].Properties
 
@@ -2700,7 +2705,11 @@ func getLaunchTemplateData(obj *Template) LaunchTemplateData {
 }
 
 func checkARPD(services []string, arpd interface{}) {
-	servicesJSON, err := json.Marshal(services)
+	var serviceRefs []*gfn.Value
+	for _, service := range services {
+		serviceRefs = append(serviceRefs, MakeServiceRef(service))
+	}
+	servicesJSON, err := json.Marshal(serviceRefs)
 	Expect(err).ToNot(HaveOccurred())
 
 	expectedARPD := `{
@@ -2715,4 +2724,14 @@ func checkARPD(services []string, arpd interface{}) {
 	}`
 	actualARPD, _ := json.Marshal(arpd)
 	Expect(actualARPD).To(MatchJSON([]byte(expectedARPD)))
+}
+
+func makePolicyARNRef(policies ...string) []interface{} {
+	var values []interface{}
+	for _, p := range policies {
+		values = append(values, map[string]interface{}{
+			"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/" + p,
+		})
+	}
+	return values
 }
