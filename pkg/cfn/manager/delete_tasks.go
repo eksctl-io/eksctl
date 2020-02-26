@@ -20,7 +20,7 @@ func (c *StackCollection) NewTasksToDeleteClusterWithNodeGroups(deleteOIDCProvid
 		return nil, err
 	}
 
-	nodeGroupTasks, err := c.MakeTasksToDeleteNodeGroupsFromStacks(nodeGroupStacks,true, cleanup)
+	nodeGroupTasks, err := c.MakeTasksToDeleteNodeGroupsFromStacks(nodeGroupStacks, true, cleanup)
 
 	if err != nil {
 		return nil, err

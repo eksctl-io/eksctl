@@ -92,14 +92,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 			return err
 		}
 	} else {
-		var nodeGroupType api.NodeGroupType
-		for _, s := range stacks {
-			if s.NodeGroupName == ng.Name {
-				nodeGroupType = s.Type
-				break
-			}
-		}
-		nodeGroupType, err = stackManager.GetNodeGroupStackType(ng.Name)
+		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)
 		if err != nil {
 			return err
 		}
@@ -137,7 +130,7 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 	{
-		ngToDelete := make(map[string]struct{}, 0)
+		ngToDelete := make(map[string]struct{})
 		for _, ng := range allNodeGroups {
 			ngToDelete[ng.NameString()] = struct{}{}
 		}

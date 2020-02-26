@@ -2,7 +2,6 @@ package manager
 
 import (
 	"fmt"
-	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"strings"
 	"sync"
 
@@ -10,6 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"
 )

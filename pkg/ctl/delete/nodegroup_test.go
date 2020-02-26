@@ -199,7 +199,7 @@ func createAuthConfigMap(resources ...interface{}) (kubernetes.Interface, *v1.Co
 	return clientSet, acm
 }
 
-func createNewMock() (*api.ClusterConfig, []*manager.Stack, *manager.StackCollection, *eks.ClusterProvider){
+func createNewMock() (*api.ClusterConfig, []*manager.Stack, *manager.StackCollection, *eks.ClusterProvider) {
 	p := mockprovider.NewMockProvider()
 
 	mockCFN := p.MockCloudFormation()
