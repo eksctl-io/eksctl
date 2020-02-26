@@ -465,7 +465,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should deploy podinfo service to the cluster and access it via proxy", func() {
-					d := test.CreateDeploymentFromFile(test.Namespace, "data/podinfo.yaml")
+					d := test.CreateDeploymentFromFile(test.Namespace, "../../data/podinfo.yaml")
 					test.WaitForDeploymentReady(d, commonTimeout)
 
 					pods := test.ListPodsFromDeployment(d)
@@ -487,7 +487,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have functional DNS", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-dns.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-dns.yaml")
 
 					test.WaitForDaemonSetReady(d, commonTimeout)
 
@@ -499,7 +499,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				})
 
 				It("should have access to HTTP(S) sites", func() {
-					d := test.CreateDaemonSetFromFile(test.Namespace, "data/test-http.yaml")
+					d := test.CreateDaemonSetFromFile(test.Namespace, "../../data/test-http.yaml")
 
 					test.WaitForDaemonSetReady(d, commonTimeout)
 
@@ -522,7 +522,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 					Expect(createCmd).To(RunSuccessfully())
 
-					d := test.CreateDeploymentFromFile(test.Namespace, "data/iamserviceaccount-checker.yaml")
+					d := test.CreateDeploymentFromFile(test.Namespace, "../../data/iamserviceaccount-checker.yaml")
 					test.WaitForDeploymentReady(d, commonTimeout)
 
 					pods := test.ListPodsFromDeployment(d)
