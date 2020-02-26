@@ -1,5 +1,7 @@
 package template
 
+import gfn "github.com/awslabs/goformation/cloudformation"
+
 // AttachAllowPolicy constructs a role with allow policy for given resources and actions
 func (t *Template) AttachAllowPolicy(name string, refRole *Value, resources interface{}, actions []string) {
 	t.AttachPolicy(name, refRole, MakePolicyDocument(MapOfInterfaces{
@@ -27,11 +29,11 @@ func MakePolicyDocument(statements ...MapOfInterfaces) MapOfInterfaces {
 }
 
 // MakeAssumeRolePolicyDocumentForServices constructs a trust policy for given services
-func MakeAssumeRolePolicyDocumentForServices(services ...string) MapOfInterfaces {
+func MakeAssumeRolePolicyDocumentForServices(services ...*gfn.Value) MapOfInterfaces {
 	return MakePolicyDocument(MapOfInterfaces{
 		"Effect": "Allow",
 		"Action": []string{"sts:AssumeRole"},
-		"Principal": map[string][]string{
+		"Principal": map[string][]*gfn.Value{
 			"Service": services,
 		},
 	})

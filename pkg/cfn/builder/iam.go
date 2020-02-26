@@ -14,16 +14,16 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSServicePolicyARN = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-	iamPolicyAmazonEKSClusterPolicyARN = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+	iamPolicyAmazonEKSServicePolicy = "AmazonEKSServicePolicy"
+	iamPolicyAmazonEKSClusterPolicy = "AmazonEKSClusterPolicy"
 
-	iamPolicyAmazonEKSWorkerNodePolicyARN           = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-	iamPolicyAmazonEKSCNIPolicyARN                  = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-	iamPolicyAmazonEC2ContainerRegistryPowerUserARN = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
-	iamPolicyAmazonEC2ContainerRegistryReadOnlyARN  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-	iamPolicyCloudWatchAgentServerPolicyARN         = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
+	iamPolicyAmazonEKSCNIPolicy                  = "AmazonEKS_CNI_Policy"
+	iamPolicyAmazonEC2ContainerRegistryPowerUser = "AmazonEC2ContainerRegistryPowerUser"
+	iamPolicyAmazonEC2ContainerRegistryReadOnly  = "AmazonEC2ContainerRegistryReadOnly"
+	iamPolicyCloudWatchAgentServerPolicy         = "CloudWatchAgentServerPolicy"
 
-	iamPolicyAmazonEKSFargatePodExecutionRolePolicyARN = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+	iamPolicyAmazonEKSFargatePodExecutionRolePolicy = "AmazonEKSFargatePodExecutionRolePolicy"
 )
 
 const (
@@ -33,8 +33,8 @@ const (
 
 var (
 	iamDefaultNodePolicyARNs = []string{
-		iamPolicyAmazonEKSWorkerNodePolicyARN,
-		iamPolicyAmazonEKSCNIPolicyARN,
+		iamPolicyAmazonEKSWorkerNodePolicy,
+		iamPolicyAmazonEKSCNIPolicy,
 	}
 )
 
@@ -73,14 +73,14 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	role := &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			"eks.amazonaws.com",
+			makeServiceRef("EKS"),
 			// Ensure that EKS can schedule pods onto Fargate, should the user
 			// define so-called "Fargate profiles" in order to do so:
-			"eks-fargate-pods.amazonaws.com",
+			makeServiceRef("EKSFargatePods"),
 		),
-		ManagedPolicyArns: makeStringSlice(
-			iamPolicyAmazonEKSServicePolicyARN,
-			iamPolicyAmazonEKSClusterPolicyARN,
+		ManagedPolicyArns: makePolicyARNs(
+			iamPolicyAmazonEKSServicePolicy,
+			iamPolicyAmazonEKSClusterPolicy,
 		),
 	}
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
