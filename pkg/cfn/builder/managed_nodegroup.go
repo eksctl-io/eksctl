@@ -80,6 +80,8 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		api.IsEnabled(m.nodeGroup.SSH.Allow),
 		"[created by eksctl]")
 
+	m.template.Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+
 	var nodeRole *gfn.Value
 	if m.nodeGroup.IAM.InstanceRoleARN == "" {
 		createRole(m.resourceSet, m.nodeGroup.IAM, true)
