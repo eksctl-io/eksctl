@@ -99,10 +99,24 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 		roleARNFlag string
 	)
 
+	execConfig := &clientcmdapi.ExecConfig{
+		APIVersion: "client.authentication.k8s.io/v1alpha1",
+		Command:    authenticatorCMD,
+	}
+
 	switch authenticatorCMD {
 	case AWSIAMAuthenticator, HeptioAuthenticatorAWS:
 		args = []string{"token", "-i", spec.Metadata.Name}
 		roleARNFlag = "-r"
+		if spec.Metadata.Region != "" {
+			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
+				Name:  "AWS_STS_REGIONAL_ENDPOINTS",
+				Value: "regional",
+			}, clientcmdapi.ExecEnvVar{
+				Name:  "AWS_DEFAULT_REGION",
+				Value: spec.Metadata.Region,
+			})
+		}
 	case AWSEKSAuthenticator:
 		args = []string{"eks", "get-token", "--cluster-name", spec.Metadata.Name}
 		roleARNFlag = "--role-arn"
@@ -114,19 +128,13 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 		args = append(args, roleARNFlag, roleARN)
 	}
 
-	execConfig := &clientcmdapi.ExecConfig{
-		APIVersion: "client.authentication.k8s.io/v1alpha1",
-		Command:    authenticatorCMD,
-		Args:       args,
-	}
+	execConfig.Args = args
 
 	if profile != "" {
-		execConfig.Env = []clientcmdapi.ExecEnvVar{
-			{
-				Name:  "AWS_PROFILE",
-				Value: profile,
-			},
-		}
+		execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
+			Name:  "AWS_PROFILE",
+			Value: profile,
+		})
 	}
 
 	config.AuthInfos[config.CurrentContext] = &clientcmdapi.AuthInfo{
