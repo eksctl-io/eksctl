@@ -25,7 +25,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 		newNodeGroup     = "ng-1"
 	)
 
-	defaultTimeout := 15 * time.Minute
+	defaultTimeout := 20 * time.Minute
 
 	Describe("when creating a cluster with 1 managed nodegroup", func() {
 		// always generate a unique name
