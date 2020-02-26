@@ -1,0 +1,27 @@
+# A simple example of ClusterConfig object:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: test-cluster-1
+  region: eu-north-1
+
+vpc:
+  id: "vpc-12345"
+  cidr: "10.0.0.0/16"
+  subnets:
+    private:
+      us-west-1a:
+        id: "subnet-12345"
+        cidr: "10.0.1.0/24"
+      us-west-2b:
+        id: "subnet-67890"
+        cidr: "10.0.2.0/24"
+  clusterEndpoints:
+    privateAccess: true
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 1
