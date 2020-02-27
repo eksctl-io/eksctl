@@ -73,6 +73,12 @@ const (
 	// RegionSAEast1 represents the South America Region Sao Paulo
 	RegionSAEast1 = "sa-east-1"
 
+	// RegiogCNNorthWest1 represents the South America Region Ning Xia
+	RegiogCNNorthWest1 = "cn-northwest-1"
+
+	// RegiogCNNorthWest1 represents the South America Region Bei Jing
+	RegiogCNNorth1 = "cn-north-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -181,6 +187,12 @@ const (
 
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
+
+	// eksResourceAccountCNNorthwest1 defines the AWS EKS account ID that provides node resources in cn-northwest-1 region
+	eksResourceAccountCNNorthwest1 = "961992271922"
+
+	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1 region
+	eksResourceAccountCNNorth1 = "918309763551"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -250,6 +262,8 @@ func SupportedRegions() []string {
 		RegionAPEast1,
 		RegionMESouth1,
 		RegionSAEast1,
+		RegiogCNNorthWest1,
+		RegiogCNNorth1,
 	}
 }
 
@@ -290,6 +304,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAPEast1
 	case RegionMESouth1:
 		return eksResourceAccountMESouth1
+	case RegiogCNNorthWest1:
+		return eksResourceAccountCNNorthwest1
+	case RegiogCNNorth1:
+		return eksResourceAccountCNNorth1
 	default:
 		return eksResourceAccountStandard
 	}
