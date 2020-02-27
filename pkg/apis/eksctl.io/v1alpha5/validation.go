@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -172,6 +173,14 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
+		}
+		if attachPolicyARNs := ng.IAM.AttachPolicyARNs; len(attachPolicyARNs) > 0 {
+			for _, policyARN := range attachPolicyARNs {
+				if _, err := arn.Parse(policyARN); err != nil {
+					return errors.Wrapf(err, "invalid ARN %q in %s.iam.attachPolicyARNs", policyARN, path)
+				}
+
+			}
 		}
 	}
 
