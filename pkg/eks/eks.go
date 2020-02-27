@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -228,7 +229,14 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 	if c.Status.clusterInfo.cluster == nil || c.Status.clusterInfo.cluster.Identity == nil || c.Status.clusterInfo.cluster.Identity.Oidc == nil || c.Status.clusterInfo.cluster.Identity.Oidc.Issuer == nil {
 		return nil, &UnsupportedOIDCError{"unknown OIDC issuer URL"}
 	}
-	if !strings.HasPrefix(spec.Status.ARN, "arn:aws:eks:") {
+
+	parsedARN, err := arn.Parse(spec.Status.ARN)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unexpected invalid ARN: %q", spec.Status.ARN)
+	}
+	switch parsedARN.Partition {
+	case "aws", "aws-cn":
+	default:
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
 	accountID := strings.Split(spec.Status.ARN, ":")[4]
