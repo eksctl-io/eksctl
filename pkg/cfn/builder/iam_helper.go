@@ -23,7 +23,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 		return err
 	}
 	role := gfn.AWSIAMRole{
-		Path: gfn.NewString("/"),
+		Path:                     gfn.NewString("/"),
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(MakeServiceRef("EC2")),
 		ManagedPolicyArns:        managedPolicyARNs,
 	}
