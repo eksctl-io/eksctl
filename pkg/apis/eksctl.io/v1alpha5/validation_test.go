@@ -61,8 +61,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.Name = "ng0"
 
 			ng0.IAM.AttachPolicyARNs = []string{
-				"foo",
-				"bar",
+				"arn:aws:iam::aws:policy/Foo",
+				"arn:aws:iam::aws:policy/Bar",
 			}
 			ng0.IAM.WithAddonPolicies.ExternalDNS = Enabled()
 			ng0.IAM.WithAddonPolicies.ALBIngress = Enabled()
@@ -143,8 +143,8 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should not allow setting instanceRoleARN and attachPolicyARNs", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 			ng1.IAM.AttachPolicyARNs = []string{
-				"foo",
-				"bar",
+				"arn:aws:iam::aws:policy/Foo",
+				"arn:aws:iam::aws:policy/Bar",
 			}
 
 			err = ValidateNodeGroup(1, ng1)
