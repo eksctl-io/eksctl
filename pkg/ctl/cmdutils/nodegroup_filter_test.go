@@ -273,13 +273,13 @@ func addGroupA(cfg *api.ClusterConfig) {
 	ng.VolumeSize = &ng1aVolSize
 	ng.VolumeType = &ng1aVolType
 	ng.VolumeIOPS = &ng1aVolIOPS
-	ng.IAM.AttachPolicyARNs = []string{"foo"}
+	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Foo"}
 	ng.Labels = map[string]string{"group": "a", "seq": "1"}
 	ng.SSH = nil
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng2a"
-	ng.IAM.AttachPolicyARNs = []string{"bar"}
+	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Bar"}
 	ng.Labels = map[string]string{"group": "a", "seq": "2"}
 	ng.SSH = nil
 
@@ -369,7 +369,7 @@ const expected = `
 			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-				  "foo"
+				  "arn:aws:iam::aws:policy/Foo"
 			    ],
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
@@ -409,7 +409,7 @@ const expected = `
 			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-				  "bar"
+				  "arn:aws:iam::aws:policy/Bar"
 			    ],
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
