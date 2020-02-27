@@ -146,7 +146,7 @@ generate-always: ## Generate code (required for every build)
 	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
-	@$(GOBIN)/go-bindata -v
+	@$(GOBIN)/go-bindata --version
 	env GOBIN=$(GOBIN) time go generate $(always_generate_in_packages)
 
 .PHONY: generate-all
