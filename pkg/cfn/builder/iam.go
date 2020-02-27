@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	iamDefaultNodePolicyARNs = []string{
+	iamDefaultNodePolicies = []string{
 		iamPolicyAmazonEKSWorkerNodePolicy,
 		iamPolicyAmazonEKSCNIPolicy,
 	}
@@ -112,7 +112,7 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 	return n.rs.withNamedIAM
 }
 
-func (n *NodeGroupResourceSet) addResourcesForIAM() {
+func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
@@ -123,14 +123,14 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		if n.spec.IAM.InstanceRoleARN != "" {
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true)
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
-			return
+			return nil
 		}
 		// if instance role is not given, export profile and use the getter to call importer function
 		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
 			return iam.ImportInstanceRoleFromProfileARN(n.provider, n.spec, v)
 		})
 
-		return
+		return nil
 	}
 
 	n.rs.withIAM = true
@@ -147,7 +147,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			return nil
 		})
 		n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
-		return
+		return nil
 	}
 
 	// if neither role nor profile is given - create both
@@ -157,7 +157,9 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.rs.withNamedIAM = true
 	}
 
-	createRole(n.rs, n.spec.IAM, false)
+	if err := createRole(n.rs, n.spec.IAM, false); err != nil {
+		return err
+	}
 
 	n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),
@@ -173,6 +175,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.spec.IAM.InstanceRoleARN = v
 		return nil
 	})
+	return nil
 }
 
 // IAMServiceAccountResourceSet holds iamserviceaccount stack build-time information

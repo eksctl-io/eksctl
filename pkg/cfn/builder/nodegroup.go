@@ -91,7 +91,9 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		return fmt.Errorf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
-	n.addResourcesForIAM()
+	if err := n.addResourcesForIAM(); err != nil {
+		return err
+	}
 	n.addResourcesForSecurityGroups()
 
 	return n.addResourcesForNodeGroup()

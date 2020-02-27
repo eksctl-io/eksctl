@@ -84,7 +84,9 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 
 	var nodeRole *gfn.Value
 	if m.nodeGroup.IAM.InstanceRoleARN == "" {
-		createRole(m.resourceSet, m.nodeGroup.IAM, true)
+		if err := createRole(m.resourceSet, m.nodeGroup.IAM, true); err != nil {
+			return err
+		}
 		nodeRole = gfn.MakeFnGetAttString(fmt.Sprintf("%s.%s", cfnIAMInstanceRoleName, "Arn"))
 	} else {
 		nodeRole = gfn.NewString(m.nodeGroup.IAM.InstanceRoleARN)
