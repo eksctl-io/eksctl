@@ -24,7 +24,7 @@ spec:
             - -alsologtostderr
             - -v=4
             - 2>&1
-          image: '%s.dkr.ecr.%s.amazonaws.com/eks/vpc-admission-webhook:0.2.1'
+          image: '%s.dkr.ecr.%s.%s/eks/vpc-admission-webhook:0.2.1'
           imagePullPolicy: Always
           volumeMounts:
             - name: webhook-certs
