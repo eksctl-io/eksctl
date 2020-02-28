@@ -18,7 +18,7 @@ const (
 	// AWSNode is the name of the aws-node addon
 	AWSNode = "aws-node"
 
-	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni:%s"
+	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
 )
 
 // UpdateAWSNode will update the `aws-node` add-on

@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/weaveworks/eksctl/pkg/addons"
 	. "github.com/weaveworks/eksctl/pkg/addons/default"
 
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -47,7 +48,7 @@ var _ = Describe("default addons - coredns", func() {
 			loadSample(kubernetesVersion, 10)
 
 			It("can load "+kubernetesVersion+" sample", func() {
-				checkCoreDNSImage(rawClient, "eu-west-1", "v"+coreDNSVersion)
+				checkCoreDNSImage(rawClient, "eu-west-1", "v"+coreDNSVersion, true)
 
 				createReqs := []string{
 					"POST [/clusterrolebindings] (aws-node)",
@@ -79,13 +80,13 @@ var _ = Describe("default addons - coredns", func() {
 		loadSample("1.11", 10)
 
 		It("can load 1.11 sample", func() {
-			checkCoreDNSImage(rawClient, "eu-west-1", "v1.1.3")
+			checkCoreDNSImage(rawClient, "eu-west-1", "v1.1.3", true)
 		})
 
 		It("can update to correct version", func() {
 			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.12.x", false)
 			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.2.2")
+			checkCoreDNSImage(rawClient, "eu-west-2", "v1.2.2", false)
 
 			createReqs := []string{
 				"POST [/clusterrolebindings] (aws-node)",
@@ -128,13 +129,13 @@ var _ = Describe("default addons - coredns", func() {
 		loadSample("1.12", 10)
 
 		It("can load 1.11 sample", func() {
-			checkCoreDNSImage(rawClient, "eu-west-1", "v1.2.2")
+			checkCoreDNSImage(rawClient, "eu-west-1", "v1.2.2", true)
 		})
 
 		It("can update to correct version", func() {
 			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.13.x", false)
 			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.2.6")
+			checkCoreDNSImage(rawClient, "eu-west-2", "v1.2.6", false)
 
 			createReqs := []string{
 				"POST [/clusterrolebindings] (aws-node)",
@@ -173,12 +174,17 @@ var _ = Describe("default addons - coredns", func() {
 	loadSampleAndCheck("1.13", "1.2.6")
 })
 
-func checkCoreDNSImage(rawClient *testutils.FakeRawClient, region, imageTag string) {
+func checkCoreDNSImage(rawClient *testutils.FakeRawClient, region, imageTag string, setImage bool) {
 	coreDNS, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(coreDNS).ToNot(BeNil())
 	Expect(coreDNS.Spec.Template.Spec.Containers).To(HaveLen(1))
+
+	if setImage {
+		err := addons.UseRegionalImage(&coreDNS.Spec.Template, region)
+		Expect(err).ToNot(HaveOccurred())
+	}
 
 	Expect(coreDNS.Spec.Template.Spec.Containers[0].Image).To(
 		Equal("602401143452.dkr.ecr." + region + ".amazonaws.com/eks/coredns:" + imageTag),
