@@ -8,8 +8,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// AWSDNSSuffixForRegion returns the AWS DNS suffix (amazonaws.com or amazonaws.com.cn) for the specified region
-func AWSDNSSuffixForRegion(region string) (string, error) {
+// awsDNSSuffixForRegion returns the AWS DNS suffix (amazonaws.com or amazonaws.com.cn) for the specified region
+func awsDNSSuffixForRegion(region string) (string, error) {
 	for _, p := range endpoints.DefaultPartitions() {
 		if _, ok := p.Regions()[region]; ok {
 			return p.DNSSuffix(), nil
@@ -22,7 +22,7 @@ func AWSDNSSuffixForRegion(region string) (string, error) {
 // in format '%s.dkr.ecr.%s.%s/image:tag'
 func UseRegionalImage(spec *corev1.PodTemplateSpec, region string) error {
 	imageFormat := spec.Spec.Containers[0].Image
-	dnsSuffix, err := AWSDNSSuffixForRegion(region)
+	dnsSuffix, err := awsDNSSuffixForRegion(region)
 	if err != nil {
 		return err
 	}
