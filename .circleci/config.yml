@@ -149,6 +149,8 @@ jobs:
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
               weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release-candidate.sh
           no_output_timeout: 21m
+      - store_artifacts:
+          path: dist/
   release:
     machine:
       image: ubuntu-1604:201903-01
@@ -172,6 +174,8 @@ jobs:
               --volume=$HOME/go/pkg/mod/:/go/pkg/mod \
               weaveworks/eksctl-build:$(cat .docker/image_tag) ./do-release.sh
           no_output_timeout: 21m
+      - store_artifacts:
+          path: dist/
   integration-tests:
     machine:
       image: ubuntu-1604:201903-01
