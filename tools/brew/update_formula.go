@@ -16,10 +16,10 @@ import (
 
 type formula struct {
 	Version string
-	Mac     FormulaFile
-	Linux   FormulaFile
+	Mac     formulaFile
+	Linux   formulaFile
 }
-type FormulaFile struct {
+type formulaFile struct {
 	Checksum string
 	URL      string
 }
@@ -85,7 +85,9 @@ func main() {
 	if err = parsedTemplate.Execute(executedTemplate, formula); err != nil {
 		log.Fatalf("could not apply values to template: %s", err.Error())
 	}
+	log.Println("Successfully executed template")
 
+	log.Println("Writing file")
 	if err := ioutil.WriteFile(*outputPath, executedTemplate.Bytes(), 0644); err != nil {
 		log.Fatalf("error while writing executed template file %q: %s", *outputPath, err.Error())
 	}
