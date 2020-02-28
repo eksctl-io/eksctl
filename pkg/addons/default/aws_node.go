@@ -18,8 +18,6 @@ const (
 	// AWSNode is the name of the aws-node addon
 	AWSNode = "aws-node"
 
-	awsNodeImagePrefixPTN    = "%s.dkr.ecr."
-	awsNodeImageSuffix       = ".amazonaws.com/amazon-k8s-cni"
 	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni:%s"
 )
 

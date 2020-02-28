@@ -21,9 +21,6 @@ const (
 	CoreDNS = "coredns"
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
-
-	coreDNSImagePrefixPTN = "%s.dkr.ecr."
-	coreDNSImageSuffix    = ".amazonaws.com/eks/coredns"
 )
 
 // UpdateCoreDNS will update the `coredns` add-on
