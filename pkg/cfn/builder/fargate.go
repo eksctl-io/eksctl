@@ -28,11 +28,11 @@ func AddResourcesForFargate(rs *resourceSet, cfg *api.ClusterConfig) error {
 	rs.template.Description = fargateRoleDescription
 	role := &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			"eks.amazonaws.com",
-			"eks-fargate-pods.amazonaws.com", // Ensure that EKS can schedule pods onto Fargate.
+			MakeServiceRef("EKS"),
+			MakeServiceRef("EKSFargatePods"), // Ensure that EKS can schedule pods onto Fargate.
 		),
-		ManagedPolicyArns: makeStringSlice(
-			iamPolicyAmazonEKSFargatePodExecutionRolePolicyARN,
+		ManagedPolicyArns: makePolicyARNs(
+			iamPolicyAmazonEKSFargatePodExecutionRolePolicy,
 		),
 	}
 
