@@ -16,11 +16,16 @@ import (
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 )
 
-const defaultAudience = "sts.amazonaws.com"
+var defaultAudienceByPartition = map[string]string{
+	"aws":    "sts.amazonaws.com",
+	"aws-cn": "sts.amazonaws.com.cn",
+}
 
 // OpenIDConnectManager hold information about IAM OIDC integration
 type OpenIDConnectManager struct {
 	accountID string
+	partition string
+	audience  string
 
 	issuerURL          *url.URL
 	insecureSkipVerify bool
@@ -33,7 +38,7 @@ type OpenIDConnectManager struct {
 
 // NewOpenIDConnectManager construct a new IAM OIDC management instance, it can return and error
 // when the given issue URL was invalid
-func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer string) (*OpenIDConnectManager, error) {
+func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partition string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing OIDC issuer URL")
@@ -43,6 +48,11 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer string) (
 		return nil, fmt.Errorf("unsupported URL scheme %q", issuerURL.Scheme)
 	}
 
+	audience, ok := defaultAudienceByPartition[partition]
+	if !ok {
+		return nil, fmt.Errorf("failed to find an audience for partition: %s", partition)
+	}
+
 	if issuerURL.Port() == "" {
 		issuerURL.Host += ":443"
 	}
@@ -50,6 +60,8 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer string) (
 	m := &OpenIDConnectManager{
 		iam:       iamapi,
 		accountID: accountID,
+		partition: partition,
+		audience:  audience,
 		issuerURL: issuerURL,
 	}
 	return m, nil
@@ -83,7 +95,7 @@ func (m *OpenIDConnectManager) CreateProvider() error {
 		return err
 	}
 	input := &awsiam.CreateOpenIDConnectProviderInput{
-		ClientIDList:   aws.StringSlice([]string{defaultAudience}),
+		ClientIDList:   aws.StringSlice([]string{m.audience}),
 		ThumbprintList: []*string{&m.issuerCAThumbprint},
 		// It has no name or tags, it's keyed to the URL
 		Url: aws.String(m.issuerURL.String()),
@@ -147,7 +159,7 @@ func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocument(serviceAccountNamesp
 	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.ProviderARN, cft.MapOfInterfaces{
 		"StringEquals": map[string]string{
 			m.hostnameAndPath() + ":sub": subject,
-			m.hostnameAndPath() + ":aud": defaultAudience,
+			m.hostnameAndPath() + ":aud": m.audience,
 		},
 	})
 }
