@@ -171,7 +171,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 	describeUpdate := fmt.Sprintf("updating stack to add new resources %v and outputs %v", addResources, addOutputs)
 	if plan {
 		logger.Info("(plan) %s", describeUpdate)
-		return false, nil
+		return true, nil
 	}
 	return true, c.UpdateStack(name, c.MakeChangeSetName("update-cluster"), describeUpdate, []byte(currentTemplate), nil)
 }

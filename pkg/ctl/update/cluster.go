@@ -123,7 +123,7 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	stackUpdateRequired, err := stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
+	_, err = stackManager.AppendNewClusterStackResource(cmd.Plan, supportsManagedNodes)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 		logger.Critical("failed checking nodegroups", err.Error())
 	}
 
-	cmdutils.LogPlanModeWarning(cmd.Plan && (stackUpdateRequired || versionUpdateRequired))
+	cmdutils.LogPlanModeWarning(cmd.Plan)
 
 	return nil
 }

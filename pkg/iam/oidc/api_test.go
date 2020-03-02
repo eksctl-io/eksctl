@@ -259,7 +259,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			srv.close()
 		})
 
-		DescribeTable("AssumeRolePolicyDocument", func(partition, expectedAudience string) {
+		DescribeTable("AssumeRolePolicyDocument should have correct AWS partition and STS domain", func(partition, expectedAudience string) {
 			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
 				if len(input.ClientIDList) != 1 {
 					return false
@@ -300,8 +300,8 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(actual).To(MatchJSON(expected))
 		},
-			Entry("Default partition", "aws", "sts.amazonaws.com"),
-			Entry("China", "aws-cn", "sts.amazonaws.com.cn"),
+			Entry("Default AWS partition", "aws", "sts.amazonaws.com"),
+			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com.cn"),
 		)
 	})
 })
