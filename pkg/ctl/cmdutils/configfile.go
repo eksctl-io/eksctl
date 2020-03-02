@@ -192,7 +192,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			*l.ClusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
-		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC.ClusterEndpoints)
+		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
 
 		if !l.ClusterConfig.HasClusterEndpointAccess() {
 			return api.ErrClusterEndpointNoAccess
