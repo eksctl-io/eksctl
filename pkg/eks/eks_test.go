@@ -408,6 +408,16 @@ var _ = Describe("EKS API wrapper", func() {
 			expectError:       false,
 			supports:          false,
 		}),
+		Entry("with 1.15", &managedNodesSupportCase{
+			kubernetesVersion: "1.15",
+			expectError:       false,
+			supports:          true,
+		}),
+		Entry("with 1.16", &managedNodesSupportCase{
+			kubernetesVersion: "1.16",
+			expectError:       false,
+			supports:          true,
+		}),
 	)
 
 	type fargateSupportCase struct {
