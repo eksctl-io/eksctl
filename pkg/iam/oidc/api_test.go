@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -238,6 +239,70 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(js).To(MatchJSON(expected))
 		})
 
+	})
+
+	Describe("OIDC AWS partition test", func() {
+		var (
+			provider *mockprovider.MockProvider
+			srv      *testServer
+		)
+
+		BeforeEach(func() {
+			provider = mockprovider.NewMockProvider()
+			var err error
+			srv, err = newServer("localhost:10028")
+			Expect(err).NotTo(HaveOccurred())
+			go srv.serve()
+		})
+
+		AfterEach(func() {
+			srv.close()
+		})
+
+		DescribeTable("AssumeRolePolicyDocument", func(partition, expectedAudience string) {
+			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
+				if len(input.ClientIDList) != 1 {
+					return false
+				}
+				clientID := *input.ClientIDList[0]
+				expectedAudience := defaultAudienceByPartition[partition]
+				return clientID == expectedAudience
+			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
+				OpenIDConnectProviderArn: aws.String(fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition)),
+			}, nil)
+
+			oidc, err := NewOpenIDConnectManager(provider.IAM(), "12345", "https://localhost:10028/", partition)
+			oidc.insecureSkipVerify = true
+			Expect(err).ToNot(HaveOccurred())
+			Expect(oidc.CreateProvider()).To(Succeed())
+
+			document := oidc.MakeAssumeRolePolicyDocument("test-ns", "test-sa")
+			expected := fmt.Sprintf(`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Federated": %q
+						},
+						"Action": ["sts:AssumeRoleWithWebIdentity"],
+						"Condition": {
+							"StringEquals": {
+								"localhost/:sub": "system:serviceaccount:test-ns:test-sa",
+								"localhost/:aud": %q
+							}
+						}
+					}
+				]
+			}`, fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition), expectedAudience)
+
+			actual, err := json.Marshal(document)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(MatchJSON(expected))
+		},
+			Entry("Default partition", "aws", "sts.amazonaws.com"),
+			Entry("China", "aws-cn", "sts.amazonaws.com.cn"),
+		)
 	})
 })
 
