@@ -81,7 +81,7 @@ var _ = Describe("cmdutils configfile", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(examples).To(HaveLen(17))
+			Expect(examples).To(HaveLen(18))
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),
@@ -260,5 +260,50 @@ var _ = Describe("cmdutils configfile", func() {
 			}
 
 		})
+
+		Describe("should set defaults for cluster endpoint access", func() {
+
+			testClusterEndpointAccessDefaults := func(configFilePath string, expectedPrivAccess, expectedPubAccess bool) {
+				cmd := &Cmd{
+					CobraCommand:      newCmd(),
+					ClusterConfigFile: configFilePath,
+					ClusterConfig:     api.NewClusterConfig(),
+					ProviderConfig:    &api.ProviderConfig{},
+				}
+
+				params := &CreateClusterCmdParams{
+					WithoutNodeGroup: true,
+					Managed:          false,
+				}
+
+				Expect(NewCreateClusterLoader(cmd, NewNodeGroupFilter(), nil, params).Load()).To(Succeed())
+				cfg := cmd.ClusterConfig
+				assertValidClusterEndpoint(cfg.VPC.ClusterEndpoints, expectedPrivAccess, expectedPubAccess)
+			}
+
+			It("when VPC is imported and no access is defined", func() {
+				testClusterEndpointAccessDefaults("test_data/cluster-with-vpc.yaml", false, true)
+			})
+
+			It("when VPC is created by eksctl and no access is defined", func() {
+				testClusterEndpointAccessDefaults("test_data/cluster-without-vpc.yaml", false, true)
+			})
+
+			It("when VPC is created by eksctl and private endpoint is enabled", func() {
+				testClusterEndpointAccessDefaults("test_data/cluster-without-vpc-private-access.yaml", true, true)
+			})
+
+			It("when VPC is imported and private endpoint is enabled", func() {
+				testClusterEndpointAccessDefaults("test_data/cluster-with-vpc-private-access.yaml", true, true)
+			})
+		})
 	})
 })
+
+func assertValidClusterEndpoint(endpoints *api.ClusterEndpoints, privateAccess, publicAccess bool) {
+	Expect(endpoints).To(Not(BeNil()))
+	Expect(endpoints.PrivateAccess).To(Not(BeNil()))
+	Expect(*endpoints.PrivateAccess).To(Equal(privateAccess))
+	Expect(endpoints.PublicAccess).To(Not(BeNil()))
+	Expect(*endpoints.PublicAccess).To(Equal(publicAccess))
+}

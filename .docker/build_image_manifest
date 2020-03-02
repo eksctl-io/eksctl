@@ -1,7 +1,7 @@
 "github.com/goreleaser/goreleaser v0.110.0"
 "github.com/kevinburke/go-bindata v3.15.0+incompatible"
 "github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5"
-"github.com/weaveworks/github-release v0.6.2"
+"github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8"
 "golang.org/x/tools v0.0.0-20200121210457-b3205ff6fffe"
 "k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
 "k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"

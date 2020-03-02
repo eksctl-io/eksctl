@@ -3,6 +3,7 @@ package eks_test
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -73,42 +74,27 @@ var _ = Describe("eksctl API", func() {
 		})
 	})
 
-	Context("AMI selection", func() {
+	Context("Static AMI selection", func() {
 		var (
-			cfg *api.ClusterConfig
-			ctl *ClusterProvider
-			ng  *api.NodeGroup
-			p   *mockprovider.MockProvider
+			ng       *api.NodeGroup
+			provider *mockprovider.MockProvider
 		)
 		BeforeEach(func() {
-			cfg = &api.ClusterConfig{}
-			ng = cfg.NewNodeGroup()
+			ng = api.NewNodeGroup()
 			ng.AMIFamily = api.DefaultNodeImageFamily
 
-			p = mockprovider.NewMockProvider()
+			provider = mockprovider.NewMockProvider()
 
-			ctl = &ClusterProvider{
-				Provider: p,
-				Status:   &ProviderStatus{},
-			}
-
-			mockDescribeImages(p, "something", "abc123")
+			mockDescribeImages(provider, "ami-123", func(input *ec2.DescribeImagesInput) bool {
+				return len(input.ImageIds) == 1
+			})
 		})
 
-		It("should retrieve the AMI from EC2 when AMI is auto", func() {
-			ng.AMI = "auto"
-			ng.InstanceType = "p2.xlarge"
-
-			err := ctl.EnsureAMI("1.12", ng)
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("abc123"))
-		})
 		It("should pick a valid AMI for GPU instances when AMI is static", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "p2.xlarge"
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))
@@ -117,7 +103,7 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "m5.xlarge"
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
@@ -129,7 +115,7 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large"},
 			}
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
@@ -141,19 +127,76 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large", "p3.2xlarge"},
 			}
 
-			err := ctl.EnsureAMI("1.12", ng)
+			err := EnsureAMI(provider, "1.12", ng)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))
 		})
 	})
+
+	Context("Dynamic AMI Resolution", func() {
+		var (
+			ng       *api.NodeGroup
+			provider *mockprovider.MockProvider
+		)
+
+		BeforeEach(func() {
+			ng = api.NewNodeGroup()
+			ng.AMIFamily = api.DefaultNodeImageFamily
+
+			provider = mockprovider.NewMockProvider()
+			mockDescribeImages(provider, "ami-123", func(input *ec2.DescribeImagesInput) bool {
+				return len(input.ImageIds) == 1
+			})
+
+		})
+
+		testEnsureAMI := func(expectedAMI string) {
+			err := EnsureAMI(provider, "1.14", ng)
+			ExpectWithOffset(1, err).ToNot(HaveOccurred())
+			ExpectWithOffset(1, ng.AMI).To(Equal(expectedAMI))
+		}
+
+		It("should resolve AMI using SSM Parameter Store by default", func() {
+			provider.MockSSM().On("GetParameter", &ssm.GetParameterInput{
+				Name: aws.String("/aws/service/eks/optimized-ami/1.14/amazon-linux-2/recommended/image_id"),
+			}).Return(&ssm.GetParameterOutput{
+				Parameter: &ssm.Parameter{
+					Value: aws.String("ami-ssm"),
+				},
+			}, nil)
+
+			testEnsureAMI("ami-ssm")
+		})
+
+		It("should use static resolution when specified", func() {
+			ng.AMI = "static"
+			testEnsureAMI("ami-0c13bb9cbfd007e56")
+		})
+
+		It("should fall back to auto resolution for Ubuntu", func() {
+			ng.AMIFamily = api.NodeImageFamilyUbuntu1804
+			mockDescribeImages(provider, "ami-ubuntu", func(input *ec2.DescribeImagesInput) bool {
+				return *input.Owners[0] == "099720109477"
+			})
+			testEnsureAMI("ami-ubuntu")
+		})
+
+		It("should retrieve the AMI from EC2 when AMI is auto", func() {
+			ng.AMI = "auto"
+			ng.InstanceType = "p2.xlarge"
+			mockDescribeImages(provider, "ami-auto", func(input *ec2.DescribeImagesInput) bool {
+				return len(input.ImageIds) == 0
+			})
+
+			testEnsureAMI("ami-auto")
+		})
+	})
+
 })
 
-func mockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiId string) {
-	p.MockEC2().On("DescribeImages",
-		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
-			return true
-		})).
+func mockDescribeImages(p *mockprovider.MockProvider, amiId string, matcher func(*ec2.DescribeImagesInput) bool) {
+	p.MockEC2().On("DescribeImages", mock.MatchedBy(matcher)).
 		Return(&ec2.DescribeImagesOutput{
 			Images: []*ec2.Image{
 				{

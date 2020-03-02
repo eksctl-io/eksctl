@@ -74,18 +74,18 @@ func (v *Value) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	switch raw.(type) {
+	switch r := raw.(type) {
 	case string:
-		v.value = String(raw.(string))
+		v.value = String(r)
 		return nil
 	case float64:
-		v.value = Double(raw.(float64))
+		v.value = Double(r)
 	case bool:
-		v.value = Boolean(raw.(bool))
+		v.value = Boolean(r)
 	case map[string]interface{}:
-		v.value = AnythingMap(raw.(map[string]interface{}))
+		v.value = AnythingMap(r)
 	case []interface{}:
-		v.value = AnythingSlice(raw.([]interface{}))
+		v.value = AnythingSlice(r)
 	default:
 		return fmt.Errorf("cannot handle type %s", reflect.ValueOf(raw).Kind())
 	}

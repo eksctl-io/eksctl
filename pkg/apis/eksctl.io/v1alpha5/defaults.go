@@ -40,9 +40,6 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
-	if ng.AMI == "" {
-		ng.AMI = "static"
-	}
 
 	if ng.SecurityGroups == nil {
 		ng.SecurityGroups = &NodeGroupSGs{
@@ -177,6 +174,21 @@ func DefaultClusterNAT() *ClusterNAT {
 	single := ClusterSingleNAT
 	return &ClusterNAT{
 		Gateway: &single,
+	}
+}
+
+// SetClusterEndpointAccessDefaults sets the default values for cluster endpoint access
+func SetClusterEndpointAccessDefaults(vpc *ClusterVPC) {
+	if vpc.ClusterEndpoints == nil {
+		vpc.ClusterEndpoints = ClusterEndpointAccessDefaults()
+	}
+
+	if vpc.ClusterEndpoints.PublicAccess == nil {
+		vpc.ClusterEndpoints.PublicAccess = Enabled()
+	}
+
+	if vpc.ClusterEndpoints.PrivateAccess == nil {
+		vpc.ClusterEndpoints.PrivateAccess = Disabled()
 	}
 }
 

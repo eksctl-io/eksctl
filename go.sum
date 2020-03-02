@@ -263,8 +263,8 @@ github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5Kwzbycv
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/fluxcd/flux/pkg/install v0.0.0-20200206191601-8b676b003ab0 h1:HPX8m+SWDfRJaReoMUaJegrkbkPGAsQRXDq4y06FbUI=
 github.com/fluxcd/flux/pkg/install v0.0.0-20200206191601-8b676b003ab0/go.mod h1:F19jvpuZunZPI7JJcqHxu8eBbUzEbbyUpR84Z0G08oo=
-github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200126164214-63f9ace7bf06 h1:JQqGvjqdYf9W21K9tOaGaRx0FNT0oJzRlrGMVqYowC8=
-github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200126164214-63f9ace7bf06/go.mod h1:sVoV/NqClg8zFoK5a4nfts0aBq0fLrQO+LoNkfOxx1U=
+github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200213151218-f7e487142b46 h1:KXR87Z2/Heu64MRvBxzcpXFJenr50XY1qn6u7yChSOE=
+github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200213151218-f7e487142b46/go.mod h1:sVoV/NqClg8zFoK5a4nfts0aBq0fLrQO+LoNkfOxx1U=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/fortytw2/leaktest v1.2.0 h1:cj6GCiwJDH7l3tMHLjZDo0QqPtrXJiWSI9JgpeQKw+Q=
 github.com/fortytw2/leaktest v1.2.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
@@ -1001,6 +1001,8 @@ github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291 h1:7NDMx
 github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/weaveworks/github-release v0.6.2 h1:cAn2DAjEoUugV+JY6VG4slDL0FZvQ/gNKVsAv3nezW0=
 github.com/weaveworks/github-release v0.6.2/go.mod h1:NhXnzaCgBhORf9yYJD1ddsxIxL8u/z7wdp8LGvco7aM=
+github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8 h1:VCjct7aExCi795Eq3YvxBod0aqEjeY/rcpNxdQYwdnk=
+github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8/go.mod h1:NhXnzaCgBhORf9yYJD1ddsxIxL8u/z7wdp8LGvco7aM=
 github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d h1:p52gB6rdtaV69CnprmY7UmhDF2tbf9ps7KNnovBzFhI=
 github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/wellington/go-libsass v0.9.3-0.20181113175235-c63644206701 h1:9vG9vvVNVupO4Y7uwFkRgIMNe9rdaJMCINDe8vhAhLo=

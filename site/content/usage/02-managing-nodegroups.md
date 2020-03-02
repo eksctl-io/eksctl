@@ -62,6 +62,35 @@ The nodegroups `ng-1-workers` and `ng-2-builders` can be created with this comma
 eksctl create nodegroup --config-file=dev-cluster.yaml
 ```
 
+If you have already prepared for attaching existing classic load balancers or/and target groups to the nodegroups,
+you can specify these in the config file. The classic load balancers or/and target groups are automatically associated with the ASG when creating nodegroups.
+
+```yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: dev-cluster
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-1-web
+    labels: { role: web }
+    instanceType: m5.xlarge
+    desiredCapacity: 10
+    privateNetworking: true
+    classicLoadBalancerNames:
+      - dev-clb-1
+      - dev-clb-2
+  - name: ng-2-api
+    labels: { role: api }
+    instanceType: m5.2xlarge
+    desiredCapacity: 2
+    privateNetworking: true
+    targetGroupARNs:
+      - arn:aws:elasticloadbalancing:eu-north-1:01234567890:targetgroup/dev-target-group-1/abcdef0123456789
+```
+
 ### Listing nodegroups
 
 To list the details about a nodegroup or all of the nodegroups, use:

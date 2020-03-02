@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -95,10 +96,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	if !cfg.HasClusterEndpointAccess() {
-		return ErrClusterEndpointNoAccess
-	}
-
 	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
 		cidrs, err := validateCIDRs(cfg.VPC.PublicAccessCIDRs)
 		if err != nil {
@@ -111,6 +108,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
+	if !c.HasClusterEndpointAccess() {
+		return ErrClusterEndpointNoAccess
+	}
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
@@ -173,6 +173,14 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
+		}
+		if attachPolicyARNs := ng.IAM.AttachPolicyARNs; len(attachPolicyARNs) > 0 {
+			for _, policyARN := range attachPolicyARNs {
+				if _, err := arn.Parse(policyARN); err != nil {
+					return errors.Wrapf(err, "invalid ARN %q in %s.iam.attachPolicyARNs", policyARN, path)
+				}
+
+			}
 		}
 	}
 
@@ -353,10 +361,6 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 
 		if ng.IAM.InstanceProfileARN != "" {
 			return errNotSupported("instanceProfileARN")
-		}
-
-		if ng.IAM.InstanceRoleARN != "" {
-			return errNotSupported("instanceRoleARN")
 		}
 	}
 

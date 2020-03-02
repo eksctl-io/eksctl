@@ -39,7 +39,6 @@ func (ipnet *IPNet) DeepCopyInto(out *IPNet) {
 	} else {
 		*out = *ipnet
 	}
-	return
 }
 
 // DeepCopy copies the receiver, creating a new IPNet.

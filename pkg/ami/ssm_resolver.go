@@ -50,7 +50,7 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 		if supportsWindows, err := utils.IsMinVersion(api.Version1_14, version); err != nil {
 			return "", err
 		} else if !supportsWindows {
-			return "", fmt.Errorf("cannot find Windows AMI for Kubernetes version %s. Minimum version supported: 1.14", version)
+			return "", fmt.Errorf("cannot find Windows AMI for Kubernetes version %s. Minimum version supported: %s", version, api.Version1_14)
 		}
 	}
 
@@ -62,7 +62,7 @@ func MakeSSMParameterName(version, instanceType, imageFamily string) (string, er
 	case api.NodeImageFamilyWindowsServer2019FullContainer:
 		return fmt.Sprintf("/aws/service/ami-windows-latest/Windows_Server-2019-English-Full-EKS_Optimized-%s/image_id", version), nil
 	case api.NodeImageFamilyUbuntu1804:
-		return "", fmt.Errorf("SSM Parameter lookups for %s AMIs is not supported yet", imageFamily)
+		return "", &UnsupportedQueryError{msg: fmt.Sprintf("SSM Parameter lookups for %s AMIs is not supported yet", imageFamily)}
 	default:
 		return "", fmt.Errorf("unknown image family %s", imageFamily)
 	}

@@ -338,6 +338,10 @@ NodeGroup:
       items:
         type: string
       type: array
+    classicLoadBalancerNames:
+      items:
+        type: string
+      type: array
     clusterDNS:
       type: string
     desiredCapacity:
@@ -491,11 +495,6 @@ NodeGroupInstancesDistribution:
       type: integer
     spotInstancePools:
       type: integer
-  required:
-  - instanceTypes
-  - onDemandBaseCapacity
-  - onDemandPercentageAboveBaseCapacity
-  - spotInstancePools
   type: object
 NodeGroupSGs:
   additionalProperties: false

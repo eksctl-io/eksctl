@@ -6,6 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/addons"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -20,9 +21,6 @@ const (
 	CoreDNS = "coredns"
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
-
-	coreDNSImagePrefixPTN = "%s.dkr.ecr."
-	coreDNSImageSuffix    = ".amazonaws.com/eks/coredns"
 )
 
 // UpdateCoreDNS will update the `coredns` add-on
@@ -58,16 +56,15 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 		}
 		switch resource.GVK.Kind {
 		case "Deployment":
-			image := &resource.Info.Object.(*appsv1.Deployment).Spec.Template.Spec.Containers[0].Image
-			imageParts := strings.Split(*image, ":")
-
-			if len(imageParts) != 2 {
-				return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
+			if resource.Info.Name != "coredns" {
+				continue
 			}
-
-			coreDNSImagePrefix := fmt.Sprintf(coreDNSImagePrefixPTN, api.EKSResourceAccountID(region))
-			if strings.HasSuffix(imageParts[0], coreDNSImageSuffix) {
-				*image = coreDNSImagePrefix + region + coreDNSImageSuffix + ":" + imageParts[1]
+			deployment, ok := resource.Info.Object.(*appsv1.Deployment)
+			if !ok {
+				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
+			}
+			if err := addons.UseRegionalImage(&deployment.Spec.Template, region); err != nil {
+				return false, err
 			}
 		case "Service":
 			resource.Info.Object.(*corev1.Service).SetResourceVersion(kubeDNSSevice.GetResourceVersion())

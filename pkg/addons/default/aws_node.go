@@ -6,7 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/addons"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,8 +18,7 @@ const (
 	// AWSNode is the name of the aws-node addon
 	AWSNode = "aws-node"
 
-	awsNodeImagePrefixPTN = "%s.dkr.ecr."
-	awsNodeImageSuffix    = ".amazonaws.com/amazon-k8s-cni"
+	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
 )
 
 // UpdateAWSNode will update the `aws-node` add-on
@@ -45,15 +44,19 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 			return false, err
 		}
 		if resource.GVK.Kind == "DaemonSet" {
-			image := &resource.Info.Object.(*appsv1.DaemonSet).Spec.Template.Spec.Containers[0].Image
-			imageParts := strings.Split(*image, ":")
-
-			if len(imageParts) != 2 {
-				return false, fmt.Errorf("unexpected image format %q for %q", *image, AWSNode)
+			daemonSet, ok := resource.Info.Object.(*appsv1.DaemonSet)
+			if !ok {
+				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 			}
-			awsNodeImagePrefix := fmt.Sprintf(awsNodeImagePrefixPTN, api.EKSResourceAccountID(region))
-			if strings.HasSuffix(imageParts[0], awsNodeImageSuffix) {
-				*image = awsNodeImagePrefix + region + awsNodeImageSuffix + ":" + imageParts[1]
+			container := &daemonSet.Spec.Template.Spec.Containers[0]
+			imageParts := strings.Split(container.Image, ":")
+			if len(imageParts) != 2 {
+				return false, fmt.Errorf("invalid container image: %s", container.Image)
+			}
+
+			container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
+			if err := addons.UseRegionalImage(&daemonSet.Spec.Template, region); err != nil {
+				return false, err
 			}
 		}
 
