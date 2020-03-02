@@ -5,10 +5,10 @@ class Eksctl < Formula
   version "{{ .Version }}"
 
   if OS.mac?
-    url "{{ .Mac.Url }}"
+    url "{{ .Mac.URL }}"
     sha256 "{{ .Mac.Checksum }}"
   elsif OS.linux?
-    url "{{ .Linux.Url }}"
+    url "{{ .Linux.URL }}"
     sha256 "{{ .Linux.Checksum}}"
   end
 
