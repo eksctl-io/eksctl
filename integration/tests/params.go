@@ -21,12 +21,13 @@ type Params struct {
 	Region     string
 	Version    string
 	// Flags to help with the development of the integration tests
-	ClusterName    string
-	DoCreate       bool
-	DoDelete       bool
-	KubeconfigPath string
-	KubeconfigTemp bool
-	TestDirectory  string
+	clusterNamePrefix string
+	ClusterName       string
+	DoCreate          bool
+	DoDelete          bool
+	KubeconfigPath    string
+	KubeconfigTemp    bool
+	TestDirectory     string
 	// privateSSHKeyPath is the SSH key to use for Git operations.
 	PrivateSSHKeyPath       string
 	EksctlCmd               runner.Cmd
@@ -91,7 +92,18 @@ func (p *Params) GenerateCommands() {
 // adds the cluster to the list of clusters to eventually delete, once the test
 // suite has run.
 func (p *Params) NewClusterName(prefix string) string {
-	clusterName := fmt.Sprintf("it-%s-%s", prefix, names.ForCluster("", ""))
+	return p.formatClusterName(prefix, names.ForCluster("", ""))
+}
+
+// FormatClusterName creates a new cluster name using this Params struct's
+// cluster name prefix, the provided name, and adds the cluster to the list of
+// clusters to eventually delete, once the test suite has run.
+func (p *Params) FormatClusterName(name string) string {
+	return p.formatClusterName(p.clusterNamePrefix, name)
+}
+
+func (p *Params) formatClusterName(prefix string, name string) string {
+	clusterName := fmt.Sprintf("it-%s-%s", prefix, name)
 	p.addToDeleteList(clusterName)
 	return clusterName
 }
@@ -123,7 +135,7 @@ const (
 
 // NewParams creates a new Test instance from CLI args, grouping all test parameters.
 func NewParams(clusterNamePrefix string) *Params {
-	var params Params
+	params := Params{clusterNamePrefix: clusterNamePrefix}
 
 	flag.StringVar(&params.EksctlPath, "eksctl.path", "../../../eksctl", "Path to eksctl")
 	flag.StringVar(&params.Region, "eksctl.region", api.DefaultRegion, "Region to use for the tests")
