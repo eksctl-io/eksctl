@@ -27,7 +27,7 @@ var params *tests.Params
 func init() {
 	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
 	testing.Init()
-	params = tests.NewParams("capi-endpoints")
+	params = tests.NewParams("capi")
 }
 
 func TestSuite(t *testing.T) {
@@ -68,7 +68,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 		func(e endpointAccessCase) {
 			//create clusterconfig
 			cfg := api.NewClusterConfig()
-			clName := params.NewClusterName(e.Name)
+			clName := params.FormatClusterName(e.Name)
 			setEndpointConfig(cfg, e.Private, e.Public)
 			setMetadata(cfg, clName, params.Region)
 
