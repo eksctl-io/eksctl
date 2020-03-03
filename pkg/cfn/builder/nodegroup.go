@@ -336,6 +336,10 @@ func mixedInstancesPolicy(launchTemplateName *gfn.Value, ng *api.NodeGroup) *map
 		instancesDistribution["SpotInstancePools"] = fmt.Sprintf("%d", *ng.InstancesDistribution.SpotInstancePools)
 	}
 
+	if ng.InstancesDistribution.SpotAllocationStrategy != nil {
+		instancesDistribution["SpotAllocationStrategy"] = *ng.InstancesDistribution.SpotAllocationStrategy
+	}
+
 	policy["InstancesDistribution"] = instancesDistribution
 
 	return &policy
