@@ -75,7 +75,7 @@ func listModules() []string {
 
 func runGinkgo(ctx context.Context, wg *sync.WaitGroup, id int, dir string) {
 	defer wg.Done()
-	args := []string{"-tags", "integration", "-timeout", "150m", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
+	args := []string{"-tags", "integration", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
 	args = append(args, os.Args[1:]...)
 	name := "ginkgo"
 	prefix := fmt.Sprintf("[%d]", id)
