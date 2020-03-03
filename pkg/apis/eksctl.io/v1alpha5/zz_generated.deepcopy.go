@@ -860,6 +860,11 @@ func (in *NodeGroupInstancesDistribution) DeepCopyInto(out *NodeGroupInstancesDi
 		*out = new(int)
 		**out = **in
 	}
+	if in.SpotAllocationStrategy != nil {
+		in, out := &in.SpotAllocationStrategy, &out.SpotAllocationStrategy
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
