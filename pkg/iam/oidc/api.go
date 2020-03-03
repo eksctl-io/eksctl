@@ -72,8 +72,7 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partitio
 func (m *OpenIDConnectManager) CheckProviderExists() (bool, error) {
 	input := &awsiam.GetOpenIDConnectProviderInput{
 		OpenIDConnectProviderArn: aws.String(
-			fmt.Sprintf("arn:aws:iam::%s:oidc-provider/%s",
-				m.accountID, m.hostnameAndPath()),
+			fmt.Sprintf("arn:%s:iam::%s:oidc-provider/%s", m.partition, m.accountID, m.hostnameAndPath()),
 		),
 	}
 	_, err := m.iam.GetOpenIDConnectProvider(input)
