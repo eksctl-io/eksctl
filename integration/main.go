@@ -62,7 +62,7 @@ func listModules() []string {
 	testsDir := path.Join("integration", "tests")
 	files, err := ioutil.ReadDir(testsDir)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to gather test suites: %v", err)
 	}
 	dirs := []string{}
 	for _, f := range files {
