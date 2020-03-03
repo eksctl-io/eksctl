@@ -104,7 +104,7 @@ build-integration-test: $(all_generated_code)
 
 .PHONY: integration-test
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
-	cd integration; ../eksctl-integration-test $(INTEGRATION_TEST_ARGS)
+	./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
 integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
