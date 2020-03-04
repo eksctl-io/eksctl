@@ -37,13 +37,14 @@ func main() {
 	testSuites := listModules()
 	wg := &sync.WaitGroup{}
 	summaries := make(chan []string, 2*len(testSuites))
+	statuses := make(chan int, len(testSuites))
 	for i, dir := range testSuites {
 		wg.Add(1)
-		go runGinkgo(ctx, wg, summaries, i, dir)
+		go runGinkgo(ctx, wg, summaries, statuses, i, dir)
 	}
 	wg.Wait() // Block until all ginkgo processes completed.
-	close(summaries)
 	log.Println("================== Summary ================================")
+	close(summaries)
 	for summary := range summaries {
 		for _, line := range summary {
 			fmt.Println(line)
@@ -51,6 +52,16 @@ func main() {
 	}
 	// Obligatory "Cowboy Bebop" reference to end integration tests:
 	log.Println("================== See ya Space Cowboy! ===================")
+	exit(statuses)
+}
+
+func exit(statuses chan int) {
+	close(statuses)
+	globalStatus := OK
+	for status := range statuses {
+		globalStatus += status
+	}
+	os.Exit(globalStatus)
 }
 
 func handleInterruptSignals() (context.Context, chan os.Signal) {
@@ -82,7 +93,12 @@ func listModules() []string {
 	return dirs
 }
 
-func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string, id int, dir string) {
+const (
+	OK    = 0
+	Error = 1
+)
+
+func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string, statuses chan int, id int, dir string) {
 	defer wg.Done()
 	args := []string{"-tags", "integration", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
 	args = append(args, os.Args[1:]...)
@@ -107,6 +123,9 @@ func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string,
 	}
 	if err := cmd.Wait(); err != nil {
 		log.Printf("%s %v", prefix, err)
+		statuses <- Error
+	} else {
+		statuses <- OK
 	}
 	fmt.Println(prefix + "=================================== Done ===================================")
 }
