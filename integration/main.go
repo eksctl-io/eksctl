@@ -106,7 +106,7 @@ func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string,
 		log.Fatalf("%s %v", prefix, err)
 	}
 	if err := cmd.Wait(); err != nil {
-		log.Fatalf("%s %v", prefix, err)
+		log.Printf("%s %v", prefix, err)
 	}
 	fmt.Println(prefix + "=================================== Done ===================================")
 }
