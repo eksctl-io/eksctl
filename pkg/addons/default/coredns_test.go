@@ -132,6 +132,16 @@ var _ = Describe("default addons - coredns", func() {
 			checkCoreDNSImage(rawClient, "eu-west-1", "v1.2.2", true)
 		})
 
+		It("detects coredns version match local vs cluster", func() {
+			needsUpdate, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.12.x", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(needsUpdate).To(BeFalse())
+
+			needsUpdate, err = UpdateCoreDNS(rawClient, "eu-west-2", "1.13.x", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(needsUpdate).To(BeTrue())
+		})
+
 		It("can update to correct version", func() {
 			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.13.x", false)
 			Expect(err).ToNot(HaveOccurred())
