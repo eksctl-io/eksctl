@@ -73,6 +73,12 @@ const (
 	// RegionSAEast1 represents the South America Region Sao Paulo
 	RegionSAEast1 = "sa-east-1"
 
+	// RegionCNNorthwest1 represents the China region Ningxia
+	RegionCNNorthwest1 = "cn-northwest-1"
+
+	// RegionCNNorth1 represents the China region Beijing
+	RegionCNNorth1 = "cn-north-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -181,6 +187,12 @@ const (
 
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
+
+	// eksResourceAccountCNNorthWest1 defines the AWS EKS account ID that provides node resources in cn-northwest-1 region
+	eksResourceAccountCNNorthWest1 = "961992271922"
+
+	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
+	eksResourceAccountCNNorth1 = "918309763551"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -250,6 +262,8 @@ func SupportedRegions() []string {
 		RegionAPEast1,
 		RegionMESouth1,
 		RegionSAEast1,
+		RegionCNNorthwest1,
+		RegionCNNorth1,
 	}
 }
 
@@ -290,6 +304,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAPEast1
 	case RegionMESouth1:
 		return eksResourceAccountMESouth1
+	case RegionCNNorthwest1:
+		return eksResourceAccountCNNorthWest1
+	case RegionCNNorth1:
+		return eksResourceAccountCNNorth1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -593,6 +611,9 @@ type NodeGroup struct {
 
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
+
+	// +optional
+	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
 
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`

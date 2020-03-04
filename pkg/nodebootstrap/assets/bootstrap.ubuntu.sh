@@ -16,6 +16,7 @@ function get_max_pods() {
 NODE_IP="$(curl --silent http://169.254.169.254/latest/meta-data/local-ipv4)"
 INSTANCE_ID="$(curl --silent http://169.254.169.254/latest/meta-data/instance-id)"
 INSTANCE_TYPE="$(curl --silent http://169.254.169.254/latest/meta-data/instance-type)"
+AWS_SERVICES_DOMAIN="$(curl --silent http://169.254.169.254/latest/meta-data/services/domain)"
 
 source /etc/eksctl/kubelet.env # this can override MAX_PODS
 
@@ -46,7 +47,7 @@ systemctl reset-failed
     "max-pods=${MAX_PODS}"
     "node-labels=${NODE_LABELS},alpha.eksctl.io/instance-id=${INSTANCE_ID}"
     "allow-privileged=true"
-    "pod-infra-container-image=${AWS_EKS_ECR_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/eks/pause-amd64:3.1"
+    "pod-infra-container-image=${AWS_EKS_ECR_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.${AWS_SERVICES_DOMAIN}/eks/pause-amd64:3.1"
     "cloud-provider=aws"
     "cni-bin-dir=/opt/cni/bin"
     "cni-conf-dir=/etc/cni/net.d"

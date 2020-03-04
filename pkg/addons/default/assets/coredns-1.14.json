@@ -161,7 +161,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "940911992744.dkr.ecr.us-west-2.amazonaws.com/eks/coredns:v1.6.6",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.6.6",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,

@@ -285,7 +285,9 @@ func (v *VPCController) applyDeployment(manifests []byte) error {
 	if !ok {
 		return &typeAssertionError{&appsv1.Deployment{}, rawExtension.Object}
 	}
-	useRegionalImage(&deployment.Spec.Template, v.region)
+	if err := UseRegionalImage(&deployment.Spec.Template, v.region); err != nil {
+		return err
+	}
 	return v.applyRawResource(rawExtension.Object)
 }
 
@@ -347,13 +349,6 @@ func mustGenerateAsset(assetFunc assetFunc) []byte {
 		panic(&assetError{err})
 	}
 	return bytes
-}
-
-// TODO use this for other addons
-func useRegionalImage(spec *corev1.PodTemplateSpec, region string) {
-	imageFormat := spec.Spec.Containers[0].Image
-	regionalImage := fmt.Sprintf(imageFormat, api.EKSResourceAccountID(region), region)
-	spec.Spec.Containers[0].Image = regionalImage
 }
 
 func generateCertReq(service, namespace string) ([]byte, []byte, error) {

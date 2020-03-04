@@ -192,8 +192,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			*l.ClusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
-		if l.ClusterConfig.VPC.ClusterEndpoints == nil {
-			l.ClusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
+
+		if !l.ClusterConfig.HasClusterEndpointAccess() {
+			return api.ErrClusterEndpointNoAccess
 		}
 
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
@@ -421,15 +423,32 @@ func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils vpc-cluster-api-access
-func NewUtilsEnableEndpointAccessLoader(cmd *Cmd) ClusterConfigLoader {
+func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"private-access",
 		"public-access",
 	)
+	l.validateWithoutConfigFile = func() error {
+		if err := l.validateMetadataWithoutConfigFile(); err != nil {
+			return err
+		}
 
-	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
+		if flag := l.CobraCommand.Flag("private-access"); flag != nil && flag.Changed {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PrivateAccess = &privateAccess
+		} else {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PrivateAccess = nil
+		}
+
+		if flag := l.CobraCommand.Flag("public-access"); flag != nil && flag.Changed {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PublicAccess = &publicAccess
+		} else {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PublicAccess = nil
+		}
+
+		return nil
+	}
 
 	return l
 }
