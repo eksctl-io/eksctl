@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -33,13 +34,21 @@ func main() {
 	// See also:
 	// - https://github.com/onsi/ginkgo/issues/633
 	// - https://github.com/onsi/ginkgo/issues/526
+	testSuites := listModules()
 	wg := &sync.WaitGroup{}
-	for i, dir := range listModules() {
+	summaries := make(chan []string, 2*len(testSuites))
+	for i, dir := range testSuites {
 		wg.Add(1)
-		go runGinkgo(ctx, wg, i, dir)
+		go runGinkgo(ctx, wg, summaries, i, dir)
 	}
 	wg.Wait() // Block until all ginkgo processes completed.
-
+	close(summaries)
+	log.Println("================== Summary ================================")
+	for summary := range summaries {
+		for _, line := range summary {
+			fmt.Println(line)
+		}
+	}
 	// Obligatory "Cowboy Bebop" reference to end integration tests:
 	log.Println("================== See ya Space Cowboy! ===================")
 }
@@ -73,7 +82,7 @@ func listModules() []string {
 	return dirs
 }
 
-func runGinkgo(ctx context.Context, wg *sync.WaitGroup, id int, dir string) {
+func runGinkgo(ctx context.Context, wg *sync.WaitGroup, summaries chan []string, id int, dir string) {
 	defer wg.Done()
 	args := []string{"-tags", "integration", "-v", "--progress", fmt.Sprintf("%s/...", dir), "--"}
 	args = append(args, os.Args[1:]...)
@@ -90,9 +99,9 @@ func runGinkgo(ctx context.Context, wg *sync.WaitGroup, id int, dir string) {
 	// gathered by the current process, but in order to more easily group logs
 	// we use the following scanner which prefixes logs with the goroutine ID.
 	outPipe, err := cmd.StdoutPipe()
-	scan(outPipe, err, os.Stdout, prefix)
+	scan(outPipe, err, os.Stdout, prefix, summaries)
 	errPipe, err := cmd.StderrPipe()
-	scan(errPipe, err, os.Stderr, prefix)
+	scan(errPipe, err, os.Stderr, prefix, summaries)
 	if err := cmd.Start(); err != nil {
 		log.Fatalf("%s %v", prefix, err)
 	}
@@ -102,14 +111,30 @@ func runGinkgo(ctx context.Context, wg *sync.WaitGroup, id int, dir string) {
 	fmt.Println(prefix + "=================================== Done ===================================")
 }
 
-func scan(in io.ReadCloser, err error, out io.Writer, prefix string) {
+func scan(in io.ReadCloser, err error, out io.Writer, prefix string, summaries chan []string) {
 	if err != nil {
 		log.Fatalf("%s Failed to create stdout/stderr pipe: %v", prefix, err)
 	}
 	scanner := bufio.NewScanner(in)
+	summary := []string{}
+	captureSummary := false
+	var text string
 	go func() {
 		for scanner.Scan() {
-			fmt.Fprintln(out, prefix+scanner.Text())
+			text = scanner.Text()
+			if captureSummary || enableCaptureSummary(text) {
+				captureSummary = true
+				summary = append(summary, prefix+text)
+			}
+			fmt.Fprintln(out, prefix+text)
 		}
+		summaries <- summary
 	}()
+}
+
+var summaryRE = regexp.MustCompile(`Summarizing \d+ Failure:`)
+var ranRE = regexp.MustCompile(`Ran \d+ of \d+ Specs in [\d\.]+ seconds`)
+
+func enableCaptureSummary(out string) bool {
+	return summaryRE.MatchString(out) || ranRE.MatchString(out)
 }
