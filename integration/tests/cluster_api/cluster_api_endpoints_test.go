@@ -56,6 +56,8 @@ func setMetadata(cfg *api.ClusterConfig, name, region string) {
 
 var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs", func() {
 
+	clusterNames := map[string]string{}
+
 	type endpointAccessCase struct {
 		Name    string
 		Private bool
@@ -68,7 +70,12 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 		func(e endpointAccessCase) {
 			//create clusterconfig
 			cfg := api.NewClusterConfig()
-			clName := params.FormatClusterName(e.Name)
+			// get or generate unique cluster name:
+			clName, ok := clusterNames[e.Name]
+			if !ok {
+				clName = params.NewClusterName(e.Name)
+				clusterNames[e.Name] = clName
+			}
 			setEndpointConfig(cfg, e.Private, e.Public)
 			setMetadata(cfg, clName, params.Region)
 
