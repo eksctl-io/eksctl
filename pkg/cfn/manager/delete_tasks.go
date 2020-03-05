@@ -3,8 +3,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -76,7 +74,7 @@ func (c *StackCollection) NewTasksToDeleteNodeGroups(shouldDelete func(string) b
 		if !shouldDelete(name) {
 			continue
 		}
-		if *s.StackStatus == cloudformation.StackStatusDeleteFailed && cleanup != nil {
+		if cleanup != nil {
 			tasks.Append(&taskWithNameParam{
 				info: fmt.Sprintf("cleanup for nodegroup %q", name),
 				call: cleanup,
