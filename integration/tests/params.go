@@ -23,8 +23,8 @@ type Params struct {
 	// Flags to help with the development of the integration tests
 	clusterNamePrefix string
 	ClusterName       string
-	DoCreate          bool
-	DoDelete          bool
+	SkipCreate        bool
+	SkipDelete        bool
 	KubeconfigPath    string
 	KubeconfigTemp    bool
 	TestDirectory     string
@@ -107,7 +107,7 @@ func (p *Params) addToDeleteList(clusterName string) {
 }
 
 func (p Params) DeleteClusters() {
-	if !p.DoDelete {
+	if p.SkipDelete {
 		return
 	}
 	for _, clusterName := range p.clustersToDelete {
@@ -136,8 +136,8 @@ func NewParams(clusterNamePrefix string) *Params {
 	flag.StringVar(&params.TestDirectory, "eksctl.test.dir", defaultTestDirectory, "Test directory. Defaulted to: "+defaultTestDirectory)
 	// Flags to help with the development of the integration tests
 	flag.StringVar(&params.ClusterName, "eksctl.cluster", "", "Cluster name (default: generate one)")
-	flag.BoolVar(&params.DoCreate, "eksctl.create", true, "Skip the creation tests. Useful for debugging the tests")
-	flag.BoolVar(&params.DoDelete, "eksctl.delete", true, "Skip the cleanup after the tests have run")
+	flag.BoolVar(&params.SkipCreate, "eksctl.skip.create", false, "Skip the creation tests. Useful for debugging the tests")
+	flag.BoolVar(&params.SkipDelete, "eksctl.skip.delete", false, "Skip the cleanup after the tests have run")
 	flag.StringVar(&params.KubeconfigPath, "eksctl.kubeconfig", "", "Path to kubeconfig (default: create a temporary file)")
 	flag.StringVar(&params.PrivateSSHKeyPath, "eksctl.git.sshkeypath", defaultPrivateSSHKeyPath, fmt.Sprintf("Path to the SSH key to use for Git operations (default: %s)", defaultPrivateSSHKeyPath))
 

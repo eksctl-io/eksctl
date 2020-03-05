@@ -74,7 +74,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 	Describe("when creating a cluster with 1 node", func() {
 		It("should not return an error", func() {
-			if !params.DoCreate {
+			if params.SkipCreate {
 				fmt.Fprintf(GinkgoWriter, "will use existing cluster %s", params.ClusterName)
 				if !file.Exists(params.KubeconfigPath) {
 					// Generate the Kubernetes configuration that eksctl create
@@ -832,7 +832,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 		Context("and deleting the cluster", func() {
 			It("should not return an error", func() {
-				if !params.DoDelete {
+				if params.SkipDelete {
 					Skip("will not delete cluster " + params.ClusterName)
 				}
 
