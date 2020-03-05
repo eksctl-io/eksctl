@@ -103,6 +103,14 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 		cfg.VPC.PublicAccessCIDRs = cidrs
 	}
+
+	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN != nil {
+		keyARN := *cfg.SecretsEncryption.KeyARN
+		if _, err := arn.Parse(keyARN); err != nil {
+			return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", keyARN)
+		}
+	}
+
 	return nil
 }
 
