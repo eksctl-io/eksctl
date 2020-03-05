@@ -255,3 +255,13 @@ workflows:
                 - master
     jobs:
       - integration-tests
+  nightly-build:
+    triggers:
+      - schedule:
+          cron: "0 4 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build-all-distros
