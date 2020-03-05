@@ -418,6 +418,9 @@ type ClusterConfig struct {
 	// +optional
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
 
+	// +optional
+	SecretsEncryption *SecretsEncryption `json:"secretsEncryption,omitempty"`
+
 	Status *ClusterStatus `json:"status,omitempty"`
 }
 
@@ -849,4 +852,9 @@ type FargateProfileSelector struct {
 	// +optional
 	// Labels are the Kubernetes label selectors to use to select workload.
 	Labels map[string]string `json:"labels,omitempty"`
+}
+
+// SecretsEncryption defines the configuration for KMS encryption provider
+type SecretsEncryption struct {
+	KeyARN *string `json:"keyARN,omitempty"`
 }
