@@ -21,9 +21,10 @@ const (
 	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
 )
 
-// UpdateAWSNode will update the `aws-node` add-on
+// UpdateAWSNode will update the `aws-node` add-on and returns true
+// if an update is available.
 func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan bool) (bool, error) {
-	_, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
+	clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)
@@ -38,6 +39,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 		return false, err
 	}
 
+	tagMismatch := true
 	for _, rawObj := range list.Items {
 		resource, err := rawClient.NewRawResource(rawObj.Object)
 		if err != nil {
@@ -58,6 +60,13 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 			if err := addons.UseRegionalImage(&daemonSet.Spec.Template, region); err != nil {
 				return false, err
 			}
+			tagMismatch, err = addons.ImageTagsDiffer(
+				container.Image,
+				clusterDaemonSet.Spec.Template.Spec.Containers[0].Image,
+			)
+			if err != nil {
+				return false, err
+			}
 		}
 
 		if resource.GVK.Kind == "CustomResourceDefinition" && plan {
@@ -75,8 +84,12 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 	}
 
 	if plan {
-		logger.Critical("(plan) %q is not up-to-date", AWSNode)
-		return true, nil
+		if tagMismatch {
+			logger.Critical("(plan) %q is not up-to-date", AWSNode)
+			return true, nil
+		}
+		logger.Info("(plan) %q is already up-to-date", AWSNode)
+		return false, nil
 	}
 
 	logger.Info("%q is now up-to-date", AWSNode)
