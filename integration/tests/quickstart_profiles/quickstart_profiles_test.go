@@ -29,7 +29,7 @@ func TestSuite(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	if params.DoCreate {
+	if !params.SkipCreate {
 		cmd := params.EksctlCreateCmd.WithArgs(
 			"cluster",
 			"--name", params.ClusterName,

@@ -133,8 +133,8 @@ integration-test-dev: build-integration-test ## Run the integration tests withou
 	cd integration ; ../eksctl-integration-test -test.timeout 21m \
 		$(INTEGRATION_TEST_ARGS) \
 		-eksctl.cluster=$(TEST_CLUSTER) \
-		-eksctl.create=false \
-		-eksctl.delete=false \
+		-eksctl.skip.create=true \
+		-eksctl.skip.delete=true \
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
