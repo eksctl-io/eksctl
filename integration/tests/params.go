@@ -95,13 +95,6 @@ func (p *Params) NewClusterName(prefix string) string {
 	return p.formatClusterName(prefix, names.ForCluster("", ""))
 }
 
-// FormatClusterName creates a new cluster name using this Params struct's
-// cluster name prefix, the provided name, and adds the cluster to the list of
-// clusters to eventually delete, once the test suite has run.
-func (p *Params) FormatClusterName(name string) string {
-	return p.formatClusterName(p.clusterNamePrefix, name)
-}
-
 func (p *Params) formatClusterName(prefix string, name string) string {
 	clusterName := fmt.Sprintf("it-%s-%s", prefix, name)
 	p.addToDeleteList(clusterName)
