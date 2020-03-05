@@ -1,6 +1,6 @@
 // +build integration
 
-package integration_test
+package backwards_compat
 
 import (
 	"errors"
@@ -8,29 +8,50 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime"
+	"testing"
 	"time"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/integration/runner"
 	. "github.com/weaveworks/eksctl/integration/runner"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
+	"github.com/weaveworks/eksctl/integration/tests"
+	"github.com/weaveworks/eksctl/pkg/testutils"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
+
+var params *tests.Params
+
+func init() {
+	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
+	testing.Init()
+	params = tests.NewParams("bwardscomp")
+}
+
+func TestSuite(t *testing.T) {
+	testutils.RegisterAndRun(t)
+}
 
 const (
 	goBackVersions = 2
 )
 
-var _ = Describe("(Integration) [Backwards compatibility test]", func() {
+func isTestSuiteRunnable() bool {
+	return runtime.GOOS != "darwin" && runtime.GOOS != "window"
+}
 
+var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 	var (
-		clusterName   = names.ForCluster("", "")
 		initialNgName = "ng-1"
 		newNgName     = "ng-2"
 	)
 
 	It("should support clusters created with a previous version of eksctl", func() {
+		if !isTestSuiteRunnable() {
+			Skip("Backwards compatibility tests only run on Linux")
+		}
+
 		By("downloading a previous release")
 		eksctlDir, err := ioutil.TempDir(os.TempDir(), "eksctl")
 		Expect(err).ToNot(HaveOccurred())
@@ -51,69 +72,69 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 			WithArgs(
 				"create",
 				"cluster",
-				"--name", clusterName,
+				"--name", params.ClusterName,
 				"--nodegroup-name", initialNgName,
 				"-v4",
-				"--region", region,
+				"--region", params.Region,
 			).
 			WithTimeout(20 * time.Minute)
 
 		Expect(cmd).To(RunSuccessfully())
 
 		By("fetching the new cluster")
-		cmd = eksctlGetCmd.WithArgs(
+		cmd = params.EksctlGetCmd.WithArgs(
 			"cluster",
-			clusterName,
+			params.ClusterName,
 			"--output", "json",
 		)
 
-		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(clusterName)))
+		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
 
 		By("adding a nodegroup")
-		cmd = eksctlCreateCmd.WithArgs(
+		cmd = params.EksctlCreateCmd.WithArgs(
 			"nodegroup",
-			"--cluster", clusterName,
+			"--cluster", params.ClusterName,
 			"--nodes", "2",
 			newNgName,
 		)
 		Expect(cmd).To(RunSuccessfully())
 
 		By("scaling the initial nodegroup")
-		cmd = eksctlScaleNodeGroupCmd.WithArgs(
-			"--cluster", clusterName,
+		cmd = params.EksctlScaleNodeGroupCmd.WithArgs(
+			"--cluster", params.ClusterName,
 			"--nodes", "3",
 			"--name", initialNgName,
 		)
 		Expect(cmd).To(RunSuccessfully())
 
 		By("deleting the new nodegroup")
-		cmd = eksctlDeleteCmd.WithArgs(
+		cmd = params.EksctlDeleteCmd.WithArgs(
 			"nodegroup",
 			"--verbose", "4",
-			"--cluster", clusterName,
+			"--cluster", params.ClusterName,
 			newNgName,
 		)
 		Expect(cmd).To(RunSuccessfully())
 
 		By("deleting the initial nodegroup")
-		cmd = eksctlDeleteCmd.WithArgs(
+		cmd = params.EksctlDeleteCmd.WithArgs(
 			"nodegroup",
 			"--verbose", "4",
-			"--cluster", clusterName,
+			"--cluster", params.ClusterName,
 			initialNgName,
-		)
-		Expect(cmd).To(RunSuccessfully())
-
-		By("deleting the cluster")
-		cmd = eksctlDeleteClusterCmd.WithArgs(
-			"--name", clusterName,
 		)
 		Expect(cmd).To(RunSuccessfully())
 	})
 })
 
+var _ = AfterSuite(func() {
+	if isTestSuiteRunnable() {
+		params.DeleteClusters()
+	}
+})
+
 func downloadRelease(dir string) {
-	cmd := runner.NewCmd("./scripts/download-previous-release.sh").
+	cmd := runner.NewCmd("../../scripts/download-previous-release.sh").
 		WithEnv(
 			fmt.Sprintf("GO_BACK_VERSIONS=%d", goBackVersions),
 			fmt.Sprintf("DOWNLOAD_DIR=%s", dir),
