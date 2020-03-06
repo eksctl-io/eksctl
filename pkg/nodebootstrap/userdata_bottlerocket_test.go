@@ -71,7 +71,7 @@ var _ = Describe("Bottlerocket", func() {
 	Describe("with user settings", func() {
 		BeforeEach(func() {
 			ng.Bottlerocket = &api.NodeGroupBottlerocket{
-				Settings: map[string]interface{}{
+				Settings: &api.InlineDocument{
 					"host-containers": map[string]interface{}{
 						"example": map[string]bool{
 							"enabled": true,
@@ -93,8 +93,7 @@ var _ = Describe("Bottlerocket", func() {
 		})
 
 		It("enables admin container", func() {
-			var trueBool bool = true
-			ng.Bottlerocket.EnableAdminContainer = &trueBool
+			ng.Bottlerocket.EnableAdminContainer = api.Enabled()
 			userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(userdata).ToNot(Equal(""))
@@ -109,11 +108,11 @@ var _ = Describe("Bottlerocket", func() {
 
 		It("retains user specified values", func() {
 			// Enable in Bottlerocket's top level config.
-			var trueBool bool = true
-			ng.Bottlerocket.EnableAdminContainer = &trueBool
+			ng.Bottlerocket.EnableAdminContainer = api.Enabled()
 			// But set conflicting type and value to
 			// otherwise managed key.
-			ng.Bottlerocket.Settings["host-containers"].(map[string]interface{})["admin"] = map[string]string{"enabled": "user-val"}
+			providedSettings := map[string]interface{}(*ng.Bottlerocket.Settings)
+			providedSettings["host-containers"].(map[string]interface{})["admin"] = map[string]string{"enabled": "user-val"}
 			userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(userdata).ToNot(Equal(""))
@@ -130,7 +129,8 @@ var _ = Describe("Bottlerocket", func() {
 
 		It("produces TOML userdata with quoted keys", func() {
 			keyName := "dotted.key.name"
-			ng.Bottlerocket.Settings[keyName] = "value"
+			providedSettings := map[string]interface{}(*ng.Bottlerocket.Settings)
+			providedSettings[keyName] = "value"
 			keyPath := []string{"settings", keyName}
 			splitKeyPath := append([]string{"settings"}, strings.Split(keyName, ".")...)
 
