@@ -7,7 +7,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/utils"
 
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -103,22 +102,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 			return err
 		}
 		cfg.VPC.PublicAccessCIDRs = cidrs
-	}
-
-	if cfg.SecretsEncryption != nil {
-		minReqVersion := Version1_13
-		supportsKMS, err := utils.IsMinVersion(minReqVersion, cfg.Metadata.Version)
-		if err != nil {
-			return errors.Wrap(err, "error validating KMS support")
-		}
-		if !supportsKMS {
-			return fmt.Errorf("secrets encryption with KMS is only supported for EKS version %s and above", minReqVersion)
-		}
-
-		keyARN := *cfg.SecretsEncryption.KeyARN
-		if _, err := arn.Parse(keyARN); err != nil {
-			return errors.Wrapf(err, "invalid ARN in secretsEncryption.keyARN: %q", keyARN)
-		}
 	}
 
 	return nil
