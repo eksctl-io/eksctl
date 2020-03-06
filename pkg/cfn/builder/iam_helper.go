@@ -114,11 +114,14 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 				"ec2:DeleteSnapshot",
 				"ec2:DeleteTags",
 				"ec2:DeleteVolume",
+				"ec2:DescribeAvailabilityZones",
 				"ec2:DescribeInstances",
 				"ec2:DescribeSnapshots",
 				"ec2:DescribeTags",
 				"ec2:DescribeVolumes",
+				"ec2:DescribeVolumesModifications",
 				"ec2:DetachVolume",
+				"ec2:ModifyVolume",
 			},
 		)
 	}
