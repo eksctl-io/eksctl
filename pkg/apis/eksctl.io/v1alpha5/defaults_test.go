@@ -102,6 +102,85 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Context("Bottlerocket Settings", func() {
+		It("enables SSH with NodeGroup", func() {
+			testNodeGroup := NodeGroup{
+				AMIFamily: NodeImageFamilyBottlerocket,
+				SSH: &NodeGroupSSH{
+					Allow: Enabled(),
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+
+			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeTrue())
+		})
+
+		It("has default NodeGroup configuration", func() {
+			testNodeGroup := NodeGroup{
+				AMIFamily: NodeImageFamilyBottlerocket,
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+
+			Expect(testNodeGroup.Bottlerocket).ToNot(BeNil())
+			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeFalse())
+			Expect(testNodeGroup.Bottlerocket.Settings).ToNot(BeNil())
+			settings := map[string]interface{}(*testNodeGroup.Bottlerocket.Settings)
+			Expect(settings).To(HaveKey("kubernetes"))
+			kube := settings["kubernetes"].(map[string]interface{})
+			Expect(kube).To(HaveKey("node-labels"))
+			Expect(kube).ToNot(HaveKey("node-taints"))
+			Expect(kube).ToNot(HaveKey("max-pods"))
+			Expect(kube).ToNot(HaveKey("cluster-dns-ip"))
+		})
+
+		It("reflects NodeGroup configuration", func() {
+			testNodeGroup := NodeGroup{
+				AMIFamily: NodeImageFamilyBottlerocket,
+				SSH: &NodeGroupSSH{
+					Allow: Enabled(),
+				},
+				Labels: map[string]string{
+					"label": "label-value",
+				},
+				Taints: map[string]string{
+					"taint": "taint-value",
+				},
+				ClusterDNS: "192.0.2.53",
+				MaxPodsPerNode: 32,
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+
+			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeTrue())
+
+			Expect(testNodeGroup.Bottlerocket.Settings).ToNot(BeNil())
+			settings := map[string]interface{}(*testNodeGroup.Bottlerocket.Settings)
+
+			Expect(settings).To(HaveKey("kubernetes"))
+			kube := settings["kubernetes"].(map[string]interface{})
+
+			Expect(kube).To(HaveKeyWithValue("cluster-dns-ip", BeEquivalentTo(testNodeGroup.ClusterDNS)))
+			Expect(kube).To(HaveKeyWithValue("max-pods", BeEquivalentTo(testNodeGroup.MaxPodsPerNode)))
+			Expect(kube).To(HaveKey("node-labels"))
+			Expect(kube).To(HaveKey("node-taints"))
+
+
+			labels, ok := kube["node-labels"].(map[string]interface{})
+			Expect(ok).To(BeTrue(), "unexpected type for labels")
+			for key, value := range testNodeGroup.Labels {
+				Expect(labels).To(HaveKeyWithValue(key, value))
+			}
+
+			taints, ok := kube["node-taints"].(map[string]interface{})
+			Expect(ok).To(BeTrue(), "unexpected type for taints")
+			for key, value := range testNodeGroup.Taints {
+				Expect(taints).To(HaveKeyWithValue(key, value))
+			}
+		})
+	})
+
 	Context("Cluster NAT settings", func() {
 
 		It("Cluster NAT defaults to single NAT gateway mode", func() {

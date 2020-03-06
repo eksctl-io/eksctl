@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // SetClusterConfigDefaults will set defaults for a given cluster
@@ -75,6 +76,11 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+
+	switch ng.AMIFamily {
+	case NodeImageFamilyBottlerocket:
+		setBottlerocketNodeGroupDefaults(ng)
+	}
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -167,6 +173,102 @@ func setSSHDefaults(sshConfig *NodeGroupSSH) {
 func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName string) {
 	labels[ClusterNameLabel] = clusterName
 	labels[NodeGroupNameLabel] = nodeGroupName
+}
+
+func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {
+	// Default to using SSM if not specified.
+	if ng.AMI == "" {
+		ng.AMI = NodeImageResolverAutoSSM
+	}
+
+	var br *NodeGroupBottlerocket
+	if ng.Bottlerocket != nil {
+		br = ng.Bottlerocket
+	} else {
+		br = &NodeGroupBottlerocket{}
+	}
+
+	var settings map[string]interface{}
+	if br.Settings != nil {
+		settings = map[string]interface{}(*br.Settings)
+	} else {
+		settings = make(map[string]interface{})
+	}
+
+	// Managed settings are Bottlerocket settings that are managed and
+	// configured in the NodeGroup's settings. These map directly to the final
+	// Bottlerocket settings names.
+	//
+	// TOML: `settings` (the outermost key space)
+	type managedSettings struct {
+		// TOML: `settings.kubernetes`
+		Kubernetes struct {
+			// TOML: `settings.kubernetes.max-pods`
+			MaxPods *int `json:"max-pods,omitempty"`
+			// TOML: `settings.kubernetes.node-labels`
+			NodeLabels map[string]string `json:"node-labels,omitempty"`
+			// TOML: `settings.kubernetes.node-taints`
+			NodeTaints map[string]string `json:"node-taints,omitempty"`
+			// TOML: `settings.kubernetes.cluster-dns-ip`
+			ClusterDNSIP *string `json:"cluster-dns-ip,omitempty"`
+		} `json:"kubernetes,omitempty"`
+	}
+
+	// derived is the merged set of user Bottlerocket `settings` and the
+	// NodeGroup's configuration.
+	var derived managedSettings
+
+	// Use apimachinery's converter to map between nested maps and the
+	// intermediate managedSettings type to avoid deeply checking and type
+	// casting nested map access.
+	convert := runtime.DefaultUnstructuredConverter
+
+	// Errors won't arise from using Settings that were marshaled-in from
+	// configuration - the field is effectively populated with supported
+	// primitives values at the leaves of the data.
+	_ = convert.FromUnstructured(settings, &derived)
+
+	// Insert NodeGroup label settings
+	if derived.Kubernetes.NodeLabels == nil {
+		derived.Kubernetes.NodeLabels = make(map[string]string)
+	}
+	for label, val := range ng.Labels {
+		derived.Kubernetes.NodeLabels[label] = val
+	}
+
+	// Insert NodeGroup taint settings
+	if derived.Kubernetes.NodeTaints == nil {
+		derived.Kubernetes.NodeTaints = make(map[string]string)
+	}
+	for taint, val := range ng.Taints {
+		derived.Kubernetes.NodeTaints[taint] = val
+	}
+
+	// Pass through NodeGroup values if configured:
+
+	if derived.Kubernetes.MaxPods == nil && ng.MaxPodsPerNode != 0 {
+		derived.Kubernetes.MaxPods = &ng.MaxPodsPerNode
+	}
+
+	if derived.Kubernetes.ClusterDNSIP == nil && ng.ClusterDNS != "" {
+		derived.Kubernetes.ClusterDNSIP = &ng.ClusterDNS
+	}
+
+	// Use the SSH settings if the user hasn't explicitly configured the Admin
+	// Container. If SSH was enabled, the user will be able to ssh into the
+	// Bottlerocket node via the admin container.
+	if br.EnableAdminContainer == nil && ng.SSH != nil {
+		br.EnableAdminContainer = ng.SSH.Allow
+	}
+
+	// Set as finalized Bottlerocket NodeGroup defaults. Error is unhandled as
+	// the manipulated types are primitives set within known unmarshaled maps.
+	extended, _ := convert.ToUnstructured(&derived)
+	doc := InlineDocument(extended)
+	br.Settings = &doc
+
+	// Update defaults set for Bottlerocket in NodeGroup settings.
+	ng.Bottlerocket = br
 }
 
 // DefaultClusterNAT will set the default value for Cluster NAT mode
