@@ -1,0 +1,16 @@
+# An example of ClusterConfig with KMS secrets encryption
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-19
+  region: us-west-2
+
+managedNodeGroups:
+- name: ng-1
+  desiredCapacity: 2
+
+secretsEncryption:
+  # ARN of the KMS key
+  keyARN: "arn:aws:kms:us-west-2:000000000000:key/00000000-0000-0000-0000-000000000000"
