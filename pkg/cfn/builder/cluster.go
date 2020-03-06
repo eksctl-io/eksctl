@@ -2,6 +2,7 @@ package builder
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
@@ -114,6 +115,35 @@ func (c *ClusterResourceSet) newResource(name string, resource interface{}) *gfn
 	return c.rs.newResource(name, resource)
 }
 
+// TODO use goformation after support is out
+type awsEKSClusterKMS struct {
+	*awsEKSCluster   `json:",inline"`
+	EncryptionConfig []*encryptionConfig `json:"EncryptionConfig,omitempty"`
+}
+
+func (e *awsEKSClusterKMS) MarshalJSON() ([]byte, error) {
+	type Properties awsEKSClusterKMS
+	val, err := json.Marshal(&struct {
+		Type       string
+		Properties Properties
+	}{
+		Type:       "AWS::EKS::Cluster",
+		Properties: Properties(*e),
+	})
+	return val, err
+}
+
+type encryptionProvider struct {
+	KeyArn string `json:"KeyArn"`
+}
+
+type encryptionConfig struct {
+	Provider  *encryptionProvider `json:"Provider"`
+	Resources []string            `json:"Resources"`
+}
+
+type awsEKSCluster gfn.AWSEKSCluster
+
 func (c *ClusterResourceSet) addResourcesForControlPlane() {
 	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
 		SecurityGroupIds: c.securityGroups,
@@ -127,11 +157,26 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 		serviceRoleARN = gfn.NewString(*c.spec.IAM.ServiceRoleARN)
 	}
 
-	c.newResource("ControlPlane", &gfn.AWSEKSCluster{
-		Name:               gfn.NewString(c.spec.Metadata.Name),
-		RoleArn:            serviceRoleARN,
-		Version:            gfn.NewString(c.spec.Metadata.Version),
-		ResourcesVpcConfig: clusterVPC,
+	var encryptionConfigs []*encryptionConfig
+	if c.spec.SecretsEncryption != nil && c.spec.SecretsEncryption.KeyARN != nil {
+		encryptionConfigs = []*encryptionConfig{
+			{
+				Resources: []string{"secrets"},
+				Provider: &encryptionProvider{
+					KeyArn: *c.spec.SecretsEncryption.KeyARN,
+				},
+			},
+		}
+	}
+
+	c.newResource("ControlPlane", &awsEKSClusterKMS{
+		awsEKSCluster: &awsEKSCluster{
+			Name:               gfn.NewString(c.spec.Metadata.Name),
+			RoleArn:            serviceRoleARN,
+			Version:            gfn.NewString(c.spec.Metadata.Version),
+			ResourcesVpcConfig: clusterVPC,
+		},
+		EncryptionConfig: encryptionConfigs,
 	})
 
 	if c.spec.Status == nil {
