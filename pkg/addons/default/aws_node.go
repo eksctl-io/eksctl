@@ -46,7 +46,7 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 		if resource.GVK.Kind == "DaemonSet" {
 			daemonSet, ok := resource.Info.Object.(*appsv1.DaemonSet)
 			if !ok {
-				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, daemonSet)
+				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 			}
 			container := &daemonSet.Spec.Template.Spec.Containers[0]
 			imageParts := strings.Split(container.Image, ":")
