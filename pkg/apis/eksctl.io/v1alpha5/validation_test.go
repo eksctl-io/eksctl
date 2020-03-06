@@ -1,7 +1,6 @@
 package v1alpha5
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -308,26 +307,6 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			err = ValidateClusterConfig(cfg)
 			Expect(err).To(HaveOccurred())
-		})
-	})
-
-	Describe("KMS encryption SecretsEncryption.KeyARN", func() {
-		It("should return an error for invalid keys", func() {
-			clusterConfig := NewClusterConfig()
-			clusterConfig.SecretsEncryption = &SecretsEncryption{
-				KeyARN: aws.String("invalid:key"),
-			}
-			err := ValidateClusterConfig(clusterConfig)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("invalid ARN"))
-		})
-
-		It("should work for valid keys", func() {
-			clusterConfig := NewClusterConfig()
-			clusterConfig.SecretsEncryption = &SecretsEncryption{
-				KeyARN: aws.String("arn:aws:kms:us-west-2:000000000000:key/12345-12345"),
-			}
-			Expect(ValidateClusterConfig(clusterConfig)).To(Succeed())
 		})
 	})
 
