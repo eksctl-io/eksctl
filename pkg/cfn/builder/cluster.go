@@ -138,7 +138,8 @@ type encryptionProvider struct {
 }
 
 type encryptionConfig struct {
-	Provider *encryptionProvider `json:"Provider"`
+	Provider  *encryptionProvider `json:"Provider"`
+	Resources []string            `json:"Resources"`
 }
 
 type awsEKSCluster gfn.AWSEKSCluster
@@ -160,6 +161,7 @@ func (c *ClusterResourceSet) addResourcesForControlPlane() {
 	if c.spec.SecretsEncryption != nil && c.spec.SecretsEncryption.KeyARN != nil {
 		encryptionConfigs = []*encryptionConfig{
 			{
+				Resources: []string{"secrets"},
 				Provider: &encryptionProvider{
 					KeyArn: *c.spec.SecretsEncryption.KeyARN,
 				},
