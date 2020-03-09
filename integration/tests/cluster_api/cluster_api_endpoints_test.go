@@ -1,25 +1,38 @@
 // +build integration
 
-package integration_test
+package cluster_api
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"testing"
 	"time"
+
+	. "github.com/weaveworks/eksctl/integration/matchers"
+	. "github.com/weaveworks/eksctl/integration/runner"
+	"github.com/weaveworks/eksctl/integration/tests"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/testutils"
 
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/utils/names"
-
-	. "github.com/weaveworks/eksctl/integration/matchers"
-	. "github.com/weaveworks/eksctl/integration/runner"
-
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
+
+var params *tests.Params
+
+func init() {
+	// Call testing.Init() prior to tests.NewParams(), as otherwise -test.* will not be recognised. See also: https://golang.org/doc/go1.13#testing
+	testing.Init()
+	params = tests.NewParams("capi")
+}
+
+func TestSuite(t *testing.T) {
+	testutils.RegisterAndRun(t)
+}
 
 const (
 	createCluster    = `Create`
@@ -27,18 +40,13 @@ const (
 	deleteCluster    = `Delete`
 	endpointPubTmpl  = `EndpointPublicAccess: %v`
 	endpointPrivTmpl = `EndpointPrivateAccess: %v`
+	pollInterval     = 15   //seconds
+	timeOutSeconds   = 1200 // 20 minutes
 )
 
 func setEndpointConfig(cfg *api.ClusterConfig, privateAccess, publicAccess bool) {
 	cfg.VPC.ClusterEndpoints.PrivateAccess = &privateAccess
 	cfg.VPC.ClusterEndpoints.PublicAccess = &publicAccess
-}
-
-func generateName(prefix string) string {
-	if clusterName == "" {
-		clusterName = names.ForCluster("", "")
-	}
-	return fmt.Sprintf("%v-%v", prefix, clusterName)
 }
 
 func setMetadata(cfg *api.ClusterConfig, name, region string) {
@@ -47,6 +55,8 @@ func setMetadata(cfg *api.ClusterConfig, name, region string) {
 }
 
 var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs", func() {
+
+	clusterNames := map[string]string{}
 
 	type endpointAccessCase struct {
 		Name    string
@@ -60,9 +70,14 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 		func(e endpointAccessCase) {
 			//create clusterconfig
 			cfg := api.NewClusterConfig()
-			clName := generateName(e.Name)
+			// get or generate unique cluster name:
+			clName, ok := clusterNames[e.Name]
+			if !ok {
+				clName = params.NewClusterName(e.Name)
+				clusterNames[e.Name] = clName
+			}
 			setEndpointConfig(cfg, e.Private, e.Public)
-			setMetadata(cfg, clName, region)
+			setMetadata(cfg, clName, params.Region)
 
 			// create and populate config file from clusterconfig
 			bytes, err := json.Marshal(cfg)
@@ -80,22 +95,22 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 
 			// create cluster with config file
 			if e.Type == createCluster {
-				cmd := eksctlCreateCmd.WithArgs(
+				cmd := params.EksctlCreateCmd.WithArgs(
 					"cluster",
 					"--verbose", "2",
 					"--config-file", tmpfile.Name(),
 					"--without-nodegroup",
-				).WithoutArg("--region", region)
+				).WithoutArg("--region", params.Region)
 				if e.Fails {
 					Expect(cmd).ShouldNot(RunSuccessfully())
 					return
 				}
 				Expect(cmd).Should(RunSuccessfully())
-				awsSession := NewSession(region)
+				awsSession := NewSession(params.Region)
 				Eventually(awsSession, timeOutSeconds, pollInterval).Should(
-					HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
+					HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
 			} else if e.Type == updateCluster {
-				utilsCmd := eksctlUtilsCmd.
+				utilsCmd := params.EksctlUtilsCmd.
 					WithTimeout(timeOutSeconds*time.Second).
 					WithArgs(
 						"update-cluster-endpoints",
@@ -109,7 +124,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 				}
 				Expect(utilsCmd).Should(RunSuccessfully())
 			}
-			getCmd := eksctlGetCmd.WithArgs(
+			getCmd := params.EksctlGetCmd.WithArgs(
 				"cluster",
 				"--name", clName,
 				"-o", "yaml",
@@ -121,7 +136,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			if e.Type == deleteCluster {
 				// nned to update public access to allow access to delete when it isn't allowed
 				if e.Public == false {
-					utilsCmd := eksctlUtilsCmd.
+					utilsCmd := params.EksctlUtilsCmd.
 						WithTimeout(timeOutSeconds*time.Second).WithArgs(
 						"update-cluster-endpoints",
 						"--name", clName,
@@ -130,14 +145,14 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 					)
 					Expect(utilsCmd).Should(RunSuccessfully())
 				}
-				deleteCmd := eksctlDeleteCmd.WithArgs(
+				deleteCmd := params.EksctlDeleteCmd.WithArgs(
 					"cluster",
 					"--name", clName,
 				)
 				Expect(deleteCmd).Should(RunSuccessfully())
-				awsSession := NewSession(region)
+				awsSession := NewSession(params.Region)
 				Eventually(awsSession, timeOutSeconds, pollInterval).
-					ShouldNot(HaveExistingCluster(clName, awseks.ClusterStatusActive, version))
+					ShouldNot(HaveExistingCluster(clName, awseks.ClusterStatusActive, params.Version))
 			}
 		},
 		Entry("Create cluster1, Private=false, Public=true, should succeed", endpointAccessCase{
@@ -211,4 +226,8 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			Fails:   false,
 		}),
 	)
+})
+
+var _ = AfterSuite(func() {
+	params.DeleteClusters()
 })

@@ -8,5 +8,5 @@ make build \
     && cp ./eksctl /out/usr/local/bin/eksctl
 make build-integration-test \
     && mkdir -p /out/usr/local/share/eksctl \
-    && cp -r integration/*.yaml integration/scripts /out/usr/local/share/eksctl \
+    && cp -r integration/data/*.yaml integration/scripts /out/usr/local/share/eksctl \
     && cp ./eksctl-integration-test /out/usr/local/bin/eksctl-integration-test
