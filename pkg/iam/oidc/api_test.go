@@ -300,7 +300,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(actual).To(MatchJSON(expected))
 		},
 			Entry("Default AWS partition", "aws", "sts.amazonaws.com"),
-			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com.cn"),
+			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com"),
 		)
 	})
 })
