@@ -103,6 +103,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 		cfg.VPC.PublicAccessCIDRs = cidrs
 	}
+
 	return nil
 }
 
