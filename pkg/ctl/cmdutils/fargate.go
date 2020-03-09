@@ -13,6 +13,7 @@ const (
 	fargateProfileName              = "name"      // Fargate profile name.
 	fargateProfileSelectorNamespace = "namespace" // Fargate profile selector's namespace.
 	fargateProfileSelectorLabels    = "labels"    // Fargate profile selector's labels.
+	fargateProfileTags              = "tags"      // Fargate profile tags.
 )
 
 // AddFlagsForFargate configures the flags required to interact with Fargate.
@@ -30,6 +31,9 @@ func AddFlagsForFargateProfileCreation(fs *pflag.FlagSet, options *fargate.Creat
 
 	fs.StringToStringVarP(&options.ProfileSelectorLabels, fargateProfileSelectorLabels, "l", nil,
 		"Kubernetes selector labels of the workloads to schedule on Fargate, e.g. k1=v1,k2=v2")
+
+	fs.StringToStringVarP(&options.Tags, fargateProfileTags, "t", map[string]string{},
+		`A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
 }
 
 func addFargateProfileName(fs *pflag.FlagSet, profileName *string) {

@@ -211,6 +211,9 @@ func testFargateProfile() *api.FargateProfile {
 				},
 			},
 		},
+		Tags: map[string]string{
+			"env": "test",
+		},
 	}
 }
 
@@ -226,6 +229,9 @@ func testCreateFargateProfileInput() *eks.CreateFargateProfileInput {
 					"env": strings.Pointer("test"),
 				},
 			},
+		},
+		Tags: map[string]*string{
+			"env": strings.Pointer("test"),
 		},
 	}
 }
@@ -294,6 +300,7 @@ func apiFargateProfile(name string) *api.FargateProfile {
 			},
 		},
 		Subnets: []string{},
+		Tags:    map[string]string{},
 	}
 }
 

@@ -883,6 +883,9 @@ type FargateProfile struct {
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
 	Subnets []string `json:"subnets,omitempty"`
+
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
