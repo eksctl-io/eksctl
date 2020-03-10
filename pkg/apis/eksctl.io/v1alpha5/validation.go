@@ -198,9 +198,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if IsWindowsImage(ng.AMIFamily) {
+	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		return fmt.Errorf("cannot specify Bottlerocket config for %s (path=%s.%s)", ng.AMIFamily, path, "bottlerocket")
+	}
+
+	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
-			return fmt.Errorf("%s is not supported for Windows node groups (path=%s.%s)", field, path, field)
+			return fmt.Errorf("%s is not supported for %s nodegroups (path=%s.%s)", field, ng.AMIFamily, path, field)
 		}
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
@@ -218,13 +222,6 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 	if err := validateInstancesDistribution(ng); err != nil {
 		return err
-	}
-
-	if ng.AMIFamily == NodeImageFamilyBottlerocket {
-		err := validateNodeGroupBottlerocket(ng, path)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -532,22 +529,6 @@ func (fp FargateProfile) Validate() error {
 func (fps FargateProfileSelector) Validate() error {
 	if fps.Namespace == "" {
 		return errors.New("empty namespace")
-	}
-	return nil
-}
-
-func validateNodeGroupBottlerocket(ng *NodeGroup, path string) error {
-	fieldNotSupported := func(field string) error {
-		return fmt.Errorf("%s is not supported for Bottlerocket node groups (path=%s.%s)", field, path, field)
-	}
-	if ng.KubeletExtraConfig != nil {
-		return fieldNotSupported("kubeletExtraConfig")
-	}
-	if ng.PreBootstrapCommands != nil {
-		return fieldNotSupported("preBootstrapCommands")
-	}
-	if ng.OverrideBootstrapCommand != nil {
-		return fieldNotSupported("overrideBootstrapCommand")
 	}
 	return nil
 }
