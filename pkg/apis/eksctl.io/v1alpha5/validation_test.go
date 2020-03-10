@@ -644,16 +644,27 @@ var _ = Describe("ClusterConfig validation", func() {
 				"cgroupDriver": "systemd",
 			}
 
-			ngs := []*NodeGroup{
-				{PreBootstrapCommands: []string{"/usr/bin/env true"}},
-				{OverrideBootstrapCommand: &cmd},
-				{KubeletExtraConfig: &doc},
+			ngs := map[string]*NodeGroup{
+				"PreBootstrapCommands": {PreBootstrapCommands: []string{"/usr/bin/env true"}},
+				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
+				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
+				"overlapping Bottlerocket settings": {
+					Bottlerocket: &NodeGroupBottlerocket{
+						Settings: &InlineDocument{
+							"kubernetes": map[string]interface{}{
+								"node-labels": map[string]string{
+									"mylabel.example.com": "value",
+								},
+							},
+						},
+					},
+				},
 			}
 
-			for i, ng := range ngs {
+			for name, ng := range ngs {
 				ng.AMIFamily = NodeImageFamilyBottlerocket
-				err := ValidateNodeGroup(i, ng)
-				Expect(err).To(HaveOccurred())
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
 			}
 		})
 

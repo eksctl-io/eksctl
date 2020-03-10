@@ -146,6 +146,121 @@ var _ = Describe("Bottlerocket", func() {
 			Expect(tree.HasPath(splitKeyPath)).To(BeFalse())
 			Expect(tree.HasPath(keyPath)).To(BeTrue())
 		})
+
+		Describe("with NodeGroup settings", func() {
+			BeforeEach(func() {
+				ng.Labels = map[string]string{}
+				ng.Taints = map[string]string{}
+
+				api.SetNodeGroupDefaults(ng, clusterConfig.Metadata)
+			})
+
+			It("removes overlapping config", func() {
+				checkKey := "expected-missing.example.com"
+				checkKeyVal := "should-be-none"
+
+				doc := api.InlineDocument(map[string]interface{}{
+					"kubernetes": map[string]interface{}{
+						// Neither of these should be present in the generated
+						// TOML.
+						"node-labels": map[string]string{
+							checkKey: checkKeyVal,
+						},
+						"node-taints": map[string]string{
+							checkKey: checkKeyVal,
+						},
+					},
+				})
+
+				ng.Bottlerocket.Settings = &doc
+
+				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(userdata).ToNot(Equal(""))
+
+				tree, parseErr := userdataTOML(userdata)
+				Expect(parseErr).ToNot(HaveOccurred())
+
+				Expect(tree.HasPath(append(labelsPath, checkKey))).To(BeFalse())
+				Expect(tree.HasPath(append(taintsPath, checkKey))).To(BeFalse())
+			})
+
+			It("uses MaxPodsPerNode", func () {
+				ng.MaxPodsPerNode = 32
+
+				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(userdata).ToNot(Equal(""))
+
+				tree, parseErr := userdataTOML(userdata)
+				Expect(parseErr).ToNot(HaveOccurred())
+
+				Expect(tree.HasPath(maxPodsPath)).To(BeTrue())
+				Expect(tree.GetPath(maxPodsPath)).To(Equal(int64(ng.MaxPodsPerNode)))
+			})
+
+			It("handles unset MaxPodsPerNode", func () {
+				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(userdata).ToNot(Equal(""))
+
+				tree, parseErr := userdataTOML(userdata)
+				Expect(parseErr).ToNot(HaveOccurred())
+
+				Expect(tree.HasPath(maxPodsPath)).To(BeFalse())
+			})
+
+			It("uses ClusterDNS", func () {
+				ng.ClusterDNS = "192.2.0.53"
+
+				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(userdata).ToNot(Equal(""))
+
+				tree, parseErr := userdataTOML(userdata)
+				Expect(parseErr).ToNot(HaveOccurred())
+
+				Expect(tree.HasPath(clusterDNSIPPath)).To(BeTrue())
+				Expect(tree.GetPath(clusterDNSIPPath)).To(Equal(ng.ClusterDNS))
+			})
+
+			It("uses Taints", func() {
+				taintName := "mytaint.example.com"
+				taintVal := "00.00001"
+				ng.Taints[taintName] = taintVal
+
+				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(userdata).ToNot(Equal(""))
+
+				tree, parseErr := userdataTOML(userdata)
+				Expect(parseErr).ToNot(HaveOccurred())
+
+				for key, val := range ng.Taints {
+					Expect(tree.HasPath(append(taintsPath, key))).To(BeTrue())
+					Expect(tree.GetPath(append(taintsPath, key))).To(Equal(val))
+				}
+			})
+
+			It("uses labels", func() {
+				labelName := "mylabel.example.com"
+				labelVal := "99.99999"
+				ng.Labels[labelName] = labelVal
+
+				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(userdata).ToNot(Equal(""))
+
+				tree, parseErr := userdataTOML(userdata)
+				Expect(parseErr).ToNot(HaveOccurred())
+
+				for key, val := range ng.Labels {
+					Expect(tree.HasPath(append(labelsPath, key))).To(BeTrue())
+					Expect(tree.GetPath(append(labelsPath, key))).To(Equal(val))
+				}
+			})
+		})
+
 	})
 
 })

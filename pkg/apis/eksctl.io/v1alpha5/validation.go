@@ -221,6 +221,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
+	if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.Bottlerocket != nil {
+		err := checkBottlerocketSettings(ng.Bottlerocket.Settings, path)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err := validateInstancesDistribution(ng); err != nil {
 		return err
 	}
@@ -531,5 +538,42 @@ func (fps FargateProfileSelector) Validate() error {
 	if fps.Namespace == "" {
 		return errors.New("empty namespace")
 	}
+	return nil
+}
+
+func checkBottlerocketSettings(doc *InlineDocument, path string) error {
+	if doc == nil {
+		return nil
+	}
+
+	overlapErr := func(key, ngField string) error {
+		return errors.Errorf("invalid Bottlerocket setting: use %s.%s instead (path=%s)", path, ngField, key)
+	}
+
+	// Dig into kubernetes settings if provided.
+	kubeVal, ok := (*doc)["kubernetes"]
+	if !ok {
+		return nil
+	}
+
+	kube, ok := kubeVal.(map[string]interface{})
+	if !ok {
+		return errors.New("invalid kubernetes settings provided: expected a map of settings")
+	}
+
+	checkMapping := map[string]string{
+		"node-labels":    "labels",
+		"node-taints":    "taints",
+		"max-pods":       "maxPodsPerNode",
+		"cluster-dns-ip": "clusterDNS",
+	}
+
+	for checkKey, shouldUse := range checkMapping {
+		_, ok := kube[checkKey]
+		if ok {
+			return overlapErr(path+".kubernetes."+checkKey, shouldUse)
+		}
+	}
+
 	return nil
 }
