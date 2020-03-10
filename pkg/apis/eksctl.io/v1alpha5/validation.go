@@ -220,6 +220,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		return err
 	}
 
+	if ng.AMIFamily == NodeImageFamilyBottlerocket {
+		err := validateNodeGroupBottlerocket(ng, path)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -525,6 +532,22 @@ func (fp FargateProfile) Validate() error {
 func (fps FargateProfileSelector) Validate() error {
 	if fps.Namespace == "" {
 		return errors.New("empty namespace")
+	}
+	return nil
+}
+
+func validateNodeGroupBottlerocket(ng *NodeGroup, path string) error {
+	fieldNotSupported := func(field string) error {
+		return fmt.Errorf("%s is not supported for Bottlerocket node groups (path=%s.%s)", field, path, field)
+	}
+	if ng.KubeletExtraConfig != nil {
+		return fieldNotSupported("kubeletExtraConfig")
+	}
+	if ng.PreBootstrapCommands != nil {
+		return fieldNotSupported("preBootstrapCommands")
+	}
+	if ng.OverrideBootstrapCommand != nil {
+		return fieldNotSupported("overrideBootstrapCommand")
 	}
 	return nil
 }
