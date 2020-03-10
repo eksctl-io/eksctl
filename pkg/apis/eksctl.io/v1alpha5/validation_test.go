@@ -4,6 +4,7 @@ import (
 	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var _ = Describe("ClusterConfig validation", func() {
@@ -467,6 +468,29 @@ var _ = Describe("ClusterConfig validation", func() {
 
 				ng.InstancesDistribution.OnDemandPercentageAboveBaseCapacity = newInt(50)
 				err = validateInstancesDistribution(ng)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("It fails when the spotAllocationStrategy is not a supported strategy", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
+
+				err := validateInstancesDistribution(ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("It fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := validateInstancesDistribution(ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("It does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("lowest-price")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := validateInstancesDistribution(ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
