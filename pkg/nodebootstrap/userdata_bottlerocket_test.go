@@ -164,36 +164,6 @@ var _ = Describe("Bottlerocket", func() {
 				api.SetNodeGroupDefaults(ng, clusterConfig.Metadata)
 			})
 
-			It("removes overlapping config", func() {
-				checkKey := "expected-missing.example.com"
-				checkKeyVal := "should-be-none"
-
-				doc := api.InlineDocument(map[string]interface{}{
-					"kubernetes": map[string]interface{}{
-						// Neither of these should be present in the generated
-						// TOML.
-						"node-labels": map[string]string{
-							checkKey: checkKeyVal,
-						},
-						"node-taints": map[string]string{
-							checkKey: checkKeyVal,
-						},
-					},
-				})
-
-				ng.Bottlerocket.Settings = &doc
-
-				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(userdata).ToNot(Equal(""))
-
-				tree, parseErr := userdataTOML(userdata)
-				Expect(parseErr).ToNot(HaveOccurred())
-
-				Expect(tree.HasPath(append(labelsPath, checkKey))).To(BeFalse())
-				Expect(tree.HasPath(append(taintsPath, checkKey))).To(BeFalse())
-			})
-
 			It("uses MaxPodsPerNode", func() {
 				ng.MaxPodsPerNode = 32
 
