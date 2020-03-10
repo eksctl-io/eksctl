@@ -199,7 +199,8 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	}
 
 	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
-		return fmt.Errorf("cannot specify Bottlerocket config for %s (path=%s.%s)", ng.AMIFamily, path, "bottlerocket")
+		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" but found %s (path=%s.bottlerocket)`,
+			ng.AMIFamily, path)
 	}
 
 	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
