@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	toml "github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -37,7 +37,10 @@ var _ = Describe("Bottlerocket", func() {
 		clusterConfig.Metadata = &api.ClusterMeta{
 			Name: "unit-test",
 		}
-		ng = &api.NodeGroup{}
+		ng = &api.NodeGroup{
+			// SetNodeGroupDefaults ensures this is non-nil for Bottlerocket nodegroups
+			Bottlerocket: &api.NodeGroupBottlerocket{},
+		}
 	})
 
 	Describe("with no user settings", func() {
@@ -148,6 +151,12 @@ var _ = Describe("Bottlerocket", func() {
 		})
 
 		Describe("with NodeGroup settings", func() {
+			var (
+				maxPodsPath      = strings.Split("settings.kubernetes.max-pods", ".")
+				labelsPath       = strings.Split("settings.kubernetes.node-labels", ".")
+				taintsPath       = strings.Split("settings.kubernetes.node-taints", ".")
+				clusterDNSIPPath = strings.Split("settings.kubernetes.cluster-dns-ip", ".")
+			)
 			BeforeEach(func() {
 				ng.Labels = map[string]string{}
 				ng.Taints = map[string]string{}
@@ -185,7 +194,7 @@ var _ = Describe("Bottlerocket", func() {
 				Expect(tree.HasPath(append(taintsPath, checkKey))).To(BeFalse())
 			})
 
-			It("uses MaxPodsPerNode", func () {
+			It("uses MaxPodsPerNode", func() {
 				ng.MaxPodsPerNode = 32
 
 				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
@@ -199,7 +208,7 @@ var _ = Describe("Bottlerocket", func() {
 				Expect(tree.GetPath(maxPodsPath)).To(Equal(int64(ng.MaxPodsPerNode)))
 			})
 
-			It("handles unset MaxPodsPerNode", func () {
+			It("handles unset MaxPodsPerNode", func() {
 				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(userdata).ToNot(Equal(""))
@@ -210,7 +219,7 @@ var _ = Describe("Bottlerocket", func() {
 				Expect(tree.HasPath(maxPodsPath)).To(BeFalse())
 			})
 
-			It("uses ClusterDNS", func () {
+			It("uses ClusterDNS", func() {
 				ng.ClusterDNS = "192.2.0.53"
 
 				userdata, err := NewUserDataForBottlerocket(clusterConfig, ng)

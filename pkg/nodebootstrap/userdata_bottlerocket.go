@@ -10,62 +10,24 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-var (
-	maxPodsPath = strings.Split("settings.kubernetes.max-pods", ".")
-	labelsPath  = strings.Split("settings.kubernetes.node-labels", ".")
-	taintsPath  = strings.Split("settings.kubernetes.node-taints", ".")
-	clusterDNSIPPath = strings.Split("settings.kubernetes.cluster-dns-ip", ".")
-)
-
 // NewUserDataForBottlerocket generates TOML userdata for bootstrapping a Bottlerocket node.
 func NewUserDataForBottlerocket(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
-	var settings *toml.Tree
-
-	// Load up users' settings if provided.
-	if ng.Bottlerocket != nil && ng.Bottlerocket.Settings != nil {
-		userSettings, err := toml.TreeFromMap(map[string]interface{}{
-			"settings": *ng.Bottlerocket.Settings,
-		})
-		if err != nil {
-			return "", errors.Wrap(err, "error loading user provided settings")
-		}
-		settings = userSettings
-	} else {
-		settings, _ = toml.LoadBytes(nil)
+	if ng.Bottlerocket.Settings == nil {
+		ng.Bottlerocket.Settings = &api.InlineDocument{}
 	}
 
 	// Update settings based on NodeGroup configuration. Values set here are not
 	// allowed to be set by the user - the values are owned by the NodeGroup and
 	// expressly written into settings.
-
-	// transform map m into a type compatible copy.
-	toInputMap := func(m map[string]string) map[string]interface{} {
-		n := map[string]interface{}{}
-		for key, value := range m {
-			n[key] = value
-		}
-		return n
+	if err := setDerivedBottlerocketSettings(ng); err != nil {
+		return "", err
 	}
 
-	labels, err := toml.TreeFromMap(toInputMap(ng.Labels))
+	settings, err := toml.TreeFromMap(map[string]interface{}{
+		"settings": *ng.Bottlerocket.Settings,
+	})
 	if err != nil {
-		return "", errors.Wrap(err, "unable to use NodeGroup labels in TOML")
-	}
-	settings.SetPath(labelsPath, labels)
-
-	taints, err := toml.TreeFromMap(toInputMap(ng.Taints))
-	if err != nil {
-		return "", errors.Wrap(err, "unable to use NodeGroup taints in TOML")
-	}
-	settings.SetPath(taintsPath, taints)
-
-	if ng.MaxPodsPerNode != 0 {
-		// TOML ints are int64 - https://github.com/toml-lang/toml#integer
-		settings.SetPath(maxPodsPath, int64(ng.MaxPodsPerNode))
-	}
-
-	if ng.ClusterDNS != "" {
-		settings.SetPath(clusterDNSIPPath, ng.ClusterDNS)
+		return "", errors.Wrap(err, "error loading user provided settings")
 	}
 
 	// All input settings key names need to be checked & protected against
@@ -79,6 +41,36 @@ func NewUserDataForBottlerocket(spec *api.ClusterConfig, ng *api.NodeGroup) (str
 	}
 
 	return base64.StdEncoding.EncodeToString([]byte(data)), nil
+}
+
+func setDerivedBottlerocketSettings(ng *api.NodeGroup) error {
+	settings := *ng.Bottlerocket.Settings
+
+	var kubernetesSettings map[string]interface{}
+
+	if val, ok := settings["kubernetes"]; ok {
+		kubernetesSettings, ok = val.(map[string]interface{})
+		if !ok {
+			return errors.Errorf("expected settings.kubernetes to be of type %T; got %T", kubernetesSettings, val)
+		}
+	} else {
+		kubernetesSettings = make(map[string]interface{})
+		settings["kubernetes"] = kubernetesSettings
+	}
+
+	if len(ng.Labels) != 0 {
+		kubernetesSettings["node-labels"] = ng.Labels
+	}
+	if len(ng.Taints) != 0 {
+		kubernetesSettings["node-taints"] = ng.Taints
+	}
+	if ng.MaxPodsPerNode != 0 {
+		kubernetesSettings["max-pods"] = ng.MaxPodsPerNode
+	}
+	if ng.ClusterDNS != "" {
+		kubernetesSettings["cluster-dns-ip"] = ng.ClusterDNS
+	}
+	return nil
 }
 
 // protectTOMLKeys processes a tree finding and replacing dotted keys
