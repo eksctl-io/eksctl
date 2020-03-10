@@ -496,6 +496,8 @@ NodeGroupInstancesDistribution:
       type: integer
     onDemandPercentageAboveBaseCapacity:
       type: integer
+    spotAllocationStrategy:
+      type: string
     spotInstancePools:
       type: integer
   type: object
