@@ -95,12 +95,16 @@ unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
-build-integration-test: $(all_generated_code) ## Build integration test binary
-	time go test -tags integration ./integration/ -c -o eksctl-integration-test
+build-integration-test: $(all_generated_code)
+	@# Compile integration test binary without running any.
+	@# Required as build failure aren't listed when running go build below. See also: https://github.com/golang/go/issues/15513
+	go test -tags integration -run=^$$ ./integration/...
+	@# Build integration test binary:
+	go build -tags integration -o ./eksctl-integration-test ./integration/main.go
 
 .PHONY: integration-test
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
-	cd integration; ../eksctl-integration-test $(INTEGRATION_TEST_ARGS)
+	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
 integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
@@ -129,8 +133,8 @@ integration-test-dev: build-integration-test ## Run the integration tests withou
 	cd integration ; ../eksctl-integration-test -test.timeout 21m \
 		$(INTEGRATION_TEST_ARGS) \
 		-eksctl.cluster=$(TEST_CLUSTER) \
-		-eksctl.create=false \
-		-eksctl.delete=false \
+		-eksctl.skip.create=true \
+		-eksctl.skip.delete=true \
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
