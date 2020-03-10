@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/kops/util/pkg/slice"
 )
 
 const (
@@ -178,6 +179,12 @@ const (
 	// ClusterDisableNAT defines the disabled NAT configuration option
 	ClusterDisableNAT = "Disable"
 
+	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
+	SpotAllocationStrategyLowestPrice = "lowest-price"
+
+	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
+	SpotAllocationStrategyCapacityOptimized = "capacity-optimized"
+
 	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
 	// for standard AWS partition
 	eksResourceAccountStandard = "602401143452"
@@ -294,6 +301,19 @@ func SupportedNodeVolumeTypes() []string {
 		NodeVolumeTypeSC1,
 		NodeVolumeTypeST1,
 	}
+}
+
+// supportedSpotAllocationStrategies are the spot allocation strategies supported by ASG
+func supportedSpotAllocationStrategies() []string {
+	return []string{
+		SpotAllocationStrategyLowestPrice,
+		SpotAllocationStrategyCapacityOptimized,
+	}
+}
+
+// isSpotAllocationStrategySupported returns true if the spot allocation strategy is supported for ASG
+func isSpotAllocationStrategySupported(allocationStrategy string) bool {
+	return slice.Contains(supportedSpotAllocationStrategies(), allocationStrategy)
 }
 
 // EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
@@ -417,6 +437,9 @@ type ClusterConfig struct {
 
 	// +optional
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
+
+	// +optional
+	SecretsEncryption *SecretsEncryption `json:"secretsEncryption,omitempty"`
 
 	Status *ClusterStatus `json:"status,omitempty"`
 }
@@ -737,6 +760,8 @@ type (
 		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
 		//+optional
 		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
+		//+optional
+		SpotAllocationStrategy *string `json:"spotAllocationStrategy,omitempty"`
 	}
 )
 
@@ -849,4 +874,9 @@ type FargateProfileSelector struct {
 	// +optional
 	// Labels are the Kubernetes label selectors to use to select workload.
 	Labels map[string]string `json:"labels,omitempty"`
+}
+
+// SecretsEncryption defines the configuration for KMS encryption provider
+type SecretsEncryption struct {
+	KeyARN *string `json:"keyARN,omitempty"`
 }

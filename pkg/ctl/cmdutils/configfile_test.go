@@ -81,7 +81,7 @@ var _ = Describe("cmdutils configfile", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(examples).To(HaveLen(18))
+			Expect(examples).To(HaveLen(19))
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),

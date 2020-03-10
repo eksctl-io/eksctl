@@ -103,6 +103,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 		cfg.VPC.PublicAccessCIDRs = cidrs
 	}
+
 	return nil
 }
 
@@ -428,6 +429,16 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 
 	if distribution.SpotInstancePools != nil && (*distribution.SpotInstancePools < 1 || *distribution.SpotInstancePools > 20) {
 		return fmt.Errorf("spotInstancePools should be between 1 and 20")
+	}
+
+	if distribution.SpotInstancePools != nil && distribution.SpotAllocationStrategy != nil && *distribution.SpotAllocationStrategy == SpotAllocationStrategyCapacityOptimized {
+		return fmt.Errorf("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: %s", SpotAllocationStrategyCapacityOptimized)
+	}
+
+	if distribution.SpotAllocationStrategy != nil {
+		if !isSpotAllocationStrategySupported(*distribution.SpotAllocationStrategy) {
+			return fmt.Errorf("spotAllocationStrategy should be one of: %v", strings.Join(supportedSpotAllocationStrategies(), ", "))
+		}
 	}
 
 	return nil

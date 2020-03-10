@@ -54,6 +54,9 @@ ClusterConfig:
         $ref: '#/definitions/NodeGroup'
         $schema: http://json-schema.org/draft-04/schema#
       type: array
+    secretsEncryption:
+      $ref: '#/definitions/SecretsEncryption'
+      $schema: http://json-schema.org/draft-04/schema#
     status:
       $ref: '#/definitions/ClusterStatus'
       $schema: http://json-schema.org/draft-04/schema#
@@ -493,6 +496,8 @@ NodeGroupInstancesDistribution:
       type: integer
     onDemandPercentageAboveBaseCapacity:
       type: integer
+    spotAllocationStrategy:
+      type: string
     spotInstancePools:
       type: integer
   type: object
@@ -608,6 +613,12 @@ ScalingConfig:
       type: integer
     minSize:
       type: integer
+  type: object
+SecretsEncryption:
+  additionalProperties: false
+  properties:
+    keyARN:
+      type: string
   type: object
 Status:
   additionalProperties: false

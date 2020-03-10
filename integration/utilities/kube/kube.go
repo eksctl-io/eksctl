@@ -1,21 +1,21 @@
 // +build integration
 
-package integration_test
+package kube
 
 import (
 	harness "github.com/dlespiau/kube-test-harness"
 	"github.com/dlespiau/kube-test-harness/logger"
-
-	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo"
 )
 
-type tHelper struct{ GinkgoTInterface }
+type tHelper struct{ ginkgo.GinkgoTInterface }
 
 func (t *tHelper) Helper()      { return }
 func (t *tHelper) Name() string { return "eksctl-test" }
 
-func newKubeTest() (*harness.Test, error) {
-	t := &tHelper{GinkgoT()}
+// NewTest creates a new test harness to more easily run integration tests against the provided Kubernetes cluster.
+func NewTest(kubeconfigPath string) (*harness.Test, error) {
+	t := &tHelper{ginkgo.GinkgoT()}
 	l := &logger.TestLogger{}
 	h := harness.New(harness.Options{Logger: l.ForTest(t)})
 	if err := h.Setup(); err != nil {
