@@ -10,29 +10,74 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
+var (
+	maxPodsPath = strings.Split("settings.kubernetes.max-pods", ".")
+	labelsPath  = strings.Split("settings.kubernetes.node-labels", ".")
+	taintsPath  = strings.Split("settings.kubernetes.node-taints", ".")
+	clusterDNSIPPath = strings.Split("settings.kubernetes.cluster-dns-ip", ".")
+)
+
 // NewUserDataForBottlerocket generates TOML userdata for bootstrapping a Bottlerocket node.
 func NewUserDataForBottlerocket(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
-	settings, _ := toml.LoadBytes(nil)
+	var settings *toml.Tree
 
-	if ng.Bottlerocket != nil && ng.Bottlerocket.Settings != nil && len(*ng.Bottlerocket.Settings) != 0 {
+	// Load up users' settings if provided.
+	if ng.Bottlerocket != nil && ng.Bottlerocket.Settings != nil {
 		userSettings, err := toml.TreeFromMap(map[string]interface{}{
 			"settings": *ng.Bottlerocket.Settings,
 		})
 		if err != nil {
 			return "", errors.Wrap(err, "error loading user provided settings")
 		}
-
-		// The user provided settings in their config, its
-		// keys need to be checked & protected against TOML's
-		// dotted key semantics.
-		protectTOMLKeys([]string{"settings"}, userSettings)
 		settings = userSettings
+	} else {
+		settings, _ = toml.LoadBytes(nil)
 	}
 
+	// Update settings based on NodeGroup configuration. Values set here are not
+	// allowed to be set by the user - the values are owned by the NodeGroup and
+	// expressly written into settings.
+
+	// transform map m into a type compatible copy.
+	toInputMap := func(m map[string]string) map[string]interface{} {
+		n := map[string]interface{}{}
+		for key, value := range m {
+			n[key] = value
+		}
+		return n
+	}
+
+	labels, err := toml.TreeFromMap(toInputMap(ng.Labels))
+	if err != nil {
+		return "", errors.Wrap(err, "unable to use NodeGroup labels in TOML")
+	}
+	settings.SetPath(labelsPath, labels)
+
+	taints, err := toml.TreeFromMap(toInputMap(ng.Taints))
+	if err != nil {
+		return "", errors.Wrap(err, "unable to use NodeGroup taints in TOML")
+	}
+	settings.SetPath(taintsPath, taints)
+
+	if ng.MaxPodsPerNode != 0 {
+		// TOML ints are int64 - https://github.com/toml-lang/toml#integer
+		settings.SetPath(maxPodsPath, int64(ng.MaxPodsPerNode))
+	}
+
+	if ng.ClusterDNS != "" {
+		settings.SetPath(clusterDNSIPPath, ng.ClusterDNS)
+	}
+
+	// All input settings key names need to be checked & protected against
+	// TOML's dotted key semantics.
+	protectTOMLKeys([]string{"settings"}, settings)
+
+	// Generate TOML for launch in this NodeGroup.
 	data, err := bottlerocketSettingsTOML(spec, ng, settings)
 	if err != nil {
 		return "", err
 	}
+
 	return base64.StdEncoding.EncodeToString([]byte(data)), nil
 }
 
