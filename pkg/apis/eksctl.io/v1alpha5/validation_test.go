@@ -1,6 +1,8 @@
 package v1alpha5
 
 import (
+	"fmt"
+
 	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -658,6 +660,40 @@ var _ = Describe("ClusterConfig validation", func() {
 				err = profile.Validate()
 				Expect(err).ToNot(HaveOccurred())
 			})
+		})
+	})
+
+	Describe("Bottlerocket node groups", func() {
+		It("returns an error with unsupported fields", func() {
+			cmd := "/usr/bin/some-command"
+			doc := InlineDocument{
+				"cgroupDriver": "systemd",
+			}
+
+			ngs := []*NodeGroup{
+				&NodeGroup{ PreBootstrapCommands: []string{"/usr/bin/env true"}},
+				&NodeGroup{ OverrideBootstrapCommand: &cmd},
+				&NodeGroup{ KubeletExtraConfig: &doc, },
+			}
+
+			for i, ng := range ngs {
+				err := validateNodeGroupBottlerocket(ng, fmt.Sprintf("test-%d", i))
+				Expect(err).To(HaveOccurred())
+			}
+		})
+
+		It("has no error with supported fields", func() {
+			x := 32
+			ngs := []*NodeGroup{
+				&NodeGroup{ Labels: map[string]string{ "label": "label-value" }},
+				&NodeGroup{ MaxPodsPerNode: x },
+				&NodeGroup{ MinSize: &x },
+			}
+
+			for i, ng := range ngs {
+				err := validateNodeGroupBottlerocket(ng, fmt.Sprintf("test-%d", i))
+				Expect(err).ToNot(HaveOccurred())
+			}
 		})
 	})
 })
