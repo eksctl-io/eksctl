@@ -16,7 +16,7 @@ import (
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
 )
 
-var defaultAudience = "sts.amazonaws.com"
+const defaultAudience = "sts.amazonaws.com"
 
 // OpenIDConnectManager hold information about IAM OIDC integration
 type OpenIDConnectManager struct {
@@ -45,8 +45,6 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partitio
 		return nil, fmt.Errorf("unsupported URL scheme %q", issuerURL.Scheme)
 	}
 
-	audience := defaultAudience
-
 	if issuerURL.Port() == "" {
 		issuerURL.Host += ":443"
 	}
@@ -55,7 +53,7 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partitio
 		iam:       iamapi,
 		accountID: accountID,
 		partition: partition,
-		audience:  audience,
+		audience:  defaultAudience,
 		issuerURL: issuerURL,
 	}
 	return m, nil
