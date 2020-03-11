@@ -127,6 +127,8 @@ const (
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
 	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
+	// NodeImageFamilyBottlerocket represents Bottlerocket family
+	NodeImageFamilyBottlerocket = "Bottlerocket"
 
 	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
@@ -632,6 +634,9 @@ type NodeGroup struct {
 	IAM *NodeGroupIAM `json:"iam"`
 
 	// +optional
+	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
+
+	// +optional
 	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
 
 	// +optional
@@ -744,6 +749,15 @@ type (
 		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
 		//+optional
 		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
+	}
+
+	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
+	// NodeGroups.
+	NodeGroupBottlerocket struct {
+		// +optional
+		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
+		// +optional
+		Settings *InlineDocument `json:"settings,omitempty"`
 	}
 )
 

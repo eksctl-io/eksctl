@@ -51,6 +51,7 @@ func getNodes(clientSet kubernetes.Interface, ng KubeNodeGroup) (int, error) {
 
 // ValidateFeatureCompatibility validates whether the cluster version supports the features specified in the
 // ClusterConfig. Support for Managed Nodegroups or Windows requires the EKS cluster version to be 1.14 and above.
+// Bottlerocket nodegroups are only supported on EKS version 1.15 and above
 // If the version requirement isn't met, an error is returned
 func ValidateFeatureCompatibility(clusterConfig *api.ClusterConfig, kubeNodeGroups []KubeNodeGroup) error {
 	if err := validateKMSSupport(clusterConfig); err != nil {
@@ -59,7 +60,31 @@ func ValidateFeatureCompatibility(clusterConfig *api.ClusterConfig, kubeNodeGrou
 	if err := ValidateManagedNodesSupport(clusterConfig); err != nil {
 		return err
 	}
+	if err := ValidateBottlerocketSupport(clusterConfig.Metadata.Version, kubeNodeGroups); err != nil {
+		return err
+	}
+
 	return ValidateWindowsCompatibility(kubeNodeGroups, clusterConfig.Metadata.Version)
+}
+
+// ValidateBottlerocketSupport validates support for Bottlerocket nodegroups
+func ValidateBottlerocketSupport(controlPlaneVersion string, kubeNodeGroups []KubeNodeGroup) error {
+	const minSupportedVersion = api.Version1_15
+
+	supportsBottlerocket, err := utils.IsMinVersion(minSupportedVersion, controlPlaneVersion)
+	if err != nil {
+		return err
+	}
+	if supportsBottlerocket {
+		return nil
+	}
+
+	for _, ng := range kubeNodeGroups {
+		if ng.GetAMIFamily() == api.NodeImageFamilyBottlerocket {
+			return errors.Errorf("Bottlerocket is only supported on EKS version %s and above", minSupportedVersion)
+		}
+	}
+	return nil
 }
 
 // ValidateManagedNodesSupport validates support for Managed Nodegroups

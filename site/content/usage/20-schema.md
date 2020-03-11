@@ -341,6 +341,9 @@ NodeGroup:
       items:
         type: string
       type: array
+    bottlerocket:
+      $ref: '#/definitions/NodeGroupBottlerocket'
+      $schema: http://json-schema.org/draft-04/schema#
     classicLoadBalancerNames:
       items:
         type: string
@@ -425,6 +428,18 @@ NodeGroup:
   - volumeType
   - volumeIOPS
   - iam
+  type: object
+NodeGroupBottlerocket:
+  additionalProperties: false
+  properties:
+    enableAdminContainer:
+      type: boolean
+    settings:
+      patternProperties:
+        .*:
+          additionalProperties: true
+          type: object
+      type: object
   type: object
 NodeGroupIAM:
   additionalProperties: false

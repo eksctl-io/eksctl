@@ -118,6 +118,10 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
 	}
 
+	if err := eks.ValidateBottlerocketSupport(ctl.ControlPlaneVersion(), cmdutils.ToKubeNodeGroups(cfg)); err != nil {
+		return err
+	}
+
 	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
 		if err := eks.EnsureAMI(ctl.Provider, meta.Version, ng); err != nil {

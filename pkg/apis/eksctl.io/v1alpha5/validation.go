@@ -198,9 +198,14 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if IsWindowsImage(ng.AMIFamily) {
+	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" but found %s (path=%s.bottlerocket)`,
+			ng.AMIFamily, path)
+	}
+
+	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
-			return fmt.Errorf("%s is not supported for Windows node groups (path=%s.%s)", field, path, field)
+			return fmt.Errorf("%s is not supported for %s nodegroups (path=%s.%s)", field, ng.AMIFamily, path, field)
 		}
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
@@ -214,6 +219,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
+	}
+
+	if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.Bottlerocket != nil {
+		err := checkBottlerocketSettings(ng.Bottlerocket.Settings, path)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := validateInstancesDistribution(ng); err != nil {
@@ -526,5 +538,42 @@ func (fps FargateProfileSelector) Validate() error {
 	if fps.Namespace == "" {
 		return errors.New("empty namespace")
 	}
+	return nil
+}
+
+func checkBottlerocketSettings(doc *InlineDocument, path string) error {
+	if doc == nil {
+		return nil
+	}
+
+	overlapErr := func(key, ngField string) error {
+		return errors.Errorf("invalid Bottlerocket setting: use %s.%s instead (path=%s)", path, ngField, key)
+	}
+
+	// Dig into kubernetes settings if provided.
+	kubeVal, ok := (*doc)["kubernetes"]
+	if !ok {
+		return nil
+	}
+
+	kube, ok := kubeVal.(map[string]interface{})
+	if !ok {
+		return errors.New("invalid kubernetes settings provided: expected a map of settings")
+	}
+
+	checkMapping := map[string]string{
+		"node-labels":    "labels",
+		"node-taints":    "taints",
+		"max-pods":       "maxPodsPerNode",
+		"cluster-dns-ip": "clusterDNS",
+	}
+
+	for checkKey, shouldUse := range checkMapping {
+		_, ok := kube[checkKey]
+		if ok {
+			return overlapErr(path+".kubernetes."+checkKey, shouldUse)
+		}
+	}
+
 	return nil
 }

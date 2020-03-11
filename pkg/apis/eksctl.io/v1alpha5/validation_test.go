@@ -636,6 +636,52 @@ var _ = Describe("ClusterConfig validation", func() {
 			})
 		})
 	})
+
+	Describe("Bottlerocket node groups", func() {
+		It("returns an error with unsupported fields", func() {
+			cmd := "/usr/bin/some-command"
+			doc := InlineDocument{
+				"cgroupDriver": "systemd",
+			}
+
+			ngs := map[string]*NodeGroup{
+				"PreBootstrapCommands": {PreBootstrapCommands: []string{"/usr/bin/env true"}},
+				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
+				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
+				"overlapping Bottlerocket settings": {
+					Bottlerocket: &NodeGroupBottlerocket{
+						Settings: &InlineDocument{
+							"kubernetes": map[string]interface{}{
+								"node-labels": map[string]string{
+									"mylabel.example.com": "value",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			for name, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyBottlerocket
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
+			}
+		})
+
+		It("has no error with supported fields", func() {
+			x := 32
+			ngs := []*NodeGroup{
+				{Labels: map[string]string{"label": "label-value"}},
+				{MaxPodsPerNode: x},
+				{MinSize: &x},
+			}
+
+			for i, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyBottlerocket
+				Expect(ValidateNodeGroup(i, ng)).To(Succeed())
+			}
+		})
+	})
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {
