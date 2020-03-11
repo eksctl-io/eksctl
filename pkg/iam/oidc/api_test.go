@@ -265,8 +265,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 					return false
 				}
 				clientID := *input.ClientIDList[0]
-				expectedAudience := defaultAudienceByPartition[partition]
-				return clientID == expectedAudience
+				return clientID == defaultAudience
 			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
 				OpenIDConnectProviderArn: aws.String(fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition)),
 			}, nil)
@@ -301,7 +300,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(actual).To(MatchJSON(expected))
 		},
 			Entry("Default AWS partition", "aws", "sts.amazonaws.com"),
-			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com.cn"),
+			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com"),
 		)
 	})
 })
