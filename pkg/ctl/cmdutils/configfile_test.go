@@ -97,7 +97,6 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).To(Equal(cmd.ProviderConfig.Region))
-				Expect(cfg.Metadata.Version).To(BeEmpty())
 			}
 		})
 
