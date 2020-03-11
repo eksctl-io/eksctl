@@ -98,6 +98,9 @@ const (
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
 
+	// Version1_15 represents Kubernetes version 1.15.x
+	Version1_15 = "1.15"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_14
 
@@ -290,6 +293,7 @@ func SupportedVersions() []string {
 		Version1_12,
 		Version1_13,
 		Version1_14,
+		Version1_15,
 	}
 }
 
