@@ -122,7 +122,15 @@ func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (boo
 
 // ClusterSupportsFargate reports whether an existing cluster supports Fargate.
 func ClusterSupportsFargate(cluster *awseks.Cluster) (bool, error) {
-	versionSupportsFargate, err := fargate.IsSupportedBy(*cluster.Version)
+	supportsFargate, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)
+	if err != nil {
+		return false, err
+	}
+	if supportsFargate {
+		return true, nil
+	}
+
+	versionSupportsFargate, err := utils.IsMinVersion(fargate.MinKubernetesVersion, *cluster.Version)
 	if err != nil {
 		return false, err
 	}
