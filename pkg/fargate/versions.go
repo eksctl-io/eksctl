@@ -2,7 +2,6 @@ package fargate
 
 import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 const (
@@ -14,12 +13,3 @@ const (
 	// Fargate.
 	MinKubernetesVersion = api.Version1_14
 )
-
-// IsSupportedBy reports whether the control plane version can support Fargate.
-func IsSupportedBy(controlPlaneVersion string) (bool, error) {
-	supportsFargate, err := utils.IsMinVersion(MinKubernetesVersion, controlPlaneVersion)
-	if err != nil {
-		return false, err
-	}
-	return supportsFargate, nil
-}
