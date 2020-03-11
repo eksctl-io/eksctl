@@ -75,6 +75,11 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+
+	switch ng.AMIFamily {
+	case NodeImageFamilyBottlerocket:
+		setBottlerocketNodeGroupDefaults(ng)
+	}
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -167,6 +172,26 @@ func setSSHDefaults(sshConfig *NodeGroupSSH) {
 func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName string) {
 	labels[ClusterNameLabel] = clusterName
 	labels[NodeGroupNameLabel] = nodeGroupName
+}
+
+func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {
+	// Initialize config object if not present.
+	if ng.Bottlerocket == nil {
+		ng.Bottlerocket = &NodeGroupBottlerocket{}
+	}
+
+	// Default to resolving Bottlerocket images using SSM if not specified by
+	// the user.
+	if ng.AMI == "" {
+		ng.AMI = NodeImageResolverAutoSSM
+	}
+
+	// Use the SSH settings if the user hasn't explicitly configured the Admin
+	// Container. If SSH was enabled, the user will be able to ssh into the
+	// Bottlerocket node via the admin container.
+	if ng.Bottlerocket.EnableAdminContainer == nil && ng.SSH != nil {
+		ng.Bottlerocket.EnableAdminContainer = ng.SSH.Allow
+	}
 }
 
 // DefaultClusterNAT will set the default value for Cluster NAT mode
