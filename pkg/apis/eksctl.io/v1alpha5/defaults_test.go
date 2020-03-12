@@ -102,6 +102,33 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
+	Context("Bottlerocket Settings", func() {
+		It("enables SSH with NodeGroup", func() {
+			testNodeGroup := NodeGroup{
+				AMIFamily: NodeImageFamilyBottlerocket,
+				SSH: &NodeGroupSSH{
+					Allow: Enabled(),
+				},
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+
+			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeTrue())
+		})
+
+		It("has default NodeGroup configuration", func() {
+			testNodeGroup := NodeGroup{
+				AMIFamily: NodeImageFamilyBottlerocket,
+			}
+
+			SetNodeGroupDefaults(&testNodeGroup, &ClusterMeta{})
+
+			Expect(testNodeGroup.Bottlerocket).ToNot(BeNil())
+			Expect(testNodeGroup.AMI).To(Equal(NodeImageResolverAutoSSM))
+			Expect(*testNodeGroup.Bottlerocket.EnableAdminContainer).To(BeFalse())
+		})
+	})
+
 	Context("Cluster NAT settings", func() {
 
 		It("Cluster NAT defaults to single NAT gateway mode", func() {

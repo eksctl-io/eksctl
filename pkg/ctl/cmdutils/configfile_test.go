@@ -81,7 +81,7 @@ var _ = Describe("cmdutils configfile", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(examples).To(HaveLen(19))
+			Expect(examples).To(HaveLen(20))
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),
@@ -97,7 +97,6 @@ var _ = Describe("cmdutils configfile", func() {
 				Expect(cfg.Metadata.Name).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).ToNot(BeEmpty())
 				Expect(cfg.Metadata.Region).To(Equal(cmd.ProviderConfig.Region))
-				Expect(cfg.Metadata.Version).To(BeEmpty())
 			}
 		})
 
@@ -227,6 +226,7 @@ var _ = Describe("cmdutils configfile", func() {
 				{"07-ssh-keys.yaml", 6, false, false},
 				{"15-managed-nodes.yaml", 1, true, true},
 				{"15-managed-nodes.yaml", 1, false, true},
+				{"20-bottlerocket.yaml", 2, false, false},
 			}
 
 			for _, loaderTest := range loaderParams {

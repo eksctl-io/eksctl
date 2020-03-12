@@ -22,6 +22,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -82,6 +83,14 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
 func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
+	supportsManagedNodes, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)
+	if err != nil {
+		return false, err
+	}
+	if supportsManagedNodes {
+		return true, nil
+	}
+
 	versionSupportsManagedNodes, err := VersionSupportsManagedNodes(*cluster.Version)
 	if err != nil {
 		return false, err
@@ -113,7 +122,15 @@ func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (boo
 
 // ClusterSupportsFargate reports whether an existing cluster supports Fargate.
 func ClusterSupportsFargate(cluster *awseks.Cluster) (bool, error) {
-	versionSupportsFargate, err := fargate.IsSupportedBy(*cluster.Version)
+	supportsFargate, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)
+	if err != nil {
+		return false, err
+	}
+	if supportsFargate {
+		return true, nil
+	}
+
+	versionSupportsFargate, err := utils.IsMinVersion(fargate.MinKubernetesVersion, *cluster.Version)
 	if err != nil {
 		return false, err
 	}
