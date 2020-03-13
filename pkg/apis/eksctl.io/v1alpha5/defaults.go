@@ -86,15 +86,12 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	switch ng.AMIFamily {
 	case NodeImageFamilyBottlerocket:
 		setBottlerocketNodeGroupDefaults(ng)
-	}
-	if ng.KubeletExtraConfig == nil {
-		ng.KubeletExtraConfig = &InlineDocument{}
-	}
-
-	err := SetKubeletExtraConfigDefaults(ng, meta)
-	if err != nil {
-		fmt.Printf("Encountered error when setting KubeletConfig defaults: %s\n", err.Error())
-		os.Exit(2)
+	default:
+		err := SetKubeletExtraConfigDefaults(ng, meta)
+		if err != nil {
+			fmt.Printf("Encountered error when setting KubeletConfig defaults: %s\n", err.Error())
+			os.Exit(2)
+		}
 	}
 }
 

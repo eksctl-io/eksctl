@@ -352,8 +352,8 @@ const expected = `
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
+				"withShared": true,
+				"withLocal": true
 			  },
 			  "volumeSize": 768,
 			  "volumeType": "io1",
@@ -361,17 +361,17 @@ const expected = `
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng1a",
-			    "group": "a",
-			    "seq": "1"
+				"group": "a",
+				"seq": "1"
 			  },
 			  "ssh": {
 				"allow": false
 			  },
 			  "iam": {
-			    "attachPolicyARNs": [
+				"attachPolicyARNs": [
 				  "arn:aws:iam::aws:policy/Foo"
-			    ],
-			    "withAddonPolicies": {
+				],
+				"withAddonPolicies": {
 				  "imageBuilder": false,
 				  "autoScaler": false,
 				  "externalDNS": false,
@@ -383,15 +383,15 @@ const expected = `
 				  "albIngress": false,
 				  "xRay": false,
 				  "cloudWatch": false
-			    }
+				}
 			  },
-              "kubeletExtraConfig": {
-                "kubeReserved": {
-                  "cpu": "100m",
-                  "ephemeral-storage": "1.25Gi",
-                  "memory": "1.8Mi"
-                }
-              }
+			  "kubeletExtraConfig": {
+				"kubeReserved": {
+				  "cpu": "100m",
+				  "ephemeral-storage": "1.25Gi",
+				  "memory": "1.8Mi"
+				}
+			  }
 		  },
 		  {
 			  "name": "test-ng2a",
@@ -399,8 +399,8 @@ const expected = `
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
+				"withShared": true,
+				"withLocal": true
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
@@ -408,17 +408,17 @@ const expected = `
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng2a",
-			    "group": "a",
-			    "seq": "2"
+				"group": "a",
+				"seq": "2"
 			  },
 			  "ssh": {
-			    "allow": false
+				"allow": false
 			  },
 			  "iam": {
-			    "attachPolicyARNs": [
+				"attachPolicyARNs": [
 				  "arn:aws:iam::aws:policy/Bar"
-			    ],
-			    "withAddonPolicies": {
+				],
+				"withAddonPolicies": {
 				  "imageBuilder": false,
 				  "autoScaler": false,
 				  "externalDNS": false,
@@ -430,15 +430,15 @@ const expected = `
 				  "albIngress": false,
 				  "xRay": false,
 				  "cloudWatch": false
-			    }
+				}
 			  },
-              "kubeletExtraConfig": {
-                "kubeReserved": {
-                  "cpu": "100m",
-                  "ephemeral-storage": "1.25Gi",
-                  "memory": "1.8Mi"
-                }
-              }
+			  "kubeletExtraConfig": {
+				"kubeReserved": {
+				  "cpu": "100m",
+				  "ephemeral-storage": "1.25Gi",
+				  "memory": "1.8Mi"
+				}
+			  }
 		  },
 		  {
 			  "name": "test-ng3a",
@@ -446,8 +446,8 @@ const expected = `
 			  "instanceType": "m3.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
+				"withShared": true,
+				"withLocal": true
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
@@ -455,12 +455,12 @@ const expected = `
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng3a",
-			    "group": "a",
-			    "seq": "3"
+				"group": "a",
+				"seq": "3"
 			  },
 			  "ssh": {
-			    "allow": true,
-			    "publicKeyPath": "~/.ssh/id_rsa.pub"
+				"allow": true,
+				"publicKeyPath": "~/.ssh/id_rsa.pub"
 			  },
 			  "iam": {
 				"withAddonPolicies": {
@@ -475,16 +475,16 @@ const expected = `
 				  "albIngress": false,
 				  "xRay": false,
 				  "cloudWatch": false
-			    }
+				}
 			  },
 			  "clusterDNS": "1.2.3.4",
-              "kubeletExtraConfig": {
-                "kubeReserved": {
-                  "cpu": "100m",
-                  "ephemeral-storage": "2Gi",
-                  "memory": "1.7Mi"
-                }
-              }
+			  "kubeletExtraConfig": {
+				"kubeReserved": {
+				  "cpu": "100m",
+				  "ephemeral-storage": "2Gi",
+				  "memory": "1.7Mi"
+				}
+			  }
 		  },
 		  {
 			  "name": "test-ng1b",
@@ -492,8 +492,8 @@ const expected = `
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
-			    "withShared": true,
-			    "withLocal": true
+				"withShared": true,
+				"withLocal": true
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
@@ -501,35 +501,35 @@ const expected = `
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng1b",
-			    "group": "b",
-			    "seq": "1"
+				"group": "b",
+				"seq": "1"
 			  },
 			  "ssh": {
-			    "allow": true,
-			    "publicKeyPath": "~/.ssh/id_rsa.pub"
-              },
+				"allow": true,
+				"publicKeyPath": "~/.ssh/id_rsa.pub"
+			  },
 			  "iam": {
-			    "withAddonPolicies": {
-			  	  "imageBuilder": false,
-			  	  "autoScaler": false,
-			  	  "externalDNS": false,
-			  	  "certManager": false,
-			  	  "appMesh": false,
-			  	  "ebs": false,
-			  	  "fsx": false,
-			  	  "efs": false,
+				"withAddonPolicies": {
+				  "imageBuilder": false,
+				  "autoScaler": false,
+				  "externalDNS": false,
+				  "certManager": false,
+				  "appMesh": false,
+				  "ebs": false,
+				  "fsx": false,
+				  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
 				  "cloudWatch": false
-			    }
+				}
 			  },
-              "kubeletExtraConfig": {
-                "kubeReserved": {
-                  "cpu": "100m",
-                  "ephemeral-storage": "1.25Gi",
-                  "memory": "1.8Mi"
-                }
-              }
+			  "kubeletExtraConfig": {
+				"kubeReserved": {
+				  "cpu": "100m",
+				  "ephemeral-storage": "1.25Gi",
+				  "memory": "1.8Mi"
+				}
+			  }
 		  },
 		  {
 			  "name": "test-ng2b",
@@ -537,12 +537,12 @@ const expected = `
 			  "instanceType": "m5.xlarge",
 			  "privateNetworking": false,
 			  "securityGroups": {
-			    "attachIDs": [
-			  	  "sg-1",
-			  	  "sg-2"
-			    ],
-			    "withShared": true,
-			    "withLocal": false
+				"attachIDs": [
+				  "sg-1",
+				  "sg-2"
+				],
+				"withShared": true,
+				"withLocal": false
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
@@ -550,35 +550,35 @@ const expected = `
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng2b",
-			    "group": "b",
-			    "seq": "1"
+				"group": "b",
+				"seq": "1"
 			  },
 			  "ssh": {
-			    "allow": false
-              },
+				"allow": false
+			  },
 			  "iam": {
-			    "withAddonPolicies": {
-			  	  "imageBuilder": false,
-			  	  "autoScaler": false,
-			  	  "externalDNS": false,
-			  	  "certManager": false,
-			  	  "appMesh": false,
-			  	  "ebs": false,
-			  	  "fsx": false,
-			  	  "efs": false,
+				"withAddonPolicies": {
+				  "imageBuilder": false,
+				  "autoScaler": false,
+				  "externalDNS": false,
+				  "certManager": false,
+				  "appMesh": false,
+				  "ebs": false,
+				  "fsx": false,
+				  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
 				  "cloudWatch": false
-			    }
+				}
 			  },
 			  "clusterDNS": "4.2.8.14",
-              "kubeletExtraConfig": {
-                "kubeReserved": {
-                  "cpu": "140m",
-                  "ephemeral-storage": "1.25Gi",
-                  "memory": "2.6Mi"
-                }
-              }
+			  "kubeletExtraConfig": {
+				"kubeReserved": {
+				  "cpu": "140m",
+				  "ephemeral-storage": "1.25Gi",
+				  "memory": "2.6Mi"
+				}
+			  }
 		  },
 		  {
 			  "name": "test-ng3b",
@@ -586,12 +586,12 @@ const expected = `
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
 			  "securityGroups": {
-			    "attachIDs": [
-			  	  "sg-1",
-			  	  "sg-2"
-			    ],
-			    "withShared": true,
-			    "withLocal": false
+				"attachIDs": [
+				  "sg-1",
+				  "sg-2"
+				],
+				"withShared": true,
+				"withLocal": false
 			  },
 			  "volumeSize": 192,
 			  "volumeType": "gp2",
@@ -599,34 +599,34 @@ const expected = `
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng3b",
-			    "group": "b",
-			    "seq": "1"
+				"group": "b",
+				"seq": "1"
 			  },
 			  "ssh": {
-			    "allow": false
+				"allow": false
 			  },
 			  "iam": {
-			    "withAddonPolicies": {
-			  	  "imageBuilder": false,
-			  	  "autoScaler": false,
-			  	  "externalDNS": false,
-			  	  "certManager": false,
-			  	  "appMesh": false,
-			  	  "ebs": false,
-			  	  "fsx": false,
-			  	  "efs": false,
+				"withAddonPolicies": {
+				  "imageBuilder": false,
+				  "autoScaler": false,
+				  "externalDNS": false,
+				  "certManager": false,
+				  "appMesh": false,
+				  "ebs": false,
+				  "fsx": false,
+				  "efs": false,
 				  "albIngress": false,
 				  "xRay": false,
 				  "cloudWatch": false
-			    }
+				}
 			  },
-              "kubeletExtraConfig": {
-                "kubeReserved": {
-                  "cpu": "100m",
-                  "ephemeral-storage": "1.25Gi",
-                  "memory": "1.8Mi"
-                }
-              }
+			  "kubeletExtraConfig": {
+				"kubeReserved": {
+				  "cpu": "100m",
+				  "ephemeral-storage": "1.25Gi",
+				  "memory": "1.8Mi"
+				}
+			  }
 		  }
 		]
   }

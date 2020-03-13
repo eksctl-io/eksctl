@@ -25,6 +25,7 @@ all_generated_files := \
   pkg/addons/default/assets/aws-node.yaml \
   pkg/addons/assets.go \
   pkg/ami/static_resolver_ami.go \
+  pkg/insttypes/static_resolver_itypes.go \
   $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help

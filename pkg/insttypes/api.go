@@ -132,6 +132,7 @@ func (evci *EC2VCpuInfo) String() string {
 var EC2InstanceTypeMapping map[string]*EC2InstanceTypeInfo
 
 // supportedRegions are the regions where EKS is available
+// Copied over from pkg/apis/eksctl.io/v1alpha5 to avoid cycle dependencies
 func supportedRegions() []string {
 	return []string{
 		"us-west-2",
@@ -146,11 +147,13 @@ func supportedRegions() []string {
 		"ap-northeast-1",
 		"ap-northeast-2",
 		"ap-southeast-1",
-		// "ap-southest-2",
+		"ap-southeast-2",
 		"ap-south-1",
 		"ap-east-1",
 		"me-south-1",
 		"sa-east-1",
+		// "cn-northwest-1",  Current credentials don't work
+		// "cn-north-1",  Current credentials don't work
 	}
 }
 
@@ -160,8 +163,8 @@ func supportedRegions() []string {
 func GenerateRegionalInstanceTypesMap() map[string]map[string]*EC2InstanceTypeInfo {
 
 	clients := newMultiRegionClient()
+	regionMap := make(map[string]map[string]*EC2InstanceTypeInfo)
 
-	var regionMap map[string]map[string]*EC2InstanceTypeInfo = make(map[string]map[string]*EC2InstanceTypeInfo, len(supportedRegions()))
 	for _, region := range supportedRegions() {
 		client, ok := clients[region]
 		if !ok {
@@ -171,25 +174,28 @@ func GenerateRegionalInstanceTypesMap() map[string]map[string]*EC2InstanceTypeIn
 		if err != nil {
 			exitErrorf("unable to get instance types for region %s", err)
 		}
-		EC2InstanceTypeMapping := make(map[string]*EC2InstanceTypeInfo)
+
+		ec2InstanceTypeMapping := make(map[string]*EC2InstanceTypeInfo)
 		for _, itype := range regionalInstTypes {
-			EC2InstanceTypeMapping[itype.InstanceType] = itype
-			regionMap[region] = EC2InstanceTypeMapping
+			ec2InstanceTypeMapping[itype.InstanceType] = itype
+			regionMap[region] = ec2InstanceTypeMapping
 		}
 	}
 	return regionMap
 }
 
+// add EC2InstanceTypeInfos for each instance type, keyed by instance type name
 func getInstanceTypes(svc *ec2.EC2) ([]*EC2InstanceTypeInfo, error) {
 
-	//  Returns a list of key/value pairs
-	input := &ec2.DescribeInstanceTypesInput{}
-	instTypes, err := svc.DescribeInstanceTypes(input)
+	instTypes, err := svc.DescribeInstanceTypes(&ec2.DescribeInstanceTypesInput{})
 	if err != nil {
 		return nil, err
 	}
-	var itypes []*ec2.InstanceTypeInfo
 
+	var itypes []*ec2.InstanceTypeInfo
+	itypes = append(itypes, instTypes.InstanceTypes...)
+
+	// iterate to get all of them as necessary
 	token := instTypes.NextToken
 	for token != nil {
 		input := &ec2.DescribeInstanceTypesInput{NextToken: token}
@@ -198,9 +204,6 @@ func getInstanceTypes(svc *ec2.EC2) ([]*EC2InstanceTypeInfo, error) {
 			return nil, err
 		}
 		itypes = append(itypes, itypesOut.InstanceTypes...)
-		for _, instType := range itypesOut.InstanceTypes {
-			itypes = append(itypes, instType)
-		}
 		token = itypesOut.NextToken
 	}
 	return toEC2InstanceTypeInfos(itypes), nil
@@ -212,9 +215,7 @@ func exitErrorf(msg string, args ...interface{}) {
 }
 
 func newSession(region string) *session.Session {
-	config := aws.NewConfig()
-	config = config.WithRegion(region)
-	config = config.WithCredentialsChainVerboseErrors(true)
+	config := aws.NewConfig().WithRegion(region).WithCredentialsChainVerboseErrors(true)
 
 	// Create the options for the session
 	opts := session.Options{
