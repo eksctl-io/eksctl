@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
 	"github.com/weaveworks/eksctl/pkg/ctl/update"
+	"github.com/weaveworks/eksctl/pkg/ctl/edit"
 	"github.com/weaveworks/eksctl/pkg/ctl/utils"
 )
 
@@ -27,6 +28,7 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(create.Command(flagGrouping))
 	rootCmd.AddCommand(get.Command(flagGrouping))
 	rootCmd.AddCommand(update.Command(flagGrouping))
+	rootCmd.AddCommand(edit.Command(flagGrouping))
 	rootCmd.AddCommand(upgrade.Command(flagGrouping))
 	rootCmd.AddCommand(delete.Command(flagGrouping))
 	rootCmd.AddCommand(set.Command(flagGrouping))
