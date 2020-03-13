@@ -107,6 +107,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 
 	currentResources := gjson.Get(currentTemplate, resourcesRootPath)
 	currentOutputs := gjson.Get(currentTemplate, outputsRootPath)
+	currentMappings := gjson.Get(currentTemplate, mappingsRootPath)
 	if !currentResources.IsObject() || !currentOutputs.IsObject() {
 		return false, fmt.Errorf("unexpected template format of the current stack ")
 	}
@@ -125,7 +126,8 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 
 	newResources := gjson.Get(string(newTemplate), resourcesRootPath)
 	newOutputs := gjson.Get(string(newTemplate), outputsRootPath)
-	if !newResources.IsObject() || !newOutputs.IsObject() {
+	newMappings := gjson.Get(string(newTemplate), mappingsRootPath)
+	if !newResources.IsObject() || !newOutputs.IsObject() || !newMappings.IsObject() {
 		return false, errors.New("unexpected template format of the new version of the stack")
 	}
 
@@ -146,6 +148,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 	var (
 		addResources []string
 		addOutputs   []string
+		addMappings  []string
 	)
 
 	newResources.ForEach(func(k, v gjson.Result) bool {
@@ -161,7 +164,14 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 		return false, errors.Wrap(iterErr, "adding outputs to current stack template")
 	}
 
-	if len(addResources) == 0 && len(addOutputs) == 0 {
+	newMappings.ForEach(func(k, v gjson.Result) bool {
+		return iterFunc(&addMappings, mappingsRootPath, currentMappings, k, v)
+	})
+	if iterErr != nil {
+		return false, errors.Wrap(iterErr, "adding mappings to current stack template")
+	}
+
+	if len(addResources) == 0 && len(addOutputs) == 0 && len(addMappings) == 0 {
 		logger.Success("all resources in cluster stack %q are up-to-date", name)
 		return false, nil
 	}
