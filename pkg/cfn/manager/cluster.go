@@ -108,7 +108,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 	currentResources := gjson.Get(currentTemplate, resourcesRootPath)
 	currentOutputs := gjson.Get(currentTemplate, outputsRootPath)
 	currentMappings := gjson.Get(currentTemplate, mappingsRootPath)
-	if !currentResources.IsObject() || !currentOutputs.IsObject() || !currentMappings.IsObject() {
+	if !currentResources.IsObject() || !currentOutputs.IsObject() {
 		return false, fmt.Errorf("unexpected template format of the current stack ")
 	}
 
