@@ -19,6 +19,7 @@ import (
 const (
 	resourcesRootPath = "Resources"
 	outputsRootPath   = "Outputs"
+	mappingsRootPath  = "Mappings"
 )
 
 var (
