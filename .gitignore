@@ -36,9 +36,11 @@ integration/kubeconfig-*
 # Build image context and Docker Image ID file
 .build_image_context
 *.iid
-.docker/
+!.docker/
+.docker/*
 !.docker/build_image_manifest
 !.docker/image_tag
+
 # direnv's files:
 .envrc
 
