@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	
+
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
@@ -22,10 +22,10 @@ func editClusterCmd(cmd *cmdutils.Cmd) {
 
 // doEditClusterCmd edits a cluster by calling eksctl get, open data as yml in editor then update the cluster
 func doEditClusterCmd(cmd *cmdutils.Cmd) error {
-	 cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
-		 editor := GetEditorEnvironmentVariable("EDITOR")
-		 
-		 resourceData, err := exec.Command("eksctl", "get", args[0]).Output()
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		editor := GetEditorEnvironmentVariable("EDITOR")
+
+		resourceData, err := exec.Command("eksctl", "get", args[0]).Output()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -56,7 +56,7 @@ func doEditClusterCmd(cmd *cmdutils.Cmd) error {
 		}
 
 		exec.Command("eksctl", "edit", args[0], "-f", tmpfile.Name())
-	
+
 		return nil
 	}
 	return nil

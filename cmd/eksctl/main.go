@@ -15,12 +15,12 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/create"
 	"github.com/weaveworks/eksctl/pkg/ctl/delete"
 	"github.com/weaveworks/eksctl/pkg/ctl/drain"
+	"github.com/weaveworks/eksctl/pkg/ctl/edit"
 	"github.com/weaveworks/eksctl/pkg/ctl/enable"
 	"github.com/weaveworks/eksctl/pkg/ctl/generate"
 	"github.com/weaveworks/eksctl/pkg/ctl/get"
 	"github.com/weaveworks/eksctl/pkg/ctl/scale"
 	"github.com/weaveworks/eksctl/pkg/ctl/update"
-	"github.com/weaveworks/eksctl/pkg/ctl/edit"
 	"github.com/weaveworks/eksctl/pkg/ctl/utils"
 )
 
