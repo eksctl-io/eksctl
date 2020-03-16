@@ -34,6 +34,7 @@ type row struct {
 	PodExecutionRoleARN string
 	Subnets             []string
 	Selector            api.FargateProfileSelector
+	Tags                map[string]string
 }
 
 func toTable(profiles []*api.FargateProfile) []*row {
@@ -45,6 +46,7 @@ func toTable(profiles []*api.FargateProfile) []*row {
 				PodExecutionRoleARN: profile.PodExecutionRoleARN,
 				Subnets:             profile.Subnets,
 				Selector:            selector,
+				Tags:                profile.Tags,
 			})
 		}
 	}
@@ -69,5 +71,8 @@ func addFargateProfileColumns(printer *printers.TablePrinter) {
 			return "<none>"
 		}
 		return strings.Join(r.Subnets, ",")
+	})
+	printer.AddColumn("TAGS", func(r *row) string {
+		return labels.FormatLabels(r.Tags)
 	})
 }
