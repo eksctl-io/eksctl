@@ -222,6 +222,11 @@ FargateProfile:
       items:
         type: string
       type: array
+    tags:
+      patternProperties:
+        .*:
+          type: string
+      type: object
   required:
   - name
   - selectors
