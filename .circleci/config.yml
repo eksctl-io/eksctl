@@ -72,7 +72,7 @@ commands:
     steps:
       - run: exit 0
       - slack/status:
-          fail_only: true
+          fail_only: false
           mentions: 'team-aws'
           only_for_branches: master
 
