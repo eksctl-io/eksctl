@@ -130,7 +130,7 @@ func (m *runCmdMatcher) run(cmd Cmd) bool {
 	return false
 }
 
-// RunSuccessfully matches successful excution of a command
+// RunSuccessfully matches successful execution of a command
 func RunSuccessfully() types.GomegaMatcher {
 	return &runCmdMatcher{}
 }
@@ -203,7 +203,7 @@ func (m *runCmdOutputMatcher) Match(actual interface{}) (bool, error) {
 	if m.splitLines {
 		output = strings.Split(outputString, "\n")
 	} else {
-		output = string(outputString)
+		output = outputString
 	}
 
 	for _, outputMatcher := range m.outputMatchers {

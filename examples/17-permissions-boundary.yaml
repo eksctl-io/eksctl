@@ -1,0 +1,29 @@
+# An example of ClusterConfig with PermissionsBoundary:
+# For more details on permissions boundaries:
+# https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_bound
+#
+# FIXME: Should the permissions boundary ARN provided be replaced by a real ARN?
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-17
+  region: us-west-2
+
+iam:
+  withOIDC: true
+  serviceRolePermissionsBoundary: "arn:aws:iam:11111:policy/entity/boundary"
+  fargatePodExecutionRolePermissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
+  serviceAccounts:
+    - metadata:
+        name: s3-reader
+      attachPolicyARNs:
+      - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+      permissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
+
+nodeGroups:
+  - name: "ng-1"
+    desiredCapacity: 1
+    iam:
+      instanceRolePermissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"

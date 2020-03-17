@@ -40,9 +40,6 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
-	if ng.AMI == "" {
-		ng.AMI = "static"
-	}
 
 	if ng.SecurityGroups == nil {
 		ng.SecurityGroups = &NodeGroupSGs{
@@ -78,6 +75,11 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+
+	switch ng.AMIFamily {
+	case NodeImageFamilyBottlerocket:
+		setBottlerocketNodeGroupDefaults(ng)
+	}
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -172,11 +174,46 @@ func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName s
 	labels[NodeGroupNameLabel] = nodeGroupName
 }
 
+func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {
+	// Initialize config object if not present.
+	if ng.Bottlerocket == nil {
+		ng.Bottlerocket = &NodeGroupBottlerocket{}
+	}
+
+	// Default to resolving Bottlerocket images using SSM if not specified by
+	// the user.
+	if ng.AMI == "" {
+		ng.AMI = NodeImageResolverAutoSSM
+	}
+
+	// Use the SSH settings if the user hasn't explicitly configured the Admin
+	// Container. If SSH was enabled, the user will be able to ssh into the
+	// Bottlerocket node via the admin container.
+	if ng.Bottlerocket.EnableAdminContainer == nil && ng.SSH != nil {
+		ng.Bottlerocket.EnableAdminContainer = ng.SSH.Allow
+	}
+}
+
 // DefaultClusterNAT will set the default value for Cluster NAT mode
 func DefaultClusterNAT() *ClusterNAT {
 	single := ClusterSingleNAT
 	return &ClusterNAT{
 		Gateway: &single,
+	}
+}
+
+// SetClusterEndpointAccessDefaults sets the default values for cluster endpoint access
+func SetClusterEndpointAccessDefaults(vpc *ClusterVPC) {
+	if vpc.ClusterEndpoints == nil {
+		vpc.ClusterEndpoints = ClusterEndpointAccessDefaults()
+	}
+
+	if vpc.ClusterEndpoints.PublicAccess == nil {
+		vpc.ClusterEndpoints.PublicAccess = Enabled()
+	}
+
+	if vpc.ClusterEndpoints.PrivateAccess == nil {
+		vpc.ClusterEndpoints.PrivateAccess = Disabled()
 	}
 }
 
@@ -193,11 +230,11 @@ func ClusterEndpointAccessDefaults() *ClusterEndpoints {
 // the "default" and "kube-system" Kubernetes namespaces.
 func (c *ClusterConfig) SetDefaultFargateProfile() {
 	c.FargateProfiles = []*FargateProfile{
-		&FargateProfile{
+		{
 			Name: "fp-default",
 			Selectors: []FargateProfileSelector{
-				FargateProfileSelector{Namespace: "default"},
-				FargateProfileSelector{Namespace: "kube-system"},
+				{Namespace: "default"},
+				{Namespace: "kube-system"},
 			},
 		},
 	}

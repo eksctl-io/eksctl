@@ -17,7 +17,7 @@ nodeGroups:
     maxSize: 5
     instancesDistribution:
       maxPrice: 0.017
-      instanceTypes: ["t3.small", "t3.medium"] # At least two instance types should be specified
+      instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
       onDemandBaseCapacity: 0
       onDemandPercentageAboveBaseCapacity: 50
       spotInstancePools: 2
@@ -40,13 +40,30 @@ nodeGroups:
       maxPrice: 0.50
 ```
 
+This example uses the capacity-optimized spot allocation strategy:
+
+```yaml
+nodeGroups:
+  - name: ng-capacity-optimized
+    minSize: 2
+    maxSize: 5
+    instancesDistribution:
+      maxPrice: 0.017
+      instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 50
+      spotAllocationStrategy: "capacity-optimized"
+```
+
+Note that the `spotInstancePools` field shouldn't be set when using the `spotAllocationStrategy` field. If the `spotAllocationStrategy` is not specified, EC2 will default to use the `lowest-price` strategy. 
+
 Here is a minimal example:
 
 ```yaml
 nodeGroups:
   - name: ng-1
     instancesDistribution:
-      instanceTypes: ["t3.small", "t3.medium"] # At least two instance types should be specified
+      instanceTypes: ["t3.small", "t3.medium"] # At least one instance type should be specified
 ```
 
 ### Parameters in instancesDistribution
@@ -58,3 +75,4 @@ nodeGroups:
 | onDemandBaseCapacity                | int         | optional | 0               |
 | onDemandPercentageAboveBaseCapacity | int [1-100] | optional | 100             |
 | spotInstancePools                   | int [1-20]  | optional | 2               |
+| spotAllocationStrategy              | string      | optional | -               |

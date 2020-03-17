@@ -69,6 +69,7 @@ type Properties struct {
 
 	VPCZoneIdentifier interface{}
 
+	LoadBalancerNames                 []string
 	TargetGroupARNs                   []string
 	DesiredCapacity, MinSize, MaxSize string
 
@@ -106,6 +107,7 @@ type Properties struct {
 			OnDemandPercentageAboveBaseCapacity string
 			SpotMaxPrice                        string
 			SpotInstancePools                   string
+			SpotAllocationStrategy              string
 		}
 	}
 }
@@ -158,7 +160,11 @@ users:
       - -i
       - ` + clusterName + `
       command: ` + authenticator + `
-      env: null
+      env:
+      - name: AWS_STS_REGIONAL_ENDPOINTS
+        value: regional
+      - name: AWS_DEFAULT_REGION
+        value: us-west-2
 `
 }
 
@@ -368,7 +374,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 				}
 				p.MockEC2().On("DescribeSubnets", mock.MatchedBy(func(input *ec2.DescribeSubnetsInput) bool {
-					fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
+					_, _ = fmt.Fprintf(GinkgoWriter, "%s subnets = %#v\n", t, output)
 					return joinCompare(input, list)
 				})).Return(output, nil)
 			}
@@ -393,13 +399,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN: arn,
+				ARN:                      arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
 			IAM: &api.ClusterIAM{
-				ServiceRoleARN:             aws.String(arn),
-				FargatePodExecutionRoleARN: aws.String(fargatePodExecutionRoleARN),
+				ServiceRoleARN: aws.String(arn),
 			},
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
@@ -450,12 +455,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		setSubnets(cfg)
 
 		sampleOutputs := map[string]string{
-			"SecurityGroup":            "sg-0b44c48bcba5b7362",
-			"SubnetsPublic":            subnetsPublic,
-			"SubnetsPrivate":           subnetsPrivate,
-			"VPC":                      vpcID,
-			"Endpoint":                 endpoint,
-			"CertificateAuthorityData": caCert,
+			"SecurityGroup":              "sg-0b44c48bcba5b7362",
+			"SubnetsPublic":              subnetsPublic,
+			"SubnetsPrivate":             subnetsPrivate,
+			"VPC":                        vpcID,
+			"Endpoint":                   endpoint,
+			"CertificateAuthorityData":   caCert,
 			"ARN":                        arn,
 			"ClusterStackName":           "",
 			"SharedNodeSecurityGroup":    "sg-shared",
@@ -756,6 +761,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	Context("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
+		ng.ClassicLoadBalancerNames = []string{"clb-1", "clb-2"}
 		ng.TargetGroupARNs = []string{"tg-arn-1", "tg-arn-2"}
 
 		ng.MinSize = new(int)
@@ -781,10 +787,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(role.Path).To(Equal("/"))
 			Expect(role.RoleName).To(Equal("a-named-role"))
-			Expect(role.ManagedPolicyArns).To(ConsistOf("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-				"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"))
+			Expect(role.ManagedPolicyArns).To(ConsistOf(makePolicyARNRef("AmazonEKSWorkerNodePolicy",
+				"AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly")...))
 
-			checkARPD([]string{"ec2.amazonaws.com"}, role.AssumeRolePolicyDocument)
+			checkARPD([]string{"EC2"}, role.AssumeRolePolicyDocument)
 
 			Expect(ngTemplate.Resources).To(HaveKey("NodeInstanceProfile"))
 
@@ -850,6 +856,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngProps.Tags).To(Equal(expectedTags))
 		})
 
+		It("should have classic load balancer names set", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+			ng := ngTemplate.Resources["NodeGroup"]
+			Expect(ng).ToNot(BeNil())
+			Expect(ng.Properties).ToNot(BeNil())
+
+			Expect(ng.Properties.LoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
+		})
+
 		It("should have target groups ARNs set", func() {
 			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
 			ng := ngTemplate.Resources["NodeGroup"]
@@ -891,7 +906,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::hostedzone/*",
+			}))
 			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ChangeResourceRecordSets",
 			}))
@@ -964,7 +981,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::hostedzone/*"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::hostedzone/*",
+			}))
 			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ChangeResourceRecordSets",
 			}))
@@ -994,7 +1013,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
-			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("arn:aws:route53:::change/*"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::change/*",
+			}))
 			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:GetChange",
 			}))
@@ -1141,9 +1162,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			role := ngTemplate.Resources["NodeInstanceRole"].Properties
 
-			Expect(role.ManagedPolicyArns).To(ConsistOf("arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-				"arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
-				"arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"))
+			Expect(role.ManagedPolicyArns).To(ConsistOf(makePolicyARNRef("AmazonEKSWorkerNodePolicy",
+				"AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "CloudWatchAgentServerPolicy")))
 		})
 	})
 
@@ -1178,11 +1198,14 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"ec2:DeleteSnapshot",
 				"ec2:DeleteTags",
 				"ec2:DeleteVolume",
+				"ec2:DescribeAvailabilityZones",
 				"ec2:DescribeInstances",
 				"ec2:DescribeSnapshots",
 				"ec2:DescribeTags",
 				"ec2:DescribeVolumes",
+				"ec2:DescribeVolumesModifications",
 				"ec2:DetachVolume",
+				"ec2:ModifyVolume",
 			}))
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAutoScaling"))
@@ -1565,7 +1588,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			refSubnets := []interface{}{
 				cfg.VPC.Subnets.Public["us-west-2a"].ID,
 			}
-			Expect(x).To((Equal(refSubnets)))
+			Expect(x).To(Equal(refSubnets))
 
 			ltd := getLaunchTemplateData(ngTemplate)
 
@@ -2147,6 +2170,33 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	Context("with Fargate profiles", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+		name := "test-fargate-profile"
+		cfg.Metadata.Name = name
+		cfg.FargateProfiles = []*api.FargateProfile{
+			// default fargate profile
+			{
+				Name: "fp-default",
+				Selectors: []api.FargateProfileSelector{
+					{Namespace: "default"},
+					{Namespace: "kube-system"},
+				},
+			},
+		}
+		build(cfg, fmt.Sprintf("eksctl-%s-cluster", name), ng)
+		roundtrip()
+
+		It("should have the Fargate pod execution role", func() {
+			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
+			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
+			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
+			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
+			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
+			Expect(clusterTemplate.Resources).To(HaveLen(5))
+		})
+	})
+
 	Context("without VPC and IAM", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
@@ -2162,10 +2212,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		roundtrip()
 
-		It("should only have EKS and Fargate resources", func() {
+		It("should only have EKS resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
-			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
-			Expect(clusterTemplate.Resources).To(HaveLen(2))
+			Expect(clusterTemplate.Resources).To(HaveLen(1))
 
 			cp := clusterTemplate.Resources["ControlPlane"].Properties
 
@@ -2193,20 +2242,19 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have EKS and IAM resources", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("ControlPlane"))
 			Expect(clusterTemplate.Resources).To(HaveKey("ServiceRole"))
-			Expect(clusterTemplate.Resources).To(HaveKey("FargatePodExecutionRole"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyNLB"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PolicyCloudWatchMetrics"))
-			Expect(clusterTemplate.Resources).To(HaveLen(5))
+			Expect(clusterTemplate.Resources).To(HaveLen(4))
 		})
 
 		It("should have correct own IAM resources", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties).ToNot(BeNil())
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal([]interface{}{
-				"arn:aws:iam::aws:policy/AmazonEKSServicePolicy",
-				"arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
-			}))
 
-			checkARPD([]string{"eks.amazonaws.com", "eks-fargate-pods.amazonaws.com"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
+			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal(makePolicyARNRef(
+				"AmazonEKSServicePolicy", "AmazonEKSClusterPolicy",
+			)))
+
+			checkARPD([]string{"EKS", "EKSFargatePods"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
 
 			policy1 := clusterTemplate.Resources["PolicyNLB"].Properties
 
@@ -2292,7 +2340,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(33))
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2387,7 +2435,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				}
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(40))
+			Expect(len(clusterTemplate.Resources)).To(Equal(39))
 		})
 
 		It("should use own VPC and subnets", func() {
@@ -2464,7 +2512,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(37))
+			Expect(len(clusterTemplate.Resources)).To(Equal(36))
 		})
 
 		It("should route Internet traffic from private subnets through their corresponding NAT gateways", func() {
@@ -2510,7 +2558,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(33))
+			Expect(len(clusterTemplate.Resources)).To(Equal(32))
 		})
 
 		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
@@ -2553,7 +2601,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 				Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociationPrivate" + region + zone))
 			}
 
-			Expect(len(clusterTemplate.Resources)).To(Equal(28))
+			Expect(len(clusterTemplate.Resources)).To(Equal(27))
 
 		})
 
@@ -2574,6 +2622,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		baseCap := 40
 		percentageOnDemand := 20
 		pools := 3
+		spotAllocationStrategy := "lowest-price"
 		ng.InstanceType = "mixed"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
@@ -2581,6 +2630,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			OnDemandBaseCapacity:                &baseCap,
 			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
 			SpotInstancePools:                   &pools,
+			SpotAllocationStrategy:              &spotAllocationStrategy,
 		}
 
 		zero := 0
@@ -2613,6 +2663,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.OnDemandPercentageAboveBaseCapacity).To(Equal("20"))
 			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotInstancePools).To(Equal("3"))
 			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotMaxPrice).To(Equal("0.045000"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotAllocationStrategy).To(Equal("lowest-price"))
 
 		})
 	})
@@ -2661,7 +2712,11 @@ func getLaunchTemplateData(obj *Template) LaunchTemplateData {
 }
 
 func checkARPD(services []string, arpd interface{}) {
-	servicesJSON, err := json.Marshal(services)
+	var serviceRefs []*gfn.Value
+	for _, service := range services {
+		serviceRefs = append(serviceRefs, MakeServiceRef(service))
+	}
+	servicesJSON, err := json.Marshal(serviceRefs)
 	Expect(err).ToNot(HaveOccurred())
 
 	expectedARPD := `{
@@ -2676,4 +2731,14 @@ func checkARPD(services []string, arpd interface{}) {
 	}`
 	actualARPD, _ := json.Marshal(arpd)
 	Expect(actualARPD).To(MatchJSON([]byte(expectedARPD)))
+}
+
+func makePolicyARNRef(policies ...string) []interface{} {
+	var values []interface{}
+	for _, p := range policies {
+		values = append(values, map[string]interface{}{
+			"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/" + p,
+		})
+	}
+	return values
 }

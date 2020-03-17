@@ -28,6 +28,8 @@ type CreateOptions struct {
 	ProfileSelectorNamespace string
 	// +optional
 	ProfileSelectorLabels map[string]string
+	// +optional
+	Tags map[string]string
 }
 
 // Validate validates this Options object's fields.
@@ -46,10 +48,11 @@ func (o CreateOptions) ToFargateProfile() *api.FargateProfile {
 	return &api.FargateProfile{
 		Name: names.ForFargateProfile(o.ProfileName),
 		Selectors: []api.FargateProfileSelector{
-			api.FargateProfileSelector{
+			{
 				Namespace: o.ProfileSelectorNamespace,
 				Labels:    o.ProfileSelectorLabels,
 			},
 		},
+		Tags: o.Tags,
 	}
 }

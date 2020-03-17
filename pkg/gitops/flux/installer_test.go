@@ -1,16 +1,13 @@
 package flux
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
-
 	"github.com/instrumenta/kubeval/kubeval"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/git"
+	"io/ioutil"
 	"k8s.io/client-go/kubernetes/fake"
-	"sigs.k8s.io/yaml"
+	"os"
 )
 
 var _ = Describe("Installer", func() {
@@ -37,46 +34,21 @@ var _ = Describe("Installer", func() {
 	})
 
 	defer os.RemoveAll(tmpDir)
-	pki := &publicKeyInfrastructure{
-		caCertificate:     []byte("caCertificateContent"),
-		caKey:             []byte("caKeyContent"),
-		serverCertificate: []byte("caCertificateContent"),
-		serverKey:         []byte("serverKeyContent"),
-		clientCertificate: []byte("clientCertificateContent"),
-		clientKey:         []byte("clientKeyContent"),
-	}
-	pkiPaths := &publicKeyInfrastructurePaths{
-		caKey:             filepath.Join(tmpDir, "ca-key.pem"),
-		caCertificate:     filepath.Join(tmpDir, "ca.pem"),
-		serverKey:         filepath.Join(tmpDir, "tiller-key.pem"),
-		serverCertificate: filepath.Join(tmpDir, "tiller.pem"),
-		clientKey:         filepath.Join(tmpDir, "flux-helm-operator-key.pem"),
-		clientCertificate: filepath.Join(tmpDir, "flux-helm-operator.pem"),
-	}
-	err = pki.saveTo(pkiPaths)
 	It("should not error", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	manifests, secrets, err := mockInstaller.getManifestsAndSecrets(pki, pkiPaths)
+	manifests, err := mockInstaller.getManifests()
 	It("should not error", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 	It("should match expected lengths", func() {
-		Expect(len(manifests)).To(Equal(13))
-		Expect(len(secrets)).To(Equal(2))
+		Expect(len(manifests)).To(Equal(9))
 	})
 
 	manifestContents := [][]byte{}
 	for _, manifest := range manifests {
 		manifestContents = append(manifestContents, manifest)
-	}
-	for _, secret := range secrets {
-		content, err := yaml.Marshal(secret)
-		It("should not error", func() {
-			Expect(err).NotTo(HaveOccurred())
-		})
-		manifestContents = append(manifestContents, content)
 	}
 
 	config := &kubeval.Config{

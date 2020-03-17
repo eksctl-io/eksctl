@@ -47,6 +47,26 @@ nodeGroups:
       publicKeyName: 'my-instance-key'
     tags:
       'environment:basedomain': 'example.org'
+
+managedNodeGroups:
+  - name: managed-1
+    instanceType: m5.large
+    minSize: 2
+    desiredCapacity: 3
+    maxSize: 4
+    availabilityZones: ["us-west-2a", "us-west-2b"]
+    volumeSize: 20
+    ssh:
+      allow: false
+    labels: {role: worker}
+    tags:
+      'environment:basedomain': 'example.org'
+    iam:
+      instanceRoleARN: "arn:aws:iam::1111:role/eks-nodes-base-role"
+      withAddonPolicies:
+        externalDNS: true
+        certManager: true
+
 ```
 
 [comment]: <> (TODO explain in more detail)

@@ -54,6 +54,9 @@ ClusterConfig:
         $ref: '#/definitions/NodeGroup'
         $schema: http://json-schema.org/draft-04/schema#
       type: array
+    secretsEncryption:
+      $ref: '#/definitions/SecretsEncryption'
+      $schema: http://json-schema.org/draft-04/schema#
     status:
       $ref: '#/definitions/ClusterStatus'
       $schema: http://json-schema.org/draft-04/schema#
@@ -77,12 +80,16 @@ ClusterIAM:
   properties:
     fargatePodExecutionRoleARN:
       type: string
+    fargatePodExecutionRolePermissionsBoundary:
+      type: string
     serviceAccounts:
       items:
         $ref: '#/definitions/ClusterIAMServiceAccount'
         $schema: http://json-schema.org/draft-04/schema#
       type: array
     serviceRoleARN:
+      type: string
+    serviceRolePermissionsBoundary:
       type: string
     withOIDC:
       type: boolean
@@ -103,6 +110,8 @@ ClusterIAMServiceAccount:
     metadata:
       $ref: '#/definitions/ObjectMeta'
       $schema: http://json-schema.org/draft-04/schema#
+    permissionsBoundary:
+      type: string
     status:
       $ref: '#/definitions/ClusterIAMServiceAccountStatus'
       $schema: http://json-schema.org/draft-04/schema#
@@ -213,6 +222,11 @@ FargateProfile:
       items:
         type: string
       type: array
+    tags:
+      patternProperties:
+        .*:
+          type: string
+      type: object
   required:
   - name
   - selectors
@@ -332,6 +346,13 @@ NodeGroup:
       items:
         type: string
       type: array
+    bottlerocket:
+      $ref: '#/definitions/NodeGroupBottlerocket'
+      $schema: http://json-schema.org/draft-04/schema#
+    classicLoadBalancerNames:
+      items:
+        type: string
+      type: array
     clusterDNS:
       type: string
     desiredCapacity:
@@ -413,6 +434,18 @@ NodeGroup:
   - volumeIOPS
   - iam
   type: object
+NodeGroupBottlerocket:
+  additionalProperties: false
+  properties:
+    enableAdminContainer:
+      type: boolean
+    settings:
+      patternProperties:
+        .*:
+          additionalProperties: true
+          type: object
+      type: object
+  type: object
 NodeGroupIAM:
   additionalProperties: false
   properties:
@@ -425,6 +458,8 @@ NodeGroupIAM:
     instanceRoleARN:
       type: string
     instanceRoleName:
+      type: string
+    instanceRolePermissionsBoundary:
       type: string
     withAddonPolicies:
       $ref: '#/definitions/NodeGroupIAMAddonPolicies'
@@ -481,13 +516,10 @@ NodeGroupInstancesDistribution:
       type: integer
     onDemandPercentageAboveBaseCapacity:
       type: integer
+    spotAllocationStrategy:
+      type: string
     spotInstancePools:
       type: integer
-  required:
-  - instanceTypes
-  - onDemandBaseCapacity
-  - onDemandPercentageAboveBaseCapacity
-  - spotInstancePools
   type: object
 NodeGroupSGs:
   additionalProperties: false
@@ -601,6 +633,12 @@ ScalingConfig:
       type: integer
     minSize:
       type: integer
+  type: object
+SecretsEncryption:
+  additionalProperties: false
+  properties:
+    keyARN:
+      type: string
   type: object
 Status:
   additionalProperties: false

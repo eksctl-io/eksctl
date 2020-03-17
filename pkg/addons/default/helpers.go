@@ -3,7 +3,6 @@ package defaultaddons
 import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

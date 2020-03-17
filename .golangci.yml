@@ -152,14 +152,20 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - gofmt
-    - unused
-    - govet
-    - golint
-    - errcheck
     - deadcode
-    - misspell
+    - errcheck
+    - gofmt
     - goimports
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
     # TODO: enable the below linter in the future
 #    - maligned
 #    - prealloc

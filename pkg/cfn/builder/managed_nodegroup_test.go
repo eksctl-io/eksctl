@@ -9,7 +9,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func TestManagedResources(t *testing.T) {
+func TestManagedPolicyResources(t *testing.T) {
 	iamRoleTests := []struct {
 		addons                  api.NodeGroupIAMAddonPolicies
 		attachPolicyARNs        []string
@@ -17,32 +17,34 @@ func TestManagedResources(t *testing.T) {
 		description             string
 	}{
 		{
-			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly"},
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly"),
 			description:             "Default policies",
 		},
 		{
 			addons: api.NodeGroupIAMAddonPolicies{
 				ImageBuilder: api.Enabled(),
 			},
-			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "AmazonEC2ContainerRegistryPowerUser"},
-			description:             "ImageBuilder enabled",
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy",
+				"AmazonEC2ContainerRegistryReadOnly", "AmazonEC2ContainerRegistryPowerUser"),
+			description: "ImageBuilder enabled",
 		},
 		{
 			addons: api.NodeGroupIAMAddonPolicies{
 				CloudWatch: api.Enabled(),
 			},
-			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy", "AmazonEC2ContainerRegistryReadOnly", "CloudWatchAgentServerPolicy"},
-			description:             "CloudWatch enabled",
+			expectedManagedPolicies: makePartitionedPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy",
+				"AmazonEC2ContainerRegistryReadOnly", "CloudWatchAgentServerPolicy"),
+			description: "CloudWatch enabled",
 		},
 		{
 			attachPolicyARNs:        []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy"},
-			expectedManagedPolicies: []string{"AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy"},
+			expectedManagedPolicies: prefixPolicies("AmazonEKSWorkerNodePolicy", "AmazonEKS_CNI_Policy"),
 			description:             "Custom policies",
 		},
 		// should not attach any additional policies
 		{
 			attachPolicyARNs:        []string{"CloudWatchAgentServerPolicy"},
-			expectedManagedPolicies: []string{"CloudWatchAgentServerPolicy"},
+			expectedManagedPolicies: prefixPolicies("CloudWatchAgentServerPolicy"),
 			description:             "Custom policies",
 		},
 		// no duplicate values
@@ -51,7 +53,7 @@ func TestManagedResources(t *testing.T) {
 			addons: api.NodeGroupIAMAddonPolicies{
 				ImageBuilder: api.Enabled(),
 			},
-			expectedManagedPolicies: []string{"AmazonEC2ContainerRegistryPowerUser"},
+			expectedManagedPolicies: prefixPolicies("AmazonEC2ContainerRegistryPowerUser"),
 			description:             "Duplicate policies",
 		},
 		{
@@ -60,7 +62,7 @@ func TestManagedResources(t *testing.T) {
 				ImageBuilder: api.Enabled(),
 				CloudWatch:   api.Enabled(),
 			},
-			expectedManagedPolicies: []string{"CloudWatchAgentServerPolicy", "AmazonEC2ContainerRegistryPowerUser"},
+			expectedManagedPolicies: prefixPolicies("CloudWatchAgentServerPolicy", "AmazonEC2ContainerRegistryPowerUser"),
 			description:             "Multiple duplicate policies",
 		},
 	}
@@ -72,11 +74,11 @@ func TestManagedResources(t *testing.T) {
 
 			ng := api.NewManagedNodeGroup()
 			ng.IAM.WithAddonPolicies = tt.addons
-			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs)
+			ng.IAM.AttachPolicyARNs = prefixPolicies(tt.attachPolicyARNs...)
 
 			stack := NewManagedNodeGroup(clusterConfig, ng, "iam-test")
 			err := stack.AddAllResources()
-			assert.NoError(err)
+			assert.Nil(err)
 
 			bytes, err := stack.RenderJSON()
 			assert.NoError(err)
@@ -87,14 +89,75 @@ func TestManagedResources(t *testing.T) {
 			role, ok := template.GetAllIAMRoleResources()["NodeInstanceRole"]
 			assert.True(ok)
 
-			assert.ElementsMatch(prefixPolicies(tt.expectedManagedPolicies), role.ManagedPolicyArns)
+			assert.ElementsMatch(tt.expectedManagedPolicies, role.ManagedPolicyArns)
 
 		})
 	}
 
 }
 
-func prefixPolicies(policies []string) []string {
+func TestManagedNodeRole(t *testing.T) {
+	nodeRoleTests := []struct {
+		description         string
+		nodeGroup           *api.ManagedNodeGroup
+		expectedNewRole     bool
+		expectedNodeRoleARN string
+	}{
+		{
+			description: "InstanceRoleARN is not provided",
+			nodeGroup: &api.ManagedNodeGroup{
+				ScalingConfig: &api.ScalingConfig{},
+				SSH: &api.NodeGroupSSH{
+					Allow: api.Disabled(),
+				},
+				IAM: &api.NodeGroupIAM{},
+			},
+			expectedNewRole:     true,
+			expectedNodeRoleARN: fmt.Sprintf("\"Fn::GetAtt\":\"%s.Arn\"", cfnIAMInstanceRoleName), // creating new role
+		},
+		{
+			description: "InstanceRoleARN is provided",
+			nodeGroup: &api.ManagedNodeGroup{
+				ScalingConfig: &api.ScalingConfig{},
+				SSH: &api.NodeGroupSSH{
+					Allow: api.Disabled(),
+				},
+				IAM: &api.NodeGroupIAM{
+					InstanceRoleARN: "arn::DUMMY::DUMMYROLE",
+				},
+			},
+			expectedNewRole:     false,
+			expectedNodeRoleARN: "arn::DUMMY::DUMMYROLE", // using the provided role
+		},
+	}
+
+	for i, tt := range nodeRoleTests {
+		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
+			stack := NewManagedNodeGroup(api.NewClusterConfig(), tt.nodeGroup, "iam-test")
+			err := stack.AddAllResources()
+			assert.NoError(t, err)
+
+			bytes, err := stack.RenderJSON()
+			assert.NoError(t, err)
+
+			template, err := goformation.ParseJSON(bytes)
+			assert.Contains(t, string(bytes), tt.expectedNodeRoleARN)
+			assert.NoError(t, err)
+			_, ok := template.GetAllIAMRoleResources()[cfnIAMInstanceRoleName]
+			assert.Equal(t, tt.expectedNewRole, ok)
+		})
+	}
+}
+
+func makePartitionedPolicies(policies ...string) []string {
+	var partitionedPolicies []string
+	for _, policy := range policies {
+		partitionedPolicies = append(partitionedPolicies, "arn:${AWS::Partition}:iam::aws:policy/"+policy)
+	}
+	return partitionedPolicies
+}
+
+func prefixPolicies(policies ...string) []string {
 	var prefixedPolicies []string
 	for _, policy := range policies {
 		prefixedPolicies = append(prefixedPolicies, "arn:aws:iam::aws:policy/"+policy)

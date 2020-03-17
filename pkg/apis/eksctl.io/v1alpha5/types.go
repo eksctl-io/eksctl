@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/kops/util/pkg/slice"
 )
 
 const (
@@ -73,6 +74,12 @@ const (
 	// RegionSAEast1 represents the South America Region Sao Paulo
 	RegionSAEast1 = "sa-east-1"
 
+	// RegionCNNorthwest1 represents the China region Ningxia
+	RegionCNNorthwest1 = "cn-northwest-1"
+
+	// RegionCNNorth1 represents the China region Beijing
+	RegionCNNorth1 = "cn-north-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -90,6 +97,9 @@ const (
 
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
+
+	// Version1_15 represents Kubernetes version 1.15.x
+	Version1_15 = "1.15"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_14
@@ -118,6 +128,8 @@ const (
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
 	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
+	// NodeImageFamilyBottlerocket represents Bottlerocket family
+	NodeImageFamilyBottlerocket = "Bottlerocket"
 
 	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
@@ -132,6 +144,9 @@ const (
 	// NodeImageResolverAutoSSM is used to indicate that the latest EKS AMIs should be used for the nodes. The AMI is selected
 	// using an SSM GetParameter query
 	NodeImageResolverAutoSSM = "auto-ssm"
+
+	// EksctlVersionTag defines the version of eksctl which is used to provision or update EKS cluster
+	EksctlVersionTag = "alpha.eksctl.io/eksctl-version"
 
 	// ClusterNameTag defines the tag of the cluster name
 	ClusterNameTag = "alpha.eksctl.io/cluster-name"
@@ -169,6 +184,12 @@ const (
 	// ClusterDisableNAT defines the disabled NAT configuration option
 	ClusterDisableNAT = "Disable"
 
+	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
+	SpotAllocationStrategyLowestPrice = "lowest-price"
+
+	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
+	SpotAllocationStrategyCapacityOptimized = "capacity-optimized"
+
 	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
 	// for standard AWS partition
 	eksResourceAccountStandard = "602401143452"
@@ -178,6 +199,12 @@ const (
 
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
+
+	// eksResourceAccountCNNorthWest1 defines the AWS EKS account ID that provides node resources in cn-northwest-1 region
+	eksResourceAccountCNNorthWest1 = "961992271922"
+
+	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
+	eksResourceAccountCNNorth1 = "918309763551"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -247,6 +274,8 @@ func SupportedRegions() []string {
 		RegionAPEast1,
 		RegionMESouth1,
 		RegionSAEast1,
+		RegionCNNorthwest1,
+		RegionCNNorth1,
 	}
 }
 
@@ -266,6 +295,7 @@ func SupportedVersions() []string {
 		Version1_12,
 		Version1_13,
 		Version1_14,
+		Version1_15,
 	}
 }
 
@@ -279,6 +309,19 @@ func SupportedNodeVolumeTypes() []string {
 	}
 }
 
+// supportedSpotAllocationStrategies are the spot allocation strategies supported by ASG
+func supportedSpotAllocationStrategies() []string {
+	return []string{
+		SpotAllocationStrategyLowestPrice,
+		SpotAllocationStrategyCapacityOptimized,
+	}
+}
+
+// isSpotAllocationStrategySupported returns true if the spot allocation strategy is supported for ASG
+func isSpotAllocationStrategySupported(allocationStrategy string) bool {
+	return slice.Contains(supportedSpotAllocationStrategies(), allocationStrategy)
+}
+
 // EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
 // for different aws partitions & opt-in regions.
 func EKSResourceAccountID(region string) string {
@@ -287,6 +330,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAPEast1
 	case RegionMESouth1:
 		return eksResourceAccountMESouth1
+	case RegionCNNorthwest1:
+		return eksResourceAccountCNNorthWest1
+	case RegionCNNorth1:
+		return eksResourceAccountCNNorth1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -396,6 +443,9 @@ type ClusterConfig struct {
 
 	// +optional
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
+
+	// +optional
+	SecretsEncryption *SecretsEncryption `json:"secretsEncryption,omitempty"`
 
 	Status *ClusterStatus `json:"status,omitempty"`
 }
@@ -592,6 +642,9 @@ type NodeGroup struct {
 	Taints map[string]string `json:"taints,omitempty"`
 
 	// +optional
+	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
+
+	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
 	// +optional
@@ -599,6 +652,9 @@ type NodeGroup struct {
 
 	// +optional
 	IAM *NodeGroupIAM `json:"iam"`
+
+	// +optional
+	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
 
 	// +optional
 	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
@@ -657,6 +713,8 @@ type (
 		// +optional
 		InstanceRoleName string `json:"instanceRoleName,omitempty"`
 		// +optional
+		InstanceRolePermissionsBoundary string `json:"instanceRolePermissionsBoundary,omitempty"`
+		// +optional
 		WithAddonPolicies NodeGroupIAMAddonPolicies `json:"withAddonPolicies,omitempty"`
 	}
 	// NodeGroupIAMAddonPolicies holds all IAM addon policies
@@ -702,15 +760,26 @@ type (
 	// NodeGroupInstancesDistribution holds the configuration for spot instances
 	NodeGroupInstancesDistribution struct {
 		//+required
-		InstanceTypes []string `json:"instanceTypes,omitEmpty"`
+		InstanceTypes []string `json:"instanceTypes,omitempty"`
 		// +optional
 		MaxPrice *float64 `json:"maxPrice,omitempty"`
 		//+optional
-		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitEmpty"`
+		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitempty"`
 		//+optional
-		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitEmpty"`
+		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
 		//+optional
-		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
+		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
+		//+optional
+		SpotAllocationStrategy *string `json:"spotAllocationStrategy,omitempty"`
+	}
+
+	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
+	// NodeGroups.
+	NodeGroupBottlerocket struct {
+		// +optional
+		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
+		// +optional
+		Settings *InlineDocument `json:"settings,omitempty"`
 	}
 )
 
@@ -788,7 +857,7 @@ func (in *InlineDocument) DeepCopy() *InlineDocument {
 		return nil
 	}
 	out := new(InlineDocument)
-	*out = InlineDocument(runtime.DeepCopyJSON(*in))
+	*out = runtime.DeepCopyJSON(*in)
 	return out
 }
 
@@ -797,7 +866,7 @@ func HasMixedInstances(ng *NodeGroup) bool {
 	return ng.InstancesDistribution != nil && len(ng.InstancesDistribution.InstanceTypes) > 0
 }
 
-// IsAMI returns true if the argument is an AMI id
+// IsAMI returns true if the argument is an AMI ID
 func IsAMI(amiFlag string) bool {
 	return strings.HasPrefix(amiFlag, "ami-")
 }
@@ -814,6 +883,9 @@ type FargateProfile struct {
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
 	Subnets []string `json:"subnets,omitempty"`
+
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
@@ -823,4 +895,9 @@ type FargateProfileSelector struct {
 	// +optional
 	// Labels are the Kubernetes label selectors to use to select workload.
 	Labels map[string]string `json:"labels,omitempty"`
+}
+
+// SecretsEncryption defines the configuration for KMS encryption provider
+type SecretsEncryption struct {
+	KeyARN *string `json:"keyARN,omitempty"`
 }

@@ -6,13 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"github.com/weaveworks/eksctl/pkg/testutils"
-	"testing"
 )
-
-func TestSuite(t *testing.T) {
-	testutils.RegisterAndRun(t)
-}
 
 var _ = Describe("get", func() {
 	Describe("get fargateprofile", func() {
@@ -91,7 +85,7 @@ type mockGetFargateProfileCmd struct {
 
 func (c mockGetFargateProfileCmd) execute() (string, error) {
 	buf := new(bytes.Buffer)
-	c.parentCmd.SetOutput(buf)
+	c.parentCmd.SetOut(buf)
 	err := c.parentCmd.Execute()
 	return buf.String(), err
 }

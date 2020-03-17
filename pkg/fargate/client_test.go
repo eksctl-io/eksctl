@@ -203,13 +203,16 @@ func testFargateProfile() *api.FargateProfile {
 	return &api.FargateProfile{
 		Name: "default",
 		Selectors: []api.FargateProfileSelector{
-			api.FargateProfileSelector{
+			{
 				Namespace: "kube-system",
 				Labels: map[string]string{
 					"app": "my-app",
 					"env": "test",
 				},
 			},
+		},
+		Tags: map[string]string{
+			"env": "test",
 		},
 	}
 }
@@ -219,13 +222,16 @@ func testCreateFargateProfileInput() *eks.CreateFargateProfileInput {
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: strings.Pointer("default"),
 		Selectors: []*eks.FargateProfileSelector{
-			&eks.FargateProfileSelector{
+			{
 				Namespace: strings.Pointer("kube-system"),
 				Labels: map[string]*string{
 					"app": strings.Pointer("my-app"),
 					"env": strings.Pointer("test"),
 				},
 			},
+		},
+		Tags: map[string]*string{
+			"env": strings.Pointer("test"),
 		},
 	}
 }
@@ -276,7 +282,7 @@ func eksFargateProfile(name, status string) *eks.FargateProfile {
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: strings.Pointer(name),
 		Selectors: []*eks.FargateProfileSelector{
-			&eks.FargateProfileSelector{
+			{
 				Namespace: strings.Pointer(name),
 			},
 		},
@@ -288,12 +294,13 @@ func apiFargateProfile(name string) *api.FargateProfile {
 	return &api.FargateProfile{
 		Name: name,
 		Selectors: []api.FargateProfileSelector{
-			api.FargateProfileSelector{
+			{
 				Namespace: name,
 				Labels:    map[string]string{},
 			},
 		},
 		Subnets: []string{},
+		Tags:    map[string]string{},
 	}
 }
 

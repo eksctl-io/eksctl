@@ -50,6 +50,8 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		n.spec.AMIFamily, api.IsEnabled(n.spec.SSH.Allow), n.spec.PrivateNetworking,
 		templateDescriptionSuffix)
 
+	n.Template().Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeaturePrivateNetworking, n.spec.PrivateNetworking, false)
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureSharedSecurityGroup, n.spec.SecurityGroups.WithShared, false)
 	n.rs.defineOutputWithoutCollector(outputs.NodeGroupFeatureLocalSecurityGroup, n.spec.SecurityGroups.WithLocal, false)
@@ -89,7 +91,9 @@ func (n *NodeGroupResourceSet) AddAllResources() error {
 		return fmt.Errorf("cannot use --nodes-min=%d and --nodes-max=%d at the same time", *n.spec.MinSize, *n.spec.MaxSize)
 	}
 
-	n.addResourcesForIAM()
+	if err := n.addResourcesForIAM(); err != nil {
+		return err
+	}
 	n.addResourcesForSecurityGroups()
 
 	return n.addResourcesForNodeGroup()
@@ -269,6 +273,9 @@ func nodeGroupResource(launchTemplateName *gfn.Value, vpcZoneIdentifier interfac
 	if ng.MaxSize != nil {
 		ngProps["MaxSize"] = fmt.Sprintf("%d", *ng.MaxSize)
 	}
+	if len(ng.ClassicLoadBalancerNames) > 0 {
+		ngProps["LoadBalancerNames"] = ng.ClassicLoadBalancerNames
+	}
 	if len(ng.TargetGroupARNs) > 0 {
 		ngProps["TargetGroupARNs"] = ng.TargetGroupARNs
 	}
@@ -327,6 +334,10 @@ func mixedInstancesPolicy(launchTemplateName *gfn.Value, ng *api.NodeGroup) *map
 	}
 	if ng.InstancesDistribution.SpotInstancePools != nil {
 		instancesDistribution["SpotInstancePools"] = fmt.Sprintf("%d", *ng.InstancesDistribution.SpotInstancePools)
+	}
+
+	if ng.InstancesDistribution.SpotAllocationStrategy != nil {
+		instancesDistribution["SpotAllocationStrategy"] = *ng.InstancesDistribution.SpotAllocationStrategy
 	}
 
 	policy["InstancesDistribution"] = instancesDistribution
