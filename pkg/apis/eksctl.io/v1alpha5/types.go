@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/kops/util/pkg/slice"
 )
 
 const (
@@ -97,6 +98,9 @@ const (
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
 
+	// Version1_15 represents Kubernetes version 1.15.x
+	Version1_15 = "1.15"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_14
 
@@ -124,6 +128,8 @@ const (
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
 	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
+	// NodeImageFamilyBottlerocket represents Bottlerocket family
+	NodeImageFamilyBottlerocket = "Bottlerocket"
 
 	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
@@ -177,6 +183,12 @@ const (
 
 	// ClusterDisableNAT defines the disabled NAT configuration option
 	ClusterDisableNAT = "Disable"
+
+	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
+	SpotAllocationStrategyLowestPrice = "lowest-price"
+
+	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
+	SpotAllocationStrategyCapacityOptimized = "capacity-optimized"
 
 	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
 	// for standard AWS partition
@@ -283,6 +295,7 @@ func SupportedVersions() []string {
 		Version1_12,
 		Version1_13,
 		Version1_14,
+		Version1_15,
 	}
 }
 
@@ -294,6 +307,19 @@ func SupportedNodeVolumeTypes() []string {
 		NodeVolumeTypeSC1,
 		NodeVolumeTypeST1,
 	}
+}
+
+// supportedSpotAllocationStrategies are the spot allocation strategies supported by ASG
+func supportedSpotAllocationStrategies() []string {
+	return []string{
+		SpotAllocationStrategyLowestPrice,
+		SpotAllocationStrategyCapacityOptimized,
+	}
+}
+
+// isSpotAllocationStrategySupported returns true if the spot allocation strategy is supported for ASG
+func isSpotAllocationStrategySupported(allocationStrategy string) bool {
+	return slice.Contains(supportedSpotAllocationStrategies(), allocationStrategy)
 }
 
 // EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
@@ -628,6 +654,9 @@ type NodeGroup struct {
 	IAM *NodeGroupIAM `json:"iam"`
 
 	// +optional
+	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
+
+	// +optional
 	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
 
 	// +optional
@@ -740,6 +769,17 @@ type (
 		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
 		//+optional
 		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
+		//+optional
+		SpotAllocationStrategy *string `json:"spotAllocationStrategy,omitempty"`
+	}
+
+	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
+	// NodeGroups.
+	NodeGroupBottlerocket struct {
+		// +optional
+		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
+		// +optional
+		Settings *InlineDocument `json:"settings,omitempty"`
 	}
 )
 
@@ -843,6 +883,9 @@ type FargateProfile struct {
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
 	Subnets []string `json:"subnets,omitempty"`
+
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.

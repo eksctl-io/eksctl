@@ -103,6 +103,7 @@ var _ = Describe("(Integration) Fargate", func() {
 			"--name", profileName,
 			"--namespace", kubeTest.Namespace,
 			"--labels", "run-on=fargate",
+			"--tags", "env=integration",
 			"--verbose", "4",
 		)
 		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(profileName)))

@@ -4,6 +4,7 @@ import (
 	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var _ = Describe("ClusterConfig validation", func() {
@@ -469,6 +470,29 @@ var _ = Describe("ClusterConfig validation", func() {
 				err = validateInstancesDistribution(ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
+
+			It("It fails when the spotAllocationStrategy is not a supported strategy", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
+
+				err := validateInstancesDistribution(ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("It fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := validateInstancesDistribution(ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("It does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("lowest-price")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := validateInstancesDistribution(ng)
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 	})
 
@@ -634,6 +658,52 @@ var _ = Describe("ClusterConfig validation", func() {
 				err = profile.Validate()
 				Expect(err).ToNot(HaveOccurred())
 			})
+		})
+	})
+
+	Describe("Bottlerocket node groups", func() {
+		It("returns an error with unsupported fields", func() {
+			cmd := "/usr/bin/some-command"
+			doc := InlineDocument{
+				"cgroupDriver": "systemd",
+			}
+
+			ngs := map[string]*NodeGroup{
+				"PreBootstrapCommands": {PreBootstrapCommands: []string{"/usr/bin/env true"}},
+				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
+				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
+				"overlapping Bottlerocket settings": {
+					Bottlerocket: &NodeGroupBottlerocket{
+						Settings: &InlineDocument{
+							"kubernetes": map[string]interface{}{
+								"node-labels": map[string]string{
+									"mylabel.example.com": "value",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			for name, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyBottlerocket
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
+			}
+		})
+
+		It("has no error with supported fields", func() {
+			x := 32
+			ngs := []*NodeGroup{
+				{Labels: map[string]string{"label": "label-value"}},
+				{MaxPodsPerNode: x},
+				{MinSize: &x},
+			}
+
+			for i, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyBottlerocket
+				Expect(ValidateNodeGroup(i, ng)).To(Succeed())
+			}
 		})
 	})
 })

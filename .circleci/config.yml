@@ -72,7 +72,7 @@ commands:
     steps:
       - run: exit 0
       - slack/status:
-          fail_only: true
+          fail_only: false
           mentions: 'team-aws'
           only_for_branches: master
 
@@ -255,3 +255,13 @@ workflows:
                 - master
     jobs:
       - integration-tests
+  nightly-build:
+    triggers:
+      - schedule:
+          cron: "0 4 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build-all-distros

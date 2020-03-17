@@ -222,6 +222,11 @@ FargateProfile:
       items:
         type: string
       type: array
+    tags:
+      patternProperties:
+        .*:
+          type: string
+      type: object
   required:
   - name
   - selectors
@@ -341,6 +346,9 @@ NodeGroup:
       items:
         type: string
       type: array
+    bottlerocket:
+      $ref: '#/definitions/NodeGroupBottlerocket'
+      $schema: http://json-schema.org/draft-04/schema#
     classicLoadBalancerNames:
       items:
         type: string
@@ -426,6 +434,18 @@ NodeGroup:
   - volumeIOPS
   - iam
   type: object
+NodeGroupBottlerocket:
+  additionalProperties: false
+  properties:
+    enableAdminContainer:
+      type: boolean
+    settings:
+      patternProperties:
+        .*:
+          additionalProperties: true
+          type: object
+      type: object
+  type: object
 NodeGroupIAM:
   additionalProperties: false
   properties:
@@ -496,6 +516,8 @@ NodeGroupInstancesDistribution:
       type: integer
     onDemandPercentageAboveBaseCapacity:
       type: integer
+    spotAllocationStrategy:
+      type: string
     spotInstancePools:
       type: integer
   type: object

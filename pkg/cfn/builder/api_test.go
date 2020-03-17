@@ -107,6 +107,7 @@ type Properties struct {
 			OnDemandPercentageAboveBaseCapacity string
 			SpotMaxPrice                        string
 			SpotInstancePools                   string
+			SpotAllocationStrategy              string
 		}
 	}
 }
@@ -2621,6 +2622,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 		baseCap := 40
 		percentageOnDemand := 20
 		pools := 3
+		spotAllocationStrategy := "lowest-price"
 		ng.InstanceType = "mixed"
 		ng.InstancesDistribution = &api.NodeGroupInstancesDistribution{
 			MaxPrice:                            &maxSpotPrice,
@@ -2628,6 +2630,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			OnDemandBaseCapacity:                &baseCap,
 			OnDemandPercentageAboveBaseCapacity: &percentageOnDemand,
 			SpotInstancePools:                   &pools,
+			SpotAllocationStrategy:              &spotAllocationStrategy,
 		}
 
 		zero := 0
@@ -2660,6 +2663,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.OnDemandPercentageAboveBaseCapacity).To(Equal("20"))
 			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotInstancePools).To(Equal("3"))
 			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotMaxPrice).To(Equal("0.045000"))
+			Expect(nodeGroupProperties.MixedInstancesPolicy.InstancesDistribution.SpotAllocationStrategy).To(Equal("lowest-price"))
 
 		})
 	})

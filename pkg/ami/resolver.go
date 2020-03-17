@@ -39,10 +39,11 @@ type Resolver interface {
 	Resolve(region, version, instanceType, imageFamily string) (string, error)
 }
 
-// NewStaticResolver returns a static resolver that delegates on StaticGPUResolver and StaticDefaultResolver
+// NewStaticResolver returns a static resolver that delegates on
+// StaticGPUResolver, StaticBottlerocketResolver, and StaticDefaultResolver.
 func NewStaticResolver() Resolver {
 	return &MultiResolver{
-		delegates: []Resolver{&StaticGPUResolver{}, &StaticDefaultResolver{}},
+		delegates: []Resolver{&StaticGPUResolver{}, &StaticBottlerocketResolver{}, &StaticDefaultResolver{}},
 	}
 }
 
@@ -58,7 +59,7 @@ func NewAutoResolver(api ec2iface.EC2API) Resolver {
 	return &AutoResolver{api: api}
 }
 
-// NewSSMResolver creates a new AutoResolver
+// NewSSMResolver creates a new AutoResolver.
 func NewSSMResolver(api ssmiface.SSMAPI) Resolver {
 	return &SSMResolver{ssmAPI: api}
 }

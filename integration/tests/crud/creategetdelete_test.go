@@ -161,34 +161,40 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 				{
 					cmd := params.EksctlGetCmd.WithArgs(
 						"nodegroup",
+						"-o", "json",
 						"--cluster", params.ClusterName,
 						initNG,
 					)
-					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-						ContainElement(ContainSubstring(initNG)),
-						Not(ContainElement(ContainSubstring(testNG))),
-					))
+					Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
+						HaveLen(1),
+						ContainElement(initNG),
+						Not(ContainElement(testNG)),
+					)))
 				}
 				{
 					cmd := params.EksctlGetCmd.WithArgs(
 						"nodegroup",
+						"-o", "json",
 						"--cluster", params.ClusterName,
 						testNG,
 					)
-					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-						ContainElement(ContainSubstring(testNG)),
-						Not(ContainElement(ContainSubstring(initNG))),
-					))
+					Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
+						HaveLen(1),
+						ContainElement(testNG),
+						Not(ContainElement(initNG)),
+					)))
 				}
 				{
 					cmd := params.EksctlGetCmd.WithArgs(
 						"nodegroup",
+						"-o", "json",
 						"--cluster", params.ClusterName,
 					)
-					Expect(cmd).To(RunSuccessfullyWithOutputStringLines(
-						ContainElement(ContainSubstring(testNG)),
-						ContainElement(ContainSubstring(initNG)),
-					))
+					Expect(cmd).To(RunSuccessfullyWithOutputString(BeNodeGroupsWithNamesWhich(
+						HaveLen(2),
+						ContainElement(initNG),
+						ContainElement(testNG),
+					)))
 				}
 			})
 

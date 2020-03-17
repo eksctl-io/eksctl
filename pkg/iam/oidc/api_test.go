@@ -60,7 +60,9 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 
 			err = oidc.getIssuerCAThumbprint()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix("connecting to issuer OIDC: Get https://localhost:10020/"))
+			// Use regex to match URL as go 1.14 have extra double quotes for URL
+			// related commit : https://github.com/golang/go/commit/64cfe9fe22113cd6bc05a2c5d0cbe872b1b57860
+			Expect(err.Error()).To(MatchRegexp("connecting to issuer OIDC: Get \"?https://localhost:10020/\"?"))
 			Expect(err.Error()).To(HaveSuffix("connect: connection refused"))
 		})
 
@@ -265,8 +267,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 					return false
 				}
 				clientID := *input.ClientIDList[0]
-				expectedAudience := defaultAudienceByPartition[partition]
-				return clientID == expectedAudience
+				return clientID == defaultAudience
 			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
 				OpenIDConnectProviderArn: aws.String(fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition)),
 			}, nil)
@@ -301,7 +302,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(actual).To(MatchJSON(expected))
 		},
 			Entry("Default AWS partition", "aws", "sts.amazonaws.com"),
-			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com.cn"),
+			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com"),
 		)
 	})
 })
