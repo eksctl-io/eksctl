@@ -30,7 +30,7 @@ func checkVersion(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, meta *api.Cluster
 	default:
 		if !isValidVersion(meta.Version) {
 			if isDeprecatedVersion(meta.Version) {
-				return fmt.Errorf("invalid version, %s is now deprecated, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", meta.Version, strings.Join(api.SupportedVersions(), ", "))
+				return fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", meta.Version, strings.Join(api.SupportedVersions(), ", "))
 			}
 			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
 		}
