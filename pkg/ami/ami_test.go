@@ -18,6 +18,8 @@ func TestUseAMI(t *testing.T) {
 		blockDeviceMappings []*ec2.BlockDeviceMapping
 		rootDeviceName      string
 		description         string
+
+		encrypted bool
 	}{
 		{
 			description:    "Root device mapping not at index 0 (Windows AMIs in some regions)",
@@ -38,6 +40,8 @@ func TestUseAMI(t *testing.T) {
 					},
 				},
 			},
+
+			encrypted: true,
 		},
 		{
 			description:    "Only one device mapping (AL2 AMIs)",
@@ -50,6 +54,8 @@ func TestUseAMI(t *testing.T) {
 					},
 				},
 			},
+
+			encrypted: true,
 		},
 		{
 			description:    "Different root device name",
@@ -62,7 +68,7 @@ func TestUseAMI(t *testing.T) {
 				{
 					DeviceName: aws.String("/dev/xvda"),
 					Ebs: &ec2.EbsBlockDevice{
-						Encrypted: aws.Bool(true),
+						Encrypted: aws.Bool(false),
 					},
 				},
 				{
@@ -70,18 +76,25 @@ func TestUseAMI(t *testing.T) {
 					VirtualName: aws.String("ephemeral1"),
 				},
 			},
+
+			encrypted: false,
 		},
 	}
 
 	for i, tt := range amiTests {
 		t.Run(fmt.Sprintf("%d: %s", i, tt.description), func(t *testing.T) {
 			mockProvider := mockDescribeImages(tt.blockDeviceMappings, tt.rootDeviceName)
-			err := ami.Use(mockProvider.MockEC2(), &api.NodeGroup{
+			ng := &api.NodeGroup{
 				AMI: "ami-0121d8347f8191f90",
-			})
+			}
+			err := ami.Use(mockProvider.MockEC2(), ng)
 
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
+			}
+
+			if *ng.VolumeEncrypted != tt.encrypted {
+				t.Errorf("expected VolumeEncrypted to be %v", tt.encrypted)
 			}
 		})
 	}
