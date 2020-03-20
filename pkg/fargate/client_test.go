@@ -31,7 +31,7 @@ var _ = Describe("fargate", func() {
 			It("creates the provided profile without tag", func() {
 				client := fargate.NewClient(clusterName, mockForCreateFargateProfileWithoutTag())
 				waitForCreation := false
-				err := client.CreateProfile(testFargateProfileWithoutTag(), waitForCreation)
+				err := client.CreateProfile(createProfileWithoutTag(), waitForCreation)
 				Expect(err).To(Not(HaveOccurred()))
 			})
 
@@ -206,7 +206,7 @@ func mockCreateFargateProfile(mockClient *mocks.EKSAPI) {
 }
 
 func mockCreateFargateProfileWithoutTag(mockClient *mocks.EKSAPI) {
-	mockClient.Mock.On("CreateFargateProfile", testCreateFargateProfileInputWithoutTag()).
+	mockClient.Mock.On("CreateFargateProfile", createEksProfileWithoutTag()).
 		Return(&eks.CreateFargateProfileOutput{}, nil)
 }
 
@@ -217,7 +217,7 @@ func mockForFailureOnCreateFargateProfile() *mocks.EKSAPI {
 	return &mockClient
 }
 
-func testFargateProfileWithoutTag() *api.FargateProfile {
+func createProfileWithoutTag() *api.FargateProfile {
 	return &api.FargateProfile{
 		Name: "default",
 		Selectors: []api.FargateProfileSelector{
@@ -269,7 +269,7 @@ func testCreateFargateProfileInput() *eks.CreateFargateProfileInput {
 	}
 }
 
-func testCreateFargateProfileInputWithoutTag() *eks.CreateFargateProfileInput {
+func createEksProfileWithoutTag() *eks.CreateFargateProfileInput {
 	return &eks.CreateFargateProfileInput{
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: strings.Pointer("default"),
