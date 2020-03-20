@@ -53,8 +53,12 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 		if !api.IsSetAndNonEmptyString(ng.VolumeName) {
 			ng.VolumeName = image.RootDeviceName
 		}
+		rootDeviceMapping, err := findRootDeviceMapping(image)
+		if err != nil {
+			return err
+		}
 
-		amiEncrypted := image.BlockDeviceMappings[0].Ebs.Encrypted
+		amiEncrypted := rootDeviceMapping.Ebs.Encrypted
 		if ng.VolumeEncrypted == nil {
 			ng.VolumeEncrypted = amiEncrypted
 		} else {
@@ -66,6 +70,15 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 	}
 
 	return nil
+}
+
+func findRootDeviceMapping(image *ec2.Image) (*ec2.BlockDeviceMapping, error) {
+	for _, deviceMapping := range image.BlockDeviceMappings {
+		if *deviceMapping.DeviceName == *image.RootDeviceName {
+			return deviceMapping, nil
+		}
+	}
+	return nil, errors.Errorf("failed to find root device mapping for AMI %q", *image.ImageId)
 }
 
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.

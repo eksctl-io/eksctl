@@ -204,8 +204,10 @@ func mockDescribeImages(p *mockprovider.MockProvider, amiId string, matcher func
 					State:          aws.String("available"),
 					OwnerId:        aws.String("123"),
 					RootDeviceType: aws.String("ebs"),
+					RootDeviceName: aws.String("/dev/sda1"),
 					BlockDeviceMappings: []*ec2.BlockDeviceMapping{
 						{
+							DeviceName: aws.String("/dev/sda1"),
 							Ebs: &ec2.EbsBlockDevice{
 								Encrypted: aws.Bool(false),
 							},
