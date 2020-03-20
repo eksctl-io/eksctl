@@ -28,6 +28,13 @@ var _ = Describe("fargate", func() {
 				Expect(err.Error()).To(Equal("invalid Fargate profile: nil"))
 			})
 
+			It("creates the provided profile without tag", func() {
+				client := fargate.NewClient(clusterName, mockForCreateFargateProfileWithoutTag())
+				waitForCreation := false
+				err := client.CreateProfile(createProfileWithoutTag(), waitForCreation)
+				Expect(err).To(Not(HaveOccurred()))
+			})
+
 			It("creates the provided profile", func() {
 				client := fargate.NewClient(clusterName, mockForCreateFargateProfile())
 				waitForCreation := false
@@ -176,6 +183,12 @@ func mockForCreateFargateProfile() *mocks.EKSAPI {
 	return &mockClient
 }
 
+func mockForCreateFargateProfileWithoutTag() *mocks.EKSAPI {
+	mockClient := mocks.EKSAPI{}
+	mockCreateFargateProfileWithoutTag(&mockClient)
+	return &mockClient
+}
+
 func mockForCreateFargateProfileWithWait(numRetries int) *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
 	mockCreateFargateProfile(&mockClient)
@@ -192,11 +205,31 @@ func mockCreateFargateProfile(mockClient *mocks.EKSAPI) {
 		Return(&eks.CreateFargateProfileOutput{}, nil)
 }
 
+func mockCreateFargateProfileWithoutTag(mockClient *mocks.EKSAPI) {
+	mockClient.Mock.On("CreateFargateProfile", createEksProfileWithoutTag()).
+		Return(&eks.CreateFargateProfileOutput{}, nil)
+}
+
 func mockForFailureOnCreateFargateProfile() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
 	mockClient.Mock.On("CreateFargateProfile", testCreateFargateProfileInput()).
 		Return(nil, errors.New("the Internet broke down!"))
 	return &mockClient
+}
+
+func createProfileWithoutTag() *api.FargateProfile {
+	return &api.FargateProfile{
+		Name: "default",
+		Selectors: []api.FargateProfileSelector{
+			{
+				Namespace: "kube-system",
+				Labels: map[string]string{
+					"app": "my-app",
+					"env": "test",
+				},
+			},
+		},
+	}
 }
 
 func testFargateProfile() *api.FargateProfile {
@@ -232,6 +265,22 @@ func testCreateFargateProfileInput() *eks.CreateFargateProfileInput {
 		},
 		Tags: map[string]*string{
 			"env": strings.Pointer("test"),
+		},
+	}
+}
+
+func createEksProfileWithoutTag() *eks.CreateFargateProfileInput {
+	return &eks.CreateFargateProfileInput{
+		ClusterName:        strings.Pointer(clusterName),
+		FargateProfileName: strings.Pointer("default"),
+		Selectors: []*eks.FargateProfileSelector{
+			{
+				Namespace: strings.Pointer("kube-system"),
+				Labels: map[string]*string{
+					"app": strings.Pointer("my-app"),
+					"env": strings.Pointer("test"),
+				},
+			},
 		},
 	}
 }
