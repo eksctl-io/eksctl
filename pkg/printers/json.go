@@ -9,7 +9,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	cliruntime "k8s.io/cli-runtime/pkg/genericclioptions/printers"
+	cliruntime "k8s.io/cli-runtime/pkg/printers"
 )
 
 // JSONPrinter is a printer that outputs an object formatted
