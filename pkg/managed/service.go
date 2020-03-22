@@ -36,6 +36,7 @@ type HealthIssue struct {
 const (
 	labelsPath         = "Resources.ManagedNodeGroup.Properties.Labels"
 	releaseVersionPath = "Resources.ManagedNodeGroup.Properties.ReleaseVersion"
+	versionPath        = "Resources.ManagedNodeGroup.Properties.Version"
 )
 
 // NewService creates a new Service
@@ -138,6 +139,10 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string) erro
 		return errors.Wrap(err, "invalid Kubernetes version")
 	}
 
+	if kubernetesVersion != *nodeGroup.Version {
+		return m.updateNodeGroupVersion(nodeGroupName, kubernetesVersion)
+	}
+
 	instanceType := nodeGroup.InstanceTypes[0]
 	ssmParameterName, err := ami.MakeSSMParameterName(kubernetesVersion, *instanceType, v1alpha5.NodeImageFamilyAmazonLinux2)
 	if err != nil {
@@ -181,10 +186,24 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string) erro
 		logger.Info("nodegroup %q is already up-to-date", nodeGroupName)
 		return nil
 	}
-	return m.updateNodeGroupVersion(nodeGroupName, releaseVersion)
+	return m.updateNodeGroupReleaseVersion(nodeGroupName, releaseVersion)
 }
 
-func (m *Service) updateNodeGroupVersion(nodeGroupName, releaseVersion string) error {
+func (m *Service) updateNodeGroupVersion(nodeGroupName, kubernetesVersion string) error {
+	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
+	if err != nil {
+		return err
+	}
+
+	template, err = sjson.Set(template, versionPath, kubernetesVersion)
+	if err != nil {
+		return err
+	}
+
+	return m.stackCollection.UpdateNodeGroupStack(nodeGroupName, template)
+}
+
+func (m *Service) updateNodeGroupReleaseVersion(nodeGroupName, releaseVersion string) error {
 	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
 	if err != nil {
 		return err
