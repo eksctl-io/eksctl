@@ -327,7 +327,7 @@ Now please run:
 ```console
 EKSCTL_EXPERIMENTAL=true eksctl generate profile \
         --cluster wonderful-wardrobe-1565767990 \
-        --git-url git@github.com:weaveworks/eks-quickstart-app-dev.git \
+        --git-url https://github.com/weaveworks/eks-quickstart-app-dev.git \
         --profile-path ~/dev/flux-get-started/cluster-config
 ```
 
@@ -349,7 +349,8 @@ to be a starting point for clusters you can iterate over.
 So after all this preface, what happens when we run the command?
 `eksctl` will check out the Quick Start profile (here we use
 [app-dev profile][eks-quickstart-app-dev]) in an empty
-sub-directory (`cluster-config`) of our local checkout of `flux-get-started`.
+sub-directory (`cluster-config`) of the local checkout of your repo
+ `flux-get-started`.
 
 [eks-quickstart-app-dev]: https://github.com/weaveworks/eks-quickstart-app-dev
 
