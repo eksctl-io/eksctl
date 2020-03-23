@@ -139,6 +139,8 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string) erro
 		return errors.Wrap(err, "invalid Kubernetes version")
 	}
 
+	// Upgrade only Version for kubernetes, by default CF will use the latest working AMI for ReleaseVersion
+	// Docs: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-eks-nodegroup.html#cfn-eks-nodegroup-releaseversion
 	if kubernetesVersion != *nodeGroup.Version {
 		return m.updateNodeGroupVersion(nodeGroupName, kubernetesVersion)
 	}
