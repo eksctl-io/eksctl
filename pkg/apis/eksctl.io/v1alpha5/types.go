@@ -23,6 +23,9 @@ const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
 
+	// RegionUSWest1 represents the US West Region North California
+	RegionUSWest1 = "us-west-1"
+
 	// RegionUSWest2 represents the US West Region Oregon
 	RegionUSWest2 = "us-west-2"
 
@@ -257,6 +260,7 @@ func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{
+		RegionUSWest1,
 		RegionUSWest2,
 		RegionUSEast1,
 		RegionUSEast2,
