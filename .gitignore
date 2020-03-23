@@ -43,3 +43,4 @@ integration/kubeconfig-*
 
 # Snaps
 eksctl_*_*.snap
+.DS_Store
