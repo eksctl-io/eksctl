@@ -399,7 +399,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 						Expect(sa.Annotations).To(HaveLen(1))
 						Expect(sa.Annotations).To(HaveKey(api.AnnotationEKSRoleARN))
-						Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + params.ClusterName + ".*$"))
+						Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + truncate(params.ClusterName) + ".*$"))
 					}
 
 					{
@@ -567,7 +567,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 						Expect(so.AssumedRoleUser.AssumedRoleId).To(HaveSuffix(":integration-test"))
 
-						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:sts::.*:assumed-role/eksctl-" + params.ClusterName + "-.*/integration-test$"))
+						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:sts::.*:assumed-role/eksctl-" + truncate(params.ClusterName) + "-.*/integration-test$"))
 
 						Expect(so.Audience).To(Equal("sts.amazonaws.com"))
 
@@ -850,3 +850,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 		})
 	})
 })
+
+func truncate(clusterName string) string {
+	// CloudFormation seems to truncate long cluster names at 37 characters:
+	if len(clusterName) > 37 {
+		return clusterName[:37]
+	}
+	return clusterName
+}
