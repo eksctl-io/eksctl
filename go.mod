@@ -7,12 +7,11 @@ go 1.13
 require (
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/alecthomas/jsonschema v0.0.0-20190530235721-fd8d96416671
-	github.com/aws/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
+	github.com/aws/aws-sdk-go v1.26.7
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/awslabs/goformation/v4 v4.1.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/bxcodec/faker v2.0.1+incompatible
-	github.com/christopherhein/go-version v0.0.0-20180807222509-fee8dd1f7c24
 	github.com/cloudflare/cfssl v0.0.0-20190726000631-633726f6bcb7
 	github.com/coredns/coredns v0.0.0-20170910182647-1b60688dc8f7 // indirect
 	github.com/coreos/bbolt v1.3.3 // indirect
@@ -43,7 +42,6 @@ require (
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
 	github.com/kris-nova/lolgopher v0.0.0-20180124180951-14d43f83481a // indirect
-	github.com/kubernetes-sigs/aws-iam-authenticator v0.4.0
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/magiconair/properties v1.8.1 // indirect
@@ -60,7 +58,6 @@ require (
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.4.0
 	github.com/spotinst/spotinst-sdk-go v0.0.0-20181012192533-fed4677dbf8f // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/tidwall/gjson v1.1.3
@@ -73,7 +70,6 @@ require (
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	go.etcd.io/bbolt v1.3.3 // indirect
-	golang.org/dl v0.0.0-20200205193131-62c734104014 // indirect
 	golang.org/x/tools v0.0.0-20200121210457-b3205ff6fffe
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/gcfg.v1 v1.2.3 // indirect
@@ -90,6 +86,7 @@ require (
 	k8s.io/kubelet v0.0.0-20190313123811-3556bcde9670
 	k8s.io/kubernetes v1.12.6
 	k8s.io/utils v0.0.0-20190801114015-581e00157fb1 // indirect
+	sigs.k8s.io/aws-iam-authenticator v0.5.0
 	sigs.k8s.io/yaml v1.1.0
 )
 
