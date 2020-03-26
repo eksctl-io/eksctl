@@ -272,6 +272,17 @@ func newStackWithOutputs(outputs map[string]string) cfn.Stack {
 	return s
 }
 
+// completeKubeletConfig amends changes that nodebootstrap.makeKubeletConfigYAML() would do.
+func completeKubeletConfig(kubeletConfigAssetContent []byte, clusterDNS string) string {
+	return string(kubeletConfigAssetContent) +
+		"\n" +
+		"clusterDNS: [" + clusterDNS + "]\n" +
+		"kubeReserved:\n" +
+		"  cpu: 70m\n" +
+		"  ephemeral-storage: 1Gi\n" +
+		"  memory: 1843Mi\n"
+}
+
 var _ = Describe("CloudFormation template builder API", func() {
 	var (
 		cc   *cloudconfig.CloudConfig
@@ -1717,10 +1728,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			kubeletConfigAssetContent, err := nodebootstrap.Asset("kubelet.yaml")
 			Expect(err).ToNot(HaveOccurred())
-
-			kubeletConfigAssetContentString := string(kubeletConfigAssetContent) +
-				"\n" +
-				"clusterDNS: [10.100.0.10]\n"
+			kubeletConfigAssetContentString := completeKubeletConfig(kubeletConfigAssetContent, "10.100.0.10")
 
 			kubeletConfig := getFile(cc, "/etc/eksctl/kubelet.yaml")
 			Expect(kubeletConfig).ToNot(BeNil())
@@ -1959,10 +1967,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			kubeletConfigAssetContent, err := nodebootstrap.Asset("kubelet.yaml")
 			Expect(err).ToNot(HaveOccurred())
-
-			kubeletConfigAssetContentString := string(kubeletConfigAssetContent) +
-				"\n" +
-				"clusterDNS: [172.20.0.10]\n"
+			kubeletConfigAssetContentString := completeKubeletConfig(kubeletConfigAssetContent, "172.20.0.10")
 
 			kubeletConfig := getFile(cc, "/etc/eksctl/kubelet.yaml")
 			Expect(kubeletConfig).ToNot(BeNil())
