@@ -53,7 +53,8 @@ nodeGroups:
 In this example, given instances of type `m5a.xlarge` which have 4 vCPUs and 16GiB of memory, the `Allocatable` amount
 of CPUs would be 3.4 and 15.4 GiB of memory. In addition, the `DynamicKubeletConfig` feature gate is also enabled. It is
 important to know that the values specified in the config file for the the fields in `kubeletExtraconfig` will 
-completely overwrite the default values specified by eksctl.
+completely overwrite the default values specified by eksctl. However, omitting one or more `kubeReserved` parameters
+will cause the missing parameters to be defaulted to sane values based on the aws instance type being used.
 
 >**IMPORTANT**: by default `eksctl` sets  `featureGates.RotateKubeletServerCertificate=true`, but when custom 
 `featureGates` are provided, it will be unset. You should always include 
