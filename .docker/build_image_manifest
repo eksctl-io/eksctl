@@ -10,6 +10,6 @@
 "k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
 "k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
 "k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
-100644 blob bb0ec393bec64fc65e97fde82edcbc22935f42bd	Dockerfile
+100644 blob 6992a7132b0f5ca641dcde7d4f5ee4863c5514ee	Dockerfile
 100644 blob c82e75f3145cad2829f4906261adeb738bd33ce1	.requirements
 100755 blob 7b867a5b4a1ea544385441ecf9c1c1e5a1cce7e1	install-build-deps.sh
