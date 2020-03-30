@@ -105,7 +105,6 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			MaxSize:     m.nodeGroup.MaxSize,
 			DesiredSize: m.nodeGroup.DesiredCapacity,
 		},
-		// Only public subnets are supported at launch
 		Subnets: subnets,
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: []string{m.nodeGroup.InstanceType},
