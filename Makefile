@@ -183,6 +183,10 @@ $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191218135223-757eeed07291" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
+.PHONY: generate-kube-reserved
+generate-kube-reserved: ## Update instance list with respective specs
+	@cd ./pkg/nodebootstrap/ && go run reserved_generate.go
+
 ##@ Release
 .PHONY: prepare-release
 prepare-release:

@@ -100,13 +100,23 @@ func makeKubeletConfigYAML(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, 
 
 	// use a map here, as using struct will require us to add defaulting etc,
 	// and we only need to add a few top-level fields
-	obj := map[string]interface{}{}
+	obj := api.InlineDocument{}
 	if err := yaml.UnmarshalStrict(data, &obj); err != nil {
 		return nil, err
 	}
 
 	obj["clusterDNS"] = []string{
 		clusterDNS(spec, ng),
+	}
+
+	// Set default reservations if specs about instance is available
+	if info, ok := instanceTypeInfos[ng.InstanceType]; ok {
+		if _, ok := obj["kubeReserved"]; !ok {
+			obj["kubeReserved"] = api.InlineDocument{}
+		}
+		obj["kubeReserved"].(api.InlineDocument)["ephemeral-storage"] = info.DefaultStorageToReserve()
+		obj["kubeReserved"].(api.InlineDocument)["cpu"] = info.DefaultCPUToReserve()
+		obj["kubeReserved"].(api.InlineDocument)["memory"] = info.DefaultMemoryToReserve()
 	}
 
 	// Add extra configuration from configfile
