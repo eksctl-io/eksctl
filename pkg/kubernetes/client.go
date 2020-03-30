@@ -310,9 +310,11 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 		return "", errors.Wrap(err, "unexpected non-404 error")
 	}
 	if !exists {
-		_, err := r.Helper.Create(r.Info.Namespace, !plan, r.Info.Object, &metav1.CreateOptions{})
-		if err != nil {
-			return "", err
+		if !plan {
+			_, err := r.Helper.Create(r.Info.Namespace, true, r.Info.Object, &metav1.CreateOptions{})
+			if err != nil {
+				return "", err
+			}
 		}
 		return r.LogAction(plan, "created"), nil
 	}
@@ -322,9 +324,10 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 		return "", errors.Wrapf(err, "converting object")
 	}
 	scheme.Scheme.Default(convertedObj)
-
-	if _, err := r.Helper.Replace(r.Info.Namespace, r.Info.Name, !plan, r.Info.Object); err != nil {
-		return "", err
+	if !plan {
+		if _, err := r.Helper.Replace(r.Info.Namespace, r.Info.Name, true, r.Info.Object); err != nil {
+			return "", err
+		}
 	}
 
 	return r.LogAction(plan, "replaced"), nil
