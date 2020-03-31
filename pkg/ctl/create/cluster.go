@@ -319,7 +319,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
-			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
@@ -328,7 +328,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 	}
 
-	logger.Success("all EKS cluster resources for %q have been created", meta.Name)
+	logger.Info("waiting for the control plane availability...")
 
 	// obtain cluster credentials, write kubeconfig
 
@@ -358,6 +358,20 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err = ctl.WaitForControlPlane(meta, clientSet); err != nil {
 			return err
 		}
+
+		// tasks depending on the control plane availability
+		tasks := ctl.NewTasksRequiringControlPlane(cfg)
+
+		logger.Info(tasks.Describe())
+		if errs := tasks.DoAllSync(); len(errs) > 0 {
+			logger.Warning("%d error(s) occurred and post actions have failed, you may wish to check CloudFormation console", len(errs))
+			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
+			for _, err := range errs {
+				logger.Critical("%s\n", err.Error())
+			}
+			return fmt.Errorf("failed to create cluster %q", meta.Name)
+		}
+		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
 
 		for _, ng := range cfg.NodeGroups {
 			// authorise nodes to join
