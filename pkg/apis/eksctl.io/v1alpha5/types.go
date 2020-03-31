@@ -105,10 +105,10 @@ const (
 	Version1_15 = "1.15"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_14
+	DefaultVersion = Version1_15
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_14
+	LatestVersion = Version1_15
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
