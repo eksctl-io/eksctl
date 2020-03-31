@@ -408,7 +408,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 
 						Expect(sa.Annotations).To(HaveLen(1))
 						Expect(sa.Annotations).To(HaveKey(api.AnnotationEKSRoleARN))
-						Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + params.ClusterName + ".*$"))
+						Expect(sa.Annotations[api.AnnotationEKSRoleARN]).To(MatchRegexp("^arn:aws:iam::.*:role/eksctl-" + truncate(params.ClusterName) + ".*$"))
 					}
 				})
 
