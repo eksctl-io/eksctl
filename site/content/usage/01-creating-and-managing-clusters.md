@@ -106,5 +106,6 @@ eksctl delete cluster -f cluster.yaml
 > stack and won't wait for its deletion.
 > In some cases, AWS resources using the cluster or its VPC may cause cluster deletion to fail. To ensure any deletion
 > errors are propagated in `eksctl delete cluster`, the `--wait` flag must be used.
+> If your delete fails or you forget the wait flag, you may have to go to the CloudFormation GUI and delete the eks stacks from there.
 
 See [`examples/`](https://github.com/weaveworks/eksctl/tree/master/examples) directory for more sample config files.
