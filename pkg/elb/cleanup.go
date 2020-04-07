@@ -24,6 +24,7 @@ import (
 	cloudprovider "k8s.io/cloud-provider"
 	awsprovider "k8s.io/legacy-cloud-providers/aws"
 
+	"github.com/aws/aws-sdk-go/aws/request"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
@@ -166,7 +167,7 @@ func deleteOrphanLoadBalancerSecurityGroups(ctx context.Context, ec2API ec2iface
 					logger.Debug("failed to delete security group, possibly because its load balancer is still being deleted")
 					failedSGs = append(failedSGs, sg)
 				} else {
-					return fmt.Errorf("cannot delete security group %s: %v", *sg.GroupName, err)
+					return errors.Wrapf(err, "cannot delete security group %q", *sg.GroupName)
 				}
 			}
 		}
@@ -219,18 +220,12 @@ func ensureLoadBalancerDeleted(ctx context.Context, elbAPI elbiface.ELBAPI, sg *
 		}
 
 		if _, err := elbAPI.DescribeLoadBalancersWithContext(timeoutCtx, input); err != nil {
-			if awsErr, ok := err.(awserr.Error); ok {
-				switch awsErr.Code() {
-				case elb.ErrCodeAccessPointNotFoundException:
-					logger.Info("Load balancer deleted")
-					return nil
-				case elb.ErrCodeDependencyThrottleException:
-					logger.Warning("rate limited")
-				default:
-					return err
-				}
+			if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == elb.ErrCodeAccessPointNotFoundException {
+				return nil
 			} else if err == context.DeadlineExceeded {
 				return errors.Wrap(err, "timed out looking up load balancer")
+			} else if request.IsErrorRetryable(err) {
+				logger.Debug("retrying request after %v", lbRetryAfter)
 			} else {
 				return err
 			}
