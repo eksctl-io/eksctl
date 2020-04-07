@@ -58,13 +58,18 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 				"route53:ChangeResourceRecordSets",
 			},
 		)
-		cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*",
-			[]string{
-				"route53:ListHostedZones",
-				"route53:ListResourceRecordSets",
-				"route53:ListHostedZonesByName",
-			},
-		)
+
+		hostedZonePolicy := []string{
+			"route53:ListHostedZones",
+			"route53:ListResourceRecordSets",
+			"route53:ListHostedZonesByName",
+		}
+
+		if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
+			hostedZonePolicy = append(hostedZonePolicy, "route53:ListTagsForResource")
+		}
+
+		cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*", hostedZonePolicy)
 		cfnTemplate.attachAllowPolicy("PolicyCertManagerGetChange", refIR, addARNPartitionPrefix("route53:::change/*"),
 			[]string{
 				"route53:GetChange",
@@ -80,6 +85,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 			[]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
+				"route53:ListTagsForResource",
 			},
 		)
 	}
