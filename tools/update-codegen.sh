@@ -2,7 +2,6 @@
 
 set -o errexit
 set -o nounset
-#set -o pipefail
 
 
 SCRIPT_ROOT=$(git rev-parse --show-toplevel)
