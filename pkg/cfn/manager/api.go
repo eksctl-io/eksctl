@@ -498,7 +498,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.provider.CloudFormation().CreateChangeSet(input)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
+		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, *i.StackName)
 	}
 	logger.Debug("changeSet = %#v", s)
 	return nil
