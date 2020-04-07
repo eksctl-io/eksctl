@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSServicePolicy = "AmazonEKSServicePolicy"
 	iamPolicyAmazonEKSClusterPolicy = "AmazonEKSClusterPolicy"
 
 	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
@@ -79,7 +78,6 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 			MakeServiceRef("EKSFargatePods"),
 		),
 		ManagedPolicyArns: makePolicyARNs(
-			iamPolicyAmazonEKSServicePolicy,
 			iamPolicyAmazonEKSClusterPolicy,
 		),
 	}
