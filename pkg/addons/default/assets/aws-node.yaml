@@ -8,7 +8,6 @@ rules:
       - crd.k8s.amazonaws.com
     resources:
       - "*"
-      - namespaces
     verbs:
       - "*"
   - apiGroups: [""]
