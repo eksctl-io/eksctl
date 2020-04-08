@@ -1520,7 +1520,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
-			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeTrue())
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeFalse())
 
 			Expect(ngTemplate.Resources["SSHIPv4"].Properties.CidrIp).To(Equal("0.0.0.0/0"))
 			Expect(ngTemplate.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
@@ -1607,7 +1607,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
-			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeTrue())
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeFalse())
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("SSHIPv4"))
 
