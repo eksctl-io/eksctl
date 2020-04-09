@@ -199,7 +199,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 				})
 
-
 				Context("and ami is NOT available", func() {
 					BeforeEach(func() {
 						_, p = createProviders()
@@ -222,7 +221,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 
 				})
-
 
 				Context("for arm instance type", func() {
 					BeforeEach(func() {
@@ -275,7 +273,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 
 				})
 			})
-
 
 		})
 	})
