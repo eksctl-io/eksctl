@@ -2,7 +2,7 @@
 // ` make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 module github.com/weaveworks/eksctl
 
-go 1.13
+go 1.14
 
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
