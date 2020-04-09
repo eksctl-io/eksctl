@@ -49,14 +49,14 @@ var _ = Describe("User data", func() {
 		It("contains default kube reservations", func() {
 			ng.InstanceType = "i3.metal"
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
-
+			Expect(err).ToNot(HaveOccurred())
 			kubelet := kubeletapi.KubeletConfiguration{}
 			err = yaml.UnmarshalStrict(data, &kubelet)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
 				"ephemeral-storage": "1Gi",
-				"cpu": "250m",
-				"memory": "17407Mi",
+				"cpu":               "250m",
+				"memory":            "17407Mi",
 			}))
 		})
 
