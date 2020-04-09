@@ -171,7 +171,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	//manipulation of the template.
 
 	var descriptionBuffer bytes.Buffer
-	descriptionBuffer.WriteString("scaling nodegroup, ")
+	descriptionBuffer.WriteString("scaling nodegroup")
 
 	ngPaths, err := getNodeGroupPaths(stack.Tags)
 	if err != nil {
@@ -189,36 +189,50 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	currentMaxSize := gjson.Get(template, maxSizePath)
 	currentMinSize := gjson.Get(template, minSizePath)
 
-	if ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) == currentCapacity.Int() {
-		logger.Info("desired capacity of nodegroup %q in cluster %q is already %d", ng.Name, clusterName, *ng.DesiredCapacity)
+	changed := ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) != currentCapacity.Int()
+	changed = changed || (ng.MinSize != nil && (int64(*ng.MinSize) != currentMinSize.Int()))
+	changed = changed || (ng.MaxSize != nil && (int64(*ng.MaxSize) != currentMaxSize.Int()))
+	if !changed {
+		logger.Info("no change for nodegroup %q in cluster %q: nodes-min %d, desired %d, nodes-max %d", ng.Name,
+			clusterName, currentMinSize.Int(), *ng.DesiredCapacity, currentMaxSize.Int())
 		return nil
 	}
 
-	// Set the new values
-	newCapacity := fmt.Sprintf("%d", *ng.DesiredCapacity)
-	template, err = sjson.Set(template, desiredCapacityPath, newCapacity)
-	if err != nil {
-		return errors.Wrap(err, "setting desired capacity")
+	if ng.MinSize == nil && int64(*ng.DesiredCapacity) < currentMinSize.Int() {
+		logger.Warning("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
+		return errors.Errorf("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
 	}
-	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Raw, *ng.DesiredCapacity))
 
-	// If the desired number of nodes is less than the min then update the min
-	if int64(*ng.DesiredCapacity) < currentMinSize.Int() {
-		newMinSize := fmt.Sprintf("%d", *ng.DesiredCapacity)
-		template, err = sjson.Set(template, minSizePath, newMinSize)
+	if ng.MaxSize == nil && int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
+		logger.Warning("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
+		return errors.Errorf("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
+	}
+
+	// Set the new values
+	if ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) != currentCapacity.Int() {
+		template, err = sjson.Set(template, desiredCapacityPath, fmt.Sprintf("%d", *ng.DesiredCapacity))
+		if err != nil {
+			return errors.Wrap(err, "setting desired capacity")
+		}
+		descriptionBuffer.WriteString(fmt.Sprintf(", desired capacity from %d to %d", currentCapacity.Int(), *ng.DesiredCapacity))
+	}
+
+	// Update the min nodes if required
+	if ng.MinSize != nil && int64(*ng.MinSize) != currentMinSize.Int() {
+		template, err = sjson.Set(template, minSizePath, fmt.Sprintf("%d", *ng.MinSize))
 		if err != nil {
 			return errors.Wrap(err, "setting min size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Raw, *ng.DesiredCapacity))
+		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %d to %d", currentMinSize.Int(), *ng.MinSize))
 	}
-	// If the desired number of nodes is greater than the max then update the max
-	if int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
-		newMaxSize := fmt.Sprintf("%d", *ng.DesiredCapacity)
-		template, err = sjson.Set(template, maxSizePath, newMaxSize)
+
+	// Update the max nodes if required
+	if ng.MaxSize != nil && int64(*ng.MaxSize) != currentMaxSize.Int() {
+		template, err = sjson.Set(template, maxSizePath, fmt.Sprintf("%d", *ng.MaxSize))
 		if err != nil {
 			return errors.Wrap(err, "setting max size")
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Raw, *ng.DesiredCapacity))
+		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %d to %d", currentMaxSize.Int(), *ng.MaxSize))
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
 

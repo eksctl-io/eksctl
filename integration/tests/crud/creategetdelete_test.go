@@ -138,7 +138,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
 					"--cluster", params.ClusterName,
+					"--nodes-min", "3",
 					"--nodes", "4",
+					"--nodes-max", "5",
 					"--name", initNG,
 				)
 				Expect(cmd).To(RunSuccessfully())
@@ -829,7 +831,9 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
 					"--cluster", params.ClusterName,
+					"--nodes-min", "1",
 					"--nodes", "1",
+					"--nodes-max", "1",
 					"--name", initNG,
 				)
 				Expect(cmd).To(RunSuccessfully())
