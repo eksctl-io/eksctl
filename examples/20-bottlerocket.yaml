@@ -1,3 +1,6 @@
+# NOTE: Bottlerocket AMI might not be available in all regions.
+# Please check AWS official doc or below link for more details
+# https://github.com/bottlerocket-os/bottlerocket/blob/develop/QUICKSTART.md#finding-an-ami
 # A simple example of ClusterConfig object with Bottlerocket settings:
 ---
 apiVersion: eksctl.io/v1alpha5
