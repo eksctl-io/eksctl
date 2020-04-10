@@ -42,13 +42,15 @@ You will also need [AWS IAM Authenticator for Kubernetes](https://github.com/kub
 
 ### Shell Completion
 
+#### Bash
 To enable bash completion, run the following, or put it in `~/.bashrc` or `~/.profile`:
 
 ```
 . <(eksctl completion bash)
 ```
 
-Or for zsh, run:
+#### Zsh
+For zsh completion, please run:
 
 ```
 mkdir -p ~/.zsh/completion/
@@ -69,3 +71,11 @@ compinit
 ```
 
 To make the above persistent, run the first two lines, and put the above in `~/.zshrc`.
+
+#### Fish
+The below commands can be used for fish auto completion:
+
+```
+mkdir -p ~/.config/fish/completions
+eksctl completion fish > ~/.config/fish/completions/eksctl.fish
+```
