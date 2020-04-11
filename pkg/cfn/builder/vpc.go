@@ -369,7 +369,7 @@ func (c *ClusterResourceSet) haNAT() {
 		})
 		// Allocate a NAT gateway in the public subnet
 		refNG := c.newResource("NATGateway"+alphanumericUpperAZ, &gfn.AWSEC2NatGateway{
-			AllocationId: gfn.MakeFnGetAttString("NATIP" + alphanumericUpperAZ + ".AllocationId"),
+			AllocationId: gfn.MakeFnGetAttString("NATIP" + alphanumericUpperAZ + ".AllocationID"),
 			SubnetId:     gfn.MakeRef("SubnetPublic" + alphanumericUpperAZ),
 		})
 
@@ -401,7 +401,7 @@ func (c *ClusterResourceSet) singleNAT() {
 		Domain: gfn.NewString("vpc"),
 	})
 	refNG := c.newResource("NATGateway", &gfn.AWSEC2NatGateway{
-		AllocationId: gfn.MakeFnGetAttString("NATIP.AllocationId"),
+		AllocationId: gfn.MakeFnGetAttString("NATIP.AllocationID"),
 		SubnetId:     gfn.MakeRef("SubnetPublic" + firstUpperAZ),
 	})
 

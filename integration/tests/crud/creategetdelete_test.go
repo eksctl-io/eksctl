@@ -538,11 +538,11 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 					// via a GET request on /env.
 					type sessionObject struct {
 						AssumedRoleUser struct {
-							AssumedRoleId, Arn string
+							AssumedRoleID, Arn string
 						}
 						Audience, Provider, SubjectFromWebIdentityToken string
 						Credentials                                     struct {
-							SecretAccessKey, SessionToken, Expiration, AccessKeyId string
+							SecretAccessKey, SessionToken, Expiration, AccessKeyID string
 						}
 					}
 
@@ -565,7 +565,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 							}
 						}
 
-						Expect(so.AssumedRoleUser.AssumedRoleId).To(HaveSuffix(":integration-test"))
+						Expect(so.AssumedRoleUser.AssumedRoleID).To(HaveSuffix(":integration-test"))
 
 						Expect(so.AssumedRoleUser.Arn).To(MatchRegexp("^arn:aws:sts::.*:assumed-role/eksctl-" + truncate(params.ClusterName) + "-.*/integration-test$"))
 
@@ -578,7 +578,7 @@ var _ = Describe("(Integration) Create, Get, Scale & Delete", func() {
 						Expect(so.Credentials.SecretAccessKey).ToNot(BeEmpty())
 						Expect(so.Credentials.SessionToken).ToNot(BeEmpty())
 						Expect(so.Credentials.Expiration).ToNot(BeEmpty())
-						Expect(so.Credentials.AccessKeyId).ToNot(BeEmpty())
+						Expect(so.Credentials.AccessKeyID).ToNot(BeEmpty())
 					}
 
 					deleteCmd := params.EksctlDeleteCmd.WithArgs(

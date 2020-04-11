@@ -66,8 +66,6 @@ type existingCluster struct {
 
 	actualVersion string
 	actualStatus  string
-
-	region string
 }
 
 func (m *existingCluster) Match(actual interface{}) (success bool, err error) {

@@ -115,9 +115,7 @@ func (c Cmd) Run() *gexec.Session {
 }
 
 type runCmdMatcher struct {
-	session *gexec.Session
-	args    []string
-
+	session   *gexec.Session
 	failedCmd string
 }
 
@@ -136,11 +134,11 @@ func RunSuccessfully() types.GomegaMatcher {
 }
 
 func (m *runCmdMatcher) Match(actual interface{}) (bool, error) {
-	switch actual.(type) {
+	switch act := actual.(type) {
 	case Cmd:
-		return m.run(actual.(Cmd)), nil
+		return m.run(act), nil
 	case []Cmd:
-		for _, cmd := range actual.([]Cmd) {
+		for _, cmd := range act {
 			if !m.run(cmd) {
 				return false, nil
 			}
@@ -156,7 +154,7 @@ func (m *runCmdMatcher) FailureMessage(_ interface{}) string {
 }
 
 func (m *runCmdMatcher) NegatedFailureMessage(_ interface{}) string {
-	return fmt.Sprintf("Expected command NOT to succeed")
+	return "Expected command NOT to succeed"
 }
 
 type runCmdOutputMatcher struct {
@@ -221,5 +219,5 @@ func (m *runCmdOutputMatcher) FailureMessage(_ interface{}) string {
 }
 
 func (m *runCmdOutputMatcher) NegatedFailureMessage(_ interface{}) string {
-	return fmt.Sprintf("Expected command NOT to succeed")
+	return "Expected command NOT to succeed"
 }

@@ -278,7 +278,7 @@ var _ = Describe("AMI Auto Resolution", func() {
 	})
 })
 
-func addMockGetParameter(p *mockprovider.MockProvider, name string, amiId string) {
+func addMockGetParameter(p *mockprovider.MockProvider, name string, amiID string) {
 	p.MockSSM().On("GetParameter",
 		mock.MatchedBy(func(input *ssm.GetParameterInput) bool {
 			return *input.Name == name
@@ -287,7 +287,7 @@ func addMockGetParameter(p *mockprovider.MockProvider, name string, amiId string
 		Parameter: &ssm.Parameter{
 			Name:  aws.String(name),
 			Type:  aws.String("String"),
-			Value: aws.String(amiId),
+			Value: aws.String(amiID),
 		},
 	}, nil)
 }

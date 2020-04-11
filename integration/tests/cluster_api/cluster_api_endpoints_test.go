@@ -141,7 +141,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 						"update-cluster-endpoints",
 						"--name", clName,
 						fmt.Sprintf("--public-access=%v", true),
-						fmt.Sprintf("--approve"),
+						"--approve",
 					)
 					Expect(utilsCmd).Should(RunSuccessfully())
 				}
