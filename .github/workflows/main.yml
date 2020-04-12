@@ -9,11 +9,10 @@ on:
       - master
 jobs:
   build:
-    name: Build binaries on ${{ matrix.target_os }}_${{ matrix.target_arch }}
+    name: test-and-build ${{ matrix.target_os }}_${{ matrix.target_arch }}
     runs-on: ${{ matrix.os }}
     container: weaveworks/eksctl-build:63bb98c9599ef0b0cc8bc08f64b6d572765e160e
     env:
-      GOVER: 1.13.9
       GOOS: ${{ matrix.target_os }}
       GOARCH: ${{ matrix.target_arch }}
       GOPROXY: https://proxy.golang.org,direct
