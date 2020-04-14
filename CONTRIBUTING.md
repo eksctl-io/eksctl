@@ -30,6 +30,30 @@ the latest information.
 
 [maillist]: https://groups.google.com/forum/#!forum/eksctl
 
+## Prioritizing issues
+
+We encourage users to report bugs and feature requests in the form of [Github issues](https://github.com/weaveworks/eksctl/issues).
+On a regular basis the team will examine new requests and assign a priority which will be assigned to the issue in the
+form of a label. The scheme of priorities looks like this:
+
+- **critical-urgent**: Must be actively worked on as someone's top priority right now. If it's not being actively worked on, someone is expected to drop what they're doing immediately to work on it. Team leaders are responsible for making sure that all the issues, labeled with this priority, in their area are being actively worked on. Examples include user-visible bugs in core features, broken builds or tests and critical security issues.
+
+  For an existing released build we will release these as hotfixes outside of the normal release cycle.
+
+  For functionality in the next release, we will release as part of the normal release cycle.
+
+  We will assign an accountable person to manage the tracking and communication for this issue.
+
+- **important-soon**: Must be staffed and worked on either currently, or very soon, ideally in time for the next release.
+
+- **important-longterm**: Important over the long term, but may not be currently staffed and/or may require multiple releases to complete.
+
+- **backlog**: There appears to be general agreement that this would be good to have, but we may not have anyone available to work on it right now or in the immediate future. Community contributions would be most welcome in the meantime (although it might take a while to get them reviewed if reviewers are fully occupied with higher priority issues, for example immediately before a release).
+
+- **awaiting-more-evidence**: Possibly useful, but not yet enough support to actually get it done. These are mostly place-holders for potentially good ideas, so that they don't get completely forgotten, and can be referenced /deduped every time they come up.
+
+These priority categories have been inspired by [the Kuberntes contributing guide](https://github.com/kubernetes/community/blob/master/contributors/guide/issue-triage.md).
+
 ## Getting Started
 
 - Fork the repository on GitHub
@@ -209,15 +233,15 @@ This allows the message to be easier to read on GitHub as well as in various git
    git pull --ff-only origin master
    git checkout -b release-0.13
    ```
-   
+
 4b. If this is a subsequent release candidate or the release after an RC check out the existing release branch
 
    ```console
    git checkout release-0.13
    ```
-  
+
 6. Create the tags so that circleci can start the release process:
-  
+
    - for a release candidate: `make prepare-release-candidate`. If there was an existing RC it will increase it's number, e.g.: rc.0 -> rc.1
 
    - for a release: `make prepare-release`. Regardless of whether there was a previous RC or a development version it will create a normal release
