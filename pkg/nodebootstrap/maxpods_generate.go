@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -16,6 +17,7 @@ import (
 const maxPodsPerNodeTypeSourceText = "https://raw.github.com/awslabs/amazon-eks-ami/master/files/eni-max-pods.txt"
 
 func main() {
+	fmt.Println("Generating maxpods.go file...")
 	maxPodsMap := generateMap()
 	renderGoMap(maxPodsMap)
 }

@@ -24,7 +24,6 @@ type formulaFile struct {
 	URL      string
 }
 
-// TODO move to tools/homebrew folder instead
 func main() {
 	var formula formula
 
