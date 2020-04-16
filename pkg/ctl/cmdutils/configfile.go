@@ -388,7 +388,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+			return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {
