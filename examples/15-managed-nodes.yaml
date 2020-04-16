@@ -8,7 +8,7 @@ metadata:
   region: us-west-2
 
 managedNodeGroups:
-  - name: managed-1
+  - name: managed-ng-public
     instanceType: m5.large
     minSize: 2
     desiredCapacity: 3
@@ -27,3 +27,8 @@ managedNodeGroups:
       withAddonPolicies:
         externalDNS: true
         certManager: true
+
+  - name: managed-ng-private
+    instanceType: m5.large
+    # launch nodegroup in private subnets
+    privateNetworking: true
