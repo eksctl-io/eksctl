@@ -36,8 +36,9 @@ func TestSuite(t *testing.T) {
 var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 	const (
-		initialNodeGroup = "managed-ng-0"
-		newNodeGroup     = "ng-1"
+		initialNodeGroup    = "managed-ng-0"
+		newPublicNodeGroup  = "ng-public-1"
+		newPrivateNodeGroup = "ng-private-1"
 	)
 
 	defaultTimeout := 20 * time.Minute
@@ -99,14 +100,26 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			})
 		})
 
-		Context("and add a managed nodegroup", func() {
-			It("should not return an error", func() {
+		Context("and add two managed nodegroups (one public and one private)", func() {
+			It("should not return an error for public node group", func() {
 				cmd := params.EksctlCreateCmd.WithArgs(
 					"nodegroup",
 					"--cluster", params.ClusterName,
 					"--nodes", "4",
 					"--managed",
-					newNodeGroup,
+					newPublicNodeGroup,
+				)
+				Expect(cmd).To(RunSuccessfully())
+			})
+
+			It("should not return an error for private node group", func() {
+				cmd := params.EksctlCreateCmd.WithArgs(
+					"nodegroup",
+					"--cluster", params.ClusterName,
+					"--nodes", "2",
+					"--managed",
+					"--node-private-networking",
+					newPrivateNodeGroup,
 				)
 				Expect(cmd).To(RunSuccessfully())
 			})
@@ -179,7 +192,19 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 						"nodegroup",
 						"--verbose", "4",
 						"--cluster", params.ClusterName,
-						newNodeGroup,
+						newPublicNodeGroup,
+					)
+					Expect(cmd).To(RunSuccessfully())
+				})
+			})
+
+			Context("and delete the managed private nodegroup", func() {
+				It("should not return an error", func() {
+					cmd := params.EksctlDeleteCmd.WithArgs(
+						"nodegroup",
+						"--verbose", "4",
+						"--cluster", params.ClusterName,
+						newPrivateNodeGroup,
 					)
 					Expect(cmd).To(RunSuccessfully())
 				})
