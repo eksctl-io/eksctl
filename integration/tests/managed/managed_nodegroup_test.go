@@ -186,7 +186,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 
 			})
 
-			Context("and delete the second nodegroup", func() {
+			Context("and delete the managed public nodegroup", func() {
 				It("should not return an error", func() {
 					cmd := params.EksctlDeleteCmd.WithArgs(
 						"nodegroup",
