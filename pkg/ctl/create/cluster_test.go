@@ -37,6 +37,26 @@ var _ = Describe("create cluster", func() {
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			Entry("with node-type flag", "--node-type", "m5.large"),
+			Entry("with nodes flag", "--nodes", "2"),
+			Entry("with nodes-min flag", "--nodes-min", "2"),
+			Entry("with nodes-max flag", "--nodes-max", "2"),
+			Entry("with node-volume-size flag", "--node-volume-size", "2"),
+			Entry("with node-volume-type flag", "--node-volume-type", "gp2"),
+			Entry("with max-pods-per-node flag", "--max-pods-per-node", "20"),
+			Entry("with ssh-access flag", "--ssh-access", "true"),
+			Entry("with ssh-public-key flag", "--ssh-public-key", "dummy-public-key"),
+			Entry("with node-ami flag", "--node-ami", "ami-dummy-123"),
+			Entry("with node-ami-family flag", "--node-ami-family", "AmazonLinux2"),
+			Entry("with node-private-networking flag", "--node-private-networking", "true"),
+			Entry("with node-security-groups flag", "--node-security-groups", "sg-123"),
+			Entry("with node-labels flag", "--node-labels", "partition=backend,nodeclass=hugememory"),
+			Entry("with node-zones flag", "--node-zones", "zone1,zone2,zone3"),
+			Entry("with asg-access flag", "--asg-access", "true"),
+			Entry("with external-dns-access flag", "--external-dns-access", "true"),
+			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
+			Entry("with appmesh-access flag", "--appmesh-access", "true"),
+			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
 		)
 
 		DescribeTable("invalid flags or arguments",
@@ -78,6 +98,34 @@ var _ = Describe("create cluster", func() {
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			Entry("with node-type flag", "--node-type", "m5.large"),
+			Entry("with nodes flag", "--nodes", "2"),
+			Entry("with nodes-min flag", "--nodes-min", "2"),
+			Entry("with nodes-max flag", "--nodes-max", "2"),
+			Entry("with node-volume-size flag", "--node-volume-size", "2"),
+			Entry("with ssh-access flag", "--ssh-access", "true"),
+			Entry("with ssh-public-key flag", "--ssh-public-key", "dummy-public-key"),
+			Entry("with node-ami-family flag", "--node-ami-family", "AmazonLinux2"),
+			Entry("with node-private-networking flag", "--node-private-networking", "true"),
+			Entry("with node-labels flag", "--node-labels", "partition=backend,nodeclass=hugememory"),
+			Entry("with node-zones flag", "--node-zones", "zone1,zone2,zone3"),
+			Entry("with asg-access flag", "--asg-access", "true"),
+			Entry("with external-dns-access flag", "--external-dns-access", "true"),
+			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
+			Entry("with appmesh-access flag", "--appmesh-access", "true"),
+			Entry("with alb-ingress-access flag", "--alb-ingress-access", "true"),
+		)
+
+		DescribeTable("with un-supported flags",
+			func(flag string) {
+				cmd := newMockDefaultCmd("cluster", "--managed", flag)
+				_, err := cmd.execute()
+				Expect(err).To(HaveOccurred())
+			},
+			Entry("node-volume-type", "--node-volume-type"),
+			Entry("max-pods-per-node", "--max-pods-per-node"),
+			Entry("node-ami", "--node-ami"),
+			Entry("node-security-groups", "--node-security-groups"),
 		)
 
 		DescribeTable("invalid flags or arguments",
@@ -96,18 +144,6 @@ var _ = Describe("create cluster", func() {
 				args:  []string{"cluster", "--invalid", "dummy"},
 				error: fmt.Errorf("unknown flag: --invalid"),
 			}),
-		)
-
-		DescribeTable("with un-supported flags",
-			func(flag string) {
-				cmd := newMockDefaultCmd("cluster", "--managed", flag)
-				_, err := cmd.execute()
-				Expect(err).To(HaveOccurred())
-			},
-			Entry("node-volume-type", "--node-volume-type"),
-			Entry("max-pods-per-node", "--max-pods-per-node"),
-			Entry("node-ami", "--node-ami"),
-			Entry("node-security-groups", "--node-security-groups"),
 		)
 	})
 })
