@@ -24,6 +24,12 @@ import (
 )
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
+	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
+		return doCreateCluster(cmd, ng, params)
+	})
+}
+
+func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -34,7 +40,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateCluster(cmd, ng, params)
+		return runFunc(cmd, ng, params)
 	}
 
 	exampleClusterName := names.ForCluster("", "")
