@@ -117,15 +117,17 @@ var _ = Describe("create cluster", func() {
 		)
 
 		DescribeTable("with un-supported flags",
-			func(flag string) {
-				cmd := newMockDefaultCmd("cluster", "--managed", flag)
+			func(args ...string) {
+				commandArgs := append([]string{"cluster", "--managed"}, args...)
+				cmd := newMockDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
+				Expect(err).To(Equal(fmt.Errorf("%s is not supported for Managed Nodegroups (--managed=true)", args[0])))
 			},
-			Entry("node-volume-type", "--node-volume-type"),
-			Entry("max-pods-per-node", "--max-pods-per-node"),
-			Entry("node-ami", "--node-ami"),
-			Entry("node-security-groups", "--node-security-groups"),
+			Entry("node-volume-type", "--node-volume-type", "gp2"),
+			Entry("max-pods-per-node", "--max-pods-per-node", "2"),
+			Entry("node-ami", "--node-ami", "ami-dummy-123"),
+			Entry("node-security-groups", "--node-security-groups", "sg-123"),
 		)
 
 		DescribeTable("invalid flags or arguments",
