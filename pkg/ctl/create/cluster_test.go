@@ -32,6 +32,18 @@ var _ = Describe("create cluster", func() {
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			// vpc networking flags
+			Entry("with vpc-cidr flag", "--vpc-cidr", "10.0.0.0/20"),
+			Entry("with vpc-private-subnets flag", "--vpc-private-subnets", "10.0.0.0/24"),
+			Entry("with vpc-public-subnets flag", "--vpc-public-subnets", "10.0.0.0/24"),
+			Entry("with vpc-from-kops-cluster flag", "--vpc-from-kops-cluster", "dummy-kops-cluster"),
+			Entry("with vpc-nat-mode flag", "--vpc-nat-mode", "Single"),
+			// kubeconfig flags
+			Entry("with write-kubeconfig flag", "--write-kubeconfig"),
+			Entry("with kubeconfig flag", "--kubeconfig", "~/.kube"),
+			Entry("with authenticator-role-arn flag", "--authenticator-role-arn", "arn::dummy::123/role"),
+			Entry("with auto-kubeconfig flag", "--auto-kubeconfig"),
+			// common node group flags
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
@@ -47,6 +59,7 @@ var _ = Describe("create cluster", func() {
 			Entry("with node-security-groups flag", "--node-security-groups", "sg-123"),
 			Entry("with node-labels flag", "--node-labels", "partition=backend,nodeclass=hugememory"),
 			Entry("with node-zones flag", "--node-zones", "zone1,zone2,zone3"),
+			// commons node group IAM flags
 			Entry("with asg-access flag", "--asg-access", "true"),
 			Entry("with external-dns-access flag", "--external-dns-access", "true"),
 			Entry("with full-ecr-access flag", "--full-ecr-access", "true"),
@@ -93,6 +106,18 @@ var _ = Describe("create cluster", func() {
 			Entry("without cluster name", ""),
 			Entry("with cluster name as flag", "--name", "clusterName"),
 			Entry("with cluster name as argument", "clusterName"),
+			// vpc networking flags
+			Entry("with vpc-cidr flag", "--vpc-cidr", "10.0.0.0/20"),
+			Entry("with vpc-private-subnets flag", "--vpc-private-subnets", "10.0.0.0/24"),
+			Entry("with vpc-public-subnets flag", "--vpc-public-subnets", "10.0.0.0/24"),
+			Entry("with vpc-from-kops-cluster flag", "--vpc-from-kops-cluster", "dummy-kops-cluster"),
+			Entry("with vpc-nat-mode flag", "--vpc-nat-mode", "Single"),
+			// kubeconfig flags
+			Entry("with write-kubeconfig flag", "--write-kubeconfig"),
+			Entry("with kubeconfig flag", "--kubeconfig", "~/.kube"),
+			Entry("with authenticator-role-arn flag", "--authenticator-role-arn", "arn::dummy::123/role"),
+			Entry("with auto-kubeconfig flag", "--auto-kubeconfig"),
+			// common node group flags
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
