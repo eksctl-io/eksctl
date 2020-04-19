@@ -310,7 +310,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
 			}
@@ -319,7 +319,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				// generate nodegroup name or use either flag or argument
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
 				if err := normalizeNodeGroup(ng, l); err != nil {
