@@ -11,16 +11,17 @@ import (
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
-var _ = Describe("create cluster", func() {
+var _ = Describe("create nodegroup", func() {
 	Describe("un-managed node group", func() {
-		DescribeTable("create cluster successfully",
+		DescribeTable("create nodegroup successfully",
 			func(args ...string) {
-				commandArgs := append([]string{"cluster"}, args...)
+				commandArgs := append([]string{"nodegroup", "--cluster", "clusterName"}, args...)
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
-						Expect(cmd.ClusterConfig.Metadata.Name).NotTo(BeNil())
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
+						Expect(ng.Name).NotTo(BeNil())
 						count++
 						return nil
 					})
@@ -29,9 +30,8 @@ var _ = Describe("create cluster", func() {
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(count).To(Equal(1))
 			},
-			Entry("without cluster name", ""),
-			Entry("with cluster name as flag", "--name", "clusterName"),
-			Entry("with cluster name as argument", "clusterName"),
+			Entry("with nodegroup name as flag", "--name", "nodegroupName"),
+			Entry("with nodegroup name as argument", "nodegroupName"),
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
@@ -56,32 +56,37 @@ var _ = Describe("create cluster", func() {
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
-				commandArgs := append([]string{"cluster"}, c.args...)
+				commandArgs := append([]string{"nodegroup"}, c.args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal(c.error.Error()))
 			},
-			Entry("with cluster name as argument and flag", invalidParamsCase{
-				args:  []string{"clusterName", "--name", "clusterName"},
-				error: fmt.Errorf("--name=clusterName and argument clusterName cannot be used at the same time"),
+			Entry("without cluster name", invalidParamsCase{
+				args:  []string{"nodegroupName", "--name", "nodegroupName"},
+				error: fmt.Errorf("--cluster must be set"),
+			}),
+			Entry("with nodegroup name as argument and flag", invalidParamsCase{
+				args:  []string{"nodegroupName", "--cluster", "clusterName", "--name", "nodegroupName"},
+				error: fmt.Errorf("--cluster=nodegroupName and argument nodegroupName cannot be used at the same time"),
 			}),
 			Entry("with invalid flags", invalidParamsCase{
-				args:  []string{"cluster", "--invalid", "dummy"},
+				args:  []string{"nodegroup", "--invalid", "dummy"},
 				error: fmt.Errorf("unknown flag: --invalid"),
 			}),
 		)
 	})
 
 	Describe("managed node group", func() {
-		DescribeTable("create cluster successfully",
+		DescribeTable("create nodegroup successfully",
 			func(args ...string) {
-				commandArgs := append([]string{"cluster", "--managed"}, args...)
+				commandArgs := append([]string{"nodegroup", "--managed", "--cluster", "clusterName"}, args...)
 				cmd := newMockEmptyCmd(commandArgs...)
 				count := 0
 				cmdutils.AddResourceCmd(cmdutils.NewGrouping(), cmd.parentCmd, func(cmd *cmdutils.Cmd) {
-					createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
-						Expect(cmd.ClusterConfig.Metadata.Name).NotTo(BeNil())
+					createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+						Expect(cmd.ClusterConfig.Metadata.Name).To(Equal("clusterName"))
+						Expect(ng.Name).NotTo(BeNil())
 						count++
 						return nil
 					})
@@ -90,9 +95,9 @@ var _ = Describe("create cluster", func() {
 				Expect(err).To(Not(HaveOccurred()))
 				Expect(count).To(Equal(1))
 			},
-			Entry("without cluster name", ""),
-			Entry("with cluster name as flag", "--name", "clusterName"),
-			Entry("with cluster name as argument", "clusterName"),
+			Entry("without nodegroup name", ""),
+			Entry("with nodegroup name as flag", "--name", "nodegroupName"),
+			Entry("with nodegroup name as argument", "nodegroupName"),
 			Entry("with node-type flag", "--node-type", "m5.large"),
 			Entry("with nodes flag", "--nodes", "2"),
 			Entry("with nodes-min flag", "--nodes-min", "2"),
@@ -113,7 +118,7 @@ var _ = Describe("create cluster", func() {
 
 		DescribeTable("with un-supported flags",
 			func(args ...string) {
-				commandArgs := append([]string{"cluster", "--managed"}, args...)
+				commandArgs := append([]string{"nodegroup", "--managed", "--cluster", "clusterName"}, args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
@@ -127,18 +132,18 @@ var _ = Describe("create cluster", func() {
 
 		DescribeTable("invalid flags or arguments",
 			func(c invalidParamsCase) {
-				commandArgs := append([]string{"cluster", "--managed"}, c.args...)
+				commandArgs := append([]string{"nodegroup", "--managed", "--cluster", "clusterName"}, c.args...)
 				cmd := newDefaultCmd(commandArgs...)
 				_, err := cmd.execute()
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal(c.error.Error()))
 			},
-			Entry("with cluster name as argument and flag", invalidParamsCase{
-				args:  []string{"clusterName", "--name", "clusterName"},
-				error: fmt.Errorf("--name=clusterName and argument clusterName cannot be used at the same time"),
+			Entry("with nodegroup name as argument and flag", invalidParamsCase{
+				args:  []string{"nodegroupName", "--name", "nodegroupName"},
+				error: fmt.Errorf("--cluster=nodegroupName and argument nodegroupName cannot be used at the same time"),
 			}),
 			Entry("with invalid flags", invalidParamsCase{
-				args:  []string{"cluster", "--invalid", "dummy"},
+				args:  []string{"nodegroup", "--invalid", "dummy"},
 				error: fmt.Errorf("unknown flag: --invalid"),
 			}),
 		)
