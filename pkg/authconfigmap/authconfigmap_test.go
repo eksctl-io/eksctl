@@ -343,22 +343,22 @@ var _ = Describe("AuthConfigMap{}", func() {
 		}
 
 		It("should add a role and a user", func() {
-			cm := addAndSave(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
-			cm = addAndSave(userA, userAUsername, userAGroups)
+			_ = addAndSave(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			cm := addAndSave(userA, userAUsername, userAGroups)
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA))
 			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA))
 		})
 		It("should append a second role and user", func() {
-			cm := addAndSave(roleB, RoleNodeGroupUsername, []string{groupB})
-			cm = addAndSave(userB, userBUsername, userBGroups)
+			_ = addAndSave(roleB, RoleNodeGroupUsername, []string{groupB})
+			cm := addAndSave(userB, userBUsername, userBGroups)
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoleA + expectedRoleB))
 			Expect(cm.Data["mapUsers"]).To(MatchYAML(expectedUserA + expectedUserB))
 		})
 		It("should append a duplicate role", func() {
-			cm := addAndSave(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
+			_ = addAndSave(roleA, RoleNodeGroupUsername, RoleNodeGroupGroups)
 			expectedRoles := expectedRoleA + expectedRoleB + expectedRoleA
 
-			cm = addAndSave(userA, userAUsername, userAGroups)
+			cm := addAndSave(userA, userAUsername, userAGroups)
 			expectedUsers := expectedUserA + expectedUserB + expectedUserA
 
 			Expect(cm.Data["mapRoles"]).To(MatchYAML(expectedRoles))
