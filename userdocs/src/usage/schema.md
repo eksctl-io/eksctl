@@ -353,6 +353,18 @@ ManagedNodeGroup:
   - ScalingConfig
   - privateNetworking
   type: object
+MetricsCollection:
+  additionalProperties: false
+  properties:
+    granularity:
+      type: string
+    metrics:
+      items:
+        type: string
+      type: array
+  required:
+  - granularity
+  type: object
 Network:
   additionalProperties: false
   properties:
@@ -369,6 +381,11 @@ NodeGroup:
       type: string
     amiFamily:
       type: string
+    asgMetricsCollection:
+      items:
+        $ref: '#/definitions/MetricsCollection'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
     availabilityZones:
       items:
         type: string

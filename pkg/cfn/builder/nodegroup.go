@@ -274,6 +274,9 @@ func nodeGroupResource(launchTemplateName *gfn.Value, vpcZoneIdentifier interfac
 	if ng.MaxSize != nil {
 		ngProps["MaxSize"] = fmt.Sprintf("%d", *ng.MaxSize)
 	}
+	if len(ng.ASGMetricsCollection) > 0 {
+		ngProps["MetricsCollection"] = metricsCollectionResource(ng.ASGMetricsCollection)
+	}
 	if len(ng.ClassicLoadBalancerNames) > 0 {
 		ngProps["LoadBalancerNames"] = ng.ClassicLoadBalancerNames
 	}
@@ -344,4 +347,19 @@ func mixedInstancesPolicy(launchTemplateName *gfn.Value, ng *api.NodeGroup) *map
 	policy["InstancesDistribution"] = instancesDistribution
 
 	return &policy
+}
+
+func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []map[string]interface{} {
+	var metricsCollections []map[string]interface{}
+	for _, m := range asgMetricsCollection {
+		newCollection := make(map[string]interface{})
+
+		var metrics []string
+		metrics = append(metrics, m.Metrics...)
+		newCollection["Metrics"] = metrics
+		newCollection["Granularity"] = m.Granularity
+
+		metricsCollections = append(metricsCollections, newCollection)
+	}
+	return metricsCollections
 }

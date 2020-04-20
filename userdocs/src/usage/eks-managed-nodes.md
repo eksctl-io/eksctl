@@ -179,6 +179,7 @@ the provisioned Autoscaling Group like in unmanaged nodegroups.
 - Control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
 following fields: `classicLoadBalancerNames`, `maxPodsPerNode`, `taints`, `targetGroupARNs`, `preBootstrapCommands`, `overrideBootstrapCommand`,
 `clusterDNS` and `kubeletExtraConfig`.
+- No support for enabling metrics on AutoScalingGroups using `asgMetricsCollection`
 
 ## Note for eksctl versions below 0.12.0
 - For clusters upgraded from EKS 1.13 to EKS 1.14, managed nodegroups will not be able to communicate with unmanaged
