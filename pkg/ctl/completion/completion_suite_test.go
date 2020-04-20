@@ -1,8 +1,9 @@
-package generate
+package completion
 
 import (
-	"github.com/weaveworks/eksctl/pkg/testutils"
 	"testing"
+
+	"github.com/weaveworks/eksctl/pkg/testutils"
 )
 
 func TestSuite(t *testing.T) {

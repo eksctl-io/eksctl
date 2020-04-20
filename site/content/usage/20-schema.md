@@ -341,6 +341,8 @@ ManagedNodeGroup:
       type: object
     name:
       type: string
+    privateNetworking:
+      type: boolean
     ssh:
       $ref: '#/definitions/NodeGroupSSH'
     tags:
@@ -353,6 +355,7 @@ ManagedNodeGroup:
   required:
   - name
   - ScalingConfig
+  - privateNetworking
   type: object
 Network:
   additionalProperties: false

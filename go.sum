@@ -332,10 +332,10 @@ github.com/fatih/camelcase v0.0.0-20160318181535-f6a740d52f96/go.mod h1:yN2Sb0lF
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
-github.com/fluxcd/flux/pkg/install v0.0.0-20200206191601-8b676b003ab0 h1:HPX8m+SWDfRJaReoMUaJegrkbkPGAsQRXDq4y06FbUI=
-github.com/fluxcd/flux/pkg/install v0.0.0-20200206191601-8b676b003ab0/go.mod h1:F19jvpuZunZPI7JJcqHxu8eBbUzEbbyUpR84Z0G08oo=
-github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200213151218-f7e487142b46 h1:KXR87Z2/Heu64MRvBxzcpXFJenr50XY1qn6u7yChSOE=
-github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200213151218-f7e487142b46/go.mod h1:sVoV/NqClg8zFoK5a4nfts0aBq0fLrQO+LoNkfOxx1U=
+github.com/fluxcd/flux/pkg/install v0.0.0-20200402142123-873fb9300996 h1:Fhxaa1iYgpAkoSJaIpNjn/nAFHSLg6dEFxNJSNl5S44=
+github.com/fluxcd/flux/pkg/install v0.0.0-20200402142123-873fb9300996/go.mod h1:F19jvpuZunZPI7JJcqHxu8eBbUzEbbyUpR84Z0G08oo=
+github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200407140510-8d71b0072a3e h1:1Lye+YFYfaejOaZ4Uunl5APc/Sjtdj0yMv3/tXhMGcU=
+github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200407140510-8d71b0072a3e/go.mod h1:sVoV/NqClg8zFoK5a4nfts0aBq0fLrQO+LoNkfOxx1U=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/fortytw2/leaktest v1.2.0 h1:cj6GCiwJDH7l3tMHLjZDo0QqPtrXJiWSI9JgpeQKw+Q=
 github.com/fortytw2/leaktest v1.2.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
@@ -1080,8 +1080,8 @@ github.com/spf13/cobra v0.0.0-20180820174524-ff0d02e85550/go.mod h1:1l0Ry5zgKvJa
 github.com/spf13/cobra v0.0.3/go.mod h1:1l0Ry5zgKvJasoi3XT1TypsSe7PqH0Sj9dhYf7v3XqQ=
 github.com/spf13/cobra v0.0.5 h1:f0B+LkLX6DtmRH1isoNA9VTtNUK9K8xYd28JNNfOv/s=
 github.com/spf13/cobra v0.0.5/go.mod h1:3K3wKZymM7VvHMDS9+Akkh4K60UwM26emMESw8tLCHU=
-github.com/spf13/cobra v0.0.6 h1:breEStsVwemnKh2/s6gMvSdMEkwW0sK8vGStnlVBMCs=
-github.com/spf13/cobra v0.0.6/go.mod h1:/6GTrnGXV9HjY+aR4k0oJ5tcvakLuG6EuKReYlHNrgE=
+github.com/spf13/cobra v1.0.0 h1:6m/oheQuQ13N9ks4hubMG6BnvwOeaJrqSPLahSnczz8=
+github.com/spf13/cobra v1.0.0/go.mod h1:/6GTrnGXV9HjY+aR4k0oJ5tcvakLuG6EuKReYlHNrgE=
 github.com/spf13/fsync v0.9.0 h1:f9CEt3DOB2mnHxZaftmEOFWjABEvKM/xpf3cUwJrGOY=
 github.com/spf13/fsync v0.9.0/go.mod h1:fNtJEfG3HiltN3y4cPOz6MLjos9+2pIEqLIgszqhp/0=
 github.com/spf13/jwalterweatherman v0.0.0-20160311093646-33c24e77fb80/go.mod h1:cQK4TGJAtQXfYWX+Ddv3mKDzgVb68N+wFjFa4jdeBTo=

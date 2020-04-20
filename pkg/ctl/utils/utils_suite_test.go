@@ -1,6 +1,5 @@
 package utils
 
-
 import (
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"testing"
