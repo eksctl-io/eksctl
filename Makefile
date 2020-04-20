@@ -235,16 +235,16 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 
 ##@ Site
 
-HUGO := $(GOBIN)/hugo
-HUGO_ARGS ?= --gc --minify
+docs-deps:
+	pip3 install -r userdocs/requirements.txt
 
 .PHONY: serve-pages
-serve-pages: ## Serve the site locally
-	cd site/ ; $(HUGO) serve $(HUGO_ARGS)
+serve-pages: docs-deps ## Serve the site locally
+	cd userdocs/ ; mkdocs serve
 
 .PHONY: build-pages
-build-pages: ## Generate the site
-	cd site/ ; $(HUGO) $(HUGO_ARGS)
+build-pages: docs-deps ## Generate the site
+	cd userdocs/ ; mkdocs build
 
 ##@ Utility
 
