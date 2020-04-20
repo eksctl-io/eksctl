@@ -26,6 +26,12 @@ type createNodeGroupParams struct {
 }
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+		return doCreateNodeGroups(cmd, ng, params)
+	})
+}
+
+func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -38,7 +44,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateNodeGroups(cmd, ng, params)
+		return runFunc(cmd, ng, params)
 	}
 
 	exampleNodeGroupName := names.ForNodeGroup("", "")

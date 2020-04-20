@@ -54,7 +54,6 @@ func incompatibleManagedNodesFlags() []string {
 		"node-volume-type",
 		"max-pods-per-node",
 		"node-ami",
-		"node-private-networking",
 		"node-security-groups",
 	}
 }

@@ -344,6 +344,7 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
 		Tags:              nodeGroup.Tags,
 		AMIFamily:         nodeGroup.AMIFamily,
 		VolumeSize:        nodeGroup.VolumeSize,
+		PrivateNetworking: nodeGroup.PrivateNetworking,
 		ScalingConfig: &api.ScalingConfig{
 			MinSize:         nodeGroup.MinSize,
 			MaxSize:         nodeGroup.MaxSize,
