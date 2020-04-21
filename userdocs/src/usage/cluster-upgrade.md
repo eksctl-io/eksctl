@@ -45,7 +45,7 @@ eksctl get nodegroups --cluster=<clusterName>
 ```
 
 !!!note
-    First run is in plan mode, if you are happy with the proposed changes, re-run with `--approve`.
+    You should see only one nodegroup here, if you see more - read the next section.
 
 Create new nodegroup:
 
