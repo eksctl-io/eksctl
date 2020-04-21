@@ -70,8 +70,8 @@ recommended.
 - internet and/or NAT gateways are configured correctly
 - routing tables have correct entries and the network is functional
 - tagging of subnets
-  - `kubernetes.io/cluster/<name>` tag set to either `shared` or `owned`
-  - `kubernetes.io/role/internal-elb` tag set to `1` for private subnets
+    - `kubernetes.io/cluster/<name>` tag set to either `shared` or `owned`
+    - `kubernetes.io/role/internal-elb` tag set to `1` for private subnets
 - **NEW**: all public subnets should have the property `MapPublicIpOnLaunch` enabled (i.e. `Auto-assign public IPv4 address` in the AWS console)
 
 There maybe other requirements imposed by EKS or Kubernetes, and it is entirely up to you to stay up-to-date on any requirements and/or
