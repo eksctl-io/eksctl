@@ -15,7 +15,7 @@ generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deep
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  site/content/usage/20-schema.md \
+  userdocs/src/usage/schema.md \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
@@ -34,6 +34,7 @@ all_generated_files := \
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
+	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
 
@@ -168,7 +169,7 @@ check-all-generated-files-up-to-date: generate-all
 generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
 	time go generate ./pkg/ami
 
-site/content/usage/20-schema.md: $(call godeps,cmd/schema/generate.go)
+userdocs/src/usage/schema.md: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
@@ -235,16 +236,13 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 
 ##@ Site
 
-HUGO := $(GOBIN)/hugo
-HUGO_ARGS ?= --gc --minify
-
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
-	cd site/ ; $(HUGO) serve $(HUGO_ARGS)
+	cd userdocs/ ; mkdocs serve
 
 .PHONY: build-pages
 build-pages: ## Generate the site
-	cd site/ ; $(HUGO) $(HUGO_ARGS)
+	cd userdocs/ ; mkdocs build
 
 ##@ Utility
 

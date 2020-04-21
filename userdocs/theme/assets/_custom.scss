@@ -1,0 +1,67 @@
+table {
+  overflow-x: scroll;
+}
+
+img[src$="#inline"] {
+  height: 25px;
+}
+
+img[src$="#inline-ww"] {
+  height: 20px;
+}
+
+img[src$="#content"] {
+  width: $content-img;
+  height: auto;
+}
+
+#intro-code {
+  text-align: center;
+  line-height: 200px;
+  background: url("img/eksctl-gopher.png") no-repeat top right;
+}
+
+#styled-code {
+  border-radius: 2px;
+  background: #f8f9fa;
+}
+
+#github {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 1;
+}
+
+#github-section {
+  padding-left: 5px;
+  display: inline-block;
+}
+
+// Responsive styles
+@media screen and (max-width: $md-breakpoint + 16rem) {
+  #github-section {
+    padding-left: 0px;
+    display: block;
+  }
+}
+
+@media screen and (max-width: $md-breakpoint + $padding-16) {
+  #github {
+    display: none;
+  }
+  table {
+    display: block;
+  }
+}
+
+@media (max-width: 349px) {
+  #intro-code {
+    text-align: center;
+    font-size: 20px;
+    line-height: 200px;
+  }
+  img[src$="#content"] {
+    max-width: $body-min-width;
+  }
+}
