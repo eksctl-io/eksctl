@@ -319,6 +319,6 @@ You want to keep an eye on Circle CI for the progress of the release ([0.3.1 exa
 
 ### Latest release
 
-To get the latest release you can use the link [https://github.com/weaveworks/eksctl/releases/latest]().
+To get the latest release you can use the link <https://github.com/weaveworks/eksctl/releases/latest>.
 
 **Note** Previously, eksctl used a floating tag called `latest_release`. This is _deprecated_ and it will stop working after release `0.14.0`.
