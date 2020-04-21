@@ -16,11 +16,6 @@ conditionally_generated_files := \
   userdocs/src/usage/schema.md \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
-all_downloaded_files := \
-  pkg/ami/static_resolver_ami.go \
-  pkg/nodebootstrap/maxpods.go \
-  pkg/addons/default/assets/aws-node.yaml \
-
 all_generated_files := \
   pkg/nodebootstrap/assets.go \
   pkg/addons/default/assets.go \
@@ -146,14 +141,17 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
+## Important: pkg/addons/default/generate.go depends on pkg/addons/default/assets/aws-node.yaml If this file is
+## not present, the generation of assets will not fail but will not contain it.
 .PHONY: generate-always
-generate-always:  pkg/ami/static_resolver_ami.go pkg/nodebootstrap/maxpods.go pkg/addons/default/assets/aws-node.yaml
+generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
 	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
 	@$(GOBIN)/go-bindata -v
 	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap/assets.go
-	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default ./pkg/addons
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
@@ -167,17 +165,11 @@ check-all-generated-files-up-to-date: generate-all
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
 ### Update AMIs in ami static resolver
-pkg/ami/static_resolver_ami.go:
-	$(MAKE) update-ami
-
 .PHONY: update-ami
 update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
 	go generate ./pkg/ami
 
 ### Update maxpods.go from AWS
-pkg/nodebootstrap/maxpods.go:
-	$(MAKE) update-maxpods
-
 .PHONY: update-maxpods
 update-maxpods: ## Re-download the max pods info from AWS and regenerate the maxpods.go file
 	@cd pkg/nodebootstrap && go run maxpods_generate.go
