@@ -6,6 +6,7 @@ repo_url: 'https://github.com/weaveworks/eksctl'
 copyright: 'Copyright &copy; 2020 Weaveworks'
 docs_dir: src
 edit_uri: ""
+
 nav:
     - Introduction: intro.md
     - 'GitOps Quickstart': gitops-quickstart.md
@@ -35,10 +36,12 @@ nav:
     - Examples:
         - examples/reusing-iam-and-vpc.md
     - Community: community.md
+
 extra:
     social:
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/weaveworks
+
 theme:
     name: 'material'
     custom_dir: 'theme'
@@ -55,9 +58,11 @@ theme:
         - yaml
         - json
         - bash
+
 markdown_extensions:
     - toc:
         permalink: true
     - admonition
     - codehilite:
         linenums: true
+    - pymdownx.superfences
