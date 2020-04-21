@@ -34,6 +34,7 @@ all_generated_files := \
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
+	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
 
@@ -235,15 +236,12 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 
 ##@ Site
 
-docs-deps:
-	pip3 install -r userdocs/requirements.txt
-
 .PHONY: serve-pages
-serve-pages: docs-deps ## Serve the site locally
+serve-pages: ## Serve the site locally
 	cd userdocs/ ; mkdocs serve
 
 .PHONY: build-pages
-build-pages: docs-deps ## Generate the site
+build-pages: ## Generate the site
 	cd userdocs/ ; mkdocs build
 
 ##@ Utility
