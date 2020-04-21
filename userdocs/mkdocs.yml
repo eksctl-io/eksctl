@@ -5,6 +5,7 @@ repo_name: 'weaveworks/eksctl'
 repo_url: 'https://github.com/weaveworks/eksctl'
 copyright: 'Copyright &copy; 2020 Weaveworks'
 docs_dir: src
+edit_uri: ""
 nav:
     - Introduction: intro.md
     - 'GitOps Quickstart': gitops-quickstart.md

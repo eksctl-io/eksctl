@@ -50,9 +50,9 @@ _empty_ repository. On GitHub, for example, follow [these steps][github-repo].
 
 ## Standing up your cluster
 
-First we follow the [usual steps](/introduction/getting-started/) to stand
-up a cluster on EKS. Please review the list of flags to see if you need to
-tweak it for your purposes. In essence it is going to be a variation of:
+First we follow the [usual steps](/intro/) to stand up a cluster on EKS.
+Please review the list of flags to see if you need to tweak it for your
+purposes. In essence it is going to be a variation of:
 
 ```console
 eksctl create cluster
@@ -129,7 +129,7 @@ Let us go through the specified arguments one by one:
 - `--region`: the region of your cluster.
 
 There are more arguments and options, please refer to the
-[gitops reference of eksctl](/usage/experimental/gitops-flux/)
+[gitops reference of eksctl](/usage/experimental/gitops/)
 which details all the flags and resulting directory structure.
 
 The command will take a while to run and it's a good idea to scan
@@ -214,7 +214,7 @@ Let us go through the specified arguments one by one:
   to start from scratch every time. We use `app-dev` here.
 
 There are more arguments and options, please refer to the
-[gitops reference of eksctl](/usage/experimental/gitops-flux/)
+[gitops reference of eksctl](/usage/experimental/gitops/)
 which details all the flags and resulting directory structure.
 
 This will load gitops Quick Start manifests into your repo. It will use
@@ -313,7 +313,7 @@ same defaults, it makes sense to use those as a profile. You could
 be entirely starting from scratch here too. What we will do in this part
 of the tutorial is using `weaveworks/eks-quickstart-app-dev`, which is
 the `app-dev` gitops Quick Start profile. To create your own profile
-check out [the documentation](usage/experimental/gitops-flux/#creating-your-own-quick-start-profile).
+check out [the documentation](/usage/experimental/gitops/#creating-your-own-quick-start-profile).
 
 Now please run:
 
@@ -377,5 +377,4 @@ Welcome to a fully gitopsed world!
 ## Conclusion
 
 We look forward to hearing your thoughts and feedback. Please [get
-in touch](/community/get-in-touch/) and let us know how things
-worked out for you.
+in touch](/community/) and let us know how things worked out for you.
