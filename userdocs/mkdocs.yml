@@ -7,6 +7,9 @@ copyright: 'Copyright &copy; 2020 Weaveworks'
 docs_dir: src
 edit_uri: ""
 
+extra_css:
+    - assets/_custom.scss
+
 nav:
     - Introduction: intro.md
     - 'GitOps Quickstart': gitops-quickstart.md
@@ -48,8 +51,8 @@ theme:
     favicon: 'assets/images/favicon.png'
     logo: 'assets/images/logo.png'
     font:
-        text: 'Oxygen'
-        code: 'Oxygen Mono'
+        text: 'Montserrat'
+        code: 'Roboto Mono'
     palette:
       primary: 'white'
       accent: 'light blue'
