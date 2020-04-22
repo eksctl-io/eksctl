@@ -669,9 +669,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 
 			ngs := map[string]*NodeGroup{
-				"PreBootstrapCommands": {PreBootstrapCommands: []string{"/usr/bin/env true"}},
+				"PreBootstrapCommands":     {PreBootstrapCommands: []string{"/usr/bin/env true"}},
 				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
-				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
+				"KubeletExtraConfig":       {KubeletExtraConfig: &doc},
 				"overlapping Bottlerocket settings": {
 					Bottlerocket: &NodeGroupBottlerocket{
 						Settings: &InlineDocument{

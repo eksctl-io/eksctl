@@ -1,8 +1,6 @@
 package completion
 
 import (
-	"os"
-
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +24,7 @@ If you are stuck on Bash 3 (macOS) use
 source /dev/stdin <<<"$(eksctl completion bash)"
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return rootCmd.GenBashCompletion(os.Stdout)
+			return rootCmd.GenBashCompletion(cmd.OutOrStdout())
 		},
 	}
 	var zshCompletionCmd = &cobra.Command{
@@ -43,13 +41,27 @@ fpath=($fpath ~/.zsh/completion)
 
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return rootCmd.GenZshCompletion(os.Stdout)
+			return rootCmd.GenZshCompletion(cmd.OutOrStdout())
+		},
+	}
+
+	var fishCompletionCmd = &cobra.Command{
+		Use:   "fish",
+		Short: "Generates fish completion scripts",
+		Long: `To configure your fish shell, run:
+
+mkdir -p ~/.config/fish/completions
+eksctl completion fish > ~/.config/fish/completions/eksctl.fish
+
+`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return rootCmd.GenFishCompletion(cmd.OutOrStdout(), true)
 		},
 	}
 
 	cmd := &cobra.Command{
 		Use:   "completion",
-		Short: "Generates shell completion scripts",
+		Short: "Generates shell completion scripts for bash, zsh or fish",
 		Run: func(c *cobra.Command, _ []string) {
 			if err := c.Help(); err != nil {
 				logger.Debug("ignoring error %q", err.Error())
@@ -59,6 +71,7 @@ fpath=($fpath ~/.zsh/completion)
 
 	cmd.AddCommand(bashCompletionCmd)
 	cmd.AddCommand(zshCompletionCmd)
+	cmd.AddCommand(fishCompletionCmd)
 
 	return cmd
 }

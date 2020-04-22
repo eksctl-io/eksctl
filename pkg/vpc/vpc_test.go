@@ -623,7 +623,7 @@ var _ = Describe("VPC - Import all subnets", func() {
 				return input != nil
 			})).Return(mockResultFn, nil)
 
-			if err := ImportAllSubnets(p, e.cfg, ); err != nil {
+			if err := ImportAllSubnets(p, e.cfg); err != nil {
 				Expect(err.Error()).To(Equal(e.error.Error()))
 			} else {
 				Expect(e.cfg.VPC.Subnets.Private).Should(HaveKey("az1"))

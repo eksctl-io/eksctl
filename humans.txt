@@ -65,10 +65,12 @@ Michael Treacher        @treacher
 Ajay Kemparaj           @ajayk
 Ryota Arai              @ryotarai
 Allan Chua              @allanchua101
-Ash Rohde		            @zadowsmash
+Ash Rohde               @zadowsmash
 Brandon Wagner          @bwagner5
 Jacob Vallejo           @jahkeup
 Andrea Scarpino         @ilpianista
+Lars Lehtonen           @alrs
+
 
 /* Thanks */
 

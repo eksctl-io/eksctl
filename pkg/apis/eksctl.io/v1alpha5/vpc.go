@@ -240,3 +240,10 @@ func (c *ClusterConfig) HasClusterEndpointAccess() bool {
 	}
 	return true
 }
+
+func (c *ClusterConfig) HasPrivateEndpointAccess() bool {
+	return c.VPC != nil &&
+		c.VPC.ClusterEndpoints != nil &&
+		c.VPC.ClusterEndpoints.PrivateAccess != nil &&
+		*c.VPC.ClusterEndpoints.PrivateAccess
+}

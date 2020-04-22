@@ -6,7 +6,6 @@ package eksctl
 // See https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
 import (
 	_ "github.com/dave/jennifer/jen"
-	_ "github.com/gohugoio/hugo"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/kevinburke/go-bindata/go-bindata"

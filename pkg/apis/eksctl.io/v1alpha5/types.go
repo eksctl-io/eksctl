@@ -818,6 +818,8 @@ type ManagedNodeGroup struct {
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
 	// +optional
+	PrivateNetworking bool `json:"privateNetworking"`
+	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
 	IAM *NodeGroupIAM `json:"iam,omitempty"`

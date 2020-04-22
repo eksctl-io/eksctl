@@ -72,7 +72,7 @@ var _ = Describe("create", func() {
 		})
 
 		It("the fargate profile with tags", func() {
-			cmd := newMockCreateFargateProfileCmd("fargateprofile", "--cluster", "foo", "--tags", "env=dev,name=fp-default", "--namespace", "default", "fp-default", )
+			cmd := newMockCreateFargateProfileCmd("fargateprofile", "--cluster", "foo", "--tags", "env=dev,name=fp-default", "--namespace", "default", "fp-default")
 			_, err := cmd.execute()
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(cmd.cmd.ClusterConfig.Metadata.Name).To(Equal("foo"))

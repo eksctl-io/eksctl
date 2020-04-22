@@ -54,4 +54,3 @@ func (c mockVerbCmd) execute() (string, error) {
 	err := c.parentCmd.Execute()
 	return buf.String(), err
 }
-

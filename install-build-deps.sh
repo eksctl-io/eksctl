@@ -13,8 +13,6 @@ else
   OSARCH="linux-amd64"
 fi
 
-env CGO_ENABLED=1 go install -tags extended github.com/gohugoio/hugo
-
 REQUIREMENTS_FILE=.requirements
 
 if [ ! -f "$REQUIREMENTS_FILE" ]

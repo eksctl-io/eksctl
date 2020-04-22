@@ -8,7 +8,7 @@ import (
 var _ = Describe("get", func() {
 	Describe("iamserviceaccount", func() {
 		It("missing required flag --cluster", func() {
-			cmd := newMockCmd( "iamserviceaccount")
+			cmd := newMockCmd("iamserviceaccount")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--cluster must be set"))
@@ -22,4 +22,3 @@ var _ = Describe("get", func() {
 		})
 	})
 })
-

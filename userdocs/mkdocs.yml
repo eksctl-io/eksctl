@@ -1,0 +1,71 @@
+site_name: eksctl
+site_description: 'The official CLI for Amazon EKS'
+site_author: 'eksctl authors'
+repo_name: 'weaveworks/eksctl'
+repo_url: 'https://github.com/weaveworks/eksctl'
+copyright: 'Copyright &copy; 2020 Weaveworks'
+docs_dir: src
+edit_uri: ""
+
+extra_css:
+    - assets/_custom.scss
+
+nav:
+    - Introduction: intro.md
+    - 'GitOps Quickstart': gitops-quickstart.md
+    - Usage:
+        - usage/creating-and-managing-clusters.md
+        - usage/managing-nodegroups.md
+        - usage/cluster-upgrade.md
+        - usage/autoscaling.md
+        - usage/custom-ami-support.md
+        - usage/vpc-networking.md
+        - usage/gpu-support.md
+        - usage/spot-instances.md
+        - IAM:
+            - usage/iam-permissions-boundary.md
+            - usage/iam-policies.md
+            - usage/iam-identity-mappings.md
+            - usage/iamserviceaccounts.md
+        - usage/customizing-the-kubelet.md
+        - usage/cloudwatch-cluster-logging.md
+        - usage/windows-worker-nodes.md
+        - usage/eks-managed-nodes.md
+        - usage/fargate-support.md
+        - usage/schema.md
+        - usage/troubleshooting.md
+        - FAQ: usage/faq.md
+        - Experimental: usage/experimental/gitops.md
+    - Examples:
+        - examples/reusing-iam-and-vpc.md
+    - Community: community.md
+
+extra:
+    social:
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/weaveworks
+
+theme:
+    name: 'material'
+    custom_dir: 'theme'
+    favicon: 'assets/images/favicon.png'
+    logo: 'assets/images/logo.png'
+    font:
+        text: 'Montserrat'
+        code: 'Roboto Mono'
+    palette:
+      primary: 'white'
+      accent: 'light blue'
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - json
+        - bash
+
+markdown_extensions:
+    - toc:
+        permalink: true
+    - admonition
+    - codehilite:
+        linenums: true
+    - pymdownx.superfences

@@ -90,6 +90,13 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 
 		Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring(params.ClusterName)))
 
+		By("updating the public subnets")
+		cmd = params.EksctlUtilsCmd.WithArgs(
+			"update-legacy-subnet-settings",
+			"--cluster", params.ClusterName,
+		)
+		Expect(cmd).To(RunSuccessfully())
+
 		By("adding a nodegroup")
 		cmd = params.EksctlCreateCmd.WithArgs(
 			"nodegroup",

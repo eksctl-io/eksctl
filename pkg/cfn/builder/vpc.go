@@ -52,6 +52,7 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 				Key:   gfn.NewString("kubernetes.io/role/elb"),
 				Value: gfn.NewString("1"),
 			}}
+			subnet.MapPublicIpOnLaunch = gfn.True()
 		}
 		refSubnet := c.newResource("Subnet"+alias, subnet)
 		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{

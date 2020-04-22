@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -25,6 +26,12 @@ type createNodeGroupParams struct {
 }
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+		return doCreateNodeGroups(cmd, ng, params)
+	})
+}
+
+func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -37,7 +44,7 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateNodeGroups(cmd, ng, params)
+		return runFunc(cmd, ng, params)
 	}
 
 	exampleNodeGroupName := names.ForNodeGroup("", "")
@@ -154,6 +161,10 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 	// TODO
 	if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
 		return errors.Wrap(err, "cluster compatibility check failed")
+	}
+
+	if err := vpc.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
+		return err
 	}
 
 	{

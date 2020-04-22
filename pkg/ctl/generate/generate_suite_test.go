@@ -8,4 +8,3 @@ import (
 func TestSuite(t *testing.T) {
 	testutils.RegisterAndRun(t)
 }
-
