@@ -23,7 +23,7 @@ var _ = Describe("AZ", func() {
 		)
 
 		BeforeEach(func() {
-			avoidedZones(ec2.AvailabilityZoneStateAvailable)
+			_ = avoidedZones(ec2.AvailabilityZoneStateAvailable)
 		})
 
 		Context("with a region that has no zones to avoid", func() {
