@@ -65,6 +65,7 @@ replace (
 	// Override since git.apache.org is down.  The docs say to fetch from github.
 	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
+	//github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
 	// Override version since auto-detected one fails with GOPROXY
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
