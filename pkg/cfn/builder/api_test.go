@@ -1240,6 +1240,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"tag:GetResources",
 				"tag:TagResources",
 				"waf:GetWebACL",
+				"wafv2:GetWebACL",
+				"wafv2:GetWebACLForResource",
+				"wafv2:AssociateWebACL",
+				"wafv2:DisassociateWebACL",
 			}))
 		})
 
