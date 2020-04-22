@@ -895,6 +895,67 @@ var _ = Describe("CloudFormation template builder API", func() {
 		})
 	})
 
+	Context("NodeGroupCertManagerExternalDNS", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.CertManager = api.Enabled()
+		ng.IAM.WithAddonPolicies.ExternalDNS = api.Enabled()
+
+		build(cfg, "eksctl-test-cert-manager-external-dns-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct policies", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerChangeSet"))
+
+			policy1 := ngTemplate.Resources["PolicyCertManagerChangeSet"].Properties
+
+			Expect(policy1.Roles).To(HaveLen(1))
+			isRefTo(policy1.Roles[0], "NodeInstanceRole")
+
+			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::hostedzone/*",
+			}))
+			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ChangeResourceRecordSets",
+			}))
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyCertManagerHostedZones"))
+
+			policy2 := ngTemplate.Resources["PolicyCertManagerHostedZones"].Properties
+
+			Expect(policy2.Roles).To(HaveLen(1))
+			isRefTo(policy2.Roles[0], "NodeInstanceRole")
+
+			Expect(policy2.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
+				"route53:ListHostedZonesByName",
+				"route53:ListTagsForResource",
+			}))
+
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAutoScaling"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMesh"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyFSX"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFS"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFSEC2"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyXRay"))
+		})
+
+	})
+
 	Context("NodeGroupAppMeshExternalDNS", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
 
@@ -937,6 +998,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
+				"route53:ListTagsForResource",
 			}))
 
 			Expect(ngTemplate.Resources).To(HaveKey("PolicyAppMesh"))
@@ -1032,6 +1094,63 @@ var _ = Describe("CloudFormation template builder API", func() {
 			}))
 		})
 
+	})
+
+	Context("NodeGroupAppExternalDNS", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.ExternalDNS = api.Enabled()
+
+		build(cfg, "eksctl-test-external-dns-cluster", ng)
+
+		roundtrip()
+
+		It("should have correct policies", func() {
+			Expect(ngTemplate.Resources).ToNot(BeEmpty())
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyExternalDNSChangeSet"))
+
+			policy1 := ngTemplate.Resources["PolicyExternalDNSChangeSet"].Properties
+
+			Expect(policy1.Roles).To(HaveLen(1))
+			isRefTo(policy1.Roles[0], "NodeInstanceRole")
+
+			Expect(policy1.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy1.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy1.PolicyDocument.Statement[0].Resource).To(Equal(map[string]interface{}{
+				"Fn::Sub": "arn:${AWS::Partition}:route53:::hostedzone/*",
+			}))
+			Expect(policy1.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ChangeResourceRecordSets",
+			}))
+
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyExternalDNSHostedZones"))
+			policy2 := ngTemplate.Resources["PolicyExternalDNSHostedZones"].Properties
+
+			Expect(policy2.Roles).To(HaveLen(1))
+			isRefTo(policy2.Roles[0], "NodeInstanceRole")
+
+			Expect(policy2.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
+				"route53:ListHostedZones",
+				"route53:ListResourceRecordSets",
+				"route53:ListTagsForResource",
+			}))
+
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAutoScaling"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyCertManagerGetChange"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyCertManagerHostedZones"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMesh"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyFSX"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFS"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEFSEC2"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyALBIngress"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyXRay"))
+		})
 	})
 
 	Context("NodeGroupALBIngress", func() {
