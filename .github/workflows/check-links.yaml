@@ -6,6 +6,7 @@ on:
     branches:
       - master
 
+
 jobs:
   link-checker:
     runs-on: ubuntu-latest
@@ -14,7 +15,7 @@ jobs:
         python-version: [3.8]
     steps:
       - uses: actions/checkout@v2
-      
+
       # Using markdown-link-check to check markdown docs
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
