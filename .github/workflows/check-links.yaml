@@ -14,9 +14,9 @@ jobs:
         python-version: [3.8]
     steps:
       - uses: actions/checkout@v2
-      
       # Using markdown-link-check to check markdown docs
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        if: always()
         with:
           use-verbose-mode: 'yes'
           config-file: '.github/workflows/markdown-link-check-config.json'
@@ -24,16 +24,20 @@ jobs:
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
+        if: always()
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
+        if: always()
         run: |
           pip install -r userdocs/requirements.txt
       - name: Build docs for link check
+        if: always()
         run: make build-pages
         # Using liche action to check generated HTML site
       - name: Link Checker (generated site)
         id: lc
+        if: always()
         uses: peter-evans/link-checker@v1
         with:
           args: -d userdocs/site -r userdocs/site -x https://twitter.com/weaveworks
