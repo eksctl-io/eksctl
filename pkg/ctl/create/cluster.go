@@ -120,6 +120,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		return err
 	}
 
+	// if it's a private only cluster warn the user
+	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
+		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
+	}
+
 	if err := ctl.CheckAuth(); err != nil {
 		return err
 	}
