@@ -236,6 +236,12 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 				"wafv2:GetWebACLForResource",
 				"wafv2:AssociateWebACL",
 				"wafv2:DisassociateWebACL",
+				"shield:DescribeProtection",
+				"shield:GetSubscriptionState",
+				"shield:DeleteProtection",
+				"shield:CreateProtection",
+				"shield:DescribeSubscription",
+				"shield:ListProtections",
 			},
 		)
 	}
