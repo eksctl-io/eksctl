@@ -1,6 +1,7 @@
 {
     "ignorePatterns": [
         { "pattern": "^https://github.com/\\S+/\\S+/(issues|pull)/[0-9]+" },
-        { "pattern": "^mailto:" }
+        { "pattern": "^mailto:" },
+        { "pattern": "^https://circleci.com/workflow-run/02d8b5fb-bc7f-404c-9051-68307c124649" }
     ]
 }
