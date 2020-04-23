@@ -1,16 +1,19 @@
 package builder_test
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/aws/aws-sdk-go/aws"
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	gfn "github.com/awslabs/goformation/cloudformation"
@@ -135,37 +138,74 @@ type Template struct {
 	Resources   map[string]struct{ Properties Properties }
 }
 
-func kubeconfigBody(authenticator string) string {
-	return `apiVersion: v1
+var kubeconfigTemplate = template.Must(template.New("kubeconfig").Parse(`apiVersion: v1
 clusters:
 - cluster:
     certificate-authority: /etc/eksctl/ca.crt
-    server: ` + endpoint + `
-  name: ` + clusterName + `.us-west-2.eksctl.io
+    server: {{.Endpoint}}
+  name: {{.ClusterDomain}}
 contexts:
 - context:
-    cluster: ` + clusterName + `.us-west-2.eksctl.io
-    user: kubelet@` + clusterName + `.us-west-2.eksctl.io
-  name: kubelet@` + clusterName + `.us-west-2.eksctl.io
-current-context: kubelet@` + clusterName + `.us-west-2.eksctl.io
+    cluster: {{.ClusterDomain}}
+    user: kubelet@{{.ClusterDomain}}
+  name: kubelet@{{.ClusterDomain}}
+current-context: kubelet@{{.ClusterDomain}}
 kind: Config
 preferences: {}
 users:
-- name: kubelet@` + clusterName + `.us-west-2.eksctl.io
+- name: kubelet@{{.ClusterDomain}}
   user:
     exec:
       apiVersion: client.authentication.k8s.io/v1alpha1
+      {{if eq .Authenticator "aws"}}
+      args:
+      - eks
+      - get-token
+      - --cluster-name
+      - {{.Cluster}}
+      - --region
+      - {{.Region}}
+      command: {{.Authenticator}}
+      env:
+      - name: AWS_STS_REGIONAL_ENDPOINTS
+        value: regional
+     {{else}}
       args:
       - token
       - -i
-      - ` + clusterName + `
-      command: ` + authenticator + `
+      - {{.Cluster}}
+      command: {{.Authenticator}}
       env:
       - name: AWS_STS_REGIONAL_ENDPOINTS
         value: regional
       - name: AWS_DEFAULT_REGION
-        value: us-west-2
-`
+        value: {{.Region}}
+     {{end}}
+`))
+
+func kubeconfigBody(authenticator string) string {
+	var out bytes.Buffer
+	region := "us-west-2"
+
+	err := kubeconfigTemplate.Execute(&out, struct {
+		Cluster       string
+		ClusterDomain string
+		Authenticator string
+		Region        string
+		Endpoint      string
+	}{
+		Cluster:       clusterName,
+		ClusterDomain: fmt.Sprintf("%s.%s.eksctl.io", clusterName, region),
+		Authenticator: authenticator,
+		Region:        region,
+		Endpoint:      endpoint,
+	})
+
+	if err != nil {
+		panic(errors.Wrap(err, "unexpected error while executing kubeconfig template"))
+	}
+
+	return out.String()
 }
 
 func testVPC() *api.ClusterVPC {
@@ -1724,7 +1764,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
 			Expect(kubeconfig.Permissions).To(Equal("0644"))
-			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws-iam-authenticator")))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws")))
 
 			kubeletConfigAssetContent, err := nodebootstrap.Asset("kubelet.yaml")
 			Expect(err).ToNot(HaveOccurred())
@@ -1787,7 +1827,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
 			Expect(kubeconfig.Permissions).To(Equal("0644"))
-			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws-iam-authenticator")))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws")))
 
 			ca := getFile(cc, "/etc/eksctl/ca.crt")
 			Expect(ca).ToNot(BeNil())
@@ -1846,7 +1886,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
 			Expect(kubeconfig.Permissions).To(Equal("0644"))
-			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws-iam-authenticator")))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws")))
 
 			ca := getFile(cc, "/etc/eksctl/ca.crt")
 			Expect(ca).ToNot(BeNil())
@@ -1903,7 +1943,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			kubeconfig := getFile(cc, "/etc/eksctl/kubeconfig.yaml")
 			Expect(kubeconfig).ToNot(BeNil())
 			Expect(kubeconfig.Permissions).To(Equal("0644"))
-			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws-iam-authenticator")))
+			Expect(kubeconfig.Content).To(MatchYAML(kubeconfigBody("aws")))
 
 			ca := getFile(cc, "/etc/eksctl/ca.crt")
 			Expect(ca).ToNot(BeNil())
