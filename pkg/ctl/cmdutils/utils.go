@@ -1,8 +1,7 @@
-package enable
+package cmdutils
 
 import (
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -10,7 +9,7 @@ import (
 
 // KubernetesClientAndConfigFrom returns a Kubernetes client set and REST
 // configuration object for the currently configured cluster.
-func KubernetesClientAndConfigFrom(cmd *cmdutils.Cmd) (*kubernetes.Clientset, *rest.Config, error) {
+func KubernetesClientAndConfigFrom(cmd *Cmd) (*kubernetes.Clientset, *rest.Config, error) {
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return nil, nil, err

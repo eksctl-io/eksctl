@@ -43,11 +43,11 @@ var _ = Describe("(Integration) generate profile", func() {
 
 	Describe("when generating a profile", func() {
 		It("should write the processed repo files in the supplied directory", func() {
-			cmd := params.EksctlExperimentalCmd.WithArgs(
+			cmd := params.EksctlCmd.WithArgs(
 				"generate", "profile",
 				"--verbose", "4",
 				"--cluster", params.ClusterName,
-				"--git-url", "git@github.com:eksctl-bot/eksctl-profile-integration-tests.git",
+				"--profile-source", "git@github.com:eksctl-bot/eksctl-profile-integration-tests.git",
 				"--profile-path", params.TestDirectory,
 			)
 			Expect(cmd).To(RunSuccessfully())
