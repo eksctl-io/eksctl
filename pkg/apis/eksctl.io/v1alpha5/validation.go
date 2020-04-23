@@ -116,7 +116,7 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
 	}
-	if PrivateOnly(endpts) {
+	if PrivateOnly(endpts) && len(c.NodeGroups) > 0 {
 		return ErrClusterEndpointPrivateOnly
 	}
 	return nil

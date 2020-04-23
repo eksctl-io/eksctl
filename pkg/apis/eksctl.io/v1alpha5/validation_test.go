@@ -311,7 +311,51 @@ var _ = Describe("ClusterConfig validation", func() {
 		})
 	})
 
-	Describe("cluster endpoint access config", func() {
+	Describe("cluster endpoint access config with nodegroups", func() {
+		var (
+			cfg *ClusterConfig
+			vpc *ClusterVPC
+			err error
+		)
+
+		BeforeEach(func() {
+			cfg = NewClusterConfig()
+
+			vpc = NewClusterVPC()
+			cfg.VPC = vpc
+
+			ng0 := cfg.NewNodeGroup()
+			ng0.Name = "ng0"
+		})
+
+		It("should not error on private=true, public=true", func() {
+			cfg.VPC.ClusterEndpoints =
+				&ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Enabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should not error on private=false, public=true", func() {
+			cfg.VPC.ClusterEndpoints =
+				&ClusterEndpoints{PrivateAccess: Disabled(), PublicAccess: Enabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should error on private=true, public=false", func() {
+			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).To(BeIdenticalTo(ErrClusterEndpointPrivateOnly))
+		})
+
+		It("should error on private=false, public=false", func() {
+			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Disabled(), PublicAccess: Disabled()}
+			err = cfg.ValidateClusterEndpointConfig()
+			Expect(err).To(BeIdenticalTo(ErrClusterEndpointNoAccess))
+		})
+	})
+
+	Describe("cluster endpoint access config without nodegroups", func() {
 		var (
 			cfg *ClusterConfig
 			vpc *ClusterVPC
@@ -338,10 +382,10 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should error on private=true, public=false", func() {
+		It("should not error on private=true, public=false", func() {
 			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).To(BeIdenticalTo(ErrClusterEndpointPrivateOnly))
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should error on private=false, public=false", func() {
