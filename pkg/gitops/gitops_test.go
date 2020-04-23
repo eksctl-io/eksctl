@@ -1,7 +1,6 @@
 package gitops
 
 import (
-	"context"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
@@ -9,6 +8,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
@@ -56,15 +56,10 @@ var _ = Describe("gitops profile", func() {
 				Params: fileprocessor.TemplateParameters{ClusterName: "test-cluster"},
 			}
 			profile = &Profile{
-				Path: outputDir,
-				GitOpts: git.Options{
-					Branch: "master",
-					URL:    "git@github.com:someorg/test-gitops-repo.git",
-				},
-				IO:        io,
-				FS:        memFs,
-				GitCloner: gitCloner,
-				Processor: processor,
+				IO:            io,
+				FS:            memFs,
+				ProfileCloner: gitCloner,
+				Processor:     processor,
 			}
 		})
 
@@ -74,7 +69,10 @@ var _ = Describe("gitops profile", func() {
 		})
 
 		It("processes go templates and writes them to the output directory", func() {
-			err := profile.Generate(context.Background())
+			err := profile.Generate(api.Profile{
+				Source:     "git@github.com:someorg/test-gitops-repo.git",
+				Revision:   "master",
+				OutputPath: outputDir})
 
 			Expect(err).ToNot(HaveOccurred())
 			template1, err := io.ReadFile(filepath.Join(outputDir, "a/good-template1.yaml"))

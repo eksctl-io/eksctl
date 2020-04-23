@@ -705,9 +705,18 @@ type NodeGroup struct {
 type Git struct {
 	Repo *Repo `json:"repo,omitempty"`
 	// +optional
-	Operator *Operator `json:"operator,omitempty"`
+	Operator Operator `json:"operator,omitempty"`
 	// +optional
-	BootstrapProfiles []*Profile `json:"bootstrapProfiles,omitempty"` // one or many profiles to enable on this cluster once it is created
+	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
+}
+
+// NewGit returns a new empty Git configuration
+func NewGit() *Git {
+	return &Git{
+		Repo:             &Repo{},
+		Operator:         Operator{},
+		BootstrapProfile: &Profile{},
+	}
 }
 
 // Repo groups all configuration options related to a Git repository used for
@@ -735,7 +744,7 @@ type Operator struct {
 	// +optional
 	Namespace string `json:"namespace,omitempty"` // e.g. flux
 	// +optional
-	WithHelm bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
 }
 
 // Profile groups all details on a quickstart profile to enable on the cluster
@@ -744,6 +753,18 @@ type Profile struct {
 	Source string `json:"source,omitempty"` // e.g. app-dev
 	// +optional
 	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+	// +optional
+	OutputPath string `json:"outputPath,omitempty"` // output directory for processed profile templates (generate profile command)
+}
+
+// HasBootstrapProfile returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasBootstrapProfile() bool {
+	return c.Git != nil && c.Git.BootstrapProfile != nil && c.Git.BootstrapProfile.Source != ""
+}
+
+// HasGitopsRepoConfigured returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
+	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
