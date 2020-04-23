@@ -90,6 +90,9 @@ func envVars(params ClientParams) []string {
 	envVars := []string{
 		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
 	}
+	if sshAuthSock, ok := os.LookupEnv("SSH_AUTH_SOCK"); ok {
+		envVars = append(envVars, fmt.Sprintf("SSH_AUTH_SOCK=%s", sshAuthSock))
+	}
 	if params.PrivateSSHKeyPath != "" {
 		envVars = append(envVars, fmt.Sprintf("GIT_SSH_COMMAND=ssh -i %s", params.PrivateSSHKeyPath))
 	}
