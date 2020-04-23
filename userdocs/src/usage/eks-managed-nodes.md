@@ -97,6 +97,7 @@ managedNodeGroups:
 
   - name: managed-ng-2
     instanceType: t2.large
+    privateNetworking: true
     minSize: 2
     maxSize: 3
 ```
@@ -169,7 +170,6 @@ eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4
 EKS Managed Nodegroups are managed by AWS EKS and do not offer the same level of configuration as unmanaged nodegroups.
 The unsupported options are noted below.
 
-- No support for private networking (`nodeGroups[*].privateNetworking`).
 - Tags (`managedNodeGroups[*].tags`) in managed nodegroups apply to the EKS Nodegroup resource and do not propagate to
 the provisioned Autoscaling Group like in unmanaged nodegroups.
 - `iam.instanceProfileARN` is not supported for managed nodegroups.
