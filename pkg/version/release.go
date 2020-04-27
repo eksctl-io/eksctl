@@ -6,7 +6,7 @@ package version
 var Version = "0.18.0"
 
 // PreReleaseID can be empty for releases, "rc.X" for release candidates and "dev" for snapshots
-var PreReleaseID = "rc.0"
+var PreReleaseID = ""
 
 // gitCommit is the short commit hash. It will be set by the linker.
 var gitCommit = ""
