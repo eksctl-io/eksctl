@@ -96,6 +96,12 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 	execConfig := &clientcmdapi.ExecConfig{
 		APIVersion: "client.authentication.k8s.io/v1alpha1",
 		Command:    authenticatorCMD,
+		Env: []clientcmdapi.ExecEnvVar{
+			{
+				Name:  "AWS_STS_REGIONAL_ENDPOINTS",
+				Value: "regional",
+			},
+		},
 	}
 
 	switch authenticatorCMD {
@@ -104,9 +110,6 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 		roleARNFlag = "-r"
 		if spec.Metadata.Region != "" {
 			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
-				Name:  "AWS_STS_REGIONAL_ENDPOINTS",
-				Value: "regional",
-			}, clientcmdapi.ExecEnvVar{
 				Name:  "AWS_DEFAULT_REGION",
 				Value: spec.Metadata.Region,
 			})
