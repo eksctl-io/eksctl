@@ -7,14 +7,10 @@ on:
       - master
 
 jobs:
-  link-checker:
+  markdown-link-checker:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8]
     steps:
       - uses: actions/checkout@v2
-      
       # Using markdown-link-check to check markdown docs
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
@@ -22,6 +18,13 @@ jobs:
           config-file: '.github/workflows/markdown-link-check-config.json'
           max-depth: 1
 
+  site-link-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
