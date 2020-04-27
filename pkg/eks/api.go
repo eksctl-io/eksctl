@@ -371,7 +371,7 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 			aws.LogDebugWithRequestErrors |
 			aws.LogDebugWithEventStreamBody)
 		config = config.WithLogger(aws.LoggerFunc(func(args ...interface{}) {
-			logger.Debug(fmt.Sprintln(args...))
+			logger.Debug("%s", fmt.Sprintln(args...))
 		}))
 	}
 

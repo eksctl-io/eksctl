@@ -27,7 +27,6 @@ require (
 	github.com/kevinburke/go-bindata v3.15.0+incompatible
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
-	github.com/kris-nova/lolgopher v0.0.0-20180921204813-313b3abb0d9b // indirect
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
 	github.com/onsi/ginkgo v1.12.0
@@ -71,6 +70,7 @@ replace (
 	// Override version since auto-detected one fails with GOPROXY
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
+	github.com/kris-nova/logger => github.com/sayboras/logger v0.0.0-20200424112712-6e4f5febd886
 	// k8s.io/kops is still using old version of component-base
 	// which uses an older version of the following package
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.4
