@@ -79,6 +79,7 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 
 	remote := sets.NewString(existing...)
 	local := sets.NewString()
+	var explicitIncludes []string
 
 	for _, localServiceAccount := range *serviceAccounts {
 		localServiceAccountName := localServiceAccount.NameString()
@@ -87,6 +88,7 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 			logger.Info("iamserviceaccounts %q present in the given config, but missing in the cluster", localServiceAccountName)
 			f.AppendExcludeNames(localServiceAccountName)
 		} else if includeOnlyMissing {
+			logger.Info("iamserviceaccounts %q present in the given config and the cluster", localServiceAccountName)
 			f.AppendExcludeNames(localServiceAccountName)
 		}
 	}
@@ -106,12 +108,14 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 				*serviceAccounts = append(*serviceAccounts, remoteServiceAccount)
 				// make sure it passes it through the filter, so that one can use `--only-missing` along with `--exclude`
 				if f.Match(remoteServiceAccountName) {
-					f.AppendIncludeNames(remoteServiceAccountName)
+					explicitIncludes = append(explicitIncludes, remoteServiceAccountName)
 				}
 			}
 		}
 	}
-
+	for i := range explicitIncludes {
+		f.AppendIncludeNames(explicitIncludes[i])
+	}
 	return nil
 }
 
