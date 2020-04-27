@@ -7,7 +7,7 @@ go 1.13
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
 	github.com/alecthomas/jsonschema v0.0.0-20190530235721-fd8d96416671
-	github.com/aws/aws-sdk-go v1.27.1
+	github.com/aws/aws-sdk-go v1.30.11
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/awslabs/goformation/v4 v4.1.0
 	github.com/blang/semver v3.5.1+incompatible
@@ -65,7 +65,7 @@ replace (
 	// Override since git.apache.org is down.  The docs say to fetch from github.
 	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
-	github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
+	// github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
 	// Override version since auto-detected one fails with GOPROXY
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0

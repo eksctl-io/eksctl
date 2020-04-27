@@ -11171,6 +11171,84 @@ func (_m *EC2API) DeregisterImageWithContext(_a0 context.Context, _a1 *ec2.Dereg
 	return r0, r1
 }
 
+// DeregisterInstanceEventNotificationAttributes provides a mock function with given fields: _a0
+func (_m *EC2API) DeregisterInstanceEventNotificationAttributes(_a0 *ec2.DeregisterInstanceEventNotificationAttributesInput) (*ec2.DeregisterInstanceEventNotificationAttributesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DeregisterInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DeregisterInstanceEventNotificationAttributesInput) *ec2.DeregisterInstanceEventNotificationAttributesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeregisterInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DeregisterInstanceEventNotificationAttributesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeregisterInstanceEventNotificationAttributesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DeregisterInstanceEventNotificationAttributesRequest(_a0 *ec2.DeregisterInstanceEventNotificationAttributesInput) (*request.Request, *ec2.DeregisterInstanceEventNotificationAttributesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DeregisterInstanceEventNotificationAttributesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DeregisterInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DeregisterInstanceEventNotificationAttributesInput) *ec2.DeregisterInstanceEventNotificationAttributesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DeregisterInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeregisterInstanceEventNotificationAttributesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DeregisterInstanceEventNotificationAttributesWithContext(_a0 context.Context, _a1 *ec2.DeregisterInstanceEventNotificationAttributesInput, _a2 ...request.Option) (*ec2.DeregisterInstanceEventNotificationAttributesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DeregisterInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DeregisterInstanceEventNotificationAttributesInput, ...request.Option) *ec2.DeregisterInstanceEventNotificationAttributesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DeregisterInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DeregisterInstanceEventNotificationAttributesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeregisterTransitGatewayMulticastGroupMembers provides a mock function with given fields: _a0
 func (_m *EC2API) DeregisterTransitGatewayMulticastGroupMembers(_a0 *ec2.DeregisterTransitGatewayMulticastGroupMembersInput) (*ec2.DeregisterTransitGatewayMulticastGroupMembersOutput, error) {
 	ret := _m.Called(_a0)
@@ -12642,6 +12720,41 @@ func (_m *EC2API) DescribeCoipPools(_a0 *ec2.DescribeCoipPoolsInput) (*ec2.Descr
 	}
 
 	return r0, r1
+}
+
+// DescribeCoipPoolsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeCoipPoolsPages(_a0 *ec2.DescribeCoipPoolsInput, _a1 func(*ec2.DescribeCoipPoolsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeCoipPoolsInput, func(*ec2.DescribeCoipPoolsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeCoipPoolsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeCoipPoolsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeCoipPoolsInput, _a2 func(*ec2.DescribeCoipPoolsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeCoipPoolsInput, func(*ec2.DescribeCoipPoolsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeCoipPoolsRequest provides a mock function with given fields: _a0
@@ -15217,6 +15330,84 @@ func (_m *EC2API) DescribeInstanceCreditSpecificationsWithContext(_a0 context.Co
 	return r0, r1
 }
 
+// DescribeInstanceEventNotificationAttributes provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeInstanceEventNotificationAttributes(_a0 *ec2.DescribeInstanceEventNotificationAttributesInput) (*ec2.DescribeInstanceEventNotificationAttributesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceEventNotificationAttributesInput) *ec2.DescribeInstanceEventNotificationAttributesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeInstanceEventNotificationAttributesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceEventNotificationAttributesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeInstanceEventNotificationAttributesRequest(_a0 *ec2.DescribeInstanceEventNotificationAttributesInput) (*request.Request, *ec2.DescribeInstanceEventNotificationAttributesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceEventNotificationAttributesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeInstanceEventNotificationAttributesInput) *ec2.DescribeInstanceEventNotificationAttributesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeInstanceEventNotificationAttributesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeInstanceEventNotificationAttributesWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceEventNotificationAttributesInput, _a2 ...request.Option) (*ec2.DescribeInstanceEventNotificationAttributesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceEventNotificationAttributesInput, ...request.Option) *ec2.DescribeInstanceEventNotificationAttributesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInstanceEventNotificationAttributesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DescribeInstanceStatus provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeInstanceStatus(_a0 *ec2.DescribeInstanceStatusInput) (*ec2.DescribeInstanceStatusOutput, error) {
 	ret := _m.Called(_a0)
@@ -15353,6 +15544,41 @@ func (_m *EC2API) DescribeInstanceTypeOfferings(_a0 *ec2.DescribeInstanceTypeOff
 	return r0, r1
 }
 
+// DescribeInstanceTypeOfferingsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeInstanceTypeOfferingsPages(_a0 *ec2.DescribeInstanceTypeOfferingsInput, _a1 func(*ec2.DescribeInstanceTypeOfferingsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceTypeOfferingsInput, func(*ec2.DescribeInstanceTypeOfferingsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeInstanceTypeOfferingsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeInstanceTypeOfferingsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceTypeOfferingsInput, _a2 func(*ec2.DescribeInstanceTypeOfferingsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceTypeOfferingsInput, func(*ec2.DescribeInstanceTypeOfferingsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeInstanceTypeOfferingsRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeInstanceTypeOfferingsRequest(_a0 *ec2.DescribeInstanceTypeOfferingsInput) (*request.Request, *ec2.DescribeInstanceTypeOfferingsOutput) {
 	ret := _m.Called(_a0)
@@ -15429,6 +15655,41 @@ func (_m *EC2API) DescribeInstanceTypes(_a0 *ec2.DescribeInstanceTypesInput) (*e
 	}
 
 	return r0, r1
+}
+
+// DescribeInstanceTypesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeInstanceTypesPages(_a0 *ec2.DescribeInstanceTypesInput, _a1 func(*ec2.DescribeInstanceTypesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeInstanceTypesInput, func(*ec2.DescribeInstanceTypesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeInstanceTypesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeInstanceTypesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeInstanceTypesInput, _a2 func(*ec2.DescribeInstanceTypesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeInstanceTypesInput, func(*ec2.DescribeInstanceTypesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeInstanceTypesRequest provides a mock function with given fields: _a0
@@ -15704,6 +15965,119 @@ func (_m *EC2API) DescribeInternetGatewaysWithContext(_a0 context.Context, _a1 *
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeInternetGatewaysInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeIpv6Pools provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeIpv6Pools(_a0 *ec2.DescribeIpv6PoolsInput) (*ec2.DescribeIpv6PoolsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.DescribeIpv6PoolsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeIpv6PoolsInput) *ec2.DescribeIpv6PoolsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeIpv6PoolsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeIpv6PoolsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DescribeIpv6PoolsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeIpv6PoolsPages(_a0 *ec2.DescribeIpv6PoolsInput, _a1 func(*ec2.DescribeIpv6PoolsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeIpv6PoolsInput, func(*ec2.DescribeIpv6PoolsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeIpv6PoolsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeIpv6PoolsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeIpv6PoolsInput, _a2 func(*ec2.DescribeIpv6PoolsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIpv6PoolsInput, func(*ec2.DescribeIpv6PoolsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeIpv6PoolsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) DescribeIpv6PoolsRequest(_a0 *ec2.DescribeIpv6PoolsInput) (*request.Request, *ec2.DescribeIpv6PoolsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeIpv6PoolsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.DescribeIpv6PoolsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.DescribeIpv6PoolsInput) *ec2.DescribeIpv6PoolsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.DescribeIpv6PoolsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// DescribeIpv6PoolsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) DescribeIpv6PoolsWithContext(_a0 context.Context, _a1 *ec2.DescribeIpv6PoolsInput, _a2 ...request.Option) (*ec2.DescribeIpv6PoolsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.DescribeIpv6PoolsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeIpv6PoolsInput, ...request.Option) *ec2.DescribeIpv6PoolsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.DescribeIpv6PoolsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.DescribeIpv6PoolsInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -16039,6 +16413,41 @@ func (_m *EC2API) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociation
 	return r0, r1
 }
 
+// DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsPages(_a0 *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, _a1 func(*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, func(*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, _a2 func(*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, func(*ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsRequest(_a0 *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput) (*request.Request, *ec2.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput) {
 	ret := _m.Called(_a0)
@@ -16115,6 +16524,41 @@ func (_m *EC2API) DescribeLocalGatewayRouteTableVpcAssociations(_a0 *ec2.Describ
 	}
 
 	return r0, r1
+}
+
+// DescribeLocalGatewayRouteTableVpcAssociationsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeLocalGatewayRouteTableVpcAssociationsPages(_a0 *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput, _a1 func(*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput, func(*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeLocalGatewayRouteTableVpcAssociationsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeLocalGatewayRouteTableVpcAssociationsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput, _a2 func(*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLocalGatewayRouteTableVpcAssociationsInput, func(*ec2.DescribeLocalGatewayRouteTableVpcAssociationsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeLocalGatewayRouteTableVpcAssociationsRequest provides a mock function with given fields: _a0
@@ -16195,6 +16639,41 @@ func (_m *EC2API) DescribeLocalGatewayRouteTables(_a0 *ec2.DescribeLocalGatewayR
 	return r0, r1
 }
 
+// DescribeLocalGatewayRouteTablesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeLocalGatewayRouteTablesPages(_a0 *ec2.DescribeLocalGatewayRouteTablesInput, _a1 func(*ec2.DescribeLocalGatewayRouteTablesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeLocalGatewayRouteTablesInput, func(*ec2.DescribeLocalGatewayRouteTablesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeLocalGatewayRouteTablesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeLocalGatewayRouteTablesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeLocalGatewayRouteTablesInput, _a2 func(*ec2.DescribeLocalGatewayRouteTablesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLocalGatewayRouteTablesInput, func(*ec2.DescribeLocalGatewayRouteTablesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeLocalGatewayRouteTablesRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeLocalGatewayRouteTablesRequest(_a0 *ec2.DescribeLocalGatewayRouteTablesInput) (*request.Request, *ec2.DescribeLocalGatewayRouteTablesOutput) {
 	ret := _m.Called(_a0)
@@ -16271,6 +16750,41 @@ func (_m *EC2API) DescribeLocalGatewayVirtualInterfaceGroups(_a0 *ec2.DescribeLo
 	}
 
 	return r0, r1
+}
+
+// DescribeLocalGatewayVirtualInterfaceGroupsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeLocalGatewayVirtualInterfaceGroupsPages(_a0 *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput, _a1 func(*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput, func(*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeLocalGatewayVirtualInterfaceGroupsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeLocalGatewayVirtualInterfaceGroupsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput, _a2 func(*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLocalGatewayVirtualInterfaceGroupsInput, func(*ec2.DescribeLocalGatewayVirtualInterfaceGroupsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeLocalGatewayVirtualInterfaceGroupsRequest provides a mock function with given fields: _a0
@@ -16351,6 +16865,41 @@ func (_m *EC2API) DescribeLocalGatewayVirtualInterfaces(_a0 *ec2.DescribeLocalGa
 	return r0, r1
 }
 
+// DescribeLocalGatewayVirtualInterfacesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeLocalGatewayVirtualInterfacesPages(_a0 *ec2.DescribeLocalGatewayVirtualInterfacesInput, _a1 func(*ec2.DescribeLocalGatewayVirtualInterfacesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeLocalGatewayVirtualInterfacesInput, func(*ec2.DescribeLocalGatewayVirtualInterfacesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeLocalGatewayVirtualInterfacesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeLocalGatewayVirtualInterfacesPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeLocalGatewayVirtualInterfacesInput, _a2 func(*ec2.DescribeLocalGatewayVirtualInterfacesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLocalGatewayVirtualInterfacesInput, func(*ec2.DescribeLocalGatewayVirtualInterfacesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeLocalGatewayVirtualInterfacesRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeLocalGatewayVirtualInterfacesRequest(_a0 *ec2.DescribeLocalGatewayVirtualInterfacesInput) (*request.Request, *ec2.DescribeLocalGatewayVirtualInterfacesOutput) {
 	ret := _m.Called(_a0)
@@ -16427,6 +16976,41 @@ func (_m *EC2API) DescribeLocalGateways(_a0 *ec2.DescribeLocalGatewaysInput) (*e
 	}
 
 	return r0, r1
+}
+
+// DescribeLocalGatewaysPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeLocalGatewaysPages(_a0 *ec2.DescribeLocalGatewaysInput, _a1 func(*ec2.DescribeLocalGatewaysOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeLocalGatewaysInput, func(*ec2.DescribeLocalGatewaysOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeLocalGatewaysPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeLocalGatewaysPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeLocalGatewaysInput, _a2 func(*ec2.DescribeLocalGatewaysOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeLocalGatewaysInput, func(*ec2.DescribeLocalGatewaysOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeLocalGatewaysRequest provides a mock function with given fields: _a0
@@ -20112,6 +20696,41 @@ func (_m *EC2API) DescribeTransitGatewayMulticastDomains(_a0 *ec2.DescribeTransi
 	return r0, r1
 }
 
+// DescribeTransitGatewayMulticastDomainsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeTransitGatewayMulticastDomainsPages(_a0 *ec2.DescribeTransitGatewayMulticastDomainsInput, _a1 func(*ec2.DescribeTransitGatewayMulticastDomainsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayMulticastDomainsInput, func(*ec2.DescribeTransitGatewayMulticastDomainsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayMulticastDomainsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeTransitGatewayMulticastDomainsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeTransitGatewayMulticastDomainsInput, _a2 func(*ec2.DescribeTransitGatewayMulticastDomainsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayMulticastDomainsInput, func(*ec2.DescribeTransitGatewayMulticastDomainsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DescribeTransitGatewayMulticastDomainsRequest provides a mock function with given fields: _a0
 func (_m *EC2API) DescribeTransitGatewayMulticastDomainsRequest(_a0 *ec2.DescribeTransitGatewayMulticastDomainsInput) (*request.Request, *ec2.DescribeTransitGatewayMulticastDomainsOutput) {
 	ret := _m.Called(_a0)
@@ -20188,6 +20807,41 @@ func (_m *EC2API) DescribeTransitGatewayPeeringAttachments(_a0 *ec2.DescribeTran
 	}
 
 	return r0, r1
+}
+
+// DescribeTransitGatewayPeeringAttachmentsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) DescribeTransitGatewayPeeringAttachmentsPages(_a0 *ec2.DescribeTransitGatewayPeeringAttachmentsInput, _a1 func(*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.DescribeTransitGatewayPeeringAttachmentsInput, func(*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DescribeTransitGatewayPeeringAttachmentsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) DescribeTransitGatewayPeeringAttachmentsPagesWithContext(_a0 context.Context, _a1 *ec2.DescribeTransitGatewayPeeringAttachmentsInput, _a2 func(*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.DescribeTransitGatewayPeeringAttachmentsInput, func(*ec2.DescribeTransitGatewayPeeringAttachmentsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // DescribeTransitGatewayPeeringAttachmentsRequest provides a mock function with given fields: _a0
@@ -24635,6 +25289,119 @@ func (_m *EC2API) ExportTransitGatewayRoutesWithContext(_a0 context.Context, _a1
 	return r0, r1
 }
 
+// GetAssociatedIpv6PoolCidrs provides a mock function with given fields: _a0
+func (_m *EC2API) GetAssociatedIpv6PoolCidrs(_a0 *ec2.GetAssociatedIpv6PoolCidrsInput) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.GetAssociatedIpv6PoolCidrsOutput
+	if rf, ok := ret.Get(0).(func(*ec2.GetAssociatedIpv6PoolCidrsInput) *ec2.GetAssociatedIpv6PoolCidrsOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetAssociatedIpv6PoolCidrsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.GetAssociatedIpv6PoolCidrsInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedIpv6PoolCidrsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) GetAssociatedIpv6PoolCidrsPages(_a0 *ec2.GetAssociatedIpv6PoolCidrsInput, _a1 func(*ec2.GetAssociatedIpv6PoolCidrsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.GetAssociatedIpv6PoolCidrsInput, func(*ec2.GetAssociatedIpv6PoolCidrsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetAssociatedIpv6PoolCidrsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) GetAssociatedIpv6PoolCidrsPagesWithContext(_a0 context.Context, _a1 *ec2.GetAssociatedIpv6PoolCidrsInput, _a2 func(*ec2.GetAssociatedIpv6PoolCidrsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetAssociatedIpv6PoolCidrsInput, func(*ec2.GetAssociatedIpv6PoolCidrsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetAssociatedIpv6PoolCidrsRequest provides a mock function with given fields: _a0
+func (_m *EC2API) GetAssociatedIpv6PoolCidrsRequest(_a0 *ec2.GetAssociatedIpv6PoolCidrsInput) (*request.Request, *ec2.GetAssociatedIpv6PoolCidrsOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.GetAssociatedIpv6PoolCidrsInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.GetAssociatedIpv6PoolCidrsOutput
+	if rf, ok := ret.Get(1).(func(*ec2.GetAssociatedIpv6PoolCidrsInput) *ec2.GetAssociatedIpv6PoolCidrsOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.GetAssociatedIpv6PoolCidrsOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetAssociatedIpv6PoolCidrsWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) GetAssociatedIpv6PoolCidrsWithContext(_a0 context.Context, _a1 *ec2.GetAssociatedIpv6PoolCidrsInput, _a2 ...request.Option) (*ec2.GetAssociatedIpv6PoolCidrsOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.GetAssociatedIpv6PoolCidrsOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetAssociatedIpv6PoolCidrsInput, ...request.Option) *ec2.GetAssociatedIpv6PoolCidrsOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.GetAssociatedIpv6PoolCidrsOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.GetAssociatedIpv6PoolCidrsInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCapacityReservationUsage provides a mock function with given fields: _a0
 func (_m *EC2API) GetCapacityReservationUsage(_a0 *ec2.GetCapacityReservationUsageInput) (*ec2.GetCapacityReservationUsageOutput, error) {
 	ret := _m.Called(_a0)
@@ -25629,6 +26396,41 @@ func (_m *EC2API) GetTransitGatewayMulticastDomainAssociations(_a0 *ec2.GetTrans
 	return r0, r1
 }
 
+// GetTransitGatewayMulticastDomainAssociationsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) GetTransitGatewayMulticastDomainAssociationsPages(_a0 *ec2.GetTransitGatewayMulticastDomainAssociationsInput, _a1 func(*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.GetTransitGatewayMulticastDomainAssociationsInput, func(*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetTransitGatewayMulticastDomainAssociationsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) GetTransitGatewayMulticastDomainAssociationsPagesWithContext(_a0 context.Context, _a1 *ec2.GetTransitGatewayMulticastDomainAssociationsInput, _a2 func(*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.GetTransitGatewayMulticastDomainAssociationsInput, func(*ec2.GetTransitGatewayMulticastDomainAssociationsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetTransitGatewayMulticastDomainAssociationsRequest provides a mock function with given fields: _a0
 func (_m *EC2API) GetTransitGatewayMulticastDomainAssociationsRequest(_a0 *ec2.GetTransitGatewayMulticastDomainAssociationsInput) (*request.Request, *ec2.GetTransitGatewayMulticastDomainAssociationsOutput) {
 	ret := _m.Called(_a0)
@@ -26370,6 +27172,84 @@ func (_m *EC2API) ImportVolumeWithContext(_a0 context.Context, _a1 *ec2.ImportVo
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ImportVolumeInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyAvailabilityZoneGroup provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyAvailabilityZoneGroup(_a0 *ec2.ModifyAvailabilityZoneGroupInput) (*ec2.ModifyAvailabilityZoneGroupOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.ModifyAvailabilityZoneGroupOutput
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyAvailabilityZoneGroupInput) *ec2.ModifyAvailabilityZoneGroupOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyAvailabilityZoneGroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyAvailabilityZoneGroupInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ModifyAvailabilityZoneGroupRequest provides a mock function with given fields: _a0
+func (_m *EC2API) ModifyAvailabilityZoneGroupRequest(_a0 *ec2.ModifyAvailabilityZoneGroupInput) (*request.Request, *ec2.ModifyAvailabilityZoneGroupOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.ModifyAvailabilityZoneGroupInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.ModifyAvailabilityZoneGroupOutput
+	if rf, ok := ret.Get(1).(func(*ec2.ModifyAvailabilityZoneGroupInput) *ec2.ModifyAvailabilityZoneGroupOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.ModifyAvailabilityZoneGroupOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// ModifyAvailabilityZoneGroupWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) ModifyAvailabilityZoneGroupWithContext(_a0 context.Context, _a1 *ec2.ModifyAvailabilityZoneGroupInput, _a2 ...request.Option) (*ec2.ModifyAvailabilityZoneGroupOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.ModifyAvailabilityZoneGroupOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.ModifyAvailabilityZoneGroupInput, ...request.Option) *ec2.ModifyAvailabilityZoneGroupOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.ModifyAvailabilityZoneGroupOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.ModifyAvailabilityZoneGroupInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
@@ -29966,6 +30846,84 @@ func (_m *EC2API) RegisterImageWithContext(_a0 context.Context, _a1 *ec2.Registe
 	return r0, r1
 }
 
+// RegisterInstanceEventNotificationAttributes provides a mock function with given fields: _a0
+func (_m *EC2API) RegisterInstanceEventNotificationAttributes(_a0 *ec2.RegisterInstanceEventNotificationAttributesInput) (*ec2.RegisterInstanceEventNotificationAttributesOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.RegisterInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(0).(func(*ec2.RegisterInstanceEventNotificationAttributesInput) *ec2.RegisterInstanceEventNotificationAttributesOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RegisterInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.RegisterInstanceEventNotificationAttributesInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RegisterInstanceEventNotificationAttributesRequest provides a mock function with given fields: _a0
+func (_m *EC2API) RegisterInstanceEventNotificationAttributesRequest(_a0 *ec2.RegisterInstanceEventNotificationAttributesInput) (*request.Request, *ec2.RegisterInstanceEventNotificationAttributesOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.RegisterInstanceEventNotificationAttributesInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.RegisterInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(1).(func(*ec2.RegisterInstanceEventNotificationAttributesInput) *ec2.RegisterInstanceEventNotificationAttributesOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.RegisterInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// RegisterInstanceEventNotificationAttributesWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) RegisterInstanceEventNotificationAttributesWithContext(_a0 context.Context, _a1 *ec2.RegisterInstanceEventNotificationAttributesInput, _a2 ...request.Option) (*ec2.RegisterInstanceEventNotificationAttributesOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.RegisterInstanceEventNotificationAttributesOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.RegisterInstanceEventNotificationAttributesInput, ...request.Option) *ec2.RegisterInstanceEventNotificationAttributesOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.RegisterInstanceEventNotificationAttributesOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.RegisterInstanceEventNotificationAttributesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RegisterTransitGatewayMulticastGroupMembers provides a mock function with given fields: _a0
 func (_m *EC2API) RegisterTransitGatewayMulticastGroupMembers(_a0 *ec2.RegisterTransitGatewayMulticastGroupMembersInput) (*ec2.RegisterTransitGatewayMulticastGroupMembersOutput, error) {
 	ret := _m.Called(_a0)
@@ -32251,6 +33209,41 @@ func (_m *EC2API) SearchLocalGatewayRoutes(_a0 *ec2.SearchLocalGatewayRoutesInpu
 	return r0, r1
 }
 
+// SearchLocalGatewayRoutesPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) SearchLocalGatewayRoutesPages(_a0 *ec2.SearchLocalGatewayRoutesInput, _a1 func(*ec2.SearchLocalGatewayRoutesOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.SearchLocalGatewayRoutesInput, func(*ec2.SearchLocalGatewayRoutesOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SearchLocalGatewayRoutesPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) SearchLocalGatewayRoutesPagesWithContext(_a0 context.Context, _a1 *ec2.SearchLocalGatewayRoutesInput, _a2 func(*ec2.SearchLocalGatewayRoutesOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.SearchLocalGatewayRoutesInput, func(*ec2.SearchLocalGatewayRoutesOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SearchLocalGatewayRoutesRequest provides a mock function with given fields: _a0
 func (_m *EC2API) SearchLocalGatewayRoutesRequest(_a0 *ec2.SearchLocalGatewayRoutesInput) (*request.Request, *ec2.SearchLocalGatewayRoutesOutput) {
 	ret := _m.Called(_a0)
@@ -32327,6 +33320,41 @@ func (_m *EC2API) SearchTransitGatewayMulticastGroups(_a0 *ec2.SearchTransitGate
 	}
 
 	return r0, r1
+}
+
+// SearchTransitGatewayMulticastGroupsPages provides a mock function with given fields: _a0, _a1
+func (_m *EC2API) SearchTransitGatewayMulticastGroupsPages(_a0 *ec2.SearchTransitGatewayMulticastGroupsInput, _a1 func(*ec2.SearchTransitGatewayMulticastGroupsOutput, bool) bool) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*ec2.SearchTransitGatewayMulticastGroupsInput, func(*ec2.SearchTransitGatewayMulticastGroupsOutput, bool) bool) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SearchTransitGatewayMulticastGroupsPagesWithContext provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *EC2API) SearchTransitGatewayMulticastGroupsPagesWithContext(_a0 context.Context, _a1 *ec2.SearchTransitGatewayMulticastGroupsInput, _a2 func(*ec2.SearchTransitGatewayMulticastGroupsOutput, bool) bool, _a3 ...request.Option) error {
+	_va := make([]interface{}, len(_a3))
+	for _i := range _a3 {
+		_va[_i] = _a3[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1, _a2)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.SearchTransitGatewayMulticastGroupsInput, func(*ec2.SearchTransitGatewayMulticastGroupsOutput, bool) bool, ...request.Option) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // SearchTransitGatewayMulticastGroupsRequest provides a mock function with given fields: _a0
@@ -32610,6 +33638,84 @@ func (_m *EC2API) StartInstancesWithContext(_a0 context.Context, _a1 *ec2.StartI
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *ec2.StartInstancesInput, ...request.Option) error); ok {
+		r1 = rf(_a0, _a1, _a2...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartVpcEndpointServicePrivateDnsVerification provides a mock function with given fields: _a0
+func (_m *EC2API) StartVpcEndpointServicePrivateDnsVerification(_a0 *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) (*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *ec2.StartVpcEndpointServicePrivateDnsVerificationOutput
+	if rf, ok := ret.Get(0).(func(*ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *ec2.StartVpcEndpointServicePrivateDnsVerificationOutput); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*ec2.StartVpcEndpointServicePrivateDnsVerificationInput) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartVpcEndpointServicePrivateDnsVerificationRequest provides a mock function with given fields: _a0
+func (_m *EC2API) StartVpcEndpointServicePrivateDnsVerificationRequest(_a0 *ec2.StartVpcEndpointServicePrivateDnsVerificationInput) (*request.Request, *ec2.StartVpcEndpointServicePrivateDnsVerificationOutput) {
+	ret := _m.Called(_a0)
+
+	var r0 *request.Request
+	if rf, ok := ret.Get(0).(func(*ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *request.Request); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*request.Request)
+		}
+	}
+
+	var r1 *ec2.StartVpcEndpointServicePrivateDnsVerificationOutput
+	if rf, ok := ret.Get(1).(func(*ec2.StartVpcEndpointServicePrivateDnsVerificationInput) *ec2.StartVpcEndpointServicePrivateDnsVerificationOutput); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput)
+		}
+	}
+
+	return r0, r1
+}
+
+// StartVpcEndpointServicePrivateDnsVerificationWithContext provides a mock function with given fields: _a0, _a1, _a2
+func (_m *EC2API) StartVpcEndpointServicePrivateDnsVerificationWithContext(_a0 context.Context, _a1 *ec2.StartVpcEndpointServicePrivateDnsVerificationInput, _a2 ...request.Option) (*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput, error) {
+	_va := make([]interface{}, len(_a2))
+	for _i := range _a2 {
+		_va[_i] = _a2[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _a0, _a1)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *ec2.StartVpcEndpointServicePrivateDnsVerificationOutput
+	if rf, ok := ret.Get(0).(func(context.Context, *ec2.StartVpcEndpointServicePrivateDnsVerificationInput, ...request.Option) *ec2.StartVpcEndpointServicePrivateDnsVerificationOutput); ok {
+		r0 = rf(_a0, _a1, _a2...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*ec2.StartVpcEndpointServicePrivateDnsVerificationOutput)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *ec2.StartVpcEndpointServicePrivateDnsVerificationInput, ...request.Option) error); ok {
 		r1 = rf(_a0, _a1, _a2...)
 	} else {
 		r1 = ret.Error(1)
