@@ -49,6 +49,12 @@ var _ = Describe("eksctl API", func() {
 			Expect(err.Error()).To(HavePrefix(`loading config file "testdata/bad-field-1.yaml": error unmarshaling JSON: while decoding JSON: json: unknown field "zone"`))
 		})
 
+		It("should reject non matching case field in a YAML config", func() {
+			_, err := LoadConfigFromFile("testdata/bad-field-3.yaml")
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(`found unknown field: nodegroups`))
+		})
+
 		It("should reject unknown field in a YAML config", func() {
 			_, err := LoadConfigFromFile("testdata/bad-field-2.yaml")
 			Expect(err).To(HaveOccurred())

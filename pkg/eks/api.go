@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"k8s.io/client-go/kubernetes/scheme"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -34,8 +36,9 @@ import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/yaml"
+
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 
 	"github.com/weaveworks/eksctl/pkg/ami"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -208,7 +211,10 @@ func LoadConfigFromFile(configFile string) (*api.ClusterConfig, error) {
 		return nil, errors.Wrapf(err, "loading config file %q", configFile)
 	}
 
-	obj, err := runtime.Decode(scheme.Codecs.UniversalDeserializer(), data)
+	obj, err := runtime.Decode(serializer.NewCodecFactory(scheme.Scheme, func(cfo *serializer.CodecFactoryOptions) {
+		cfo.Strict = true
+	}).UniversalDeserializer(), data)
+
 	if err != nil {
 		return nil, errors.Wrapf(err, "loading config file %q", configFile)
 	}
