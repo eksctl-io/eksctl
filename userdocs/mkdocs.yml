@@ -11,7 +11,7 @@ extra_css:
     - assets/_custom.scss
 
 nav:
-    - Introduction: intro.md
+    - Introduction: introduction.md
     - 'GitOps Quickstart': gitops-quickstart.md
     - Usage:
         - usage/creating-and-managing-clusters.md
