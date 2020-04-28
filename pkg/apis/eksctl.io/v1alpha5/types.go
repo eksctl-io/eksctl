@@ -619,6 +619,8 @@ type NodeGroup struct {
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
 	MaxSize *int `json:"maxSize,omitempty"`
+	// +optional
+	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
@@ -786,6 +788,15 @@ type (
 		Settings *InlineDocument `json:"settings,omitempty"`
 	}
 )
+
+// MetricsCollection used by the scaling config
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+type MetricsCollection struct {
+	// +required
+	Granularity string `json:"granularity"`
+	// +optional
+	Metrics []string `json:"metrics,omitempty"`
+}
 
 // ScalingConfig defines the scaling config
 type ScalingConfig struct {
