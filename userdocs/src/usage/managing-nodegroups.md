@@ -8,8 +8,9 @@ To create an additional nodegroup, use:
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
-> NOTE: By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
-> version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
+!!!note
+    By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
+    version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
 
 Additionally, you can use the same config file used for `eksctl create cluster`:
 
@@ -117,7 +118,8 @@ If the desired number of nodes is greater than the current maximum set on the AS
 
 Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a ChangeSet.
 
-> NOTE: Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+!!!note
+    Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
 You can also enable SSH, ASG access and other feature for each particular nodegroup, e.g.:
 
@@ -142,7 +144,8 @@ To delete a nodegroup, run:
 eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
 
-> NOTE: this will drain all pods from that nodegroup before the instances are deleted.
+!!!note
+    This will drain all pods from that nodegroup before the instances are deleted.
 
 All nodes are cordoned and all pods are evicted from a nodegroup on deletion,
 but if you need to drain a nodegroup without deleting it, run:
