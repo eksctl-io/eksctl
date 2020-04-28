@@ -2,9 +2,15 @@ name: docs
 
 on:
   pull_request:
+    paths:
+      - 'userdocs/**'
+      - '**.md'
   push:
     branches:
       - master
+    paths:
+      - 'userdocs/**'
+      - '**.md'
 
 jobs:
   markdown-link-checker:
