@@ -211,10 +211,11 @@ To deploy Kubernetes workloads on Fargate, EKS needs a Fargate profile. When cre
 above, `eksctl` takes care of this by creating a default profile. Given an already existing cluster, it's also possible to
 create a Fargate profile with the `eksctl create fargateprofile` command:
 
-> NOTE: This operation is only supported on clusters that run on the EKS platform version `eks.5` or higher.
->
-> NOTE: If the existing was created with a version of `eksctl` prior to 0.11.0, you will  need to run `eksctl update
-> cluster` before creating the Fargate profile.
+!!!note
+    This operation is only supported on clusters that run on the EKS platform version `eks.5` or higher.
+
+    If the existing was created with a version of `eksctl` prior to 0.11.0, you will  need to run `eksctl update
+    cluster` before creating the Fargate profile.
 
 ```console
 $ eksctl create fargateprofile --namespace dev --cluster fargate-example-cluster

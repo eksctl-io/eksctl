@@ -59,7 +59,8 @@ Delete old nodegroup:
 eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 ```
 
-> NOTE: this will drain all pods from that nodegroup before the instances are deleted.
+!!!note
+    This will drain all pods from that nodegroup before the instances are deleted.
 
 ### Updating multiple nodegroups
 
