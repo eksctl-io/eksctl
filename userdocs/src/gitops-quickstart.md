@@ -50,7 +50,7 @@ _empty_ repository. On GitHub, for example, follow [these steps][github-repo].
 
 ## Standing up your cluster
 
-First we follow the [usual steps](/intro/) to stand up a cluster on EKS.
+First we follow the [usual steps](/introduction/) to stand up a cluster on EKS.
 Please review the list of flags to see if you need to tweak it for your
 purposes. In essence it is going to be a variation of:
 
