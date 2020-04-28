@@ -338,10 +338,11 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should error on private=true, public=false", func() {
-			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
+		It("should not error on private=true, public=false", func() {
+			cfg.VPC.ClusterEndpoints =
+				&ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).To(BeIdenticalTo(ErrClusterEndpointPrivateOnly))
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should error on private=false, public=false", func() {
