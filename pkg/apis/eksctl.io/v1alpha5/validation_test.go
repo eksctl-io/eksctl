@@ -3,6 +3,7 @@ package v1alpha5
 import (
 	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
@@ -707,6 +708,35 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 		})
 	})
+
+	type kmsFieldCase struct {
+		secretsEncryption *SecretsEncryption
+		errSubstr         string
+	}
+
+	DescribeTable("KMS field validation", func(k kmsFieldCase) {
+		clusterConfig := NewClusterConfig()
+		clusterConfig.Metadata.Version = "1.15"
+
+		clusterConfig.SecretsEncryption = k.secretsEncryption
+		err := ValidateClusterConfig(clusterConfig)
+		if k.errSubstr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
+		} else {
+			Expect(err).ToNot(HaveOccurred())
+		}
+	},
+		Entry("nil secretsEncryption", kmsFieldCase{
+			secretsEncryption: nil,
+		}),
+		Entry("nil secretsEncryption.keyARN", kmsFieldCase{
+			secretsEncryption: &SecretsEncryption{
+				KeyARN: nil,
+			},
+			errSubstr: "secretsEncryption.keyARN is required",
+		}),
+	)
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {
