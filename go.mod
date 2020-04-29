@@ -46,6 +46,7 @@ require (
 	github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
+	golang.org/x/sys v0.0.0-20200428200454-593003d681fa // indirect
 	golang.org/x/tools v0.0.0-20200301222351-066e0c02454c
 	k8s.io/api v0.15.10
 	k8s.io/apiextensions-apiserver v0.15.10
