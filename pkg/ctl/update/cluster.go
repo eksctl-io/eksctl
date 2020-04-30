@@ -88,7 +88,7 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 	case api.Version1_14:
 		cfg.Metadata.Version = api.Version1_15
 	case api.Version1_15:
-		cfg.Metadata.Version = api.Version1_15
+		cfg.Metadata.Version = api.Version1_16
 	case api.Version1_16:
 		cfg.Metadata.Version = api.Version1_16	
 	default:
