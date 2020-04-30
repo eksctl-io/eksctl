@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
@@ -23,6 +24,12 @@ import (
 )
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
+	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
+		return doCreateCluster(cmd, ng, params)
+	})
+}
+
+func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -33,7 +40,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateCluster(cmd, ng, params)
+		return runFunc(cmd, ng, params)
 	}
 
 	exampleClusterName := names.ForCluster("", "")
@@ -103,7 +110,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 	if cfg.Metadata.Version != api.DefaultVersion {
 		if !isValidVersion(cfg.Metadata.Version) {
 			if isDeprecatedVersion(cfg.Metadata.Version) {
-				return fmt.Errorf("invalid version, %s is now deprecated, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
+				return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
 			}
 			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
 		}
@@ -111,6 +118,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
 		return err
+	}
+
+	// if it's a private only cluster warn the user
+	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
+		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
 	}
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -247,7 +259,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
-		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
+		if err := eks.EnsureAMI(ctl.Provider, meta.Version, ng); err != nil {
 			return err
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
@@ -312,7 +324,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
-			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
@@ -321,7 +333,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 	}
 
-	logger.Success("all EKS cluster resources for %q have been created", meta.Name)
+	logger.Info("waiting for the control plane availability...")
 
 	// obtain cluster credentials, write kubeconfig
 
@@ -351,6 +363,20 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err = ctl.WaitForControlPlane(meta, clientSet); err != nil {
 			return err
 		}
+
+		// tasks depending on the control plane availability
+		tasks := ctl.NewTasksRequiringControlPlane(cfg)
+
+		logger.Info(tasks.Describe())
+		if errs := tasks.DoAllSync(); len(errs) > 0 {
+			logger.Warning("%d error(s) occurred and post actions have failed, you may wish to check CloudFormation console", len(errs))
+			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
+			for _, err := range errs {
+				logger.Critical("%s\n", err.Error())
+			}
+			return fmt.Errorf("failed to create cluster %q", meta.Name)
+		}
+		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
 
 		for _, ng := range cfg.NodeGroups {
 			// authorise nodes to join
@@ -393,7 +419,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err != nil {
 			return err
 		}
-		if err := utils.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
+		if err := kubectl.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}

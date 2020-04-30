@@ -80,9 +80,19 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		api.IsEnabled(m.nodeGroup.SSH.Allow),
 		"[created by eksctl]")
 
-	createRole(m.resourceSet, m.nodeGroup.IAM, true)
+	m.template.Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
 
-	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false)
+	var nodeRole *gfn.Value
+	if m.nodeGroup.IAM.InstanceRoleARN == "" {
+		if err := createRole(m.resourceSet, m.nodeGroup.IAM, true); err != nil {
+			return err
+		}
+		nodeRole = gfn.MakeFnGetAttString(fmt.Sprintf("%s.%s", cfnIAMInstanceRoleName, "Arn"))
+	} else {
+		nodeRole = gfn.NewString(m.nodeGroup.IAM.InstanceRoleARN)
+	}
+
+	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, m.nodeGroup.PrivateNetworking)
 	if err != nil {
 		return err
 	}
@@ -95,16 +105,13 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			MaxSize:     m.nodeGroup.MaxSize,
 			DesiredSize: m.nodeGroup.DesiredCapacity,
 		},
-		// Only public subnets are supported at launch
 		Subnets: subnets,
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: []string{m.nodeGroup.InstanceType},
 		AmiType:       getAMIType(m.nodeGroup.InstanceType),
-		// ManagedNodeGroup.IAM.InstanceRoleARN is not supported, so this field is always retrieved from the
-		// CFN resource
-		NodeRole: gfn.MakeFnGetAttString(fmt.Sprintf("%s.%s", cfnIAMInstanceRoleName, "Arn")),
-		Labels:   m.nodeGroup.Labels,
-		Tags:     m.nodeGroup.Tags,
+		NodeRole:      nodeRole,
+		Labels:        m.nodeGroup.Labels,
+		Tags:          m.nodeGroup.Tags,
 	}
 
 	if api.IsEnabled(m.nodeGroup.SSH.Allow) {

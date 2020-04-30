@@ -31,9 +31,7 @@ func NewRawExtensions(manifest []byte) ([]runtime.RawExtension, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, object := range list.Items {
-		objects = append(objects, object)
-	}
+	objects = append(objects, list.Items...)
 	return objects, nil
 }
 

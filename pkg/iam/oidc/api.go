@@ -21,6 +21,8 @@ const defaultAudience = "sts.amazonaws.com"
 // OpenIDConnectManager hold information about IAM OIDC integration
 type OpenIDConnectManager struct {
 	accountID string
+	partition string
+	audience  string
 
 	issuerURL          *url.URL
 	insecureSkipVerify bool
@@ -33,7 +35,7 @@ type OpenIDConnectManager struct {
 
 // NewOpenIDConnectManager construct a new IAM OIDC management instance, it can return and error
 // when the given issue URL was invalid
-func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer string) (*OpenIDConnectManager, error) {
+func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer, partition string) (*OpenIDConnectManager, error) {
 	issuerURL, err := url.Parse(issuer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "parsing OIDC issuer URL")
@@ -50,6 +52,8 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer string) (
 	m := &OpenIDConnectManager{
 		iam:       iamapi,
 		accountID: accountID,
+		partition: partition,
+		audience:  defaultAudience,
 		issuerURL: issuerURL,
 	}
 	return m, nil
@@ -60,8 +64,7 @@ func NewOpenIDConnectManager(iamapi iamiface.IAMAPI, accountID, issuer string) (
 func (m *OpenIDConnectManager) CheckProviderExists() (bool, error) {
 	input := &awsiam.GetOpenIDConnectProviderInput{
 		OpenIDConnectProviderArn: aws.String(
-			fmt.Sprintf("arn:aws:iam::%s:oidc-provider/%s",
-				m.accountID, m.hostnameAndPath()),
+			fmt.Sprintf("arn:%s:iam::%s:oidc-provider/%s", m.partition, m.accountID, m.hostnameAndPath()),
 		),
 	}
 	_, err := m.iam.GetOpenIDConnectProvider(input)
@@ -83,7 +86,7 @@ func (m *OpenIDConnectManager) CreateProvider() error {
 		return err
 	}
 	input := &awsiam.CreateOpenIDConnectProviderInput{
-		ClientIDList:   aws.StringSlice([]string{defaultAudience}),
+		ClientIDList:   aws.StringSlice([]string{m.audience}),
 		ThumbprintList: []*string{&m.issuerCAThumbprint},
 		// It has no name or tags, it's keyed to the URL
 		Url: aws.String(m.issuerURL.String()),
@@ -147,7 +150,7 @@ func (m *OpenIDConnectManager) MakeAssumeRolePolicyDocument(serviceAccountNamesp
 	return cft.MakeAssumeRoleWithWebIdentityPolicyDocument(m.ProviderARN, cft.MapOfInterfaces{
 		"StringEquals": map[string]string{
 			m.hostnameAndPath() + ":sub": subject,
-			m.hostnameAndPath() + ":aud": defaultAudience,
+			m.hostnameAndPath() + ":aud": m.audience,
 		},
 	})
 }

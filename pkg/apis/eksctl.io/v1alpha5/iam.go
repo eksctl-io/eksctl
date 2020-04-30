@@ -17,7 +17,11 @@ type ClusterIAM struct {
 	// +optional
 	ServiceRoleARN *string `json:"serviceRoleARN,omitempty"`
 	// +optional
+	ServiceRolePermissionsBoundary *string `json:"serviceRolePermissionsBoundary,omitempty"`
+	// +optional
 	FargatePodExecutionRoleARN *string `json:"fargatePodExecutionRoleARN,omitempty"`
+	// +optional
+	FargatePodExecutionRolePermissionsBoundary *string `json:"fargatePodExecutionRolePermissionsBoundary,omitempty"`
 	// +optional
 	WithOIDC *bool `json:"withOIDC,omitempty"`
 	// +optional
@@ -31,6 +35,8 @@ type ClusterIAMServiceAccount struct {
 	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
+	// +optional
+	PermissionsBoundary string `json:"permissionsBoundary,omitempty"`
 	// +optional
 	Status *ClusterIAMServiceAccountStatus `json:"status,omitempty"`
 	// +optional

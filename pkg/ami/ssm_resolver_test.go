@@ -84,7 +84,6 @@ var _ = Describe("AMI Auto Resolution", func() {
 					})
 
 				})
-
 			})
 
 			Context("and gpu instance type", func() {
@@ -171,6 +170,110 @@ var _ = Describe("AMI Auto Resolution", func() {
 					Expect(err).To(HaveOccurred())
 				})
 			})
+
+			Context("and Bottlerocket image family", func() {
+				BeforeEach(func() {
+					instanceType = "t2.medium"
+					imageFamily = "Bottlerocket"
+					version = "1.15"
+				})
+
+				Context("and ami is available", func() {
+					BeforeEach(func() {
+						_, p = createProviders()
+						addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/x86_64/latest/image_id", expectedAmi)
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+					})
+
+					It("should not error", func() {
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("should have called AWS SSM GetParameter", func() {
+						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+					})
+
+					It("should have returned an ami id", func() {
+						Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+					})
+				})
+
+				Context("and ami is NOT available", func() {
+					BeforeEach(func() {
+						_, p = createProviders()
+						addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/x86_64/latest/image_id")
+
+						resolver := NewSSMResolver(p.MockSSM())
+						resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+					})
+
+					It("should return an error", func() {
+						Expect(err).To(HaveOccurred())
+					})
+
+					It("should NOT have returned an ami id", func() {
+						Expect(resolvedAmi).To(BeEquivalentTo(""))
+					})
+
+					It("should have called AWS SSM GetParameter", func() {
+						Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+					})
+
+				})
+
+				Context("for arm instance type", func() {
+					BeforeEach(func() {
+						instanceType = "a1.large"
+					})
+
+					Context("and ami is available", func() {
+						BeforeEach(func() {
+							_, p = createProviders()
+							addMockGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/arm64/latest/image_id", expectedAmi)
+							resolver := NewSSMResolver(p.MockSSM())
+							resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						})
+
+						It("should not error", func() {
+							Expect(err).NotTo(HaveOccurred())
+						})
+
+						It("should have called AWS SSM GetParameter", func() {
+							Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+						})
+
+						It("should have returned an ami id", func() {
+							Expect(resolvedAmi).To(BeEquivalentTo(expectedAmi))
+						})
+					})
+
+					Context("and ami is NOT available", func() {
+						BeforeEach(func() {
+							_, p = createProviders()
+							addMockFailedGetParameter(p, "/aws/service/bottlerocket/aws-k8s-1.15/arm64/latest/image_id")
+
+							resolver := NewSSMResolver(p.MockSSM())
+							resolvedAmi, err = resolver.Resolve(region, version, instanceType, imageFamily)
+						})
+
+						It("should return an error", func() {
+							Expect(err).To(HaveOccurred())
+						})
+
+						It("should NOT have returned an ami id", func() {
+							Expect(resolvedAmi).To(BeEquivalentTo(""))
+						})
+
+						It("should have called AWS SSM GetParameter", func() {
+							Expect(p.MockSSM().AssertNumberOfCalls(GinkgoT(), "GetParameter", 1)).To(BeTrue())
+						})
+
+					})
+
+				})
+			})
+
 		})
 	})
 })

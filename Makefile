@@ -8,23 +8,18 @@ gocache := $(shell go env GOCACHE)
 GOBIN ?= $(gopath)/bin
 
 
-always_generate_in_packages := ./pkg/nodebootstrap ./pkg/addons/default ./pkg/addons
-
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  site/content/usage/20-schema.md \
+  userdocs/src/usage/schema.md \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
   pkg/nodebootstrap/assets.go \
-  pkg/nodebootstrap/maxpods.go \
   pkg/addons/default/assets.go \
-  pkg/addons/default/assets/aws-node.yaml \
   pkg/addons/assets.go \
-  pkg/ami/static_resolver_ami.go \
   $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help
@@ -34,6 +29,7 @@ all_generated_files := \
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
+	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
 
@@ -95,12 +91,16 @@ unit-test-race: ## Run unit test with race detection
 	CGO_ENABLED=1 time go test -race ./pkg/... ./cmd/... $(UNIT_TEST_ARGS)
 
 .PHONY: build-integration-test
-build-integration-test: $(all_generated_code) ## Build integration test binary
-	time go test -tags integration ./integration/ -c -o eksctl-integration-test
+build-integration-test: $(all_generated_code)
+	@# Compile integration test binary without running any.
+	@# Required as build failure aren't listed when running go build below. See also: https://github.com/golang/go/issues/15513
+	go test -tags integration -run=^$$ ./integration/...
+	@# Build integration test binary:
+	go build -tags integration -o ./eksctl-integration-test ./integration/main.go
 
 .PHONY: integration-test
 integration-test: build build-integration-test ## Run the integration tests (with cluster creation and cleanup)
-	cd integration; ../eksctl-integration-test -test.timeout 150m $(INTEGRATION_TEST_ARGS)
+	JUNIT_REPORT_DIR=$(git_toplevel)/test-results ./eksctl-integration-test $(INTEGRATION_TEST_ARGS)
 
 .PHONY: integration-test-container
 integration-test-container: eksctl-image ## Run the integration tests inside a Docker container
@@ -129,8 +129,8 @@ integration-test-dev: build-integration-test ## Run the integration tests withou
 	cd integration ; ../eksctl-integration-test -test.timeout 21m \
 		$(INTEGRATION_TEST_ARGS) \
 		-eksctl.cluster=$(TEST_CLUSTER) \
-		-eksctl.create=false \
-		-eksctl.delete=false \
+		-eksctl.skip.create=true \
+		-eksctl.skip.delete=true \
 		-eksctl.kubeconfig=$(HOME)/.kube/eksctl/clusters/$(TEST_CLUSTER)
 
 create-integration-test-dev-cluster: build ## Create a test cluster for use when developing integration tests
@@ -141,13 +141,17 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
+## Important: pkg/addons/default/generate.go depends on pkg/addons/default/assets/aws-node.yaml If this file is
+## not present, the generation of assets will not fail but will not contain it.
 .PHONY: generate-always
-generate-always: ## Generate code (required for every build)
+generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
 	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
 	@$(GOBIN)/go-bindata -v
-	env GOBIN=$(GOBIN) time go generate $(always_generate_in_packages)
+	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap/assets.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
@@ -160,24 +164,40 @@ check-all-generated-files-up-to-date: generate-all
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-.PHONY: generate-ami
-generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	time go generate ./pkg/ami
+### Update AMIs in ami static resolver
+.PHONY: update-ami
+update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
+	go generate ./pkg/ami
 
-site/content/usage/20-schema.md: $(call godeps,cmd/schema/generate.go)
+### Update maxpods.go from AWS
+.PHONY: update-maxpods
+update-maxpods: ## Re-download the max pods info from AWS and regenerate the maxpods.go file
+	@cd pkg/nodebootstrap && go run maxpods_generate.go
+
+### Update aws-node addon manifests from AWS
+pkg/addons/default/assets/aws-node.yaml:
+	$(MAKE) update-aws-node
+
+.PHONY: update-aws-node
+update-aws-node: ## Re-download the aws-node manifests from AWS
+	time go generate ./pkg/addons/default/aws_node_generate.go
+
+userdocs/src/usage/schema.md: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
-	time env GOPATH="$(gopath)" bash "$(gopath)/pkg/mod/k8s.io/code-generator@v0.0.0-20190831074504-732c9ca86353/generate-groups.sh" \
-	  deepcopy,defaulter _ ./pkg/apis eksctl.io:v1alpha5 --go-header-file .license-header --output-base="$(git_toplevel)" \
-	  || (cat .license-header ; cat $(generated_code_deep_copy_helper); exit 1)
+	./tools/update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191218135223-757eeed07291" vendor/github.com/aws/aws-sdk-go
+	ln -sfn "$(gopath)/pkg/mod/github.com/aws/aws-sdk-go@v1.30.11" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
+
+.PHONY: generate-kube-reserved
+generate-kube-reserved: ## Update instance list with respective specs
+	@cd ./pkg/nodebootstrap/ && go run reserved_generate.go
 
 ##@ Release
 .PHONY: prepare-release
@@ -192,6 +212,35 @@ prepare-release-candidate:
 print-version:
 	@go run pkg/version/generate/release_generate.go print-version
 
+.PHONY: upload-github
+upload-github:
+	@echo "Releasing version $(eksctl_version) in $(git_org)/$(git_repo)"
+	@echo "Check draft exists..." && github-release info --user $(git_org) --repo $(git_repo) --tag $(eksctl_version)
+	github-release upload --user $(git_org) --repo $(git_repo) --tag $(eksctl_version) --file dist/eksctl_Windows_amd64.zip --name eksctl_Windows_amd64.zip
+	github-release upload --user $(git_org) --repo $(git_repo) --tag $(eksctl_version) --file dist/eksctl_Darwin_amd64.tar.gz --name eksctl_Darwin_amd64.tar.gz
+	github-release upload --user $(git_org) --repo $(git_repo) --tag $(eksctl_version) --file dist/eksctl_Linux_amd64.tar.gz --name eksctl_Linux_amd64.tar.gz
+
+.PHONY: publish-github
+publish-github: upload-github
+	github-release publish --user $(git_org) --repo $(git_repo) --tag $(eksctl_version)
+
+.PHONY: publish-rc-github
+publish-rc-github: upload-github
+	github-release release --user $(git_org) --repo $(git_repo) --tag $(shell eksctl version) --pre-release
+
+.PHONY: publish-homebrew
+publish-homebrew:
+	@echo "Publishing to weaveworks/homebrew-tap"
+	git clone --depth 1 --branch master git@github.com:weaveworks/homebrew-tap.git
+	@go run tools/brew/update_formula.go \
+		-template tools/brew/formula.tmpl \
+		-outputPath homebrew-tap/Formula/$(git_repo).rb \
+		-version $(eksctl_version) \
+		-linux-url https://github.com/$(git_org)/$(git_repo)/releases/download/$(eksctl_version)/eksctl_Linux_amd64.tar.gz \
+		-mac-url https://github.com/$(git_org)/$(git_repo)/releases/download/$(eksctl_version)/eksctl_Darwin_amd64.tar.gz
+	cd homebrew-tap; git commit --message "Brew formula update for $(git_repo) version $(eksctl_version)" -- Formula/$(git_repo).rb
+	cd homebrew-tap; git push origin master
+
 ##@ Docker
 
 .PHONY: eksctl-image
@@ -200,16 +249,13 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 
 ##@ Site
 
-HUGO := $(GOBIN)/hugo
-HUGO_ARGS ?= --gc --minify
-
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
-	cd site/ ; $(HUGO) serve $(HUGO_ARGS)
+	cd userdocs/ ; mkdocs serve
 
 .PHONY: build-pages
 build-pages: ## Generate the site
-	cd site/ ; $(HUGO) $(HUGO_ARGS)
+	cd userdocs/ ; mkdocs build
 
 ##@ Utility
 

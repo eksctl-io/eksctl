@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
@@ -35,36 +36,38 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		It("should get cluster, cache status and get issuer URL", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", exampleIssuer)
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", exampleIssuer, "aws")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(oidc.issuerURL.Port()).To(Equal("443"))
 			Expect(oidc.issuerURL.Hostname()).To(Equal("exampleIssuer.eksctl.io"))
 		})
 
 		It("should handle bad issuer URL", func() {
-			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo\x7f.com/")
+			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo\x7f.com/", "aws")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("parsing OIDC issuer URL"))
 		})
 
 		It("should handle bad issuer URL scheme", func() {
-			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo.com/")
+			_, err = NewOpenIDConnectManager(p.IAM(), "12345", "http://foo.com/", "aws")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(HavePrefix("unsupported URL scheme"))
 		})
 
 		It("should get cluster, and fail to connect to fake issue URL", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10020/")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10020/", "aws")
 			Expect(err).NotTo(HaveOccurred())
 
 			err = oidc.getIssuerCAThumbprint()
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(HavePrefix("connecting to issuer OIDC: Get https://localhost:10020/"))
+			// Use regex to match URL as go 1.14 have extra double quotes for URL
+			// related commit : https://github.com/golang/go/commit/64cfe9fe22113cd6bc05a2c5d0cbe872b1b57860
+			Expect(err.Error()).To(MatchRegexp("connecting to issuer OIDC: Get \"?https://localhost:10020/\"?"))
 			Expect(err.Error()).To(HaveSuffix("connect: connection refused"))
 		})
 
 		It("should get OIDC issuer's CA fingerprint", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/", "aws")
 			Expect(err).NotTo(HaveOccurred())
 
 			srv, err := newServer(oidc.issuerURL.Host)
@@ -85,7 +88,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		It("should get OIDC issuer's CA fingerprint for a URL that returns 403", func() {
-			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10029/fake_eks")
+			oidc, err := NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10029/fake_eks", "aws")
 			Expect(err).NotTo(HaveOccurred())
 
 			srv, err := newServer(oidc.issuerURL.Host)
@@ -164,7 +167,7 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 		})
 
 		JustBeforeEach(func() {
-			oidc, err = NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/")
+			oidc, err = NewOpenIDConnectManager(p.IAM(), "12345", "https://localhost:10028/", "aws")
 			Expect(err).NotTo(HaveOccurred())
 
 			srv, err = newServer(oidc.issuerURL.Host)
@@ -238,6 +241,69 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			Expect(js).To(MatchJSON(expected))
 		})
 
+	})
+
+	Describe("OIDC AWS partition test", func() {
+		var (
+			provider *mockprovider.MockProvider
+			srv      *testServer
+		)
+
+		BeforeEach(func() {
+			provider = mockprovider.NewMockProvider()
+			var err error
+			srv, err = newServer("localhost:10028")
+			Expect(err).NotTo(HaveOccurred())
+			go srv.serve()
+		})
+
+		AfterEach(func() {
+			srv.close()
+		})
+
+		DescribeTable("AssumeRolePolicyDocument should have correct AWS partition and STS domain", func(partition, expectedAudience string) {
+			provider.MockIAM().On("CreateOpenIDConnectProvider", mock.MatchedBy(func(input *awsiam.CreateOpenIDConnectProviderInput) bool {
+				if len(input.ClientIDList) != 1 {
+					return false
+				}
+				clientID := *input.ClientIDList[0]
+				return clientID == defaultAudience
+			})).Return(&awsiam.CreateOpenIDConnectProviderOutput{
+				OpenIDConnectProviderArn: aws.String(fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition)),
+			}, nil)
+
+			oidc, err := NewOpenIDConnectManager(provider.IAM(), "12345", "https://localhost:10028/", partition)
+			oidc.insecureSkipVerify = true
+			Expect(err).ToNot(HaveOccurred())
+			Expect(oidc.CreateProvider()).To(Succeed())
+
+			document := oidc.MakeAssumeRolePolicyDocument("test-ns", "test-sa")
+			expected := fmt.Sprintf(`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {
+							"Federated": %q
+						},
+						"Action": ["sts:AssumeRoleWithWebIdentity"],
+						"Condition": {
+							"StringEquals": {
+								"localhost/:sub": "system:serviceaccount:test-ns:test-sa",
+								"localhost/:aud": %q
+							}
+						}
+					}
+				]
+			}`, fmt.Sprintf("arn:%s:iam::12345:oidc-provider/localhost/", partition), expectedAudience)
+
+			actual, err := json.Marshal(document)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(actual).To(MatchJSON(expected))
+		},
+			Entry("Default AWS partition", "aws", "sts.amazonaws.com"),
+			Entry("AWS China partition", "aws-cn", "sts.amazonaws.com"),
+		)
 	})
 })
 

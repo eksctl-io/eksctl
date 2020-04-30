@@ -169,9 +169,6 @@ func (a *AuthConfigMap) RemoveIdentity(arnToDelete string, all bool) error {
 	newidentities := make([]iam.Identity, 0)
 	for i, identity := range identities {
 		arn := identity.ARN()
-		if err != nil {
-			return err
-		}
 		if arn == arnToDelete {
 			logger.Info("removing identity %q from auth ConfigMap (username = %q, groups = %q)", arnToDelete, identity.Username(), identity.Groups())
 			if !all {

@@ -286,7 +286,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns:v1.1.3",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.1.3",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,

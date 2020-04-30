@@ -1,5 +1,0 @@
-<!--source: https://www.ibm.com/design/language/elements/icon-library/-->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-    <path fill="#9daab6" d="M6 18H4V6a2 2 0 0 1 2-2h12v2H6z"/>
-    <path fill="#9daab6" d="M28 12v16H12V12h16m0-2H12a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V12a2 2 0 0 0-2-2z"/>
-</svg>

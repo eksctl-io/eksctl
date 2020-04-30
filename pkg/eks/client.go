@@ -12,7 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"github.com/kubernetes-sigs/aws-iam-authenticator/pkg/token"
+	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	kubewrapper "github.com/weaveworks/eksctl/pkg/kubernetes"

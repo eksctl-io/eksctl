@@ -46,6 +46,20 @@ var _ = Describe("User data", func() {
 			Expect(errUnmarshal).ToNot(HaveOccurred())
 		})
 
+		It("contains default kube reservations", func() {
+			ng.InstanceType = "i3.metal"
+			data, err := makeKubeletConfigYAML(clusterConfig, ng)
+			Expect(err).ToNot(HaveOccurred())
+			kubelet := kubeletapi.KubeletConfiguration{}
+			err = yaml.UnmarshalStrict(data, &kubelet)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(kubelet.KubeReserved).To(Equal(map[string]string{
+				"ephemeral-storage": "1Gi",
+				"cpu":               "250m",
+				"memory":            "17407Mi",
+			}))
+		})
+
 		It("the kubelet config contains the overwritten values", func() {
 
 			ng.KubeletExtraConfig = &api.InlineDocument{

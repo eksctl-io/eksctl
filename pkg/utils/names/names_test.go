@@ -1,11 +1,11 @@
 package names_test
 
 import (
-	"testing"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
+	"testing"
 )
 
 func TestSuite(t *testing.T) {
@@ -20,7 +20,7 @@ var _ = Describe("name", func() {
 			second := names.ForNodeGroup("", "second-name")
 			Expect(second).To(Equal("second-name"))
 		})
- 
+
 		It("returns an empty string if both provided names are non-empty, so the client can test this and error-out", func() {
 			name := names.ForNodeGroup("first-name", "second-name")
 			Expect(name).To(Equal(""))

@@ -52,6 +52,7 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 				Key:   gfn.NewString("kubernetes.io/role/elb"),
 				Value: gfn.NewString("1"),
 			}}
+			subnet.MapPublicIpOnLaunch = gfn.True()
 		}
 		refSubnet := c.newResource("Subnet"+alias, subnet)
 		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
@@ -163,7 +164,9 @@ func (c *ClusterResourceSet) addOutputsForVPC() {
 		c.spec.VPC.ID = v
 		return nil
 	})
-	c.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, c.spec.VPC.NAT.Gateway, false)
+	if c.spec.VPC.NAT != nil {
+		c.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, c.spec.VPC.NAT.Gateway, false)
+	}
 	if refs, ok := c.subnets[api.SubnetTopologyPrivate]; ok {
 		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPrivate, refs, true, func(v string) error {
 			return vpc.ImportSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(v, ","))

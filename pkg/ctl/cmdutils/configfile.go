@@ -192,8 +192,10 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 			*l.ClusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
-		if l.ClusterConfig.VPC.ClusterEndpoints == nil {
-			l.ClusterConfig.VPC.ClusterEndpoints = api.ClusterEndpointAccessDefaults()
+		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
+
+		if !l.ClusterConfig.HasClusterEndpointAccess() {
+			return api.ErrClusterEndpointNoAccess
 		}
 
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
@@ -308,7 +310,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
 			}
@@ -317,7 +319,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				// generate nodegroup name or use either flag or argument
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
 				if err := normalizeNodeGroup(ng, l); err != nil {
@@ -342,6 +344,7 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
 		Tags:              nodeGroup.Tags,
 		AMIFamily:         nodeGroup.AMIFamily,
 		VolumeSize:        nodeGroup.VolumeSize,
+		PrivateNetworking: nodeGroup.PrivateNetworking,
 		ScalingConfig: &api.ScalingConfig{
 			MinSize:         nodeGroup.MinSize,
 			MaxSize:         nodeGroup.MaxSize,
@@ -385,7 +388,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+			return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {
@@ -421,15 +424,32 @@ func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 }
 
 // NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils vpc-cluster-api-access
-func NewUtilsEnableEndpointAccessLoader(cmd *Cmd) ClusterConfigLoader {
+func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"private-access",
 		"public-access",
 	)
+	l.validateWithoutConfigFile = func() error {
+		if err := l.validateMetadataWithoutConfigFile(); err != nil {
+			return err
+		}
 
-	l.validateWithoutConfigFile = l.validateMetadataWithoutConfigFile
+		if flag := l.CobraCommand.Flag("private-access"); flag != nil && flag.Changed {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PrivateAccess = &privateAccess
+		} else {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PrivateAccess = nil
+		}
+
+		if flag := l.CobraCommand.Flag("public-access"); flag != nil && flag.Changed {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PublicAccess = &publicAccess
+		} else {
+			cmd.ClusterConfig.VPC.ClusterEndpoints.PublicAccess = nil
+		}
+
+		return nil
+	}
 
 	return l
 }
@@ -444,7 +464,7 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 	}
 
 	l.validateWithConfigFile = func() error {
-		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
+		if l.ClusterConfig.IAM == nil || api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
 			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
 		}
 		return nil
@@ -511,8 +531,16 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 
 		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
 
+		if serviceAccount.Name != "" && l.NameArg != "" {
+			return ErrFlagAndArg("--name", serviceAccount.Name, l.NameArg)
+		}
+
+		if l.NameArg != "" {
+			serviceAccount.Name = l.NameArg
+		}
+
 		if serviceAccount.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		if len(serviceAccount.AttachPolicyARNs) == 0 {

@@ -15,7 +15,7 @@ _Need help? Join [Weave Community Slack][slackjoin]._
 To download the latest release, run:
 
 ```
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 sudo mv /tmp/eksctl /usr/local/bin
 ```
 
@@ -97,11 +97,11 @@ $ eksctl create cluster
 $
 ```
 
-Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/installation).
+Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/#installation).
 
-To learn more abut what `eksctl` can do check [eksctl.io](https://eksctl.io). A good place to start is
-[Getting Started](https://eksctl.io/introduction/getting-started/). The full list of features can be found
-[here](https://eksctl.io/introduction/features/).
+To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A good place to start is
+[Getting Started](https://eksctl.io/introduction/#getting-started). The full list of features can be found
+[here](https://eksctl.io/introduction/#features).
 
 ## Contributions
 

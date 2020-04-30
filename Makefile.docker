@@ -12,7 +12,7 @@ build_image_tag = $(shell cat $(build_image_tag_file))
 
 build_image_name = weaveworks/eksctl-build:$(build_image_tag)
 
-intermidiate_container_name = eksctl-build-$(unique_tag)
+intermediate_container_name = eksctl-build-$(unique_tag)
 
 docker_build := time docker build
 # We should eventually switch to buildkit, as it has a many feature and cleaner output with timing info,
@@ -58,12 +58,12 @@ push-build-image-github: build-image ## Push the build image to the GitHub regis
 intermediate-image: build-image ## Build the intermediate image that has all artefacts
 	time docker run \
 	  --tty \
-	  --name=$(intermidiate_container_name) \
+	  --name=$(intermediate_container_name) \
 	  --volume=$(git_toplevel):/src \
 	    $(build_image_name) /src/eksctl-image-builder.sh \
-	  || (docker rm $(intermidiate_container_name) ; exit 1)
-	time docker commit $(intermidiate_container_name) $(intermediate_image_name) \
-	  && docker rm $(intermidiate_container_name)
+	  || (docker rm $(intermediate_container_name) ; exit 1)
+	time docker commit $(intermediate_container_name) $(intermediate_image_name) \
+	  && docker rm $(intermediate_container_name)
 
 .PHONY: eksctl-image
 eksctl-image: intermediate-image ## Build the eksctl image that has release artefacts and no build dependencies

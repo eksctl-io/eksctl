@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/weaveworks/eksctl/pkg/version"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/cloudtrail"
@@ -17,6 +19,7 @@ import (
 const (
 	resourcesRootPath = "Resources"
 	outputsRootPath   = "Outputs"
+	mappingsRootPath  = "Mappings"
 )
 
 var (
@@ -53,6 +56,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 	tags := []*cloudformation.Tag{
 		newTag(api.ClusterNameTag, spec.Metadata.Name),
 		newTag(api.OldClusterNameTag, spec.Metadata.Name),
+		newTag(api.EksctlVersionTag, version.GetVersion()),
 	}
 	for key, value := range spec.Metadata.Tags {
 		tags = append(tags, newTag(key, value))
@@ -69,10 +73,7 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, ta
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
-
-	for _, t := range c.sharedTags {
-		input.Tags = append(input.Tags, t)
-	}
+	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {
 		input.Tags = append(input.Tags, newTag(k, v))
 	}
@@ -241,7 +242,7 @@ func (c *StackCollection) ListStacks(statusFilters ...string) ([]*Stack, error) 
 	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name))
 }
 
-// StackStatusIsNotTransitional will return true when stack statate is non-transitional
+// StackStatusIsNotTransitional will return true when stack status is non-transitional
 func (*StackCollection) StackStatusIsNotTransitional(s *Stack) bool {
 	for _, state := range nonTransitionalReadyStackStatuses() {
 		if *s.StackStatus == state {
@@ -460,7 +461,7 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 		return true
 	}
 	if err := c.provider.CloudTrail().LookupEventsPages(input, pager); err != nil {
-		return nil, errors.Wrapf(err, "looking up CloduTrail events for stack %q", *i.StackName)
+		return nil, errors.Wrapf(err, "looking up CloudTrail events for stack %q", *i.StackName)
 	}
 
 	return events, nil
@@ -497,7 +498,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.provider.CloudFormation().CreateChangeSet(input)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
+		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, *i.StackName)
 	}
 	logger.Debug("changeSet = %#v", s)
 	return nil

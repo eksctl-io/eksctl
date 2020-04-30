@@ -65,7 +65,7 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.eu-west-2.amazonaws.com/amazon-k8s-cni:v1.5.5"),
+				Equal("602401143452.dkr.ecr.eu-west-2.amazonaws.com/amazon-k8s-cni:v1.6.0"),
 			)
 
 			rawClient.ClearUpdated()
@@ -83,8 +83,14 @@ var _ = Describe("default addons - aws-node", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.5.5"),
+				Equal("602401143452.dkr.ecr.us-east-1.amazonaws.com/amazon-k8s-cni:v1.6.0"),
 			)
+		})
+		It("detects matching image version when determining plan", func() {
+			// updating from latest to latest needs no updating
+			needsUpdate, err := UpdateAWSNode(rawClient, "eu-west-2", true)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(needsUpdate).To(BeFalse())
 		})
 	})
 })

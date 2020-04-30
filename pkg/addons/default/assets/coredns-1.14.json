@@ -5,6 +5,8 @@
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
+        "name": "kube-dns",
+        "namespace": "kube-system",
         "annotations": {
           "prometheus.io/port": "9153",
           "prometheus.io/scrape": "true"
@@ -14,9 +16,7 @@
           "k8s-app": "kube-dns",
           "kubernetes.io/cluster-service": "true",
           "kubernetes.io/name": "CoreDNS"
-        },
-        "name": "kube-dns",
-        "namespace": "kube-system"
+        }
       },
       "spec": {
         "ports": [
@@ -44,43 +44,43 @@
       "apiVersion": "v1",
       "kind": "ServiceAccount",
       "metadata": {
+        "name": "coredns",
+        "namespace": "kube-system",
         "annotations": {},
         "labels": {
           "eks.amazonaws.com/component": "coredns",
           "k8s-app": "kube-dns"
-        },
-        "name": "coredns",
-        "namespace": "kube-system"
+        }
       }
     },
     {
       "apiVersion": "v1",
       "data": {
-        "Corefile": ".:53 {\n    errors\n    health\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      upstream\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    proxy . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
+        "Corefile": ".:53 {\n    errors\n    health\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      upstream\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
       },
       "kind": "ConfigMap",
       "metadata": {
+        "name": "coredns",
+        "namespace": "kube-system",
         "annotations": {},
         "labels": {
           "eks.amazonaws.com/component": "coredns",
           "k8s-app": "kube-dns"
-        },
-        "name": "coredns",
-        "namespace": "kube-system"
+        }
       }
     },
     {
       "apiVersion": "apps/v1",
       "kind": "Deployment",
       "metadata": {
+        "name": "coredns",
+        "namespace": "kube-system",
         "annotations": {},
         "labels": {
           "eks.amazonaws.com/component": "coredns",
           "k8s-app": "kube-dns",
           "kubernetes.io/name": "CoreDNS"
-        },
-        "name": "coredns",
-        "namespace": "kube-system"
+        }
       },
       "spec": {
         "progressDeadlineSeconds": 600,
@@ -161,7 +161,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "940911992744.dkr.ecr.us-west-2.amazonaws.com/eks/coredns:v1.3.1",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.6.6",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,

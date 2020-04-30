@@ -17,7 +17,8 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("cluster", "Update cluster", "")
+	cmd.SetDescription("cluster", "Upgrade control plane to the next version",
+		"Upgrade control plane to the next Kubernetes version if available. Will also perform any updates needed in the cluster stack if resources are missing.")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
@@ -85,7 +86,9 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 	case api.Version1_13:
 		cfg.Metadata.Version = api.Version1_14
 	case api.Version1_14:
-		cfg.Metadata.Version = api.Version1_14
+		cfg.Metadata.Version = api.Version1_15
+	case api.Version1_15:
+		cfg.Metadata.Version = api.Version1_15
 	default:
 		// version of control plane is not known to us, maybe we are just too old...
 		return fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)

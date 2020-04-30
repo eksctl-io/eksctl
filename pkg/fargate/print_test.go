@@ -38,17 +38,17 @@ var _ = Describe("fargate", func() {
 		It("returns an error for unsupported printer type", func() {
 			profiles := sampleProfiles()
 			out := bytes.NewBufferString("")
-			err := fargate.PrintProfiles(profiles, out, printers.Type("foo"))
+			err := fargate.PrintProfiles(profiles, out, "foo")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("unknown output printer type: expected {\"yaml\",\"json\",\"table\"} but got \"foo\""))
 		})
 	})
 })
 
-const expectedTable = `NAME	SELECTOR_NAMESPACE	SELECTOR_LABELS		POD_EXECUTION_ROLE_ARN		SUBNETS
-fp-prod	prod			env=prod		arn:aws:iam::123:role/root	subnet-prod,subnet-d34dc0w
-fp-test	default			<none>			arn:aws:iam::123:role/root	<none>
-fp-test	kube-system		app=my-app,env=test	arn:aws:iam::123:role/root	<none>
+const expectedTable = `NAME	SELECTOR_NAMESPACE	SELECTOR_LABELS		POD_EXECUTION_ROLE_ARN		SUBNETS				TAGS
+fp-prod	prod			env=prod		arn:aws:iam::123:role/root	subnet-prod,subnet-d34dc0w	<none>
+fp-test	default			<none>			arn:aws:iam::123:role/root	<none>				app=my-app,env=test
+fp-test	kube-system		app=my-app,env=test	arn:aws:iam::123:role/root	<none>				app=my-app,env=test
 `
 
 const expectedYAML = `- name: fp-test
@@ -59,6 +59,9 @@ const expectedYAML = `- name: fp-test
       env: test
     namespace: kube-system
   - namespace: default
+  tags:
+    app: my-app
+    env: test
 - name: fp-prod
   podExecutionRoleARN: arn:aws:iam::123:role/root
   selectors:
@@ -85,7 +88,11 @@ const expectedJSON = `[
             {
                 "namespace": "default"
             }
-        ]
+        ],
+        "tags": {
+            "app": "my-app",
+            "env": "test"
+        }
     },
     {
         "name": "fp-prod",
@@ -107,27 +114,31 @@ const expectedJSON = `[
 
 func sampleProfiles() []*api.FargateProfile {
 	return []*api.FargateProfile{
-		&api.FargateProfile{
+		{
 			Name:                "fp-test",
 			PodExecutionRoleARN: "arn:aws:iam::123:role/root",
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{
+				{
 					Namespace: "kube-system",
 					Labels: map[string]string{
 						"app": "my-app",
 						"env": "test",
 					},
 				},
-				api.FargateProfileSelector{
+				{
 					Namespace: "default",
 				},
 			},
+			Tags: map[string]string{
+				"app": "my-app",
+				"env": "test",
+			},
 		},
-		&api.FargateProfile{
+		{
 			Name:    "fp-prod",
 			Subnets: []string{"subnet-prod", "subnet-d34dc0w"},
 			Selectors: []api.FargateProfileSelector{
-				api.FargateProfileSelector{
+				{
 					Namespace: "prod",
 					Labels: map[string]string{
 						"env": "prod",

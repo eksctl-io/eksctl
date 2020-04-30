@@ -273,13 +273,13 @@ func addGroupA(cfg *api.ClusterConfig) {
 	ng.VolumeSize = &ng1aVolSize
 	ng.VolumeType = &ng1aVolType
 	ng.VolumeIOPS = &ng1aVolIOPS
-	ng.IAM.AttachPolicyARNs = []string{"foo"}
+	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Foo"}
 	ng.Labels = map[string]string{"group": "a", "seq": "1"}
 	ng.SSH = nil
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng2a"
-	ng.IAM.AttachPolicyARNs = []string{"bar"}
+	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Bar"}
 	ng.Labels = map[string]string{"group": "a", "seq": "2"}
 	ng.SSH = nil
 
@@ -328,7 +328,7 @@ const expected = `
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.14"
+		  "version": "1.15"
 		},
 		"iam": {},
 		"vpc": {
@@ -348,7 +348,6 @@ const expected = `
 		"nodeGroups": [
 		  {
 			  "name": "test-ng1a",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
@@ -370,7 +369,7 @@ const expected = `
 			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-				  "foo"
+				  "arn:aws:iam::aws:policy/Foo"
 			    ],
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
@@ -389,7 +388,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng2a",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
@@ -411,7 +409,7 @@ const expected = `
 			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-				  "bar"
+				  "arn:aws:iam::aws:policy/Bar"
 			    ],
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
@@ -430,7 +428,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng3a",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m3.large",
 			  "privateNetworking": false,
@@ -470,7 +467,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng1b",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
@@ -509,7 +505,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng2b",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.xlarge",
 			  "privateNetworking": false,
@@ -552,7 +547,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng3b",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,

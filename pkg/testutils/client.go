@@ -14,7 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/cli-runtime/pkg/genericclioptions/resource"
+	"k8s.io/cli-runtime/pkg/resource"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -178,7 +178,7 @@ func (c *CollectionTracker) DeletedItems() (items []runtime.Object) {
 
 func (c *CollectionTracker) AllTracked() map[string]runtime.Object { return c.objects }
 
-func (c *CollectionTracker) AllTrackedItmes() (items []runtime.Object) {
+func (c *CollectionTracker) AllTrackedItems() (items []runtime.Object) {
 	for _, item := range c.AllTracked() {
 		items = append(items, item)
 	}
@@ -280,8 +280,8 @@ func (c *FakeRawClient) ClientSet() kubeclient.Interface {
 	if c.UseUnionTracker {
 		// TODO: try to use clientSet.Fake.Actions, clientSet.Fake.PrependReactor
 		// or any of the other hooks to connect this clientset instance with
-		// udnerlying CollectionTracker, so that we get proper end-to-end behaviour
-		return fake.NewSimpleClientset(c.Collection.AllTrackedItmes()...)
+		// underlying CollectionTracker, so that we get proper end-to-end behaviour
+		return fake.NewSimpleClientset(c.Collection.AllTrackedItems()...)
 	}
 	if c.ClientSetUseUpdatedObjects {
 		return fake.NewSimpleClientset(c.Collection.UpdatedItems()...)

@@ -62,7 +62,10 @@ func MaybeCreateNamespace(clientSet Interface, name string) error {
 	}
 	if !exists {
 		_, err = clientSet.CoreV1().Namespaces().Create(NewNamespace(name))
-		if err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			logger.Debug("ignoring failed creation of existing namespace %q", name)
+			return nil
+		} else if err != nil {
 			return err
 		}
 		logger.Info("created namespace %q", name)

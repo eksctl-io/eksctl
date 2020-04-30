@@ -40,7 +40,7 @@ func enableProfileCmd(cmd *cmdutils.Cmd) {
 	cmd.ClusterConfig = api.NewClusterConfig()
 	cmd.SetDescription(
 		"profile",
-		"Set up Flux and deploy the components from the selected Quick Start profile.",
+		"Commits the components from the selected Quick Start profile to the destination repository.",
 		"",
 	)
 	opts := configureProfileCmd(cmd)
@@ -94,6 +94,9 @@ func doEnableProfile(cmd *cmdutils.Cmd, opts *ProfileOptions) error {
 		return err
 	}
 	usersRepoDir, err := ioutil.TempDir("", usersRepoName+"-")
+	if err != nil {
+		return errors.Wrapf(err, "unable to create temporary directory for %q", usersRepoName)
+	}
 	logger.Debug("Directory %s will be used to clone the configuration repository and install the profile", usersRepoDir)
 	profileOutputPath := filepath.Join(usersRepoDir, "base")
 

@@ -43,7 +43,7 @@ var _ = Describe("Kubeconfig", func() {
 			GinkgoT().Fatalf("failed reading .golden: %s", err)
 		}
 
-		return ioutil.WriteFile(filename, []byte(minikubeSample), os.FileMode(0755))
+		return ioutil.WriteFile(filename, minikubeSample, os.FileMode(0755))
 	}
 
 	It("creating new Kubeconfig", func() {
@@ -135,33 +135,6 @@ var _ = Describe("Kubeconfig", func() {
 		Expect(err).To(BeNil())
 
 		Expect(readConfig.CurrentContext).To(Equal("minikube"))
-	})
-
-	Context("KUBECONFIG_CLUSTER_ENDPOINT environment variable is set", func() {
-		var clusterConfig = eksctlapi.ClusterConfig{
-			Metadata: &eksctlapi.ClusterMeta{
-				Region: "us-west-2",
-				Name:   "foo",
-				Tags:   map[string]string{},
-			},
-			Status: &eksctlapi.ClusterStatus{
-				Endpoint: "https://eks-endpoint.com",
-			},
-		}
-
-		var expectedClusterName = "foo.us-west-2.eksctl.io"
-		var expectedContextName = "test-user@foo.us-west-2.eksctl.io"
-		var eksEndpoint = "http://my-eks-endpoint.com:8000"
-
-		os.Setenv("KUBECONFIG_CLUSTER_ENDPOINT", eksEndpoint)
-
-		It("sets the EKS Endpoint to be the value passed via the override", func() {
-			config, clusterName, contextName := kubeconfig.New(&clusterConfig, "test-user", "")
-
-			Expect(clusterName).To(Equal(expectedClusterName))
-			Expect(contextName).To(Equal(expectedContextName))
-			Expect(config.Clusters[expectedClusterName].Server).To(Equal(eksEndpoint))
-		})
 	})
 
 	Context("delete config", func() {

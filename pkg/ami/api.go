@@ -42,17 +42,23 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 		return NewErrNotFound(ng.AMI)
 	}
 
-	// Instance-store AMIs cannot have their root volume size managed
-	if *output.Images[0].RootDeviceType == "instance-store" {
-		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings not supported for instance-store AMIs", ng.AMI)
-	}
+	image := output.Images[0]
 
-	if *output.Images[0].RootDeviceType == "ebs" {
+	switch *image.RootDeviceType {
+	// Instance-store AMIs cannot have their root volume size managed
+	case "instance-store":
+		return fmt.Errorf("%q is an instance-store AMI and EBS block device mappings are not supported for instance-store AMIs", ng.AMI)
+
+	case "ebs":
 		if !api.IsSetAndNonEmptyString(ng.VolumeName) {
-			ng.VolumeName = output.Images[0].RootDeviceName
+			ng.VolumeName = image.RootDeviceName
+		}
+		rootDeviceMapping, err := findRootDeviceMapping(image)
+		if err != nil {
+			return err
 		}
 
-		amiEncrypted := output.Images[0].BlockDeviceMappings[0].Ebs.Encrypted
+		amiEncrypted := rootDeviceMapping.Ebs.Encrypted
 		if ng.VolumeEncrypted == nil {
 			ng.VolumeEncrypted = amiEncrypted
 		} else {
@@ -64,6 +70,15 @@ func Use(ec2api ec2iface.EC2API, ng *api.NodeGroup) error {
 	}
 
 	return nil
+}
+
+func findRootDeviceMapping(image *ec2.Image) (*ec2.BlockDeviceMapping, error) {
+	for _, deviceMapping := range image.BlockDeviceMappings {
+		if *deviceMapping.DeviceName == *image.RootDeviceName {
+			return deviceMapping, nil
+		}
+	}
+	return nil, errors.Errorf("failed to find root device mapping for AMI %q", *image.ImageId)
 }
 
 // FindImage will get the AMI to use for the EKS nodes by querying AWS EC2 API.
