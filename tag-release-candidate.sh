@@ -55,7 +55,7 @@ git add "${RELEASE_NOTES_FILE}"
 m="Tag ${full_version} release candidate"
 
 git commit --message "${m}"
-git push origin "${release_branch}"
+git tag --annotate --message "${m}" --force "latest_release"
 git tag --annotate --message "${m}" "${full_version}"
 git push origin "${full_version}"
 
