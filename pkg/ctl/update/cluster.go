@@ -88,7 +88,9 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 	case api.Version1_14:
 		cfg.Metadata.Version = api.Version1_15
 	case api.Version1_15:
-		cfg.Metadata.Version = api.Version1_15
+		cfg.Metadata.Version = api.Version1_16
+	case api.Version1_16:
+		cfg.Metadata.Version = api.Version1_16
 	default:
 		// version of control plane is not known to us, maybe we are just too old...
 		return fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)
