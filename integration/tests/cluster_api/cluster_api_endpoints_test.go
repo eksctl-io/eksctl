@@ -162,12 +162,12 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			Type:    createCluster,
 			Fails:   false,
 		}),
-		Entry("Create cluster2, Private=true, Public=false, should succeed", endpointAccessCase{
+		Entry("Create cluster2, Private=true, Public=false, should not succeed", endpointAccessCase{
 			Name:    "cluster2",
 			Private: true,
 			Public:  false,
 			Type:    createCluster,
-			Fails:   false,
+			Fails:   true,
 		}),
 		Entry("Create cluster3, Private=true, Public=true, should succeed", endpointAccessCase{
 			Name:    "cluster3",

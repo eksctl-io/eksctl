@@ -5,12 +5,16 @@ on:
     paths:
       - 'userdocs/**'
       - '**.md'
+      - '.github/workflows/markdown-link-check-config.json'
+      - '.github/workflows/check-links.yaml'
   push:
     branches:
       - master
     paths:
       - 'userdocs/**'
       - '**.md'
+      - '.github/workflows/markdown-link-check-config.json'
+      - '.github/workflows/check-links.yaml'
 
 jobs:
   markdown-link-checker:
@@ -45,6 +49,6 @@ jobs:
         id: lc
         uses: peter-evans/link-checker@v1
         with:
-          args: -d userdocs/site -r userdocs/site -x https://twitter.com/weaveworks
+          args: -d userdocs/site -r userdocs/site -x https://twitter.com/weaveworks|https://www.weave.works
       - name: Fail if there were link errors
         run: exit ${{ steps.lc.outputs.exit_code }}
