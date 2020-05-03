@@ -12,7 +12,6 @@ var _ = Describe("release tests", func() {
 		PreReleaseID = ""
 		gitCommit = ""
 		buildDate = ""
-
 	})
 
 	It("ignores pre-release and build metadata for releases", func() {
