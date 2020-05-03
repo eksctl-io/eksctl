@@ -4,15 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 //go:generate go run ./release_generate.go
 
 // Info holds version information
 type Info struct {
-	Version      string
-	PreReleaseID string
-	Metadata     BuildMetadata
+	Version                    string
+	PreReleaseID               string
+	Metadata                   BuildMetadata
+	EKSServerSupportedVersions []string
 }
 
 // BuildMetadata contains the semver build metadata:
@@ -31,6 +34,7 @@ func GetVersionInfo() Info {
 			GitCommit: gitCommit,
 			BuildDate: buildDate,
 		},
+		EKSServerSupportedVersions: v1alpha5.SupportedVersions(),
 	}
 }
 
