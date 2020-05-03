@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
