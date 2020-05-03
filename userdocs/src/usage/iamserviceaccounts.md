@@ -57,6 +57,12 @@ eksctl create iamserviceaccount --cluster=<clusterName> --name=s3-read-only --na
 
 If you have service account already created in the cluster (without an IAM Role), you will need to use `--override-existing-serviceaccounts` flag.
 
+Custom tagging may also be applied to the IAM Role by specifying `--tags`:
+
+```console
+eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --tags "Owner=John Doe,Team=Some Team"
+```
+
 Currently, to update a role you will need to re-create, run `eksctl delete iamserviceaccount` followed by `eksctl create iamserviceaccount` to achieve that.
 
 ### Usage with config files
@@ -90,6 +96,9 @@ iam:
       labels: {aws-usage: "application"}
     attachPolicyARNs:
     - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    tags:
+      Owner: "John Doe"
+      Team: "Some Team"
   - metadata:
       name: cache-access
       namespace: backend-apps
