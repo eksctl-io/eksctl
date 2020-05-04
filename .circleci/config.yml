@@ -4,6 +4,20 @@ orbs:
   slack: circleci/slack@3.4.2
 
 commands:
+  checkout-merge:
+    description: Checkout merge commit
+    steps:
+      - run:
+          name: Checkout merge commit
+          command: |
+            set -ex
+            if [[ -n "${CIRCLE_PR_NUMBER}" ]]
+            then
+                FETCH_REFS="${FETCH_REFS}+refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
+                echo ${FETCH_REFS}
+                git fetch -u origin ${FETCH_REFS}
+                git checkout "pr/${CIRCLE_PR_NUMBER}/merge"
+            fi
   prepare-ssh-keys:
     description: Prepare SSH keys to be mounted with the right permissions for Git
     steps:
@@ -88,6 +102,7 @@ jobs:
       GOPRIVATE: github.com/weaveworks/aws-sdk-go-private
     steps:
       - checkout
+      - checkout-merge
       - add_ssh_keys:
           fingerprints:
             - "81:df:39:29:89:d6:34:ed:2e:4e:70:71:f1:f3:f6:0c"
