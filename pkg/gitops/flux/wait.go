@@ -68,7 +68,7 @@ func waitForHelmOpToStart(ctx context.Context, namespace string, timeout time.Du
 		_, err = http.DefaultClient.Do(req)
 		return err
 	}
-	return waitForPodToStart(namespace, "flux-helm-operator", 3030, "Helm Operator", restConfig, cs, try)
+	return waitForPodToStart(namespace, "helm-operator", 3030, "Helm Operator", restConfig, cs, try)
 }
 
 type tryFunc func(rootURL string) error
