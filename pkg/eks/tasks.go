@@ -46,9 +46,29 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	return nil
 }
 
+type neuronDevicePluginTask struct {
+	info            string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (v *neuronDevicePluginTask) Describe() string { return v.info }
+
+func (v *neuronDevicePluginTask) Do(errCh chan error) error {
+	defer close(errCh)
+	rawClient, err := v.clusterProvider.NewRawClient(v.spec)
+	if err != nil {
+		return err
+	}
+	neuronDevicePlugin := addons.NewNeuronDevicePlugin(rawClient)
+	if err := neuronDevicePlugin.Deploy(); err != nil {
+		return errors.Wrap(err, "error installing Neuron device plugin")
+	}
+	return nil
+}
+
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-// or nil if there are no tasks
-func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *manager.TaskTree {
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool, installNeuronDevicePlugin bool) *manager.TaskTree {
 	newTasks := &manager.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -84,6 +104,13 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 	if installVPCController {
 		newTasks.Append(&vpcControllerTask{
 			info:            "install Windows VPC controller",
+			spec:            cfg,
+			clusterProvider: c,
+		})
+	}
+	if installNeuronDevicePlugin {
+		newTasks.Append(&neuronDevicePluginTask{
+			info:            "install Neuron device plugin",
 			spec:            cfg,
 			clusterProvider: c,
 		})
