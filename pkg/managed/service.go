@@ -3,7 +3,6 @@ package managed
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -35,8 +34,7 @@ type HealthIssue struct {
 
 // TODO use goformation types
 const (
-	labelsPath         = "Resources.ManagedNodeGroup.Properties.Labels"
-	releaseVersionPath = "Resources.ManagedNodeGroup.Properties.ReleaseVersion"
+	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
 // NewService creates a new Service
@@ -226,48 +224,9 @@ func (m *Service) waitForUpdate(ctx context.Context, nodeGroupName string, updat
 	}
 }
 
-func (m *Service) updateNodeGroupVersion(nodeGroupName, releaseVersion string) error {
-	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
-	if err != nil {
-		return err
-	}
-
-	template, err = sjson.Set(template, releaseVersionPath, releaseVersion)
-	if err != nil {
-		return err
-	}
-
-	return m.stackCollection.UpdateNodeGroupStack(nodeGroupName, template)
-}
-
 func isNotFound(err error) bool {
 	awsError, ok := err.(awserr.Error)
 	return ok && awsError.Code() == eks.ErrCodeResourceNotFoundException
-}
-
-var (
-	kubeVersionRegex = regexp.MustCompile(`\(k8s:\s([\d.]+),`)
-	amiVersionRegex  = regexp.MustCompile(`v(\d+)$`)
-)
-
-// extractKubeVersion extracts the full Kubernetes version (including patch number) from the image description
-// format: "EKS Kubernetes Worker AMI with AmazonLinux2 image, (k8s: 1.13.11, docker:18.06)"
-func extractKubeVersion(description string) (string, error) {
-	match := kubeVersionRegex.FindStringSubmatch(description)
-	if len(match) != 2 {
-		return "", fmt.Errorf("expected 2 matching items; got %d", len(match))
-	}
-	return match[1], nil
-}
-
-// extractAMIReleaseVersion extracts the AMI release version from the image name
-// the format of the image name is amazon-eks-node-1.14-v20190927
-func extractAMIReleaseVersion(imageName string) (string, error) {
-	match := amiVersionRegex.FindStringSubmatch(imageName)
-	if len(match) != 2 {
-		return "", fmt.Errorf("expected 2 matching items; got %d", len(match))
-	}
-	return match[1], nil
 }
 
 // TODO switch to using goformation types
@@ -291,8 +250,4 @@ func extractLabels(template string) (map[string]string, error) {
 	}
 
 	return labels, nil
-}
-
-func makeReleaseVersion(kubernetesVersion, amiVersion string) string {
-	return fmt.Sprintf("%s-%s", kubernetesVersion, amiVersion)
 }
