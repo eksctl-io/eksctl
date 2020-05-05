@@ -1,6 +1,8 @@
 package upgrade
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -35,7 +37,7 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
-		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 35*time.Minute)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
@@ -68,5 +70,5 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options upgradeOptions) error {
 
 	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
 	managedService := managed.NewService(ctl.Provider, stackCollection, cfg.Metadata.Name)
-	return managedService.UpgradeNodeGroup(options.nodeGroupName, options.kubernetesVersion)
+	return managedService.UpgradeNodeGroup(options.nodeGroupName, options.kubernetesVersion, cmd.ProviderConfig.WaitTimeout)
 }
