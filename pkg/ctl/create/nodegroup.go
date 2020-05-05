@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 type createNodeGroupParams struct {
@@ -233,11 +232,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 				}
 			}
 
-			// if GPU instance type, give instructions
-			if utils.IsGPUInstanceType(ng.InstanceType) || (ng.InstancesDistribution != nil && utils.HasGPUInstanceType(ng.InstancesDistribution.InstanceTypes)) {
-				logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
-				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
-			}
+			showDevicePluginMessageForInstance(ng.InstanceType, ng.InstancesDistribution)
 		}
 		logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 

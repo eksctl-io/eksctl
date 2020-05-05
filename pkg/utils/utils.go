@@ -8,10 +8,14 @@ import (
 	"github.com/blang/semver"
 )
 
-// IsGPUInstanceType returns tru of the instance type is GPU
-// optimised.
+// IsGPUInstanceType returns true if the instance type is GPU optimised
 func IsGPUInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "p2") || strings.HasPrefix(instanceType, "p3") || strings.HasPrefix(instanceType, "g3") || strings.HasPrefix(instanceType, "g4")
+}
+
+// IsNeuronInstanceType returns true if the instance type requires AWS Neuron
+func IsNeuronInstanceType(instanceType string) bool {
+	return strings.HasPrefix(instanceType, "inf1")
 }
 
 // HasGPUInstanceType returns true if it finds a gpu instance among the mixed instances
