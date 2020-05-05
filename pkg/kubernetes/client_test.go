@@ -17,7 +17,7 @@ import (
 var _ = Describe("Kubernetes client wrappers", func() {
 	Describe("can create or replace missing objects", func() {
 		It("can update objects that already exist", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -44,7 +44,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can create objects that don't exist yet", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -71,7 +71,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can update objects that already exist", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -98,7 +98,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can create objects and update objects in a union", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
 
 			rawClient := testutils.NewFakeRawClient()
 
@@ -207,7 +207,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can delete existing objects", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.12.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
