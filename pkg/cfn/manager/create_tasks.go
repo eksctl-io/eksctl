@@ -39,7 +39,8 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 
 	if len(postClusterCreationTasks) > 0 {
 		postClusterCreationTaskTree := TaskTree{
-			Parallel: true,
+			Parallel:  true,
+			IsSubTask: true,
 		}
 		postClusterCreationTaskTree.Append(postClusterCreationTasks...)
 		appendNodeGroupTasksTo(&postClusterCreationTaskTree)
