@@ -143,11 +143,7 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string, wait
 	}
 
 	if updateErrors := nodegroupUpdate.Update.Errors; len(updateErrors) > 0 {
-		var allErrors []string
-		for _, updateError := range updateErrors {
-			allErrors = append(allErrors, updateError.String())
-		}
-		return errors.Errorf("failed to upgrade nodegroup:\n%v", strings.Join(allErrors, "\n"))
+		return errors.Errorf("failed to upgrade nodegroup:\n%v", aggregateErrors(updateErrors))
 	}
 
 	for _, param := range nodegroupUpdate.Update.Params {
@@ -193,18 +189,14 @@ func (m *Service) waitForUpdate(ctx context.Context, nodeGroupName string, updat
 
 		switch status := *describeOutput.Update.Status; status {
 		case eks.UpdateStatusSuccessful:
-			logger.Debug("nodegroup successfully upgraded")
+			logger.Info("nodegroup successfully upgraded")
 			return nil
 
 		case eks.UpdateStatusCancelled:
 			return errors.New("nodegroup update cancelled")
 
 		case eks.UpdateStatusFailed:
-			var aggregatedErrors []string
-			for _, updateError := range describeOutput.Update.Errors {
-				aggregatedErrors = append(aggregatedErrors, updateError.String())
-			}
-			return errors.Errorf("nodegroup update failed: %v", strings.Join(aggregatedErrors, "\n"))
+			return errors.Errorf("nodegroup update failed:\n%v", aggregateErrors(describeOutput.Update.Errors))
 
 		case eks.UpdateStatusInProgress:
 			logger.Debug("nodegroup update in progress")
@@ -222,6 +214,14 @@ func (m *Service) waitForUpdate(ctx context.Context, nodeGroupName string, updat
 		case <-timer.C:
 		}
 	}
+}
+
+func aggregateErrors(errorDetails []*eks.ErrorDetail) string {
+	var aggregatedErrors []string
+	for _, err := range errorDetails {
+		aggregatedErrors = append(aggregatedErrors, fmt.Sprintf("- %v", err))
+	}
+	return strings.Join(aggregatedErrors, "\n")
 }
 
 func isNotFound(err error) bool {
