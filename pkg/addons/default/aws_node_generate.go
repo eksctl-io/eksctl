@@ -1,3 +1,4 @@
 package defaultaddons
 
-//go:generate curl --silent --location https://github.com/aws/amazon-vpc-cni-k8s/blob/fcec46c23d0f8d85245977316cc5894b9eca746e/config/v1.6/aws-k8s-cni.yaml?raw=1 --output assets/aws-node.yaml
+// Please refer to https://docs.aws.amazon.com/eks/latest/userguide/cni-upgrades.html
+//go:generate curl --silent --location https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.6/config/v1.6/aws-k8s-cni.yaml?raw=1 --output assets/aws-node.yaml
