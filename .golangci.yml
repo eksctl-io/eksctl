@@ -144,10 +144,6 @@ linters-settings:
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
-    - linters: [errcheck]
-      text: "Error return value of .*createFile|.*Mkdir|io\\.Remove(All)|.*serve?. is not checked"
-    - linters: [staticcheck]
-      text: "SA1016:"
     - linters: [golint]
       text: "should not use dot imports|don't use an underscore in package name"
 
