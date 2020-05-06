@@ -239,10 +239,6 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 		return nil, err
 	}
 
-	switch c.ControlPlaneVersion() {
-	case "", api.Version1_10, api.Version1_11, api.Version1_12:
-		return nil, &UnsupportedOIDCError{"OIDC is only supported in Kubernetes versions 1.13 and above"}
-	}
 	if c.Status.clusterInfo.cluster == nil || c.Status.clusterInfo.cluster.Identity == nil || c.Status.clusterInfo.cluster.Identity.Oidc == nil || c.Status.clusterInfo.cluster.Identity.Oidc.Issuer == nil {
 		return nil, &UnsupportedOIDCError{"unknown OIDC issuer URL"}
 	}
