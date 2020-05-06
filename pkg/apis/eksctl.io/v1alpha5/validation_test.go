@@ -1,7 +1,6 @@
 package v1alpha5
 
 import (
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -653,11 +652,19 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("passes on randomly generated fields", func() {
-				profile := FargateProfile{}
-				err := faker.FakeData(&profile)
-				Expect(err).ToNot(HaveOccurred())
-				err = profile.Validate()
+			It("passes when a name and multiple selectors with a namespace is defined", func() {
+				profile := FargateProfile{
+					Name: "default",
+					Selectors: []FargateProfileSelector{
+						{
+							Namespace: "default",
+						},
+						{
+							Namespace: "dev",
+						},
+					},
+				}
+				err := profile.Validate()
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
