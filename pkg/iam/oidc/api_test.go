@@ -73,7 +73,9 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			srv, err := newServer(oidc.issuerURL.Host)
 			Expect(err).NotTo(HaveOccurred())
 
-			go srv.serve()
+			go func() {
+				_ = srv.serve()
+			}()
 
 			oidc.insecureSkipVerify = true
 
@@ -94,7 +96,9 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			srv, err := newServer(oidc.issuerURL.Host)
 			Expect(err).NotTo(HaveOccurred())
 
-			go srv.serve()
+			go func() {
+				_ = srv.serve()
+			}()
 
 			oidc.insecureSkipVerify = true
 
@@ -173,7 +177,9 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			srv, err = newServer(oidc.issuerURL.Host)
 			Expect(err).NotTo(HaveOccurred())
 
-			go srv.serve()
+			go func() {
+				_ = srv.serve()
+			}()
 
 			{
 				exists, err := oidc.CheckProviderExists()
@@ -254,7 +260,9 @@ var _ = Describe("EKS/IAM API wrapper", func() {
 			var err error
 			srv, err = newServer("localhost:10028")
 			Expect(err).NotTo(HaveOccurred())
-			go srv.serve()
+			go func() {
+				_ = srv.serve()
+			}()
 		})
 
 		AfterEach(func() {
