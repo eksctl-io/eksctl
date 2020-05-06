@@ -79,10 +79,6 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 	switch currentVersion {
 	case "":
 		return errors.New("unable to get control plane version")
-	case api.Version1_11:
-		cfg.Metadata.Version = api.Version1_12
-	case api.Version1_12:
-		cfg.Metadata.Version = api.Version1_13
 	case api.Version1_13:
 		cfg.Metadata.Version = api.Version1_14
 	case api.Version1_14:

@@ -5,9 +5,8 @@
       "apiVersion": "apps/v1",
       "kind": "DaemonSet",
       "metadata": {
-        "annotations": {
-          "deprecated.daemonset.template.generation": "1"
-        },
+        "annotations": {},
+        "generation": 1,
         "labels": {
           "eks.amazonaws.com/component": "kube-proxy",
           "k8s-app": "kube-proxy"
@@ -24,9 +23,6 @@
         },
         "template": {
           "metadata": {
-            "annotations": {
-              "scheduler.alpha.kubernetes.io/critical-pod": ""
-            },
             "creationTimestamp": null,
             "labels": {
               "k8s-app": "kube-proxy"
@@ -52,6 +48,13 @@
                           "values": [
                             "amd64"
                           ]
+                        },
+                        {
+                          "key": "eks.amazonaws.com/compute-type",
+                          "operator": "NotIn",
+                          "values": [
+                            "fargate"
+                          ]
                         }
                       ]
                     }
@@ -62,11 +65,11 @@
             "containers": [
               {
                 "command": [
-                  "/bin/sh",
-                  "-c",
-                  "kube-proxy --v=2 --config=/var/lib/kube-proxy-config/config"
+                  "kube-proxy",
+                  "--v=2",
+                  "--config=/var/lib/kube-proxy-config/config"
                 ],
-                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.12.6",
+                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/kube-proxy:v1.14.6",
                 "imagePullPolicy": "IfNotPresent",
                 "name": "kube-proxy",
                 "resources": {
@@ -75,8 +78,7 @@
                   }
                 },
                 "securityContext": {
-                  "privileged": true,
-                  "procMount": "Default"
+                  "privileged": true
                 },
                 "terminationMessagePath": "/dev/termination-log",
                 "terminationMessagePolicy": "File",
@@ -116,11 +118,6 @@
             "terminationGracePeriodSeconds": 30,
             "tolerations": [
               {
-                "effect": "NoExecute",
-                "operator": "Exists"
-              },
-              {
-                "effect": "NoSchedule",
                 "operator": "Exists"
               }
             ],
@@ -163,6 +160,7 @@
             ]
           }
         },
+        "templateGeneration": 1,
         "updateStrategy": {
           "rollingUpdate": {
             "maxUnavailable": "10%"
@@ -227,7 +225,7 @@
     {
       "apiVersion": "v1",
       "data": {
-        "Corefile": ".:53 {\n    errors\n    health\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      upstream\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    proxy . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
+        "Corefile": ".:53 {\n    errors\n    health\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n      pods insecure\n      upstream\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"
       },
       "kind": "ConfigMap",
       "metadata": {
@@ -244,7 +242,10 @@
       "apiVersion": "apps/v1",
       "kind": "Deployment",
       "metadata": {
-        "annotations": {},
+        "annotations": {
+          "deployment.kubernetes.io/revision": "1"
+        },
+        "generation": 1,
         "labels": {
           "eks.amazonaws.com/component": "coredns",
           "k8s-app": "kube-dns",
@@ -254,7 +255,7 @@
         "namespace": "kube-system"
       },
       "spec": {
-        "progressDeadlineSeconds": 2147483647,
+        "progressDeadlineSeconds": 600,
         "replicas": 2,
         "revisionHistoryLimit": 10,
         "selector": {
@@ -265,13 +266,16 @@
         },
         "strategy": {
           "rollingUpdate": {
-            "maxSurge": 1,
+            "maxSurge": "25%",
             "maxUnavailable": 1
           },
           "type": "RollingUpdate"
         },
         "template": {
           "metadata": {
+            "annotations": {
+              "eks.amazonaws.com/compute-type": "ec2"
+            },
             "creationTimestamp": null,
             "labels": {
               "eks.amazonaws.com/component": "coredns",
@@ -303,6 +307,27 @@
                     }
                   ]
                 }
+              },
+              "podAntiAffinity": {
+                "preferredDuringSchedulingIgnoredDuringExecution": [
+                  {
+                    "podAffinityTerm": {
+                      "labelSelector": {
+                        "matchExpressions": [
+                          {
+                            "key": "k8s-app",
+                            "operator": "In",
+                            "values": [
+                              "kube-dns"
+                            ]
+                          }
+                        ]
+                      },
+                      "topologyKey": "kubernetes.io/hostname"
+                    },
+                    "weight": 100
+                  }
+                ]
               }
             },
             "containers": [
@@ -311,7 +336,7 @@
                   "-conf",
                   "/etc/coredns/Corefile"
                 ],
-                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.2.2",
+                "image": "%s.dkr.ecr.%s.%s/eks/coredns:v1.6.0",
                 "imagePullPolicy": "IfNotPresent",
                 "livenessProbe": {
                   "failureThreshold": 5,
@@ -343,6 +368,17 @@
                     "protocol": "TCP"
                   }
                 ],
+                "readinessProbe": {
+                  "failureThreshold": 3,
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 8080,
+                    "scheme": "HTTP"
+                  },
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "timeoutSeconds": 1
+                },
                 "resources": {
                   "limits": {
                     "memory": "170Mi"
@@ -362,7 +398,6 @@
                       "all"
                     ]
                   },
-                  "procMount": "Default",
                   "readOnlyRootFilesystem": true
                 },
                 "terminationMessagePath": "/dev/termination-log",
@@ -372,6 +407,10 @@
                     "mountPath": "/etc/coredns",
                     "name": "config-volume",
                     "readOnly": true
+                  },
+                  {
+                    "mountPath": "/tmp",
+                    "name": "tmp"
                   }
                 ]
               }
@@ -395,6 +434,10 @@
               }
             ],
             "volumes": [
+              {
+                "emptyDir": {},
+                "name": "tmp"
+              },
               {
                 "configMap": {
                   "defaultMode": 420,
@@ -485,9 +528,8 @@
       "apiVersion": "apps/v1",
       "kind": "DaemonSet",
       "metadata": {
-        "annotations": {
-          "deprecated.daemonset.template.generation": "1"
-        },
+        "annotations": {},
+        "generation": 1,
         "labels": {
           "k8s-app": "aws-node"
         },
@@ -503,9 +545,6 @@
         },
         "template": {
           "metadata": {
-            "annotations": {
-              "scheduler.alpha.kubernetes.io/critical-pod": ""
-            },
             "creationTimestamp": null,
             "labels": {
               "k8s-app": "aws-node"
@@ -531,6 +570,13 @@
                           "values": [
                             "amd64"
                           ]
+                        },
+                        {
+                          "key": "eks.amazonaws.com/compute-type",
+                          "operator": "NotIn",
+                          "values": [
+                            "fargate"
+                          ]
                         }
                       ]
                     }
@@ -553,18 +599,9 @@
                         "fieldPath": "spec.nodeName"
                       }
                     }
-                  },
-                  {
-                    "name": "WATCH_NAMESPACE",
-                    "valueFrom": {
-                      "fieldRef": {
-                        "apiVersion": "v1",
-                        "fieldPath": "metadata.namespace"
-                      }
-                    }
                   }
                 ],
-                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.4.1",
+                "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.5.7",
                 "imagePullPolicy": "Always",
                 "name": "aws-node",
                 "ports": [
@@ -581,8 +618,7 @@
                   }
                 },
                 "securityContext": {
-                  "privileged": true,
-                  "procMount": "Default"
+                  "privileged": true
                 },
                 "terminationMessagePath": "/dev/termination-log",
                 "terminationMessagePolicy": "File",
@@ -652,6 +688,7 @@
             ]
           }
         },
+        "templateGeneration": 1,
         "updateStrategy": {
           "rollingUpdate": {
             "maxUnavailable": 1
@@ -668,14 +705,9 @@
         "name": "eniconfigs.crd.k8s.amazonaws.com"
       },
       "spec": {
-        "additionalPrinterColumns": [
-          {
-            "JSONPath": ".metadata.creationTimestamp",
-            "description": "CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata",
-            "name": "Age",
-            "type": "date"
-          }
-        ],
+        "conversion": {
+          "strategy": "None"
+        },
         "group": "crd.k8s.amazonaws.com",
         "names": {
           "kind": "ENIConfig",
@@ -766,3 +798,4 @@
   ],
   "kind": "List"
 }
+
