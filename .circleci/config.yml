@@ -69,10 +69,14 @@ commands:
             - "/home/circleci/go/pkg/mod/"
   notify-slack:
     description: Notify failures via Slack
+    parameters:
+      fail_only:
+        type: boolean
+        default: true
     steps:
       - run: exit 0
       - slack/status:
-          fail_only: false
+          fail_only: << parameters.fail_only >>
           mentions: 'team-aws'
           only_for_branches: master
 
@@ -109,6 +113,7 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./bin
+      - notify-slack
   build-all-distros:
     machine:
       image: ubuntu-1604:201903-01
@@ -126,6 +131,7 @@ jobs:
           cmd: make build-all
       - store_artifacts:
           path: dist/
+      - notify-slack
   release-candidate:
     machine:
       image: ubuntu-1604:201903-01
@@ -206,7 +212,8 @@ jobs:
           path: ./test-results
       - store_artifacts:
           path: ./test-results
-      - notify-slack
+      - notify-slack:
+          fail_only: false
 
 workflows:
   version: 2
