@@ -73,61 +73,6 @@ var _ = Describe("default addons - coredns", func() {
 		})
 	}
 
-	loadSampleAndCheck("1.12", "1.2.2")
-
-	Context("[1.12 –> 1.13] can update coredns", func() {
-
-		loadSample("1.12", 10)
-
-		It("can load 1.12 sample", func() {
-			checkCoreDNSImage(rawClient, "eu-west-1", "v1.2.2", true)
-		})
-
-		It("detects coredns version match local vs cluster", func() {
-			needsUpdate, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.13.x", true)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(needsUpdate).To(BeTrue())
-		})
-
-		It("can update to correct version", func() {
-			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.13.x", false)
-			Expect(err).ToNot(HaveOccurred())
-			checkCoreDNSImage(rawClient, "eu-west-2", "v1.2.6", false)
-
-			createReqs := []string{
-				"POST [/clusterrolebindings] (aws-node)",
-				"POST [/namespaces/kube-system/serviceaccounts] (coredns)",
-				"POST [/namespaces/kube-system/configmaps] (coredns)",
-				"POST [/namespaces/kube-system/services] (kube-dns)",
-				"POST [/namespaces/kube-system/daemonsets] (aws-node)",
-				"POST [/clusterroles] (system:coredns)",
-				"POST [/clusterrolebindings] (system:coredns)",
-				"POST [/namespaces/kube-system/deployments] (coredns)",
-				"POST [/namespaces/kube-system/daemonsets] (kube-proxy)",
-				"POST [/clusterroles] (aws-node)",
-			}
-
-			Expect(rawClient.Collection.Created()).To(HaveLen(len(createReqs)))
-			for _, k := range createReqs {
-				Expect(rawClient.Collection.Created()).To(HaveKey(k))
-			}
-
-			updateReqs := []string{
-				"PUT [/namespaces/kube-system/serviceaccounts/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/configmaps/coredns] (coredns)",
-				"PUT [/namespaces/kube-system/services/kube-dns] (kube-dns)",
-				"PUT [/clusterroles/system:coredns] (system:coredns)",
-				"PUT [/clusterrolebindings/system:coredns] (system:coredns)",
-				"PUT [/namespaces/kube-system/deployments/coredns] (coredns)",
-			}
-
-			Expect(rawClient.Collection.Updated()).To(HaveLen(len(updateReqs)))
-			for _, k := range updateReqs {
-				Expect(rawClient.Collection.Updated()).To(HaveKey(k))
-			}
-		})
-	})
-
 	loadSampleAndCheck("1.13", "1.2.6")
 
 	Context("[1.13 –> 1.14] can update coredns", func() {
