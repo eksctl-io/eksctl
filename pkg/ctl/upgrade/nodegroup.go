@@ -36,7 +36,10 @@ func upgradeNodeGroupCmd(cmd *cmdutils.Cmd) {
 		fs.StringVarP(&options.kubernetesVersion, "kubernetes-version", "", "", "Kubernetes version")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
+		cmd.Wait = true
+		cmdutils.AddWaitFlag(fs, &cmd.Wait, "nodegroup upgrade to complete")
 
+		// during testing, a nodegroup update took 20-25 minutes
 		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 35*time.Minute)
 	})
 
@@ -70,5 +73,9 @@ func upgradeNodeGroup(cmd *cmdutils.Cmd, options upgradeOptions) error {
 
 	stackCollection := manager.NewStackCollection(ctl.Provider, cfg)
 	managedService := managed.NewService(ctl.Provider, stackCollection, cfg.Metadata.Name)
-	return managedService.UpgradeNodeGroup(options.nodeGroupName, options.kubernetesVersion, cmd.ProviderConfig.WaitTimeout)
+	waitTimeout := cmd.ProviderConfig.WaitTimeout
+	if !cmd.Wait {
+		waitTimeout = 0
+	}
+	return managedService.UpgradeNodeGroup(options.nodeGroupName, options.kubernetesVersion, waitTimeout)
 }

@@ -162,6 +162,7 @@ func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string, wait
 		defer cancelFunc()
 		return m.waitForUpdate(ctx, nodeGroupName, nodegroupUpdate.Update.Id)
 	}
+	logger.Info("nodegroup upgrade request submitted")
 	return nil
 }
 
