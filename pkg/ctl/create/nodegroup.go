@@ -232,7 +232,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 				}
 			}
 
-			showDevicePluginMessageForInstance(ng.InstanceType, ng.InstancesDistribution)
+			showDevicePluginMessageForNodeGroup(ng)
 		}
 		logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 

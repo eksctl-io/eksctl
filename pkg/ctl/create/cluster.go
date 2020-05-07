@@ -388,7 +388,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 				return err
 			}
 
-			showDevicePluginMessageForInstance(ng.InstanceType, ng.InstancesDistribution)
+			showDevicePluginMessageForNodeGroup(ng)
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {

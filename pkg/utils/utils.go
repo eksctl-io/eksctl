@@ -18,16 +18,6 @@ func IsNeuronInstanceType(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "inf1")
 }
 
-// HasGPUInstanceType returns true if it finds a gpu instance among the mixed instances
-func HasGPUInstanceType(instanceTypes []string) bool {
-	for _, instanceType := range instanceTypes {
-		if IsGPUInstanceType(instanceType) {
-			return true
-		}
-	}
-	return false
-}
-
 var matchFirstCap = regexp.MustCompile("([0-9]+|[A-Z])")
 
 // ToKebabCase turns a CamelCase string into a kebab-case string

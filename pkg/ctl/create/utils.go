@@ -53,12 +53,26 @@ func checkVersion(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, meta *api.Cluster
 	return nil
 }
 
-func showDevicePluginMessageForInstance(instanceType string, instancesDistribution *api.NodeGroupInstancesDistribution) {
-	if utils.IsNeuronInstanceType(instanceType) {
+func hasInstanceType(nodeGroup *api.NodeGroup, hasType func(string) bool) bool {
+	if hasType(nodeGroup.InstanceType) {
+		return true
+	}
+	if nodeGroup.InstancesDistribution != nil {
+		for _, instanceType := range nodeGroup.InstancesDistribution.InstanceTypes {
+			if hasType(instanceType) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func showDevicePluginMessageForNodeGroup(nodeGroup *api.NodeGroup) {
+	if hasInstanceType(nodeGroup, utils.IsNeuronInstanceType) {
 		// if neuron instance type, give instructions
 		logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, you will need to install the AWS Neuron Kubernetes device plugin.")
 		logger.Info("\t see the following page for instructions: https://github.com/aws/aws-neuron-sdk/blob/master/docs/neuron-container-tools/tutorial-k8s.md")
-	} else if utils.IsGPUInstanceType(instanceType) || (instancesDistribution != nil && utils.HasGPUInstanceType(instancesDistribution.InstanceTypes)) {
+	} else if hasInstanceType(nodeGroup, utils.IsGPUInstanceType) {
 		// if GPU instance type, give instructions
 		logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
 		logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
