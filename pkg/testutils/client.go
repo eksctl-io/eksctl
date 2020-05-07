@@ -67,7 +67,7 @@ func NewCollectionTracker() *CollectionTracker {
 	}
 }
 
-type requestTracker struct {
+type RequestTracker struct {
 	requests   *[]*http.Request
 	missing    *bool
 	unionised  *bool
@@ -84,22 +84,22 @@ func objectKey(req *http.Request, item runtime.Object) string {
 	case http.MethodPost:
 		return fmt.Sprintf("%s/%s", req.URL.Path, item.(metav1.Object).GetName())
 	case http.MethodGet, http.MethodPut, http.MethodDelete:
-		return fmt.Sprintf("%s", req.URL.Path)
+		return req.URL.Path
 	}
 	return fmt.Sprintf("%s [%s] (%s)",
 		req.Method, req.URL.Path, item.(metav1.Object).GetName())
 }
 
-func (t *requestTracker) Append(req *http.Request) { *t.requests = append(*t.requests, req) }
+func (t *RequestTracker) Append(req *http.Request) { *t.requests = append(*t.requests, req) }
 
-func (t *requestTracker) Methods() (m []string) {
+func (t *RequestTracker) Methods() (m []string) {
 	for _, r := range *t.requests {
 		m = append(m, r.Method)
 	}
 	return
 }
 
-func (t *requestTracker) IsMissing(req *http.Request, item runtime.Object) bool {
+func (t *RequestTracker) IsMissing(req *http.Request, item runtime.Object) bool {
 	if *t.unionised && t.collection != nil {
 		k := objectKey(req, item)
 		_, ok := t.collection.objects[k]
@@ -108,7 +108,7 @@ func (t *requestTracker) IsMissing(req *http.Request, item runtime.Object) bool 
 	return *t.missing
 }
 
-func (t *requestTracker) Create(req *http.Request, item runtime.Object) bool {
+func (t *RequestTracker) Create(req *http.Request, item runtime.Object) bool {
 	*t.missing = false
 	if t.collection != nil {
 		t.collection.created[objectReqKey(req, item)] = item
@@ -132,7 +132,7 @@ func (c *CollectionTracker) CreatedItems() (items []runtime.Object) {
 	return
 }
 
-func (t *requestTracker) Update(req *http.Request, item runtime.Object) {
+func (t *RequestTracker) Update(req *http.Request, item runtime.Object) {
 	if t.collection != nil {
 		t.collection.updated[objectReqKey(req, item)] = item
 		if *t.unionised {
@@ -151,7 +151,7 @@ func (c *CollectionTracker) UpdatedItems() (items []runtime.Object) {
 	return
 }
 
-func (t *requestTracker) Delete(req *http.Request, item runtime.Object) bool {
+func (t *RequestTracker) Delete(req *http.Request, item runtime.Object) bool {
 	*t.missing = true
 	if t.collection != nil {
 		t.collection.deleted[objectReqKey(req, item)] = item
@@ -185,7 +185,7 @@ func (c *CollectionTracker) AllTrackedItems() (items []runtime.Object) {
 	return
 }
 
-func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *CollectionTracker) (*kubernetes.RawResource, requestTracker) {
+func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *CollectionTracker) (*kubernetes.RawResource, RequestTracker) {
 	obj, ok := item.(metav1.Object)
 	Expect(ok).To(BeTrue())
 
@@ -200,7 +200,7 @@ func NewFakeRawResource(item runtime.Object, missing, unionised bool, ct *Collec
 		Object:    item,
 	}
 
-	rt := requestTracker{
+	rt := RequestTracker{
 		requests:   &[]*http.Request{},
 		missing:    &missing,
 		unionised:  &unionised,

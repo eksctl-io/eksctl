@@ -104,11 +104,14 @@ const (
 	// Version1_15 represents Kubernetes version 1.15.x
 	Version1_15 = "1.15"
 
+	// Version1_16 represents Kubernetes version 1.16.x
+	Version1_16 = "1.16"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_15
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_15
+	LatestVersion = Version1_16
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -290,16 +293,17 @@ func DeprecatedVersions() []string {
 	return []string{
 		Version1_10,
 		Version1_11,
+		Version1_12,
 	}
 }
 
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_12,
 		Version1_13,
 		Version1_14,
 		Version1_15,
+		Version1_16,
 	}
 }
 
@@ -619,6 +623,8 @@ type NodeGroup struct {
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
 	MaxSize *int `json:"maxSize,omitempty"`
+	// +optional
+	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
@@ -786,6 +792,15 @@ type (
 		Settings *InlineDocument `json:"settings,omitempty"`
 	}
 )
+
+// MetricsCollection used by the scaling config
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+type MetricsCollection struct {
+	// +required
+	Granularity string `json:"granularity"`
+	// +optional
+	Metrics []string `json:"metrics,omitempty"`
+}
 
 // ScalingConfig defines the scaling config
 type ScalingConfig struct {

@@ -1,5 +1,5 @@
 # An advanced example of ClusterConfig object with customised nodegroups:
---- 
+---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
@@ -42,6 +42,17 @@ nodeGroups:
       nodegroup-type: very-special-science-workloads
     classicLoadBalancerNames:
       - ng3-classic-load-balancer
+    asgMetricsCollection:
+      - granularity: 1Minute
+        metrics:
+          - GroupMinSize
+          - GroupMaxSize
+          - GroupDesiredCapacity
+          - GroupInServiceInstances
+          - GroupPendingInstances
+          - GroupStandbyInstances
+          - GroupTerminatingInstances
+          - GroupTotalInstances
     taints:
       special: "true:NoSchedule"
     privateNetworking: true

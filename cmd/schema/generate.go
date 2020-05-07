@@ -18,11 +18,7 @@ func main() {
 	outputFile := os.Args[1]
 
 	var document strings.Builder
-	document.WriteString(`---
-title: Config file schema
-weight: 200
-url: usage/schema
----
+	document.WriteString(`# Config file schema
 
 `)
 	document.WriteString("```yaml\n")

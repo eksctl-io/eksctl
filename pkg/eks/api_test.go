@@ -94,19 +94,19 @@ var _ = Describe("eksctl API", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "p2.xlarge"
 
-			err := EnsureAMI(provider, "1.12", ng)
+			err := EnsureAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))
+			Expect(ng.AMI).To(Equal("ami-0ad9a8dc09680cfc2"))
 		})
 		It("should pick a valid AMI for normal instances when AMI is static", func() {
 			ng.AMI = "static"
 			ng.InstanceType = "m5.xlarge"
 
-			err := EnsureAMI(provider, "1.12", ng)
+			err := EnsureAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
+			Expect(ng.AMI).To(Equal("ami-0c13bb9cbfd007e56"))
 		})
 		It("should pick a valid AMI for mixed normal instances", func() {
 			ng.AMI = "static"
@@ -115,10 +115,10 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large"},
 			}
 
-			err := EnsureAMI(provider, "1.12", ng)
+			err := EnsureAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-0267968f4310157f1"))
+			Expect(ng.AMI).To(Equal("ami-0c13bb9cbfd007e56"))
 		})
 		It("should pick a GPU AMI for mixed instances with GPU instance types", func() {
 			ng.AMI = "static"
@@ -127,10 +127,10 @@ var _ = Describe("eksctl API", func() {
 				InstanceTypes: []string{"t3.large", "m5.large", "m5a.large", "p3.2xlarge"},
 			}
 
-			err := EnsureAMI(provider, "1.12", ng)
+			err := EnsureAMI(provider, "1.14", ng)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(ng.AMI).To(Equal("ami-02551cb499388bebb"))
+			Expect(ng.AMI).To(Equal("ami-0ad9a8dc09680cfc2"))
 		})
 	})
 
@@ -195,12 +195,12 @@ var _ = Describe("eksctl API", func() {
 
 })
 
-func mockDescribeImages(p *mockprovider.MockProvider, amiId string, matcher func(*ec2.DescribeImagesInput) bool) {
+func mockDescribeImages(p *mockprovider.MockProvider, amiID string, matcher func(*ec2.DescribeImagesInput) bool) {
 	p.MockEC2().On("DescribeImages", mock.MatchedBy(matcher)).
 		Return(&ec2.DescribeImagesOutput{
 			Images: []*ec2.Image{
 				{
-					ImageId:        aws.String(amiId),
+					ImageId:        aws.String(amiID),
 					State:          aws.String("available"),
 					OwnerId:        aws.String("123"),
 					RootDeviceType: aws.String("ebs"),

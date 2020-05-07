@@ -7,10 +7,11 @@ import (
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cloudconfig"
+	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 )
 
 func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
-	clientConfigData, err := makeClientConfigData(spec, ng)
+	clientConfigData, err := makeClientConfigData(spec, ng, kubeconfig.AWSEKSAuthenticator)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,7 @@ import (
 // we copied from Kubernetes
 
 func evictPods(drainer *Helper, node *corev1.Node) (int, error) {
-	list, errs := drainer.GetPodsForDeletion(node.Name)
+	list, errs := drainer.getPodsForDeletion(node.Name)
 	if len(errs) > 0 {
 		return 0, fmt.Errorf("errs: %v", errs) // TODO: improve formatting
 	}

@@ -68,7 +68,7 @@ var _ = Describe("create nodegroup", func() {
 			}),
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
 				args:  []string{"nodegroupName", "--cluster", "clusterName", "--name", "nodegroupName"},
-				error: fmt.Errorf("--cluster=nodegroupName and argument nodegroupName cannot be used at the same time"),
+				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"nodegroup", "--invalid", "dummy"},
@@ -140,7 +140,7 @@ var _ = Describe("create nodegroup", func() {
 			},
 			Entry("with nodegroup name as argument and flag", invalidParamsCase{
 				args:  []string{"nodegroupName", "--name", "nodegroupName"},
-				error: fmt.Errorf("--cluster=nodegroupName and argument nodegroupName cannot be used at the same time"),
+				error: fmt.Errorf("--name=nodegroupName and argument nodegroupName cannot be used at the same time"),
 			}),
 			Entry("with invalid flags", invalidParamsCase{
 				args:  []string{"nodegroup", "--invalid", "dummy"},

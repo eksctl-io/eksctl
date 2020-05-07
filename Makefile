@@ -8,23 +8,18 @@ gocache := $(shell go env GOCACHE)
 GOBIN ?= $(gopath)/bin
 
 
-always_generate_in_packages := ./pkg/nodebootstrap ./pkg/addons/default ./pkg/addons
-
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  site/content/usage/20-schema.md \
+  userdocs/src/usage/schema.md \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
   pkg/nodebootstrap/assets.go \
-  pkg/nodebootstrap/maxpods.go \
   pkg/addons/default/assets.go \
-  pkg/addons/default/assets/aws-node.yaml \
   pkg/addons/assets.go \
-  pkg/ami/static_resolver_ami.go \
   $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help
@@ -34,6 +29,7 @@ all_generated_files := \
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
+	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
 
@@ -145,13 +141,17 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
+## Important: pkg/addons/default/generate.go depends on pkg/addons/default/assets/aws-node.yaml If this file is
+## not present, the generation of assets will not fail but will not contain it.
 .PHONY: generate-always
-generate-always: ## Generate code (required for every build)
+generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
 	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
 	@$(GOBIN)/go-bindata -v
-	env GOBIN=$(GOBIN) time go generate $(always_generate_in_packages)
+	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap/assets.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
@@ -164,11 +164,25 @@ check-all-generated-files-up-to-date: generate-all
 	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-.PHONY: generate-ami
-generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	time go generate ./pkg/ami
+### Update AMIs in ami static resolver
+.PHONY: update-ami
+update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
+	go generate ./pkg/ami
 
-site/content/usage/20-schema.md: $(call godeps,cmd/schema/generate.go)
+### Update maxpods.go from AWS
+.PHONY: update-maxpods
+update-maxpods: ## Re-download the max pods info from AWS and regenerate the maxpods.go file
+	@cd pkg/nodebootstrap && go run maxpods_generate.go
+
+### Update aws-node addon manifests from AWS
+pkg/addons/default/assets/aws-node.yaml:
+	$(MAKE) update-aws-node
+
+.PHONY: update-aws-node
+update-aws-node: ## Re-download the aws-node manifests from AWS
+	time go generate ./pkg/addons/default/aws_node_generate.go
+
+userdocs/src/usage/schema.md: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
@@ -178,7 +192,7 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ##
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
 	mkdir -p vendor/github.com/aws/
 	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191218135223-757eeed07291" vendor/github.com/aws/aws-sdk-go
+	ln -sfn "$(gopath)/pkg/mod/github.com/aws/aws-sdk-go@v1.30.11" vendor/github.com/aws/aws-sdk-go
 	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
 
 .PHONY: generate-kube-reserved
@@ -235,16 +249,13 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 
 ##@ Site
 
-HUGO := $(GOBIN)/hugo
-HUGO_ARGS ?= --gc --minify
-
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
-	cd site/ ; $(HUGO) serve $(HUGO_ARGS)
+	cd userdocs/ ; mkdocs serve
 
 .PHONY: build-pages
 build-pages: ## Generate the site
-	cd site/ ; $(HUGO) $(HUGO_ARGS)
+	cd userdocs/ ; mkdocs build
 
 ##@ Utility
 

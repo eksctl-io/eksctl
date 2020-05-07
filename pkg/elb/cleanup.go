@@ -327,7 +327,7 @@ func getSecurityGroupsOwnedByLoadBalancer(ctx context.Context, ec2API ec2iface.E
 }
 
 func getLoadBalancerKind(service *corev1.Service) int {
-	// See https://github.com/kubernetes/kubernetes/blob/v1.12.6/pkg/cloudprovider/providers/aws/aws_loadbalancer.go#L51-L56
+	// See https://github.com/kubernetes/legacy-cloud-providers/blob/master/aws/aws_loadbalancer.go#L65-L70
 	if service.Annotations[awsprovider.ServiceAnnotationLoadBalancerType] == "nlb" {
 		return loadBalancerKindNetwork
 	}

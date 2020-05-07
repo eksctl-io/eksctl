@@ -304,13 +304,6 @@ snapcraft push eksctl_<version>_amd64.snap --release [stable,beta,candidate,edge
 
 TODO: Further automate these steps in CircleCI, etc.
 
-### Notes on Integration Tests
-
-It's recommended to run containerised tests with `make integration-test-container TEST_V=1 AWS_PROFILE="<AWS profile name>"`. The tests require:
-
-- Access to an AWS account. If there is an issue with access (e.g. expired MFA token), you will see all tests failing (albeit the error message may be slightly unclear).
-- Access to the private SSH key for the Git repository to use for testing gitops-related operations. It is recommended to extract the private SSH key available [here](https://weaveworks.1password.com/vaults/all/allitems/kuxa5ujn7424jzkqqk7qtngovi) into `~/.ssh/eksctl-bot_id_rsa`, and then let the integration tests mount this path and use this key.
-
 ### Notes on Automation
 
 When you run `make prepare-release` it will push a commit to master and a tag, which will trigger [release workflow](https://github.com/weaveworks/eksctl/blob/38364943776230bcc9ad57a9f8a423c7ec3fb7fe/.circleci/config.yml#L28-L42) in Circle CI. This runs `make eksctl-image` followed by `make release`. Most of the logic is defined in [`do-release.sh`](https://github.com/weaveworks/eksctl/blob/master/do-release.sh).
@@ -319,6 +312,6 @@ You want to keep an eye on Circle CI for the progress of the release ([0.3.1 exa
 
 ### Latest release
 
-To get the latest release you can use the link [https://github.com/weaveworks/eksctl/releases/latest]().
+To get the latest release you can use the link <https://github.com/weaveworks/eksctl/releases/latest>.
 
 **Note** Previously, eksctl used a floating tag called `latest_release`. This is _deprecated_ and it will stop working after release `0.14.0`.
