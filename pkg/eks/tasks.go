@@ -46,9 +46,9 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	return nil
 }
 
-// AppendExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
+// CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
 // or nil if there are no tasks
-func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool, tasks *manager.TaskTree) {
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *manager.TaskTree {
 	newTasks := &manager.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
@@ -81,9 +81,7 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			clusterProvider: c,
 		})
 	}
-	if newTasks.Len() > 0 {
-		tasks.Append(newTasks)
-	}
+	return newTasks
 }
 
 // NewTasksRequiringControlPlane returns all tasks for updating cluster configuration depending on the control plane availability

@@ -23,7 +23,7 @@ func main() {
 	// Handle interrupt signals and shutdown gracefully:
 	ctx, interrupts := handleInterruptSignals()
 	defer signal.Stop(interrupts)
-	signal.Notify(interrupts, os.Interrupt, os.Kill, syscall.SIGTERM)
+	signal.Notify(interrupts, os.Interrupt, syscall.SIGTERM)
 
 	// Run integration tests' suites in parallel, using the ginkgo binary, as
 	// using "go test" together with Ginkgo's GinkgoWriter doesn't print to the
