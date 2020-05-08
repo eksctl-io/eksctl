@@ -4,6 +4,7 @@ package managed
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -60,6 +61,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				"--verbose", "4",
 				"--name", params.ClusterName,
 				"--tags", "alpha.eksctl.io/description=eksctl integration test",
+				"--managed",
 				"--nodegroup-name", initialNodeGroup,
 				"--node-labels", "ng-name="+initialNodeGroup,
 				"--nodes", "2",
@@ -246,7 +248,7 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 				serverVersion, err := clientset.ServerVersion()
 				Expect(err).ToNot(HaveOccurred())
 
-				serverVersionStr := fmt.Sprintf("%s.%s", serverVersion.Major, serverVersion.Minor)
+				serverVersionStr := fmt.Sprintf("%s.%s", serverVersion.Major, strings.TrimSuffix(serverVersion.Minor, "+"))
 				Expect(serverVersionStr).To(Equal(nextVersion))
 
 				By(fmt.Sprintf("upgrading nodegroup %s to Kubernetes version %s", initialNodeGroup, nextVersion))
