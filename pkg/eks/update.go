@@ -162,6 +162,31 @@ func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*awseks.
 	return output.Update, nil
 }
 
+// UpdateClusterTags calls eks.TagResource and tags the cluster
+func (c *ClusterProvider) UpdateClusterTags(clusterConfig *api.ClusterConfig) error {
+	tags := make(map[string]*string)
+	for key, value := range clusterConfig.Metadata.Tags {
+		tags[key] = &value
+	}
+	if err := c.RefreshClusterStatus(clusterConfig); err != nil {
+		return err
+	}
+	input := &awseks.TagResourceInput{
+		ResourceArn: c.Status.clusterInfo.cluster.Arn,
+		Tags:        tags,
+	}
+	_, err := c.Provider.EKS().TagResource(input)
+	if err != nil {
+		return err
+	}
+	var tagStrings []string
+	for k, v := range tags {
+		tagStrings = append(tagStrings, fmt.Sprintf("%s=%s", k, *v))
+	}
+	logger.Success("tagged EKS cluster (%s)", strings.Join(tagStrings, ", "))
+	return nil
+}
+
 // UpdateClusterVersionBlocking calls UpdateClusterVersion and blocks until update
 // operation is successful
 func (c *ClusterProvider) UpdateClusterVersionBlocking(cfg *api.ClusterConfig) error {
