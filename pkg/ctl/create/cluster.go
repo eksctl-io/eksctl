@@ -54,7 +54,6 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 		fs.BoolVarP(&params.InstallWindowsVPCController, "install-vpc-controllers", "", false, "Install VPC controller that's required for Windows workloads")
-		fs.BoolVarP(&params.InstallNeuronDevicePlugin, "install-neuron-plugin", "", false, "Install Neuron plugin for Inferentia nodes")
 		fs.BoolVarP(&params.Managed, "managed", "", false, "Create EKS-managed nodegroup")
 		fs.BoolVarP(&params.Fargate, "fargate", "", false, "Create a Fargate profile scheduling pods in the default and kube-system namespaces onto Fargate")
 	})
@@ -66,6 +65,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
+		fs.BoolVarP(&params.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "Install Neuron plugin for Inferentia nodes")
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
@@ -319,7 +319,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err != nil {
 			return err
 		}
-		postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController, params.InstallNeuronDevicePlugin)
+		postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
 		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
 
 		logger.Info(tasks.Describe())
@@ -366,6 +366,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 		// tasks depending on the control plane availability
 		tasks := ctl.NewTasksRequiringControlPlane(cfg)
+		ngTasks := ctl.ClusterTasksForNodeGroups(cfg, params.InstallNeuronDevicePlugin)
+		if ngTasks.Len() > 0 {
+			tasks.Append(ngTasks)
+		}
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
@@ -389,7 +393,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 				return err
 			}
 
-			showDevicePluginMessageForNodeGroup(ng)
+			showDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin)
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {

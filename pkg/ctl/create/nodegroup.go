@@ -20,8 +20,9 @@ import (
 )
 
 type createNodeGroupParams struct {
-	updateAuthConfigMap bool
-	managed             bool
+	updateAuthConfigMap       bool
+	managed                   bool
+	installNeuronDevicePlugin bool
 }
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
@@ -65,8 +66,9 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils
 		fs.BoolVarP(&params.managed, "managed", "", false, "Create EKS-managed nodegroup")
 	})
 
-	cmd.FlagSetGroup.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Addons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
+		fs.BoolVarP(&params.installNeuronDevicePlugin, "install-neuron-plugin", "", false, "Install Neuron plugin for Inferentia nodes")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
@@ -219,6 +221,20 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 			return err
 		}
 
+		tasks := ctl.ClusterTasksForNodeGroups(cfg, params.installNeuronDevicePlugin)
+		logger.Info(tasks.Describe())
+		errs := tasks.DoAllSync()
+		if len(errs) > 0 {
+			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroups", cfg.Metadata.Region, cfg.Metadata.Name)
+			for _, err := range errs {
+				if err != nil {
+					logger.Critical("%s\n", err.Error())
+				}
+			}
+			return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
+		}
+
 		for _, ng := range cfg.NodeGroups {
 			if params.updateAuthConfigMap {
 				// authorise nodes to join
@@ -232,7 +248,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 				}
 			}
 
-			showDevicePluginMessageForNodeGroup(ng)
+			showDevicePluginMessageForNodeGroup(ng, params.installNeuronDevicePlugin)
 		}
 		logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 
