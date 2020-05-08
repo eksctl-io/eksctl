@@ -164,20 +164,23 @@ func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*awseks.
 }
 
 // UpdateClusterTags calls eks.TagResource and tags the cluster
-func (c *ClusterProvider) UpdateClusterTags(clusterConfig *api.ClusterConfig) error {
-	if err := c.RefreshClusterStatus(clusterConfig); err != nil {
+func (c *ClusterProvider) UpdateClusterTags(cfg *api.ClusterConfig) error {
+	if len(cfg.Metadata.Tags) == 0 {
+		return nil
+	}
+	if err := c.RefreshClusterStatus(cfg); err != nil {
 		return err
 	}
 	input := &awseks.TagResourceInput{
 		ResourceArn: c.Status.clusterInfo.cluster.Arn,
-		Tags:        utilsstrings.ToPointersMap(clusterConfig.Metadata.Tags),
+		Tags:        utilsstrings.ToPointersMap(cfg.Metadata.Tags),
 	}
 	_, err := c.Provider.EKS().TagResource(input)
 	if err != nil {
 		return err
 	}
 	var tagStrings []string
-	for k, v := range clusterConfig.Metadata.Tags {
+	for k, v := range cfg.Metadata.Tags {
 		tagStrings = append(tagStrings, fmt.Sprintf("%s=%s", k, v))
 	}
 	logger.Success("tagged EKS cluster (%s)", strings.Join(tagStrings, ", "))
