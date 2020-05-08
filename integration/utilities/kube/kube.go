@@ -10,7 +10,7 @@ import (
 
 type tHelper struct{ ginkgo.GinkgoTInterface }
 
-func (t *tHelper) Helper()      { return }
+func (t *tHelper) Helper()      {}
 func (t *tHelper) Name() string { return "eksctl-test" }
 
 // NewTest creates a new test harness to more easily run integration tests against the provided Kubernetes cluster.

@@ -13,7 +13,7 @@ import (
 )
 
 type returnAmi struct {
-	imageId     string
+	imageID     string
 	state       string
 	createdDate string
 }
@@ -154,12 +154,12 @@ var _ = Describe("AMI Auto Resolution", func() {
 						images := []returnAmi{
 							{
 								createdDate: "2018-08-20T23:25:53.000Z",
-								imageId:     "ami-1234",
+								imageID:     "ami-1234",
 								state:       "available",
 							},
 							{
 								createdDate: "2018-09-12T22:21:11.000Z",
-								imageId:     expectedAmi,
+								imageID:     expectedAmi,
 								state:       "available",
 							},
 						}
@@ -226,7 +226,7 @@ func createProviders() (*eks.ClusterProvider, *mockprovider.MockProvider) {
 	return c, p
 }
 
-func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiId string, amiState string, createdDate string, instanceFamily string) {
+func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern string, amiID string, amiState string, createdDate string, instanceFamily string) {
 	p.MockEC2().On("DescribeImages",
 		mock.MatchedBy(func(input *ec2.DescribeImagesInput) bool {
 			for _, filter := range input.Filters {
@@ -243,7 +243,7 @@ func addMockDescribeImages(p *mockprovider.MockProvider, expectedNamePattern str
 	).Return(&ec2.DescribeImagesOutput{
 		Images: []*ec2.Image{
 			{
-				ImageId: aws.String(amiId),
+				ImageId: aws.String(amiID),
 				State:   aws.String(amiState),
 			},
 		},
@@ -254,7 +254,7 @@ func addMockDescribeImagesMultiple(p *mockprovider.MockProvider, expectedNamePat
 	images := make([]*ec2.Image, len(returnAmis))
 	for index, ami := range returnAmis {
 		images[index] = &ec2.Image{
-			ImageId:      aws.String(ami.imageId),
+			ImageId:      aws.String(ami.imageID),
 			State:        aws.String(ami.state),
 			CreationDate: aws.String(ami.createdDate),
 		}

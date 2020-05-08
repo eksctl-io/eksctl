@@ -128,11 +128,11 @@ func (d *Helper) DeletePod(pod corev1.Pod) error {
 	return d.Client.CoreV1().Pods(pod.Namespace).Delete(pod.Name, d.makeDeleteOptions())
 }
 
-// GetPodsForDeletion lists all pods on a given node, filters those using the default
+// getPodsForDeletion lists all pods on a given node, filters those using the default
 // filters, and returns podDeleteList along with any errors. All pods that are ready
 // to be deleted can be obtained with .Pods(), and string with all warning can be obtained
 // with .Warnings()
-func (d *Helper) GetPodsForDeletion(nodeName string) (*podDeleteList, []error) {
+func (d *Helper) getPodsForDeletion(nodeName string) (*podDeleteList, []error) {
 	labelSelector, err := labels.Parse(d.PodSelector)
 	if err != nil {
 		return nil, []error{err}

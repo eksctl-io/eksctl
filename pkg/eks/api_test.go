@@ -195,12 +195,12 @@ var _ = Describe("eksctl API", func() {
 
 })
 
-func mockDescribeImages(p *mockprovider.MockProvider, amiId string, matcher func(*ec2.DescribeImagesInput) bool) {
+func mockDescribeImages(p *mockprovider.MockProvider, amiID string, matcher func(*ec2.DescribeImagesInput) bool) {
 	p.MockEC2().On("DescribeImages", mock.MatchedBy(matcher)).
 		Return(&ec2.DescribeImagesOutput{
 			Images: []*ec2.Image{
 				{
-					ImageId:        aws.String(amiId),
+					ImageId:        aws.String(amiID),
 					State:          aws.String("available"),
 					OwnerId:        aws.String("123"),
 					RootDeviceType: aws.String("ebs"),

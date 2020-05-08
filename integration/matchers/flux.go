@@ -96,11 +96,11 @@ func assertContainsFluxManifests(dir string) {
 		case "memcache-svc.yaml":
 			assertValidFluxMemcacheServiceManifest(filePath)
 		// Helm operator resources:
-		case "flux-helm-operator-account.yaml":
+		case "rbac.yaml":
 			assertValidFluxHelmOperatorAccount(filePath)
-		case "flux-helm-release-crd.yaml":
+		case "crds.yaml":
 			assertValidFluxHelmReleaseCRD(filePath)
-		case "helm-operator-deployment.yaml":
+		case "deployment.yaml":
 			assertValidHelmOperatorDeployment(filePath)
 		default:
 			Fail(fmt.Sprintf("Unrecognized file: %s", f.Name()))
