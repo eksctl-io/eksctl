@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	utilsstrings "github.com/weaveworks/eksctl/pkg/utils/strings"
 	"github.com/weaveworks/eksctl/pkg/utils/waiters"
 )
 
@@ -164,24 +165,20 @@ func (c *ClusterProvider) UpdateClusterVersion(cfg *api.ClusterConfig) (*awseks.
 
 // UpdateClusterTags calls eks.TagResource and tags the cluster
 func (c *ClusterProvider) UpdateClusterTags(clusterConfig *api.ClusterConfig) error {
-	tags := make(map[string]*string)
-	for key, value := range clusterConfig.Metadata.Tags {
-		tags[key] = &value
-	}
 	if err := c.RefreshClusterStatus(clusterConfig); err != nil {
 		return err
 	}
 	input := &awseks.TagResourceInput{
 		ResourceArn: c.Status.clusterInfo.cluster.Arn,
-		Tags:        tags,
+		Tags:        utilsstrings.ToPointersMap(clusterConfig.Metadata.Tags),
 	}
 	_, err := c.Provider.EKS().TagResource(input)
 	if err != nil {
 		return err
 	}
 	var tagStrings []string
-	for k, v := range tags {
-		tagStrings = append(tagStrings, fmt.Sprintf("%s=%s", k, *v))
+	for k, v := range clusterConfig.Metadata.Tags {
+		tagStrings = append(tagStrings, fmt.Sprintf("%s=%s", k, v))
 	}
 	logger.Success("tagged EKS cluster (%s)", strings.Join(tagStrings, ", "))
 	return nil
