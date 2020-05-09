@@ -40,8 +40,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          pip install -r userdocs/requirements.txt
+        run: make install-site-deps
       - name: Build docs for link check
         run: make build-pages
         # Using liche action to check generated HTML site

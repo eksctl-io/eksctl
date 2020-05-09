@@ -26,11 +26,16 @@ all_generated_files := \
 .DEFAULT_GOAL := help
 
 ##@ Dependencies
+.PHONY: install-build-deps
+install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
-	pip3 install -r userdocs/requirements.txt
+
+.PHONY: install-site-deps
+install-site-deps: ## Install dependencies for user docs
+	pip install -r userdocs/requirements.txt
 
 ##@ Build
 
@@ -165,7 +170,7 @@ check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
 .license-header: LICENSE
-	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
+	@# generate-groups.sh can't find the license header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
 ### Update AMIs in ami static resolver
@@ -249,7 +254,6 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 	$(MAKE) -f Makefile.docker $@
 
 ##@ Site
-
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
 	cd userdocs/ ; mkdocs serve
