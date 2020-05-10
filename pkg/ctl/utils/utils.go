@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
@@ -24,6 +26,10 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, publicAccessCIDRsCmd)
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, nodeGroupHealthCmd)
+
+	if os.Getenv("EKSCTL_EXPERIMENTAL") == "true" {
+		cmdutils.AddResourceCmd(flagGrouping, verbCmd, installCloudwatchAgentCmd)
+	}
 
 	return verbCmd
 }

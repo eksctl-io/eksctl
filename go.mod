@@ -71,6 +71,7 @@ replace (
 	// Override version since auto-detected one fails with GOPROXY
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
+	github.com/kris-nova/logger => github.com/sayboras/logger v0.0.0-20200424112712-6e4f5febd886
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.15.10
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.15.10
