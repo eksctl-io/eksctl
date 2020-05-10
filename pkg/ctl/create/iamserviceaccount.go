@@ -45,7 +45,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
 		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
 
-		fs.StringToStringVarP(&serviceAccount.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the IAM role (e.g. "Owner=John Doe,Team=Some Team")`)
+		fs.StringToStringVarP(&serviceAccount.Tags, "tags", "", map[string]string{}, `A list of comma separated KV pairs "k1=v1,k2=v2" used to tag the IAM role (e.g. "Owner=John Doe,Team=Some Team")`)
 
 		fs.BoolVar(&overrideExistingServiceAccounts, "override-existing-serviceaccounts", false, "create IAM roles for existing serviceaccounts and update the serviceaccount")
 
