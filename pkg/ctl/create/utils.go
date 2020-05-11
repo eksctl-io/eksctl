@@ -55,13 +55,13 @@ func checkVersion(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, meta *api.Cluster
 
 func showDevicePluginMessageForNodeGroup(nodeGroup *api.NodeGroup, installNeuronPlugin bool) {
 	if eks.HasInstanceType(nodeGroup, utils.IsNeuronInstanceType) {
-		if !installNeuronPlugin {
+		if installNeuronPlugin {
+			logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, the AWS Neuron Kubernetes device plugin was automatically installed.")
+			logger.Info("\t to skip installing it, use --install-neuron-plugin=false.")
+		} else {
 			// if neuron instance type, give instructions
 			logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, you will need to install the AWS Neuron Kubernetes device plugin.")
 			logger.Info("\t see the following page for instructions: https://github.com/aws/aws-neuron-sdk/blob/master/docs/neuron-container-tools/tutorial-k8s.md")
-		} else {
-			logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, the AWS Neuron Kubernetes device plugin was automatically installed.")
-			logger.Info("\t to skip installing it, use --install-neuron-plugin=false.")
 		}
 	} else if eks.HasInstanceType(nodeGroup, utils.IsGPUInstanceType) {
 		// if GPU instance type, give instructions

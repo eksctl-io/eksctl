@@ -135,7 +135,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	for _, ng := range cfg.NodeGroups {
 		reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin || HasInstanceType(ng, utils.IsNeuronInstanceType)
 	}
-	reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin && !installNeuronDevicePluginParam
+	reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin && installNeuronDevicePluginParam
 	if reallyInstallNeuronDevicePlugin {
 		tasks.Append(&neuronDevicePluginTask{
 			info:            "install Neuron device plugin",
