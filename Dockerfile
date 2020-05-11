@@ -1,8 +1,7 @@
 # Make sure to run the following commands after changes to this file are made:
 # `make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 
-# This digest corresponds to golang:1.14.2-alpine3.11
-FROM golang@sha256:62cd35bbeb9aadff6764dd8809c788267d72b12066bb40c080431510bbe81e36 AS base
+FROM golang:1.14-2-alpine3.11@sha256:9b3ad7928626126b72b916609ad081cfb6c0149f6e60cef7fc1e9e15a0d1e973 AS base
 
 # Build-time dependencies
 RUN apk add --no-cache \
