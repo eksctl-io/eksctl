@@ -26,7 +26,7 @@ all_generated_files := \
 .DEFAULT_GOAL := help
 
 ##@ Dependencies
-.PHONY: install-build-deps
+.PHONY: install-all-deps
 install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
 
 .PHONY: install-build-deps
@@ -35,7 +35,7 @@ install-build-deps: ## Install dependencies (packages and tools)
 
 .PHONY: install-site-deps
 install-site-deps: ## Install dependencies for user docs
-	pip install -r userdocs/requirements.txt
+	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
 
