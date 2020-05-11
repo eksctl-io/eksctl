@@ -13,7 +13,7 @@ import (
 )
 
 // AssertQuickStartComponentsPresentInGit asserts that the expected quickstart
-// components are present in Git, under the provided branch. 
+// components are present in Git, under the provided branch.
 func AssertQuickStartComponentsPresentInGit(branch, privateSSHKeyPath string) {
 	dir, err := git.GetBranch(branch, privateSSHKeyPath)
 	Expect(err).ShouldNot(HaveOccurred())

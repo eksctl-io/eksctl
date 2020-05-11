@@ -187,7 +187,7 @@ func createRequest(clusterName string, profile *api.FargateProfile) *eks.CreateF
 		Selectors:           toSelectorPointers(profile.Selectors),
 		PodExecutionRoleArn: strings.NilIfEmpty(profile.PodExecutionRoleARN),
 		Subnets:             strings.NilPointersArrayIfEmpty(strings.ToPointersArray(profile.Subnets)),
-		Tags:                strings.ToPointersMap(profile.Tags),
+		Tags:                strings.NilPointersMapIfEmpty(strings.ToPointersMap(profile.Tags)),
 	}
 	logger.Debug("Fargate profile: create request: sending: %#v", request)
 	return request

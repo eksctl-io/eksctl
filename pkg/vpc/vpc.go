@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kops/util/pkg/slice"
 
 	"github.com/kris-nova/logger"
@@ -65,6 +67,7 @@ func SetSubnets(spec *api.ClusterConfig) error {
 	return nil
 }
 
+// describeSubnets fetches subnet metadata from EC2
 func describeSubnets(provider api.ClusterProvider, subnetIDs ...string) ([]*ec2.Subnet, error) {
 	input := &ec2.DescribeSubnetsInput{
 		SubnetIds: aws.StringSlice(subnetIDs),
@@ -219,7 +222,99 @@ func ImportSubnetsFromList(provider api.ClusterProvider, spec *api.ClusterConfig
 	if err != nil {
 		return err
 	}
+
 	return ImportSubnets(provider, spec, topology, subnets)
+}
+
+func ValidateLegacySubnetsForNodeGroups(spec *api.ClusterConfig, provider api.ClusterProvider) error {
+	subnetsToValidate := sets.NewString()
+
+	selectSubnets := func(azs []string) error {
+		if len(azs) > 0 {
+			// Check only the public subnets that this ng has
+			subnetIDs, err := SelectPublicNodeGroupSubnets(azs, spec)
+			if err != nil {
+				return err
+			}
+			subnetsToValidate.Insert(subnetIDs...)
+		} else {
+			// This ng doesn't have AZs defined so we need to check all public subnets
+			for _, subnet := range spec.VPC.Subnets.Public {
+				subnetsToValidate.Insert(subnet.ID)
+			}
+		}
+		return nil
+	}
+
+	for _, ng := range spec.NodeGroups {
+		if ng.PrivateNetworking {
+			continue
+		}
+		err := selectSubnets(ng.AvailabilityZones)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, ng := range spec.ManagedNodeGroups {
+		err := selectSubnets(ng.AvailabilityZones)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := ValidateExistingPublicSubnets(provider, subnetsToValidate.List()); err != nil {
+		// If the cluster endpoint is reachable from the VPC nodes might still be able to join
+		if spec.HasPrivateEndpointAccess() {
+			logger.Warning("public subnets for one or more nodegroups have %q disabled. This means that nodes won't "+
+				"get public IP addresses. If they can't reach the cluster through the private endpoint they won't be "+
+				"able to join the cluster", "MapPublicIpOnLaunch")
+			return nil
+		}
+
+		logger.Critical(err.Error())
+		return errors.Errorf("subnets for one or more new nodegroups don't meet requirements. "+
+			"To fix this, please run `eksctl utils update-legacy-subnet-settings --cluster %s`",
+			spec.Metadata.Name)
+	}
+	return nil
+}
+
+// ValidateExistingPublicSubnets makes sure that subnets have the property MapPublicIpOnLaunch enabled
+func ValidateExistingPublicSubnets(provider api.ClusterProvider, subnetIDs []string) error {
+	if len(subnetIDs) == 0 {
+		return nil
+	}
+	subnets, err := describeSubnets(provider, subnetIDs...)
+	if err != nil {
+		return err
+	}
+	if err := validatePublicSubnet(subnets); err != nil {
+		return err
+	}
+	return nil
+}
+
+// EnsureMapPublicIPOnLaunchEnabled will enable MapPublicIpOnLaunch in EC2 for all given subnet IDs
+func EnsureMapPublicIPOnLaunchEnabled(provider api.ClusterProvider, subnetIDs []string) error {
+	if len(subnetIDs) == 0 {
+		logger.Debug("no subnets to update")
+		return nil
+	}
+
+	for _, s := range subnetIDs {
+		input := &ec2.ModifySubnetAttributeInput{
+			SubnetId:            aws.String(s),
+			MapPublicIpOnLaunch: &ec2.AttributeBooleanValue{Value: aws.Bool(true)},
+		}
+
+		logger.Debug("enabling MapPublicIpOnLaunch for subnet %q", s)
+		_, err := provider.EC2().ModifySubnetAttribute(input)
+		if err != nil {
+			return errors.Wrapf(err, "unable to set MapPublicIpOnLaunch attribute to true for subnet %q", s)
+		}
+	}
+	return nil
 }
 
 // ImportAllSubnets will update spec with subnets, it will call describeSubnets first,
@@ -275,4 +370,44 @@ func cleanupSubnets(spec *api.ClusterConfig) {
 			delete(spec.VPC.Subnets.Public, id)
 		}
 	}
+}
+
+func validatePublicSubnet(subnets []*ec2.Subnet) error {
+	legacySubnets := make([]string, 0)
+	for _, sn := range subnets {
+		if sn.MapPublicIpOnLaunch == nil || !*sn.MapPublicIpOnLaunch {
+			legacySubnets = append(legacySubnets, *sn.SubnetId)
+		}
+	}
+	if len(legacySubnets) > 0 {
+		return fmt.Errorf("found mis-configured subnets %q. Expected public subnets with property "+
+			"\"MapPublicIpOnLaunch\" enabled. Without it new nodes won't get an IP assigned", legacySubnets)
+	}
+
+	return nil
+}
+
+func SelectPublicNodeGroupSubnets(nodegroupAZs []string, clusterSpec *api.ClusterConfig) ([]string, error) {
+	numNodeGroupsAZs := len(nodegroupAZs)
+	if numNodeGroupsAZs == 0 {
+		return nil, nil
+	}
+
+	subnets := clusterSpec.VPC.Subnets.Public
+	makeErrorDesc := func() string {
+		return fmt.Sprintf("(subnets=%#v AZs=%#v)", subnets, nodegroupAZs)
+	}
+	if len(subnets) < numNodeGroupsAZs {
+		return nil, fmt.Errorf("VPC doesn't have enough subnets for nodegroup AZs %s", makeErrorDesc())
+	}
+	subnetIDs := make([]string, numNodeGroupsAZs)
+	for i, az := range nodegroupAZs {
+		subnet, ok := subnets[az]
+		if !ok {
+			return nil, fmt.Errorf("VPC doesn't have subnets in %s %s", az, makeErrorDesc())
+		}
+
+		subnetIDs[i] = subnet.ID
+	}
+	return subnetIDs, nil
 }

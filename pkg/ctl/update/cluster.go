@@ -2,6 +2,7 @@ package update
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -17,7 +18,8 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
-	cmd.SetDescription("cluster", "Update cluster", "")
+	cmd.SetDescription("cluster", "Upgrade control plane to the next version",
+		"Upgrade control plane to the next Kubernetes version if available. Will also perform any updates needed in the cluster stack if resources are missing.")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
@@ -37,7 +39,8 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "all update operations to complete")
 		_ = fs.MarkDeprecated("wait", "--wait is no longer respected; the cluster update always waits to complete")
-		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
+		// updating from 1.15 to 1.16 has been observed to take longer than the default value of 25 minutes
+		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 35*time.Minute)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
@@ -87,7 +90,9 @@ func doUpdateClusterCmd(cmd *cmdutils.Cmd) error {
 	case api.Version1_14:
 		cfg.Metadata.Version = api.Version1_15
 	case api.Version1_15:
-		cfg.Metadata.Version = api.Version1_15
+		cfg.Metadata.Version = api.Version1_16
+	case api.Version1_16:
+		cfg.Metadata.Version = api.Version1_16
 	default:
 		// version of control plane is not known to us, maybe we are just too old...
 		return fmt.Errorf("control plane version %q is not known to this version of eksctl, try to upgrade eksctl first", currentVersion)

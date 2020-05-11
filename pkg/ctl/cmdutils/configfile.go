@@ -310,7 +310,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 			for _, ng := range l.ClusterConfig.ManagedNodeGroups {
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
 			}
@@ -319,7 +319,7 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 				// generate nodegroup name or use either flag or argument
 				ngName := names.ForNodeGroup(ng.Name, l.NameArg)
 				if ngName == "" {
-					return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+					return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 				}
 				ng.Name = ngName
 				if err := normalizeNodeGroup(ng, l); err != nil {
@@ -344,6 +344,7 @@ func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
 		Tags:              nodeGroup.Tags,
 		AMIFamily:         nodeGroup.AMIFamily,
 		VolumeSize:        nodeGroup.VolumeSize,
+		PrivateNetworking: nodeGroup.PrivateNetworking,
 		ScalingConfig: &api.ScalingConfig{
 			MinSize:         nodeGroup.MinSize,
 			MaxSize:         nodeGroup.MaxSize,
@@ -387,7 +388,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 		}
 
 		if ng.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, ng.Name, l.NameArg)
+			return ErrFlagAndArg("--name", ng.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {
@@ -463,7 +464,7 @@ func NewUtilsAssociateIAMOIDCProviderLoader(cmd *Cmd) ClusterConfigLoader {
 	}
 
 	l.validateWithConfigFile = func() error {
-		if api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
+		if l.ClusterConfig.IAM == nil || api.IsDisabled(l.ClusterConfig.IAM.WithOIDC) {
 			return fmt.Errorf("'iam.withOIDC' is not enabled in %q", l.ClusterConfigFile)
 		}
 		return nil
@@ -530,8 +531,16 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 
 		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
 
+		if serviceAccount.Name != "" && l.NameArg != "" {
+			return ErrFlagAndArg("--name", serviceAccount.Name, l.NameArg)
+		}
+
+		if l.NameArg != "" {
+			serviceAccount.Name = l.NameArg
+		}
+
 		if serviceAccount.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		if len(serviceAccount.AttachPolicyARNs) == 0 {

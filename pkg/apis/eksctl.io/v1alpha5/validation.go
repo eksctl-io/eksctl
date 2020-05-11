@@ -104,6 +104,10 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		cfg.VPC.PublicAccessCIDRs = cidrs
 	}
 
+	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == nil {
+		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
+	}
+
 	return nil
 }
 
@@ -115,9 +119,6 @@ func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
-	}
-	if PrivateOnly(endpts) {
-		return ErrClusterEndpointPrivateOnly
 	}
 	return nil
 }

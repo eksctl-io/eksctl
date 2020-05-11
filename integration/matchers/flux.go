@@ -8,9 +8,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"github.com/weaveworks/eksctl/integration/utilities/git"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/integration/utilities/git"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -95,11 +96,11 @@ func assertContainsFluxManifests(dir string) {
 		case "memcache-svc.yaml":
 			assertValidFluxMemcacheServiceManifest(filePath)
 		// Helm operator resources:
-		case "flux-helm-operator-account.yaml":
+		case "rbac.yaml":
 			assertValidFluxHelmOperatorAccount(filePath)
-		case "flux-helm-release-crd.yaml":
+		case "crds.yaml":
 			assertValidFluxHelmReleaseCRD(filePath)
-		case "helm-operator-deployment.yaml":
+		case "deployment.yaml":
 			assertValidHelmOperatorDeployment(filePath)
 		default:
 			Fail(fmt.Sprintf("Unrecognized file: %s", f.Name()))
@@ -160,7 +161,7 @@ func assertValidFluxDeploymentManifest(fileName string) {
 			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
 			container := deployment.Spec.Template.Spec.Containers[0]
 			Expect(container.Name).To(Equal("flux"))
-			Expect(container.Image).To(Equal("docker.io/fluxcd/flux:1.18.0"))
+			Expect(container.Image).To(Equal("docker.io/fluxcd/flux:1.19.0"))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
@@ -274,20 +275,20 @@ func assertValidFluxHelmOperatorAccount(fileName string) {
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(sa.Kind).To(Equal("ServiceAccount"))
 			Expect(sa.Namespace).To(Equal(Namespace))
-			Expect(sa.Name).To(Equal("flux-helm-operator"))
-			Expect(sa.Labels["name"]).To(Equal("flux-helm-operator"))
+			Expect(sa.Name).To(Equal("helm-operator"))
+			Expect(sa.Labels["name"]).To(Equal("helm-operator"))
 		} else if gvk.Version == "v1beta1" && gvk.Kind == "ClusterRole" {
 			cr, ok := item.Object.(*rbacv1beta1.ClusterRole)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(cr.Kind).To(Equal("ClusterRole"))
-			Expect(cr.Name).To(Equal("flux-helm-operator"))
-			Expect(cr.Labels["name"]).To(Equal("flux-helm-operator"))
+			Expect(cr.Name).To(Equal("helm-operator"))
+			Expect(cr.Labels["name"]).To(Equal("helm-operator"))
 		} else if gvk.Version == "v1beta1" && gvk.Kind == "ClusterRoleBinding" {
 			crb, ok := item.Object.(*rbacv1beta1.ClusterRoleBinding)
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(crb.Kind).To(Equal("ClusterRoleBinding"))
-			Expect(crb.Name).To(Equal("flux-helm-operator"))
-			Expect(crb.Labels["name"]).To(Equal("flux-helm-operator"))
+			Expect(crb.Name).To(Equal("helm-operator"))
+			Expect(crb.Labels["name"]).To(Equal("helm-operator"))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
@@ -328,13 +329,13 @@ func assertValidHelmOperatorDeployment(fileName string) {
 			Expect(ok).To(BeTrue(), "Failed to convert object of type %T to %s", item.Object, gvk.Kind)
 			Expect(deployment.Kind).To(Equal("Deployment"))
 			Expect(deployment.Namespace).To(Equal(Namespace))
-			Expect(deployment.Name).To(Equal("flux-helm-operator"))
+			Expect(deployment.Name).To(Equal("helm-operator"))
 			Expect(*deployment.Spec.Replicas).To(Equal(int32(1)))
-			Expect(deployment.Spec.Template.Labels["name"]).To(Equal("flux-helm-operator"))
+			Expect(deployment.Spec.Template.Labels["name"]).To(Equal("helm-operator"))
 			Expect(deployment.Spec.Template.Spec.Containers).To(HaveLen(1))
 			container := deployment.Spec.Template.Spec.Containers[0]
-			Expect(container.Name).To(Equal("flux-helm-operator"))
-			Expect(container.Image).To(Equal("docker.io/fluxcd/helm-operator:1.0.0-rc9"))
+			Expect(container.Name).To(Equal("helm-operator"))
+			Expect(container.Image).To(Equal("docker.io/fluxcd/helm-operator:1.0.0"))
 		} else {
 			Fail(fmt.Sprintf("Unsupported Kubernetes object. Got %s object with version %s in: %s", gvk.Kind, gvk.Version, fileName))
 		}
@@ -350,7 +351,7 @@ func AssertFluxPodsPresentInKubernetes(kubeconfigPath string) {
 	pods := fluxPods(kubeconfigPath)
 	Expect(pods.Items).To(HaveLen(3))
 	Expect(pods.Items[0].Labels["name"]).To(Equal("flux"))
-	Expect(pods.Items[1].Labels["name"]).To(Equal("flux-helm-operator"))
+	Expect(pods.Items[1].Labels["name"]).To(Equal("helm-operator"))
 	Expect(pods.Items[2].Labels["name"]).To(Equal("memcached"))
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/kris-nova/logger"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	cliruntime "k8s.io/cli-runtime/pkg/genericclioptions/printers"
+	cliruntime "k8s.io/cli-runtime/pkg/printers"
 	"sigs.k8s.io/yaml"
 )
 

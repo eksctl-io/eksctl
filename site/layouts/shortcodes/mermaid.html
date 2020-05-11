@@ -1,9 +1,0 @@
-{{ if not (.Page.Scratch.Get "mermaid") }}
-<!-- Include mermaid only first time -->
-<script src="{{ "mermaid.min.js" | relURL }}"></script>
-{{ .Page.Scratch.Set "mermaid" true }}
-{{ end }}
-
-<p class="mermaid flex align-center">
-  {{ .Inner }}
-</p>

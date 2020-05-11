@@ -23,6 +23,9 @@ const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
 
+	// RegionUSWest1 represents the US West Region North California
+	RegionUSWest1 = "us-west-1"
+
 	// RegionUSWest2 represents the US West Region Oregon
 	RegionUSWest2 = "us-west-2"
 
@@ -101,11 +104,14 @@ const (
 	// Version1_15 represents Kubernetes version 1.15.x
 	Version1_15 = "1.15"
 
+	// Version1_16 represents Kubernetes version 1.16.x
+	Version1_16 = "1.16"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_14
+	DefaultVersion = Version1_15
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_14
+	LatestVersion = Version1_16
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -257,6 +263,7 @@ func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{
+		RegionUSWest1,
 		RegionUSWest2,
 		RegionUSEast1,
 		RegionUSEast2,
@@ -286,16 +293,17 @@ func DeprecatedVersions() []string {
 	return []string{
 		Version1_10,
 		Version1_11,
+		Version1_12,
 	}
 }
 
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_12,
 		Version1_13,
 		Version1_14,
 		Version1_15,
+		Version1_16,
 	}
 }
 
@@ -615,6 +623,8 @@ type NodeGroup struct {
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
 	MaxSize *int `json:"maxSize,omitempty"`
+	// +optional
+	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
@@ -783,6 +793,15 @@ type (
 	}
 )
 
+// MetricsCollection used by the scaling config
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+type MetricsCollection struct {
+	// +required
+	Granularity string `json:"granularity"`
+	// +optional
+	Metrics []string `json:"metrics,omitempty"`
+}
+
 // ScalingConfig defines the scaling config
 type ScalingConfig struct {
 	// +optional
@@ -813,6 +832,8 @@ type ManagedNodeGroup struct {
 
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
+	// +optional
+	PrivateNetworking bool `json:"privateNetworking"`
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional

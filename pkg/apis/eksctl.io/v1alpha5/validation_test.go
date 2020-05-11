@@ -1,8 +1,8 @@
 package v1alpha5
 
 import (
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
@@ -338,10 +338,11 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should error on private=true, public=false", func() {
-			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
+		It("should not error on private=true, public=false", func() {
+			cfg.VPC.ClusterEndpoints =
+				&ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).To(BeIdenticalTo(ErrClusterEndpointPrivateOnly))
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should error on private=false, public=false", func() {
@@ -651,11 +652,19 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("passes on randomly generated fields", func() {
-				profile := FargateProfile{}
-				err := faker.FakeData(&profile)
-				Expect(err).ToNot(HaveOccurred())
-				err = profile.Validate()
+			It("passes when a name and multiple selectors with a namespace is defined", func() {
+				profile := FargateProfile{
+					Name: "default",
+					Selectors: []FargateProfileSelector{
+						{
+							Namespace: "default",
+						},
+						{
+							Namespace: "dev",
+						},
+					},
+				}
+				err := profile.Validate()
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -669,9 +678,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 
 			ngs := map[string]*NodeGroup{
-				"PreBootstrapCommands": {PreBootstrapCommands: []string{"/usr/bin/env true"}},
+				"PreBootstrapCommands":     {PreBootstrapCommands: []string{"/usr/bin/env true"}},
 				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
-				"KubeletExtraConfig": {KubeletExtraConfig: &doc},
+				"KubeletExtraConfig":       {KubeletExtraConfig: &doc},
 				"overlapping Bottlerocket settings": {
 					Bottlerocket: &NodeGroupBottlerocket{
 						Settings: &InlineDocument{
@@ -706,6 +715,35 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 		})
 	})
+
+	type kmsFieldCase struct {
+		secretsEncryption *SecretsEncryption
+		errSubstr         string
+	}
+
+	DescribeTable("KMS field validation", func(k kmsFieldCase) {
+		clusterConfig := NewClusterConfig()
+		clusterConfig.Metadata.Version = "1.15"
+
+		clusterConfig.SecretsEncryption = k.secretsEncryption
+		err := ValidateClusterConfig(clusterConfig)
+		if k.errSubstr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
+		} else {
+			Expect(err).ToNot(HaveOccurred())
+		}
+	},
+		Entry("nil secretsEncryption", kmsFieldCase{
+			secretsEncryption: nil,
+		}),
+		Entry("nil secretsEncryption.keyARN", kmsFieldCase{
+			secretsEncryption: &SecretsEncryption{
+				KeyARN: nil,
+			},
+			errSubstr: "secretsEncryption.keyARN is required",
+		}),
+	)
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {
