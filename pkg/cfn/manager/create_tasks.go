@@ -11,9 +11,9 @@ import (
 // NewTasksToCreateClusterWithNodeGroups defines all tasks required to create a cluster along
 // with some nodegroups; see CreateAllNodeGroups for how onlyNodeGroupSubset works
 func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*api.NodeGroup,
-	managedNodeGroups []*api.ManagedNodeGroup, supportsManagedNodes bool) *TaskTree {
+	managedNodeGroups []*api.ManagedNodeGroup, supportsManagedNodes bool, postClusterCreationTasks ...Task) *TaskTree {
 
-	tasks := &TaskTree{Parallel: false}
+	tasks := TaskTree{Parallel: false}
 
 	tasks.Append(
 		&createClusterTask{
@@ -23,19 +23,33 @@ func (c *StackCollection) NewTasksToCreateClusterWithNodeGroups(nodeGroups []*ap
 		},
 	)
 
-	nodeGroupTasks := c.NewTasksToCreateNodeGroups(nodeGroups, supportsManagedNodes)
+	appendNodeGroupTasksTo := func(taskTree *TaskTree) {
+		nodeGroupTasks := c.NewTasksToCreateNodeGroups(nodeGroups, supportsManagedNodes)
 
-	managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups)
-	if managedNodeGroupTasks.Len() > 0 {
-		nodeGroupTasks.Append(managedNodeGroupTasks.tasks...)
+		managedNodeGroupTasks := c.NewManagedNodeGroupTask(managedNodeGroups)
+		if managedNodeGroupTasks.Len() > 0 {
+			nodeGroupTasks.Append(managedNodeGroupTasks.tasks...)
+		}
+
+		if nodeGroupTasks.Len() > 0 {
+			nodeGroupTasks.IsSubTask = true
+			taskTree.Append(nodeGroupTasks)
+		}
 	}
 
-	if nodeGroupTasks.Len() > 0 {
-		nodeGroupTasks.IsSubTask = true
-		tasks.Append(nodeGroupTasks)
+	if len(postClusterCreationTasks) > 0 {
+		postClusterCreationTaskTree := TaskTree{
+			Parallel:  true,
+			IsSubTask: true,
+		}
+		postClusterCreationTaskTree.Append(postClusterCreationTasks...)
+		appendNodeGroupTasksTo(&postClusterCreationTaskTree)
+		tasks.Append(&postClusterCreationTaskTree)
+	} else {
+		appendNodeGroupTasksTo(&tasks)
 	}
 
-	return tasks
+	return &tasks
 }
 
 // NewTasksToCreateNodeGroups defines tasks required to create all of the nodegroups

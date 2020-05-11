@@ -47,7 +47,7 @@ var _ = Describe("fargate", func() {
 				waitForCreation := false
 				err := client.CreateProfile(testFargateProfile(), waitForCreation)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to create Fargate profile \"default\": the Internet broke down!"))
+				Expect(err.Error()).To(Equal("failed to create Fargate profile \"default\": the Internet broke down"))
 			})
 
 			It("waits for the full creation of the profile when configured to do so", func() {
@@ -99,7 +99,7 @@ var _ = Describe("fargate", func() {
 				client := fargate.NewClient(clusterName, mockForFailureOnReadProfiles())
 				out, err := client.ReadProfiles()
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to get Fargate profile(s) for cluster \"non-existing-test-cluster\": the Internet broke down!"))
+				Expect(err.Error()).To(Equal("failed to get Fargate profile(s) for cluster \"non-existing-test-cluster\": the Internet broke down"))
 				Expect(out).To(BeNil())
 			})
 		})
@@ -116,7 +116,7 @@ var _ = Describe("fargate", func() {
 				client := fargate.NewClient(clusterName, mockForEmptyReadProfile())
 				out, err := client.ReadProfile(testRed)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to get Fargate profile \"test-red\": ResourceNotFoundException: No Fargate Profile found with name: test-red."))
+				Expect(err.Error()).To(Equal("failed to get Fargate profile \"test-red\": ResourceNotFoundException: No Fargate Profile found with name: test-red"))
 				Expect(out).To(BeNil())
 			})
 		})
@@ -144,7 +144,7 @@ var _ = Describe("fargate", func() {
 				waitForDeletion := false
 				err := client.DeleteProfile(profileName, waitForDeletion)
 				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("failed to delete Fargate profile \"test-green\": the Internet broke down!"))
+				Expect(err.Error()).To(Equal("failed to delete Fargate profile \"test-green\": the Internet broke down"))
 			})
 
 			It("waits for the full deletion of the profile when configured to do so", func() {
@@ -213,7 +213,7 @@ func mockCreateFargateProfileWithoutTag(mockClient *mocks.EKSAPI) {
 func mockForFailureOnCreateFargateProfile() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
 	mockClient.Mock.On("CreateFargateProfile", testCreateFargateProfileInput()).
-		Return(nil, errors.New("the Internet broke down!"))
+		Return(nil, errors.New("the Internet broke down"))
 	return &mockClient
 }
 
@@ -364,7 +364,7 @@ func mockForEmptyReadProfile() *mocks.EKSAPI {
 	mockClient.Mock.On("DescribeFargateProfile", &eks.DescribeFargateProfileInput{
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: strings.Pointer(testRed),
-	}).Return(nil, fmt.Errorf("ResourceNotFoundException: No Fargate Profile found with name: %s.", testRed))
+	}).Return(nil, fmt.Errorf("ResourceNotFoundException: No Fargate Profile found with name: %s", testRed))
 	return &mockClient
 }
 
@@ -372,7 +372,7 @@ func mockForFailureOnReadProfiles() *mocks.EKSAPI {
 	mockClient := mocks.EKSAPI{}
 	mockClient.Mock.On("ListFargateProfiles", &eks.ListFargateProfilesInput{
 		ClusterName: strings.Pointer(clusterName),
-	}).Return(nil, errors.New("the Internet broke down!"))
+	}).Return(nil, errors.New("the Internet broke down"))
 	return &mockClient
 }
 
@@ -410,6 +410,6 @@ func mockForFailureOnDeleteFargateProfile(name string) *mocks.EKSAPI {
 	mockClient.Mock.On("DeleteFargateProfile", &eks.DeleteFargateProfileInput{
 		ClusterName:        strings.Pointer(clusterName),
 		FargateProfileName: &name,
-	}).Return(nil, errors.New("the Internet broke down!"))
+	}).Return(nil, errors.New("the Internet broke down"))
 	return &mockClient
 }

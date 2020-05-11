@@ -7,6 +7,7 @@ gocache := $(shell go env GOCACHE)
 
 GOBIN ?= $(gopath)/bin
 
+AWS_SDK_GO_DIR ?= $(gopath)/pkg/mod/$(shell grep 'aws-sdk-go' go.sum | awk '{print $$1 "@" $$2}' | grep -v 'go.mod' | sort | tail -1)
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
@@ -44,6 +45,9 @@ build: generate-always ## Build main binary
 .PHONY: build-all
 build-all: generate-always
 	goreleaser --config=.goreleaser-local.yaml --snapshot --skip-publish --rm-dist
+
+clean: ## Remove artefacts or generated files from previous build
+	rm -rf .license-header eksctl eksctl-integration-test
 
 ##@ Testing & CI
 
@@ -190,10 +194,7 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ##
 	./tools/update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
-	mkdir -p vendor/github.com/aws/
-	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$(gopath)/pkg/mod/github.com/aws/aws-sdk-go@v1.30.11" vendor/github.com/aws/aws-sdk-go
-	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
+	time env GOBIN=$(GOBIN) AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
 .PHONY: generate-kube-reserved
 generate-kube-reserved: ## Update instance list with respective specs

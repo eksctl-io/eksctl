@@ -1,7 +1,6 @@
 package v1alpha5
 
 import (
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -653,11 +652,19 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("passes on randomly generated fields", func() {
-				profile := FargateProfile{}
-				err := faker.FakeData(&profile)
-				Expect(err).ToNot(HaveOccurred())
-				err = profile.Validate()
+			It("passes when a name and multiple selectors with a namespace is defined", func() {
+				profile := FargateProfile{
+					Name: "default",
+					Selectors: []FargateProfileSelector{
+						{
+							Namespace: "default",
+						},
+						{
+							Namespace: "dev",
+						},
+					},
+				}
+				err := profile.Validate()
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -737,6 +744,41 @@ var _ = Describe("ClusterConfig validation", func() {
 			errSubstr: "secretsEncryption.keyARN is required",
 		}),
 	)
+
+	Describe("Windows node groups", func() {
+		It("returns an error with unsupported fields", func() {
+			cmd := "start /wait msiexec.exe"
+			doc := InlineDocument{
+				"cgroupDriver": "systemd",
+			}
+
+			ngs := map[string]*NodeGroup{
+				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
+				"KubeletExtraConfig":       {KubeletExtraConfig: &doc},
+			}
+
+			for name, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyWindowsServer2019CoreContainer
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
+			}
+		})
+
+		It("has no error with supported fields", func() {
+			x := 32
+			ngs := []*NodeGroup{
+				{Labels: map[string]string{"label": "label-value"}},
+				{MaxPodsPerNode: x},
+				{MinSize: &x},
+				{PreBootstrapCommands: []string{"start /wait msiexec.exe"}},
+			}
+
+			for i, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyWindowsServer2019CoreContainer
+				Expect(ValidateNodeGroup(i, ng)).To(Succeed())
+			}
+		})
+	})
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {

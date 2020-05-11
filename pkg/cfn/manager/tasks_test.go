@@ -12,6 +12,16 @@ import (
 	"github.com/weaveworks/eksctl/pkg/testutils/mockprovider"
 )
 
+type task struct{ id int }
+
+func (t *task) Describe() string {
+	return fmt.Sprintf("task %d", t.id)
+}
+
+func (t *task) Do(chan error) error {
+	return nil
+}
+
 var _ = Describe("StackCollection Tasks", func() {
 	var (
 		p   *mockprovider.MockProvider
@@ -694,6 +704,10 @@ var _ = Describe("StackCollection Tasks", func() {
 				{
 					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("foo"), makeManagedNodeGroups("m1"), true)
 					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { create nodegroup "foo", create managed nodegroup "m1" } }`))
+				}
+				{
+					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false, &task{id: 1})
+					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { task 1, create nodegroup "bar" } }`))
 				}
 			})
 		})

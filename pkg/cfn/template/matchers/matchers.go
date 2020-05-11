@@ -23,7 +23,7 @@ func checkTemplate(actualTemplate interface{}) error {
 	return nil
 }
 
-type TemplateLoader struct {
+type Loader struct {
 	*commonMatcher
 
 	templateBody []byte
@@ -31,7 +31,7 @@ type TemplateLoader struct {
 }
 
 func LoadBytesWithoutErrors(templateBody []byte) types.GomegaMatcher {
-	return &TemplateLoader{
+	return &Loader{
 		commonMatcher: &commonMatcher{},
 
 		templateBody: templateBody,
@@ -39,7 +39,7 @@ func LoadBytesWithoutErrors(templateBody []byte) types.GomegaMatcher {
 }
 
 func LoadStringWithoutErrors(templateBody string) types.GomegaMatcher {
-	return &TemplateLoader{
+	return &Loader{
 		commonMatcher: &commonMatcher{},
 
 		templateBody: []byte(templateBody),
@@ -47,14 +47,14 @@ func LoadStringWithoutErrors(templateBody string) types.GomegaMatcher {
 }
 
 func LoadFileWithoutErrors(templatePath string) types.GomegaMatcher {
-	return &TemplateLoader{
+	return &Loader{
 		commonMatcher: &commonMatcher{},
 
 		templatePath: templatePath,
 	}
 }
 
-func (m *TemplateLoader) Match(actualTemplate interface{}) (bool, error) {
+func (m *Loader) Match(actualTemplate interface{}) (bool, error) {
 	if err := checkTemplate(actualTemplate); err != nil {
 		return false, err
 	}
@@ -75,12 +75,12 @@ func (m *TemplateLoader) Match(actualTemplate interface{}) (bool, error) {
 	return true, nil
 }
 
-func (m *TemplateLoader) FailureMessage(_ interface{}) string {
+func (m *Loader) FailureMessage(_ interface{}) string {
 	return m.failureMessageWithError("Expected to load template from JSON without errors")
 }
 
-func (m *TemplateLoader) NegatedFailureMessage(_ interface{}) string {
-	return fmt.Sprintf("Expected to NOT load template from JSON without errors")
+func (m *Loader) NegatedFailureMessage(_ interface{}) string {
+	return "Expected to NOT load template from JSON without errors"
 }
 
 type ResourceNameAndTypeMatcher struct {

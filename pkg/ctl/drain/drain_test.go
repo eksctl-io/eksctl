@@ -54,7 +54,6 @@ func newMockEmptyCmd(args ...string) *mockVerbCmd {
 
 type mockVerbCmd struct {
 	parentCmd *cobra.Command
-	cmd       *cmdutils.Cmd
 }
 
 func (c mockVerbCmd) execute() (string, error) {
