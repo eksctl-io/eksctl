@@ -196,6 +196,11 @@ func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *prin
 	fs.StringVarP(outputMode, "output", "o", "table", "specifies the output format (valid option: table, json, yaml)")
 }
 
+// AddStringToStringVarPFlag is a wrapper that prefixes the description of the flag for consistency
+func AddStringToStringVarPFlag(fs *pflag.FlagSet, p *map[string]string, name, shorthand string, value map[string]string, usage string) {
+	fs.StringToStringVarP(p, name, shorthand, value, fmt.Sprintf(`A list of comma separated KV pairs "k1=v1,k2=v2": %s`, usage))
+}
+
 // ErrUnsupportedRegion is a common error message
 func ErrUnsupportedRegion(provider *api.ProviderConfig) error {
 	return fmt.Errorf("--region=%s is not supported - use one of: %s", provider.Region, strings.Join(api.SupportedRegions(), ", "))
