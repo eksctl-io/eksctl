@@ -189,9 +189,11 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	currentMaxSize := gjson.Get(template, maxSizePath)
 	currentMinSize := gjson.Get(template, minSizePath)
 
-	changed := ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) != currentCapacity.Int()
-	changed = changed || (ng.MinSize != nil && (int64(*ng.MinSize) != currentMinSize.Int()))
-	changed = changed || (ng.MaxSize != nil && (int64(*ng.MaxSize) != currentMaxSize.Int()))
+	hasChanged := func(desiredVal *int, currentVal gjson.Result) bool {
+		return desiredVal != nil && int64(*desiredVal) != currentVal.Int()
+	}
+	changed := hasChanged(ng.DesiredCapacity, currentCapacity) || hasChanged(ng.MaxSize, currentMaxSize) || hasChanged(ng.MinSize, currentMinSize)
+
 	if !changed {
 		logger.Info("no change for nodegroup %q in cluster %q: nodes-min %d, desired %d, nodes-max %d", ng.Name,
 			clusterName, currentMinSize.Int(), *ng.DesiredCapacity, currentMaxSize.Int())
@@ -209,30 +211,28 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	}
 
 	// Set the new values
-	if ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) != currentCapacity.Int() {
-		template, err = sjson.Set(template, desiredCapacityPath, fmt.Sprintf("%d", *ng.DesiredCapacity))
-		if err != nil {
-			return errors.Wrap(err, "setting desired capacity")
+	maybeUpdateField := func(path, fieldName string, newVal *int, oldVal gjson.Result) error {
+		if !hasChanged(newVal, oldVal) {
+			return nil
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", desired capacity from %d to %d", currentCapacity.Int(), *ng.DesiredCapacity))
+		template, err = sjson.Set(template, path, fmt.Sprintf("%d", *newVal))
+		if err != nil {
+			return errors.Wrapf(err, "error setting %s", fieldName)
+		}
+		descriptionBuffer.WriteString(fmt.Sprintf(", %s from %d to %d", fieldName, oldVal.Int(), *newVal))
+		return nil
 	}
 
-	// Update the min nodes if required
-	if ng.MinSize != nil && int64(*ng.MinSize) != currentMinSize.Int() {
-		template, err = sjson.Set(template, minSizePath, fmt.Sprintf("%d", *ng.MinSize))
-		if err != nil {
-			return errors.Wrap(err, "setting min size")
-		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %d to %d", currentMinSize.Int(), *ng.MinSize))
+	if err := maybeUpdateField(desiredCapacityPath, "desired capacity", ng.DesiredCapacity, currentCapacity); err != nil {
+		return err
 	}
 
-	// Update the max nodes if required
-	if ng.MaxSize != nil && int64(*ng.MaxSize) != currentMaxSize.Int() {
-		template, err = sjson.Set(template, maxSizePath, fmt.Sprintf("%d", *ng.MaxSize))
-		if err != nil {
-			return errors.Wrap(err, "setting max size")
-		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %d to %d", currentMaxSize.Int(), *ng.MaxSize))
+	if err := maybeUpdateField(minSizePath, "min size", ng.MinSize, currentMinSize); err != nil {
+		return err
+	}
+
+	if err := maybeUpdateField(maxSizePath, "max size", ng.MaxSize, currentMaxSize); err != nil {
+		return err
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
 
