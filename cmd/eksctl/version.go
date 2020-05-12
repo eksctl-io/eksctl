@@ -20,7 +20,7 @@ func versionCmd(_ *cmdutils.FlagGrouping) *cobra.Command {
 			case "":
 				fmt.Printf("%s\n", version.GetVersion())
 			case "json":
-				fmt.Printf("%#v\n", version.GetVersionInfo())
+				fmt.Printf("%s\n", version.String())
 			default:
 				return fmt.Errorf("unknown output: %s", output)
 			}
