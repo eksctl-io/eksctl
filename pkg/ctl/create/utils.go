@@ -54,7 +54,7 @@ func checkVersion(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, meta *api.Cluster
 }
 
 func showDevicePluginMessageForNodeGroup(nodeGroup *api.NodeGroup, installNeuronPlugin bool) {
-	if eks.HasInstanceType(nodeGroup, utils.IsNeuronInstanceType) {
+	if eks.HasInstanceType(nodeGroup, utils.IsInferentiaInstanceType) {
 		if installNeuronPlugin {
 			logger.Info("as you are using the EKS-Optimized Accelerated AMI with an inf1 instance type, the AWS Neuron Kubernetes device plugin was automatically installed.")
 			logger.Info("\t to skip installing it, use --install-neuron-plugin=false.")
