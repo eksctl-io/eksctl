@@ -100,7 +100,7 @@ make build
 To build the user docs locally, please refer to the below steps:
 
 ```bash
-# Requires python3 and pip installed in your local system
+# Requires python3 and pip3 installed in your local system
 make install-site-deps
 make build-pages
 make serve-pages
