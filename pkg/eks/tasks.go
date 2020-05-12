@@ -133,7 +133,7 @@ func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, inst
 	}
 	var reallyInstallNeuronDevicePlugin bool
 	for _, ng := range cfg.NodeGroups {
-		reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin || HasInstanceType(ng, utils.IsInferentiaInstanceType)
+		reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
 	}
 	reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin && installNeuronDevicePluginParam
 	if reallyInstallNeuronDevicePlugin {

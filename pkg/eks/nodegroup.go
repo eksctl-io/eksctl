@@ -174,21 +174,6 @@ func hasAmazonLinux2Node(nodeGroups []KubeNodeGroup) bool {
 	return false
 }
 
-// HasInstanceType returns whether some node in the group fulfils the type check
-func HasInstanceType(nodeGroup *api.NodeGroup, hasType func(string) bool) bool {
-	if hasType(nodeGroup.InstanceType) {
-		return true
-	}
-	if nodeGroup.InstancesDistribution != nil {
-		for _, instanceType := range nodeGroup.InstancesDistribution.InstanceTypes {
-			if hasType(instanceType) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 // LogWindowsCompatibility logs Windows compatibility messages
 func LogWindowsCompatibility(nodeGroups []KubeNodeGroup, clusterMeta *api.ClusterMeta) {
 	if hasWindowsNode(nodeGroups) {
