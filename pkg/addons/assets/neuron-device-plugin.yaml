@@ -7,7 +7,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      name:  neuron-device-plugin-ds
+      name: neuron-device-plugin-ds
   updateStrategy:
     type: RollingUpdate
   template:
@@ -29,7 +29,7 @@ spec:
       # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
       priorityClassName: "system-node-critical"
       containers:
-        - image: 790709498068.dkr.ecr.us-east-1.amazonaws.com/neuron-device-plugin:latest
+        - image: "%s.dkr.ecr.%s.%s/neuron-device-plugin:latest"
           imagePullPolicy: Always
           name: k8s-neuron-device-plugin-ctr
           securityContext:

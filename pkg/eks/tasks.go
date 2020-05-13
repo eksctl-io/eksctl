@@ -53,15 +53,15 @@ type neuronDevicePluginTask struct {
 	spec            *api.ClusterConfig
 }
 
-func (v *neuronDevicePluginTask) Describe() string { return v.info }
+func (n *neuronDevicePluginTask) Describe() string { return n.info }
 
-func (v *neuronDevicePluginTask) Do(errCh chan error) error {
+func (n *neuronDevicePluginTask) Do(errCh chan error) error {
 	defer close(errCh)
-	rawClient, err := v.clusterProvider.NewRawClient(v.spec)
+	rawClient, err := n.clusterProvider.NewRawClient(n.spec)
 	if err != nil {
 		return err
 	}
-	neuronDevicePlugin := addons.NewNeuronDevicePlugin(rawClient)
+	neuronDevicePlugin := addons.NewNeuronDevicePlugin(rawClient, n.clusterProvider.Provider.Region(), false)
 	if err := neuronDevicePlugin.Deploy(); err != nil {
 		return errors.Wrap(err, "error installing Neuron device plugin")
 	}
