@@ -211,7 +211,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	}
 
 	// Set the new values
-	maybeUpdateField := func(path, fieldName string, newVal *int, oldVal gjson.Result) error {
+	updateField := func(path, fieldName string, newVal *int, oldVal gjson.Result) error {
 		if !hasChanged(newVal, oldVal) {
 			return nil
 		}
@@ -223,15 +223,15 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 		return nil
 	}
 
-	if err := maybeUpdateField(desiredCapacityPath, "desired capacity", ng.DesiredCapacity, currentCapacity); err != nil {
+	if err := updateField(desiredCapacityPath, "desired capacity", ng.DesiredCapacity, currentCapacity); err != nil {
 		return err
 	}
 
-	if err := maybeUpdateField(minSizePath, "min size", ng.MinSize, currentMinSize); err != nil {
+	if err := updateField(minSizePath, "min size", ng.MinSize, currentMinSize); err != nil {
 		return err
 	}
 
-	if err := maybeUpdateField(maxSizePath, "max size", ng.MaxSize, currentMaxSize); err != nil {
+	if err := updateField(maxSizePath, "max size", ng.MaxSize, currentMaxSize); err != nil {
 		return err
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
