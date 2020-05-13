@@ -198,7 +198,7 @@ func AddCommonFlagsForGetCmd(fs *pflag.FlagSet, chunkSize *int, outputMode *prin
 
 // AddStringToStringVarPFlag is a wrapper that prefixes the description of the flag for consistency
 func AddStringToStringVarPFlag(fs *pflag.FlagSet, p *map[string]string, name, shorthand string, value map[string]string, usage string) {
-	fs.StringToStringVarP(p, name, shorthand, value, fmt.Sprintf(`A list of comma separated KV pairs "k1=v1,k2=v2": %s`, usage))
+	fs.StringToStringVarP(p, name, shorthand, value, fmt.Sprintf(`%s. List of comma separated KV pairs "k1=v1,k2=v2"`, usage))
 }
 
 // ErrUnsupportedRegion is a common error message

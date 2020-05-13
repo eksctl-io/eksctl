@@ -33,7 +33,7 @@ func AddFlagsForFargateProfileCreation(fs *pflag.FlagSet, options *fargate.Creat
 		`Kubernetes selector labels of the workloads to schedule on Fargate`)
 
 	AddStringToStringVarPFlag(fs, &options.Tags, fargateProfileTags, "t", map[string]string{},
-		`used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
+		`Used to tag the AWS resources`)
 }
 
 func addFargateProfileName(fs *pflag.FlagSet, profileName *string) {
