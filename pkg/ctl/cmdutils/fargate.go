@@ -30,10 +30,10 @@ func AddFlagsForFargateProfileCreation(fs *pflag.FlagSet, options *fargate.Creat
 		"Kubernetes namespace of the workloads to schedule on Fargate")
 
 	AddStringToStringVarPFlag(fs, &options.ProfileSelectorLabels, fargateProfileSelectorLabels, "l", nil,
-		`Kubernetes selector labels of the workloads to schedule on Fargate`)
+		"Kubernetes selector labels of the workloads to schedule on Fargate")
 
 	AddStringToStringVarPFlag(fs, &options.Tags, fargateProfileTags, "t", map[string]string{},
-		`Used to tag the AWS resources`)
+		"Used to tag the AWS resources")
 }
 
 func addFargateProfileName(fs *pflag.FlagSet, profileName *string) {
