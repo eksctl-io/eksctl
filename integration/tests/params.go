@@ -124,7 +124,7 @@ func (p Params) DeleteClusters() {
 			"--name", clusterName,
 		)
 		session := cmd.Run()
-		if session.ExitCode() != 1 {
+		if session.ExitCode() != 0 {
 			fmt.Fprintf(GinkgoWriter, "Warning: cluster %s's deletion failed", clusterName)
 		}
 	}
