@@ -9,10 +9,13 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-func newUserDataForWindows(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
+func NewUserDataForWindows(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	bootstrapScript := `<powershell>
 [string]$EKSBootstrapScriptFile = "$env:ProgramFiles\Amazon\EKS\Start-EKSBootstrap.ps1"
 `
+	for _, command := range ng.PreBootstrapCommands {
+		bootstrapScript += fmt.Sprintf("%s\n", command)
+	}
 
 	kubeletOptions := map[string]string{
 		"node-labels":          kvs(ng.Labels),
