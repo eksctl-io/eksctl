@@ -136,7 +136,10 @@ type LaunchTemplateData struct {
 
 type Template struct {
 	Description string
-	Resources   map[string]struct{ Properties Properties }
+	Resources   map[string]struct {
+		Properties Properties
+		DependsOn  []string
+	}
 }
 
 var kubeconfigTemplate = template.Must(template.New("kubeconfig").Parse(`apiVersion: v1
@@ -2601,6 +2604,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicRouteTable"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicSubnetRoute"))
+			Expect(clusterTemplate.Resources["PublicSubnetRoute"].DependsOn).To(
+				BeEquivalentTo([]string{"VPCGatewayAttachment"}),
+			)
 
 			expectedFnCIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": "VPC.Ipv6CidrBlocks" }]}, 8, 64 ]}`
 
