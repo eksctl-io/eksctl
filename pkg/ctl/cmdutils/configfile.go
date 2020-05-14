@@ -610,7 +610,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg)
+			return ErrFlagAndArg("--name", sa.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {
