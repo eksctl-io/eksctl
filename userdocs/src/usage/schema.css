@@ -1,0 +1,11 @@
+table#config span.example,
+table#config span.value {
+    filter: opacity(70%);
+}
+table#config td.comment:nth-child(3) {
+    border-left: 2px solid whiteSmoke;
+}
+table#config td.type {
+    filter: opacity(70%);
+    font-size: 80%;
+}

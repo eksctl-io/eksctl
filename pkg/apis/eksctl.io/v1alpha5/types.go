@@ -372,7 +372,7 @@ type ClusterMeta struct {
 	// +optional
 	Version string `json:"version,omitempty"`
 	// +optional
-	Tags map[string]string `json:"tags,omitempty"`
+	Tags map[string]string `json:"tags,omitempty" jsonschema:"description=EKS Cluster tags"`
 }
 
 // ClusterStatus hold read-only attributes of a cluster

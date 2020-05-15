@@ -6,7 +6,7 @@ go 1.14
 
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
-	github.com/alecthomas/jsonschema v0.0.0-20190530235721-fd8d96416671
+	github.com/alecthomas/jsonschema v0.0.0-20200514014646-0366d1034a17
 	github.com/aws/aws-sdk-go v1.30.11
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/awslabs/goformation/v4 v4.1.0
@@ -21,6 +21,7 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/golangci/golangci-lint v1.21.0
 	github.com/goreleaser/goreleaser v0.110.0
+	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
