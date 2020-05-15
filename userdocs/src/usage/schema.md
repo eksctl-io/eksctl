@@ -19,9 +19,8 @@ ClusterCloudWatchLogging:
 ClusterConfig:
   additionalProperties: false
   properties:
-    TypeMeta:
-      $ref: '#/definitions/TypeMeta'
-      $schema: http://json-schema.org/draft-04/schema#
+    apiVersion:
+      type: string
     availabilityZones:
       items:
         type: string
@@ -37,6 +36,8 @@ ClusterConfig:
     iam:
       $ref: '#/definitions/ClusterIAM'
       $schema: http://json-schema.org/draft-04/schema#
+    kind:
+      type: string
     managedNodeGroups:
       items:
         $ref: '#/definitions/ManagedNodeGroup'
@@ -60,7 +61,6 @@ ClusterConfig:
       $ref: '#/definitions/ClusterVPC'
       $schema: http://json-schema.org/draft-04/schema#
   required:
-  - TypeMeta
   - metadata
   type: object
 ClusterEndpoints:
@@ -186,6 +186,7 @@ ClusterSubnets:
       patternProperties:
         .*:
           $ref: '#/definitions/Network'
+          $schema: http://json-schema.org/draft-04/schema#
       type: object
     public:
       patternProperties:
@@ -196,11 +197,11 @@ ClusterSubnets:
 ClusterVPC:
   additionalProperties: false
   properties:
-    Network:
-      $ref: '#/definitions/Network'
-      $schema: http://json-schema.org/draft-04/schema#
     autoAllocateIPv6:
       type: boolean
+    cidr:
+      $ref: '#/definitions/IPNet'
+      $schema: http://json-schema.org/draft-04/schema#
     clusterEndpoints:
       $ref: '#/definitions/ClusterEndpoints'
       $schema: http://json-schema.org/draft-04/schema#
@@ -208,6 +209,8 @@ ClusterVPC:
       items:
         $ref: '#/definitions/IPNet'
       type: array
+    id:
+      type: string
     nat:
       $ref: '#/definitions/ClusterNAT'
       $schema: http://json-schema.org/draft-04/schema#
@@ -222,8 +225,6 @@ ClusterVPC:
     subnets:
       $ref: '#/definitions/ClusterSubnets'
       $schema: http://json-schema.org/draft-04/schema#
-  required:
-  - Network
   type: object
 FargateProfile:
   additionalProperties: false
@@ -280,15 +281,14 @@ IPNet:
 ManagedNodeGroup:
   additionalProperties: false
   properties:
-    ScalingConfig:
-      $ref: '#/definitions/ScalingConfig'
-      $schema: http://json-schema.org/draft-04/schema#
     amiFamily:
       type: string
     availabilityZones:
       items:
         type: string
       type: array
+    desiredCapacity:
+      type: integer
     iam:
       $ref: '#/definitions/NodeGroupIAM'
     instanceType:
@@ -298,6 +298,10 @@ ManagedNodeGroup:
         .*:
           type: string
       type: object
+    maxSize:
+      type: integer
+    minSize:
+      type: integer
     name:
       type: string
     privateNetworking:
@@ -313,7 +317,6 @@ ManagedNodeGroup:
       type: integer
   required:
   - name
-  - ScalingConfig
   - privateNetworking
   type: object
 MetricsCollection:
@@ -333,7 +336,6 @@ Network:
   properties:
     cidr:
       $ref: '#/definitions/IPNet'
-      $schema: http://json-schema.org/draft-04/schema#
     id:
       type: string
   type: object
@@ -561,28 +563,10 @@ NodeGroupSSH:
   required:
   - allow
   type: object
-ScalingConfig:
-  additionalProperties: false
-  properties:
-    desiredCapacity:
-      type: integer
-    maxSize:
-      type: integer
-    minSize:
-      type: integer
-  type: object
 SecretsEncryption:
   additionalProperties: false
   properties:
     keyARN:
-      type: string
-  type: object
-TypeMeta:
-  additionalProperties: false
-  properties:
-    apiVersion:
-      type: string
-    kind:
       type: string
   type: object
 ```
