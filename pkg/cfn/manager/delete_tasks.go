@@ -169,11 +169,11 @@ func (c *StackCollection) NewTasksToDeleteIAMServiceAccounts(shouldDelete func(s
 			info:       fmt.Sprintf("delete serviceaccount %q", name),
 			kubernetes: clientSetGetter,
 			call: func(clientSet kubernetes.Interface) error {
-				meta, err := api.ClusterIAMServiceAccountNameStringToObjectMeta(name)
+				meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(name)
 				if err != nil {
 					return err
 				}
-				return kubernetes.MaybeDeleteServiceAccount(clientSet, *meta)
+				return kubernetes.MaybeDeleteServiceAccount(clientSet, meta.AsObjectMeta())
 			},
 		})
 		tasks.Append(saTasks)
