@@ -20,5 +20,5 @@ template: |
   Weaveworks would like to sincerely thank:
   $CONTRIBUTORS
 replacers:
-  - search: '/(@martina-if|@marccarre|@cPu1)(,)?/g'
+  - search: '/(@martina-if|@michaelbeaumont|@cPu1)(,)?/g'
     replace: ''
