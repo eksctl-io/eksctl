@@ -11,9 +11,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/version"
 )
 
-var output string
-
 func versionCmd(cmd *cmdutils.Cmd) {
+	var output string
+
 	cmd.SetDescription("version", "Output the version of eksctl", "")
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&output, "output", "o", "", "specifies the output format (valid option: json)")
