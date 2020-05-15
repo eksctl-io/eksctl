@@ -13,7 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	kubeclient "k8s.io/client-go/kubernetes"
 )
 
@@ -46,8 +45,8 @@ func selectsCoreDNS(selector api.FargateProfileSelector) bool {
 }
 
 // IsScheduledOnFargate checks if EKS' coredns is scheduled onto Fargate.
-func IsScheduledOnFargate(clientSet kubeclient.Interface) (bool, error) {
-	isDepOnFargate, err := isDeploymentScheduledOnFargate(clientSet)
+func IsScheduledOnFargate(clientSet kubeclient.Interface, useBetaAPIGroup bool) (bool, error) {
+	isDepOnFargate, err := isDeploymentScheduledOnFargate(clientSet, useBetaAPIGroup)
 	if err != nil {
 		return false, err
 	}
@@ -58,19 +57,19 @@ func IsScheduledOnFargate(clientSet kubeclient.Interface) (bool, error) {
 	return isDepOnFargate && arePodsOnFargate, nil
 }
 
-func isDeploymentScheduledOnFargate(clientSet kubeclient.Interface) (bool, error) {
-	coredns, err := clientSet.ExtensionsV1beta1().Deployments(Namespace).Get(Name, metav1.GetOptions{})
+func isDeploymentScheduledOnFargate(clientSet kubeclient.Interface, useBetaAPIGroup bool) (bool, error) {
+	coredns, err := getDeployment(clientSet, useBetaAPIGroup)
 	if err != nil {
 		return false, err
 	}
-	if coredns.Spec.Replicas == nil {
+	if coredns.Replicas() == nil {
 		return false, errors.New("nil spec.replicas in coredns deployment")
 	}
-	computeType, exists := coredns.Spec.Template.Annotations[ComputeTypeAnnotationKey]
-	logger.Debug("deployment %q with compute type %q currently has %v/%v replicas running", Name, computeType, coredns.Status.ReadyReplicas, *coredns.Spec.Replicas)
+	computeType, exists := coredns.PodAnnotations()[ComputeTypeAnnotationKey]
+	logger.Debug("deployment %q with compute type %q currently has %v/%v replicas running", Name, computeType, coredns.ReadyReplicas(), *coredns.Replicas())
 	scheduled := exists &&
 		computeType == computeTypeFargate &&
-		*coredns.Spec.Replicas == coredns.Status.ReadyReplicas
+		*coredns.Replicas() == coredns.ReadyReplicas()
 	if scheduled {
 		logger.Info("%q is now scheduled onto Fargate", Name)
 	}
@@ -104,30 +103,29 @@ func isRunningOnFargate(pod *v1.Pod) bool {
 
 // ScheduleOnFargate modifies EKS' coredns deployment so that it can be scheduled
 // on Fargate.
-func ScheduleOnFargate(clientSet kubeclient.Interface) error {
-	if err := patchDeployment(clientSet); err != nil {
+func ScheduleOnFargate(clientSet kubeclient.Interface, useBetaAPIGroup bool) error {
+	if err := scheduleOnFargate(clientSet, useBetaAPIGroup); err != nil {
 		return errors.Wrapf(err, "failed to make %q deployment schedulable on Fargate", Name)
 	}
 	logger.Info("%q is now schedulable onto Fargate", Name)
 	return nil
 }
 
-func patchDeployment(clientSet kubeclient.Interface) error {
-	client := clientSet.ExtensionsV1beta1().Deployments(Namespace)
-	coredns, err := client.Get(Name, metav1.GetOptions{})
+func scheduleOnFargate(clientSet kubeclient.Interface, useBetaAPIGroup bool) error {
+	coredns, err := getDeployment(clientSet, useBetaAPIGroup)
 	if err != nil {
 		return err
 	}
-	coredns.Spec.Template.Annotations[ComputeTypeAnnotationKey] = computeTypeFargate
+	coredns.PodAnnotations()[ComputeTypeAnnotationKey] = computeTypeFargate
 	bytes, err := runtime.Encode(unstructured.UnstructuredJSONScheme, coredns)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal %q deployment", Name)
 	}
-	patched, err := client.Patch(Name, types.MergePatchType, bytes)
+	patched, err := patchDeployment(clientSet, useBetaAPIGroup, bytes)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to patch deployment")
 	}
-	value, exists := patched.Spec.Template.Annotations[ComputeTypeAnnotationKey]
+	value, exists := patched.PodAnnotations()[ComputeTypeAnnotationKey]
 	if !exists {
 		return fmt.Errorf("could not find annotation %q on patched deployment %q: patching must have failed", ComputeTypeAnnotationKey, Name)
 	}
@@ -140,11 +138,11 @@ func patchDeployment(clientSet kubeclient.Interface) error {
 // WaitForScheduleOnFargate waits for coredns to be scheduled on Fargate.
 // It will wait until it has detected that the scheduling has been successful,
 // or until the retry policy times out, whichever happens first.
-func WaitForScheduleOnFargate(clientSet kubeclient.Interface, retryPolicy retry.Policy) error {
+func WaitForScheduleOnFargate(clientSet kubeclient.Interface, retryPolicy retry.Policy, useBetaAPIGroup bool) error {
 	// Clone the retry policy to ensure this method is re-entrant/thread-safe:
 	retryPolicy = retryPolicy.Clone()
 	for !retryPolicy.Done() {
-		isScheduled, err := IsScheduledOnFargate(clientSet)
+		isScheduled, err := IsScheduledOnFargate(clientSet, useBetaAPIGroup)
 		if err != nil {
 			return err
 		}
