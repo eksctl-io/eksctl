@@ -70,7 +70,9 @@ func (c *Cmd) NewCtl() (*eks.ClusterProvider, error) {
 // AddResourceCmd create a registers a new command under the given verb command
 func AddResourceCmd(flagGrouping *FlagGrouping, parentVerbCmd *cobra.Command, newCmd func(*Cmd)) {
 	c := &Cmd{
-		CobraCommand:   &cobra.Command{},
+		CobraCommand: &cobra.Command{
+			Args: cobra.MaximumNArgs(1),
+		},
 		ProviderConfig: &api.ProviderConfig{},
 
 		Plan:     true,  // always on by default
