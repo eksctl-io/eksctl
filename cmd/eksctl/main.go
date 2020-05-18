@@ -39,7 +39,8 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	}
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
-	rootCmd.AddCommand(versionCmd(flagGrouping))
+
+	cmdutils.AddResourceCmd(flagGrouping, rootCmd, versionCmd)
 }
 
 func main() {

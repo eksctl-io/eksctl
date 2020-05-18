@@ -162,7 +162,7 @@ eksctl get labels --cluster managed-cluster --nodegroup managed-ng-1
 the same.
 
 ```console
-eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4
+eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4 --nodes-min=3 --nodes-max=5
 ```
 
 

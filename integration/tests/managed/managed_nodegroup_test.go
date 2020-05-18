@@ -103,7 +103,9 @@ var _ = Describe("(Integration) Create Managed Nodegroups", func() {
 			It("should not return an error", func() {
 				cmd := params.EksctlScaleNodeGroupCmd.WithArgs(
 					"--cluster", params.ClusterName,
+					"--nodes-min", "2",
 					"--nodes", "3",
+					"--nodes-max", "4",
 					"--name", initialNodeGroup,
 				)
 				Expect(cmd).To(RunSuccessfully())

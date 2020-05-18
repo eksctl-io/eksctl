@@ -14,6 +14,12 @@ import (
 )
 
 func deleteIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
+	deleteIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
+		return doDeleteIAMServiceAccount(cmd, serviceAccount, onlyMissing)
+	})
+}
+
+func deleteIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -27,7 +33,8 @@ func deleteIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 	cmd.SetDescription("iamserviceaccount", "Delete an IAM service account", "")
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
-		return doDeleteIAMServiceAccount(cmd, serviceAccount, onlyMissing)
+		cmd.NameArg = cmdutils.GetNameArg(args)
+		return runFunc(cmd, serviceAccount, onlyMissing)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
