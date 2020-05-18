@@ -114,7 +114,7 @@ func (c *StackCollection) NewTasksToCreateIAMServiceAccounts(serviceAccounts []*
 			kubernetes: clientSetGetter,
 			call: func(clientSet kubernetes.Interface) error {
 				sa.SetAnnotations()
-				return kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ObjectMeta)
+				return kubernetes.MaybeCreateServiceAccountOrUpdateMetadata(clientSet, sa.ClusterIAMMeta.AsObjectMeta())
 			},
 		})
 
