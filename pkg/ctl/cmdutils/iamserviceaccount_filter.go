@@ -52,7 +52,7 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager *manager
 
 	if !overrideExistingServiceAccounts {
 		err := f.ForEach(serviceAccounts, func(_ int, sa *api.ClusterIAMServiceAccount) error {
-			exists, err := kubernetes.CheckServiceAccountExists(clientSet, sa.ObjectMeta)
+			exists, err := kubernetes.CheckServiceAccountExists(clientSet, sa.ClusterIAMMeta.AsObjectMeta())
 			if err != nil {
 				return err
 			}
@@ -98,12 +98,12 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 			logger.Info("iamserviceaccounts %q present in the cluster, but missing from the given config", remoteServiceAccountName)
 			if includeOnlyMissing {
 				// append it to the config object, so that `saFilter.ForEach` knows about it
-				meta, err := api.ClusterIAMServiceAccountNameStringToObjectMeta(remoteServiceAccountName)
+				meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(remoteServiceAccountName)
 				if err != nil {
 					return err
 				}
 				remoteServiceAccount := &api.ClusterIAMServiceAccount{
-					ObjectMeta: *meta,
+					ClusterIAMMeta: *meta,
 				}
 				*serviceAccounts = append(*serviceAccounts, remoteServiceAccount)
 				// make sure it passes it through the filter, so that one can use `--only-missing` along with `--exclude`

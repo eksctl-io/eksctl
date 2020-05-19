@@ -114,7 +114,7 @@ const (
 	Version1_16 = "1.16"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_15
+	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
 	LatestVersion = Version1_16
@@ -445,7 +445,7 @@ type ProviderConfig struct {
 
 // ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 
 	Metadata *ClusterMeta `json:"metadata"`
 
@@ -480,7 +480,7 @@ type ClusterConfig struct {
 
 // ClusterConfigList is a list of ClusterConfigs
 type ClusterConfigList struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 	metav1.ListMeta `json:"metadata"`
 
 	Items []ClusterConfig `json:"items"`
@@ -840,7 +840,7 @@ type ManagedNodeGroup struct {
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
-	*ScalingConfig `json:",inline"`
+	*ScalingConfig
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
