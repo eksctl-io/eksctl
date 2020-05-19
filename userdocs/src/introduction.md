@@ -19,12 +19,12 @@ eksctl create cluster --name=cluster-1 --nodes=4
 
 ```
 
-EKS supports versions `1.13`, `1.14`, `1.15` (default) and `1.16`
+EKS supports versions `1.13`, `1.14`, `1.15` and `1.16` (default)
 With `eksctl` you can deploy any of the supported versions by passing `--version`.
 
 ```
 
-eksctl create cluster --version=1.15
+eksctl create cluster --version=1.16
 
 ```
 
@@ -181,6 +181,12 @@ and Windows users can use [chocolatey](https://chocolatey.org):
 chocolatey install eksctl
 ```
 
+or [scoop](https://scoop.sh):
+
+```
+scoop install eksctl
+```
+
 You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
 or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
 
@@ -239,7 +245,7 @@ The features that are currently implemented are:
 - Update a cluster
 - Use custom AMIs
 - Configure VPC Networking
-- Configure accesss to API endpoints
+- Configure access to API endpoints
 - Support for GPU nodegroups
 - Spot instances and mixed instances
 - IAM Management and Add-on Policies

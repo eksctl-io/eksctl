@@ -81,7 +81,7 @@ var _ = Describe("StackCollection NodeGroup", func() {
 								"Properties": {
 									"DesiredCapacity": 2,
 									"MinSize": 1,
-									"MaxSize: 3
+									"MaxSize": 3
 								}
 							}
 						}
@@ -93,10 +93,58 @@ var _ = Describe("StackCollection NodeGroup", func() {
 				ng.Name = "12345"
 				capacity := 2
 				ng.DesiredCapacity = &capacity
-
 				err := sc.ScaleNodeGroup(ng)
-
 				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should be a no-op if attempting to scale to the existing desired capacity, min size", func() {
+				ng.Name = "12345"
+				minSize := 1
+				capacity := 2
+				ng.MinSize = &minSize
+				ng.DesiredCapacity = &capacity
+				err := sc.ScaleNodeGroup(ng)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should be a no-op if attempting to scale to the existing desired capacity, max size", func() {
+				ng.Name = "12345"
+				capacity := 2
+				maxSize := 3
+				ng.DesiredCapacity = &capacity
+				ng.MaxSize = &maxSize
+				err := sc.ScaleNodeGroup(ng)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should be a no-op if attempting to scale to the existing desired capacity, min size and max size", func() {
+				ng.Name = "12345"
+				minSize := 1
+				capacity := 2
+				maxSize := 3
+				ng.MinSize = &minSize
+				ng.DesiredCapacity = &capacity
+				ng.MaxSize = &maxSize
+				err := sc.ScaleNodeGroup(ng)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("should be a error if the desired capacity is greater than current CF maxSize", func() {
+				ng.Name = "12345"
+				capacity := 5
+				ng.DesiredCapacity = &capacity
+				err := sc.ScaleNodeGroup(ng)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("the desired nodes 5 is greater than current nodes-max/maxSize 3"))
+			})
+
+			It("should be a error if the desired capacity is less than current CF minSize", func() {
+				ng.Name = "12345"
+				capacity := 0
+				ng.DesiredCapacity = &capacity
+				err := sc.ScaleNodeGroup(ng)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("the desired nodes 0 is less than current nodes-min/minSize 1"))
 			})
 		})
 	})

@@ -32,6 +32,8 @@ type Params struct {
 	PrivateSSHKeyPath       string
 	EksctlCmd               runner.Cmd
 	EksctlCreateCmd         runner.Cmd
+	EksctlUpdateCmd         runner.Cmd
+	EksctlUpgradeCmd        runner.Cmd
 	EksctlGetCmd            runner.Cmd
 	EksctlDeleteCmd         runner.Cmd
 	EksctlDeleteClusterCmd  runner.Cmd
@@ -64,6 +66,13 @@ func (p *Params) GenerateCommands() {
 	p.EksctlCreateCmd = p.EksctlCmd.
 		WithArgs("create").
 		WithTimeout(25 * time.Minute)
+
+	p.EksctlUpdateCmd = p.EksctlCmd.
+		WithArgs("update").
+		WithTimeout(55 * time.Minute)
+
+	p.EksctlUpgradeCmd = p.EksctlCmd.
+		WithArgs("upgrade")
 
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
@@ -114,8 +123,8 @@ func (p Params) DeleteClusters() {
 		cmd := p.EksctlDeleteClusterCmd.WithArgs(
 			"--name", clusterName,
 		)
-		session := cmd.Start()
-		if session.ExitCode() != 1 {
+		session := cmd.Run()
+		if session.ExitCode() != 0 {
 			fmt.Fprintf(GinkgoWriter, "Warning: cluster %s's deletion failed", clusterName)
 		}
 	}

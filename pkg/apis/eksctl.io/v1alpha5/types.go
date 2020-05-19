@@ -83,6 +83,12 @@ const (
 	// RegionCNNorth1 represents the China region Beijing
 	RegionCNNorth1 = "cn-north-1"
 
+	// RegionUSGovWest1 represents the region GovCloud (US-West)
+	RegionUSGovWest1 = "us-gov-west-1"
+
+	// RegionUSGovEast1 represents the region GovCloud (US-East)
+	RegionUSGovEast1 = "us-gov-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -108,7 +114,7 @@ const (
 	Version1_16 = "1.16"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_15
+	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
 	LatestVersion = Version1_16
@@ -211,6 +217,12 @@ const (
 
 	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
 	eksResourceAccountCNNorth1 = "918309763551"
+
+	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
+	eksResourceAccountUSGovWest1 = "013241004608"
+
+	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
+	eksResourceAccountUSGovEast1 = "151742754352"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -283,6 +295,8 @@ func SupportedRegions() []string {
 		RegionSAEast1,
 		RegionCNNorthwest1,
 		RegionCNNorth1,
+		RegionUSGovWest1,
+		RegionUSGovEast1,
 	}
 }
 
@@ -342,6 +356,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountCNNorthWest1
 	case RegionCNNorth1:
 		return eksResourceAccountCNNorth1
+	case RegionUSGovWest1:
+		return eksResourceAccountUSGovWest1
+	case RegionUSGovEast1:
+		return eksResourceAccountUSGovEast1
 	default:
 		return eksResourceAccountStandard
 	}
