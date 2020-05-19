@@ -298,8 +298,7 @@
           "type": "string"
         },
         "cidr": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/IPNet"
+          "type": "string"
         },
         "securityGroup": {
           "type": "string"
@@ -310,7 +309,7 @@
         },
         "extraCIDRs": {
           "items": {
-            "$ref": "#/definitions/IPNet"
+            "type": "string"
           },
           "type": "array"
         },
@@ -390,26 +389,6 @@
             }
           },
           "type": "object"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "IPNet": {
-      "required": [
-        "IP",
-        "Mask"
-      ],
-      "properties": {
-        "IP": {
-          "type": "string",
-          "format": "ipv4"
-        },
-        "Mask": {
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
         }
       },
       "additionalProperties": false,
@@ -501,7 +480,7 @@
           "type": "string"
         },
         "cidr": {
-          "$ref": "#/definitions/IPNet"
+          "type": "string"
         }
       },
       "additionalProperties": false,
