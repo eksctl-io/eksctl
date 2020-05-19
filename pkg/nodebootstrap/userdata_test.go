@@ -50,6 +50,7 @@ var _ = Describe("User data", func() {
 			ng.InstanceType = "i3.metal"
 			data, err := makeKubeletConfigYAML(clusterConfig, ng)
 			Expect(err).ToNot(HaveOccurred())
+
 			kubelet := kubeletapi.KubeletConfiguration{}
 			err = yaml.UnmarshalStrict(data, &kubelet)
 			Expect(err).ToNot(HaveOccurred())

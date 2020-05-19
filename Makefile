@@ -7,8 +7,7 @@ gocache := $(shell go env GOCACHE)
 
 GOBIN ?= $(gopath)/bin
 
-
-always_generate_in_packages := ./pkg/nodebootstrap ./pkg/addons/default ./pkg/addons
+AWS_SDK_GO_DIR ?= $(gopath)/pkg/mod/$(shell grep 'aws-sdk-go' go.sum | awk '{print $$1 "@" $$2}' | grep -v 'go.mod' | sort | tail -1)
 
 generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deepcopy.go
 
@@ -20,20 +19,22 @@ conditionally_generated_files := \
 
 all_generated_files := \
   pkg/nodebootstrap/assets.go \
-  pkg/nodebootstrap/maxpods.go \
   pkg/addons/default/assets.go \
-  pkg/addons/default/assets/aws-node.yaml \
   pkg/addons/assets.go \
-  pkg/ami/static_resolver_ami.go \
   $(conditionally_generated_files)
 
 .DEFAULT_GOAL := help
 
 ##@ Dependencies
+.PHONY: install-all-deps
+install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
+
+.PHONY: install-site-deps
+install-site-deps: ## Install dependencies for user docs
 	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
@@ -49,6 +50,9 @@ build: generate-always ## Build main binary
 .PHONY: build-all
 build-all: generate-always
 	goreleaser --config=.goreleaser-local.yaml --snapshot --skip-publish --rm-dist
+
+clean: ## Remove artefacts or generated files from previous build
+	rm -rf .license-header eksctl eksctl-integration-test
 
 ##@ Testing & CI
 
@@ -146,13 +150,17 @@ delete-integration-test-dev-cluster: build ## Delete the test cluster for use wh
 
 ##@ Code Generation
 
+## Important: pkg/addons/default/generate.go depends on pkg/addons/default/assets/aws-node.yaml If this file is
+## not present, the generation of assets will not fail but will not contain it.
 .PHONY: generate-always
-generate-always: ## Generate code (required for every build)
+generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (required for every build)
 	@# go-bindata targets must run every time, as dependencies are too complex to declare in make:
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
 	@$(GOBIN)/go-bindata -v
-	env GOBIN=$(GOBIN) time go generate $(always_generate_in_packages)
+	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap/assets.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/addons
 
 .PHONY: generate-all
 generate-all: generate-always $(conditionally_generated_files) ## Re-generate all the automatically-generated source files
@@ -162,12 +170,26 @@ check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
 .license-header: LICENSE
-	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
+	@# generate-groups.sh can't find the license header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
-.PHONY: generate-ami
-generate-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
-	time go generate ./pkg/ami
+### Update AMIs in ami static resolver
+.PHONY: update-ami
+update-ami: ## Generate the list of AMIs for use with static resolver. Queries AWS.
+	go generate ./pkg/ami
+
+### Update maxpods.go from AWS
+.PHONY: update-maxpods
+update-maxpods: ## Re-download the max pods info from AWS and regenerate the maxpods.go file
+	@cd pkg/nodebootstrap && go run maxpods_generate.go
+
+### Update aws-node addon manifests from AWS
+pkg/addons/default/assets/aws-node.yaml:
+	$(MAKE) update-aws-node
+
+.PHONY: update-aws-node
+update-aws-node: ## Re-download the aws-node manifests from AWS
+	time go generate ./pkg/addons/default/aws_node_generate.go
 
 userdocs/src/usage/schema.md: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
@@ -177,10 +199,7 @@ $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ##
 	./tools/update-codegen.sh
 
 $(generated_code_aws_sdk_mocks): $(call godeps,pkg/eks/mocks/mocks.go)
-	mkdir -p vendor/github.com/aws/
-	@# Hack for Mockery to find the dependencies handled by `go mod`
-	ln -sfn "$(gopath)/pkg/mod/github.com/weaveworks/aws-sdk-go@v1.25.14-0.20191218135223-757eeed07291" vendor/github.com/aws/aws-sdk-go
-	time env GOBIN=$(GOBIN) go generate ./pkg/eks/mocks
+	time env GOBIN=$(GOBIN) AWS_SDK_GO_DIR=$(AWS_SDK_GO_DIR) go generate ./pkg/eks/mocks
 
 .PHONY: generate-kube-reserved
 generate-kube-reserved: ## Update instance list with respective specs
@@ -235,7 +254,6 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 	$(MAKE) -f Makefile.docker $@
 
 ##@ Site
-
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
 	cd userdocs/ ; mkdocs serve

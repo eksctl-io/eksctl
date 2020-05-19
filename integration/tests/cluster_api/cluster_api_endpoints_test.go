@@ -141,7 +141,7 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 						"update-cluster-endpoints",
 						"--name", clName,
 						fmt.Sprintf("--public-access=%v", true),
-						fmt.Sprintf("--approve"),
+						"--approve",
 					)
 					Expect(utilsCmd).Should(RunSuccessfully())
 				}
@@ -161,13 +161,6 @@ var _ = Describe("(Integration) Create and Update Cluster with Endpoint Configs"
 			Public:  true,
 			Type:    createCluster,
 			Fails:   false,
-		}),
-		Entry("Create cluster2, Private=true, Public=false, should not succeed", endpointAccessCase{
-			Name:    "cluster2",
-			Private: true,
-			Public:  false,
-			Type:    createCluster,
-			Fails:   true,
 		}),
 		Entry("Create cluster3, Private=true, Public=true, should succeed", endpointAccessCase{
 			Name:    "cluster3",

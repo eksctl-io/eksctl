@@ -1,13 +1,14 @@
 package flux
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/instrumenta/kubeval/kubeval"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/git"
-	"io/ioutil"
 	"k8s.io/client-go/kubernetes/fake"
-	"os"
 )
 
 var _ = Describe("Installer", func() {

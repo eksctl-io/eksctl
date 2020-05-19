@@ -31,7 +31,7 @@ func setLabelsCmd(cmd *cmdutils.Cmd) {
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&options.nodeGroupName, "nodegroup", "n", "", "Nodegroup name")
-		fs.StringToStringVarP(&options.labels, "labels", "l", nil, "Create Labels")
+		cmdutils.AddStringToStringVarPFlag(fs, &options.labels, "labels", "l", nil, "Labels")
 		_ = cobra.MarkFlagRequired(fs, "labels")
 
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)

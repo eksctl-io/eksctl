@@ -19,9 +19,8 @@ ClusterCloudWatchLogging:
 ClusterConfig:
   additionalProperties: false
   properties:
-    TypeMeta:
-      $ref: '#/definitions/TypeMeta'
-      $schema: http://json-schema.org/draft-04/schema#
+    apiVersion:
+      type: string
     availabilityZones:
       items:
         type: string
@@ -37,6 +36,8 @@ ClusterConfig:
     iam:
       $ref: '#/definitions/ClusterIAM'
       $schema: http://json-schema.org/draft-04/schema#
+    kind:
+      type: string
     managedNodeGroups:
       items:
         $ref: '#/definitions/ManagedNodeGroup'
@@ -60,7 +61,6 @@ ClusterConfig:
       $ref: '#/definitions/ClusterVPC'
       $schema: http://json-schema.org/draft-04/schema#
   required:
-  - TypeMeta
   - metadata
   type: object
 ClusterEndpoints:
@@ -90,6 +90,24 @@ ClusterIAM:
     withOIDC:
       type: boolean
   type: object
+ClusterIAMMeta:
+  additionalProperties: false
+  properties:
+    annotations:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    labels:
+      patternProperties:
+        .*:
+          type: string
+      type: object
+    name:
+      type: string
+    namespace:
+      type: string
+  type: object
 ClusterIAMServiceAccount:
   additionalProperties: false
   properties:
@@ -104,13 +122,18 @@ ClusterIAMServiceAccount:
         type: string
       type: array
     metadata:
-      $ref: '#/definitions/ObjectMeta'
+      $ref: '#/definitions/ClusterIAMMeta'
       $schema: http://json-schema.org/draft-04/schema#
     permissionsBoundary:
       type: string
     status:
       $ref: '#/definitions/ClusterIAMServiceAccountStatus'
       $schema: http://json-schema.org/draft-04/schema#
+    tags:
+      patternProperties:
+        .*:
+          type: string
+      type: object
   type: object
 ClusterIAMServiceAccountStatus:
   additionalProperties: false
@@ -163,6 +186,7 @@ ClusterSubnets:
       patternProperties:
         .*:
           $ref: '#/definitions/Network'
+          $schema: http://json-schema.org/draft-04/schema#
       type: object
     public:
       patternProperties:
@@ -173,11 +197,11 @@ ClusterSubnets:
 ClusterVPC:
   additionalProperties: false
   properties:
-    Network:
-      $ref: '#/definitions/Network'
-      $schema: http://json-schema.org/draft-04/schema#
     autoAllocateIPv6:
       type: boolean
+    cidr:
+      $ref: '#/definitions/IPNet'
+      $schema: http://json-schema.org/draft-04/schema#
     clusterEndpoints:
       $ref: '#/definitions/ClusterEndpoints'
       $schema: http://json-schema.org/draft-04/schema#
@@ -185,6 +209,8 @@ ClusterVPC:
       items:
         $ref: '#/definitions/IPNet'
       type: array
+    id:
+      type: string
     nat:
       $ref: '#/definitions/ClusterNAT'
       $schema: http://json-schema.org/draft-04/schema#
@@ -199,8 +225,6 @@ ClusterVPC:
     subnets:
       $ref: '#/definitions/ClusterSubnets'
       $schema: http://json-schema.org/draft-04/schema#
-  required:
-  - Network
   type: object
 FargateProfile:
   additionalProperties: false
@@ -240,17 +264,6 @@ FargateProfileSelector:
   required:
   - namespace
   type: object
-Fields:
-  additionalProperties: false
-  properties:
-    Map:
-      patternProperties:
-        .*:
-          $ref: '#/definitions/Fields'
-      type: object
-  required:
-  - Map
-  type: object
 IPNet:
   additionalProperties: false
   properties:
@@ -265,67 +278,17 @@ IPNet:
   - IP
   - Mask
   type: object
-Initializer:
-  additionalProperties: false
-  properties:
-    name:
-      type: string
-  required:
-  - name
-  type: object
-Initializers:
-  additionalProperties: false
-  properties:
-    pending:
-      items:
-        $ref: '#/definitions/Initializer'
-        $schema: http://json-schema.org/draft-04/schema#
-      type: array
-    result:
-      $ref: '#/definitions/Status'
-      $schema: http://json-schema.org/draft-04/schema#
-  required:
-  - pending
-  type: object
-ListMeta:
-  additionalProperties: false
-  properties:
-    continue:
-      type: string
-    remainingItemCount:
-      type: integer
-    resourceVersion:
-      type: string
-    selfLink:
-      type: string
-  type: object
-ManagedFieldsEntry:
-  additionalProperties: false
-  properties:
-    apiVersion:
-      type: string
-    fields:
-      $ref: '#/definitions/Fields'
-      $schema: http://json-schema.org/draft-04/schema#
-    manager:
-      type: string
-    operation:
-      type: string
-    time:
-      $ref: '#/definitions/Time'
-  type: object
 ManagedNodeGroup:
   additionalProperties: false
   properties:
-    ScalingConfig:
-      $ref: '#/definitions/ScalingConfig'
-      $schema: http://json-schema.org/draft-04/schema#
     amiFamily:
       type: string
     availabilityZones:
       items:
         type: string
       type: array
+    desiredCapacity:
+      type: integer
     iam:
       $ref: '#/definitions/NodeGroupIAM'
     instanceType:
@@ -335,6 +298,10 @@ ManagedNodeGroup:
         .*:
           type: string
       type: object
+    maxSize:
+      type: integer
+    minSize:
+      type: integer
     name:
       type: string
     privateNetworking:
@@ -350,15 +317,25 @@ ManagedNodeGroup:
       type: integer
   required:
   - name
-  - ScalingConfig
   - privateNetworking
+  type: object
+MetricsCollection:
+  additionalProperties: false
+  properties:
+    granularity:
+      type: string
+    metrics:
+      items:
+        type: string
+      type: array
+  required:
+  - granularity
   type: object
 Network:
   additionalProperties: false
   properties:
     cidr:
       $ref: '#/definitions/IPNet'
-      $schema: http://json-schema.org/draft-04/schema#
     id:
       type: string
   type: object
@@ -369,6 +346,11 @@ NodeGroup:
       type: string
     amiFamily:
       type: string
+    asgMetricsCollection:
+      items:
+        $ref: '#/definitions/MetricsCollection'
+        $schema: http://json-schema.org/draft-04/schema#
+      type: array
     availabilityZones:
       items:
         type: string
@@ -581,157 +563,10 @@ NodeGroupSSH:
   required:
   - allow
   type: object
-ObjectMeta:
-  additionalProperties: false
-  properties:
-    annotations:
-      patternProperties:
-        .*:
-          type: string
-      type: object
-    clusterName:
-      type: string
-    creationTimestamp:
-      $ref: '#/definitions/Time'
-      $schema: http://json-schema.org/draft-04/schema#
-    deletionGracePeriodSeconds:
-      type: integer
-    deletionTimestamp:
-      $ref: '#/definitions/Time'
-    finalizers:
-      items:
-        type: string
-      type: array
-    generateName:
-      type: string
-    generation:
-      type: integer
-    initializers:
-      $ref: '#/definitions/Initializers'
-      $schema: http://json-schema.org/draft-04/schema#
-    labels:
-      patternProperties:
-        .*:
-          type: string
-      type: object
-    managedFields:
-      items:
-        $ref: '#/definitions/ManagedFieldsEntry'
-        $schema: http://json-schema.org/draft-04/schema#
-      type: array
-    name:
-      type: string
-    namespace:
-      type: string
-    ownerReferences:
-      items:
-        $ref: '#/definitions/OwnerReference'
-        $schema: http://json-schema.org/draft-04/schema#
-      type: array
-    resourceVersion:
-      type: string
-    selfLink:
-      type: string
-    uid:
-      type: string
-  type: object
-OwnerReference:
-  additionalProperties: false
-  properties:
-    apiVersion:
-      type: string
-    blockOwnerDeletion:
-      type: boolean
-    controller:
-      type: boolean
-    kind:
-      type: string
-    name:
-      type: string
-    uid:
-      type: string
-  required:
-  - apiVersion
-  - kind
-  - name
-  - uid
-  type: object
-ScalingConfig:
-  additionalProperties: false
-  properties:
-    desiredCapacity:
-      type: integer
-    maxSize:
-      type: integer
-    minSize:
-      type: integer
-  type: object
 SecretsEncryption:
   additionalProperties: false
   properties:
     keyARN:
-      type: string
-  type: object
-Status:
-  additionalProperties: false
-  properties:
-    TypeMeta:
-      $ref: '#/definitions/TypeMeta'
-    code:
-      type: integer
-    details:
-      $ref: '#/definitions/StatusDetails'
-      $schema: http://json-schema.org/draft-04/schema#
-    message:
-      type: string
-    metadata:
-      $ref: '#/definitions/ListMeta'
-      $schema: http://json-schema.org/draft-04/schema#
-    reason:
-      type: string
-    status:
-      type: string
-  required:
-  - TypeMeta
-  type: object
-StatusCause:
-  additionalProperties: false
-  properties:
-    field:
-      type: string
-    message:
-      type: string
-    reason:
-      type: string
-  type: object
-StatusDetails:
-  additionalProperties: false
-  properties:
-    causes:
-      items:
-        $ref: '#/definitions/StatusCause'
-        $schema: http://json-schema.org/draft-04/schema#
-      type: array
-    group:
-      type: string
-    kind:
-      type: string
-    name:
-      type: string
-    retryAfterSeconds:
-      type: integer
-    uid:
-      type: string
-  type: object
-Time:
-  additionalProperties: false
-  type: object
-TypeMeta:
-  additionalProperties: false
-  properties:
-    apiVersion:
-      type: string
-    kind:
       type: string
   type: object
 ```

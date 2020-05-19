@@ -15,6 +15,12 @@ import (
 )
 
 func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
+	createIAMServiceAccountCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
+		return doCreateIAMServiceAccount(cmd, overrideExistingServiceAccounts)
+	})
+}
+
+func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error) {
 	cfg := api.NewClusterConfig()
 	cmd.ClusterConfig = cfg
 
@@ -27,8 +33,9 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 
 	cmd.SetDescription("iamserviceaccount", "Create an iamserviceaccount - AWS IAM role bound to a Kubernetes service account", "")
 
-	cmd.CobraCommand.RunE = func(_ *cobra.Command, _ []string) error {
-		return doCreateIAMServiceAccount(cmd, overrideExistingServiceAccounts)
+	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
+		cmd.NameArg = cmdutils.GetNameArg(args)
+		return runFunc(cmd, overrideExistingServiceAccounts)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
@@ -37,6 +44,8 @@ func createIAMServiceAccountCmd(cmd *cmdutils.Cmd) {
 		fs.StringVar(&serviceAccount.Name, "name", "", "name of the iamserviceaccount to create")
 		fs.StringVar(&serviceAccount.Namespace, "namespace", "default", "namespace where to create the iamserviceaccount")
 		fs.StringSliceVar(&serviceAccount.AttachPolicyARNs, "attach-policy-arn", []string{}, "ARN of the policy where to create the iamserviceaccount")
+
+		cmdutils.AddStringToStringVarPFlag(fs, &serviceAccount.Tags, "tags", "", map[string]string{}, "Used to tag the IAM role")
 
 		fs.BoolVar(&overrideExistingServiceAccounts, "override-existing-serviceaccounts", false, "create IAM roles for existing serviceaccounts and update the serviceaccount")
 

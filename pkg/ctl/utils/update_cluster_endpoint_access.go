@@ -98,11 +98,12 @@ func doUpdateClusterEndpoints(cmd *cmdutils.Cmd, newPrivate bool, newPublic bool
 		meta.Name, meta.Region, newPrivate, newPublic)
 
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
-		// Error for everything except private-only (which leaves the cluster accessible)
-		if err != api.ErrClusterEndpointPrivateOnly {
-			return err
-		}
-		logger.Warning(err.Error())
+		return err
+	}
+
+	// if it's a private only cluster warn the user
+	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
+		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
 	}
 
 	if !cmd.Plan {

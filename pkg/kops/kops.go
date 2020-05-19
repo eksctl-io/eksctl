@@ -54,6 +54,9 @@ func (k *Wrapper) UseVPC(provider api.ClusterProvider, spec *api.ClusterConfig) 
 	}
 
 	for _, subnet := range allSubnets {
+		if subnet.Type != ec2.ResourceTypeSubnet {
+			continue
+		}
 		subnet := subnet.Obj.(*ec2.Subnet)
 		for _, tag := range subnet.Tags {
 			if k.isOwned(tag) {

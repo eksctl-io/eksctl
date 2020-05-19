@@ -2,6 +2,7 @@ package nodebootstrap
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -16,7 +17,6 @@ import (
 )
 
 //go:generate ${GOBIN}/go-bindata -pkg ${GOPACKAGE} -prefix assets -nometadata -o assets.go assets
-//go:generate go run ./maxpods_generate.go
 
 const (
 	configDir            = "/etc/eksctl/"
@@ -66,13 +66,9 @@ func addFilesAndScripts(config *cloudconfig.CloudConfig, files configFiles, scri
 	return nil
 }
 
-func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup) ([]byte, error) {
+func makeClientConfigData(spec *api.ClusterConfig, ng *api.NodeGroup, authenticatorCMD string) ([]byte, error) {
 	clientConfig, _, _ := kubeconfig.New(spec, "kubelet", configDir+"ca.crt")
-	authenticator := kubeconfig.AWSIAMAuthenticator
-	if ng.AMIFamily == api.NodeImageFamilyUbuntu1804 {
-		authenticator = kubeconfig.HeptioAuthenticatorAWS
-	}
-	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticator, "", "")
+	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticatorCMD, "", "")
 	clientConfigData, err := clientcmd.Write(*clientConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "serialising kubeconfig for nodegroup")
@@ -152,6 +148,7 @@ func toCLIArgs(values map[string]string) string {
 	for k, v := range values {
 		args = append(args, fmt.Sprintf("--%s=%s", k, v))
 	}
+	sort.Strings(args)
 	return strings.Join(args, " ")
 }
 
@@ -194,7 +191,7 @@ func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	case api.NodeImageFamilyBottlerocket:
 		return NewUserDataForBottlerocket(spec, ng)
 	case api.NodeImageFamilyWindowsServer2019FullContainer, api.NodeImageFamilyWindowsServer2019CoreContainer:
-		return newUserDataForWindows(spec, ng)
+		return NewUserDataForWindows(spec, ng)
 	default:
 		return "", nil
 	}

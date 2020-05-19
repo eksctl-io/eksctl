@@ -50,9 +50,8 @@ type endpointAccessCase struct {
 }
 
 type importAllSubnetsCase struct {
-	cfg                   *api.ClusterConfig
-	describeSubnetsOutput *ec2.DescribeSubnetsOutput
-	error                 error
+	cfg   *api.ClusterConfig
+	error error
 }
 
 type cleanupSubnetsCase struct {

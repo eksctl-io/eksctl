@@ -8,8 +8,9 @@ To create an additional nodegroup, use:
 eksctl create nodegroup --cluster=<clusterName> [--name=<nodegroupName>]
 ```
 
-> NOTE: By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
-> version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
+!!!note
+    By default, new nodegroups inherit the version from the control plane (`--version=auto`), but you can specify a different
+    version e.g. `--version=1.10`, you can also use `--version=latest` to force use of whichever is the latest version.
 
 Additionally, you can use the same config file used for `eksctl create cluster`:
 
@@ -76,6 +77,17 @@ nodeGroups:
     classicLoadBalancerNames:
       - dev-clb-1
       - dev-clb-2
+    asgMetricsCollection:
+      - granularity: 1Minute
+        metrics:
+          - GroupMinSize
+          - GroupMaxSize
+          - GroupDesiredCapacity
+          - GroupInServiceInstances
+          - GroupPendingInstances
+          - GroupStandbyInstances
+          - GroupTerminatingInstances
+          - GroupTotalInstances
   - name: ng-2-api
     labels: { role: api }
     instanceType: m5.2xlarge
@@ -104,7 +116,7 @@ load and delete the old one. Check [Deleting and draining](#deleting-and-drainin
 A nodegroup can be scaled by using the `eksctl scale nodegroup` command:
 
 ```
-eksctl scale nodegroup --cluster=<clusterName> --nodes=<desiredCount> --name=<nodegroupName>
+eksctl scale nodegroup --cluster=<clusterName> --nodes=<desiredCount> --name=<nodegroupName> [ --nodes-min=<minSize> ] [ --nodes-max=<maxSize> ]
 ```
 
 For example, to scale nodegroup `ng-a345f4e1` in `cluster-1` to 5 nodes, run:
@@ -113,11 +125,13 @@ For example, to scale nodegroup `ng-a345f4e1` in `cluster-1` to 5 nodes, run:
 eksctl scale nodegroup --cluster=cluster-1 --nodes=5 ng-a345f4e1
 ```
 
-If the desired number of nodes is greater than the current maximum set on the ASG then the maximum value will be increased to match the number of requested nodes. And likewise for the minimum.
+If the desired number of nodes is `NOT` within the range of current minimum and current maximum nodes, one specific error will be shown.
+Kindly note that these values can also be passed with flags `--nodes-min` and `--nodes-max` respectively.
 
 Scaling a nodegroup works by modifying the nodegroup CloudFormation stack via a ChangeSet.
 
-> NOTE: Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
+!!!note
+    Scaling a nodegroup down/in (i.e. reducing the number of nodes) may result in errors as we rely purely on changes to the ASG. This means that the node(s) being removed/terminated aren't explicitly drained. This may be an area for improvement in the future.
 
 You can also enable SSH, ASG access and other feature for each particular nodegroup, e.g.:
 
@@ -142,7 +156,8 @@ To delete a nodegroup, run:
 eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
 
-> NOTE: this will drain all pods from that nodegroup before the instances are deleted.
+!!!note
+    This will drain all pods from that nodegroup before the instances are deleted.
 
 All nodes are cordoned and all pods are evicted from a nodegroup on deletion,
 but if you need to drain a nodegroup without deleting it, run:

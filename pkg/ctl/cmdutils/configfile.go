@@ -531,8 +531,16 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 
 		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
 
+		if serviceAccount.Name != "" && l.NameArg != "" {
+			return ErrFlagAndArg("--name", serviceAccount.Name, l.NameArg)
+		}
+
+		if l.NameArg != "" {
+			serviceAccount.Name = l.NameArg
+		}
+
 		if serviceAccount.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		if len(serviceAccount.AttachPolicyARNs) == 0 {
@@ -602,7 +610,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg)
+			return ErrFlagAndArg("--name", sa.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {

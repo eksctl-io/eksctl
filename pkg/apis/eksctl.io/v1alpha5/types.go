@@ -83,6 +83,12 @@ const (
 	// RegionCNNorth1 represents the China region Beijing
 	RegionCNNorth1 = "cn-north-1"
 
+	// RegionUSGovWest1 represents the region GovCloud (US-West)
+	RegionUSGovWest1 = "us-gov-west-1"
+
+	// RegionUSGovEast1 represents the region GovCloud (US-East)
+	RegionUSGovEast1 = "us-gov-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -104,11 +110,14 @@ const (
 	// Version1_15 represents Kubernetes version 1.15.x
 	Version1_15 = "1.15"
 
+	// Version1_16 represents Kubernetes version 1.16.x
+	Version1_16 = "1.16"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_15
+	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_15
+	LatestVersion = Version1_16
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -208,6 +217,12 @@ const (
 
 	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
 	eksResourceAccountCNNorth1 = "918309763551"
+
+	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
+	eksResourceAccountUSGovWest1 = "013241004608"
+
+	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
+	eksResourceAccountUSGovEast1 = "151742754352"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -280,6 +295,8 @@ func SupportedRegions() []string {
 		RegionSAEast1,
 		RegionCNNorthwest1,
 		RegionCNNorth1,
+		RegionUSGovWest1,
+		RegionUSGovEast1,
 	}
 }
 
@@ -290,16 +307,17 @@ func DeprecatedVersions() []string {
 	return []string{
 		Version1_10,
 		Version1_11,
+		Version1_12,
 	}
 }
 
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_12,
 		Version1_13,
 		Version1_14,
 		Version1_15,
+		Version1_16,
 	}
 }
 
@@ -338,6 +356,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountCNNorthWest1
 	case RegionCNNorth1:
 		return eksResourceAccountCNNorth1
+	case RegionUSGovWest1:
+		return eksResourceAccountUSGovWest1
+	case RegionUSGovEast1:
+		return eksResourceAccountUSGovEast1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -423,7 +445,7 @@ type ProviderConfig struct {
 
 // ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 
 	Metadata *ClusterMeta `json:"metadata"`
 
@@ -458,7 +480,7 @@ type ClusterConfig struct {
 
 // ClusterConfigList is a list of ClusterConfigs
 type ClusterConfigList struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 	metav1.ListMeta `json:"metadata"`
 
 	Items []ClusterConfig `json:"items"`
@@ -619,6 +641,8 @@ type NodeGroup struct {
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
 	MaxSize *int `json:"maxSize,omitempty"`
+	// +optional
+	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
@@ -787,6 +811,15 @@ type (
 	}
 )
 
+// MetricsCollection used by the scaling config
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+type MetricsCollection struct {
+	// +required
+	Granularity string `json:"granularity"`
+	// +optional
+	Metrics []string `json:"metrics,omitempty"`
+}
+
 // ScalingConfig defines the scaling config
 type ScalingConfig struct {
 	// +optional
@@ -807,7 +840,7 @@ type ManagedNodeGroup struct {
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
-	*ScalingConfig `json:",inline"`
+	*ScalingConfig
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional

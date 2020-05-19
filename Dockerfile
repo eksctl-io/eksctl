@@ -1,8 +1,7 @@
 # Make sure to run the following commands after changes to this file are made:
-# `make -f Makefile.docker update-build-image-manifest && make -f Makefile.docker push-build-image`
+# `make -f Makefile.docker update-build-image-tag && make -f Makefile.docker push-build-image`
 
-# This digest corresponds to golang:1.13.9-alpine3.11
-FROM golang@sha256:7d45a6fc9cde63c3bf41651736996fe94a8347e726fe581926fd8c26e244e3b2 AS base
+FROM golang:1.14-2-alpine3.11@sha256:9b3ad7928626126b72b916609ad081cfb6c0149f6e60cef7fc1e9e15a0d1e973 AS base
 
 # Build-time dependencies
 RUN apk add --no-cache \
@@ -30,7 +29,7 @@ RUN apk add --no-cache --initdb --root /out \
     openssh \
     && true
 
-ENV KUBECTL_VERSION v1.11.5
+ENV KUBECTL_VERSION v1.15.11
 RUN curl --silent --location "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" --output /out/usr/local/bin/kubectl \
     && chmod +x /out/usr/local/bin/kubectl
 

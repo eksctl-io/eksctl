@@ -32,6 +32,12 @@ and Windows users can use [chocolatey](https://chocolatey.org):
 chocolatey install eksctl
 ```
 
+or [scoop](https://scoop.sh):
+
+```
+scoop install eksctl
+```
+
 You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
 or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
 
@@ -97,11 +103,11 @@ $ eksctl create cluster
 $
 ```
 
-Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/installation).
+Install `eksctl` following the [installation instructions](https://eksctl.io/introduction/#installation).
 
 To learn more about what `eksctl` can do check [eksctl.io](https://eksctl.io). A good place to start is
-[Getting Started](https://eksctl.io/introduction/getting-started/). The full list of features can be found
-[here](https://eksctl.io/introduction/features/).
+[Getting Started](https://eksctl.io/introduction/#getting-started). The full list of features can be found
+[here](https://eksctl.io/introduction/#features).
 
 ## Contributions
 

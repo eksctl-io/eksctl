@@ -97,6 +97,7 @@ managedNodeGroups:
 
   - name: managed-ng-2
     instanceType: t2.large
+    privateNetworking: true
     minSize: 2
     maxSize: 3
 ```
@@ -161,7 +162,7 @@ eksctl get labels --cluster managed-cluster --nodegroup managed-ng-1
 the same.
 
 ```console
-eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4
+eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4 --nodes-min=3 --nodes-max=5
 ```
 
 
@@ -169,7 +170,6 @@ eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4
 EKS Managed Nodegroups are managed by AWS EKS and do not offer the same level of configuration as unmanaged nodegroups.
 The unsupported options are noted below.
 
-- No support for private networking (`nodeGroups[*].privateNetworking`).
 - Tags (`managedNodeGroups[*].tags`) in managed nodegroups apply to the EKS Nodegroup resource and do not propagate to
 the provisioned Autoscaling Group like in unmanaged nodegroups.
 - `iam.instanceProfileARN` is not supported for managed nodegroups.
@@ -179,6 +179,7 @@ the provisioned Autoscaling Group like in unmanaged nodegroups.
 - Control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
 following fields: `classicLoadBalancerNames`, `maxPodsPerNode`, `taints`, `targetGroupARNs`, `preBootstrapCommands`, `overrideBootstrapCommand`,
 `clusterDNS` and `kubeletExtraConfig`.
+- No support for enabling metrics on AutoScalingGroups using `asgMetricsCollection`
 
 ## Note for eksctl versions below 0.12.0
 - For clusters upgraded from EKS 1.13 to EKS 1.14, managed nodegroups will not be able to communicate with unmanaged
