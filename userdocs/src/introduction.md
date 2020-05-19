@@ -19,12 +19,12 @@ eksctl create cluster --name=cluster-1 --nodes=4
 
 ```
 
-EKS supports versions `1.13`, `1.14`, `1.15` (default) and `1.16`
+EKS supports versions `1.13`, `1.14`, `1.15` and `1.16` (default)
 With `eksctl` you can deploy any of the supported versions by passing `--version`.
 
 ```
 
-eksctl create cluster --version=1.15
+eksctl create cluster --version=1.16
 
 ```
 
@@ -245,7 +245,7 @@ The features that are currently implemented are:
 - Update a cluster
 - Use custom AMIs
 - Configure VPC Networking
-- Configure accesss to API endpoints
+- Configure access to API endpoints
 - Support for GPU nodegroups
 - Spot instances and mixed instances
 - IAM Management and Add-on Policies
