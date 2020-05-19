@@ -3,6 +3,7 @@ table#config span.value {
     filter: opacity(70%);
 }
 table#config td.comment:nth-child(3) {
+    display: none;
     border-left: 2px solid whiteSmoke;
 }
 table#config td.type {
