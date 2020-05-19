@@ -167,6 +167,40 @@ var _ = Describe("(Integration) Inferentia nodes", func() {
 				_, err = clientSet.AppsV1().DaemonSets("kube-system").Get("neuron-device-plugin-daemonset", metav1.GetOptions{})
 				Expect(err).Should(BeNotFoundError())
 			})
+			When("adding a nodegroup by default", func() {
+				It("should install without error", func() {
+					cmd := params.EksctlCreateCmd.WithArgs(
+						"nodegroup",
+						"--cluster", noInstallCluster,
+						"--nodes", "1",
+						"--verbose", "4",
+						"--name", newNG,
+						"--tags", "alpha.eksctl.io/description=eksctl integration test",
+						"--node-labels", "ng-name="+newNG,
+						"--nodes", "1",
+						"--node-type", "inf1.xlarge",
+						"--version", params.Version,
+					)
+					Expect(cmd).To(RunSuccessfully())
+				})
+				It("should install the neuron device plugin", func() {
+					cfg := &api.ClusterConfig{
+						Metadata: &api.ClusterMeta{
+							Name:   noInstallCluster,
+							Region: params.Region,
+						},
+					}
+					ctl := eks.New(&api.ProviderConfig{Region: params.Region}, cfg)
+					err := ctl.RefreshClusterStatus(cfg)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					clientSet, err := ctl.NewStdClientSet(cfg)
+					Expect(err).ShouldNot(HaveOccurred())
+
+					_, err = clientSet.AppsV1().DaemonSets("kube-system").Get("neuron-device-plugin-daemonset", metav1.GetOptions{})
+					Expect(err).ShouldNot(HaveOccurred())
+				})
+			})
 		})
 	})
 })
