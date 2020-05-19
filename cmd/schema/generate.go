@@ -31,7 +31,7 @@ func main() {
 		t := kind.(*jsonschema.Type)
 		t.Examples = []interface{}{fmt.Sprintf("%s/%s", api.GroupName, v1alpha5.CurrentGroupVersion)}
 	}
-	jsonSchema, err := json.Marshal(schema)
+	jsonSchema, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
 		panic(err)
 	}
