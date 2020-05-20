@@ -1,5 +1,5 @@
 # Custom IAM and VPC config
-This example shows how to create a cluster reusing pre-existing IAM and VPC resources:
+This example shows how to create a cluster using pre-existing IAM and VPC resources:
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -57,9 +57,6 @@ managedNodeGroups:
       'environment:basedomain': 'example.org'
     iam:
       instanceRoleARN: "arn:aws:iam::1111:role/eks-nodes-base-role"
-      withAddonPolicies:
-        externalDNS: true
-        certManager: true
 
 ```
 
