@@ -33,10 +33,8 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 	rootCmd.AddCommand(unset.Command(flagGrouping))
 	rootCmd.AddCommand(scale.Command(flagGrouping))
 	rootCmd.AddCommand(drain.Command(flagGrouping))
-	if os.Getenv("EKSCTL_EXPERIMENTAL") == "true" {
-		rootCmd.AddCommand(generate.Command(flagGrouping))
-		rootCmd.AddCommand(enable.Command(flagGrouping))
-	}
+	rootCmd.AddCommand(generate.Command(flagGrouping))
+	rootCmd.AddCommand(enable.Command(flagGrouping))
 	rootCmd.AddCommand(utils.Command(flagGrouping))
 	rootCmd.AddCommand(completion.Command(rootCmd))
 

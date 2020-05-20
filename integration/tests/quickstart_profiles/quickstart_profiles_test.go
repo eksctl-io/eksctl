@@ -61,7 +61,7 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 			AssertFluxManifestsAbsentInGit(branch, params.PrivateSSHKeyPath)
 			AssertFluxPodsAbsentInKubernetes(params.KubeconfigPath)
 
-			cmd := params.EksctlExperimentalCmd.WithArgs(
+			cmd := params.EksctlCmd.WithArgs(
 				"enable", "repo",
 				"--git-url", git.Repository,
 				"--git-email", git.Email,
@@ -76,6 +76,23 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 		})
 	})
 
+	Context("enable repo", func() {
+		It("should not add Flux to the repo and the cluster if there is a flux deployment already", func() {
+			Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
+			AssertFluxPodsPresentInKubernetes(params.KubeconfigPath)
+
+			cmd := params.EksctlCmd.WithArgs(
+				"enable", "repo",
+				"--git-url", git.Repository,
+				"--git-email", git.Email,
+				"--git-private-ssh-key-path", params.PrivateSSHKeyPath,
+				"--git-branch", branch,
+				"--cluster", params.ClusterName,
+			)
+			Expect(cmd).To(RunSuccessfullyWithOutputString(ContainSubstring("Skipping installation")))
+		})
+	})
+
 	Context("enable profile", func() {
 		It("should add the configured quickstart profile to the repo and the cluster", func() {
 			Expect(err).NotTo(HaveOccurred()) // Creating the branch should have succeeded.
@@ -83,7 +100,7 @@ var _ = Describe("Enable and use GitOps quickstart profiles", func() {
 			AssertFluxManifestsPresentInGit(branch, params.PrivateSSHKeyPath)
 			AssertFluxPodsPresentInKubernetes(params.KubeconfigPath)
 
-			cmd := params.EksctlExperimentalCmd.WithArgs(
+			cmd := params.EksctlCmd.WithArgs(
 				"enable", "profile",
 				"--git-url", git.Repository,
 				"--git-email", git.Email,

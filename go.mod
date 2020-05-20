@@ -6,7 +6,7 @@ go 1.14
 
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
-	github.com/alecthomas/jsonschema v0.0.0-20190530235721-fd8d96416671
+	github.com/alecthomas/jsonschema v0.0.0-20200514014646-0366d1034a17
 	github.com/aws/aws-sdk-go v1.30.11
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/awslabs/goformation/v4 v4.1.0
@@ -33,7 +33,6 @@ require (
 	github.com/onsi/gomega v1.8.1
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5

@@ -1,35 +1,52 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/alecthomas/jsonschema"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"sigs.k8s.io/yaml"
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io"
+	v1alpha5 "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
 )
 
-func main() {
+func typeMapper(t reflect.Type) *jsonschema.Type {
+	if t == reflect.TypeOf(&ipnet.IPNet{}) {
+		return &jsonschema.Type{Type: "string"}
+	}
+	return nil
+}
 
+func main() {
 	if len(os.Args) != 2 {
 		panic("expected one argument with the output file")
 	}
 	outputFile := os.Args[1]
 
 	var document strings.Builder
-	document.WriteString(`# Config file schema
-
-`)
-	document.WriteString("```yaml\n")
-
-	schema := jsonschema.Reflect(&api.ClusterConfig{})
-	yamlSchema, err := yaml.Marshal(schema.Definitions)
+	reflector := jsonschema.Reflector{
+		TypeMapper: typeMapper,
+	}
+	schema := reflector.Reflect(&v1alpha5.ClusterConfig{})
+	// We have to manually add examples here, because we can't tag `TypeMeta`
+	// from the k8s package
+	if kind, ok := schema.Definitions["ClusterConfig"].Properties.Get("kind"); ok {
+		t := kind.(*jsonschema.Type)
+		t.Examples = []interface{}{"ClusterConfig"}
+	}
+	if kind, ok := schema.Definitions["ClusterConfig"].Properties.Get("apiVersion"); ok {
+		t := kind.(*jsonschema.Type)
+		t.Examples = []interface{}{fmt.Sprintf("%s/%s", api.GroupName, v1alpha5.CurrentGroupVersion)}
+	}
+	jsonSchema, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	document.Write(yamlSchema)
-	document.WriteString("```\n")
+	document.Write(jsonSchema)
 
 	err = ioutil.WriteFile(outputFile, []byte(document.String()), 0755)
 

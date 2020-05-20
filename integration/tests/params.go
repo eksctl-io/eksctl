@@ -39,7 +39,6 @@ type Params struct {
 	EksctlDeleteClusterCmd  runner.Cmd
 	EksctlScaleNodeGroupCmd runner.Cmd
 	EksctlUtilsCmd          runner.Cmd
-	EksctlExperimentalCmd   runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -92,9 +91,6 @@ func (p *Params) GenerateCommands() {
 	p.EksctlUtilsCmd = p.EksctlCmd.
 		WithArgs("utils").
 		WithTimeout(5 * time.Minute)
-
-	p.EksctlExperimentalCmd = p.EksctlCmd.
-		WithEnv("EKSCTL_EXPERIMENTAL=true")
 }
 
 // NewClusterName generates a new cluster name using the provided prefix, and

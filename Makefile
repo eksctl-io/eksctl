@@ -14,7 +14,7 @@ generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deep
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  userdocs/src/usage/schema.md \
+  userdocs/src/usage/schema.json \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
@@ -191,7 +191,7 @@ pkg/addons/default/assets/aws-node.yaml:
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	time go generate ./pkg/addons/default/aws_node_generate.go
 
-userdocs/src/usage/schema.md: $(call godeps,cmd/schema/generate.go)
+userdocs/src/usage/schema.json: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
