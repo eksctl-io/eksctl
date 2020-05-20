@@ -101,6 +101,7 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 				"servicediscovery:ListInstances",
 				"servicediscovery:ListNamespaces",
 				"servicediscovery:ListServices",
+				"servicediscovery:UpdateInstanceCustomHealthStatus",
 				"route53:GetHealthCheck",
 				"route53:CreateHealthCheck",
 				"route53:UpdateHealthCheck",
