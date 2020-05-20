@@ -9,6 +9,6 @@ import (
 // Command creates `generate` commands
 func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	verbCmd := cmdutils.NewVerbCmd("generate", "Generate gitops manifests", "")
-	cmdutils.AddResourceCmd(flagGrouping, verbCmd, generateProfileCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, generateProfile)
 	return verbCmd
 }

@@ -1,14 +1,17 @@
 # `eksctl` - The official CLI for Amazon EKS
 
-sponsored by [![Weaveworks](img/weaveworks.svg)](https://www.weave.works/) and built by [![Contributors](img/gophers.png)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](img/octocat.svg)](https://github.com/weaveworks/eksctl)
+sponsored by [![Weaveworks](img/weaveworks.svg#inline)](https://www.weave.works/) and built by [![Contributors](img/gophers.png#inline)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](img/octocat.svg#inline)](https://github.com/weaveworks/eksctl)
 
 `eksctl` is a simple CLI tool for creating clusters on EKS - Amazon's new managed Kubernetes service for EC2.
 It is written in Go, uses CloudFormation, was created by [Weaveworks](https://www.weave.works/) and it welcomes
 contributions from the community. Create a basic cluster in minutes with just one command:
 
+ <h2 id="intro-code">
 ```console
 eksctl create cluster
 ```
+</h2>
+
 A cluster will be created with default parameters:
 
 - exciting auto-generated name, e.g., `fabulous-mushroom-1527688624`

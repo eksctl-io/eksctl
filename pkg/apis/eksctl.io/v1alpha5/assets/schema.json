@@ -91,6 +91,10 @@
         "status": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/ClusterStatus"
+        },
+        "git": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Git"
         }
       },
       "additionalProperties": false,
@@ -389,6 +393,24 @@
             }
           },
           "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Git": {
+      "properties": {
+        "repo": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Repo"
+        },
+        "operator": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Operator"
+        },
+        "bootstrapProfile": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/Profile"
         }
       },
       "additionalProperties": false,
@@ -805,6 +827,66 @@
             "type": "string"
           },
           "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Operator": {
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "withHelm": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Profile": {
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "outputPath": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Repo": {
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "fluxPath": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "privateSSHKeyPath": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

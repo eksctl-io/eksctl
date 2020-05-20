@@ -21,7 +21,6 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/golangci/golangci-lint v1.21.0
 	github.com/goreleaser/goreleaser v0.110.0
-	github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -34,7 +33,6 @@ require (
 	github.com/onsi/gomega v1.8.1
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
