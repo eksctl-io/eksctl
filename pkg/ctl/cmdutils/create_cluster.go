@@ -13,6 +13,7 @@ type CreateClusterCmdParams struct {
 	SetContext                  bool
 	AvailabilityZones           []string
 	InstallWindowsVPCController bool
+	InstallNeuronDevicePlugin   bool
 	KopsClusterNameForVPC       string
 	Subnets                     map[api.SubnetTopology]*[]string
 	WithoutNodeGroup            bool

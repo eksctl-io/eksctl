@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/eksctl/pkg/addons"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/utils"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -46,8 +47,28 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	return nil
 }
 
+type neuronDevicePluginTask struct {
+	info            string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (n *neuronDevicePluginTask) Describe() string { return n.info }
+
+func (n *neuronDevicePluginTask) Do(errCh chan error) error {
+	defer close(errCh)
+	rawClient, err := n.clusterProvider.NewRawClient(n.spec)
+	if err != nil {
+		return err
+	}
+	neuronDevicePlugin := addons.NewNeuronDevicePlugin(rawClient, n.clusterProvider.Provider.Region(), false)
+	if err := neuronDevicePlugin.Deploy(); err != nil {
+		return errors.Wrap(err, "error installing Neuron device plugin")
+	}
+	return nil
+}
+
 // CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
-// or nil if there are no tasks
 func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *manager.TaskTree {
 	newTasks := &manager.TaskTree{
 		Parallel:  false,
@@ -100,6 +121,27 @@ func (c *ClusterProvider) NewTasksRequiringControlPlane(cfg *api.ClusterConfig) 
 	}
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, tasks)
+	}
+	return tasks
+}
+
+// ClusterTasksForNodeGroups returns all tasks dependent on node groups
+func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam bool) *manager.TaskTree {
+	tasks := &manager.TaskTree{
+		Parallel:  false,
+		IsSubTask: true,
+	}
+	var reallyInstallNeuronDevicePlugin bool
+	for _, ng := range cfg.NodeGroups {
+		reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+	}
+	reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin && installNeuronDevicePluginParam
+	if reallyInstallNeuronDevicePlugin {
+		tasks.Append(&neuronDevicePluginTask{
+			info:            "install Neuron device plugin",
+			spec:            cfg,
+			clusterProvider: c,
+		})
 	}
 	return tasks
 }
