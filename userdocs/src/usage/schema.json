@@ -1,0 +1,823 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$ref": "#/definitions/ClusterConfig",
+  "definitions": {
+    "ClusterCloudWatch": {
+      "properties": {
+        "clusterLogging": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterCloudWatchLogging"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterCloudWatchLogging": {
+      "properties": {
+        "enableTypes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterConfig": {
+      "required": [
+        "metadata"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "examples": [
+            "ClusterConfig"
+          ]
+        },
+        "apiVersion": {
+          "type": "string",
+          "examples": [
+            "eksctl.io/v1alpha5"
+          ]
+        },
+        "metadata": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterMeta"
+        },
+        "iam": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterIAM"
+        },
+        "vpc": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterVPC"
+        },
+        "nodeGroups": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/NodeGroup"
+          },
+          "type": "array"
+        },
+        "managedNodeGroups": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/ManagedNodeGroup"
+          },
+          "type": "array"
+        },
+        "fargateProfiles": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/FargateProfile"
+          },
+          "type": "array"
+        },
+        "availabilityZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "cloudWatch": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterCloudWatch"
+        },
+        "secretsEncryption": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/SecretsEncryption"
+        },
+        "status": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterStatus"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterEndpoints": {
+      "properties": {
+        "privateAccess": {
+          "type": "boolean"
+        },
+        "publicAccess": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterIAM": {
+      "properties": {
+        "serviceRoleARN": {
+          "type": "string"
+        },
+        "serviceRolePermissionsBoundary": {
+          "type": "string"
+        },
+        "fargatePodExecutionRoleARN": {
+          "type": "string"
+        },
+        "fargatePodExecutionRolePermissionsBoundary": {
+          "type": "string"
+        },
+        "withOIDC": {
+          "type": "boolean"
+        },
+        "serviceAccounts": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/ClusterIAMServiceAccount"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterIAMMeta": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "labels": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "annotations": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterIAMServiceAccount": {
+      "properties": {
+        "metadata": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterIAMMeta"
+        },
+        "attachPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "attachPolicy": {
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true
+            }
+          },
+          "type": "object"
+        },
+        "permissionsBoundary": {
+          "type": "string"
+        },
+        "status": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterIAMServiceAccountStatus"
+        },
+        "tags": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterIAMServiceAccountStatus": {
+      "properties": {
+        "roleARN": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterMeta": {
+      "required": [
+        "name",
+        "region"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "tags": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterNAT": {
+      "properties": {
+        "gateway": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterStatus": {
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "certificateAuthorityData": {
+          "type": "string",
+          "media": {
+            "binaryEncoding": "base64"
+          }
+        },
+        "arn": {
+          "type": "string"
+        },
+        "stackName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterSubnets": {
+      "properties": {
+        "private": {
+          "patternProperties": {
+            ".*": {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "$ref": "#/definitions/Network"
+            }
+          },
+          "type": "object"
+        },
+        "public": {
+          "patternProperties": {
+            ".*": {
+              "$ref": "#/definitions/Network"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ClusterVPC": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "cidr": {
+          "type": "string"
+        },
+        "securityGroup": {
+          "type": "string"
+        },
+        "subnets": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterSubnets"
+        },
+        "extraCIDRs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sharedNodeSecurityGroup": {
+          "type": "string"
+        },
+        "autoAllocateIPv6": {
+          "type": "boolean"
+        },
+        "nat": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterNAT"
+        },
+        "clusterEndpoints": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/ClusterEndpoints"
+        },
+        "publicAccessCIDRs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FargateProfile": {
+      "required": [
+        "name",
+        "selectors"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "podExecutionRoleARN": {
+          "type": "string"
+        },
+        "selectors": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/FargateProfileSelector"
+          },
+          "type": "array"
+        },
+        "subnets": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tags": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "FargateProfileSelector": {
+      "required": [
+        "namespace"
+      ],
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "labels": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ManagedNodeGroup": {
+      "required": [
+        "name",
+        "privateNetworking"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "amiFamily": {
+          "type": "string"
+        },
+        "instanceType": {
+          "type": "string"
+        },
+        "desiredCapacity": {
+          "type": "integer"
+        },
+        "minSize": {
+          "type": "integer"
+        },
+        "maxSize": {
+          "type": "integer"
+        },
+        "volumeSize": {
+          "type": "integer"
+        },
+        "availabilityZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ssh": {
+          "$ref": "#/definitions/NodeGroupSSH"
+        },
+        "labels": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "privateNetworking": {
+          "type": "boolean"
+        },
+        "tags": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "iam": {
+          "$ref": "#/definitions/NodeGroupIAM"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "MetricsCollection": {
+      "required": [
+        "granularity"
+      ],
+      "properties": {
+        "granularity": {
+          "type": "string"
+        },
+        "metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Network": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "cidr": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NodeGroup": {
+      "required": [
+        "name",
+        "privateNetworking",
+        "volumeSize",
+        "volumeType",
+        "volumeIOPS",
+        "iam"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "ami": {
+          "type": "string"
+        },
+        "amiFamily": {
+          "type": "string"
+        },
+        "instanceType": {
+          "type": "string"
+        },
+        "instancesDistribution": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/NodeGroupInstancesDistribution"
+        },
+        "availabilityZones": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tags": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "privateNetworking": {
+          "type": "boolean"
+        },
+        "securityGroups": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/NodeGroupSGs"
+        },
+        "desiredCapacity": {
+          "type": "integer"
+        },
+        "minSize": {
+          "type": "integer"
+        },
+        "maxSize": {
+          "type": "integer"
+        },
+        "asgMetricsCollection": {
+          "items": {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "$ref": "#/definitions/MetricsCollection"
+          },
+          "type": "array"
+        },
+        "ebsOptimized": {
+          "type": "boolean"
+        },
+        "volumeSize": {
+          "type": "integer"
+        },
+        "volumeType": {
+          "type": "string"
+        },
+        "volumeName": {
+          "type": "string"
+        },
+        "volumeEncrypted": {
+          "type": "boolean"
+        },
+        "volumeKmsKeyID": {
+          "type": "string"
+        },
+        "volumeIOPS": {
+          "type": "integer"
+        },
+        "maxPodsPerNode": {
+          "type": "integer"
+        },
+        "labels": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "taints": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "classicLoadBalancerNames": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "targetGroupARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ssh": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/NodeGroupSSH"
+        },
+        "iam": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/NodeGroupIAM"
+        },
+        "bottlerocket": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/NodeGroupBottlerocket"
+        },
+        "preBootstrapCommands": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "overrideBootstrapCommand": {
+          "type": "string"
+        },
+        "clusterDNS": {
+          "type": "string"
+        },
+        "kubeletExtraConfig": {
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NodeGroupBottlerocket": {
+      "properties": {
+        "enableAdminContainer": {
+          "type": "boolean"
+        },
+        "settings": {
+          "patternProperties": {
+            ".*": {
+              "additionalProperties": true
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NodeGroupIAM": {
+      "properties": {
+        "attachPolicyARNs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "instanceProfileARN": {
+          "type": "string"
+        },
+        "instanceRoleARN": {
+          "type": "string"
+        },
+        "instanceRoleName": {
+          "type": "string"
+        },
+        "instanceRolePermissionsBoundary": {
+          "type": "string"
+        },
+        "withAddonPolicies": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/NodeGroupIAMAddonPolicies"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NodeGroupIAMAddonPolicies": {
+      "required": [
+        "imageBuilder",
+        "autoScaler",
+        "externalDNS",
+        "certManager",
+        "appMesh",
+        "ebs",
+        "fsx",
+        "efs",
+        "albIngress",
+        "xRay",
+        "cloudWatch"
+      ],
+      "properties": {
+        "imageBuilder": {
+          "type": "boolean"
+        },
+        "autoScaler": {
+          "type": "boolean"
+        },
+        "externalDNS": {
+          "type": "boolean"
+        },
+        "certManager": {
+          "type": "boolean"
+        },
+        "appMesh": {
+          "type": "boolean"
+        },
+        "ebs": {
+          "type": "boolean"
+        },
+        "fsx": {
+          "type": "boolean"
+        },
+        "efs": {
+          "type": "boolean"
+        },
+        "albIngress": {
+          "type": "boolean"
+        },
+        "xRay": {
+          "type": "boolean"
+        },
+        "cloudWatch": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NodeGroupInstancesDistribution": {
+      "properties": {
+        "instanceTypes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "maxPrice": {
+          "type": "number"
+        },
+        "onDemandBaseCapacity": {
+          "type": "integer"
+        },
+        "onDemandPercentageAboveBaseCapacity": {
+          "type": "integer"
+        },
+        "spotInstancePools": {
+          "type": "integer"
+        },
+        "spotAllocationStrategy": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NodeGroupSGs": {
+      "required": [
+        "withShared",
+        "withLocal"
+      ],
+      "properties": {
+        "attachIDs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "withShared": {
+          "type": "boolean"
+        },
+        "withLocal": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "NodeGroupSSH": {
+      "required": [
+        "allow"
+      ],
+      "properties": {
+        "allow": {
+          "type": "boolean"
+        },
+        "publicKeyPath": {
+          "type": "string"
+        },
+        "publicKey": {
+          "type": "string"
+        },
+        "publicKeyName": {
+          "type": "string"
+        },
+        "sourceSecurityGroupIds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "SecretsEncryption": {
+      "properties": {
+        "keyARN": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

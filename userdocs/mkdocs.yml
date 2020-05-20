@@ -9,6 +9,7 @@ edit_uri: ""
 
 extra_css:
     - extra.css
+    - usage/schema.css
 
 nav:
     - Introduction: introduction.md
