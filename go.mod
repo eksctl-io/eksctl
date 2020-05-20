@@ -71,6 +71,8 @@ replace (
 	// Override version since auto-detected one fails with GOPROXY
 	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
+	// k8s.io/kops is still using old version of component-base
+	// which uses an older version of the following package
 	github.com/prometheus/client_golang => github.com/prometheus/client_golang v0.9.4
 	// Used to pin the k8s library versions regardless of what other dependencies enforce
 	k8s.io/api => k8s.io/api v0.16.8
