@@ -5,16 +5,29 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: cluster-12
+  name: cluster-21
   region: eu-north-1
 
 nodeGroups:
   - name: ng-1
     instanceType: m5.large
-    minSize: 1
-    maxSize: 2
+    desiredCapacity: 1
     iam:
       withAddonPolicies:
         albIngress: true
         autoScaler: true
         cloudWatch: true
+
+git:
+  repo:
+    url: "git@github.com:myorg/cluster-21.git"
+    branch: master
+    fluxPath: "flux/"
+    user: "gitops"
+    email: "gitops@myorg.com"
+  operator:
+    namespace: "flux"
+    withHelm: true
+  bootstrapProfile:
+    source: app-dev
+    revision: master

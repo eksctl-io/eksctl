@@ -34,6 +34,9 @@ ClusterConfig:
         $ref: '#/definitions/FargateProfile'
         $schema: http://json-schema.org/draft-04/schema#
       type: array
+    git:
+      $ref: '#/definitions/Git'
+      $schema: http://json-schema.org/draft-04/schema#
     iam:
       $ref: '#/definitions/ClusterIAM'
       $schema: http://json-schema.org/draft-04/schema#
@@ -255,6 +258,19 @@ Fields:
       type: object
   required:
   - Map
+  type: object
+Git:
+  additionalProperties: false
+  properties:
+    bootstrapProfile:
+      $ref: '#/definitions/Profile'
+      $schema: http://json-schema.org/draft-04/schema#
+    operator:
+      $ref: '#/definitions/Operator'
+      $schema: http://json-schema.org/draft-04/schema#
+    repo:
+      $ref: '#/definitions/Repo'
+      $schema: http://json-schema.org/draft-04/schema#
   type: object
 IPNet:
   additionalProperties: false
@@ -657,6 +673,16 @@ ObjectMeta:
     uid:
       type: string
   type: object
+Operator:
+  additionalProperties: false
+  properties:
+    label:
+      type: string
+    namespace:
+      type: string
+    withHelm:
+      type: boolean
+  type: object
 OwnerReference:
   additionalProperties: false
   properties:
@@ -677,6 +703,36 @@ OwnerReference:
   - kind
   - name
   - uid
+  type: object
+Profile:
+  additionalProperties: false
+  properties:
+    outputPath:
+      type: string
+    revision:
+      type: string
+    source:
+      type: string
+  type: object
+Repo:
+  additionalProperties: false
+  properties:
+    branch:
+      type: string
+    email:
+      type: string
+    fluxPath:
+      type: string
+    paths:
+      items:
+        type: string
+      type: array
+    privateSSHKeyPath:
+      type: string
+    url:
+      type: string
+    user:
+      type: string
   type: object
 ScalingConfig:
   additionalProperties: false

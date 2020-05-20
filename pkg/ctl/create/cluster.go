@@ -3,12 +3,16 @@ package create
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 
@@ -409,6 +413,23 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			if err := scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet); err != nil {
 				return err
 			}
+		}
+
+		if cfg.HasGitopsRepoConfigured() {
+			kubernetesClientConfigs, err := ctl.NewClient(cfg)
+			if err != nil {
+				return err
+			}
+			k8sConfig := kubernetesClientConfigs.Config
+			k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
+			if err != nil {
+				return errors.Wrap(err, "cannot create Kubernetes client configuration")
+			}
+			err = gitops.Setup(k8sRestConfig, clientSet, cfg, time.Minute)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 
 		// check kubectl version, and offer install instructions if missing or old

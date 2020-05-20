@@ -31,10 +31,10 @@ nav:
         - usage/windows-worker-nodes.md
         - usage/eks-managed-nodes.md
         - usage/fargate-support.md
+        - usage/gitops.md
         - usage/schema.md
         - usage/troubleshooting.md
         - FAQ: usage/faq.md
-        - Experimental: usage/experimental/gitops.md
     - 'GitOps Quickstart': gitops-quickstart.md
     - Examples:
         - examples/reusing-iam-and-vpc.md
