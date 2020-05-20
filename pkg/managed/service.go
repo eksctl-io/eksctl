@@ -1,20 +1,20 @@
 package managed
 
 import (
+	"context"
 	"fmt"
-	"regexp"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/eks"
-	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/blang/semver"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
-	"github.com/weaveworks/eksctl/pkg/ami"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 )
@@ -34,8 +34,7 @@ type HealthIssue struct {
 
 // TODO use goformation types
 const (
-	labelsPath         = "Resources.ManagedNodeGroup.Properties.Labels"
-	releaseVersionPath = "Resources.ManagedNodeGroup.Properties.ReleaseVersion"
+	labelsPath = "Resources.ManagedNodeGroup.Properties.Labels"
 )
 
 // NewService creates a new Service
@@ -114,118 +113,121 @@ func (m *Service) GetLabels(nodeGroupName string) (map[string]string, error) {
 
 // UpgradeNodeGroup upgrades nodegroup to the latest AMI release for the specified Kubernetes version, or
 // the current Kubernetes version if the version isn't specified
-func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string) error {
-	// Use the latest AMI release version
-	output, err := m.provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
-		ClusterName:   &m.clusterName,
-		NodegroupName: &nodeGroupName,
+func (m *Service) UpgradeNodeGroup(nodeGroupName, kubernetesVersion string, waitTimeout time.Duration) error {
+	nodegroupOutput, err := m.provider.EKS().DescribeNodegroup(&eks.DescribeNodegroupInput{
+		ClusterName:   aws.String(m.clusterName),
+		NodegroupName: aws.String(nodeGroupName),
 	})
 
 	if err != nil {
-		if isNotFound(err) {
-			return fmt.Errorf("upgrade is only supported for managed nodegroups; could not find one with name %q",
-				nodeGroupName)
+		return errors.Wrap(err, "failed to describe nodegroup")
+	}
+
+	updateInput := &eks.UpdateNodegroupVersionInput{
+		ClusterName:   aws.String(m.clusterName),
+		NodegroupName: aws.String(nodeGroupName),
+	}
+
+	if kubernetesVersion != "" {
+		if _, err := semver.ParseTolerant(kubernetesVersion); err != nil {
+			return errors.Wrap(err, "error parsing Kubernetes version")
 		}
-		return err
+		updateInput.Version = aws.String(kubernetesVersion)
+	} else {
+		updateInput.Version = nodegroupOutput.Nodegroup.Version
 	}
 
-	nodeGroup := output.Nodegroup
-
-	if kubernetesVersion == "" {
-		// Use the current Kubernetes version
-		kubernetesVersion = *nodeGroup.Version
-	} else if _, err := semver.ParseTolerant(kubernetesVersion); err != nil {
-		return errors.Wrap(err, "invalid Kubernetes version")
-	}
-
-	instanceType := nodeGroup.InstanceTypes[0]
-	ssmParameterName, err := ami.MakeSSMParameterName(kubernetesVersion, *instanceType, v1alpha5.NodeImageFamilyAmazonLinux2)
+	nodegroupUpdate, err := m.provider.EKS().UpdateNodegroupVersion(updateInput)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error upgrading nodegroup")
 	}
 
-	ssmOutput, err := m.provider.SSM().GetParameter(&ssm.GetParameterInput{
-		Name: &ssmParameterName,
-	})
-	if err != nil {
-		return err
+	if updateErrors := nodegroupUpdate.Update.Errors; len(updateErrors) > 0 {
+		return errors.Errorf("failed to upgrade nodegroup:\n%v", aggregateErrors(updateErrors))
 	}
 
-	imageID := *ssmOutput.Parameter.Value
-
-	// To get the Kubernetes patch version, as it's not reported in the SSM GetParameter call
-	imagesOutput, err := m.provider.EC2().DescribeImages(&ec2.DescribeImagesInput{
-		ImageIds: aws.StringSlice([]string{imageID}),
-	})
-
-	if err != nil {
-		return err
+	for _, param := range nodegroupUpdate.Update.Params {
+		if *param.Type == eks.UpdateParamTypeReleaseVersion {
+			newReleaseVersion := *param.Value
+			if newReleaseVersion == *nodegroupOutput.Nodegroup.ReleaseVersion {
+				logger.Info("nodegroup %q is already up-to-date (release version: %v)", nodeGroupName, *nodegroupOutput.Nodegroup.ReleaseVersion)
+				return nil
+			}
+			logger.Info("upgrading nodegroup to release version %v", newReleaseVersion)
+		}
 	}
 
-	if len(imagesOutput.Images) != 1 {
-		return fmt.Errorf("expected to find exactly 1 image; got %d", len(imagesOutput.Images))
+	if waitTimeout > 0 {
+		ctx, cancelFunc := context.WithTimeout(context.Background(), waitTimeout)
+		defer cancelFunc()
+		return m.waitForUpdate(ctx, nodeGroupName, nodegroupUpdate.Update.Id)
 	}
-
-	image := *imagesOutput.Images[0]
-	amiReleaseVersion, err := extractAMIReleaseVersion(*image.Name)
-	if err != nil {
-		return errors.Wrap(err, "error extracting AMI release version")
-	}
-
-	kubernetesVersion, err = extractKubeVersion(*image.Description)
-	if err != nil {
-		return errors.Wrap(err, "error extracting Kubernetes version")
-	}
-	releaseVersion := makeReleaseVersion(kubernetesVersion, amiReleaseVersion)
-	if releaseVersion == *nodeGroup.ReleaseVersion {
-		logger.Info("nodegroup %q is already up-to-date", nodeGroupName)
-		return nil
-	}
-	return m.updateNodeGroupVersion(nodeGroupName, releaseVersion)
+	logger.Info("nodegroup upgrade request submitted")
+	return nil
 }
 
-func (m *Service) updateNodeGroupVersion(nodeGroupName, releaseVersion string) error {
-	template, err := m.stackCollection.GetManagedNodeGroupTemplate(nodeGroupName)
-	if err != nil {
-		return err
-	}
+func (m *Service) waitForUpdate(ctx context.Context, nodeGroupName string, updateID *string) error {
+	logger.Debug("waiting for nodegroup update to complete (updateID: %v)", *updateID)
 
-	template, err = sjson.Set(template, releaseVersionPath, releaseVersion)
-	if err != nil {
-		return err
-	}
+	const retryAfter = 5 * time.Second
 
-	return m.stackCollection.UpdateNodeGroupStack(nodeGroupName, template)
+	for {
+		describeOutput, err := m.provider.EKS().DescribeUpdate(&eks.DescribeUpdateInput{
+			Name:          aws.String(m.clusterName),
+			NodegroupName: aws.String(nodeGroupName),
+			UpdateId:      updateID,
+		})
+
+		if err != nil {
+			describeErr := errors.Wrap(err, "error describing nodegroup update")
+			if !request.IsErrorRetryable(err) {
+				return describeErr
+			}
+			logger.Warning(describeErr.Error())
+		}
+
+		logger.Debug("DescribeUpdate output: %v", describeOutput.Update.String())
+
+		switch status := *describeOutput.Update.Status; status {
+		case eks.UpdateStatusSuccessful:
+			logger.Info("nodegroup successfully upgraded")
+			return nil
+
+		case eks.UpdateStatusCancelled:
+			return errors.New("nodegroup update cancelled")
+
+		case eks.UpdateStatusFailed:
+			return errors.Errorf("nodegroup update failed:\n%v", aggregateErrors(describeOutput.Update.Errors))
+
+		case eks.UpdateStatusInProgress:
+			logger.Debug("nodegroup update in progress")
+
+		default:
+			return errors.Errorf("unexpected nodegroup update status: %q", status)
+
+		}
+
+		timer := time.NewTimer(retryAfter)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return errors.Errorf("timed out waiting for nodegroup update to complete: %v", ctx.Err())
+		case <-timer.C:
+		}
+	}
+}
+
+func aggregateErrors(errorDetails []*eks.ErrorDetail) string {
+	var aggregatedErrors []string
+	for _, err := range errorDetails {
+		aggregatedErrors = append(aggregatedErrors, fmt.Sprintf("- %v", err))
+	}
+	return strings.Join(aggregatedErrors, "\n")
 }
 
 func isNotFound(err error) bool {
 	awsError, ok := err.(awserr.Error)
 	return ok && awsError.Code() == eks.ErrCodeResourceNotFoundException
-}
-
-var (
-	kubeVersionRegex = regexp.MustCompile(`\(k8s:\s([\d.]+),`)
-	amiVersionRegex  = regexp.MustCompile(`v(\d+)$`)
-)
-
-// extractKubeVersion extracts the full Kubernetes version (including patch number) from the image description
-// format: "EKS Kubernetes Worker AMI with AmazonLinux2 image, (k8s: 1.13.11, docker:18.06)"
-func extractKubeVersion(description string) (string, error) {
-	match := kubeVersionRegex.FindStringSubmatch(description)
-	if len(match) != 2 {
-		return "", fmt.Errorf("expected 2 matching items; got %d", len(match))
-	}
-	return match[1], nil
-}
-
-// extractAMIReleaseVersion extracts the AMI release version from the image name
-// the format of the image name is amazon-eks-node-1.14-v20190927
-func extractAMIReleaseVersion(imageName string) (string, error) {
-	match := amiVersionRegex.FindStringSubmatch(imageName)
-	if len(match) != 2 {
-		return "", fmt.Errorf("expected 2 matching items; got %d", len(match))
-	}
-	return match[1], nil
 }
 
 // TODO switch to using goformation types
@@ -249,8 +251,4 @@ func extractLabels(template string) (map[string]string, error) {
 	}
 
 	return labels, nil
-}
-
-func makeReleaseVersion(kubernetesVersion, amiVersion string) string {
-	return fmt.Sprintf("%s-%s", kubernetesVersion, amiVersion)
 }

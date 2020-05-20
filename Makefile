@@ -14,7 +14,7 @@ generated_code_deep_copy_helper := pkg/apis/eksctl.io/v1alpha5/zz_generated.deep
 generated_code_aws_sdk_mocks := $(wildcard pkg/eks/mocks/*API.go)
 
 conditionally_generated_files := \
-  userdocs/src/usage/schema.md \
+  userdocs/src/usage/schema.json \
   $(generated_code_deep_copy_helper) $(generated_code_aws_sdk_mocks)
 
 all_generated_files := \
@@ -26,10 +26,15 @@ all_generated_files := \
 .DEFAULT_GOAL := help
 
 ##@ Dependencies
+.PHONY: install-all-deps
+install-all-deps: install-build-deps install-site-deps ## Install all dependencies for building both binary and user docs)
 
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
+
+.PHONY: install-site-deps
+install-site-deps: ## Install dependencies for user docs
 	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
@@ -165,7 +170,7 @@ check-all-generated-files-up-to-date: generate-all
 	git diff --quiet -- $(all_generated_files) || (git --no-pager diff $(all_generated_files); echo "HINT: to fix this, run 'git commit $(all_generated_files) --message \"Update generated files\"'"; exit 1)
 
 .license-header: LICENSE
-	@# generate-groups.sh can't find the lincense header when using Go modules, so we provide one
+	@# generate-groups.sh can't find the license header when using Go modules, so we provide one
 	printf "/*\n%s\n*/\n" "$$(cat LICENSE)" > $@
 
 ### Update AMIs in ami static resolver
@@ -186,7 +191,7 @@ pkg/addons/default/assets/aws-node.yaml:
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	time go generate ./pkg/addons/default/aws_node_generate.go
 
-userdocs/src/usage/schema.md: $(call godeps,cmd/schema/generate.go)
+userdocs/src/usage/schema.json: $(call godeps,cmd/schema/generate.go)
 	time go run ./cmd/schema/generate.go $@
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
@@ -249,7 +254,6 @@ eksctl-image: ## Build the eksctl image that has release artefacts and no build 
 	$(MAKE) -f Makefile.docker $@
 
 ##@ Site
-
 .PHONY: serve-pages
 serve-pages: ## Serve the site locally
 	cd userdocs/ ; mkdocs serve

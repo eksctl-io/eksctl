@@ -7,25 +7,29 @@ import (
 	"github.com/instrumenta/kubeval/kubeval"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/eksctl/pkg/git"
 	"k8s.io/client-go/kubernetes/fake"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
 var _ = Describe("Installer", func() {
-	mockOpts := &InstallOpts{
-		GitOptions: git.Options{
-			URL:    "git@github.com/foo/bar.git",
-			Branch: "gitbranch",
-			User:   "gituser",
-			Email:  "gitemail@example.com",
+	mockOpts := &api.Git{
+		Repo: &api.Repo{
+			URL:      "git@github.com/foo/bar.git",
+			Branch:   "gitbranch",
+			User:     "gituser",
+			Email:    "gitemail@example.com",
+			Paths:    []string{"gitpath/"},
+			FluxPath: "fluxpath/",
 		},
-		GitPaths:    []string{"gitpath/"},
-		GitLabel:    "gitlabel",
-		GitFluxPath: "fluxpath/",
-		Namespace:   "fluxnamespace",
-		WithHelm:    true,
+		Operator: api.Operator{
+			Label:     "gitlabel",
+			Namespace: "fluxnamespace",
+			WithHelm:  api.Enabled(),
+		},
 	}
 	mockInstaller := &Installer{
+		cluster:      &api.ClusterMeta{Name: "cluster-1", Region: "us-west-2"},
 		opts:         mockOpts,
 		k8sClientSet: fake.NewSimpleClientset(),
 	}

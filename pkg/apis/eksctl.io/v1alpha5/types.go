@@ -83,6 +83,12 @@ const (
 	// RegionCNNorth1 represents the China region Beijing
 	RegionCNNorth1 = "cn-north-1"
 
+	// RegionUSGovWest1 represents the region GovCloud (US-West)
+	RegionUSGovWest1 = "us-gov-west-1"
+
+	// RegionUSGovEast1 represents the region GovCloud (US-East)
+	RegionUSGovEast1 = "us-gov-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -108,7 +114,7 @@ const (
 	Version1_16 = "1.16"
 
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_15
+	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
 	LatestVersion = Version1_16
@@ -211,6 +217,12 @@ const (
 
 	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
 	eksResourceAccountCNNorth1 = "918309763551"
+
+	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
+	eksResourceAccountUSGovWest1 = "013241004608"
+
+	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
+	eksResourceAccountUSGovEast1 = "151742754352"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -283,6 +295,8 @@ func SupportedRegions() []string {
 		RegionSAEast1,
 		RegionCNNorthwest1,
 		RegionCNNorth1,
+		RegionUSGovWest1,
+		RegionUSGovEast1,
 	}
 }
 
@@ -342,6 +356,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountCNNorthWest1
 	case RegionCNNorth1:
 		return eksResourceAccountCNNorth1
+	case RegionUSGovWest1:
+		return eksResourceAccountUSGovWest1
+	case RegionUSGovEast1:
+		return eksResourceAccountUSGovEast1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -427,7 +445,7 @@ type ProviderConfig struct {
 
 // ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 
 	Metadata *ClusterMeta `json:"metadata"`
 
@@ -456,13 +474,16 @@ type ClusterConfig struct {
 	SecretsEncryption *SecretsEncryption `json:"secretsEncryption,omitempty"`
 
 	Status *ClusterStatus `json:"status,omitempty"`
+
+	// +optional
+	Git *Git `json:"git,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ClusterConfigList is a list of ClusterConfigs
 type ClusterConfigList struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 	metav1.ListMeta `json:"metadata"`
 
 	Items []ClusterConfig `json:"items"`
@@ -679,6 +700,73 @@ type NodeGroup struct {
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
 }
 
+// Git groups all configuration options related to enabling GitOps on a
+// cluster and linking it to a Git repository.
+type Git struct {
+	Repo *Repo `json:"repo,omitempty"`
+	// +optional
+	Operator Operator `json:"operator,omitempty"`
+	// +optional
+	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
+}
+
+// NewGit returns a new empty Git configuration
+func NewGit() *Git {
+	return &Git{
+		Repo:             &Repo{},
+		Operator:         Operator{},
+		BootstrapProfile: &Profile{},
+	}
+}
+
+// Repo groups all configuration options related to a Git repository used for
+// GitOps.
+type Repo struct {
+	URL string `json:"url,omitempty"` // the Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// +optional
+	Branch string `json:"branch,omitempty"` // the branch under which cluster configuration files will be committed & pushed, e.g. master
+	// +optional
+	Paths []string `json:"paths,omitempty"` // relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	// +optional
+	FluxPath string `json:"fluxPath,omitempty"` // the directory under which Flux configuration files will be written, e.g. flux/
+	// +optional
+	User  string `json:"user,omitempty"`  // Git user which will be used to commit changes
+	Email string `json:"email,omitempty"` // Git email which will be used to commit changes
+	// +optional
+	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"` // path to the private SSH key to use to authenticate
+}
+
+// Operator groups all configuration options related to the operator used to
+// keep the cluster and the Git repository in sync.
+type Operator struct {
+	// +optional
+	Label string `json:"label,omitempty"` // e.g. flux
+	// +optional
+	Namespace string `json:"namespace,omitempty"` // e.g. flux
+	// +optional
+	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+}
+
+// Profile groups all details on a quickstart profile to enable on the cluster
+// and add to the Git repository.
+type Profile struct {
+	Source string `json:"source,omitempty"` // e.g. app-dev
+	// +optional
+	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+	// +optional
+	OutputPath string `json:"outputPath,omitempty"` // output directory for processed profile templates (generate profile command)
+}
+
+// HasBootstrapProfile returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasBootstrapProfile() bool {
+	return c.Git != nil && c.Git.BootstrapProfile != nil && c.Git.BootstrapProfile.Source != ""
+}
+
+// HasGitopsRepoConfigured returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
+	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
+}
+
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
 func (n *NodeGroup) ListOptions() metav1.ListOptions {
 	return makeListOptions(n.Name)
@@ -822,7 +910,7 @@ type ManagedNodeGroup struct {
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
-	*ScalingConfig `json:",inline"`
+	*ScalingConfig
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional

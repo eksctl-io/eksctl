@@ -3,12 +3,16 @@ package create
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 
@@ -47,7 +51,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
-		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
+		cmdutils.AddStringToStringVarPFlag(fs, &cfg.Metadata.Tags, "tags", "", map[string]string{}, "Used to tag the AWS resources")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		fs.StringSliceVar(&params.AvailabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
@@ -409,6 +413,23 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			if err := scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet); err != nil {
 				return err
 			}
+		}
+
+		if cfg.HasGitopsRepoConfigured() {
+			kubernetesClientConfigs, err := ctl.NewClient(cfg)
+			if err != nil {
+				return err
+			}
+			k8sConfig := kubernetesClientConfigs.Config
+			k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
+			if err != nil {
+				return errors.Wrap(err, "cannot create Kubernetes client configuration")
+			}
+			err = gitops.Setup(k8sRestConfig, clientSet, cfg, time.Minute)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 
 		// check kubectl version, and offer install instructions if missing or old
