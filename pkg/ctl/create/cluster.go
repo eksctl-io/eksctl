@@ -69,6 +69,7 @@ func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.C
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
+		fs.BoolVarP(&params.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "Install Neuron plugin for Inferentia nodes")
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
@@ -369,6 +370,10 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 		// tasks depending on the control plane availability
 		tasks := ctl.NewTasksRequiringControlPlane(cfg)
+		ngTasks := ctl.ClusterTasksForNodeGroups(cfg, params.InstallNeuronDevicePlugin)
+		if ngTasks.Len() > 0 {
+			tasks.Append(ngTasks)
+		}
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
@@ -392,7 +397,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 				return err
 			}
 
-			showDevicePluginMessageForNodeGroup(ng)
+			showDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin)
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {
