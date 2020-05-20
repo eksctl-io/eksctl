@@ -47,6 +47,7 @@ func main() {
 		panic(err)
 	}
 	document.Write(jsonSchema)
+	document.WriteByte('\n')
 
 	err = ioutil.WriteFile(outputFile, []byte(document.String()), 0755)
 

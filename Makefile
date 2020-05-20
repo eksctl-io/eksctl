@@ -158,6 +158,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	@# - deleting an asset is breaks the dependencies
 	@# - different version of go-bindata generate different code
 	@$(GOBIN)/go-bindata -v
+	env GOBIN=$(GOBIN) time go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
 	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap/assets.go
 	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
 	env GOBIN=$(GOBIN) time go generate ./pkg/addons
@@ -191,8 +192,8 @@ pkg/addons/default/assets/aws-node.yaml:
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	time go generate ./pkg/addons/default/aws_node_generate.go
 
-userdocs/src/usage/schema.json: $(call godeps,cmd/schema/generate.go)
-	time go run ./cmd/schema/generate.go $@
+userdocs/src/usage/schema.json:
+	cp ./pkg/apis/eksctl.io/v1alpha5/assets/schema.json ./userdocs/src/usage/schema.json
 
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
@@ -259,7 +260,7 @@ serve-pages: ## Serve the site locally
 	cd userdocs/ ; mkdocs serve
 
 .PHONY: build-pages
-build-pages: ## Generate the site
+build-pages: userdocs/src/usage/schema.json ## Generate the site
 	cd userdocs/ ; mkdocs build
 
 ##@ Utility
