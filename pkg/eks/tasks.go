@@ -3,6 +3,7 @@ package eks
 import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/addons"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 
@@ -101,6 +102,7 @@ func (c *ClusterProvider) NewTasksRequiringControlPlane(cfg *api.ClusterConfig) 
 	if api.IsEnabled(cfg.IAM.WithOIDC) {
 		c.appendCreateTasksForIAMServiceAccounts(cfg, tasks)
 	}
+
 	return tasks
 }
 

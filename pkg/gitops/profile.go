@@ -2,8 +2,9 @@ package gitops
 
 import (
 	"bufio"
-	"context"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
@@ -26,69 +28,134 @@ const (
 
 // Profile represents a gitops profile
 type Profile struct {
-	Processor fileprocessor.FileProcessor
-	Path      string
-	GitOpts   git.Options
-	GitCloner git.TmpCloner
-	FS        afero.Fs
-	IO        afero.Afero
-	clonedDir string
+	Processor         fileprocessor.FileProcessor
+	ProfileCloner     git.TmpCloner
+	UserRepoGitClient *git.Client
+	FS                afero.Fs
+	IO                afero.Afero
+}
+
+// Install installs the profile specified in the cluster config into a user's repository
+func (p *Profile) Install(clusterConfig *api.ClusterConfig) error {
+	if !clusterConfig.HasBootstrapProfile() {
+		return nil
+	}
+
+	userRepo := clusterConfig.Git.Repo
+
+	// Clone user's repo to apply Quick Start profile
+	gitCfg := clusterConfig.Git
+	bootstrapProfile := clusterConfig.Git.BootstrapProfile
+
+	// Clone user's repo to apply Quick Start profile
+	usersRepoName, err := git.RepoName(gitCfg.Repo.URL)
+	if err != nil {
+		return err
+	}
+	usersRepoDir, err := ioutil.TempDir("", usersRepoName+"-")
+	if err != nil {
+		return errors.Wrapf(err, "unable to create temporary directory for %q", usersRepoName)
+	}
+	bootstrapProfile.OutputPath = filepath.Join(usersRepoDir, "base")
+	logger.Debug("directory %s will be used to clone the configuration repository and install the profile", usersRepoDir)
+
+	err = p.UserRepoGitClient.CloneRepoInPath(
+		usersRepoDir,
+		git.CloneOptions{
+			URL:       gitCfg.Repo.URL,
+			Branch:    gitCfg.Repo.Branch,
+			Bootstrap: true,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	// Add quickstart components to user's repo. Clones the quickstart base repo
+	err = p.Generate(*bootstrapProfile)
+	if err != nil {
+		return errors.Wrap(err, "error generating profile")
+	}
+
+	// Git add, commit and push component files
+	if err = p.UserRepoGitClient.Add("."); err != nil {
+		return err
+	}
+
+	commitMsg := fmt.Sprintf("Add %s quickstart components", bootstrapProfile.Source)
+	if err = p.UserRepoGitClient.Commit(commitMsg, userRepo.User, userRepo.Email); err != nil {
+		return err
+	}
+
+	if err = p.UserRepoGitClient.Push(); err != nil {
+		return err
+	}
+
+	logger.Debug("deleting cloned directory %q", usersRepoDir)
+	if err := p.IO.RemoveAll(usersRepoDir); err != nil {
+		logger.Warning("unable to delete cloned directory %q", usersRepoDir)
+	}
+	return nil
 }
 
 // Generate clones the specified Git repo in a base directory and generates overlays if the Git repo
 // points to a profile repo
-func (p *Profile) Generate(ctx context.Context) error {
-	logger.Info("cloning repository %q:%s", p.GitOpts.URL, p.GitOpts.Branch)
-	options := git.CloneOptions{
-		URL:    p.GitOpts.URL,
-		Branch: p.GitOpts.Branch,
-	}
-	clonedDir, err := p.GitCloner.CloneRepoInTmpDir(cloneDirPrefix, options)
+func (p *Profile) Generate(profile api.Profile) error {
+	// Translate the profile name to a URL
+	var err error
+	profile.Source, err = RepositoryURL(profile.Source)
 	if err != nil {
-		return errors.Wrapf(err, "error cloning repository %s", p.GitOpts.URL)
+		return errors.Wrap(err, "please supply a valid Quick Start name or URL")
 	}
-	p.clonedDir = clonedDir
+
+	logger.Info("cloning repository %q:%s", profile.Source, profile.Revision)
+	options := git.CloneOptions{
+		URL:    profile.Source,
+		Branch: profile.Revision,
+	}
+	clonedDir, err := p.ProfileCloner.CloneRepoInTmpDir(cloneDirPrefix, options)
+	if err != nil {
+		return errors.Wrapf(err, "error cloning repository %s", profile.Source)
+	}
 
 	if err := p.ignoreFiles(clonedDir); err != nil {
-		return errors.Wrapf(err, "error ignoring files of repository %s", p.GitOpts.URL)
+		return errors.Wrapf(err, "error ignoring files of repository %s", profile.Source)
 	}
 
 	allManifests, err := p.loadFiles(clonedDir)
 	if err != nil {
-		return errors.Wrapf(err, "error loading files from repository %s", p.GitOpts.URL)
+		return errors.Wrapf(err, "error loading files from repository %s", profile.Source)
 	}
 
 	logger.Info("processing template files in repository")
 	outputFiles, err := p.processFiles(allManifests, clonedDir)
 	if err != nil {
-		return errors.Wrapf(err, "error processing manifests from repository %s", p.GitOpts.URL)
+		return errors.Wrapf(err, "error processing manifests from repository %s", profile.Source)
 	}
 
 	if len(outputFiles) > 0 {
-		logger.Info("writing new manifests to %q", p.Path)
+		logger.Info("writing new manifests to %q", profile.OutputPath)
 	} else {
 		logger.Info("no template files found, nothing to write")
 		return nil
 	}
 
-	err = p.writeFiles(outputFiles, p.Path)
+	err = p.writeFiles(outputFiles, profile.OutputPath)
 	if err != nil {
-		return errors.Wrapf(err, "error writing manifests to dir: %q", p.Path)
+		return errors.Wrapf(err, "error writing manifests to dir: %q", profile.OutputPath)
+	}
+
+	// Delete temporary clone of the quickstart repo
+	if clonedDir == "" {
+		logger.Debug("no cloned directory to delete")
+		return nil
+	}
+	logger.Debug("deleting cloned directory %q", clonedDir)
+	if err := p.IO.RemoveAll(clonedDir); err != nil {
+		logger.Warning("unable to delete cloned directory %q", clonedDir)
 	}
 
 	return nil
-}
-
-// DeleteClonedDirectory deletes the directory where the repository was cloned
-func (p *Profile) DeleteClonedDirectory() {
-	if p.clonedDir == "" {
-		logger.Debug("no cloned directory to delete")
-		return
-	}
-	logger.Debug("deleting cloned directory %q", p.clonedDir)
-	if err := p.IO.RemoveAll(p.clonedDir); err != nil {
-		logger.Warning("unable to delete cloned directory %q", p.clonedDir)
-	}
 }
 
 func (p *Profile) loadFiles(directory string) ([]fileprocessor.File, error) {
