@@ -39,7 +39,7 @@ eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountNa
 ```
 
 !!!note
-    You can specify `--attach-policy-arn` multiple times to use more then one policy.
+    You can specify `--attach-policy-arn` multiple times to use more than one policy.
 
 More specifically, you can create a service account with read-only access to S3 by running:
 
