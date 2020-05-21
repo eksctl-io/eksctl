@@ -25,9 +25,6 @@
       "type": "object"
     },
     "ClusterConfig": {
-      "required": [
-        "metadata"
-      ],
       "properties": {
         "kind": {
           "type": "string",
@@ -343,8 +340,7 @@
     },
     "FargateProfile": {
       "required": [
-        "name",
-        "selectors"
+        "name"
       ],
       "properties": {
         "name": {
@@ -418,8 +414,7 @@
     },
     "ManagedNodeGroup": {
       "required": [
-        "name",
-        "privateNetworking"
+        "name"
       ],
       "properties": {
         "name": {
@@ -510,12 +505,7 @@
     },
     "NodeGroup": {
       "required": [
-        "name",
-        "privateNetworking",
-        "volumeSize",
-        "volumeType",
-        "volumeIOPS",
-        "iam"
+        "name"
       ],
       "properties": {
         "name": {
@@ -705,19 +695,6 @@
       "type": "object"
     },
     "NodeGroupIAMAddonPolicies": {
-      "required": [
-        "imageBuilder",
-        "autoScaler",
-        "externalDNS",
-        "certManager",
-        "appMesh",
-        "ebs",
-        "fsx",
-        "efs",
-        "albIngress",
-        "xRay",
-        "cloudWatch"
-      ],
       "properties": {
         "imageBuilder": {
           "type": "boolean"
@@ -757,6 +734,9 @@
       "type": "object"
     },
     "NodeGroupInstancesDistribution": {
+      "required": [
+        "instanceTypes"
+      ],
       "properties": {
         "instanceTypes": {
           "items": {
@@ -784,10 +764,6 @@
       "type": "object"
     },
     "NodeGroupSGs": {
-      "required": [
-        "withShared",
-        "withLocal"
-      ],
       "properties": {
         "attachIDs": {
           "items": {
@@ -806,9 +782,6 @@
       "type": "object"
     },
     "NodeGroupSSH": {
-      "required": [
-        "allow"
-      ],
       "properties": {
         "allow": {
           "type": "boolean"
@@ -893,6 +866,9 @@
       "type": "object"
     },
     "SecretsEncryption": {
+      "required": [
+        "keyARN"
+      ],
       "properties": {
         "keyARN": {
           "type": "string"
