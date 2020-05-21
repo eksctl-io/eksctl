@@ -1,3 +1,6 @@
+table#config {
+    font-family: monospace;
+}
 table#config span.example,
 table#config span.value {
     filter: opacity(70%);
@@ -5,6 +8,12 @@ table#config span.value {
 table#config td.comment:nth-child(3) {
     display: none;
     border-left: 2px solid whiteSmoke;
+}
+table#config td:first-child{
+    padding-right: 50px;
+}
+table#config td span.required a.key{
+    font-weight: bold;
 }
 table#config td.type {
     filter: opacity(70%);

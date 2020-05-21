@@ -54,7 +54,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         index++;
 
         // Key
-        let required =
+        const required =
             definitions[name].required &&
             definitions[name].required.includes(key);
         let keyClass = required ? "key required" : "key";
@@ -64,7 +64,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         if (definition.examples && definition.examples.length > 0) {
             value = definition.examples[0];
         }
-        let valueClass = definition.examples ? "example" : "value";
+        const valueClass = definition.examples ? "example" : "value";
 
         // Description
         const desc = definition["description"] || "";
