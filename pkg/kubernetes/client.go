@@ -109,7 +109,7 @@ func (c *RawClient) new() (*RawClient, error) {
 		c.config.APIPath = "/api"
 	}
 	if c.config.NegotiatedSerializer == nil {
-		c.config.NegotiatedSerializer = scheme.Codecs
+		c.config.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
 	}
 
 	if err := restclient.SetKubernetesDefaults(c.config); err != nil {
