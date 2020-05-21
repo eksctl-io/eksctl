@@ -5,10 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/weaveworks/eksctl/pkg/testutils"
@@ -17,7 +15,34 @@ import (
 var _ = Describe("Kubernetes client wrappers", func() {
 	Describe("can create or replace missing objects", func() {
 		It("can update objects that already exist", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.15.json")
+			ct := testutils.NewCollectionTracker()
+
+			for _, item := range sampleAddons {
+				rc, track := testutils.NewFakeRawResource(item, false, false, ct)
+
+				exists, err := rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource already exists.
+
+				_, err = rc.CreateOrReplace(false)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(track).ToNot(BeNil())
+				Expect(track.Methods()).To(Equal([]string{"GET", "GET", "GET", "PUT"}))
+
+				exists, err = rc.Exists()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(exists).To(BeTrue()) // The Kubernetes resource still exists.
+			}
+
+			Expect(ct.Updated()).ToNot(BeEmpty())
+			Expect(ct.UpdatedItems()).To(HaveLen(10))
+			Expect(ct.Created()).To(BeEmpty())
+			Expect(ct.CreatedItems()).To(BeEmpty())
+		})
+
+		It("can update objects that already exist for 1.16", func() {
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.16.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -44,7 +69,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can create objects that don't exist yet", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.15.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -71,7 +96,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can update objects that already exist", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.15.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
@@ -98,7 +123,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can create objects and update objects in a union", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.15.json")
 
 			rawClient := testutils.NewFakeRawClient()
 
@@ -126,7 +151,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(awsNode.Spec.Template.Spec.Containers).To(HaveLen(1))
 			Expect(awsNode.Spec.Template.Spec.Containers[0].Image).To(
-				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.4.1"),
+				Equal("602401143452.dkr.ecr.eu-west-1.amazonaws.com/amazon-k8s-cni:v1.5.7"),
 			)
 
 			saTest1 := &corev1.ServiceAccount{
@@ -207,7 +232,7 @@ var _ = Describe("Kubernetes client wrappers", func() {
 		})
 
 		It("can delete existing objects", func() {
-			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.13.json")
+			sampleAddons := testutils.LoadSamples("../addons/default/testdata/sample-1.15.json")
 			ct := testutils.NewCollectionTracker()
 
 			for _, item := range sampleAddons {
