@@ -40,7 +40,7 @@ func updateClusterCmd(cmd *cmdutils.Cmd) {
 		cmdutils.AddWaitFlag(fs, &cmd.Wait, "all update operations to complete")
 		_ = fs.MarkDeprecated("wait", "--wait is no longer respected; the cluster update always waits to complete")
 		// updating from 1.15 to 1.16 has been observed to take longer than the default value of 25 minutes
-		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 45*time.Minute)
+		cmdutils.AddTimeoutFlagWithValue(fs, &cmd.ProviderConfig.WaitTimeout, 35*time.Minute)
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
