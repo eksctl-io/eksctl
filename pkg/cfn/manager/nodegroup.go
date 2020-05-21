@@ -281,20 +281,17 @@ func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType,
 // GetNodeGroupType returns the nodegroup type
 func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	var (
-		foundNodeGroupTag bool
-		nodeGroupType     api.NodeGroupType
+		nodeGroupType api.NodeGroupType
 	)
+	if ngNameTagValue := GetNodegroupTagName(tags); ngNameTagValue == "" {
+		return "", errors.New("failed to find the nodegroup name tag")
+	}
+
 	for _, tag := range tags {
 		switch *tag.Key {
-		case api.NodeGroupNameTag:
-			foundNodeGroupTag = true
 		case api.NodeGroupTypeTag:
 			nodeGroupType = api.NodeGroupType(*tag.Value)
 		}
-	}
-
-	if !foundNodeGroupTag {
-		return "", fmt.Errorf("failed to find a nodegroup tag (%s)", api.NodeGroupNameTag)
 	}
 
 	if nodeGroupType == "" {
@@ -403,17 +400,25 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 
 // GetNodeGroupName will return nodegroup name based on tags
 func (*StackCollection) GetNodeGroupName(s *Stack) string {
-	for _, tag := range s.Tags {
-		switch *tag.Key {
-		case api.NodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:
-			return *tag.Value
-		}
+	if tagName := GetNodegroupTagName(s.Tags); tagName != "" {
+		return tagName
 	}
 	if strings.HasSuffix(*s.StackName, "-nodegroup-0") {
 		return "legacy-nodegroup-0"
 	}
 	if strings.HasSuffix(*s.StackName, "-DefaultNodeGroup") {
 		return "legacy-default"
+	}
+	return ""
+}
+
+// GetNodegroupTagName returns the nodegroup name of a stack based on its tags. Taking into account legacy tags.
+func GetNodegroupTagName(tags []*cfn.Tag) string {
+	for _, tag := range tags {
+		switch *tag.Key {
+		case api.NodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:
+			return *tag.Value
+		}
 	}
 	return ""
 }

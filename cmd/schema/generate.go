@@ -29,7 +29,8 @@ func main() {
 
 	var document strings.Builder
 	reflector := jsonschema.Reflector{
-		TypeMapper: typeMapper,
+		RequiredFromJSONSchemaTags: true,
+		TypeMapper:                 typeMapper,
 	}
 	schema := reflector.Reflect(&v1alpha5.ClusterConfig{})
 	// We have to manually add examples here, because we can't tag `TypeMeta`

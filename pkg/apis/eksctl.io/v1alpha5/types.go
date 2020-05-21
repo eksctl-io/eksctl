@@ -367,8 +367,8 @@ func EKSResourceAccountID(region string) string {
 
 // ClusterMeta is what identifies a cluster
 type ClusterMeta struct {
-	Name   string `json:"name"`
-	Region string `json:"region"`
+	Name   string `json:"name" jsonschema:"required"`
+	Region string `json:"region" jsonschema:"required"`
 	// +optional
 	Version string `json:"version,omitempty"`
 	// +optional
@@ -619,7 +619,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // NodeGroup holds all configuration attributes that are
 // specific to a nodegroup
 type NodeGroup struct {
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 	// +optional
 	AMI string `json:"ami,omitempty"`
 	// +optional
@@ -651,9 +651,9 @@ type NodeGroup struct {
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
 	// +optional
-	VolumeSize *int `json:"volumeSize"`
+	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
-	VolumeType *string `json:"volumeType"`
+	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
 	// +optional
@@ -661,7 +661,7 @@ type NodeGroup struct {
 	// +optional
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
 	// +optional
-	VolumeIOPS *int `json:"volumeIOPS"`
+	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
@@ -682,7 +682,7 @@ type NodeGroup struct {
 	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 
 	// +optional
-	IAM *NodeGroupIAM `json:"iam"`
+	IAM *NodeGroupIAM `json:"iam,omitempty"`
 
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
@@ -858,7 +858,7 @@ type (
 	// NodeGroupInstancesDistribution holds the configuration for spot instances
 	NodeGroupInstancesDistribution struct {
 		//+required
-		InstanceTypes []string `json:"instanceTypes,omitempty"`
+		InstanceTypes []string `json:"instanceTypes,omitempty" jsonschema:"required"`
 		// +optional
 		MaxPrice *float64 `json:"maxPrice,omitempty"`
 		//+optional
@@ -885,7 +885,7 @@ type (
 // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
 type MetricsCollection struct {
 	// +required
-	Granularity string `json:"granularity"`
+	Granularity string `json:"granularity" jsonschema:"required"`
 	// +optional
 	Metrics []string `json:"metrics,omitempty"`
 }
@@ -903,7 +903,7 @@ type ScalingConfig struct {
 // ManagedNodeGroup defines an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 
 	// +optional
 	AMIFamily string `json:"amiFamily,omitempty"`
@@ -983,7 +983,7 @@ func IsAMI(amiFlag string) bool {
 // FargateProfile defines the settings used to schedule workload onto Fargate.
 type FargateProfile struct {
 	// Name of the Fargate profile.
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
 	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
 	// Selectors define the rules to select workload to schedule onto Fargate.
@@ -1000,7 +1000,7 @@ type FargateProfile struct {
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
 type FargateProfileSelector struct {
 	// Namespace is the Kubernetes namespace from which to select workload.
-	Namespace string `json:"namespace"`
+	Namespace string `json:"namespace" jsonschema:"required"`
 	// +optional
 	// Labels are the Kubernetes label selectors to use to select workload.
 	Labels map[string]string `json:"labels,omitempty"`
@@ -1008,5 +1008,5 @@ type FargateProfileSelector struct {
 
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
-	KeyARN *string `json:"keyARN,omitempty"`
+	KeyARN *string `json:"keyARN,omitempty" jsonschema:"required"`
 }
