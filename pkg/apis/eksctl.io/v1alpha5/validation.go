@@ -367,7 +367,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	}
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 	if ng.IAM != nil {
-		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleArn", path); err != nil {
+		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
 		}
 
