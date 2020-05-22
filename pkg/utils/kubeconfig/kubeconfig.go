@@ -5,10 +5,10 @@ import (
 	"os"
 	"path"
 	"strings"
-	"syscall"
 
 	"os/exec"
 
+	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -139,28 +139,21 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 	}
 }
 
-func lockConfigFile(configFileName string) (*os.File, error) {
-	f, err := os.Open(configFileName)
+func lockConfigFile(filePath string) error {
+	flock := flock.New(filePath)
+	err := flock.Lock()
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to open existing kubeconfig file")
+		return errors.Wrap(err, "flock: failed to obtain exclusive lock existing kubeconfig file")
 	}
 
-	err = syscall.Flock(int(f.Fd()), syscall.LOCK_EX)
-	if err != nil {
-		return nil, errors.Wrap(err, "flock: failed to obtain exclusive lock existing kubeconfig file")
-	}
-
-	return f, nil
+	return nil
 }
 
-func unlockConfigFile(file *os.File) error {
-	var e error
-	if err := syscall.Flock(int(file.Fd()), syscall.LOCK_UN); err != nil {
-		e = errors.Wrap(err, "flock: failed to release exclusive lock on existing kubeconfig file")
-	}
-
-	if err := file.Close(); err != nil {
-		return errors.Wrap(e, "failed to close file")
+func unlockConfigFile(filePath string) error {
+	flock := flock.New(filePath)
+	err := flock.Unlock()
+	if err != nil {
+		return errors.Wrap(err, "flock: failed to release exclusive lock on existing kubeconfig file")
 	}
 
 	return nil
@@ -173,13 +166,13 @@ func unlockConfigFile(file *os.File) error {
 func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string, error) {
 	configAccess := getConfigAccess(path)
 	configFileName := configAccess.GetDefaultFilename()
-	fd, err := lockConfigFile(configFileName)
+	err := lockConfigFile(configFileName)
 	if err != nil {
 		return "", err
 	}
 
 	defer func() {
-		if err := unlockConfigFile(fd); err != nil {
+		if err := unlockConfigFile(configFileName); err != nil {
 			logger.Critical(err.Error())
 		}
 	}()
@@ -261,16 +254,17 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	p := AutoPath(meta.Name)
 
 	if file.Exists(p) {
-		fd, err := lockConfigFile(p)
+		err := lockConfigFile(p)
 		if err != nil {
 			logger.Critical(err.Error())
 		}
 
 		defer func() {
-			if err := unlockConfigFile(fd); err != nil {
+			if err := unlockConfigFile(p); err != nil {
 				logger.Critical(err.Error())
 			}
 		}()
+
 		if err := isValidConfig(p, meta.Name); err != nil {
 			logger.Debug(err.Error())
 			return
@@ -282,13 +276,14 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	}
 
 	configAccess := getConfigAccess(DefaultPath)
-	fd, err := lockConfigFile(configAccess.GetDefaultFilename())
+	defaultFilename := configAccess.GetDefaultFilename()
+	err := lockConfigFile(defaultFilename)
 	if err != nil {
 		logger.Critical(err.Error())
 	}
 
 	defer func() {
-		if err := unlockConfigFile(fd); err != nil {
+		if err := unlockConfigFile(defaultFilename); err != nil {
 			logger.Critical(err.Error())
 		}
 	}()
