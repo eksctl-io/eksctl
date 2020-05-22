@@ -19,7 +19,7 @@ require (
 	github.com/fluxcd/flux/pkg/install v0.0.0-20200402142123-873fb9300996 // flux 1.19.0
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200407140510-8d71b0072a3e // helm-operator 1.0.0
 	github.com/gobwas/glob v0.2.3
-	github.com/golangci/golangci-lint v1.21.0
+	github.com/golangci/golangci-lint v1.27.0
 	github.com/goreleaser/goreleaser v0.110.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.3
@@ -30,8 +30,8 @@ require (
 	github.com/kris-nova/lolgopher v0.0.0-20180921204813-313b3abb0d9b // indirect
 	github.com/kubicorn/kubicorn v0.0.0-20180829191017-06f6bce92acc
 	github.com/lithammer/dedent v1.1.0
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.8.1
+	github.com/onsi/ginkgo v1.12.0
+	github.com/onsi/gomega v1.9.0
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.2.2
@@ -47,7 +47,7 @@ require (
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	golang.org/x/sys v0.0.0-20200428200454-593003d681fa // indirect
-	golang.org/x/tools v0.0.0-20200301222351-066e0c02454c
+	golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770
 	k8s.io/api v0.16.8
 	k8s.io/apiextensions-apiserver v0.16.8
 	k8s.io/apimachinery v0.16.8
