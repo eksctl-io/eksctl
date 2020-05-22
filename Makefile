@@ -1,4 +1,5 @@
 include Makefile.common
+include Makefile.docs
 
 version_pkg := github.com/weaveworks/eksctl/pkg/version
 
@@ -32,10 +33,6 @@ install-all-deps: install-build-deps install-site-deps ## Install all dependenci
 .PHONY: install-build-deps
 install-build-deps: ## Install dependencies (packages and tools)
 	./install-build-deps.sh
-
-.PHONY: install-site-deps
-install-site-deps: ## Install dependencies for user docs
-	pip3 install -r userdocs/requirements.txt
 
 ##@ Build
 
@@ -192,9 +189,6 @@ pkg/addons/default/assets/aws-node.yaml:
 update-aws-node: ## Re-download the aws-node manifests from AWS
 	time go generate ./pkg/addons/default/aws_node_generate.go
 
-userdocs/src/usage/schema.json:
-	cp ./pkg/apis/eksctl.io/v1alpha5/assets/schema.json ./userdocs/src/usage/schema.json
-
 deep_copy_helper_input = $(shell $(call godeps_cmd,./pkg/apis/...) | sed 's|$(generated_code_deep_copy_helper)||' )
 $(generated_code_deep_copy_helper): $(deep_copy_helper_input) .license-header ## Generate Kubernetes API helpers
 	./tools/update-codegen.sh
@@ -253,15 +247,6 @@ publish-homebrew:
 .PHONY: eksctl-image
 eksctl-image: ## Build the eksctl image that has release artefacts and no build dependencies
 	$(MAKE) -f Makefile.docker $@
-
-##@ Site
-.PHONY: serve-pages
-serve-pages: ## Serve the site locally
-	cd userdocs/ ; mkdocs serve
-
-.PHONY: build-pages
-build-pages: userdocs/src/usage/schema.json ## Generate the site
-	cd userdocs/ ; mkdocs build
 
 ##@ Utility
 
