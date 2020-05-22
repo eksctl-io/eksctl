@@ -274,7 +274,7 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 				}
 			}
 
-			for _, domain := range []string{"kubelet.kubernetes.io", "node.kubernetes.io", "node-role.kubernetes.io", "alpha.service-controller.kubernetes.io"} {
+			for _, domain := range []string{"kubelet.kubernetes.io", "node.kubernetes.io", "alpha.service-controller.kubernetes.io"} {
 				if ns == domain || strings.HasSuffix(ns, "."+domain) {
 					allowedKubeletNamespace = true
 				}
