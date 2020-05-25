@@ -38,6 +38,12 @@ or [scoop](https://scoop.sh):
 scoop install eksctl
 ```
 
+or [gofish](https://gofi.sh/#intro):
+
+```
+gofish install eksctl
+```
+
 You will need to have AWS API credentials configured. What works for AWS CLI or any other tools (kops, Terraform etc), should be sufficient. You can use [`~/.aws/credentials` file][awsconfig]
 or [environment variables][awsenv]. For more information read [AWS documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html).
 
