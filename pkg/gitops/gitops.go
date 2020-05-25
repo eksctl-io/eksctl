@@ -16,6 +16,9 @@ import (
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
+// DefaultPodReadyTimeout is the time it will wait for Flux and Helm Operator to become ready
+const DefaultPodReadyTimeout = 5 * time.Minute
+
 // Setup sets up gitops in a repository for a cluster. Installs flux, helm and a quickstart profile into the cluster
 func Setup(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *api.ClusterConfig, timeout time.Duration) error {
 	installer, err := flux.NewInstaller(k8sRestConfig, k8sClientSet, cfg, timeout)
