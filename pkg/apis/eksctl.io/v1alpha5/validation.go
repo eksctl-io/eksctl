@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/util/validation"
+	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
 )
 
 var (
@@ -249,54 +250,24 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 
 	unknownKubernetesLabels := []string{}
 
-	for l := range labels {
-		labelParts := strings.Split(l, "/")
+	for label := range labels {
+		labelParts := strings.Split(label, "/")
 
 		if len(labelParts) > 2 {
-			return fmt.Errorf("node label key %q is of invalid format, can only use one '/' separator", l)
+			return fmt.Errorf("node label key %q is of invalid format, can only use one '/' separator", label)
 		}
 
-		if errs := validation.IsQualifiedName(l); len(errs) > 0 {
-			return fmt.Errorf("label %q is invalid - %v", l, errs)
+		if errs := validation.IsQualifiedName(label); len(errs) > 0 {
+			return fmt.Errorf("label %q is invalid - %v", label, errs)
 		}
-		if errs := validation.IsValidLabelValue(labels[l]); len(errs) > 0 {
-			return fmt.Errorf("label %q has invalid value %q - %v", l, labels[l], errs)
+		if errs := validation.IsValidLabelValue(labels[label]); len(errs) > 0 {
+			return fmt.Errorf("label %q has invalid value %q - %v", label, labels[label], errs)
 		}
 
-		isKubernetesLabel := false
-		allowedKubeletNamespace := false
 		if len(labelParts) == 2 {
-			ns := labelParts[0]
-
-			for _, domain := range []string{"kubernetes.io", "k8s.io"} {
-				if ns == domain || strings.HasSuffix(ns, "."+domain) {
-					isKubernetesLabel = true
-				}
-			}
-
-			for _, domain := range []string{"kubelet.kubernetes.io", "node.kubernetes.io", "node-role.kubernetes.io", "alpha.service-controller.kubernetes.io"} {
-				if ns == domain || strings.HasSuffix(ns, "."+domain) {
-					allowedKubeletNamespace = true
-				}
-			}
-
-			if isKubernetesLabel && !allowedKubeletNamespace {
-				switch l {
-				case
-					"kubernetes.io/hostname",
-					"kubernetes.io/instance-type",
-					"kubernetes.io/os",
-					"kubernetes.io/arch",
-					"beta.kubernetes.io/instance-type",
-					"beta.kubernetes.io/os",
-					"beta.kubernetes.io/arch",
-					"failure-domain.beta.kubernetes.io/zone",
-					"failure-domain.beta.kubernetes.io/region",
-					"failure-domain.kubernetes.io/zone",
-					"failure-domain.kubernetes.io/region":
-				default:
-					unknownKubernetesLabels = append(unknownKubernetesLabels, l)
-				}
+			namespace := labelParts[0]
+			if isKubernetesLabel(namespace) && !kubeletapis.IsKubeletLabel(label) {
+				unknownKubernetesLabels = append(unknownKubernetesLabels, label)
 			}
 		}
 	}
@@ -305,6 +276,15 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 		return fmt.Errorf("unknown 'kubernetes.io' or 'k8s.io' labels were specified: %v", unknownKubernetesLabels)
 	}
 	return nil
+}
+
+func isKubernetesLabel(namespace string) bool {
+	for _, domain := range []string{"kubernetes.io", "k8s.io"} {
+		if namespace == domain || strings.HasSuffix(namespace, "."+domain) {
+			return true
+		}
+	}
+	return false
 }
 
 func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) error {

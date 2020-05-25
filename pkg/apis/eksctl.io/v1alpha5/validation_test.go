@@ -779,6 +779,31 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 		})
 	})
+
+	DescribeTable("Nodegroup label validation", func(labels map[string]string, valid bool) {
+		err := ValidateNodeGroupLabels(labels)
+		if valid {
+			Expect(err).ToNot(HaveOccurred())
+		} else {
+			Expect(err).To(HaveOccurred())
+		}
+	},
+		Entry("Disallowed label", map[string]string{
+			"node-role.kubernetes.io/os": "linux",
+		}, false),
+
+		Entry("Disallowed label", map[string]string{
+			"alpha.service-controller.kubernetes.io/test": "value",
+		}, false),
+
+		Entry("No labels", map[string]string{}, true),
+
+		Entry("Allowed labels", map[string]string{
+			"kubernetes.io/hostname":           "supercomputer",
+			"beta.kubernetes.io/os":            "linux",
+			"kubelet.kubernetes.io/palindrome": "telebuk",
+		}, true),
+	)
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {
