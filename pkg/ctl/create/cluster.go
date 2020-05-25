@@ -3,7 +3,6 @@ package create
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -425,7 +424,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			if err != nil {
 				return errors.Wrap(err, "cannot create Kubernetes client configuration")
 			}
-			err = gitops.Setup(k8sRestConfig, clientSet, cfg, time.Minute)
+			err = gitops.Setup(k8sRestConfig, clientSet, cfg, gitops.DefaultPodReadyTimeout)
 			if err != nil {
 				return err
 			}

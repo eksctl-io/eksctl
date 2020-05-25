@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
@@ -59,7 +60,7 @@ func configureRepositoryCmd(cmd *cmdutils.Cmd) *options {
 		fs.StringVar(&cmd.ClusterConfig.Metadata.Name, "cluster", "", "name of the EKS cluster to enable gitops on")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
-		cmdutils.AddTimeoutFlagWithValue(fs, &opts.timeout, 20*time.Second)
+		cmdutils.AddTimeoutFlagWithValue(fs, &opts.timeout, gitops.DefaultPodReadyTimeout)
 	})
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, false)
 	return &opts
