@@ -79,7 +79,7 @@ endif
 
 .PHONY: lint
 lint: ## Run linter over the codebase
-	time "$(GOBIN)/golangci-lint" run --timeout 6m
+	time "$(GOBIN)/golangci-lint" run
 
 .PHONY: test
 test:
