@@ -524,6 +524,12 @@
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/NodeGroupInstancesDistribution"
         },
+        "instancePrefix": {
+          "type": "string"
+        },
+        "instanceName": {
+          "type": "string"
+        },
         "availabilityZones": {
           "items": {
             "type": "string"
