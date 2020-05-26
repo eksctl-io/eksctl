@@ -408,6 +408,16 @@ var _ = Describe("EKS API wrapper", func() {
 			expectError:       false,
 			supports:          false,
 		}),
+		Entry("with 1.15", &managedNodesSupportCase{
+			kubernetesVersion: "1.15",
+			expectError:       false,
+			supports:          true,
+		}),
+		Entry("with 1.16", &managedNodesSupportCase{
+			kubernetesVersion: "1.16",
+			expectError:       false,
+			supports:          true,
+		}),
 	)
 
 	type fargateSupportCase struct {
@@ -461,6 +471,12 @@ var _ = Describe("EKS API wrapper", func() {
 		Entry("invalid Kubernetes version should raise an error", &fargateSupportCase{
 			platformVersion: "eks.5", kubernetesVersion: "1.", supportsFargate: false, expectError: true,
 		}),
+		Entry("should support 1.15 for all platform versions", &fargateSupportCase{
+			platformVersion: "eks.1", kubernetesVersion: "1.15", supportsFargate: true, expectError: false,
+		}),
+		Entry("should support 1.16 for all platform versions", &fargateSupportCase{
+			platformVersion: "eks.1", kubernetesVersion: "1.16", supportsFargate: true, expectError: false,
+		}),
 	)
 
 	type platformVersionCase struct {
@@ -502,6 +518,49 @@ var _ = Describe("EKS API wrapper", func() {
 		}),
 		Entry("eks.invalid should raise an error", &platformVersionCase{
 			platformVersion: "eks.invalid", expectedVersion: -1, expectError: true,
+		}),
+	)
+
+	type kmsSupportCase struct {
+		key               string
+		errSubstr         string
+		kubernetesVersion string
+	}
+
+	DescribeTable("KMS validation", func(k kmsSupportCase) {
+		clusterConfig := api.NewClusterConfig()
+		clusterConfig.Metadata.Version = k.kubernetesVersion
+
+		clusterConfig.SecretsEncryption = &api.SecretsEncryption{
+			KeyARN: aws.String(k.key),
+		}
+		err := ValidateFeatureCompatibility(clusterConfig, nil)
+		if k.errSubstr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
+		} else {
+			Expect(err).ToNot(HaveOccurred())
+		}
+	},
+		Entry("Invalid ARN", kmsSupportCase{
+			key:               "invalid:arn",
+			errSubstr:         "invalid ARN",
+			kubernetesVersion: "1.14",
+		}),
+		Entry("Valid ARN", kmsSupportCase{
+			key:               "arn:aws:kms:us-west-2:000000000000:key/12345-12345",
+			errSubstr:         "",
+			kubernetesVersion: "1.14",
+		}),
+		Entry("Supports K8s 1.13", kmsSupportCase{
+			key:               "arn:aws:kms:us-west-2:000000000000:key/12345-12345",
+			errSubstr:         "",
+			kubernetesVersion: "1.13",
+		}),
+		Entry("Unsupported K8s version", kmsSupportCase{
+			key:               "arn:aws:kms:us-west-2:000000000000:key/12345-12345",
+			errSubstr:         "KMS is only supported for EKS version 1.13 and above",
+			kubernetesVersion: "1.12",
 		}),
 	)
 })

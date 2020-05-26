@@ -7,6 +7,8 @@ metadata:
     app: vpc-admission-webhook
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: vpc-admission-webhook
@@ -24,7 +26,7 @@ spec:
             - -alsologtostderr
             - -v=4
             - 2>&1
-          image: '%s.dkr.ecr.%s.amazonaws.com/eks/vpc-admission-webhook:0.2.1'
+          image: '%s.dkr.ecr.%s.%s/eks/vpc-admission-webhook:0.2.3'
           imagePullPolicy: Always
           volumeMounts:
             - name: webhook-certs

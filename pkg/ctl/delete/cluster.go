@@ -197,7 +197,8 @@ func deleteFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
 	if err != nil {
 		if fargate.IsUnauthorizedError(err) {
 			logger.Debug("Fargate: unauthorized error: %v", err)
-			logger.Info("account is not authorized to use Fargate. Ignoring error")
+			logger.Info("either account is not authorized to use Fargate or region %s is not supported. Ignoring error",
+				cmd.ClusterConfig.Metadata.Region)
 			return nil
 		}
 		return err

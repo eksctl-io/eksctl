@@ -59,7 +59,7 @@ func (f *Filter) hasIncludeRules() bool {
 
 func (f *Filter) describeIncludeRules() string {
 	rules := append(f.includeNames.List(), f.rawIncludeGlobs...)
-	return fmt.Sprintf("%s", strings.Join(rules, ","))
+	return strings.Join(rules, ",")
 }
 
 func (f *Filter) hasExcludeRules() bool {
@@ -68,7 +68,7 @@ func (f *Filter) hasExcludeRules() bool {
 
 func (f *Filter) describeExcludeRules() string {
 	rules := append(f.excludeNames.List(), f.rawExcludeGlobs...)
-	return fmt.Sprintf("%s", strings.Join(rules, ","))
+	return strings.Join(rules, ",")
 }
 
 // Match given name against the filter and returns
@@ -154,7 +154,7 @@ func (f *Filter) doSetExcludeExistingFilter(names []string, resource string) err
 		}
 	}
 	if len(uniqueNames) != 0 {
-		logger.Info("%d %s(s) that already exist (%s) will be excluded", len(uniqueNames), resource, strings.Join(uniqueNames, ","))
+		logger.Info("%d existing %s(s) (%s) will be excluded", len(uniqueNames), resource, strings.Join(uniqueNames, ","))
 	}
 	return nil
 }

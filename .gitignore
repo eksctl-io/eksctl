@@ -11,12 +11,8 @@ eksctl-integration-test
 # Phony directory used to generate mocks
 vendor
 
-# Jekyll
-_site
-
-# Hugo site
-site/public/
-site/resources/_gen
+# Mkdocs site
+userdocs/site
 
 # Do not add temporary files here
 # use ~/.config/git/ignore instead
@@ -43,3 +39,5 @@ integration/kubeconfig-*
 
 # Snaps
 eksctl_*_*.snap
+
+userdocs/src/usage/schema.json

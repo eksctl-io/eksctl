@@ -12,6 +12,12 @@ import (
 )
 
 func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
+	drainNodeGroupWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool) error {
+		return doDrainNodeGroup(cmd, ng, undo, onlyMissing)
+	})
+}
+
+func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool) error) {
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -22,7 +28,7 @@ func drainNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doDrainNodeGroup(cmd, ng, undo, onlyMissing)
+		return runFunc(cmd, ng, undo, onlyMissing)
 	}
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {

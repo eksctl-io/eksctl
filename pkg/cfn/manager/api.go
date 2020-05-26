@@ -19,6 +19,7 @@ import (
 const (
 	resourcesRootPath = "Resources"
 	outputsRootPath   = "Outputs"
+	mappingsRootPath  = "Mappings"
 )
 
 var (
@@ -72,10 +73,7 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, ta
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
-
-	for _, t := range c.sharedTags {
-		input.Tags = append(input.Tags, t)
-	}
+	input.Tags = append(input.Tags, c.sharedTags...)
 	for k, v := range tags {
 		input.Tags = append(input.Tags, newTag(k, v))
 	}
@@ -475,9 +473,6 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
-		Tags: []*cloudformation.Tag{
-			newTag(api.EksctlVersionTag, version.GetVersion()),
-		},
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
@@ -503,7 +498,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 	logger.Debug("creating changeSet, input = %#v", input)
 	s, err := c.provider.CloudFormation().CreateChangeSet(input)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("creating ChangeSet %q for stack %q", changeSetName, *i.StackName))
+		return errors.Wrapf(err, "creating ChangeSet %q for stack %q", changeSetName, *i.StackName)
 	}
 	logger.Debug("changeSet = %#v", s)
 	return nil

@@ -38,14 +38,14 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 	ng.SSH.Allow = fs.Bool("ssh-access", *ng.SSH.Allow, "control SSH access for nodes. Uses ~/.ssh/id_rsa.pub as default key path if enabled")
 	ng.SSH.PublicKeyPath = fs.String("ssh-public-key", "", "SSH public key to use for nodes (import from local path, or use existing EC2 key pair)")
 
-	fs.StringVar(&ng.AMI, "node-ami", api.NodeImageResolverStatic, "Advanced use cases only. If 'static' is supplied (default) then eksctl will use static AMIs; if 'auto' is supplied then eksctl will automatically set the AMI based on version/region/instance type; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
+	fs.StringVar(&ng.AMI, "node-ami", "", "Advanced use cases only. If 'ssm' is supplied (default) then eksctl will use SSM Parameter; if 'auto' is supplied then eksctl will automatically set the AMI based on version/region/instance type; if static is supplied (deprecated), then static AMIs will be used; if any other value is supplied it will override the AMI to use for the nodes. Use with extreme care.")
 	fs.StringVar(&ng.AMIFamily, "node-ami-family", api.DefaultNodeImageFamily, "Advanced use cases only. If 'AmazonLinux2' is supplied (default), then eksctl will use the official AWS EKS AMIs (Amazon Linux 2); if 'Ubuntu1804' is supplied, then eksctl will use the official Canonical EKS AMIs (Ubuntu 18.04).")
 
 	fs.BoolVarP(&ng.PrivateNetworking, "node-private-networking", "P", false, "whether to make nodegroup networking private")
 
 	fs.StringSliceVar(&ng.SecurityGroups.AttachIDs, "node-security-groups", []string{}, "Attach additional security groups to nodes, so that it can be used to allow extra ingress/egress access from/to pods")
 
-	fs.StringToStringVar(&ng.Labels, "node-labels", nil, `Extra labels to add when registering the nodes in the nodegroup, e.g. "partition=backend,nodeclass=hugememory"`)
+	AddStringToStringVarPFlag(fs, &ng.Labels, "node-labels", "", nil, "Extra labels to add when registering the nodes in the nodegroup")
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
 
 	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "Add a prefix value in front of the instance's name.")
@@ -57,7 +57,6 @@ func incompatibleManagedNodesFlags() []string {
 		"node-volume-type",
 		"max-pods-per-node",
 		"node-ami",
-		"node-private-networking",
 		"node-security-groups",
 	}
 }

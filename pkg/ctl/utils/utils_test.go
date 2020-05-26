@@ -2,13 +2,14 @@ package utils
 
 import (
 	"bytes"
+	"strconv"
+	"strings"
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
-	"strconv"
-	"strings"
-	"testing"
 )
 
 func TestValidateLoggingFlags(t *testing.T) {
@@ -141,7 +142,6 @@ func newMockCmd(args ...string) *mockVerbCmd {
 
 type mockVerbCmd struct {
 	parentCmd *cobra.Command
-	cmd       *cmdutils.Cmd
 }
 
 func (c mockVerbCmd) execute() (string, error) {

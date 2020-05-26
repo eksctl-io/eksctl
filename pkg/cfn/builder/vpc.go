@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -52,6 +53,7 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 				Key:   gfn.NewString("kubernetes.io/role/elb"),
 				Value: gfn.NewString("1"),
 			}}
+			subnet.MapPublicIpOnLaunch = gfn.True()
 		}
 		refSubnet := c.newResource("Subnet"+alias, subnet)
 		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
@@ -82,6 +84,52 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 	}
 }
 
+// route adds DependsOn support to the AWSEC2Route struct
+type route struct {
+	AWSEC2Route gfn.AWSEC2Route
+	DependsOn   []string
+}
+
+// MarshalJSON is a custom JSON marshalling hook that adds DependsOn to the
+// legacy goformation struct AWSEC2Route
+func (r *route) MarshalJSON() ([]byte, error) {
+	type Properties gfn.AWSEC2Route
+	return json.Marshal(&struct {
+		Type       string
+		Properties Properties
+		DependsOn  []string
+	}{
+		Type:       r.AWSEC2Route.AWSCloudFormationType(),
+		Properties: (Properties)(r.AWSEC2Route),
+		DependsOn:  r.DependsOn,
+	})
+}
+
+// UnmarshalJSON is a custom JSON unmarshalling hook that adds DependsOn to the
+// legacy goformation struct AWSEC2Route
+func (r *route) UnmarshalJSON(b []byte) error {
+	type Properties gfn.AWSEC2Route
+	res := &struct {
+		Type       string
+		Properties *Properties
+		DependsOn  *[]string
+	}{}
+	if err := json.Unmarshal(b, &res); err != nil {
+		fmt.Printf("ERROR: %s\n", err)
+		return err
+	}
+
+	// If the resource has no Properties set, it could be nil
+	if res.Properties != nil {
+		r.AWSEC2Route = gfn.AWSEC2Route(*res.Properties)
+	}
+	if res.DependsOn != nil {
+		r.DependsOn = *res.DependsOn
+	}
+
+	return nil
+}
+
 //nolint:interfacer
 func (c *ClusterResourceSet) addResourcesForVPC() error {
 
@@ -101,7 +149,8 @@ func (c *ClusterResourceSet) addResourcesForVPC() error {
 	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
 
 	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
-	c.newResource("VPCGatewayAttachment", &gfn.AWSEC2VPCGatewayAttachment{
+	vpcGA := "VPCGatewayAttachment"
+	c.newResource(vpcGA, &gfn.AWSEC2VPCGatewayAttachment{
 		InternetGatewayId: refIG,
 		VpcId:             c.vpc,
 	})
@@ -110,10 +159,13 @@ func (c *ClusterResourceSet) addResourcesForVPC() error {
 		VpcId: c.vpc,
 	})
 
-	c.newResource("PublicSubnetRoute", &gfn.AWSEC2Route{
-		RouteTableId:         refPublicRT,
-		DestinationCidrBlock: internetCIDR,
-		GatewayId:            refIG,
+	c.newResource("PublicSubnetRoute", &route{
+		AWSEC2Route: gfn.AWSEC2Route{
+			RouteTableId:         refPublicRT,
+			DestinationCidrBlock: internetCIDR,
+			GatewayId:            refIG,
+		},
+		DependsOn: []string{vpcGA},
 	})
 
 	c.addSubnets(refPublicRT, api.SubnetTopologyPublic, c.spec.VPC.Subnets.Public)
@@ -163,7 +215,9 @@ func (c *ClusterResourceSet) addOutputsForVPC() {
 		c.spec.VPC.ID = v
 		return nil
 	})
-	c.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, c.spec.VPC.NAT.Gateway, false)
+	if c.spec.VPC.NAT != nil {
+		c.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, c.spec.VPC.NAT.Gateway, false)
+	}
 	if refs, ok := c.subnets[api.SubnetTopologyPrivate]; ok {
 		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPrivate, refs, true, func(v string) error {
 			return vpc.ImportSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(v, ","))

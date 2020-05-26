@@ -1,6 +1,8 @@
 package ami
 
 import (
+	"fmt"
+
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
@@ -29,8 +31,7 @@ func (r *StaticGPUResolver) Resolve(region, version, instanceType, imageFamily s
 	logger.Debug("resolving AMI using StaticGPUResolver for region %s, instanceType %s and imageFamily %s", region, instanceType, imageFamily)
 
 	if !utils.IsGPUInstanceType(instanceType) {
-		logger.Debug("can't resolve AMI using StaticGPUResolver as instance type %s is non-GPU", instanceType)
-		return "", nil
+		return "", &UnsupportedQueryError{msg: fmt.Sprintf("can't resolve AMI using StaticGPUResolver as instance type %s is non-GPU", instanceType)}
 	}
 
 	regionalAMIs, ok := StaticImages[version][imageFamily][ImageClassGPU]

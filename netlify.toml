@@ -1,0 +1,7 @@
+[build]
+  base = "userdocs"
+  publish = "userdocs/site"
+  command = "cd .. && make -f Makefile.docs build-pages"
+
+[build.environment]
+  PYTHON_VERSION = "3.7"

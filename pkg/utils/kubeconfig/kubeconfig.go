@@ -6,13 +6,13 @@ import (
 	"path"
 	"strings"
 
-	"github.com/weaveworks/eksctl/pkg/utils/file"
-
 	"os/exec"
 
+	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -63,12 +63,6 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 		CurrentContext: contextName,
 	}
 
-	clusterEndpoint, hasClusterEndpoint := os.LookupEnv("KUBECONFIG_CLUSTER_ENDPOINT")
-
-	if hasClusterEndpoint {
-		c.Clusters[clusterName].Server = clusterEndpoint
-	}
-
 	if certificateAuthorityPath == "" {
 		c.Clusters[clusterName].CertificateAuthorityData = spec.Status.CertificateAuthorityData
 	} else {
@@ -99,10 +93,27 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 		roleARNFlag string
 	)
 
+	execConfig := &clientcmdapi.ExecConfig{
+		APIVersion: "client.authentication.k8s.io/v1alpha1",
+		Command:    authenticatorCMD,
+		Env: []clientcmdapi.ExecEnvVar{
+			{
+				Name:  "AWS_STS_REGIONAL_ENDPOINTS",
+				Value: "regional",
+			},
+		},
+	}
+
 	switch authenticatorCMD {
 	case AWSIAMAuthenticator, HeptioAuthenticatorAWS:
 		args = []string{"token", "-i", spec.Metadata.Name}
 		roleARNFlag = "-r"
+		if spec.Metadata.Region != "" {
+			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
+				Name:  "AWS_DEFAULT_REGION",
+				Value: spec.Metadata.Region,
+			})
+		}
 	case AWSEKSAuthenticator:
 		args = []string{"eks", "get-token", "--cluster-name", spec.Metadata.Name}
 		roleARNFlag = "--role-arn"
@@ -114,24 +125,38 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 		args = append(args, roleARNFlag, roleARN)
 	}
 
-	execConfig := &clientcmdapi.ExecConfig{
-		APIVersion: "client.authentication.k8s.io/v1alpha1",
-		Command:    authenticatorCMD,
-		Args:       args,
-	}
+	execConfig.Args = args
 
 	if profile != "" {
-		execConfig.Env = []clientcmdapi.ExecEnvVar{
-			{
-				Name:  "AWS_PROFILE",
-				Value: profile,
-			},
-		}
+		execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
+			Name:  "AWS_PROFILE",
+			Value: profile,
+		})
 	}
 
 	config.AuthInfos[config.CurrentContext] = &clientcmdapi.AuthInfo{
 		Exec: execConfig,
 	}
+}
+
+func lockConfigFile(filePath string) error {
+	flock := flock.New(filePath)
+	err := flock.Lock()
+	if err != nil {
+		return errors.Wrap(err, "flock: failed to obtain exclusive lock existing kubeconfig file")
+	}
+
+	return nil
+}
+
+func unlockConfigFile(filePath string) error {
+	flock := flock.New(filePath)
+	err := flock.Unlock()
+	if err != nil {
+		return errors.Wrap(err, "flock: failed to release exclusive lock on existing kubeconfig file")
+	}
+
+	return nil
 }
 
 // Write will write Kubernetes client configuration to a file.
@@ -140,6 +165,17 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 // If the file already exists then the configuration will be merged with the existing file.
 func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string, error) {
 	configAccess := getConfigAccess(path)
+	configFileName := configAccess.GetDefaultFilename()
+	err := lockConfigFile(configFileName)
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		if err := unlockConfigFile(configFileName); err != nil {
+			logger.Critical(err.Error())
+		}
+	}()
 
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
@@ -158,7 +194,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 		return "", errors.Wrapf(err, "unable to modify kubeconfig %s", path)
 	}
 
-	return configAccess.GetDefaultFilename(), nil
+	return configFileName, nil
 }
 
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
@@ -218,6 +254,17 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	p := AutoPath(meta.Name)
 
 	if file.Exists(p) {
+		err := lockConfigFile(p)
+		if err != nil {
+			logger.Critical(err.Error())
+		}
+
+		defer func() {
+			if err := unlockConfigFile(p); err != nil {
+				logger.Critical(err.Error())
+			}
+		}()
+
 		if err := isValidConfig(p, meta.Name); err != nil {
 			logger.Debug(err.Error())
 			return
@@ -229,6 +276,18 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	}
 
 	configAccess := getConfigAccess(DefaultPath)
+	defaultFilename := configAccess.GetDefaultFilename()
+	err := lockConfigFile(defaultFilename)
+	if err != nil {
+		logger.Critical(err.Error())
+	}
+
+	defer func() {
+		if err := unlockConfigFile(defaultFilename); err != nil {
+			logger.Critical(err.Error())
+		}
+	}()
+
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
 		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath, err.Error())

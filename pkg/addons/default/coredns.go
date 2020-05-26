@@ -6,6 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/eksctl/pkg/addons"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
@@ -20,12 +21,10 @@ const (
 	CoreDNS = "coredns"
 	// KubeDNS is the name of the kube-dns addon
 	KubeDNS = "kube-dns"
-
-	coreDNSImagePrefixPTN = "%s.dkr.ecr."
-	coreDNSImageSuffix    = ".amazonaws.com/eks/coredns"
 )
 
-// UpdateCoreDNS will update the `coredns` add-on
+// UpdateCoreDNS will update the `coredns` add-on and returns true
+// if an update is available
 func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlaneVersion string, plan bool) (bool, error) {
 	kubeDNSSevice, err := rawClient.ClientSet().CoreV1().Services(metav1.NamespaceSystem).Get(KubeDNS, metav1.GetOptions{})
 	if err != nil {
@@ -36,7 +35,7 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 		return false, errors.Wrapf(err, "getting %q service", KubeDNS)
 	}
 
-	_, err = rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
+	kubeDNSDeployment, err := rawClient.ClientSet().AppsV1().Deployments(metav1.NamespaceSystem).Get(CoreDNS, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", CoreDNS)
@@ -51,6 +50,7 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 		return false, err
 	}
 
+	tagMismatch := true
 	for _, rawObj := range list.Items {
 		resource, err := rawClient.NewRawResource(rawObj.Object)
 		if err != nil {
@@ -58,16 +58,22 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 		}
 		switch resource.GVK.Kind {
 		case "Deployment":
-			image := &resource.Info.Object.(*appsv1.Deployment).Spec.Template.Spec.Containers[0].Image
-			imageParts := strings.Split(*image, ":")
-
-			if len(imageParts) != 2 {
-				return false, fmt.Errorf("unexpected image format %q for %q", *image, KubeProxy)
+			if resource.Info.Name != "coredns" {
+				continue
 			}
-
-			coreDNSImagePrefix := fmt.Sprintf(coreDNSImagePrefixPTN, api.EKSResourceAccountID(region))
-			if strings.HasSuffix(imageParts[0], coreDNSImageSuffix) {
-				*image = coreDNSImagePrefix + region + coreDNSImageSuffix + ":" + imageParts[1]
+			deployment, ok := resource.Info.Object.(*appsv1.Deployment)
+			if !ok {
+				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
+			}
+			if err := addons.UseRegionalImage(&deployment.Spec.Template, region); err != nil {
+				return false, err
+			}
+			tagMismatch, err = addons.ImageTagsDiffer(
+				deployment.Spec.Template.Spec.Containers[0].Image,
+				kubeDNSDeployment.Spec.Template.Spec.Containers[0].Image,
+			)
+			if err != nil {
+				return false, err
 			}
 		case "Service":
 			resource.Info.Object.(*corev1.Service).SetResourceVersion(kubeDNSSevice.GetResourceVersion())
@@ -82,8 +88,12 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 	}
 
 	if plan {
-		logger.Critical("(plan) %q is not up-to-date", CoreDNS)
-		return true, nil
+		if tagMismatch {
+			logger.Critical("(plan) %q is not up-to-date", CoreDNS)
+			return true, nil
+		}
+		logger.Info("(plan) %q is already up-to-date", CoreDNS)
+		return false, nil
 	}
 
 	logger.Info("%q is now up-to-date", CoreDNS)

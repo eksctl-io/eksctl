@@ -3,6 +3,7 @@ package kubeconfig_test
 import (
 	"io/ioutil"
 	"os"
+	"sync"
 
 	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -135,33 +136,6 @@ var _ = Describe("Kubeconfig", func() {
 		Expect(err).To(BeNil())
 
 		Expect(readConfig.CurrentContext).To(Equal("minikube"))
-	})
-
-	Context("KUBECONFIG_CLUSTER_ENDPOINT environment variable is set", func() {
-		var clusterConfig = eksctlapi.ClusterConfig{
-			Metadata: &eksctlapi.ClusterMeta{
-				Region: "us-west-2",
-				Name:   "foo",
-				Tags:   map[string]string{},
-			},
-			Status: &eksctlapi.ClusterStatus{
-				Endpoint: "https://eks-endpoint.com",
-			},
-		}
-
-		var expectedClusterName = "foo.us-west-2.eksctl.io"
-		var expectedContextName = "test-user@foo.us-west-2.eksctl.io"
-		var eksEndpoint = "http://my-eks-endpoint.com:8000"
-
-		os.Setenv("KUBECONFIG_CLUSTER_ENDPOINT", eksEndpoint)
-
-		It("sets the EKS Endpoint to be the value passed via the override", func() {
-			config, clusterName, contextName := kubeconfig.New(&clusterConfig, "test-user", "")
-
-			Expect(clusterName).To(Equal(expectedClusterName))
-			Expect(contextName).To(Equal(expectedContextName))
-			Expect(config.Clusters[expectedClusterName].Server).To(Equal(eksEndpoint))
-		})
 	})
 
 	Context("delete config", func() {
@@ -322,6 +296,29 @@ var _ = Describe("Kubeconfig", func() {
 			configFileAsBytes, err := ioutil.ReadFile(configFile.Name())
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(twoClustersAsBytes), "Should not change")
+		})
+
+		It("safely handles concurrent read-modify-write operations", func() {
+			var wg sync.WaitGroup
+			multiplier := 3
+			iters := 100
+			for i := 0; i < multiplier; i++ {
+				for k := 0; k < iters; k++ {
+					wg.Add(2)
+					go func() {
+						defer wg.Done()
+						_, err := configFile.Write(oneClusterAsBytes)
+						Expect(err).To(BeNil())
+					}()
+					go func() {
+						defer wg.Done()
+						_, err := configFile.Write(twoClustersAsBytes)
+						Expect(err).To(BeNil())
+					}()
+				}
+			}
+
+			wg.Wait()
 		})
 	})
 })

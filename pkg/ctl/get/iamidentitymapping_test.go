@@ -8,7 +8,7 @@ import (
 var _ = Describe("get", func() {
 	Describe("iamidentitymapping", func() {
 		It("missing required flag --cluster", func() {
-			cmd := newMockCmd( "iamidentitymapping")
+			cmd := newMockCmd("iamidentitymapping")
 			_, err := cmd.execute()
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("--cluster must be set"))

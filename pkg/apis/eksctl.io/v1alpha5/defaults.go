@@ -2,6 +2,8 @@ package v1alpha5
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/weaveworks/eksctl/pkg/git"
 )
 
 // SetClusterConfigDefaults will set defaults for a given cluster
@@ -40,9 +42,6 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 	if ng.AMIFamily == "" {
 		ng.AMIFamily = DefaultNodeImageFamily
 	}
-	if ng.AMI == "" {
-		ng.AMI = "static"
-	}
 
 	if ng.SecurityGroups == nil {
 		ng.SecurityGroups = &NodeGroupSGs{
@@ -78,6 +77,11 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.Labels = make(map[string]string)
 	}
 	setDefaultNodeLabels(ng.Labels, meta.Name, ng.Name)
+
+	switch ng.AMIFamily {
+	case NodeImageFamilyBottlerocket:
+		setBottlerocketNodeGroupDefaults(ng)
+	}
 }
 
 // SetManagedNodeGroupDefaults sets default values for a ManagedNodeGroup
@@ -172,11 +176,46 @@ func setDefaultNodeLabels(labels map[string]string, clusterName, nodeGroupName s
 	labels[NodeGroupNameLabel] = nodeGroupName
 }
 
+func setBottlerocketNodeGroupDefaults(ng *NodeGroup) {
+	// Initialize config object if not present.
+	if ng.Bottlerocket == nil {
+		ng.Bottlerocket = &NodeGroupBottlerocket{}
+	}
+
+	// Default to resolving Bottlerocket images using SSM if not specified by
+	// the user.
+	if ng.AMI == "" {
+		ng.AMI = NodeImageResolverAutoSSM
+	}
+
+	// Use the SSH settings if the user hasn't explicitly configured the Admin
+	// Container. If SSH was enabled, the user will be able to ssh into the
+	// Bottlerocket node via the admin container.
+	if ng.Bottlerocket.EnableAdminContainer == nil && ng.SSH != nil {
+		ng.Bottlerocket.EnableAdminContainer = ng.SSH.Allow
+	}
+}
+
 // DefaultClusterNAT will set the default value for Cluster NAT mode
 func DefaultClusterNAT() *ClusterNAT {
 	single := ClusterSingleNAT
 	return &ClusterNAT{
 		Gateway: &single,
+	}
+}
+
+// SetClusterEndpointAccessDefaults sets the default values for cluster endpoint access
+func SetClusterEndpointAccessDefaults(vpc *ClusterVPC) {
+	if vpc.ClusterEndpoints == nil {
+		vpc.ClusterEndpoints = ClusterEndpointAccessDefaults()
+	}
+
+	if vpc.ClusterEndpoints.PublicAccess == nil {
+		vpc.ClusterEndpoints.PublicAccess = Enabled()
+	}
+
+	if vpc.ClusterEndpoints.PrivateAccess == nil {
+		vpc.ClusterEndpoints.PrivateAccess = Disabled()
 	}
 }
 
@@ -200,5 +239,46 @@ func (c *ClusterConfig) SetDefaultFargateProfile() {
 				{Namespace: "kube-system"},
 			},
 		},
+	}
+}
+
+// SetDefaultGitSettings sets the default values for the gitops repo and operator settings
+func SetDefaultGitSettings(c *ClusterConfig) {
+	if c.Git == nil {
+		return
+	}
+
+	if c.Git.Operator.Label == "" {
+		c.Git.Operator.Label = "flux"
+	}
+	if c.Git.Operator.Namespace == "" {
+		c.Git.Operator.Namespace = "flux"
+	}
+	if c.Git.Operator.WithHelm == nil {
+		c.Git.Operator.WithHelm = Enabled()
+	}
+
+	if c.Git.Repo != nil {
+		repo := c.Git.Repo
+		if repo.FluxPath == "" {
+			repo.FluxPath = "flux/"
+		}
+		if repo.Branch == "" {
+			repo.Branch = "master"
+		}
+		if repo.User == "" {
+			repo.User = "Flux"
+		}
+	}
+
+	if c.Git.BootstrapProfile != nil {
+		profile := c.Git.BootstrapProfile
+		if profile.Source != "" && profile.OutputPath == "" {
+			repoName, err := git.RepoName(profile.Source)
+			if err != nil {
+				profile.OutputPath = "./"
+			}
+			profile.OutputPath = "./" + repoName
+		}
 	}
 }

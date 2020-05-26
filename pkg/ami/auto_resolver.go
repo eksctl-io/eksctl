@@ -10,6 +10,14 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
+const (
+	// ownerIDUbuntu1804Family is the owner ID used for Ubuntu AMIs
+	ownerIDUbuntu1804Family = "099720109477"
+
+	// ownerIDWindowsFamily is the owner ID used for Ubuntu AMIs
+	ownerIDWindowsFamily = "801119661308"
+)
+
 // MakeImageSearchPatterns creates a map of image search patterns by image OS family and class
 func MakeImageSearchPatterns(version string) map[string]map[int]string {
 	return map[string]map[int]string{
@@ -33,9 +41,9 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 func OwnerAccountID(imageFamily, region string) (string, error) {
 	switch imageFamily {
 	case api.NodeImageFamilyUbuntu1804:
-		return "099720109477", nil
+		return ownerIDUbuntu1804Family, nil
 	case api.NodeImageFamilyWindowsServer2019CoreContainer, api.NodeImageFamilyWindowsServer2019FullContainer:
-		return "801119661308", nil
+		return ownerIDWindowsFamily, nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return api.EKSResourceAccountID(region), nil
 	default:

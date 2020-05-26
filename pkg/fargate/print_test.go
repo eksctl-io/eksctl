@@ -2,6 +2,7 @@ package fargate_test
 
 import (
 	"bytes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -45,10 +46,10 @@ var _ = Describe("fargate", func() {
 	})
 })
 
-const expectedTable = `NAME	SELECTOR_NAMESPACE	SELECTOR_LABELS		POD_EXECUTION_ROLE_ARN		SUBNETS
-fp-prod	prod			env=prod		arn:aws:iam::123:role/root	subnet-prod,subnet-d34dc0w
-fp-test	default			<none>			arn:aws:iam::123:role/root	<none>
-fp-test	kube-system		app=my-app,env=test	arn:aws:iam::123:role/root	<none>
+const expectedTable = `NAME	SELECTOR_NAMESPACE	SELECTOR_LABELS		POD_EXECUTION_ROLE_ARN		SUBNETS				TAGS
+fp-prod	prod			env=prod		arn:aws:iam::123:role/root	subnet-prod,subnet-d34dc0w	<none>
+fp-test	default			<none>			arn:aws:iam::123:role/root	<none>				app=my-app,env=test
+fp-test	kube-system		app=my-app,env=test	arn:aws:iam::123:role/root	<none>				app=my-app,env=test
 `
 
 const expectedYAML = `- name: fp-test
@@ -59,6 +60,9 @@ const expectedYAML = `- name: fp-test
       env: test
     namespace: kube-system
   - namespace: default
+  tags:
+    app: my-app
+    env: test
 - name: fp-prod
   podExecutionRoleARN: arn:aws:iam::123:role/root
   selectors:
@@ -85,7 +89,11 @@ const expectedJSON = `[
             {
                 "namespace": "default"
             }
-        ]
+        ],
+        "tags": {
+            "app": "my-app",
+            "env": "test"
+        }
     },
     {
         "name": "fp-prod",
@@ -121,6 +129,10 @@ func sampleProfiles() []*api.FargateProfile {
 				{
 					Namespace: "default",
 				},
+			},
+			Tags: map[string]string{
+				"app": "my-app",
+				"env": "test",
 			},
 		},
 		{

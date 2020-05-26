@@ -11,20 +11,27 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
+	"github.com/weaveworks/eksctl/pkg/vpc"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
 )
 
 type createNodeGroupParams struct {
-	updateAuthConfigMap bool
-	managed             bool
+	updateAuthConfigMap       bool
+	managed                   bool
+	installNeuronDevicePlugin bool
 }
 
 func createNodeGroupCmd(cmd *cmdutils.Cmd) {
+	createNodeGroupCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
+		return doCreateNodeGroups(cmd, ng, params)
+	})
+}
+
+func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -37,19 +44,19 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateNodeGroups(cmd, ng, params)
+		return runFunc(cmd, ng, params)
 	}
 
 	exampleNodeGroupName := names.ForNodeGroup("", "")
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "name of the EKS cluster to add the nodegroup to")
-		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
+		cmdutils.AddStringToStringVarPFlag(fs, &cfg.Metadata.Tags, "tags", "", map[string]string{}, "Used to tag the AWS resources")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, `for nodegroups "auto" and "latest" can be used to automatically inherit version from the control plane or force latest`)
 		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 		cmdutils.AddNodeGroupFilterFlags(fs, &cmd.Include, &cmd.Exclude)
-		cmdutils.AddUpdateAuthConfigMap(fs, &params.updateAuthConfigMap, "Remove nodegroup IAM role from aws-auth configmap")
+		cmdutils.AddUpdateAuthConfigMap(fs, &params.updateAuthConfigMap, "Add nodegroup IAM role to aws-auth configmap")
 		cmdutils.AddTimeoutFlag(fs, &cmd.ProviderConfig.WaitTimeout)
 	})
 
@@ -59,8 +66,9 @@ func createNodeGroupCmd(cmd *cmdutils.Cmd) {
 		fs.BoolVarP(&params.managed, "managed", "", false, "Create EKS-managed nodegroup")
 	})
 
-	cmd.FlagSetGroup.InFlagSet("IAM addons", func(fs *pflag.FlagSet) {
+	cmd.FlagSetGroup.InFlagSet("Addons", func(fs *pflag.FlagSet) {
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
+		fs.BoolVarP(&params.installNeuronDevicePlugin, "install-neuron-plugin", "", true, "Install Neuron plugin for Inferentia nodes")
 	})
 
 	cmdutils.AddCommonFlagsForAWS(cmd.FlagSetGroup, cmd.ProviderConfig, true)
@@ -118,9 +126,13 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		return errors.New("Managed Nodegroups are not supported for this cluster version. Please update the cluster before adding managed nodegroups")
 	}
 
+	if err := eks.ValidateBottlerocketSupport(ctl.ControlPlaneVersion(), cmdutils.ToKubeNodeGroups(cfg)); err != nil {
+		return err
+	}
+
 	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
-		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
+		if err := eks.EnsureAMI(ctl.Provider, meta.Version, ng); err != nil {
 			return err
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
@@ -150,6 +162,10 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 	// TODO
 	if err := ctl.ValidateClusterForCompatibility(cfg, stackManager); err != nil {
 		return errors.Wrap(err, "cluster compatibility check failed")
+	}
+
+	if err := vpc.ValidateLegacySubnetsForNodeGroups(cfg, ctl.Provider); err != nil {
+		return err
 	}
 
 	{
@@ -205,6 +221,20 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 			return err
 		}
 
+		tasks := ctl.ClusterTasksForNodeGroups(cfg, params.installNeuronDevicePlugin)
+		logger.Info(tasks.Describe())
+		errs := tasks.DoAllSync()
+		if len(errs) > 0 {
+			logger.Info("%d error(s) occurred and nodegroups haven't been created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Info("to cleanup resources, run 'eksctl delete nodegroup --region=%s --cluster=%s --name=<name>' for each of the failed nodegroups", cfg.Metadata.Region, cfg.Metadata.Name)
+			for _, err := range errs {
+				if err != nil {
+					logger.Critical("%s\n", err.Error())
+				}
+			}
+			return fmt.Errorf("failed to create nodegroups for cluster %q", cfg.Metadata.Name)
+		}
+
 		for _, ng := range cfg.NodeGroups {
 			if params.updateAuthConfigMap {
 				// authorise nodes to join
@@ -218,11 +248,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 				}
 			}
 
-			// if GPU instance type, give instructions
-			if utils.IsGPUInstanceType(ng.InstanceType) || (ng.InstancesDistribution != nil && utils.HasGPUInstanceType(ng.InstancesDistribution.InstanceTypes)) {
-				logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
-				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
-			}
+			showDevicePluginMessageForNodeGroup(ng, params.installNeuronDevicePlugin)
 		}
 		logger.Success("created %d nodegroup(s) in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
 

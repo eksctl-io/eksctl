@@ -1,14 +1,15 @@
+"github.com/golangci/golangci-lint v1.27.0"
 "github.com/goreleaser/goreleaser v0.110.0"
 "github.com/kevinburke/go-bindata v3.15.0+incompatible"
+"github.com/onsi/ginkgo v1.12.0"
 "github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5"
-"github.com/weaveworks/github-release v0.6.2"
-"golang.org/x/tools v0.0.0-20200121210457-b3205ff6fffe"
-"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
-"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
-"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
-"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
-"k8s.io/code-generator v0.0.0-20190831074504-732c9ca86353"
-"github.com/golangci/golangci-lint v1.21.0"
-100644 blob bb0ec393bec64fc65e97fde82edcbc22935f42bd	Dockerfile
-100644 blob 07cb4cecc51d2b5015230d01a1ab699d6969dd56	.requirements
-100755 blob 7b867a5b4a1ea544385441ecf9c1c1e5a1cce7e1	install-build-deps.sh
+"github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8"
+"golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770"
+"k8s.io/code-generator v0.16.8"
+"k8s.io/code-generator v0.16.8"
+"k8s.io/code-generator v0.16.8"
+"k8s.io/code-generator v0.16.8"
+"k8s.io/code-generator v0.16.8"
+100644 blob 6a6cdd52a76f51dc909850d047efd25bfb5a326e	Dockerfile
+100644 blob c82e75f3145cad2829f4906261adeb738bd33ce1	.requirements
+100755 blob 1ec4ce65165cf21e3767ee34d56fb635c51b4a5a	install-build-deps.sh

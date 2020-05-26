@@ -16,11 +16,15 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/kops/util/pkg/slice"
 )
 
 const (
 	// AWSDebugLevel defines the LogLevel for AWS produced logs
 	AWSDebugLevel = 5
+
+	// RegionUSWest1 represents the US West Region North California
+	RegionUSWest1 = "us-west-1"
 
 	// RegionUSWest2 represents the US West Region Oregon
 	RegionUSWest2 = "us-west-2"
@@ -73,6 +77,18 @@ const (
 	// RegionSAEast1 represents the South America Region Sao Paulo
 	RegionSAEast1 = "sa-east-1"
 
+	// RegionCNNorthwest1 represents the China region Ningxia
+	RegionCNNorthwest1 = "cn-northwest-1"
+
+	// RegionCNNorth1 represents the China region Beijing
+	RegionCNNorth1 = "cn-north-1"
+
+	// RegionUSGovWest1 represents the region GovCloud (US-West)
+	RegionUSGovWest1 = "us-gov-west-1"
+
+	// RegionUSGovEast1 represents the region GovCloud (US-East)
+	RegionUSGovEast1 = "us-gov-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -91,11 +107,17 @@ const (
 	// Version1_14 represents Kubernetes version 1.14.x
 	Version1_14 = "1.14"
 
+	// Version1_15 represents Kubernetes version 1.15.x
+	Version1_15 = "1.15"
+
+	// Version1_16 represents Kubernetes version 1.16.x
+	Version1_16 = "1.16"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_14
+	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_14
+	LatestVersion = Version1_16
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -118,6 +140,8 @@ const (
 	NodeImageFamilyAmazonLinux2 = "AmazonLinux2"
 	// NodeImageFamilyUbuntu1804 represents Ubuntu 18.04 family
 	NodeImageFamilyUbuntu1804 = "Ubuntu1804"
+	// NodeImageFamilyBottlerocket represents Bottlerocket family
+	NodeImageFamilyBottlerocket = "Bottlerocket"
 
 	// NodeImageFamilyWindowsServer2019CoreContainer represents Windows 2019 core container family
 	NodeImageFamilyWindowsServer2019CoreContainer = "WindowsServer2019CoreContainer"
@@ -172,6 +196,12 @@ const (
 	// ClusterDisableNAT defines the disabled NAT configuration option
 	ClusterDisableNAT = "Disable"
 
+	// SpotAllocationStrategyLowestPrice defines the ASG spot allocation strategy of lowest-price
+	SpotAllocationStrategyLowestPrice = "lowest-price"
+
+	// SpotAllocationStrategyCapacityOptimized defines the ASG spot allocation strategy of capacity-optimized
+	SpotAllocationStrategyCapacityOptimized = "capacity-optimized"
+
 	// eksResourceAccountStandard defines the AWS EKS account ID that provides node resources in default regions
 	// for standard AWS partition
 	eksResourceAccountStandard = "602401143452"
@@ -181,6 +211,18 @@ const (
 
 	// eksResourceAccountMESouth1 defines the AWS EKS account ID that provides node resources in me-south-1 region
 	eksResourceAccountMESouth1 = "558608220178"
+
+	// eksResourceAccountCNNorthWest1 defines the AWS EKS account ID that provides node resources in cn-northwest-1 region
+	eksResourceAccountCNNorthWest1 = "961992271922"
+
+	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
+	eksResourceAccountCNNorth1 = "918309763551"
+
+	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
+	eksResourceAccountUSGovWest1 = "013241004608"
+
+	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
+	eksResourceAccountUSGovEast1 = "151742754352"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -233,6 +275,7 @@ func IsSetAndNonEmptyString(s *string) bool { return s != nil && *s != "" }
 // SupportedRegions are the regions where EKS is available
 func SupportedRegions() []string {
 	return []string{
+		RegionUSWest1,
 		RegionUSWest2,
 		RegionUSEast1,
 		RegionUSEast2,
@@ -250,6 +293,10 @@ func SupportedRegions() []string {
 		RegionAPEast1,
 		RegionMESouth1,
 		RegionSAEast1,
+		RegionCNNorthwest1,
+		RegionCNNorth1,
+		RegionUSGovWest1,
+		RegionUSGovEast1,
 	}
 }
 
@@ -260,15 +307,17 @@ func DeprecatedVersions() []string {
 	return []string{
 		Version1_10,
 		Version1_11,
+		Version1_12,
 	}
 }
 
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_12,
 		Version1_13,
 		Version1_14,
+		Version1_15,
+		Version1_16,
 	}
 }
 
@@ -282,6 +331,19 @@ func SupportedNodeVolumeTypes() []string {
 	}
 }
 
+// supportedSpotAllocationStrategies are the spot allocation strategies supported by ASG
+func supportedSpotAllocationStrategies() []string {
+	return []string{
+		SpotAllocationStrategyLowestPrice,
+		SpotAllocationStrategyCapacityOptimized,
+	}
+}
+
+// isSpotAllocationStrategySupported returns true if the spot allocation strategy is supported for ASG
+func isSpotAllocationStrategySupported(allocationStrategy string) bool {
+	return slice.Contains(supportedSpotAllocationStrategies(), allocationStrategy)
+}
+
 // EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
 // for different aws partitions & opt-in regions.
 func EKSResourceAccountID(region string) string {
@@ -290,6 +352,14 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountAPEast1
 	case RegionMESouth1:
 		return eksResourceAccountMESouth1
+	case RegionCNNorthwest1:
+		return eksResourceAccountCNNorthWest1
+	case RegionCNNorth1:
+		return eksResourceAccountCNNorth1
+	case RegionUSGovWest1:
+		return eksResourceAccountUSGovWest1
+	case RegionUSGovEast1:
+		return eksResourceAccountUSGovEast1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -297,8 +367,8 @@ func EKSResourceAccountID(region string) string {
 
 // ClusterMeta is what identifies a cluster
 type ClusterMeta struct {
-	Name   string `json:"name"`
-	Region string `json:"region"`
+	Name   string `json:"name" jsonschema:"required"`
+	Region string `json:"region" jsonschema:"required"`
 	// +optional
 	Version string `json:"version,omitempty"`
 	// +optional
@@ -375,7 +445,7 @@ type ProviderConfig struct {
 
 // ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 
 	Metadata *ClusterMeta `json:"metadata"`
 
@@ -400,14 +470,20 @@ type ClusterConfig struct {
 	// +optional
 	CloudWatch *ClusterCloudWatch `json:"cloudWatch,omitempty"`
 
+	// +optional
+	SecretsEncryption *SecretsEncryption `json:"secretsEncryption,omitempty"`
+
 	Status *ClusterStatus `json:"status,omitempty"`
+
+	// +optional
+	Git *Git `json:"git,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ClusterConfigList is a list of ClusterConfigs
 type ClusterConfigList struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 	metav1.ListMeta `json:"metadata"`
 
 	Items []ClusterConfig `json:"items"`
@@ -543,7 +619,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // NodeGroup holds all configuration attributes that are
 // specific to a nodegroup
 type NodeGroup struct {
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 	// +optional
 	AMI string `json:"ami,omitempty"`
 	// +optional
@@ -572,14 +648,16 @@ type NodeGroup struct {
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
 	MaxSize *int `json:"maxSize,omitempty"`
+	// +optional
+	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
 	// +optional
-	VolumeSize *int `json:"volumeSize"`
+	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
-	VolumeType *string `json:"volumeType"`
+	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
 	// +optional
@@ -587,7 +665,7 @@ type NodeGroup struct {
 	// +optional
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
 	// +optional
-	VolumeIOPS *int `json:"volumeIOPS"`
+	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
@@ -599,13 +677,19 @@ type NodeGroup struct {
 	Taints map[string]string `json:"taints,omitempty"`
 
 	// +optional
+	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
+
+	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
 	// +optional
 	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 
 	// +optional
-	IAM *NodeGroupIAM `json:"iam"`
+	IAM *NodeGroupIAM `json:"iam,omitempty"`
+
+	// +optional
+	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
 
 	// +optional
 	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
@@ -618,6 +702,73 @@ type NodeGroup struct {
 
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
+}
+
+// Git groups all configuration options related to enabling GitOps on a
+// cluster and linking it to a Git repository.
+type Git struct {
+	Repo *Repo `json:"repo,omitempty"`
+	// +optional
+	Operator Operator `json:"operator,omitempty"`
+	// +optional
+	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
+}
+
+// NewGit returns a new empty Git configuration
+func NewGit() *Git {
+	return &Git{
+		Repo:             &Repo{},
+		Operator:         Operator{},
+		BootstrapProfile: &Profile{},
+	}
+}
+
+// Repo groups all configuration options related to a Git repository used for
+// GitOps.
+type Repo struct {
+	URL string `json:"url,omitempty"` // the Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// +optional
+	Branch string `json:"branch,omitempty"` // the branch under which cluster configuration files will be committed & pushed, e.g. master
+	// +optional
+	Paths []string `json:"paths,omitempty"` // relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	// +optional
+	FluxPath string `json:"fluxPath,omitempty"` // the directory under which Flux configuration files will be written, e.g. flux/
+	// +optional
+	User  string `json:"user,omitempty"`  // Git user which will be used to commit changes
+	Email string `json:"email,omitempty"` // Git email which will be used to commit changes
+	// +optional
+	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"` // path to the private SSH key to use to authenticate
+}
+
+// Operator groups all configuration options related to the operator used to
+// keep the cluster and the Git repository in sync.
+type Operator struct {
+	// +optional
+	Label string `json:"label,omitempty"` // e.g. flux
+	// +optional
+	Namespace string `json:"namespace,omitempty"` // e.g. flux
+	// +optional
+	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+}
+
+// Profile groups all details on a quickstart profile to enable on the cluster
+// and add to the Git repository.
+type Profile struct {
+	Source string `json:"source,omitempty"` // e.g. app-dev
+	// +optional
+	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+	// +optional
+	OutputPath string `json:"outputPath,omitempty"` // output directory for processed profile templates (generate profile command)
+}
+
+// HasBootstrapProfile returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasBootstrapProfile() bool {
+	return c.Git != nil && c.Git.BootstrapProfile != nil && c.Git.BootstrapProfile.Source != ""
+}
+
+// HasGitopsRepoConfigured returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
+	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -711,17 +862,37 @@ type (
 	// NodeGroupInstancesDistribution holds the configuration for spot instances
 	NodeGroupInstancesDistribution struct {
 		//+required
-		InstanceTypes []string `json:"instanceTypes,omitEmpty"`
+		InstanceTypes []string `json:"instanceTypes,omitempty" jsonschema:"required"`
 		// +optional
 		MaxPrice *float64 `json:"maxPrice,omitempty"`
 		//+optional
-		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitEmpty"`
+		OnDemandBaseCapacity *int `json:"onDemandBaseCapacity,omitempty"`
 		//+optional
-		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitEmpty"`
+		OnDemandPercentageAboveBaseCapacity *int `json:"onDemandPercentageAboveBaseCapacity,omitempty"`
 		//+optional
-		SpotInstancePools *int `json:"spotInstancePools,omitEmpty"`
+		SpotInstancePools *int `json:"spotInstancePools,omitempty"`
+		//+optional
+		SpotAllocationStrategy *string `json:"spotAllocationStrategy,omitempty"`
+	}
+
+	// NodeGroupBottlerocket holds the configuration for Bottlerocket based
+	// NodeGroups.
+	NodeGroupBottlerocket struct {
+		// +optional
+		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
+		// +optional
+		Settings *InlineDocument `json:"settings,omitempty"`
 	}
 )
+
+// MetricsCollection used by the scaling config
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+type MetricsCollection struct {
+	// +required
+	Granularity string `json:"granularity" jsonschema:"required"`
+	// +optional
+	Metrics []string `json:"metrics,omitempty"`
+}
 
 // ScalingConfig defines the scaling config
 type ScalingConfig struct {
@@ -736,14 +907,14 @@ type ScalingConfig struct {
 // ManagedNodeGroup defines an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 
 	// +optional
 	AMIFamily string `json:"amiFamily,omitempty"`
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
-	*ScalingConfig `json:",inline"`
+	*ScalingConfig
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
@@ -753,6 +924,8 @@ type ManagedNodeGroup struct {
 
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
+	// +optional
+	PrivateNetworking bool `json:"privateNetworking"`
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 	// +optional
@@ -806,7 +979,7 @@ func HasMixedInstances(ng *NodeGroup) bool {
 	return ng.InstancesDistribution != nil && len(ng.InstancesDistribution.InstanceTypes) > 0
 }
 
-// IsAMI returns true if the argument is an AMI id
+// IsAMI returns true if the argument is an AMI ID
 func IsAMI(amiFlag string) bool {
 	return strings.HasPrefix(amiFlag, "ami-")
 }
@@ -814,7 +987,7 @@ func IsAMI(amiFlag string) bool {
 // FargateProfile defines the settings used to schedule workload onto Fargate.
 type FargateProfile struct {
 	// Name of the Fargate profile.
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
 	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
 	// Selectors define the rules to select workload to schedule onto Fargate.
@@ -823,13 +996,21 @@ type FargateProfile struct {
 	// Subnets which Fargate should use to do network placement of the selected workload.
 	// If none provided, all subnets for the cluster will be used.
 	Subnets []string `json:"subnets,omitempty"`
+
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
 type FargateProfileSelector struct {
 	// Namespace is the Kubernetes namespace from which to select workload.
-	Namespace string `json:"namespace"`
+	Namespace string `json:"namespace" jsonschema:"required"`
 	// +optional
 	// Labels are the Kubernetes label selectors to use to select workload.
 	Labels map[string]string `json:"labels,omitempty"`
+}
+
+// SecretsEncryption defines the configuration for KMS encryption provider
+type SecretsEncryption struct {
+	KeyARN *string `json:"keyARN,omitempty" jsonschema:"required"`
 }

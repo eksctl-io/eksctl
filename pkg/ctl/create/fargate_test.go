@@ -71,6 +71,22 @@ var _ = Describe("create", func() {
 			Expect(selector.Namespace).To(Equal("default"))
 		})
 
+		It("the fargate profile with tags", func() {
+			cmd := newMockCreateFargateProfileCmd("fargateprofile", "--cluster", "foo", "--tags", "env=dev,name=fp-default", "--namespace", "default", "fp-default")
+			_, err := cmd.execute()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(cmd.cmd.ClusterConfig.Metadata.Name).To(Equal("foo"))
+			profiles := cmd.cmd.ClusterConfig.FargateProfiles
+			Expect(profiles).To(HaveLen(1))
+			profile := profiles[0]
+			Expect(profile.Name).To(Equal("fp-default"))
+			Expect(profile.Selectors).To(HaveLen(1))
+			selector := profile.Selectors[0]
+			Expect(selector.Namespace).To(Equal("default"))
+			Expect(profile.Tags).To(HaveKeyWithValue("env", "dev"))
+			Expect(profile.Tags).To(HaveKeyWithValue("name", "fp-default"))
+		})
+
 		It("supports all arguments to be provided by a ClusterConfig file", func() {
 			cmd := newMockCreateFargateProfileCmd("fargateprofile", "-f", "../../../examples/16-fargate-profile.yaml")
 			_, err := cmd.execute()
@@ -90,6 +106,8 @@ var _ = Describe("create", func() {
 			Expect(profiles[1].Selectors[0].Labels).To(HaveLen(2))
 			Expect(profiles[1].Selectors[0].Labels).To(HaveKeyWithValue("env", "dev"))
 			Expect(profiles[1].Selectors[0].Labels).To(HaveKeyWithValue("checks", "passed"))
+			Expect(profiles[1].Tags).To(HaveKeyWithValue("env", "dev"))
+			Expect(profiles[1].Tags).To(HaveKeyWithValue("name", "fp-dev"))
 		})
 	})
 })

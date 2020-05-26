@@ -53,7 +53,8 @@ var _ = Describe("nodegroup filter", func() {
 
 		It("should match exclude filter with names and globs", func() {
 			filter.AppendExcludeNames("test-ng3b")
-			filter.AppendExcludeGlobs("test-ng1?", "x*")
+			err := filter.AppendExcludeGlobs("test-ng1?", "x*")
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(filter.Match("test-ng3x")).To(BeTrue())
 			Expect(filter.Match("test-ng3b")).To(BeFalse())
@@ -96,7 +97,8 @@ var _ = Describe("nodegroup filter", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			filter.AppendExcludeNames("test-ng1b")
-			filter.AppendExcludeGlobs("*-ng1b")
+			err = filter.AppendExcludeGlobs("*-ng1b")
+			Expect(err).ToNot(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.NodeGroups)
 			Expect(included).To(HaveLen(5))
@@ -111,7 +113,8 @@ var _ = Describe("nodegroup filter", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			filter.AppendExcludeNames("test-ng1b")
-			filter.AppendExcludeGlobs("*-ng1b", "test-?g2b")
+			err = filter.AppendExcludeGlobs("*-ng1b", "test-?g2b")
+			Expect(err).ToNot(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.NodeGroups)
 			Expect(included).To(HaveLen(4))
@@ -125,7 +128,8 @@ var _ = Describe("nodegroup filter", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			filter.AppendExcludeNames("test-ng1b", "test-ng2a")
-			filter.AppendExcludeGlobs("*-ng1b", "test-?g2b")
+			err = filter.AppendExcludeGlobs("*-ng1b", "test-?g2b")
+			Expect(err).ToNot(HaveOccurred())
 
 			included, excluded := filter.MatchAll(cfg.NodeGroups)
 			Expect(included).To(HaveLen(5))
@@ -146,23 +150,25 @@ var _ = Describe("nodegroup filter", func() {
 			printer := printers.NewJSONPrinter()
 			names := []string{}
 
-			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
 				err := api.ValidateNodeGroup(i, nodeGroup)
 				Expect(err).ToNot(HaveOccurred())
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 
-			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			err = filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b"}))
 
 			w := &bytes.Buffer{}
 
-			printer.PrintObj(cfg, w)
+			_ = printer.PrintObj(cfg, w)
 
 			Expect(w.Bytes()).To(MatchJSON(expected))
 		})
@@ -175,18 +181,20 @@ var _ = Describe("nodegroup filter", func() {
 			filter := NewNodeGroupFilter()
 			filter.ExcludeAll = true
 
-			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
 				err := api.ValidateNodeGroup(i, nodeGroup)
 				Expect(err).ToNot(HaveOccurred())
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 
 			callback := false
-			filter.ForEach(cfg.NodeGroups, func(_ int, _ *api.NodeGroup) error {
+			err = filter.ForEach(cfg.NodeGroups, func(_ int, _ *api.NodeGroup) error {
 				callback = true
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(callback).To(BeFalse())
 		})
 
@@ -197,11 +205,12 @@ var _ = Describe("nodegroup filter", func() {
 			filter := NewNodeGroupFilter()
 			names := []string{}
 
-			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng2a", "test-ng3a"}))
 
 			names = []string{}
@@ -209,11 +218,12 @@ var _ = Describe("nodegroup filter", func() {
 			cfg.NodeGroups[1].Name = "ng-x1"
 			cfg.NodeGroups[2].Name = "ng-x2"
 
-			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			err = filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(names).To(Equal([]string{"ng-x0", "ng-x1", "ng-x2"}))
 		})
 
@@ -225,26 +235,28 @@ var _ = Describe("nodegroup filter", func() {
 			filter := NewNodeGroupFilter()
 			names := []string{}
 
-			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b"}))
 
 			names = []string{}
 
-			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "t?xyz?", "ab*z123?")
+			err = filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "t?xyz?", "ab*z123?")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal(`no nodegroups match include glob filter specification: "t?xyz?,ab*z123?"`))
 
 			err = filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?", "te*-ng3?")
 			Expect(err).ToNot(HaveOccurred())
-			filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
+			err = filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				Expect(nodeGroup).To(Equal(cfg.NodeGroups[i]))
 				names = append(names, nodeGroup.Name)
 				return nil
 			})
+			Expect(err).ToNot(HaveOccurred())
 			Expect(names).To(Equal([]string{"test-ng1a", "test-ng3a", "test-ng1b", "test-ng3b"}))
 		})
 	})
@@ -273,13 +285,13 @@ func addGroupA(cfg *api.ClusterConfig) {
 	ng.VolumeSize = &ng1aVolSize
 	ng.VolumeType = &ng1aVolType
 	ng.VolumeIOPS = &ng1aVolIOPS
-	ng.IAM.AttachPolicyARNs = []string{"foo"}
+	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Foo"}
 	ng.Labels = map[string]string{"group": "a", "seq": "1"}
 	ng.SSH = nil
 
 	ng = cfg.NewNodeGroup()
 	ng.Name = "test-ng2a"
-	ng.IAM.AttachPolicyARNs = []string{"bar"}
+	ng.IAM.AttachPolicyARNs = []string{"arn:aws:iam::aws:policy/Bar"}
 	ng.Labels = map[string]string{"group": "a", "seq": "2"}
 	ng.SSH = nil
 
@@ -328,7 +340,7 @@ const expected = `
 		"metadata": {
 		  "name": "test-3x3-ngs",
 		  "region": "eu-central-1",
-		  "version": "1.14"
+		  "version": "1.16"
 		},
 		"iam": {},
 		"vpc": {
@@ -348,7 +360,6 @@ const expected = `
 		"nodeGroups": [
 		  {
 			  "name": "test-ng1a",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
@@ -370,7 +381,7 @@ const expected = `
 			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-				  "foo"
+				  "arn:aws:iam::aws:policy/Foo"
 			    ],
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
@@ -389,7 +400,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng2a",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
@@ -399,7 +409,6 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
-			  "volumeIOPS": null,
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng2a",
@@ -411,7 +420,7 @@ const expected = `
 			  },
 			  "iam": {
 			    "attachPolicyARNs": [
-				  "bar"
+				  "arn:aws:iam::aws:policy/Bar"
 			    ],
 			    "withAddonPolicies": {
 				  "imageBuilder": false,
@@ -430,7 +439,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng3a",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m3.large",
 			  "privateNetworking": false,
@@ -440,7 +448,6 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
-			  "volumeIOPS": null,
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng3a",
@@ -470,7 +477,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng1b",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
@@ -480,7 +486,6 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
-			  "volumeIOPS": null,
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng1b",
@@ -509,7 +514,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng2b",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.xlarge",
 			  "privateNetworking": false,
@@ -523,7 +527,6 @@ const expected = `
 			  },
 			  "volumeSize": 0,
 			  "volumeType": "gp2",
-			  "volumeIOPS": null,
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng2b",
@@ -552,7 +555,6 @@ const expected = `
 		  },
 		  {
 			  "name": "test-ng3b",
-			  "ami": "static",
 			  "amiFamily": "AmazonLinux2",
 			  "instanceType": "m5.large",
 			  "privateNetworking": false,
@@ -566,7 +568,6 @@ const expected = `
 			  },
 			  "volumeSize": 192,
 			  "volumeType": "gp2",
-			  "volumeIOPS": null,
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
 				"alpha.eksctl.io/nodegroup-name": "test-ng3b",

@@ -1,0 +1,53 @@
+name: docs
+
+on:
+  pull_request:
+    paths:
+      - 'userdocs/**'
+      - '**.md'
+      - '.github/workflows/markdown-link-check-config.json'
+      - '.github/workflows/check-links.yaml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'userdocs/**'
+      - '**.md'
+      - '.github/workflows/markdown-link-check-config.json'
+      - '.github/workflows/check-links.yaml'
+
+jobs:
+  markdown-link-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Using markdown-link-check to check markdown docs
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-verbose-mode: 'yes'
+          config-file: '.github/workflows/markdown-link-check-config.json'
+          max-depth: 1
+
+  site-link-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: make install-site-deps
+      - name: Build docs for link check
+        run: make build-pages
+        # Using liche action to check generated HTML site
+      - name: Link Checker (generated site)
+        id: lc
+        uses: peter-evans/link-checker@v1
+        with:
+          args: -d userdocs/site -r userdocs/site -x https://twitter.com/weaveworks|https://www.weave.works
+      - name: Fail if there were link errors
+        run: exit ${{ steps.lc.outputs.exit_code }}

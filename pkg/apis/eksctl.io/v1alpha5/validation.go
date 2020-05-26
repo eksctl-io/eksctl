@@ -5,9 +5,11 @@ import (
 	"net"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
 
 	"k8s.io/apimachinery/pkg/util/validation"
+	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
 )
 
 var (
@@ -95,10 +97,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	if !cfg.HasClusterEndpointAccess() {
-		return ErrClusterEndpointNoAccess
-	}
-
 	if cfg.VPC != nil && len(cfg.VPC.PublicAccessCIDRs) > 0 {
 		cidrs, err := validateCIDRs(cfg.VPC.PublicAccessCIDRs)
 		if err != nil {
@@ -106,17 +104,22 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 		cfg.VPC.PublicAccessCIDRs = cidrs
 	}
+
+	if cfg.SecretsEncryption != nil && cfg.SecretsEncryption.KeyARN == nil {
+		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
+	}
+
 	return nil
 }
 
 // ValidateClusterEndpointConfig checks the endpoint configuration for potential issues
 func (c *ClusterConfig) ValidateClusterEndpointConfig() error {
+	if !c.HasClusterEndpointAccess() {
+		return ErrClusterEndpointNoAccess
+	}
 	endpts := c.VPC.ClusterEndpoints
 	if NoAccess(endpts) {
 		return ErrClusterEndpointNoAccess
-	}
-	if PrivateOnly(endpts) {
-		return ErrClusterEndpointPrivateOnly
 	}
 	return nil
 }
@@ -174,6 +177,14 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
 		}
+		if attachPolicyARNs := ng.IAM.AttachPolicyARNs; len(attachPolicyARNs) > 0 {
+			for _, policyARN := range attachPolicyARNs {
+				if _, err := arn.Parse(policyARN); err != nil {
+					return errors.Wrapf(err, "invalid ARN %q in %s.iam.attachPolicyARNs", policyARN, path)
+				}
+
+			}
+		}
 	}
 
 	if err := ValidateNodeGroupLabels(ng.Labels); err != nil {
@@ -189,15 +200,22 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 		}
 	}
 
-	if IsWindowsImage(ng.AMIFamily) {
+	if ng.Bottlerocket != nil && ng.AMIFamily != NodeImageFamilyBottlerocket {
+		return fmt.Errorf(`bottlerocket config can only be used with amiFamily "Bottlerocket" but found %s (path=%s.bottlerocket)`,
+			ng.AMIFamily, path)
+	}
+
+	if IsWindowsImage(ng.AMIFamily) || ng.AMIFamily == NodeImageFamilyBottlerocket {
 		fieldNotSupported := func(field string) error {
-			return fmt.Errorf("%s is not supported for Windows node groups (path=%s.%s)", field, path, field)
+			return fmt.Errorf("%s is not supported for %s nodegroups (path=%s.%s)", field, ng.AMIFamily, path, field)
 		}
 		if ng.KubeletExtraConfig != nil {
 			return fieldNotSupported("kubeletExtraConfig")
 		}
-		if ng.PreBootstrapCommands != nil {
-			return fieldNotSupported("preBootstrapCommands")
+		if ng.AMIFamily == NodeImageFamilyBottlerocket {
+			if ng.PreBootstrapCommands != nil {
+				return fieldNotSupported("preBootstrapCommands")
+			}
 		}
 		if ng.OverrideBootstrapCommand != nil {
 			return fieldNotSupported("overrideBootstrapCommand")
@@ -205,6 +223,13 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 
 	} else if err := validateNodeGroupKubeletExtraConfig(ng.KubeletExtraConfig); err != nil {
 		return err
+	}
+
+	if ng.AMIFamily == NodeImageFamilyBottlerocket && ng.Bottlerocket != nil {
+		err := checkBottlerocketSettings(ng.Bottlerocket.Settings, path)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := validateInstancesDistribution(ng); err != nil {
@@ -225,54 +250,24 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 
 	unknownKubernetesLabels := []string{}
 
-	for l := range labels {
-		labelParts := strings.Split(l, "/")
+	for label := range labels {
+		labelParts := strings.Split(label, "/")
 
 		if len(labelParts) > 2 {
-			return fmt.Errorf("node label key %q is of invalid format, can only use one '/' separator", l)
+			return fmt.Errorf("node label key %q is of invalid format, can only use one '/' separator", label)
 		}
 
-		if errs := validation.IsQualifiedName(l); len(errs) > 0 {
-			return fmt.Errorf("label %q is invalid - %v", l, errs)
+		if errs := validation.IsQualifiedName(label); len(errs) > 0 {
+			return fmt.Errorf("label %q is invalid - %v", label, errs)
 		}
-		if errs := validation.IsValidLabelValue(labels[l]); len(errs) > 0 {
-			return fmt.Errorf("label %q has invalid value %q - %v", l, labels[l], errs)
+		if errs := validation.IsValidLabelValue(labels[label]); len(errs) > 0 {
+			return fmt.Errorf("label %q has invalid value %q - %v", label, labels[label], errs)
 		}
 
-		isKubernetesLabel := false
-		allowedKubeletNamespace := false
 		if len(labelParts) == 2 {
-			ns := labelParts[0]
-
-			for _, domain := range []string{"kubernetes.io", "k8s.io"} {
-				if ns == domain || strings.HasSuffix(ns, "."+domain) {
-					isKubernetesLabel = true
-				}
-			}
-
-			for _, domain := range []string{"kubelet.kubernetes.io", "node.kubernetes.io", "node-role.kubernetes.io"} {
-				if ns == domain || strings.HasSuffix(ns, "."+domain) {
-					allowedKubeletNamespace = true
-				}
-			}
-
-			if isKubernetesLabel && !allowedKubeletNamespace {
-				switch l {
-				case
-					"kubernetes.io/hostname",
-					"kubernetes.io/instance-type",
-					"kubernetes.io/os",
-					"kubernetes.io/arch",
-					"beta.kubernetes.io/instance-type",
-					"beta.kubernetes.io/os",
-					"beta.kubernetes.io/arch",
-					"failure-domain.beta.kubernetes.io/zone",
-					"failure-domain.beta.kubernetes.io/region",
-					"failure-domain.kubernetes.io/zone",
-					"failure-domain.kubernetes.io/region":
-				default:
-					unknownKubernetesLabels = append(unknownKubernetesLabels, l)
-				}
+			namespace := labelParts[0]
+			if isKubernetesLabel(namespace) && !kubeletapis.IsKubeletLabel(label) {
+				unknownKubernetesLabels = append(unknownKubernetesLabels, label)
 			}
 		}
 	}
@@ -281,6 +276,15 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 		return fmt.Errorf("unknown 'kubernetes.io' or 'k8s.io' labels were specified: %v", unknownKubernetesLabels)
 	}
 	return nil
+}
+
+func isKubernetesLabel(namespace string) bool {
+	for _, domain := range []string{"kubernetes.io", "k8s.io"} {
+		if namespace == domain || strings.HasSuffix(namespace, "."+domain) {
+			return true
+		}
+	}
+	return false
 }
 
 func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) error {
@@ -343,7 +347,7 @@ func ValidateManagedNodeGroup(ng *ManagedNodeGroup, index int) error {
 	}
 	path := fmt.Sprintf("managedNodeGroups[%d]", index)
 	if ng.IAM != nil {
-		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleArn", path); err != nil {
+		if err := validateNodeGroupIAM(ng.IAM, ng.IAM.InstanceRoleARN, "instanceRoleARN", path); err != nil {
 			return err
 		}
 
@@ -420,6 +424,16 @@ func validateInstancesDistribution(ng *NodeGroup) error {
 
 	if distribution.SpotInstancePools != nil && (*distribution.SpotInstancePools < 1 || *distribution.SpotInstancePools > 20) {
 		return fmt.Errorf("spotInstancePools should be between 1 and 20")
+	}
+
+	if distribution.SpotInstancePools != nil && distribution.SpotAllocationStrategy != nil && *distribution.SpotAllocationStrategy == SpotAllocationStrategyCapacityOptimized {
+		return fmt.Errorf("spotInstancePools cannot be specified when also specifying spotAllocationStrategy: %s", SpotAllocationStrategyCapacityOptimized)
+	}
+
+	if distribution.SpotAllocationStrategy != nil {
+		if !isSpotAllocationStrategySupported(*distribution.SpotAllocationStrategy) {
+			return fmt.Errorf("spotAllocationStrategy should be one of: %v", strings.Join(supportedSpotAllocationStrategies(), ", "))
+		}
 	}
 
 	return nil
@@ -517,5 +531,42 @@ func (fps FargateProfileSelector) Validate() error {
 	if fps.Namespace == "" {
 		return errors.New("empty namespace")
 	}
+	return nil
+}
+
+func checkBottlerocketSettings(doc *InlineDocument, path string) error {
+	if doc == nil {
+		return nil
+	}
+
+	overlapErr := func(key, ngField string) error {
+		return errors.Errorf("invalid Bottlerocket setting: use %s.%s instead (path=%s)", path, ngField, key)
+	}
+
+	// Dig into kubernetes settings if provided.
+	kubeVal, ok := (*doc)["kubernetes"]
+	if !ok {
+		return nil
+	}
+
+	kube, ok := kubeVal.(map[string]interface{})
+	if !ok {
+		return errors.New("invalid kubernetes settings provided: expected a map of settings")
+	}
+
+	checkMapping := map[string]string{
+		"node-labels":    "labels",
+		"node-taints":    "taints",
+		"max-pods":       "maxPodsPerNode",
+		"cluster-dns-ip": "clusterDNS",
+	}
+
+	for checkKey, shouldUse := range checkMapping {
+		_, ok := kube[checkKey]
+		if ok {
+			return overlapErr(path+".kubernetes."+checkKey, shouldUse)
+		}
+	}
+
 	return nil
 }

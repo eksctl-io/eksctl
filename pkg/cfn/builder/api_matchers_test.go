@@ -45,5 +45,5 @@ func (m *ResourceSetRenderingMatcher) FailureMessage(_ interface{}) string {
 }
 
 func (m *ResourceSetRenderingMatcher) NegatedFailureMessage(_ interface{}) string {
-	return fmt.Sprintf("Expected to NOT load template from JSON without errors")
+	return "Expected to NOT load template from JSON without errors"
 }

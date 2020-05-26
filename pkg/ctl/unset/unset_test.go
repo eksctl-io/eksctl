@@ -2,6 +2,7 @@ package unset
 
 import (
 	"bytes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
@@ -45,7 +46,6 @@ func newMockCmd(args ...string) *mockVerbCmd {
 
 type mockVerbCmd struct {
 	parentCmd *cobra.Command
-	cmd       *cmdutils.Cmd
 }
 
 func (c mockVerbCmd) execute() (string, error) {

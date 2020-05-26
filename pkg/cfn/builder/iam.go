@@ -14,16 +14,15 @@ import (
 )
 
 const (
-	iamPolicyAmazonEKSServicePolicyARN = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-	iamPolicyAmazonEKSClusterPolicyARN = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+	iamPolicyAmazonEKSClusterPolicy = "AmazonEKSClusterPolicy"
 
-	iamPolicyAmazonEKSWorkerNodePolicyARN           = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-	iamPolicyAmazonEKSCNIPolicyARN                  = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-	iamPolicyAmazonEC2ContainerRegistryPowerUserARN = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
-	iamPolicyAmazonEC2ContainerRegistryReadOnlyARN  = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-	iamPolicyCloudWatchAgentServerPolicyARN         = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+	iamPolicyAmazonEKSWorkerNodePolicy           = "AmazonEKSWorkerNodePolicy"
+	iamPolicyAmazonEKSCNIPolicy                  = "AmazonEKS_CNI_Policy"
+	iamPolicyAmazonEC2ContainerRegistryPowerUser = "AmazonEC2ContainerRegistryPowerUser"
+	iamPolicyAmazonEC2ContainerRegistryReadOnly  = "AmazonEC2ContainerRegistryReadOnly"
+	iamPolicyCloudWatchAgentServerPolicy         = "CloudWatchAgentServerPolicy"
 
-	iamPolicyAmazonEKSFargatePodExecutionRolePolicyARN = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+	iamPolicyAmazonEKSFargatePodExecutionRolePolicy = "AmazonEKSFargatePodExecutionRolePolicy"
 )
 
 const (
@@ -32,9 +31,9 @@ const (
 )
 
 var (
-	iamDefaultNodePolicyARNs = []string{
-		iamPolicyAmazonEKSWorkerNodePolicyARN,
-		iamPolicyAmazonEKSCNIPolicyARN,
+	iamDefaultNodePolicies = []string{
+		iamPolicyAmazonEKSWorkerNodePolicy,
+		iamPolicyAmazonEKSCNIPolicy,
 	}
 )
 
@@ -73,14 +72,13 @@ func (c *ClusterResourceSet) addResourcesForIAM() {
 
 	role := &gfn.AWSIAMRole{
 		AssumeRolePolicyDocument: cft.MakeAssumeRolePolicyDocumentForServices(
-			"eks.amazonaws.com",
+			MakeServiceRef("EKS"),
 			// Ensure that EKS can schedule pods onto Fargate, should the user
 			// define so-called "Fargate profiles" in order to do so:
-			"eks-fargate-pods.amazonaws.com",
+			MakeServiceRef("EKSFargatePods"),
 		),
-		ManagedPolicyArns: makeStringSlice(
-			iamPolicyAmazonEKSServicePolicyARN,
-			iamPolicyAmazonEKSClusterPolicyARN,
+		ManagedPolicyArns: makePolicyARNs(
+			iamPolicyAmazonEKSClusterPolicy,
 		),
 	}
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRolePermissionsBoundary) {
@@ -112,7 +110,7 @@ func (n *NodeGroupResourceSet) WithNamedIAM() bool {
 	return n.rs.withNamedIAM
 }
 
-func (n *NodeGroupResourceSet) addResourcesForIAM() {
+func (n *NodeGroupResourceSet) addResourcesForIAM() error {
 	if n.spec.IAM.InstanceProfileARN != "" {
 		n.rs.withIAM = false
 		n.rs.withNamedIAM = false
@@ -123,14 +121,14 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		if n.spec.IAM.InstanceRoleARN != "" {
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true)
 			n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
-			return
+			return nil
 		}
 		// if instance role is not given, export profile and use the getter to call importer function
 		n.rs.defineOutput(outputs.NodeGroupInstanceProfileARN, n.spec.IAM.InstanceProfileARN, true, func(v string) error {
 			return iam.ImportInstanceRoleFromProfileARN(n.provider, n.spec, v)
 		})
 
-		return
+		return nil
 	}
 
 	n.rs.withIAM = true
@@ -147,7 +145,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 			return nil
 		})
 		n.rs.defineOutputWithoutCollector(outputs.NodeGroupInstanceRoleARN, n.spec.IAM.InstanceRoleARN, true)
-		return
+		return nil
 	}
 
 	// if neither role nor profile is given - create both
@@ -157,7 +155,9 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.rs.withNamedIAM = true
 	}
 
-	createRole(n.rs, n.spec.IAM, false)
+	if err := createRole(n.rs, n.spec.IAM, false); err != nil {
+		return err
+	}
 
 	n.newResource(cfnIAMInstanceProfileName, &gfn.AWSIAMInstanceProfile{
 		Path:  gfn.NewString("/"),
@@ -173,6 +173,7 @@ func (n *NodeGroupResourceSet) addResourcesForIAM() {
 		n.spec.IAM.InstanceRoleARN = v
 		return nil
 	})
+	return nil
 }
 
 // IAMServiceAccountResourceSet holds iamserviceaccount stack build-time information

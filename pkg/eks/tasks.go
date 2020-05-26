@@ -3,8 +3,10 @@ package eks
 import (
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/addons"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
+	"github.com/weaveworks/eksctl/pkg/utils"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
@@ -46,11 +48,39 @@ func (v *vpcControllerTask) Do(errCh chan error) error {
 	return nil
 }
 
-// AppendExtraClusterConfigTasks returns all tasks for updating cluster configuration or nil if there are no tasks
-func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool, tasks *manager.TaskTree) {
+type neuronDevicePluginTask struct {
+	info            string
+	clusterProvider *ClusterProvider
+	spec            *api.ClusterConfig
+}
+
+func (n *neuronDevicePluginTask) Describe() string { return n.info }
+
+func (n *neuronDevicePluginTask) Do(errCh chan error) error {
+	defer close(errCh)
+	rawClient, err := n.clusterProvider.NewRawClient(n.spec)
+	if err != nil {
+		return err
+	}
+	neuronDevicePlugin := addons.NewNeuronDevicePlugin(rawClient, n.clusterProvider.Provider.Region(), false)
+	if err := neuronDevicePlugin.Deploy(); err != nil {
+		return errors.Wrap(err, "error installing Neuron device plugin")
+	}
+	return nil
+}
+
+// CreateExtraClusterConfigTasks returns all tasks for updating cluster configuration not depending on the control plane availability
+func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, installVPCController bool) *manager.TaskTree {
 	newTasks := &manager.TaskTree{
 		Parallel:  false,
 		IsSubTask: true,
+	}
+	if len(cfg.Metadata.Tags) > 0 {
+		newTasks.Append(&clusterConfigTask{
+			info: "tag cluster",
+			spec: cfg,
+			call: c.UpdateClusterTags,
+		})
 	}
 	if !cfg.HasClusterCloudWatchLogging() {
 		logger.Info("CloudWatch logging will not be enabled for cluster %q in %q", cfg.Metadata.Name, cfg.Metadata.Region)
@@ -62,9 +92,6 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			spec: cfg,
 			call: c.UpdateClusterConfigForLogging,
 		})
-	}
-	if api.IsEnabled(cfg.IAM.WithOIDC) {
-		c.appendCreateTasksForIAMServiceAccounts(cfg, newTasks)
 	}
 	c.maybeAppendTasksForEndpointAccessUpdates(cfg, newTasks)
 
@@ -83,9 +110,42 @@ func (c *ClusterProvider) AppendExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			clusterProvider: c,
 		})
 	}
-	if newTasks.Len() > 0 {
-		tasks.Append(newTasks)
+	return newTasks
+}
+
+// NewTasksRequiringControlPlane returns all tasks for updating cluster configuration depending on the control plane availability
+// or nil if there are no tasks
+func (c *ClusterProvider) NewTasksRequiringControlPlane(cfg *api.ClusterConfig) *manager.TaskTree {
+	tasks := &manager.TaskTree{
+		Parallel:  false,
+		IsSubTask: true,
 	}
+	if api.IsEnabled(cfg.IAM.WithOIDC) {
+		c.appendCreateTasksForIAMServiceAccounts(cfg, tasks)
+	}
+
+	return tasks
+}
+
+// ClusterTasksForNodeGroups returns all tasks dependent on node groups
+func (c *ClusterProvider) ClusterTasksForNodeGroups(cfg *api.ClusterConfig, installNeuronDevicePluginParam bool) *manager.TaskTree {
+	tasks := &manager.TaskTree{
+		Parallel:  false,
+		IsSubTask: true,
+	}
+	var reallyInstallNeuronDevicePlugin bool
+	for _, ng := range cfg.NodeGroups {
+		reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin || api.HasInstanceType(ng, utils.IsInferentiaInstanceType)
+	}
+	reallyInstallNeuronDevicePlugin = reallyInstallNeuronDevicePlugin && installNeuronDevicePluginParam
+	if reallyInstallNeuronDevicePlugin {
+		tasks.Append(&neuronDevicePluginTask{
+			info:            "install Neuron device plugin",
+			spec:            cfg,
+			clusterProvider: c,
+		})
+	}
+	return tasks
 }
 
 func (c *ClusterProvider) appendCreateTasksForIAMServiceAccounts(cfg *api.ClusterConfig, tasks *manager.TaskTree) {

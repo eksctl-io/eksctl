@@ -29,3 +29,6 @@ fargateProfiles:
         labels:
           env: dev
           checks: passed
+    tags:
+      env: dev
+      name: fp-dev

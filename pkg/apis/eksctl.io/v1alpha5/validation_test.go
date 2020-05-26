@@ -1,9 +1,10 @@
 package v1alpha5
 
 import (
-	"github.com/bxcodec/faker"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/utils/strings"
 )
 
 var _ = Describe("ClusterConfig validation", func() {
@@ -61,8 +62,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			ng0.Name = "ng0"
 
 			ng0.IAM.AttachPolicyARNs = []string{
-				"foo",
-				"bar",
+				"arn:aws:iam::aws:policy/Foo",
+				"arn:aws:iam::aws:policy/Bar",
 			}
 			ng0.IAM.WithAddonPolicies.ExternalDNS = Enabled()
 			ng0.IAM.WithAddonPolicies.ALBIngress = Enabled()
@@ -143,8 +144,8 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("should not allow setting instanceRoleARN and attachPolicyARNs", func() {
 			ng1.IAM.InstanceRoleARN = "r1"
 			ng1.IAM.AttachPolicyARNs = []string{
-				"foo",
-				"bar",
+				"arn:aws:iam::aws:policy/Foo",
+				"arn:aws:iam::aws:policy/Bar",
 			}
 
 			err = ValidateNodeGroup(1, ng1)
@@ -337,10 +338,11 @@ var _ = Describe("ClusterConfig validation", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should error on private=true, public=false", func() {
-			cfg.VPC.ClusterEndpoints = &ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
+		It("should not error on private=true, public=false", func() {
+			cfg.VPC.ClusterEndpoints =
+				&ClusterEndpoints{PrivateAccess: Enabled(), PublicAccess: Disabled()}
 			err = cfg.ValidateClusterEndpointConfig()
-			Expect(err).To(BeIdenticalTo(ErrClusterEndpointPrivateOnly))
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("should error on private=false, public=false", func() {
@@ -467,6 +469,29 @@ var _ = Describe("ClusterConfig validation", func() {
 
 				ng.InstancesDistribution.OnDemandPercentageAboveBaseCapacity = newInt(50)
 				err = validateInstancesDistribution(ng)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("It fails when the spotAllocationStrategy is not a supported strategy", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("unsupported-strategy")
+
+				err := validateInstancesDistribution(ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("It fails when the spotAllocationStrategy is capacity-optimized and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("capacity-optimized")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := validateInstancesDistribution(ng)
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("It does not fail when the spotAllocationStrategy is lowest-price and spotInstancePools is specified", func() {
+				ng.InstancesDistribution.SpotAllocationStrategy = strings.Pointer("lowest-price")
+				ng.InstancesDistribution.SpotInstancePools = newInt(2)
+
+				err := validateInstancesDistribution(ng)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -627,15 +652,158 @@ var _ = Describe("ClusterConfig validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("passes on randomly generated fields", func() {
-				profile := FargateProfile{}
-				err := faker.FakeData(&profile)
-				Expect(err).ToNot(HaveOccurred())
-				err = profile.Validate()
+			It("passes when a name and multiple selectors with a namespace is defined", func() {
+				profile := FargateProfile{
+					Name: "default",
+					Selectors: []FargateProfileSelector{
+						{
+							Namespace: "default",
+						},
+						{
+							Namespace: "dev",
+						},
+					},
+				}
+				err := profile.Validate()
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})
+
+	Describe("Bottlerocket node groups", func() {
+		It("returns an error with unsupported fields", func() {
+			cmd := "/usr/bin/some-command"
+			doc := InlineDocument{
+				"cgroupDriver": "systemd",
+			}
+
+			ngs := map[string]*NodeGroup{
+				"PreBootstrapCommands":     {PreBootstrapCommands: []string{"/usr/bin/env true"}},
+				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
+				"KubeletExtraConfig":       {KubeletExtraConfig: &doc},
+				"overlapping Bottlerocket settings": {
+					Bottlerocket: &NodeGroupBottlerocket{
+						Settings: &InlineDocument{
+							"kubernetes": map[string]interface{}{
+								"node-labels": map[string]string{
+									"mylabel.example.com": "value",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			for name, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyBottlerocket
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
+			}
+		})
+
+		It("has no error with supported fields", func() {
+			x := 32
+			ngs := []*NodeGroup{
+				{Labels: map[string]string{"label": "label-value"}},
+				{MaxPodsPerNode: x},
+				{MinSize: &x},
+			}
+
+			for i, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyBottlerocket
+				Expect(ValidateNodeGroup(i, ng)).To(Succeed())
+			}
+		})
+	})
+
+	type kmsFieldCase struct {
+		secretsEncryption *SecretsEncryption
+		errSubstr         string
+	}
+
+	DescribeTable("KMS field validation", func(k kmsFieldCase) {
+		clusterConfig := NewClusterConfig()
+		clusterConfig.Metadata.Version = "1.15"
+
+		clusterConfig.SecretsEncryption = k.secretsEncryption
+		err := ValidateClusterConfig(clusterConfig)
+		if k.errSubstr != "" {
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(k.errSubstr))
+		} else {
+			Expect(err).ToNot(HaveOccurred())
+		}
+	},
+		Entry("nil secretsEncryption", kmsFieldCase{
+			secretsEncryption: nil,
+		}),
+		Entry("nil secretsEncryption.keyARN", kmsFieldCase{
+			secretsEncryption: &SecretsEncryption{
+				KeyARN: nil,
+			},
+			errSubstr: "secretsEncryption.keyARN is required",
+		}),
+	)
+
+	Describe("Windows node groups", func() {
+		It("returns an error with unsupported fields", func() {
+			cmd := "start /wait msiexec.exe"
+			doc := InlineDocument{
+				"cgroupDriver": "systemd",
+			}
+
+			ngs := map[string]*NodeGroup{
+				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
+				"KubeletExtraConfig":       {KubeletExtraConfig: &doc},
+			}
+
+			for name, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyWindowsServer2019CoreContainer
+				err := ValidateNodeGroup(0, ng)
+				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
+			}
+		})
+
+		It("has no error with supported fields", func() {
+			x := 32
+			ngs := []*NodeGroup{
+				{Labels: map[string]string{"label": "label-value"}},
+				{MaxPodsPerNode: x},
+				{MinSize: &x},
+				{PreBootstrapCommands: []string{"start /wait msiexec.exe"}},
+			}
+
+			for i, ng := range ngs {
+				ng.AMIFamily = NodeImageFamilyWindowsServer2019CoreContainer
+				Expect(ValidateNodeGroup(i, ng)).To(Succeed())
+			}
+		})
+	})
+
+	DescribeTable("Nodegroup label validation", func(labels map[string]string, valid bool) {
+		err := ValidateNodeGroupLabels(labels)
+		if valid {
+			Expect(err).ToNot(HaveOccurred())
+		} else {
+			Expect(err).To(HaveOccurred())
+		}
+	},
+		Entry("Disallowed label", map[string]string{
+			"node-role.kubernetes.io/os": "linux",
+		}, false),
+
+		Entry("Disallowed label", map[string]string{
+			"alpha.service-controller.kubernetes.io/test": "value",
+		}, false),
+
+		Entry("No labels", map[string]string{}, true),
+
+		Entry("Allowed labels", map[string]string{
+			"kubernetes.io/hostname":           "supercomputer",
+			"beta.kubernetes.io/os":            "linux",
+			"kubelet.kubernetes.io/palindrome": "telebuk",
+		}, true),
+	)
 })
 
 func checkItDetectsError(SSHConfig *NodeGroupSSH) {

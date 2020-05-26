@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -266,34 +267,38 @@ func (c *ClusterProvider) CheckAuth() error {
 }
 
 // EnsureAMI ensures that the node AMI is set and is available
-func (c *ClusterProvider) EnsureAMI(version string, ng *api.NodeGroup) error {
+func EnsureAMI(provider api.ClusterProvider, version string, ng *api.NodeGroup) error {
 	if api.IsAMI(ng.AMI) {
-		return ami.Use(c.Provider.EC2(), ng)
+		return ami.Use(provider.EC2(), ng)
 	}
 
 	var resolver ami.Resolver
 	switch ng.AMI {
 	case api.NodeImageResolverAuto:
-		resolver = ami.NewAutoResolver(c.Provider.EC2())
+		resolver = ami.NewAutoResolver(provider.EC2())
 	case api.NodeImageResolverAutoSSM:
-		resolver = ami.NewSSMResolver(c.Provider.SSM())
+		resolver = ami.NewSSMResolver(provider.SSM())
+	case api.NodeImageResolverStatic:
+		resolver = ami.NewStaticResolver()
 	default:
-		resolver = ami.NewDefaultResolver()
+		resolver = ami.NewMultiResolver(
+			ami.NewSSMResolver(provider.SSM()),
+			ami.NewAutoResolver(provider.EC2()),
+		)
 	}
 
 	instanceType := selectInstanceType(ng)
-	id, err := resolver.Resolve(c.Provider.Region(), version, instanceType, ng.AMIFamily)
+	id, err := resolver.Resolve(provider.Region(), version, instanceType, ng.AMIFamily)
 	if err != nil {
 		return errors.Wrap(err, "unable to determine AMI to use")
 	}
 	if id == "" {
-		return ami.NewErrFailedResolution(c.Provider.Region(), version, instanceType, ng.AMIFamily)
+		return ami.NewErrFailedResolution(provider.Region(), version, instanceType, ng.AMIFamily)
 	}
 	ng.AMI = id
 
 	// Check the AMI is available and populate RootDevice information
-	return ami.Use(c.Provider.EC2(), ng)
-
+	return ami.Use(provider.EC2(), ng)
 }
 
 // selectInstanceType determines which instanceType is relevant for selecting an AMI
@@ -352,13 +357,12 @@ func (c *ClusterProvider) newSession(spec *api.ProviderConfig) *session.Session 
 	// we might want to use bits from kops, although right now it seems like too many thing we
 	// don't want yet
 	// https://github.com/kubernetes/kops/blob/master/upup/pkg/fi/cloudup/awsup/aws_cloud.go#L179
-	config := aws.NewConfig()
+	config := aws.NewConfig().WithCredentialsChainVerboseErrors(true)
 
 	if c.Provider.Region() != "" {
-		config = config.WithRegion(c.Provider.Region())
+		config = config.WithRegion(c.Provider.Region()).WithSTSRegionalEndpoint(endpoints.RegionalSTSEndpoint)
 	}
 
-	config = config.WithCredentialsChainVerboseErrors(true)
 	config = request.WithRetryer(config, newLoggingRetryer())
 	if logger.Level >= api.AWSDebugLevel {
 		config = config.WithLogLevel(aws.LogDebug |

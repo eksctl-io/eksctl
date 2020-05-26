@@ -8,21 +8,30 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/tools/clientcmd"
+
 	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/ssh"
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/printers"
-	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
 func createClusterCmd(cmd *cmdutils.Cmd) {
+	createClusterCmdWithRunFunc(cmd, func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error {
+		return doCreateCluster(cmd, ng, params)
+	})
+}
+
+func createClusterCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.CreateClusterCmdParams) error) {
 	cfg := api.NewClusterConfig()
 	ng := api.NewNodeGroup()
 	cmd.ClusterConfig = cfg
@@ -33,7 +42,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.CobraCommand.RunE = func(_ *cobra.Command, args []string) error {
 		cmd.NameArg = cmdutils.GetNameArg(args)
-		return doCreateCluster(cmd, ng, params)
+		return runFunc(cmd, ng, params)
 	}
 
 	exampleClusterName := names.ForCluster("", "")
@@ -41,7 +50,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVarP(&cfg.Metadata.Name, "name", "n", "", fmt.Sprintf("EKS cluster name (generated if unspecified, e.g. %q)", exampleClusterName))
-		fs.StringToStringVarP(&cfg.Metadata.Tags, "tags", "", map[string]string{}, `A list of KV pairs used to tag the AWS resources (e.g. "Owner=John Doe,Team=Some Team")`)
+		cmdutils.AddStringToStringVarPFlag(fs, &cfg.Metadata.Tags, "tags", "", map[string]string{}, "Used to tag the AWS resources")
 		cmdutils.AddRegionFlag(fs, cmd.ProviderConfig)
 		fs.StringSliceVar(&params.AvailabilityZones, "zones", nil, "(auto-select if unspecified)")
 		cmdutils.AddVersionFlag(fs, cfg.Metadata, "")
@@ -59,6 +68,7 @@ func createClusterCmd(cmd *cmdutils.Cmd) {
 	})
 
 	cmd.FlagSetGroup.InFlagSet("Cluster and nodegroup add-ons", func(fs *pflag.FlagSet) {
+		fs.BoolVarP(&params.InstallNeuronDevicePlugin, "install-neuron-plugin", "", true, "Install Neuron plugin for Inferentia nodes")
 		cmdutils.AddCommonCreateNodeGroupIAMAddonsFlags(fs, ng)
 	})
 
@@ -103,7 +113,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 	if cfg.Metadata.Version != api.DefaultVersion {
 		if !isValidVersion(cfg.Metadata.Version) {
 			if isDeprecatedVersion(cfg.Metadata.Version) {
-				return fmt.Errorf("invalid version, %s is now deprecated, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
+				return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
 			}
 			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
 		}
@@ -111,6 +121,11 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 	if err := cfg.ValidateClusterEndpointConfig(); err != nil {
 		return err
+	}
+
+	// if it's a private only cluster warn the user
+	if api.PrivateOnly(cfg.VPC.ClusterEndpoints) {
+		logger.Warning(api.ErrClusterEndpointPrivateOnly.Error())
 	}
 
 	if err := ctl.CheckAuth(); err != nil {
@@ -247,7 +262,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 
 	for _, ng := range cfg.NodeGroups {
 		// resolve AMI
-		if err := ctl.EnsureAMI(meta.Version, ng); err != nil {
+		if err := eks.EnsureAMI(ctl.Provider, meta.Version, ng); err != nil {
 			return err
 		}
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
@@ -307,12 +322,12 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err != nil {
 			return err
 		}
-		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes)
-		ctl.AppendExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController, tasks)
+		postClusterCreationTasks := ctl.CreateExtraClusterConfigTasks(cfg, params.InstallWindowsVPCController)
+		tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(cfg.NodeGroups, cfg.ManagedNodeGroups, supportsManagedNodes, postClusterCreationTasks)
 
 		logger.Info(tasks.Describe())
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
-			logger.Info("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
+			logger.Warning("%d error(s) occurred and cluster hasn't been created properly, you may wish to check CloudFormation console", len(errs))
 			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
 			for _, err := range errs {
 				logger.Critical("%s\n", err.Error())
@@ -321,7 +336,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		}
 	}
 
-	logger.Success("all EKS cluster resources for %q have been created", meta.Name)
+	logger.Info("waiting for the control plane availability...")
 
 	// obtain cluster credentials, write kubeconfig
 
@@ -352,6 +367,24 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			return err
 		}
 
+		// tasks depending on the control plane availability
+		tasks := ctl.NewTasksRequiringControlPlane(cfg)
+		ngTasks := ctl.ClusterTasksForNodeGroups(cfg, params.InstallNeuronDevicePlugin)
+		if ngTasks.Len() > 0 {
+			tasks.Append(ngTasks)
+		}
+
+		logger.Info(tasks.Describe())
+		if errs := tasks.DoAllSync(); len(errs) > 0 {
+			logger.Warning("%d error(s) occurred and post actions have failed, you may wish to check CloudFormation console", len(errs))
+			logger.Info("to cleanup resources, run 'eksctl delete cluster --region=%s --name=%s'", meta.Region, meta.Name)
+			for _, err := range errs {
+				logger.Critical("%s\n", err.Error())
+			}
+			return fmt.Errorf("failed to create cluster %q", meta.Name)
+		}
+		logger.Success("all EKS cluster resources for %q have been created", meta.Name)
+
 		for _, ng := range cfg.NodeGroups {
 			// authorise nodes to join
 			if err = authconfigmap.AddNodeGroup(clientSet, ng); err != nil {
@@ -363,12 +396,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 				return err
 			}
 
-			// if GPU instance type, give instructions
-			if utils.IsGPUInstanceType(ng.InstanceType) || (ng.InstancesDistribution != nil && utils.HasGPUInstanceType(ng.InstancesDistribution.InstanceTypes)) {
-				logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
-				logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
-			}
-
+			showDevicePluginMessageForNodeGroup(ng, params.InstallNeuronDevicePlugin)
 		}
 
 		for _, ng := range cfg.ManagedNodeGroups {
@@ -386,6 +414,23 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			}
 		}
 
+		if cfg.HasGitopsRepoConfigured() {
+			kubernetesClientConfigs, err := ctl.NewClient(cfg)
+			if err != nil {
+				return err
+			}
+			k8sConfig := kubernetesClientConfigs.Config
+			k8sRestConfig, err := clientcmd.NewDefaultClientConfig(*k8sConfig, &clientcmd.ConfigOverrides{}).ClientConfig()
+			if err != nil {
+				return errors.Wrap(err, "cannot create Kubernetes client configuration")
+			}
+			err = gitops.Setup(k8sRestConfig, clientSet, cfg, gitops.DefaultPodReadyTimeout)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+
 		// check kubectl version, and offer install instructions if missing or old
 		// also check heptio-authenticator
 		// TODO: https://github.com/weaveworks/eksctl/issues/30
@@ -393,7 +438,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err != nil {
 			return err
 		}
-		if err := utils.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
+		if err := kubectl.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
 		}

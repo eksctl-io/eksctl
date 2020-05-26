@@ -6,7 +6,7 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
-	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/addons"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,13 +18,13 @@ const (
 	// AWSNode is the name of the aws-node addon
 	AWSNode = "aws-node"
 
-	awsNodeImagePrefixPTN = "%s.dkr.ecr."
-	awsNodeImageSuffix    = ".amazonaws.com/amazon-k8s-cni"
+	awsNodeImageFormatPrefix = "%s.dkr.ecr.%s.%s/amazon-k8s-cni"
 )
 
-// UpdateAWSNode will update the `aws-node` add-on
+// UpdateAWSNode will update the `aws-node` add-on and returns true
+// if an update is available.
 func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan bool) (bool, error) {
-	_, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
+	clusterDaemonSet, err := rawClient.ClientSet().AppsV1().DaemonSets(metav1.NamespaceSystem).Get(AWSNode, metav1.GetOptions{})
 	if err != nil {
 		if apierrs.IsNotFound(err) {
 			logger.Warning("%q was not found", AWSNode)
@@ -39,21 +39,33 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 		return false, err
 	}
 
+	tagMismatch := true
 	for _, rawObj := range list.Items {
 		resource, err := rawClient.NewRawResource(rawObj.Object)
 		if err != nil {
 			return false, err
 		}
 		if resource.GVK.Kind == "DaemonSet" {
-			image := &resource.Info.Object.(*appsv1.DaemonSet).Spec.Template.Spec.Containers[0].Image
-			imageParts := strings.Split(*image, ":")
-
-			if len(imageParts) != 2 {
-				return false, fmt.Errorf("unexpected image format %q for %q", *image, AWSNode)
+			daemonSet, ok := resource.Info.Object.(*appsv1.DaemonSet)
+			if !ok {
+				return false, fmt.Errorf("expected type %T; got %T", &appsv1.Deployment{}, resource.Info.Object)
 			}
-			awsNodeImagePrefix := fmt.Sprintf(awsNodeImagePrefixPTN, api.EKSResourceAccountID(region))
-			if strings.HasSuffix(imageParts[0], awsNodeImageSuffix) {
-				*image = awsNodeImagePrefix + region + awsNodeImageSuffix + ":" + imageParts[1]
+			container := &daemonSet.Spec.Template.Spec.Containers[0]
+			imageParts := strings.Split(container.Image, ":")
+			if len(imageParts) != 2 {
+				return false, fmt.Errorf("invalid container image: %s", container.Image)
+			}
+
+			container.Image = awsNodeImageFormatPrefix + ":" + imageParts[1]
+			if err := addons.UseRegionalImage(&daemonSet.Spec.Template, region); err != nil {
+				return false, err
+			}
+			tagMismatch, err = addons.ImageTagsDiffer(
+				container.Image,
+				clusterDaemonSet.Spec.Template.Spec.Containers[0].Image,
+			)
+			if err != nil {
+				return false, err
 			}
 		}
 
@@ -72,8 +84,12 @@ func UpdateAWSNode(rawClient kubernetes.RawClientInterface, region string, plan 
 	}
 
 	if plan {
-		logger.Critical("(plan) %q is not up-to-date", AWSNode)
-		return true, nil
+		if tagMismatch {
+			logger.Critical("(plan) %q is not up-to-date", AWSNode)
+			return true, nil
+		}
+		logger.Info("(plan) %q is already up-to-date", AWSNode)
+		return false, nil
 	}
 
 	logger.Info("%q is now up-to-date", AWSNode)

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/printers"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
 
@@ -81,6 +83,14 @@ func (c *ClusterProvider) SupportsManagedNodes(clusterConfig *api.ClusterConfig)
 
 // ClusterSupportsManagedNodes reports whether the EKS cluster supports managed nodes
 func ClusterSupportsManagedNodes(cluster *awseks.Cluster) (bool, error) {
+	supportsManagedNodes, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)
+	if err != nil {
+		return false, err
+	}
+	if supportsManagedNodes {
+		return true, nil
+	}
+
 	versionSupportsManagedNodes, err := VersionSupportsManagedNodes(*cluster.Version)
 	if err != nil {
 		return false, err
@@ -112,7 +122,15 @@ func (c *ClusterProvider) SupportsFargate(clusterConfig *api.ClusterConfig) (boo
 
 // ClusterSupportsFargate reports whether an existing cluster supports Fargate.
 func ClusterSupportsFargate(cluster *awseks.Cluster) (bool, error) {
-	versionSupportsFargate, err := fargate.IsSupportedBy(*cluster.Version)
+	supportsFargate, err := utils.IsMinVersion(api.Version1_15, *cluster.Version)
+	if err != nil {
+		return false, err
+	}
+	if supportsFargate {
+		return true, nil
+	}
+
+	versionSupportsFargate, err := utils.IsMinVersion(fargate.MinKubernetesVersion, *cluster.Version)
 	if err != nil {
 		return false, err
 	}
@@ -228,11 +246,18 @@ func (c *ClusterProvider) NewOpenIDConnectManager(spec *api.ClusterConfig) (*iam
 	if c.Status.clusterInfo.cluster == nil || c.Status.clusterInfo.cluster.Identity == nil || c.Status.clusterInfo.cluster.Identity.Oidc == nil || c.Status.clusterInfo.cluster.Identity.Oidc.Issuer == nil {
 		return nil, &UnsupportedOIDCError{"unknown OIDC issuer URL"}
 	}
-	if !strings.HasPrefix(spec.Status.ARN, "arn:aws:eks:") {
+
+	parsedARN, err := arn.Parse(spec.Status.ARN)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unexpected invalid ARN: %q", spec.Status.ARN)
+	}
+	switch parsedARN.Partition {
+	case "aws", "aws-cn", "aws-us-gov":
+	default:
 		return nil, fmt.Errorf("unknown EKS ARN: %q", spec.Status.ARN)
 	}
-	accountID := strings.Split(spec.Status.ARN, ":")[4]
-	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), accountID, *c.Status.clusterInfo.cluster.Identity.Oidc.Issuer)
+
+	return iamoidc.NewOpenIDConnectManager(c.Provider.IAM(), parsedARN.AccountID, *c.Status.clusterInfo.cluster.Identity.Oidc.Issuer, parsedARN.Partition)
 }
 
 // LoadClusterVPC loads the VPC configuration

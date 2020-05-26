@@ -1,5 +1,5 @@
 # An advanced example of ClusterConfig object with customised nodegroups:
---- 
+---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
@@ -27,9 +27,11 @@ nodeGroups:
     desiredCapacity: 2
     labels:
       nodegroup-type: backend-cluster-addons
+    targetGroupARNs:
+      - arn:aws:elasticloadbalancing:eu-west-2:01234567890:targetgroup/target-group-1/abcdef0123456789
     privateNetworking: true
     preBootstrapCommands:
-      # allow docker registries to be deployed as cluster service 
+      # allow docker registries to be deployed as cluster service
       - 'echo {\"insecure-registries\": [\"172.20.0.0/16\",\"10.100.0.0/16\"]} > /etc/docker/daemon.json'
       - "systemctl restart docker"
 
@@ -38,6 +40,19 @@ nodeGroups:
     desiredCapacity: 4
     labels:
       nodegroup-type: very-special-science-workloads
+    classicLoadBalancerNames:
+      - ng3-classic-load-balancer
+    asgMetricsCollection:
+      - granularity: 1Minute
+        metrics:
+          - GroupMinSize
+          - GroupMaxSize
+          - GroupDesiredCapacity
+          - GroupInServiceInstances
+          - GroupPendingInstances
+          - GroupStandbyInstances
+          - GroupTerminatingInstances
+          - GroupTotalInstances
     taints:
       special: "true:NoSchedule"
     privateNetworking: true

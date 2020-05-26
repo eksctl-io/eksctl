@@ -12,7 +12,7 @@ type (
 	// ClusterVPC holds global subnet and all child public/private subnet
 	ClusterVPC struct {
 		// +optional
-		Network `json:",inline"` // global CIDR and VPC ID
+		Network // global CIDR and VPC ID
 		// +optional
 		SecurityGroup string `json:"securityGroup,omitempty"` // cluster SG
 		// subnets are either public or private for use with separate nodegroups
@@ -55,8 +55,8 @@ type (
 
 	// ClusterEndpoints holds cluster api server endpoint access information
 	ClusterEndpoints struct {
-		PrivateAccess *bool `json:"privateAccess,omitempty,false"`
-		PublicAccess  *bool `json:"publicAccess,omitempty,true"`
+		PrivateAccess *bool `json:"privateAccess,omitempty"`
+		PublicAccess  *bool `json:"publicAccess,omitempty"`
 	}
 )
 
@@ -239,4 +239,11 @@ func (c *ClusterConfig) HasClusterEndpointAccess() bool {
 		return hasPublicAccess || hasPrivateAccess
 	}
 	return true
+}
+
+func (c *ClusterConfig) HasPrivateEndpointAccess() bool {
+	return c.VPC != nil &&
+		c.VPC.ClusterEndpoints != nil &&
+		c.VPC.ClusterEndpoints.PrivateAccess != nil &&
+		*c.VPC.ClusterEndpoints.PrivateAccess
 }

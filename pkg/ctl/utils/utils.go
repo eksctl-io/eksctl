@@ -16,11 +16,13 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateKubeProxyCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateAWSNodeCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateCoreDNSCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateLegacySubnetSettings)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, enableLoggingCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, associateIAMOIDCProviderCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, installWindowsVPCController)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterEndpointsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, publicAccessCIDRsCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, schemaCmd)
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, nodeGroupHealthCmd)
 

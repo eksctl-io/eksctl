@@ -80,15 +80,19 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 		api.IsEnabled(m.nodeGroup.SSH.Allow),
 		"[created by eksctl]")
 
+	m.template.Mappings[servicePrincipalPartitionMapName] = servicePrincipalPartitionMappings
+
 	var nodeRole *gfn.Value
 	if m.nodeGroup.IAM.InstanceRoleARN == "" {
-		createRole(m.resourceSet, m.nodeGroup.IAM, true)
+		if err := createRole(m.resourceSet, m.nodeGroup.IAM, true); err != nil {
+			return err
+		}
 		nodeRole = gfn.MakeFnGetAttString(fmt.Sprintf("%s.%s", cfnIAMInstanceRoleName, "Arn"))
 	} else {
 		nodeRole = gfn.NewString(m.nodeGroup.IAM.InstanceRoleARN)
 	}
 
-	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, false)
+	subnets, err := AssignSubnets(m.nodeGroup.AvailabilityZones, m.clusterStackName, m.clusterConfig, m.nodeGroup.PrivateNetworking)
 	if err != nil {
 		return err
 	}
@@ -101,7 +105,6 @@ func (m *ManagedNodeGroupResourceSet) AddAllResources() error {
 			MaxSize:     m.nodeGroup.MaxSize,
 			DesiredSize: m.nodeGroup.DesiredCapacity,
 		},
-		// Only public subnets are supported at launch
 		Subnets: subnets,
 		// Currently the API supports specifying only one instance type
 		InstanceTypes: []string{m.nodeGroup.InstanceType},
