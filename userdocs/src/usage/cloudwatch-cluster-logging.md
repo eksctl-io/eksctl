@@ -19,7 +19,7 @@ If you have created a cluster already, you can use `eksctl utils update-cluster-
 If you are using a config file, run:
 
 ```
-eksctl utils update-cluster-logging --config-file=<path> --enable-types all
+eksctl utils update-cluster-logging --config-file=<path>
 ```
 
 Alternatively, you can use CLI flags.

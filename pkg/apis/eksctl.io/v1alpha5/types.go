@@ -629,6 +629,10 @@ type NodeGroup struct {
 	//+optional
 	InstancesDistribution *NodeGroupInstancesDistribution `json:"instancesDistribution,omitempty"`
 	// +optional
+	InstancePrefix string `json:"instancePrefix,omitempty"`
+	// +optional
+	InstanceName string `json:"instanceName,omitempty"`
+	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
