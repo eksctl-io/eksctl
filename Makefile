@@ -80,6 +80,7 @@ endif
 .PHONY: lint
 lint: ## Run linter over the codebase
 	time "$(GOBIN)/golangci-lint" run
+	@for config_file in $(shell ls .goreleaser*); do time "$(GOBIN)/goreleaser" check -f $${config_file}; done
 
 .PHONY: test
 test:

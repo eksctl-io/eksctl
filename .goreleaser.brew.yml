@@ -1,34 +1,34 @@
-brew:
-  github:
-    owner: weaveworks
-    name: homebrew-tap
+brews:
+  - github:
+      owner: weaveworks
+      name: homebrew-tap
 
-  commit_author:
-    name: weaveworksbot
-    email: team+gitbot@weave.works
+    commit_author:
+      name: weaveworksbot
+      email: team+gitbot@weave.works
 
-  folder: Formula
+    folder: Formula
 
-  homepage: "https://eksctl.io/"
+    homepage: "https://eksctl.io/"
 
-  description: "The official CLI for Amazon EKS"
+    description: "The official CLI for Amazon EKS"
 
-  skip_upload: false
+    skip_upload: false
 
-  dependencies:
-    - kubernetes-cli
-    - aws-iam-authenticator
+    dependencies:
+      - kubernetes-cli
+      - aws-iam-authenticator
 
-  custom_block: |
-    head "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Darwin_amd64.tar.gz"
+    custom_block: |
+      head "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Darwin_amd64.tar.gz"
 
-  install: |
-      bin.install "eksctl"
+    install: |
+        bin.install "eksctl"
 
-      # Install bash completion
-      output = Utils.popen_read("#{bin}/eksctl completion bash")
-      (bash_completion/"eksctl").write output
+        # Install bash completion
+        output = Utils.popen_read("#{bin}/eksctl completion bash")
+        (bash_completion/"eksctl").write output
 
-      # Install zsh completion
-      output = Utils.popen_read("#{bin}/eksctl completion zsh")
-      (zsh_completion/"_eksctl").write output
+        # Install zsh completion
+        output = Utils.popen_read("#{bin}/eksctl completion zsh")
+        (zsh_completion/"_eksctl").write output
