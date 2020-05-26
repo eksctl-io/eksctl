@@ -1,0 +1,14 @@
+userdocs/src/usage/schema.json:
+	cp ./pkg/apis/eksctl.io/v1alpha5/assets/schema.json ./userdocs/src/usage/schema.json
+
+.PHONY: install-site-deps
+install-site-deps: ## Install dependencies for user docs
+	pip3 install -r userdocs/requirements.txt
+
+.PHONY: serve-pages
+serve-pages: ## Serve the site locally
+	cd userdocs/ && mkdocs serve
+
+.PHONY: build-pages
+build-pages: userdocs/src/usage/schema.json ## Generate the site
+	cd userdocs/ && mkdocs build

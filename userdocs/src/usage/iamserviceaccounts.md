@@ -9,7 +9,8 @@ any other data services (RDS, MQ, STS, DynamoDB), or Kubernetes components like 
 
 You can easily create IAM Role and Service Account pairs with `eksctl`.
 
-> NOTE: if you used [instance roles](https://eksctl.io/usage/iam-policies/), and are considering to use IRSA instead, you shouldn't mix the two.
+!!!note
+    If you used [instance roles](https://eksctl.io/usage/iam-policies/), and are considering to use IRSA instead, you shouldn't mix the two.
 
 ## How it works
 
@@ -22,7 +23,8 @@ In `eksctl` the name of the resource is _iamserviceaccount_, which represents an
 
 ### Usage without config files
 
-> NOTE: IAM Roles for Service Accounts require Kubernetes version 1.13 or above.
+!!!note
+    IAM Roles for Service Accounts require Kubernetes version 1.13 or above.
 
 The IAM OIDC Provider is not enabled by default, you can use the following command to enable it, or use config file (see below):
 
@@ -36,7 +38,8 @@ Once you have the IAM OIDC Provider associated with the cluster, to create a IAM
 eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --namespace=<serviceAccountNamespace> --attach-policy-arn=<policyARN>
 ```
 
-> NOTE: you can specify `--attach-policy-arn` multiple times to use more then one policy.
+!!!note
+    You can specify `--attach-policy-arn` multiple times to use more than one policy.
 
 More specifically, you can create a service account with read-only access to S3 by running:
 
@@ -49,9 +52,16 @@ By default, it will be created in `default` namespace, but you can specify any o
 eksctl create iamserviceaccount --cluster=<clusterName> --name=s3-read-only --namespace=s3-app --attach-policy-arn=arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
 ```
 
-> NOTE: If the namespace doesn't exist already, it will be created.
+!!!note
+    If the namespace doesn't exist already, it will be created.
 
 If you have service account already created in the cluster (without an IAM Role), you will need to use `--override-existing-serviceaccounts` flag.
+
+Custom tagging may also be applied to the IAM Role by specifying `--tags`:
+
+```console
+eksctl create iamserviceaccount --cluster=<clusterName> --name=<serviceAccountName> --tags "Owner=John Doe,Team=Some Team"
+```
 
 Currently, to update a role you will need to re-create, run `eksctl delete iamserviceaccount` followed by `eksctl create iamserviceaccount` to achieve that.
 
@@ -86,6 +96,9 @@ iam:
       labels: {aws-usage: "application"}
     attachPolicyARNs:
     - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    tags:
+      Owner: "John Doe"
+      Team: "Some Team"
   - metadata:
       name: cache-access
       namespace: backend-apps

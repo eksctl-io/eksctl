@@ -1,7 +1,6 @@
 package gitops
 
 import (
-	"context"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
@@ -9,6 +8,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/mock"
 
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/git"
 	"github.com/weaveworks/eksctl/pkg/gitops/fileprocessor"
 )
@@ -56,25 +56,23 @@ var _ = Describe("gitops profile", func() {
 				Params: fileprocessor.TemplateParameters{ClusterName: "test-cluster"},
 			}
 			profile = &Profile{
-				Path: outputDir,
-				GitOpts: git.Options{
-					Branch: "master",
-					URL:    "git@github.com:someorg/test-gitops-repo.git",
-				},
-				IO:        io,
-				FS:        memFs,
-				GitCloner: gitCloner,
-				Processor: processor,
+				IO:            io,
+				FS:            memFs,
+				ProfileCloner: gitCloner,
+				Processor:     processor,
 			}
 		})
 
 		AfterEach(func() {
-			io.RemoveAll(testDir)
-			io.RemoveAll(outputDir)
+			_ = io.RemoveAll(testDir)
+			_ = io.RemoveAll(outputDir)
 		})
 
 		It("processes go templates and writes them to the output directory", func() {
-			err := profile.Generate(context.Background())
+			err := profile.Generate(api.Profile{
+				Source:     "git@github.com:someorg/test-gitops-repo.git",
+				Revision:   "master",
+				OutputPath: outputDir})
 
 			Expect(err).ToNot(HaveOccurred())
 			template1, err := io.ReadFile(filepath.Join(outputDir, "a/good-template1.yaml"))
@@ -178,17 +176,17 @@ metadata:
 })
 
 func createTestFiles(testDir string, memFs afero.Fs) {
-	createFile(memFs, filepath.Join(testDir, "not-a-template.yaml"), "somekey: value")
-	createFile(memFs, filepath.Join(testDir, "a/not-a-template2.yaml"), "somekey2: value2")
-	createFile(memFs, filepath.Join(testDir, "a/good-template1.yaml.tmpl"), "cluster: {{ .ClusterName }}")
-	createFile(memFs, filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"), "name: {{ .ClusterName }}")
-	memFs.Mkdir(".git", 0755)
-	createFile(memFs, filepath.Join(testDir, ".git/some-git-file"), "this is a git file and should be ignored")
-	createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml"), "this is a git file and should be ignored")
-	createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml.tmpl"), "this is a git file and should be ignored")
+	_ = createFile(memFs, filepath.Join(testDir, "not-a-template.yaml"), "somekey: value")
+	_ = createFile(memFs, filepath.Join(testDir, "a/not-a-template2.yaml"), "somekey2: value2")
+	_ = createFile(memFs, filepath.Join(testDir, "a/good-template1.yaml.tmpl"), "cluster: {{ .ClusterName }}")
+	_ = createFile(memFs, filepath.Join(testDir, "a/b/good-template2.yaml.tmpl"), "name: {{ .ClusterName }}")
+	_ = memFs.Mkdir(".git", 0755)
+	_ = createFile(memFs, filepath.Join(testDir, ".git/some-git-file"), "this is a git file and should be ignored")
+	_ = createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml"), "this is a git file and should be ignored")
+	_ = createFile(memFs, filepath.Join(testDir, ".git/some-git-file.yaml.tmpl"), "this is a git file and should be ignored")
 
-	createFile(memFs, filepath.Join(testDir, ".eksctlignore"), "path/to/ignore")
-	createFile(memFs, filepath.Join(testDir, "path/to/ignore"), "this file should be ignored")
+	_ = createFile(memFs, filepath.Join(testDir, ".eksctlignore"), "path/to/ignore")
+	_ = createFile(memFs, filepath.Join(testDir, "path/to/ignore"), "this file should be ignored")
 }
 
 func createFile(memFs afero.Fs, path string, content string) error {

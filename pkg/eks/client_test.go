@@ -15,7 +15,7 @@ import (
 var _ = Describe("eks auth helpers", func() {
 	var ctl *ClusterProvider
 
-	Describe("constuct client configs", func() {
+	Describe("construct client configs", func() {
 		Context("with a mock provider", func() {
 			clusterName := "auth-test-cluster"
 

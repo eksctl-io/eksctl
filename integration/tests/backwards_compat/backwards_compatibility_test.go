@@ -109,7 +109,9 @@ var _ = Describe("(Integration) [Backwards compatibility test]", func() {
 		By("scaling the initial nodegroup")
 		cmd = params.EksctlScaleNodeGroupCmd.WithArgs(
 			"--cluster", params.ClusterName,
+			"--nodes-min", "2",
 			"--nodes", "3",
+			"--nodes-max", "4",
 			"--name", initialNgName,
 		)
 		Expect(cmd).To(RunSuccessfully())

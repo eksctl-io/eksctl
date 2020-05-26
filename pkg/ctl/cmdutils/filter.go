@@ -154,7 +154,7 @@ func (f *Filter) doSetExcludeExistingFilter(names []string, resource string) err
 		}
 	}
 	if len(uniqueNames) != 0 {
-		logger.Info("%d %s(s) that already exist (%s) will be excluded", len(uniqueNames), resource, strings.Join(uniqueNames, ","))
+		logger.Info("%d existing %s(s) (%s) will be excluded", len(uniqueNames), resource, strings.Join(uniqueNames, ","))
 	}
 	return nil
 }

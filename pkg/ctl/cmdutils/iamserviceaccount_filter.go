@@ -52,7 +52,7 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager *manager
 
 	if !overrideExistingServiceAccounts {
 		err := f.ForEach(serviceAccounts, func(_ int, sa *api.ClusterIAMServiceAccount) error {
-			exists, err := kubernetes.CheckServiceAccountExists(clientSet, sa.ObjectMeta)
+			exists, err := kubernetes.CheckServiceAccountExists(clientSet, sa.ClusterIAMMeta.AsObjectMeta())
 			if err != nil {
 				return err
 			}
@@ -79,6 +79,7 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 
 	remote := sets.NewString(existing...)
 	local := sets.NewString()
+	var explicitIncludes []string
 
 	for _, localServiceAccount := range *serviceAccounts {
 		localServiceAccountName := localServiceAccount.NameString()
@@ -87,6 +88,7 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 			logger.Info("iamserviceaccounts %q present in the given config, but missing in the cluster", localServiceAccountName)
 			f.AppendExcludeNames(localServiceAccountName)
 		} else if includeOnlyMissing {
+			logger.Info("iamserviceaccounts %q present in the given config and the cluster", localServiceAccountName)
 			f.AppendExcludeNames(localServiceAccountName)
 		}
 	}
@@ -96,22 +98,24 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 			logger.Info("iamserviceaccounts %q present in the cluster, but missing from the given config", remoteServiceAccountName)
 			if includeOnlyMissing {
 				// append it to the config object, so that `saFilter.ForEach` knows about it
-				meta, err := api.ClusterIAMServiceAccountNameStringToObjectMeta(remoteServiceAccountName)
+				meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(remoteServiceAccountName)
 				if err != nil {
 					return err
 				}
 				remoteServiceAccount := &api.ClusterIAMServiceAccount{
-					ObjectMeta: *meta,
+					ClusterIAMMeta: *meta,
 				}
 				*serviceAccounts = append(*serviceAccounts, remoteServiceAccount)
 				// make sure it passes it through the filter, so that one can use `--only-missing` along with `--exclude`
 				if f.Match(remoteServiceAccountName) {
-					f.AppendIncludeNames(remoteServiceAccountName)
+					explicitIncludes = append(explicitIncludes, remoteServiceAccountName)
 				}
 			}
 		}
 	}
-
+	for i := range explicitIncludes {
+		f.AppendIncludeNames(explicitIncludes[i])
+	}
 	return nil
 }
 

@@ -29,4 +29,4 @@ eksctl delete iamidentitymapping --cluster  my-cluster-1 --arn arn:aws:iam::1234
 
 !!!note
     Above command deletes a single mapping FIFO unless `--all` is given in which case it removes all matching. Will warn if
-more mappings matching this role are found.
+    more mappings matching this role are found.

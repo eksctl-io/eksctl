@@ -26,9 +26,12 @@ func (c *StackCollection) createIAMServiceAccountTask(errs chan error, spec *api
 		return err
 	}
 
-	tags := map[string]string{api.IAMServiceAccountNameTag: spec.NameString()}
+	if spec.Tags == nil {
+		spec.Tags = make(map[string]string)
+	}
+	spec.Tags[api.IAMServiceAccountNameTag] = spec.NameString()
 
-	return c.CreateStack(name, stack, tags, nil, errs)
+	return c.CreateStack(name, stack, spec.Tags, nil, errs)
 }
 
 // DescribeIAMServiceAccountStacks calls DescribeStacks and filters out iamserviceaccounts
@@ -74,13 +77,13 @@ func (c *StackCollection) GetIAMServiceAccounts() ([]*api.ClusterIAMServiceAccou
 
 	results := []*api.ClusterIAMServiceAccount{}
 	for _, s := range stacks {
-		meta, err := api.ClusterIAMServiceAccountNameStringToObjectMeta(c.GetIAMServiceAccountName(s))
+		meta, err := api.ClusterIAMServiceAccountNameStringToClusterIAMMeta(c.GetIAMServiceAccountName(s))
 		if err != nil {
 			return nil, err
 		}
 		serviceAccount := &api.ClusterIAMServiceAccount{
-			ObjectMeta: *meta,
-			Status:     &api.ClusterIAMServiceAccountStatus{},
+			ClusterIAMMeta: *meta,
+			Status:         &api.ClusterIAMServiceAccountStatus{},
 		}
 
 		// TODO: we need to make it easier to fetch full definition of the object,

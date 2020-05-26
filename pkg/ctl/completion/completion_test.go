@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 var _ = Describe("completion", func() {
@@ -65,7 +64,6 @@ func newMockCmd(args ...string) *mockVerbCmd {
 
 type mockVerbCmd struct {
 	parentCmd *cobra.Command
-	cmd       *cmdutils.Cmd
 }
 
 func (c mockVerbCmd) execute() (string, error) {

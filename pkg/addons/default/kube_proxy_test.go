@@ -30,23 +30,23 @@ var _ = Describe("default addons - kube-proxy", func() {
 		}
 
 		BeforeEach(func() {
-			clientSet, _ = testutils.NewFakeClientSetWithSamples("testdata/sample-1.12.json")
+			clientSet, _ = testutils.NewFakeClientSetWithSamples("testdata/sample-1.14.json")
 		})
 
-		It("can load 1.12 sample", func() {
-			check("v1.12.6")
+		It("can load 1.14 sample", func() {
+			check("v1.14.6")
 		})
 
 		It("can update based on control plane version", func() {
-			_, err := UpdateKubeProxyImageTag(clientSet, "1.13.0", false)
+			_, err := UpdateKubeProxyImageTag(clientSet, "1.15.0", false)
 			Expect(err).ToNot(HaveOccurred())
-			check("v1.13.0")
+			check("v1.15.0")
 		})
 
 		It("can dry-run update based on control plane version", func() {
-			_, err := UpdateKubeProxyImageTag(clientSet, "1.13.1", true)
+			_, err := UpdateKubeProxyImageTag(clientSet, "1.15.1", true)
 			Expect(err).ToNot(HaveOccurred())
-			check("v1.12.6")
+			check("v1.14.6")
 		})
 	})
 })

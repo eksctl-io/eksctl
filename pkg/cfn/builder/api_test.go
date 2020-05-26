@@ -73,15 +73,16 @@ type Properties struct {
 	VPCZoneIdentifier interface{}
 
 	LoadBalancerNames                 []string
+	MetricsCollection                 []map[string]interface{}
 	TargetGroupARNs                   []string
 	DesiredCapacity, MinSize, MaxSize string
 
-	CidrIp, CidrIpv6, IpProtocol string
+	CidrIP, CidrIpv6, IPProtocol string
 	FromPort, ToPort             int
 
-	VpcId, SubnetId                            interface{}
-	RouteTableId, AllocationId                 interface{}
-	GatewayId, InternetGatewayId, NatGatewayId interface{}
+	VpcID, SubnetID                            interface{}
+	RouteTableID, AllocationID                 interface{}
+	GatewayID, InternetGatewayID, NatGatewayID interface{}
 	DestinationCidrBlock                       interface{}
 
 	Ipv6CidrBlock map[string][]interface{}
@@ -117,12 +118,12 @@ type Properties struct {
 
 type LaunchTemplateData struct {
 	IamInstanceProfile              struct{ Arn interface{} }
-	UserData, InstanceType, ImageId string
+	UserData, InstanceType, ImageID string
 	BlockDeviceMappings             []interface{}
 	EbsOptimized                    *bool
 	NetworkInterfaces               []struct {
 		DeviceIndex              int
-		AssociatePublicIpAddress bool
+		AssociatePublicIPAddress bool
 	}
 	InstanceMarketOptions *struct {
 		MarketType  string
@@ -135,7 +136,10 @@ type LaunchTemplateData struct {
 
 type Template struct {
 	Description string
-	Resources   map[string]struct{ Properties Properties }
+	Resources   map[string]struct {
+		Properties Properties
+		DependsOn  []string
+	}
 }
 
 var kubeconfigTemplate = template.Must(template.New("kubeconfig").Parse(`apiVersion: v1
@@ -445,7 +449,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Metadata: &api.ClusterMeta{
 				Region:  "us-west-2",
 				Name:    clusterName,
-				Version: "1.15",
+				Version: "1.16",
 			},
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
@@ -811,7 +815,15 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	Context("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
-
+		ng.ASGMetricsCollection = []api.MetricsCollection{
+			{
+				Granularity: "1Minute",
+				Metrics: []string{
+					"GroupMinSize",
+					"GroupMaxSize",
+				},
+			},
+		}
 		ng.ClassicLoadBalancerNames = []string{"clb-1", "clb-2"}
 		ng.TargetGroupARNs = []string{"tg-arn-1", "tg-arn-2"}
 
@@ -914,6 +926,21 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.Properties).ToNot(BeNil())
 
 			Expect(ng.Properties.LoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
+		})
+
+		It("should have metrics collections set", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+			ng := ngTemplate.Resources["NodeGroup"]
+			Expect(ng).ToNot(BeNil())
+			Expect(ng.Properties).ToNot(BeNil())
+
+			Expect(ng.Properties.MetricsCollection).To(HaveLen(1))
+			var metricsCollection map[string]interface{} = ng.Properties.MetricsCollection[0]
+			Expect(metricsCollection).To(HaveKey("Granularity"))
+			Expect(metricsCollection).To(HaveKey("Metrics"))
+			Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
+			Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMinSize"))
+			Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMaxSize"))
 		})
 
 		It("should have target groups ARNs set", func() {
@@ -1054,12 +1081,17 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
 				"appmesh:*",
 				"servicediscovery:CreateService",
+				"servicediscovery:DeleteService",
 				"servicediscovery:GetService",
+				"servicediscovery:GetInstance",
 				"servicediscovery:RegisterInstance",
 				"servicediscovery:DeregisterInstance",
 				"servicediscovery:ListInstances",
 				"servicediscovery:ListNamespaces",
 				"servicediscovery:ListServices",
+				"servicediscovery:GetInstancesHealthStatus",
+				"servicediscovery:UpdateInstanceCustomHealthStatus",
+				"servicediscovery:GetOperation",
 				"route53:GetHealthCheck",
 				"route53:CreateHealthCheck",
 				"route53:UpdateHealthCheck",
@@ -1280,6 +1312,16 @@ var _ = Describe("CloudFormation template builder API", func() {
 				"tag:GetResources",
 				"tag:TagResources",
 				"waf:GetWebACL",
+				"wafv2:GetWebACL",
+				"wafv2:GetWebACLForResource",
+				"wafv2:AssociateWebACL",
+				"wafv2:DisassociateWebACL",
+				"shield:DescribeProtection",
+				"shield:GetSubscriptionState",
+				"shield:DeleteProtection",
+				"shield:CreateProtection",
+				"shield:DescribeSubscription",
+				"shield:ListProtections",
 			}))
 		})
 
@@ -1625,9 +1667,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
-			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeFalse())
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.CidrIp).To(Equal("192.168.0.0/16"))
+			Expect(ngTemplate.Resources["SSHIPv4"].Properties.CidrIP).To(Equal("192.168.0.0/16"))
 			Expect(ngTemplate.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
 			Expect(ngTemplate.Resources["SSHIPv4"].Properties.ToPort).To(Equal(22))
 
@@ -1679,9 +1721,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
-			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeFalse())
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
-			Expect(ngTemplate.Resources["SSHIPv4"].Properties.CidrIp).To(Equal("0.0.0.0/0"))
+			Expect(ngTemplate.Resources["SSHIPv4"].Properties.CidrIP).To(Equal("0.0.0.0/0"))
 			Expect(ngTemplate.Resources["SSHIPv4"].Properties.FromPort).To(Equal(22))
 			Expect(ngTemplate.Resources["SSHIPv4"].Properties.ToPort).To(Equal(22))
 
@@ -1766,7 +1808,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(ltd.NetworkInterfaces).To(HaveLen(1))
 			Expect(ltd.NetworkInterfaces[0].DeviceIndex).To(Equal(0))
-			Expect(ltd.NetworkInterfaces[0].AssociatePublicIpAddress).To(BeFalse())
+			Expect(ltd.NetworkInterfaces[0].AssociatePublicIPAddress).To(BeFalse())
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("SSHIPv4"))
 
@@ -2414,9 +2456,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should have correct own IAM resources", func() {
 			Expect(clusterTemplate.Resources["ServiceRole"].Properties).ToNot(BeNil())
 
-			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal(makePolicyARNRef(
-				"AmazonEKSServicePolicy", "AmazonEKSClusterPolicy",
-			)))
+			Expect(clusterTemplate.Resources["ServiceRole"].Properties.ManagedPolicyArns).To(Equal(
+				makePolicyARNRef("AmazonEKSClusterPolicy")),
+			)
 
 			checkARPD([]string{"EKS", "EKSFargatePods"}, clusterTemplate.Resources["ServiceRole"].Properties.AssumeRolePolicyDocument)
 
@@ -2499,7 +2541,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					suffix := suffix1 + suffix2
 					Expect(clusterTemplate.Resources).To(HaveKey("Subnet" + suffix))
 					Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociation" + suffix))
-					isRefTo(clusterTemplate.Resources["RouteTableAssociation"+suffix].Properties.SubnetId, "Subnet"+suffix)
+					isRefTo(clusterTemplate.Resources["RouteTableAssociation"+suffix].Properties.SubnetID, "Subnet"+suffix)
 					Expect(clusterTemplate.Resources).ToNot(HaveKey(suffix + "CIDRv6"))
 				}
 			}
@@ -2526,7 +2568,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					Expect(subnetRefs.Has("Subnet" + suffix1 + suffix2)).To(BeTrue())
 					subnet := clusterTemplate.Resources["Subnet"+suffix1+suffix2].Properties
 					Expect(subnet.Tags).To(HaveLen(2))
-					isRefTo(subnet.VpcId, "VPC")
+					isRefTo(subnet.VpcID, "VPC")
 					Expect(subnet.AvailabilityZone).To(HavePrefix("us-west-2"))
 					Expect(subnet.CidrBlock).To(HavePrefix("192.168."))
 					Expect(subnet.CidrBlock).To(HaveSuffix(".0/19"))
@@ -2539,10 +2581,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 			region := "USWEST2"
 
 			for _, zone := range zones {
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway")
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayID, "NATGateway")
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetID, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
 			}
 		})
 	})
@@ -2564,7 +2606,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(clusterTemplate.Resources).To(HaveKey("VPC"))
 
 			Expect(clusterTemplate.Resources).To(HaveKey("AutoAllocatedCIDRv6"))
-			isRefTo(clusterTemplate.Resources["AutoAllocatedCIDRv6"].Properties.VpcId, "VPC")
+			isRefTo(clusterTemplate.Resources["AutoAllocatedCIDRv6"].Properties.VpcID, "VPC")
 			Expect(clusterTemplate.Resources["AutoAllocatedCIDRv6"].Properties.AmazonProvidedIpv6CidrBlock).To(BeTrue())
 
 			Expect(clusterTemplate.Resources).To(HaveKey("InternetGateway"))
@@ -2577,6 +2619,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicRouteTable"))
 			Expect(clusterTemplate.Resources).To(HaveKey("PublicSubnetRoute"))
+			Expect(clusterTemplate.Resources["PublicSubnetRoute"].DependsOn).To(
+				BeEquivalentTo([]string{"VPCGatewayAttachment"}),
+			)
 
 			expectedFnCIDR := `{ "Fn::Cidr": [{ "Fn::Select": [ 0, { "Fn::GetAtt": "VPC.Ipv6CidrBlocks" }]}, 8, 64 ]}`
 
@@ -2585,11 +2630,11 @@ var _ = Describe("CloudFormation template builder API", func() {
 					suffix := suffix1 + suffix2
 					Expect(clusterTemplate.Resources).To(HaveKey("Subnet" + suffix))
 					Expect(clusterTemplate.Resources).To(HaveKey("RouteTableAssociation" + suffix))
-					isRefTo(clusterTemplate.Resources["RouteTableAssociation"+suffix].Properties.SubnetId, "Subnet"+suffix)
+					isRefTo(clusterTemplate.Resources["RouteTableAssociation"+suffix].Properties.SubnetID, "Subnet"+suffix)
 					Expect(clusterTemplate.Resources).To(HaveKey(suffix + "CIDRv6"))
 
 					cidr := clusterTemplate.Resources[suffix+"CIDRv6"].Properties
-					isRefTo(cidr.SubnetId, "Subnet"+suffix)
+					isRefTo(cidr.SubnetID, "Subnet"+suffix)
 					Expect(cidr.Ipv6CidrBlock["Fn::Select"]).To(HaveLen(2))
 					Expect(cidr.Ipv6CidrBlock["Fn::Select"][0].(float64) >= 0)
 					Expect(cidr.Ipv6CidrBlock["Fn::Select"][0].(float64) < 8)
@@ -2621,7 +2666,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 					Expect(subnetRefs.Has("Subnet" + suffix1 + suffix2)).To(BeTrue())
 					subnet := clusterTemplate.Resources["Subnet"+suffix1+suffix2].Properties
 					Expect(subnet.Tags).To(HaveLen(2))
-					isRefTo(subnet.VpcId, "VPC")
+					isRefTo(subnet.VpcID, "VPC")
 					Expect(subnet.AvailabilityZone).To(HavePrefix("us-west-2"))
 					Expect(subnet.CidrBlock).To(HavePrefix("10.2."))
 					Expect(subnet.CidrBlock).To(HaveSuffix(".0/19"))
@@ -2634,10 +2679,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 			region := "USWEST2"
 
 			for _, zone := range zones {
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway")
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayID, "NATGateway")
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetID, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
 			}
 		})
 
@@ -2681,10 +2726,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should route Internet traffic from private subnets through their corresponding NAT gateways", func() {
 			for _, zone := range zones {
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway"+region+zone)
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayID, "NATGateway"+region+zone)
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetID, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
 			}
 		})
 	})
@@ -2727,10 +2772,10 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 		It("should route Internet traffic from private subnets through the single NAT gateway", func() {
 			for _, zone := range zones {
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayId, "NATGateway")
-				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.NatGatewayID, "NATGateway")
+				isRefTo(clusterTemplate.Resources["NATPrivateSubnetRoute"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetID, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
 			}
 		})
 	})
@@ -2772,8 +2817,8 @@ var _ = Describe("CloudFormation template builder API", func() {
 		It("should not route Internet traffic from private subnets", func() {
 
 			for _, zone := range zones {
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetId, "SubnetPrivate"+region+zone)
-				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableId, "PrivateRouteTable"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.SubnetID, "SubnetPrivate"+region+zone)
+				isRefTo(clusterTemplate.Resources["RouteTableAssociationPrivate"+region+zone].Properties.RouteTableID, "PrivateRouteTable"+region+zone)
 			}
 		})
 

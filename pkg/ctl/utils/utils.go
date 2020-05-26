@@ -22,6 +22,7 @@ func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, installWindowsVPCController)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, updateClusterEndpointsCmd)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, publicAccessCIDRsCmd)
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, schemaCmd)
 
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, nodeGroupHealthCmd)
 

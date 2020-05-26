@@ -1,11 +1,12 @@
 package names_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/eksctl/pkg/testutils"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
-	"testing"
 )
 
 func TestSuite(t *testing.T) {

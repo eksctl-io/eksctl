@@ -32,12 +32,13 @@ type Params struct {
 	PrivateSSHKeyPath       string
 	EksctlCmd               runner.Cmd
 	EksctlCreateCmd         runner.Cmd
+	EksctlUpdateCmd         runner.Cmd
+	EksctlUpgradeCmd        runner.Cmd
 	EksctlGetCmd            runner.Cmd
 	EksctlDeleteCmd         runner.Cmd
 	EksctlDeleteClusterCmd  runner.Cmd
 	EksctlScaleNodeGroupCmd runner.Cmd
 	EksctlUtilsCmd          runner.Cmd
-	EksctlExperimentalCmd   runner.Cmd
 	// Keep track of created clusters, for post-tests clean-up.
 	clustersToDelete []string
 }
@@ -65,6 +66,13 @@ func (p *Params) GenerateCommands() {
 		WithArgs("create").
 		WithTimeout(25 * time.Minute)
 
+	p.EksctlUpdateCmd = p.EksctlCmd.
+		WithArgs("update").
+		WithTimeout(55 * time.Minute)
+
+	p.EksctlUpgradeCmd = p.EksctlCmd.
+		WithArgs("upgrade")
+
 	p.EksctlGetCmd = p.EksctlCmd.
 		WithArgs("get").
 		WithTimeout(1 * time.Minute)
@@ -83,9 +91,6 @@ func (p *Params) GenerateCommands() {
 	p.EksctlUtilsCmd = p.EksctlCmd.
 		WithArgs("utils").
 		WithTimeout(5 * time.Minute)
-
-	p.EksctlExperimentalCmd = p.EksctlCmd.
-		WithEnv("EKSCTL_EXPERIMENTAL=true")
 }
 
 // NewClusterName generates a new cluster name using the provided prefix, and
@@ -114,8 +119,8 @@ func (p Params) DeleteClusters() {
 		cmd := p.EksctlDeleteClusterCmd.WithArgs(
 			"--name", clusterName,
 		)
-		session := cmd.Start()
-		if session.ExitCode() != 1 {
+		session := cmd.Run()
+		if session.ExitCode() != 0 {
 			fmt.Fprintf(GinkgoWriter, "Warning: cluster %s's deletion failed", clusterName)
 		}
 	}

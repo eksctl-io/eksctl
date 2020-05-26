@@ -14,7 +14,7 @@ import (
 var _ = Describe("default addons", func() {
 	Describe("can load a set of resources and create a fake client", func() {
 		It("can create the fake client and verify objects get loaded client", func() {
-			clientSet, _ := testutils.NewFakeClientSetWithSamples("testdata/sample-1.12.json")
+			clientSet, _ := testutils.NewFakeClientSetWithSamples("testdata/sample-1.16.json")
 
 			nsl, err := clientSet.CoreV1().Namespaces().List(metav1.ListOptions{})
 			Expect(err).ToNot(HaveOccurred())

@@ -162,7 +162,7 @@ eksctl get labels --cluster managed-cluster --nodegroup managed-ng-1
 the same.
 
 ```console
-eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4
+eksctl scale nodegroup --name=managed-ng-1 --cluster=managed-cluster --nodes=4 --nodes-min=3 --nodes-max=5
 ```
 
 
@@ -179,6 +179,7 @@ the provisioned Autoscaling Group like in unmanaged nodegroups.
 - Control over the node bootstrapping process and customization of the kubelet are not supported. This includes the
 following fields: `classicLoadBalancerNames`, `maxPodsPerNode`, `taints`, `targetGroupARNs`, `preBootstrapCommands`, `overrideBootstrapCommand`,
 `clusterDNS` and `kubeletExtraConfig`.
+- No support for enabling metrics on AutoScalingGroups using `asgMetricsCollection`
 
 ## Note for eksctl versions below 0.12.0
 - For clusters upgraded from EKS 1.13 to EKS 1.14, managed nodegroups will not be able to communicate with unmanaged

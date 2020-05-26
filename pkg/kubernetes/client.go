@@ -16,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/resource"
 	"k8s.io/client-go/discovery"
@@ -110,7 +109,7 @@ func (c *RawClient) new() (*RawClient, error) {
 		c.config.APIPath = "/api"
 	}
 	if c.config.NegotiatedSerializer == nil {
-		c.config.NegotiatedSerializer = &serializer.DirectCodecFactory{CodecFactory: scheme.Codecs}
+		c.config.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
 	}
 
 	if err := restclient.SetKubernetesDefaults(c.config); err != nil {
@@ -346,8 +345,8 @@ func (r *RawResource) CreateOrReplace(plan bool) (string, error) {
 */
 
 // CreatePatchOrReplace attempts patching the resource before replacing it
-// TODO: it needs more testing and the issue sith strategicpatch has to be
-// undertood before we decide wheather to use it or not
+// TODO: it needs more testing and the issue with strategic patch has to be
+// understood before we decide whether to use it or not
 func (r *RawResource) CreatePatchOrReplace() error {
 	msg := func(verb string) { logger.Info("%s %q", verb, r) }
 

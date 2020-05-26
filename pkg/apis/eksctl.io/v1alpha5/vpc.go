@@ -12,7 +12,7 @@ type (
 	// ClusterVPC holds global subnet and all child public/private subnet
 	ClusterVPC struct {
 		// +optional
-		Network `json:",inline"` // global CIDR and VPC ID
+		Network // global CIDR and VPC ID
 		// +optional
 		SecurityGroup string `json:"securityGroup,omitempty"` // cluster SG
 		// subnets are either public or private for use with separate nodegroups

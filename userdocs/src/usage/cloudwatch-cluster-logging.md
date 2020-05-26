@@ -12,8 +12,9 @@ setting, you can create a cluster with `eksctl create cluster --config-file=<pat
 
 If you have created a cluster already, you can use `eksctl utils update-cluster-logging`.
 
-> **NOTE**: this command runs in plan mode by default, you will need to specify `--approve` flag to
-> apply the changes to your cluster.
+!!!note
+    this command runs in plan mode by default, you will need to specify `--approve` flag to
+    apply the changes to your cluster.
 
 If you are using a config file, run:
 

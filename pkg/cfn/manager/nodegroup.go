@@ -171,7 +171,7 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	//manipulation of the template.
 
 	var descriptionBuffer bytes.Buffer
-	descriptionBuffer.WriteString("scaling nodegroup, ")
+	descriptionBuffer.WriteString("scaling nodegroup")
 
 	ngPaths, err := getNodeGroupPaths(stack.Tags)
 	if err != nil {
@@ -189,36 +189,50 @@ func (c *StackCollection) ScaleNodeGroup(ng *api.NodeGroup) error {
 	currentMaxSize := gjson.Get(template, maxSizePath)
 	currentMinSize := gjson.Get(template, minSizePath)
 
-	if ng.DesiredCapacity != nil && int64(*ng.DesiredCapacity) == currentCapacity.Int() {
-		logger.Info("desired capacity of nodegroup %q in cluster %q is already %d", ng.Name, clusterName, *ng.DesiredCapacity)
+	hasChanged := func(desiredVal *int, currentVal gjson.Result) bool {
+		return desiredVal != nil && int64(*desiredVal) != currentVal.Int()
+	}
+	changed := hasChanged(ng.DesiredCapacity, currentCapacity) || hasChanged(ng.MaxSize, currentMaxSize) || hasChanged(ng.MinSize, currentMinSize)
+
+	if !changed {
+		logger.Info("no change for nodegroup %q in cluster %q: nodes-min %d, desired %d, nodes-max %d", ng.Name,
+			clusterName, currentMinSize.Int(), *ng.DesiredCapacity, currentMaxSize.Int())
 		return nil
 	}
 
-	// Set the new values
-	newCapacity := fmt.Sprintf("%d", *ng.DesiredCapacity)
-	template, err = sjson.Set(template, desiredCapacityPath, newCapacity)
-	if err != nil {
-		return errors.Wrap(err, "setting desired capacity")
+	if ng.MinSize == nil && int64(*ng.DesiredCapacity) < currentMinSize.Int() {
+		logger.Warning("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
+		return errors.Errorf("the desired nodes %d is less than current nodes-min/minSize %d", *ng.DesiredCapacity, currentMinSize.Int())
 	}
-	descriptionBuffer.WriteString(fmt.Sprintf("desired capacity from %s to %d", currentCapacity.Raw, *ng.DesiredCapacity))
 
-	// If the desired number of nodes is less than the min then update the min
-	if int64(*ng.DesiredCapacity) < currentMinSize.Int() {
-		newMinSize := fmt.Sprintf("%d", *ng.DesiredCapacity)
-		template, err = sjson.Set(template, minSizePath, newMinSize)
-		if err != nil {
-			return errors.Wrap(err, "setting min size")
-		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", min size from %s to %d", currentMinSize.Raw, *ng.DesiredCapacity))
+	if ng.MaxSize == nil && int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
+		logger.Warning("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
+		return errors.Errorf("the desired nodes %d is greater than current nodes-max/maxSize %d", *ng.DesiredCapacity, currentMaxSize.Int())
 	}
-	// If the desired number of nodes is greater than the max then update the max
-	if int64(*ng.DesiredCapacity) > currentMaxSize.Int() {
-		newMaxSize := fmt.Sprintf("%d", *ng.DesiredCapacity)
-		template, err = sjson.Set(template, maxSizePath, newMaxSize)
-		if err != nil {
-			return errors.Wrap(err, "setting max size")
+
+	// Set the new values
+	updateField := func(path, fieldName string, newVal *int, oldVal gjson.Result) error {
+		if !hasChanged(newVal, oldVal) {
+			return nil
 		}
-		descriptionBuffer.WriteString(fmt.Sprintf(", max size from %s to %d", currentMaxSize.Raw, *ng.DesiredCapacity))
+		template, err = sjson.Set(template, path, fmt.Sprintf("%d", *newVal))
+		if err != nil {
+			return errors.Wrapf(err, "error setting %s", fieldName)
+		}
+		descriptionBuffer.WriteString(fmt.Sprintf(", %s from %d to %d", fieldName, oldVal.Int(), *newVal))
+		return nil
+	}
+
+	if err := updateField(desiredCapacityPath, "desired capacity", ng.DesiredCapacity, currentCapacity); err != nil {
+		return err
+	}
+
+	if err := updateField(minSizePath, "min size", ng.MinSize, currentMinSize); err != nil {
+		return err
+	}
+
+	if err := updateField(maxSizePath, "max size", ng.MaxSize, currentMaxSize); err != nil {
+		return err
 	}
 	logger.Debug("stack template (post-scale change): %s", template)
 
@@ -267,20 +281,17 @@ func (c *StackCollection) GetNodeGroupStackType(name string) (api.NodeGroupType,
 // GetNodeGroupType returns the nodegroup type
 func GetNodeGroupType(tags []*cfn.Tag) (api.NodeGroupType, error) {
 	var (
-		foundNodeGroupTag bool
-		nodeGroupType     api.NodeGroupType
+		nodeGroupType api.NodeGroupType
 	)
+	if ngNameTagValue := GetNodegroupTagName(tags); ngNameTagValue == "" {
+		return "", errors.New("failed to find the nodegroup name tag")
+	}
+
 	for _, tag := range tags {
 		switch *tag.Key {
-		case api.NodeGroupNameTag:
-			foundNodeGroupTag = true
 		case api.NodeGroupTypeTag:
 			nodeGroupType = api.NodeGroupType(*tag.Value)
 		}
-	}
-
-	if !foundNodeGroupTag {
-		return "", fmt.Errorf("failed to find a nodegroup tag (%s)", api.NodeGroupNameTag)
 	}
 
 	if nodeGroupType == "" {
@@ -389,17 +400,25 @@ func (c *StackCollection) mapStackToNodeGroupSummary(stack *Stack, ngPaths *node
 
 // GetNodeGroupName will return nodegroup name based on tags
 func (*StackCollection) GetNodeGroupName(s *Stack) string {
-	for _, tag := range s.Tags {
-		switch *tag.Key {
-		case api.NodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:
-			return *tag.Value
-		}
+	if tagName := GetNodegroupTagName(s.Tags); tagName != "" {
+		return tagName
 	}
 	if strings.HasSuffix(*s.StackName, "-nodegroup-0") {
 		return "legacy-nodegroup-0"
 	}
 	if strings.HasSuffix(*s.StackName, "-DefaultNodeGroup") {
 		return "legacy-default"
+	}
+	return ""
+}
+
+// GetNodegroupTagName returns the nodegroup name of a stack based on its tags. Taking into account legacy tags.
+func GetNodegroupTagName(tags []*cfn.Tag) string {
+	for _, tag := range tags {
+		switch *tag.Key {
+		case api.NodeGroupNameTag, api.OldNodeGroupNameTag, api.OldNodeGroupIDTag:
+			return *tag.Value
+		}
 	}
 	return ""
 }

@@ -83,6 +83,12 @@ const (
 	// RegionCNNorth1 represents the China region Beijing
 	RegionCNNorth1 = "cn-north-1"
 
+	// RegionUSGovWest1 represents the region GovCloud (US-West)
+	RegionUSGovWest1 = "us-gov-west-1"
+
+	// RegionUSGovEast1 represents the region GovCloud (US-East)
+	RegionUSGovEast1 = "us-gov-east-1"
+
 	// DefaultRegion defines the default region, where to deploy the EKS cluster
 	DefaultRegion = RegionUSWest2
 
@@ -104,11 +110,14 @@ const (
 	// Version1_15 represents Kubernetes version 1.15.x
 	Version1_15 = "1.15"
 
+	// Version1_16 represents Kubernetes version 1.16.x
+	Version1_16 = "1.16"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
-	DefaultVersion = Version1_15
+	DefaultVersion = Version1_16
 
 	// LatestVersion represents latest Kubernetes version supported by EKS
-	LatestVersion = Version1_15
+	LatestVersion = Version1_16
 
 	// DefaultNodeType is the default instance type to use for nodes
 	DefaultNodeType = "m5.large"
@@ -208,6 +217,12 @@ const (
 
 	// eksResourceAccountCNNorth1 defines the AWS EKS account ID that provides node resources in cn-north-1
 	eksResourceAccountCNNorth1 = "918309763551"
+
+	// eksResourceAccountUSGovWest1 defines the AWS EKS account ID that provides node resources in us-gov-west-1
+	eksResourceAccountUSGovWest1 = "013241004608"
+
+	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
+	eksResourceAccountUSGovEast1 = "151742754352"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -280,6 +295,8 @@ func SupportedRegions() []string {
 		RegionSAEast1,
 		RegionCNNorthwest1,
 		RegionCNNorth1,
+		RegionUSGovWest1,
+		RegionUSGovEast1,
 	}
 }
 
@@ -290,16 +307,17 @@ func DeprecatedVersions() []string {
 	return []string{
 		Version1_10,
 		Version1_11,
+		Version1_12,
 	}
 }
 
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
-		Version1_12,
 		Version1_13,
 		Version1_14,
 		Version1_15,
+		Version1_16,
 	}
 }
 
@@ -338,6 +356,10 @@ func EKSResourceAccountID(region string) string {
 		return eksResourceAccountCNNorthWest1
 	case RegionCNNorth1:
 		return eksResourceAccountCNNorth1
+	case RegionUSGovWest1:
+		return eksResourceAccountUSGovWest1
+	case RegionUSGovEast1:
+		return eksResourceAccountUSGovEast1
 	default:
 		return eksResourceAccountStandard
 	}
@@ -345,8 +367,8 @@ func EKSResourceAccountID(region string) string {
 
 // ClusterMeta is what identifies a cluster
 type ClusterMeta struct {
-	Name   string `json:"name"`
-	Region string `json:"region"`
+	Name   string `json:"name" jsonschema:"required"`
+	Region string `json:"region" jsonschema:"required"`
 	// +optional
 	Version string `json:"version,omitempty"`
 	// +optional
@@ -423,7 +445,7 @@ type ProviderConfig struct {
 
 // ClusterConfig is a simple config, to be replaced with Cluster API
 type ClusterConfig struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 
 	Metadata *ClusterMeta `json:"metadata"`
 
@@ -452,13 +474,16 @@ type ClusterConfig struct {
 	SecretsEncryption *SecretsEncryption `json:"secretsEncryption,omitempty"`
 
 	Status *ClusterStatus `json:"status,omitempty"`
+
+	// +optional
+	Git *Git `json:"git,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ClusterConfigList is a list of ClusterConfigs
 type ClusterConfigList struct {
-	metav1.TypeMeta `json:",inline"`
+	metav1.TypeMeta
 	metav1.ListMeta `json:"metadata"`
 
 	Items []ClusterConfig `json:"items"`
@@ -594,7 +619,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // NodeGroup holds all configuration attributes that are
 // specific to a nodegroup
 type NodeGroup struct {
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 	// +optional
 	AMI string `json:"ami,omitempty"`
 	// +optional
@@ -619,14 +644,16 @@ type NodeGroup struct {
 	MinSize *int `json:"minSize,omitempty"`
 	// +optional
 	MaxSize *int `json:"maxSize,omitempty"`
+	// +optional
+	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
 	// +optional
-	VolumeSize *int `json:"volumeSize"`
+	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
-	VolumeType *string `json:"volumeType"`
+	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
 	VolumeName *string `json:"volumeName,omitempty"`
 	// +optional
@@ -634,7 +661,7 @@ type NodeGroup struct {
 	// +optional
 	VolumeKmsKeyID *string `json:"volumeKmsKeyID,omitempty"`
 	// +optional
-	VolumeIOPS *int `json:"volumeIOPS"`
+	VolumeIOPS *int `json:"volumeIOPS,omitempty"`
 
 	// +optional
 	MaxPodsPerNode int `json:"maxPodsPerNode,omitempty"`
@@ -655,7 +682,7 @@ type NodeGroup struct {
 	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 
 	// +optional
-	IAM *NodeGroupIAM `json:"iam"`
+	IAM *NodeGroupIAM `json:"iam,omitempty"`
 
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
@@ -671,6 +698,73 @@ type NodeGroup struct {
 
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
+}
+
+// Git groups all configuration options related to enabling GitOps on a
+// cluster and linking it to a Git repository.
+type Git struct {
+	Repo *Repo `json:"repo,omitempty"`
+	// +optional
+	Operator Operator `json:"operator,omitempty"`
+	// +optional
+	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
+}
+
+// NewGit returns a new empty Git configuration
+func NewGit() *Git {
+	return &Git{
+		Repo:             &Repo{},
+		Operator:         Operator{},
+		BootstrapProfile: &Profile{},
+	}
+}
+
+// Repo groups all configuration options related to a Git repository used for
+// GitOps.
+type Repo struct {
+	URL string `json:"url,omitempty"` // the Git SSH URL to the repository which will contain the cluster configuration, e.g. git@github.com:org/repo
+	// +optional
+	Branch string `json:"branch,omitempty"` // the branch under which cluster configuration files will be committed & pushed, e.g. master
+	// +optional
+	Paths []string `json:"paths,omitempty"` // relative paths within the Git repository which the GitOps operator will monitor to find Kubernetes manifests to apply, e.g. ["kube-system", "base"]
+	// +optional
+	FluxPath string `json:"fluxPath,omitempty"` // the directory under which Flux configuration files will be written, e.g. flux/
+	// +optional
+	User  string `json:"user,omitempty"`  // Git user which will be used to commit changes
+	Email string `json:"email,omitempty"` // Git email which will be used to commit changes
+	// +optional
+	PrivateSSHKeyPath string `json:"privateSSHKeyPath,omitempty"` // path to the private SSH key to use to authenticate
+}
+
+// Operator groups all configuration options related to the operator used to
+// keep the cluster and the Git repository in sync.
+type Operator struct {
+	// +optional
+	Label string `json:"label,omitempty"` // e.g. flux
+	// +optional
+	Namespace string `json:"namespace,omitempty"` // e.g. flux
+	// +optional
+	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+}
+
+// Profile groups all details on a quickstart profile to enable on the cluster
+// and add to the Git repository.
+type Profile struct {
+	Source string `json:"source,omitempty"` // e.g. app-dev
+	// +optional
+	Revision string `json:"revision,omitempty"` // branch, tag or commit hash
+	// +optional
+	OutputPath string `json:"outputPath,omitempty"` // output directory for processed profile templates (generate profile command)
+}
+
+// HasBootstrapProfile returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasBootstrapProfile() bool {
+	return c.Git != nil && c.Git.BootstrapProfile != nil && c.Git.BootstrapProfile.Source != ""
+}
+
+// HasGitopsRepoConfigured returns true if there is a profile with a source specified
+func (c *ClusterConfig) HasGitopsRepoConfigured() bool {
+	return c.Git != nil && c.Git.Repo != nil && c.Git.Repo.URL != ""
 }
 
 // ListOptions returns metav1.ListOptions with label selector for the nodegroup
@@ -764,7 +858,7 @@ type (
 	// NodeGroupInstancesDistribution holds the configuration for spot instances
 	NodeGroupInstancesDistribution struct {
 		//+required
-		InstanceTypes []string `json:"instanceTypes,omitempty"`
+		InstanceTypes []string `json:"instanceTypes,omitempty" jsonschema:"required"`
 		// +optional
 		MaxPrice *float64 `json:"maxPrice,omitempty"`
 		//+optional
@@ -787,6 +881,15 @@ type (
 	}
 )
 
+// MetricsCollection used by the scaling config
+// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+type MetricsCollection struct {
+	// +required
+	Granularity string `json:"granularity" jsonschema:"required"`
+	// +optional
+	Metrics []string `json:"metrics,omitempty"`
+}
+
 // ScalingConfig defines the scaling config
 type ScalingConfig struct {
 	// +optional
@@ -800,14 +903,14 @@ type ScalingConfig struct {
 // ManagedNodeGroup defines an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 
 	// +optional
 	AMIFamily string `json:"amiFamily,omitempty"`
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
-	*ScalingConfig `json:",inline"`
+	*ScalingConfig
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
@@ -880,7 +983,7 @@ func IsAMI(amiFlag string) bool {
 // FargateProfile defines the settings used to schedule workload onto Fargate.
 type FargateProfile struct {
 	// Name of the Fargate profile.
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"required"`
 	// PodExecutionRoleARN is the IAM role's ARN to use to run pods onto Fargate.
 	PodExecutionRoleARN string `json:"podExecutionRoleARN,omitempty"`
 	// Selectors define the rules to select workload to schedule onto Fargate.
@@ -897,7 +1000,7 @@ type FargateProfile struct {
 // FargateProfileSelector defines rules to select workload to schedule onto Fargate.
 type FargateProfileSelector struct {
 	// Namespace is the Kubernetes namespace from which to select workload.
-	Namespace string `json:"namespace"`
+	Namespace string `json:"namespace" jsonschema:"required"`
 	// +optional
 	// Labels are the Kubernetes label selectors to use to select workload.
 	Labels map[string]string `json:"labels,omitempty"`
@@ -905,5 +1008,5 @@ type FargateProfileSelector struct {
 
 // SecretsEncryption defines the configuration for KMS encryption provider
 type SecretsEncryption struct {
-	KeyARN *string `json:"keyARN,omitempty"`
+	KeyARN *string `json:"keyARN,omitempty" jsonschema:"required"`
 }

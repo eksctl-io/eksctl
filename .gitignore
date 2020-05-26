@@ -39,3 +39,5 @@ integration/kubeconfig-*
 
 # Snaps
 eksctl_*_*.snap
+
+userdocs/src/usage/schema.json

@@ -109,6 +109,7 @@ func (l *commonClusterConfigLoader) Load() error {
 	}
 	l.ProviderConfig.Region = meta.Region
 
+	api.SetDefaultGitSettings(l.ClusterConfig)
 	return l.validateWithConfigFile()
 }
 
@@ -200,6 +201,22 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGro
 
 		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
 			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
+		}
+
+		if l.ClusterConfig.Git != nil {
+			repo := l.ClusterConfig.Git.Repo
+			if repo == nil || repo.URL == "" {
+				return ErrMustBeSet("git.repo.URL")
+			}
+
+			if repo.Email == "" {
+				return ErrMustBeSet("git.repo.email")
+			}
+
+			profile := l.ClusterConfig.Git.BootstrapProfile
+			if profile != nil && profile.Source == "" {
+				return ErrMustBeSet("git.bootstrapProfile.source")
+			}
 		}
 
 		return nil
@@ -531,8 +548,16 @@ func NewCreateIAMServiceAccountLoader(cmd *Cmd, saFilter *IAMServiceAccountFilte
 
 		serviceAccount := l.ClusterConfig.IAM.ServiceAccounts[0]
 
+		if serviceAccount.Name != "" && l.NameArg != "" {
+			return ErrFlagAndArg("--name", serviceAccount.Name, l.NameArg)
+		}
+
+		if l.NameArg != "" {
+			serviceAccount.Name = l.NameArg
+		}
+
 		if serviceAccount.Name == "" {
-			return ErrMustBeSet(ClusterNameFlag(cmd))
+			return ErrMustBeSet("--name")
 		}
 
 		if len(serviceAccount.AttachPolicyARNs) == 0 {
@@ -602,7 +627,7 @@ func NewDeleteIAMServiceAccountLoader(cmd *Cmd, sa *api.ClusterIAMServiceAccount
 		}
 
 		if sa.Name != "" && l.NameArg != "" {
-			return ErrClusterFlagAndArg(l.Cmd, sa.Name, l.NameArg)
+			return ErrFlagAndArg("--name", sa.Name, l.NameArg)
 		}
 
 		if l.NameArg != "" {

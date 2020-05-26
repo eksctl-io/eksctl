@@ -2,6 +2,7 @@ package nodebootstrap
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -147,6 +148,7 @@ func toCLIArgs(values map[string]string) string {
 	for k, v := range values {
 		args = append(args, fmt.Sprintf("--%s=%s", k, v))
 	}
+	sort.Strings(args)
 	return strings.Join(args, " ")
 }
 
@@ -189,7 +191,7 @@ func NewUserData(spec *api.ClusterConfig, ng *api.NodeGroup) (string, error) {
 	case api.NodeImageFamilyBottlerocket:
 		return NewUserDataForBottlerocket(spec, ng)
 	case api.NodeImageFamilyWindowsServer2019FullContainer, api.NodeImageFamilyWindowsServer2019CoreContainer:
-		return newUserDataForWindows(spec, ng)
+		return NewUserDataForWindows(spec, ng)
 	default:
 		return "", nil
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
+	"github.com/weaveworks/eksctl/pkg/utils"
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	"github.com/weaveworks/eksctl/pkg/utils/strings"
 	"k8s.io/client-go/kubernetes"
@@ -138,19 +139,24 @@ func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error 
 
 func scheduleCoreDNSOnFargateIfRelevant(cmd *cmdutils.Cmd, clientSet kubernetes.Interface) error {
 	if coredns.IsSchedulableOnFargate(cmd.ClusterConfig.FargateProfiles) {
-		scheduled, err := coredns.IsScheduledOnFargate(clientSet)
+		betaAPIDeprecated, err := utils.IsMinVersion(api.Version1_16, cmd.ClusterConfig.Metadata.Version)
+		if err != nil {
+			return err
+		}
+		useBetaAPIGroup := !betaAPIDeprecated
+		scheduled, err := coredns.IsScheduledOnFargate(clientSet, useBetaAPIGroup)
 		if err != nil {
 			return err
 		}
 		if !scheduled {
-			if err := coredns.ScheduleOnFargate(clientSet); err != nil {
+			if err := coredns.ScheduleOnFargate(clientSet, useBetaAPIGroup); err != nil {
 				return err
 			}
 			retryPolicy := &retry.TimingOutExponentialBackoff{
 				Timeout:  cmd.ProviderConfig.WaitTimeout,
 				TimeUnit: time.Second,
 			}
-			if err := coredns.WaitForScheduleOnFargate(clientSet, retryPolicy); err != nil {
+			if err := coredns.WaitForScheduleOnFargate(clientSet, retryPolicy, useBetaAPIGroup); err != nil {
 				return err
 			}
 		}
