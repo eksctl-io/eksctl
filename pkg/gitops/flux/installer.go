@@ -107,7 +107,7 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 
 	if api.IsEnabled(fi.opts.Operator.WithHelm) {
 		logger.Info("Waiting for Helm Operator to start")
-		if err := waitForHelmOpToStart(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet); err != nil {
+		if err := waitForHelmOpToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet); err != nil {
 			return "", err
 		}
 		logger.Info("Helm Operator started successfully")
@@ -115,15 +115,21 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	}
 
 	logger.Info("Waiting for Flux to start")
-	fluxSSHKey, err := waitForFluxToStart(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet)
+	err = waitForFluxToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet)
 	if err != nil {
 		return "", err
 	}
+	logger.Info("fetching public SSH key from Flux")
+	fluxSSHKey, err := getPublicKeyFromFlux(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet)
+	if err != nil {
+		return "", err
+	}
+
 	logger.Info("Flux started successfully")
 	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
 	logger.Info("Committing and pushing manifests to %s", fi.opts.Repo.URL)
-	if err := fi.addFilesToRepo(); err != nil {
+	if err = fi.addFilesToRepo(); err != nil {
 		return "", err
 	}
 	cleanCloneDir = true
