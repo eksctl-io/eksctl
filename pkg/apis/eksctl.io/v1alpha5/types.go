@@ -712,6 +712,8 @@ type Git struct {
 	Operator Operator `json:"operator,omitempty"`
 	// +optional
 	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
+	// +optional
+	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"` // Commit and push Flux manifests to the Git Repo on install
 }
 
 // NewGit returns a new empty Git configuration
@@ -749,6 +751,8 @@ type Operator struct {
 	Namespace string `json:"namespace,omitempty"` // e.g. flux
 	// +optional
 	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+	// +optional
+	ReadOnly bool `json:"readOnly,omitempty"` // Instruct Flux to read-only mode and create the deploy key as read-only
 }
 
 // Profile groups all details on a quickstart profile to enable on the cluster

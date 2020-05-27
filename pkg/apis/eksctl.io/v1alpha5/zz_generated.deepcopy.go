@@ -581,6 +581,11 @@ func (in *Git) DeepCopyInto(out *Git) {
 		*out = new(Profile)
 		**out = **in
 	}
+	if in.CommitOperatorManifests != nil {
+		in, out := &in.CommitOperatorManifests, &out.CommitOperatorManifests
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

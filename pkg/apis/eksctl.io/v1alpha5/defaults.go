@@ -248,6 +248,10 @@ func SetDefaultGitSettings(c *ClusterConfig) {
 		return
 	}
 
+	if c.Git.CommitOperatorManifests == nil {
+		c.Git.CommitOperatorManifests = Enabled()
+	}
+
 	if c.Git.Operator.Label == "" {
 		c.Git.Operator.Label = "flux"
 	}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
+
 	"github.com/kris-nova/logger"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -88,11 +90,20 @@ func doEnableRepository(cmd *cmdutils.Cmd) error {
 		return nil
 	}
 
-	userInstructions, err := installer.Run(context.Background())
+	userInstructions, fluxSSHKey, err := installer.Run(context.Background())
 	if err != nil {
 		logger.Critical("unable to set up gitops repo: %s", err.Error())
 		return err
 	}
+
+	if fluxSSHKey != nil {
+		ok, err := deploykey.Put(context.Background(), cmd.ClusterConfig, *fluxSSHKey)
+		if ok || err != nil {
+			return err
+		}
+	}
+
 	logger.Info(userInstructions)
-	return err
+
+	return nil
 }

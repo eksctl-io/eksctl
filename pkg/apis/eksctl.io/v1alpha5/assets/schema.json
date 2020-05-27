@@ -410,6 +410,9 @@
         "bootstrapProfile": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/Profile"
+        },
+        "commitOperatorManifests": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -823,6 +826,9 @@
           "type": "string"
         },
         "withHelm": {
+          "type": "boolean"
+        },
+        "readOnly": {
           "type": "boolean"
         }
       },
