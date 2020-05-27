@@ -467,6 +467,13 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bo
 
 		return nil
 	}
+	l.validateWithConfigFile = func() error {
+		if l.ClusterConfig.VPC == nil {
+			l.ClusterConfig.VPC = api.NewClusterVPC()
+		}
+		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
+		return nil
+	}
 
 	return l
 }
