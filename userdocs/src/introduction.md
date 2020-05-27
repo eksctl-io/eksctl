@@ -99,9 +99,6 @@ eksctl create cluster --ssh-access --ssh-public-key=my_kubernetes_key --region=u
 
 To add custom tags for all resources, use `--tags`.
 
-!!! note
-    Until [#25](https://github.com/weaveworks/eksctl/issues/25) is resolved, tags cannot be applied to EKS cluster itself, but most of other resources (e.g. EC2 nodes).
-
 ```
 
 eksctl create cluster --tags environment=staging --region=us-east-1
