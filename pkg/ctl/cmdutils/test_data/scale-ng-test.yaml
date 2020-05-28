@@ -1,0 +1,37 @@
+# A simple example of ClusterConfig object:
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: test-cluster-1
+  region: eu-north-1
+
+nodeGroups:
+  - name: ng-all-details
+    instanceType: m5.large
+    minSize: 1
+    desiredCapacity: 1
+    maxSize: 2
+  - name: ng-no-desired-capacity
+    instanceType: m5.large
+  - name: ng-no-min-max
+    instanceType: m5.large
+    desiredCapacity: 1
+  - name: ng-with-min
+    desiredCapacity: 1
+    minSize: 1
+  - name: ng-with-wrong-min
+    desiredCapacity: 2
+    minSize: 3
+  - name: ng-with-max
+    desiredCapacity: 1
+    maxSize: 2
+  - name: ng-with-wrong-max
+    desiredCapacity: 2
+    maxSize: 1
+  - name: ng-with-wrong-desired
+    desiredCapacity: 3
+    minSize: 1
+    maxSize: 2
+

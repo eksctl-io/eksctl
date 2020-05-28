@@ -27,9 +27,11 @@ type ClusterConfigLoader interface {
 type commonClusterConfigLoader struct {
 	*Cmd
 
-	flagsIncompatibleWithConfigFile, flagsIncompatibleWithoutConfigFile sets.String
-
-	validateWithConfigFile, validateWithoutConfigFile func() error
+	flagsIncompatibleWithConfigFile    sets.String
+	flagsIncompatibleWithoutConfigFile sets.String
+	validateWithConfigFile             func() error
+	validateWithoutConfigFile          func() error
+	nameArgumentAllowed                bool
 }
 
 var (
@@ -96,8 +98,10 @@ func (l *commonClusterConfigLoader) Load() error {
 		}
 	}
 
-	if l.NameArg != "" {
-		return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg))
+	if !l.nameArgumentAllowed {
+		if l.NameArg != "" {
+			return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg))
+		}
 	}
 
 	if meta.Name == "" {
