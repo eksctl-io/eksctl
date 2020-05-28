@@ -183,7 +183,7 @@ func (c *StackCollection) AppendNewClusterStackResource(plan, supportsManagedNod
 		logger.Info("(plan) %s", describeUpdate)
 		return true, nil
 	}
-	return true, c.UpdateStack(name, c.MakeChangeSetName("update-cluster"), describeUpdate, []byte(currentTemplate), nil)
+	return true, c.UpdateStack(name, c.MakeChangeSetName("update-cluster"), describeUpdate, TemplateBody(currentTemplate), nil)
 }
 
 func getClusterName(s *Stack) string {

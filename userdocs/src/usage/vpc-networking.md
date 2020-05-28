@@ -9,11 +9,13 @@ not insecure in principle, but some compromised workload could risk an access vi
 
 If that functionality doesn't suit you, the following options are currently available.
 
->**_IMPORTANT_**: From `eksctl` version `0.17.0` and onwards public subnets will have the property `MapPublicIpOnLaunch` enabled, and the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups.
-> This means that for clusters created with previous versions of eksctl when a new nodegroup is created it must either
->be a private nodegroup or have `MapPublicIpOnLaunch` enabled in its public subnets. Otherwise, the new nodes won't have
->access to the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc).
->To help setting up subnets correctly for old clusters you can use the new command `eksctl utils update-legacy-subnet-settings`.
+!!! important
+    From `eksctl` version `0.17.0` and onwards public subnets will have the property `MapPublicIpOnLaunch` enabled, and
+    the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups. This means that for
+    clusters created with previous versions of eksctl when a new nodegroup is created it must either be a private
+    nodegroup or have `MapPublicIpOnLaunch` enabled in its public subnets. Otherwise, the new nodes won't have access to
+    the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc). To help setting up
+    subnets correctly for old clusters you can use the new command `eksctl utils update-legacy-subnet-settings`.
 
 
 ## Change VPC CIDR

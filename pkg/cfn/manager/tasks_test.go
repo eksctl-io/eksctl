@@ -707,7 +707,7 @@ var _ = Describe("StackCollection Tasks", func() {
 				}
 				{
 					tasks := stackManager.NewTasksToCreateClusterWithNodeGroups(makeNodeGroups("bar"), nil, false, &task{id: 1})
-					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 parallel sub-tasks: { task 1, create nodegroup "bar" } }`))
+					Expect(tasks.Describe()).To(Equal(`2 sequential tasks: { create cluster control plane "test-cluster", 2 sequential sub-tasks: { task 1, create nodegroup "bar" } }`))
 				}
 			})
 		})
