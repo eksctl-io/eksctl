@@ -112,6 +112,8 @@ var _ = Describe("git", func() {
 
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(fakeExecutor.Calls[0].Arguments[2]).To(
+				Equal([]string{"config", "push.default", "current"}))
+			Expect(fakeExecutor.Calls[1].Arguments[2]).To(
 				Equal([]string{"push"}))
 		})
 	})

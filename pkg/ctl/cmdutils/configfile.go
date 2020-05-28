@@ -440,7 +440,7 @@ func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-// NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils vpc-cluster-api-access
+// NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils update-cluster-endpoints'.
 func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
@@ -465,6 +465,13 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bo
 			cmd.ClusterConfig.VPC.ClusterEndpoints.PublicAccess = nil
 		}
 
+		return nil
+	}
+	l.validateWithConfigFile = func() error {
+		if l.ClusterConfig.VPC == nil {
+			l.ClusterConfig.VPC = api.NewClusterVPC()
+		}
+		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
 		return nil
 	}
 

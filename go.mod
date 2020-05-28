@@ -6,6 +6,7 @@ go 1.14
 
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
+	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2 // indirect
 	github.com/alecthomas/jsonschema v0.0.0-20200514014646-0366d1034a17
 	github.com/aws/aws-sdk-go v1.30.11
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
@@ -21,7 +22,7 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1
 	github.com/golangci/golangci-lint v1.27.0
-	github.com/goreleaser/goreleaser v0.110.0
+	github.com/goreleaser/goreleaser v0.136.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -57,21 +58,17 @@ require (
 	k8s.io/cloud-provider v0.16.8
 	k8s.io/code-generator v0.16.8
 	k8s.io/kops v1.15.2
-	k8s.io/kubelet v0.0.0
-	k8s.io/kubernetes v1.15.3
-	k8s.io/legacy-cloud-providers v0.0.0
+	k8s.io/kubelet v0.16.8
+	k8s.io/kubernetes v1.16.8
+	k8s.io/legacy-cloud-providers v0.16.8
 	sigs.k8s.io/aws-iam-authenticator v0.5.0
 	sigs.k8s.io/yaml v1.2.0
 )
 
 replace (
-	// Override since git.apache.org is down.  The docs say to fetch from github.
-	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.0.0+incompatible
 	// github.com/aws/aws-sdk-go => github.com/weaveworks/aws-sdk-go v1.25.14-0.20191218135223-757eeed07291
 	github.com/awslabs/goformation => github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596
-	// Override version since auto-detected one fails with GOPROXY
-	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.0
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
 	// k8s.io/kops is still using old version of component-base
 	// which uses an older version of the following package
