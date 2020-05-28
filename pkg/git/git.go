@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/kris-nova/logger"
@@ -107,11 +106,7 @@ func (git *Client) cloneRepoInPath(clonePath string, options CloneOptions) error
 		// Switch to target branch
 		args := []string{"checkout", options.Branch}
 		if options.Bootstrap {
-			empty, err := git.isRepoEmpty()
-			if err != nil {
-				return err
-			}
-			if empty {
+			if !git.isRemoteBranch(options.Branch) {
 				args = []string{"checkout", "-b", options.Branch}
 			}
 		}
@@ -123,13 +118,9 @@ func (git *Client) cloneRepoInPath(clonePath string, options CloneOptions) error
 	return nil
 }
 
-func (git *Client) isRepoEmpty() (bool, error) {
-	// A repository is empty if it doesn't have branches
-	files, err := ioutil.ReadDir(filepath.Join(git.dir, ".git", "refs", "heads"))
-	if err != nil {
-		return false, err
-	}
-	return len(files) == 0, nil
+func (git *Client) isRemoteBranch(branch string) bool {
+	err := git.runGitCmd("ls-remote", "--heads", "--exit-code", "origin", branch)
+	return err == nil
 }
 
 // Add performs can perform a `git add` operation on the given file paths
@@ -185,6 +176,9 @@ func (git Client) Commit(message, user, email string) error {
 
 // Push pushes the changes to the origin remote
 func (git Client) Push() error {
+	if err := git.runGitCmd("config", "push.default", "current"); err != nil {
+		return err
+	}
 	err := git.runGitCmd("push")
 	return err
 }
