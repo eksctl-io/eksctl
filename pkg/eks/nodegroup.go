@@ -262,12 +262,12 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 			err := iam.UseFromNodeGroup(c.Provider, s, ng)
 			// An empty InstanceRoleARN likely also points to an error
 			if err == nil && ng.IAM.InstanceRoleARN == "" {
-				err = fmt.Errorf("InstanceRoleARN empty")
+				err = errors.New("InstanceRoleARN empty")
 			}
 			if err != nil {
-				return fmt.Errorf(
-					"couldn't get iam configuration for nodegroup %q (perhaps state %q is transitional): %v",
-					ng.Name, *s.StackStatus, err,
+				return errors.Wrapf(
+					err, "couldn't get iam configuration for nodegroup %q (perhaps state %q is transitional)",
+					ng.Name, *s.StackStatus,
 				)
 			}
 			return nil
