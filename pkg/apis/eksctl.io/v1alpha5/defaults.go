@@ -211,11 +211,11 @@ func SetClusterEndpointAccessDefaults(vpc *ClusterVPC) {
 	}
 
 	if vpc.ClusterEndpoints.PublicAccess == nil {
-		vpc.ClusterEndpoints.PublicAccess = Enabled()
+		vpc.ClusterEndpoints.PublicAccess = ClusterEndpointAccessDefaults().PublicAccess
 	}
 
 	if vpc.ClusterEndpoints.PrivateAccess == nil {
-		vpc.ClusterEndpoints.PrivateAccess = Disabled()
+		vpc.ClusterEndpoints.PrivateAccess = ClusterEndpointAccessDefaults().PrivateAccess
 	}
 }
 
