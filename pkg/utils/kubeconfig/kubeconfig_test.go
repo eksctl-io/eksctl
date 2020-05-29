@@ -146,6 +146,20 @@ var _ = Describe("Kubeconfig", func() {
 		Expect(readConfig.CurrentContext).To(Equal("minikube"))
 	})
 
+	var (
+		kubeconfigPathToRestore string
+		hasKubeconfigPath       bool
+	)
+
+	ChangeKubeconfig := func() {
+		if _, err := os.Stat(configFile.Name()); os.IsNotExist(err) {
+			GinkgoT().Fatal(err)
+		}
+
+		kubeconfigPathToRestore, hasKubeconfigPath = os.LookupEnv("KUBECONFIG")
+		os.Setenv("KUBECONFIG", configFile.Name())
+	}
+
 	Context("delete config", func() {
 		// Default cluster name is 'foo' and region is 'us-west-2'
 		var apiClusterConfigSample = eksctlapi.ClusterConfig{
@@ -193,8 +207,6 @@ var _ = Describe("Kubeconfig", func() {
 			twoClustersAsBytes                []byte
 			oneClusterWithoutContextAsBytes   []byte
 			oneClusterWithStaleContextAsBytes []byte
-			kubeconfigPathToRestore           string
-			hasKubeconfigPath                 bool
 		)
 
 		// Returns an ClusterConfig with a cluster name equal to the provided clusterName.
@@ -202,15 +214,6 @@ var _ = Describe("Kubeconfig", func() {
 			apiClusterConfig := apiClusterConfigSample
 			apiClusterConfig.Metadata.Name = clusterName
 			return &apiClusterConfig
-		}
-
-		ChangeKubeconfig := func() {
-			if _, err := os.Stat(configFile.Name()); os.IsNotExist(err) {
-				GinkgoT().Fatal(err)
-			}
-
-			kubeconfigPathToRestore, hasKubeconfigPath = os.LookupEnv("KUBECONFIG")
-			os.Setenv("KUBECONFIG", configFile.Name())
 		}
 
 		RestoreKubeconfig := func() {
@@ -305,28 +308,45 @@ var _ = Describe("Kubeconfig", func() {
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(twoClustersAsBytes), "Should not change")
 		})
+	})
 
-		It("safely handles concurrent read-modify-write operations", func() {
-			var wg sync.WaitGroup
-			multiplier := 3
-			iters := 100
-			for i := 0; i < multiplier; i++ {
-				for k := 0; k < iters; k++ {
-					wg.Add(2)
-					go func() {
-						defer wg.Done()
-						_, err := configFile.Write(oneClusterAsBytes)
-						Expect(err).To(BeNil())
-					}()
-					go func() {
-						defer wg.Done()
-						_, err := configFile.Write(twoClustersAsBytes)
-						Expect(err).To(BeNil())
-					}()
-				}
+	It("safely handles concurrent read-modify-write operations", func() {
+		var (
+			oneClusterAsBytes  []byte
+			twoClustersAsBytes []byte
+		)
+		ChangeKubeconfig()
+
+		var err error
+
+		if oneClusterAsBytes, err = ioutil.ReadFile("testdata/one_cluster.golden"); err != nil {
+			GinkgoT().Fatalf("failed reading .golden: %v", err)
+		}
+
+		if twoClustersAsBytes, err = ioutil.ReadFile("testdata/two_clusters.golden"); err != nil {
+			GinkgoT().Fatalf("failed reading .golden: %v", err)
+		}
+
+		var wg sync.WaitGroup
+		multiplier := 3
+		iters := 100
+		for i := 0; i < multiplier; i++ {
+			for k := 0; k < iters; k++ {
+				wg.Add(2)
+				go func() {
+					defer wg.Done()
+					_, err := configFile.Write(oneClusterAsBytes)
+					Expect(err).To(BeNil())
+				}()
+				go func() {
+					defer wg.Done()
+					_, err := configFile.Write(twoClustersAsBytes)
+					Expect(err).To(BeNil())
+				}()
 			}
+		}
 
-			wg.Wait()
-		})
+		wg.Wait()
+
 	})
 })
