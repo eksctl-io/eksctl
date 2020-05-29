@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"os/exec"
@@ -139,21 +140,40 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 	}
 }
 
+// ensureDirectory should probably be handled in flock
+func ensureDirectory(filePath string) error {
+	dir := filepath.Dir(filePath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func lockConfigFile(filePath string) error {
+	// Make sure the directory exists, otherwise flock fails
+	if err := ensureDirectory(filePath); err != nil {
+		return err
+	}
 	flock := flock.New(filePath)
 	err := flock.Lock()
 	if err != nil {
-		return errors.Wrap(err, "flock: failed to obtain exclusive lock existing kubeconfig file")
+		return errors.Wrap(err, "flock: failed to obtain exclusive lock on kubeconfig file")
 	}
 
 	return nil
 }
 
 func unlockConfigFile(filePath string) error {
+	// Make sure the directory exists, otherwise flock fails
+	if err := ensureDirectory(filePath); err != nil {
+		return err
+	}
 	flock := flock.New(filePath)
 	err := flock.Unlock()
 	if err != nil {
-		return errors.Wrap(err, "flock: failed to release exclusive lock on existing kubeconfig file")
+		return errors.Wrap(err, "flock: failed to release exclusive lock on kubeconfig file")
 	}
 
 	return nil
