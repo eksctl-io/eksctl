@@ -3,6 +3,7 @@ package kubeconfig_test
 import (
 	"io/ioutil"
 	"os"
+	"path"
 	"sync"
 
 	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
@@ -68,6 +69,13 @@ var _ = Describe("Kubeconfig", func() {
 		filename, err := kubeconfig.Write("/", testConfig, false)
 		Expect(err).NotTo(BeNil())
 		Expect(filename).To(BeEmpty())
+	})
+
+	It("creating new Kubeconfig in non-existent directory", func() {
+		tempDir, _ := ioutil.TempDir("", "")
+		filename, err := kubeconfig.Write(path.Join(tempDir, "nonexistentdir", "kubeconfig"), testConfig, false)
+		Expect(err).To(BeNil())
+		Expect(filename).ToNot(BeEmpty())
 	})
 
 	It("sets new Kubeconfig context", func() {
