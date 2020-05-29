@@ -1,5 +1,5 @@
-userdocs/src/usage/schema.json:
-	cp ./pkg/apis/eksctl.io/v1alpha5/assets/schema.json ./userdocs/src/usage/schema.json
+userdocs/src/usage/schema.json: pkg/apis/eksctl.io/v1alpha5/assets/schema.json
+	cp $< $@
 
 .PHONY: install-site-deps
 install-site-deps: ## Install dependencies for user docs
