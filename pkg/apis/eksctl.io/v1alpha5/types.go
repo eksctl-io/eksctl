@@ -447,7 +447,7 @@ type ProviderConfig struct {
 type ClusterConfig struct {
 	metav1.TypeMeta
 
-	Metadata *ClusterMeta `json:"metadata"`
+	Metadata *ClusterMeta `json:"metadata" jsonschema:"required"`
 
 	// +optional
 	IAM *ClusterIAM `json:"iam,omitempty"`
