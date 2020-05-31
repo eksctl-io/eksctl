@@ -132,7 +132,7 @@ nodeGroups:
 ```
 
 Note that this configuration only accepts one IP address. To specify more than one address, use the
-[`extraKubeletConfig` parameter](../customizing-the-kubelet):
+[`kubeletExtraConfig` parameter](../customizing-the-kubelet):
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
