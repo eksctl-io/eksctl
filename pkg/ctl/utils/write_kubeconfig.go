@@ -60,7 +60,7 @@ func doWriteKubeconfigCmd(cmd *cmdutils.Cmd, outputPath, roleARN string, setCont
 	}
 
 	if autoPath {
-		if outputPath != kubeconfig.DefaultPath {
+		if outputPath != kubeconfig.DefaultPath() {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
 		outputPath = kubeconfig.AutoPath(cfg.Metadata.Name)
