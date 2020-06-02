@@ -25,6 +25,9 @@
       "type": "object"
     },
     "ClusterConfig": {
+      "required": [
+        "metadata"
+      ],
       "properties": {
         "kind": {
           "type": "string",
