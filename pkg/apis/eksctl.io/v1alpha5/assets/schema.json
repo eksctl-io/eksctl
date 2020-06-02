@@ -1,104 +1,122 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
   "$ref": "#/definitions/ClusterConfig",
+  "type": "object",
+  "$schema": "http://json-schema-org/draft-07/schema#",
   "definitions": {
     "ClusterCloudWatch": {
       "properties": {
         "clusterLogging": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/ClusterCloudWatchLogging"
         }
       },
+      "preferredOrder": [
+        "clusterLogging"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "contains config parameters related to CloudWatch",
+      "x-intellij-html-description": "contains config parameters related to CloudWatch"
     },
     "ClusterCloudWatchLogging": {
       "properties": {
         "enableTypes": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         }
       },
+      "preferredOrder": [
+        "enableTypes"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "container config parameters related to cluster logging",
+      "x-intellij-html-description": "container config parameters related to cluster logging"
     },
     "ClusterConfig": {
       "required": [
         "metadata"
       ],
       "properties": {
-        "kind": {
-          "type": "string",
-          "examples": [
-            "ClusterConfig"
-          ]
-        },
         "apiVersion": {
           "type": "string",
+          "default": "",
           "examples": [
             "eksctl.io/v1alpha5"
           ]
         },
-        "metadata": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/ClusterMeta"
-        },
-        "iam": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/ClusterIAM"
-        },
-        "vpc": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/ClusterVPC"
-        },
-        "nodeGroups": {
-          "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/NodeGroup"
-          },
-          "type": "array"
-        },
-        "managedNodeGroups": {
-          "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/ManagedNodeGroup"
-          },
-          "type": "array"
-        },
-        "fargateProfiles": {
-          "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/FargateProfile"
-          },
-          "type": "array"
-        },
         "availabilityZones": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         },
         "cloudWatch": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/ClusterCloudWatch"
         },
+        "fargateProfiles": {
+          "items": {
+            "$ref": "#/definitions/FargateProfile"
+          },
+          "type": "array"
+        },
+        "git": {
+          "$ref": "#/definitions/Git"
+        },
+        "iam": {
+          "$ref": "#/definitions/ClusterIAM"
+        },
+        "kind": {
+          "type": "string",
+          "default": "",
+          "examples": [
+            "ClusterConfig"
+          ]
+        },
+        "managedNodeGroups": {
+          "items": {
+            "$ref": "#/definitions/ManagedNodeGroup"
+          },
+          "type": "array"
+        },
+        "metadata": {
+          "$ref": "#/definitions/ClusterMeta"
+        },
+        "nodeGroups": {
+          "items": {
+            "$ref": "#/definitions/NodeGroup"
+          },
+          "type": "array"
+        },
         "secretsEncryption": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/SecretsEncryption"
         },
         "status": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/ClusterStatus"
         },
-        "git": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/Git"
+        "vpc": {
+          "$ref": "#/definitions/ClusterVPC"
         }
       },
+      "preferredOrder": [
+        "kind",
+        "apiVersion",
+        "metadata",
+        "iam",
+        "vpc",
+        "nodeGroups",
+        "managedNodeGroups",
+        "fargateProfiles",
+        "availabilityZones",
+        "cloudWatch",
+        "secretsEncryption",
+        "status",
+        "git"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "a simple config, to be replaced with Cluster API",
+      "x-intellij-html-description": "a simple config, to be replaced with Cluster API"
     },
     "ClusterEndpoints": {
       "properties": {
@@ -109,103 +127,116 @@
           "type": "boolean"
         }
       },
+      "preferredOrder": [
+        "privateAccess",
+        "publicAccess"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds cluster api server endpoint access information",
+      "x-intellij-html-description": "holds cluster api server endpoint access information"
     },
     "ClusterIAM": {
       "properties": {
-        "serviceRoleARN": {
-          "type": "string"
-        },
-        "serviceRolePermissionsBoundary": {
-          "type": "string"
-        },
         "fargatePodExecutionRoleARN": {
           "type": "string"
         },
         "fargatePodExecutionRolePermissionsBoundary": {
           "type": "string"
         },
-        "withOIDC": {
-          "type": "boolean"
-        },
         "serviceAccounts": {
           "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
             "$ref": "#/definitions/ClusterIAMServiceAccount"
           },
           "type": "array"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "ClusterIAMMeta": {
-      "properties": {
-        "name": {
+        },
+        "serviceRoleARN": {
           "type": "string"
         },
-        "namespace": {
+        "serviceRolePermissionsBoundary": {
           "type": "string"
         },
-        "labels": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
-          },
-          "type": "object"
-        },
-        "annotations": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
-          },
-          "type": "object"
+        "withOIDC": {
+          "type": "boolean"
         }
       },
+      "preferredOrder": [
+        "serviceRoleARN",
+        "serviceRolePermissionsBoundary",
+        "fargatePodExecutionRoleARN",
+        "fargatePodExecutionRolePermissionsBoundary",
+        "withOIDC",
+        "serviceAccounts"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds all IAM attributes of a cluster",
+      "x-intellij-html-description": "holds all IAM attributes of a cluster"
     },
     "ClusterIAMServiceAccount": {
       "properties": {
-        "metadata": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/ClusterIAMMeta"
+        "annotations": {
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "attachPolicy": {
+          "$ref": "#/definitions/InlineDocument"
         },
         "attachPolicyARNs": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         },
-        "attachPolicy": {
-          "patternProperties": {
-            ".*": {
-              "additionalProperties": true
-            }
+        "labels": {
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
           },
-          "type": "object"
+          "type": "object",
+          "default": "{}"
+        },
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "namespace": {
+          "type": "string",
+          "default": ""
         },
         "permissionsBoundary": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "status": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/ClusterIAMServiceAccountStatus"
         },
         "tags": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
           },
-          "type": "object"
+          "type": "object",
+          "default": "{}"
         }
       },
+      "preferredOrder": [
+        "name",
+        "namespace",
+        "labels",
+        "annotations",
+        "attachPolicyARNs",
+        "attachPolicy",
+        "permissionsBoundary",
+        "status",
+        "tags"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds an iamserviceaccount metadata and configuration",
+      "x-intellij-html-description": "holds an iamserviceaccount metadata and configuration"
     },
     "ClusterIAMServiceAccountStatus": {
       "properties": {
@@ -213,8 +244,12 @@
           "type": "string"
         }
       },
+      "preferredOrder": [
+        "roleARN"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds status of iamserviceaccount",
+      "x-intellij-html-description": "holds status of iamserviceaccount"
     },
     "ClusterMeta": {
       "required": [
@@ -223,25 +258,35 @@
       ],
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "region": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "tags": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
           },
-          "type": "object"
+          "type": "object",
+          "default": "{}"
+        },
+        "version": {
+          "type": "string",
+          "default": ""
         }
       },
+      "preferredOrder": [
+        "name",
+        "region",
+        "version",
+        "tags"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "what identifies a cluster",
+      "x-intellij-html-description": "what identifies a cluster"
     },
     "ClusterNAT": {
       "properties": {
@@ -249,97 +294,133 @@
           "type": "string"
         }
       },
+      "preferredOrder": [
+        "gateway"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds NAT gateway configuration options",
+      "x-intellij-html-description": "holds NAT gateway configuration options"
     },
     "ClusterStatus": {
       "properties": {
-        "endpoint": {
-          "type": "string"
+        "arn": {
+          "type": "string",
+          "default": ""
         },
         "certificateAuthorityData": {
-          "type": "string",
-          "media": {
-            "binaryEncoding": "base64"
-          }
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
-        "arn": {
-          "type": "string"
+        "endpoint": {
+          "type": "string",
+          "default": ""
         },
         "stackName": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
+      "preferredOrder": [
+        "endpoint",
+        "certificateAuthorityData",
+        "arn",
+        "stackName"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "hold read-only attributes of a cluster",
+      "x-intellij-html-description": "hold read-only attributes of a cluster"
     },
     "ClusterSubnets": {
       "properties": {
         "private": {
-          "patternProperties": {
-            ".*": {
-              "$schema": "http://json-schema.org/draft-04/schema#",
-              "$ref": "#/definitions/Network"
-            }
+          "additionalProperties": {
+            "$ref": "#/definitions/Network"
           },
-          "type": "object"
+          "type": "object",
+          "default": "{}"
         },
         "public": {
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/definitions/Network"
-            }
+          "additionalProperties": {
+            "$ref": "#/definitions/Network"
           },
-          "type": "object"
+          "type": "object",
+          "default": "{}"
         }
       },
+      "preferredOrder": [
+        "private",
+        "public"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds private and public subnets",
+      "x-intellij-html-description": "holds private and public subnets"
     },
     "ClusterVPC": {
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "cidr": {
-          "type": "string"
-        },
-        "securityGroup": {
-          "type": "string"
-        },
-        "subnets": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/ClusterSubnets"
-        },
-        "extraCIDRs": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "sharedNodeSecurityGroup": {
-          "type": "string"
-        },
         "autoAllocateIPv6": {
           "type": "boolean"
         },
-        "nat": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/ClusterNAT"
+        "cidr": {
+          "$ref": "#/definitions/github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet"
         },
         "clusterEndpoints": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/ClusterEndpoints"
+        },
+        "extraCIDRs": {
+          "items": {
+            "$ref": "#/definitions/github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet"
+          },
+          "type": "array",
+          "description": "for additional CIDR associations, e.g. to use with separate CIDR for private subnets or any ad-hoc subnets",
+          "x-intellij-html-description": "for additional CIDR associations, e.g. to use with separate CIDR for private subnets or any ad-hoc subnets"
+        },
+        "id": {
+          "type": "string",
+          "default": ""
+        },
+        "nat": {
+          "$ref": "#/definitions/ClusterNAT"
         },
         "publicAccessCIDRs": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
+        },
+        "securityGroup": {
+          "type": "string",
+          "default": ""
+        },
+        "sharedNodeSecurityGroup": {
+          "type": "string",
+          "description": "for pre-defined shared node SG",
+          "x-intellij-html-description": "for pre-defined shared node SG",
+          "default": ""
+        },
+        "subnets": {
+          "$ref": "#/definitions/ClusterSubnets",
+          "description": "subnets are either public or private for use with separate nodegroups these are keyed by AZ for convenience",
+          "x-intellij-html-description": "subnets are either public or private for use with separate nodegroups these are keyed by AZ for convenience"
         }
       },
+      "preferredOrder": [
+        "id",
+        "cidr",
+        "securityGroup",
+        "subnets",
+        "extraCIDRs",
+        "sharedNodeSecurityGroup",
+        "autoAllocateIPv6",
+        "nat",
+        "clusterEndpoints",
+        "publicAccessCIDRs"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds global subnet and all child public/private subnet",
+      "x-intellij-html-description": "holds global subnet and all child public/private subnet"
     },
     "FargateProfile": {
       "required": [
@@ -347,134 +428,193 @@
       ],
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "of the Fargate profile.",
+          "x-intellij-html-description": "of the Fargate profile.",
+          "default": ""
         },
         "podExecutionRoleARN": {
-          "type": "string"
+          "type": "string",
+          "description": "IAM role's ARN to use to run pods onto Fargate.",
+          "x-intellij-html-description": "IAM role's ARN to use to run pods onto Fargate.",
+          "default": ""
         },
         "selectors": {
           "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
             "$ref": "#/definitions/FargateProfileSelector"
           },
-          "type": "array"
+          "type": "array",
+          "description": "define the rules to select workload to schedule onto Fargate.",
+          "x-intellij-html-description": "define the rules to select workload to schedule onto Fargate."
         },
         "subnets": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "which Fargate should use to do network placement of the selected workload. If none provided, all subnets for the cluster will be used.",
+          "x-intellij-html-description": "which Fargate should use to do network placement of the selected workload. If none provided, all subnets for the cluster will be used."
         },
         "tags": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
           },
-          "type": "object"
+          "type": "object",
+          "default": "{}"
         }
       },
+      "preferredOrder": [
+        "name",
+        "podExecutionRoleARN",
+        "selectors",
+        "subnets",
+        "tags"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "defines the settings used to schedule workload onto Fargate.",
+      "x-intellij-html-description": "defines the settings used to schedule workload onto Fargate."
     },
     "FargateProfileSelector": {
       "required": [
         "namespace"
       ],
       "properties": {
-        "namespace": {
-          "type": "string"
-        },
         "labels": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
           },
-          "type": "object"
+          "type": "object",
+          "description": "Kubernetes label selectors to use to select workload.",
+          "x-intellij-html-description": "Kubernetes label selectors to use to select workload.",
+          "default": "{}"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Kubernetes namespace from which to select workload.",
+          "x-intellij-html-description": "Kubernetes namespace from which to select workload.",
+          "default": ""
         }
       },
+      "preferredOrder": [
+        "namespace",
+        "labels"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "defines rules to select workload to schedule onto Fargate.",
+      "x-intellij-html-description": "defines rules to select workload to schedule onto Fargate."
     },
     "Git": {
       "properties": {
-        "repo": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/Repo"
+        "bootstrapProfile": {
+          "$ref": "#/definitions/Profile"
         },
         "operator": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/Operator"
         },
-        "bootstrapProfile": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/Profile"
+        "repo": {
+          "$ref": "#/definitions/Repo"
         }
       },
+      "preferredOrder": [
+        "repo",
+        "operator",
+        "bootstrapProfile"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository.",
+      "x-intellij-html-description": "groups all configuration options related to enabling GitOps on a cluster and linking it to a Git repository."
+    },
+    "InlineDocument": {
+      "additionalProperties": {},
+      "type": "object",
+      "description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
+      "x-intellij-html-description": "holds any arbitrary JSON/YAML documents, such as extra config parameters or IAM policies",
+      "default": "{}"
     },
     "ManagedNodeGroup": {
       "required": [
         "name"
       ],
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "amiFamily": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
-        "instanceType": {
-          "type": "string"
+        "availabilityZones": {
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "array"
         },
         "desiredCapacity": {
+          "type": "integer"
+        },
+        "iam": {
+          "$ref": "#/definitions/NodeGroupIAM"
+        },
+        "instanceType": {
+          "type": "string",
+          "default": ""
+        },
+        "labels": {
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "maxSize": {
           "type": "integer"
         },
         "minSize": {
           "type": "integer"
         },
-        "maxSize": {
-          "type": "integer"
+        "name": {
+          "type": "string",
+          "default": ""
         },
-        "volumeSize": {
-          "type": "integer"
-        },
-        "availabilityZones": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
+        "privateNetworking": {
+          "type": "boolean",
+          "default": "false"
         },
         "ssh": {
           "$ref": "#/definitions/NodeGroupSSH"
         },
-        "labels": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
-          },
-          "type": "object"
-        },
-        "privateNetworking": {
-          "type": "boolean"
-        },
         "tags": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
           },
-          "type": "object"
+          "type": "object",
+          "default": "{}"
         },
-        "iam": {
-          "$ref": "#/definitions/NodeGroupIAM"
+        "volumeSize": {
+          "type": "integer"
         }
       },
+      "preferredOrder": [
+        "name",
+        "amiFamily",
+        "instanceType",
+        "desiredCapacity",
+        "minSize",
+        "maxSize",
+        "volumeSize",
+        "availabilityZones",
+        "ssh",
+        "labels",
+        "privateNetworking",
+        "tags",
+        "iam"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "defines an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error",
+      "x-intellij-html-description": "defines an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error"
     },
     "MetricsCollection": {
       "required": [
@@ -482,181 +622,232 @@
       ],
       "properties": {
         "granularity": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "metrics": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         }
       },
+      "preferredOrder": [
+        "granularity",
+        "metrics"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "used by the scaling config https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html",
+      "x-intellij-html-description": "used by the scaling config https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html"
     },
     "Network": {
       "properties": {
-        "id": {
-          "type": "string"
-        },
         "cidr": {
-          "type": "string"
+          "$ref": "#/definitions/github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet"
+        },
+        "id": {
+          "type": "string",
+          "default": ""
         }
       },
+      "preferredOrder": [
+        "id",
+        "cidr"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds ID and CIDR",
+      "x-intellij-html-description": "holds ID and CIDR"
     },
     "NodeGroup": {
       "required": [
         "name"
       ],
       "properties": {
-        "name": {
-          "type": "string"
-        },
         "ami": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "amiFamily": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
-        "instanceType": {
-          "type": "string"
-        },
-        "instancesDistribution": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/NodeGroupInstancesDistribution"
-        },
-        "instancePrefix": {
-          "type": "string"
-        },
-        "instanceName": {
-          "type": "string"
-        },
-        "availabilityZones": {
+        "asgMetricsCollection": {
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/MetricsCollection"
           },
           "type": "array"
         },
-        "tags": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
+        "availabilityZones": {
+          "items": {
+            "type": "string",
+            "default": ""
           },
-          "type": "object"
+          "type": "array"
         },
-        "privateNetworking": {
-          "type": "boolean"
+        "bottlerocket": {
+          "$ref": "#/definitions/NodeGroupBottlerocket"
         },
-        "securityGroups": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/NodeGroupSGs"
+        "classicLoadBalancerNames": {
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "array"
+        },
+        "clusterDNS": {
+          "type": "string",
+          "default": ""
         },
         "desiredCapacity": {
           "type": "integer"
         },
-        "minSize": {
+        "ebsOptimized": {
+          "type": "boolean"
+        },
+        "iam": {
+          "$ref": "#/definitions/NodeGroupIAM"
+        },
+        "instanceName": {
+          "type": "string",
+          "default": ""
+        },
+        "instancePrefix": {
+          "type": "string",
+          "default": ""
+        },
+        "instanceType": {
+          "type": "string",
+          "default": ""
+        },
+        "instancesDistribution": {
+          "$ref": "#/definitions/NodeGroupInstancesDistribution"
+        },
+        "kubeletExtraConfig": {
+          "$ref": "#/definitions/InlineDocument"
+        },
+        "labels": {
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "maxPodsPerNode": {
           "type": "integer"
         },
         "maxSize": {
           "type": "integer"
         },
-        "asgMetricsCollection": {
+        "minSize": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "overrideBootstrapCommand": {
+          "type": "string"
+        },
+        "preBootstrapCommands": {
           "items": {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "$ref": "#/definitions/MetricsCollection"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         },
-        "ebsOptimized": {
+        "privateNetworking": {
+          "type": "boolean",
+          "default": "false"
+        },
+        "securityGroups": {
+          "$ref": "#/definitions/NodeGroupSGs"
+        },
+        "ssh": {
+          "$ref": "#/definitions/NodeGroupSSH"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "taints": {
+          "additionalProperties": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "object",
+          "default": "{}"
+        },
+        "targetGroupARNs": {
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "array"
+        },
+        "volumeEncrypted": {
           "type": "boolean"
+        },
+        "volumeIOPS": {
+          "type": "integer"
+        },
+        "volumeKmsKeyID": {
+          "type": "string"
+        },
+        "volumeName": {
+          "type": "string"
         },
         "volumeSize": {
           "type": "integer"
         },
         "volumeType": {
           "type": "string"
-        },
-        "volumeName": {
-          "type": "string"
-        },
-        "volumeEncrypted": {
-          "type": "boolean"
-        },
-        "volumeKmsKeyID": {
-          "type": "string"
-        },
-        "volumeIOPS": {
-          "type": "integer"
-        },
-        "maxPodsPerNode": {
-          "type": "integer"
-        },
-        "labels": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
-          },
-          "type": "object"
-        },
-        "taints": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
-          },
-          "type": "object"
-        },
-        "classicLoadBalancerNames": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "targetGroupARNs": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "ssh": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/NodeGroupSSH"
-        },
-        "iam": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/NodeGroupIAM"
-        },
-        "bottlerocket": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
-          "$ref": "#/definitions/NodeGroupBottlerocket"
-        },
-        "preBootstrapCommands": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "overrideBootstrapCommand": {
-          "type": "string"
-        },
-        "clusterDNS": {
-          "type": "string"
-        },
-        "kubeletExtraConfig": {
-          "patternProperties": {
-            ".*": {
-              "additionalProperties": true
-            }
-          },
-          "type": "object"
         }
       },
+      "preferredOrder": [
+        "name",
+        "ami",
+        "amiFamily",
+        "instanceType",
+        "instancesDistribution",
+        "instancePrefix",
+        "instanceName",
+        "availabilityZones",
+        "tags",
+        "privateNetworking",
+        "securityGroups",
+        "desiredCapacity",
+        "minSize",
+        "maxSize",
+        "asgMetricsCollection",
+        "ebsOptimized",
+        "volumeSize",
+        "volumeType",
+        "volumeName",
+        "volumeEncrypted",
+        "volumeKmsKeyID",
+        "volumeIOPS",
+        "maxPodsPerNode",
+        "labels",
+        "taints",
+        "classicLoadBalancerNames",
+        "targetGroupARNs",
+        "ssh",
+        "iam",
+        "bottlerocket",
+        "preBootstrapCommands",
+        "overrideBootstrapCommand",
+        "clusterDNS",
+        "kubeletExtraConfig"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds all configuration attributes that are specific to a nodegroup",
+      "x-intellij-html-description": "holds all configuration attributes that are specific to a nodegroup"
     },
     "NodeGroupBottlerocket": {
       "properties": {
@@ -664,83 +855,110 @@
           "type": "boolean"
         },
         "settings": {
-          "patternProperties": {
-            ".*": {
-              "additionalProperties": true
-            }
-          },
-          "type": "object"
+          "$ref": "#/definitions/InlineDocument"
         }
       },
+      "preferredOrder": [
+        "enableAdminContainer",
+        "settings"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds the configuration for Bottlerocket based NodeGroups.",
+      "x-intellij-html-description": "holds the configuration for Bottlerocket based NodeGroups."
     },
     "NodeGroupIAM": {
       "properties": {
         "attachPolicyARNs": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         },
         "instanceProfileARN": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "instanceRoleARN": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "instanceRoleName": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "instanceRolePermissionsBoundary": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "withAddonPolicies": {
-          "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/NodeGroupIAMAddonPolicies"
         }
       },
+      "preferredOrder": [
+        "attachPolicyARNs",
+        "instanceProfileARN",
+        "instanceRoleARN",
+        "instanceRoleName",
+        "instanceRolePermissionsBoundary",
+        "withAddonPolicies"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds all IAM attributes of a NodeGroup",
+      "x-intellij-html-description": "holds all IAM attributes of a NodeGroup"
     },
     "NodeGroupIAMAddonPolicies": {
       "properties": {
-        "imageBuilder": {
-          "type": "boolean"
-        },
-        "autoScaler": {
-          "type": "boolean"
-        },
-        "externalDNS": {
-          "type": "boolean"
-        },
-        "certManager": {
+        "albIngress": {
           "type": "boolean"
         },
         "appMesh": {
           "type": "boolean"
         },
-        "ebs": {
+        "autoScaler": {
           "type": "boolean"
         },
-        "fsx": {
+        "certManager": {
+          "type": "boolean"
+        },
+        "cloudWatch": {
+          "type": "boolean"
+        },
+        "ebs": {
           "type": "boolean"
         },
         "efs": {
           "type": "boolean"
         },
-        "albIngress": {
+        "externalDNS": {
+          "type": "boolean"
+        },
+        "fsx": {
+          "type": "boolean"
+        },
+        "imageBuilder": {
           "type": "boolean"
         },
         "xRay": {
           "type": "boolean"
-        },
-        "cloudWatch": {
-          "type": "boolean"
         }
       },
+      "preferredOrder": [
+        "imageBuilder",
+        "autoScaler",
+        "externalDNS",
+        "certManager",
+        "appMesh",
+        "ebs",
+        "fsx",
+        "efs",
+        "albIngress",
+        "xRay",
+        "cloudWatch"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds all IAM addon policies",
+      "x-intellij-html-description": "holds all IAM addon policies"
     },
     "NodeGroupInstancesDistribution": {
       "required": [
@@ -749,7 +967,8 @@
       "properties": {
         "instanceTypes": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         },
@@ -762,41 +981,54 @@
         "onDemandPercentageAboveBaseCapacity": {
           "type": "integer"
         },
-        "spotInstancePools": {
-          "type": "integer"
-        },
         "spotAllocationStrategy": {
           "type": "string"
+        },
+        "spotInstancePools": {
+          "type": "integer"
         }
       },
+      "preferredOrder": [
+        "instanceTypes",
+        "maxPrice",
+        "onDemandBaseCapacity",
+        "onDemandPercentageAboveBaseCapacity",
+        "spotInstancePools",
+        "spotAllocationStrategy"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds the configuration for spot instances",
+      "x-intellij-html-description": "holds the configuration for spot instances"
     },
     "NodeGroupSGs": {
       "properties": {
         "attachIDs": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         },
-        "withShared": {
+        "withLocal": {
           "type": "boolean"
         },
-        "withLocal": {
+        "withShared": {
           "type": "boolean"
         }
       },
+      "preferredOrder": [
+        "attachIDs",
+        "withShared",
+        "withLocal"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds all SG attributes of a NodeGroup",
+      "x-intellij-html-description": "holds all SG attributes of a NodeGroup"
     },
     "NodeGroupSSH": {
       "properties": {
         "allow": {
           "type": "boolean"
-        },
-        "publicKeyPath": {
-          "type": "string"
         },
         "publicKey": {
           "type": "string"
@@ -804,75 +1036,121 @@
         "publicKeyName": {
           "type": "string"
         },
+        "publicKeyPath": {
+          "type": "string"
+        },
         "sourceSecurityGroupIds": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         }
       },
+      "preferredOrder": [
+        "allow",
+        "publicKeyPath",
+        "publicKey",
+        "publicKeyName",
+        "sourceSecurityGroupIds"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "holds all the ssh access configuration to a NodeGroup",
+      "x-intellij-html-description": "holds all the ssh access configuration to a NodeGroup"
     },
     "Operator": {
       "properties": {
         "label": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "namespace": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
         "withHelm": {
           "type": "boolean"
         }
       },
+      "preferredOrder": [
+        "label",
+        "namespace",
+        "withHelm"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
+      "x-intellij-html-description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync."
     },
     "Profile": {
       "properties": {
-        "source": {
-          "type": "string"
+        "outputPath": {
+          "type": "string",
+          "default": ""
         },
         "revision": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         },
-        "outputPath": {
-          "type": "string"
+        "source": {
+          "type": "string",
+          "default": ""
         }
       },
+      "preferredOrder": [
+        "source",
+        "revision",
+        "outputPath"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "groups all details on a quickstart profile to enable on the cluster and add to the Git repository.",
+      "x-intellij-html-description": "groups all details on a quickstart profile to enable on the cluster and add to the Git repository."
     },
     "Repo": {
       "properties": {
-        "url": {
-          "type": "string"
-        },
         "branch": {
-          "type": "string"
+          "type": "string",
+          "default": ""
+        },
+        "email": {
+          "type": "string",
+          "default": ""
+        },
+        "fluxPath": {
+          "type": "string",
+          "default": ""
         },
         "paths": {
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "type": "array"
         },
-        "fluxPath": {
-          "type": "string"
+        "privateSSHKeyPath": {
+          "type": "string",
+          "default": ""
+        },
+        "url": {
+          "type": "string",
+          "default": ""
         },
         "user": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "privateSSHKeyPath": {
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
+      "preferredOrder": [
+        "url",
+        "branch",
+        "paths",
+        "fluxPath",
+        "user",
+        "email",
+        "privateSSHKeyPath"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "groups all configuration options related to a Git repository used for GitOps.",
+      "x-intellij-html-description": "groups all configuration options related to a Git repository used for GitOps."
     },
     "SecretsEncryption": {
       "required": [
@@ -883,8 +1161,17 @@
           "type": "string"
         }
       },
+      "preferredOrder": [
+        "keyARN"
+      ],
       "additionalProperties": false,
-      "type": "object"
+      "description": "defines the configuration for KMS encryption provider",
+      "x-intellij-html-description": "defines the configuration for KMS encryption provider"
+    },
+    "github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet": {
+      "type": "string",
+      "description": "IPNet wraps net.IPNet to get CIDR serialization.",
+      "x-intellij-html-description": "IPNet wraps net.IPNet to get CIDR serialization."
     }
   }
 }

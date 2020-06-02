@@ -19,6 +19,8 @@ var nullBytes = []byte(nullString)
 var emptyIPNet = net.IPNet{}
 
 // IPNet wraps net.IPNet to get CIDR serialization.
+// +jsonschema noderive
+// +jsonschema { "type": "string" }
 type IPNet struct {
 	net.IPNet
 }
