@@ -39,22 +39,23 @@ func AuthenticatorCommands() []string {
 	}
 }
 
-// New creates Kubernetes client configuration for a given username
-// if certificateAuthorityPath is not empty, it is used instead of
-// embedded certificate-authority-data
-func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
-	clusterName := spec.Metadata.String()
-	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+// ConfigBuilder can create a client-go clientcmd Config
+type ConfigBuilder struct {
+	cluster     clientcmdapi.Cluster
+	clusterName string
+	username    string
+}
 
-	c := &clientcmdapi.Config{
+// Build creates the Config with the ConfigBuilder settings
+func (cb *ConfigBuilder) Build() *clientcmdapi.Config {
+	contextName := fmt.Sprintf("%s@%s", cb.username, cb.clusterName)
+	return &clientcmdapi.Config{
 		Clusters: map[string]*clientcmdapi.Cluster{
-			clusterName: {
-				Server: spec.Status.Endpoint,
-			},
+			cb.clusterName: &cb.cluster,
 		},
 		Contexts: map[string]*clientcmdapi.Context{
 			contextName: {
-				Cluster:  clusterName,
+				Cluster:  cb.clusterName,
 				AuthInfo: contextName,
 			},
 		},
@@ -63,19 +64,32 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 		},
 		CurrentContext: contextName,
 	}
+}
 
-	if certificateAuthorityPath == "" {
-		c.Clusters[clusterName].CertificateAuthorityData = spec.Status.CertificateAuthorityData
-	} else {
-		c.Clusters[clusterName].CertificateAuthority = certificateAuthorityPath
+// NewBuilder returns a minimal ConfigBuilder
+func NewBuilder(metadata *api.ClusterMeta, status *api.ClusterStatus, username string) *ConfigBuilder {
+	cluster := clientcmdapi.Cluster{
+		Server:                   status.Endpoint,
+		CertificateAuthorityData: status.CertificateAuthorityData,
 	}
+	return &ConfigBuilder{
+		cluster:     cluster,
+		clusterName: metadata.String(),
+		username:    username,
+	}
+}
 
-	return c, clusterName, contextName
+// UseCertificateAuthorityFile sets the config to use CA from file instead
+// of the CA as retrieved from EKS
+func (cb *ConfigBuilder) UseCertificateAuthorityFile(path string) *ConfigBuilder {
+	cb.cluster.CertificateAuthority = path
+	cb.cluster.CertificateAuthorityData = []byte{}
+	return cb
 }
 
 // NewForKubectl creates configuration for kubectl using a suitable authenticator
 func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *clientcmdapi.Config {
-	config, _, _ := New(spec, username, "")
+	config := NewBuilder(spec.Metadata, spec.Status, username).Build()
 	authenticator, found := LookupAuthenticator()
 	if !found {
 		// fall back to aws-iam-authenticator
