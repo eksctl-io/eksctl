@@ -189,11 +189,10 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
 function anchor(path, label, firstOfListType) {
     let listPrefix = "";
     if (firstOfListType !== undefined) {
-        listPrefix = `<span style="visibility: ${
+        listPrefix = html`<span style="visibility: ${
             firstOfListType ? "visible" : "hidden"
         }">- </span>`;
     }
-    return html`${unsafeHTML(listPrefix)}<a class="key" href="#${path}"
-            >${label}</a
-        >`;
+    const anchor = html`<a class="key" href="#${path}">${label}</a>`;
+    return html`${listPrefix}${anchor}`;
 }
