@@ -73,6 +73,15 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         if (parentDefinition && parentDefinition.type === "array") {
             firstOfListType = index === 0;
         }
+        const keyCell = (value) => html`
+            <td>
+                <div class="anchor" id="${path}"></div>
+                <span class="${keyClass}" style="margin-left: ${offset(ident)}">
+                    ${anchor(path, key, firstOfListType)}:
+                </span>
+                <span class="${valueClass}">${value}</span>
+            </td>
+        `;
         if (definition.$ref) {
             // Check if the referenced description is a final one
             const refName = definition.$ref.replace("#/definitions/", "");
@@ -85,14 +94,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
 
             yield html`
                 <tr class="top">
-                    <td>
-                        <span
-                            class="${keyClass}"
-                            style="margin-left: ${offset(ident)}"
-                            >${anchor(path, key, firstOfListType)}:</span
-                        >
-                        <span class="${valueClass}">${value}</span>
-                    </td>
+                    ${keyCell(value)}
                     <td class="type"></td>
                     <td class="comment">${unsafeHTML(desc)}</td>
                 </tr>
@@ -100,14 +102,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         } else if (definition.items && definition.items.$ref) {
             yield html`
                 <tr class="top">
-                    <td>
-                        <span
-                            class="${keyClass}"
-                            style="margin-left: ${offset(ident)}"
-                            >${anchor(path, key, firstOfListType)}:</span
-                        >
-                        <span class="${valueClass}">${value}</span>
-                    </td>
+                    ${keyCell(value)}
                     <td class="type"></td>
                     <td class="comment">${unsafeHTML(desc)}</td>
                 </tr>
@@ -118,13 +113,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
 
             yield html`
                 <tr>
-                    <td>
-                        <span
-                            class="${keyClass}"
-                            style="margin-left: ${offset(ident)}"
-                            >${anchor(path, key, firstOfListType)}:</span
-                        >
-                    </td>
+                    ${keyCell("")}
                     <td class="type"></td>
                     <td class="comment" rowspan="${1 + values.length}">
                         ${unsafeHTML(desc)}
@@ -150,14 +139,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         } else if (definition.type === "object" && value && value !== "{}") {
             yield html`
                 <tr>
-                    <td>
-                        <span
-                            class="${keyClass}"
-                            style="margin-left: ${offset(ident)}"
-                            >${anchor(path, key, firstOfListType)}:</span
-                        >
-                        <span class="${valueClass}">${value}</span>
-                    </td>
+                    ${keyCell(value)}
                     <td class="type">object</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
                 </tr>
@@ -169,14 +151,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
                     : definition.type;
             yield html`
                 <tr>
-                    <td>
-                        <span
-                            class="${keyClass}"
-                            style="margin-left: ${offset(ident)}"
-                            >${anchor(path, key, firstOfListType)}:</span
-                        >
-                        <span class="${valueClass}">${value}</span>
-                    </td>
+                    ${keyCell(value)}
                     <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
                 </tr>
@@ -203,7 +178,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
                     definitions,
                     definition,
                     definition.items.$ref,
-                    ident + 1,
+                    ident + 2,
                     path
                 )}
             `;
@@ -214,10 +189,10 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
 function anchor(path, label, firstOfListType) {
     let listPrefix = "";
     if (firstOfListType !== undefined) {
-        listPrefix = `<span style="visibility: ${
+        listPrefix = html`<span style="visibility: ${
             firstOfListType ? "visible" : "hidden"
         }">- </span>`;
     }
-    return html`${unsafeHTML(listPrefix)}<a class="anchor" id="${path}"></a
-        ><a class="key" href="#${path}">${label}</a>`;
+    const anchor = html`<a class="key" href="#${path}">${label}</a>`;
+    return html`${listPrefix}${anchor}`;
 }
