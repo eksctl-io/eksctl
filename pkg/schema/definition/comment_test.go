@@ -1,6 +1,8 @@
 package definition
 
 import (
+	"go/ast"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -10,7 +12,11 @@ var _ = Describe("HandleComment", func() {
 		def := &Definition{}
 		comment := `Struct holds some info
 		Schema type is ` + "`string`"
-		noderive, err := HandleComment("Struct", comment, def, false)
+		dummy := func(path string) (*ast.Object, error) {
+			return nil, nil
+		}
+		dg := Generator{Strict: false, Importer: dummy}
+		noderive, err := dg.handleComment("Struct", comment, def)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(noderive).To(BeTrue())
 		Expect(def.Description).To(Equal("holds some info"))
