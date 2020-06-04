@@ -370,9 +370,9 @@ func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []m
 	for _, m := range asgMetricsCollection {
 		newCollection := make(map[string]interface{})
 
-		var metrics []string
-		metrics = append(metrics, m.Metrics...)
-		newCollection["Metrics"] = metrics
+		if len(m.Metrics) > 0 {
+			newCollection["Metrics"] = m.Metrics
+		}
 		newCollection["Granularity"] = m.Granularity
 
 		metricsCollections = append(metricsCollections, newCollection)
