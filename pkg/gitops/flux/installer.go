@@ -277,6 +277,12 @@ func getFluxManifests(opts *api.Git, cs kubeclient.Interface) (map[string][]byte
 	if !fluxNSExists {
 		manifests[fluxNamespaceFileName] = kubernetes.NewNamespaceYAML(opts.Operator.Namespace)
 	}
+
+	additionalFluxArgs := []string{"--sync-garbage-collection"}
+	if opts.Operator.ReadOnly {
+		additionalFluxArgs = append(additionalFluxArgs, "--registry-disable-scanning")
+	}
+
 	fluxParameters := fluxinstall.TemplateParameters{
 		GitURL:             opts.Repo.URL,
 		GitBranch:          opts.Repo.Branch,
@@ -287,7 +293,7 @@ func getFluxManifests(opts *api.Git, cs kubeclient.Interface) (map[string][]byte
 		GitReadOnly:        opts.Operator.ReadOnly,
 		Namespace:          opts.Operator.Namespace,
 		ManifestGeneration: true,
-		AdditionalFluxArgs: []string{"--sync-garbage-collection"},
+		AdditionalFluxArgs: additionalFluxArgs,
 	}
 	fluxManifests, err := fluxinstall.FillInTemplates(fluxParameters)
 	if err != nil {
