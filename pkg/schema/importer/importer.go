@@ -83,9 +83,9 @@ func copyGenDeclComments(scope *ast.Scope, fileMap map[string]*ast.File) {
 }
 
 // NewImporter creates a memoizing function for importing packages
-func NewImporter() Importer {
+func NewImporter(path string) (Importer, error) {
 	importCache := make(map[string]*ast.Object)
-	return func(path string) (pkg *ast.Object, err error) {
+	f := func(path string) (pkg *ast.Object, err error) {
 		if importCache[path] != nil {
 			return importCache[path], nil
 		}
@@ -112,6 +112,12 @@ func NewImporter() Importer {
 		}
 		panic(errors.New("Unreachable error, imported directory contained no packages"))
 	}
+	pkg, err := f(path)
+	if err != nil {
+		return nil, err
+	}
+	importCache[""] = pkg
+	return f, nil
 }
 
 func importPathFromSelector(it *ast.SelectorExpr) (path string, name string, err error) {
@@ -130,6 +136,18 @@ func importPathFromSelector(it *ast.SelectorExpr) (path string, name string, err
 		panic(errors.Errorf("Impossible! string not quoted: %s", importSpec.Path.Value))
 	}
 	return importPath, it.Sel.Name, nil
+}
+
+// FindPkgObj takes a name like Struct and looks in the starting package
+func (importer Importer) FindPkgObj(typeName string) (*ast.Object, bool) {
+	importedPkg, err := importer("")
+	if err != nil {
+		panic(errors.Wrapf(err, "Error importing starting package!"))
+	}
+
+	scope := importedPkg.Data.(*ast.Scope)
+	obj, ok := scope.Objects[typeName]
+	return obj, ok
 }
 
 // FindImportedTypeSpec takes a SelectorExpr `pkg.Struct` where `pkg` refers to

@@ -17,7 +17,6 @@ const (
 type Generator struct {
 	Strict      bool
 	Definitions map[string]*Definition
-	PkgScope    *ast.Scope
 	Importer    importer.Importer
 }
 
@@ -89,9 +88,9 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 	switch tt := t.(type) {
 	case *ast.Ident:
 		typeName := tt.Name
-		if obj, ok := dg.PkgScope.Objects[typeName]; ok {
+		if obj, ok := dg.Importer.FindPkgObj(typeName); ok {
 			// If we have a declared type behind our ident, add it
-			refTypeName, refTypeSpec = typeName, obj.Decl.(*ast.TypeSpec)
+			refTypeName, refTypeSpec = tt.Name, obj.Decl.(*ast.TypeSpec)
 		}
 		def = &Definition{}
 		setTypeOrRef(def, typeName)
