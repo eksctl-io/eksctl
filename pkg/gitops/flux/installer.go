@@ -131,7 +131,7 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	logger.Info("Flux started successfully")
 	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
-	if api.IsEnabled(fi.opts.CommitOperatorManifests) {
+	if api.IsEnabled(fi.opts.Operator.CommitOperatorManifests) {
 		logger.Info("Committing and pushing manifests to %s", fi.opts.Repo.URL)
 		if err = fi.addFilesToRepo(); err != nil {
 			return "", err

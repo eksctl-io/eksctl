@@ -712,8 +712,6 @@ type Git struct {
 	Operator Operator `json:"operator,omitempty"`
 	// +optional
 	BootstrapProfile *Profile `json:"bootstrapProfile,omitempty"` // one or many profiles to enable on this cluster once it is created
-	// +optional
-	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"` // Commit and push Flux manifests to the Git Repo on install
 }
 
 // NewGit returns a new empty Git configuration
@@ -745,6 +743,8 @@ type Repo struct {
 // Operator groups all configuration options related to the operator used to
 // keep the cluster and the Git repository in sync.
 type Operator struct {
+	// +optional
+	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"` // Commit and push Flux manifests to the Git Repo on install
 	// +optional
 	Label string `json:"label,omitempty"` // e.g. flux
 	// +optional

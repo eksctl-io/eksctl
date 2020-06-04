@@ -410,9 +410,6 @@
         "bootstrapProfile": {
           "$schema": "http://json-schema.org/draft-04/schema#",
           "$ref": "#/definitions/Profile"
-        },
-        "commitOperatorManifests": {
-          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -819,6 +816,9 @@
     },
     "Operator": {
       "properties": {
+        "commitOperatorManifests": {
+          "type": "boolean"
+        },
         "label": {
           "type": "string"
         },

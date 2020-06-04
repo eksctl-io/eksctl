@@ -56,7 +56,7 @@ func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *api.Git) {
 		"Cluster namespace where to install Flux, the Helm Operator and Tiller")
 	fs.BoolVar(&opts.Operator.ReadOnly, readOnly, false,
 		"Instruct Flux to read-only mode and create the deploy key as read-only")
-	opts.CommitOperatorManifests = fs.Bool(commitOperatorManifests, true,
+	opts.Operator.CommitOperatorManifests = fs.Bool(commitOperatorManifests, true,
 		"Commit and push Flux manifests to the Git Repo on install")
 	opts.Operator.WithHelm = fs.Bool(withHelm, true, "Install the Helm Operator and Tiller")
 }
