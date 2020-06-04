@@ -816,6 +816,9 @@
     },
     "Operator": {
       "properties": {
+        "commitOperatorManifests": {
+          "type": "boolean"
+        },
         "label": {
           "type": "string"
         },
@@ -823,6 +826,9 @@
           "type": "string"
         },
         "withHelm": {
+          "type": "boolean"
+        },
+        "readOnly": {
           "type": "boolean"
         }
       },

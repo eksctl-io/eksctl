@@ -93,6 +93,8 @@ func doEnableRepository(cmd *cmdutils.Cmd) error {
 		logger.Critical("unable to set up gitops repo: %s", err.Error())
 		return err
 	}
+
 	logger.Info(userInstructions)
-	return err
+
+	return nil
 }

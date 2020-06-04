@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/elb"
+	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
 	iamoidc "github.com/weaveworks/eksctl/pkg/iam/oidc"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -182,6 +183,12 @@ func doDeleteCluster(cmd *cmdutils.Cmd) error {
 		}
 
 		logger.Success("all cluster resources were deleted")
+	}
+
+	{
+		if err := deploykey.Delete(context.Background(), cfg); err != nil {
+			return err
+		}
 	}
 
 	return nil
