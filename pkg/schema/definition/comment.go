@@ -51,9 +51,15 @@ func HandleJSONSchemaComment(
 	return jsonSchemaNoDerive, strings.Join(remaining, "\n"), nil
 }
 
+func getTypeName(rawName string) string {
+	splits := strings.Split(rawName, ".")
+	return splits[len(splits)-1]
+}
+
 // HandleComment interprets as much as it can from the comment and saves this
 // information in the Definition
-func HandleComment(name, comment string, def *Definition, strict bool) error {
+func HandleComment(rawName, comment string, def *Definition, strict bool) error {
+	name := getTypeName(rawName)
 	if strict && name != "" {
 		if !strings.HasPrefix(comment, name+" ") {
 			return errors.Errorf("comment should start with field name on field %s", name)

@@ -17,3 +17,8 @@ func TestHandleJSONSchemaComment(t *testing.T) {
 	assert.Equal(t, "string", def.Type)
 	assert.Equal(t, "Comment about struct", remaining)
 }
+
+func TestGetTypeName(t *testing.T) {
+	assert.Equal(t, "Thing", getTypeName("some/pkg.Thing"))
+	assert.Equal(t, "Thing", getTypeName("Thing"))
+}

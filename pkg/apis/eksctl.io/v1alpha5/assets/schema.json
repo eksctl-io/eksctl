@@ -1170,8 +1170,8 @@
     },
     "github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet": {
       "type": "string",
-      "description": "IPNet wraps net.IPNet to get CIDR serialization.",
-      "x-intellij-html-description": "IPNet wraps net.IPNet to get CIDR serialization."
+      "description": "wraps net.IPNet to get CIDR serialization.",
+      "x-intellij-html-description": "wraps net.IPNet to get CIDR serialization."
     }
   }
 }

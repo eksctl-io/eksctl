@@ -45,7 +45,10 @@ type Schema struct {
 func GenerateSchema(inputPath string, pkgName string, rootRef string, strict bool) (Schema, error) {
 	definitions := make(map[string]*definition.Definition)
 	importer := importer.NewImporter()
-	schemaPkg, _ := importer(filepath.Join(inputPath, pkgName))
+	schemaPkg, err := importer(filepath.Join(inputPath, pkgName))
+	if err != nil {
+		return Schema{}, err
+	}
 	dg := definition.Generator{
 		Strict:      strict,
 		Definitions: definitions,
