@@ -1,7 +1,6 @@
 package definition
 
 import (
-	"encoding/json"
 	"regexp"
 	"strings"
 
@@ -10,46 +9,16 @@ import (
 )
 
 var (
-	regexpDefaults = regexp.MustCompile("(.*)Defaults to `(.*)`")
-	regexpExample  = regexp.MustCompile("(.*)For example: `(.*)`")
-	pTags          = regexp.MustCompile("(<p>)|(</p>)")
+	regexpDefaults      = regexp.MustCompile("(.*)Defaults to `(.*)`")
+	regexpExample       = regexp.MustCompile("(.*)For example: `(.*)`")
+	typeOverridePattern = regexp.MustCompile("(.*)Schema type is `([a-zA-Z]+)`")
+	pTags               = regexp.MustCompile("(<p>)|(</p>)")
 
 	// patterns for enum-type values
 	enumValuePattern     = "^[ \t]*`(?P<name>[^`]+)`([ \t]*\\(default\\))?: .*$"
 	regexpEnumDefinition = regexp.MustCompile("(?m).*Valid [a-z]+ are((\\n" + enumValuePattern + ")*)")
 	regexpEnumValues     = regexp.MustCompile("(?m)" + enumValuePattern)
 )
-
-const (
-	jsonSchemaPrefix          = "+jsonschema "
-	jsonSchemaNoDeriveKeyword = "noderive"
-)
-
-// HandleJSONSchemaComment interprets jsonschema directives attached to a type
-func HandleJSONSchemaComment(
-	typeComment string, def *Definition,
-) (noDerive bool, remainingComments string, err error) {
-	var jsonSchemaNoDerive bool
-	var remaining []string
-	for _, rawLine := range strings.Split(typeComment, "\n") {
-		line := strings.TrimSpace(rawLine)
-
-		if !strings.HasPrefix(line, jsonSchemaPrefix) {
-			remaining = append(remaining, rawLine)
-			continue
-		}
-		directive := strings.TrimPrefix(line, jsonSchemaPrefix)
-		if directive == jsonSchemaNoDeriveKeyword {
-			jsonSchemaNoDerive = true
-			continue
-		}
-		err := json.Unmarshal([]byte(directive), def)
-		if err != nil {
-			return jsonSchemaNoDerive, strings.Join(remaining, "\n"), err
-		}
-	}
-	return jsonSchemaNoDerive, strings.Join(remaining, "\n"), nil
-}
 
 func getTypeName(rawName string) string {
 	splits := strings.Split(rawName, ".")
@@ -58,11 +27,12 @@ func getTypeName(rawName string) string {
 
 // HandleComment interprets as much as it can from the comment and saves this
 // information in the Definition
-func HandleComment(rawName, comment string, def *Definition, strict bool) error {
+func HandleComment(rawName, comment string, def *Definition, strict bool) (bool, error) {
+	var noDerive bool
 	name := getTypeName(rawName)
 	if strict && name != "" {
 		if !strings.HasPrefix(comment, name+" ") {
-			return errors.Errorf("comment should start with field name on field %s", name)
+			return noDerive, errors.Errorf("comment should start with field name on field %s", name)
 		}
 	}
 
@@ -93,6 +63,13 @@ func HandleComment(rawName, comment string, def *Definition, strict bool) error 
 		def.Default = m[2]
 	}
 
+	// Extract schema type, disabling derivation
+	if m := typeOverridePattern.FindStringSubmatch(description); m != nil {
+		description = strings.TrimSpace(m[1])
+		noDerive = true
+		def.Type = m[2]
+	}
+
 	// Extract example
 	if m := regexpExample.FindStringSubmatch(description); m != nil {
 		description = strings.TrimSpace(m[1])
@@ -104,10 +81,10 @@ func HandleComment(rawName, comment string, def *Definition, strict bool) error 
 
 	if strict && name != "" {
 		if description == "" {
-			return errors.Errorf("no description on field %s", name)
+			return noDerive, errors.Errorf("no description on field %s", name)
 		}
 		if !strings.HasSuffix(description, ".") {
-			return errors.Errorf("description should end with a dot on field %s", name)
+			return noDerive, errors.Errorf("description should end with a dot on field %s", name)
 		}
 	}
 	def.Description = description
@@ -115,5 +92,5 @@ func HandleComment(rawName, comment string, def *Definition, strict bool) error 
 	// Convert to HTML
 	html := string(blackfriday.Run([]byte(description), blackfriday.WithNoExtensions()))
 	def.HTMLDescription = strings.TrimSpace(pTags.ReplaceAllString(html, ""))
-	return nil
+	return noDerive, nil
 }

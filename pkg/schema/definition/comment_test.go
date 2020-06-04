@@ -5,16 +5,15 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("HandleJSONSchemaComment", func() {
-	It("works", func() {
+var _ = Describe("HandleComment", func() {
+	It("interprets type override", func() {
 		def := &Definition{}
-		comment := `Comment about struct
-		+jsonschema noderive
-		+jsonschema { "type": "string" }`
-		noderive, remaining, err := HandleJSONSchemaComment(comment, def)
+		comment := `Struct holds some info
+		Schema type is ` + "`string`"
+		noderive, err := HandleComment("Struct", comment, def, false)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(noderive).To(BeTrue())
-		Expect(remaining).To(Equal("Comment about struct"))
+		Expect(def.Description).To(Equal("holds some info"))
 		Expect(def.Type).To(Equal("string"))
 	})
 })

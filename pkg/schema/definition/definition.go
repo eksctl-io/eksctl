@@ -24,11 +24,7 @@ type Generator struct {
 // newStructDefinition handles saving definitions for refs in the map
 func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, comment string) *Definition {
 	def := Definition{}
-	noDerive, remaining, err := HandleJSONSchemaComment(comment, &def)
-	if err != nil {
-		panic(errors.Errorf("Error mapping type %s", name))
-	}
-	err = HandleComment(name, remaining, &def, dg.Strict)
+	noDerive, err := HandleComment(name, comment, &def, dg.Strict)
 	if err != nil {
 		panic(err)
 	}
@@ -149,7 +145,7 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 		dg.Definitions[refTypeName] = structDef
 	}
 
-	err := HandleComment(referenceName, comment, def, dg.Strict)
+	_, err := HandleComment(referenceName, comment, def, dg.Strict)
 	if err != nil {
 		panic(err)
 	}
