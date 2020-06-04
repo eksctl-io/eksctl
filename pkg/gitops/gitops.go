@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
-
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/afero"
@@ -38,7 +36,7 @@ func Setup(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *a
 		return nil
 	}
 
-	userInstructions, fluxSSHKey, err := installer.Run(context.Background())
+	userInstructions, err := installer.Run(context.Background())
 	if err != nil {
 		return errors.Wrapf(err, "unable to install flux")
 	}
@@ -46,13 +44,6 @@ func Setup(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface, cfg *a
 	err = InstallProfile(cfg)
 	if err != nil {
 		return err
-	}
-
-	if fluxSSHKey != nil {
-		ok, err := deploykey.Put(context.Background(), cfg, *fluxSSHKey)
-		if ok || err != nil {
-			return err
-		}
 	}
 
 	logger.Info(userInstructions)

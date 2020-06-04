@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
+
 	fluxinstall "github.com/fluxcd/flux/pkg/install"
 	helmopinstall "github.com/fluxcd/helm-operator/pkg/install"
 	"github.com/kris-nova/logger"
@@ -32,6 +34,7 @@ const (
 
 // Installer installs Flux
 type Installer struct {
+	cfg           *api.ClusterConfig
 	opts          *api.Git
 	timeout       time.Duration
 	k8sRestConfig *rest.Config
@@ -51,6 +54,7 @@ func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface,
 		PrivateSSHKeyPath: cfg.Git.Repo.PrivateSSHKeyPath,
 	})
 	fi := &Installer{
+		cfg:           cfg,
 		opts:          cfg.Git,
 		k8sRestConfig: k8sRestConfig,
 		k8sClientSet:  k8sClientSet,
@@ -61,12 +65,12 @@ func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface,
 }
 
 // Run runs the Flux installer
-func (fi *Installer) Run(ctx context.Context) (string, *PublicKey, error) {
+func (fi *Installer) Run(ctx context.Context) (string, error) {
 
 	logger.Info("Generating manifests")
 	manifests, err := fi.getManifests()
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 
 	logger.Info("Cloning %s", fi.opts.Repo.URL)
@@ -77,7 +81,7 @@ func (fi *Installer) Run(ctx context.Context) (string, *PublicKey, error) {
 	}
 	cloneDir, err := fi.gitClient.CloneRepoInTmpDir("eksctl-install-flux-clone-", options)
 	if err != nil {
-		return "", nil, errors.Wrapf(err, "cannot clone repository %s", fi.opts.Repo.URL)
+		return "", errors.Wrapf(err, "cannot clone repository %s", fi.opts.Repo.URL)
 	}
 	cleanCloneDir := false
 	defer func() {
@@ -92,22 +96,22 @@ func (fi *Installer) Run(ctx context.Context) (string, *PublicKey, error) {
 	logger.Info("Writing Flux manifests")
 	fluxManifestDir := filepath.Join(cloneDir, fi.opts.Repo.FluxPath)
 	if err := writeFluxManifests(fluxManifestDir, manifests); err != nil {
-		return "", nil, err
+		return "", err
 	}
 
 	if err := fi.createFluxNamespaceIfMissing(manifests); err != nil {
-		return "", nil, err
+		return "", err
 	}
 
 	logger.Info("Applying manifests")
 	if err := fi.applyManifests(manifests); err != nil {
-		return "", nil, err
+		return "", err
 	}
 
 	if api.IsEnabled(fi.opts.Operator.WithHelm) {
 		logger.Info("Waiting for Helm Operator to start")
 		if err := waitForHelmOpToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet); err != nil {
-			return "", nil, err
+			return "", err
 		}
 		logger.Info("Helm Operator started successfully")
 		logger.Info("see https://docs.fluxcd.io/projects/helm-operator for details on how to use the Helm Operator")
@@ -116,12 +120,12 @@ func (fi *Installer) Run(ctx context.Context) (string, *PublicKey, error) {
 	logger.Info("Waiting for Flux to start")
 	err = waitForFluxToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 	logger.Info("fetching public SSH key from Flux")
 	fluxSSHKey, err := getPublicKeyFromFlux(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
 
 	logger.Info("Flux started successfully")
@@ -130,7 +134,7 @@ func (fi *Installer) Run(ctx context.Context) (string, *PublicKey, error) {
 	if api.IsEnabled(fi.opts.CommitOperatorManifests) {
 		logger.Info("Committing and pushing manifests to %s", fi.opts.Repo.URL)
 		if err = fi.addFilesToRepo(); err != nil {
-			return "", nil, err
+			return "", err
 		}
 	}
 	cleanCloneDir = true
@@ -138,7 +142,13 @@ func (fi *Installer) Run(ctx context.Context) (string, *PublicKey, error) {
 	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
 	instruction := fmt.Sprintf("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.Repo.URL, fluxSSHKey.Key)
-	return instruction, &fluxSSHKey, nil
+
+	ok, err := deploykey.Put(ctx, fi.cfg, deploykey.PublicKey{Key: fluxSSHKey.Key})
+	if ok || err != nil {
+		return "", err
+	}
+
+	return instruction, nil
 }
 
 // IsFluxInstalled returns an error if Flux is not installed in the cluster. To determine that it looks for the flux

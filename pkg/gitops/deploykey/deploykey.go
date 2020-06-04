@@ -6,11 +6,10 @@ import (
 
 	"github.com/kris-nova/logger"
 	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 )
 
 type GitProvider interface {
-	Put(ctx context.Context, fluxSSHKey flux.PublicKey) error
+	Put(ctx context.Context, fluxSSHKey PublicKey) error
 	Delete(ctx context.Context) error
 }
 
@@ -49,7 +48,7 @@ func ForCluster(cluster *v1alpha5.ClusterConfig) GitProvider {
 	return nil
 }
 
-func Put(ctx context.Context, cluster *v1alpha5.ClusterConfig, fluxSSHKey flux.PublicKey) (bool, error) {
+func Put(ctx context.Context, cluster *v1alpha5.ClusterConfig, fluxSSHKey PublicKey) (bool, error) {
 	p := ForCluster(cluster)
 
 	if p == nil {
@@ -67,4 +66,9 @@ func Delete(ctx context.Context, cluster *v1alpha5.ClusterConfig) error {
 	}
 
 	return p.Delete(ctx)
+}
+
+// PublicKey represents a public SSH key as it is returned by flux
+type PublicKey struct {
+	Key string
 }

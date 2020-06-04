@@ -8,7 +8,6 @@ import (
 	"github.com/google/go-github/v31/github"
 	"github.com/kris-nova/logger"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/gitops/flux"
 	"golang.org/x/oauth2"
 )
 
@@ -23,7 +22,7 @@ type GitHubProvider struct {
 	githubToken string
 }
 
-func (p *GitHubProvider) Put(ctx context.Context, fluxSSHKey flux.PublicKey) error {
+func (p *GitHubProvider) Put(ctx context.Context, fluxSSHKey PublicKey) error {
 	gh := p.getGitHubAPIClient(ctx)
 
 	logger.Info("creating GitHub deploy key from Flux SSH public key")
