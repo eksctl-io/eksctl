@@ -69,6 +69,19 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
+                  - key: "beta.kubernetes.io/os"
+                    operator: In
+                    values:
+                      - linux
+                  - key: "beta.kubernetes.io/arch"
+                    operator: In
+                    values:
+                      - amd64
+                  - key: "eks.amazonaws.com/compute-type"
+                    operator: NotIn
+                    values:
+                      - fargate
+              - matchExpressions:
                   - key: "kubernetes.io/os"
                     operator: In
                     values:
@@ -86,7 +99,7 @@ spec:
       tolerations:
         - operator: Exists
       containers:
-        - image: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.6.1
+        - image: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.6.2
           imagePullPolicy: Always
           ports:
             - containerPort: 61678
