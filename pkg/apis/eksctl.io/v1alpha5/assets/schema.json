@@ -1060,6 +1060,9 @@
     },
     "Operator": {
       "properties": {
+        "commitOperatorManifests": {
+          "type": "boolean"
+        },
         "label": {
           "type": "string",
           "default": ""
@@ -1068,14 +1071,20 @@
           "type": "string",
           "default": ""
         },
+        "readOnly": {
+          "type": "boolean",
+          "default": "false"
+        },
         "withHelm": {
           "type": "boolean"
         }
       },
       "preferredOrder": [
+        "commitOperatorManifests",
         "label",
         "namespace",
-        "withHelm"
+        "withHelm",
+        "readOnly"
       ],
       "additionalProperties": false,
       "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
