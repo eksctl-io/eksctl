@@ -744,11 +744,15 @@ type Repo struct {
 // keep the cluster and the Git repository in sync.
 type Operator struct {
 	// +optional
+	CommitOperatorManifests *bool `json:"commitOperatorManifests,omitempty"` // Commit and push Flux manifests to the Git Repo on install
+	// +optional
 	Label string `json:"label,omitempty"` // e.g. flux
 	// +optional
 	Namespace string `json:"namespace,omitempty"` // e.g. flux
 	// +optional
 	WithHelm *bool `json:"withHelm,omitempty"` // whether to install the Flux Helm Operator or not
+	// +optional
+	ReadOnly bool `json:"readOnly,omitempty"` // Instruct Flux to read-only mode and create the deploy key as read-only
 }
 
 // Profile groups all details on a quickstart profile to enable on the cluster
@@ -885,8 +889,9 @@ type (
 	}
 )
 
-// MetricsCollection used by the scaling config
-// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+// MetricsCollection used by the scaling config,
+// see [cloudformation
+// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html)
 type MetricsCollection struct {
 	// +required
 	Granularity string `json:"granularity" jsonschema:"required"`

@@ -815,15 +815,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	Context("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
-		ng.ASGMetricsCollection = []api.MetricsCollection{
-			{
-				Granularity: "1Minute",
-				Metrics: []string{
-					"GroupMinSize",
-					"GroupMaxSize",
-				},
-			},
-		}
 		ng.ClassicLoadBalancerNames = []string{"clb-1", "clb-2"}
 		ng.TargetGroupARNs = []string{"tg-arn-1", "tg-arn-2"}
 
@@ -928,21 +919,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.Properties.LoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
 		})
 
-		It("should have metrics collections set", func() {
-			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
-			ng := ngTemplate.Resources["NodeGroup"]
-			Expect(ng).ToNot(BeNil())
-			Expect(ng.Properties).ToNot(BeNil())
-
-			Expect(ng.Properties.MetricsCollection).To(HaveLen(1))
-			var metricsCollection map[string]interface{} = ng.Properties.MetricsCollection[0]
-			Expect(metricsCollection).To(HaveKey("Granularity"))
-			Expect(metricsCollection).To(HaveKey("Metrics"))
-			Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
-			Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMinSize"))
-			Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMaxSize"))
-		})
-
 		It("should have target groups ARNs set", func() {
 			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
 			ng := ngTemplate.Resources["NodeGroup"]
@@ -959,6 +935,61 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.Properties).ToNot(BeNil())
 
 			Expect(ng.Properties.TargetGroupARNs).To(Equal([]string{"tg-arn-1", "tg-arn-2"}))
+		})
+	})
+
+	Context("NodeGroupAutoScaling with metrics collection", func() {
+		Context("with all details", func() {
+			cfg, ng := newClusterConfigAndNodegroup(true)
+			ng.ASGMetricsCollection = []api.MetricsCollection{
+				{
+					Granularity: "1Minute",
+					Metrics: []string{
+						"GroupMinSize",
+						"GroupMaxSize",
+					},
+				},
+			}
+			build(cfg, "eksctl-test-123-with-metrics", ng)
+			roundtrip()
+
+			It("should have both Granularity and Metrics details", func() {
+				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+				ng := ngTemplate.Resources["NodeGroup"]
+				Expect(ng).ToNot(BeNil())
+				Expect(ng.Properties).ToNot(BeNil())
+
+				Expect(ng.Properties.MetricsCollection).To(HaveLen(1))
+				var metricsCollection = ng.Properties.MetricsCollection[0]
+				Expect(metricsCollection).To(HaveKey("Granularity"))
+				Expect(metricsCollection).To(HaveKey("Metrics"))
+				Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
+				Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMinSize"))
+				Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMaxSize"))
+			})
+		})
+
+		Context("without metrics details", func() {
+			cfg, ng := newClusterConfigAndNodegroup(true)
+			ng.ASGMetricsCollection = []api.MetricsCollection{
+				{
+					Granularity: "1Minute",
+				},
+			}
+			build(cfg, "eksctl-test-123-cluster", ng)
+			roundtrip()
+
+			It("should have only Granularity", func() {
+				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+				ng := ngTemplate.Resources["NodeGroup"]
+				Expect(ng).ToNot(BeNil())
+				Expect(ng.Properties).ToNot(BeNil())
+
+				Expect(ng.Properties.MetricsCollection).To(HaveLen(1))
+				var metricsCollection = ng.Properties.MetricsCollection[0]
+				Expect(metricsCollection).To(HaveKey("Granularity"))
+				Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
+			})
 		})
 	})
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"os/exec"
@@ -17,9 +18,6 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-// DefaultPath defines the default path
-var DefaultPath = clientcmd.RecommendedHomeFile
-
 const (
 	// AWSIAMAuthenticator defines the name of the AWS IAM authenticator
 	AWSIAMAuthenticator = "aws-iam-authenticator"
@@ -27,7 +25,17 @@ const (
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
+	// Shadowing the default kubeconfig path environment variable
+	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
 )
+
+// DefaultPath defines the default path
+func DefaultPath() string {
+	if env := os.Getenv(RecommendedConfigPathEnvVar); len(env) > 0 {
+		return env
+	}
+	return clientcmd.RecommendedHomeFile
+}
 
 // AuthenticatorCommands returns all of authenticator commands
 func AuthenticatorCommands() []string {
@@ -38,22 +46,23 @@ func AuthenticatorCommands() []string {
 	}
 }
 
-// New creates Kubernetes client configuration for a given username
-// if certificateAuthorityPath is not empty, it is used instead of
-// embedded certificate-authority-data
-func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*clientcmdapi.Config, string, string) {
-	clusterName := spec.Metadata.String()
-	contextName := fmt.Sprintf("%s@%s", username, clusterName)
+// ConfigBuilder can create a client-go clientcmd Config
+type ConfigBuilder struct {
+	cluster     clientcmdapi.Cluster
+	clusterName string
+	username    string
+}
 
-	c := &clientcmdapi.Config{
+// Build creates the Config with the ConfigBuilder settings
+func (cb *ConfigBuilder) Build() *clientcmdapi.Config {
+	contextName := fmt.Sprintf("%s@%s", cb.username, cb.clusterName)
+	return &clientcmdapi.Config{
 		Clusters: map[string]*clientcmdapi.Cluster{
-			clusterName: {
-				Server: spec.Status.Endpoint,
-			},
+			cb.clusterName: &cb.cluster,
 		},
 		Contexts: map[string]*clientcmdapi.Context{
 			contextName: {
-				Cluster:  clusterName,
+				Cluster:  cb.clusterName,
 				AuthInfo: contextName,
 			},
 		},
@@ -62,19 +71,32 @@ func New(spec *api.ClusterConfig, username, certificateAuthorityPath string) (*c
 		},
 		CurrentContext: contextName,
 	}
+}
 
-	if certificateAuthorityPath == "" {
-		c.Clusters[clusterName].CertificateAuthorityData = spec.Status.CertificateAuthorityData
-	} else {
-		c.Clusters[clusterName].CertificateAuthority = certificateAuthorityPath
+// NewBuilder returns a minimal ConfigBuilder
+func NewBuilder(metadata *api.ClusterMeta, status *api.ClusterStatus, username string) *ConfigBuilder {
+	cluster := clientcmdapi.Cluster{
+		Server:                   status.Endpoint,
+		CertificateAuthorityData: status.CertificateAuthorityData,
 	}
+	return &ConfigBuilder{
+		cluster:     cluster,
+		clusterName: metadata.String(),
+		username:    username,
+	}
+}
 
-	return c, clusterName, contextName
+// UseCertificateAuthorityFile sets the config to use CA from file instead
+// of the CA as retrieved from EKS
+func (cb *ConfigBuilder) UseCertificateAuthorityFile(path string) *ConfigBuilder {
+	cb.cluster.CertificateAuthority = path
+	cb.cluster.CertificateAuthorityData = []byte{}
+	return cb
 }
 
 // NewForKubectl creates configuration for kubectl using a suitable authenticator
 func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *clientcmdapi.Config {
-	config, _, _ := New(spec, username, "")
+	config := NewBuilder(spec.Metadata, spec.Status, username).Build()
 	authenticator, found := LookupAuthenticator()
 	if !found {
 		// fall back to aws-iam-authenticator
@@ -139,21 +161,40 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 	}
 }
 
+// ensureDirectory should probably be handled in flock
+func ensureDirectory(filePath string) error {
+	dir := filepath.Dir(filePath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func lockConfigFile(filePath string) error {
+	// Make sure the directory exists, otherwise flock fails
+	if err := ensureDirectory(filePath); err != nil {
+		return err
+	}
 	flock := flock.New(filePath)
 	err := flock.Lock()
 	if err != nil {
-		return errors.Wrap(err, "flock: failed to obtain exclusive lock existing kubeconfig file")
+		return errors.Wrap(err, "flock: failed to obtain exclusive lock on kubeconfig file")
 	}
 
 	return nil
 }
 
 func unlockConfigFile(filePath string) error {
+	// Make sure the directory exists, otherwise flock fails
+	if err := ensureDirectory(filePath); err != nil {
+		return err
+	}
 	flock := flock.New(filePath)
 	err := flock.Unlock()
 	if err != nil {
-		return errors.Wrap(err, "flock: failed to release exclusive lock on existing kubeconfig file")
+		return errors.Wrap(err, "flock: failed to release exclusive lock on kubeconfig file")
 	}
 
 	return nil
@@ -199,7 +240,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
 	pathOptions := clientcmd.NewDefaultPathOptions()
-	if explicitPath != "" && explicitPath != DefaultPath {
+	if explicitPath != "" && explicitPath != DefaultPath() {
 		pathOptions.LoadingRules.ExplicitPath = explicitPath
 	}
 
@@ -275,7 +316,7 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 		return
 	}
 
-	configAccess := getConfigAccess(DefaultPath)
+	configAccess := getConfigAccess(DefaultPath())
 	defaultFilename := configAccess.GetDefaultFilename()
 	err := lockConfigFile(defaultFilename)
 	if err != nil {
@@ -290,7 +331,7 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
-		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath, err.Error())
+		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath(), err.Error())
 		return
 	}
 
@@ -299,7 +340,7 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	}
 
 	if err := clientcmd.ModifyConfig(configAccess, *config, true); err != nil {
-		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath, err.Error())
+		logger.Debug("ignoring error while failing to update config file %q: %s", DefaultPath(), err.Error())
 	} else {
 		logger.Success("kubeconfig has been updated")
 	}

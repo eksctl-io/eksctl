@@ -29,7 +29,6 @@ var _ = Describe("Installer", func() {
 		},
 	}
 	mockInstaller := &Installer{
-		cluster:      &api.ClusterMeta{Name: "cluster-1", Region: "us-west-2"},
 		opts:         mockOpts,
 		k8sClientSet: fake.NewSimpleClientset(),
 	}

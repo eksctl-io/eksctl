@@ -7,7 +7,6 @@ go 1.14
 require (
 	github.com/Azure/go-autorest/autorest v0.10.0 // indirect
 	github.com/Azure/go-autorest/autorest/azure/auth v0.4.2 // indirect
-	github.com/alecthomas/jsonschema v0.0.0-20200514014646-0366d1034a17
 	github.com/aws/aws-sdk-go v1.30.11
 	github.com/awslabs/goformation v0.0.0-20190320125420-ac0a17860cf1
 	github.com/awslabs/goformation/v4 v4.1.0
@@ -22,6 +21,7 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1
 	github.com/golangci/golangci-lint v1.27.0
+	github.com/google/go-github/v31 v31.0.0
 	github.com/goreleaser/goreleaser v0.136.0
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.3
@@ -36,6 +36,7 @@ require (
 	github.com/onsi/gomega v1.9.0
 	github.com/pelletier/go-toml v1.6.0
 	github.com/pkg/errors v0.9.1
+	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/spf13/afero v1.2.2
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
@@ -48,6 +49,7 @@ require (
 	github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200428200454-593003d681fa // indirect
 	golang.org/x/tools v0.0.0-20200502202811-ed308ab3e770
 	k8s.io/api v0.16.8
