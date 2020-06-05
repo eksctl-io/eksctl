@@ -86,30 +86,49 @@ func NewBuilder(metadata *api.ClusterMeta, status *api.ClusterStatus, username s
 	}
 }
 
-// UseCertificateAuthorityFile sets the config to use CA from file instead
-// of the CA as retrieved from EKS
+// UseCertificateAuthorityFile sets the config to use CA from file for TLS
+// communication instead of the CA retrieved from EKS
 func (cb *ConfigBuilder) UseCertificateAuthorityFile(path string) *ConfigBuilder {
 	cb.cluster.CertificateAuthority = path
 	cb.cluster.CertificateAuthorityData = []byte{}
 	return cb
 }
 
-// NewForKubectl creates configuration for kubectl using a suitable authenticator
+// UseSystemCA sets the config to use the system CAs for TLS communication
+// instead of the CA retrieved from EKS
+func (cb *ConfigBuilder) UseSystemCA() *ConfigBuilder {
+	cb.cluster.CertificateAuthority = ""
+	cb.cluster.CertificateAuthorityData = []byte{}
+	return cb
+}
+
+// NewForUser returns a Config suitable for a user by respecting
+// provider settings
+func NewForUser(spec *api.ClusterConfig, username string) *clientcmdapi.Config {
+	configBuilder := NewBuilder(spec.Metadata, spec.Status, username)
+	if os.Getenv("KUBECONFIG_USE_SYSTEM_CA") != "" {
+		configBuilder.UseSystemCA()
+	}
+	return configBuilder.Build()
+}
+
+// NewForKubectl creates configuration for a user with kubectl by configuring
+// a suitable authenticator and respecting provider settings
 func NewForKubectl(spec *api.ClusterConfig, username, roleARN, profile string) *clientcmdapi.Config {
-	config := NewBuilder(spec.Metadata, spec.Status, username).Build()
+	config := NewForUser(spec, username)
 	authenticator, found := LookupAuthenticator()
 	if !found {
 		// fall back to aws-iam-authenticator
 		authenticator = AWSIAMAuthenticator
 	}
-	AppendAuthenticator(config, spec, authenticator, roleARN, profile)
+	AppendAuthenticator(config, spec.Metadata, authenticator, roleARN, profile)
 	return config
 }
 
 // AppendAuthenticator appends the AWS IAM  authenticator, and
 // if profile is non-empty string it sets AWS_PROFILE environment
 // variable also
-func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, authenticatorCMD, roleARN, profile string) {
+func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMeta, authenticatorCMD, roleARN, profile string) {
 	var (
 		args        []string
 		roleARNFlag string
@@ -128,19 +147,19 @@ func AppendAuthenticator(config *clientcmdapi.Config, spec *api.ClusterConfig, a
 
 	switch authenticatorCMD {
 	case AWSIAMAuthenticator, HeptioAuthenticatorAWS:
-		args = []string{"token", "-i", spec.Metadata.Name}
+		args = []string{"token", "-i", clusterMeta.Name}
 		roleARNFlag = "-r"
-		if spec.Metadata.Region != "" {
+		if clusterMeta.Region != "" {
 			execConfig.Env = append(execConfig.Env, clientcmdapi.ExecEnvVar{
 				Name:  "AWS_DEFAULT_REGION",
-				Value: spec.Metadata.Region,
+				Value: clusterMeta.Region,
 			})
 		}
 	case AWSEKSAuthenticator:
-		args = []string{"eks", "get-token", "--cluster-name", spec.Metadata.Name}
+		args = []string{"eks", "get-token", "--cluster-name", clusterMeta.Name}
 		roleARNFlag = "--role-arn"
-		if spec.Metadata.Region != "" {
-			args = append(args, "--region", spec.Metadata.Region)
+		if clusterMeta.Region != "" {
+			args = append(args, "--region", clusterMeta.Region)
 		}
 	}
 	if roleARN != "" {

@@ -71,7 +71,7 @@ func makeClientConfigData(spec *api.ClusterConfig, authenticatorCMD string) ([]b
 		NewBuilder(spec.Metadata, spec.Status, "kubelet").
 		UseCertificateAuthorityFile(configDir + "ca.crt").
 		Build()
-	kubeconfig.AppendAuthenticator(clientConfig, spec, authenticatorCMD, "", "")
+	kubeconfig.AppendAuthenticator(clientConfig, spec.Metadata, authenticatorCMD, "", "")
 	clientConfigData, err := clientcmd.Write(*clientConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "serialising kubeconfig for nodegroup")
