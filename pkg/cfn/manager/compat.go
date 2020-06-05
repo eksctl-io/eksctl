@@ -53,17 +53,20 @@ func (c *StackCollection) FixClusterCompatibility() error {
 		}
 	}
 
-	stackSupportsFargate := fargateRole != ""
+	managedNodeUpdateRequired := !stackSupportsManagedNodes && len(c.spec.ManagedNodeGroups) > 0
 
-	if stackSupportsManagedNodes && stackSupportsFargate {
+	stackSupportsFargate := fargateRole != ""
+	fargateUpdateRequired := !stackSupportsFargate && len(c.spec.FargateProfiles) > 0
+
+	if !managedNodeUpdateRequired && !fargateUpdateRequired {
 		logger.Info("cluster stack has all required resources")
 		return nil
 	}
 
-	if !stackSupportsManagedNodes {
+	if managedNodeUpdateRequired {
 		logger.Info("cluster stack is missing resources for Managed Nodegroups")
 	}
-	if !stackSupportsFargate {
+	if fargateUpdateRequired {
 		logger.Info("cluster stack is missing resources for Fargate")
 	}
 
