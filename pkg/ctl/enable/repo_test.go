@@ -78,6 +78,8 @@ var _ = Describe("enable repo", func() {
 				"--git-flux-subdir", "flux-dir/",
 				"--namespace", "gitops",
 				"--with-helm",
+				"--read-only",
+				"--commit-operator-manifests=false",
 			)
 			_, err := cmd.Execute()
 			Expect(err).ToNot(HaveOccurred())
@@ -99,6 +101,35 @@ var _ = Describe("enable repo", func() {
 			Expect(cfg.Git.Operator.Label).To(Equal("flux2"))
 			Expect(cfg.Git.Operator.Namespace).To(Equal("gitops"))
 			Expect(*cfg.Git.Operator.WithHelm).To(BeTrue())
+			Expect(cfg.Git.Operator.ReadOnly).To(BeTrue())
+			Expect(*cfg.Git.Operator.CommitOperatorManifests).To(BeFalse())
+		})
+
+		It("loads correct defaults", func() {
+			cmd := newMockEnableRepoCmd("repo",
+				"--cluster", "clus-1",
+				"--region", "us-west-2",
+				"--git-url", "git@example.com:repo.git",
+				"--git-email", "user@example.com",
+			)
+			_, err := cmd.Execute()
+			Expect(err).ToNot(HaveOccurred())
+
+			cfg := cmd.Cmd.ClusterConfig
+			Expect(cfg.Git).ToNot(BeNil())
+			Expect(cfg.Git.Repo).ToNot(BeNil())
+			Expect(cfg.Git.Repo.Branch).To(Equal("master"))
+			Expect(cfg.Git.Repo.User).To(Equal("Flux"))
+			Expect(cfg.Git.Repo.PrivateSSHKeyPath).To(Equal(""))
+			Expect(cfg.Git.Repo.Paths).To(BeEmpty())
+			Expect(cfg.Git.Repo.FluxPath).To(Equal("flux/"))
+
+			Expect(cfg.Git.Operator).ToNot(BeNil())
+			Expect(cfg.Git.Operator.Label).To(Equal("flux"))
+			Expect(cfg.Git.Operator.Namespace).To(Equal("flux"))
+			Expect(*cfg.Git.Operator.WithHelm).To(BeTrue())
+			Expect(cfg.Git.Operator.ReadOnly).To(BeFalse())
+			Expect(*cfg.Git.Operator.CommitOperatorManifests).To(BeTrue())
 		})
 	})
 
@@ -207,6 +238,8 @@ var _ = Describe("enable repo", func() {
 			Expect(gitCfg.Operator.Label).To(Equal("flux"))
 			Expect(gitCfg.Operator.WithHelm).ToNot(BeNil())
 			Expect(*gitCfg.Operator.WithHelm).To(BeTrue())
+			Expect(gitCfg.Operator.ReadOnly).To(BeFalse())
+			Expect(*gitCfg.Operator.CommitOperatorManifests).To(BeTrue())
 		})
 
 	})
