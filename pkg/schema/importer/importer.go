@@ -151,7 +151,7 @@ func (importer Importer) FindImportedTypeSpec(it *ast.SelectorExpr) (string, *as
 	if !ok {
 		return "", nil, errors.Errorf("Couldn't find object %s in imported package %s", it.Sel.Name, importPath)
 	}
-	inlineName := fmt.Sprintf("%s.%s", importPath, it.Sel.Name)
+	inlineName := fmt.Sprintf("%s.%s", strings.ReplaceAll(importPath, "/", "|"), it.Sel.Name)
 	typeSpec, ok := obj.Decl.(*ast.TypeSpec)
 	if !ok {
 		return "", nil, errors.Errorf("Expected TypeSpec for %s", inlineName)

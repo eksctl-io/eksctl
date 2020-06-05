@@ -121,7 +121,7 @@ var _ = Describe("GenerateSchema", func() {
 				Description:          "describes a sub configuration of the Config",
 				HTMLDescription:      "describes a sub configuration of the Config",
 			}
-			ref := "github.com/weaveworks/eksctl/pkg/schema/test/subpkg.PackageType"
+			ref := "github.com|weaveworks|eksctl|pkg|schema|test|subpkg.PackageType"
 			Expect(*schema.Definitions[ref]).To(BeEquivalentTo(expected))
 			refDef := definition.Definition{
 				Ref: "#/definitions/" + ref,

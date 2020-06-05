@@ -363,14 +363,14 @@
           "type": "boolean"
         },
         "cidr": {
-          "$ref": "#/definitions/github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet"
+          "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
         },
         "clusterEndpoints": {
           "$ref": "#/definitions/ClusterEndpoints"
         },
         "extraCIDRs": {
           "items": {
-            "$ref": "#/definitions/github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet"
+            "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
           },
           "type": "array",
           "description": "for additional CIDR associations, e.g. to use with separate CIDR for private subnets or any ad-hoc subnets",
@@ -644,7 +644,7 @@
     "Network": {
       "properties": {
         "cidr": {
-          "$ref": "#/definitions/github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet"
+          "$ref": "#/definitions/github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet"
         },
         "id": {
           "type": "string",
@@ -1177,7 +1177,7 @@
       "description": "defines the configuration for KMS encryption provider",
       "x-intellij-html-description": "defines the configuration for KMS encryption provider"
     },
-    "github.com/weaveworks/eksctl/pkg/utils/ipnet.IPNet": {
+    "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",
       "description": "wraps net.IPNet to get CIDR serialization.",
       "x-intellij-html-description": "wraps net.IPNet to get CIDR serialization."
