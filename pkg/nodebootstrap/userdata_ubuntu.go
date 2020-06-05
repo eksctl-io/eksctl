@@ -12,7 +12,7 @@ import (
 )
 
 func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
-	clientConfigData, err := makeClientConfigData(spec, ng, kubeconfig.HeptioAuthenticatorAWS)
+	clientConfigData, err := makeClientConfigData(spec, kubeconfig.HeptioAuthenticatorAWS)
 	if err != nil {
 		return nil, err
 	}

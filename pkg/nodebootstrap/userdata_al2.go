@@ -11,7 +11,7 @@ import (
 )
 
 func makeAmazonLinux2Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFiles, error) {
-	clientConfigData, err := makeClientConfigData(spec, ng, kubeconfig.AWSEKSAuthenticator)
+	clientConfigData, err := makeClientConfigData(spec, kubeconfig.AWSEKSAuthenticator)
 	if err != nil {
 		return nil, err
 	}
