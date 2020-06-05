@@ -43,7 +43,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
     const allProperties = [];
     const seen = {};
 
-    for (const key of Object.keys(definitions[name].properties || [])) {
+    for (const key of definitions[name].preferredOrder || []) {
         allProperties.push([key, definitions[name].properties[key]]);
         seen[key] = true;
     }
@@ -67,7 +67,7 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         const valueClass = definition.examples ? "example" : "value";
 
         // Description
-        const desc = definition["description"] || "";
+        let desc = definition["x-intellij-html-description"] || "";
 
         let firstOfListType = undefined;
         if (parentDefinition && parentDefinition.type === "array") {
@@ -85,25 +85,46 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
         if (definition.$ref) {
             // Check if the referenced description is a final one
             const refName = definition.$ref.replace("#/definitions/", "");
-            if (
-                !definitions[refName].properties &&
-                !definitions[refName].anyOf
-            ) {
-                value = "{}";
+            const refDef = definitions[refName];
+            let type = "";
+            if (refDef.type === "object") {
+                if (!refDef.properties && !refDef.anyOf) {
+                    type = "object";
+                    value = "{}";
+                }
+            } else {
+                type = refDef.type;
+            }
+            if (desc === "") {
+                desc = refDef["x-intellij-html-description"] || "";
             }
 
             yield html`
                 <tr class="top">
                     ${keyCell(value)}
-                    <td class="type"></td>
+                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
                 </tr>
             `;
         } else if (definition.items && definition.items.$ref) {
+            const refName = definition.items.$ref.replace("#/definitions/", "");
+            const refDef = definitions[refName];
+            let type = "";
+            if (refDef.type === "object") {
+                if (!refDef.properties && !refDef.anyOf) {
+                    type = "object[]";
+                    value = "{}";
+                }
+            } else {
+                type = refDef.type;
+            }
+            if (desc === "") {
+                desc = refDef["x-intellij-html-description"] || "";
+            }
             yield html`
                 <tr class="top">
                     ${keyCell(value)}
-                    <td class="type"></td>
+                    <td class="type">${type}</td>
                     <td class="comment">${unsafeHTML(desc)}</td>
                 </tr>
             `;
@@ -189,9 +210,10 @@ function* template(definitions, parentDefinition, ref, ident, parent) {
 function anchor(path, label, firstOfListType) {
     let listPrefix = "";
     if (firstOfListType !== undefined) {
-        listPrefix = html`<span style="visibility: ${
-            firstOfListType ? "visible" : "hidden"
-        }">- </span>`;
+        listPrefix = html`<span
+            style="visibility: ${firstOfListType ? "visible" : "hidden"}"
+            >-
+        </span>`;
     }
     const anchor = html`<a class="key" href="#${path}">${label}</a>`;
     return html`${listPrefix}${anchor}`;

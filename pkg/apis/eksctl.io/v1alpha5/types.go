@@ -889,8 +889,9 @@ type (
 	}
 )
 
-// MetricsCollection used by the scaling config
-// https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html
+// MetricsCollection used by the scaling config,
+// see [cloudformation
+// docs](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-metricscollection.html)
 type MetricsCollection struct {
 	// +required
 	Granularity string `json:"granularity" jsonschema:"required"`
