@@ -2,10 +2,11 @@ package matchers
 
 import (
 	"github.com/onsi/gomega/types"
+	"github.com/pkg/errors"
+
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 
 	"encoding/json"
-	"fmt"
 )
 
 // BeNodeGroupsWithNamesWhich helps match JSON-formatted nodegroups by
@@ -25,11 +26,11 @@ type jsonNodeGroupMatcher struct {
 func (matcher *jsonNodeGroupMatcher) Match(actual interface{}) (success bool, err error) {
 	rawJSON, ok := actual.(string)
 	if !ok {
-		return false, fmt.Errorf("BeNodeGroupsWithNamesWhich matcher expects a string")
+		return false, errors.Wrapf(err, "BeNodeGroupsWithNamesWhich matcher expects a string")
 	}
 	ngSummaries := []manager.NodeGroupSummary{}
 	if err := json.Unmarshal([]byte(rawJSON), &ngSummaries); err != nil {
-		return false, fmt.Errorf("BeNodeGroupsWithNamesWhich matcher expects a NodeGroupSummary JSON array")
+		return false, errors.Wrapf(err, "BeNodeGroupsWithNamesWhich matcher expects a NodeGroupSummary JSON array")
 	}
 	ngNames := extractNames(ngSummaries)
 	for _, m := range matcher.matchers {
