@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/kops/util/pkg/slice"
 
 	"github.com/kris-nova/logger"
 
@@ -18,6 +17,7 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
+	"github.com/weaveworks/eksctl/pkg/utils/slice"
 
 	"k8s.io/kops/pkg/util/subnet"
 )
