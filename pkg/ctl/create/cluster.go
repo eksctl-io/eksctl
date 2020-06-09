@@ -405,15 +405,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			}
 		}
 
-		if cfg.IsFargateEnabled() {
-			if err := doCreateFargateProfiles(cmd, ctl); err != nil {
-				return err
-			}
-			if err := scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet); err != nil {
-				return err
-			}
-		}
-
 		if cfg.HasGitopsRepoConfigured() {
 			kubernetesClientConfigs, err := ctl.NewClient(cfg)
 			if err != nil {

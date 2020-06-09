@@ -110,6 +110,14 @@ func (c *ClusterProvider) CreateExtraClusterConfigTasks(cfg *api.ClusterConfig, 
 			clusterProvider: c,
 		})
 	}
+
+	if cfg.IsFargateEnabled() {
+		newTasks.Append(&fargateProfilesTask{
+			info:            "create fargate profiles",
+			spec:            cfg,
+			clusterProvider: c,
+		})
+	}
 	return newTasks
 }
 

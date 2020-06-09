@@ -2,19 +2,13 @@ package create
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/kris-nova/logger"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/eks"
 	"github.com/weaveworks/eksctl/pkg/fargate"
-	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
-	"github.com/weaveworks/eksctl/pkg/utils/retry"
-	"github.com/weaveworks/eksctl/pkg/utils/strings"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -85,14 +79,14 @@ func doCreateFargateProfile(cmd *cmdutils.Cmd) error {
 		return err
 	}
 
-	if err := doCreateFargateProfiles(cmd, ctl); err != nil {
+	if err := eks.DoCreateFargateProfiles(cmd.ClusterConfig, ctl); err != nil {
 		return err
 	}
 	clientSet, err := clientSet(cfg, ctl)
 	if err != nil {
 		return err
 	}
-	return scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet)
+	return eks.ScheduleCoreDNSOnFargateIfRelevant(cmd.ClusterConfig, ctl, clientSet)
 }
 
 func clientSet(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (kubernetes.Interface, error) {
@@ -110,50 +104,4 @@ func clientSet(cfg *api.ClusterConfig, ctl *eks.ClusterProvider) (kubernetes.Int
 		return nil, err
 	}
 	return k8sClientSet, nil
-}
-
-func doCreateFargateProfiles(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider) error {
-	clusterName := cmd.ClusterConfig.Metadata.Name
-	awsClient := fargate.NewClientWithWaitTimeout(clusterName, ctl.Provider.EKS(), cmd.ProviderConfig.WaitTimeout)
-	for _, profile := range cmd.ClusterConfig.FargateProfiles {
-		logger.Info("creating Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
-
-		// Default the pod execution role ARN to be the same as the cluster
-		// role defined in CloudFormation:
-		if profile.PodExecutionRoleARN == "" {
-			profile.PodExecutionRoleARN = strings.EmptyIfNil(cmd.ClusterConfig.IAM.FargatePodExecutionRoleARN)
-		}
-		// Linearise the creation of Fargate profiles by passing
-		// wait = true, as the API otherwise errors out with:
-		//   ResourceInUseException: Cannot create Fargate Profile
-		//   ${name2} because cluster ${clusterName} currently has
-		//   Fargate profile ${name1} in status CREATING
-		if err := awsClient.CreateProfile(profile, true); err != nil {
-			return errors.Wrapf(err, "failed to create Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
-		}
-		logger.Info("created Fargate profile %q on EKS cluster %q", profile.Name, clusterName)
-	}
-	return nil
-}
-
-func scheduleCoreDNSOnFargateIfRelevant(cmd *cmdutils.Cmd, clientSet kubernetes.Interface) error {
-	if coredns.IsSchedulableOnFargate(cmd.ClusterConfig.FargateProfiles) {
-		scheduled, err := coredns.IsScheduledOnFargate(clientSet)
-		if err != nil {
-			return err
-		}
-		if !scheduled {
-			if err := coredns.ScheduleOnFargate(clientSet); err != nil {
-				return err
-			}
-			retryPolicy := &retry.TimingOutExponentialBackoff{
-				Timeout:  cmd.ProviderConfig.WaitTimeout,
-				TimeUnit: time.Second,
-			}
-			if err := coredns.WaitForScheduleOnFargate(clientSet, retryPolicy); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
