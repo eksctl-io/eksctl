@@ -10,6 +10,7 @@ import (
 func Command(flagGrouping *cmdutils.FlagGrouping) *cobra.Command {
 	verbCmd := cmdutils.NewVerbCmd("upgrade", "Upgrade resource(s)", "")
 
+	cmdutils.AddResourceCmd(flagGrouping, verbCmd, upgradeCluster)
 	cmdutils.AddResourceCmd(flagGrouping, verbCmd, upgradeNodeGroupCmd)
 
 	return verbCmd

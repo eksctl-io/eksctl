@@ -2,7 +2,7 @@
 
 An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 
-1. update control plane version with `eksctl update cluster`
+1. update control plane version with `eksctl upgrade cluster`
 2. update default add-ons:
     - `kube-proxy`
     - `aws-node`
@@ -18,6 +18,9 @@ Please make sure to read this section in full before you proceed.
     nodes can be upgraded more than one minor version at a time, provided the nodes stay
     within two minor versions of the control plane.
 
+!!!info
+    The old `eksctl update cluster` will be deprecated. Use `eksctl upgrade cluster` instead.
+
 ## Updating control plane version
 
 Control plane version updates must be done for one minor version at a time.
@@ -25,7 +28,7 @@ Control plane version updates must be done for one minor version at a time.
 To update control plane to the next available version run:
 
 ```
-eksctl update cluster --name=<clusterName>
+eksctl upgrade cluster --name=<clusterName>
 ```
 
 This command will not apply any changes right away, you will need to re-run it with
@@ -33,7 +36,7 @@ This command will not apply any changes right away, you will need to re-run it w
 
 ## Updating nodegroups
 
-You should update nodegroups only after you ran `eksctl update cluster`.
+You should update nodegroups only after you ran `eksctl upgrade cluster`.
 
 If you have a simple cluster with just an initial nodegroup (i.e. created with
 `eksctl create cluster`), the process is very simple.
