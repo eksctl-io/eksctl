@@ -337,8 +337,7 @@ func defaultStackStatusFilter() []*string {
 
 // DeleteStackByName sends a request to delete the stack
 func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
-	i := &Stack{StackName: &name}
-	s, err := c.DescribeStack(i)
+	s, err := c.DescribeStack(&Stack{StackName: &name})
 	if err != nil {
 		err = errors.Wrapf(err, "not able to get stack %q for deletion", name)
 		stacks, newErr := c.ListStacksMatching(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
@@ -352,8 +351,7 @@ func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
 		}
 		return nil, err
 	}
-	i.StackId = s.StackId
-	return c.DeleteStackBySpec(i)
+	return c.DeleteStackBySpec(s)
 }
 
 // DeleteStackByNameSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
