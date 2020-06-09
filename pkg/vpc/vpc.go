@@ -17,7 +17,6 @@ import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	"github.com/weaveworks/eksctl/pkg/utils/ipnet"
-	"github.com/weaveworks/eksctl/pkg/utils/slice"
 
 	"k8s.io/kops/pkg/util/subnet"
 )
@@ -359,17 +358,21 @@ func UseEndpointAccessFromCluster(provider api.ClusterProvider, spec *api.Cluste
 
 // cleanupSubnets clean up subnet entries having invalid AZ
 func cleanupSubnets(spec *api.ClusterConfig) {
-	for id := range spec.VPC.Subnets.Private {
-		if !slice.Contains(spec.AvailabilityZones, id) {
-			delete(spec.VPC.Subnets.Private, id)
+	availabilityZones := make(map[string]struct{})
+	for _, az := range spec.AvailabilityZones {
+		availabilityZones[az] = struct{}{}
+	}
+
+	cleanup := func(subnets map[string]api.Network) {
+		for az := range subnets {
+			if _, ok := availabilityZones[az]; !ok {
+				delete(subnets, az)
+			}
 		}
 	}
 
-	for id := range spec.VPC.Subnets.Public {
-		if !slice.Contains(spec.AvailabilityZones, id) {
-			delete(spec.VPC.Subnets.Public, id)
-		}
-	}
+	cleanup(spec.VPC.Subnets.Private)
+	cleanup(spec.VPC.Subnets.Public)
 }
 
 func validatePublicSubnet(subnets []*ec2.Subnet) error {
