@@ -40,6 +40,7 @@ AmazonEC2FullAccess
                         "autoscaling.amazonaws.com",
                         "ec2scheduled.amazonaws.com",
                         "elasticloadbalancing.amazonaws.com",
+                        "eks.amazonaws.com",
                         "spot.amazonaws.com",
                         "spotfleet.amazonaws.com",
                         "transitgateway.amazonaws.com"
