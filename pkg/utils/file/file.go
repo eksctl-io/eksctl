@@ -2,8 +2,9 @@ package file
 
 import (
 	"os"
+	"strings"
 
-	kopsutils "k8s.io/kops/upup/pkg/fi/utils"
+	"k8s.io/client-go/util/homedir"
 )
 
 // Exists checks to see if a file exists.
@@ -14,4 +15,10 @@ func Exists(path string) bool {
 }
 
 // ExpandPath expands path with ~ notation
-func ExpandPath(p string) string { return kopsutils.ExpandPath(p) }
+func ExpandPath(p string) string {
+	if strings.HasPrefix(p, "~/") {
+		p = homedir.HomeDir() + p[1:]
+	}
+
+	return p
+}
