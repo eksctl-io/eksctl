@@ -187,6 +187,26 @@ users:
      {{end}}
 `))
 
+var appMeshActions = []string{
+	"servicediscovery:CreateService",
+	"servicediscovery:DeleteService",
+	"servicediscovery:GetService",
+	"servicediscovery:GetInstance",
+	"servicediscovery:RegisterInstance",
+	"servicediscovery:DeregisterInstance",
+	"servicediscovery:ListInstances",
+	"servicediscovery:ListNamespaces",
+	"servicediscovery:ListServices",
+	"servicediscovery:GetInstancesHealthStatus",
+	"servicediscovery:UpdateInstanceCustomHealthStatus",
+	"servicediscovery:GetOperation",
+	"route53:GetHealthCheck",
+	"route53:CreateHealthCheck",
+	"route53:UpdateHealthCheck",
+	"route53:ChangeResourceRecordSets",
+	"route53:DeleteHealthCheck",
+}
+
 func kubeconfigBody(authenticator string) string {
 	var out bytes.Buffer
 	region := "us-west-2"
@@ -484,17 +504,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeKmsKeyID:  aws.String(""),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-							ImageBuilder: api.Disabled(),
-							AutoScaler:   api.Disabled(),
-							ExternalDNS:  api.Disabled(),
-							CertManager:  api.Disabled(),
-							AppMesh:      api.Disabled(),
-							EBS:          api.Disabled(),
-							FSX:          api.Disabled(),
-							EFS:          api.Disabled(),
-							ALBIngress:   api.Disabled(),
-							XRay:         api.Disabled(),
-							CloudWatch:   api.Disabled(),
+							ImageBuilder:   api.Disabled(),
+							AutoScaler:     api.Disabled(),
+							ExternalDNS:    api.Disabled(),
+							CertManager:    api.Disabled(),
+							AppMesh:        api.Disabled(),
+							AppMeshPreview: api.Disabled(),
+							EBS:            api.Disabled(),
+							FSX:            api.Disabled(),
+							EFS:            api.Disabled(),
+							ALBIngress:     api.Disabled(),
+							XRay:           api.Disabled(),
+							CloudWatch:     api.Disabled(),
 						},
 					},
 					SSH: &api.NodeGroupSSH{
@@ -1043,6 +1064,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMesh"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMeshPreview"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyFSX"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
@@ -1109,31 +1131,36 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"appmesh:*",
-				"servicediscovery:CreateService",
-				"servicediscovery:DeleteService",
-				"servicediscovery:GetService",
-				"servicediscovery:GetInstance",
-				"servicediscovery:RegisterInstance",
-				"servicediscovery:DeregisterInstance",
-				"servicediscovery:ListInstances",
-				"servicediscovery:ListNamespaces",
-				"servicediscovery:ListServices",
-				"servicediscovery:GetInstancesHealthStatus",
-				"servicediscovery:UpdateInstanceCustomHealthStatus",
-				"servicediscovery:GetOperation",
-				"route53:GetHealthCheck",
-				"route53:CreateHealthCheck",
-				"route53:UpdateHealthCheck",
-				"route53:ChangeResourceRecordSets",
-				"route53:DeleteHealthCheck",
-			}))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal(append(appMeshActions, "appmesh:*")))
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAutoScaling"))
 		})
 
+	})
+
+	Context("NodeGroupAppMeshPreview", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.AppMeshPreview = api.Enabled()
+
+		build(cfg, "eksctl-test-appmesh-preview", ng)
+
+		roundtrip()
+
+		It("should have correct policies", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyAppMeshPreview"))
+
+			policy3 := ngTemplate.Resources["PolicyAppMeshPreview"].Properties
+
+			Expect(policy3.Roles).To(HaveLen(1))
+			isRefTo(policy3.Roles[0], "NodeInstanceRole")
+
+			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal(append(appMeshActions, "appmesh-preview:*")))
+		})
 	})
 
 	Context("NodeGroupAppCertManager", func() {

@@ -559,17 +559,18 @@ func NewNodeGroup() *NodeGroup {
 		VolumeType:      &DefaultNodeVolumeType,
 		IAM: &NodeGroupIAM{
 			WithAddonPolicies: NodeGroupIAMAddonPolicies{
-				ImageBuilder: Disabled(),
-				AutoScaler:   Disabled(),
-				ExternalDNS:  Disabled(),
-				CertManager:  Disabled(),
-				AppMesh:      Disabled(),
-				EBS:          Disabled(),
-				FSX:          Disabled(),
-				EFS:          Disabled(),
-				ALBIngress:   Disabled(),
-				XRay:         Disabled(),
-				CloudWatch:   Disabled(),
+				ImageBuilder:   Disabled(),
+				AutoScaler:     Disabled(),
+				ExternalDNS:    Disabled(),
+				CertManager:    Disabled(),
+				AppMesh:        Disabled(),
+				AppMeshPreview: Disabled(),
+				EBS:            Disabled(),
+				FSX:            Disabled(),
+				EFS:            Disabled(),
+				ALBIngress:     Disabled(),
+				XRay:           Disabled(),
+				CloudWatch:     Disabled(),
 			},
 		},
 		SSH: &NodeGroupSSH{
@@ -594,17 +595,18 @@ func NewManagedNodeGroup() *ManagedNodeGroup {
 		},
 		IAM: &NodeGroupIAM{
 			WithAddonPolicies: NodeGroupIAMAddonPolicies{
-				ImageBuilder: Disabled(),
-				AutoScaler:   Disabled(),
-				ExternalDNS:  Disabled(),
-				CertManager:  Disabled(),
-				AppMesh:      Disabled(),
-				EBS:          Disabled(),
-				FSX:          Disabled(),
-				EFS:          Disabled(),
-				ALBIngress:   Disabled(),
-				XRay:         Disabled(),
-				CloudWatch:   Disabled(),
+				ImageBuilder:   Disabled(),
+				AutoScaler:     Disabled(),
+				ExternalDNS:    Disabled(),
+				CertManager:    Disabled(),
+				AppMesh:        Disabled(),
+				AppMeshPreview: Disabled(),
+				EBS:            Disabled(),
+				FSX:            Disabled(),
+				EFS:            Disabled(),
+				ALBIngress:     Disabled(),
+				XRay:           Disabled(),
+				CloudWatch:     Disabled(),
 			},
 		},
 	}
@@ -839,6 +841,8 @@ type (
 		CertManager *bool `json:"certManager"`
 		// +optional
 		AppMesh *bool `json:"appMesh"`
+		// +optional
+		AppMeshPreview *bool `json:"appMeshPreview"`
 		// +optional
 		EBS *bool `json:"ebs"`
 		// +optional

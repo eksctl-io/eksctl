@@ -915,6 +915,9 @@
         "appMesh": {
           "type": "boolean"
         },
+        "appMeshPreview": {
+          "type": "boolean"
+        },
         "autoScaler": {
           "type": "boolean"
         },
@@ -949,6 +952,7 @@
         "externalDNS",
         "certManager",
         "appMesh",
+        "appMeshPreview",
         "ebs",
         "fsx",
         "efs",
