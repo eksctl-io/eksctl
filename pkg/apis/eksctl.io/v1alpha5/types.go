@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	"github.com/aws/aws-sdk-go/service/sts/stsiface"
-	"github.com/weaveworks/eksctl/pkg/utils/slice"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -341,7 +340,12 @@ func supportedSpotAllocationStrategies() []string {
 
 // isSpotAllocationStrategySupported returns true if the spot allocation strategy is supported for ASG
 func isSpotAllocationStrategySupported(allocationStrategy string) bool {
-	return slice.Contains(supportedSpotAllocationStrategies(), allocationStrategy)
+	for _, strategy := range supportedSpotAllocationStrategies() {
+		if strategy == allocationStrategy {
+			return true
+		}
+	}
+	return false
 }
 
 // EKSResourceAccountID provides worker node resources(ami/ecr image) in different aws account
