@@ -8,8 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/pkg/errors"
 
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
-	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
 )
 
 var (
@@ -239,6 +240,51 @@ func ValidateNodeGroup(i int, ng *NodeGroup) error {
 	return nil
 }
 
+// isKubeletLabel returns true if the label key is one that kubelets are allowed to set on their own Node object.
+// This checks if the key is in the KubeletLabels() list, or has a namespace in the KubeletLabelNamespaces() list.
+func isKubeletLabel(key string) bool {
+	var LabelOS = "beta.kubernetes.io/os"
+	var LabelArch = "beta.kubernetes.io/arch"
+
+	var labelZoneFailureDomainGA = "failure-domain.kubernetes.io/zone"
+	var labelZoneRegionGA = "failure-domain.kubernetes.io/region"
+	var labelInstanceTypeGA = "kubernetes.io/instance-type"
+	var kubeletLabels = sets.NewString(
+		v1.LabelHostname,
+		v1.LabelZoneFailureDomain,
+		v1.LabelZoneRegion,
+		v1.LabelInstanceType,
+		v1.LabelOSStable,
+		v1.LabelArchStable,
+
+		LabelOS,
+		LabelArch,
+
+		labelZoneFailureDomainGA,
+		labelZoneRegionGA,
+		labelInstanceTypeGA,
+	)
+	if kubeletLabels.Has(key) {
+		return true
+	}
+
+	var namespace string
+	if parts := strings.SplitN(key, "/", 2); len(parts) == 2 {
+		namespace = parts[0]
+	}
+	var kubeletLabelNamespaces = sets.NewString(
+		v1.LabelNamespaceSuffixKubelet,
+		v1.LabelNamespaceSuffixNode,
+	)
+	for allowedNamespace := range kubeletLabelNamespaces {
+		if namespace == allowedNamespace || strings.HasSuffix(namespace, "."+allowedNamespace) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // ValidateNodeGroupLabels uses proper Kubernetes label validation,
 // it's designed to make sure users don't pass weird labels to the
 // nodes, which would prevent kubelets to startup properly
@@ -266,7 +312,7 @@ func ValidateNodeGroupLabels(labels map[string]string) error {
 
 		if len(labelParts) == 2 {
 			namespace := labelParts[0]
-			if isKubernetesLabel(namespace) && !kubeletapis.IsKubeletLabel(label) {
+			if isKubernetesLabel(namespace) && !isKubeletLabel(label) {
 				unknownKubernetesLabels = append(unknownKubernetesLabels, label)
 			}
 		}
