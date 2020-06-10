@@ -3,6 +3,8 @@
 _Need help? Join [Weave Community Slack][slackjoin]._
 [slackjoin]: https://slack.weave.works/
 
+### Listing clusters
+
 To list the details about a cluster or all of the clusters, use:
 
 ```
@@ -11,7 +13,9 @@ eksctl get cluster [--name=<name>][--region=<region>]
 
 ```
 
-To create the same kind of basic cluster, but with a different name, run:
+### Basic cluster creation
+
+To create a basic cluster, but with a different name, run:
 
 ```
 
@@ -27,6 +31,8 @@ With `eksctl` you can deploy any of the supported versions by passing `--version
 eksctl create cluster --version=1.16
 
 ```
+
+#### Cluster credentials
 
 To write cluster credentials to a file other than default, run:
 
@@ -60,6 +66,8 @@ eksctl utils write-kubeconfig --cluster=<name> [--kubeconfig=<path>][--set-kubec
 
 ```
 
+### Autoscaling
+
 To use a 3-5 node Auto Scaling Group, run:
 
 ```
@@ -81,6 +89,8 @@ eksctl create cluster --name=cluster-6 --nodes=30 --node-type=c4.xlarge --set-ku
 
 ```
 
+### SSH access
+
 In order to allow SSH access to nodes, `eksctl` imports `~/.ssh/id_rsa.pub` by default, to use a different SSH public key, e.g. `my_eks_node_id.pub`, run:
 
 ```
@@ -97,6 +107,8 @@ eksctl create cluster --ssh-access --ssh-public-key=my_kubernetes_key --region=u
 
 ```
 
+### Tagging
+
 To add custom tags for all resources, use `--tags`.
 
 ```
@@ -104,6 +116,8 @@ To add custom tags for all resources, use `--tags`.
 eksctl create cluster --tags environment=staging --region=us-east-1
 
 ```
+
+### Volume size
 
 To configure node root volume, use the `--node-volume-size` (and optionally `--node-volume-type`), e.g.:
 
@@ -115,6 +129,8 @@ eksctl create cluster --node-volume-size=50 --node-volume-type=io1
 
 !!! note
     In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.
+
+### Config-based creation
 
 You can also create a cluster passing all configuration information in a file
 using `--config-file`:
@@ -134,6 +150,8 @@ eksctl create cluster --config-file=<path> --without-nodegroup
 
 ```
 
+### Deletion
+
 To delete a cluster, run:
 
 ```
@@ -145,7 +163,7 @@ eksctl delete cluster --name=<name> [--region=<region>]
 !!! note
     Cluster info will be cleaned up in kubernetes config file. Please run `kubectl config get-contexts` to select right context.
 
-### Contributions
+## Contributions
 
 Code contributions are very welcome. If you are interested in helping make `eksctl` great then see our [contributing guide](https://github.com/weaveworks/eksctl/blob/master/CONTRIBUTING.md).
 
