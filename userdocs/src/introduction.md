@@ -32,6 +32,26 @@ eksctl create cluster --version=1.16
 
 ```
 
+#### Config-based creation
+
+You can also create a cluster passing all configuration information in a file
+using `--config-file`:
+
+```
+
+eksctl create cluster --config-file=<path>
+
+```
+
+To create a cluster using a configuration file and skip creating
+nodegroups until later:
+
+```
+
+eksctl create cluster --config-file=<path> --without-nodegroup
+
+```
+
 #### Cluster credentials
 
 To write cluster credentials to a file other than default, run:
@@ -81,14 +101,6 @@ eksctl create cluster --name=cluster-5 --nodes-min=3 --nodes-max=5
     note that depending on your workloads you might need to use a separate nodegroup for each AZ. See [Zone-aware
     Auto Scaling](/usage/autoscaling/) for more info.
 
-To use 30 `c4.xlarge` nodes and prevent updating current context in `~/.kube/config`, run:
-
-```
-
-eksctl create cluster --name=cluster-6 --nodes=30 --node-type=c4.xlarge --set-kubeconfig-context=false
-
-```
-
 ### SSH access
 
 In order to allow SSH access to nodes, `eksctl` imports `~/.ssh/id_rsa.pub` by default, to use a different SSH public key, e.g. `my_eks_node_id.pub`, run:
@@ -124,29 +136,6 @@ To configure node root volume, use the `--node-volume-size` (and optionally `--n
 ```
 
 eksctl create cluster --node-volume-size=50 --node-volume-type=io1
-
-```
-
-!!! note
-    In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.
-
-### Config-based creation
-
-You can also create a cluster passing all configuration information in a file
-using `--config-file`:
-
-```
-
-eksctl create cluster --config-file=<path>
-
-```
-
-To create a cluster using a configuration file and skip creating
-nodegroups until later:
-
-```
-
-eksctl create cluster --config-file=<path> --without-nodegroup
 
 ```
 
