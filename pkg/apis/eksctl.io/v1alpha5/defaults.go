@@ -67,6 +67,10 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		ng.VolumeType = &DefaultNodeVolumeType
 	}
 
+	if ng.VolumeSize == nil {
+		ng.VolumeSize = &DefaultNodeVolumeSize
+	}
+
 	if ng.IAM == nil {
 		ng.IAM = &NodeGroupIAM{}
 	}
