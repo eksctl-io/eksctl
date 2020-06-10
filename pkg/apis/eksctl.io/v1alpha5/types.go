@@ -245,7 +245,7 @@ var (
 	DefaultNodeVolumeType = NodeVolumeTypeGP2
 
 	// DefaultNodeVolumeSize defines the default root volume size
-	DefaultNodeVolumeSize = 0
+	DefaultNodeVolumeSize = 80
 )
 
 // Enabled return pointer to true value
