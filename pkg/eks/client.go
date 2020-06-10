@@ -28,15 +28,11 @@ type Client struct {
 
 // NewClient creates a new client config by embedding the STS token
 func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
-	clientConfig := kubeconfig.
-		NewBuilder(spec.Metadata, spec.Status, c.GetUsername()).
-		Build()
-
-	config := &Client{
-		Config: clientConfig,
+	config := kubeconfig.NewForUser(spec, c.GetUsername())
+	client := &Client{
+		Config: config,
 	}
-
-	return config.new(spec, c.Provider.STS())
+	return client.new(spec, c.Provider.STS())
 }
 
 // GetUsername extracts the username part from the IAM role ARN
