@@ -1,7 +1,17 @@
-
 img[src$="#inline"] {
-  height: 23px;
+  height: 25px;
 }
+
+img[src$="#gitinline"] {
+  height: 30px;
+  background: url("img/octocat.svg") no-repeat;
+}
+
+img[src$="#wwinline"] {
+    height: 25px;
+    width: 160px;
+    background: url("img/weaveworks.svg") no-repeat;
+  }
 
 img[src$="#content"] {
   width: $content-img;
@@ -19,4 +29,17 @@ img[src$="#content"] {
 
 #md-header-nav__topic {
   padding: 0px;
+}
+
+[data-md-color-scheme="slate"] img[src$="#wwinline"] {
+  background: url("img/weaveworks-light.svg") no-repeat;
+}
+
+[data-md-color-scheme="slate"] img[src$="#gitinline"] {
+  height: 30px;
+  background: url("img/octocat-light.svg") no-repeat;
+}
+
+[data-md-color-scheme="slate"] #intro-code {
+    background: var(--md-code-bg-color) url("img/eksctl-gopher.png") no-repeat top right;
 }

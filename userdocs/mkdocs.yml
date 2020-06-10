@@ -55,6 +55,7 @@ theme:
         text: 'Montserrat'
         code: 'Roboto Mono'
     palette:
+      scheme: 'slate'
       primary: 'white'
       accent: 'light blue'
     highlightjs: true
