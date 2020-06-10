@@ -318,6 +318,9 @@ func validateNodeGroupIAM(iam *NodeGroupIAM, value, fieldName, path string) erro
 		if IsEnabled(iam.WithAddonPolicies.AppMesh) {
 			return fmtFieldConflictErr(prefix + "appMesh")
 		}
+		if IsEnabled(iam.WithAddonPolicies.AppMeshPreview) {
+			return fmtFieldConflictErr(prefix + "appMeshPreview")
+		}
 		if IsEnabled(iam.WithAddonPolicies.EBS) {
 			return fmtFieldConflictErr(prefix + "ebs")
 		}

@@ -923,6 +923,11 @@ func (in *NodeGroupIAMAddonPolicies) DeepCopyInto(out *NodeGroupIAMAddonPolicies
 		*out = new(bool)
 		**out = **in
 	}
+	if in.AppMeshPreview != nil {
+		in, out := &in.AppMeshPreview, &out.AppMeshPreview
+		*out = new(bool)
+		**out = **in
+	}
 	if in.EBS != nil {
 		in, out := &in.EBS, &out.EBS
 		*out = new(bool)

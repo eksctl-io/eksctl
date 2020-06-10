@@ -90,28 +90,35 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 		)
 	}
 
+	appMeshActions := []string{
+		"servicediscovery:CreateService",
+		"servicediscovery:DeleteService",
+		"servicediscovery:GetService",
+		"servicediscovery:GetInstance",
+		"servicediscovery:RegisterInstance",
+		"servicediscovery:DeregisterInstance",
+		"servicediscovery:ListInstances",
+		"servicediscovery:ListNamespaces",
+		"servicediscovery:ListServices",
+		"servicediscovery:GetInstancesHealthStatus",
+		"servicediscovery:UpdateInstanceCustomHealthStatus",
+		"servicediscovery:GetOperation",
+		"route53:GetHealthCheck",
+		"route53:CreateHealthCheck",
+		"route53:UpdateHealthCheck",
+		"route53:ChangeResourceRecordSets",
+		"route53:DeleteHealthCheck",
+	}
+
 	if api.IsEnabled(iamConfig.WithAddonPolicies.AppMesh) {
 		cfnTemplate.attachAllowPolicy("PolicyAppMesh", refIR, "*",
-			[]string{
-				"appmesh:*",
-				"servicediscovery:CreateService",
-				"servicediscovery:DeleteService",
-				"servicediscovery:GetService",
-				"servicediscovery:GetInstance",
-				"servicediscovery:RegisterInstance",
-				"servicediscovery:DeregisterInstance",
-				"servicediscovery:ListInstances",
-				"servicediscovery:ListNamespaces",
-				"servicediscovery:ListServices",
-				"servicediscovery:GetInstancesHealthStatus",
-				"servicediscovery:UpdateInstanceCustomHealthStatus",
-				"servicediscovery:GetOperation",
-				"route53:GetHealthCheck",
-				"route53:CreateHealthCheck",
-				"route53:UpdateHealthCheck",
-				"route53:ChangeResourceRecordSets",
-				"route53:DeleteHealthCheck",
-			},
+			append(appMeshActions, "appmesh:*"),
+		)
+	}
+
+	if api.IsEnabled(iamConfig.WithAddonPolicies.AppMeshPreview) {
+		cfnTemplate.attachAllowPolicy("PolicyAppMeshPreview", refIR, "*",
+			append(appMeshActions, "appmesh-preview:*"),
 		)
 	}
 

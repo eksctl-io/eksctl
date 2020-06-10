@@ -16,6 +16,7 @@ nodeGroups:
         externalDNS: true
         certManager: true
         appMesh: true
+        appMeshPreview: true
         ebs: true
         fsx: true
         efs: true
