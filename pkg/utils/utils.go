@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/pkg/errors"
 )
 
 // IsGPUInstanceType returns true if the instance type is GPU optimised
@@ -39,4 +40,20 @@ func IsMinVersion(minimumVersion, version string) (bool, error) {
 		return false, fmt.Errorf("unable to parse version %s", version)
 	}
 	return targetVersion.GE(minVersion), nil
+}
+
+// CompareVersions compares two version strings with the usual conventions:
+// returns 0 if a == b
+// returns 1 if a > b
+// returns -1 if b < a
+func CompareVersions(a, b string) (int, error) {
+	aVersion, err := semver.ParseTolerant(a)
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to parse version %q", a)
+	}
+	bVersion, err := semver.ParseTolerant(b)
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to parse version %q", b)
+	}
+	return aVersion.Compare(bVersion), nil
 }
