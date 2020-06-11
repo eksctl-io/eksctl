@@ -1,4 +1,4 @@
-# `eksctl` - The official CLI for Amazon EKS
+# eksctl - The official CLI for Amazon EKS
 
 sponsored by [![Weaveworks](img/empty.svg#wwinline)](https://www.weave.works/) and built by [![Contributors](img/gophers.png#inline)](https://github.com/weaveworks/eksctl/graphs/contributors) on [![Github](img/empty.svg#gitinline)](https://github.com/weaveworks/eksctl)
 

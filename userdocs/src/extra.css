@@ -27,8 +27,12 @@ img[src$="#content"] {
   background: #f5f5f5 url("img/eksctl-gopher.png") no-repeat top right;
 }
 
-#md-header-nav__topic {
-  padding: 0px;
+.md-header-nav__title {
+    padding: 0px;
+}
+
+#dark-mode-button {
+    margin-left: 28px;
 }
 
 [data-md-color-scheme="slate"] img[src$="#wwinline"] {
