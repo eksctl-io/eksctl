@@ -20,13 +20,90 @@ const (
 	cfnIngressClusterToNodeSGResource = "IngressDefaultClusterToNodeSG"
 )
 
-func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
+// A VPCResourceSet builds the resources required for the specified VPC
+type VPCResourceSet struct {
+	*resourceSet
+	availabilityZones []string
+	vpc               *api.ClusterVPC
+
+	VPCResource *gfn.Value
+	Subnets     map[api.SubnetTopology][]*gfn.Value
+}
+
+// NewVPCResourceSet creates and returns a new VPCResourceSet
+func NewVPCResourceSet(rs *resourceSet, vpc *api.ClusterVPC, availabilityZones []string) *VPCResourceSet {
+	var vpcResource *gfn.Value
+	if vpc.ID == "" {
+		vpcResource = rs.newResource("VPC", &gfn.AWSEC2VPC{
+			CidrBlock:          gfn.NewString(vpc.CIDR.String()),
+			EnableDnsSupport:   gfn.True(),
+			EnableDnsHostnames: gfn.True(),
+		})
+	} else {
+		vpcResource = gfn.NewString(vpc.ID)
+	}
+
+	return &VPCResourceSet{
+		resourceSet:       rs,
+		vpc:               vpc,
+		availabilityZones: availabilityZones,
+
+		VPCResource: vpcResource,
+		Subnets:     make(map[api.SubnetTopology][]*gfn.Value),
+	}
+}
+
+// AddResources adds all required resources
+func (v *VPCResourceSet) AddResources() error {
+	if customVPC := v.vpc.ID != ""; customVPC {
+		v.importResources()
+		return nil
+	}
+
+	if api.IsEnabled(v.vpc.AutoAllocateIPv6) {
+		v.newResource("AutoAllocatedCIDRv6", &gfn.AWSEC2VPCCidrBlock{
+			VpcId: v.VPCResource,
+			AmazonProvidedIpv6CidrBlock: gfn.True(),
+		})
+	}
+
+	refIG := v.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
+	vpcGA := "VPCGatewayAttachment"
+	v.newResource(vpcGA, &gfn.AWSEC2VPCGatewayAttachment{
+		InternetGatewayId: refIG,
+		VpcId:             v.VPCResource,
+	})
+
+	refPublicRT := v.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
+		VpcId: v.VPCResource,
+	})
+
+	v.newResource("PublicSubnetRoute", &route{
+		AWSEC2Route: gfn.AWSEC2Route{
+			RouteTableId:         refPublicRT,
+			DestinationCidrBlock: internetCIDR,
+			GatewayId:            refIG,
+		},
+		DependsOn: []string{vpcGA},
+	})
+
+	v.addSubnets(refPublicRT, api.SubnetTopologyPublic, v.vpc.Subnets.Public)
+
+	if err := v.addNATGateways(); err != nil {
+		return err
+	}
+
+	v.addSubnets(nil, api.SubnetTopologyPrivate, v.vpc.Subnets.Private)
+	return nil
+}
+
+func (v *VPCResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) {
 	var subnetIndexForIPv6 int
-	if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
+	if api.IsEnabled(v.vpc.AutoAllocateIPv6) {
 		// this is same kind of indexing we have in vpc.SetSubnets
 		switch topology {
 		case api.SubnetTopologyPrivate:
-			subnetIndexForIPv6 = len(c.spec.AvailabilityZones)
+			subnetIndexForIPv6 = len(v.availabilityZones)
 		case api.SubnetTopologyPublic:
 			subnetIndexForIPv6 = 0
 		}
@@ -37,7 +114,7 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 		subnet := &gfn.AWSEC2Subnet{
 			AvailabilityZone: gfn.NewString(az),
 			CidrBlock:        gfn.NewString(subnet.CIDR.String()),
-			VpcId:            c.vpc,
+			VpcId:            v.VPCResource,
 		}
 
 		switch topology {
@@ -55,13 +132,13 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 			}}
 			subnet.MapPublicIpOnLaunch = gfn.True()
 		}
-		refSubnet := c.newResource("Subnet"+alias, subnet)
-		c.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
+		refSubnet := v.newResource("Subnet"+alias, subnet)
+		v.newResource("RouteTableAssociation"+alias, &gfn.AWSEC2SubnetRouteTableAssociation{
 			SubnetId:     refSubnet,
 			RouteTableId: refRT,
 		})
 
-		if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
+		if api.IsEnabled(v.vpc.AutoAllocateIPv6) {
 			// get 8 of /64 subnets from the auto-allocated IPv6 block,
 			// and pick one block based on subnetIndexForIPv6 counter;
 			// NOTE: this is done inside of CloudFormation using Fn::Cidr,
@@ -73,14 +150,14 @@ func (c *ClusterResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTop
 			refSubnetSlices := gfn.MakeFnCIDR(
 				refAutoAllocateCIDRv6, 8, 64,
 			)
-			c.newResource(alias+"CIDRv6", &gfn.AWSEC2SubnetCidrBlock{
+			v.newResource(alias+"CIDRv6", &gfn.AWSEC2SubnetCidrBlock{
 				SubnetId:      refSubnet,
 				Ipv6CidrBlock: gfn.MakeFnSelect(subnetIndexForIPv6, refSubnetSlices),
 			})
 			subnetIndexForIPv6++
 		}
 
-		c.subnets[topology] = append(c.subnets[topology], refSubnet)
+		v.Subnets[topology] = append(v.Subnets[topology], refSubnet)
 	}
 }
 
@@ -130,102 +207,58 @@ func (r *route) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-//nolint:interfacer
-func (c *ClusterResourceSet) addResourcesForVPC() error {
-
-	c.vpc = c.newResource("VPC", &gfn.AWSEC2VPC{
-		CidrBlock:          gfn.NewString(c.spec.VPC.CIDR.String()),
-		EnableDnsSupport:   gfn.True(),
-		EnableDnsHostnames: gfn.True(),
-	})
-
-	if api.IsEnabled(c.spec.VPC.AutoAllocateIPv6) {
-		c.newResource("AutoAllocatedCIDRv6", &gfn.AWSEC2VPCCidrBlock{
-			VpcId:                       c.vpc,
-			AmazonProvidedIpv6CidrBlock: gfn.True(),
-		})
-	}
-
-	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
-
-	refIG := c.newResource("InternetGateway", &gfn.AWSEC2InternetGateway{})
-	vpcGA := "VPCGatewayAttachment"
-	c.newResource(vpcGA, &gfn.AWSEC2VPCGatewayAttachment{
-		InternetGatewayId: refIG,
-		VpcId:             c.vpc,
-	})
-
-	refPublicRT := c.newResource("PublicRouteTable", &gfn.AWSEC2RouteTable{
-		VpcId: c.vpc,
-	})
-
-	c.newResource("PublicSubnetRoute", &route{
-		AWSEC2Route: gfn.AWSEC2Route{
-			RouteTableId:         refPublicRT,
-			DestinationCidrBlock: internetCIDR,
-			GatewayId:            refIG,
-		},
-		DependsOn: []string{vpcGA},
-	})
-
-	c.addSubnets(refPublicRT, api.SubnetTopologyPublic, c.spec.VPC.Subnets.Public)
-
-	if err := c.addNATGateways(); err != nil {
-		return err
-	}
-
-	c.addSubnets(nil, api.SubnetTopologyPrivate, c.spec.VPC.Subnets.Private)
-	return nil
-}
-
-func (c *ClusterResourceSet) addNATGateways() error {
-
-	switch *c.spec.VPC.NAT.Gateway {
-
+func (v *VPCResourceSet) addNATGateways() error {
+	switch *v.vpc.NAT.Gateway {
 	case api.ClusterHighlyAvailableNAT:
-		c.haNAT()
+		v.haNAT()
 	case api.ClusterSingleNAT:
-		c.singleNAT()
+		v.singleNAT()
 	case api.ClusterDisableNAT:
-		c.noNAT()
+		v.noNAT()
 	default:
 		// TODO validate this before starting to add resources
-		return fmt.Errorf("%s is not a valid NAT gateway mode", *c.spec.VPC.NAT.Gateway)
+		return fmt.Errorf("%s is not a valid NAT gateway mode", *v.vpc.NAT.Gateway)
 	}
 	return nil
 }
 
-func (c *ClusterResourceSet) importResourcesForVPC() {
-	c.vpc = gfn.NewString(c.spec.VPC.ID)
-	c.subnets = make(map[api.SubnetTopology][]*gfn.Value)
-	for _, subnet := range c.spec.PrivateSubnetIDs() {
-		c.subnets[api.SubnetTopologyPrivate] = append(c.subnets[api.SubnetTopologyPrivate], gfn.NewString(subnet))
-	}
-	for _, subnet := range c.spec.PublicSubnetIDs() {
-		c.subnets[api.SubnetTopologyPublic] = append(c.subnets[api.SubnetTopologyPublic], gfn.NewString(subnet))
+func (v *VPCResourceSet) importResources() {
+	getSubnetIDs := func(subnets map[string]api.Network) []*gfn.Value {
+		subnetIDs := make([]*gfn.Value, len(subnets))
+		i := 0
+		for _, network := range subnets {
+			subnetIDs[i] = gfn.NewString(network.ID)
+			i++
+		}
+		return subnetIDs
 	}
 
+	if subnets := v.vpc.Subnets.Private; subnets != nil {
+		v.Subnets[api.SubnetTopologyPrivate] = getSubnetIDs(subnets)
+	}
+	if subnets := v.vpc.Subnets.Public; subnets != nil {
+		v.Subnets[api.SubnetTopologyPublic] = getSubnetIDs(subnets)
+	}
 }
 
-func (c *ClusterResourceSet) addOutputsForVPC() {
-	if c.spec.VPC == nil {
-		c.spec.VPC = &api.ClusterVPC{}
-	}
-	c.rs.defineOutput(outputs.ClusterVPC, c.vpc, true, func(v string) error {
-		c.spec.VPC.ID = v
+// AddOutputs adds VPC resource outputs
+func (v *VPCResourceSet) AddOutputs(provider api.ClusterProvider, clusterConfig *api.ClusterConfig) {
+	v.defineOutput(outputs.ClusterVPC, v.VPCResource, true, func(v string) error {
+		clusterConfig.VPC.ID = v
 		return nil
 	})
-	if c.spec.VPC.NAT != nil {
-		c.rs.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, c.spec.VPC.NAT.Gateway, false)
+	if clusterConfig.VPC.NAT != nil {
+		v.defineOutputWithoutCollector(outputs.ClusterFeatureNATMode, clusterConfig.VPC.NAT.Gateway, false)
 	}
-	if refs, ok := c.subnets[api.SubnetTopologyPrivate]; ok {
-		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPrivate, refs, true, func(v string) error {
-			return vpc.ImportSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPrivate, strings.Split(v, ","))
+
+	if refs, ok := v.Subnets[api.SubnetTopologyPrivate]; ok {
+		v.defineJoinedOutput(outputs.ClusterSubnetsPrivate, refs, true, func(v string) error {
+			return vpc.ImportSubnetsFromList(provider, clusterConfig, api.SubnetTopologyPrivate, strings.Split(v, ","))
 		})
 	}
-	if refs, ok := c.subnets[api.SubnetTopologyPublic]; ok {
-		c.rs.defineJoinedOutput(outputs.ClusterSubnetsPublic, refs, true, func(v string) error {
-			return vpc.ImportSubnetsFromList(c.provider, c.spec, api.SubnetTopologyPublic, strings.Split(v, ","))
+	if refs, ok := v.Subnets[api.SubnetTopologyPublic]; ok {
+		v.defineJoinedOutput(outputs.ClusterSubnetsPublic, refs, true, func(v string) error {
+			return vpc.ImportSubnetsFromList(provider, clusterConfig, api.SubnetTopologyPublic, strings.Split(v, ","))
 		})
 	}
 }
@@ -249,7 +282,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 	if c.spec.VPC.SecurityGroup == "" {
 		refControlPlaneSG = c.newResource(cfnControlPlaneSGResource, &gfn.AWSEC2SecurityGroup{
 			GroupDescription: gfn.NewString("Communication between the control plane and worker nodegroups"),
-			VpcId:            c.vpc,
+			VpcId:            c.vpcResourceSet.VPCResource,
 		})
 	} else {
 		refControlPlaneSG = gfn.NewString(c.spec.VPC.SecurityGroup)
@@ -259,7 +292,7 @@ func (c *ClusterResourceSet) addResourcesForSecurityGroups() {
 	if c.spec.VPC.SharedNodeSecurityGroup == "" {
 		refClusterSharedNodeSG = c.newResource(cfnSharedNodeSGResource, &gfn.AWSEC2SecurityGroup{
 			GroupDescription: gfn.NewString("Communication between all nodes in the cluster"),
-			VpcId:            c.vpc,
+			VpcId:            c.vpcResourceSet.VPCResource,
 		})
 		c.newResource("IngressInterNodeGroupSG", &gfn.AWSEC2SecurityGroupIngress{
 			GroupId:               refClusterSharedNodeSG,
@@ -409,33 +442,32 @@ func (n *NodeGroupResourceSet) addResourcesForSecurityGroups() {
 	}
 }
 
-func (c *ClusterResourceSet) haNAT() {
-
-	for _, az := range c.spec.AvailabilityZones {
+func (v *VPCResourceSet) haNAT() {
+	for _, az := range v.availabilityZones {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 
 		// Allocate an EIP
-		c.newResource("NATIP"+alphanumericUpperAZ, &gfn.AWSEC2EIP{
+		v.newResource("NATIP"+alphanumericUpperAZ, &gfn.AWSEC2EIP{
 			Domain: gfn.NewString("vpc"),
 		})
 		// Allocate a NAT gateway in the public subnet
-		refNG := c.newResource("NATGateway"+alphanumericUpperAZ, &gfn.AWSEC2NatGateway{
+		refNG := v.newResource("NATGateway"+alphanumericUpperAZ, &gfn.AWSEC2NatGateway{
 			AllocationId: gfn.MakeFnGetAttString("NATIP" + alphanumericUpperAZ + ".AllocationId"),
 			SubnetId:     gfn.MakeRef("SubnetPublic" + alphanumericUpperAZ),
 		})
 
 		// Allocate a routing table for the private subnet
-		refRT := c.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
-			VpcId: c.vpc,
+		refRT := v.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
+			VpcId: v.VPCResource,
 		})
 		// Create a route that sends Internet traffic through the NAT gateway
-		c.newResource("NATPrivateSubnetRoute"+alphanumericUpperAZ, &gfn.AWSEC2Route{
+		v.newResource("NATPrivateSubnetRoute"+alphanumericUpperAZ, &gfn.AWSEC2Route{
 			RouteTableId:         refRT,
 			DestinationCidrBlock: internetCIDR,
 			NatGatewayId:         refNG,
 		})
 		// Associate the routing table with the subnet
-		c.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
+		v.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
 			SubnetId:     gfn.MakeRef("SubnetPrivate" + alphanumericUpperAZ),
 			RouteTableId: refRT,
 		})
@@ -443,47 +475,45 @@ func (c *ClusterResourceSet) haNAT() {
 
 }
 
-func (c *ClusterResourceSet) singleNAT() {
-
-	sortedAZs := c.spec.AvailabilityZones
+func (v *VPCResourceSet) singleNAT() {
+	sortedAZs := v.availabilityZones
 	firstUpperAZ := strings.ToUpper(strings.Join(strings.Split(sortedAZs[0], "-"), ""))
 
-	c.newResource("NATIP", &gfn.AWSEC2EIP{
+	v.newResource("NATIP", &gfn.AWSEC2EIP{
 		Domain: gfn.NewString("vpc"),
 	})
-	refNG := c.newResource("NATGateway", &gfn.AWSEC2NatGateway{
+	refNG := v.newResource("NATGateway", &gfn.AWSEC2NatGateway{
 		AllocationId: gfn.MakeFnGetAttString("NATIP.AllocationId"),
 		SubnetId:     gfn.MakeRef("SubnetPublic" + firstUpperAZ),
 	})
 
-	for _, az := range c.spec.AvailabilityZones {
+	for _, az := range v.availabilityZones {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 
-		refRT := c.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
-			VpcId: c.vpc,
+		refRT := v.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
+			VpcId: v.VPCResource,
 		})
 
-		c.newResource("NATPrivateSubnetRoute"+alphanumericUpperAZ, &gfn.AWSEC2Route{
+		v.newResource("NATPrivateSubnetRoute"+alphanumericUpperAZ, &gfn.AWSEC2Route{
 			RouteTableId:         refRT,
 			DestinationCidrBlock: internetCIDR,
 			NatGatewayId:         refNG,
 		})
-		c.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
+		v.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
 			SubnetId:     gfn.MakeRef("SubnetPrivate" + alphanumericUpperAZ),
 			RouteTableId: refRT,
 		})
 	}
 }
 
-func (c *ClusterResourceSet) noNAT() {
-
-	for _, az := range c.spec.AvailabilityZones {
+func (v *VPCResourceSet) noNAT() {
+	for _, az := range v.availabilityZones {
 		alphanumericUpperAZ := strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
 
-		refRT := c.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
-			VpcId: c.vpc,
+		refRT := v.newResource("PrivateRouteTable"+alphanumericUpperAZ, &gfn.AWSEC2RouteTable{
+			VpcId: v.VPCResource,
 		})
-		c.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
+		v.newResource("RouteTableAssociationPrivate"+alphanumericUpperAZ, &gfn.AWSEC2SubnetRouteTableAssociation{
 			SubnetId:     gfn.MakeRef("SubnetPrivate" + alphanumericUpperAZ),
 			RouteTableId: refRT,
 		})
