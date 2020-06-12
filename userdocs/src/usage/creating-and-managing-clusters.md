@@ -11,6 +11,9 @@ eksctl create cluster
 That will create an EKS cluster in your default region (as specified by your AWS CLI configuration) with one
 nodegroup containing 2 m5.large nodes.
 
+!!! note
+    In `us-east-1` you are likely to get `UnsupportedAvailabilityZoneException`. If you do, copy the suggested zones and pass `--zones` flag, e.g. `eksctl create cluster --region=us-east-1 --zones=us-east-1a,us-east-1b,us-east-1d`. This may occur in other regions, but less likely. You shouldn't need to use `--zone` flag otherwise.
+
 After the cluster has been created, the appropriate kubernetes configuration will be added to your kubeconfig file.
 This is, the file that you have configured in the environment variable `KUBECONFIG` or `~/.kube/config` by default.
 The path to the kubeconfig file can be overridden using the `--kubeconfig` flag.
