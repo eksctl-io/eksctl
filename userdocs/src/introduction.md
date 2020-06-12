@@ -131,6 +131,9 @@ eksctl create cluster --tags environment=staging --region=us-east-1
 
 ### Volume size
 
+!!! note
+    The default volume size is 80G.
+
 To configure node root volume, use the `--node-volume-size` (and optionally `--node-volume-type`), e.g.:
 
 ```
