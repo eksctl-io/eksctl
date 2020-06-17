@@ -1,7 +1,7 @@
 #!/bin/sh -ex
 
 
-GIT_REPO_URL="git@github.com:weaveworks/eksctl"
+GIT_REPO_URL="https://github.com/weaveworks/eksctl"
 RELEASE_URL_FORMAT="https://github.com/weaveworks/eksctl/releases/download/%s/eksctl_Linux_amd64.tar.gz"
 
 download_previous_release() {
