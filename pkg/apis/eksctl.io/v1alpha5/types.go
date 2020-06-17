@@ -112,6 +112,9 @@ const (
 	// Version1_16 represents Kubernetes version 1.16.x
 	Version1_16 = "1.16"
 
+	// Version1_17 represents Kubernetes version 1.16.x
+	Version1_17 = "1.17"
+
 	// DefaultVersion represents default Kubernetes version supported by EKS
 	DefaultVersion = Version1_16
 
@@ -310,6 +313,16 @@ func DeprecatedVersions() []string {
 	}
 }
 
+// IsDeprecatedVersion returns true if the given Kubernetes version has been deprecated in EKS
+func IsDeprecatedVersion(version string) bool {
+	for _, v := range DeprecatedVersions() {
+		if version == v {
+			return true
+		}
+	}
+	return false
+}
+
 // SupportedVersions are the versions of Kubernetes that EKS supports
 func SupportedVersions() []string {
 	return []string{
@@ -318,6 +331,16 @@ func SupportedVersions() []string {
 		Version1_15,
 		Version1_16,
 	}
+}
+
+// IsSupportedVersion returns true if the given version is a Kubernetes supported by eksctl and EKS
+func IsSupportedVersion(version string) bool {
+	for _, v := range SupportedVersions() {
+		if version == v {
+			return true
+		}
+	}
+	return false
 }
 
 // SupportedNodeVolumeTypes are the volume types that can be used for a node root volume
