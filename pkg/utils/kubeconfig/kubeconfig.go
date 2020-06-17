@@ -25,7 +25,10 @@ const (
 	HeptioAuthenticatorAWS = "heptio-authenticator-aws"
 	// AWSEKSAuthenticator defines the recently added `aws eks get-token` command
 	AWSEKSAuthenticator = "aws"
-	// Shadowing the default kubeconfig path environment variable
+	// AWS2EKSAuthenticator defines the name of the AWS CLI v2 command, in case
+	// it isn't available as `aws`
+	AWS2EKSAuthenticator = "aws2"
+	// RecommendedConfigPathEnvVar shadows the default kubeconfig path environment variable
 	RecommendedConfigPathEnvVar = clientcmd.RecommendedConfigPathEnvVar
 )
 
@@ -43,6 +46,7 @@ func AuthenticatorCommands() []string {
 		AWSIAMAuthenticator,
 		HeptioAuthenticatorAWS,
 		AWSEKSAuthenticator,
+		AWS2EKSAuthenticator,
 	}
 }
 
@@ -155,7 +159,7 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 				Value: clusterMeta.Region,
 			})
 		}
-	case AWSEKSAuthenticator:
+	case AWSEKSAuthenticator, AWS2EKSAuthenticator:
 		args = []string{"eks", "get-token", "--cluster-name", clusterMeta.Name}
 		roleARNFlag = "--role-arn"
 		if clusterMeta.Region != "" {
