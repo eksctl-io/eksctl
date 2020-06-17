@@ -29,8 +29,8 @@ func checkVersion(cmd *cmdutils.Cmd, ctl *eks.ClusterProvider, meta *api.Cluster
 		meta.Version = api.LatestVersion
 		logger.Info("will use latest version (%s) for new nodegroup(s)", meta.Version)
 	default:
-		if !isValidVersion(meta.Version) {
-			if isDeprecatedVersion(meta.Version) {
+		if !api.IsSupportedVersion(meta.Version) {
+			if api.IsDeprecatedVersion(meta.Version) {
 				return fmt.Errorf("invalid version, %s is no longer supported, supported values: auto, default, latest, %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", meta.Version, strings.Join(api.SupportedVersions(), ", "))
 			}
 			return fmt.Errorf("invalid version %s, supported values: auto, default, latest, %s", meta.Version, strings.Join(api.SupportedVersions(), ", "))
@@ -68,22 +68,4 @@ func showDevicePluginMessageForNodeGroup(nodeGroup *api.NodeGroup, installNeuron
 		logger.Info("as you are using a GPU optimized instance type you will need to install NVIDIA Kubernetes device plugin.")
 		logger.Info("\t see the following page for instructions: https://github.com/NVIDIA/k8s-device-plugin")
 	}
-}
-
-func isValidVersion(version string) bool {
-	for _, v := range api.SupportedVersions() {
-		if version == v {
-			return true
-		}
-	}
-	return false
-}
-
-func isDeprecatedVersion(version string) bool {
-	for _, v := range api.DeprecatedVersions() {
-		if version == v {
-			return true
-		}
-	}
-	return false
 }

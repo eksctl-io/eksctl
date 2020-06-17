@@ -2,7 +2,7 @@
 
 An _`eksctl`-managed_ cluster can be upgraded in 3 easy steps:
 
-1. update control plane version with `eksctl upgrade cluster`
+1. upgrade control plane version with `eksctl upgrade cluster`
 2. update default add-ons:
     - `kube-proxy`
     - `aws-node`
@@ -23,9 +23,9 @@ Please make sure to read this section in full before you proceed.
 
 ## Updating control plane version
 
-Control plane version updates must be done for one minor version at a time.
+Control plane version upgrades must be done for one minor version at a time.
 
-To update control plane to the next available version run:
+To upgrade control plane to the next available version run:
 
 ```
 eksctl upgrade cluster --name=<clusterName>
@@ -34,9 +34,36 @@ eksctl upgrade cluster --name=<clusterName>
 This command will not apply any changes right away, you will need to re-run it with
 `--approve` to apply the changes.
 
-## Updating nodegroups
+The target version for the cluster upgrade can be specified both with the CLI flag:
 
-You should update nodegroups only after you ran `eksctl upgrade cluster`.
+```
+eksctl upgrade cluster --name<clusterName> --version=1.16
+```
+
+or with the config file
+
+```
+cat cluster1.yaml
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-1
+  region: eu-north-1
+  version: "1.16"
+
+eksctl upgrade cluster --config-file cluster1.yaml
+```
+
+!!!warning
+    The only values allowed for the `--version` and `metadata.version` arguments are the current version of the cluster
+    or one version higher. Upgrades of more than one Kubernetes version are not supported at the moment.
+
+
+## Upgrading nodegroups
+
+You should upgrading nodegroups only after you ran `eksctl upgrade cluster`.
 
 If you have a simple cluster with just an initial nodegroup (i.e. created with
 `eksctl create cluster`), the process is very simple.
@@ -93,7 +120,7 @@ eksctl delete nodegroup --cluster=<clusterName> --name=<oldNodeGroupName>
 If you are using config file, you will need to do the following.
 
 Edit config file to add new nodegroups, and remove old nodegroups.
-If you just want to update nodegroups and keep the same configuration,
+If you just want to upgrade nodegroups and keep the same configuration,
 you can just change nodegroup names, e.g. append `-v2` to the name.
 
 To create all of new nodegroups defined in the config file, run:
