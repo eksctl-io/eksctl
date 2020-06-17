@@ -492,7 +492,6 @@ func IsWindowsImage(imageFamily string) bool {
 	return imageFamily == NodeImageFamilyWindowsServer2019CoreContainer ||
 		imageFamily == NodeImageFamilyWindowsServer2019FullContainer ||
 		imageFamily == NodeImageFamilyWindowsServer1909CoreContainer
-
 }
 
 func validateCIDRs(cidrs []string) ([]string, error) {
