@@ -129,6 +129,10 @@ func UseFromCluster(provider api.ClusterProvider, stack *cfn.Stack, spec *api.Cl
 		outputs.ClusterSubnetsPublic: func(v string) error {
 			return ImportSubnetsFromList(provider, spec, api.SubnetTopologyPublic, strings.Split(v, ","))
 		},
+		outputs.ClusterFullyPrivate: func(v string) error {
+			spec.PrivateCluster.Enabled = v == "true"
+			return nil
+		},
 	}
 
 	if !outputs.Exists(*stack, outputs.ClusterSubnetsPublic) &&

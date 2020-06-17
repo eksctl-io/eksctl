@@ -35,7 +35,7 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 		spec:                 spec,
 		provider:             provider,
 		supportsManagedNodes: supportsManagedNodes,
-		vpcResourceSet:       NewVPCResourceSet(rs, spec.VPC, spec.AvailabilityZones),
+		vpcResourceSet:       NewVPCResourceSet(rs, spec.VPC, spec.AvailabilityZones, spec.PrivateCluster.Enabled),
 	}
 }
 
@@ -59,15 +59,24 @@ func (c *ClusterResourceSet) AddAllResources() error {
 		return err
 	}
 
-	if err := c.vpcResourceSet.AddResources(); err != nil {
+	vpcResource, err := c.vpcResourceSet.AddResources()
+	if err != nil {
 		return errors.Wrap(err, "error adding VPC resources")
 	}
 
 	c.vpcResourceSet.AddOutputs(c.provider, c.spec)
+	clusterSG := c.addResourcesForSecurityGroups(vpcResource)
 
-	c.addResourcesForSecurityGroups()
+	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled {
+		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.provider, c.rs, vpcResource.VPC, vpcResource.SubnetDetails.Private, privateCluster.AdditionalEndpointServices, clusterSG)
+
+		if err := vpcEndpointResourceSet.AddResources(); err != nil {
+			return errors.Wrap(err, "error adding resources for VPC endpoints")
+		}
+	}
+
 	c.addResourcesForIAM()
-	c.addResourcesForControlPlane()
+	c.addResourcesForControlPlane(vpcResource.SubnetDetails)
 
 	if len(c.spec.FargateProfiles) > 0 {
 		c.addResourcesForFargate()
@@ -143,13 +152,13 @@ type encryptionConfig struct {
 
 type awsEKSCluster gfn.AWSEKSCluster
 
-func (c *ClusterResourceSet) addResourcesForControlPlane() {
+func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDetails) {
 	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
 		SecurityGroupIds: c.securityGroups,
 	}
-	for topology := range c.vpcResourceSet.Subnets {
-		clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, c.vpcResourceSet.Subnets[topology]...)
-	}
+
+	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PublicSubnetIDs()...)
+	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PrivateSubnetIDs()...)
 
 	serviceRoleARN := gfn.MakeFnGetAttString("ServiceRole.Arn")
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {
