@@ -28,6 +28,10 @@ func SetClusterConfigDefaults(cfg *ClusterConfig) {
 			cfg.CloudWatch.ClusterLogging.EnableTypes = SupportedCloudWatchClusterLogTypes()
 		}
 	}
+
+	if cfg.PrivateCluster == nil {
+		cfg.PrivateCluster = &PrivateCluster{}
+	}
 }
 
 // SetNodeGroupDefaults will set defaults for a given nodegroup

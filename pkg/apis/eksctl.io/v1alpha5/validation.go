@@ -109,6 +109,15 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		return errors.New("field secretsEncryption.keyARN is required for enabling secrets encryption")
 	}
 
+	if cfg.PrivateCluster.Enabled {
+		// TODO validate cluster endpoint access
+		if additionalServices := cfg.PrivateCluster.AdditionalEndpointServices; len(additionalServices) > 0 {
+			if err := ValidateAdditionalEndpointServices(additionalServices); err != nil {
+				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
+			}
+		}
+	}
+
 	return nil
 }
 
