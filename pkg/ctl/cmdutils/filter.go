@@ -85,31 +85,40 @@ func (f *Filter) Match(name string) bool {
 		return true // empty rules - include
 	}
 
-	mustInclude := false // use this override when rules overlap
-
 	if hasIncludeRules {
-		mustInclude = f.includeNames.Has(name)
+		// Overwrites by name take precedence. And inclusion takes precedence over exclusion
+		if f.includeNames.Has(name) {
+			return true
+		}
+
 		if f.matchGlobs(name, f.includeGlobs) {
-			mustInclude = true
+			if hasExcludeRules {
+				// included by glob but excluded by name
+				if f.excludeNames.Has(name) {
+					return false
+				}
+			}
+			// Even if it is excluded by a globe inclusion takes precedence over exclusion
+			return true
 		}
-		if !hasExcludeRules {
-			// empty exclusion rules - explicit inclusion mode
-			return mustInclude
-		}
+
+		// if there are include rules and it doesn't match then it must be excluded regardless of the exclude rules
+		return false
 	}
 
+	// With only exclusion rules, everything that is not excluded is included
 	if hasExcludeRules {
-		exclude := f.excludeNames.Has(name)
-		if f.matchGlobs(name, f.excludeGlobs) {
-			exclude = true
-		}
-		if exclude && !mustInclude {
-			// exclude, unless overridden by an inclusion rule
+		// Overwrites by name take precedence
+		if f.excludeNames.Has(name) {
 			return false
 		}
+		if f.matchGlobs(name, f.excludeGlobs) {
+			return false
+		}
+		return true
 	}
 
-	return true // biased to include
+	return false
 }
 
 // doMatchAll all names against the filter and return two sets of names - included and excluded

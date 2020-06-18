@@ -25,6 +25,16 @@ a subset via `--include=<glob,glob,...>` and `--exclude=<glob,glob,...>`:
 eksctl create nodegroup --config-file=<path> --include='ng-prod-*-??' --exclude='ng-test-1-ml-a,ng-test-2-?'
 ```
 
+### Include and exclude rules
+
+The behavior of the `eksctl create nodegroup` command is modified by these flags in the following way:
+
+- if no `--include` or `--exclude` are specified everything is included
+- if only `--include` is specified only nodegroups that mach those globs will be included
+- if only `--exclude` is specified all nodegroups that do not match those globes are included
+- if both are specified then `--exclude` rules take precedence over `--include` (i.e. nodegroups that match rules in
+both groups will be excluded)
+
 ### Creating a nodegroup from a config file
 
 Nodegroups can also be created through a cluster definition or config file. Given the following example config file
@@ -157,6 +167,9 @@ To delete a nodegroup, run:
 ```
 eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
 ```
+
+[Include and exclude rules](#include-and-exclude-rules) can also be used with this command.
+
 
 !!!note
     This will drain all pods from that nodegroup before the instances are deleted.
