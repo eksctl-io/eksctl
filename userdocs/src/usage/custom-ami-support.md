@@ -28,6 +28,7 @@ The `--node-ami-family` can take following keywords:
 | Ubuntu1804                     | Indicates that the EKS AMI image based on Ubuntu 18.04 should be used.                       |
 | WindowsServer2019FullContainer | Indicates that the EKS AMI image based on Windows Server 2019 Full Container should be used. |
 | WindowsServer2019CoreContainer | Indicates that the EKS AMI image based on Windows Server 2019 Core Container should be used. |
+| WindowsServer1909CoreContainer | Indicates that the EKS AMI image based on Windows Server 1909 Core Container should be used. |
 
 <!-- TODO for 0.3.0
 To use more advanced configuration options, [Cluster API](https://github.com/kubernetes-sigs/cluster-api):
