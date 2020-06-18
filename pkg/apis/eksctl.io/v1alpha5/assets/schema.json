@@ -186,7 +186,9 @@
           "default": "{}"
         },
         "attachPolicy": {
-          "$ref": "#/definitions/InlineDocument"
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach to this service account",
+          "x-intellij-html-description": "holds a policy document to attach to this service account"
         },
         "attachPolicyARNs": {
           "items": {
@@ -289,8 +291,8 @@
         "tags"
       ],
       "additionalProperties": false,
-      "description": "what identifies a cluster",
-      "x-intellij-html-description": "what identifies a cluster"
+      "description": "contains general cluster information",
+      "x-intellij-html-description": "contains general cluster information"
     },
     "ClusterNAT": {
       "properties": {
@@ -406,8 +408,8 @@
         },
         "subnets": {
           "$ref": "#/definitions/ClusterSubnets",
-          "description": "subnets are either public or private for use with separate nodegroups these are keyed by AZ for convenience",
-          "x-intellij-html-description": "subnets are either public or private for use with separate nodegroups these are keyed by AZ for convenience"
+          "description": "subnets are either public or private for use with separate nodegroups, these are keyed by AZ for convenience",
+          "x-intellij-html-description": "subnets are either public or private for use with separate nodegroups, these are keyed by AZ for convenience"
         }
       },
       "preferredOrder": [
@@ -1217,8 +1219,8 @@
     },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",
-      "description": "wraps net.IPNet to get CIDR serialization.",
-      "x-intellij-html-description": "wraps net.IPNet to get CIDR serialization."
+      "description": "an IP address in CIDR notation",
+      "x-intellij-html-description": "an IP address in CIDR notation"
     }
   }
 }

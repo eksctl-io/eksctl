@@ -369,7 +369,7 @@ func EKSResourceAccountID(region string) string {
 	}
 }
 
-// ClusterMeta is what identifies a cluster
+// ClusterMeta contains general cluster information
 type ClusterMeta struct {
 	Name   string `json:"name" jsonschema:"required"`
 	Region string `json:"region" jsonschema:"required"`

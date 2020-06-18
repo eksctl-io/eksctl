@@ -15,7 +15,8 @@ type (
 		Network // global CIDR and VPC ID
 		// +optional
 		SecurityGroup string `json:"securityGroup,omitempty"` // cluster SG
-		// subnets are either public or private for use with separate nodegroups
+		// subnets are either public or private for use with separate
+		// nodegroups,
 		// these are keyed by AZ for convenience
 		// +optional
 		Subnets *ClusterSubnets `json:"subnets,omitempty"`
