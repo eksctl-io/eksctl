@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io"
-	v1alpha5 "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	schemapkg "github.com/weaveworks/eksctl/pkg/schema"
 )
 
@@ -35,9 +35,6 @@ func main() {
 		t.HTMLDescription = ""
 	}
 
-	if err != nil {
-		panic(err)
-	}
 	bytes, err := schemapkg.ToJSON(schema)
 	if err != nil {
 		panic(err)

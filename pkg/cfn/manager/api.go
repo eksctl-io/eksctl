@@ -261,7 +261,7 @@ func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...
 
 // ListStacks gets all of CloudFormation stacks
 func (c *StackCollection) ListStacks(statusFilters ...string) ([]*Stack, error) {
-	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name))
+	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name), statusFilters...)
 }
 
 // StackStatusIsNotTransitional will return true when stack status is non-transitional
