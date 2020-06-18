@@ -11,6 +11,8 @@ import (
 )
 
 func waitNodesCmd(cmd *cmdutils.Cmd) {
+	cmd.CobraCommand.Deprecated = "This command will be removed in version 0.26.0, if you use it please let us know at https://github.com/weaveworks/eksctl/issues/1185."
+	cmd.CobraCommand.Hidden = true
 	cfg := api.NewClusterConfig()
 	ng := cfg.NewNodeGroup()
 	cmd.ClusterConfig = cfg
