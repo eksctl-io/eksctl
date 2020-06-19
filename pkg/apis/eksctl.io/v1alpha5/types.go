@@ -828,12 +828,19 @@ func (n *NodeGroup) GetAMIFamily() string {
 }
 
 type (
-	// NodeGroupSGs holds all SG attributes of a NodeGroup
+	// NodeGroupSGs controls security groups for this nodegroup
 	NodeGroupSGs struct {
+		// AttachIDs attaches additional security groups to the nodegroup
 		// +optional
 		AttachIDs []string `json:"attachIDs,omitempty"`
+		// WithShared attach the security group
+		// shared among all nodegroups in the cluster
+		// Defaults to `true`
 		// +optional
 		WithShared *bool `json:"withShared"`
+		// WithLocal attach a security group
+		// local to this nodegroup
+		// Defaults to `true`
 		// +optional
 		WithLocal *bool `json:"withLocal"`
 	}

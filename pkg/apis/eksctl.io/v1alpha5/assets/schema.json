@@ -1047,13 +1047,21 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "attaches additional security groups to the nodegroup",
+          "x-intellij-html-description": "attaches additional security groups to the nodegroup"
         },
         "withLocal": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "attach a security group local to this nodegroup",
+          "x-intellij-html-description": "attach a security group local to this nodegroup",
+          "default": "true"
         },
         "withShared": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "attach the security group shared among all nodegroups in the cluster",
+          "x-intellij-html-description": "attach the security group shared among all nodegroups in the cluster",
+          "default": "true"
         }
       },
       "preferredOrder": [
@@ -1062,8 +1070,8 @@
         "withLocal"
       ],
       "additionalProperties": false,
-      "description": "holds all SG attributes of a NodeGroup",
-      "x-intellij-html-description": "holds all SG attributes of a NodeGroup"
+      "description": "controls security groups for this nodegroup",
+      "x-intellij-html-description": "controls security groups for this nodegroup"
     },
     "NodeGroupSSH": {
       "properties": {
