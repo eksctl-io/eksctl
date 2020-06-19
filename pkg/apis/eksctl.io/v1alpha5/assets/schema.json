@@ -675,8 +675,8 @@
       "properties": {
         "ami": {
           "type": "string",
-          "description": "Specify [custom AMIs](usage/custom-ami-support/)",
-          "x-intellij-html-description": "Specify <a href=\"usage/custom-ami-support/\">custom AMIs</a>",
+          "description": "Specify [custom AMIs](usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
+          "x-intellij-html-description": "Specify <a href=\"usage/custom-ami-support/\">custom AMIs</a>, &quot;auto-ssm&quot;, &quot;auto&quot;, or &quot;static&quot;",
           "default": ""
         },
         "amiFamily": {

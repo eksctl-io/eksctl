@@ -629,7 +629,7 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 // specific to a nodegroup
 type NodeGroup struct {
 	Name string `json:"name" jsonschema:"required"`
-	// Specify [custom AMIs](usage/custom-ami-support/)
+	// Specify [custom AMIs](usage/custom-ami-support/), "auto-ssm", "auto", or "static"
 	// +optional
 	AMI string `json:"ami,omitempty"`
 	// +optional
