@@ -127,15 +127,6 @@ const (
 	// DefaultNodeCount defines the default number of nodes to be created
 	DefaultNodeCount = 2
 
-	// NodeVolumeTypeGP2 is General Purpose SSD
-	NodeVolumeTypeGP2 = "gp2"
-	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
-	NodeVolumeTypeIO1 = "io1"
-	// NodeVolumeTypeSC1 is Throughput Optimized HDD
-	NodeVolumeTypeSC1 = "sc1"
-	// NodeVolumeTypeST1 is Cold HDD
-	NodeVolumeTypeST1 = "st1"
-
 	// DefaultNodeImageFamily defines the default image family for the worker nodes
 	DefaultNodeImageFamily = NodeImageFamilyAmazonLinux2
 	// NodeImageFamilyAmazonLinux2 represents Amazon Linux 2 family
@@ -226,6 +217,18 @@ const (
 
 	// eksResourceAccountUSGovEast1 defines the AWS EKS account ID that provides node resources in us-gov-east-1
 	eksResourceAccountUSGovEast1 = "151742754352"
+)
+
+// Values for `VolumeType`
+const (
+	// NodeVolumeTypeGP2 is General Purpose SSD (default)
+	NodeVolumeTypeGP2 = "gp2"
+	// NodeVolumeTypeIO1 is Provisioned IOPS SSD
+	NodeVolumeTypeIO1 = "io1"
+	// NodeVolumeTypeSC1 is Throughput Optimized HDD
+	NodeVolumeTypeSC1 = "sc1"
+	// NodeVolumeTypeST1 is Cold HDD
+	NodeVolumeTypeST1 = "st1"
 )
 
 // NodeGroupType defines the nodegroup type
@@ -699,6 +702,7 @@ type NodeGroup struct {
 	// Defaults to `80`
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
+	// Valid variants are `VolumeType` constants
 	// +optional
 	VolumeType *string `json:"volumeType,omitempty"`
 	// +optional
