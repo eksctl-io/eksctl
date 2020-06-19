@@ -1,10 +1,9 @@
 package definition
 
 import (
-	"go/ast"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/eksctl/pkg/schema/importer"
 )
 
 var _ = Describe("HandleComment", func() {
@@ -12,8 +11,8 @@ var _ = Describe("HandleComment", func() {
 		def := &Definition{}
 		comment := `Struct holds some info
 		Schema type is ` + "`string`"
-		dummy := func(path string) (*ast.Object, error) {
-			return nil, nil
+		dummy := func(path string) (importer.PackageInfo, error) {
+			return importer.PackageInfo{}, nil
 		}
 		dg := Generator{Strict: false, Importer: dummy}
 		noderive, err := dg.handleComment("Struct", comment, def)
@@ -24,11 +23,15 @@ var _ = Describe("HandleComment", func() {
 	})
 })
 
-var _ = Describe("GetTypeName", func() {
-	It("handles imported types", func() {
-		Expect(getTypeName("some/pkg.Thing")).To(Equal("Thing"))
+var _ = Describe("interpretReference", func() {
+	It("interprets root name", func() {
+		pkg, name := interpretReference("SomeType")
+		Expect(name).To(Equal("SomeType"))
+		Expect(pkg).To(Equal(""))
 	})
-	It("handles in scope types", func() {
-		Expect(getTypeName("Thing")).To(Equal("Thing"))
+	It("interprets pkg name", func() {
+		pkg, name := interpretReference("some/pkg.SomeType")
+		Expect(name).To(Equal("SomeType"))
+		Expect(pkg).To(Equal("some/pkg"))
 	})
 })

@@ -22,7 +22,7 @@ var _ = Describe("GenerateSchema", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 	It("handles the top level definition", func() {
-		props := []string{"num", "option", "pointeroption", "packageoption", "aliasedint", "unknown", "other", "version"}
+		props := []string{"num", "option", "pointeroption", "packageoption", "aliasedint", "unknown", "other", "version", "kind"}
 		expected := Fields{
 			"PreferredOrder":       Equal(props),
 			"AdditionalProperties": Equal(false),
@@ -77,6 +77,17 @@ var _ = Describe("GenerateSchema", func() {
 		}
 		Expect(configDef().Properties).To(HaveKey("version"))
 		Expect(*configDef().Properties["version"]).To(BeEquivalentTo(expected))
+	})
+	It("handles enums by reference", func() {
+		expected := definition.Definition{
+			Type:            "string",
+			Default:         "SecondKind",
+			Enum:            []string{"FirstKind", "SecondKind"},
+			Description:     "Tells us which kind of config. Valid variants are: `\"FirstKind\"` is legacy, `\"SecondKind\"` should be used (default).",
+			HTMLDescription: "Tells us which kind of config. Valid variants are: <code>&quot;FirstKind&quot;</code> is legacy, <code>&quot;SecondKind&quot;</code> should be used (default).",
+		}
+		Expect(configDef().Properties).To(HaveKey("kind"))
+		Expect(*configDef().Properties["kind"]).To(BeEquivalentTo(expected))
 	})
 	It("finds referenced structs", func() {
 		When("directly referenced", func() {

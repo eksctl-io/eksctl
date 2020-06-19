@@ -17,8 +17,19 @@ type Config struct {
 	// `LegacyVersion`: Will be deprecated,
 	// `TwoPointO`,
 	// `"2"`
-	Version       string  `json:"version"`
+	Version string `json:"version"`
+	// Tells us which kind of config.
+	// Valid variants are `Kind` constants
+	Kind string `json:"kind"`
 }
+
+// Values for `Kind`
+const (
+	// firstKind is legacy
+	firstKind = "FirstKind" // nolint:deadcode,varcheck,unused
+	// secondKind should be used (default)
+	secondKind = "SecondKind" // nolint:deadcode,varcheck,unused
+)
 
 // Alias is just an int
 type Alias int
