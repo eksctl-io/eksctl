@@ -24,6 +24,10 @@ func NewNodeGroupService(clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2AP
 // NormalizeManaged normalizes managed nodegroups
 func (m *NodeGroupService) NormalizeManaged(nodeGroups []*api.NodeGroupBase) error {
 	for _, ng := range nodeGroups {
+		// load or use SSH key - name includes cluster name and the
+		// fingerprint, so if unique keys are provided, each will get
+		// loaded and used as intended and there is no need to have
+		// nodegroup name in the key name
 		publicKeyName, err := ssh.LoadKey(ng.SSH, m.cluster.Metadata.Name, ng.Name, m.ec2API)
 		if err != nil {
 			return err
