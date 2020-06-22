@@ -124,7 +124,7 @@ func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 
 	for i, sd := range output.ServiceDetails {
 		if len(sd.ServiceType) > 1 {
-			return nil, errors.Errorf("endpoint service %q with multiple service types isn't supported", sd.ServiceName)
+			return nil, errors.Errorf("endpoint service %q with multiple service types isn't supported", *sd.ServiceName)
 		}
 
 		serviceDetails[i] = VPCEndpointServiceDetails{

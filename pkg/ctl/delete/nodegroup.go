@@ -100,7 +100,9 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		case api.NodeGroupTypeManaged:
 			cfg.ManagedNodeGroups = []*api.ManagedNodeGroup{
 				{
-					Name: ng.Name,
+					NodeGroupBase: &api.NodeGroupBase{
+						Name: ng.Name,
+					},
 				},
 			}
 		}

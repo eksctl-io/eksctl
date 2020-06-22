@@ -92,7 +92,7 @@ func NewVPCResourceSet(rs *resourceSet, vpc *api.ClusterVPC, availabilityZones [
 func (v *VPCResourceSet) AddResources() (*VPCResource, error) {
 	if customVPC := v.vpc.ID != ""; customVPC {
 		v.importResources()
-		return nil, nil
+		return v.vpcResource, nil
 	}
 
 	if api.IsEnabled(v.vpc.AutoAllocateIPv6) {

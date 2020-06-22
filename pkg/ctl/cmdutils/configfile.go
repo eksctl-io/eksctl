@@ -356,22 +356,9 @@ func NewCreateNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *filter.Node
 }
 
 func makeManagedNodegroup(nodeGroup *api.NodeGroup) *api.ManagedNodeGroup {
+	ngBase := *nodeGroup.NodeGroupBase
 	return &api.ManagedNodeGroup{
-		AvailabilityZones: nodeGroup.AvailabilityZones,
-		Name:              nodeGroup.Name,
-		IAM:               nodeGroup.IAM,
-		SSH:               nodeGroup.SSH,
-		InstanceType:      nodeGroup.InstanceType,
-		Labels:            nodeGroup.Labels,
-		Tags:              nodeGroup.Tags,
-		AMIFamily:         nodeGroup.AMIFamily,
-		VolumeSize:        nodeGroup.VolumeSize,
-		PrivateNetworking: nodeGroup.PrivateNetworking,
-		ScalingConfig: &api.ScalingConfig{
-			MinSize:         nodeGroup.MinSize,
-			MaxSize:         nodeGroup.MaxSize,
-			DesiredCapacity: nodeGroup.DesiredCapacity,
-		},
+		NodeGroupBase: &ngBase,
 	}
 }
 
