@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
@@ -67,6 +68,9 @@ func UpdateCoreDNS(rawClient kubernetes.RawClientInterface, region, controlPlane
 			}
 			if err := addons.UseRegionalImage(&deployment.Spec.Template, region); err != nil {
 				return false, err
+			}
+			if computeType, ok := kubeDNSDeployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey]; ok {
+				deployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey] = computeType
 			}
 			tagMismatch, err = addons.ImageTagsDiffer(
 				deployment.Spec.Template.Spec.Containers[0].Image,
