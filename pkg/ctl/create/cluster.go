@@ -269,7 +269,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 
 		// load or use SSH key - name includes cluster name and the
-		// fingerprint, so if unique keys provided, each will get
+		// fingerprint, so if unique keys are provided, each will get
 		// loaded and used as intended and there is no need to have
 		// nodegroup name in the key name
 		publicKeyName, err := ssh.LoadKey(ng.SSH, meta.Name, ng.Name, ctl.Provider.EC2())
@@ -282,7 +282,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 	}
 
 	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
-	if err := nodeGroupService.NormalizeManaged(cfg.ManagedNodeGroups); err != nil {
+	if err := nodeGroupService.NormalizeManaged(cmdutils.ToBaseNodeGroups(cfg)); err != nil {
 		return err
 	}
 
