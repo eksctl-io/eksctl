@@ -157,6 +157,12 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
+	// Read existing tags
+	s, err := c.DescribeStack(i)
+	if err != nil {
+		return err
+	}
+	i.SetTags(s.Tags)
 	if err := c.doCreateChangeSetRequest(i, changeSetName, description, templateData, parameters, true); err != nil {
 		return err
 	}
@@ -493,6 +499,7 @@ func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName strin
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
+		Tags:          append(i.Tags, c.sharedTags...),
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
