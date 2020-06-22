@@ -474,7 +474,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Status: &api.ClusterStatus{
 				Endpoint:                 endpoint,
 				CertificateAuthorityData: caCertData,
-				ARN:                      arn,
+				ARN: arn,
 			},
 			AvailabilityZones: testAZs,
 			VPC:               testVPC(),
@@ -484,44 +484,48 @@ var _ = Describe("CloudFormation template builder API", func() {
 			CloudWatch: &api.ClusterCloudWatch{
 				ClusterLogging: &api.ClusterCloudWatchLogging{},
 			},
+			PrivateCluster: &api.PrivateCluster{},
 			NodeGroups: []*api.NodeGroup{
 				{
-					AMI:               "",
-					AMIFamily:         "AmazonLinux2",
-					InstanceType:      "t2.medium",
-					Name:              "ng-abcd1234",
-					PrivateNetworking: false,
+					NodeGroupBase: &api.NodeGroupBase{
+						AMIFamily:         "AmazonLinux2",
+						InstanceType:      "t2.medium",
+						Name:              "ng-abcd1234",
+						PrivateNetworking: false,
+						VolumeSize:        aws.Int(2),
+						IAM: &api.NodeGroupIAM{
+							WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
+								ImageBuilder:   api.Disabled(),
+								AutoScaler:     api.Disabled(),
+								ExternalDNS:    api.Disabled(),
+								CertManager:    api.Disabled(),
+								AppMesh:        api.Disabled(),
+								AppMeshPreview: api.Disabled(),
+								EBS:            api.Disabled(),
+								FSX:            api.Disabled(),
+								EFS:            api.Disabled(),
+								ALBIngress:     api.Disabled(),
+								XRay:           api.Disabled(),
+								CloudWatch:     api.Disabled(),
+							},
+						},
+						ScalingConfig: &api.ScalingConfig{},
+						SSH: &api.NodeGroupSSH{
+							Allow:         api.Disabled(),
+							PublicKeyPath: &api.DefaultNodeSSHPublicKeyPath,
+						},
+					},
+					AMI: "",
 					SecurityGroups: &api.NodeGroupSGs{
 						WithLocal:  api.Enabled(),
 						WithShared: api.Enabled(),
 						AttachIDs:  []string{},
 					},
-					DesiredCapacity: nil,
-					VolumeSize:      aws.Int(2),
+
 					VolumeType:      aws.String(api.NodeVolumeTypeSC1),
 					VolumeName:      aws.String("/dev/xvda"),
 					VolumeEncrypted: api.Disabled(),
 					VolumeKmsKeyID:  aws.String(""),
-					IAM: &api.NodeGroupIAM{
-						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-							ImageBuilder:   api.Disabled(),
-							AutoScaler:     api.Disabled(),
-							ExternalDNS:    api.Disabled(),
-							CertManager:    api.Disabled(),
-							AppMesh:        api.Disabled(),
-							AppMeshPreview: api.Disabled(),
-							EBS:            api.Disabled(),
-							FSX:            api.Disabled(),
-							EFS:            api.Disabled(),
-							ALBIngress:     api.Disabled(),
-							XRay:           api.Disabled(),
-							CloudWatch:     api.Disabled(),
-						},
-					},
-					SSH: &api.NodeGroupSSH{
-						Allow:         api.Disabled(),
-						PublicKeyPath: &api.DefaultNodeSSHPublicKeyPath,
-					},
 				},
 			},
 		}
@@ -531,12 +535,12 @@ var _ = Describe("CloudFormation template builder API", func() {
 		setSubnets(cfg)
 
 		sampleOutputs := map[string]string{
-			"SecurityGroup":              "sg-0b44c48bcba5b7362",
-			"SubnetsPublic":              subnetsPublic,
-			"SubnetsPrivate":             subnetsPrivate,
-			"VPC":                        vpcID,
-			"Endpoint":                   endpoint,
-			"CertificateAuthorityData":   caCert,
+			"SecurityGroup":            "sg-0b44c48bcba5b7362",
+			"SubnetsPublic":            subnetsPublic,
+			"SubnetsPrivate":           subnetsPrivate,
+			"VPC":                      vpcID,
+			"Endpoint":                 endpoint,
+			"CertificateAuthorityData": caCert,
 			"ARN":                        arn,
 			"ClusterStackName":           "",
 			"SharedNodeSecurityGroup":    "sg-shared",
@@ -593,7 +597,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 	}
 
 	roundtrip := func() {
-		It("should serialise JSON without errors, and parse the teamplate", func() {
+		It("should serialise JSON without errors, and parse the template", func() {
 			ngTemplate = &Template{}
 			{
 				templateBody, err := ngrs.RenderJSON()

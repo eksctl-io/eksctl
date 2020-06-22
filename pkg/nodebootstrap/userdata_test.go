@@ -33,7 +33,7 @@ var _ = Describe("User data", func() {
 		)
 		BeforeEach(func() {
 			clusterConfig = api.NewClusterConfig()
-			ng = &api.NodeGroup{}
+			ng = api.NewNodeGroup()
 		})
 
 		It("the kubelet is serialized with the correct format", func() {

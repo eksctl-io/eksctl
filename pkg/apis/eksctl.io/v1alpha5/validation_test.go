@@ -8,6 +8,11 @@ import (
 )
 
 var _ = Describe("ClusterConfig validation", func() {
+	newNodeGroup := func() *NodeGroup {
+		return &NodeGroup{
+			NodeGroupBase: &NodeGroupBase{},
+		}
+	}
 	Describe("nodeGroups[*].name", func() {
 		var (
 			cfg *ClusterConfig
@@ -394,6 +399,7 @@ var _ = Describe("ClusterConfig validation", func() {
 			var ng *NodeGroup
 			BeforeEach(func() {
 				ng = &NodeGroup{
+					NodeGroupBase: &NodeGroupBase{},
 					InstancesDistribution: &NodeGroupInstancesDistribution{
 						InstanceTypes: []string{"t3.medium", "t3.large"},
 					},
@@ -502,7 +508,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			var ng *NodeGroup
 			BeforeEach(func() {
-				ng = &NodeGroup{}
+				ng = newNodeGroup()
 			})
 
 			It("Forbids overriding basic fields", func() {
@@ -552,7 +558,7 @@ var _ = Describe("ClusterConfig validation", func() {
 
 			var ng *NodeGroup
 			BeforeEach(func() {
-				ng = &NodeGroup{}
+				ng = newNodeGroup()
 			})
 
 			It("Forbids setting volumeKmsKeyID without volumeEncrypted", func() {
@@ -695,6 +701,9 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 
 			for name, ng := range ngs {
+				if ng.NodeGroupBase == nil {
+					ng.NodeGroupBase = &NodeGroupBase{}
+				}
 				ng.AMIFamily = NodeImageFamilyBottlerocket
 				err := ValidateNodeGroup(0, ng)
 				Expect(err).To(HaveOccurred(), "Expected an error when provided %s", name)
@@ -704,9 +713,18 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("has no error with supported fields", func() {
 			x := 32
 			ngs := []*NodeGroup{
-				{Labels: map[string]string{"label": "label-value"}},
-				{MaxPodsPerNode: x},
-				{MinSize: &x},
+				{NodeGroupBase: &NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
+				{
+					MaxPodsPerNode: x,
+					NodeGroupBase:  &NodeGroupBase{},
+				},
+				{
+					NodeGroupBase: &NodeGroupBase{
+						ScalingConfig: &ScalingConfig{
+							MinSize: &x,
+						},
+					},
+				},
 			}
 
 			for i, ng := range ngs {
@@ -753,8 +771,8 @@ var _ = Describe("ClusterConfig validation", func() {
 			}
 
 			ngs := map[string]*NodeGroup{
-				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd},
-				"KubeletExtraConfig":       {KubeletExtraConfig: &doc},
+				"OverrideBootstrapCommand": {OverrideBootstrapCommand: &cmd, NodeGroupBase: &NodeGroupBase{}},
+				"KubeletExtraConfig":       {KubeletExtraConfig: &doc, NodeGroupBase: &NodeGroupBase{}},
 			}
 
 			for name, ng := range ngs {
@@ -767,10 +785,10 @@ var _ = Describe("ClusterConfig validation", func() {
 		It("has no error with supported fields", func() {
 			x := 32
 			ngs := []*NodeGroup{
-				{Labels: map[string]string{"label": "label-value"}},
-				{MaxPodsPerNode: x},
-				{MinSize: &x},
-				{PreBootstrapCommands: []string{"start /wait msiexec.exe"}},
+				{NodeGroupBase: &NodeGroupBase{Labels: map[string]string{"label": "label-value"}}},
+				{MaxPodsPerNode: x, NodeGroupBase: &NodeGroupBase{}},
+				{NodeGroupBase: &NodeGroupBase{ScalingConfig: &ScalingConfig{MinSize: &x}}},
+				{PreBootstrapCommands: []string{"start /wait msiexec.exe"}, NodeGroupBase: &NodeGroupBase{}},
 			}
 
 			for i, ng := range ngs {

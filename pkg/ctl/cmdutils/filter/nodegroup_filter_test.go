@@ -346,6 +346,9 @@ const expected = `
 		"cloudWatch": {
 		  "clusterLogging": {}
 		},
+		"privateCluster": {
+			"enabled": false
+		},
 		"nodeGroups": [
 		  {
 			  "name": "test-ng1a",
