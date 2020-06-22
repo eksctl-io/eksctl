@@ -73,18 +73,18 @@ var _ = Describe("default addons - coredns", func() {
 		})
 	}
 
-	loadSampleAndCheck("1.13", "1.2.6")
+	loadSampleAndCheck("1.14", "1.6.0")
 
-	Context("[1.13 –> 1.14] can update coredns", func() {
+	Context("[1.14 –> 1.15] can update coredns", func() {
 
-		loadSample("1.13", 10)
+		loadSample("1.14", 10)
 
-		It("can load 1.13 sample", func() {
-			checkCoreDNSImage(rawClient, "eu-west-1", "v1.2.6", true)
+		It("can load 1.14 sample", func() {
+			checkCoreDNSImage(rawClient, "eu-west-1", "v1.6.0", true)
 		})
 
 		It("can update to correct version", func() {
-			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.14.x", false)
+			_, err := UpdateCoreDNS(rawClient, "eu-west-2", "1.15.x", false)
 			Expect(err).ToNot(HaveOccurred())
 			checkCoreDNSImage(rawClient, "eu-west-2", "v1.6.6", false)
 
