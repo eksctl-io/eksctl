@@ -10,7 +10,7 @@ import (
 	_ "github.com/goreleaser/goreleaser"
 	_ "github.com/kevinburke/go-bindata/go-bindata"
 	_ "github.com/vektra/mockery/cmd/mockery"
-	_ "github.com/weaveworks/github-release"
+	_ "github.com/github-release/github-release"
 	_ "golang.org/x/tools/cmd/stringer"
 	_ "k8s.io/code-generator/cmd/client-gen"
 	_ "k8s.io/code-generator/cmd/deepcopy-gen"

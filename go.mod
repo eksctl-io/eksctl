@@ -18,15 +18,18 @@ require (
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/fluxcd/flux/pkg/install v0.0.0-20200402142123-873fb9300996 // flux 1.19.0
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200407140510-8d71b0072a3e // helm-operator 1.0.0
+	github.com/github-release/github-release v0.8.1
 	github.com/gobwas/glob v0.2.3
 	github.com/gofrs/flock v0.7.1
 	github.com/golangci/golangci-lint v1.27.0
 	github.com/google/go-github/v31 v31.0.0
 	github.com/goreleaser/goreleaser v0.136.0
+	github.com/inconshreveable/log15 v0.0.0-20200109203555-b30bc20e4fd1 // indirect
 	github.com/instrumenta/kubeval v0.0.0-20190918223246-8d013ec9fc56
 	github.com/justinbarrick/go-k8s-portforward v1.0.3
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kevinburke/go-bindata v3.15.0+incompatible
+	github.com/kevinburke/rest v0.0.0-20200429221318-0d2892b400f8 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/kris-nova/logger v0.0.0-20181127235838-fd0d87064b06
 	github.com/kris-nova/lolgopher v0.0.0-20180921204813-313b3abb0d9b // indirect
@@ -44,9 +47,9 @@ require (
 	github.com/tidwall/gjson v1.1.3
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/tidwall/sjson v1.0.2
+	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
-	github.com/weaveworks/github-release v0.6.3-0.20161024133933-73deea6af1e8
 	github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
