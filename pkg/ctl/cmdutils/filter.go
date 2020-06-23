@@ -53,8 +53,9 @@ func (*Filter) matchGlobs(name string, exprs []glob.Glob) bool {
 	return false
 }
 
+// hasIncludeRules returns true if the user has supplied inclusion globs or names
 func (f *Filter) hasIncludeRules() bool {
-	return f.includeNames.Len()+len(f.includeGlobs) != 0
+	return len(f.includeGlobs) != 0
 }
 
 func (f *Filter) describeIncludeRules() string {
@@ -62,8 +63,9 @@ func (f *Filter) describeIncludeRules() string {
 	return strings.Join(rules, ",")
 }
 
+// hasExcludeRules returns true if the user has supplied exclusion globs or names
 func (f *Filter) hasExcludeRules() bool {
-	return f.excludeNames.Len()+len(f.excludeGlobs) != 0
+	return len(f.excludeGlobs) != 0
 }
 
 func (f *Filter) describeExcludeRules() string {
@@ -82,7 +84,8 @@ func (f *Filter) Match(name string) bool {
 	hasExcludeRules := f.hasExcludeRules()
 
 	if !hasIncludeRules && !hasExcludeRules {
-		return true // empty rules - include
+		// There are no explicit rules set by the user -> check the implicit rules set by the only-missing filter
+		return f.includeNames.Has(name) && !f.excludeNames.Has(name)
 	}
 
 	if hasIncludeRules {
