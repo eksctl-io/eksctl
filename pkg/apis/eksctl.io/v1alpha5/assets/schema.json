@@ -78,7 +78,9 @@
           "items": {
             "$ref": "#/definitions/ManagedNodeGroup"
           },
-          "type": "array"
+          "type": "array",
+          "description": "See [Nodegroups usage](/usage/managing-nodegroups) and [managed nodegroups](/usage/eks-managed-nodes/)",
+          "x-intellij-html-description": "See <a href=\"/usage/managing-nodegroups\">Nodegroups usage</a> and <a href=\"/usage/eks-managed-nodes/\">managed nodegroups</a>"
         },
         "metadata": {
           "$ref": "#/definitions/ClusterMeta"
@@ -87,7 +89,9 @@
           "items": {
             "$ref": "#/definitions/NodeGroup"
           },
-          "type": "array"
+          "type": "array",
+          "description": "For information and examples see [nodegroups](/usage/managing-nodegroups)",
+          "x-intellij-html-description": "For information and examples see <a href=\"/usage/managing-nodegroups\">nodegroups</a>"
         },
         "secretsEncryption": {
           "$ref": "#/definitions/SecretsEncryption"
@@ -182,7 +186,9 @@
           "default": "{}"
         },
         "attachPolicy": {
-          "$ref": "#/definitions/InlineDocument"
+          "$ref": "#/definitions/InlineDocument",
+          "description": "holds a policy document to attach to this service account",
+          "x-intellij-html-description": "holds a policy document to attach to this service account"
         },
         "attachPolicyARNs": {
           "items": {
@@ -285,8 +291,8 @@
         "tags"
       ],
       "additionalProperties": false,
-      "description": "what identifies a cluster",
-      "x-intellij-html-description": "what identifies a cluster"
+      "description": "contains general cluster information",
+      "x-intellij-html-description": "contains general cluster information"
     },
     "ClusterNAT": {
       "properties": {
@@ -402,8 +408,8 @@
         },
         "subnets": {
           "$ref": "#/definitions/ClusterSubnets",
-          "description": "subnets are either public or private for use with separate nodegroups these are keyed by AZ for convenience",
-          "x-intellij-html-description": "subnets are either public or private for use with separate nodegroups these are keyed by AZ for convenience"
+          "description": "subnets are either public or private for use with separate nodegroups, these are keyed by AZ for convenience",
+          "x-intellij-html-description": "subnets are either public or private for use with separate nodegroups, these are keyed by AZ for convenience"
         }
       },
       "preferredOrder": [
@@ -594,7 +600,10 @@
           "default": "{}"
         },
         "volumeSize": {
-          "type": "integer"
+          "type": "integer",
+          "description": "gigabytes",
+          "x-intellij-html-description": "gigabytes",
+          "default": "80"
         }
       },
       "preferredOrder": [
@@ -666,6 +675,8 @@
       "properties": {
         "ami": {
           "type": "string",
+          "description": "Specify [custom AMIs](/usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
+          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, &quot;auto-ssm&quot;, &quot;auto&quot;, or &quot;static&quot;",
           "default": ""
         },
         "amiFamily": {
@@ -683,7 +694,9 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "Limit [nodes to specific AZs](/usage/autoscaling/#zone-aware-auto-scaling)",
+          "x-intellij-html-description": "Limit <a href=\"/usage/autoscaling/#zone-aware-auto-scaling\">nodes to specific AZs</a>"
         },
         "bottlerocket": {
           "$ref": "#/definitions/NodeGroupBottlerocket"
@@ -693,17 +706,23 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "Associate load balancers with auto scaling group",
+          "x-intellij-html-description": "Associate load balancers with auto scaling group"
         },
         "clusterDNS": {
           "type": "string",
+          "description": "[Custom address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS lookups",
+          "x-intellij-html-description": "<a href=\"/usage/vpc-networking/#custom-cluster-dns-address\">Custom address</a> used for DNS lookups",
           "default": ""
         },
         "desiredCapacity": {
           "type": "integer"
         },
         "ebsOptimized": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "enables [EBS optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)",
+          "x-intellij-html-description": "enables <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html\">EBS optimization</a>"
         },
         "iam": {
           "$ref": "#/definitions/NodeGroupIAM"
@@ -724,7 +743,9 @@
           "$ref": "#/definitions/NodeGroupInstancesDistribution"
         },
         "kubeletExtraConfig": {
-          "$ref": "#/definitions/InlineDocument"
+          "$ref": "#/definitions/InlineDocument",
+          "description": "[Customize `kubelet` config](/usage/customizing-the-kubelet/)",
+          "x-intellij-html-description": "<a href=\"/usage/customizing-the-kubelet/\">Customize <code>kubelet</code> config</a>"
         },
         "labels": {
           "additionalProperties": {
@@ -748,24 +769,32 @@
           "default": ""
         },
         "overrideBootstrapCommand": {
-          "type": "string"
+          "type": "string",
+          "description": "Override `eksctl`'s bootstrapping script",
+          "x-intellij-html-description": "Override <code>eksctl</code>'s bootstrapping script"
         },
         "preBootstrapCommands": {
           "items": {
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "executed before bootstrapping instances to the cluster",
+          "x-intellij-html-description": "executed before bootstrapping instances to the cluster"
         },
         "privateNetworking": {
           "type": "boolean",
+          "description": "Enable [private networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup) for nodegroup",
+          "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
         "securityGroups": {
           "$ref": "#/definitions/NodeGroupSGs"
         },
         "ssh": {
-          "$ref": "#/definitions/NodeGroupSSH"
+          "$ref": "#/definitions/NodeGroupSSH",
+          "description": "configures ssh access for this nodegroup",
+          "x-intellij-html-description": "configures ssh access for this nodegroup"
         },
         "tags": {
           "additionalProperties": {
@@ -788,7 +817,9 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "Associate target group with auto scaling group",
+          "x-intellij-html-description": "Associate target group with auto scaling group"
         },
         "volumeEncrypted": {
           "type": "boolean"
@@ -803,7 +834,10 @@
           "type": "string"
         },
         "volumeSize": {
-          "type": "integer"
+          "type": "integer",
+          "description": "gigabytes",
+          "x-intellij-html-description": "gigabytes",
+          "default": "80"
         },
         "volumeType": {
           "type": "string"
@@ -846,8 +880,8 @@
         "kubeletExtraConfig"
       ],
       "additionalProperties": false,
-      "description": "holds all configuration attributes that are specific to a nodegroup",
-      "x-intellij-html-description": "holds all configuration attributes that are specific to a nodegroup"
+      "description": "holds configuration attributes that are specific to a nodegroup",
+      "x-intellij-html-description": "holds configuration attributes that are specific to a nodegroup"
     },
     "NodeGroupBottlerocket": {
       "properties": {
@@ -855,7 +889,9 @@
           "type": "boolean"
         },
         "settings": {
-          "$ref": "#/definitions/InlineDocument"
+          "$ref": "#/definitions/InlineDocument",
+          "description": "contains any [bottlerocket settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)",
+          "x-intellij-html-description": "contains any <a href=\"https://github.com/bottlerocket-os/bottlerocket/#description-of-settings\">bottlerocket settings</a>"
         }
       },
       "preferredOrder": [
@@ -1001,8 +1037,8 @@
         "spotAllocationStrategy"
       ],
       "additionalProperties": false,
-      "description": "holds the configuration for spot instances",
-      "x-intellij-html-description": "holds the configuration for spot instances"
+      "description": "holds the configuration for [spot instances](/usage/spot-instances/)",
+      "x-intellij-html-description": "holds the configuration for <a href=\"/usage/spot-instances/\">spot instances</a>"
     },
     "NodeGroupSGs": {
       "properties": {
@@ -1011,13 +1047,21 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "attaches additional security groups to the nodegroup",
+          "x-intellij-html-description": "attaches additional security groups to the nodegroup"
         },
         "withLocal": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "attach a security group local to this nodegroup",
+          "x-intellij-html-description": "attach a security group local to this nodegroup",
+          "default": "true"
         },
         "withShared": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "attach the security group shared among all nodegroups in the cluster",
+          "x-intellij-html-description": "attach the security group shared among all nodegroups in the cluster",
+          "default": "true"
         }
       },
       "preferredOrder": [
@@ -1026,8 +1070,8 @@
         "withLocal"
       ],
       "additionalProperties": false,
-      "description": "holds all SG attributes of a NodeGroup",
-      "x-intellij-html-description": "holds all SG attributes of a NodeGroup"
+      "description": "controls security groups for this nodegroup",
+      "x-intellij-html-description": "controls security groups for this nodegroup"
     },
     "NodeGroupSSH": {
       "properties": {
@@ -1183,8 +1227,8 @@
     },
     "github.com|weaveworks|eksctl|pkg|utils|ipnet.IPNet": {
       "type": "string",
-      "description": "wraps net.IPNet to get CIDR serialization.",
-      "x-intellij-html-description": "wraps net.IPNet to get CIDR serialization."
+      "description": "an IP address in CIDR notation",
+      "x-intellij-html-description": "an IP address in CIDR notation"
     }
   }
 }

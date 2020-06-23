@@ -56,6 +56,7 @@ type ClusterIAMServiceAccount struct {
 	ClusterIAMMeta `json:"metadata,omitempty"`
 	// +optional
 	AttachPolicyARNs []string `json:"attachPolicyARNs,omitempty"`
+	// AttachPolicy holds a policy document to attach to this service account
 	// +optional
 	AttachPolicy InlineDocument `json:"attachPolicy,omitempty"`
 	// +optional

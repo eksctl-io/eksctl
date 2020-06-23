@@ -393,7 +393,7 @@ func EKSResourceAccountID(region string) string {
 	}
 }
 
-// ClusterMeta is what identifies a cluster
+// ClusterMeta contains general cluster information
 type ClusterMeta struct {
 	Name   string `json:"name" jsonschema:"required"`
 	Region string `json:"region" jsonschema:"required"`
@@ -483,9 +483,12 @@ type ClusterConfig struct {
 	// +optional
 	VPC *ClusterVPC `json:"vpc,omitempty"`
 
+	// NodeGroups For information and examples see [nodegroups](/usage/managing-nodegroups)
 	// +optional
 	NodeGroups []*NodeGroup `json:"nodeGroups,omitempty"`
 
+	// ManagedNodeGroups See [Nodegroups usage](/usage/managing-nodegroups)
+	// and [managed nodegroups](/usage/eks-managed-nodes/)
 	// +optional
 	ManagedNodeGroups []*ManagedNodeGroup `json:"managedNodeGroups,omitempty"`
 
@@ -646,10 +649,11 @@ func (c *ClusterConfig) NewNodeGroup() *NodeGroup {
 	return ng
 }
 
-// NodeGroup holds all configuration attributes that are
+// NodeGroup holds configuration attributes that are
 // specific to a nodegroup
 type NodeGroup struct {
 	Name string `json:"name" jsonschema:"required"`
+	// Specify [custom AMIs](/usage/custom-ami-support/), "auto-ssm", "auto", or "static"
 	// +optional
 	AMI string `json:"ami,omitempty"`
 	// +optional
@@ -662,10 +666,15 @@ type NodeGroup struct {
 	InstancePrefix string `json:"instancePrefix,omitempty"`
 	// +optional
 	InstanceName string `json:"instanceName,omitempty"`
+	// Limit [nodes to specific
+	// AZs](/usage/autoscaling/#zone-aware-auto-scaling)
 	// +optional
 	AvailabilityZones []string `json:"availabilityZones,omitempty"`
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
+	// Enable [private
+	// networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup)
+	// for nodegroup
 	// +optional
 	PrivateNetworking bool `json:"privateNetworking"`
 
@@ -681,9 +690,13 @@ type NodeGroup struct {
 	// +optional
 	ASGMetricsCollection []MetricsCollection `json:"asgMetricsCollection,omitempty"`
 
+	// EBSOptimized enables [EBS
+	// optimization](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-optimized.html)
 	// +optional
 	EBSOptimized *bool `json:"ebsOptimized,omitempty"`
 
+	// VolumeSize gigabytes
+	// Defaults to `80`
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
@@ -706,12 +719,15 @@ type NodeGroup struct {
 	// +optional
 	Taints map[string]string `json:"taints,omitempty"`
 
+	// Associate load balancers with auto scaling group
 	// +optional
 	ClassicLoadBalancerNames []string `json:"classicLoadBalancerNames,omitempty"`
 
+	// Associate target group with auto scaling group
 	// +optional
 	TargetGroupARNs []string `json:"targetGroupARNs,omitempty"`
 
+	// SSH configures ssh access for this nodegroup
 	// +optional
 	SSH *NodeGroupSSH `json:"ssh,omitempty"`
 
@@ -721,15 +737,22 @@ type NodeGroup struct {
 	// +optional
 	Bottlerocket *NodeGroupBottlerocket `json:"bottlerocket,omitempty"`
 
+	// PreBootstrapCommands are executed before bootstrapping instances to the
+	// cluster
 	// +optional
 	PreBootstrapCommands []string `json:"preBootstrapCommands,omitempty"`
 
+	// Override `eksctl`'s bootstrapping script
 	// +optional
 	OverrideBootstrapCommand *string `json:"overrideBootstrapCommand,omitempty"`
 
+	// [Custom
+	// address](/usage/vpc-networking/#custom-cluster-dns-address) used for DNS
+	// lookups
 	// +optional
 	ClusterDNS string `json:"clusterDNS,omitempty"`
 
+	// [Customize `kubelet` config](/usage/customizing-the-kubelet/)
 	// +optional
 	KubeletExtraConfig *InlineDocument `json:"kubeletExtraConfig,omitempty"`
 }
@@ -829,12 +852,19 @@ func (n *NodeGroup) GetAMIFamily() string {
 }
 
 type (
-	// NodeGroupSGs holds all SG attributes of a NodeGroup
+	// NodeGroupSGs controls security groups for this nodegroup
 	NodeGroupSGs struct {
+		// AttachIDs attaches additional security groups to the nodegroup
 		// +optional
 		AttachIDs []string `json:"attachIDs,omitempty"`
+		// WithShared attach the security group
+		// shared among all nodegroups in the cluster
+		// Defaults to `true`
 		// +optional
 		WithShared *bool `json:"withShared"`
+		// WithLocal attach a security group
+		// local to this nodegroup
+		// Defaults to `true`
 		// +optional
 		WithLocal *bool `json:"withLocal"`
 	}
@@ -895,7 +925,8 @@ type (
 		SourceSecurityGroupIDs []string `json:"sourceSecurityGroupIds,omitempty"`
 	}
 
-	// NodeGroupInstancesDistribution holds the configuration for spot instances
+	// NodeGroupInstancesDistribution holds the configuration for [spot
+	// instances](/usage/spot-instances/)
 	NodeGroupInstancesDistribution struct {
 		//+required
 		InstanceTypes []string `json:"instanceTypes,omitempty" jsonschema:"required"`
@@ -916,6 +947,8 @@ type (
 	NodeGroupBottlerocket struct {
 		// +optional
 		EnableAdminContainer *bool `json:"enableAdminContainer,omitempty"`
+		// Settings contains any [bottlerocket
+		// settings](https://github.com/bottlerocket-os/bottlerocket/#description-of-settings)
 		// +optional
 		Settings *InlineDocument `json:"settings,omitempty"`
 	}
@@ -952,6 +985,8 @@ type ManagedNodeGroup struct {
 	InstanceType string `json:"instanceType,omitempty"`
 	// +optional
 	*ScalingConfig
+	// VolumeSize gigabytes
+	// Defaults to `80`
 	// +optional
 	VolumeSize *int `json:"volumeSize,omitempty"`
 	// +optional
