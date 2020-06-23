@@ -3,7 +3,7 @@ github.com/goreleaser/goreleaser
 github.com/kevinburke/go-bindata/go-bindata
 github.com/onsi/ginkgo/ginkgo
 github.com/vektra/mockery/cmd/mockery
-github.com/weaveworks/github-release
+github.com/github-release/github-release
 golang.org/x/tools/cmd/stringer
 k8s.io/code-generator/cmd/client-gen
 k8s.io/code-generator/cmd/deepcopy-gen
