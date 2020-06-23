@@ -3,9 +3,8 @@
 By default, `eksctl create cluster` will build a dedicated VPC, in order to avoid interference with any existing resources for a
 variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC.
 Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
-Initial nodegroup is create in public subnets, with SSH access disabled unless `--allow-ssh` is specified. However, this implies
-that each of the EC2 instances in the initial nodegroup gets a public IP and can be accessed on ports 1025 - 65535, which is
-not insecure in principle, but some compromised workload could risk an access violation.
+The initial nodegroup is created in public subnets, with SSH access disabled unless `--allow-ssh` is specified.
+The nodegroup by default allows inbound traffic from the control plane security group on ports 1025 - 65535.
 
 If that functionality doesn't suit you, the following options are currently available.
 

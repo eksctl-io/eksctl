@@ -157,7 +157,7 @@ generate-always: pkg/addons/default/assets/aws-node.yaml ## Generate code (requi
 	@# - different version of go-bindata generate different code
 	@$(GOBIN)/go-bindata -v
 	env GOBIN=$(GOBIN) time go generate ./pkg/apis/eksctl.io/v1alpha5/generate.go
-	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap/assets.go
+	env GOBIN=$(GOBIN) time go generate ./pkg/nodebootstrap
 	env GOBIN=$(GOBIN) time go generate ./pkg/addons/default/generate.go
 	env GOBIN=$(GOBIN) time go generate ./pkg/addons
 
