@@ -107,17 +107,11 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 	logFiltered()
 
 	if updateAuthConfigMap {
-		cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from auth ConfigMap in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
-		if !cmd.Plan {
-			for _, ng := range cfg.NodeGroups {
-				if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
-					if err := ctl.GetNodeGroupIAM(stackManager, cfg, ng); err != nil {
-						logger.Warning("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
-						return nil
-					}
-				}
-				if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
-					logger.Warning(err.Error())
+		for _, ng := range cfg.NodeGroups {
+			if ng.IAM == nil || ng.IAM.InstanceRoleARN == "" {
+				if err := ctl.GetNodeGroupIAM(stackManager, cfg, ng); err != nil {
+					logger.Warning("error getting instance role ARN for nodegroup %q: %v", ng.Name, err)
+					return nil
 				}
 			}
 		}
@@ -158,8 +152,20 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 		if errs := tasks.DoAllSync(); len(errs) > 0 {
 			return handleErrors(errs, "nodegroup(s)")
 		}
-		cmdutils.LogCompletedAction(cmd.Plan, "deleted %d nodegroup(s) from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 	}
+
+	if updateAuthConfigMap {
+		cmdutils.LogIntendedAction(cmd.Plan, "delete %d nodegroups from auth ConfigMap in cluster %q", len(cfg.NodeGroups), cfg.Metadata.Name)
+		if !cmd.Plan {
+			for _, ng := range cfg.NodeGroups {
+				if err := authconfigmap.RemoveNodeGroup(clientSet, ng); err != nil {
+					logger.Warning(err.Error())
+				}
+			}
+		}
+	}
+
+	cmdutils.LogCompletedAction(cmd.Plan, "deleted %d nodegroup(s) from cluster %q", len(allNodeGroups), cfg.Metadata.Name)
 
 	cmdutils.LogPlanModeWarning(cmd.Plan && len(allNodeGroups) > 0)
 
