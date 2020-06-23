@@ -263,6 +263,9 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 			DeviceIndex:              gfn.NewInteger(0),
 			Groups:                   n.securityGroups,
 		}},
+		MetadataOptions: &gfn.AWSEC2LaunchTemplate_MetadataOptions{
+			HttpPutResponseHopLimit: gfn.NewInteger(2),
+		},
 	}
 	if !api.HasMixedInstances(n.spec) {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)

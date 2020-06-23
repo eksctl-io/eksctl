@@ -242,8 +242,6 @@ github.com/elazarl/goproxy/ext v0.0.0-20190421051319-9d40249d3c2f/go.mod h1:gNh8
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emicklei/go-restful v2.9.5+incompatible h1:spTtZBk5DYEvbxMVutUuTyh1Ao2r4iyvLdACqsl/Ljk=
 github.com/emicklei/go-restful v2.9.5+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
-github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596 h1:qglPKGtlU1RKsbO8GkLEWf42XlMoeuqaJEOufJR/o9U=
-github.com/errordeveloper/goformation v0.0.0-20190507151947-a31eae35e596/go.mod h1:XX6bj0HaK3DYpAwk71/leaxWjMzmiI/pVms9DlMdVqc=
 github.com/euank/go-kmsg-parser v2.0.0+incompatible/go.mod h1:MhmAMZ8V4CYH4ybgdRwPr2TU5ThnS43puaKEMpja1uw=
 github.com/evanphx/json-patch v4.1.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.2.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
@@ -932,6 +930,8 @@ github.com/vmware/govmomi v0.20.1 h1:7b/SeTUB3tER8ZLGLLLH3xcnB2xeuLULXmfPFqPSRZA
 github.com/vmware/govmomi v0.20.1/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59bHWk6aFU=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 h1:txplJASvd6b/hrE0s/Ixfpp2cuwH9IO9oZBAN9iYa4A=
 github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2/go.mod h1:DGCIhurYgnLz8J9ga1fMV/fbLDyUvTyrWXVWUIyJon4=
+github.com/weaveworks/goformation v0.0.0-20200623124447-18df1c671d26 h1:ijJBvv2r20TBaD75/1mJFdAP+Q7g6NDEU1cI9jAwDA8=
+github.com/weaveworks/goformation v0.0.0-20200623124447-18df1c671d26/go.mod h1:E71fJkqmnCECvk11VqsbMUdLJgR8mxvHzolqpcWKbn4=
 github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d h1:p52gB6rdtaV69CnprmY7UmhDF2tbf9ps7KNnovBzFhI=
 github.com/weaveworks/launcher v0.0.0-20180711153254-f1b2830d4f2d/go.mod h1:w9Z1vnQmPobkEZ0F3oyiqRYP+62qDqTGnK6t5uhe1kg=
 github.com/weaveworks/mesh v0.0.0-20170419100114-1f158d31de55/go.mod h1:mcON9Ws1aW0crSErpXWp7U1ErCDEKliDX2OhVlbWRKk=
