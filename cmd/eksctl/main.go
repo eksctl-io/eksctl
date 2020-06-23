@@ -42,8 +42,6 @@ func addCommands(rootCmd *cobra.Command, flagGrouping *cmdutils.FlagGrouping) {
 }
 
 func main() {
-	cobra.EnableCommandSorting = false
-
 	rootCmd := &cobra.Command{
 		Use:   "eksctl [command]",
 		Short: "The official CLI for Amazon EKS",
