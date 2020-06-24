@@ -31,6 +31,7 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 	cmd.FlagSetGroup.InFlagSet("General", func(fs *pflag.FlagSet) {
 		fs.StringVar(&cfg.Metadata.Name, "cluster", "", "EKS cluster name")
 		fs.StringVarP(&ng.Name, "name", "n", "", "Name of the nodegroup to scale")
+		cmdutils.AddConfigFileFlag(fs, &cmd.ClusterConfigFile)
 
 		desiredCapacity := fs.IntP("nodes", "N", -1, "desired number of nodes (required)")
 		maxCapacity := fs.IntP("nodes-max", "M", -1, "maximum number of nodes")
@@ -56,49 +57,11 @@ func scaleNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 }
 
 func doScaleNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup) error {
+	if err := cmdutils.NewScaleNodeGroupLoader(cmd, ng).Load(); err != nil {
+		return err
+	}
+
 	cfg := cmd.ClusterConfig
-
-	// TODO: move this into a loader when --config-file gets added to this command
-	if cfg.Metadata.Name == "" {
-		return cmdutils.ErrMustBeSet(cmdutils.ClusterNameFlag(cmd))
-	}
-
-	if ng.Name != "" && cmd.NameArg != "" {
-		return cmdutils.ErrFlagAndArg("--name", ng.Name, cmd.NameArg)
-	}
-
-	if cmd.NameArg != "" {
-		ng.Name = cmd.NameArg
-	}
-
-	if ng.Name == "" {
-		return cmdutils.ErrMustBeSet("--name")
-	}
-
-	if ng.DesiredCapacity == nil || *ng.DesiredCapacity < 0 {
-		return fmt.Errorf("number of nodes must be 0 or greater. Use the --nodes/-N flag")
-	}
-
-	if ng.MaxSize != nil && *ng.MaxSize < 0 {
-		return fmt.Errorf("maximum number of nodes must be 0 or greater. Use the --nodes-max flag")
-	}
-
-	if ng.MaxSize != nil && ng.MinSize != nil && (*ng.MinSize > *ng.DesiredCapacity || *ng.MaxSize < *ng.DesiredCapacity) {
-		return fmt.Errorf("number of nodes must be within range of min nodes and max nodes")
-	}
-
-	if ng.MaxSize != nil && *ng.MaxSize < *ng.DesiredCapacity {
-		return fmt.Errorf("maximum number of nodes must be greater than or equal to number of nodes")
-	}
-
-	if ng.MinSize != nil && *ng.MinSize < 0 {
-		return fmt.Errorf("minimum number of nodes must be 0 or greater. Use the --nodes-min flag")
-	}
-
-	if ng.MinSize != nil && *ng.MinSize > *ng.DesiredCapacity {
-		return fmt.Errorf("minimum number of nodes must be less than or equal to number of nodes")
-	}
-
 	ctl, err := cmd.NewCtl()
 	if err != nil {
 		return err
