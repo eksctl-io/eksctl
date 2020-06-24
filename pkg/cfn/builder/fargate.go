@@ -3,10 +3,10 @@ package builder
 import (
 	"fmt"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 )
 
 const (

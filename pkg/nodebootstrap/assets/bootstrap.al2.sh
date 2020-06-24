@@ -13,11 +13,18 @@ function get_max_pods() {
   done < /etc/eksctl/max_pods.map
 }
 
-NODE_IP="$(curl --silent http://169.254.169.254/latest/meta-data/local-ipv4)"
-INSTANCE_ID="$(curl --silent http://169.254.169.254/latest/meta-data/instance-id)"
-INSTANCE_TYPE="$(curl --silent http://169.254.169.254/latest/meta-data/instance-type)"
+# Use IMDSv2 to get metadata
+TOKEN="$(curl --silent -X PUT -H "X-aws-ec2-metadata-token-ttl-seconds: 600" http://169.254.169.254/latest/api/token)"
+function get_metadata() {
+  curl --silent -H "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/$1"
+}
+
+NODE_IP="$(get_metadata local-ipv4)"
+INSTANCE_ID="$(get_metadata instance-id)"
+INSTANCE_TYPE="$(get_metadata instance-type)"
+AWS_SERVICES_DOMAIN="$(get_metadata services/domain)"
+
 MACHINE=$(uname -m)
-AWS_SERVICES_DOMAIN="$(curl --silent http://169.254.169.254/latest/meta-data/services/domain)"
 
 if [ "$MACHINE" == "x86_64" ]; then
     ARCH="amd64"
