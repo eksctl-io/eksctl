@@ -110,8 +110,8 @@ eksctl create cluster \
 
 ## Custom Cluster DNS address
 
-There are two ways of overwriting the DNS server IP address used for all the internal and external DNS lookups (this
-is, the equivalent of the `--cluster-dns` flag for the `kubelet`).
+There are two ways of overwriting the DNS server IP address used for all the internal and external DNS lookups. This
+is the equivalent of the `--cluster-dns` flag for the `kubelet`.
 
 The first, is through the `clusterDNS` field. [Config files](../schema) accept a `string` field called
 `clusterDNS` with the IP address of the DNS server to use.
