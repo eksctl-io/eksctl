@@ -11,16 +11,16 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
-	"github.com/weaveworks/eksctl/pkg/eks"
-	"github.com/weaveworks/eksctl/pkg/gitops"
-	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/authconfigmap"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/eks"
+	"github.com/weaveworks/eksctl/pkg/gitops"
 	"github.com/weaveworks/eksctl/pkg/kops"
 	"github.com/weaveworks/eksctl/pkg/printers"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
+	"github.com/weaveworks/eksctl/pkg/utils/kubectl"
 	"github.com/weaveworks/eksctl/pkg/utils/names"
 	"github.com/weaveworks/eksctl/pkg/vpc"
 )
@@ -408,6 +408,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 				return err
 			}
 			return nil
+		}
+
+		if cfg.PrivateCluster.Enabled {
+			// disable public access
+			logger.Info("disabling public endpoint access for the cluster")
+			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
+			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+				return errors.Wrap(err, "error disabling public endpoint access for the cluster")
+			}
+			logger.Info("fully private cluster %q has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect", cfg.Metadata.Name)
 		}
 
 		// check kubectl version, and offer install instructions if missing or old

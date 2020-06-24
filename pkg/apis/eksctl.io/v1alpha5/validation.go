@@ -120,6 +120,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
 			}
 		}
+		// public access is initially enabled to allow running operations that access the Kubernetes API
+		cfg.VPC.ClusterEndpoints.PublicAccess = Enabled()
+		cfg.VPC.ClusterEndpoints.PrivateAccess = Enabled()
 	}
 
 	return nil
