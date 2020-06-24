@@ -110,8 +110,8 @@ eksctl create cluster \
 
 ## Custom Cluster DNS address
 
-There are two ways of overwriting the DNS server IP address used for all the internal and external DNs lookups (this
-is, the equivalent of the `--cluster-dns` flag for the `kubelet`).
+There are two ways of overwriting the DNS server IP address used for all the internal and external DNS lookups. This
+is the equivalent of the `--cluster-dns` flag for the `kubelet`.
 
 The first, is through the `clusterDNS` field. [Config files](../schema) accept a `string` field called
 `clusterDNS` with the IP address of the DNS server to use.
@@ -149,8 +149,11 @@ nodeGroups:
 
 ## NAT Gateway
 
-The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`. It can be
-specified through the `--vpc-nat-mode` CLI flag or in the cluster config file like the example below:
+The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`.
+The `HighlyAvailable` option will deploy a NAT Gateway in each Availability Zone of the Region, so that if
+an AZ is down, nodes in the other AZs will still be able to communicate to the Internet.
+
+It can be specified through the `--vpc-nat-mode` CLI flag or in the cluster config file like the example below:
 
 
 ```yaml
