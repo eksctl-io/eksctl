@@ -84,8 +84,7 @@ func (f *Filter) Match(name string) bool {
 	hasExcludeRules := f.hasExcludeRules()
 
 	if !hasIncludeRules && !hasExcludeRules {
-		// There are no explicit rules set by the user -> check the implicit rules set by the only-missing filter
-		return f.includeNames.Has(name) && !f.excludeNames.Has(name)
+		return true
 	}
 
 	if hasIncludeRules {

@@ -75,7 +75,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils
 }
 
 func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
-	ngFilter := cmdutils.NewNodeGroupFilter()
+	ngFilter := cmdutils.NewNodeGroupFilter(false)
 
 	if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, params.managed).Load(); err != nil {
 		return err
