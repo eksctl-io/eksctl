@@ -57,28 +57,33 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
+	privateCluster := cfg.PrivateCluster != nil && cfg.PrivateCluster.Enabled
+
 	// names must be unique across both managed and unmanaged nodegroups
 	ngNames := nameSet{}
-	validateNg := func(name, path string) error {
-		if name == "" {
+	validateNg := func(ng *NodeGroupBase, path string) error {
+		if ng.Name == "" {
 			return fmt.Errorf("%s.name must be set", path)
 		}
-		if _, err := ngNames.checkUnique(path+".name", name); err != nil {
+		if _, err := ngNames.checkUnique(path+".name", ng.Name); err != nil {
 			return err
+		}
+		if privateCluster && !ng.PrivateNetworking {
+			return fmt.Errorf("%s.privateNetworking must be enabled for a fully-private cluster", path)
 		}
 		return nil
 	}
 
 	for i, ng := range cfg.NodeGroups {
 		path := fmt.Sprintf("nodeGroups[%d]", i)
-		if err := validateNg(ng.NameString(), path); err != nil {
+		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
 		}
 	}
 
 	for i, ng := range cfg.ManagedNodeGroups {
 		path := fmt.Sprintf("managedNodeGroups[%d]", i)
-		if err := validateNg(ng.NameString(), path); err != nil {
+		if err := validateNg(ng.NodeGroupBase, path); err != nil {
 			return err
 		}
 	}
@@ -110,7 +115,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 
 	if cfg.PrivateCluster.Enabled {
-		// TODO validate cluster endpoint access
 		if additionalServices := cfg.PrivateCluster.AdditionalEndpointServices; len(additionalServices) > 0 {
 			if err := ValidateAdditionalEndpointServices(additionalServices); err != nil {
 				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
