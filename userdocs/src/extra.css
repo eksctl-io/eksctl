@@ -28,23 +28,13 @@ img[src$="#content"] {
 }
 
 .md-header-nav__title {
-    padding: 0px;
+  padding: 0px;
 }
 
 #dark-mode-button {
   width: 30px;
   height: 45px;
-  background: url("img/moon-dark.svg") no-repeat center;
-}
-
-#light-mode-button {
-  width: 30px;
-  height: 45px;
-  background: url("img/sun-dark.svg") no-repeat center;
-}
-
-[data-md-color-scheme="slate"]{
-  --md-primary-fg-color: #f0f1f4;
+  background: no-repeat center;
 }
 
 [data-md-color-scheme="slate"] img[src$="#wwinline"] {
@@ -53,9 +43,9 @@ img[src$="#content"] {
 
 [data-md-color-scheme="slate"] img[src$="#gitinline"] {
   height: 30px;
-  background: url("img/octocat-light.svg") no-repeat;
+  background: 'url("img/octocat-light.svg")' no-repeat;
 }
 
 [data-md-color-scheme="slate"] #intro-code {
-    background: var(--md-code-bg-color) url("img/eksctl-gopher.png") no-repeat top right;
+    background: #262a35 url("img/eksctl-gopher.png") no-repeat top right;
 }
