@@ -1,4 +1,4 @@
 mkdocs                  == 1.1
-mkdocs-material         == 5.2.0
+mkdocs-material         == 5.3.0
 mkdocs-redirects
 pymdown-extensions      == 7.1

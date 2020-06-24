@@ -32,7 +32,19 @@ img[src$="#content"] {
 }
 
 #dark-mode-button {
-    margin-left: 28px;
+  width: 30px;
+  height: 45px;
+  background: url("img/moon-dark.svg") no-repeat center;
+}
+
+#light-mode-button {
+  width: 30px;
+  height: 45px;
+  background: url("img/sun-dark.svg") no-repeat center;
+}
+
+[data-md-color-scheme="slate"]{
+  --md-primary-fg-color: #f0f1f4;
 }
 
 [data-md-color-scheme="slate"] img[src$="#wwinline"] {

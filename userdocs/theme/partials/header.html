@@ -1,6 +1,3 @@
-{#-
-  This file was automatically generated - do not edit
--#}
 <header class="md-header" data-md-component="header">
   <nav class="md-header-nav md-grid" aria-label="{{ lang.t('header.title') }}">
     <a href="{{ config.site_url | default(nav.homepage.url, true) | url }}" title="{{ config.site_name }}" class="md-header-nav__button md-logo" aria-label="{{ config.site_name }}">
@@ -35,11 +32,13 @@
       </label>
       {% include "partials/search.html" %}
     {% endif %}
-    {% if config.theme.palette.scheme == "slate" %}
-      <button data-md-color-scheme="default" id="dark-mode-button">dark mode off</button>
-    {% else %}
-      <button data-md-color-scheme="slate" id="dark-mode-button">dark mode on</button>
+    {% if config.repo_url %}
+      <div class="md-header-nav__source">
+        {% include "partials/source.html" %}
+      </div>
     {% endif %}
+    <button data-md-color-scheme="slate" id="dark-mode-button"></button>
+    <button data-md-color-scheme="default" id="light-mode-button"></button>
     <script>
       var buttons = document.querySelectorAll("button[data-md-color-scheme]")
       buttons.forEach(function(button) {
@@ -49,10 +48,5 @@
         })
       })
     </script>
-    {% if config.repo_url %}
-      <div class="md-header-nav__source">
-        {% include "partials/source.html" %}
-      </div>
-    {% endif %}
   </nav>
 </header>
