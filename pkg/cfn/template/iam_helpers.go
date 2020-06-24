@@ -1,6 +1,6 @@
 package template
 
-import gfn "github.com/awslabs/goformation/cloudformation"
+import gfn "github.com/weaveworks/goformation/cloudformation"
 
 // AttachAllowPolicy constructs a role with allow policy for given resources and actions
 func (t *Template) AttachAllowPolicy(name string, refRole *Value, resources interface{}, actions []string) {

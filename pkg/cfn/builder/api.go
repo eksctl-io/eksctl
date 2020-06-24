@@ -5,8 +5,8 @@ import (
 	"reflect"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 )
 
 const (
