@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

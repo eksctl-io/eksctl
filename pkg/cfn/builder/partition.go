@@ -3,7 +3,7 @@ package builder
 import (
 	"fmt"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 )
 
 var servicePrincipalPartitionMappings = map[string]map[string]string{

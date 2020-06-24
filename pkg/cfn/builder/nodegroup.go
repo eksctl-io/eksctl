@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	gfn "github.com/awslabs/goformation/cloudformation"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 
 	"github.com/kris-nova/logger"
 
