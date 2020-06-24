@@ -186,30 +186,37 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 	l.flagsIncompatibleWithoutConfigFile.Insert("install-vpc-controllers")
 
 	l.validateWithConfigFile = func() error {
-		if l.ClusterConfig.VPC == nil {
-			l.ClusterConfig.VPC = api.NewClusterVPC()
+		clusterConfig := l.ClusterConfig
+		if clusterConfig.VPC == nil {
+			clusterConfig.VPC = api.NewClusterVPC()
 		}
 
-		if l.ClusterConfig.VPC.NAT == nil {
-			l.ClusterConfig.VPC.NAT = api.DefaultClusterNAT()
+		if clusterConfig.VPC.NAT == nil {
+			clusterConfig.VPC.NAT = api.DefaultClusterNAT()
 		}
 
-		if !api.IsSetAndNonEmptyString(l.ClusterConfig.VPC.NAT.Gateway) {
-			*l.ClusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
+		if !api.IsSetAndNonEmptyString(clusterConfig.VPC.NAT.Gateway) {
+			*clusterConfig.VPC.NAT.Gateway = api.ClusterSingleNAT
 		}
 
-		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
+		if clusterConfig.PrivateCluster != nil && clusterConfig.PrivateCluster.Enabled {
+			if clusterEndpoints := clusterConfig.VPC.ClusterEndpoints; clusterEndpoints != nil && (clusterEndpoints.PublicAccess != nil || clusterEndpoints.PrivateAccess != nil) {
+				return errors.New("vpc.clusterEndpoints cannot be set for a fully-private cluster (privateCluster.enabled) as the endpoint access defaults to private-only")
+			}
+		}
 
-		if !l.ClusterConfig.HasClusterEndpointAccess() {
+		api.SetClusterEndpointAccessDefaults(clusterConfig.VPC)
+
+		if !clusterConfig.HasClusterEndpointAccess() {
 			return api.ErrClusterEndpointNoAccess
 		}
 
-		if l.ClusterConfig.HasAnySubnets() && len(l.ClusterConfig.AvailabilityZones) != 0 {
+		if clusterConfig.HasAnySubnets() && len(clusterConfig.AvailabilityZones) != 0 {
 			return fmt.Errorf("vpc.subnets and availabilityZones cannot be set at the same time")
 		}
 
-		if l.ClusterConfig.Git != nil {
-			repo := l.ClusterConfig.Git.Repo
+		if clusterConfig.Git != nil {
+			repo := clusterConfig.Git.Repo
 			if repo == nil || repo.URL == "" {
 				return ErrMustBeSet("git.repo.URL")
 			}
@@ -218,7 +225,7 @@ func NewCreateClusterLoader(cmd *Cmd, ngFilter *filter.NodeGroupFilter, ng *api.
 				return ErrMustBeSet("git.repo.email")
 			}
 
-			profile := l.ClusterConfig.Git.BootstrapProfile
+			profile := clusterConfig.Git.BootstrapProfile
 			if profile != nil && profile.Source == "" {
 				return ErrMustBeSet("git.bootstrapProfile.source")
 			}
