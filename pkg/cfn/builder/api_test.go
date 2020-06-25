@@ -2937,7 +2937,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 func setSubnets(cfg *api.ClusterConfig) {
 	It("should not error when calling SetSubnets", func() {
-		err := vpc.SetSubnets(cfg)
+		err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 

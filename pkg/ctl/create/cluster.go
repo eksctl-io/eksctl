@@ -188,7 +188,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			if err := ctl.SetAvailabilityZones(cfg, params.AvailabilityZones); err != nil {
 				return err
 			}
-			if err := vpc.SetSubnets(cfg); err != nil {
+			if err := vpc.SetSubnets(cfg.VPC, cfg.AvailabilityZones); err != nil {
 				return err
 			}
 			return nil

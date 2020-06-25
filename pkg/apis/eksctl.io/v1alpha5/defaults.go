@@ -65,6 +65,10 @@ func SetNodeGroupDefaults(ng *NodeGroup, meta *ClusterMeta) {
 		}
 	}
 
+	if ng.ScalingConfig == nil {
+		ng.ScalingConfig = &ScalingConfig{}
+	}
+
 	setSSHDefaults(ng.SSH)
 
 	if !IsSetAndNonEmptyString(ng.VolumeType) {

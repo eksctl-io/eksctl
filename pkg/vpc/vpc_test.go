@@ -22,8 +22,9 @@ import (
 )
 
 type setSubnetsCase struct {
-	cfg   *api.ClusterConfig
-	error error
+	vpc               *api.ClusterVPC
+	availabilityZones []string
+	error             error
 }
 
 type importVPCCase struct {
@@ -75,7 +76,7 @@ func newFakeClusterWithEndpoints(private, public bool, name string) *eks.Cluster
 var _ = Describe("VPC - Set Subnets", func() {
 	DescribeTable("Set subnets",
 		func(subnetsCase setSubnetsCase) {
-			if err := SetSubnets(subnetsCase.cfg); err != nil {
+			if err := SetSubnets(subnetsCase.vpc, subnetsCase.availabilityZones); err != nil {
 				Expect(err).To(Equal(subnetsCase.error))
 			} else {
 				// make sure that expected error is nil as well
@@ -83,100 +84,50 @@ var _ = Describe("VPC - Set Subnets", func() {
 			}
 		},
 		Entry("VPC with valid details", setSubnetsCase{
-			cfg: api.NewClusterConfig(),
+			vpc: api.NewClusterVPC(),
 		}),
 		Entry("VPC with nil CIDR", setSubnetsCase{
-			cfg: &api.ClusterConfig{
-				TypeMeta: api.ClusterConfigTypeMeta(),
-				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
-				},
-				IAM: &api.ClusterIAM{},
-				VPC: &api.ClusterVPC{
-					Network: api.Network{
-						CIDR: nil,
-					},
-				},
-				CloudWatch: &api.ClusterCloudWatch{
-					ClusterLogging: &api.ClusterCloudWatchLogging{},
+			vpc: &api.ClusterVPC{
+				Network: api.Network{
+					CIDR: nil,
 				},
 			},
 		}),
 		Entry("VPC with invalid CIDR prefix", setSubnetsCase{
-			cfg: &api.ClusterConfig{
-				TypeMeta: api.ClusterConfigTypeMeta(),
-				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
-				},
-				IAM: &api.ClusterIAM{},
-				VPC: &api.ClusterVPC{
-					Network: api.Network{
-						CIDR: &ipnet.IPNet{
-							IPNet: net.IPNet{
-								IP:   []byte{192, 168, 0, 0},
-								Mask: []byte{255, 255, 255, 255}, // invalid mask
-							},
+			vpc: &api.ClusterVPC{
+				Network: api.Network{
+					CIDR: &ipnet.IPNet{
+						IPNet: net.IPNet{
+							IP:   []byte{192, 168, 0, 0},
+							Mask: []byte{255, 255, 255, 255}, // invalid mask
 						},
 					},
-				},
-				CloudWatch: &api.ClusterCloudWatch{
-					ClusterLogging: &api.ClusterCloudWatchLogging{},
 				},
 			},
 			error: fmt.Errorf("VPC CIDR prefix must be between /16 and /24"),
 		}),
 		Entry("VPC with invalid CIDR", setSubnetsCase{
-			cfg: &api.ClusterConfig{
-				TypeMeta: api.ClusterConfigTypeMeta(),
-				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
-				},
-				IAM: &api.ClusterIAM{},
-				VPC: &api.ClusterVPC{
-					Network: api.Network{
-						CIDR: &ipnet.IPNet{
-							IPNet: net.IPNet{
-								IP:   []byte{}, // invalid IP
-								Mask: []byte{255, 255, 0, 0},
-							},
+			vpc: &api.ClusterVPC{
+				Network: api.Network{
+					CIDR: &ipnet.IPNet{
+						IPNet: net.IPNet{
+							IP:   []byte{}, // invalid IP
+							Mask: []byte{255, 255, 0, 0},
 						},
 					},
-				},
-				CloudWatch: &api.ClusterCloudWatch{
-					ClusterLogging: &api.ClusterCloudWatchLogging{},
 				},
 			},
 			error: fmt.Errorf("Unexpected IP address type: <nil>"),
 		}),
 
 		Entry("VPC with invalid number of subnets", setSubnetsCase{
-			cfg: &api.ClusterConfig{
-				TypeMeta: api.ClusterConfigTypeMeta(),
-				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
-				},
-				IAM: &api.ClusterIAM{},
-				VPC: api.NewClusterVPC(),
-				CloudWatch: &api.ClusterCloudWatch{
-					ClusterLogging: &api.ClusterCloudWatchLogging{},
-				},
-				AvailabilityZones: []string{"1", "2", "3", "4", "5"}, // more AZ than required
-			},
-			error: fmt.Errorf("insufficient number of subnets (have 8, but need 10) for 5 availability zones"),
+			vpc:               api.NewClusterVPC(),
+			availabilityZones: []string{"1", "2", "3", "4", "5"}, // more AZ than required
+			error:             fmt.Errorf("insufficient number of subnets (have 8, but need 10) for 5 availability zones"),
 		}),
 		Entry("VPC with multiple AZs", setSubnetsCase{
-			cfg: &api.ClusterConfig{
-				TypeMeta: api.ClusterConfigTypeMeta(),
-				Metadata: &api.ClusterMeta{
-					Version: api.DefaultVersion,
-				},
-				IAM: &api.ClusterIAM{},
-				VPC: api.NewClusterVPC(),
-				CloudWatch: &api.ClusterCloudWatch{
-					ClusterLogging: &api.ClusterCloudWatchLogging{},
-				},
-				AvailabilityZones: []string{"1", "2", "3"},
-			},
+			vpc:               api.NewClusterVPC(),
+			availabilityZones: []string{"1", "2", "3"},
 		}),
 	)
 })
@@ -377,7 +328,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               false,
 			public:                true,
 			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error:                 nil,
+			error: nil,
 		}),
 		Entry("Private=true, Public=false", endpointAccessCase{
 			cfg:                   api.NewClusterConfig(),
@@ -385,7 +336,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               true,
 			public:                false,
 			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error:                 nil,
+			error: nil,
 		}),
 		Entry("Private=true, Public=true", endpointAccessCase{
 			cfg:                   api.NewClusterConfig(),
@@ -393,7 +344,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               true,
 			public:                true,
 			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error:                 nil,
+			error: nil,
 		}),
 		Entry("Private=false, Public=false", endpointAccessCase{
 			cfg:                   api.NewClusterConfig(),
@@ -401,7 +352,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               false,
 			public:                false,
 			describeClusterOutput: nil,
-			error:                 errors.New(eks.ErrCodeResourceNotFoundException),
+			error: errors.New(eks.ErrCodeResourceNotFoundException),
 		}),
 		Entry("Nil Cluster endpoint from config", endpointAccessCase{
 			cfg: &api.ClusterConfig{
@@ -421,7 +372,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               false,
 			public:                false,
 			describeClusterOutput: nil,
-			error:                 nil,
+			error: nil,
 		}),
 	)
 })
