@@ -43,7 +43,7 @@ img[src$="#content"] {
 
 [data-md-color-scheme="slate"] img[src$="#gitinline"] {
   height: 30px;
-  background: 'url("img/octocat-light.svg")' no-repeat;
+  background: url("img/octocat-light.svg") no-repeat;
 }
 
 [data-md-color-scheme="slate"] #intro-code {

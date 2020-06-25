@@ -17,5 +17,4 @@ table#config td span.required a.key{
 }
 table#config td.type {
     filter: opacity(70%);
-    font-size: 80%;
 }

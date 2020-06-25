@@ -52,7 +52,7 @@
               var theme = "slate";
           }
           if (theme=="slate") {
-              document.documentElement.setAttribute("data-md-color-scheme", "slate");
+              document.body.setAttribute("data-md-color-scheme", "slate");
               document.getElementById("dark-mode-button").style.backgroundImage = "url('https://raw.githubusercontent.com/weaveworks/eksctl/abc01e84cbedb821672e06fc5e27230d309b545c/userdocs/src/img/sun-dark.svg')"
           }
       }
@@ -64,12 +64,12 @@
             console.log('switch to dark', document.getElementById("dark-mode-button").style.backgroundImage)
 
               localStorage.setItem('theme', 'slate');
-              document.documentElement.setAttribute('data-md-color-scheme', 'slate');
+              document.body.setAttribute('data-md-color-scheme', 'slate');
               document.getElementById("dark-mode-button").style.backgroundImage = "url('https://raw.githubusercontent.com/weaveworks/eksctl/abc01e84cbedb821672e06fc5e27230d309b545c/userdocs/src/img/sun-dark.svg')"
           } else {
             console.log('switch to light', document.getElementById("dark-mode-button").style.backgroundImage)
               localStorage.setItem('theme', 'default');
-              document.documentElement.setAttribute('data-md-color-scheme', 'default');
+              document.body.setAttribute('data-md-color-scheme', 'default');
               document.getElementById("dark-mode-button").style.backgroundImage = "url('https://raw.githubusercontent.com/weaveworks/eksctl/abc01e84cbedb821672e06fc5e27230d309b545c/userdocs/src/img/moon-dark.svg')"
           }
       }
