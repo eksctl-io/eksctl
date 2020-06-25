@@ -1054,9 +1054,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 				"route53:ListHostedZonesByName",
+				"route53:ListHostedZones",
 				"route53:ListTagsForResource",
 			}))
 
@@ -1202,7 +1202,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 				"route53:ListHostedZonesByName",
 			}))
