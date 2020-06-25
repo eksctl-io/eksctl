@@ -82,8 +82,11 @@ func doDeleteNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, updateAuthConfigMap
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
-		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, cfg); err != nil {
-			return err
+		if onlyMissing {
+			err = ngFilter.SetOnlyRemote(stackManager, cfg)
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		nodeGroupType, err := stackManager.GetNodeGroupStackType(ng.Name)

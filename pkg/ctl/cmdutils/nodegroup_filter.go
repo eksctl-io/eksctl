@@ -35,12 +35,22 @@ func (f *NodeGroupFilter) AppendGlobs(includeGlobExprs, excludeGlobExprs, ngName
 	if err := f.AppendIncludeGlobs(ngNames, includeGlobExprs...); err != nil {
 		return err
 	}
-	return f.delegate.AppendExcludeGlobs(excludeGlobExprs...)
+	return f.AppendExcludeGlobs(excludeGlobExprs...)
 }
 
 // AppendIncludeGlobs sets globs for inclusion rules
 func (f *NodeGroupFilter) AppendIncludeGlobs(ngNames []string, globExprs ...string) error {
 	return f.delegate.doAppendIncludeGlobs(ngNames, "nodegroup", globExprs...)
+}
+
+// AppendExcludeGlobs sets globs for inclusion rules
+func (f *NodeGroupFilter) AppendExcludeGlobs(globExprs ...string) error {
+	return f.delegate.AppendExcludeGlobs(globExprs...)
+}
+
+// AppendIncludeNames sets globs for inclusion rules
+func (f *NodeGroupFilter) AppendIncludeNames(names ...string) {
+	f.delegate.AppendIncludeNames(names...)
 }
 
 // A stackLister lists nodegroup stacks
@@ -93,6 +103,16 @@ func (f *NodeGroupFilter) SetOnlyRemote(lister stackLister, clusterConfig *api.C
 	//}
 }
 
+// SetExcludeAll sets the ExcludeAll flag in the filter so that no nodegroups are matched
+func (f *NodeGroupFilter) SetExcludeAll(excludeAll bool) {
+	f.delegate.ExcludeAll = excludeAll
+}
+
+// GetExcludeAll returns whether all nodegroups will be excluded
+func (f *NodeGroupFilter) GetExcludeAll() bool {
+	return f.delegate.ExcludeAll
+}
+
 func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clusterConfig *api.ClusterConfig) error {
 
 	// Get remote nodegroups
@@ -117,7 +137,6 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clust
 		remoteNodeGroupName := s.NodeGroupName
 		if !f.localNodegroups.Has(remoteNodeGroupName) {
 			logger.Info("nodegroup %q present in the cluster, but missing from the given config", s.NodeGroupName)
-		} else {
 			if s.Type == api.NodeGroupTypeManaged {
 				clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{Name: s.NodeGroupName})
 			} else {
@@ -145,39 +164,45 @@ func (f *NodeGroupFilter) LogInfo(nodeGroups []*api.NodeGroup) {
 
 // MatchAll all names against the filter and return two sets of names - included and excluded
 func (f *NodeGroupFilter) MatchAll(nodeGroups []*api.NodeGroup) (sets.String, sets.String) {
-	names := sets.NewString(f.collectNames(nodeGroups)...)
+	allNames := sets.NewString(f.collectNames(nodeGroups)...)
+
+	matching, notMatching := f.delegate.doMatchAll(allNames.List())
 
 	if f.onlyLocal {
-		names = names.Intersection(f.onlyLocalNodegroups())
-		return f.delegate.doMatchAll(names.List())
+		// From the ones that match, pick only the local ones
+		included := matching.Intersection(f.onlyLocalNodegroups())
+		excluded := allNames.Difference(included)
+		return included, excluded
 	}
 
 	if f.onlyRemote {
-		names = names.Intersection(f.onlyRemoteNodegroups())
-		return f.delegate.doMatchAll(names.List())
+		// From the ones that match, pick only the remote ones
+		included := matching.Intersection(f.onlyRemoteNodegroups())
+		excluded := allNames.Difference(included)
+		return included, excluded
 	}
 
-	return f.delegate.doMatchAll(names.List())
+	return matching, notMatching
 }
 
 // Match decides whether the given nodegroup is considered included by this filter. It takes into account not only the
 // inclusion and exclusion rules (globs) but also the modifiers onlyRemote and onlyLocal.
-func (f *NodeGroupFilter) Match(nodeGroup *api.NodeGroup) bool {
+func (f *NodeGroupFilter) Match(ngName string) bool {
 	if f.onlyRemote {
-		if !f.onlyRemoteNodegroups().Has(nodeGroup.NameString()) {
+		if !f.onlyRemoteNodegroups().Has(ngName) {
 			return false
 		}
-		return f.Match(nodeGroup)
+		return f.delegate.Match(ngName)
 	}
 
 	if f.onlyLocal {
-		if !f.onlyLocalNodegroups().Has(nodeGroup.NameString()) {
+		if !f.onlyLocalNodegroups().Has(ngName) {
 			return false
 		}
-		return f.Match(nodeGroup)
+		return f.delegate.Match(ngName)
 	}
 
-	return f.Match(nodeGroup)
+	return f.delegate.Match(ngName)
 }
 
 func (f *NodeGroupFilter) onlyLocalNodegroups() sets.String {
@@ -192,7 +217,7 @@ func (f *NodeGroupFilter) onlyRemoteNodegroups() sets.String {
 func (f *NodeGroupFilter) FilterMatching(nodeGroups []*api.NodeGroup) []*api.NodeGroup {
 	var match []*api.NodeGroup
 	for _, ng := range nodeGroups {
-		if f.Match(ng) {
+		if f.Match(ng.NameString()) {
 			match = append(match, ng)
 		}
 	}
@@ -202,7 +227,7 @@ func (f *NodeGroupFilter) FilterMatching(nodeGroups []*api.NodeGroup) []*api.Nod
 // ForEach iterates over each nodegroup that is included by the filter and calls iterFn
 func (f *NodeGroupFilter) ForEach(nodeGroups []*api.NodeGroup, iterFn func(i int, ng *api.NodeGroup) error) error {
 	for i, ng := range nodeGroups {
-		if f.Match(ng) {
+		if f.Match(ng.NameString()) {
 			if err := iterFn(i, ng); err != nil {
 				return err
 			}

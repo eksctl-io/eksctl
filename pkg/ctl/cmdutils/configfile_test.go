@@ -184,7 +184,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 				Expect(NewCreateClusterLoader(cmd, ngFilter, loaderTest.ng, params).Load()).To(Succeed())
 
-				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
+				Expect(ngFilter.GetExcludeAll()).To(Equal(loaderTest.withoutNodeGroup))
 
 				if loaderTest.withoutNodeGroup {
 					Expect(cmd.ClusterConfig.NodeGroups).To(HaveLen(0))
@@ -246,7 +246,7 @@ var _ = Describe("cmdutils configfile", func() {
 				}
 				Expect(NewCreateClusterLoader(cmd, ngFilter, nil, params).Load()).To(Succeed())
 
-				Expect(ngFilter.ExcludeAll).To(Equal(loaderTest.withoutNodeGroup))
+				Expect(ngFilter.GetExcludeAll()).To(Equal(loaderTest.withoutNodeGroup))
 
 				if loaderTest.managed {
 					Expect(cmd.ClusterConfig.ManagedNodeGroups).To(HaveLen(loaderTest.nodeGroupCount))

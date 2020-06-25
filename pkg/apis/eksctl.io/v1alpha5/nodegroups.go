@@ -14,3 +14,13 @@ func HasInstanceType(nodeGroup *NodeGroup, hasType func(string) bool) bool {
 	}
 	return false
 }
+
+// HasNodegroup returns true if this clusterConfig contains a managed or un-managed nodegroup with the given name
+func (c *ClusterConfig) FindNodegroup(name string) *NodeGroup {
+	for _, ng := range c.NodeGroups {
+		if name == ng.NameString() {
+			return ng
+		}
+	}
+	return nil
+}

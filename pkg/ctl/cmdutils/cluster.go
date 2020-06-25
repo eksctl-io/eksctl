@@ -13,13 +13,13 @@ func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *NodeGroupFilter) fu
 	)
 
 	for _, ng := range clusterConfig.NodeGroups {
-		if ngFilter.Match(ng) {
+		if ngFilter.Match(ng.NameString()) {
 			filteredNodeGroups = append(filteredNodeGroups, ng)
 		}
 	}
 
 	for _, ng := range clusterConfig.ManagedNodeGroups {
-		if ngFilter.Match(ng) {
+		if ngFilter.Match(ng.NameString()) {
 			filteredManagedNodeGroups = append(filteredManagedNodeGroups, ng)
 		}
 	}

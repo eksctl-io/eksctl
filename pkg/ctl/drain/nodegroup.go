@@ -78,8 +78,11 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
-		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, cfg); err != nil {
-			return err
+		if onlyMissing {
+			err = ngFilter.SetOnlyRemote(stackManager, cfg)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)

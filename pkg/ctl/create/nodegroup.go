@@ -75,7 +75,7 @@ func createNodeGroupCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils
 }
 
 func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeGroupParams) error {
-	ngFilter := cmdutils.NewNodeGroupFilter(false)
+	ngFilter := cmdutils.NewNodeGroupFilter()
 
 	if err := cmdutils.NewCreateNodeGroupLoader(cmd, ng, ngFilter, params.managed).Load(); err != nil {
 		return err
@@ -110,7 +110,7 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 
 	stackManager := ctl.NewStackManager(cfg)
 
-	if err := ngFilter.SetExcludeExistingFilter(stackManager); err != nil {
+	if err := ngFilter.SetOnlyLocal(stackManager, cfg); err != nil {
 		return err
 	}
 

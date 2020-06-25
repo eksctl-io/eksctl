@@ -95,12 +95,11 @@ func (f *Filter) Match(name string) bool {
 
 		if f.matchGlobs(name, f.includeGlobs) {
 			if hasExcludeRules {
-				// included by glob but excluded by name
-				if f.excludeNames.Has(name) {
+				// exclusion takes precedence
+				if f.excludeNames.Has(name) || f.matchGlobs(name, f.excludeGlobs) {
 					return false
 				}
 			}
-			// Even if it is excluded by a globe inclusion takes precedence over exclusion
 			return true
 		}
 

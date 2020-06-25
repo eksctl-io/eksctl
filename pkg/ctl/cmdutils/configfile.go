@@ -420,7 +420,7 @@ func NewDeleteNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup, ngFilter *NodeGroupFi
 			return ErrMustBeSet("--name")
 		}
 
-		ngFilter.delegate.AppendIncludeNames(ng.Name)
+		ngFilter.AppendIncludeNames(ng.Name)
 
 		l.Plan = false
 
