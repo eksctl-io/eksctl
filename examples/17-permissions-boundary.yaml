@@ -19,7 +19,7 @@ iam:
     - metadata:
         name: s3-reader
       attachPolicyARNs:
-      - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+        - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
       permissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
 
 nodeGroups:

@@ -1,4 +1,4 @@
-# An example where the node's instance name is 
+# An example where the node's instance name is
 # specified by the user instead of the default naming
 # convention
 ---
@@ -10,8 +10,8 @@ metadata:
   region: eu-west-1
 
 nodeGroups:
-    - name: ng-1
-      instanceType: m5.large
-      desiredCapacity: 1
-      instancePrefix: foo
-      instanceName: bar
+  - name: ng-1
+    instanceType: m5.large
+    desiredCapacity: 1
+    instancePrefix: foo
+    instanceName: bar

@@ -8,8 +8,8 @@ metadata:
   region: us-west-2
 
 managedNodeGroups:
-- name: ng-1
-  desiredCapacity: 2
+  - name: ng-1
+    desiredCapacity: 2
 
 secretsEncryption:
   # ARN of the KMS key
