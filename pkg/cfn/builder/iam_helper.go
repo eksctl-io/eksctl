@@ -60,13 +60,12 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 		)
 
 		hostedZonePolicy := []string{
-			"route53:ListHostedZones",
 			"route53:ListResourceRecordSets",
 			"route53:ListHostedZonesByName",
 		}
 
 		if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
-			hostedZonePolicy = append(hostedZonePolicy, "route53:ListTagsForResource")
+			hostedZonePolicy = append(hostedZonePolicy, "route53:ListHostedZones", "route53:ListTagsForResource")
 		}
 
 		cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*", hostedZonePolicy)
