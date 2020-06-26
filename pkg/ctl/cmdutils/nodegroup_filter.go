@@ -73,34 +73,6 @@ func (f *NodeGroupFilter) SetOnlyRemote(lister stackLister, clusterConfig *api.C
 	f.onlyRemote = true
 
 	return f.loadLocalAndRemoteNodegroups(lister, clusterConfig)
-
-	//for _, localNodeGroup := range getAllNodeGroupNames(clusterConfig) {
-	//	local.Insert(localNodeGroup)
-	//	if !stackExists(stacks, localNodeGroup) {
-	//		logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup)
-	//		f.AppendExcludeNames(localNodeGroup)
-	//	} else if includeOnlyMissing {
-	//		f.AppendExcludeNames(localNodeGroup)
-	//	}
-	//}
-	//
-	//for _, s := range stacks {
-	//	remoteNodeGroupName := s.NodeGroupName
-	//	if !local.Has(remoteNodeGroupName) {
-	//		logger.Info("nodegroup %q present in the cluster, but missing from the given config", s.NodeGroupName)
-	//		if includeOnlyMissing {
-	//			if s.Type == api.NodeGroupTypeManaged {
-	//				clusterConfig.ManagedNodeGroups = append(clusterConfig.ManagedNodeGroups, &api.ManagedNodeGroup{Name: s.NodeGroupName})
-	//			} else {
-	//				clusterConfig.NodeGroups = append(clusterConfig.NodeGroups, &api.NodeGroup{Name: s.NodeGroupName})
-	//			}
-	//			// make sure it passes it through the filter, so that one can use `--only-missing` along with `--exclude`
-	//			if f.Match(remoteNodeGroupName) {
-	//				f.AppendIncludeNames(remoteNodeGroupName)
-	//			}
-	//		}
-	//	}
-	//}
 }
 
 // SetExcludeAll sets the ExcludeAll flag in the filter so that no nodegroups are matched
@@ -234,6 +206,11 @@ func (f *NodeGroupFilter) ForEach(nodeGroups []*api.NodeGroup, iterFn func(i int
 		}
 	}
 	return nil
+}
+
+// DoLogInfo logs how each name matches or not in the filter
+func (f *NodeGroupFilter) DoLogInfo(allNames []string) {
+	f.delegate.doLogInfo("nodegroup", allNames)
 }
 
 func (*NodeGroupFilter) collectNames(nodeGroups []*api.NodeGroup) []string {

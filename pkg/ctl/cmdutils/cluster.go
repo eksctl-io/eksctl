@@ -36,7 +36,7 @@ func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *NodeGroupFilter) fu
 		for _, ng := range managedNodeGroups {
 			allNames = append(allNames, ng.Name)
 		}
-		ngFilter.delegate.doLogInfo("nodegroup", allNames)
+		ngFilter.DoLogInfo(allNames)
 	}
 }
 

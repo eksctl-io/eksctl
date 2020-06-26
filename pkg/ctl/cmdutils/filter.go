@@ -88,8 +88,8 @@ func (f *Filter) Match(name string) bool {
 	}
 
 	if hasIncludeRules {
-		// Overwrites by name take precedence. And inclusion takes precedence over exclusion
-		if f.includeNames.Has(name) {
+		// Overwrites by name take precedence. Exclude overwrites have precedence over inclusion ones
+		if f.includeNames.Has(name) && !f.excludeNames.Has(name) {
 			return true
 		}
 

@@ -150,7 +150,7 @@ func NewMetadataLoader(cmd *Cmd) ClusterConfigLoader {
 func NewCreateClusterLoader(cmd *Cmd, ngFilter *NodeGroupFilter, ng *api.NodeGroup, params *CreateClusterCmdParams) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
-	ngFilter.delegate.ExcludeAll = params.WithoutNodeGroup
+	ngFilter.SetExcludeAll(params.WithoutNodeGroup)
 
 	l.flagsIncompatibleWithConfigFile.Insert(
 		"tags",

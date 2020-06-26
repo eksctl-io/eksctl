@@ -86,10 +86,14 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 		local.Insert(localServiceAccountName)
 		if !remote.Has(localServiceAccountName) {
 			logger.Info("iamserviceaccounts %q present in the given config, but missing in the cluster", localServiceAccountName)
-			f.AppendExcludeNames(localServiceAccountName)
+			if err := f.AppendExcludeGlobs(localServiceAccountName); err != nil {
+				return err
+			}
 		} else if includeOnlyMissing {
 			logger.Info("iamserviceaccounts %q present in the given config and the cluster", localServiceAccountName)
-			f.AppendExcludeNames(localServiceAccountName)
+			if err := f.AppendExcludeGlobs(localServiceAccountName); err != nil {
+				return err
+			}
 		}
 	}
 
