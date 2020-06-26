@@ -68,7 +68,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 	clusterSG := c.addResourcesForSecurityGroups(vpcResource)
 
 	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled {
-		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.provider, c.rs, vpcResource.VPC, vpcResource.SubnetDetails.Private, privateCluster.AdditionalEndpointServices, clusterSG)
+		vpcEndpointResourceSet := NewVPCEndpointResourceSet(c.provider, c.rs, c.spec, vpcResource.VPC, vpcResource.SubnetDetails.Private, clusterSG.ClusterSharedNode)
 
 		if err := vpcEndpointResourceSet.AddResources(); err != nil {
 			return errors.Wrap(err, "error adding resources for VPC endpoints")

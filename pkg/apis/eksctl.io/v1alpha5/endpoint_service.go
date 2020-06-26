@@ -15,8 +15,8 @@ const (
 	EndpointServiceCloudWatch  = "logs"
 )
 
-// DefaultEndpointServices returns a list of endpoint services that are enabled by default
-func DefaultEndpointServices() []string {
+// RequiredEndpointServices returns a list of endpoint services that are required for a fully-private cluster
+func RequiredEndpointServices() []string {
 	return []string{
 		EndpointServiceEC2,
 		EndpointServiceECRAPI,
@@ -28,9 +28,14 @@ func DefaultEndpointServices() []string {
 
 // ValidateAdditionalEndpointServices validates support for the specified additional endpoint services
 func ValidateAdditionalEndpointServices(services []string) error {
+	seen := make(map[string]struct{})
 	for _, service := range services {
 		switch service {
 		case EndpointServiceAutoscaling, EndpointServiceCloudWatch:
+			if _, ok := seen[service]; ok {
+				return errors.Errorf("found duplicate endpoint service: %q", service)
+			}
+			seen[service] = struct{}{}
 		default:
 			return errors.Errorf("unsupported endpoint service %q", service)
 		}

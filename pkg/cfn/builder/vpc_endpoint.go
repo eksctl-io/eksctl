@@ -9,16 +9,18 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+
+	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 )
 
-type VPCEndpoint struct {
-	provider           provider
-	rs                 *resourceSet
-	vpc                *gfn.Value
-	additionalServices []string
-	subnets            []SubnetResource
-	clusterSG          *clusterSecurityGroup
+// A VPCEndpointResourceSet represents the resources required for VPC endpoints
+type VPCEndpointResourceSet struct {
+	provider        provider
+	rs              *resourceSet
+	vpc             *gfn.Value
+	clusterConfig   *api.ClusterConfig
+	subnets         []SubnetResource
+	clusterSharedSG *gfn.Value
 }
 
 type provider interface {
@@ -26,17 +28,19 @@ type provider interface {
 	Region() string
 }
 
-func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, vpc *gfn.Value, subnets []SubnetResource, additionalServices []string, clusterSG *clusterSecurityGroup) *VPCEndpoint {
-	return &VPCEndpoint{
-		provider:           provider,
-		vpc:                vpc,
-		subnets:            subnets,
-		additionalServices: additionalServices,
-		rs:                 rs,
-		clusterSG:          clusterSG,
+// NewVPCEndpointResourceSet creates a new VPCEndpointResourceSet
+func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfn.Value, subnets []SubnetResource, clusterSharedSG *gfn.Value) *VPCEndpointResourceSet {
+	return &VPCEndpointResourceSet{
+		provider:        provider,
+		rs:              rs,
+		clusterConfig:   clusterConfig,
+		vpc:             vpc,
+		subnets:         subnets,
+		clusterSharedSG: clusterSharedSG,
 	}
 }
 
+// VPCEndpointServiceDetails holds the details for a VPC endpoint service
 type VPCEndpointServiceDetails struct {
 	ServiceName       string
 	Service           string
@@ -45,8 +49,11 @@ type VPCEndpointServiceDetails struct {
 }
 
 // AddResources adds resources for VPC endpoints
-func (e *VPCEndpoint) AddResources() error {
-	endpointServices := append(v1alpha5.DefaultEndpointServices(), e.additionalServices...)
+func (e *VPCEndpointResourceSet) AddResources() error {
+	endpointServices := append(api.RequiredEndpointServices(), e.clusterConfig.PrivateCluster.AdditionalEndpointServices...)
+	if e.clusterConfig.HasClusterCloudWatchLogging() && !e.hasEndpoint(api.EndpointServiceCloudWatch) {
+		endpointServices = append(endpointServices, api.EndpointServiceCloudWatch)
+	}
 	endpointServiceDetails, err := BuildVPCEndpointServices(e.provider.EC2(), e.provider.Region(), endpointServices)
 	if err != nil {
 		return errors.Wrap(err, "error building endpoint service details")
@@ -65,7 +72,7 @@ func (e *VPCEndpoint) AddResources() error {
 			endpoint.VpcEndpointType = gfn.NewString(ec2.VpcEndpointTypeInterface)
 			endpoint.SubnetIds = e.subnetsForAZs(endpointDetail.AvailabilityZones)
 			endpoint.PrivateDnsEnabled = gfn.NewBoolean(true)
-			endpoint.SecurityGroupIds = []*gfn.Value{e.clusterSG.ClusterSharedNode}
+			endpoint.SecurityGroupIds = []*gfn.Value{e.clusterSharedSG}
 		}
 
 		resourceName := fmt.Sprintf("VPCEndpoint%s", strings.ToUpper(
@@ -78,7 +85,7 @@ func (e *VPCEndpoint) AddResources() error {
 	return nil
 }
 
-func (e *VPCEndpoint) subnetsForAZs(azs []string) []*gfn.Value {
+func (e *VPCEndpointResourceSet) subnetsForAZs(azs []string) []*gfn.Value {
 	var subnetRefs []*gfn.Value
 	for _, az := range azs {
 		for _, subnet := range e.subnets {
@@ -91,7 +98,7 @@ func (e *VPCEndpoint) subnetsForAZs(azs []string) []*gfn.Value {
 	return subnetRefs
 }
 
-func (e *VPCEndpoint) routeTableIDs() []*gfn.Value {
+func (e *VPCEndpointResourceSet) routeTableIDs() []*gfn.Value {
 	var routeTableIDs []*gfn.Value
 	for _, subnet := range e.subnets {
 		routeTableIDs = append(routeTableIDs, subnet.RouteTable)
@@ -99,6 +106,16 @@ func (e *VPCEndpoint) routeTableIDs() []*gfn.Value {
 	return routeTableIDs
 }
 
+func (e *VPCEndpointResourceSet) hasEndpoint(endpoint string) bool {
+	for _, ae := range e.clusterConfig.PrivateCluster.AdditionalEndpointServices {
+		if ae == endpoint {
+			return true
+		}
+	}
+	return false
+}
+
+// BuildVPCEndpointServices builds a slice of VPCEndpointServiceDetails for the specified endpoint names
 func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints []string) ([]VPCEndpointServiceDetails, error) {
 	serviceNames := make([]string, len(endpoints))
 	serviceRegionPrefix := fmt.Sprintf("com.amazonaws.%s.", region)
@@ -106,28 +123,40 @@ func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		serviceNames[i] = serviceRegionPrefix + endpoint
 	}
 
-	output, err := ec2API.DescribeVpcEndpointServices(&ec2.DescribeVpcEndpointServicesInput{
-		ServiceNames: aws.StringSlice(serviceNames),
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("service-name"),
-				Values: aws.StringSlice(serviceNames),
-			},
-		},
-	})
+	var serviceDetails []*ec2.ServiceDetail
+	var nextToken *string
 
-	if err != nil {
-		return nil, err
+	for {
+		output, err := ec2API.DescribeVpcEndpointServices(&ec2.DescribeVpcEndpointServicesInput{
+			ServiceNames: aws.StringSlice(serviceNames),
+			Filters: []*ec2.Filter{
+				{
+					Name:   aws.String("service-name"),
+					Values: aws.StringSlice(serviceNames),
+				},
+			},
+			NextToken: nextToken,
+		})
+
+		if err != nil {
+			return nil, errors.Wrap(err, "error describing VPC endpoint services")
+		}
+
+		nextToken = output.NextToken
+		if nextToken == nil {
+			break
+		}
+		serviceDetails = append(serviceDetails, output.ServiceDetails...)
 	}
 
-	serviceDetails := make([]VPCEndpointServiceDetails, len(output.ServiceDetails))
+	ret := make([]VPCEndpointServiceDetails, len(serviceDetails))
 
-	for i, sd := range output.ServiceDetails {
+	for i, sd := range serviceDetails {
 		if len(sd.ServiceType) > 1 {
 			return nil, errors.Errorf("endpoint service %q with multiple service types isn't supported", *sd.ServiceName)
 		}
 
-		serviceDetails[i] = VPCEndpointServiceDetails{
+		ret[i] = VPCEndpointServiceDetails{
 			ServiceName:       *sd.ServiceName,
 			Service:           strings.TrimPrefix(*sd.ServiceName, serviceRegionPrefix),
 			EndpointType:      *sd.ServiceType[0].ServiceType,
@@ -135,5 +164,5 @@ func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		}
 	}
 
-	return serviceDetails, nil
+	return ret, nil
 }
