@@ -328,7 +328,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               false,
 			public:                true,
 			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error: nil,
+			error:                 nil,
 		}),
 		Entry("Private=true, Public=false", endpointAccessCase{
 			cfg:                   api.NewClusterConfig(),
@@ -336,7 +336,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               true,
 			public:                false,
 			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error: nil,
+			error:                 nil,
 		}),
 		Entry("Private=true, Public=true", endpointAccessCase{
 			cfg:                   api.NewClusterConfig(),
@@ -344,7 +344,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               true,
 			public:                true,
 			describeClusterOutput: &eks.DescribeClusterOutput{Cluster: cluster},
-			error: nil,
+			error:                 nil,
 		}),
 		Entry("Private=false, Public=false", endpointAccessCase{
 			cfg:                   api.NewClusterConfig(),
@@ -352,7 +352,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               false,
 			public:                false,
 			describeClusterOutput: nil,
-			error: errors.New(eks.ErrCodeResourceNotFoundException),
+			error:                 errors.New(eks.ErrCodeResourceNotFoundException),
 		}),
 		Entry("Nil Cluster endpoint from config", endpointAccessCase{
 			cfg: &api.ClusterConfig{
@@ -372,7 +372,7 @@ var _ = Describe("VPC - Cluster Endpoints", func() {
 			private:               false,
 			public:                false,
 			describeClusterOutput: nil,
-			error: nil,
+			error:                 nil,
 		}),
 	)
 })

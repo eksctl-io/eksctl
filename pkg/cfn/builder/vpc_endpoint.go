@@ -19,7 +19,7 @@ type VPCEndpointResourceSet struct {
 	rs              *resourceSet
 	vpc             *gfn.Value
 	clusterConfig   *api.ClusterConfig
-	subnets         []SubnetResource
+	subnets         []subnetResource
 	clusterSharedSG *gfn.Value
 }
 
@@ -29,7 +29,7 @@ type provider interface {
 }
 
 // NewVPCEndpointResourceSet creates a new VPCEndpointResourceSet
-func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfn.Value, subnets []SubnetResource, clusterSharedSG *gfn.Value) *VPCEndpointResourceSet {
+func NewVPCEndpointResourceSet(provider provider, rs *resourceSet, clusterConfig *api.ClusterConfig, vpc *gfn.Value, subnets []subnetResource, clusterSharedSG *gfn.Value) *VPCEndpointResourceSet {
 	return &VPCEndpointResourceSet{
 		provider:        provider,
 		rs:              rs,

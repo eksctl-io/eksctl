@@ -139,8 +139,8 @@ func doCreateNodeGroups(cmd *cmdutils.Cmd, ng *api.NodeGroup, params createNodeG
 		logger.Info("nodegroup %q will use %q [%s/%s]", ng.Name, ng.AMI, ng.AMIFamily, cfg.Metadata.Version)
 	}
 
-	managedService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
-	if err := managedService.NormalizeManaged(cmdutils.ToBaseNodeGroups(cfg)); err != nil {
+	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
+	if err := nodeGroupService.Normalize(cmdutils.ToBaseNodeGroups(cfg)); err != nil {
 		return err
 	}
 

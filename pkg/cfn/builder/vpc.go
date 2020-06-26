@@ -27,26 +27,26 @@ type VPCResourceSet struct {
 	vpc               *api.ClusterVPC
 	fullyPrivate      bool
 
-	vpcResource *VPCResource
+	vpcResource *vpcResource
 }
 
-type VPCResource struct {
+type vpcResource struct {
 	VPC           *gfn.Value
-	SubnetDetails *SubnetDetails
+	SubnetDetails *subnetDetails
 }
 
-type SubnetResource struct {
+type subnetResource struct {
 	Subnet           *gfn.Value
 	RouteTable       *gfn.Value
 	AvailabilityZone string
 }
 
-type SubnetDetails struct {
-	Private []SubnetResource
-	Public  []SubnetResource
+type subnetDetails struct {
+	Private []subnetResource
+	Public  []subnetResource
 }
 
-func (s *SubnetDetails) PublicSubnetIDs() []*gfn.Value {
+func (s *subnetDetails) PublicSubnetRefs() []*gfn.Value {
 	var subnetRefs []*gfn.Value
 	for _, subnetAZ := range s.Public {
 		subnetRefs = append(subnetRefs, subnetAZ.Subnet)
@@ -54,7 +54,7 @@ func (s *SubnetDetails) PublicSubnetIDs() []*gfn.Value {
 	return subnetRefs
 }
 
-func (s *SubnetDetails) PrivateSubnetIDs() []*gfn.Value {
+func (s *subnetDetails) PrivateSubnetRefs() []*gfn.Value {
 	var subnetRefs []*gfn.Value
 	for _, subnetAZ := range s.Private {
 		subnetRefs = append(subnetRefs, subnetAZ.Subnet)
@@ -81,15 +81,15 @@ func NewVPCResourceSet(rs *resourceSet, vpc *api.ClusterVPC, availabilityZones [
 		availabilityZones: availabilityZones,
 		fullyPrivate:      fullyPrivate,
 
-		vpcResource: &VPCResource{
+		vpcResource: &vpcResource{
 			VPC:           vpcRef,
-			SubnetDetails: &SubnetDetails{},
+			SubnetDetails: &subnetDetails{},
 		},
 	}
 }
 
 // AddResources adds all required resources
-func (v *VPCResourceSet) AddResources() (*VPCResource, error) {
+func (v *VPCResourceSet) AddResources() (*vpcResource, error) {
 	if customVPC := v.vpc.ID != ""; customVPC {
 		v.importResources()
 		return v.vpcResource, nil
@@ -97,7 +97,7 @@ func (v *VPCResourceSet) AddResources() (*VPCResource, error) {
 
 	if api.IsEnabled(v.vpc.AutoAllocateIPv6) {
 		v.newResource("AutoAllocatedCIDRv6", &gfn.AWSEC2VPCCidrBlock{
-			VpcId: v.vpcResource.VPC,
+			VpcId:                       v.vpcResource.VPC,
 			AmazonProvidedIpv6CidrBlock: gfn.True(),
 		})
 	}
@@ -138,7 +138,7 @@ func (v *VPCResourceSet) AddResources() (*VPCResource, error) {
 	return v.vpcResource, nil
 }
 
-func (v *VPCResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) []SubnetResource {
+func (v *VPCResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopology, subnets map[string]api.Network) []subnetResource {
 	var subnetIndexForIPv6 int
 	if api.IsEnabled(v.vpc.AutoAllocateIPv6) {
 		// this is same kind of indexing we have in vpc.SetSubnets
@@ -150,7 +150,7 @@ func (v *VPCResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopolog
 		}
 	}
 
-	var subnetAZs []SubnetResource
+	var subnetAZs []subnetResource
 
 	for az, subnet := range subnets {
 		alias := string(topology) + strings.ToUpper(strings.Join(strings.Split(az, "-"), ""))
@@ -200,7 +200,7 @@ func (v *VPCResourceSet) addSubnets(refRT *gfn.Value, topology api.SubnetTopolog
 			subnetIndexForIPv6++
 		}
 
-		subnetAZs = append(subnetAZs, SubnetResource{
+		subnetAZs = append(subnetAZs, subnetResource{
 			AvailabilityZone: az,
 			RouteTable:       refRT,
 			Subnet:           refSubnet,
@@ -271,11 +271,11 @@ func (v *VPCResourceSet) addNATGateways() error {
 }
 
 func (v *VPCResourceSet) importResources() {
-	getSubnetAZs := func(subnets map[string]api.Network) []SubnetResource {
-		subnetAZs := make([]SubnetResource, len(subnets))
+	getSubnetAZs := func(subnets map[string]api.Network) []subnetResource {
+		subnetAZs := make([]subnetResource, len(subnets))
 		i := 0
 		for az, network := range subnets {
-			subnetAZs[i] = SubnetResource{
+			subnetAZs[i] = subnetResource{
 				AvailabilityZone: az,
 				Subnet:           gfn.NewString(network.ID),
 			}
@@ -309,11 +309,11 @@ func (v *VPCResourceSet) AddOutputs(provider api.ClusterProvider, clusterConfig 
 		})
 	}
 
-	if subnetAZs := v.vpcResource.SubnetDetails.PrivateSubnetIDs(); len(subnetAZs) > 0 {
+	if subnetAZs := v.vpcResource.SubnetDetails.PrivateSubnetRefs(); len(subnetAZs) > 0 {
 		addSubnetOutput(subnetAZs, api.SubnetTopologyPrivate, outputs.ClusterSubnetsPrivate)
 	}
 
-	if subnetAZs := v.vpcResource.SubnetDetails.PublicSubnetIDs(); len(subnetAZs) > 0 {
+	if subnetAZs := v.vpcResource.SubnetDetails.PublicSubnetRefs(); len(subnetAZs) > 0 {
 		addSubnetOutput(subnetAZs, api.SubnetTopologyPublic, outputs.ClusterSubnetsPublic)
 	}
 
@@ -340,7 +340,7 @@ type clusterSecurityGroup struct {
 	ClusterSharedNode *gfn.Value
 }
 
-func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *VPCResource) *clusterSecurityGroup {
+func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *vpcResource) *clusterSecurityGroup {
 	var refControlPlaneSG, refClusterSharedNodeSG *gfn.Value
 
 	if c.spec.VPC.SecurityGroup == "" {

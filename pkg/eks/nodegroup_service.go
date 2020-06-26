@@ -2,7 +2,6 @@ package eks
 
 import (
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
-	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ssh"
 )
@@ -21,8 +20,8 @@ func NewNodeGroupService(clusterConfig *api.ClusterConfig, ec2API ec2iface.EC2AP
 	}
 }
 
-// NormalizeManaged normalizes managed nodegroups
-func (m *NodeGroupService) NormalizeManaged(nodeGroups []*api.NodeGroupBase) error {
+// Normalize normalizes nodegroups
+func (m *NodeGroupService) Normalize(nodeGroups []*api.NodeGroupBase) error {
 	for _, ng := range nodeGroups {
 		// load or use SSH key - name includes cluster name and the
 		// fingerprint, so if unique keys are provided, each will get
@@ -34,10 +33,6 @@ func (m *NodeGroupService) NormalizeManaged(nodeGroups []*api.NodeGroupBase) err
 		}
 		if publicKeyName != "" {
 			ng.SSH.PublicKeyName = &publicKeyName
-		}
-
-		if m.cluster.PrivateCluster.Enabled && !ng.PrivateNetworking {
-			return errors.New("privateNetworking for a nodegroup must be enabled for a private cluster")
 		}
 	}
 	return nil

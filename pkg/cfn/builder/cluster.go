@@ -152,13 +152,13 @@ type encryptionConfig struct {
 
 type awsEKSCluster gfn.AWSEKSCluster
 
-func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *SubnetDetails) {
+func (c *ClusterResourceSet) addResourcesForControlPlane(subnetDetails *subnetDetails) {
 	clusterVPC := &gfn.AWSEKSCluster_ResourcesVpcConfig{
 		SecurityGroupIds: c.securityGroups,
 	}
 
-	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PublicSubnetIDs()...)
-	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PrivateSubnetIDs()...)
+	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PublicSubnetRefs()...)
+	clusterVPC.SubnetIds = append(clusterVPC.SubnetIds, subnetDetails.PrivateSubnetRefs()...)
 
 	serviceRoleARN := gfn.MakeFnGetAttString("ServiceRole.Arn")
 	if api.IsSetAndNonEmptyString(c.spec.IAM.ServiceRoleARN) {

@@ -269,7 +269,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 	}
 
 	nodeGroupService := eks.NewNodeGroupService(cfg, ctl.Provider.EC2())
-	if err := nodeGroupService.NormalizeManaged(cmdutils.ToBaseNodeGroups(cfg)); err != nil {
+	if err := nodeGroupService.Normalize(cmdutils.ToBaseNodeGroups(cfg)); err != nil {
 		return err
 	}
 

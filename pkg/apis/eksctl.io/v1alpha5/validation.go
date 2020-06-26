@@ -57,8 +57,6 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		}
 	}
 
-	privateCluster := cfg.PrivateCluster != nil && cfg.PrivateCluster.Enabled
-
 	// names must be unique across both managed and unmanaged nodegroups
 	ngNames := nameSet{}
 	validateNg := func(ng *NodeGroupBase, path string) error {
@@ -68,7 +66,7 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 		if _, err := ngNames.checkUnique(path+".name", ng.Name); err != nil {
 			return err
 		}
-		if privateCluster && !ng.PrivateNetworking {
+		if cfg.PrivateCluster.Enabled && !ng.PrivateNetworking {
 			return fmt.Errorf("%s.privateNetworking must be enabled for a fully-private cluster", path)
 		}
 		return nil
