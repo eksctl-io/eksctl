@@ -89,6 +89,15 @@ func (f *Filter) Match(name string) bool {
 		return false // force exclude
 	}
 
+	// Name overwrites
+	if f.includeNames.Has(name) && !f.excludeNames.Has(name) {
+		return true
+	}
+
+	if f.excludeNames.Has(name) {
+		return false
+	}
+
 	hasIncludeRules := f.hasIncludeRules()
 	hasExcludeRules := f.hasExcludeRules()
 
@@ -102,11 +111,6 @@ func (f *Filter) Match(name string) bool {
 	}
 
 	if hasIncludeRules {
-		// Overwrites by name take precedence. Exclude overwrites have precedence over inclusion ones
-		if f.includeNames.Has(name) && !f.excludeNames.Has(name) {
-			return true
-		}
-
 		if f.matchGlobs(name, f.includeGlobs) {
 			if hasExcludeRules {
 				// exclusion takes precedence
