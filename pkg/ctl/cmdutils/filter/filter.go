@@ -25,6 +25,15 @@ type Filter struct {
 	rawExcludeGlobs []string
 }
 
+// NewFilter returns a new initialized Filter
+func NewFilter() Filter {
+	return Filter{
+		ExcludeAll:   false,
+		includeNames: sets.NewString(),
+		excludeNames: sets.NewString(),
+	}
+}
+
 // AppendIncludeNames appends explicit names to the include filter
 func (f *Filter) AppendIncludeNames(names ...string) { f.includeNames.Insert(names...) }
 
