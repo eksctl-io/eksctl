@@ -35,61 +35,6 @@ var _ = Describe("nodegroup filter", func() {
 			filter = NewNodeGroupFilter()
 		})
 
-		It("should match empty filter", func() {
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(6))
-			Expect(excluded).To(HaveLen(0))
-			Expect(included.HasAll("test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b")).To(BeTrue())
-		})
-
-		It("should match exclude filter with ExcludeAll", func() {
-			filter.delegate.ExcludeAll = true
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(0))
-			Expect(excluded).To(HaveLen(6))
-			Expect(excluded.HasAll("test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b")).To(BeTrue())
-		})
-
-		It("should match exclude filter with names and globs", func() {
-			filter.delegate.AppendExcludeNames("test-ng3b")
-			err := filter.delegate.AppendExcludeGlobs("test-ng1?", "x*")
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(filter.Match("test-ng3x")).To(BeTrue())
-			Expect(filter.Match("test-ng3b")).To(BeFalse())
-			Expect(filter.Match("xyz1")).To(BeFalse())
-			Expect(filter.Match("yz1")).To(BeTrue())
-			Expect(filter.Match("test-ng1")).To(BeTrue())
-			Expect(filter.Match("test-ng1a")).To(BeFalse())
-			Expect(filter.Match("test-ng1n")).To(BeFalse())
-
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(3))
-			Expect(included.HasAll("test-ng2a", "test-ng2b", "test-ng3a")).To(BeTrue())
-			Expect(excluded).To(HaveLen(3))
-			Expect(excluded.HasAll("test-ng1a", "test-ng1b", "test-ng3b")).To(BeTrue())
-		})
-
-		It("should match include filter", func() {
-			filter.AppendIncludeNames("test-ng3b")
-			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?", "x*")
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(filter.Match("test-ng3x")).To(BeFalse())
-			Expect(filter.Match("test-ng3b")).To(BeTrue())
-			Expect(filter.Match("xyz1")).To(BeTrue())
-			Expect(filter.Match("yz1")).To(BeFalse())
-			Expect(filter.Match("test-ng1")).To(BeFalse())
-			Expect(filter.Match("test-ng1a")).To(BeTrue())
-			Expect(filter.Match("test-ng1n")).To(BeTrue())
-
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(3))
-			Expect(included.HasAll("test-ng1a", "test-ng1b", "test-ng3b")).To(BeTrue())
-			Expect(excluded).To(HaveLen(3))
-			Expect(excluded.HasAll("test-ng2a", "test-ng2b", "test-ng3a")).To(BeTrue())
-		})
-
 		It("regression: should only match the ones included in the filter when non existing ngs are present in the config file", func() {
 			nonExistentNg := cfg.NewNodeGroup()
 			nonExistentNg.Name = "non-existing-in-cluster"
@@ -139,21 +84,6 @@ var _ = Describe("nodegroup filter", func() {
 				"test-ng2b",
 				"test-ng3b",
 			)).To(BeTrue())
-		})
-
-		It("should match non-overlapping exclude and include filters with explicit inclusion", func() {
-			filter.AppendIncludeNames("test-ng1a", "test-ng2b")
-			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a", "*-ng3?")
-			Expect(err).ToNot(HaveOccurred())
-
-			err = filter.AppendExcludeGlobs("*-ng1b")
-			Expect(err).ToNot(HaveOccurred())
-
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(5))
-			Expect(included.HasAll("test-ng1a", "test-ng2a", "test-ng3b", "test-ng2b", "test-ng3a")).To(BeTrue())
-			Expect(excluded).To(HaveLen(1))
-			Expect(excluded.HasAll("test-ng1b")).To(BeTrue())
 		})
 
 		It("should match only local nodegroups", func() {
