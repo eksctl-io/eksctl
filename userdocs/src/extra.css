@@ -37,6 +37,10 @@ img[src$="#content"] {
   background: no-repeat center;
 }
 
+[data-md-color-scheme="slate"] {
+  --md-default-fg-color: #c8cad5;
+}
+
 [data-md-color-scheme="slate"] img[src$="#wwinline"] {
   background: url("img/weaveworks-light.svg") no-repeat;
 }

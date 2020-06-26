@@ -1,5 +1,6 @@
 table#config {
     font-family: monospace;
+    font-size: 13px;
 }
 table#config span.example,
 table#config span.value {
@@ -17,4 +18,5 @@ table#config td span.required a.key{
 }
 table#config td.type {
     filter: opacity(70%);
+    color: #999999;
 }
