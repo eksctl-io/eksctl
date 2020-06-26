@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"sync"
 
 	eksctlapi "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/utils/kubeconfig"
@@ -308,45 +307,5 @@ var _ = Describe("Kubeconfig", func() {
 			Expect(err).To(BeNil())
 			Expect(configFileAsBytes).To(MatchYAML(twoClustersAsBytes), "Should not change")
 		})
-	})
-
-	It("safely handles concurrent read-modify-write operations", func() {
-		var (
-			oneClusterAsBytes  []byte
-			twoClustersAsBytes []byte
-		)
-		ChangeKubeconfig()
-
-		var err error
-
-		if oneClusterAsBytes, err = ioutil.ReadFile("testdata/one_cluster.golden"); err != nil {
-			GinkgoT().Fatalf("failed reading .golden: %v", err)
-		}
-
-		if twoClustersAsBytes, err = ioutil.ReadFile("testdata/two_clusters.golden"); err != nil {
-			GinkgoT().Fatalf("failed reading .golden: %v", err)
-		}
-
-		var wg sync.WaitGroup
-		multiplier := 3
-		iters := 100
-		for i := 0; i < multiplier; i++ {
-			for k := 0; k < iters; k++ {
-				wg.Add(2)
-				go func() {
-					defer wg.Done()
-					_, err := configFile.Write(oneClusterAsBytes)
-					Expect(err).To(BeNil())
-				}()
-				go func() {
-					defer wg.Done()
-					_, err := configFile.Write(twoClustersAsBytes)
-					Expect(err).To(BeNil())
-				}()
-			}
-		}
-
-		wg.Wait()
-
 	})
 })

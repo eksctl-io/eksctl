@@ -19,7 +19,6 @@ require (
 	github.com/fluxcd/helm-operator/pkg/install v0.0.0-20200407140510-8d71b0072a3e // helm-operator 1.0.0
 	github.com/github-release/github-release v0.8.1
 	github.com/gobwas/glob v0.2.3
-	github.com/gofrs/flock v0.7.1
 	github.com/golangci/golangci-lint v1.27.0
 	github.com/google/go-github/v31 v31.0.0
 	github.com/goreleaser/goreleaser v0.136.0

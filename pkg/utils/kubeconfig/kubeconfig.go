@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
+
+	"github.com/weaveworks/eksctl/pkg/utils/file"
 
 	"os/exec"
 
-	"github.com/gofrs/flock"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/utils/file"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -180,62 +179,12 @@ func AppendAuthenticator(config *clientcmdapi.Config, clusterMeta *api.ClusterMe
 	}
 }
 
-// ensureDirectory should probably be handled in flock
-func ensureDirectory(filePath string) error {
-	dir := filepath.Dir(filePath)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err = os.MkdirAll(dir, 0755); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func lockConfigFile(filePath string) error {
-	// Make sure the directory exists, otherwise flock fails
-	if err := ensureDirectory(filePath); err != nil {
-		return err
-	}
-	flock := flock.New(filePath)
-	err := flock.Lock()
-	if err != nil {
-		return errors.Wrap(err, "flock: failed to obtain exclusive lock on kubeconfig file")
-	}
-
-	return nil
-}
-
-func unlockConfigFile(filePath string) error {
-	// Make sure the directory exists, otherwise flock fails
-	if err := ensureDirectory(filePath); err != nil {
-		return err
-	}
-	flock := flock.New(filePath)
-	err := flock.Unlock()
-	if err != nil {
-		return errors.Wrap(err, "flock: failed to release exclusive lock on kubeconfig file")
-	}
-
-	return nil
-}
-
 // Write will write Kubernetes client configuration to a file.
 // If path isn't specified then the path will be determined by client-go.
 // If file pointed to by path doesn't exist it will be created.
 // If the file already exists then the configuration will be merged with the existing file.
 func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string, error) {
 	configAccess := getConfigAccess(path)
-	configFileName := configAccess.GetDefaultFilename()
-	err := lockConfigFile(configFileName)
-	if err != nil {
-		return "", err
-	}
-
-	defer func() {
-		if err := unlockConfigFile(configFileName); err != nil {
-			logger.Critical(err.Error())
-		}
-	}()
 
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
@@ -254,7 +203,7 @@ func Write(path string, newConfig clientcmdapi.Config, setContext bool) (string,
 		return "", errors.Wrapf(err, "unable to modify kubeconfig %s", path)
 	}
 
-	return configFileName, nil
+	return configAccess.GetDefaultFilename(), nil
 }
 
 func getConfigAccess(explicitPath string) clientcmd.ConfigAccess {
@@ -314,17 +263,6 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	p := AutoPath(meta.Name)
 
 	if file.Exists(p) {
-		err := lockConfigFile(p)
-		if err != nil {
-			logger.Critical(err.Error())
-		}
-
-		defer func() {
-			if err := unlockConfigFile(p); err != nil {
-				logger.Critical(err.Error())
-			}
-		}()
-
 		if err := isValidConfig(p, meta.Name); err != nil {
 			logger.Debug(err.Error())
 			return
@@ -336,18 +274,6 @@ func MaybeDeleteConfig(meta *api.ClusterMeta) {
 	}
 
 	configAccess := getConfigAccess(DefaultPath())
-	defaultFilename := configAccess.GetDefaultFilename()
-	err := lockConfigFile(defaultFilename)
-	if err != nil {
-		logger.Critical(err.Error())
-	}
-
-	defer func() {
-		if err := unlockConfigFile(defaultFilename); err != nil {
-			logger.Critical(err.Error())
-		}
-	}()
-
 	config, err := configAccess.GetStartingConfig()
 	if err != nil {
 		logger.Debug("error reading kubeconfig file %q: %s", DefaultPath(), err.Error())
