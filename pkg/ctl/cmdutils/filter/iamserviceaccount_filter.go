@@ -1,9 +1,10 @@
-package cmdutils
+package filter
 
 import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
@@ -86,14 +87,10 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 		local.Insert(localServiceAccountName)
 		if !remote.Has(localServiceAccountName) {
 			logger.Info("iamserviceaccounts %q present in the given config, but missing in the cluster", localServiceAccountName)
-			if err := f.AppendExcludeGlobs(localServiceAccountName); err != nil {
-				return err
-			}
+			f.AppendExcludeNames(localServiceAccountName)
 		} else if includeOnlyMissing {
 			logger.Info("iamserviceaccounts %q present in the given config and the cluster", localServiceAccountName)
-			if err := f.AppendExcludeGlobs(localServiceAccountName); err != nil {
-				return err
-			}
+			f.AppendExcludeNames(localServiceAccountName)
 		}
 	}
 

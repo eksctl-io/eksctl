@@ -1,4 +1,4 @@
-package cmdutils
+package filter
 
 import (
 	"github.com/kris-nova/logger"
@@ -97,7 +97,7 @@ func (f *NodeGroupFilter) loadLocalAndRemoteNodegroups(lister stackLister, clust
 	}
 
 	// Get local nodegroups
-	for _, localNodeGroup := range getAllNodeGroupNames(clusterConfig) {
+	for _, localNodeGroup := range clusterConfig.GetAllNodeGroupNames() {
 		f.localNodegroups.Insert(localNodeGroup)
 		if !stackExists(existingStacks, localNodeGroup) {
 			logger.Info("nodegroup %q present in the given config, but missing in the cluster", localNodeGroup)

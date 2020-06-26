@@ -9,6 +9,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
@@ -58,7 +59,7 @@ func deleteIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 }
 
 func doDeleteIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMServiceAccount, onlyMissing bool) error {
-	saFilter := cmdutils.NewIAMServiceAccountFilter()
+	saFilter := filter.NewIAMServiceAccountFilter()
 
 	if err := cmdutils.NewDeleteIAMServiceAccountLoader(cmd, serviceAccount, saFilter).Load(); err != nil {
 		return err

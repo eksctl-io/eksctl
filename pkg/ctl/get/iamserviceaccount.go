@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/pflag"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 	"github.com/weaveworks/eksctl/pkg/printers"
@@ -79,7 +80,7 @@ func doGetIAMServiceAccount(cmd *cmdutils.Cmd, serviceAccount *api.ClusterIAMSer
 	// that is not ideal, but we don't have a better option yet
 	cfg.IAM.ServiceAccounts = []*api.ClusterIAMServiceAccount{}
 
-	saFilter := cmdutils.NewIAMServiceAccountFilter()
+	saFilter := filter.NewIAMServiceAccountFilter()
 
 	if cmd.ClusterConfigFile == "" {
 		// reset defaulted fields to avoid output being a complete lie

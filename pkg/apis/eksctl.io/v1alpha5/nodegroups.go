@@ -24,3 +24,15 @@ func (c *ClusterConfig) FindNodegroup(name string) *NodeGroup {
 	}
 	return nil
 }
+
+// GetAllNodeGroupNames collects and returns names for both managed and unmanaged nodegroups
+func (c *ClusterConfig) GetAllNodeGroupNames() []string {
+	var ngNames []string
+	for _, ng := range c.NodeGroups {
+		ngNames = append(ngNames, ng.NameString())
+	}
+	for _, ng := range c.ManagedNodeGroups {
+		ngNames = append(ngNames, ng.NameString())
+	}
+	return ngNames
+}
