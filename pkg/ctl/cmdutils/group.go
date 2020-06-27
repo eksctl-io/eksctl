@@ -75,7 +75,9 @@ func (g *FlagGrouping) Usage(cmd *cobra.Command) error {
 	if cmd.HasAvailableSubCommands() {
 		usage = append(usage, "\nCommands:")
 		for _, subCommand := range cmd.Commands() {
-			usage = append(usage, fmt.Sprintf("  %s %-22s  %s", cmd.CommandPath(), subCommand.Name(), subCommand.Short))
+			if !subCommand.Hidden {
+				usage = append(usage, fmt.Sprintf("  %s %-30s  %s", cmd.CommandPath(), subCommand.Name(), subCommand.Short))
+			}
 		}
 	}
 

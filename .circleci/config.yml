@@ -51,8 +51,7 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - go-cache-{{ .Branch }}-{{ .Revision }}
-            - go-cache-{{ .Branch }}-
+            - go-cache-{{ checksum "go.sum" }}
             - go-cache-
   save-cache:
     description: Save cache
@@ -63,7 +62,7 @@ commands:
             sudo chown -R circleci.circleci $HOME/.cache/go-build/
             sudo chown -R circleci.circleci $HOME/go/pkg/mod/
       - save_cache:
-          key: go-cache-{{ .Branch }}-{{ .Revision }}
+          key: go-cache-{{ checksum "go.sum" }}
           paths:
             - "/home/circleci/.cache/go-build/"
             - "/home/circleci/go/pkg/mod/"

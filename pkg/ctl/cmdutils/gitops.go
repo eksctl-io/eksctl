@@ -23,7 +23,10 @@ const (
 	gitFluxPath = "git-flux-subdir"
 	gitLabel    = "git-label"
 	namespace   = "namespace"
+	readOnly    = "read-only"
 	withHelm    = "with-helm"
+
+	commitOperatorManifests = "commit-operator-manifests"
 
 	profileName     = "profile-source"
 	profileRevision = "profile-revision"
@@ -50,8 +53,12 @@ func AddCommonFlagsForFlux(fs *pflag.FlagSet, opts *api.Git) {
 	fs.StringVar(&opts.Repo.FluxPath, gitFluxPath, "flux/",
 		"Directory within the Git repository where to commit the Flux manifests")
 	fs.StringVar(&opts.Operator.Namespace, namespace, "flux",
-		"Cluster namespace where to install Flux, the Helm Operator and Tiller")
-	opts.Operator.WithHelm = fs.Bool(withHelm, true, "Install the Helm Operator and Tiller")
+		"Cluster namespace where to install Flux and the Helm Operator")
+	fs.BoolVar(&opts.Operator.ReadOnly, readOnly, false,
+		"Configure Flux in read-only mode and create the deploy key as read-only (Github only)")
+	opts.Operator.CommitOperatorManifests = fs.Bool(commitOperatorManifests, true,
+		"Commit and push Flux manifests to the Git repo on install")
+	opts.Operator.WithHelm = fs.Bool(withHelm, true, "Install the Helm Operator")
 }
 
 // AddCommonFlagsForGit configures the flags required to interact with a Git
@@ -65,7 +72,8 @@ func AddCommonFlagsForGit(fs *pflag.FlagSet, repo *api.Repo) {
 		"Username to use as Git committer")
 	fs.StringVar(&repo.Email, gitEmail, "",
 		"Email to use as Git committer")
-	fs.StringVar(&repo.PrivateSSHKeyPath, gitPrivateSSHKeyPath, "",
+	fs.StringVar(&repo.PrivateSSHKeyPath,
+		gitPrivateSSHKeyPath, "",
 		"Optional path to the private SSH key to use with Git, e.g. ~/.ssh/id_rsa")
 }
 

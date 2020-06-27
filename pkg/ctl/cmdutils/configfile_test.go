@@ -21,6 +21,7 @@ var _ = Describe("cmdutils configfile", func() {
 	}
 
 	const examplesDir = "../../../examples/"
+	const numOfExamples = 21
 
 	Context("load configfiles", func() {
 
@@ -81,7 +82,7 @@ var _ = Describe("cmdutils configfile", func() {
 			examples, err := filepath.Glob(examplesDir + "*.yaml")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(examples).To(HaveLen(20))
+			Expect(examples).To(HaveLen(numOfExamples))
 			for _, example := range examples {
 				cmd := &Cmd{
 					CobraCommand:      newCmd(),

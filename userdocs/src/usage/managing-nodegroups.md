@@ -43,11 +43,13 @@ nodeGroups:
     labels: { role: workers }
     instanceType: m5.xlarge
     desiredCapacity: 10
+    volumeSize: 80
     privateNetworking: true
   - name: ng-2-builders
     labels: { role: builders }
     instanceType: m5.2xlarge
     desiredCapacity: 2
+    volumeSize: 100
     privateNetworking: true
 ```
 

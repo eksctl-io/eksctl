@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -186,6 +186,26 @@ users:
         value: {{.Region}}
      {{end}}
 `))
+
+var appMeshActions = []string{
+	"servicediscovery:CreateService",
+	"servicediscovery:DeleteService",
+	"servicediscovery:GetService",
+	"servicediscovery:GetInstance",
+	"servicediscovery:RegisterInstance",
+	"servicediscovery:DeregisterInstance",
+	"servicediscovery:ListInstances",
+	"servicediscovery:ListNamespaces",
+	"servicediscovery:ListServices",
+	"servicediscovery:GetInstancesHealthStatus",
+	"servicediscovery:UpdateInstanceCustomHealthStatus",
+	"servicediscovery:GetOperation",
+	"route53:GetHealthCheck",
+	"route53:CreateHealthCheck",
+	"route53:UpdateHealthCheck",
+	"route53:ChangeResourceRecordSets",
+	"route53:DeleteHealthCheck",
+}
 
 func kubeconfigBody(authenticator string) string {
 	var out bytes.Buffer
@@ -484,17 +504,18 @@ var _ = Describe("CloudFormation template builder API", func() {
 					VolumeKmsKeyID:  aws.String(""),
 					IAM: &api.NodeGroupIAM{
 						WithAddonPolicies: api.NodeGroupIAMAddonPolicies{
-							ImageBuilder: api.Disabled(),
-							AutoScaler:   api.Disabled(),
-							ExternalDNS:  api.Disabled(),
-							CertManager:  api.Disabled(),
-							AppMesh:      api.Disabled(),
-							EBS:          api.Disabled(),
-							FSX:          api.Disabled(),
-							EFS:          api.Disabled(),
-							ALBIngress:   api.Disabled(),
-							XRay:         api.Disabled(),
-							CloudWatch:   api.Disabled(),
+							ImageBuilder:   api.Disabled(),
+							AutoScaler:     api.Disabled(),
+							ExternalDNS:    api.Disabled(),
+							CertManager:    api.Disabled(),
+							AppMesh:        api.Disabled(),
+							AppMeshPreview: api.Disabled(),
+							EBS:            api.Disabled(),
+							FSX:            api.Disabled(),
+							EFS:            api.Disabled(),
+							ALBIngress:     api.Disabled(),
+							XRay:           api.Disabled(),
+							CloudWatch:     api.Disabled(),
 						},
 					},
 					SSH: &api.NodeGroupSSH{
@@ -815,15 +836,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 
 	Context("NodeGroupAutoScaling", func() {
 		cfg, ng := newClusterConfigAndNodegroup(true)
-		ng.ASGMetricsCollection = []api.MetricsCollection{
-			{
-				Granularity: "1Minute",
-				Metrics: []string{
-					"GroupMinSize",
-					"GroupMaxSize",
-				},
-			},
-		}
 		ng.ClassicLoadBalancerNames = []string{"clb-1", "clb-2"}
 		ng.TargetGroupARNs = []string{"tg-arn-1", "tg-arn-2"}
 
@@ -928,21 +940,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.Properties.LoadBalancerNames).To(Equal([]string{"clb-1", "clb-2"}))
 		})
 
-		It("should have metrics collections set", func() {
-			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
-			ng := ngTemplate.Resources["NodeGroup"]
-			Expect(ng).ToNot(BeNil())
-			Expect(ng.Properties).ToNot(BeNil())
-
-			Expect(ng.Properties.MetricsCollection).To(HaveLen(1))
-			var metricsCollection map[string]interface{} = ng.Properties.MetricsCollection[0]
-			Expect(metricsCollection).To(HaveKey("Granularity"))
-			Expect(metricsCollection).To(HaveKey("Metrics"))
-			Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
-			Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMinSize"))
-			Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMaxSize"))
-		})
-
 		It("should have target groups ARNs set", func() {
 			Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
 			ng := ngTemplate.Resources["NodeGroup"]
@@ -959,6 +956,61 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ng.Properties).ToNot(BeNil())
 
 			Expect(ng.Properties.TargetGroupARNs).To(Equal([]string{"tg-arn-1", "tg-arn-2"}))
+		})
+	})
+
+	Context("NodeGroupAutoScaling with metrics collection", func() {
+		Context("with all details", func() {
+			cfg, ng := newClusterConfigAndNodegroup(true)
+			ng.ASGMetricsCollection = []api.MetricsCollection{
+				{
+					Granularity: "1Minute",
+					Metrics: []string{
+						"GroupMinSize",
+						"GroupMaxSize",
+					},
+				},
+			}
+			build(cfg, "eksctl-test-123-with-metrics", ng)
+			roundtrip()
+
+			It("should have both Granularity and Metrics details", func() {
+				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+				ng := ngTemplate.Resources["NodeGroup"]
+				Expect(ng).ToNot(BeNil())
+				Expect(ng.Properties).ToNot(BeNil())
+
+				Expect(ng.Properties.MetricsCollection).To(HaveLen(1))
+				var metricsCollection = ng.Properties.MetricsCollection[0]
+				Expect(metricsCollection).To(HaveKey("Granularity"))
+				Expect(metricsCollection).To(HaveKey("Metrics"))
+				Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
+				Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMinSize"))
+				Expect(metricsCollection["Metrics"]).To(ContainElement("GroupMaxSize"))
+			})
+		})
+
+		Context("without metrics details", func() {
+			cfg, ng := newClusterConfigAndNodegroup(true)
+			ng.ASGMetricsCollection = []api.MetricsCollection{
+				{
+					Granularity: "1Minute",
+				},
+			}
+			build(cfg, "eksctl-test-123-cluster", ng)
+			roundtrip()
+
+			It("should have only Granularity", func() {
+				Expect(ngTemplate.Resources).To(HaveKey("NodeGroup"))
+				ng := ngTemplate.Resources["NodeGroup"]
+				Expect(ng).ToNot(BeNil())
+				Expect(ng.Properties).ToNot(BeNil())
+
+				Expect(ng.Properties.MetricsCollection).To(HaveLen(1))
+				var metricsCollection = ng.Properties.MetricsCollection[0]
+				Expect(metricsCollection).To(HaveKey("Granularity"))
+				Expect(metricsCollection["Granularity"]).To(Equal("1Minute"))
+			})
 		})
 	})
 
@@ -1002,9 +1054,9 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 				"route53:ListHostedZonesByName",
+				"route53:ListHostedZones",
 				"route53:ListTagsForResource",
 			}))
 
@@ -1012,6 +1064,7 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSChangeSet"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyExternalDNSHostedZones"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMesh"))
+			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAppMeshPreview"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyFSX"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyServiceLinkRole"))
@@ -1078,26 +1131,36 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
 			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("*"))
-			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"appmesh:*",
-				"servicediscovery:CreateService",
-				"servicediscovery:GetService",
-				"servicediscovery:RegisterInstance",
-				"servicediscovery:DeregisterInstance",
-				"servicediscovery:ListInstances",
-				"servicediscovery:ListNamespaces",
-				"servicediscovery:ListServices",
-				"route53:GetHealthCheck",
-				"route53:CreateHealthCheck",
-				"route53:UpdateHealthCheck",
-				"route53:ChangeResourceRecordSets",
-				"route53:DeleteHealthCheck",
-			}))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal(append(appMeshActions, "appmesh:*")))
 
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyEBS"))
 			Expect(ngTemplate.Resources).ToNot(HaveKey("PolicyAutoScaling"))
 		})
 
+	})
+
+	Context("NodeGroupAppMeshPreview", func() {
+		cfg, ng := newClusterConfigAndNodegroup(true)
+
+		ng.IAM.WithAddonPolicies.AppMeshPreview = api.Enabled()
+
+		build(cfg, "eksctl-test-appmesh-preview", ng)
+
+		roundtrip()
+
+		It("should have correct policies", func() {
+			Expect(ngTemplate.Resources).To(HaveKey("PolicyAppMeshPreview"))
+
+			policy3 := ngTemplate.Resources["PolicyAppMeshPreview"].Properties
+
+			Expect(policy3.Roles).To(HaveLen(1))
+			isRefTo(policy3.Roles[0], "NodeInstanceRole")
+
+			Expect(policy3.PolicyDocument.Statement).To(HaveLen(1))
+			Expect(policy3.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
+			Expect(policy3.PolicyDocument.Statement[0].Resource).To(Equal("*"))
+			Expect(policy3.PolicyDocument.Statement[0].Action).To(Equal(append(appMeshActions, "appmesh-preview:*")))
+		})
 	})
 
 	Context("NodeGroupAppCertManager", func() {
@@ -1139,7 +1202,6 @@ var _ = Describe("CloudFormation template builder API", func() {
 			Expect(policy2.PolicyDocument.Statement[0].Effect).To(Equal("Allow"))
 			Expect(policy2.PolicyDocument.Statement[0].Resource).To(Equal("*"))
 			Expect(policy2.PolicyDocument.Statement[0].Action).To(Equal([]string{
-				"route53:ListHostedZones",
 				"route53:ListResourceRecordSets",
 				"route53:ListHostedZonesByName",
 			}))

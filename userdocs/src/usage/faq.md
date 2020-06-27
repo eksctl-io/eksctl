@@ -16,3 +16,11 @@
     If the plan is to use AWS ALB Ingress controller, setting `nodegroups[*].iam.withAddonPolicies.albIngress` to `true` will add the required IAM policies to your nodes allowing the controller to provision load balancers. Then you can follow [docs to set up the controller](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/controller/setup/).
 
     For Nginx Ingress Controller, setup would be the same as [any other Kubernetes cluster](https://kubernetes.github.io/ingress-nginx/deploy/#aws).
+
+## Kubectl
+
+!!! question "Question"
+    I'm using an HTTPS proxy and cluster certificate validation fails, how can I use the system CAs?
+!!! quote "Answer"
+    Set the environment variable `KUBECONFIG_USE_SYSTEM_CA` to make `kubeconfig`
+    respect the system certificate authorities.

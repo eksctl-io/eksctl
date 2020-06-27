@@ -259,10 +259,18 @@ func (c *ClusterProvider) GetNodeGroupIAM(stackManager *manager.StackCollection,
 
 	for _, s := range stacks {
 		if stackManager.GetNodeGroupName(s) == ng.Name {
-			if !stackManager.StackStatusIsNotTransitional(s) {
-				return fmt.Errorf("nodegroup %q is in transitional state (%q)", ng.Name, *s.StackStatus)
+			err := iam.UseFromNodeGroup(c.Provider, s, ng)
+			// An empty InstanceRoleARN likely also points to an error
+			if err == nil && ng.IAM.InstanceRoleARN == "" {
+				err = errors.New("InstanceRoleARN empty")
 			}
-			return iam.UseFromNodeGroup(c.Provider, s, ng)
+			if err != nil {
+				return errors.Wrapf(
+					err, "couldn't get iam configuration for nodegroup %q (perhaps state %q is transitional)",
+					ng.Name, *s.StackStatus,
+				)
+			}
+			return nil
 		}
 	}
 

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
+
 	fluxinstall "github.com/fluxcd/flux/pkg/install"
 	helmopinstall "github.com/fluxcd/helm-operator/pkg/install"
 	"github.com/kris-nova/logger"
@@ -32,7 +34,7 @@ const (
 
 // Installer installs Flux
 type Installer struct {
-	cluster       *api.ClusterMeta
+	cfg           *api.ClusterConfig
 	opts          *api.Git
 	timeout       time.Duration
 	k8sRestConfig *rest.Config
@@ -52,6 +54,7 @@ func NewInstaller(k8sRestConfig *rest.Config, k8sClientSet kubeclient.Interface,
 		PrivateSSHKeyPath: cfg.Git.Repo.PrivateSSHKeyPath,
 	})
 	fi := &Installer{
+		cfg:           cfg,
 		opts:          cfg.Git,
 		k8sRestConfig: k8sRestConfig,
 		k8sClientSet:  k8sClientSet,
@@ -107,7 +110,7 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 
 	if api.IsEnabled(fi.opts.Operator.WithHelm) {
 		logger.Info("Waiting for Helm Operator to start")
-		if err := waitForHelmOpToStart(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet); err != nil {
+		if err := waitForHelmOpToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet); err != nil {
 			return "", err
 		}
 		logger.Info("Helm Operator started successfully")
@@ -115,22 +118,36 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	}
 
 	logger.Info("Waiting for Flux to start")
-	fluxSSHKey, err := waitForFluxToStart(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet)
+	err = waitForFluxToStart(fi.opts.Operator.Namespace, fi.timeout, fi.k8sClientSet)
 	if err != nil {
 		return "", err
 	}
+	logger.Info("fetching public SSH key from Flux")
+	fluxSSHKey, err := getPublicKeyFromFlux(ctx, fi.opts.Operator.Namespace, fi.timeout, fi.k8sRestConfig, fi.k8sClientSet)
+	if err != nil {
+		return "", err
+	}
+
 	logger.Info("Flux started successfully")
 	logger.Info("see https://docs.fluxcd.io/projects/flux for details on how to use Flux")
 
-	logger.Info("Committing and pushing manifests to %s", fi.opts.Repo.URL)
-	if err := fi.addFilesToRepo(); err != nil {
-		return "", err
+	if api.IsEnabled(fi.opts.Operator.CommitOperatorManifests) {
+		logger.Info("Committing and pushing manifests to %s", fi.opts.Repo.URL)
+		if err = fi.addFilesToRepo(); err != nil {
+			return "", err
+		}
 	}
 	cleanCloneDir = true
 
 	logger.Info("Flux will only operate properly once it has write-access to the Git repository")
 	instruction := fmt.Sprintf("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.Repo.URL, fluxSSHKey.Key)
+
+	ok, err := deploykey.Put(ctx, fi.cfg, deploykey.PublicKey{Key: fluxSSHKey.Key})
+	if ok || err != nil {
+		return "", err
+	}
+
 	return instruction, nil
 }
 
@@ -270,6 +287,12 @@ func getFluxManifests(opts *api.Git, cs kubeclient.Interface) (map[string][]byte
 	if !fluxNSExists {
 		manifests[fluxNamespaceFileName] = kubernetes.NewNamespaceYAML(opts.Operator.Namespace)
 	}
+
+	additionalFluxArgs := []string{"--sync-garbage-collection"}
+	if opts.Operator.ReadOnly {
+		additionalFluxArgs = append(additionalFluxArgs, "--registry-disable-scanning")
+	}
+
 	fluxParameters := fluxinstall.TemplateParameters{
 		GitURL:             opts.Repo.URL,
 		GitBranch:          opts.Repo.Branch,
@@ -277,10 +300,10 @@ func getFluxManifests(opts *api.Git, cs kubeclient.Interface) (map[string][]byte
 		GitLabel:           opts.Operator.Label,
 		GitUser:            opts.Repo.User,
 		GitEmail:           opts.Repo.Email,
-		GitReadOnly:        false,
+		GitReadOnly:        opts.Operator.ReadOnly,
 		Namespace:          opts.Operator.Namespace,
 		ManifestGeneration: true,
-		AdditionalFluxArgs: []string{"--sync-garbage-collection"},
+		AdditionalFluxArgs: additionalFluxArgs,
 	}
 	fluxManifests, err := fluxinstall.FillInTemplates(fluxParameters)
 	if err != nil {

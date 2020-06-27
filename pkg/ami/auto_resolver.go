@@ -34,6 +34,9 @@ func MakeImageSearchPatterns(version string) map[string]map[int]string {
 		api.NodeImageFamilyWindowsServer2019FullContainer: {
 			ImageClassGeneral: fmt.Sprintf("Windows_Server-2019-English-Full-EKS_Optimized-%v-*", version),
 		},
+		api.NodeImageFamilyWindowsServer1909CoreContainer: {
+			ImageClassGeneral: fmt.Sprintf("Windows_Server-1909-English-Core-EKS_Optimized-%v-*", version),
+		},
 	}
 }
 
@@ -42,11 +45,12 @@ func OwnerAccountID(imageFamily, region string) (string, error) {
 	switch imageFamily {
 	case api.NodeImageFamilyUbuntu1804:
 		return ownerIDUbuntu1804Family, nil
-	case api.NodeImageFamilyWindowsServer2019CoreContainer, api.NodeImageFamilyWindowsServer2019FullContainer:
-		return ownerIDWindowsFamily, nil
 	case api.NodeImageFamilyAmazonLinux2:
 		return api.EKSResourceAccountID(region), nil
 	default:
+		if api.IsWindowsImage(imageFamily) {
+			return ownerIDWindowsFamily, nil
+		}
 		return "", fmt.Errorf("unable to determine the account owner for image family %s", imageFamily)
 	}
 }

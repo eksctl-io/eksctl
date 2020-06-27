@@ -3,7 +3,6 @@ package create
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
@@ -112,8 +111,8 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		cfg.Metadata.Version = api.DefaultVersion
 	}
 	if cfg.Metadata.Version != api.DefaultVersion {
-		if !isValidVersion(cfg.Metadata.Version) {
-			if isDeprecatedVersion(cfg.Metadata.Version) {
+		if !api.IsSupportedVersion(cfg.Metadata.Version) {
+			if api.IsDeprecatedVersion(cfg.Metadata.Version) {
 				return fmt.Errorf("invalid version, %s is no longer supported, supported values: %s\nsee also: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html", cfg.Metadata.Version, strings.Join(api.SupportedVersions(), ", "))
 			}
 			return fmt.Errorf("invalid version, supported values: %s", strings.Join(api.SupportedVersions(), ", "))
@@ -134,7 +133,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 	}
 
 	if params.AutoKubeconfigPath {
-		if params.KubeconfigPath != kubeconfig.DefaultPath {
+		if params.KubeconfigPath != kubeconfig.DefaultPath() {
 			return fmt.Errorf("--kubeconfig and --auto-kubeconfig %s", cmdutils.IncompatibleFlags)
 		}
 		params.KubeconfigPath = kubeconfig.AutoPath(meta.Name)
@@ -406,15 +405,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			}
 		}
 
-		if cfg.IsFargateEnabled() {
-			if err := doCreateFargateProfiles(cmd, ctl); err != nil {
-				return err
-			}
-			if err := scheduleCoreDNSOnFargateIfRelevant(cmd, clientSet); err != nil {
-				return err
-			}
-		}
-
 		if cfg.HasGitopsRepoConfigured() {
 			kubernetesClientConfigs, err := ctl.NewClient(cfg)
 			if err != nil {
@@ -425,7 +415,7 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			if err != nil {
 				return errors.Wrap(err, "cannot create Kubernetes client configuration")
 			}
-			err = gitops.Setup(k8sRestConfig, clientSet, cfg, time.Minute)
+			err = gitops.Setup(k8sRestConfig, clientSet, cfg, gitops.DefaultPodReadyTimeout)
 			if err != nil {
 				return err
 			}

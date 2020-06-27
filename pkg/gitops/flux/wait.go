@@ -10,16 +10,33 @@ import (
 
 	portforward "github.com/justinbarrick/go-k8s-portforward"
 	"github.com/kris-nova/logger"
+	"github.com/pkg/errors"
+	v1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
+const (
+	portForwardingTimeout     = 120 * time.Second
+	portForwardingRetryPeriod = 2 * time.Second
+)
+
+// PublicKey represents a public SSH key as it is returned by flux
 type PublicKey struct {
 	Key string `json:"key"`
 }
 
-func waitForFluxToStart(ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
+func waitForHelmOpToStart(namespace string, timeout time.Duration, cs kubeclient.Interface) error {
+	return waitForDeploymentToStart(cs, namespace, "helm-operator", timeout)
+}
+
+func waitForFluxToStart(namespace string, timeout time.Duration, cs kubeclient.Interface) error {
+	return waitForDeploymentToStart(cs, namespace, "flux", timeout)
+}
+
+func getPublicKeyFromFlux(ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
 	cs kubeclient.Interface) (PublicKey, error) {
 	var deployKey PublicKey
 	try := func(rootURL string) error {
@@ -50,30 +67,48 @@ func waitForFluxToStart(ctx context.Context, namespace string, timeout time.Dura
 		}
 		return nil
 	}
-	err := waitForPodToStart(namespace, "flux", 3030, "Flux", restConfig, cs, try)
+	err := portForward(namespace, "flux", 3030, "Flux", restConfig, cs, try)
 	return deployKey, err
-}
-
-func waitForHelmOpToStart(ctx context.Context, namespace string, timeout time.Duration, restConfig *rest.Config,
-	cs kubeclient.Interface) error {
-	try := func(rootURL string) error {
-		helmOpURL := rootURL + "healthz"
-		req, err := http.NewRequest("GET", helmOpURL, nil)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %s", err)
-		}
-		healthzCtx, healtzhCtxCancel := context.WithTimeout(ctx, timeout)
-		defer healtzhCtxCancel()
-		req = req.WithContext(healthzCtx)
-		_, err = http.DefaultClient.Do(req)
-		return err
-	}
-	return waitForPodToStart(namespace, "helm-operator", 3030, "Helm Operator", restConfig, cs, try)
 }
 
 type tryFunc func(rootURL string) error
 
-func waitForPodToStart(namespace string, nameLabelValue string, port int, name string,
+func waitForDeploymentToStart(k8sClientSet kubeclient.Interface, namespace string, name string, timeout time.Duration) error {
+	watcher, err := k8sClientSet.AppsV1().Deployments(namespace).Watch(metav1.ListOptions{
+		FieldSelector: "metadata.name=" + name,
+	})
+	if err != nil {
+		return err
+	}
+
+	defer watcher.Stop()
+
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case event, ok := <-watcher.ResultChan():
+			if !ok {
+				return errors.Wrapf(err, "failed waiting for pod %q", name)
+			}
+			switch event.Type {
+			case watch.Added, watch.Modified:
+				deployment, ok := event.Object.(*v1.Deployment)
+				if !ok {
+					return errors.Errorf("expected event type to be %T; got %T", &v1.Deployment{}, event.Object)
+				}
+				if deployment.Status.ReadyReplicas == deployment.Status.Replicas {
+					return nil
+				}
+			}
+		case <-timer.C:
+			return fmt.Errorf("timed out (after %v) waiting for deployment %q", timeout, name)
+		}
+	}
+}
+
+func portForward(namespace string, nameLabelValue string, port int, name string,
 	restConfig *rest.Config, cs kubeclient.Interface, try tryFunc) error {
 	fluxSelector := metav1.LabelSelector{
 		MatchExpressions: []metav1.LabelSelectorRequirement{
@@ -91,8 +126,8 @@ func waitForPodToStart(namespace string, nameLabelValue string, port int, name s
 		DestinationPort: port,
 		Namespace:       namespace,
 	}
-	podDeadline := time.Now().Add(time.Second * 30)
-	for ; time.Now().Before(podDeadline); time.Sleep(2 * time.Second) {
+	podDeadline := time.Now().Add(portForwardingTimeout)
+	for ; time.Now().Before(podDeadline); time.Sleep(portForwardingRetryPeriod) {
 		err := portforwarder.Start()
 		if err == nil {
 			defer portforwarder.Stop()

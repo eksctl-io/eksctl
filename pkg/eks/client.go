@@ -21,22 +21,18 @@ import (
 
 // Client stores information about the client config
 type Client struct {
-	Config      *clientcmdapi.Config
-	ContextName string
+	Config *clientcmdapi.Config
 
 	rawConfig *restclient.Config
 }
 
 // NewClient creates a new client config by embedding the STS token
 func (c *ClusterProvider) NewClient(spec *api.ClusterConfig) (*Client, error) {
-	clientConfig, _, contextName := kubeconfig.New(spec, c.GetUsername(), "")
-
-	config := &Client{
-		Config:      clientConfig,
-		ContextName: contextName,
+	config := kubeconfig.NewForUser(spec, c.GetUsername())
+	client := &Client{
+		Config: config,
 	}
-
-	return config.new(spec, c.Provider.STS())
+	return client.new(spec, c.Provider.STS())
 }
 
 // GetUsername extracts the username part from the IAM role ARN
@@ -73,7 +69,7 @@ func (c *Client) useEmbeddedToken(spec *api.ClusterConfig, stsclient stsiface.ST
 		return errors.Wrap(err, "could not get token")
 	}
 
-	c.Config.AuthInfos[c.ContextName].Token = tok.Token
+	c.Config.AuthInfos[c.Config.CurrentContext].Token = tok.Token
 	return nil
 }
 

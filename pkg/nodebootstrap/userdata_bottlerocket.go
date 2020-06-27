@@ -112,7 +112,7 @@ func bottlerocketSettingsTOML(spec *api.ClusterConfig, ng *api.NodeGroup, tree *
 	// data.
 	tree.SetWithComment("settings.kubernetes.cluster-certificate", "Kubernetes Cluster CA Certificate",
 		insertWithoutComment,
-		base64.StdEncoding.EncodeToString([]byte(spec.Status.CertificateAuthorityData)))
+		base64.StdEncoding.EncodeToString(spec.Status.CertificateAuthorityData))
 	tree.SetWithComment("settings.kubernetes.api-server", "Kubernetes Control Plane API Endpoint",
 		insertWithoutComment,
 		spec.Status.Endpoint)

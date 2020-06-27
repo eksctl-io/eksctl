@@ -27,9 +27,11 @@ type ClusterConfigLoader interface {
 type commonClusterConfigLoader struct {
 	*Cmd
 
-	flagsIncompatibleWithConfigFile, flagsIncompatibleWithoutConfigFile sets.String
-
-	validateWithConfigFile, validateWithoutConfigFile func() error
+	flagsIncompatibleWithConfigFile    sets.String
+	flagsIncompatibleWithoutConfigFile sets.String
+	validateWithConfigFile             func() error
+	validateWithoutConfigFile          func() error
+	nameArgumentAllowed                bool
 }
 
 var (
@@ -96,8 +98,10 @@ func (l *commonClusterConfigLoader) Load() error {
 		}
 	}
 
-	if l.NameArg != "" {
-		return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg))
+	if !l.nameArgumentAllowed {
+		if l.NameArg != "" {
+			return ErrCannotUseWithConfigFile(fmt.Sprintf("name argument %q", l.NameArg))
+		}
 	}
 
 	if meta.Name == "" {
@@ -440,7 +444,7 @@ func NewUtilsEnableLoggingLoader(cmd *Cmd) ClusterConfigLoader {
 	return l
 }
 
-// NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils vpc-cluster-api-access
+// NewUtilsEnableEndpointAccessLoader will load config or use flags for 'eksctl utils update-cluster-endpoints'.
 func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bool) ClusterConfigLoader {
 	l := newCommonClusterConfigLoader(cmd)
 
@@ -465,6 +469,13 @@ func NewUtilsEnableEndpointAccessLoader(cmd *Cmd, privateAccess, publicAccess bo
 			cmd.ClusterConfig.VPC.ClusterEndpoints.PublicAccess = nil
 		}
 
+		return nil
+	}
+	l.validateWithConfigFile = func() error {
+		if l.ClusterConfig.VPC == nil {
+			l.ClusterConfig.VPC = api.NewClusterVPC()
+		}
+		api.SetClusterEndpointAccessDefaults(l.ClusterConfig.VPC)
 		return nil
 	}
 

@@ -2,9 +2,10 @@ package builder
 
 import (
 	"fmt"
+	"strings"
 
 	cfn "github.com/aws/aws-sdk-go/service/cloudformation"
-	gfn "github.com/awslabs/goformation/cloudformation"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 
 	"github.com/kris-nova/logger"
 
@@ -159,7 +160,7 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	tags := []map[string]interface{}{
 		{
 			"Key":               "Name",
-			"Value":             fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName),
+			"Value":             n.generateNodeName(),
 			"PropagateAtLaunch": "true",
 		},
 		{
@@ -187,6 +188,21 @@ func (n *NodeGroupResourceSet) addResourcesForNodeGroup() error {
 	n.newResource("NodeGroup", asg)
 
 	return nil
+}
+
+// generateNodeName formulates the name based on the configuration in input
+func (n *NodeGroupResourceSet) generateNodeName() string {
+	name := []string{}
+	if n.spec.InstancePrefix != "" {
+		name = append(name, n.spec.InstancePrefix, "-")
+	}
+	// this overrides the default naming convention
+	if n.spec.InstanceName != "" {
+		name = append(name, n.spec.InstanceName)
+	} else {
+		name = append(name, fmt.Sprintf("%s-%s-Node", n.clusterSpec.Metadata.Name, n.nodeGroupName))
+	}
+	return strings.Join(name, "")
 }
 
 // AssignSubnets subnets based on the specified availability zones
@@ -247,6 +263,9 @@ func newLaunchTemplateData(n *NodeGroupResourceSet) *gfn.AWSEC2LaunchTemplate_La
 			DeviceIndex:              gfn.NewInteger(0),
 			Groups:                   n.securityGroups,
 		}},
+		MetadataOptions: &gfn.AWSEC2LaunchTemplate_MetadataOptions{
+			HttpPutResponseHopLimit: gfn.NewInteger(2),
+		},
 	}
 	if !api.HasMixedInstances(n.spec) {
 		launchTemplateData.InstanceType = gfn.NewString(n.spec.InstanceType)
@@ -354,9 +373,9 @@ func metricsCollectionResource(asgMetricsCollection []api.MetricsCollection) []m
 	for _, m := range asgMetricsCollection {
 		newCollection := make(map[string]interface{})
 
-		var metrics []string
-		metrics = append(metrics, m.Metrics...)
-		newCollection["Metrics"] = metrics
+		if len(m.Metrics) > 0 {
+			newCollection["Metrics"] = m.Metrics
+		}
 		newCollection["Granularity"] = m.Granularity
 
 		metricsCollections = append(metricsCollections, newCollection)

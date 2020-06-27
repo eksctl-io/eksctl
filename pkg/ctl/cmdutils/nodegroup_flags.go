@@ -47,6 +47,9 @@ func AddCommonCreateNodeGroupFlags(fs *pflag.FlagSet, cmd *Cmd, ng *api.NodeGrou
 
 	AddStringToStringVarPFlag(fs, &ng.Labels, "node-labels", "", nil, "Extra labels to add when registering the nodes in the nodegroup")
 	fs.StringSliceVar(&ng.AvailabilityZones, "node-zones", nil, "(inherited from the cluster if unspecified)")
+
+	fs.StringVar(&ng.InstancePrefix, "instance-prefix", "", "Add a prefix value in front of the instance's name.")
+	fs.StringVar(&ng.InstanceName, "instance-name", "", "Overrides the default instance's name. It can be used in combination with the instance-prefix flag.")
 }
 
 func incompatibleManagedNodesFlags() []string {
@@ -64,6 +67,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	ng.IAM.WithAddonPolicies.ExternalDNS = new(bool)
 	ng.IAM.WithAddonPolicies.ImageBuilder = new(bool)
 	ng.IAM.WithAddonPolicies.AppMesh = new(bool)
+	ng.IAM.WithAddonPolicies.AppMeshPreview = new(bool)
 	ng.IAM.WithAddonPolicies.ALBIngress = new(bool)
 	ng.IAM.WithAddonPolicies.XRay = new(bool)
 	ng.IAM.WithAddonPolicies.CloudWatch = new(bool)
@@ -71,6 +75,7 @@ func AddCommonCreateNodeGroupIAMAddonsFlags(fs *pflag.FlagSet, ng *api.NodeGroup
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ExternalDNS, "external-dns-access", false, "enable IAM policy for external-dns")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ImageBuilder, "full-ecr-access", false, "enable full access to ECR")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMesh, "appmesh-access", false, "enable full access to AppMesh")
+	fs.BoolVar(ng.IAM.WithAddonPolicies.AppMeshPreview, "appmesh-preview-access", false, "enable full access to AppMesh Preview")
 	fs.BoolVar(ng.IAM.WithAddonPolicies.ALBIngress, "alb-ingress-access", false, "enable full access for alb-ingress-controller")
 }
 

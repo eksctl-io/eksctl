@@ -37,6 +37,21 @@ type StackInfo struct {
 	Template  *string
 }
 
+// TemplateData is an union (sum type) to describe template data.
+type TemplateData interface {
+	isTemplateData()
+}
+
+// TemplateBody allows to pass the full template.
+type TemplateBody []byte
+
+func (b TemplateBody) isTemplateData() {}
+
+// TemplateURL allows to pass in a link to a template.
+type TemplateURL string
+
+func (u TemplateURL) isTemplateData() {}
+
 // ChangeSet represents a CloudFormation ChangeSet
 type ChangeSet = cloudformation.DescribeChangeSetOutput
 
@@ -69,7 +84,7 @@ func NewStackCollection(provider api.ClusterProvider, spec *api.ClusterConfig) *
 }
 
 // DoCreateStackRequest requests the creation of a CloudFormation stack
-func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
+func (c *StackCollection) DoCreateStackRequest(i *Stack, templateData TemplateData, tags, parameters map[string]string, withIAM bool, withNamedIAM bool) error {
 	input := &cloudformation.CreateStackInput{
 		StackName: i.StackName,
 	}
@@ -78,7 +93,14 @@ func (c *StackCollection) DoCreateStackRequest(i *Stack, templateBody []byte, ta
 		input.Tags = append(input.Tags, newTag(k, v))
 	}
 
-	input.SetTemplateBody(string(templateBody))
+	switch data := templateData.(type) {
+	case TemplateBody:
+		input.SetTemplateBody(string(data))
+	case TemplateURL:
+		input.SetTemplateURL(string(data))
+	default:
+		return fmt.Errorf("unknown template data type: %T", templateData)
+	}
 
 	if withIAM {
 		input.SetCapabilities(stackCapabilitiesIAM)
@@ -120,7 +142,7 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 		return errors.Wrapf(err, "rendering template for %q stack", *i.StackName)
 	}
 
-	if err := c.DoCreateStackRequest(i, templateBody, tags, parameters, stack.WithIAM(), stack.WithNamedIAM()); err != nil {
+	if err := c.DoCreateStackRequest(i, TemplateBody(templateBody), tags, parameters, stack.WithIAM(), stack.WithNamedIAM()); err != nil {
 		return err
 	}
 
@@ -132,10 +154,16 @@ func (c *StackCollection) CreateStack(name string, stack builder.ResourceSet, ta
 }
 
 // UpdateStack will update a CloudFormation stack by creating and executing a ChangeSet
-func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, template []byte, parameters map[string]string) error {
+func (c *StackCollection) UpdateStack(stackName, changeSetName, description string, templateData TemplateData, parameters map[string]string) error {
 	logger.Info(description)
 	i := &Stack{StackName: &stackName}
-	if err := c.doCreateChangeSetRequest(i, changeSetName, description, template, parameters, true); err != nil {
+	// Read existing tags
+	s, err := c.DescribeStack(i)
+	if err != nil {
+		return err
+	}
+	i.SetTags(s.Tags)
+	if err := c.doCreateChangeSetRequest(i, changeSetName, description, templateData, parameters, true); err != nil {
 		return err
 	}
 	if err := c.doWaitUntilChangeSetIsCreated(i, changeSetName); err != nil {
@@ -194,7 +222,7 @@ func (c *StackCollection) GetManagedNodeGroupTemplate(nodeGroupName string) (str
 // UpdateNodeGroupStack updates the nodegroup stack with the specified template
 func (c *StackCollection) UpdateNodeGroupStack(nodeGroupName, template string) error {
 	stackName := c.makeNodeGroupStackName(nodeGroupName)
-	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "Update nodegroup stack", []byte(template), nil)
+	return c.UpdateStack(stackName, c.MakeChangeSetName("update-nodegroup"), "Update nodegroup stack", TemplateBody(template), nil)
 }
 
 // ListStacksMatching gets all of CloudFormation stacks with names matching nameRegex.
@@ -239,7 +267,7 @@ func (c *StackCollection) ListStacksMatching(nameRegex string, statusFilters ...
 
 // ListStacks gets all of CloudFormation stacks
 func (c *StackCollection) ListStacks(statusFilters ...string) ([]*Stack, error) {
-	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name))
+	return c.ListStacksMatching(fmtStacksRegexForCluster(c.spec.Metadata.Name), statusFilters...)
 }
 
 // StackStatusIsNotTransitional will return true when stack status is non-transitional
@@ -315,8 +343,7 @@ func defaultStackStatusFilter() []*string {
 
 // DeleteStackByName sends a request to delete the stack
 func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
-	i := &Stack{StackName: &name}
-	s, err := c.DescribeStack(i)
+	s, err := c.DescribeStack(&Stack{StackName: &name})
 	if err != nil {
 		err = errors.Wrapf(err, "not able to get stack %q for deletion", name)
 		stacks, newErr := c.ListStacksMatching(fmt.Sprintf("^%s$", name), cloudformation.StackStatusDeleteComplete)
@@ -330,8 +357,7 @@ func (c *StackCollection) DeleteStackByName(name string) (*Stack, error) {
 		}
 		return nil, err
 	}
-	i.StackId = s.StackId
-	return c.DeleteStackBySpec(i)
+	return c.DeleteStackBySpec(s)
 }
 
 // DeleteStackByNameSync sends a request to delete the stack, and waits until status is DELETE_COMPLETE;
@@ -467,17 +493,25 @@ func (c *StackCollection) LookupCloudTrailEvents(i *Stack) ([]*cloudtrail.Event,
 	return events, nil
 }
 
-func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName string, description string, templateBody []byte,
+func (c *StackCollection) doCreateChangeSetRequest(i *Stack, changeSetName string, description string, templateData TemplateData,
 	parameters map[string]string, withIAM bool) error {
 	input := &cloudformation.CreateChangeSetInput{
 		StackName:     i.StackName,
 		ChangeSetName: &changeSetName,
 		Description:   &description,
+		Tags:          append(i.Tags, c.sharedTags...),
 	}
 
 	input.SetChangeSetType(cloudformation.ChangeSetTypeUpdate)
 
-	input.SetTemplateBody(string(templateBody))
+	switch data := templateData.(type) {
+	case TemplateBody:
+		input.SetTemplateBody(string(data))
+	case TemplateURL:
+		input.SetTemplateURL(string(data))
+	default:
+		return fmt.Errorf("unknown template data type: %T", templateData)
+	}
 
 	if withIAM {
 		input.SetCapabilities(stackCapabilitiesIAM)

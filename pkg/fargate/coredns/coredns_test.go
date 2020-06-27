@@ -6,7 +6,6 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/fargate/coredns"
@@ -15,8 +14,6 @@ import (
 	"github.com/weaveworks/eksctl/pkg/utils/retry"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/extensions/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -125,7 +122,7 @@ var _ = Describe("coredns", func() {
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(deployment.Spec.Template.Annotations).To(HaveKeyWithValue(coredns.ComputeTypeAnnotationKey, "ec2"))
 			// When:
-			err = coredns.ScheduleOnFargate(mockClientset, false)
+			err = coredns.ScheduleOnFargate(mockClientset)
 			Expect(err).To(Not(HaveOccurred()))
 			// Then:
 			deployment, err = mockClientset.AppsV1().Deployments(coredns.Namespace).Get(coredns.Name, metav1.GetOptions{})
@@ -141,7 +138,7 @@ var _ = Describe("coredns", func() {
 				deployment("fargate", 2, 2), pod("fargate", v1.PodRunning), pod("fargate", v1.PodRunning),
 			)
 			// When:
-			err := coredns.WaitForScheduleOnFargate(mockClientset, retryPolicy, false)
+			err := coredns.WaitForScheduleOnFargate(mockClientset, retryPolicy)
 			// Then:
 			Expect(err).To(Not(HaveOccurred()))
 		})
@@ -160,7 +157,7 @@ var _ = Describe("coredns", func() {
 				// Given:
 				mockClientset := mockClientsetWith(failureCase...)
 				// When:
-				err := coredns.WaitForScheduleOnFargate(mockClientset, retryPolicy, false)
+				err := coredns.WaitForScheduleOnFargate(mockClientset, retryPolicy)
 				// Then:
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("timed out while waiting for \"coredns\" to be scheduled on Fargate"))
@@ -168,42 +165,6 @@ var _ = Describe("coredns", func() {
 		})
 	})
 
-	Describe("API Group", func() {
-		expectError := func(err error) {
-			Expect(err).To(HaveOccurred())
-			statusErr, ok := err.(*errors.StatusError)
-			Expect(ok).To(BeTrue())
-			Expect(statusErr.Status().Code).To(Equal(int32(404)))
-		}
-
-		DescribeTable("should use the correct API group", func(object runtime.Object, useBetaAPIGroup bool) {
-			mockClientset := mockClientsetWith(object)
-			err := coredns.ScheduleOnFargate(mockClientset, useBetaAPIGroup)
-			Expect(err).ToNot(HaveOccurred())
-
-			deployment, err := mockClientset.ExtensionsV1beta1().Deployments(coredns.Namespace).Get(coredns.Name, metav1.GetOptions{})
-			if !useBetaAPIGroup {
-				expectError(err)
-			} else {
-				Expect(err).ToNot(HaveOccurred())
-				Expect(deployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey]).To(Equal("fargate"))
-			}
-
-			appsDeployment, err := mockClientset.AppsV1().Deployments(coredns.Namespace).Get(coredns.Name, metav1.GetOptions{})
-			if useBetaAPIGroup {
-				expectError(err)
-			} else {
-				Expect(err).ToNot(HaveOccurred())
-				Expect(appsDeployment.Spec.Template.Annotations[coredns.ComputeTypeAnnotationKey]).To(Equal("fargate"))
-			}
-
-			err = coredns.WaitForScheduleOnFargate(mockClientset, retryPolicy, useBetaAPIGroup)
-			Expect(err).ToNot(HaveOccurred())
-		},
-			Entry("apps/v1 Deployment", deployment("ec2", 2, 2), false),
-			Entry("extensions/v1beta1 Deployment", betaDeployment("ec2", 2, 2), true),
-		)
-	})
 })
 
 func mockClientsetWith(objects ...runtime.Object) kubeclient.Interface {
@@ -231,32 +192,6 @@ func deployment(computeType string, numReady, numReplicas int32) *appsv1.Deploym
 			},
 		},
 		Status: appsv1.DeploymentStatus{
-			ReadyReplicas: numReady,
-		},
-	}
-}
-
-func betaDeployment(computeType string, numReady, numReplicas int32) *v1beta1.Deployment {
-	return &v1beta1.Deployment{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Deployment",
-			APIVersion: v1beta1.SchemeGroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: coredns.Namespace,
-			Name:      coredns.Name,
-		},
-		Spec: v1beta1.DeploymentSpec{
-			Replicas: &numReplicas,
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Annotations: map[string]string{
-						coredns.ComputeTypeAnnotationKey: computeType,
-					},
-				},
-			},
-		},
-		Status: v1beta1.DeploymentStatus{
 			ReadyReplicas: numReady,
 		},
 	}

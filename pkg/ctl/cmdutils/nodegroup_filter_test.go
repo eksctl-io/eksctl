@@ -389,6 +389,7 @@ const expected = `
 				  "externalDNS": false,
 				  "certManager": false,
 				  "appMesh": false,
+				  "appMeshPreview": false,
 				  "ebs": false,
 				  "fsx": false,
 				  "efs": false,
@@ -407,7 +408,7 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": true
 			  },
-			  "volumeSize": 0,
+			  "volumeSize": 80,
 			  "volumeType": "gp2",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -428,6 +429,7 @@ const expected = `
 				  "externalDNS": false,
 				  "certManager": false,
 				  "appMesh": false,
+				  "appMeshPreview": false,
 				  "ebs": false,
 				  "fsx": false,
 				  "efs": false,
@@ -446,7 +448,7 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": true
 			  },
-			  "volumeSize": 0,
+			  "volumeSize": 80,
 			  "volumeType": "gp2",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -465,6 +467,7 @@ const expected = `
 				  "externalDNS": false,
 				  "certManager": false,
 				  "appMesh": false,
+				  "appMeshPreview": false,
 				  "ebs": false,
 				  "fsx": false,
 				  "efs": false,
@@ -484,7 +487,7 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": true
 			  },
-			  "volumeSize": 0,
+			  "volumeSize": 80,
 			  "volumeType": "gp2",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -503,6 +506,7 @@ const expected = `
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,
+				  "appMeshPreview": false,
 			  	  "ebs": false,
 			  	  "fsx": false,
 			  	  "efs": false,
@@ -525,7 +529,7 @@ const expected = `
 			    "withShared": true,
 			    "withLocal": false
 			  },
-			  "volumeSize": 0,
+			  "volumeSize": 80,
 			  "volumeType": "gp2",
 			  "labels": {
 				"alpha.eksctl.io/cluster-name": "test-3x3-ngs",
@@ -543,6 +547,7 @@ const expected = `
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,
+				  "appMeshPreview": false,
 			  	  "ebs": false,
 			  	  "fsx": false,
 			  	  "efs": false,
@@ -584,6 +589,7 @@ const expected = `
 			  	  "externalDNS": false,
 			  	  "certManager": false,
 			  	  "appMesh": false,
+				  "appMeshPreview": false,
 			  	  "ebs": false,
 			  	  "fsx": false,
 			  	  "efs": false,

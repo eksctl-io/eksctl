@@ -3,17 +3,18 @@
 By default, `eksctl create cluster` will build a dedicated VPC, in order to avoid interference with any existing resources for a
 variety of reasons, including security, but also because it's challenging to detect all the settings in an existing VPC.
 Default VPC CIDR used by `eksctl` is `192.168.0.0/16`, it is divided into 8 (`/19`) subnets (3 private, 3 public & 2 reserved).
-Initial nodegroup is create in public subnets, with SSH access disabled unless `--allow-ssh` is specified. However, this implies
-that each of the EC2 instances in the initial nodegroup gets a public IP and can be accessed on ports 1025 - 65535, which is
-not insecure in principle, but some compromised workload could risk an access violation.
+The initial nodegroup is created in public subnets, with SSH access disabled unless `--allow-ssh` is specified.
+The nodegroup by default allows inbound traffic from the control plane security group on ports 1025 - 65535.
 
 If that functionality doesn't suit you, the following options are currently available.
 
->**_IMPORTANT_**: From `eksctl` version `0.17.0` and onwards public subnets will have the property `MapPublicIpOnLaunch` enabled, and the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups.
-> This means that for clusters created with previous versions of eksctl when a new nodegroup is created it must either
->be a private nodegroup or have `MapPublicIpOnLaunch` enabled in its public subnets. Otherwise, the new nodes won't have
->access to the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc).
->To help setting up subnets correctly for old clusters you can use the new command `eksctl utils update-legacy-subnet-settings`.
+!!! important
+    From `eksctl` version `0.17.0` and onwards public subnets will have the property `MapPublicIpOnLaunch` enabled, and
+    the property `AssociatePublicIpAddress` disabled in the Auto Scaling Group for the nodegroups. This means that for
+    clusters created with previous versions of eksctl when a new nodegroup is created it must either be a private
+    nodegroup or have `MapPublicIpOnLaunch` enabled in its public subnets. Otherwise, the new nodes won't have access to
+    the internet and won't be able to download the basic add-ons (CNI plugin, kube-proxy, etc). To help setting up
+    subnets correctly for old clusters you can use the new command `eksctl utils update-legacy-subnet-settings`.
 
 
 ## Change VPC CIDR
@@ -109,8 +110,8 @@ eksctl create cluster \
 
 ## Custom Cluster DNS address
 
-There are two ways of overwriting the DNS server IP address used for all the internal and external DNs lookups (this
-is, the equivalent of the `--cluster-dns` flag for the `kubelet`).
+There are two ways of overwriting the DNS server IP address used for all the internal and external DNS lookups. This
+is the equivalent of the `--cluster-dns` flag for the `kubelet`.
 
 The first, is through the `clusterDNS` field. [Config files](../schema) accept a `string` field called
 `clusterDNS` with the IP address of the DNS server to use.
@@ -130,7 +131,7 @@ nodeGroups:
 ```
 
 Note that this configuration only accepts one IP address. To specify more than one address, use the
-[`extraKubeletConfig` parameter](../customizing-the-kubelet):
+[`kubeletExtraConfig` parameter](../customizing-the-kubelet):
 
 ```yaml
 apiVersion: eksctl.io/v1alpha5
@@ -148,8 +149,11 @@ nodeGroups:
 
 ## NAT Gateway
 
-The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`. It can be
-specified through the `--vpc-nat-mode` CLI flag or in the cluster config file like the example below:
+The NAT Gateway for a cluster can be configured to be `Disabled`, `Single` (default) or `HighlyAvailable`.
+The `HighlyAvailable` option will deploy a NAT Gateway in each Availability Zone of the Region, so that if
+an AZ is down, nodes in the other AZs will still be able to communicate to the Internet.
+
+It can be specified through the `--vpc-nat-mode` CLI flag or in the cluster config file like the example below:
 
 
 ```yaml

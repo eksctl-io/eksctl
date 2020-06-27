@@ -3,11 +3,11 @@ package manager
 import (
 	"fmt"
 
-	gfn "github.com/awslabs/goformation/cloudformation"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 
 	"github.com/weaveworks/eksctl/pkg/cfn/builder"
 	"github.com/weaveworks/eksctl/pkg/cfn/outputs"
@@ -53,17 +53,20 @@ func (c *StackCollection) FixClusterCompatibility() error {
 		}
 	}
 
-	stackSupportsFargate := fargateRole != ""
+	managedNodeUpdateRequired := !stackSupportsManagedNodes && len(c.spec.ManagedNodeGroups) > 0
 
-	if stackSupportsManagedNodes && stackSupportsFargate {
+	stackSupportsFargate := fargateRole != ""
+	fargateUpdateRequired := !stackSupportsFargate && len(c.spec.FargateProfiles) > 0
+
+	if !managedNodeUpdateRequired && !fargateUpdateRequired {
 		logger.Info("cluster stack has all required resources")
 		return nil
 	}
 
-	if !stackSupportsManagedNodes {
+	if managedNodeUpdateRequired {
 		logger.Info("cluster stack is missing resources for Managed Nodegroups")
 	}
-	if !stackSupportsFargate {
+	if fargateUpdateRequired {
 		logger.Info("cluster stack is missing resources for Fargate")
 	}
 
@@ -122,7 +125,7 @@ func (c *StackCollection) EnsureMapPublicIPOnLaunchEnabled() error {
 		}
 	}
 	description := fmt.Sprintf("update public subnets %q with property MapPublicIpOnLaunch enabled", publicSubnetsNames)
-	if err := c.UpdateStack(stackName, c.MakeChangeSetName("update-subnets"), description, []byte(currentTemplate), nil); err != nil {
+	if err := c.UpdateStack(stackName, c.MakeChangeSetName("update-subnets"), description, TemplateBody(currentTemplate), nil); err != nil {
 		return errors.Wrap(err, "unable to update subnets")
 	}
 	return nil

@@ -16,6 +16,7 @@ nodeGroups:
         externalDNS: true
         certManager: true
         appMesh: true
+        appMeshPreview: true
         ebs: true
         fsx: true
         efs: true
@@ -32,6 +33,9 @@ example, a CI server that needs to push images to ECR.
 ### EBS Policy
 
 The `ebs` policy enables the new EBS CSI (Elastic Block Store Container Storage Interface) driver.
+
+### Cert Manager Policy
+The `certManager` policy enables the ability to add records to Route 53 in order to solve the DNS01 challenge. More information can be found [here](https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-a-iam-role).
 
 [comment]: <> (TODO: One section per addon and brief explanation of what it is )
 

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/arn"
-	gfn "github.com/awslabs/goformation/cloudformation"
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	cft "github.com/weaveworks/eksctl/pkg/cfn/template"
+	gfn "github.com/weaveworks/goformation/cloudformation"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
@@ -60,13 +60,12 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 		)
 
 		hostedZonePolicy := []string{
-			"route53:ListHostedZones",
 			"route53:ListResourceRecordSets",
 			"route53:ListHostedZonesByName",
 		}
 
 		if api.IsEnabled(iamConfig.WithAddonPolicies.ExternalDNS) {
-			hostedZonePolicy = append(hostedZonePolicy, "route53:ListTagsForResource")
+			hostedZonePolicy = append(hostedZonePolicy, "route53:ListHostedZones", "route53:ListTagsForResource")
 		}
 
 		cfnTemplate.attachAllowPolicy("PolicyCertManagerHostedZones", refIR, "*", hostedZonePolicy)
@@ -90,23 +89,35 @@ func createRole(cfnTemplate cfnTemplate, iamConfig *api.NodeGroupIAM, managed bo
 		)
 	}
 
+	appMeshActions := []string{
+		"servicediscovery:CreateService",
+		"servicediscovery:DeleteService",
+		"servicediscovery:GetService",
+		"servicediscovery:GetInstance",
+		"servicediscovery:RegisterInstance",
+		"servicediscovery:DeregisterInstance",
+		"servicediscovery:ListInstances",
+		"servicediscovery:ListNamespaces",
+		"servicediscovery:ListServices",
+		"servicediscovery:GetInstancesHealthStatus",
+		"servicediscovery:UpdateInstanceCustomHealthStatus",
+		"servicediscovery:GetOperation",
+		"route53:GetHealthCheck",
+		"route53:CreateHealthCheck",
+		"route53:UpdateHealthCheck",
+		"route53:ChangeResourceRecordSets",
+		"route53:DeleteHealthCheck",
+	}
+
 	if api.IsEnabled(iamConfig.WithAddonPolicies.AppMesh) {
 		cfnTemplate.attachAllowPolicy("PolicyAppMesh", refIR, "*",
-			[]string{
-				"appmesh:*",
-				"servicediscovery:CreateService",
-				"servicediscovery:GetService",
-				"servicediscovery:RegisterInstance",
-				"servicediscovery:DeregisterInstance",
-				"servicediscovery:ListInstances",
-				"servicediscovery:ListNamespaces",
-				"servicediscovery:ListServices",
-				"route53:GetHealthCheck",
-				"route53:CreateHealthCheck",
-				"route53:UpdateHealthCheck",
-				"route53:ChangeResourceRecordSets",
-				"route53:DeleteHealthCheck",
-			},
+			append(appMeshActions, "appmesh:*"),
+		)
+	}
+
+	if api.IsEnabled(iamConfig.WithAddonPolicies.AppMeshPreview) {
+		cfnTemplate.attachAllowPolicy("PolicyAppMeshPreview", refIR, "*",
+			append(appMeshActions, "appmesh-preview:*"),
 		)
 	}
 

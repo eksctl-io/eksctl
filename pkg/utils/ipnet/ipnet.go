@@ -18,7 +18,8 @@ var nullString = "null"
 var nullBytes = []byte(nullString)
 var emptyIPNet = net.IPNet{}
 
-// IPNet wraps net.IPNet to get CIDR serialization.
+// IPNet is an IP address in CIDR notation
+// Schema type is `string`
 type IPNet struct {
 	net.IPNet
 }
