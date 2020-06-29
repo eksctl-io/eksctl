@@ -35,7 +35,7 @@ func NewClusterResourceSet(provider api.ClusterProvider, spec *api.ClusterConfig
 		spec:                 spec,
 		provider:             provider,
 		supportsManagedNodes: supportsManagedNodes,
-		vpcResourceSet:       NewVPCResourceSet(rs, spec.VPC, spec.AvailabilityZones, spec.PrivateCluster.Enabled),
+		vpcResourceSet:       NewVPCResourceSet(rs, spec, provider),
 	}
 }
 
@@ -64,7 +64,7 @@ func (c *ClusterResourceSet) AddAllResources() error {
 		return errors.Wrap(err, "error adding VPC resources")
 	}
 
-	c.vpcResourceSet.AddOutputs(c.provider, c.spec)
+	c.vpcResourceSet.AddOutputs()
 	clusterSG := c.addResourcesForSecurityGroups(vpcResource)
 
 	if privateCluster := c.spec.PrivateCluster; privateCluster.Enabled {

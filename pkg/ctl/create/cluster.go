@@ -410,16 +410,6 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 			return nil
 		}
 
-		if cfg.PrivateCluster.Enabled {
-			// disable public access
-			logger.Info("disabling public endpoint access for the cluster")
-			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
-			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
-				return errors.Wrap(err, "error disabling public endpoint access for the cluster")
-			}
-			logger.Info("fully private cluster %q has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect", cfg.Metadata.Name)
-		}
-
 		// check kubectl version, and offer install instructions if missing or old
 		// also check heptio-authenticator
 		// TODO: https://github.com/weaveworks/eksctl/issues/30
@@ -430,6 +420,16 @@ func doCreateCluster(cmd *cmdutils.Cmd, ng *api.NodeGroup, params *cmdutils.Crea
 		if err := kubectl.CheckAllCommands(params.KubeconfigPath, params.SetContext, kubeconfigContextName, env); err != nil {
 			logger.Critical("%s\n", err.Error())
 			logger.Info("cluster should be functional despite missing (or misconfigured) client binaries")
+		}
+
+		if cfg.PrivateCluster.Enabled {
+			// disable public access
+			logger.Info("disabling public endpoint access for the cluster")
+			cfg.VPC.ClusterEndpoints.PublicAccess = api.Disabled()
+			if err := ctl.UpdateClusterConfigForEndpoints(cfg); err != nil {
+				return errors.Wrap(err, "error disabling public endpoint access for the cluster")
+			}
+			logger.Info("fully private cluster %q has been created. For subsequent operations, eksctl must be run from within the cluster's VPC, a peered VPC or some other means like AWS Direct Connect", cfg.Metadata.Name)
 		}
 	}
 

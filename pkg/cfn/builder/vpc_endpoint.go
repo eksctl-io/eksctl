@@ -141,12 +141,12 @@ func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		if err != nil {
 			return nil, errors.Wrap(err, "error describing VPC endpoint services")
 		}
+		serviceDetails = append(serviceDetails, output.ServiceDetails...)
 
 		nextToken = output.NextToken
 		if nextToken == nil {
 			break
 		}
-		serviceDetails = append(serviceDetails, output.ServiceDetails...)
 	}
 
 	ret := make([]VPCEndpointServiceDetails, len(serviceDetails))
