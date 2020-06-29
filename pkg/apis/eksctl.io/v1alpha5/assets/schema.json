@@ -97,6 +97,9 @@
           "description": "For information and examples see [nodegroups](/usage/managing-nodegroups)",
           "x-intellij-html-description": "For information and examples see <a href=\"/usage/managing-nodegroups\">nodegroups</a>"
         },
+        "privateCluster": {
+          "$ref": "#/definitions/PrivateCluster"
+        },
         "secretsEncryption": {
           "$ref": "#/definitions/SecretsEncryption"
         },
@@ -113,6 +116,7 @@
         "metadata",
         "iam",
         "vpc",
+        "privateCluster",
         "nodeGroups",
         "managedNodeGroups",
         "fargateProfiles",
@@ -559,6 +563,8 @@
       "properties": {
         "amiFamily": {
           "type": "string",
+          "description": "Specify [custom AMIs](/usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
+          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, &quot;auto-ssm&quot;, &quot;auto&quot;, or &quot;static&quot;",
           "default": ""
         },
         "availabilityZones": {
@@ -566,7 +572,9 @@
             "type": "string",
             "default": ""
           },
-          "type": "array"
+          "type": "array",
+          "description": "Limit [nodes to specific AZs](/usage/autoscaling/#zone-aware-auto-scaling)",
+          "x-intellij-html-description": "Limit <a href=\"/usage/autoscaling/#zone-aware-auto-scaling\">nodes to specific AZs</a>"
         },
         "desiredCapacity": {
           "type": "integer"
@@ -598,6 +606,8 @@
         },
         "privateNetworking": {
           "type": "boolean",
+          "description": "Enable [private networking](/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup) for nodegroup",
+          "x-intellij-html-description": "Enable <a href=\"/usage/vpc-networking/#use-private-subnets-for-initial-nodegroup\">private networking</a> for nodegroup",
           "default": "false"
         },
         "ssh": {
@@ -622,18 +632,17 @@
         "name",
         "amiFamily",
         "instanceType",
+        "availabilityZones",
         "desiredCapacity",
         "minSize",
         "maxSize",
         "volumeSize",
-        "availabilityZones",
         "ssh",
         "labels",
         "privateNetworking",
         "tags",
         "iam"
       ],
-      "additionalProperties": false,
       "description": "defines an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error",
       "x-intellij-html-description": "defines an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error"
     },
@@ -687,12 +696,12 @@
       "properties": {
         "ami": {
           "type": "string",
-          "description": "Specify [custom AMIs](/usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
-          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, &quot;auto-ssm&quot;, &quot;auto&quot;, or &quot;static&quot;",
           "default": ""
         },
         "amiFamily": {
           "type": "string",
+          "description": "Specify [custom AMIs](/usage/custom-ami-support/), \"auto-ssm\", \"auto\", or \"static\"",
+          "x-intellij-html-description": "Specify <a href=\"/usage/custom-ami-support/\">custom AMIs</a>, &quot;auto-ssm&quot;, &quot;auto&quot;, or &quot;static&quot;",
           "default": ""
         },
         "asgMetricsCollection": {
@@ -711,7 +720,9 @@
           "x-intellij-html-description": "Limit <a href=\"/usage/autoscaling/#zone-aware-auto-scaling\">nodes to specific AZs</a>"
         },
         "bottlerocket": {
-          "$ref": "#/definitions/NodeGroupBottlerocket"
+          "$ref": "#/definitions/NodeGroupBottlerocket",
+          "description": "SSH configures ssh access for this nodegroup",
+          "x-intellij-html-description": "SSH configures ssh access for this nodegroup"
         },
         "classicLoadBalancerNames": {
           "items": {
@@ -804,9 +815,7 @@
           "$ref": "#/definitions/NodeGroupSGs"
         },
         "ssh": {
-          "$ref": "#/definitions/NodeGroupSSH",
-          "description": "configures ssh access for this nodegroup",
-          "x-intellij-html-description": "configures ssh access for this nodegroup"
+          "$ref": "#/definitions/NodeGroupSSH"
         },
         "tags": {
           "additionalProperties": {
@@ -866,34 +875,34 @@
       },
       "preferredOrder": [
         "name",
-        "ami",
         "amiFamily",
         "instanceType",
-        "instancesDistribution",
-        "instancePrefix",
-        "instanceName",
         "availabilityZones",
-        "tags",
-        "privateNetworking",
-        "securityGroups",
         "desiredCapacity",
         "minSize",
         "maxSize",
+        "volumeSize",
+        "ssh",
+        "labels",
+        "privateNetworking",
+        "tags",
+        "iam",
+        "ami",
+        "instancesDistribution",
+        "instancePrefix",
+        "instanceName",
+        "securityGroups",
         "asgMetricsCollection",
         "ebsOptimized",
-        "volumeSize",
         "volumeType",
         "volumeName",
         "volumeEncrypted",
         "volumeKmsKeyID",
         "volumeIOPS",
         "maxPodsPerNode",
-        "labels",
         "taints",
         "classicLoadBalancerNames",
         "targetGroupARNs",
-        "ssh",
-        "iam",
         "bottlerocket",
         "preBootstrapCommands",
         "overrideBootstrapCommand",
@@ -1168,6 +1177,28 @@
       "additionalProperties": false,
       "description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync.",
       "x-intellij-html-description": "groups all configuration options related to the operator used to keep the cluster and the Git repository in sync."
+    },
+    "PrivateCluster": {
+      "properties": {
+        "additionalEndpointServices": {
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": "false"
+        }
+      },
+      "preferredOrder": [
+        "enabled",
+        "additionalEndpointServices"
+      ],
+      "additionalProperties": false,
+      "description": "defines the config for a private cluster",
+      "x-intellij-html-description": "defines the config for a private cluster"
     },
     "Profile": {
       "properties": {
