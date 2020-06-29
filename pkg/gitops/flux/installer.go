@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/eksctl/pkg/gitops/deploykey"
-
 	fluxinstall "github.com/fluxcd/flux/pkg/install"
 	helmopinstall "github.com/fluxcd/helm-operator/pkg/install"
 	"github.com/kris-nova/logger"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/go-git-providers/pkg/key"
+	"github.com/weaveworks/go-git-providers/pkg/providers"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclient "k8s.io/client-go/kubernetes"
@@ -143,9 +143,19 @@ func (fi *Installer) Run(ctx context.Context) (string, error) {
 	instruction := fmt.Sprintf("please configure %s so that the following Flux SSH public key has write access to it\n%s",
 		fi.opts.Repo.URL, fluxSSHKey.Key)
 
-	ok, err := deploykey.Put(ctx, fi.cfg, deploykey.PublicKey{Key: fluxSSHKey.Key})
-	if ok || err != nil {
-		return "", err
+	gitProvider, err := providers.GetProvider(fi.cfg.Git.Repo.URL)
+	if err != nil {
+		logger.Warning("could not find git provider implementation for url %q. Skipping authorization of SSH key", fi.cfg.Git.Repo.URL)
+		return instruction, nil
+	}
+
+	err = gitProvider.AuthorizeSSHKey(ctx, key.SSHKey{
+		Title:    KeyTitle(*fi.cfg.Metadata),
+		Key:      fluxSSHKey.Key,
+		ReadOnly: fi.cfg.Git.Operator.ReadOnly,
+	})
+	if err != nil {
+		return "", errors.Wrapf(err, "could not authorize SSH key")
 	}
 
 	return instruction, nil
@@ -334,4 +344,9 @@ func mergeMaps(m1 map[string][]byte, m2 map[string][]byte) map[string][]byte {
 		result[k] = v
 	}
 	return result
+}
+
+// KeyTitle returns the title for the SSH key used to access the gitops repo
+func KeyTitle(clusterMeta api.ClusterMeta) string {
+	return fmt.Sprintf("eksctl-flux-%s-%s", clusterMeta.Region, clusterMeta.Name)
 }
