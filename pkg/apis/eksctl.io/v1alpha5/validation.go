@@ -113,6 +113,9 @@ func ValidateClusterConfig(cfg *ClusterConfig) error {
 	}
 
 	if cfg.PrivateCluster.Enabled {
+		if cfg.VPC != nil && cfg.VPC.ID != "" && len(cfg.VPC.Subnets.Private) == 0 {
+			return errors.New("vpc.subnets.private must be specified in a fully-private cluster when a pre-existing VPC is supplied")
+		}
 		if additionalServices := cfg.PrivateCluster.AdditionalEndpointServices; len(additionalServices) > 0 {
 			if err := ValidateAdditionalEndpointServices(additionalServices); err != nil {
 				return errors.Wrap(err, "invalid value in privateCluster.additionalEndpointServices")
