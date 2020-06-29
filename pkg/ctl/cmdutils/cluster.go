@@ -25,19 +25,10 @@ func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *filter.NodeGroupFil
 		}
 	}
 
-	nodeGroups, managedNodeGroups := clusterConfig.NodeGroups, clusterConfig.ManagedNodeGroups
-
 	clusterConfig.NodeGroups, clusterConfig.ManagedNodeGroups = filteredNodeGroups, filteredManagedNodeGroups
 
 	return func() {
-		var allNames []string
-		for _, ng := range nodeGroups {
-			allNames = append(allNames, ng.Name)
-		}
-		for _, ng := range managedNodeGroups {
-			allNames = append(allNames, ng.Name)
-		}
-		ngFilter.DoLogInfo(allNames)
+		ngFilter.LogInfo(clusterConfig)
 	}
 }
 

@@ -126,7 +126,8 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(lister servic
 
 // LogInfo prints out a user-friendly message about how filter was applied
 func (f *IAMServiceAccountFilter) LogInfo(serviceAccounts []*api.ClusterIAMServiceAccount) {
-	f.doLogInfo("iamserviceaccount", f.collectNames(serviceAccounts))
+	included, excluded := f.MatchAll(serviceAccounts)
+	f.doLogInfo("iamserviceaccount", included, excluded)
 }
 
 // MatchAll all names against the filter and return two sets of names - included and excluded

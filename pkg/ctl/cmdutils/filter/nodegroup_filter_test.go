@@ -51,7 +51,7 @@ var _ = Describe("nodegroup filter", func() {
 			Expect(filter.Match("test-ng1a")).To(BeTrue())
 			Expect(filter.Match("test-ng1n")).To(BeTrue())
 
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
 			Expect(included).To(HaveLen(2))
 			Expect(included.HasAll("test-ng1a", "test-ng1b")).To(BeTrue())
 			Expect(excluded).To(HaveLen(5))
@@ -72,7 +72,7 @@ var _ = Describe("nodegroup filter", func() {
 			err := filter.SetOnlyRemote(mockLister, cfg)
 			Expect(err).ToNot(HaveOccurred())
 
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
 			Expect(included).To(HaveLen(2))
 			Expect(included.HasAll("non-existing-in-cfg-1", "non-existing-in-cfg-2")).To(BeTrue())
 			Expect(excluded).To(HaveLen(6))
@@ -98,7 +98,7 @@ var _ = Describe("nodegroup filter", func() {
 			err = filter.SetOnlyLocal(mockLister, cfg)
 			Expect(err).ToNot(HaveOccurred())
 
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
 			Expect(included).To(HaveLen(1))
 			Expect(included.HasAll("test-ng1b")).To(BeTrue())
 			Expect(excluded).To(HaveLen(5))
@@ -120,7 +120,7 @@ var _ = Describe("nodegroup filter", func() {
 			err = filter.AppendExcludeGlobs("test-ng1a", "test-ng2?")
 			Expect(err).ToNot(HaveOccurred())
 
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
 			Expect(included).To(HaveLen(2))
 			Expect(included.HasAll("test-ng3a", "test-ng3b")).To(BeTrue())
 			Expect(excluded).To(HaveLen(4))

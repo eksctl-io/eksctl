@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"strings"
+
 	"github.com/kris-nova/logger"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -59,20 +61,40 @@ type stackLister interface {
 }
 
 // SetOnlyLocal uses stackLister to list existing nodegroup stacks and configures
-// the filter to only include the local nodegroups. These are the ones that are present in the clusterconfig file
-// but not in the cluster
+// the filter to only include the nodegroups that don't exist in the cluster already.
+// Note: they are present in the config file but not in the cluster. This is used by
+// the create nodegroup command
 func (f *NodeGroupFilter) SetOnlyLocal(lister stackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyLocal = true
 
-	return f.loadLocalAndRemoteNodegroups(lister, clusterConfig)
+	err := f.loadLocalAndRemoteNodegroups(lister, clusterConfig)
+	if err != nil {
+		return err
+	}
+
+	// Remote ones will be excluded
+	if f.remoteNodegroups.Len() > 0 {
+		logger.Info("%d existing %s(s) (%s) will be excluded", f.remoteNodegroups.Len(), "nodegroup", strings.Join(f.remoteNodegroups.List(), ","))
+	}
+	return nil
 }
 
 // SetOnlyRemote uses stackLister to list existing nodegroup stacks and configures
-// the filter to either explicitly exclude or include nodegroups that are missing from given nodeGroups
+// the filter to exclude nodegroups already defined in the config file. It will include the
+//  nodegroups that exist in the cluster but not in the config
 func (f *NodeGroupFilter) SetOnlyRemote(lister stackLister, clusterConfig *api.ClusterConfig) error {
 	f.onlyRemote = true
 
-	return f.loadLocalAndRemoteNodegroups(lister, clusterConfig)
+	err := f.loadLocalAndRemoteNodegroups(lister, clusterConfig)
+	if err != nil {
+		return err
+	}
+
+	// local ones will be excluded
+	if f.localNodegroups.Len() > 0 {
+		logger.Info("%d %s(s) present in the config file (%s) will be excluded", f.localNodegroups.Len(), "nodegroup", strings.Join(f.localNodegroups.List(), ","))
+	}
+	return nil
 }
 
 // SetExcludeAll sets the ExcludeAll flag in the filter so that no nodegroups are matched
@@ -130,13 +152,19 @@ func stackExists(stacks []manager.NodeGroupStack, stackName string) bool {
 }
 
 // LogInfo prints out a user-friendly message about how filter was applied
-func (f *NodeGroupFilter) LogInfo(nodeGroups []*api.NodeGroup) {
-	f.delegate.doLogInfo("nodegroup", f.collectNames(nodeGroups))
+func (f *NodeGroupFilter) LogInfo(cfg *api.ClusterConfig) {
+	allNames := f.collectNames(cfg.NodeGroups)
+
+	for _, mng := range cfg.ManagedNodeGroups {
+		allNames.Insert(mng.NameString())
+	}
+
+	included, excluded := f.matchAll(allNames)
+	f.delegate.doLogInfo("nodegroup", included, excluded)
 }
 
-// MatchAll all names against the filter and return two sets of names - included and excluded
-func (f *NodeGroupFilter) MatchAll(nodeGroups []*api.NodeGroup) (sets.String, sets.String) {
-	allNames := sets.NewString(f.collectNames(nodeGroups)...)
+// matchAll all names against the filter and return two sets of names - included and excluded
+func (f *NodeGroupFilter) matchAll(allNames sets.String) (sets.String, sets.String) {
 
 	matching, notMatching := f.delegate.doMatchAll(allNames.List())
 
@@ -208,15 +236,10 @@ func (f *NodeGroupFilter) ForEach(nodeGroups []*api.NodeGroup, iterFn func(i int
 	return nil
 }
 
-// DoLogInfo logs how each name matches or not in the filter
-func (f *NodeGroupFilter) DoLogInfo(allNames []string) {
-	f.delegate.doLogInfo("nodegroup", allNames)
-}
-
-func (*NodeGroupFilter) collectNames(nodeGroups []*api.NodeGroup) []string {
-	names := []string{}
+func (*NodeGroupFilter) collectNames(nodeGroups []*api.NodeGroup) sets.String {
+	names := sets.NewString()
 	for _, ng := range nodeGroups {
-		names = append(names, ng.NameString())
+		names.Insert(ng.NameString())
 	}
 	return names
 }

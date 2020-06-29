@@ -199,7 +199,7 @@ func (f *Filter) includeGlobsMatchAnything(names []string, resource string) erro
 	return fmt.Errorf("no %ss match include glob filter specification: %q", resource, strings.Join(f.rawIncludeGlobs, ","))
 }
 
-func (f *Filter) doLogInfo(resource string, names []string) {
+func (f *Filter) doLogInfo(resource string, included, excluded sets.String) {
 	logMsg := func(subset sets.String, status string) {
 		count := subset.Len()
 		list := strings.Join(subset.List(), ", ")
@@ -210,7 +210,6 @@ func (f *Filter) doLogInfo(resource string, names []string) {
 		logger.Info(subjectFmt, count, resource, list, status+" (based on the include/exclude rules)")
 	}
 
-	included, excluded := f.doMatchAll(names)
 	if f.hasIncludeRules() {
 		logger.Info("combined include rules: %s", f.describeIncludeRules())
 		if included.Len() == 0 {
