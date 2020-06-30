@@ -71,7 +71,6 @@ func (e *VPCEndpointResourceSet) AddResources() error {
 		if endpointDetail.EndpointType == ec2.VpcEndpointTypeGateway {
 			endpoint.RouteTableIds = e.routeTableIDs()
 		} else {
-			endpoint.VpcEndpointType = gfn.NewString(ec2.VpcEndpointTypeInterface)
 			endpoint.SubnetIds = e.subnetsForAZs(endpointDetail.AvailabilityZones)
 			endpoint.PrivateDnsEnabled = gfn.NewBoolean(true)
 			endpoint.SecurityGroupIds = []*gfn.Value{e.clusterSharedSG}
@@ -145,8 +144,7 @@ func BuildVPCEndpointServices(ec2API ec2iface.EC2API, region string, endpoints [
 		}
 		serviceDetails = append(serviceDetails, output.ServiceDetails...)
 
-		nextToken = output.NextToken
-		if nextToken == nil {
+		if nextToken = output.NextToken; nextToken == nil {
 			break
 		}
 	}

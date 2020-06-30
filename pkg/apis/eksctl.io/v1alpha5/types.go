@@ -1023,7 +1023,7 @@ func (n *NodeGroupBase) GetAMIFamily() string {
 	return n.AMIFamily
 }
 
-// ManagedNodeGroup defines an EKS-managed nodegroup
+// ManagedNodeGroup represents an EKS-managed nodegroup
 // TODO Validate for unmapped fields and throw an error
 type ManagedNodeGroup struct {
 	*NodeGroupBase

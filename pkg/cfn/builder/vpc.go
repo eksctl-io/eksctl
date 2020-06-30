@@ -357,8 +357,7 @@ func importRouteTables(ec2API ec2iface.EC2API, subnets map[string]api.Network) (
 
 		routeTables = append(routeTables, output.RouteTables...)
 
-		nextToken = output.NextToken
-		if nextToken == nil {
+		if nextToken = output.NextToken; nextToken == nil {
 			break
 		}
 	}
