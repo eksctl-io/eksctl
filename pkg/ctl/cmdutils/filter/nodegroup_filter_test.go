@@ -1,4 +1,4 @@
-package cmdutils_test
+package filter
 
 import (
 	"bytes"
@@ -7,9 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/printers"
-
-	. "github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
 )
 
 var _ = Describe("nodegroup filter", func() {
@@ -36,106 +35,96 @@ var _ = Describe("nodegroup filter", func() {
 			filter = NewNodeGroupFilter()
 		})
 
-		It("should match empty filter", func() {
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(6))
-			Expect(excluded).To(HaveLen(0))
-			Expect(included.HasAll("test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b")).To(BeTrue())
-		})
+		It("regression: should only match the ones included in the filter when non existing ngs are present in the config file", func() {
+			nonExistentNg := cfg.NewNodeGroup()
+			nonExistentNg.Name = "non-existing-in-cluster"
+			cfg.NodeGroups = append(cfg.NodeGroups, nonExistentNg)
 
-		It("should match exclude filter with ExcludeAll", func() {
-			filter.ExcludeAll = true
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(0))
-			Expect(excluded).To(HaveLen(6))
-			Expect(excluded.HasAll("test-ng1a", "test-ng2a", "test-ng3a", "test-ng1b", "test-ng2b", "test-ng3b")).To(BeTrue())
-		})
-
-		It("should match exclude filter with names and globs", func() {
-			filter.AppendExcludeNames("test-ng3b")
-			err := filter.AppendExcludeGlobs("test-ng1?", "x*")
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(filter.Match("test-ng3x")).To(BeTrue())
-			Expect(filter.Match("test-ng3b")).To(BeFalse())
-			Expect(filter.Match("xyz1")).To(BeFalse())
-			Expect(filter.Match("yz1")).To(BeTrue())
-			Expect(filter.Match("test-ng1")).To(BeTrue())
-			Expect(filter.Match("test-ng1a")).To(BeFalse())
-			Expect(filter.Match("test-ng1n")).To(BeFalse())
-
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(3))
-			Expect(included.HasAll("test-ng2a", "test-ng2b", "test-ng3a")).To(BeTrue())
-			Expect(excluded).To(HaveLen(3))
-			Expect(excluded.HasAll("test-ng1a", "test-ng1b", "test-ng3b")).To(BeTrue())
-		})
-
-		It("should match include filter", func() {
-			filter.AppendIncludeNames("test-ng3b")
-			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?", "x*")
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?")
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(filter.Match("test-ng3x")).To(BeFalse())
-			Expect(filter.Match("test-ng3b")).To(BeTrue())
-			Expect(filter.Match("xyz1")).To(BeTrue())
+			Expect(filter.Match("test-ng3b")).To(BeFalse())
+			Expect(filter.Match("xyz1")).To(BeFalse())
 			Expect(filter.Match("yz1")).To(BeFalse())
 			Expect(filter.Match("test-ng1")).To(BeFalse())
 			Expect(filter.Match("test-ng1a")).To(BeTrue())
 			Expect(filter.Match("test-ng1n")).To(BeTrue())
 
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(3))
-			Expect(included.HasAll("test-ng1a", "test-ng1b", "test-ng3b")).To(BeTrue())
-			Expect(excluded).To(HaveLen(3))
-			Expect(excluded.HasAll("test-ng2a", "test-ng2b", "test-ng3a")).To(BeTrue())
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
+			Expect(included).To(HaveLen(2))
+			Expect(included.HasAll("test-ng1a", "test-ng1b")).To(BeTrue())
+			Expect(excluded).To(HaveLen(5))
+			Expect(excluded.HasAll("test-ng2a", "test-ng2b", "test-ng3a", "test-ng3b", "non-existing-in-cluster")).To(BeTrue())
 		})
 
-		It("should match non-overlapping exclude and include filters with explicit inclusion", func() {
-			filter.AppendIncludeNames("test-ng1a", "test-ng2b")
-			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a", "*-ng3?")
+		It("only-missing (only-remote) works correctly", func() {
+			mockLister := newMockStackLister(
+				"test-ng1a",
+				"test-ng2a",
+				"test-ng3a",
+				"test-ng1b",
+				"test-ng2b",
+				"test-ng3b",
+				"non-existing-in-cfg-1",
+				"non-existing-in-cfg-2",
+			)
+			err := filter.SetOnlyRemote(mockLister, cfg)
 			Expect(err).ToNot(HaveOccurred())
 
-			filter.AppendExcludeNames("test-ng1b")
-			err = filter.AppendExcludeGlobs("*-ng1b")
-			Expect(err).ToNot(HaveOccurred())
-
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(5))
-			Expect(included.HasAll("test-ng1a", "test-ng2a", "test-ng3b", "test-ng2b", "test-ng3a")).To(BeTrue())
-			Expect(excluded).To(HaveLen(1))
-			Expect(excluded.HasAll("test-ng1b")).To(BeTrue())
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
+			Expect(included).To(HaveLen(2))
+			Expect(included.HasAll("non-existing-in-cfg-1", "non-existing-in-cfg-2")).To(BeTrue())
+			Expect(excluded).To(HaveLen(6))
+			Expect(excluded.HasAll(
+				"test-ng1a",
+				"test-ng2a",
+				"test-ng3a",
+				"test-ng1b",
+				"test-ng2b",
+				"test-ng3b",
+			)).To(BeTrue())
 		})
 
-		It("should match non-overlapping exclude and include filters with fallback inclusion", func() {
-			filter.AppendIncludeNames("test-ng1X")
-			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a")
+		It("should match only local nodegroups", func() {
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng1?")
 			Expect(err).ToNot(HaveOccurred())
 
-			filter.AppendExcludeNames("test-ng1b")
-			err = filter.AppendExcludeGlobs("*-ng1b", "test-?g2b")
+			mockLister := newMockStackLister(
+				"test-ng1a",
+				"test-ng2a",
+				"test-ng3a",
+			)
+			err = filter.SetOnlyLocal(mockLister, cfg)
 			Expect(err).ToNot(HaveOccurred())
 
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(4))
-			Expect(included.HasAll("test-ng1a", "test-ng2a", "test-ng3b", "test-ng3a")).To(BeTrue())
-			Expect(excluded).To(HaveLen(2))
-			Expect(excluded.HasAll("test-ng1b", "test-ng2b")).To(BeTrue())
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
+			Expect(included).To(HaveLen(1))
+			Expect(included.HasAll("test-ng1b")).To(BeTrue())
+			Expect(excluded).To(HaveLen(5))
+			Expect(excluded.HasAll("test-ng1a", "test-ng2a", "test-ng3a", "test-ng2b", "test-ng3b")).To(BeTrue())
 		})
 
-		It("should match overlapping exclude and include filters", func() {
-			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a", "test-?g2b")
+		It("should match only local nodegroups with exclude and include rules", func() {
+			err := filter.AppendIncludeGlobs(getNodeGroupNames(cfg), "test-ng?a", "test-ng?b")
 			Expect(err).ToNot(HaveOccurred())
 
-			filter.AppendExcludeNames("test-ng1b", "test-ng2a")
-			err = filter.AppendExcludeGlobs("*-ng1b", "test-?g2b")
+			mockLister := newMockStackLister(
+				"test-ng2a",
+				"test-ng1b",
+				"test-ng2b",
+			)
+			err = filter.SetOnlyLocal(mockLister, cfg)
 			Expect(err).ToNot(HaveOccurred())
 
-			included, excluded := filter.MatchAll(cfg.NodeGroups)
-			Expect(included).To(HaveLen(5))
-			Expect(included.HasAll("test-ng1a", "test-ng2a", "test-ng3a", "test-ng2b", "test-ng3b")).To(BeTrue())
-			Expect(excluded).To(HaveLen(1))
-			Expect(excluded.HasAll("test-ng1b")).To(BeTrue())
+			err = filter.AppendExcludeGlobs("test-ng1a", "test-ng2?")
+			Expect(err).ToNot(HaveOccurred())
+
+			included, excluded := filter.matchAll(filter.collectNames(cfg.NodeGroups))
+			Expect(included).To(HaveLen(2))
+			Expect(included.HasAll("test-ng3a", "test-ng3b")).To(BeTrue())
+			Expect(excluded).To(HaveLen(4))
+			Expect(excluded.HasAll("test-ng1a", "test-ng1b", "test-ng2a", "test-ng2b")).To(BeTrue())
 		})
 	})
 
@@ -179,7 +168,7 @@ var _ = Describe("nodegroup filter", func() {
 			addGroupB(cfg)
 
 			filter := NewNodeGroupFilter()
-			filter.ExcludeAll = true
+			filter.delegate.ExcludeAll = true
 
 			err := filter.ForEach(cfg.NodeGroups, func(i int, nodeGroup *api.NodeGroup) error {
 				api.SetNodeGroupDefaults(nodeGroup, cfg.Metadata)
@@ -602,3 +591,23 @@ const expected = `
 		]
   }
 `
+
+type mockStackLister struct {
+	nodesResult []manager.NodeGroupStack
+}
+
+func (s *mockStackLister) ListNodeGroupStacks() ([]manager.NodeGroupStack, error) {
+	return s.nodesResult, nil
+}
+
+func newMockStackLister(ngs ...string) *mockStackLister {
+	stacks := make([]manager.NodeGroupStack, 0)
+	for _, ng := range ngs {
+		stacks = append(stacks, manager.NodeGroupStack{
+			NodeGroupName: ng,
+		})
+	}
+	return &mockStackLister{
+		nodesResult: stacks,
+	}
+}

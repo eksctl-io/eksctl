@@ -10,6 +10,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 	"github.com/weaveworks/eksctl/pkg/printers"
 )
@@ -60,7 +61,7 @@ func createIAMServiceAccountCmdWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *
 }
 
 func doCreateIAMServiceAccount(cmd *cmdutils.Cmd, overrideExistingServiceAccounts bool) error {
-	saFilter := cmdutils.NewIAMServiceAccountFilter()
+	saFilter := filter.NewIAMServiceAccountFilter()
 
 	if err := cmdutils.NewCreateIAMServiceAccountLoader(cmd, saFilter).Load(); err != nil {
 		return err

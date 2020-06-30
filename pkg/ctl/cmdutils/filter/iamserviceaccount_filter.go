@@ -1,17 +1,22 @@
-package cmdutils
+package filter
 
 import (
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	"github.com/kris-nova/logger"
+
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
-	"github.com/weaveworks/eksctl/pkg/cfn/manager"
 	"github.com/weaveworks/eksctl/pkg/kubernetes"
 )
 
 // IAMServiceAccountFilter holds filter configuration
 type IAMServiceAccountFilter struct {
 	*Filter
+}
+
+// A stackLister lists nodegroup stacks
+type serviceAccountLister interface {
+	ListIAMServiceAccountStacks() ([]string, error)
 }
 
 // NewIAMServiceAccountFilter create new ServiceAccountFilter instance
@@ -40,7 +45,7 @@ func (f *IAMServiceAccountFilter) AppendIncludeGlobs(serviceAccounts []*api.Clus
 
 // SetExcludeExistingFilter uses stackManager to list existing nodegroup stacks and configures
 // the filter accordingly
-func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager *manager.StackCollection, clientSet kubernetes.Interface, serviceAccounts []*api.ClusterIAMServiceAccount, overrideExistingServiceAccounts bool) error {
+func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager serviceAccountLister, clientSet kubernetes.Interface, serviceAccounts []*api.ClusterIAMServiceAccount, overrideExistingServiceAccounts bool) error {
 	if f.ExcludeAll {
 		return nil
 	}
@@ -71,8 +76,8 @@ func (f *IAMServiceAccountFilter) SetExcludeExistingFilter(stackManager *manager
 
 // SetIncludeOrExcludeMissingFilter uses stackManager to list existing iamserviceaccount stacks and configures
 // the filter to either explictily exluce or include iamserviceaccounts that are missing from given serviceAccounts
-func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager *manager.StackCollection, includeOnlyMissing bool, serviceAccounts *[]*api.ClusterIAMServiceAccount) error {
-	existing, err := stackManager.ListIAMServiceAccountStacks()
+func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(lister serviceAccountLister, includeOnlyMissing bool, serviceAccounts *[]*api.ClusterIAMServiceAccount) error {
+	existing, err := lister.ListIAMServiceAccountStacks()
 	if err != nil {
 		return err
 	}
@@ -121,7 +126,8 @@ func (f *IAMServiceAccountFilter) SetIncludeOrExcludeMissingFilter(stackManager 
 
 // LogInfo prints out a user-friendly message about how filter was applied
 func (f *IAMServiceAccountFilter) LogInfo(serviceAccounts []*api.ClusterIAMServiceAccount) {
-	f.doLogInfo("iamserviceaccount", f.collectNames(serviceAccounts))
+	included, excluded := f.MatchAll(serviceAccounts)
+	f.doLogInfo("iamserviceaccount", included, excluded)
 }
 
 // MatchAll all names against the filter and return two sets of names - included and excluded

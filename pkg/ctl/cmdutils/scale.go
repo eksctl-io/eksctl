@@ -22,18 +22,14 @@ func NewScaleNodeGroupLoader(cmd *Cmd, ng *api.NodeGroup) ClusterConfigLoader {
 			return err
 		}
 
-		ngFilter := NewNodeGroupFilter()
-		ngFilter.AppendIncludeNames(ng.Name)
-
-		matchedNodeGroup := ngFilter.FilterMatching(l.ClusterConfig.NodeGroups)
-		if len(matchedNodeGroup) == 0 {
+		loadedNG := l.ClusterConfig.FindNodegroup(ng.Name)
+		if loadedNG == nil {
 			return fmt.Errorf("node group %s not found", ng.Name)
 		}
 
-		if err := validateNumberOfNodes(matchedNodeGroup[0]); err != nil {
+		if err := validateNumberOfNodes(loadedNG); err != nil {
 			return err
 		}
-		ng = matchedNodeGroup[0]
 		l.Plan = false
 		return nil
 	}

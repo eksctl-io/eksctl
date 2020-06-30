@@ -2,11 +2,12 @@ package cmdutils
 
 import (
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 	"github.com/weaveworks/eksctl/pkg/eks"
 )
 
 // ApplyFilter applies nodegroup filters and returns a log function
-func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *NodeGroupFilter) func() {
+func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *filter.NodeGroupFilter) func() {
 	var (
 		filteredNodeGroups        []*api.NodeGroup
 		filteredManagedNodeGroups []*api.ManagedNodeGroup
@@ -24,19 +25,10 @@ func ApplyFilter(clusterConfig *api.ClusterConfig, ngFilter *NodeGroupFilter) fu
 		}
 	}
 
-	nodeGroups, managedNodeGroups := clusterConfig.NodeGroups, clusterConfig.ManagedNodeGroups
-
 	clusterConfig.NodeGroups, clusterConfig.ManagedNodeGroups = filteredNodeGroups, filteredManagedNodeGroups
 
 	return func() {
-		var allNames []string
-		for _, ng := range nodeGroups {
-			allNames = append(allNames, ng.Name)
-		}
-		for _, ng := range managedNodeGroups {
-			allNames = append(allNames, ng.Name)
-		}
-		ngFilter.doLogInfo("nodegroup", allNames)
+		ngFilter.LogInfo(clusterConfig)
 	}
 }
 
@@ -51,16 +43,4 @@ func ToKubeNodeGroups(clusterConfig *api.ClusterConfig) []eks.KubeNodeGroup {
 		kubeNodeGroups = append(kubeNodeGroups, ng)
 	}
 	return kubeNodeGroups
-}
-
-// getAllNodeGroupNames collects and returns names for both managed and unmanaged nodegroups
-func getAllNodeGroupNames(clusterConfig *api.ClusterConfig) []string {
-	var ngNames []string
-	for _, ng := range clusterConfig.NodeGroups {
-		ngNames = append(ngNames, ng.NameString())
-	}
-	for _, ng := range clusterConfig.ManagedNodeGroups {
-		ngNames = append(ngNames, ng.NameString())
-	}
-	return ngNames
 }

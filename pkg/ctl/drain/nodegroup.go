@@ -7,6 +7,7 @@ import (
 
 	api "github.com/weaveworks/eksctl/pkg/apis/eksctl.io/v1alpha5"
 	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils"
+	"github.com/weaveworks/eksctl/pkg/ctl/cmdutils/filter"
 
 	"github.com/weaveworks/eksctl/pkg/drain"
 )
@@ -47,7 +48,7 @@ func drainNodeGroupWithRunFunc(cmd *cmdutils.Cmd, runFunc func(cmd *cmdutils.Cmd
 }
 
 func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bool) error {
-	ngFilter := cmdutils.NewNodeGroupFilter()
+	ngFilter := filter.NewNodeGroupFilter()
 
 	if err := cmdutils.NewDeleteNodeGroupLoader(cmd, ng, ngFilter).Load(); err != nil {
 		return err
@@ -78,8 +79,11 @@ func doDrainNodeGroup(cmd *cmdutils.Cmd, ng *api.NodeGroup, undo, onlyMissing bo
 
 	if cmd.ClusterConfigFile != "" {
 		logger.Info("comparing %d nodegroups defined in the given config (%q) against remote state", len(cfg.NodeGroups), cmd.ClusterConfigFile)
-		if err := ngFilter.SetIncludeOrExcludeMissingFilter(stackManager, onlyMissing, cfg); err != nil {
-			return err
+		if onlyMissing {
+			err = ngFilter.SetOnlyRemote(stackManager, cfg)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	logFiltered := cmdutils.ApplyFilter(cfg, ngFilter)
