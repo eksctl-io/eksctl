@@ -21,7 +21,7 @@ func makeUbuntu1804Config(spec *api.ClusterConfig, ng *api.NodeGroup) (configFil
 		return nil, errors.New("invalid cluster config: missing CertificateAuthorityData")
 	}
 
-	kubeletEnvParams := append(makeCommonKubeletEnvParams(spec, ng),
+	kubeletEnvParams := append(makeCommonKubeletEnvParams(ng),
 		fmt.Sprintf("CLUSTER_DNS=%s", clusterDNS(spec, ng)),
 	)
 
