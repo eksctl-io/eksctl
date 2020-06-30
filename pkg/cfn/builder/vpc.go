@@ -32,10 +32,11 @@ type VPCResourceSet struct {
 	clusterConfig *api.ClusterConfig
 	provider      api.ClusterProvider
 
-	vpcResource *vpcResource
+	vpcResource *VPCResource
 }
 
-type vpcResource struct {
+// VPCResource represents a VPC resource
+type VPCResource struct {
 	VPC           *gfn.Value
 	SubnetDetails *subnetDetails
 }
@@ -85,7 +86,7 @@ func NewVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, provid
 		clusterConfig: clusterConfig,
 		provider:      provider,
 
-		vpcResource: &vpcResource{
+		vpcResource: &VPCResource{
 			VPC:           vpcRef,
 			SubnetDetails: &subnetDetails{},
 		},
@@ -93,7 +94,7 @@ func NewVPCResourceSet(rs *resourceSet, clusterConfig *api.ClusterConfig, provid
 }
 
 // AddResources adds all required resources
-func (v *VPCResourceSet) AddResources() (*vpcResource, error) {
+func (v *VPCResourceSet) AddResources() (*VPCResource, error) {
 	vpc := v.clusterConfig.VPC
 	if customVPC := vpc.ID != ""; customVPC {
 		if err := v.importResources(); err != nil {
@@ -422,7 +423,7 @@ type clusterSecurityGroup struct {
 	ClusterSharedNode *gfn.Value
 }
 
-func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *vpcResource) *clusterSecurityGroup {
+func (c *ClusterResourceSet) addResourcesForSecurityGroups(vpcResource *VPCResource) *clusterSecurityGroup {
 	var refControlPlaneSG, refClusterSharedNodeSG *gfn.Value
 
 	if c.spec.VPC.SecurityGroup == "" {

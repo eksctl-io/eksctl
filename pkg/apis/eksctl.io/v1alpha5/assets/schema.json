@@ -643,8 +643,8 @@
         "tags",
         "iam"
       ],
-      "description": "defines an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error",
-      "x-intellij-html-description": "defines an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error"
+      "description": "represents an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error",
+      "x-intellij-html-description": "represents an EKS-managed nodegroup TODO Validate for unmapped fields and throw an error"
     },
     "MetricsCollection": {
       "required": [
