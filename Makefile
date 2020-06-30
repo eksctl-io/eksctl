@@ -214,6 +214,17 @@ prepare-release-candidate:
 print-version:
 	@go run pkg/version/generate/release_generate.go print-version
 
+.PHONY: merge-release-branch-back
+merge-release-branch-back:
+ifeq ($(BRANCH),)
+	$(error BRANCH expected but not specified)
+endif
+	@git config --global merge.keep-release-file.name "keep master version of pkg/version/release.go and other files in .gitattributes during merge"
+	@git config --global merge.keep-release-file.driver "true"
+	@git pull --ff-only origin $(shell git rev-parse --abbrev-ref @)
+	@git merge $(BRANCH)
+	@echo "Release branch $(BRANCH) merged into current branch except files defined in .gitattributes. You can now push the changes to the repo or open a pull request"
+
 ##@ Docker
 
 .PHONY: eksctl-image
