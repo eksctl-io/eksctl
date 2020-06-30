@@ -22,7 +22,6 @@ package schema
 import (
 	"bytes"
 	"encoding/json"
-	"go/ast"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -44,15 +43,13 @@ type Schema struct {
 // GenerateSchema is the entrypoint for schema generation
 func GenerateSchema(inputPath string, pkgName string, rootRef string, strict bool) (Schema, error) {
 	definitions := make(map[string]*definition.Definition)
-	importer := importer.NewImporter()
-	schemaPkg, err := importer(filepath.Join(inputPath, pkgName))
+	importer, err := importer.NewImporter(filepath.Join(inputPath, pkgName))
 	if err != nil {
 		return Schema{}, err
 	}
 	dg := definition.Generator{
 		Strict:      strict,
 		Definitions: definitions,
-		PkgScope:    schemaPkg.Data.(*ast.Scope),
 		Importer:    importer,
 	}
 	dg.CollectDefinitionsFromStruct(rootRef)

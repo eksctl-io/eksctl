@@ -17,14 +17,13 @@ const (
 type Generator struct {
 	Strict      bool
 	Definitions map[string]*Definition
-	PkgScope    *ast.Scope
 	Importer    importer.Importer
 }
 
 // newStructDefinition handles saving definitions for refs in the map
 func (dg *Generator) newStructDefinition(name string, typeSpec ast.Expr, comment string) *Definition {
 	def := Definition{}
-	noDerive, err := HandleComment(name, comment, &def, dg.Strict)
+	noDerive, err := dg.handleComment(name, comment, &def)
 	if err != nil {
 		panic(err)
 	}
@@ -89,9 +88,9 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 	switch tt := t.(type) {
 	case *ast.Ident:
 		typeName := tt.Name
-		if obj, ok := dg.PkgScope.Objects[typeName]; ok {
+		if obj, ok := dg.Importer.FindPkgObj(typeName); ok {
 			// If we have a declared type behind our ident, add it
-			refTypeName, refTypeSpec = typeName, obj.Decl.(*ast.TypeSpec)
+			refTypeName, refTypeSpec = tt.Name, obj.Decl.(*ast.TypeSpec)
 		}
 		def = &Definition{}
 		setTypeOrRef(def, typeName)
@@ -145,7 +144,7 @@ func (dg *Generator) newPropertyRef(referenceName string, t ast.Expr, comment st
 		dg.Definitions[refTypeName] = structDef
 	}
 
-	_, err := HandleComment(referenceName, comment, def, dg.Strict)
+	_, err := dg.handleComment(referenceName, comment, def)
 	if err != nil {
 		panic(err)
 	}

@@ -13,38 +13,38 @@ var (
 	regexpExample       = regexp.MustCompile("(.*)For example: `(.*)`")
 	typeOverridePattern = regexp.MustCompile("(.*)Schema type is `([a-zA-Z]+)`")
 	pTags               = regexp.MustCompile("(<p>)|(</p>)")
-
-	// patterns for enum-type values
-	enumValuePattern     = "^[ \t]*`(?P<name>[^`]+)`([ \t]*\\(default\\))?: .*$"
-	regexpEnumDefinition = regexp.MustCompile("(?m).*Valid [a-z]+ are((\\n" + enumValuePattern + ")*)")
-	regexpEnumValues     = regexp.MustCompile("(?m)" + enumValuePattern)
 )
 
-func getTypeName(rawName string) string {
-	splits := strings.Split(rawName, ".")
-	return splits[len(splits)-1]
+func interpretReference(ref string) (string, string) {
+	splits := strings.Split(ref, ".")
+	var pkg string
+	if len(splits) > 1 {
+		pkg = strings.Join(splits[:len(splits)-1], "")
+	}
+	return pkg, splits[len(splits)-1]
 }
 
-// HandleComment interprets as much as it can from the comment and saves this
+// handleComment interprets as much as it can from the comment and saves this
 // information in the Definition
-func HandleComment(rawName, comment string, def *Definition, strict bool) (bool, error) {
+func (dg *Generator) handleComment(rawName, comment string, def *Definition) (bool, error) {
 	var noDerive bool
-	name := getTypeName(rawName)
-	if strict && name != "" {
+	_, name := interpretReference(rawName)
+	if dg.Strict && name != "" {
 		if !strings.HasPrefix(comment, name+" ") {
 			return noDerive, errors.Errorf("comment should start with field name on field %s", name)
 		}
 	}
 
-	// process enums before stripping out newlines
-	if m := regexpEnumDefinition.FindStringSubmatch(comment); m != nil {
-		enums := make([]string, 0)
-		if n := regexpEnumValues.FindAllStringSubmatch(m[1], -1); n != nil {
-			for _, matches := range n {
-				enums = append(enums, matches[1])
-			}
-			def.Enum = enums
-		}
+	enumInformation, err := interpretEnumComments(dg.Importer, comment)
+	if err != nil {
+		return noDerive, err
+	}
+	var enumComment string
+	if enumInformation != nil {
+		def.Default = enumInformation.Default
+		def.Enum = enumInformation.Enum
+		comment = enumInformation.RemainingComment
+		enumComment = enumInformation.EnumComment
 	}
 
 	// Remove kubernetes-style annotations from comments
@@ -77,9 +77,9 @@ func HandleComment(rawName, comment string, def *Definition, strict bool) (bool,
 	}
 
 	// Remove type prefix
-	description = regexp.MustCompile("^"+name+" (\\*.*\\* )?((is (the )?)|(are (the )?)|(lists ))?").ReplaceAllString(description, "$1")
+	description = removeTypeNameFromComment(name, description)
 
-	if strict && name != "" {
+	if dg.Strict && name != "" {
 		if description == "" {
 			return noDerive, errors.Errorf("no description on field %s", name)
 		}
@@ -87,10 +87,25 @@ func HandleComment(rawName, comment string, def *Definition, strict bool) (bool,
 			return noDerive, errors.Errorf("description should end with a dot on field %s", name)
 		}
 	}
-	def.Description = description
+	def.Description = joinIfNotEmpty(" ", description, enumComment)
 
 	// Convert to HTML
-	html := string(blackfriday.Run([]byte(description), blackfriday.WithNoExtensions()))
+	html := string(blackfriday.Run([]byte(def.Description), blackfriday.WithNoExtensions()))
 	def.HTMLDescription = strings.TrimSpace(pTags.ReplaceAllString(html, ""))
 	return noDerive, nil
+}
+
+func removeTypeNameFromComment(name, description string) string {
+	return regexp.MustCompile("^"+name+" (\\*.*\\* )?((is (the )?)|(are (the )?)|(lists ))?").ReplaceAllString(description, "$1")
+}
+
+// joinIfNotEmpty is sadly necessary
+func joinIfNotEmpty(sep string, elems ...string) string {
+	var nonEmptyElems = []string{}
+	for _, e := range elems {
+		if e != "" {
+			nonEmptyElems = append(nonEmptyElems, e)
+		}
+	}
+	return strings.Join(nonEmptyElems, sep)
 }
